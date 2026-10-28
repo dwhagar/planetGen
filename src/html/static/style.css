@@ -2982,6 +2982,26 @@ code {
   bottom: 9.5rem;
 }
 
+/* MAP.332: a card too tall for the room above the controls and the legend takes the map's whole height (static/mappick.js sets
+   `data-tall`), the popup sized to its content up to the window's height and scrolling past it. On the right it stands beside the
+   zoom controls (their width is `--info-pad-clear`); on the left it lies over the legend and the scale, which only read. */
+.starmap-info[data-overlay][data-tall],
+:is(.galaxy-map-main, .starmap-viewport):has(.starmap-navpad) > .starmap-info[data-overlay][data-tall] {
+  top: 0.5rem;
+  bottom: auto;
+  max-height: calc(100% - 1rem);
+}
+
+.starmap-info[data-overlay][data-tall][data-corner$="right"] {
+  right: var(--info-pad-clear, 10rem);
+  width: min(calc(100% - var(--info-pad-clear, 10rem) - 1rem), clamp(13rem, 36%, 24rem));
+}
+
+.starmap-info[data-overlay][data-tall][data-corner$="left"] {
+  left: 0.5rem;
+  right: auto;
+}
+
 .starmap-info .map-info-more {
   margin: 0 0 0.6rem;
 }

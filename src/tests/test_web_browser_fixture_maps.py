@@ -661,7 +661,12 @@ def _take(page, found):
 
 
 def _screen_of(page, point):
-    """Where a point of the scene (parsecs) falls on the page now, or None."""
+    """Where a point of the scene (parsecs) falls on the page now, or None. A card open over the map is closed first (MAP.332: a card
+    too tall for the room above the zoom controls now stands beside them, over more of the map, and its More takes the pointer)."""
+    close = page.locator("#galaxymap3d-info .map-info-close")
+    if close.count() and close.is_visible():
+        close.click()
+        page.wait_for_timeout(100)
     spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
     return (spot["x"], spot["y"]) if spot else None
 
@@ -2284,6 +2289,8 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     """MAP.219: the marker layer draws a glyph over each black hole in view, with a Menu toggle that rides in the
     address, a legend line while on, and a click on the glyph shows the black hole's card."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    _poi_layers(page)    # a crowd of a black hole with a world's mark has no name of its own (MAP.305), which the long runs hit
+    page.locator("#galaxymap3d-menu > summary").click()
     holes = {p["name"]: p for p in POINT_FIELD if p["type"] == "black_hole"}
     drawn = _markers_until(page, lambda found: {e["name"] for e in found if e["kind"] == "marker-black-hole"} >= set(holes))
     assert {e["name"] for e in drawn if e["kind"] == "marker-black-hole"} >= set(holes), drawn
@@ -2316,7 +2323,7 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     # Off: no markers, no legend line, and the address says so.
     _open_menu(page)
     button.click()
-    assert "hide=marker-black-hole" in page.url
+    assert "marker-black-hole" in parse_qs(urlparse(page.url).query).get("hide", [""])[0].split(",")
     assert [e for e in _markers_until(page, lambda found: not any(e["kind"] == "marker-black-hole" for e in found))
             if e["kind"] == "marker-black-hole"] == []
     assert "Black holes" not in legend.inner_text()
@@ -2329,7 +2336,7 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]').click()
     assert {e["name"] for e in _markers_until(page, lambda found: bool(found))} >= set(holes)
-    assert "hide" not in page.url
+    assert "marker-black-hole" not in parse_qs(urlparse(page.url).query).get("hide", [""])[0].split(",")
 
 
 GLOW = "() => { const g = document.querySelector('#galaxymap3d-canvas').__mapGlow; return g && {count: g.count(), drawn: g.drawn(), visible: g.isVisible()}; }"
@@ -4237,3 +4244,46 @@ def test_galaxy_map_names_the_heaviest_sectors_first_by_their_total_mass(page, m
     page.wait_for_function(f"() => ({LABELS})().filter((label) => label.kind === 'sector').length === 3")
     placed = [label["text"] for label in page.evaluate(LABELS) if label["kind"] == "sector"]
     assert placed == ["Fixture Second", "Fixture High", "Fixture Shell Nine"], placed
+
+
+BLOCK_LIKE_CARD = """() => {
+    const panel = document.querySelector("#galaxymap3d-canvas").__mapInfo;
+    const region = document.createElement("p");
+    region.className = "map-info-region";
+    region.textContent = "In the Fixture Region";
+    panel.show({title: "Block 10·1·63 (9 sectors a side)",
+        fields: [["Sectors", "469"], ["Charted", "0"], ["Distance from core", "376 pc (1,226 ly)"]],
+        more: [["Shells", "90-98"], ["Row", "1 of 12"], ["Wedge", "63 of 130"]],
+        after: [region],
+        buttons: [{label: "Fly into this block", onClick: function () {}}]});
+}"""
+
+CARD_REACH = """() => {
+    const info = document.querySelector("#galaxymap3d-info");
+    const view = document.querySelector(".galaxymap3d-panel .starmap-viewport").getBoundingClientRect();
+    const box = info.getBoundingClientRect();
+    const button = [...info.querySelectorAll("button")].find((b) => b.textContent.includes("Fly into this block"));
+    const region = info.querySelector(".map-info-region");
+    const content = info.scrollHeight;
+    info.scrollTop = info.scrollHeight;
+    const reach = (el) => { const r = el.getBoundingClientRect(); return r.top >= box.top - 1 && r.bottom <= box.bottom + 1; };
+    return {content: content, height: box.height, view: view.height, scrolls: info.scrollHeight > info.clientHeight + 1,
+            buttonReachable: !!button && reach(button), regionReachable: !!region && reach(region)};
+}"""
+
+
+@pytest.mark.parametrize("width,height", [(1000, 560), (800, 520), (390, 640)])
+def test_galaxy_map_info_card_sizes_to_its_content_and_keeps_its_buttons_and_region_line_reachable_in_a_short_window(page, map_site, width, height):
+    """MAP.332: the card is as tall as what it says, up to the map window's height, and past that it scrolls inside itself; its
+    region line and its buttons are never left below the fold of a short window."""
+    page.set_viewport_size({"width": width, "height": height})
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(500)
+    page.evaluate(BLOCK_LIKE_CARD)
+    page.evaluate("() => { document.querySelector('#galaxymap3d-info .map-info-more').open = true; }")   # the card fits itself again
+    page.wait_for_timeout(300)
+    got = page.evaluate(CARD_REACH)
+    assert got["buttonReachable"] and got["regionReachable"], got
+    # Sized to its content: when the content fits in the window the card shows it whole with no scroll.
+    if got["content"] <= got["view"] - 16:
+        assert not got["scrolls"], got

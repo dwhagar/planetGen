@@ -338,8 +338,8 @@ export function createInfoPanel(panelEl) {
   function overflows() {
     return panelEl.scrollHeight > panelEl.clientHeight + 1 || panelEl.scrollWidth > panelEl.clientWidth + 1;
   }
-  function fit() {
-    if (!overlay || panelEl.dataset.state !== "selected" || typeof panelEl.scrollHeight !== "number") return;
+  // The smallest text that still fits the card in the room it has; what is left scrolls.
+  function shrinkToFit() {
     panelEl.style.removeProperty("--info-scale");
     delete panelEl.dataset.scroll;
     let scale = 1;
@@ -349,6 +349,25 @@ export function createInfoPanel(panelEl) {
     }
     if (overflows()) panelEl.dataset.scroll = "";
   }
+  // MAP.332: a card keeps clear of the zoom controls and the legend in the map's lower corners, which leaves a short window little
+  // height. A card that does not fit above them takes the map's whole height instead, standing beside the controls (`data-tall`,
+  // style.css), when the window is wide enough for it; else it scrolls inside the room it has.
+  const TALL_BESIDE_REM = 24;
+  function fit() {
+    if (!overlay || panelEl.dataset.state !== "selected" || typeof panelEl.scrollHeight !== "number") return;
+    delete panelEl.dataset.tall;
+    shrinkToFit();
+    if (!panelEl.hasAttribute("data-scroll") && !overflows()) return;
+    const view = panelEl.parentElement;
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    if (!view || view.clientWidth < TALL_BESIDE_REM * rem) return;
+    const pad = view.querySelector(".starmap-navpad");
+    if (pad) panelEl.style.setProperty("--info-pad-clear", Math.ceil(view.getBoundingClientRect().right - pad.getBoundingClientRect().left + 8) + "px");
+    panelEl.dataset.tall = "";
+    shrinkToFit();
+  }
+  // Opening or closing a More changes what the card has to hold: it is fitted again (a `toggle` does not bubble).
+  if (overlay) panelEl.addEventListener("toggle", fit, true);
   if (overlay && typeof ResizeObserver !== "undefined") {
     hosts.forEach(function (host) { new ResizeObserver(fit).observe(host); });
   }
