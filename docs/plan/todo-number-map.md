@@ -22,7 +22,7 @@ release is stamped.
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.412 |
+| TEST | TEST.413 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.83 |
@@ -2418,7 +2418,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.46 | Wiping the galaxy wipes the bookmarks | none | open |
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | none | open |
 | UX.48 | Charted regions as bookmarks that frame and outline the region | none | open |
-| UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
+| UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | done, PR #3387 |
 | UX.50 | One short hint per map, the rest behind a Help entry | none | done, PR #640 |
 | UX.51 | Cards that repeat the page title | none | done, PR #663 |
 | UX.52 | Sector name repeated on every Contents row | none | done, PR #654 |
@@ -2495,7 +2495,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.123 | The Generate page log, the admin log pages and update.sh output use the layer | none | open |
 | UX.124 | One form-field look and error slot, piloted on the search, nearby and list-filter fields | none | done, PR #2716 |
 | UX.125 | The Generate page and the one-off system page on the field macro | none | done, PR #3184 |
-| UX.126 | The admin pages and the edit dialogs on the field macro | none | open |
+| UX.126 | The admin pages and the edit dialogs on the field macro | none | done, PR #3387 |
 | UX.127 | The Galaxy Map block menu offers Generate again | none | open |
 | UX.128 | Map side panels and other browser call sites take Quantity | none | done, PR #2801 |
 | UX.129 | Saved lists in the browser and in the account: one store with a local and an account backend | none | done, PR #2544 |
@@ -3119,6 +3119,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) | none | open |
 | TEST.410 | test_planet_physics_fixes::test_class_p_is_colder_than_class_m times out at 900 s: it generates 600 planets at about 5 s each since 4c, 14 of 16 seconds in the air solve (bug) | none | open |
 | TEST.411 | Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug) | none | open |
+| TEST.412 | src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

@@ -246,45 +246,6 @@ use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
 
-- [ ] **UX.49 Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site**
-  UX.40 (done, PRs #528, #533, #539, #544) moved the buttons, menus and
-  dialogs onto Shoelace and lined up the Generate page's text boxes with
-  plain CSS; the form fields themselves are still native `<input>`,
-  `<select>` and checkbox elements. Done: every text box, number box,
-  drop-down and checkbox in the templates (Generate and one-off system
-  pages, the edit dialogs, the search and filter fields, sign-in and
-  account forms, admin pages) is an `sl-input`, `sl-select` or
-  `sl-checkbox` from the vendored set, submitting and validating
-  exactly as before (labels, required fields, keyboard use, values
-  posted by name), both themes and phone widths look right, and a
-  browser test fills and submits one form of each kind. Not a bug.
-  Research (2026-10-09, map-ui-and-frontend-libraries.md): re-scope to
-  "form fields use one console-token look; sl-input / sl-select /
-  sl-checkbox only where a component feature helps; hidden, submit,
-  password and one-time-code fields stay native". Done criteria:
-  `--sl-input-border-color` set from the new `--line` token (3:1),
-  server validation errors shown on the right field (ADM.21 errors), a
-  no-JS check that each form still posts. Decided (Boss, 2026-10-10
-  18:44Z, defaults approved; default): Shoelace for select, checkbox,
-  switch and the Generate and
-  admin forms; native for sign-in, account, 2FA code, hidden and submit
-  fields.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: UX.125, UX.126 (UX.124 done, #2716). About 170 form controls
-  in 19 templates (generate.html 27, admin_facility_types.html 26,
-  system.html 22, account.html 15, generate_system.html 12 and others),
-  both themes and phone width, plus three cross-cutting pieces (a common
-  look from one token, server validation errors on the right field, a
-  no-JS posting check).
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  UX.125 and UX.126 moved out of this item (Boss, 2026-10-21, 6:01 PM EDT: the admin pages and the Generate suite are redesigned in their own thread; the Generate page conversion rides ADM.99 and the admin pages ADM.56 and ADM.93), so this item converts the public pages and closes with UX.124.
-  Research (2026-10-09, 10-24 lane 4): Stays with Core 2 (12:20 PM EDT 2026-10-24: Lane 4 looked at it and left it; UX.49 closes with UX.125 and UX.126).
-  Prerequisites: none.
-  Design: [docs/design/architecture/library-migration.md](design/architecture/library-migration.md)
-
 - [ ] **UX.43 A visual design built like a pilot's starmap and navigation console**
   Boss (2026-10-07 11:47Z): "All design elements should be built from
   the ground up to look like, as much as possible, a starmap and
@@ -517,35 +478,6 @@ with `clamp()`.
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
   Prerequisites: none. Related: UX.102.
-
-- [ ] **UX.126 The admin pages and the edit dialogs on the field macro**
-  Split from UX.49 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Convert `admin.html`,
-  `admin_facility_types.html`, `admin_stats.html`, `admin_queue*.html`,
-  the system and sector edit dialogs (`system.html`, `sector.html`) to
-  the macro; the sign-in, account, 2FA code, hidden and submit fields
-  stay native (decided). Done: converted; admin browser tests pass; a
-  form of each kind is submitted in a test.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
-  PM EDT as the lane reported; the admin page conversion now rides
-  ADM.56 and ADM.93).
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/interface/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. The settings page is covered by ADM.103 (S3);
-  the other admin pages move with ADM.93.
-  Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Research (2026-10-09, 10-24 lane 4): Stays with Core 2 (12:20 PM EDT 2026-10-24: Lane 4 looked at it and left it; UX.49 closes with UX.125 and UX.126).
-  Prerequisites: none. Related: UX.49.
 
 - [ ] **UX.127 The Galaxy Map block menu offers Generate again**
   Split from GEN.231 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -20871,6 +20803,18 @@ clears each one.
   TEST.405/406/398/402. Rules: never skip or quarantine a test;
   scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.394, TEST.383.
+
+- [ ] **TEST.412 src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug)**
+  Found by Core 2 (as the lane reported 9:05 AM EDT 2026-10-28) while
+  merging UX.126 (#3387); not touched by that change. Do: run the file
+  alone on clean main, find what blocks on the nearby page (a request
+  that never returns, a wait with no timeout, a missing fixture star, a
+  worker that is not running), fix the code or the fixture, and make the
+  test fail in seconds instead of hanging. Done: the file passes and a
+  stuck page request fails the test within its timeout. Owner: Bug 1
+  after DB.108/GEN.826 and TEST.405/406/398/402, or a free lane. Rules:
+  never skip or quarantine a test; scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.411, UX.126.
 
 ## USR: User accounts
 
