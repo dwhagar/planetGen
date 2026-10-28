@@ -678,8 +678,7 @@
     },
     {
       "epoch": 114,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2430",
       "reason": "A white dwarf's temperature, luminosity and radius come from the downloaded Bedard et al. cooling sequences at its cooling age and hydrogen layer (so a white dwarf of one mass is no longer one radius, and draws one more uniform for its atmosphere), and a disc's solids follow the star's metal mass fraction over the Sun-like reference (Z/Z0) instead of 10^[Fe/H]; planets of metal-poor high-alpha stars gain solids; the edge points between a hot gas giant's atmosphere regimes (rows h1 to h3) are refreshed from the one equilibrium solver, so a few hot-Jupiter atmospheres near an edge draw differently (GEN.742, GEN.464, GEN.723)",
       "affects": ["fill"]
     }
