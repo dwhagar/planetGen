@@ -3041,6 +3041,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   space); the server lists charted regions on the 27, 81 and 243 nodes;
   Menu Labels has a Region names switch. MAP.316 builds on the same
   list.
+  Research (2026-10-09): Progress (2026-10-28): part 1 merged as #3458
+  (Core 2, about 2:26 PM EDT as the lane reports): migration 0166 (no
+  column change, no epoch) and two more interest reasons, uninhabitable
+  worlds (brown) and asteroid fields (grey); a star's mark carries its
+  best world's symbol (habitable, then barren, then gas giant, then
+  belt) and the infobox lists all; layers off by default. Still open, in
+  this order: (a) an inhabited reason (technological civilization or a
+  colony, found as the system page does it; needs a hook when a colony
+  is added or removed), first in the order, coloured by habitability;
+  (b) the planet and moon symbols at system level with the MAP.152
+  hand-off; (c) inhabited tokens on the MAP.316 region nodes; (d) the
+  label budget.
 
 - [ ] **MAP.322 Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e)**
   Boss, 1:20 AM EDT 2026-10-25 (relayed by the coordinator): "inside the
