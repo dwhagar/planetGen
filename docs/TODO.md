@@ -3741,6 +3741,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss's decisions (rogue sizes, a D in the hot zone), run on top of the
   TEST.209 and TEST.210 harness; not a second sweep over the same
   classes.
+  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
+  EDT 2026-10-28, high priority) takes this with TEST.430 where it
+  overlaps the class census; confirm any other lane's claim with TODO
+  first.
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
@@ -17360,6 +17364,10 @@ clears each one.
   recipe rows of GEN.411 are covered by the registry sum test TEST.214;
   this sweep checks the consistency of the drawn recipe with the text,
   the temperature, the ozone and the aerosols.
+  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
+  EDT 2026-10-28, high priority) takes this with TEST.430 where it
+  overlaps the class census; confirm any other lane's claim with TODO
+  first.
 
 - [ ] **TEST.210 A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -17406,6 +17414,10 @@ clears each one.
   Boss's gated possibility-table rule (1:38 AM EDT): the bulk recipe
   rows of GEN.428 are covered by the registry sum test TEST.214; this
   sweep checks the drawn fractions, density, mass and gravity.
+  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
+  EDT 2026-10-28, high priority) takes this with TEST.430 where it
+  overlaps the class census; confirm any other lane's claim with TODO
+  first.
 
 - [ ] **TEST.211 A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -17553,6 +17565,10 @@ clears each one.
   one; the licence information lives in DATA-LICENSE.md. This
   overrides every line of this item that calls the licence column
   mandatory; GEN.623 does the removal.
+  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
+  EDT 2026-10-28, high priority) takes this with TEST.430 where it
+  overlaps the class census; confirm any other lane's claim with TODO
+  first.
 
 
 - [ ] **TEST.215 The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one**
@@ -18443,6 +18459,10 @@ clears each one.
   notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
+  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
+  EDT 2026-10-28, high priority) takes this with TEST.430 where it
+  overlaps the class census; confirm any other lane's claim with TODO
+  first.
 
 - [ ] **TEST.302 benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug)**
   Finding of the Setup script lane (2026-10-23, report
@@ -18539,6 +18559,10 @@ clears each one.
   ranges are reported as outputs and every body's class agrees with its
   conditions. Done: both sweeps carry the new checks. Owner: Composition
   L.
+  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
+  EDT 2026-10-28, high priority) takes this with TEST.430 where it
+  overlaps the class census; confirm any other lane's claim with TODO
+  first.
   Prerequisites: GEN.689, TEST.209, TEST.210.
 
 - [ ] **TEST.317 test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails under heavy load (bug)**
@@ -18992,6 +19016,10 @@ clears each one.
   GEN.689, GEN.27, GEN.350.
   Research (2026-10-09): Folded into the class census (TEST.430, Boss
   7:21 PM EDT 2026-10-28): retire with it.
+  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
+  EDT 2026-10-28, high priority) takes this with TEST.430 where it
+  overlaps the class census; confirm any other lane's claim with TODO
+  first.
 
 - [ ] **TEST.398 The test preflight kills stale planetgen.cli.worker processes, which pick up the units of later runs (bug)**
   Math 1 finding (3:49 AM EDT 2026-10-25): stale planetgen.cli.worker
@@ -19288,8 +19316,8 @@ clears each one.
   after the class cut-over). Would have caught the 4c oxygen loss
   (GEN.855) as a collapse of the Blue and Green share. Done: the report
   runs from one command, a seeded run is repeatable, and a deliberately
-  broken input trips each of the four flags in a test. Owner: Bug 1,
-  after its current red-test items.
+  broken input trips each of the four flags in a test. Owner: Bug 2
+  (Class census tests lane, Boss 7:24 PM EDT 2026-10-28: the whole chain, high priority).
   Prerequisites: none. Related: TEST.210, TEST.315, TEST.209, TEST.214,
   TEST.301, TEST.395, GEN.855, GEN.725.
 
