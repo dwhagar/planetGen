@@ -446,6 +446,12 @@ _BODY_NOT_SHOWN = {
     "aerosol_draw": "the random draw behind the haze and dust depths; bookkeeping",
     "atmosphere_colour": "shown as the Atmosphere Colour swatch by the description builder, a colour rather than a number",
     "albedo_basis": "how the albedo and greenhouse draws were obtained (recorded, inverted or class draw); bookkeeping",
+    **_excuse(("ground_type", "ground_grain", "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction",
+               "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction",
+               "ground_oxidised_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
+               "ground_sulfur_fraction"),
+              "the stored mix of ground types (GEN.441); it feeds the ground dose and the surface rendering, and the page does "
+              "not list it as a row yet"),
     **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
