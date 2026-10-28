@@ -1442,6 +1442,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Still open here: the sector-level steps and dimming (Aux 10 MAP.327
   calls the same step function), dimmed neighbouring blocks, and the
   System Map neighbours.
+  Scope (2026-10-09): Scope settled by TODO for Core 2 (10:36 AM EDT
+  2026-10-28, provisional, Boss may correct): (1) dimming is Boss's
+  Sector Map request: the sectors around the one in view are drawn
+  dimmed with their stars and systems but no comets or rogue planets,
+  and MAP.327's dimming outside the sector bounds is the first half of
+  it; the Galaxy Map already draws its cells around the centre, so it
+  needs stepping only, not new dimming. (2) Stepping: arrow buttons and
+  keys move the camera to the neighbouring sector, block or slab at the
+  same level (MAP.200's nav pad is the base). (3) System Map: a
+  neighbour is the nearest systems in 3D (within the sector and across
+  its edge), drawn faint as context (MAP.141), and a step goes to the
+  nearest system in the direction of the arrow; the System Map has no
+  grid to step through. Build (1) and (2) first; (3) can be a later PR.
   Prerequisites: none.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
