@@ -69,7 +69,7 @@ def test_no_id_code_repeats_and_codes_fit_six_bits():
 
 def test_the_existing_lists_are_the_registry():
     assert object_id.KIND_CODES == registry.id_codes()
-    assert set(naming_key.KINDS) == set(registry.id_codes()) - {"bright-star"} | {"constellation"}
+    assert set(naming_key.KINDS) == set(registry.id_codes()) - {"bright-star"} | {"constellation", "region"}
     assert phenomenon_scatter.SCATTERED_KINDS == registry.kinds(scatter_pass="band-density")
     assert tuple(kind for kind, _t, _f in run_sector.SECTOR_PHENOMENON_KINDS) == registry.kinds(sector_roll=True)
     assert tuning.PHENOMENON_TYPE_CHOICES == registry.phenomenon_types()
