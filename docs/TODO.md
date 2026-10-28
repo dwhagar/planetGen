@@ -2741,6 +2741,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the registry, the best-world tier and score on the node worlds payload
   (needs a habitable_systems column and a migration, which Core 4 did
   not take), and the menu rows (MAP.306).
+  Research (2026-10-09): Progress (2026-10-28): step 1 merged as #3453
+  together with the server and client half of MAP.303 (Core 2, about
+  2:07 PM EDT as the lane clock reads). Migration 0165 system_interests
+  replaces habitable_systems (no epoch, no lock); the tile node field
+  interests replaces worlds (TILE_FORMAT 8); one marker kind per reason
+  (habitable now Yellow or better, gas giant), a two-reason system is
+  drawn once, the infobox lists every reason; both marker kinds are
+  still off by default. The gas giant source is
+  interests.REASONS[GAS_GIANT] in db/interests.py (p.body_type = 'g');
+  GEN.646 (Aux 9) swaps it there. Still open: step 2 (crowded marks
+  merge into one mark with a count and the infobox lists all its
+  systems), MAP.303 flipping the defaults on and its acceptance browser
+  test.
 
 - [ ] **MAP.306 The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug)**
   Boss, 7:37 PM EDT 2026-10-24 (message
@@ -3136,17 +3149,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   backward-compat shims; reuse stageView.openSector and
   galaxyprisms.neighbourBlock.
   Prerequisites: none. Related: MAP.121, MAP.141.
-
-- [ ] **MAP.330 Star glow halos grow huge when stars are blurred and cover most of the screen: fade the glow out strongly with halo size and cut it to zero long before that (bug)**
-  Boss, 12:40 PM EDT 2026-10-28: increase the fade on blurred stars,
-  because right now the halos are huge and take most of the screen. They
-  are faint but visible; he wants them fully invisible long before they
-  get that large. Fix: fade the glow with halo size (zoom) on a steeper
-  curve and clamp it to zero at a size cap well below the screen, in the
-  star glow layer (MAP.266/MAP.269). Aux 10 touches the glow layer on
-  MAP.316, so Core 2 checks with them before editing. Owner: Core 2,
-  after MAP.305/MAP.303 PR1.
-  Prerequisites: none.
 
 ## NAV: Navigation and courses
 
@@ -19891,6 +19893,11 @@ clears each one.
   after TEST.397 and the two blockers above, or a free lane. Rules: no
   backward-compat shims; never skip or quarantine the test;
   scripts/test.py changed --resume.
+  Research (2026-10-09): Core 2 (2:07 PM EDT 2026-10-28 as the lane
+  clock reads): on a clean main worktree test_db_column_round_trip also
+  died with 'the spectrum has no light between 380 and 780 nm' in
+  generation. GEN.844 (#3443, 1:00 PM EDT) fixes that crash; Bug 1
+  re-checks on current main before treating it as a new cause.
   Prerequisites: none. Related: TEST.398, PERF.181.
 
 - [ ] **TEST.403 Three scatter tests are far too slow: test_a_galaxy_with_no_scatter_still_rolls_its_own runs over 4.5 minutes, and two others hang for an hour under -n 4 (bug)**
