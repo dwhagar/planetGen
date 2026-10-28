@@ -401,14 +401,14 @@ UNCHARTED_CELL = (1, 0, 0)
 hole and a nebula (MAP.162)."""
 
 SECTOR_STATS = {
-    SECTOR_ID: (900, 1200, 4.5, 3000.0, 14),
-    8: (40, 60, 0.5, 900.0, 3),
-    9: (0, 0, None, 0.0, 0),
-    10: (6, 8, 11.0, 4.0, 1),
+    SECTOR_ID: (900, 1200, 4.5, 3000.0, 14, 2.4e33),
+    8: (40, 60, 0.5, 900.0, 3, 1.2e32),
+    9: (0, 0, None, 0.0, 0, 0.0),
+    10: (6, 8, 11.0, 4.0, 1, 3.0e31),
 }
 """Each fixture sector's stored systems, stars, mean star age (Gy), summed
-luminosity (DB.14) and habitable worlds (MAP.143): a dense average one, a young
-bright one, one with no stars and a sparse old one."""
+luminosity (DB.14), habitable worlds (MAP.143) and total mass in kilograms (DB.108, MAP.322): a dense average one, a young
+bright one, one with no stars and a sparse old one. The masses order the sectors Prime, High, Second, Shell Nine."""
 
 
 def galaxy_stage(at=None):
@@ -440,7 +440,8 @@ def _stats(ids):
     stars = sum(r[1] for r in rows)
     return {"systems": sum(r[0] for r in rows), "expected_systems": 0.0, "stars": stars,
             "mean_age_gy": sum(r[2] * r[1] for r in rows if r[1]) / stars if stars else None,
-            "luminosity_sol": sum(r[3] for r in rows), "habitable_worlds": sum(r[4] for r in rows)}
+            "luminosity_sol": sum(r[3] for r in rows), "habitable_worlds": sum(r[4] for r in rows),
+            "mass_kg": sum(r[5] for r in rows)}
 
 
 def _children(counts):

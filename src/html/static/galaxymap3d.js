@@ -3827,6 +3827,7 @@ function initGalaxyMap3d(canvasEl, data) {
       },
     });
     canvasEl.__mapLabels = galaxyLabels;    // the browser tests read what is placed
+    canvasEl.__mapSectorNames = stageView.sectorLabels;    // ... and the sector names with the total mass each is ranked by (MAP.322)
     canvasEl.__mapBodyNames = bodyNames;    // ... and the slice each body's name is offered in (MAP.321)
   }
   // MAP.314: the names of the charted regions the nodes of the view offer, by the size of the nodes (regionlabels.js): none

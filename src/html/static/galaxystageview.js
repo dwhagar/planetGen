@@ -3570,6 +3570,7 @@ export function createStageView(host) {
         id: "sector:" + (record.id !== undefined && record.id !== null ? record.id : cellKey(block)),
         text: record.name || "Sector " + S.sectorDesignation(block.shell, block.band, block.wedge),
         x: middle[0], y: middle[1], z: middle[2], sizePc: edgePc,
+        slice: { massKg: record.stats && record.stats.mass_kg > 0 ? record.stats.mass_kg : 0 },    // MAP.322: the heaviest sectors are named first
         ref: { kind: "sector", sector: { shell: block.shell, band: block.band, wedge: block.wedge } },
       });
     });
