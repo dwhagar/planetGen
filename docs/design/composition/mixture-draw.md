@@ -63,8 +63,8 @@ takes more), the Henry law's 273.15 to 323.15 K with the nearest end standing in
 ## Where the degassed sulfur goes (GEN.815)
 
 The supply law brings sulfur to the surface; the sulfur sink decides how much of it the air keeps (`physics/sulfur_balance.py`). It
-replaces the stand-in `SULFUR_SURFACE_KEPT` (1e-5 to 1e-2 of the sulfur stays in the air with an ocean), under which a wet world could
-hold hundreds of bar of S2. Two solid sinks take sulfur out of the gas: sulfate (SO2 and SO3 with calcium as CaSO4) and sulfide (H2S, S2
+replaced the stand-in `SULFUR_SURFACE_KEPT` (1e-5 to 1e-2 of the sulfur stayed in the air with an ocean; removed when `surface_air` called this
+module), under which a wet world could hold hundreds of bar of S2. Two solid sinks take sulfur out of the gas: sulfate (SO2 and SO3 with calcium as CaSO4) and sulfide (H2S, S2
 and COS with iron as FeS and FeS2). Which one a mole goes to is the redox of the gas it arrived in: `oxidised_share_of` reads the share of
 the sulfur that is bonded to oxygen from the equilibrium gas of the outgassing stage.
 
@@ -190,8 +190,8 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
   window is no longer normalised to 1 (frost was drawn at 181 K); `c_j1` and `c_j5` now mean what their brackets say (the share of
   eligible worlds that are Venus-like and that keep abiotic oxygen). (3) A body with an ocean and a long-lived geology kept only a
   share of the outgassed carbon and sulfur (`INVENTORY["weathering_sink"]`, 1e-5 to 1e-2): GEN.411 removed that bracket, and the sinks are
-  now the carbonate-silicate balance (GEN.726, `surface_pressure`) and the ocean's uptake of sulfur (`mixture_sinks`, GEN.757, and
-  `surface_air.SULFUR_SURFACE_KEPT`), which `surface_air` passes to the draw as `supply`, a callable from the inventory to the share of each
+  now the carbonate-silicate balance (GEN.726, `surface_pressure`), the sulfate and sulfide sinks of the crust (`sulfur_balance`, GEN.815, wired
+  in `surface_air._shares`) and the ocean's uptake of sulfur (`mixture_sinks`, GEN.757), which `surface_air` passes to the draw as `supply`, a callable from the inventory to the share of each
   element degassed (see `surface-pressure-supply-law.md` section 6).
 - Gaps that stay, each with its reason (GEN.674 items 3, 5 and 6; the filed finding numbers are in the item): rows `j3` and `j4` are
   gated on the retention rows `d4` and `d5`, and the shoreline (a fit to hot rocky exoplanets, extrapolated to an escape speed of 1.2

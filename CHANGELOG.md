@@ -2,6 +2,47 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2366] - 2026-10-28
+
+**Headline:** The sulfur a world keeps in its air is what the sulfate and sulfide sinks of its crust leave, instead of a drawn share.
+
+### Changed
+- **The sulfur balance replaces the stand-in (GEN.815).** `physics/surface_air.py` gives the mixture draw the sulfur that `physics/sulfur_balance.py` leaves in the air: the sulfur the interior degassed, less the sulfate (calcium) and sulfide (iron) the crust it built can bind, at the removal lifetime of rain-out over an ocean or of sulfation of the rock on a dry surface, split by the redox of the gas. Sulfur beyond what the crust holds stays in the air whole. A wet world no longer holds hundreds of bar of sulfur gas, and a dry one keeps almost none unless its inventory outgrows its crust.
+
+### Removed
+- **`SULFUR_SURFACE_KEPT` (1e-5 to 1e-2 of the degassed sulfur kept with an ocean)**, its drawn constant `sulfur_surface_kept` and its registry row (AM80).
+
+generation-output: changed
+
+## [8.0.2365] - 2026-10-28
+
+**Headline:** The pinned-galaxy test builds the galaxy once at one worker, so `golden_update` and the golden test of every generation merge take about half as long; the one-worker-against-four-worker comparison runs in the end-of-version run.
+
+### Changed
+- **`test_golden_seed.py` built the pinned galaxy twice (TEST.407).** It made the galaxy at one worker and again at four in the same test, about 30 and 25 minutes on a lane machine, and a rewrite of the golden files (`golden_update`) did both. It is now two tests: `test_the_pinned_galaxy_is_the_pinned_one` builds the galaxy at one worker and compares it with `galaxy.json` (or writes it, which is all `golden_update` needs), and `test_the_pinned_galaxy_is_made_at_one_worker_and_at_four` builds it at four workers and compares it with the one-worker galaxy, reusing the first build. The second runs only with `PLANETGEN_VERSION_GATE=1`, which `scripts/test.py full` and `full --check` (the end-of-version run) set, as the budget test runs only when asked; it is skipped with that reason in a merge gate and while the golden files are written. Golden files are byte-identical for the same seed. A determinism break between one worker and four is therefore caught at the version gate and not at each generation merge. Documented in `docs/reference/testing.md` under "Opt-in tests".
+TODO items resolved: TEST.407 (TODO closes it after reading this; the build itself is still about as long as one galaxy at one worker). Added: none.
+
+## [8.0.2364] - 2026-10-28
+
+**Headline:** Generation now knows which cloud a new system sits in: a system placed inside one of the galaxy's molecular clouds gets that cloud, its far-ultraviolet radiation tier and its aluminium-26 enrichment while it is made.
+
+### Added
+- **The cloud while a system is made (GEN.357).** The molecular clouds that reach a sector are found before its first system is placed. Each system placed inside one is handed that cloud (its class, size, extinction, age, centre and the stars that light it), the radiation tier its host stars' far-ultraviolet light adds (counted in Habing units, one tier at 100, 1,000 and 10,000), the tier its kind of cloud adds on its own, and an aluminium-26 enrichment factor for the cloud classes that enrich. A system in open space is untouched and draws nothing extra.
+- A loaded system's cloud carries the same extra facts (extinction, radius, age, centre and host stars), read from the stored nebula or remnant.
+
+### Changed
+- The cloud's planet rules (which planets survive the light, the swallowed-giant flag, orbit expansion) are not applied yet; they come with GEN.358. Nothing a system is made of changes, and the pages and the API show the cloud a system is in exactly as before.
+
+TODO items resolved: GEN.357. Added: none.
+
+## [8.0.2363] - 2026-10-28
+
+**Headline:** The update's reload check no longer fails just because the site is closed for the update.
+
+### Fixed
+- **`update.sh` reported "does not answer" for a healthy site (OPS.75).** The reload check asked `/api/health` while the update's own maintenance mode was still on, and got a 503. `/api/health` now stays open while the site is closed and reports `maintenance` (cause and reason). The warning names the failing check, the address and the answer, and says whether the site is in maintenance mode and why. The failing step is named for the reload, not "step 9/9".
+- **`update.sh` listed the `state/` folder as an uncommitted local change that would be overwritten (OPS.76).** That folder is the update's own (the maintenance switch and lock), and is no longer listed.
+
 ## [8.0.2362] - 2026-10-25
 
 **Headline:** The Galaxy Map's unresolved star glow no longer floods the view: it fades out as the stars resolve and never builds up to white.

@@ -651,6 +651,12 @@
       "first_release": "8.0.2359",
       "reason": "Every planet may hold a ring system: a giant always has one (dusty, narrow or broad), a terrestrial or dwarf planet rarely, drawn after its moons from the Roche limit, the innermost moon and the snow line, stored as ring_kind, ring_origin, ring_inner_km, ring_outer_km, ring_mass_kg, ring_optical_depth and ring_ice_fraction (GEN.732)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 110,
+      "first_release": "8.0.2366",
+      "reason": "The sulfur in the air of a rocky or icy world is what the sulfate and sulfide sinks of its crust leave (rain-out over an ocean, sulfation of the rock on a dry surface), not a drawn share (GEN.815), so the sulfur gases of many airs, and the pressure and temperature that follow, change",
+      "affects": ["fill"]
     }
   ]
 }

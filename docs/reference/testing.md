@@ -496,6 +496,11 @@ These skip unless you turn them on:
   ones), so a lane's pull request never carries one and a stale one never fails a lane's gate: the tests skip unless
   `PLANETGEN_GLOBAL_DOCS=1`, which `scripts/test.py <command> --global-docs` sets. The release stamp runs
   `scripts/test.py full --check --global-docs`.
+- `test_golden_seed.py::test_the_pinned_galaxy_is_made_at_one_worker_and_at_four` builds the pinned galaxy at four workers and
+  compares it with the one-worker galaxy (TEST.407). The ordinary run builds the galaxy once, at one worker, and
+  compares it with `galaxy.json`, which is also all that `python -m tests.golden_update` builds; the second build,
+  about as long again, is the end-of-version run's: `scripts/test.py full` (and `full --check`) set
+  `PLANETGEN_VERSION_GATE=1`, or set it by hand to run the comparison alone.
 - `test_sector_generation_perf.py` is a timing benchmark:
   `PLANETGEN_RUN_PERF_BENCHMARK=1 pytest -s src/tests/test_sector_generation_perf.py`.
 

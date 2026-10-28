@@ -4537,7 +4537,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the nebula's stored `age_myr`, which the design says 'waits on a
     schema column' (nebula-and-asteroid-field-classes.md, Applying the
     rules at generation, and Nebula volume backfill step 3).
-    Prerequisites: GEN.357, GEN.358.
+    Prerequisites: GEN.358.
     Design: [docs/design/systems/nebula-and-asteroid-field-classes.md](design/systems/nebula-and-asteroid-field-classes.md)
 
 - [ ] **GEN.105 Orbital updates**
@@ -6830,7 +6830,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outside 8.1 is paused until 8.1 is complete).
   Prerequisites: UX.128. Related: GEN.300.
 
-- [ ] **GEN.350 Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T**
+- [ ] **GEN.350 Class R, sub-Neptune, with the envelope-survival rule and the Hycean flag (class T stays: it is the sub-Neptune row of the classifier)**
   Split from GEN.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Rock and ice core under a
   hydrogen-helium envelope, 1.6 to 3.2 Earth radii (cap 4), 3 to 10
@@ -6838,10 +6838,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stripped by the energy-limited loss of the retention module; the
   Hycean window (1 to 10 Earth masses, 1.4 to 2.6 radii, T_eq 150 to 500
   K, density 1.5 to 3) is a flag on R; rocky rogues of 10 to 16 Earth
-  masses become R; class T merges into R and is retired. Done: zone
+  masses become R. Class T is NOT retired (Aux 9 7:36 AM EDT 10-28 as the
+  lane reported: all 20 class letters A to V stay, never retire a letter
+  without asking Boss); T is the light-hydrogen-envelope row of the
+  classifier and stays rare until the envelope half of GEN.822 and
+  GEN.829 lands. Done: zone
   flags, weights, ranges, atmosphere, moon eligibility, rogue flag,
-  reference page and the class-contract and 1,000-system tests; no old
-  row or test expects T.
+  reference page and the class-contract and 1,000-system tests.
   Prerequisites: GEN.355. Related:
   GEN.28, GEN.412, GEN.423, GEN.428.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -6964,31 +6967,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.355. Related: GEN.91,
   GEN.412, GEN.423, GEN.428.
 
-- [ ] **GEN.357 Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud**
-  Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). `surrounding_cloud` (set only at load
-  today) gains extinction, radius, age, host stars and centre at
-  generation; `run_sector` finds the containers of the sector box once
-  (`store._placed_containers`, `NebulaShape.contains`); after the
-  position is chosen `StarSystem.apply_cloud(cloud)` regenerates planets
-  only when the cloud's rules change something and stamps the radiation
-  tier, enrichment factor and composition flags. The same call serves
-  GEN.99's regenerate in place. Done: a system inside a seeded nebula
-  gets the cloud while it is generated, a system outside is
-  byte-identical.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report). READY: its blocker DB.59
-  turned out to be built already (the nebula and remnant age columns have
-  existed since v87 and v38; Core 2, 6:05 PM EDT), so Core 4 can take it
-  now.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): read docs/design/composition/composition-model.md before building it:
-  the nebula's composition flags are either dropped or routed through
-  the composition chain (GEN.428 reads the host's iron, magnesium and
-  silicon, GEN.440 derives the star's composition), so no second set of
-  composition fields is invented.
-  Prerequisites: none. Related: GEN.95, DB.59.
-
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
   Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Apply the rule table inside
@@ -7002,6 +6980,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   vis-viva, unbound above half the mass lost, engulfment overrides).
   Done: a test for each rule and the worked example (1 AU round 1 Msun
   dropping to 0.6 Msun moves to 1.67 AU).
+  Research (2026-10-09, Core 4 report 2026-10-28): GEN.357 merged
+  (#3367): a system placed in a seeded field cloud (classes M, N, P, Q)
+  now carries the cloud, the radiation tier and an Al-26 enrichment
+  factor in memory only (cloud_effects: no column, nothing reads it
+  after a save; this item or the habitability index decides whether to
+  store it). Stored nebulae and remnants (classes C to L, R to W) still
+  reach a system through the containment pass after the save (GEN.99
+  hands them to StarSystem.apply_cloud). Host stars sit at the cloud
+  centre (stand-in tuning.CLOUD_HOST_MIN_DISTANCE_PC); Wolf-Rayet hosts
+  of class X add nothing yet.
+  Research (2026-10-09, Core 4 report 2026-10-28): Stand-ins from
+  GEN.357 to enter in the stand-in registry
+  (docs/design/stand-in-values.md, tweak levels to be set by the owner):
+  CLOUD_FUV_FRACTION_BY_TEFF_K, CLOUD_G0_TIER_EDGES,
+  CLOUD_HOST_MIN_DISTANCE_PC (every host at the cloud centre),
+  CLOUD_CLASS_RADIATION_TIER, CLOUD_ENRICHMENT_* (design-note rule
+  table); HABING_FLUX_ERG_CM2_S is sourced; the O9V luminosity uses the
+  MIST zero-age row (3.1e4 Lsun) instead of the design table (1e5).
   Prerequisites: GEN.357. Related: GEN.95.
 
 - [ ] **GEN.359 Sector fill links cluster stars to their cluster and names the cluster at its first fill**
@@ -12752,16 +12748,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry until then. Owner: the Composition-first stars lane, after GEN.651.
   Prerequisites: none. Related: GEN.553, GEN.652.
 
-- [ ] **GEN.667 Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands**
-  Follow-up from Habitability lane F (relayed 2026-10-23, 9:25 PM EDT;
-  GEN.413 merged as #2761): the ozone column is computed from an oxygen
-  pressure the lane derives itself. Done: the ozone kernel takes O2 from
-  mixture.partial_pressures_pa (lane I's accessor) once the atmosphere
-  child table is stored, the local p_o2_kpa derivation is deleted, and a
-  test shows the two agree on the reference worlds before the swap.
-  Owner: lane I's PR 4 successor or the lane that finishes GEN.411.
-  Prerequisites: GEN.411. Related: GEN.413, GEN.411.
-
 - [ ] **GEN.669 Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows**
   Finding of Core 4 (10:20 PM EDT 2026-10-23 as the lane reported), left
   open on purpose. (1) GEN.450 (merged as #2776, epoch 64): the radial
@@ -12801,19 +12787,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
   2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
   (#3130); first in its rendering chain; nobody has started it.
-
-- [ ] **GEN.673 Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on**
-  Found by lane L (atmosphere mixture), report
-  reports/lane-l-findings-2026-10-24.md, relayed 11:32 PM EDT 2026-10-23
-  (as the lane reported). The recipes (GEN.478, GEN.518) now gate
-  hot-Jupiter rows on photosphere_bar, tday_k, zone and host_type. Do:
-  the generator stores photosphere_bar for every giant before
-  draw_mixture runs (lane I's PR 4 replaces CLASS_MIXES and is the
-  natural place), with the column in db/column_units.py in the same PR.
-  Done: draw_mixture reads a stored photosphere_bar for every giant and
-  a test shows a hot Jupiter takes the hot rows. Owner: lane I (with PR
-  4, GEN.411).
-  Prerequisites: GEN.411.
 
 - [ ] **GEN.681 The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw**
   Step C6 of the condition-based classes build (design draft
@@ -14833,40 +14806,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so cold sealed water worlds sit at the freezing point. The water-world
   temperature test of GEN.823 cannot pass until this is fixed.
 
-- [ ] **GEN.815 Sulfur sink: a sulfate and sulfide balance replaces the stand-in SULFUR_SURFACE_KEPT (finding 4)**
-  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
-  reports/air-fixed-point-findings-2026-10-24.md finding 4. Lane L's
-  solubility (GEN.757) is the physical Henry's-law solubility only.
-  Before the stand-in SULFUR_SURFACE_KEPT (1e-5 to 1e-2 of degassed
-  sulfur stays in the air with an ocean, the old weathering sink's
-  bracket) a wet world held 300 bar of S2. Replace it with a sulfate and
-  sulfide balance (redox dependent) and remove the stand-in from the
-  registry. Done: the sulfur in the air of wet and dry worlds comes from
-  the balance; the registry row is gone. Owner: Aux 8 (Lane L). Rules:
-  no backward-compat shims; every number has a unit or scale (GEN.772);
-  stand-ins get GEN.725 registry rows with a tier and tweak level; a
-  changed generated value carries `tests.golden_update --reason ...
-  --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`.
-  Research (2026-10-09, Aux 8 report): Module merged (#3252, 11:08 PM
-  EDT 2026-10-24 as the lane reported): physics/sulfur_balance.py splits
-  the degassed sulfur between the air, a calcium sulfate sink and an
-  iron sulfide sink by redox, limited by crust, with rain-out and
-  sulfation lifetimes; stand-in rows AM45 to AM49. Stays open until 4c
-  (GEN.411, GEN.422) calls it and drops SULFUR_SURFACE_KEPT; Aux 8
-  confirms the wiring. Known limit stated in the doc: the mean-rate
-  steady state leaves a dry world almost no SO2 (Venus holds about 14
-  mbar).
-  Owner (2026-10-09): Owner settled (coordinator, 4:01 AM EDT
-  2026-10-25): Aux 1's branch, through the merge lane (thread 'Merge
-  sulfur, ozone and photosphere work', GEN.815/667/673), owns this
-  wiring. Aux 8 (Lane L) dropped its own copy (its gate was at 29
-  percent with four reds); its version is saved at
-  /mnt/project-files/handoffs/gen815-sulfur-wiring-lane-l-2026-10-25.patch
-  for comparison. Aux 8 works GEN.830 code-only, with no generation
-  merge until its turn in the generation-merge lock order.
-  Prerequisites: GEN.422. Related: GEN.757, GEN.751, GEN.725.
-
 - [ ] **GEN.816 A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
   reports/air-fixed-point-findings-2026-10-24.md finding 5. The module
@@ -15113,6 +15052,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scale (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: none. Related: GEN.728, GEN.681, GEN.350, GEN.509,
   GEN.822, GEN.650.
+  Research (2026-10-09, Aux 9 report): Split decided by Aux 9 (as the
+  lane reported 7:36 AM EDT 10-28): Aux 9 takes the mass-function half
+  (the GEN.650 mass law tuned against Aux 16 bands, nine stand-ins PM1
+  to PM9 under GEN.711, no epoch of its own, wired by the cut-over); the
+  sub-Neptune envelope half stays with GEN.822 and GEN.350. Measured on
+  400 systems: giants of 100 Earth masses or more per Sun-like star 0.51
+  to 0.16 (observed 0.10 to 0.15), per M dwarf 0.19 to 0.04 (0.03 to
+  0.06); planets of 1 to 20 Earth masses inside 0.45 AU 0.52 to 0.88
+  around Sun-like stars and 0.24 to 1.30 around M dwarfs.
 
 - [ ] **GEN.830 A class O (ocean) planet in zone e reaches a surface pressure of 9.05e9 Pa (about 90,000 bar) with the solved air: unphysical for an air above a liquid ocean (bug)**
   Found by the 4c lane (Blocker I, relayed by the coordinator 2:36 AM
@@ -15252,6 +15200,56 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generated output, so it needs the generation lock, an epoch with
   --affects fill.
   Prerequisites: none. Related: GEN.813, GEN.815, GEN.812.
+
+- [ ] **GEN.838 A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling**
+  Split from GEN.735 by Aux 5 (as the lane reported 7:28 AM EDT
+  2026-10-28): GEN.735 ships one mantle temperature and zero heat flux
+  for a non-convecting mantle; the core needs its own temperature and
+  the core-mantle boundary heat flow. Do: add a core temperature to the
+  interior heat model (core heat capacity, latent heat of inner-core
+  growth, the core-mantle boundary heat flow set by the mantle boundary
+  layer) so the dynamo and the magnetic field read the core, not the
+  mantle. Source: Thiriet et al. 2019 was not readable (use second-hand,
+  reports/secondhand-citations-2026-10-24.md, and label the result a
+  stand-in with its tier and tweak level). Done: the core cools on its
+  own curve, the stored urey_ratio and heat flow do not change for
+  planets without a core split, stand-ins registered in
+  docs/design/stand-in-values.md. Owner: Aux 5 after its stack. Changes
+  stored values, so it needs a lock turn (epoch, --affects fill).
+  Prerequisites: GEN.735. Related: GEN.735, GEN.763.
+
+- [ ] **GEN.839 The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug)**
+  Found by Aux 5 (as the lane reported 7:28 AM EDT 2026-10-28) while
+  fixing GEN.763: a body stores its heat flow and Urey ratio when it is
+  made at the star's provisional age, and Star.adjust_age_for_planets
+  raises the age afterwards; GEN.763 reruns interior_heat.update_heat at
+  the final age in the life pass (no draws), but the hydrosphere's ice
+  shell thickness and the surface composition's volcanism gate draw
+  random numbers and read the provisional-age heat, and cannot be rerun
+  without moving the stream. Do: move those two reads to the final-age
+  heat without changing the draw order (compute them after the final age
+  with the same draws kept, or use an epoch to reorder the draws), then
+  rescore. Done: ice shell and volcanism gate follow the stored
+  final-age heat. Owner: Aux 5 after GEN.763; changes generated output
+  so it needs an epoch (--affects fill) and a lock turn, ideally the
+  same one as the rest of Aux 5's stack if it is not yet merged.
+  Prerequisites: GEN.763. Related: GEN.763, GEN.735.
+
+- [ ] **GEN.840 The atmosphere recipe tables still gate each mixture row on class letters: change the gate to kind plus conditions and drop the letter from the mixture subject (the recipe-gate half of GEN.683)**
+  Found by Aux 9 (as the lane reported 7:36 AM EDT 2026-10-28) reading
+  main for GEN.646: 4c removed the class from the air in effect, but
+  physics/data/atmosphere_recipes.json (72 mixture rows) still gates
+  each row on class letters (rows e1 to e6 on S, V, I, T; i1 to i6 on A,
+  B, C, S; j2 on K, L, U) and the mixture subject carries the letter.
+  Do: change each row's gate from the class letter to the planet kind
+  plus conditions (mass, temperature, pressure, origin) with the same
+  selection, drop the letter from the mixture subject, and keep the
+  rows' content unchanged. Done: nothing in the recipe tables or the
+  mixture code names a class letter. Owner: Aux 9, inside the GEN.646
+  cut-over PR and its single epoch; no other lane starts it. It touches
+  the same JSON as Aux 17's GEN.822 (PR #3354): whichever takes the
+  generation lock second merges main in.
+  Prerequisites: none. Related: GEN.683, GEN.646, GEN.689, GEN.822.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -21026,25 +21024,31 @@ clears each one.
   a test; scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.405.
 
-- [ ] **TEST.407 golden_update takes about 55 minutes because its pinned-galaxy test builds the galaxy twice (one worker, then four), so it blocks every generation merge (bug)**
-  Coordinator (5:52 AM EDT 2026-10-25): Aux 6's golden run failed at
-  5:51 AM EDT on its 55-minute timeout; the pinned-galaxy test builds
-  the galaxy twice, one worker then four, about 30 plus 25 minutes on a
-  lane machine, and golden regeneration is now the main bottleneck for
-  every generation merge in the lock. Do: let golden_update write the
-  files and verify them with a faster check (one worker only, or a
-  smaller pinned galaxy that still covers every stage), and run the
-  one-versus-four-worker comparison only in the end-of-version gate
-  (TEST.261, SEC.33, GEN.301 full --check), or make the pinned galaxy
-  cheaper; keep the golden files byte-identical for the same seed. Done:
-  golden_update on a lane machine finishes in well under 20 minutes and
-  the full one-vs-four comparison still runs in the end-of-version gate.
-  Boss ruling applies: test only what changed, never rerun what passed.
-  Owner: Bug 1, TOP PRIORITY ahead of its other test items. Not a
-  generation change itself (no epoch), so it is exempt from the lock,
-  but it touches tests.golden_update: merge it as soon as it is green
-  and tell TODO so holders pull main.
-  Prerequisites: none. Related: TEST.399, TEST.404.
+- [ ] **TEST.408 test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug)**
+  Found by Core 4 (as the lane reported 7:25 AM EDT 2026-10-28, report
+  reports/core4-gen357-report-2026-10-28.md) on clean main c0a6fdef7 or
+  earlier: every run on that lane machine, the 900 s signal timeout did
+  not stop it, and a worker crashed on it in the gate ("node down: Not
+  properly terminated"). Do: reproduce on clean main, find the loop (a
+  pulsar-system fill that never ends or a generation that retries
+  forever), fix the code or the fixture, and make the timeout actually
+  kill the test (a signal that C code or a thread ignores needs a hard
+  kill). Done: the test passes in a few minutes and a stuck test is
+  killed at its timeout. Owner: Bug 1 after TEST.407, or a free lane.
+  Rules: never skip or quarantine a test; scripts/test.py changed
+  --resume.
+  Prerequisites: none. Related: TEST.406, TEST.407.
+
+- [ ] **TEST.409 test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug)**
+  Found by Core 4 (as the lane reported 7:25 AM EDT 2026-10-28) on clean
+  main, every run. Do: reproduce, find out whether civilization
+  generation moved (GEN.441, 4c, class changes) or the fixture seed no
+  longer yields a civilization, and fix the code or the fixture with the
+  reason in the PR; the setup should fail in seconds, not 7.75 minutes.
+  Done: the test passes on main. Owner: Bug 1 after TEST.407, or a free
+  lane. Rules: never skip or quarantine a test; scripts/test.py changed
+  --resume.
+  Prerequisites: none. Related: TEST.406.
 
 ## USR: User accounts
 
@@ -21798,42 +21802,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `tests.golden_update --reason ... --affects <stage>` and the next
   epoch; tests are `scripts/test.py changed --resume`.
   Prerequisites: none. Related: OPS.72.
-
-- [ ] **OPS.75 update.sh ends with "the update failed at step 9/9, checking that the web app imports" when the import check passed and the real failure is the health check after the Apache reload; the site stays closed with a wrong reason (bug)**
-  Boss, 2026-10-24 11:53 PM EDT (live run on his server, PlanetGen
-  8.0.2324): steps 1 to 8 passed; step 9/9 printed 'The web app and the
-  generator import cleanly', then 'Apache was reloaded but
-  http://127.0.0.1/api/health does not answer', then 'error: the update
-  failed at step 9/9, checking that the web app imports. The site stays
-  closed (maintenance mode) because the database may be half migrated.'
-  The message is wrong twice: the import check passed (the failing check
-  is the health check after the reload) and the database was not half
-  migrated (step 5 said schema v157 current). The health check most
-  likely runs while the site is still closed in maintenance mode, which
-  answers 503, so it can never pass; verify that. Do: (1) report the
-  check that failed, by name; (2) retry the health check for a bounded
-  time after the reload; (3) run it against a path that answers while
-  closed, or open the site first when the migration finished cleanly,
-  then check; (4) say whether the site is in maintenance mode and why (a
-  failed migration, or only a failed health check), and when only the
-  health check failed leave the site open or say how to open it in one
-  command. Also: the cache warm-up (warm-map) that the update cancelled
-  at the start was restarted at the end; confirm that is wanted and say
-  so in the output. Done: a run where the health check needs a moment
-  passes, a run where it truly fails names it and the maintenance state
-  correctly, tests pin the messages. Owner: Aux 12 (ops).
-  Prerequisites: none. Related: OPS.29, OPS.63.
-
-- [ ] **OPS.76 update.sh warns "uncommitted local changes in /var/lib/planetGen -- these will be overwritten: ?? state/" on every update although state/ is expected (bug)**
-  Boss, 2026-10-24 11:53 PM EDT, same run: step 1 warns that the
-  untracked state/ directory will be overwritten. state/ holds the
-  maintenance switch and backups, is expected to be untracked and is
-  never overwritten by the pull. Do: ignore state/ in the
-  uncommitted-changes check (and list any other expected runtime paths),
-  warn only about tracked changes that the pull would really overwrite.
-  Done: a clean install prints no warning and a modified tracked file
-  still does; a test pins both. Owner: Aux 12 (ops).
-  Prerequisites: none. Related: OPS.29.
 
 ## DOC: Documentation
 

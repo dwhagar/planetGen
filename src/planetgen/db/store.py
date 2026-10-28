@@ -73,13 +73,13 @@ from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
-from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import aerosols, bulk_composition, giant_interior, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
-from planetgen.generation import multistar, steps, stored_trees
+from planetgen.generation import cloud as cloudContext, multistar, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -4447,26 +4447,35 @@ def surrounding_cloud(conn, row):
         row (Mapping): Any row carrying those two columns.
 
     Returns:
-        dict or None: `{"type": "nebula" | "supernova_remnant", "id",
-            "name", "class", "descriptor" (a nebula's type, a remnant's
-            morphology), "density_cm3", "temperature_k"}`, or `None` in
-            open space.
+        dict or None: The cloud dict of `generation.cloud` -- `type`
+            (`"nebula"` or `"supernova_remnant"`), `id`, `name`, `class`,
+            `descriptor` (a nebula's type, a remnant's morphology),
+            `density_cm3`, `temperature_k`, `extinction_av`, `radius_ly`,
+            `age_myr` (a remnant's age in Myr), `center` (galaxy frame,
+            parsecs, `None` when the cloud is not placed) and `host_stars`
+            -- or `None` in open space (GEN.357 added the last five).
     """
     if row["inside_nebula_id"] is not None:
         found = conn.execute("SELECT id, name, nebula_class AS class, nebula_type AS descriptor, density_cm3,"
-                             " temperature_k FROM nebulae WHERE id = ?", (row["inside_nebula_id"],)).fetchone()
-        kind = "nebula"
+                             " temperature_k, extinction_av, radius_ly, age_myr, hosts, center_x_pc, center_y_pc,"
+                             " center_z_pc FROM nebulae WHERE id = ?", (row["inside_nebula_id"],)).fetchone()
+        kind, age_myr = "nebula", None if found is None else found["age_myr"]
+        hosts = None if found is None else found["hosts"]
     elif row["inside_remnant_id"] is not None:
         found = conn.execute("SELECT id, name, remnant_class AS class, morphology AS descriptor, density_cm3,"
-                             " temperature_k FROM supernova_remnants WHERE id = ?",
+                             " temperature_k, extinction_av, radius_ly, age_years, center_x_pc, center_y_pc,"
+                             " center_z_pc FROM supernova_remnants WHERE id = ?",
                              (row["inside_remnant_id"],)).fetchone()
-        kind = "supernova_remnant"
+        kind, hosts = "supernova_remnant", None
+        age_myr = None if found is None or found["age_years"] is None else found["age_years"] / 1.0e6
     else:
         return None
     if found is None:
         return None
-    return {"type": kind, "id": found["id"], "name": found["name"], "class": found["class"],
-            "descriptor": found["descriptor"], "density_cm3": found["density_cm3"], "temperature_k": found["temperature_k"]}
+    center = None if found["center_x_pc"] is None else (found["center_x_pc"], found["center_y_pc"], found["center_z_pc"])
+    return cloudContext.cloud_dict(kind, found["id"], found["name"], found["class"], found["descriptor"],
+                                   found["density_cm3"], found["temperature_k"], found["extinction_av"],
+                                   found["radius_ly"], age_myr, center, hosts)
 
 
 def _sector_half_diagonal_pc(edge_mpc):
@@ -4518,38 +4527,6 @@ def _lazy_nebula_shape(conn, nebula_id):
         return loaded[0]
 
     return shape
-
-
-def innermost_container(point_pc, containers, own_radius_pc=0.0, own=None):
-    """
-    The smallest container in `containers` whose sphere holds `point_pc`
-    -- for a nebula (`own_radius_pc` > 0), only a container larger than it,
-    and never itself (`own`, a `(column, id)` pair). A nebula holds a point
-    only inside its shape (GEN.75, `planetgen.galaxy.nebula_shape`), which
-    its container's `shape` function supplies; its sphere is the quick
-    first test. A container without `shape` (a remnant) is a plain sphere.
-
-    Returns:
-        dict or None: The container, or `None` when the point is in open space.
-    """
-    best = None
-    for container in containers:
-        if own is not None and (container["column"], container["id"]) == own:
-            continue
-        if container["radius_pc"] <= own_radius_pc:
-            continue
-        if detmath.dist(point_pc, container["center"]) > container["radius_pc"]:
-            continue
-        if best is not None and container["radius_pc"] >= best["radius_pc"]:
-            continue
-        shape = container.get("shape")
-        if shape is not None:
-            radius = container["radius_pc"]
-            offset = tuple((point_pc[i] - container["center"][i]) / radius for i in range(3))
-            if not shape().contains(offset):
-                continue
-        best = container
-    return best
 
 
 def refresh_containment(conn, sector_ids, on_progress=None):
@@ -4617,7 +4594,7 @@ def _refresh_containment_batch(conn, sector_ids, counts):
     changes = {}
 
     def apply(table, row, point, own_radius_pc=0.0, own=None):
-        best = innermost_container(point, containers, own_radius_pc, own) if point is not None else None
+        best = containment.innermost_container(point, containers, own_radius_pc, own) if point is not None else None
         new = (best["id"] if best and best["column"] == "inside_nebula_id" else None,
                best["id"] if best and best["column"] == "inside_remnant_id" else None)
         old = (row["inside_nebula_id"], row["inside_remnant_id"])

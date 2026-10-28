@@ -610,6 +610,8 @@ def main(argv=None):
     environment = dict(os.environ, PLANETGEN_FAILURE_LOG=FAILURES_FILE, PLANETGEN_PROGRESS_LOG=progress_path)
     if args.command == "budget":
         environment["PLANETGEN_BUDGET"] = "1"
+    if args.command == "full":
+        environment["PLANETGEN_VERSION_GATE"] = "1"   # the end-of-version run also builds the pinned galaxy at four workers
     phase = "before the first phase"
     first_phase = True
 

@@ -318,17 +318,40 @@ apache_configtest() {
 }
 
 # Waits up to HEALTH_WAIT_SECONDS for $1 (an address) to answer below 400, naming $2 in the warning; true without curl.
+# /api/health stays open while the site is closed for the update (OPS.75), so a reload is checked while the update's
+# own maintenance mode is still on; a closed site is said so (and why), on success and in the warning alike.
 wait_for_health() {
     command -v curl >/dev/null 2>&1 || return 0
-    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} ))
-    until [[ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' "$1" 2>/dev/null)" =~ ^[23] ]]; do
+    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body
+    while :; do
+        reply="$(curl -s --max-time 5 -w '\n%{http_code}' "$1" 2>/dev/null)"
+        code="${reply##*$'\n'}"
+        body="${reply%$'\n'*}"
+        if [[ "$code" =~ ^[23] ]]; then
+            health_maintenance_note "$body"
+            return 0
+        fi
         if (( SECONDS >= end )); then
-            echo "warning: $2 was reloaded but $1 does not answer." >&2
+            echo "warning: the health check of $2 failed: $1 answered HTTP ${code:-000} for ${HEALTH_WAIT_SECONDS:-20} seconds after the reload.$(health_maintenance_note "$body" brief)" >&2
             return 1
         fi
         sleep 1
     done
-    return 0
+}
+
+# Says whether a /api/health reply reports maintenance mode, and why; the reply is $1. With a second argument it only
+# returns the sentence (for a warning), otherwise it prints it.
+health_maintenance_note() {
+    local body="$1" cause reason text
+    [[ "$body" =~ \"maintenance\"[[:space:]]*:[[:space:]]*(true|\{[^}]*\"enabled\"[[:space:]]*:[[:space:]]*true) ]] || return 0
+    cause="$(sed -n 's/.*"cause"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' <<<"$body" | head -n 1)"
+    reason="$(sed -n 's/.*"reason"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' <<<"$body" | head -n 1)"
+    text=" The site is in maintenance mode (cause: ${cause:-unknown}${reason:+, $reason})"
+    if [[ -n "${2:-}" ]]; then
+        echo -n "$text."
+    else
+        echo "${text# }; the update opens it again when it ends."
+    fi
 }
 
 # The Apache files that can hold planetGen's vhost: the enabled sites and

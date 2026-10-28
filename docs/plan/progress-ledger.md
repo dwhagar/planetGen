@@ -1530,3 +1530,10 @@ Baseline: PR #1817.
 | TEST.400 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.404 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.324 | 8.1 | Fly-through map |
+| OPS.76 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.75 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.357 | 8.1 | Nebula and young stars |
+| TEST.407 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.673 | 8.1 | Mixture and stored values |
+| GEN.667 | 8.1 | Atmosphere colour |
+| GEN.815 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
