@@ -1432,6 +1432,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   keeps the block and system levels, the slabs above and below, and the
   arrow keys. Core 2 and Aux 10 agree who draws the dimmed neighbours
   first.
+  Research (2026-10-09, Core 2 report 2026-10-28): First part merged (PR
+  #3391, Core 2, as the lane reported 9:24 AM EDT 2026-10-28): on the
+  Galaxy Map, in a window of blocks, the Menu has six step buttons
+  (North, South, West, East, Toward core, Away from core) and keys
+  (Alt+Shift+arrows, [ and ]) that move the camera to the neighbouring
+  region at the same level in one move; a button is off where nothing
+  exists to step to. Helper for others: galaxyprisms.neighbourBlock.
+  Still open here: the sector-level steps and dimming (Aux 10 MAP.327
+  calls the same step function), dimmed neighbouring blocks, and the
+  System Map neighbours.
   Prerequisites: none.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
@@ -3577,6 +3587,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finds the sector wireframe in sector view, the region wireframe in
   galactic view (and no dimming there), and checks its world position
   does not change when the mouse moves.
+  Research (2026-10-09, TODO 2026-10-28): Use
+  galaxyprisms.neighbourBlock and the step function from MAP.121 part
+  one (#3391) for the sector-level neighbour steps; do not write a
+  second neighbour helper.
 
 - [ ] **MAP.328 Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views)**
   Boss, 2:48 AM EDT 2026-10-25: 'rendered objects should slowly rotate
