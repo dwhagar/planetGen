@@ -1481,6 +1481,8 @@
 -- v159 (GEN.441): `planets` and `moons` gain the surface composition: `ground_type` and `ground_grain` and the areal share of each ground type (`ground_ocean_fraction`, `ground_ice_fraction`, `ground_ultramafic_fraction`, ..., twelve shares that add up to 1), NULL for a giant and for a row saved before v152. The minerals, ices and ocean the shares stand for are rows of the materials table (`physics/surface_composition.py`).
 -- v164 (GEN.764): `scatter_epochs` holds one row per kind of scatter drawn (`mass`, `luminosity`, `band`, `phenomena`, `nebula-field`), the generator epoch and the run that drew it, and the row goes when the
 --   scatter is cleared; `species` gains `generator_epoch`, the epoch the population pass made it under. A sector has its own epoch (v121) and the plan its own (v131), so every stage's results say what made them.
+-- v165 (MAP.305, MAP.303): `system_interests` replaces `habitable_systems`: one row for each reason a star system is worth a mark on the Galaxy Map (a planet or moon rated
+--   Yellow or better overall, a gas giant), with how many bodies give it, the largest score among them and the system's position.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -4219,20 +4221,24 @@ CREATE TABLE IF NOT EXISTS sector_system_counts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- habitable_systems (v148, MAP.220): one row per star system with a habitable world (an
--- overall PHI-6 score that is Blue or Green on a planet or moon), with how many and where, so the
--- Galaxy Map's marker layer finds them in a box (`query.galaxy_habitable_systems_in_box`) without
--- reading every planet. Derived data: `store.count_system_habitable_worlds` rebuilds a system's row
--- whenever its scores are worked out; the position is the system's `galaxy_*_pc`, which never changes.
+-- system_interests (v165, MAP.305, MAP.303): one row for each reason a star system is worth a mark on the Galaxy Map
+-- (`planetgen.db.interests.REASONS`: a planet or moon rated Yellow or better overall on the PHI-6 score, a gas giant, and
+-- more as they are added), with how many bodies give it (`n`), the largest score among them (`best_score`, NULL for a reason
+-- with no score) and where the system is, so the map's marker layer finds the systems in a box (`query.galaxy_system_interests_in_box`)
+-- without reading every planet. Derived data: `interests.record` rebuilds a system's rows when its sector is filled and whenever its
+-- scores are worked out again; the position is the system's `galaxy_*_pc`, which never changes. It replaces `habitable_systems` (v148).
 -- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS habitable_systems (
-    star_system_id    BIGINT UNSIGNED NOT NULL PRIMARY KEY,
-    habitable_worlds  SMALLINT UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS system_interests (
+    star_system_id    BIGINT UNSIGNED NOT NULL,
+    reason            VARCHAR(24) NOT NULL,
+    n                 SMALLINT UNSIGNED NOT NULL,
+    best_score        DOUBLE NULL,
     galaxy_x_pc       DOUBLE NOT NULL,
     galaxy_y_pc       DOUBLE NOT NULL,
     galaxy_z_pc       DOUBLE NOT NULL,
-    KEY idx_habitable_systems_position (galaxy_x_pc, galaxy_y_pc, galaxy_z_pc),
-    CONSTRAINT fk_habitable_systems_system
+    PRIMARY KEY (star_system_id, reason),
+    KEY idx_system_interests_position (galaxy_x_pc, galaxy_y_pc, galaxy_z_pc),
+    CONSTRAINT fk_system_interests_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

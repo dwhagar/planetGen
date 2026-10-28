@@ -27,7 +27,7 @@
 // budget (MARKER_BUDGET) in all, the kinds sharing it evenly and handing on what one cannot use.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
-const { poiIcon, tokenOf } = await import(`./poiicons.js${VERSION_QUERY}`);
+const { poiIcon, tokenOf, TIER_NAMES } = await import(`./poiicons.js${VERSION_QUERY}`);
 
 // The most markers drawn at once (MAP.116's rule for the stars: a crowded view must stay readable). Each kind gets
 // an even share of it; a kind that has less hands the rest on.
@@ -83,22 +83,83 @@ export const BLACK_HOLE_KIND = {
   describe: function (item) { return (item.name ? item.name + ", " : "") + "Black Hole" + (item.descriptor ? " (" + item.descriptor + ")" : ""); },
 };
 
-// The star systems with a habitable world (MAP.220): an overall PHI-6 Blue or Green planet or moon. The nodes' `worlds`
-// list them for blocks of 81 shells and smaller (the server leaves it out of bigger ones), most worlds first.
-export const HABITABLE_KIND = {
-  id: "marker-habitable",
-  label: "Habitable worlds",
-  icon: "habitable-world",
-  maxBlock: 81,
-  defaultOn: false,
-  source: function (node) {
-    return (node.worlds || []).map(function (system) { return Object.assign({ key: String(system.id) }, system); });
+// The reasons a star system is worth a mark (MAP.305, MAP.303): the client side of `planetgen.db.interests.REASONS`. A
+// system with at least one reason is listed by the nodes' `interests` (blocks of 81 shells and smaller; the server leaves them
+// out of bigger ones), each with its `reasons` ({id: {n, score, tier}}). A reason is
+//   id         what the server and the layer call it ("habitable", "gas-giant");
+//   label      the Menu button's text and the legend line, also the infobox's name for the reason;
+//   icon       the symbol the system's mark takes when this is its first reason (poiicons.js);
+//   defaultOn  shown until the visitor says otherwise;
+//   describe   `function (reason) -> string`: the infobox line for a system's `{n, score, tier}` of it.
+// The reasons are in the order the map prefers them: a system with several is drawn once, with the first of them that is on
+// (selectMarkers), and its infobox lists them all. A reason is added here (and in the server's registry) and the Menu, the
+// legend, the budget and the infobox take it up with no other change.
+export const INTEREST_REASONS = [
+  {
+    id: "habitable",
+    label: "Habitable worlds",
+    icon: "habitable-world",
+    defaultOn: false,
+    describe: function (reason) {
+      return reason.n + (reason.n === 1 ? " habitable world" : " habitable worlds") + (reason.tier == null ? "" : ", best " + TIER_NAMES[reason.tier]);
+    },
   },
-  rank: function (item) { return item.worlds || 0; },
-  describe: function (item) {
-    return (item.name ? item.name + ", " : "") + item.worlds + (item.worlds === 1 ? " habitable world" : " habitable worlds");
+  {
+    id: "gas-giant",
+    label: "Gas giants",
+    icon: "gas-giant",
+    defaultOn: false,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " gas giant" : " gas giants"); },
   },
-};
+];
+
+// A node's system as an item of one reason: `key`, the system's `id`, `name` and place, how many bodies (`n`), the best
+// score's tier as an index (0 Blue to 3 Red, `tier`; absent for a reason with no score) and every reason the system has
+// (`reasons`, for the infobox).
+function interestItems(node, reason) {
+  return (node.interests || []).filter(function (system) { return system.reasons && system.reasons[reason.id]; }).map(function (system) {
+    const mine = system.reasons[reason.id];
+    const item = Object.assign({ key: String(system.id), interest: reason.id }, system, { n: mine.n });
+    if (mine.tier != null) item.tier = TIER_NAMES.indexOf(mine.tier);
+    if (mine.score != null) item.score = mine.score;
+    return item;
+  });
+}
+
+// The marker kind of an interest reason: its id is "marker-" and the reason's, the Menu layer and the address's `show=`.
+export function interestKind(reason) {
+  return {
+    id: "marker-" + reason.id,
+    label: reason.label,
+    icon: reason.icon,
+    maxBlock: 81,
+    defaultOn: reason.defaultOn,
+    interest: reason.id,
+    source: function (node) { return interestItems(node, reason); },
+    rank: function (item) { return item.n || 0; },
+    describe: function (item) { return (item.name ? item.name + ", " : "") + reason.describe(item); },
+  };
+}
+
+export const INTEREST_KINDS = INTEREST_REASONS.map(interestKind);
+
+// The star systems with a habitable world (MAP.220, MAP.303): an overall PHI-6 Yellow or better planet or moon.
+export const HABITABLE_KIND = INTEREST_KINDS.find(function (kind) { return kind.interest === "habitable"; });
+
+// The star systems with a gas giant (MAP.305).
+export const GAS_GIANT_KIND = INTEREST_KINDS.find(function (kind) { return kind.interest === "gas-giant"; });
+
+// The infobox lines of a system's reasons, in the registry's order: `[{id, label, text}]`.
+export function interestLines(system) {
+  const lines = [];
+  INTEREST_REASONS.forEach(function (reason) {
+    const mine = system && system.reasons && system.reasons[reason.id];
+    if (!mine) return;
+    const shaped = { n: mine.n, score: mine.score, tier: mine.tier == null ? null : TIER_NAMES.indexOf(mine.tier) };
+    lines.push({ id: reason.id, label: reason.label, text: reason.describe(shaped) });
+  });
+  return lines;
+}
 
 // The block size (shells) of a node key "m.shell.band.wedge".
 export function blockOfKey(key) {
@@ -136,11 +197,13 @@ export function createMarkerKinds() {
 //   budget     optional, MARKER_BUDGET.
 // Returns `[{kind, item}]`: per kind, highest rank first, at most the kind's share of the budget (an even share,
 // what a kind does not use going to the others), a node of a block bigger than a kind's `maxBlock` not counted for it,
-// an item listed by several nodes once.
+// an item listed by several nodes once, and a system with several interest reasons once (under the first reason that is on).
 export function selectMarkers(options) {
   const budget = options.budget == null ? MARKER_BUDGET : options.budget;
   const inView = options.inView || function () { return true; };
   const lists = [];
+  // A system with several interest reasons is drawn once, by the first reason that is on (MAP.305).
+  const claimed = new Set();
   options.kinds.forEach(function (kind) {
     if (!options.isOn(kind.id)) return;
     const seen = new Map();
@@ -153,6 +216,10 @@ export function selectMarkers(options) {
     const items = Array.from(seen.values()).filter(function (item) {
       if (!inView(item)) return false;
       if (kind.extentPc && options.pxOf && !(options.pxOf(item, kind) >= MIN_EXTENT_PX)) return false;
+      if (kind.interest) {
+        if (claimed.has(item.id)) return false;
+        claimed.add(item.id);
+      }
       return true;
     });
     items.sort(function (p, q) { return kind.rank(q) - kind.rank(p) || (p.key < q.key ? -1 : p.key > q.key ? 1 : 0); });

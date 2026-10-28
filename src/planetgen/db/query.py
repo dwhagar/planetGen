@@ -42,7 +42,7 @@ from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
-from planetgen.db import countcache, hostednebula, nebula_blocks, point_columns
+from planetgen.db import countcache, hostednebula, interests, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
@@ -4871,11 +4871,11 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
                       lambda point: (point["type"], point["id"]))
 
 
-def galaxy_habitable_systems_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
+def galaxy_system_interests_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
     """
-    The star systems with at least one habitable world (an overall PHI-6 Blue or Green) whose position lies in the box
-    `[lo, hi)` (MAP.220), at most `limit`, most worlds first (ties by id), read from `habitable_systems` by its
-    position key.
+    The star systems worth a mark on the map (a habitable world, a gas giant: `interests.REASONS`) whose position lies in the box
+    `[lo, hi)` (MAP.305), at most `limit`, those with the most bodies behind their reasons first (ties by id), read from
+    `system_interests` by its position key.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -4884,23 +4884,43 @@ def galaxy_habitable_systems_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
         limit (int): See `GALAXY_TILE_MAX_POINTS`.
 
     Returns:
-        list[dict]: `id`, `name`, `worlds` (how many habitable worlds the system holds) and `x`/`y`/`z` (parsecs).
+        list[dict]: `id`, `name`, `x`/`y`/`z` (parsecs) and `reasons`, a dict by reason id of `n` (how many bodies) and, for a
+        reason with a score, `score` (the largest) and `tier` (its PHI-6 colour).
     """
     rows = conn.execute(
         """
-        SELECT h.star_system_id, ss.name, h.habitable_worlds, h.galaxy_x_pc, h.galaxy_y_pc, h.galaxy_z_pc
-        FROM habitable_systems h FORCE INDEX (idx_habitable_systems_position)
-        JOIN star_systems ss ON ss.id = h.star_system_id
-        WHERE h.galaxy_x_pc >= ? AND h.galaxy_x_pc < ? AND h.galaxy_y_pc >= ? AND h.galaxy_y_pc < ?
-          AND h.galaxy_z_pc >= ? AND h.galaxy_z_pc < ?
-        ORDER BY h.habitable_worlds DESC, h.star_system_id
+        SELECT i.star_system_id, i.reason, i.n, i.best_score, i.galaxy_x_pc, i.galaxy_y_pc, i.galaxy_z_pc
+        FROM system_interests i FORCE INDEX (idx_system_interests_position)
+        WHERE i.galaxy_x_pc >= ? AND i.galaxy_x_pc < ? AND i.galaxy_y_pc >= ? AND i.galaxy_y_pc < ?
+          AND i.galaxy_z_pc >= ? AND i.galaxy_z_pc < ?
+        ORDER BY i.n DESC, i.star_system_id, i.reason
         LIMIT ?
         """,
-        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], int(limit)),
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], max(0, int(limit)) * len(interests.REASONS)),
     ).fetchall()
-    return [{"id": row["star_system_id"], "name": row["name"], "worlds": int(row["habitable_worlds"]),
-             "x": round(row["galaxy_x_pc"], 3), "y": round(row["galaxy_y_pc"], 3), "z": round(row["galaxy_z_pc"], 3)}
-            for row in rows]
+    systems = {}
+    for row in rows:
+        system = systems.setdefault(row["star_system_id"], {
+            "id": row["star_system_id"], "x": round(row["galaxy_x_pc"], 3), "y": round(row["galaxy_y_pc"], 3),
+            "z": round(row["galaxy_z_pc"], 3), "reasons": {}, "bodies": 0})
+        reason = {"n": int(row["n"])}
+        if row["best_score"] is not None:
+            reason["score"] = round(float(row["best_score"]), 3)
+            reason["tier"] = habitability.tier(float(row["best_score"]))
+        system["reasons"][row["reason"]] = reason
+        system["bodies"] += int(row["n"])
+    chosen = sorted(systems.values(), key=lambda system: (-system["bodies"], system["id"]))[:max(0, int(limit))]
+    names = {}
+    for start in range(0, len(chosen), 500):
+        ids = [system["id"] for system in chosen[start:start + 500]]
+        for row in conn.execute(f"SELECT id, name FROM star_systems WHERE id IN ({', '.join('?' * len(ids))})", ids).fetchall():
+            names[row["id"]] = row["name"]
+    out = []
+    for system in chosen:
+        del system["bodies"]
+        system["name"] = names.get(system["id"])
+        out.append(system)
+    return out
 
 
 SCATTERED_POINT_CLASSES = (
@@ -5496,7 +5516,7 @@ def galaxy_node_keys(shell, band, wedge):
     return [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)]
 
 
-TILE_FORMAT = 7
+TILE_FORMAT = 8
 """int: The version of what the Galaxy Map's stored nodes and drill-down stages hold and how they are packed
 (`web/lib/tilecache.trim_node`, `tilepack`, `db.nodes.galaxy_nodes`, `galaxy_stage`). A change that alters those bytes for
 the same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored files are rebuilt once;
@@ -5504,7 +5524,7 @@ a release that does not alter them leaves every stored node valid (PERF.133). 2:
 (MAP.258) moved the rows and wedges of every level, so a stored stage names other blocks. 3: nodes replace the cube tiles
 (MAP.262), whose files are dropped with the generation. 5: a node of a charted region carries its `name` and `parent`
 (API.35), and so does the stage of a 9-block and each charted 9-block child of a stage. 6: a 9-block's node carries its
-`extent` (MAP.319). 7: a 9-block's node carries `charted` (its sectors and share), and a node of 27, 81 or 243 sectors lists the charted regions inside it, `regions` (MAP.314)."""
+`extent` (MAP.319). 7: a 9-block's node carries `charted` (its sectors and share), and a node of 27, 81 or 243 sectors lists the charted regions inside it, `regions` (MAP.314). 8: the node's `worlds` section is `interests` (MAP.305): the systems worth a mark, each with its `reasons` (a habitable world, a gas giant)."""
 
 GALAXY_CHANGES_MAX_SECTORS = 1000
 """int: Most changed sectors `galaxy_changes` lists nodes for. More than

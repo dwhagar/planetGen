@@ -94,17 +94,53 @@ test("every glyph draws without error on a recording context", () => {
   assert.ok(calls.includes("arc") && calls.includes("stroke"));
 });
 
-test("the habitable world kind lists a node's systems, most worlds first, and is off until asked for", () => {
+const SYSTEMS_OF_INTEREST = [
+  { id: 5, name: "Eden", x: 1, y: 2, z: 3, reasons: { habitable: { n: 2, score: 0.82, tier: "Green" }, "gas-giant": { n: 1 } } },
+  { id: 6, name: "Rest", x: 0, y: 0, z: 0, reasons: { habitable: { n: 1, score: 0.55, tier: "Yellow" } } },
+  { id: 7, name: "Jove", x: 4, y: 0, z: 0, reasons: { "gas-giant": { n: 3 } } },
+];
+
+test("the habitable world kind lists a node's systems that have the reason, most worlds first, and is off until asked for", () => {
   const kind = M.HABITABLE_KIND;
   assert.equal(kind.defaultOn, false);
-  const node = { worlds: [{ id: 5, name: "Eden", worlds: 2, x: 1, y: 2, z: 3 }, { id: 6, name: "Rest", worlds: 1, x: 0, y: 0, z: 0 }] };
-  assert.deepEqual(kind.source(node).map((i) => i.key), ["5", "6"]);
+  const node = { interests: SYSTEMS_OF_INTEREST };
+  const items = kind.source(node);
+  assert.deepEqual(items.map((i) => i.key), ["5", "6"]);
+  assert.deepEqual(items.map((i) => [i.n, i.tier]), [[2, 1], [1, 2]]);      // the tier is an index into the colours: Green 1, Yellow 2
   assert.deepEqual(kind.source({}), []);
-  assert.ok(kind.rank({ worlds: 3 }) > kind.rank({ worlds: 1 }));
-  assert.equal(kind.describe({ name: "Eden", worlds: 2 }), "Eden, 2 habitable worlds");
-  assert.equal(kind.describe({ name: "Rest", worlds: 1 }), "Rest, 1 habitable world");
+  assert.ok(kind.rank({ n: 3 }) > kind.rank({ n: 1 }));
+  assert.equal(kind.describe(items[0]), "Eden, 2 habitable worlds, best Green");
+  assert.equal(kind.describe(items[1]), "Rest, 1 habitable world, best Yellow");
   const registry = M.createMarkerKinds();
   registry.register(kind);
   const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id === "marker-habitable", nodes: [{ key: "9.0.0.0", node }] });
-  assert.deepEqual(chosen.map((c) => c.item.name), ["Rest", "Eden"].reverse());
+  assert.deepEqual(chosen.map((c) => c.item.name), ["Eden", "Rest"]);
 });
+
+test("the gas giant kind lists the systems with a gas giant", () => {
+  const kind = M.GAS_GIANT_KIND;
+  assert.equal(kind.id, "marker-gas-giant");
+  assert.equal(kind.icon, "gas-giant");
+  assert.deepEqual(kind.source({ interests: SYSTEMS_OF_INTEREST }).map((i) => [i.name, i.n]), [["Eden", 1], ["Jove", 3]]);
+  assert.equal(kind.describe({ name: "Jove", n: 3 }), "Jove, 3 gas giants");
+  assert.equal(kind.describe({ name: "Eden", n: 1 }), "Eden, 1 gas giant");
+});
+
+test("a system with two reasons is drawn once, by the first reason that is on, and a reason that is off does not claim it", () => {
+  const registry = M.createMarkerKinds();
+  M.INTEREST_KINDS.forEach((kind) => registry.register(kind));
+  const nodes = [{ key: "9.0.0.0", node: { interests: SYSTEMS_OF_INTEREST } }];
+  const both = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes });
+  assert.deepEqual(both.map((c) => [c.kind.id, c.item.name]).sort(), [
+    ["marker-gas-giant", "Jove"], ["marker-habitable", "Eden"], ["marker-habitable", "Rest"]]);
+  const giantsOnly = M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id === "marker-gas-giant", nodes });
+  assert.deepEqual(giantsOnly.map((c) => c.item.name).sort(), ["Eden", "Jove"]);
+});
+
+test("the infobox lines of a system name every reason it has, in the registry's order", () => {
+  assert.deepEqual(M.interestLines(SYSTEMS_OF_INTEREST[0]).map((l) => [l.id, l.text]), [
+    ["habitable", "2 habitable worlds, best Green"], ["gas-giant", "1 gas giant"]]);
+  assert.deepEqual(M.interestLines({ reasons: {} }), []);
+  assert.deepEqual(M.interestLines(null), []);
+});
+

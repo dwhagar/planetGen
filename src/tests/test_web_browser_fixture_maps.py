@@ -26,7 +26,7 @@ Image = pytest.importorskip("PIL.Image")
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_POINTS, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
-    SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
+    GIANT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site,
     halo_site,
     map_site,
@@ -2531,10 +2531,45 @@ def test_galaxy_map_habitable_world_markers_are_opt_in_and_name_the_system(page,
     page.mouse.move(*spot)
     page.mouse.move(spot[0] + 1, spot[1])
     page.wait_for_timeout(200)
-    assert "Fixture Eden, 2 habitable worlds" in page.locator("#galaxymap3d-tooltip").inner_text()
+    assert "Fixture Eden, 2 habitable worlds, best Green" in page.locator("#galaxymap3d-tooltip").inner_text()
     page.mouse.click(*spot)
     assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Eden"
     assert "2" in page.locator("#galaxymap3d-info").inner_text()
+
+
+def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox(page, map_site):
+    """MAP.305: a gas giant is a reason for a mark of its own, off until the Menu turns it on; a system with a gas giant and a
+    habitable world is drawn once however many reasons are on, a system with neither has no mark, and the infobox of a mark lists
+    every reason its system has."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(1000)
+    giants = {s["name"] for s in GIANT_FIELD}
+    worlds = {s["name"] for s in WORLD_FIELD}
+    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-gas-giant"]')
+    _open_menu(page)
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "false"
+    button.click()
+    page.wait_for_timeout(400)
+    assert "show=marker-gas-giant" in page.url
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-gas-giant" for e in entries))
+    assert {e["name"] for e in found if e["kind"] == "marker-gas-giant"} == giants
+    assert not [e for e in found if e["kind"] == "marker-habitable"]
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
+    marks = [e["name"] for e in found if e["kind"] in ("marker-habitable", "marker-gas-giant")]
+    assert sorted(marks) == sorted(giants | worlds), marks    # Fixture Eden once, though it has both reasons
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.wait_for_timeout(300)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    eden = next(s for s in WORLD_FIELD if s["name"] == "Fixture Eden")
+    spot = _screen_of(page, (eden["x"], eden["y"], eden["z"]))
+    assert spot
+    page.mouse.move(*spot)
+    page.mouse.move(spot[0] + 1, spot[1])
+    page.mouse.click(*spot)
+    assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Eden"
+    info = page.locator("#galaxymap3d-info").inner_text()
+    assert "2 habitable worlds, best Green" in info and "1 gas giant" in info, info
 
 
 def test_a_name_is_only_offered_for_a_habitable_world_marker_that_is_drawn_and_a_sparse_view_names_them_all(page, map_site):

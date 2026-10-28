@@ -69,7 +69,7 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
             conn.execute(f"ALTER TABLE {table} DROP COLUMN mantle_eta0_pa_s, DROP COLUMN mantle_activation_kj_mol,"
                          " DROP COLUMN internal_heat_flux_w_m2, ALGORITHM=COPY")  # v153 (GEN.699)
             conn.execute(f"ALTER TABLE {table} DROP COLUMN water_base_pressure_pa, ALGORITHM=COPY")  # v151 (GEN.461)
-        conn.execute("DROP TABLE habitable_systems")  # v148 (MAP.220)
+        conn.execute("DROP TABLE system_interests")  # v165 (MAP.305; the chain makes v148's again and then replaces it)
         conn.execute("DELETE FROM galaxy_block_stats WHERE m > 65535")      # v146 (MAP.258)
         conn.execute("ALTER TABLE galaxy_block_stats MODIFY COLUMN m SMALLINT UNSIGNED NOT NULL")
         conn.execute("ALTER TABLE stars DROP COLUMN uv_c_share, ALGORITHM=COPY")  # v145 (GEN.443)

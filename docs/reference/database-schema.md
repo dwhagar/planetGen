@@ -2059,15 +2059,17 @@ Added in v82 (PERF.74). How many star systems each sector holds, as of the last 
 | `sector_id` | BIGINT UNSIGNED | PK | FK-like to `sectors.id` (no constraint). |
 | `system_count` | INT UNSIGNED | NOT NULL | The systems it holds. Indexed with `sector_id` (`idx_sector_system_counts_count`). |
 
-### `habitable_systems`
+### `system_interests`
 
-Added in v148 (MAP.220). One row for each star system that holds a habitable world (a planet or moon whose overall PHI-6 score is Blue or Green, `habitability.POTENTIALLY_HABITABLE_MIN_SCORE`), so the Galaxy Map's marker layer finds the systems with one inside a box without reading every planet (`query.galaxy_habitable_systems_in_box`). Derived data: `store.count_system_habitable_worlds` rebuilds a system's row when its sector is filled and whenever its scores are worked out again. A system with none, or with no galaxy position, has no row.
+Added in v165 (MAP.305, MAP.303); replaces `habitable_systems` (v148). One row for each star system and reason it is worth a mark on the Galaxy Map, so the marker layer finds the systems with a reason inside a box without reading every planet (`query.galaxy_system_interests_in_box`). The reasons are the registry in `db/interests.py` (`habitable`: a planet or moon whose overall PHI-6 score is Yellow or better, `habitability.YELLOW_FLOOR`; `gas-giant`: a planet with `body_type = 'g'`). Derived data: `store.record_system_interests` rebuilds a system's rows when its sector is filled and whenever its scores are worked out again. A system with no reason, or with no galaxy position, has no row.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `star_system_id` | BIGINT UNSIGNED | PK | FK to `star_systems.id`, ON DELETE CASCADE. |
-| `habitable_worlds` | SMALLINT UNSIGNED | NOT NULL | The planets and moons of the system that are Blue or Green overall (at most 65535). |
-| `galaxy_x_pc`, `galaxy_y_pc`, `galaxy_z_pc` | DOUBLE | NOT NULL | The system's `galaxy_*_pc`, copied (they never change). Indexed together (`idx_habitable_systems_position`). |
+| `reason` | VARCHAR(24) | PK | The reason's id in `interests.REASONS`. |
+| `n` | SMALLINT UNSIGNED | NOT NULL | The planets and moons of the system the reason counts. |
+| `best_score` | DOUBLE | NULL | The largest habitability score among them; NULL for a reason without a score. |
+| `galaxy_x_pc`, `galaxy_y_pc`, `galaxy_z_pc` | DOUBLE | NOT NULL | The system's `galaxy_*_pc`, copied (they never change). Indexed together (`idx_system_interests_position`). |
 
 ### `object_timing_stats` / `object_timing_samples`
 
@@ -2217,6 +2219,10 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v165 (MAP.305, MAP.303): `system_interests` replaces `habitable_systems`
+
+Migration 0165 makes `system_interests` (see its section) and fills it from the planets and moons already stored: a `habitable` row for each system with a planet or moon at or above `habitability.YELLOW_FLOOR`, a `gas-giant` row for each system with a planet of `body_type` `g`. It then drops `habitable_systems`. Nothing a generator draws changes, so there is no epoch. The Galaxy Map's nodes list its rows inside each block of 81 shells and smaller (`interests`, see the wire format).
+
 ### v164 (GEN.764): the epoch of each scatter and each species
 
 Migration 0164 creates `scatter_epochs` (above) and adds `species.generator_epoch` (SMALLINT UNSIGNED, nullable): the epoch the population pass made the species under. A species made before v164 gets the epoch of the sector its homeworld's system is in.
@@ -2278,7 +2284,7 @@ Migration 0149 drops `sectors.wiki_url`, `star_systems.wikijs_url` and `star_sys
 
 ### v148 (MAP.220): the `habitable_systems` table
 
-Migration 0148 makes `habitable_systems` (`star_system_id` PK with a cascading FK, `habitable_worlds` SMALLINT UNSIGNED, the system's `galaxy_x_pc`, `galaxy_y_pc`, `galaxy_z_pc` and a key on the three) and fills it from the planets and moons already stored. It is a table of its own because `star_systems` has a FULLTEXT key, so adding a column there would copy the whole table. The Galaxy Map's nodes list its rows inside each block of 81 shells and smaller (`worlds`, see the wire format).
+Migration 0148 makes `habitable_systems` (`star_system_id` PK with a cascading FK, `habitable_worlds` SMALLINT UNSIGNED, the system's `galaxy_x_pc`, `galaxy_y_pc`, `galaxy_z_pc` and a key on the three) and fills it from the planets and moons already stored. It is a table of its own because `star_systems` has a FULLTEXT key, so adding a column there would copy the whole table. The Galaxy Map's nodes list its rows inside each block of 81 shells and smaller (`worlds` then, `interests` since v165, see the wire format).
 
 ### v147 (MAP.259): `galaxy_block_lights`, the light of the pre-placed objects in each block
 
