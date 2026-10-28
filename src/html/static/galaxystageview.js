@@ -1356,8 +1356,31 @@ export function createStageView(host) {
     if (mapIndex < maxIndex) history.go(maxIndex - mapIndex);
   }
 
+  // MAP.121: the window one cell over, at the level the window is at, or null where there is nothing to step to (the
+  // whole galaxy, an opened sector or system, past a pole or the core, or where nothing of the galaxy lies).
+  function stepTarget(direction) {
+    if (pinned || entered || enteredSystem || !stage.win) return null;
+    const to = P.neighbourBlock(stage.win.centre, direction, edgePc);
+    if (!to) return null;
+    const next = { win: { centre: S.stripBlock(to), g: stage.win.g } };
+    return resolve(next).problem ? null : next;
+  }
+
+  // Steps the window to the neighbouring cell in `direction` (north, south, east, west, out, in): one camera move to
+  // its frame, the address carrying the camera and the breadcrumb following the new centre.
+  function stepToNeighbour(direction) {
+    if (animation) return false;
+    const next = stepTarget(direction);
+    if (!next) return false;
+    go(next);
+    return true;
+  }
+
   function renderTravel() {
     if (!els.controls) return;
+    els.controls.querySelectorAll("[data-step]").forEach(function (button) {
+      button.disabled = !stepTarget(button.dataset.step);
+    });
     const back = els.controls.querySelector('[data-action="back"]');
     const forward = els.controls.querySelector('[data-action="forward"]');
     const upButton = els.controls.querySelector('[data-action="up"]');
@@ -2864,6 +2887,11 @@ export function createStageView(host) {
       home();
       return;
     }
+    if ((key === "[" || key === "]") && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault();
+      stepToNeighbour(key === "[" ? "in" : "out");
+      return;
+    }
     if ((key === "c" || key === "C") && !event.ctrlKey && !event.metaKey && !event.altKey) {
       event.preventDefault();
       recenter();
@@ -2872,6 +2900,12 @@ export function createStageView(host) {
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Enter"].indexOf(key) < 0) return;
     event.preventDefault();
     // Alt and an arrow move the center (MAP.200).
+    // Alt, Shift and an arrow step to the neighbouring region at this level (MAP.121): up is north, down south, left
+    // west, right east; [ and ] go in toward the core and out from it (below).
+    if (event.altKey && event.shiftKey && key !== "Enter") {
+      stepToNeighbour({ ArrowUp: "north", ArrowDown: "south", ArrowLeft: "west", ArrowRight: "east" }[key]);
+      return;
+    }
     if (event.altKey && key !== "Enter") {
       const steps = { ArrowLeft: [-KEY_MOVE, 0], ArrowRight: [KEY_MOVE, 0], ArrowUp: [0, KEY_MOVE], ArrowDown: [0, -KEY_MOVE] };
       moveCentre(steps[key][0], steps[key][1]);
@@ -3524,6 +3558,8 @@ export function createStageView(host) {
     recenter: recenter,
     home: home,
     up: up,
+    stepToNeighbour: stepToNeighbour,
+    canStep: function (direction) { return !!stepTarget(direction); },
     travel: travel,
     travelToCurrent: travelToCurrent,
     setChartedOnly: setChartedOnly,
