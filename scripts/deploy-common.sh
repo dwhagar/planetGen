@@ -269,7 +269,7 @@ reload_web_if_running() {
                 failed=1
             elif systemctl "$verb" "$unit" >/dev/null 2>&1; then
                 echo "${verb}ed Apache."
-                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1/api/health}" Apache || failed=1
+                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1/api/health}" Apache "${PLANETGEN_HEALTH_URL:-$(site_health_target)}" || failed=1
             else
                 echo "warning: systemctl $verb $unit failed." >&2
                 failed=1
@@ -317,12 +317,33 @@ apache_configtest() {
     return 0
 }
 
+# The site's own /api/health address, for a host whose Apache answers the bare loopback address with some other site
+# (OPS.77: a default or redirecting virtual host that refuses /api/health with a 403 while the site's own name answers):
+# config.json's base_url with /api/health added, then the two curl --resolve values (name:80:127.0.0.1 and name:443:127.0.0.1)
+# that point the site's name at this machine, so the check reaches this Apache whatever DNS says and follows a redirect to https. Prints nothing when base_url
+# names this machine already (localhost, a loopback address) or cannot be read.
+site_health_target() {
+    "${PYTHON:-python3}" -c '
+from urllib.parse import urlsplit
+from planetgen.util.settings import get_settings
+parts = urlsplit(get_settings().base_url)
+host = parts.hostname or ""
+if host and host not in ("localhost", "127.0.0.1", "::1"):
+    http, https = (parts.port, parts.port) if parts.port else (80, 443)
+    print(f"{parts.scheme}://{parts.netloc}{parts.path.rstrip(chr(47))}/api/health {host}:{http}:127.0.0.1 {host}:{https}:127.0.0.1")
+' 2>/dev/null || true
+}
+
 # Waits up to HEALTH_WAIT_SECONDS for $1 (an address) to answer below 400, naming $2 in the warning; true without curl.
+# $3, when given, is the site's own address and its two curl --resolve values (site_health_target), tried each round when $1
+# does not answer below 400: it passes on a 2xx answer, so a host whose bare loopback address belongs to another virtual
+# host (OPS.77) is checked through the site's own name. A passing answer by that route is said so.
 # /api/health stays open while the site is closed for the update (OPS.75), so a reload is checked while the update's
 # own maintenance mode is still on; a closed site is said so (and why), on success and in the warning alike.
 wait_for_health() {
     command -v curl >/dev/null 2>&1 || return 0
-    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body
+    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body site_url="" resolve_http="" resolve_https="" site_code="" site_note=""
+    if [[ -n "${3:-}" ]]; then read -r site_url resolve_http resolve_https <<<"$3"; fi
     while :; do
         reply="$(curl -s --max-time 5 -w '\n%{http_code}' "$1" 2>/dev/null)"
         code="${reply##*$'\n'}"
@@ -331,8 +352,19 @@ wait_for_health() {
             health_maintenance_note "$body"
             return 0
         fi
+        if [[ -n "$site_url" ]]; then
+            reply="$(curl -sL --max-time 5 --resolve "$resolve_http" --resolve "$resolve_https" -w '\n%{http_code}' "$site_url" 2>/dev/null)"
+            site_code="${reply##*$'\n'}"
+            body="${reply%$'\n'*}"
+            if [[ "$site_code" =~ ^2 ]]; then
+                echo "note: $1 answered HTTP ${code:-000} (that address reaches another site on this machine); the site answers at $site_url."
+                health_maintenance_note "$body"
+                return 0
+            fi
+            site_note=" The site's own address $site_url answered HTTP ${site_code:-000}."
+        fi
         if (( SECONDS >= end )); then
-            echo "warning: the health check of $2 failed: $1 answered HTTP ${code:-000} for ${HEALTH_WAIT_SECONDS:-20} seconds after the reload.$(health_maintenance_note "$body" brief)" >&2
+            echo "warning: the health check of $2 failed: $1 answered HTTP ${code:-000} for ${HEALTH_WAIT_SECONDS:-20} seconds after the reload.${site_note}$(health_maintenance_note "$body" brief)" >&2
             return 1
         fi
         sleep 1
