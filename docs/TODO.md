@@ -13052,115 +13052,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for Earth, hot desert, cold, high dose, locked world and vacuum.
   Depends on GEN.767 (Aux 5, daylight_hours).
 
-- [ ] **GEN.769 Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug)**
-  Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "ice shell
-  thickness shows measure in km in some situations where it should show
-  meters or less (i.e. 0.00109 km)". On the property sheet
-  (describe/sheet.py) the ice shell thickness, ocean depth and
-  high-pressure ice thickness columns (ice_shell_km,
-  ice_shell_thickness_km, ocean_depth_km, hp_ice_km) are stored in km
-  and shown as a plain km number when their quantity is not on a length
-  ladder, so a thin shell prints as 0.00109 km. Do: find every length
-  column and Document quantity that skips the length ladder (mm, cm, m,
-  km, then au, ly and so on by magnitude) and put it on one, so a value
-  under 1 km reads in m (under 1 m in cm or mm), a value over 1000 km
-  stays in km, in the sheet, the API description and the map infobox
-  alike; one function picks the unit from the registry (GEN.571), no
-  per-column table. Done: 0.00109 km shows as 1.09 m, 2.4e-7 km as 0.24
-  mm, 3500 km stays 3500 km; a test over every length column of the
-  sheet shows no value below 1 in its unit. Owner: Aux 14. Related:
-  GEN.571, GEN.568, UX.199.
-  Prerequisites: none. Related: GEN.571, GEN.568, UX.199.
-
-- [ ] **GEN.770 Water rows state their unit: share of the mass, surface under ocean, surface above sea level, water activity, ocean pH (bug)**
-  Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "water, and
-  other things are less clear as well we should have some kind of units
-  with water activity, surface under ocean, surface above sea level,
-  water share of the mass, etc." On the property sheet these
-  dimensionless columns (water_mass_fraction, ocean_fraction,
-  land_fraction, water_activity, ocean_pH and the other ratio-unit
-  columns) print a bare number with no unit, so 0.0004 and 0.71 do not
-  say what they are. Do: give each a stated unit by what it is: the
-  shares (water share of the mass, surface under ocean, surface above
-  sea level) as a percent when above 1 percent, in ppm when below
-  (0.0004 as 400 ppm), with the whole-surface pair adding to 100
-  percent; water activity as a pure number between 0 and 1 with its
-  scale in the label ("Water activity (0 to 1, life needs about 0.6 or
-  more)"); pH with its scale; and every other ratio column on the sheet
-  a label that says what it is a ratio of. Register the display unit
-  (percent, ppm, dimensionless) in the unit registry and column_units,
-  not in the sheet. Done: no water-group row shows a bare number; a test
-  lists every ratio-unit column of the sheet and its stated unit. Owner:
-  Aux 14. Related: GEN.571, GEN.568, UX.208.
-  Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
-
-- [ ] **GEN.771 Property sheet: the 40 ratio and 7 index rows state a unit or a scale (shares in percent or ppm, scores as "n of 9", ratios by what they divide) (bug)**
-  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
-  TODO find where we output numbers without units or context, and make
-  TODO items all as bugs, we should never have numbers without units or
-  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
-  describe/sheet.py prints every column whose unit is ratio or index as
-  a bare number through _plain_number: share and fraction rows (metal,
-  rock, ice, envelope, helium, heavy-element, iron oxide, alumina),
-  porosity, cloud cover, Bond albedo, optical depths, greenhouse factor,
-  shielding factor, exposure and ultraviolet indexes, the PHI-6 and
-  suitability scores, Urey and aluminium-26 ratios, eccentricity, spin,
-  the Eddington share, and the four life scores and the birth shell,
-  band and wedge indexes. The water rows are GEN.770 and the length
-  scaling is GEN.769. Do: give each column a display unit in the
-  registry (percent, ppm by size, dimensionless with its scale or range
-  in the label, "n of 9" for the life scores, "n of 6" style for the
-  score rows that have a scale) and make _plain_number refuse a ratio or
-  index column that has none, so a new column cannot print bare. Done: a
-  test over every sheet row shows a unit symbol, a scale, or a noun
-  beside every number; the report's list is empty. Owner: Aux 14.
-  Related: GEN.770, GEN.769, GEN.571, UX.208.
-  Prerequisites: none. Related: GEN.770, GEN.769, GEN.571, UX.208.
-
-- [ ] **GEN.772 Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug)**
-  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
-  TODO find where we output numbers without units or context, and make
-  TODO items all as bugs, we should never have numbers without units or
-  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
-  The rule only holds if a new column cannot print bare. Do: make the
-  one formatter (unit registry) the only way a sheet, a template, the
-  API and a command prints a quantity, refuse a ratio, index or count
-  with no unit, scale or noun, and add a test that renders a sample body
-  of every class, one page of each template, the OpenAPI document and
-  each command's output and fails on a number with no unit, scale or
-  noun beside it. Done: the test is in the changed-tests gate and fails
-  on a deliberately bare column. Owner: Aux 14. Related: GEN.571,
-  GEN.568, GEN.771, UX.208.
-  Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
-
-- [ ] **GEN.773 A temperature difference is never converted as a temperature: the day and night swing of 9.07 K shows as 9.07 K (or 9.07 C degrees), not -264 C (bug)**
-  Boss, 9:13 PM EDT 2026-10-24 (relayed by the coordinator): under
-  climate the page says "Day and night swing" 9.07 K and converts it to
-  -264 C; he reads it as the variation between night and day, plus or
-  minus 9.07 degrees. He is right: temp_swing_k is listed with the
-  absolute regional temperatures (REGIONAL_TEMPERATURES in
-  db/column_units.py, GEN.656), so the sheet applies the kelvin to
-  Celsius or Fahrenheit offset of 273.15 to a difference. Do: add a
-  temperature-difference kind to the unit registry (kelvin difference,
-  Celsius degrees and Fahrenheit degrees with a factor and no offset)
-  and move temp_swing_k to it; sweep every other temperature difference
-  or range column and Document quantity (the swing, any rise, drop,
-  range or greenhouse warming value, and the temperature-based text on
-  the pages and the API) for the same mistake and put each on the
-  difference kind; label the swing so it says what it is ("Day to night
-  swing, 9.07 K either side" or the full range, whichever the generator
-  stores; state which). Done: the swing converts to 9.07 degrees C and
-  16.3 degrees F, never -264 C; a test converts a difference in every
-  temperature unit and checks no offset is applied; the list of columns
-  moved is in the PR. Owner: Units lane. Related: GEN.656, GEN.769,
-  GEN.770, GEN.771, GEN.571.
-  Prerequisites: none. Related: GEN.656, GEN.769, GEN.770, GEN.771,
-  GEN.571.
-  Research (2026-10-09, Progress): Boss, 10:07 PM EDT 2026-10-24 asked
-  for the plus-or-minus form or the full range, and a high and low for
-  every regional temperature: filed as the next two items of this group
-  (the swing label and the regional ranges), same owner.
-
 - [ ] **GEN.774 Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows**
   Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
   say somewhere in the 8.x chain I want to add editable civilizations,
@@ -13531,7 +13422,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet shows low and high with the value in the middle, in kelvin,
   Celsius and Fahrenheit, and a test checks the midpoint and that no
   offset is applied twice. Version 8.1. Owner: Units lane.
-  Prerequisites: GEN.773. Related: GEN.773, GEN.656, GEN.769.
+  Prerequisites: none. Related: GEN.656, GEN.769, GEN.773.
 
 - [ ] **GEN.798 Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers)**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
@@ -19799,6 +19690,20 @@ clears each one.
   column 0163 added) in the test fixture. Owner: Bug 1. Related:
   TEST.402 (test_db_column_round_trip::test_every_column_is_written,
   flake under load, same gate).
+  Prerequisites: none.
+
+- [ ] **TEST.424 test_property_sheet::test_every_column_is_on_the_sheet_or_says_why_it_is_not[moon|planet] fails on main: the new ground_* columns have no sheet row or NOT_SHOWN excuse (bug)**
+  Found by the Units lane at 3:52 PM EDT 2026-10-28 as the lane
+  reported, on main itself after GEN.769 to GEN.773 (#3478): the
+  ground-composition columns ground_type, ground_grain and
+  ground_*_fraction (GEN.441) have neither a property sheet row nor a
+  NOT_SHOWN excuse, so the guard test fails for moons and planets. Fix:
+  add the sheet rows (with a unit or scale, db/column_units.py declares
+  it) or list them in NOT_SHOWN with the reason. Any new ratio or index
+  column must also be declared in db/column_units.py in a unit that says
+  what it is (frac, score1, score9, tau, orbit-e, ...) or the sheet
+  refuses it. Owner: Bug 1 (Core 4 wrote the ground chain and can
+  advise). Related: TEST.413.
   Prerequisites: none.
 
 ## USR: User accounts
