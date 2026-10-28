@@ -22193,39 +22193,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   nothing in 8.1.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-- [ ] **DOC.82 Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
-  9-block cell (about 780 sectors) with at least one generated sector,
-  named from the block path by a new codec kind region (Word Region; the
-  27 Regions of one 81-block share the family word) and drawn as the
-  bounding sphere of its generated sectors, never smaller than the 12 pc
-  standard-fill sphere (about 109 sectors) about the cell's anchor; it
-  exists, and shows on the galactic map, as soon as any sector in the
-  cell is generated (anything above 0 percent), ranked by share charted
-  (generated sectors over the sectors its outline can hold, a standard
-  fill is about 14 percent); ungenerated space gets no region and no
-  sector line may join two unrelated places. Boss, 1:13 AM EDT
-  2026-10-25: the chain is in 8.1, regions are what the galactic-level
-  map shows so a user can always drill down to inhabited space. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
-  from the gated phoneme codec only, never from Milky Way or Solar
-  System lists. Naming doc section, object-pages doc and
-  galaxy-map-wire-format.md updated; the audit playbook gets the
-  uniqueness check. Done: docs build and link tests pass, the audit
-  check exists. Owner: Core 3. Rules: no backward-compat shims; every
-  number has a unit or scale (GEN.772); tests are scripts/test.py
-  changed --resume.
-  Prerequisites: API.35. Related: GEN.825, DB.107,
-  GEN.826, API.35, MAP.314, MAP.315, UX.231, API.36.
-  Research (2026-10-09, Aux 12 report 2026-10-28): API.35 merged (#3396,
-  Aux 12, 9:56 AM EDT as the lane reported): a charted region node
-  (9-block with a region_stats row) carries name and parent (family,
-  Word Reach); the stage lists children the same way (child_m 9) and a
-  9-block stage names it; only charted regions, only with a naming key;
-  TILE_FORMAT 4 to 5 rebuilds stored nodes once. Unblocked: write the
-  docs and the audit check now.
-
 ## VIEW: The view from a planet
 
 - [ ] **VIEW.1 View from a planet**

@@ -748,7 +748,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.79 | The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C | none | done, PR #3262 |
 | DOC.80 | Progress docs rule: nothing after a progress block may run longer than the bar threshold without its own Step | none | done, PR #3125 |
 | DOC.81 | Help page: resource locations, what the scores mean and how to find them on the map | none | open |
-| DOC.82 | Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7) | none | open |
+| DOC.82 | Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7) | none | done, PR #3400 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
