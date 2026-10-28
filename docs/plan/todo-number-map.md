@@ -16,9 +16,9 @@ release is stamped.
 | UX | UX.234 |
 | MAP | MAP.331 |
 | NAV | NAV.65 |
-| GEN | GEN.847 |
+| GEN | GEN.848 |
 | PERF | PERF.201 |
-| DB | DB.109 |
+| DB | DB.110 |
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
@@ -567,7 +567,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | none | done, PR #387 |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | done, PR #813 |
 | DB.8 | Check a galaxy database and say whether it is damaged | none | done, PR #893 |
-| DB.9 | Repair a damaged galaxy database from a parity file | none | open |
+| DB.9 | Repair a damaged galaxy database from a parity file | none | done, PR #3460 |
 | DB.10 | Repair reads the newest settings JSON and the pending deltas | none | dropped (Boss, 2026-10-09 20:42Z) |
 | DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | done, PR #751 |
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
@@ -606,7 +606,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | none | done, PR #3414 |
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | done, PR #3451 |
 | DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | none | done, PR #3456 |
-| DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | none | open |
+| DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | none | done, PR #3460 |
 | DB.49 | Migration only: the leaf digest column and the shell-band tree table | none | done, PR #2521 |
 | DB.50 | Migration only: structure columns for life and flavour | none | done, PR #2206 |
 | DB.51 | Generation stores structure, not prose; the readers and the string searches go | none | done, PR #2206 |
@@ -667,6 +667,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.106 | Storage for resource locations: grade, mass estimate and score per resource for belts, fields, giants and icy bodies, with column units and the migration | none | open |
 | DB.107 | Region stats: the region_stats table, its save and delete hook and the charted percent (regions chain, step 1b) | none | done, PR #3383 |
 | DB.108 | Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e) | none | open |
+| DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1595,6 +1596,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.844 | A random planet's colour crashes generation: 'the spectrum has no light between 380 and 780 nm' (bug) | none | done, PR #3443 |
 | GEN.845 | Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764) | none | open |
 | GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) | none | open |
+| GEN.847 | radiation.ground_dose_msv_yr passes a float rock_ppm to radiogenic.surface_content, which fails with "float object is not iterable" and turns 17 tests red on main (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
