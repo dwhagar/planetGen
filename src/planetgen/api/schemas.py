@@ -180,7 +180,7 @@ class SystemRecipe(Body):
     star_type: Optional[StrictStr] = None
     name: Optional[StrictStr] = None
     age: Literal["young", "old", None] = None
-    num_orbits: Optional[StrictInt] = None
+    num_orbits: Optional[StrictInt] = Field(default=None, description="Unit: count of orbits (planets and belts), 1 and up.")
 
     @field_validator("name")
     @classmethod
@@ -201,7 +201,7 @@ class SystemCreate(SystemRecipe):
     """`POST /api/systems`: a recipe, optionally placed in a sector."""
 
     sector_id: Optional[StrictStr] = Field(default=None, max_length=40)
-    position: Optional[list[Number]] = None
+    position: Optional[list[Number]] = Field(default=None, description="Unit: ly, the [x, y, z] offset from the sector's centre.")
 
     @field_validator("position")
     @classmethod
@@ -278,12 +278,12 @@ FieldValue = Union[StrictBool, StrictInt, StrictFloat, StrictStr, None]
 class FacilityExtras(Body):
     """What a facility carries beyond its place (POP.10): shared by the create and change bodies."""
 
-    type_id: Optional[StrictInt] = None
-    affiliation_polity_id: Optional[StrictInt] = None
+    type_id: Optional[StrictInt] = Field(default=None, description="Unit: id of a facility type.")
+    affiliation_polity_id: Optional[StrictInt] = Field(default=None, description="Unit: id of a polity.")
     affiliation_name: Optional[StrictStr] = None
     ratings: Optional[FacilityRatings] = None
     ratings_note: Optional[StrictStr] = None
-    fields: Optional[dict[str, FieldValue]] = None
+    fields: Optional[dict[str, FieldValue]] = Field(default=None, description="Unit: row-defined, each value in the unit its facility type field declares.")
 
 
 class FacilityUpdate(FacilityExtras):
@@ -357,11 +357,11 @@ class FacilityFieldCreate(Body):
     datatype: StrictStr
     unit: Optional[StrictStr] = None
     required: StrictBool = False
-    min_value: Optional[Number] = None
-    max_value: Optional[Number] = None
+    min_value: Optional[Number] = Field(default=None, description="Unit: row-defined, the unit this field declares (`unit`).")
+    max_value: Optional[Number] = Field(default=None, description="Unit: row-defined, the unit this field declares (`unit`).")
     choices: Optional[list[StrictStr]] = None
     default_text: Optional[StrictStr] = None
-    sort_order: StrictInt = 0
+    sort_order: StrictInt = Field(default=0, description="Unit: index, the place in the list, 0 first.")
 
 
 class FacilityFieldUpdate(Body):
@@ -371,11 +371,11 @@ class FacilityFieldUpdate(Body):
     datatype: Optional[StrictStr] = None
     unit: Optional[StrictStr] = None
     required: Optional[StrictBool] = None
-    min_value: Optional[Number] = None
-    max_value: Optional[Number] = None
+    min_value: Optional[Number] = Field(default=None, description="Unit: row-defined, the unit this field declares (`unit`).")
+    max_value: Optional[Number] = Field(default=None, description="Unit: row-defined, the unit this field declares (`unit`).")
     choices: Optional[list[StrictStr]] = None
     default_text: Optional[StrictStr] = None
-    sort_order: Optional[StrictInt] = None
+    sort_order: Optional[StrictInt] = Field(default=None, description="Unit: index, the place in the list, 0 first.")
 
     @model_validator(mode="after")
     def _something(self):
@@ -391,7 +391,7 @@ class FacilityTypeCreate(Body):
     kind: StrictStr
     icon: Optional[StrictStr] = None
     description: Optional[StrictStr] = None
-    sort_order: StrictInt = 0
+    sort_order: StrictInt = Field(default=0, description="Unit: index, the place in the list, 0 first.")
     active: StrictBool = True
     fields: list[FacilityFieldCreate] = Field(default_factory=list)
 
@@ -403,7 +403,7 @@ class FacilityTypeUpdate(Body):
     kind: Optional[StrictStr] = None
     icon: Optional[StrictStr] = None
     description: Optional[StrictStr] = None
-    sort_order: Optional[StrictInt] = None
+    sort_order: Optional[StrictInt] = Field(default=None, description="Unit: index, the place in the list, 0 first.")
     active: Optional[StrictBool] = None
 
     @model_validator(mode="after")
@@ -522,7 +522,7 @@ class ApiKeyCreate(Lenient):
 
     label: StrictStr
     scopes: Optional[List[StrictStr]] = None
-    expires_days: Optional[Union[StrictInt, StrictFloat]] = None
+    expires_days: Optional[Union[StrictInt, StrictFloat]] = Field(default=None, description="Unit: days from now.")
 
     @field_validator("label")
     @classmethod
@@ -631,7 +631,7 @@ class RunAction(Lenient):
 class WorkerCount(Lenient):
     """`POST /api/admin/work/workers`: a count, or "Ludicrous Speed" (ADM.15)."""
 
-    count: Optional[StrictInt] = None
+    count: Optional[StrictInt] = Field(default=None, description="Unit: count of worker processes.")
     ludicrous: Optional[StrictBool] = None
 
     @model_validator(mode="after")
