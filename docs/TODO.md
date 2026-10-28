@@ -6830,7 +6830,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outside 8.1 is paused until 8.1 is complete).
   Prerequisites: UX.128. Related: GEN.300.
 
-- [ ] **GEN.350 Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T**
+- [ ] **GEN.350 Class R, sub-Neptune, with the envelope-survival rule and the Hycean flag (class T stays: it is the sub-Neptune row of the classifier)**
   Split from GEN.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Rock and ice core under a
   hydrogen-helium envelope, 1.6 to 3.2 Earth radii (cap 4), 3 to 10
@@ -6838,10 +6838,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stripped by the energy-limited loss of the retention module; the
   Hycean window (1 to 10 Earth masses, 1.4 to 2.6 radii, T_eq 150 to 500
   K, density 1.5 to 3) is a flag on R; rocky rogues of 10 to 16 Earth
-  masses become R; class T merges into R and is retired. Done: zone
+  masses become R. Class T is NOT retired (Aux 9 7:36 AM EDT 10-28 as the
+  lane reported: all 20 class letters A to V stay, never retire a letter
+  without asking Boss); T is the light-hydrogen-envelope row of the
+  classifier and stays rare until the envelope half of GEN.822 and
+  GEN.829 lands. Done: zone
   flags, weights, ranges, atmosphere, moon eligibility, rogue flag,
-  reference page and the class-contract and 1,000-system tests; no old
-  row or test expects T.
+  reference page and the class-contract and 1,000-system tests.
   Prerequisites: GEN.355. Related:
   GEN.28, GEN.412, GEN.423, GEN.428.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -15106,6 +15109,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scale (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: none. Related: GEN.728, GEN.681, GEN.350, GEN.509,
   GEN.822, GEN.650.
+  Research (2026-10-09, Aux 9 report): Split decided by Aux 9 (as the
+  lane reported 7:36 AM EDT 10-28): Aux 9 takes the mass-function half
+  (the GEN.650 mass law tuned against Aux 16 bands, nine stand-ins PM1
+  to PM9 under GEN.711, no epoch of its own, wired by the cut-over); the
+  sub-Neptune envelope half stays with GEN.822 and GEN.350. Measured on
+  400 systems: giants of 100 Earth masses or more per Sun-like star 0.51
+  to 0.16 (observed 0.10 to 0.15), per M dwarf 0.19 to 0.04 (0.03 to
+  0.06); planets of 1 to 20 Earth masses inside 0.45 AU 0.52 to 0.88
+  around Sun-like stars and 0.24 to 1.30 around M dwarfs.
 
 - [ ] **GEN.830 A class O (ocean) planet in zone e reaches a surface pressure of 9.05e9 Pa (about 90,000 bar) with the solved air: unphysical for an air above a liquid ocean (bug)**
   Found by the 4c lane (Blocker I, relayed by the coordinator 2:36 AM
@@ -15279,6 +15291,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so it needs an epoch (--affects fill) and a lock turn, ideally the
   same one as the rest of Aux 5's stack if it is not yet merged.
   Prerequisites: GEN.763. Related: GEN.763, GEN.735.
+
+- [ ] **GEN.840 The atmosphere recipe tables still gate each mixture row on class letters: change the gate to kind plus conditions and drop the letter from the mixture subject (the recipe-gate half of GEN.683)**
+  Found by Aux 9 (as the lane reported 7:36 AM EDT 2026-10-28) reading
+  main for GEN.646: 4c removed the class from the air in effect, but
+  physics/data/atmosphere_recipes.json (72 mixture rows) still gates
+  each row on class letters (rows e1 to e6 on S, V, I, T; i1 to i6 on A,
+  B, C, S; j2 on K, L, U) and the mixture subject carries the letter.
+  Do: change each row's gate from the class letter to the planet kind
+  plus conditions (mass, temperature, pressure, origin) with the same
+  selection, drop the letter from the mixture subject, and keep the
+  rows' content unchanged. Done: nothing in the recipe tables or the
+  mixture code names a class letter. Owner: Aux 9, inside the GEN.646
+  cut-over PR and its single epoch; no other lane starts it. It touches
+  the same JSON as Aux 17's GEN.822 (PR #3354): whichever takes the
+  generation lock second merges main in.
+  Prerequisites: none. Related: GEN.683, GEN.646, GEN.689, GEN.822.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
