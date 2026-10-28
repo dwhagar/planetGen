@@ -45,7 +45,7 @@ PLAIN_UNITS = ("ratio", "count", "Sv/yr")
 SECTION_KINDS = ("system", "star", "black-hole", "neutron-star", "pair", "planet", "moon", "belt", "comet", "nebula",
                  "quasar", "rogue-planet", "interstellar-comet", "asteroid-field", "supernova-remnant")
 BLOCK_TYPES = ("facts", "ratings", "composition", "prose")
-PROSE_ROLES = ("overview", "summary", "description", "depth", "life", "timeline", "flavour")
+PROSE_ROLES = ("overview", "summary", "description", "depth", "interior", "life", "timeline", "flavour")
 
 
 def qty(kind, value, unit=None, **extra):

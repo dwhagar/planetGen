@@ -487,7 +487,6 @@ def generate_planet_properties(planet, zone_override=None):
         inner_bound, outer_bound = planet.habitable_zone
         planet.distance = sample_bounded_bell(inner_bound, outer_bound, class_data["zone_position_mode"])
 
-    planet.composition = class_data["composition"]
     planet.description = class_data["description"]
     if planet.is_moon:
         # Class descriptions are authored generically (e.g. "shields the inner

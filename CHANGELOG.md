@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2368] - 2026-10-28
+
+**Headline:** What a planet or moon is made of is now written from the composition it was actually drawn with, and a giant's page lists its layers.
+
+### Changed
+- **Composition text** (GEN.430): the Composition line of every planet and moon is now written from its stored bulk fractions: each material that makes up at least one percent of its mass is named with a fixed level (mostly, a large share, a moderate share, a small share), largest first, for example "mostly silicate rock, with a large share of iron-rich metal". Carbon-rich worlds name silicon carbide and graphite, and a loosely packed small body says so. The fixed string each class used to carry is no longer shown.
+- **Giant interiors on the page** (GEN.642): a gas giant, ice giant or brown dwarf now lists its layers from the top down, with the state, mass, pressure range and make-up of each. Pressures under 0.1 GPa are given in bars.
+- Generator epoch 111: the composition text of every planet and moon is new.
+
+generation-output: changed
+
+## [8.0.2367] - 2026-10-28
+
+**Headline:** Galaxy regions now have names and a sphere to frame them, built from the map's block grid.
+
+### Changed
+- **Region names, anchors and framing spheres (GEN.825).** Every 9-block of the map's block grid (about 780 sectors, 36 pc across) can be given a name of the form "Fardoo Beez Region": the first word is shared by all the regions inside the same 81-block, the second is the region's own place in it, and the names come from the name generator under the galaxy's naming key (no names from the Milky Way or the Solar System). Each region also has an anchor (the centre of its cell) and a framing sphere of 12 pc, smaller only in the few cells the grid squeezes next to the poles (none under 7.8 pc). Each region's extent, the sphere it is drawn and framed with, is the bounding sphere of the largest connected clump of its generated sectors (GEN.827), never under that 12 pc sphere, so a region made by two fills far apart in one cell is not drawn as one sphere over the gap between them. Nothing shows these yet: the map, the database table and the Generate page follow in the next steps of the chain. No generated value changes.
+
 ## [8.0.2366] - 2026-10-28
 
 **Headline:** The sulfur a world keeps in its air is what the sulfate and sulfide sinks of its crust leave, instead of a drawn share.

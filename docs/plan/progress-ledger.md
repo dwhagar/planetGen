@@ -1537,3 +1537,6 @@ Baseline: PR #1817.
 | GEN.673 | 8.1 | Mixture and stored values |
 | GEN.667 | 8.1 | Atmosphere colour |
 | GEN.815 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.825 | 8.1 | Fly-through map |
+| GEN.827 | 8.1 | Fly-through map |
+| GEN.430 | 8.1 | Bulk composition |

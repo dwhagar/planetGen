@@ -3406,7 +3406,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn at galactic scale. Owner: Aux 10. Rules: no backward-compat
   shims; every number has a unit or scale (GEN.772); tests are
   scripts/test.py changed --resume.
-  Prerequisites: DB.107, GEN.827, API.35. Related: GEN.825, DB.107,
+  Prerequisites: DB.107, API.35. Related: GEN.825, DB.107,
   GEN.827, API.35, MAP.314.
 
 - [ ] **MAP.317 Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c)**
@@ -3493,7 +3493,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   box is drawn after the flight. Owner: Core 2. Rules: no
   backward-compat shims; every number has a unit or scale (GEN.772);
   tests are scripts/test.py changed --resume.
-  Prerequisites: GEN.827, API.35. Related: GEN.827, MAP.316, MAP.295,
+  Prerequisites: API.35. Related: GEN.827, MAP.316, MAP.295,
   MAP.296, MAP.152.
   Progress (2026-10-09): Part merged as #3312 (Core 2, 2:07 AM EDT
   2026-10-25 as the lane reported): static/flytofit.js (fitDistance,
@@ -7984,52 +7984,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wired in (that rides lane I's GEN.411, which takes the epoch), so no
   generated value moves. Opacities are labelled stand-ins until GEN.703
   (lane E). The item stays open for the wiring step.
-- [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
-  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
-  stores the composition of a body and that composition drives the mass
-  calculations and density calculations for gravity and such?" Answer
-  (read-only trace,
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
-  main at 8.0.1635): no. `planet.composition` is one fixed text string
-  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
-  fractions exist; the bulk density is a uniform draw per class (500:
-  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
-  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
-  radius and density (528) and the gravity from those; giants take mass
-  and radius from a mass-radius relation (534-557). The chain below
-  makes the composition the cause. The description layer writes the
-  composition sentence from the stored fractions and the materials table
-  (for example the metal, rock, water and gas shares) instead of the
-  class text, and never names a material the body does not hold. Done: a
-  test generates bodies of every class and checks that every material
-  named in the text is in the stored fractions above a stated share and
-  that the shares quoted equal the stored ones.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.415, GEN.218,
-  GEN.208.
-  Section 14.6 of the Body composition research lane's note
-  (docs/design/composition/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
-  the lane reported), on Boss's shared-vocabulary point of 1:47 AM EDT,
-  filed by the TODO thread: the descriptions of a belt and of a planet's
-  crust are produced from the stored fractions by fixed thresholds with
-  one text writer for any body, so this item and GEN.446 use the same
-  code; the planet classes' fixed composition strings are replaced by
-  the drawn mixture and the class label becomes a summary derived from
-  it.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Research (2026-10-09, Owner): Owner reconciled: Lane J (in its queue
-  after DB.89). The 'returned to the pool' line above is superseded.
-  (TODO, 2026-10-24 5:27 PM EDT, from the physics fix plan thread's
-  reconcile ask.)
-
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -14912,38 +14866,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch.
   Prerequisites: none. Related: GEN.814, GEN.823.
 
-- [ ] **GEN.825 Region names: region_name() for the codec kind region, the anchor and sphere geometry of every 9-block, and a measurement of the squeezed blocks (regions chain, step 1)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
-  9-block cell (about 780 sectors) with at least one generated sector,
-  named from the block path by a new codec kind region (Word Region; the
-  27 Regions of one 81-block share the family word) and drawn as the
-  bounding sphere of its generated sectors, never smaller than the 12 pc
-  standard-fill sphere (about 109 sectors) about the cell's anchor; it
-  exists, and shows on the galactic map, as soon as any sector in the
-  cell is generated (anything above 0 percent), ranked by share charted
-  (generated sectors over the sectors its outline can hold, a standard
-  fill is about 14 percent); ungenerated space gets no region and no
-  sector line may join two unrelated places. Boss, 1:13 AM EDT
-  2026-10-25: the chain is in 8.1, regions are what the galactic-level
-  map shows so a user can always drill down to inhabited space. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
-  from the gated phoneme codec only, never from Milky Way or Solar
-  System lists. Build the pure function region_name(block, key): family
-  word from the 81-block, local word from the ordinal among its 27
-  9-blocks, a collision salt against the 26 neighbouring blocks, kind
-  region added to naming_key.KINDS with no CODEC_VERSION bump;
-  REGION_RADIUS_PC (default the standard fill radius); the anchor
-  (centre of the 9-block bounds); minimum framing radius min(12 pc,
-  inscribed radius) for squeezed blocks (every cell with a generated
-  sector is a region, so none is dropped). Measure how many blocks the
-  grid squeezes near the core and poles. Done: golden names, sibling and
-  neighbour uniqueness and determinism tests, no database read, the
-  measurement written into the design draft. Owner: Core 3. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
-  Prerequisites: none.
-
 - [ ] **GEN.826 Random-start and Generate "around a place" fill one anchor sphere, so a normal fill charts a whole region (regions chain, step 1c)**
   Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
   9-block cell (about 780 sectors) with at least one generated sector,
@@ -14969,29 +14891,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-25: Bug 1 takes it when DB.107 lands, after its current item),
   moved from Core 3. Rules: no backward-compat shims; every number has a
   unit or scale (GEN.772); tests are scripts/test.py changed --resume.
-  Prerequisites: GEN.825, DB.107. Related: GEN.825, DB.107.
-
-- [ ] **GEN.827 Region extent: the bounding sphere of a cell's generated sectors (never under the 12 pc fill sphere) and the measurement of two far-apart clumps (regions chain, step 1d)**
-  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
-  what the galactic-level map shows so a user can always drill down to
-  inhabited space; a region is a 9-block cell with at least one
-  generated sector, drawn as the bounding sphere of its generated
-  sectors (never smaller than the 12 pc fill sphere), ranked by share
-  charted. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2. Compute the extent (centre and radius in pc) of every
-  region from its generated sectors, minimum the 12 pc fill sphere about
-  the anchor (minimum framing radius min(12 pc, inscribed radius) in a
-  squeezed cell); a chain of sectors across cells makes one thin region
-  per cell, each its own small sphere. Measure how often the generated
-  sectors of one cell form two far-apart clumps so the bounding sphere
-  covers the gap; if it matters, the extent becomes the sphere of the
-  largest face-connected clump (the rest still count toward the share).
-  Done: extent function and tests, the measurement written into the
-  design draft, DB.107 stores the extent. Owner: Core 3. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
-  Prerequisites: GEN.825. Related: GEN.825, DB.107.
+  Prerequisites: DB.107. Related: GEN.825, DB.107.
 
 - [ ] **GEN.828 Giant planet occurrence falls with host mass and rises with metallicity, and hot Jupiters are rare: giants per M dwarf are about 0.48 today against 0.03 to 0.06 observed, hot Jupiters 0.117 per M dwarf and 0.026 per FGK star against under 0.002 and 0.005 to 0.01**
   Found by Aux 16 (report
@@ -15250,6 +15150,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the same JSON as Aux 17's GEN.822 (PR #3354): whichever takes the
   generation lock second merges main in.
   Prerequisites: none. Related: GEN.683, GEN.646, GEN.689, GEN.822.
+
+- [ ] **GEN.841 thermosphere.exobase can loop for over 20 minutes in the planet atmosphere draw: a planet whose exobase never closes steps through a huge range (bug)**
+  Found by Math 1 (as the lane reported 8:10 AM EDT 2026-10-28) on main
+  0e7a20df:
+  test_bright_star_scatter.py::test_a_single_sector_run_leaves_the_backfill_to_the_end_of_the_run
+  and
+  test_atmosphere_mixture_rocky.py::test_the_inventory_follows_the_delivered_water_class
+  run past 20 minutes (the first 23 minutes CPU-bound, then pytest's
+  timeout) inside thermosphere.exobase (the while True loop, step 0.25
+  of the smaller of scale height and Bates length, until the exobase or
+  MAX_EXOBASE_RADII), called from mixture_escape.apply >
+  thermosphere.kept_shares in the planet atmosphere draw. Likely the
+  same hang as TEST.408 (the fill-stages pulsar test) and part of
+  TEST.401. Do: find the planet inputs where the exobase never closes
+  (zero or tiny scale height or Bates length, a very hot or very light
+  atmosphere), bound the loop (a step that grows with radius, a closed
+  form, or an early exit with the stated escape regime), keep results
+  identical for planets that do close, and add a regression test with
+  the failing input. Done: both tests and TEST.408 pass in minutes; a
+  stuck loop can never run unbounded. This is a physics fix to a loop
+  bound, so any change in generated values must be stated as a stand-in
+  tweak with its level and reason. Owner: Aux 8 (atmosphere, escape) or
+  Aux 6; changes generated output only if the loop bound moves results,
+  then it needs a lock turn.
+  Prerequisites: none. Related: TEST.408, TEST.401, TEST.409.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16930,7 +16855,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   region. Owner: Core 3. Rules: no backward-compat shims; every number
   has a unit or scale (GEN.772); tests are scripts/test.py changed
   --resume.
-  Prerequisites: GEN.825, GEN.827. Related: GEN.825, GEN.827.
+  Research (2026-10-09, Core 3 report 2026-10-28): GEN.825 and GEN.827
+  merged (#3375, Core 3, 7:54 AM EDT 10-28 as the lane reported): region
+  names (kind region), anchors, framing spheres and extents live in
+  galaxy/named_regions.py. Design corrections: an 81-block holds about
+  729 9-blocks (not 27); REGION_RADIUS_PC lives in named_regions, not
+  tuning; the local ordinal is 3 hex digits. This item takes migration
+  0161 and schema 161 (0160 is GEN.732); it rewrites no golden file so
+  it is exempt from the lock; any lane holding 0161 renumbers at its
+  merge.
+  Prerequisites: GEN.827. Related: GEN.825, GEN.827.
 
 - [ ] **DB.108 Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e)**
   Design section 0.4 of
@@ -19211,7 +19145,7 @@ clears each one.
   with the fractions after the migration; the text names only stored
   materials. Done: it passes on a generated galaxy and fails when any
   one rule is broken (a test that breaks each rule in turn).
-  Prerequisites: GEN.430, GEN.441,
+  Prerequisites: GEN.441,
   DB.70, GEN.458, GEN.459, GEN.460, GEN.461, GEN.462, GEN.466.
   Related: TEST.209.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -22443,7 +22377,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   check exists. Owner: Core 3. Rules: no backward-compat shims; every
   number has a unit or scale (GEN.772); tests are scripts/test.py
   changed --resume.
-  Prerequisites: GEN.825, DB.107, API.35. Related: GEN.825, DB.107,
+  Prerequisites: DB.107, API.35. Related: GEN.825, DB.107,
   GEN.826, API.35, MAP.314, MAP.315, UX.231, API.36.
 
 ## VIEW: The view from a planet

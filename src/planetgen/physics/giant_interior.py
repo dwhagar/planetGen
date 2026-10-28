@@ -1014,6 +1014,8 @@ def _mass_text(mass_earth):
 
 
 def _pressure_text(pressure_gpa):
+    if pressure_gpa < 0.1:
+        return f"{pressure_gpa * 1e4:.0f} bar"
     if pressure_gpa >= 1e3:
         return f"{pressure_gpa / 100:.0f} Mbar" if pressure_gpa >= 1e4 else f"{pressure_gpa / 100:.1f} Mbar"
     return f"{pressure_gpa / 100:.2f} Mbar" if pressure_gpa >= 10 else f"{pressure_gpa:.1f} GPa"

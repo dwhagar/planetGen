@@ -44,10 +44,11 @@ OBJECT_ID_DIGITS = 19
 """int: Every GEN.64 object ID is 19 hex digits; the decoder is told so
 (`decode(phrase, domain, length=19)` is exact)."""
 
-KINDS = tuple(kind for kind in registry.id_codes() if kind != "bright-star") + ("constellation",)
+KINDS = tuple(kind for kind in registry.id_codes() if kind != "bright-star") + ("constellation", "region")
 """tuple: The kinds the codec names: `object_id.KIND_CODES`' spelling
-(less the bright-sweep system, which is a star system), and
-`"constellation"` (VIEW.4)."""
+(less the bright-sweep system, which is a star system), `"constellation"`
+(VIEW.4) and `"region"` (GEN.825: a region of the galaxy is named from its
+block, not from an object ID, `galaxy.named_regions`)."""
 
 _CODEC = GatedPhonemeCodec()
 
