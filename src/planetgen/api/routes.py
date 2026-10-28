@@ -94,6 +94,8 @@ from planetgen.db.query import (
     system_detail as query_system_detail,
 )
 from planetgen.db import near as near_search
+from planetgen.db import region_stats
+from planetgen.names import naming_key
 from planetgen.db import cloudcontents, containers as containersDb, nodes, objectlist
 from planetgen.db import stats as dbStats
 from planetgen.db import scatter_systems, store
@@ -1187,6 +1189,19 @@ def galaxy_nebula_cover_route():
                                            galaxy_edge_pc(conn)))
     except ValueError as exc:
         raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/charted-regions")
+def galaxy_charted_regions_route():
+    """
+    `{"regions": [...], "edge_pc"}` -- every charted region (a 9-block holding a generated sector, `region_stats`), by share
+    charted, each with its node key, the centre and radius of its extent in parsecs, its sector count and capacity, its
+    `share` (0 to 1) and, with a naming key in force, its `name` and `parent` -- see `db.region_stats.charted_regions`.
+    Read by the Galaxy Map (MAP.316) for the regions it draws at galactic scale and its charted-regions list.
+    """
+    conn = get_db()
+    edge_pc = galaxy_edge_pc(conn)
+    return jsonify({"regions": region_stats.charted_regions(conn, naming_key.active_key(), edge_pc), "edge_pc": edge_pc})
 
 
 @bp.route("/galaxy/stamp")

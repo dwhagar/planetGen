@@ -543,6 +543,22 @@ class FixtureApi:
         """No fixture cell lies inside a nebula, and the real API is not asked for a database that does not exist."""
         return {"at": at, "child_m": 1, "cells": []}
 
+    def get_galaxy_charted_regions(self, db):
+        """`GET /api/galaxy/charted-regions` over `SECTORS`: one region per 9-block that holds a fixture sector (`charted_regions`),
+        its share charted the sectors it holds over what its outline holds, by share charted (MAP.316)."""
+        from planetgen.db import region_stats
+        from planetgen.galaxy.drill import parse_node_key
+
+        out = []
+        for region in charted_regions().values():
+            cell = parse_node_key(region["key"])
+            capacity = region_stats.capacity_of(cell)
+            out.append({"key": region["key"], "m": cell.m, "shell": cell.shell, "band": cell.band, "wedge": cell.wedge,
+                        "centre": region["centre"], "radius": region["radius"], "sector_count": region["sectors"],
+                        "capacity": capacity, "share": region["sectors"] / capacity, "clumps": 1,
+                        "name": region["name"], "parent": region["parent"]})
+        return {"regions": sorted(out, key=lambda r: (-r["share"], r["key"])), "edge_pc": EDGE_PC}
+
     def get_galaxy_changes(self, db, since=None):
         return {"stamp": "00000000000000f1", "state": "s", "full": since is None, "nodes": []}
 
@@ -691,7 +707,7 @@ class FixtureApi:
 _APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
               "get_galaxy_changes", "get_galaxy_nebula_cover", "get_nebula_shape", "get_system_scene",
-              "get_uncharted_sector", "get_system")
+              "get_uncharted_sector", "get_system", "get_galaxy_charted_regions")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_nodes", "get_galaxy_stage", "get_galaxy_window")
 
 

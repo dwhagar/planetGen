@@ -2352,6 +2352,153 @@ def test_the_glow_fades_out_as_the_stars_resolve_and_never_adds_up(page, dense_s
             raise AssertionError((dist, page.evaluate("() => [document.querySelector('#galaxymap3d-canvas').__mapGlow.strongest(), document.querySelector('#galaxymap3d-canvas').galaxyCamera().dist]")))
 
 
+REGION_SPOTS = "() => document.querySelector('#galaxymap3d-canvas').galaxyRegionSpots()"
+REGION_KEYS = ["9.0.0.0", "9.1.0.0"]
+"""The fixture's two charted regions (the 9-blocks holding its sectors), by cell."""
+
+
+def _region_pixels(page, spot, half=6):
+    """The picture of the canvas about the region's middle `spot` (canvas pixels), as a flat list of RGB tuples."""
+    image = Image.open(io.BytesIO(_shot(page, GALAXY_CANVAS))).convert("RGB")
+    width, height = image.size
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    scale = width / box["width"]
+    x, y = int(spot["x"] * scale), int(spot["y"] * scale)
+    pixels = image.load()
+    return [pixels[i, j] for i in range(max(0, x - half), min(width, x + half)) for j in range(max(0, y - half), min(height, y + half))]
+
+
+def test_the_charted_regions_are_soft_spheres_at_galactic_scale_colored_by_share_with_no_sector_box(page, map_site):
+    """MAP.316: at the whole-galaxy view every charted region (a 9-block with a generated sector, however little of it) is a soft
+    sphere at its extent, colored by its share charted, drawn by a layer of the Menu; no sector box is drawn with it."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
+    spots = page.evaluate(REGION_SPOTS)
+    assert sorted(spot["key"] for spot in spots) == REGION_KEYS
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapRegions.count()") == 2
+    assert all(spot["alpha"] > 0.15 and spot["radiusPx"] >= 5 for spot in spots), spots
+    by_key = {spot["key"]: spot for spot in spots}
+    assert by_key["9.1.0.0"]["share"] > by_key["9.0.0.0"]["share"] > 0
+    assert by_key["9.1.0.0"]["color"] != by_key["9.0.0.0"]["color"], "the colour follows the share"
+    assert page.evaluate(LINES)["chartedLines"] == 0, "no sector box at galactic scale"
+    # The layer is what is drawn there: the picture about a region changes when the Menu's Charted regions is switched off.
+    visible = next(spot for spot in spots if spot["visible"])
+    with_regions = _region_pixels(page, visible)
+    _open_menu(page)
+    button = page.locator('#galaxymap3d-kinds button[data-layer="regions"]')
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    button.click()
+    assert "hide=regions" in page.url
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapRegions.isVisible() === false")
+    assert _region_pixels(page, visible) != with_regions
+    _open_menu(page)
+    button.click()
+    assert "hide=regions" not in page.url
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapRegions.isVisible() === true")
+
+
+def test_the_regions_give_way_to_the_stars_as_the_camera_comes_in(page, map_site):
+    """MAP.316: a region's sphere is strongest from far and fades as the camera comes in (the exact curve is the unit test's),
+    and with a sector opened in place the layer is out of the picture."""
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
+    spot = lambda: next(s for s in page.evaluate(REGION_SPOTS) if s["key"] == "9.0.0.0")
+    far = spot()
+    _open_window(page, map_site, 9, 0, 0, 0, g=3)
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: [2.83, 2.83, 0], radius: 2})")
+    _settle(page)
+    near = spot()
+    assert near["radiusPx"] > 4 * far["radiusPx"], (far, near)
+    assert near["alpha"] < far["alpha"], (far, near)
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapRegions.isVisible() === false", timeout=20000)
+
+
+REGION_FRAME = "() => { const f = document.querySelector('#galaxymap3d-canvas').__mapRegionFrame; return f && {framed: f.state().framed, positions: f.positions()}; }"
+
+
+def test_the_galactic_view_frames_the_region_it_is_in_with_a_fixed_wireframe_and_dims_nothing(page, map_site):
+    """MAP.327: in the galactic view a locked wireframe stands round the charted region the view is in (the pointer moving
+    changes nothing of it), another region is framed once the view is in that, the stars are not dimmed, and opening a
+    sector hands the framing to the sector."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    _open_window(page, map_site, 9, 1, 0, 0, g=3)
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: [28.88, 21.5, 0], radius: 12})")
+    _settle(page)
+    page.wait_for_function("() => { const f = document.querySelector('#galaxymap3d-canvas').__mapRegionFrame; return f && f.state().framed; }", timeout=20000)
+    first = page.evaluate(REGION_FRAME)
+    assert len(first["positions"]) > 0
+    assert page.evaluate(SECTOR_VIEW)["outsideDim"] == 1, "nothing is dimmed in the galactic view"
+    page.mouse.move(300, 420)
+    page.mouse.move(520, 480)
+    page.wait_for_timeout(300)
+    assert page.evaluate(REGION_FRAME) == first
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: [2.83, 2.83, 0], radius: 12})")
+    _settle(page)
+    page.wait_for_function("(old) => JSON.stringify(document.querySelector('#galaxymap3d-canvas').__mapRegionFrame.positions()) !== old",
+                           arg=__import__("json").dumps(first["positions"]), timeout=20000)
+    assert page.evaluate(REGION_FRAME)["framed"]
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapRegionFrame.state().framed === false", timeout=20000)
+    assert page.evaluate(SECTOR_FRAME)["framed"]
+
+
+def test_the_menu_lists_the_charted_regions_by_share_or_name_and_a_click_flies_to_one(page, map_site):
+    """MAP.316: the Menu's Charted regions list is the always-available way to known space: by share charted (most first) or by
+    name, a button each that flies to the region with the camera framing its extent."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const l = document.querySelector('#galaxymap3d-canvas').__mapRegionList; return l && l.order().length === 2; }", timeout=20000)
+    _open_menu(page)
+    details = page.locator("#galaxymap3d-regions")
+    assert details.is_visible()
+    assert "(2)" in details.locator("summary").inner_text()
+    details.locator("summary").click()
+    order = lambda: page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapRegionList.order()")
+    by_share = order()
+    assert [text.split(",")[0] for text in by_share] == ["Fixture Zarh Region", "Fixture Beez Region"], by_share
+    assert all(text.endswith("under 1 percent charted") for text in by_share), by_share
+    details.locator("[data-regions-sort]").select_option("name")
+    assert [text.split(",")[0] for text in order()] == ["Fixture Beez Region", "Fixture Zarh Region"]
+    details.locator("[data-regions-sort]").select_option("share")
+    assert [text.split(",")[0] for text in order()] == ["Fixture Zarh Region", "Fixture Beez Region"]
+    details.locator('button[data-region-key="9.0.0.0"]').click()
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    from tests.map_site_support import REGION_RADIUS_PC
+    after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    centre = next(spot for spot in [{"x": 2.8284271247461903, "y": 2.82842712474619, "z": 0.0}])
+    assert max(abs(after["target"][i] - centre["xyz"[i]]) for i in range(3)) < 0.05, after["target"]
+    assert after["dist"] < 6 * REGION_RADIUS_PC, after["dist"]
+
+
+def test_a_click_on_a_region_shows_its_card_and_a_double_click_flies_to_it(page, map_site):
+    """MAP.316: a region's sphere takes the click (its card: how much is charted, a Fly to region button) and the double click."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    spot = next(s for s in page.evaluate(REGION_SPOTS) if s["key"] == "9.1.0.0" and s["visible"])
+    where = (box["x"] + spot["x"], box["y"] + spot["y"])
+    assert _on_the_canvas(page, where)
+    page.mouse.move(*where)
+    page.wait_for_timeout(300)
+    assert "Fixture Zarh Region" in page.locator("#galaxymap3d-tooltip").inner_text()
+    page.mouse.click(*where)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Zarh Region"
+    assert "under 1 percent charted" in page.locator("#galaxymap3d-info").inner_text()
+    page.locator("#galaxymap3d-info button", has_text="Fly to region").click()
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    assert math.dist(after["target"], [28.876, 21.498, 0.0]) < 0.1, after["target"]
+
+
 def test_galaxy_map_opens_with_the_glow_off_when_the_address_says_so(page, map_site):
     _open_galaxy(page, map_site, "?hide=glow")
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow !== undefined")

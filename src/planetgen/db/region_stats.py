@@ -245,3 +245,23 @@ def node_regions(conn, block, key, edge_pc):
         listed.append({"key": drill.format_drill_key(region["block"]), "name": names["name"], "parent": names["parent"],
                        "centre": list(region["extent_centre_pc"]), "radius": region["extent_radius_pc"], **charted_of(region)})
     return listed
+
+
+def charted_regions(conn, key, edge_pc):
+    """
+    The charted regions as the Galaxy Map's list and its galactic-scale nodes read them (MAP.316), each one `{key, m, shell,
+    band, wedge, centre, radius, sector_count, capacity, share, clumps}` and, with a naming key in force, `name` and `parent`
+    (`labels`): the cell's node key, the middle `[x, y, z]` and `radius` of its extent in parsecs, how many generated sectors it
+    holds of how many its outline can, and `share`, that fraction (0 to 1, above 0 for every region). Sorted by share charted
+    (largest first), ties by the cell.
+    """
+    found = []
+    for region in regions(conn):
+        cell = region["block"]
+        entry = {"key": drill.format_drill_key(cell), "m": cell.m, "shell": cell.shell, "band": cell.band, "wedge": cell.wedge,
+                 "centre": list(region["extent_centre_pc"]), "radius": region["extent_radius_pc"],
+                 "sector_count": region["sector_count"], "capacity": region["capacity"],
+                 "share": region["sector_count"] / region["capacity"], "clumps": region["clump_count"]}
+        entry.update(labels(cell, key, edge_pc) or {})
+        found.append(entry)
+    return found
