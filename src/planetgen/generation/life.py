@@ -22,7 +22,7 @@ the star's final age rather than a provisional pre-adjustment one.
 
 from planetgen.generation import evolution
 from planetgen import tuning
-from planetgen.physics import habitability_world, planet_classes
+from planetgen.physics import atmosphere, biogenic_oxygen, body_colour, habitability_world, life_timeline, planet_classes, radiation
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.stellar_object import get_star_evolutionary_profile, get_star_spectral_class
@@ -93,12 +93,6 @@ def get_viable_life_chemicals(planet, spectral_class=None):
     return normalized_chemicals
 
 
-def get_chemical_scales(life_chemical):
-    """The evolutionary paces (`tuning.EVOLUTIONARY_TIMELINES` keys) a life chemistry allows, as a list."""
-    scales = tuning.LIFE_CHEMICALS.get(life_chemical, {}).get("evolutionary_time_scale")
-    return [scales] if isinstance(scales, str) else list(scales or ())
-
-
 _CEILING_RANK = {None: 0, "microbial": 1, "none": 2}
 """dict: How strict a `life_ceiling` answer is: the index allows everything (0), only microbial life (1), none (2)."""
 
@@ -139,9 +133,9 @@ def _set_description(planet):
 
 def apply_life_data(planet, _again=True, keep_stored=False):
     """
-    Determines and assigns a planet's (or moon's) life chemistry,
-    evolutionary pace (drawn once, for every sentence about it), the milestone schedule of that pace
-    (`evolution.SCHEDULE_FIELDS`), and the evolutionary timeline narrative.
+    Determines and assigns a planet's (or moon's) life chemistry, its schedule of the stages of life (`physics.life_timeline`, a draw of
+    five hard steps at the pace its temperature allows, the stored `evolution.SCHEDULE_FIELDS`), the oxygen its life has built into the
+    air by now (`physics.biogenic_oxygen`, GEN.855) and the evolutionary timeline narrative.
 
     Called once per planet/moon by `StarSystem.__init__`, after all planets
     and moons in the system have been generated and the star's age has been
@@ -152,10 +146,11 @@ def apply_life_data(planet, _again=True, keep_stored=False):
                          `life_chemical`, `reflection_spectrum_visible`,
                          `reflection_spectrum_non_visible`, `evolutionary_pace`,
                          the schedule and (if applicable) `life_stage` and
-                         the two ages are set in place.
-        keep_stored (bool): Keep the chemistry and the pace the body already has when the climate still allows them
-                            (`validation.reapply_life` after an edit), so a world is not given other life by a change it
-                            does not care about (DB.100). Only a chemistry or a pace that no longer fits is drawn again.
+                         the two ages are set in place, and the air takes the
+                         oxygen the life has made.
+        keep_stored (bool): Keep the chemistry and the schedule the body already has when the climate still allows the chemistry
+                            (`validation.reapply_life` after an edit), so a world is not given other life by a change it does not
+                            care about (DB.100). Only a chemistry that no longer fits is drawn again, with a schedule of its own.
     """
     spectral_class = get_star_spectral_class(planet.star) if planet.star.type else None
 
@@ -165,7 +160,7 @@ def apply_life_data(planet, _again=True, keep_stored=False):
     _set_description(planet)
     if ceiling == "none":
         _set_chemistry(planet, None)
-        _set_pace(planet, None)
+        _set_schedule(planet, None, None)
         _set_evolutionary_state(planet, None)
         habitability_world.rescore(planet)  # GEN.217: the score of a lifeless world is still redone once everything is final
         log.debug("Life chemistry: none, the habitability index gives microbial life 0")
@@ -174,7 +169,8 @@ def apply_life_data(planet, _again=True, keep_stored=False):
     # Get the dictionary of viable chemicals and their weights
     viable_chems = get_viable_life_chemicals(planet, spectral_class)
 
-    if keep_stored and planet.life_chemical in viable_chems:
+    kept = keep_stored and planet.life_chemical in viable_chems
+    if kept:
         log.debug(f"Life chemistry: kept {planet.life_chemical}, still viable for spectral class {spectral_class!r}")
         _set_chemistry(planet, planet.life_chemical)
     elif viable_chems:
@@ -191,16 +187,14 @@ def apply_life_data(planet, _again=True, keep_stored=False):
         _set_chemistry(planet, None)
         log.debug(f"Life chemistry: none viable for spectral class {spectral_class!r}")
 
-    # The pace is drawn once, from what the star and the chemistry allow; the life sentence, the timeline and the
-    # stored column all read this one value.
+    # The schedule is drawn once; the life sentence, the timeline and the stored columns all read it.
     if not planet.life_chemical:
-        _set_pace(planet, None)
+        _set_schedule(planet, None, None)
     else:
-        chemical_scales = get_chemical_scales(planet.life_chemical)
-        if keep_stored and planet.evolutionary_pace in evolution.candidate_scales(planet.star, chemical_scales)[0]:
-            _set_pace(planet, planet.evolutionary_pace)
-        else:
-            _set_pace(planet, evolution.draw_scale(planet.star, chemical_scales))
+        if not (kept and all(getattr(planet, field, None) is not None for field in evolution.SCHEDULE_FIELDS[:2])
+                and planet.evolutionary_pace):
+            _draw_schedule(planet)
+        _build_oxygen(planet)
 
     # Generate evolutionary timeline data for every planet and moon, in any zone, that has a life chemistry (Boss,
     # 2026-10-23: a moon always gets a path when its class and conditions allow one, as a planet does; the class
@@ -209,7 +203,7 @@ def apply_life_data(planet, _again=True, keep_stored=False):
     # page would show).
     if planet.life_chemical:
         _set_evolutionary_state(planet, evolution.get_evolutionary_state(
-            planet.star, planet.evolutionary_pace, max_stage=stage_ceiling(planet)))
+            planet.star, tuple(getattr(planet, field) for field in evolution.SCHEDULE_FIELDS), max_stage=stage_ceiling(planet)))
     else:
         _set_evolutionary_state(planet, None)
     habitability_world.rescore(planet)  # GEN.207: Suitability reads the life that was just drawn
@@ -217,6 +211,52 @@ def apply_life_data(planet, _again=True, keep_stored=False):
         # The air, water or heat moved since the first score and the index now allows less than the life just drawn
         # assumed: draw it again against the final score, which the rescore leaves as it is.
         apply_life_data(planet, _again=False, keep_stored=keep_stored)
+
+
+def _draw_schedule(planet):
+    """
+    Draws the schedule of `planet` (GEN.750): five waiting times at the pace its surface temperature allows
+    (`life_timeline.rate_factor`), the wait for complex cells starting once the air holds oxygen, which it does from the start when it
+    already does (an abiotic oxygen air) and a delay after the first photosynthesis when the life is oxygenic and the world can
+    make enough (`biogenic_oxygen.profile_of`). A forced technological civilization draws a timeline that finishes in the star's age.
+    """
+    factor = life_timeline.rate_factor(getattr(planet, "surface_temperature", None))
+    at_start = atmosphere.partial_kpa(planet, "o2") * 1000.0 >= biogenic_oxygen.EUKARYOTE_MINIMUM_PA
+    delay = biogenic_oxygen.profile_of(planet).delay_gyr if evolution.releases_oxygen(planet.life_chemical) else None
+    waits = None
+    if planet.star.system_config.INTELLIGENT_LIFE is True:
+        waits = life_timeline.forced_waits(planet.star.age, factor, delay, at_start)
+    if waits is None:
+        waits = life_timeline.unit_waits()
+    ages = life_timeline.schedule(waits, factor, delay, at_start)
+    log.choice("Evolutionary schedule", ages, f"hard steps at rate factor {factor:.3g}, oxygen "
+               f"{'from the start' if at_start else 'after ' + str(delay) + ' Gyr of photosynthesis'}")
+    _set_schedule(planet, ages, life_timeline.pace_of(factor))
+
+
+def _build_oxygen(planet):
+    """
+    Gives the air the oxygen the life of `planet` has made by its star's age (GEN.855): when its chemistry is oxygenic, its photosynthesis
+    is old enough for the delay (`biogenic_oxygen.Profile.delay_gyr`) and the air holds less than the world's balance of source and
+    sinks, the air takes that, and everything that reads it is made again: the ozone and doses (on a stream of the body's own, so the run's
+    draws do not move), the colour of the atmosphere and the habitability score. An air that already holds the oxygen is left as it is.
+    """
+    if not evolution.releases_oxygen(planet.life_chemical) or planet.body_type == "g":
+        return
+    photosynthesis_age = getattr(planet, evolution.SCHEDULE_FIELDS[1], None)
+    if photosynthesis_age is None:
+        return
+    profile = biogenic_oxygen.profile_of(planet)
+    target = biogenic_oxygen.oxygen_mol(profile, planet.star.age - photosynthesis_age)
+    if not biogenic_oxygen.apply(planet, target):
+        return
+    from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
+    with draw.bound(f"biogenic-oxygen:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
+        radiation.generate_dose(planet)
+    body_colour.generate(planet)
+    habitability_world.generate(planet, physics_planets.internal_heat_flux_w_m2(planet))
+    log.choice("Biogenic oxygen", f"{atmosphere.partial_kpa(planet, 'o2'):.2f} kPa", f"oxygenic photosynthesis {planet.star.age - photosynthesis_age:.2f} Gyr old, "
+               f"delay {profile.delay_gyr:.2f} Gyr")
 
 
 def _set_chemistry(planet, chemical):
@@ -227,15 +267,16 @@ def _set_chemistry(planet, chemical):
     planet.reflection_spectrum_non_visible = data.get("reflection_spectrum_non_visible")
 
 
-def _set_pace(planet, pace):
-    """Stores a pace and its milestone schedule (`evolution.schedule`; `None`: no pace, so no schedule)."""
+def _set_schedule(planet, ages, pace):
+    """Stores a schedule (one age for each `evolution.SCHEDULE_FIELDS`, `None` for a stage never reached) and its pace word (`None`:
+    no schedule at all)."""
     planet.evolutionary_pace = pace
-    for field, age in zip(evolution.SCHEDULE_FIELDS, evolution.schedule(pace) if pace else (None,) * len(evolution.SCHEDULE_FIELDS)):
+    for field, age in zip(evolution.SCHEDULE_FIELDS, ages if ages is not None else (None,) * len(evolution.SCHEDULE_FIELDS)):
         setattr(planet, field, age)
 
 
 def _set_evolutionary_state(planet, state):
-    """Stores a `get_evolutionary_state` on the body (`None`: no timeline; the pace stays what `apply_life_data`
+    """Stores a `get_evolutionary_state` on the body (`None`: no timeline; the schedule stays what `apply_life_data`
     drew for the chemistry)."""
     planet.life_stage = state["stage"] if state else None
     planet.life_milestone_age_gyr = state["milestone_age_gyr"] if state else None

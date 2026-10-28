@@ -2195,7 +2195,6 @@ LIFE_CHEMICALS = {
     "Retinal": {
         "requires": [{"quantity": "share_o2", "lt": 0.1}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a primitive photosensitive chemical that represents a young/early biosphere precursor, operating via proton-motive gradients rather than electron transport chains in pre-oxygenated, reducing atmospheres",
-        "evolutionary_time_scale": "fast",
         "metabolism": "retinal",
         "absorption_spectrum": ["Green", "Yellow", "500-650 nm"],
         "reflection_spectrum_visible": ["Blue", "Red", "Purple", "Magenta"],
@@ -2207,7 +2206,6 @@ LIFE_CHEMICALS = {
     "Melanin": {
         "requires": [],
         "description": "a radiotrophic chemical that thrives in environments with lethal ionizing radiation or stellar flaring, and is viable on rogue planets subject to cosmic ray bombardment without a thick protective atmosphere",
-        "evolutionary_time_scale": "normal",
         "metabolism": "radiotrophic",
         "absorption_spectrum": ["Extreme Ultraviolet (EUV)", "X-rays", "Gamma rays", "Ionizing radiation"],
         "reflection_spectrum_visible": ["None (Charcoal-black)"],
@@ -2217,9 +2215,8 @@ LIFE_CHEMICALS = {
         }
     },
     "Chlorophyll a": {
-        "requires": [{"quantity": "share_o2", "min": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
-        "description": "a standard porphyrin that drives oxygenic photosynthesis, requiring an oxygenated atmosphere as a climax ecology and stable, moderate radiation environments",
-        "evolutionary_time_scale": "slow",
+        "requires": [{"quantity": "hydrosphere", "equals": "surface ocean"}, {"quantity": "pressure_pa", "min": 10.0}],
+        "description": "a standard porphyrin that drives oxygenic photosynthesis, splitting the water of a sunlit sea and so making the oxygen of its own atmosphere, in stable, moderate radiation environments",
         "metabolism": "oxygenic",
         "absorption_spectrum": ["Red (644-746 nm)", "Blue (468-476 nm)"],
         "reflection_spectrum_visible": ["Green"],
@@ -2229,9 +2226,8 @@ LIFE_CHEMICALS = {
         }
     },
     "Blue-Optimized Porphyrins": {
-        "requires": [{"quantity": "share_o2", "min": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
+        "requires": [{"quantity": "hydrosphere", "equals": "surface ocean"}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a porphyrin that requires simultaneous evolution of biofluorescence for UV shielding, down-converting lethal high-energy light into safe visible wavelengths and creating transient, global optical fluorescence aligned with stellar flares",
-        "evolutionary_time_scale": "slow",
         "metabolism": "oxygenic",
         "absorption_spectrum": ["Intense Blue (468-476 nm)", "Ultraviolet (UV)"],
         "reflection_spectrum_visible": ["Red", "Orange", "Yellow", "Biofluorescent Green", "Biofluorescent Red"],
@@ -2243,7 +2239,6 @@ LIFE_CHEMICALS = {
     "Bacteriochlorophylls": {
         "requires": [{"quantity": "share_o2", "lt": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a chemical that drives anoxygenic photosynthesis, does not split water, and requires chemical electron donors like Hydrogen Sulfide (H2S), Ferrous Iron (Fe2+), or Molecular Hydrogen (H2), resulting in reducing atmospheres lacking Oxygen (O2) or Ozone (O3)",
-        "evolutionary_time_scale": "slow",
         "metabolism": "anoxygenic",
         "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (805-890 nm)", "Deep Infrared (987-1050 nm)"],
         "reflection_spectrum_visible": ["None (Black)"],
@@ -2255,7 +2250,6 @@ LIFE_CHEMICALS = {
     "Zinc-Bacteriochlorophyll": {
         "requires": [{"quantity": "ocean_ph", "lt": 3.0}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a secondary adaptation derived from standard magnesium-chelatase pathways that requires highly acidic global oceans (pH 1.5 - 3.0) and planetary heavy metal abundance and mobilization, often tied to severe volcanic outgassing",
-        "evolutionary_time_scale": "slow",
         "metabolism": "anoxygenic",
         "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (793 nm, 853 nm)"],
         "reflection_spectrum_visible": ["None (Black)"],
@@ -2454,6 +2448,47 @@ complexity. `evolution.MILESTONE_KEYS` and `physics.life_scores` read it.
 LIFE_SCHEDULE_FIELDS = tuple(f"life_age_{key}_gyr" for key in LIFE_MILESTONES)
 """tuple[str]: The body columns holding a world's milestone schedule (DB.100), one age in Gyr for each `LIFE_MILESTONES`
 milestone in order: `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr`."""
+
+LIFE_STEP_MEANS_GYR = (0.5, 1.5, 5.0, 10.0, 20.0)
+"""
+tuple[float]: The mean waiting time of each hard step of `LIFE_MILESTONES`, Gyr (GEN.750; docs/design/habitability/life-timeline-and-oxygen.md,
+reports/best-guess-standins-2026-10-24.md section 14): abiogenesis, oxygenic-type photosynthesis, complex cells, multicellular animals,
+civilisation. Each step takes an exponential waiting time with this mean once the one before it is done (the hard-step model of Carter 1983 and
+Watson 2008; the early means are shorter than the later because the first steps came early on the one world we know, which is a test point and
+not a preset). Stand-in T7, L3.
+"""
+
+LIFE_STEP_SCALE = 0.5
+"""
+float: A factor on every `LIFE_STEP_MEANS_GYR` mean: the one knob that sets how common each stage is (GEN.750). At 0.5 a world with oxygenic life
+and the reference temperature reaches complex cells by 5 Gyr in about 8 in 10, animals in about 3 in 10 and a civilization in about 1 in 25;
+at 1.0 (the means as the report gives them) it is 4 in 10, 1 in 14 and 1 in 200. Stand-in T9, L3: chosen so that the stages are visible but the
+last is rare, and Boss can retune it.
+"""
+
+LIFE_START_AGE_GYR = 0.1
+"""float: The age of a world, Gyr, at which the waiting for abiogenesis starts: its surface has cooled and its first ocean has settled (stand-in
+T6, L0; Earth's oceans were there by about 4.4 Ga, 0.15 Gyr after it formed)."""
+
+LIFE_ACTIVATION_ENERGY_EV = 0.65
+"""float: The activation energy, eV, of the rate of every hard step: a step goes faster on a warm world by the Boltzmann factor of metabolic theory
+(Gillooly et al. 2001; Allen and Gillooly 2006 for the rate of evolution itself; from memory, T2, L0)."""
+
+LIFE_REFERENCE_TEMPERATURE_K = 288.0
+"""float: The surface temperature, K, at which a step takes its mean time (the temperature of the world that gave the first test point)."""
+
+LIFE_RATE_FACTOR_RANGE = (0.25, 4.0)
+"""tuple[float]: The least and most the temperature changes the rate of a step (stand-in T6, L0: the factor of a few over the liquid range that
+the Boltzmann law gives, kept from running away at the edges of it)."""
+
+LIFE_PACE_FAST_ABOVE = 1.5
+LIFE_PACE_SLOW_BELOW = 0.67
+"""float: A world whose rate factor is above `LIFE_PACE_FAST_ABOVE` has the pace "fast", below `LIFE_PACE_SLOW_BELOW` "slow", else "normal"
+(the words the life sentence uses; the pace is a label of how warm the world is, not a table)."""
+
+LIFE_FORCED_TRIES = 4000
+"""int: How many timelines a forced technological civilization (`INTELLIGENT_LIFE`) tries before it falls back to squeezing the last one into the
+world's age (`life_timeline.forced_waits`)."""
 
 LIFE_SCORE_MAX = 9
 """int: The top of the four life scores (Microbial, Flora, Fauna, Sentient): 0 is none, 9 is abundant (GEN.649)."""
