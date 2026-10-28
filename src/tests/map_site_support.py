@@ -195,7 +195,16 @@ GIANT_FIELD = [
 also holds the habitable worlds, so a system with two reasons is among them."""
 
 
-def interests_of(worlds, giants):
+BARREN_FIELD = [
+    {"id": 9004, "name": "Fixture Rock", "reason": "uninhabitable", "n": 2, "x": STAR_FIELD_CENTER_PC[0] - 2.0, "y": 5.0, "z": -1.0},
+    {"id": 9001, "name": "Fixture Eden", "reason": "uninhabitable", "n": 1, "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
+    {"id": 9005, "name": "Fixture Belt", "reason": "asteroid-field", "n": 1, "x": STAR_FIELD_CENTER_PC[0] + 3.0, "y": -3.0, "z": 4.0},
+]
+"""The fixture systems with the other reasons (MAP.321): Fixture Rock holds barren worlds only, Fixture Eden a barren one besides its
+habitable ones and its gas giant (so three reasons name it, the habitable one first), Fixture Belt a belt."""
+
+
+def interests_of(worlds, giants, barren=()):
     """A node's `interests` for fixture `worlds` (`WORLD_FIELD` shape) and `giants` (`GIANT_FIELD` shape), as the server lists them:
     one entry per system with a `reasons` dict."""
     from planetgen.physics import habitability
@@ -210,6 +219,12 @@ def interests_of(worlds, giants):
         entry = systems.setdefault(giant["id"], {"id": giant["id"], "name": giant["name"], "x": giant["x"], "y": giant["y"],
                                                  "z": giant["z"], "reasons": {}})
         entry["reasons"]["gas-giant"] = {"n": giant["giants"]}
+    for other in barren:
+        entry = systems.setdefault(other["id"], {"id": other["id"], "name": other["name"], "x": other["x"], "y": other["y"],
+                                                 "z": other["z"], "reasons": {}})
+        entry["reasons"][other["reason"]] = {"n": other["n"]}
+        if other["reason"] == "uninhabitable":
+            entry["reasons"][other["reason"]].update(score=0.1, tier="Red")
     return list(systems.values())
 
 
@@ -618,6 +633,8 @@ class FixtureApi:
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
             giants = [system for system in GIANT_FIELD
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
+            barren = [system for system in BARREN_FIELD
+                      if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
             # Like the real node: every cloud whose sphere reaches into the block's box.
             clouds = []
             for cloud in NEBULAE:
@@ -633,7 +650,7 @@ class FixtureApi:
                 lights["star_temperature_k"] = 5200
             nodes[key] = {"aggregate": {"generated": 0, "stats": None, "lights": lights}, "placed": [],
                           "clouds": clouds, "stars": stars, "generated": None, "points": points,
-                          "interests": interests_of(worlds, giants)}
+                          "interests": interests_of(worlds, giants, barren)}
             # API.35: a 9-block holding a generated sector is a charted region, named with its family.
             regions = charted_regions()
             if block.m == 9 and tuple(block)[1:] in regions:

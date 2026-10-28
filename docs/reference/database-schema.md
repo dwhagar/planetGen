@@ -2061,7 +2061,7 @@ Added in v82 (PERF.74). How many star systems each sector holds, as of the last 
 
 ### `system_interests`
 
-Added in v165 (MAP.305, MAP.303); replaces `habitable_systems` (v148). One row for each star system and reason it is worth a mark on the Galaxy Map, so the marker layer finds the systems with a reason inside a box without reading every planet (`query.galaxy_system_interests_in_box`). The reasons are the registry in `db/interests.py` (`habitable`: a planet or moon whose overall PHI-6 score is Yellow or better, `habitability.YELLOW_FLOOR`; `gas-giant`: a planet with `body_type = 'g'`). Derived data: `store.record_system_interests` rebuilds a system's rows when its sector is filled and whenever its scores are worked out again. A system with no reason, or with no galaxy position, has no row.
+Added in v165 (MAP.305, MAP.303); replaces `habitable_systems` (v148). One row for each star system and reason it is worth a mark on the Galaxy Map, so the marker layer finds the systems with a reason inside a box without reading every planet (`query.galaxy_system_interests_in_box`). The reasons are the registry in `db/interests.py` (`habitable`: a planet or moon whose overall PHI-6 score is Yellow or better, `habitability.YELLOW_FLOOR`; `uninhabitable` (v166): a scored terrestrial planet or moon under that floor; `gas-giant`: a planet with `body_type = 'g'`; `asteroid-field` (v166): a system with an asteroid belt), in the order the map prefers them: a system's mark takes the symbol of its best world, a habitable one before a barren one before a gas giant before a belt (MAP.321). Derived data: `store.record_system_interests` rebuilds a system's rows when its sector is filled and whenever its scores are worked out again. A system with no reason, or with no galaxy position, has no row.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -2218,6 +2218,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v166 (MAP.321): two more interest reasons
+
+Migration 0166 adds no column. It fills `system_interests` with the reasons `uninhabitable` (a scored terrestrial planet or moon under `habitability.YELLOW_FLOOR`, with the count and the best score) and `asteroid-field` (the count of belts) from the planets, moons and belts already stored. Nothing a generator draws changes, so there is no epoch.
 
 ### v165 (MAP.305, MAP.303): `system_interests` replaces `habitable_systems`
 
