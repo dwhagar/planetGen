@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2451] - 2026-10-28
+
+**Headline:** The Galaxy Map's info card no longer cuts off its region line and buttons in a short window.
+
+### Fixed
+- **Info card sizes to its content (MAP.332).** A card that is too tall for the room above the zoom controls and the legend now takes the map's whole height (in a window wide enough: beside the zoom controls on the right, over the legend and scale on the left) instead of shrinking to a short scrolling box that hid its region line and buttons below the More row. Past the window's height it scrolls inside itself, and opening or closing More fits the card again. A narrow window keeps the card clear of the controls and scrolls it.
+
 ## [8.0.2450] - 2026-10-28
 
 **Headline:** The planet prevalence checks draw their sample once and share it, and the draw itself is faster.
