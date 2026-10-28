@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2392] - 2026-10-28
+
+**Headline:** The admin statistics and queue tiles now say what they count, and every numeric setting names its unit.
+
+### Changed
+- **Admin tiles and settings units (UX.212).** The Stats page tiles read "12 sectors", "3,456 systems", "2 names" instead of a bare number, and the Queue page's "Workers active" and "Runs live" tiles read "4 workers" and "1 run". The nine numeric settings that had no unit (database port, the three proxy counts, the two password hashing figures, cached answers, finished jobs kept, settings file version) now carry one. Tests pin both: no tile is a bare number, and every numeric setting has a unit.
+
 ## [8.0.2391] - 2026-10-28
 
 **Headline:** Opening a sector on the Galaxy Map dims the space around it, frames it with a fixed wireframe, and puts a labelled icon on each wall that leads to the next sector.
