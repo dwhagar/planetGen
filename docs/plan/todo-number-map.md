@@ -22,7 +22,7 @@ release is stamped.
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.429 |
+| TEST | TEST.430 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.83 |
@@ -2610,7 +2610,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.211 | Pages, lists, search, Nearby and the admin pages: every number carries a unit, a noun or a label (scan) (bug) | none | done, PR #3210 |
 | UX.212 | Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug) | none | done, PR #3423 |
 | UX.213 | Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug) | none | open |
-| UX.214 | Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column | none | open |
+| UX.214 | Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column | none | done, PR #3518 |
 | UX.215 | Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table | none | open |
 | UX.216 | Object pages: the "Rendered example" panel gets an in-universe navigation title | none | open |
 | UX.217 | System and planet pages name the zones: "Ecosphere / Habitable Zone", "Hot Zone", "Cold Zone", each with its range in appropriate units, instead of "Zone E" | none | open |
@@ -2628,7 +2628,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.229 | Colour contrast of the habitability life scores and tree-leaf stats passes 4.5 to 1 in both themes (bug) | none | done, PR #3280 |
 | UX.230 | The Generate system page options have a valid listbox parent so axe aria-required-parent passes (bug) | none | done, PR #3280 |
 | UX.231 | Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5) | none | open |
-| UX.232 | Search results: the planet link in a result row goes to a bad link while the star system link in the same row works (bug) | none | open |
+| UX.232 | Search results: the planet link in a result row goes to a bad link while the star system link in the same row works (bug) | none | done, PR #3518 |
 | UX.233 | The Map symbols key on the object pages | none | open |
 | UX.234 | Searching for all M class planets with the search button says it is preparing the results, loops and never shows data (bug) | none | done, PR #3498 |
 | UX.235 | Pages that already have a table of contents also show the automatic contents bar, so the contents appear twice (bug) | none | done, PR #3515 |
@@ -3167,6 +3167,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.426 | test_galaxy_map_window_follows_the_browser_window_when_it_is_resized fails in long full-file runs and passes alone (bug) | none | open |
 | TEST.427 | Three column registry tests are red on main: aerosol_draw has no unit, tidal_flux_w_m2 is written but listed as NULL, host_eccentricity is not serializable (bug) | none | open |
 | TEST.428 | test_benchmark_suite (real run) and the test_work_units batch fills are red on main (bug) | none | open |
+| TEST.429 | Four test groups are red on clean main: three test_api_job_runs tests, and test_web_seo for web.galaxy_system_nearest (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

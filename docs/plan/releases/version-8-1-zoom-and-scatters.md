@@ -521,7 +521,6 @@ Moved into 8.1 from 8.4 phase 4 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | TEST.301 | Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism | GEN.647, DB.90, GEN.648 |  |
 | DB.90 | Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild | GEN.647 |  |
 | UX.150 | Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table | DB.90, GEN.647 |  |
-| UX.214 | Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column |  |  |
 | TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree |  | Boss 11:24 PM EDT; the proof. |
 | DOC.76 | Docs for the condition-based classes: the rule table, the planet class pages and the help | DB.90 |  |
 | TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | DB.70, GEN.462 | Boss 11:49 PM EDT; the proof. |
@@ -623,6 +622,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.422 | test_generation_size_estimate (3 tests error in setup) and test_phenomenon_scatter (scatter_lists_each_shells_phenomena_by_kind, a_fill_builds_its_rows_at_their_stored_points) are red on clean main (bug) |  |  |
 | GEN.845 | Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764) |  |  |
 | GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) |  |  |
+| TEST.429 | Four test groups are red on clean main: three test_api_job_runs tests, and test_web_seo for web.galaxy_system_nearest (bug) |  |  |
 | TEST.428 | test_benchmark_suite (real run) and the test_work_units batch fills are red on main (bug) |  |  |
 | GEN.852 | Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others) |  |  |
 | GEN.851 | Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today) |  |  |
