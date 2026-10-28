@@ -152,6 +152,12 @@ def region_row(conn, cell):
     return None if row is None else _region(row)
 
 
+def extent_of(region):
+    """The extent a charted region carries on the wire (MAP.319), from its stored row `region` (`region_row`): `centre`, the
+    middle of its bounding sphere as `[x, y, z]` in parsecs, and `radius` in parsecs, which the map frames the region with."""
+    return {"centre": list(region["extent_centre_pc"]), "radius": region["extent_radius_pc"]}
+
+
 def labels(cell, key, edge_pc):
     """
     The names a charted region carries on the wire (API.35): `name` ("Fardoo Beez Region") and `parent`, the name of its 81-block
