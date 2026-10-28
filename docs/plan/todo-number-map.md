@@ -625,7 +625,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.64 | Table for stored constellations (migration only) | none | done, PR #2529 |
 | DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | done, PR #2025 |
 | DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | done, PR #2439 |
-| DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | none | open |
+| DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | none | done, PR #3474 |
 | DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | done, PR #2856 |
 | DB.69 | Planets and moons store the composition fractions | none | done, PR #2751 |
 | DB.70 | Planets, moons and small bodies store the surface and small-body composition shares | none | open |
@@ -1172,7 +1172,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.420 | The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output | none | done, PR #2791 |
 | GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it | none | open |
 | GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | none | done, PR #3311 |
-| GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture | none | open |
+| GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture | none | done, PR #3474 |
 | GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | none | done, PR #3110 |
 | GEN.425 | Research: verify the mass-radius and equation-of-state sources and say what is missing | none | done, PR #1957 |
 | GEN.426 | The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity | none | done, PR #2063 |

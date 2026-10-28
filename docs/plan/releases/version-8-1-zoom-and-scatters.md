@@ -350,7 +350,6 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 | GEN.557 | Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion | GEN.553, GEN.565 |  |
 | GEN.721 | A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model |  |  |
 | GEN.720 | star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug) |  |  |
-| GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture |  | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content |  | Boss 11:58 PM EDT; replaces the proxies of physics/radiation.py; generator epoch bump. |
 | GEN.715 | Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703 |  |  |
 | GEN.718 | Cold haze worlds like Titan come out about twice too warm in the spectral greenhouse opacity |  |  |
@@ -482,7 +481,6 @@ Moved into 8.1 from 8.4 phase 2 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.724 | Register the GEN.272 stand-ins in the gap plan registry and correct the registry row millisecond-pulsar-companion (5 percent) to the 0.2 percent the code keeps |  |  |
 | GEN.594 | Each AD dataset (AD1 to AD8) ships its best possible fallback, used only when a run is told explicitly to disregard missing files |  |  |
 | GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH |  | Survival equipment system, Boss 7:56 PM EDT 2026-10-23; design draft section 11. |
-| DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | GEN.423 | Boss 11:24 PM EDT; migration revision after Core 1's 0102 to 0105 stack. Core 4 proposed (Boss, 11:41 PM EDT). |
 
 ### The Quantity call-site sweep
 
@@ -526,12 +524,12 @@ Moved into 8.1 from 8.4 phase 4 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.646 | Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter | DB.67, DB.70 |  |
+| GEN.646 | Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter | DB.70 |  |
 | GEN.711 | Register the planet mass law stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each |  |  |
 | GEN.647 | The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons | GEN.646 |  |
 | TEST.315 | TEST.210 reports the class shares and ranges as outputs; TEST.209 adds that the class agrees with the conditions | GEN.689, TEST.209, TEST.210 | Class design step C16. |
 | GEN.690 | Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs | GEN.689 | Class design step C15. |
-| GEN.689 | The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column | GEN.681, GEN.682, GEN.684, GEN.685, GEN.687, DB.67, DB.70 | Class design step C14. |
+| GEN.689 | The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column | GEN.681, GEN.682, GEN.684, GEN.685, GEN.687, DB.70 | Class design step C14. |
 | GEN.840 | The atmosphere recipe tables still gate each mixture row on class letters: change the gate to kind plus conditions and drop the letter from the mixture subject (the recipe-gate half of GEN.683) |  |  |
 | GEN.688 | Generation requests name conditions, not class letters: slots and the admin class change take conditions, +habitable_world steers on the PHI-6, the directive counts is_habitable | GEN.681, GEN.682, GEN.684, GEN.685 | Class design step C13. |
 | GEN.687 | Rogue planets get their class from classify; delete choose_rogue_planet_class | GEN.558, GEN.682 | Class design step C12. |
@@ -545,7 +543,7 @@ Moved into 8.1 from 8.4 phase 4 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | DB.90 | Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild | GEN.647 |  |
 | UX.150 | Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table | DB.90, GEN.647 |  |
 | UX.214 | Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column |  |  |
-| TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree | DB.67, GEN.423 | Boss 11:24 PM EDT; the proof. |
+| TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree |  | Boss 11:24 PM EDT; the proof. |
 | DOC.76 | Docs for the condition-based classes: the rule table, the planet class pages and the help | DB.90 |  |
 | TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | DB.70, GEN.462 | Boss 11:49 PM EDT; the proof. |
 | TEST.240 | Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own | GEN.565, DB.74 |  |
