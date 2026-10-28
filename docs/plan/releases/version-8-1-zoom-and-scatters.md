@@ -343,9 +343,6 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 | GEN.721 | A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model |  |  |
 | GEN.720 | star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug) |  |  |
 | GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content |  | Boss 11:58 PM EDT; replaces the proxies of physics/radiation.py; generator epoch bump. |
-| GEN.715 | Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703 |  |  |
-| GEN.718 | Cold haze worlds like Titan come out about twice too warm in the spectral greenhouse opacity |  |  |
-| GEN.717 | The greenhouse opacity has no water-vapour vertical profile, so the 15 micron CO2 band is not masked by water and a CO2 doubling warms 0.3 to 0.6 K instead of about 1.1 K |  |  |
 
 ### Docs
 
@@ -628,6 +625,10 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.422 | test_generation_size_estimate (3 tests error in setup) and test_phenomenon_scatter (scatter_lists_each_shells_phenomena_by_kind, a_fill_builds_its_rows_at_their_stored_points) are red on clean main (bug) |  |  |
 | GEN.845 | Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764) |  |  |
 | GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) |  |  |
+| TEST.428 | test_benchmark_suite (real run) and the test_work_units batch fills are red on main (bug) |  |  |
+| GEN.852 | Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others) |  |  |
+| GEN.851 | Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today) |  |  |
+| GEN.850 | Wire radiative_convective.warming into generation behind a lookup table of the model answers, and delete the infrared_opacity.py plateau code |  |  |
 | GEN.849 | Re-fit the delivered-water rows b2/b3 against the bodies bulk water (the rows deliver 0.1 to 0.2 percent of mass against 0.01 to 0.03 percent of body water) |  |  |
 | TEST.427 | Three column registry tests are red on main: aerosol_draw has no unit, tidal_flux_w_m2 is written but listed as NULL, host_eccentricity is not serializable (bug) |  |  |
 | TEST.426 | test_galaxy_map_window_follows_the_browser_window_when_it_is_resized fails in long full-file runs and passes alone (bug) |  |  |
