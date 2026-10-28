@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.234 |
 | MAP | MAP.331 |
 | NAV | NAV.65 |
-| GEN | GEN.846 |
+| GEN | GEN.847 |
 | PERF | PERF.201 |
 | DB | DB.109 |
 | API | API.37 |
@@ -1594,6 +1594,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.843 | The stored magnetopause_rp is in Earth radii but is labelled planet radii: wrong for Jupiter and every non-Earth-sized world (bug) | none | open |
 | GEN.844 | A random planet's colour crashes generation: 'the spectrum has no light between 380 and 780 nm' (bug) | none | done, PR #3443 |
 | GEN.845 | Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764) | none | open |
+| GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

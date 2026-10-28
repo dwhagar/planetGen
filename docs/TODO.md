@@ -3111,6 +3111,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Open: stars in the Sector Map view (Aux 10); belts and comets have no
   picture to turn (no look record); the black-hole, neutron-star and
   nebula views are separate renderers.
+  Research (2026-10-09): Progress (2026-10-28): the stars-in-sector part
+  merged as #3447 (1:00 PM EDT as the lane reported, Aux 10): planets,
+  moons and stars of a system opened in the Galaxy Map sector turn by
+  the System Map's one spin law, and a Spin layer in the Menu holds them
+  still. Stars stand still until they have a stored rotation period
+  (GEN.846). Still open: the system view and the object pages (Core 2
+  and Aux 11 with the planet page redesign UX.215-222).
 
 - [ ] **MAP.329 System Map stepping reaches systems across a sector's edge**
   Follow-up from MAP.121 (Core 2, #3430, 12:13 PM EDT 2026-10-28 as the
@@ -14376,6 +14383,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   needs the original scatter parameters. Store the scatter parameters
   with the plan (or read them from the audit log), then let the same run
   redraw the scatter. Optional; owner Core 1 when it runs dry.
+  Prerequisites: none.
+
+- [ ] **GEN.846 Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still)**
+  Found by Aux 10 with MAP.328 (stars in the sector view, #3447, 1:00 PM
+  EDT 2026-10-28 as the lane reported): stars have no stored rotation
+  period (spinH is 0), so the Spin layer cannot turn them and Boss's
+  wish that every star turns on its axis wherever it is seen is unmet.
+  Store a rotation period per star from physics (mass and age
+  gyrochronology for main-sequence stars, the known spin classes for
+  giants, white dwarfs, neutron stars and black holes; a stand-in tier
+  and tweak level in the registry where it is a fit), as a column with
+  its unit in db/column_units.py. It changes generated output, so it
+  takes an epoch with --affects fill and a lock turn. Once stored, stars
+  turn with no further map work. Owner: Core 3 (stars), after GEN.328.
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
