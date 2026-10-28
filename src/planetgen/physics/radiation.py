@@ -10,8 +10,9 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
 
 1. **Cosmic rays (`dose_gcr_msv_yr`, GEN.453).** `D = D0(X) f_B(M, X) f_sol` under a column of air `X = P0 / g`
    (g/cm2). `D0` is the no-field curve: the proton-primary air showers of Atri et al. 2013 (553, 263, 17.2, 3.02 and 0.65
-   mSv/yr at X of 100, 200, 500, 700 and 1036), log-log between them; below 100 g/cm2 a stand-in through the Moon (X 0, 500
-   mSv/yr, Chang'E-4) and Mars (X 21, 232 mSv/yr, Hassler 2014) until a shower run replaces it; above 1036 the larger of the
+   mSv/yr at X of 100, 200, 500, 700 and 1036), log-log between them; below 100 g/cm2 the primaries thinned by collisions plus
+   the shower building up behind them (`thin_air_dose_msv_yr`, GEN.746): the Moon at X 0 (500 mSv/yr, Chang'E-4), Mars at X 22.6 (232
+   mSv/yr and its measured fall with depth, Hassler 2014 and Guo 2018) and the shower's peak at the first run, 553 at 100; above 1036 the larger of the
    table's last slope and the muon tail (Crouch). `f_B` is the dipole's cut of that dose, the ratio of Atri's and Griessmeier's
    runs to the no-field run (it depends on the column), looked up at the field's equivalent moment `M = Rc0 / 14.34 GV`
    (a body of another radius has the cutoff of an Earth-sized body of that moment); `f_sol` is the solar-modulation
@@ -67,11 +68,19 @@ BODY_FIELDS = (
 """tuple: What `generate_dose` sets on a planet or moon, as stored in
 `planets` and `moons`."""
 
-GCR_ANCHORS = ((0.0, 500.0), (21.0, 232.0))
-"""tuple: `(X g/cm2, mSv/yr)`, the no-field dose below 100 g/cm2, a stand-in until a shower run (AD5) replaces it: the Moon
-(Chang'E-4 LND, 1369 uSv/day, a solar-minimum bound; Zhang 2020) and Mars at Gale (MSL RAD, 0.64 mSv/day, GCR only, column
-about 21 g/cm2; Hassler 2014, Table 3). The shape between them and from Mars to 100 g/cm2 is unknown (the Pfotzer
-maximum is near 100 to 120 g/cm2); Guo 2015 gives 255 mSv/yr at Mars with a range of 128 to 420."""
+GCR_MOON_MSV_YR = 500.0
+"""float: The no-field dose with no air, mSv/yr (Chang'E-4 LND, 1369 uSv/day, a solar-minimum bound; Zhang 2020). Source tier T1."""
+GCR_MARS_G_CM2 = 22.6
+GCR_MARS_MSV_YR = 232.0
+"""float: Mars at Gale (MSL RAD, 0.64 mSv/day, GCR only; Hassler 2014, Table 3; Guo 2015 gives 255 mSv/yr with a range of 128 to 420) under the
+column of its mean pressure, 840 Pa over 3.71 m/s2 = 22.6 g/cm2 (Guo 2018; the 21 of the earlier stand-in was recalled). Source tier T1."""
+GCR_MARS_LOG_SLOPE_PER_G_CM2 = -0.19 / (25.7 - 18.9)
+"""float: d ln D / dX at Mars: the modelled dose equivalent falls by 126 uSv/day, 19 percent of its mean, between the column of 700 Pa (18.9 g/cm2)
+and of 950 Pa (25.7 g/cm2) and "declines continuously and nonlinearly" with depth (Guo et al. 2018, arXiv:1712.06987, read for GEN.746; the paper's
+dose-against-depth figures are not tabulated). Source tier T2."""
+GCR_PEAK_G_CM2 = 100.0
+"""float: Where the shower dose peaks, g/cm2: "about 100" (Guo 2018) and 122.7 +- 6.3 (the Pfotzer maximum, Sarkar 2017). The curve below the runs has
+its peak at the first run of Atri 2013 (`GCR_SHOWER_POINTS`), so it joins them at its highest point. Source tier T2."""
 GCR_SHOWER_POINTS = ((100.0, 553.0), (200.0, 263.0), (500.0, 17.2), (700.0, 3.02), (1036.0, 0.65))
 """tuple: `(X g/cm2, mSv/yr)`: total biological dose from muons, electrons, photons and neutrons in proton-primary CORSIKA
 air showers with no magnetic field (Atri, Hariharan, Fryer et al. 2013, Table XV, via Griessmeier et al. 2016, Table 2).
@@ -170,14 +179,70 @@ def _muon_dose_msv_yr(column_g_cm2):
     return math.pi * intensity * MUON_MEV_PER_G * MUON_J_PER_MEV / 1e-3 * SECONDS_PER_YEAR * 1e3
 
 
+def _fit_thin_air_curve():
+    """
+    The three numbers of the thin-air dose curve, `(primary_length, build_up_exponent, build_up_length)` (rule 1): the dose below the first
+    shower run is the primaries thinned by nuclear collisions plus the shower that builds up behind them,
+
+        D(X) = D_moon exp(-X / L_p) + K (X / X_1)^a exp(-(X - X_1) / L_s),       K = D_1 - D_moon exp(-X_1 / L_p),
+
+    and the three numbers are the ones that make it pass through Mars (value `GCR_MARS_MSV_YR` and log slope
+    `GCR_MARS_LOG_SLOPE_PER_G_CM2`, at `GCR_MARS_G_CM2`) and peak at the first run `(X_1, D_1)` of Atri 2013. The Moon is the value at X = 0
+    (the shower is nil there). For a trial `L_p` the shower's `a` and `1 / L_s` follow from the Mars value and the peak by two linear
+    equations, and the Mars slope is then a function of `L_p` alone, found by bisection.
+    """
+    x1, d1 = GCR_SHOWER_POINTS[0]
+    xm, dm, slope_m = GCR_MARS_G_CM2, GCR_MARS_MSV_YR, GCR_MARS_LOG_SLOPE_PER_G_CM2 * GCR_MARS_MSV_YR
+
+    def solve(length):
+        primary = lambda x: GCR_MOON_MSV_YR * math.exp(-x / length)
+        k = d1 - primary(x1)
+        # peak: a / x1 - 1 / ls = primary(x1) / (length k);  Mars value: a ln(xm / x1) - (xm - x1) / ls = ln((dm - primary(xm)) / k)
+        a11, a12, b1 = 1.0 / x1, -1.0, primary(x1) / (length * k)
+        a21, a22, b2 = math.log(xm / x1), -(xm - x1), math.log((dm - primary(xm)) / k)
+        det = a11 * a22 - a12 * a21
+        exponent = (b1 * a22 - a12 * b2) / det
+        inverse_length = (a11 * b2 - a21 * b1) / det
+        shower = (dm - primary(xm))
+        residual = -primary(xm) / length + shower * (exponent / xm - inverse_length) - slope_m
+        return exponent, 1.0 / inverse_length, residual
+
+    low, high = 10.0, 0.999 * xm / math.log(GCR_MOON_MSV_YR / dm)  # above this the primaries alone are more than Mars's dose
+    for _ in range(80):
+        middle = 0.5 * (low + high)
+        if (solve(low)[2] > 0) == (solve(middle)[2] > 0):
+            low = middle
+        else:
+            high = middle
+    exponent, shower_length, _ = solve(0.5 * (low + high))
+    return 0.5 * (low + high), exponent, shower_length
+
+
+GCR_PRIMARY_LENGTH_G_CM2, GCR_BUILD_UP_EXPONENT, GCR_SHOWER_LENGTH_G_CM2 = _fit_thin_air_curve()
+"""float: The thin-air curve's fitted numbers (28.3 g/cm2, 5.94 and 17.1 g/cm2). The primaries' length of 28 g/cm2 is not a free number: it
+falls out of the Mars value and slope, and is the size of the nuclear collision length of the carbon-to-oxygen nuclei that carry most of the
+dose equivalent (about 25 g/cm2 in air; the protons' is 90). Source tier T5, tweak level L0 for the length, T6 and L2 for the shape of the
+build-up (the form is the Gaisser-Hillas shape of a shower, fitted by its three conditions)."""
+
+
+def thin_air_dose_msv_yr(column_g_cm2):
+    """Rule 1's `D0` below the first shower run (`_fit_thin_air_curve`): 500 mSv/yr (the Moon) at no air, down through Mars's 232 at 21 g/cm2
+    to a minimum near 35 g/cm2 and up to the runs' 553 at 100."""
+    x1, d1 = GCR_SHOWER_POINTS[0]
+    x = min(max(column_g_cm2, 0.0), x1)
+    primary = GCR_MOON_MSV_YR * math.exp(-x / GCR_PRIMARY_LENGTH_G_CM2)
+    if x <= 0.0:
+        return primary
+    k = d1 - GCR_MOON_MSV_YR * math.exp(-x1 / GCR_PRIMARY_LENGTH_G_CM2)
+    return primary + k * (x / x1) ** GCR_BUILD_UP_EXPONENT * math.exp(-(x - x1) / GCR_SHOWER_LENGTH_G_CM2)
+
+
 def no_field_dose_msv_yr(column_g_cm2):
     """Rule 1's `D0`: the dose, mSv/yr, under `column_g_cm2` with no magnetic field and the mean solar modulation."""
     x = max(column_g_cm2, 0.0)
     points = GCR_SHOWER_POINTS
     if x < points[0][0]:
-        nodes = GCR_ANCHORS + points[:1]
-        columns = [math.log1p(column) for column, _ in nodes]
-        return _log_linear(math.log1p(x), columns, [dose for _, dose in nodes])
+        return thin_air_dose_msv_yr(x)
     columns = [math.log(column) for column, _ in points]
     doses = [dose for _, dose in points]
     if x <= points[-1][0]:

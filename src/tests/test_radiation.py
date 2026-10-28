@@ -23,7 +23,7 @@ from tests.test_db_persistence import _placed_nebula, _system_point_pc
 
 
 @pytest.mark.parametrize("column, expected", [
-    (0.0, 500.0), (21.0, 232.0), (100.0, 553.0), (200.0, 263.0), (500.0, 17.2), (700.0, 3.02), (1036.0, 0.65)])
+    (0.0, 500.0), (22.6, 232.0), (100.0, 553.0), (200.0, 263.0), (500.0, 17.2), (700.0, 3.02), (1036.0, 0.65)])
 def test_the_no_field_curve_passes_through_the_read_points(column, expected):
     """The Moon (Chang'E-4), Mars (Hassler 2014) and the proton-primary showers of Atri 2013, as read."""
     assert rad.no_field_dose_msv_yr(column) == pytest.approx(expected, rel=1e-9)
@@ -37,8 +37,45 @@ def test_the_curve_reproduces_the_aviation_point_and_sea_level_and_keeps_mars_in
     assert rad.gcr_dose_msv_yr(122.7) == pytest.approx(444.0, rel=0.01)  # the Pfotzer maximum, log interpolation
 
 
-def test_below_the_runs_the_curve_is_the_moon_to_mars_stand_in_and_above_them_it_keeps_falling_to_a_muon_floor():
+def test_a_mountain_station_takes_the_dose_the_aircraft_rule_gives_between_it_and_the_flight_levels():
+    """The dose doubles for every 1800 m of altitude in the aircraft range (PMC7968484, read); from 6.1 km (450 g/cm2) to 12.2 km (190 g/cm2) that
+    is 2^3.4 = 10.5 times, and the runs with Earth's field give it within a third."""
+    earth = rad.EARTH_CUTOFF_GV
+    ratio = rad.gcr_dose_msv_yr(190.0, earth) / rad.gcr_dose_msv_yr(450.0, earth)
+    assert ratio == pytest.approx(10.5, rel=0.35)
+    sea_level = rad.gcr_dose_msv_yr(rad.GCR_SEA_LEVEL_G_CM2, earth)
+    assert sea_level < rad.gcr_dose_msv_yr(700.0, earth) < rad.gcr_dose_msv_yr(450.0, earth)  # 0, 3 and 6 km rise
+
+
+def test_the_thin_air_curve_passes_through_the_moon_and_mars_and_joins_the_runs_at_their_peak():
+    """GEN.746: the value and the measured fall at Mars and the peak at the first run are the three conditions the curve is fitted to."""
+    assert rad.thin_air_dose_msv_yr(0.0) == rad.GCR_MOON_MSV_YR
+    assert rad.thin_air_dose_msv_yr(rad.GCR_MARS_G_CM2) == pytest.approx(rad.GCR_MARS_MSV_YR, rel=1e-6)
+    step = 1e-4
+    slope = ((math.log(rad.thin_air_dose_msv_yr(rad.GCR_MARS_G_CM2 + step)) - math.log(rad.thin_air_dose_msv_yr(rad.GCR_MARS_G_CM2 - step)))
+             / (2 * step))
+    assert slope == pytest.approx(rad.GCR_MARS_LOG_SLOPE_PER_G_CM2, rel=1e-4)
+    first = rad.GCR_SHOWER_POINTS[0]
+    assert rad.thin_air_dose_msv_yr(first[0]) == pytest.approx(first[1], rel=1e-9)
+    assert rad.thin_air_dose_msv_yr(first[0] - 1.0) < first[1] and rad.thin_air_dose_msv_yr(first[0] - 10.0) < first[1]
+    assert rad.thin_air_dose_msv_yr(first[0] + 50.0) == rad.thin_air_dose_msv_yr(first[0])  # held at the join; the runs take over
+
+
+def test_the_thin_air_curve_falls_through_a_minimum_and_rises_to_the_runs_with_the_primaries_length_of_a_heavy_nucleus():
+    """The primaries thin with a length near the collision length of carbon-to-oxygen nuclei (25 g/cm2; the protons' is 90): that length is not
+    a free number but falls out of the Mars value and slope."""
+    columns = [i * 0.5 for i in range(0, 201)]
+    doses = [rad.thin_air_dose_msv_yr(x) for x in columns]
+    low = doses.index(min(doses))
+    assert 20.0 < columns[low] < 50.0 and min(doses) < rad.GCR_MARS_MSV_YR
+    assert doses[:low + 1] == sorted(doses[:low + 1], reverse=True) and doses[low:] == sorted(doses[low:])
+    assert 20.0 < rad.GCR_PRIMARY_LENGTH_G_CM2 < 35.0
+    assert rad.GCR_BUILD_UP_EXPONENT > 1.0 and rad.GCR_SHOWER_LENGTH_G_CM2 > 0.0
+
+
+def test_below_the_runs_the_curve_is_the_thin_air_one_and_above_them_it_keeps_falling_to_a_muon_floor():
     assert 232.0 < rad.no_field_dose_msv_yr(10.0) < 500.0 and 232.0 < rad.no_field_dose_msv_yr(60.0) < 553.0
+    assert rad.no_field_dose_msv_yr(60.0) == rad.thin_air_dose_msv_yr(60.0)
     assert rad.no_field_dose_msv_yr(3000.0) < rad.no_field_dose_msv_yr(1036.0)
     assert rad.no_field_dose_msv_yr(10850.0) == pytest.approx(3.4e-7 * 1e3, rel=0.1)  # Crouch at Titan's column, mSv/yr
     assert rad.no_field_dose_msv_yr(1e6) == pytest.approx(rad._muon_dose_msv_yr(1e6))
