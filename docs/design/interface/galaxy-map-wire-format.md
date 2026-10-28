@@ -22,6 +22,8 @@ Step 2 is in: `planetgen/web/lib/tilepack.py` writes it, `html/static/tilepack.j
 
 ## 0.1 Region names on the wire (API.35, 2026-10-28)
 
+The naming, geometry and storage rules are in `../galaxy/named-regions.md`.
+
 A node of a charted region carries two more JSON fields beside `aggregate`: `name` (the region, "Fardoo Beez Region") and `parent` (its 81-block family, "Fardoo Reach"). They are set only for a 9-block that has a row in `region_stats` (it holds at least one generated sector), by `db.nodes.galaxy_nodes` through `region_stats.labels`, from `names/gated_phoneme_codec.py` under the naming key in force (`names/naming_key.active_key()`); a block of any other size, a 9-block with no generated sector and a galaxy with no key in force have neither field. They ride in the packed node's JSON meta (`tilepack._META_SECTIONS`, `tilecache._KEEP_SECTIONS`), so the columns and the PGT1 layout do not change. A stage lists its children the same way (`child_m` 9), and a 9-block's own stage names it. The naming key is already in the cache stamp (`galaxy_content_state`), so a key change renames every node with no new rule; `TILE_FORMAT` went from 4 to 5 once so the stored nodes are rebuilt with the names. `tests/test_region_wire_names.py` pins the fields and their absence.
 
 ## 1. Answer in brief

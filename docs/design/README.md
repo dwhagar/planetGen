@@ -52,6 +52,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [galaxy-disk-density.md](galaxy/galaxy-disk-density.md) | The galaxy density model | built |
 | [fill-order-curves-and-core.md](galaxy/fill-order-curves-and-core.md) | Fill order, region selection and the galactic core | research |
 | [realistic-galactic-core.md](galaxy/realistic-galactic-core.md) | A realistic galactic core (GEN.279, reopens GEN.155): the nuclear star cluster and disc as density terms, the resolution cap, tiered mass and luminosity limits, planets and orbits at the centre | recommendation (Core 3, 2026-10-16; defaults stand, nothing built yet) |
+| [named-regions.md](galaxy/named-regions.md) | Named regions: the 9-block cells of the block ladder with a name, anchor, framing sphere and extent, their stored table, and the uniqueness audit | built (GEN.825, GEN.827, DB.107, API.35); map, pages and search not built |
 | [multiple-galaxies.md](galaxy/multiple-galaxies.md) | Neighbour galaxies and a second galaxy | research |
 | [globular-clusters.md](galaxy/globular-clusters.md) | Globular clusters in generation | partly built (GEN.159: cluster table, King tables, generator; GEN.160: cluster density in the sector gate) |
 | [intergalactic-and-halo-contents.md](galaxy/intergalactic-and-halo-contents.md) | What fills the sphere off the disk: the stellar halo, satellites, ejected stars, gas, and how to give every cell contents | research (reach approved; build plan for TODO) |
