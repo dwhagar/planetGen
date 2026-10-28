@@ -26,7 +26,7 @@ Image = pytest.importorskip("PIL.Image")
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_POINTS, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
-    SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD,
+    SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site,
     halo_site,
     map_site,
@@ -2901,6 +2901,59 @@ def test_galaxy_map_names_the_bodies_of_an_open_system_down_to_a_planet(page, ma
     page.click("#galaxymap3d-menu > summary")
     page.click('#galaxymap3d-kinds [data-label="body"]')
     page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'body')")
+
+
+def _nearest_that_way(here, others, direction, cone_deg=60.0):
+    """The rule of static/systemstep.js worked out independently: the nearest of `others` (name, x, y, z) from `here` in
+    the cone about `direction` in the galaxy's frame at `here`, or None."""
+    x, y, z = here
+    plane = math.hypot(x, y)
+    r = math.hypot(plane, z)
+    east = (-y / plane, x / plane, 0.0)
+    south = (z * x / (plane * r), z * y / (plane * r), -plane / r)
+    out = (x / r, y / r, z / r)
+    axis = {"out": out, "in": tuple(-v for v in out), "east": east, "west": tuple(-v for v in east),
+            "south": south, "north": tuple(-v for v in south)}[direction]
+    best = None
+    for name, ox, oy, oz in others:
+        offset = (ox - x, oy - y, oz - z)
+        distance = math.dist(offset, (0.0, 0.0, 0.0))
+        if distance > 0 and sum(a * b for a, b in zip(offset, axis)) / distance >= math.cos(math.radians(cone_deg)):
+            if best is None or distance < best[0]:
+                best = (distance, name)
+    return best[1] if best else None
+
+
+def test_the_step_buttons_and_keys_go_from_an_open_system_to_the_nearest_system_that_way(page, map_site):
+    """MAP.121: with a system opened in place the step buttons and keys take the view to the nearest system of the sector
+    lying that way (north, south, east, west, out, in, in the galaxy's frame at the system), keeping the scale; a button
+    is off where no system lies that way."""
+    _open_system_in_place(page, map_site)
+    centre = _sector_center_pc(*next(s[1:4] for s in SECTORS if s[0] == SECTOR_ID))
+    # The sector scene turns y back to the galaxy's own (flipY), so a system's y runs the other way from its stored one.
+    places = {name: (centre[0] + x / 1000.0, centre[1] - y / 1000.0, centre[2] + z / 1000.0) for _i, name, x, y, z, _s in SYSTEMS}
+    here = places["Middling Sun"]
+    others = [(name, *place) for name, place in places.items() if name != "Middling Sun"]
+    expected = {d: _nearest_that_way(here, others, d) for d in ("north", "south", "east", "west", "in", "out")}
+    assert any(expected.values()), expected
+
+    def enabled():
+        return page.eval_on_selector_all(
+            "#galaxymap3d-controls [data-action=step]",
+            "els => Object.fromEntries(els.map(e => [e.dataset.step, !e.disabled]))")
+
+    assert enabled() == {d: name is not None for d, name in expected.items()}, (enabled(), expected)
+    direction = next(d for d, name in expected.items() if name)
+    was = _galaxy_system(page)["id"]
+    page.click("#galaxymap3d-menu > summary")
+    page.click(f'#galaxymap3d-controls [data-step="{direction}"]')
+    page.wait_for_function("([was]) => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); return !!s && s.id !== was && !s.flying; }",
+                           arg=[was], timeout=20000)
+    _settle(page)
+    state = _galaxy_system(page)
+    assert state["name"] == expected[direction] and state["mode"] == "compressed", (direction, expected, state)
+    assert f"&system={state['id']}" in _query(page)
+    assert _crumbs(page)[-1] == expected[direction], _crumbs(page)
 
 
 def test_a_close_pairs_two_orbits_are_drawn_each_at_its_share(page, map_site):

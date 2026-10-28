@@ -58,6 +58,7 @@ const { createSectorStage, DEFAULT_HIDDEN_KINDS } = await import(`./galaxysector
 const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
 const { KINDS } = await import(`./sectorscene.js${VERSION_QUERY}`);
 const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
+const { nearestInDirection } = await import(`./systemstep.js${VERSION_QUERY}`);
 const NF = await import(`./nearfield.js${VERSION_QUERY}`);
 const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 const SR = await import(`./sectorreach.js${VERSION_QUERY}`);
@@ -1357,10 +1358,17 @@ export function createStageView(host) {
   }
 
   // MAP.121: the window one cell over, at the level the window is at, or null where there is nothing to step to (the
-  // whole galaxy, an opened system, past a pole or the core, or where nothing of the galaxy lies). With a sector opened
-  // in place the step is to the sector beside it, `{ sector }` (the helper that finds it is the walls' icons', MAP.327).
+  // whole galaxy, past a pole or the core, or where nothing of the galaxy lies). With a sector opened in place the step
+  // is to the sector beside it, `{ sector }` (the helper that finds it is the walls' icons', MAP.327); with a system
+  // opened, to the nearest system of the sector that lies that way, `{ system }` (the System Map has no grid).
   function stepTarget(direction) {
-    if (pinned || enteredSystem) return null;
+    if (pinned) return null;
+    if (enteredSystem) {
+      // MAP.121: from the open system, the nearest system of the open sector that lies that way (systemstep.js).
+      const here = sectorStage.entries().find(function (e) { return e.endpoint === "system:" + enteredSystem.id; });
+      const to = here ? nearestInDirection(here, sectorStars(true), direction, function (e) { return e === here; }) : null;
+      return to ? { system: to } : null;
+    }
     if (entered) {
       const here = entered.sector;
       const to = P.neighbourBlock({ m: 1, shell: here.shell, band: here.band, wedge: here.wedge }, direction, edgePc);
@@ -1381,6 +1389,12 @@ export function createStageView(host) {
     const next = stepTarget(direction);
     if (!next) return false;
     if (next.sector) return openSector(next.sector);
+    if (next.system) {
+      const mode = systemStage.mode();
+      closeSystem();
+      enterSystem(next.system, { push: true, mode: mode });
+      return true;
+    }
     go(next);
     return true;
   }
@@ -2324,8 +2338,8 @@ export function createStageView(host) {
 
   // MAP.245: the stars of the open sector the wheel and the clicks can take for a thing: those with a system, not
   // left off the map.
-  function sectorStars() {
-    if (!entered || enteredSystem) return [];
+  function sectorStars(inSystem) {
+    if (!entered || (enteredSystem && !inSystem)) return [];
     return sectorStage.entries().filter(function (e) {
       return e.href && e.endpoint && e.endpoint.indexOf("system:") === 0 && !sectorStage.hides(e);
     });
