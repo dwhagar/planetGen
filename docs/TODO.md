@@ -2078,96 +2078,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/galaxy/intergalactic-and-halo-contents.md](design/galaxy/intergalactic-and-halo-contents.md)
 
-- [ ] **MAP.209 Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug)**
-  Boss (2026-10-15 9:42 PM EDT, on his own server): "there's some kind
-  of bug transitioning to sector view from galactic view, for a moment
-  it shows one view, then reloads to a different view, but does not show
-  any details about what's on the screen to the right of the viewing
-  window." Reproduce first: fly from the Galaxy Map into a filled sector
-  (galaxystageview.js decides when a sector is open and flies the
-  camera, galaxysector.js loads the sector's scene and joins its picker
-  layers to the map's), watch for the reload (a full page load such as
-  openSectorPage in galaxymap3d.js, or the scene rebuilt twice), and check whether it
-  is the same defect as MAP.210. Find the root cause, fix it, and add a
-  browser test that opens a sector from the map and asserts one stable
-  view and a filled details panel (a star's name and facts) once the
-  sector is open. Check whether TEST.163 (the  count is 0 on the nav
-  route page, red on main) shares the cause. Done: the move from the
-  galactic view into a sector shows one continuous view with no reload,
-  and the panel to the right of the viewer shows the opened sector's
-  details. Owner: Core 2, next after its running item, with MAP.208 (the
-  same map and scene code, so one lane avoids conflicts; Boss,
-  2026-10-15 9:42 PM EDT, via the coordinator).
-  Status (Core 2, 2026-10-16, 2:21 AM EDT): not reproduced. On a
-  generated-database site in headless Chromium with reduced motion off
-  (so the camera flight plays; every older map browser test ran with
-  reduced motion), opening a charted sector by address, by clicking its
-  cell and by a wheel run from the whole galaxy each gave one document
-  (no reload), one URL, the panel filled with the sector's details, a
-  star click selecting it, and no page or console errors; requests
-  peaked at 3 a second, so the page limit is not the cause. Tests only
-  merged (#1776, src/tests/test_web_browser_sector_open.py); the item
-  stays open. Reading the code ruled out a polling reload (the stamp is
-  used only on tile fetch) and openSectorPage runs only on a pinned
-  sector page. Needed from Boss: browser and device, whether he used the
-  wheel, a click or a link, the sector name, any red text in the browser
-  console (F12) when it happens, and whether it still happens on the
-  rebuilt database (his ran code from before migration 0093 and
-  MAP.208).
-  Status (Core 2, relayed 3:08 AM EDT 2026-10-23 as the lane reported):
-  not a product defect on current main. With real mouse events on every
-  star of the opened sector in 12 fresh test databases (near the core, a
-  sector 8,000 pc out, and under CPU load) every click picked.
-  TEST.281's red was the test clicking before the camera stopped
-  (clickAt ignores clicks during a flight) and clicking stars drawn
-  below the 600 px window; fixed in #2619. The item stays open for Boss:
-  retest on a rebuilt database on current main (his 10-15 server
-  predated migration 0093 and MAP.208) and, if it still fails, send the
-  browser, device, sector name and console errors.
-  Prerequisites: none. Related: MAP.210, MAP.66, MAP.208, TEST.163.
-
-- [ ] **MAP.210 Nothing on the map can be selected, even in sector view (bug)**
-  Boss (2026-10-15 9:42 PM EDT, on his own server): "I also cannot
-  select anything on the map even in sector view, when I should be able
-  to select stars within the sector." Stars inside an opened sector
-  should be pickable (a click or hover goes through the map's picker,
-  mappick.js, and fills the info panel, showInfo in galaxysector.js) and so
-  should the other pickable objects. This may be the cause of the empty
-  details panel in MAP.209, so one root cause is possible; reproduce
-  first, find the root cause, and fix it. Add a browser test that opens
-  a sector, clicks a star's projected position and checks that the
-  selection ring and the details panel fill, and the same for a star in
-  the Galaxy Map's own tiles. Done: in sector view and on the Galaxy Map
-  a click on a star selects it, the details panel shows its facts, and
-  the browser test catches a regression. Owner: Core 2, with MAP.209
-  (Boss, 2026-10-15 9:42 PM EDT, via the coordinator).
-  Status (Core 2, 2026-10-16, 2:21 AM EDT): not reproduced, see
-  MAP.209's status note (same sector-open tests, #1776, found one
-  document, a filled panel and working star selection); the item stays
-  open and waits on Boss's answers listed there.
-  Reproduced by a test (Core 2, relayed 7:24 PM EDT 2026-10-22 as the lane's
-  clock reads): src/tests/test_web_browser_sector_open.py::
-  test_a_star_in_an_opened_sector_is_selectable fails alone on main (no
-  click on a star of 5 picks one; the panel shows the uncharted sector or
-  a star '(uncharted)'); filed as TEST.281.
-  Status (Core 2, relayed 3:08 AM EDT 2026-10-23 as the lane reported):
-  TEST.281 merged as #2619 (test-only; release 8.0.1997): the star
-  selection test waits for the camera, re-reads star positions at the
-  click, and a new test covers a star in a far sector (8,000 pc out).
-  Not a product defect on current main (see MAP.209's note). The Done
-  clause about a star in the Galaxy Map's own tiles conflicts with
-  MAP.101 (tile stars never take the click,
-  test_galaxy_map_stars_never_take_the_click), so it was not tested and
-  is not required until Boss says which wins. The item stays open for
-  Boss's retest on a rebuilt database.
-  Observation (Bug Hunt, relayed 10:26 AM EDT 2026-10-23 as the lane
-  reported, from TEST.291's fix, #2669): on a loaded machine the camera
-  settled by the scale-bar and centre checks, yet a star in a sector 8
-  kpc out moved about 120 px afterwards, so a late camera drift may
-  exist. Not a separate bug yet; it is evidence for Boss's retest of this
-  item.
-  Prerequisites: none. Related: MAP.209, MAP.66, MAP.208, TEST.163, TEST.281.
-
 - [ ] **MAP.212 A region selection tool on the Galaxy Map and the Sector Map, for admin actions**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
   has complete control; the world adjusts to what the admin wants, after
@@ -2504,6 +2414,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (bookmarks, saved courses) show as removed, and the tiles and the
   query caches stop serving the region once the deletion epoch is bumped
   (GEN.620).
+  Blocked (2026-10-09): Core 2 (11:27 AM EDT 2026-10-28 as the lane
+  reported): cannot start. Its prerequisites GEN.538 (plan
+  configuration), GEN.539 (halo command) and GEN.540 (satellite command)
+  are still open and nothing in the code reads such a configuration, so
+  there is no switch to follow. Unowned until they land; Core 2 takes it
+  then.
 
 - [ ] **MAP.249 The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug)**
   Boss (2026-10-17, 6:48 PM EDT, typed in the project chat, relayed by
@@ -2603,6 +2519,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exists yet, so the before and after settled-view figure is owed from
   Boss's server (Boss tests it after he runs update.sh; the coordinator
   tells Core 2 when he has).
+  Rescope (2026-10-09): Rescoped by TODO (11:29 AM EDT 2026-10-28, on
+  Core 2's report): the 10-18 figures (400 to 480 tiles, 7 to 8 MB a
+  view) describe the old tile system; the map has since moved to the
+  node cut, packed nodes, IndexedDB and the tile cache (MAP.267,
+  PERF.130 to 134). Do now: a node-path benchmark on a large synthetic
+  galaxy (frame time while flying, time to settle after a level change)
+  as a PERF.31-style guard, and profile the node path with a trace where
+  it is slow. Done: the benchmark exists with a limit that fails on a
+  regression. Boss's own sighting of lag stays a bug until he says it is
+  gone; a new report is filed as its own bug.
 
 - [ ] **MAP.253 Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -20594,6 +20520,21 @@ clears each one.
   Rules: never skip or loosen a test to get green; keep the property
   each test checks.
   Prerequisites: none. Related: MAP.209, MAP.210, TEST.414.
+
+- [ ] **TEST.419 test_opening_a_sector_is_one_continuous_view_with_a_filled_panel failed once in a full file run and passed on the next two (bug)**
+  Found by Core 2 (as the lane reported 11:27 AM EDT 2026-10-28) while
+  checking MAP.209 and MAP.210 on main after #3412: on the first full
+  run of test_web_browser_sector_open.py this test failed once, with no
+  code change it passed alone and in the full file on the next two runs;
+  the failure message was not captured. Do: run the file in a loop (20
+  times, capture the message and a screenshot on failure), find the race
+  (the camera flight, the scene reload or the panel fill), and fix the
+  code or the wait in the test so it checks the same property without a
+  fixed sleep. Done: 20 consecutive runs pass. Owner: Core 2. Rules:
+  never skip or loosen the test; keep the property (one continuous view,
+  filled details panel). A new report of Boss seeing the flash or an
+  empty panel is filed as its own bug.
+  Prerequisites: none. Related: MAP.209, MAP.210.
 
 ## USR: User accounts
 
