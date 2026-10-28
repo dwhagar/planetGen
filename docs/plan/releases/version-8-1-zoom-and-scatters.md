@@ -186,7 +186,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | UX.231 | Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5) |  |  |
 | API.36 | Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6) |  |  |
 | MAP.305 | Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug) | TEST.368 |  |
-| MAP.321 | Point-of-interest markers by level: a star carries its best world marker in the star views, the planet or moon carries its own marker at the system level, and regions show inhabited tokens |  |  |
 | MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | TEST.368, MAP.305 |  |
 | MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | TEST.368 |  |
 | MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | TEST.368 |  |
