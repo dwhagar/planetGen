@@ -129,7 +129,7 @@ def _bodies(system):
 
 
 def test_every_generated_body_stores_the_tide_of_its_orbit_and_the_habitability_energy_counts_it():
-    from planetgen.physics import atmosphere
+    from planetgen.physics import hydrosphere
     seen = icy = rocky = 0
     for seed in range(10):
         with deterministic_entropy(seed):
@@ -144,7 +144,7 @@ def test_every_generated_body_stores_the_tide_of_its_orbit_and_the_habitability_
             if forcing is None:  # a planet or captured moon the tide has circularised has none left
                 assert body.eccentricity == 0.0 and not body.tidal_flux_w_m2
                 continue
-            if (body.water_mass_fraction or 0.0) >= atmosphere.ICY_MIN_WATER_FRACTION:
+            if (body.water_mass_fraction or 0.0) >= hydrosphere.ICY_MIN_WATER_FRACTION:
                 icy += 1
                 assert body.tidal_flux_w_m2 == pytest.approx(tidal_heating.icy_flux_w_m2(forcing, body.radius))
             elif body.tidal_flux_w_m2 is not None:

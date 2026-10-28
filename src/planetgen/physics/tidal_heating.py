@@ -15,7 +15,7 @@ heating follows the orbit: a moon with a forced eccentricity (the Laplace resona
 has been circularised (`orbit_elements.circularised`) has little left. The power is taken as constant over the body's age (a stand-in:
 the eccentricity was larger for a planet that has since circularised, so its past heating was more).
 
-Rheology of an icy body (a water mass fraction of `atmosphere.ICY_MIN_WATER_FRACTION` or more): one `k2/Q` of 3e-4, the figure that
+Rheology of an icy body (a water mass fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more): one `k2/Q` of 3e-4, the figure that
 gives Europa's 1.4e11 W (`ICY_K2_OVER_Q`); the heat goes into its ice shell (`hydrosphere`), over its surface.
 
 Rheology of a rocky body, in two states:
@@ -35,7 +35,7 @@ Rheology of a rocky body, in two states:
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import atmosphere, constants
+from planetgen.physics import constants, hydrosphere
 
 ROCK_RIGIDITY_PA = 7.0e10
 """float: The shear modulus of the solid mantle, Pa (PREM mantle average: 65 to 80 GPa). Source tier T2."""
@@ -92,8 +92,8 @@ def forcing_of(body):
 
 
 def is_icy(body):
-    """Whether `body` is an icy one (a water mass fraction of `atmosphere.ICY_MIN_WATER_FRACTION` or more)."""
-    return (getattr(body, "water_mass_fraction", None) or 0.0) >= atmosphere.ICY_MIN_WATER_FRACTION
+    """Whether `body` is an icy one (a water mass fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more)."""
+    return (getattr(body, "water_mass_fraction", None) or 0.0) >= hydrosphere.ICY_MIN_WATER_FRACTION
 
 
 def response(body):

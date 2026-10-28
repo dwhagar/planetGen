@@ -24,7 +24,7 @@ spun up the same way.
 
 * A rocky body: `k2` of a homogeneous rigid sphere of its own mass and radius (`tidal_heating.rigid_k2`, GEN.737: the Moon's 0.021, Mars's
   0.1, an Earth-sized planet 0.5), `Q` of 100 (Goldreich and Soter 1966; the Moon's 38 to 100, Mars's 88 to 100).
-* An icy body (a water mass fraction of `atmosphere.ICY_MIN_WATER_FRACTION` or more): `k2` of 0.03 and `Q` of 100, the `k2/Q` of 3e-4 that
+* An icy body (a water mass fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more): `k2` of 0.03 and `Q` of 100, the `k2/Q` of 3e-4 that
   gives Europa's tide (GEN.737).
 * A gas giant: `k2` of 0.3 and `Q` of 1e5 (Jupiter's `k2` 0.49 and `Q` of 3e4 to 1e6, Saturn's 0.39 and 1.8e4 from the motions of their
   moons).

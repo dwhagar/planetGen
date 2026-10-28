@@ -251,6 +251,8 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None):
         temperature = min(SURFACE_TEMPERATURE_K + energy_j / capacity, cap_k)
 
         def rate(t_gy, kelvin):
+            # a strong tide moves the temperature past the cap within one step, and a stage beyond the range of the viscosity law makes no sense
+            kelvin = min(max(kelvin, SURFACE_TEMPERATURE_K), cap_k)
             return GY_S * (radiogenic_w(t_gy) + source_w - conduction_w(kelvin)) / capacity
 
         t, step, released_j = 0.0, FIRST_STEP_GY, 0.0
@@ -319,7 +321,7 @@ def update_heat(body):
     Runs the thermal history of a rocky body to its star's age now and sets `OUTPUT_FIELDS` (the Urey ratio, the heat flow of its own and the
     tide's, GEN.737); no draws, so it can be repeated when the star's age is adjusted for its planets. The tide is that of the orbit stored
     with the body (`tidal_heating.forcing_of`): a rocky body's goes through the box (`heat`, which may melt it), an icy body's (a water mass
-    fraction of `atmosphere.ICY_MIN_WATER_FRACTION` or more) heats its ice shell and is `tidal_heating.icy_flux_w_m2`. Returns the `Heat`, or `None`
+    fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more) heats its ice shell and is `tidal_heating.icy_flux_w_m2`. Returns the `Heat`, or `None`
     (fields `None`) for a body with no stored content or interior (a gas giant, or a row from before GEN.699).
     """
     content, interior = radiogenic.content_of(body), interior_of(body)
@@ -329,7 +331,7 @@ def update_heat(body):
         return None
     age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
     forcing = tidal_heating.forcing_of(body)
-    icy = (getattr(body, "water_mass_fraction", None) or 0.0) >= atmosphere.ICY_MIN_WATER_FRACTION
+    icy = tidal_heating.is_icy(body)
     found = heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), None if icy else forcing)
     body.urey_ratio, body.internal_heat_flux_w_m2 = found.urey_ratio, found.own_flux_w_m2
     if icy:
