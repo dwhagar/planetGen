@@ -6830,6 +6830,50 @@ def recount_habitable_worlds(conn, system_ids):
     return changed
 
 
+def _content_figures(conn, sector_id):
+    """What a sector's rows hold, as `sector_stats` states it: `(systems, stars, mean temperature K, mean luminosity in solar
+    units, mean age Gy, summed luminosity in solar units, habitable worlds)`."""
+    systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
+    stars = conn.execute(
+        "SELECT COUNT(*) AS n, AVG(st.temperature_k) AS temperature, AVG(st.luminosity_w) AS luminosity,"
+        " AVG(st.age_gy) AS age, SUM(st.luminosity_w) AS total_luminosity"
+        " FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?", (sector_id,),
+    ).fetchone()
+    luminosity = None if stars["luminosity"] is None else float(stars["luminosity"]) / physical_constants.SOLAR_LUMINOSITY
+    temperature = None if stars["temperature"] is None else float(stars["temperature"])
+    age = None if stars["age"] is None else float(stars["age"])
+    total_luminosity = (None if stars["total_luminosity"] is None
+                        else float(stars["total_luminosity"]) / physical_constants.SOLAR_LUMINOSITY)
+    return (systems, stars["n"], temperature, luminosity, age, total_luminosity, sector_habitable_worlds(conn, sector_id))
+
+
+def refresh_edited_sectors(conn, sector_ids):
+    """
+    A generated sector's rows were edited (DB.83): states what it holds again in its `sector_stats` row (the systems, stars,
+    mean temperature, luminosity and age, summed luminosity and habitable worlds; its expected figures, density and bright-star
+    level are the galaxy's and stay) and brings the totals of the blocks above it up to them (`block_stats.refresh_chain`, which
+    also brings the region's). Call it inside the edit's transaction, last. A sector that is not generated at a grid address
+    (a one-off system's sector, a sector with no stats row) is left alone. Returns the addresses refreshed.
+    """
+    from planetgen.db import block_stats
+
+    done = []
+    for sector_id in sorted({int(i) for i in sector_ids if i is not None}):
+        row = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+        if row is None or row["shell_index"] is None:
+            continue
+        address = (row["shell_index"], row["band_index"], row["wedge_index"])
+        figures = _content_figures(conn, sector_id)
+        found = conn.execute(
+            "UPDATE sector_stats SET actual_systems = ?, actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?,"
+            " mean_age_gy = ?, total_luminosity_sol = ?, habitable_worlds = ?"
+            " WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND bright_level_sol = 0", (*figures, *address))
+        if found.rowcount:
+            block_stats.refresh_chain(conn, address)
+            done.append(address)
+    return done
+
+
 def record_sector_stats(conn, sector_id, address, center_pc):
     """
     Writes a sector's stats once it is generated (PERF.11, GEN.44): its
@@ -6865,17 +6909,8 @@ def record_sector_stats(conn, sector_id, address, center_pc):
                 skeleton.fill_luminosity_cap_sol, scatter_limits_of(conn, skeleton).mass_limit_at(*address[:2]))
             if found.capped:
                 expected = found.resolved_systems
-    systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
-    stars = conn.execute(
-        "SELECT COUNT(*) AS n, AVG(st.temperature_k) AS temperature, AVG(st.luminosity_w) AS luminosity,"
-        " AVG(st.age_gy) AS age, SUM(st.luminosity_w) AS total_luminosity"
-        " FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?", (sector_id,),
-    ).fetchone()
-    luminosity = None if stars["luminosity"] is None else float(stars["luminosity"]) / physical_constants.SOLAR_LUMINOSITY
-    temperature = None if stars["temperature"] is None else float(stars["temperature"])
-    age = None if stars["age"] is None else float(stars["age"])
-    total_luminosity = (None if stars["total_luminosity"] is None
-                        else float(stars["total_luminosity"]) / physical_constants.SOLAR_LUMINOSITY)
+    systems, star_count, temperature, luminosity, age, total_luminosity, habitable = _content_figures(conn, sector_id)
+    mass = sector_mass.sector_mass_kg(conn, sector_id)
     record_system_interests(conn, "ss.sector_id = ?", (sector_id,))
     conn.execute(
         "INSERT INTO sector_stats (shell_index, band_index, wedge_index, bright_level_sol, level_before_fill_sol,"
@@ -6886,8 +6921,8 @@ def record_sector_stats(conn, sector_id, address, center_pc):
         " bright_level_sol), bright_level_sol = 0, relative_density = ?, expected_systems = ?, actual_systems = ?,"
         " actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?, mean_age_gy = ?,"
         " total_luminosity_sol = ?, habitable_worlds = ?, total_mass_kg = ?, filled_at = CURRENT_TIMESTAMP(3)",
-        (*address, *(2 * (density, expected, systems, stars["n"], temperature, luminosity, age, total_luminosity,
-                          sector_habitable_worlds(conn, sector_id), sector_mass.sector_mass_kg(conn, sector_id)))),
+        (*address, *(2 * (density, expected, systems, star_count, temperature, luminosity, age, total_luminosity,
+                          habitable, mass))),
     )
     if expected:
         ratio = systems / expected

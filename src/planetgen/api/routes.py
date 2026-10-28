@@ -2343,6 +2343,7 @@ def delete_system(system_id):
             deleted = conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,)).rowcount > 0
             if deleted:
                 store.touch_sector(conn, row["sector_id"])
+                store.refresh_edited_sectors(conn, [row["sector_id"]])    # DB.83: the sector's figures and the blocks above
     finally:
         conn.close()
 
