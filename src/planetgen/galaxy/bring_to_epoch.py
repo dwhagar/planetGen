@@ -34,6 +34,9 @@ _NOT_AN_EDIT = ("sector.regenerate", "sector.delete", "sector.create", "facility
 """tuple: The audit actions that name a sector but do not leave an edit in it: a regeneration replaces what was there,
 a deleted sector is gone, a created one is hand-made (no grid address) and the ratings are filled from the facility."""
 
+PAGE_LINES = 20
+"""int: How many sectors of each kind the Generate page names; the rest are counted."""
+
 _BODY_TABLES = {"planet": "planets", "moon": "moons", "belt": "asteroid_belts", "comet": "comets", "star": "stars"}
 
 
@@ -136,14 +139,45 @@ def survey(conn, control_conn=None, current=None):
             "handmade": handmade, "species": species}
 
 
+def status(config, control_config=None):
+    """
+    What `run` would do, for the Generate page (GEN.764, step 4), changing nothing.
+
+    Args:
+        config (MySQLConfig): The galaxy database.
+        control_config (MySQLConfig, optional): The control database, whose audit log names the edited sectors.
+
+    Returns:
+        dict: `survey`'s dict with `lines` (`report_lines`), `nothing` (the galaxy is at the running epoch) and `error`
+        (`None`), or only `error` (why the galaxy could not be read, or the audit log is unreadable so no edited sector
+        could be told apart).
+    """
+    conn = store.get_connection(config, ensure_schema=False)
+    control_conn = None
+    try:
+        if control_config is not None:
+            try:
+                control_conn = store.get_control_connection(control_config, ensure_schema=False)
+            except pymysql.MySQLError as exc:
+                return {"error": f"The admin audit log could not be read ({exc}); without it the edited sectors "
+                                 "cannot be told apart."}
+        found = survey(conn, control_conn)
+        return {**found, "lines": report_lines(found, limit=PAGE_LINES), "nothing": _nothing_to_do(found), "error": None}
+    finally:
+        if control_conn is not None:
+            control_conn.close()
+        conn.close()
+
+
 def _nothing_to_do(found):
     """Whether the galaxy has no record behind the epoch (so a run has nothing to say or to do)."""
     return not (found["refuse"] or found["refill"] or found["skipped"] or found["handmade"] or found["species"]["redo"]
                 or any(found["behind"]["stale"].values()))
 
 
-def report_lines(found):
-    """The lines that say what a run would do (or did not do), for a dry run and the start of a run."""
+def report_lines(found, limit=None):
+    """The lines that say what a run would do (or did not do), for a dry run and the start of a run. With `limit`, only
+    that many sectors of each kind are named and the rest are counted (the Generate page)."""
     lines = []
     if _nothing_to_do(found):
         return [f"The galaxy is at epoch {found['current']}: nothing to bring up."]
@@ -153,10 +187,14 @@ def report_lines(found):
     if found["refuse"]:
         lines.append("Nothing was changed.")
         return lines
-    for item in found["refill"]:
+    for item in found["refill"][:limit]:
         lines.append(f"sector {item['label']}: made under epoch {item['epoch']}, to be generated again.")
-    for item in found["skipped"]:
+    if limit is not None and len(found["refill"]) > limit:
+        lines.append(f"... and {len(found['refill']) - limit:,} more sector(s) to be generated again.")
+    for item in found["skipped"][:limit]:
         lines.append(f"sector {item['label']}: made under epoch {item['epoch']}, left alone: {item['why']}.")
+    if limit is not None and len(found["skipped"]) > limit:
+        lines.append(f"... and {len(found['skipped']) - limit:,} more sector(s) left alone.")
     if found["handmade"]:
         lines.append(f"{found['handmade']} hand-made sector(s) with no grid address are not generated and are left alone.")
     species = found["species"]

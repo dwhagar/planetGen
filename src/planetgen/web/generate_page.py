@@ -69,7 +69,7 @@ from planetgen.generation import luminosity_floor, plan_outline, prevalence, sta
 from planetgen import tuning
 from planetgen.db import dataversion, store
 from planetgen.util import generator_epoch, log, stagemark
-from planetgen.galaxy import dials, mass_chain, objectref
+from planetgen.galaxy import bring_to_epoch, dials, mass_chain, objectref
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
@@ -873,6 +873,8 @@ def build_job(action, form, database, edge_pc=None):
     """
     if action in CONFIRM_ACTIONS and (form.get("confirm") or "").strip() != database:
         raise FormError(f"Type the database name ({database}) to confirm. Nothing was changed.")
+    if action == "bring_to_epoch":
+        _require_bringable(database)
     with collecting_problems():
         kind, title, steps = _build_job_steps(action, form, edge_pc)
     if kind not in ("reset", "check_db"):
@@ -981,6 +983,9 @@ def _build_job_steps(action, form, edge_pc=None):
         return "galaxy", label, [sectors, *after_sectors_steps(generate)]
     if action == "reset":
         return "reset", "Reset the galaxy", [reset_step]
+    if action == "bring_to_epoch":
+        label = "Bring the galaxy to the running generator epoch"
+        return "bring_to_epoch", label, [{"label": label, "argv": generate + ["bring-to-epoch"]}]
     if action == "check_db":
         deep = bool(form.get("deep"))
         argv = generate + ["check-db"] + (list(DEEP_CHECKS) + ["--yes"] if deep else [])
@@ -1541,6 +1546,33 @@ def generate_status():
 
 
 generate_status.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+def epoch_status(database):
+    """
+    What `planetgen bring-to-epoch` would do to the stored galaxy (GEN.764, step 4): `bring_to_epoch.status`'s dict, or
+    `{"error": ...}` when the database does not answer. It changes nothing.
+    """
+    config = current_app.config["MYSQL_CONFIG"]
+    galaxy = store.MySQLConfig(host=config.host, port=config.port, user=config.user, password=config.password,
+                               database=database)
+    try:
+        return bring_to_epoch.status(galaxy, current_app.config.get("CONTROL_MYSQL_CONFIG"))
+    except Exception as exc:  # noqa: BLE001 -- the page then says why instead of failing
+        log.error(f"Generate page: the epoch of the galaxy could not be read: {exc}")
+        return {"error": f"The galaxy could not be read: {exc}"}
+
+
+def _require_bringable(database):
+    """Raises `FormError` when `planetgen bring-to-epoch` has nothing it could do now: the galaxy could not be read, a
+    stage is too old to bring up in part (the message says what to do instead), or it is at the running epoch."""
+    found = epoch_status(database)
+    if found["error"]:
+        raise FormError(found["error"])
+    if found["refuse"]:
+        raise FormError(" ".join(found["refuse"]) + " Nothing was changed.")
+    if found["nothing"]:
+        raise FormError(found["lines"][0])
 
 
 def _stored_seed(database):

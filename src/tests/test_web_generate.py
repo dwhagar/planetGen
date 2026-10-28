@@ -648,7 +648,8 @@ def test_the_start_screen_has_a_card_per_task_and_no_folds(site, client):
     assert 'id="current-job"' not in html
     cards = re.findall(r'href="(/admin/generate/[^"]*)"><strong>', html)
     assert cards == ["/admin/generate/task/add-sectors", "/admin/generate/task/new-galaxy",
-                     "/admin/generate/task/plan-only", "/admin/generate/task/scatters", "/admin/generate/system", "/admin/generate/task/check",
+                     "/admin/generate/task/plan-only", "/admin/generate/task/scatters", "/admin/generate/task/bring-to-epoch", "/admin/generate/system",
+                     "/admin/generate/task/check",
                      "/admin/generate/task/wipe"]
     assert "generatefolds.js" not in html and "generatecustomize.js" not in html and "data-fold" not in html
 
@@ -1946,3 +1947,46 @@ def test_every_box_on_the_generate_pages_is_the_one_form_field(site, client):
                 assert kind in native_ok, tag
         forms = "".join(re.findall(r'<form[^>]*class="search-form".*?</form>', html, re.S))
         assert len(re.findall(r"<noscript>", forms)) == len(re.findall(r"<sl-(?:input|select|checkbox)\b", live))
+
+
+def _epoch_found(**over):
+    found = {"error": None, "current": 113, "nothing": False, "refuse": [],
+             "lines": ["Bringing the galaxy to epoch 113; stages behind: fill.",
+                       "sector 3.1.4: made under epoch 110, to be generated again.",
+                       "1 sector(s) to redo, 0 left alone."]}
+    found.update(over)
+    return found
+
+
+def test_bring_to_epoch_page_shows_what_a_run_would_do_before_review(site, client, monkeypatch):
+    monkeypatch.setattr(generate_page, "epoch_status", lambda database: _epoch_found())
+    monkeypatch.setattr(generate_flow, "epoch_status", lambda database: _epoch_found())
+    html = _task_html(client, "bring-to-epoch")
+    assert "epoch 113" in html and "sector 3.1.4: made under epoch 110, to be generated again." in html
+    assert 'name="action" value="bring_to_epoch"' in html
+    assert "disregard" not in html
+
+
+def test_bring_to_epoch_page_says_when_the_galaxy_cannot_be_read(site, client, monkeypatch):
+    monkeypatch.setattr(generate_flow, "epoch_status", lambda database: {"error": "The galaxy could not be read: down"})
+    assert "The galaxy could not be read: down" in _task_html(client, "bring-to-epoch")
+
+
+def test_bring_to_epoch_job_runs_the_command(site, client, no_spawn, monkeypatch):
+    monkeypatch.setattr(generate_page, "epoch_status", lambda database: _epoch_found())
+    assert _post(client, action="bring_to_epoch").status_code == 303
+    (job,) = no_spawn
+    assert job["kind"] == "bring_to_epoch"
+    assert _argv(job["steps"][-1]) == ["bring-to-epoch"]
+
+
+@pytest.mark.parametrize("found, said", [
+    (_epoch_found(refuse=["The plan was made under epoch 3: a full regeneration is needed."]), "a full regeneration is needed"),
+    (_epoch_found(nothing=True, lines=["The galaxy is at epoch 113: nothing to bring up."]), "nothing to bring up"),
+    ({"error": "The galaxy could not be read: down"}, "could not be read"),
+])
+def test_bring_to_epoch_does_not_start_when_it_has_nothing_it_can_do(site, client, no_spawn, monkeypatch, found, said):
+    monkeypatch.setattr(generate_page, "epoch_status", lambda database: found)
+    resp = _post(client, action="bring_to_epoch")
+    assert resp.status_code == 400 and said in resp.get_data(as_text=True)
+    assert no_spawn == []

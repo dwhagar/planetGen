@@ -498,8 +498,10 @@ For a visitor:
 logic in `web/generate_page.py`; ADM.107, ADM.108) run the galaxy tools an
 admin used to run in a terminal on the server, as background jobs. The Start
 screen (`templates/generate.html`) has a card per task: Add sectors, Start a
-new galaxy, Change what is scattered, Make one system, Check the database and
-(last, apart) Wipe the galaxy. Each task is a page of its own
+new galaxy, Change what is scattered, Bring the galaxy to the running generator
+epoch (GEN.764: the task page reads the galaxy and says what `planetgen
+bring-to-epoch` would redo before Review, and refuses when nothing can be done),
+Make one system, Check the database and (last, apart) Wipe the galaxy. Each task is a page of its own
 (`/admin/generate/task/<key>`, `templates/generate_task.html`) that posts to
 itself and answers with the Review step (`templates/generate_review.html`):
 what will run, each step's command line, the size and time of a galaxy run
