@@ -111,6 +111,9 @@ def test_the_sectors_behind_are_listed_in_address_order_and_the_edited_one_is_le
     assert lines[0] == "Bringing the galaxy to epoch 4; stages behind: fill, population."
     assert lines[-1] == "2 sector(s) to redo, 1 left alone."
     assert any("left alone: edited by an admin" in line for line in lines)
+    short = bring_to_epoch.report_lines(found, limit=1)         # the Generate page names a few and counts the rest
+    assert any(line == "... and 1 more sector(s) to be generated again." for line in short)
+    assert not any("more sector(s) left alone" in line for line in short)
 
 
 def test_a_run_generates_the_sectors_again_one_by_one_and_goes_on_after_a_failure(galaxy, mysql_config, monkeypatch):
@@ -236,3 +239,20 @@ def test_the_command_passes_the_options_and_exits_1_on_a_refusal(monkeypatch):
         generate.run_bring_to_epoch(args)
     assert stopped.value.code == 1
     assert generate.DATA_CHANGES["bring-to-epoch"] == ("generated", "population")
+
+
+def test_the_status_for_the_generate_page_changes_nothing_and_says_what_a_run_would_do(galaxy, mysql_config, monkeypatch):
+    _history(monkeypatch, ["fill"])
+    with galaxy:
+        sector = _sector(galaxy, "Behind", (2, 0, 5), 1)
+    seen = []
+    monkeypatch.setattr(api_jobs, "regenerate_sector", lambda sector_id, config: seen.append(sector_id))
+    found = bring_to_epoch.status(mysql_config)
+    assert found["error"] is None and not found["nothing"] and found["current"] == 2
+    assert [item["id"] for item in found["refill"]] == [sector]
+    assert found["lines"][-1] == "1 sector(s) to redo, 0 left alone."
+    assert seen == []
+    with galaxy:
+        galaxy.execute("UPDATE sectors SET generator_epoch = 2")
+    again = bring_to_epoch.status(mysql_config)
+    assert again["nothing"] and again["lines"] == ["The galaxy is at epoch 2: nothing to bring up."]
