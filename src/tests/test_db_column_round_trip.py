@@ -143,6 +143,10 @@ NULL_IN_THIS_GALAXY = {
     # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
     **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
     ("moons", "rogue_planet_id"): "only a moon of a free planet (test_parent_link)",
+    # GEN.764: the seeded galaxy runs no scatter, and its population pass finds no civilization.
+    **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
+       ("kind", "generator_epoch", "run_id", "recorded_at")},
+    ("species", "generator_epoch"): "no species in this galaxy (GEN.764)",
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't
@@ -173,6 +177,10 @@ NEVER_READ = {
        for column in ("density_multiplier_used", "override_id")},
     ("sectors", "leaf_digest"): "read by the fingerprint tree (GEN.305)",
     ("sectors", "run_id"): "read in a query by the version check, not by a loader (DB.16)",
+    # GEN.764: the stage epochs are read by `galaxy/epoch_record.py` and `bring_to_epoch`, not by a page's loader.
+    **{("scatter_epochs", column): "read by galaxy/epoch_record (GEN.764)" for column in
+       ("kind", "generator_epoch", "run_id", "recorded_at")},
+    ("species", "generator_epoch"): "read by galaxy/epoch_record (GEN.764)",
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",

@@ -81,9 +81,23 @@ def rosetta_text():
     return "\n".join(parts)
 
 
+GOLDEN_SCHEMA_VERSION = 160
+"""int: The schema version the golden galaxy was made under. A system row records the version that wrote it
+(`star_systems.schema_version`) and the fingerprint reads it, so the galaxy is read as written under this one: a
+migration then moves no golden digest (only a change of what the generator makes should)."""
+
+
 def galaxy_record(conn):
     """The golden galaxy's fingerprint: `sectors` maps a sector's address to its digest and to
     `{section: [full, structural]}` (for a sector that has systems; the others are told apart by the digest alone), and `region` is the digest over the plan and every sector."""
+    conn.execute("UPDATE star_systems SET schema_version = ?", (GOLDEN_SCHEMA_VERSION,))
+    try:
+        return _galaxy_record(conn)
+    finally:
+        conn.rollback()
+
+
+def _galaxy_record(conn):
     found = fingerprint.region_fingerprint(conn)
     sectors = {}
     for label, digest in found.sectors:

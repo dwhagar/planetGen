@@ -45,3 +45,5 @@ Commit each file came from:
 - v159: 081337a9 (GEN.441 surface composition, before GEN.732 rings)
 - v160: cca3b2b03 (GEN.732 rings, before DB.107 region stats)
 - v161: ae8d37e5 (DB.107 region stats, before DB.96 atmosphere colour)
+- v162: 03ebc36c (DB.96 atmosphere colour, before GEN.727 orbit eccentricity)
+- v163: 9475d1ab (GEN.727 orbit eccentricity, before GEN.764 scatter and species epochs)

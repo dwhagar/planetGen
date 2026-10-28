@@ -1479,6 +1479,8 @@
 --   its partial pressure in Pa); the ten `p_<gas>_kpa` columns are gone. A class's balance gas (helium, sodium, ammonia) is a row like the others, so the pressure is the sum of the rows. The migration
 --   copies each row's ten partial pressures (kPa times 1000) into the child tables.
 -- v159 (GEN.441): `planets` and `moons` gain the surface composition: `ground_type` and `ground_grain` and the areal share of each ground type (`ground_ocean_fraction`, `ground_ice_fraction`, `ground_ultramafic_fraction`, ..., twelve shares that add up to 1), NULL for a giant and for a row saved before v152. The minerals, ices and ocean the shares stand for are rows of the materials table (`physics/surface_composition.py`).
+-- v164 (GEN.764): `scatter_epochs` holds one row per kind of scatter drawn (`mass`, `luminosity`, `band`, `phenomena`, `nebula-field`), the generator epoch and the run that drew it, and the row goes when the
+--   scatter is cleared; `species` gains `generator_epoch`, the epoch the population pass made it under. A sector has its own epoch (v121) and the plan its own (v131), so every stage's results say what made them.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -4050,6 +4052,19 @@ CREATE TABLE IF NOT EXISTS generation_run_arguments (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+-- v164 (GEN.764): the generator epoch each kind of scatter was drawn under. A scatter is galaxy-wide, and its rows carry no epoch of their own, so
+-- the draw that finishes a kind writes its row and a clear deletes it; the sectors (v121), the plan (v131) and the species (v164) carry theirs.
+CREATE TABLE IF NOT EXISTS scatter_epochs (
+    kind             VARCHAR(16) NOT NULL PRIMARY KEY,
+    generator_epoch  SMALLINT UNSIGNED NULL,
+    run_id           BIGINT UNSIGNED NULL,
+    recorded_at      TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    CONSTRAINT chk_scatter_epochs_kind CHECK (kind IN ('mass', 'luminosity', 'band', 'phenomena', 'nebula-field')),
+    CONSTRAINT fk_scatter_epochs_run FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
 -- ---------------------------------------------------------------------
 -- phenomenon_scatter (v64, GEN.100): every black hole, neutron star,
 -- planetary nebula and supernova remnant of the galaxy, its hypervelocity
@@ -4539,6 +4554,7 @@ CREATE TABLE IF NOT EXISTS species (
     defense_index            TINYINT UNSIGNED CHECK (defense_index BETWEEN 0 AND 7),
     tech_level               DECIMAL(3,2),
     tech_source              VARCHAR(16) CHECK (tech_source IN ('generated', 'admin')),
+    generator_epoch          SMALLINT UNSIGNED NULL,  -- v164 (GEN.764): the epoch the population pass made this species under
     created_at               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     UNIQUE KEY uq_species_name (name),
