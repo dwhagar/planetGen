@@ -23,6 +23,7 @@ The pure rules live here (numpy over arrays of spheres); `db/nebula_blocks.py` s
 
 import math
 from collections import namedtuple
+from collections.abc import Sequence
 
 import numpy as np
 
@@ -52,9 +53,13 @@ _SHELL_SHIFT = 44
 
 Block = drill.DrillBlock
 
+LevelCover = namedtuple("LevelCover", ["keys", "totals"])
+"""One level's cover (PERF.193): the packed keys of the blocks some sphere reaches (`pack`, an int64 array, sorted and
+without repeats) and the cubic parsecs of sphere volume in each (a float64 array, the same positions)."""
+
 LevelRows = namedtuple("LevelRows", ["blocks", "classes"])
-"""One level's rows: `blocks` (dicts of the block table's columns) and `classes` (`(shell, band, wedge, class,
-volume)` tuples of the class table)."""
+"""One level's rows: `blocks` (a `BlockRows`, dicts of the block table's columns read like a list) and `classes`
+(`(shell, band, wedge, class, volume)` tuples of the class table)."""
 
 
 def _family_of(letter):
@@ -96,6 +101,13 @@ def unpack(key):
     key = int(key)
     return (key >> _SHELL_SHIFT, ((key >> _WEDGE_BITS) & ((1 << (_SHELL_SHIFT - _WEDGE_BITS)) - 1)) - _BAND_OFFSET,
             key & ((1 << _WEDGE_BITS) - 1))
+
+
+def unpack_array(keys):
+    """`unpack` for an array of packed keys: `(shell, band, wedge)` arrays."""
+    keys = np.asarray(keys, dtype=np.int64)
+    return (keys >> _SHELL_SHIFT, ((keys >> _WEDGE_BITS) & ((1 << (_SHELL_SHIFT - _WEDGE_BITS)) - 1)) - _BAND_OFFSET,
+            keys & ((1 << _WEDGE_BITS) - 1))
 
 
 def locate(x, y, z, m, edge_pc):
@@ -159,9 +171,9 @@ def _samples_for(radius, edge_pc):
 
 def fine_cover(x, y, z, radius, edge_pc):
     """
-    How much sphere volume lies in each level-3 block the spheres reach: `{packed block: cubic parsecs}`, each
-    sphere's volume split by where evenly spread points inside it land. The bigger blocks' cover is these sums added
-    up (`roll_up`), so it adds up through the ladder exactly.
+    How much sphere volume lies in each level-3 block the spheres reach: a `LevelCover` of the packed blocks and
+    their cubic parsecs, each sphere's volume split by where evenly spread points inside it land. The bigger blocks'
+    cover is these sums added up (`roll_up`), so it adds up through the ladder exactly.
     """
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
@@ -186,28 +198,44 @@ def fine_cover(x, y, z, radius, edge_pc):
             weights_out.append(np.bincount(inverse, weights=np.repeat(volume[part] / samples, samples),
                                            minlength=len(unique)))
     if not keys_out:
-        return {}
-    keys = np.concatenate(keys_out)
-    weights = np.concatenate(weights_out)
+        return LevelCover(np.zeros(0, dtype=np.int64), np.zeros(0))
+    return _summed(np.concatenate(keys_out), np.concatenate(weights_out))
+
+
+def _summed(keys, weights):
+    """A `LevelCover` of `weights` added up by `keys` (arrays of one length, keys repeating)."""
     unique, inverse = np.unique(keys, return_inverse=True)
-    totals = np.bincount(inverse, weights=weights, minlength=len(unique))
-    return dict(zip((int(k) for k in unique), (float(t) for t in totals)))
+    return LevelCover(unique, np.bincount(inverse, weights=weights, minlength=len(unique)))
+
+
+def _parents_of(keys, m):
+    """The packed key of the level-`3m` block holding each level-`m` block of `keys` (an int64 array): the parent's shell,
+    row and wedge from `drill.drill_parent`, worked out once for each distinct `(shell, band)` and applied to every
+    wedge of it."""
+    shell, band, wedge = unpack_array(keys)
+    pairs, inverse = np.unique(keys >> _WEDGE_BITS, return_inverse=True)
+    parent_shell = np.empty(len(pairs), dtype=np.int64)
+    parent_band = np.empty(len(pairs), dtype=np.int64)
+    divide = np.empty(len(pairs), dtype=np.int64)
+    for i, pair in enumerate(pairs):
+        pair_shell, pair_band, _ = unpack(int(pair) << _WEDGE_BITS)
+        parent = drill.drill_parent(drill.DrillBlock(m, pair_shell, pair_band, 0))
+        parent_shell[i], parent_band[i] = parent.shell, parent.band
+        divide[i] = (drill.drill_wedge_count(m, pair_shell, pair_band)
+                     // drill.drill_wedge_count(parent.m, parent.shell, parent.band))
+    return pack(parent_shell[inverse], parent_band[inverse], wedge // divide[inverse])
 
 
 def roll_up(fine):
-    """`fine_cover`'s result as `{m: {packed block: cubic parsecs}}` for every level, each block's cover the sum of
-    the level-3 blocks inside it."""
-    result = {m: {} for m in LEVELS}
-    result[drill.DRILL_STEP] = dict(fine)
-    for key, volume in fine.items():
-        block = drill.DrillBlock(drill.DRILL_STEP, *unpack(key))
-        while True:
-            block = drill.stage_parent(block)
-            if block is None:
-                break
-            parents = result[block.m]
-            packed = int(pack(block.shell, block.band, block.wedge))
-            parents[packed] = parents.get(packed, 0.0) + volume
+    """`fine_cover`'s result as `{m: LevelCover}` for every level, each block's cover the sum of the level-3 blocks
+    inside it."""
+    result = {drill.DRILL_STEP: fine}
+    level = fine
+    m = drill.DRILL_STEP
+    while m != drill.STAGE_TOP:
+        level = _summed(_parents_of(level.keys, m), level.totals) if len(level.keys) else level
+        m *= drill.DRILL_STEP
+        result[m] = level
     return result
 
 
@@ -215,7 +243,7 @@ def level_rows(x, y, z, radius, codes, m, edge_pc, covers=None):
     """
     The aggregate rows of level `m` for the spheres at `x`, `y`, `z` (parsecs) of `radius` (parsecs) and class
     `codes` (`class_codes`): a `LevelRows`. Blocks that no sphere's centre is in but some sphere reaches get a row
-    with a count of zero and the cover only. `covers` is the level's `{packed block: cubic parsecs}` of `roll_up`
+    with a count of zero and the cover only. `covers` is the level's `LevelCover` of `roll_up`
     when the caller has it, else it is worked out here.
     """
     x = np.asarray(x, dtype=float)
@@ -226,8 +254,8 @@ def level_rows(x, y, z, radius, codes, m, edge_pc, covers=None):
     volume = sphere_volumes(radius)
     if covers is None:
         covers = roll_up(fine_cover(x, y, z, radius, edge_pc))[m]
-    rows = {}
     classes = []
+    unique = np.zeros(0, dtype=np.int64)
     if len(x):
         keys = _centre_keys(x, y, z, m, edge_pc)
         unique, inverse = np.unique(keys, return_inverse=True)
@@ -252,28 +280,76 @@ def level_rows(x, y, z, radius, codes, m, edge_pc, covers=None):
         last[:-1] = class_group[order][1:] != class_group[order][:-1]
         dominant = np.empty(groups, dtype=np.int64)
         dominant[class_group[order][last]] = class_code[order][last]
-        for g in range(groups):
-            shell, band, wedge = unpack(unique[g])
-            rows[int(unique[g])] = {
-                "nebula_count": int(count[g]), "volume_pc3": float(total[g]),
-                "centroid_x_pc": float(centroid[g, 0]), "centroid_y_pc": float(centroid[g, 1]),
-                "centroid_z_pc": float(centroid[g, 2]), "bound_radius_pc": float(bound[g]),
-                "families": [float(v) for v in families[g]], "dominant_class": CLASS_LETTERS[int(dominant[g])]}
         for group, code, vol in zip(class_group, class_code, class_volume):
             shell, band, wedge = unpack(unique[group])
             classes.append((shell, band, wedge, CLASS_LETTERS[int(code)], float(vol)))
-    blocks = []
-    for key in sorted(set(rows) | set(covers)):
-        shell, band, wedge = unpack(key)
-        row = rows.get(key) or {
-            "nebula_count": 0, "volume_pc3": 0.0, "centroid_x_pc": None, "centroid_y_pc": None,
-            "centroid_z_pc": None, "bound_radius_pc": None, "families": [0.0] * len(FAMILIES),
-            "dominant_class": None}
-        cover_volume = covers.get(key, 0.0)
-        row = dict(row, m=m, shell_index=shell, band_index=band, wedge_index=wedge, cover_volume_pc3=cover_volume,
-                   cover=cover_of(cover_volume, block_volume_pc3(m, shell, band, wedge, edge_pc)))
-        blocks.append(row)
-    return LevelRows(blocks, classes)
+    every = np.union1d(unique, covers.keys)
+    cover_at = _lookup(covers.keys, every)
+    cover_volumes = np.where(cover_at >= 0, covers.totals[np.maximum(cover_at, 0)], 0.0)
+    group_at = _lookup(unique, every)
+    if len(x):
+        groups = {"nebula_count": count, "volume_pc3": total, "centroid": centroid, "bound": bound,
+                  "families": families, "dominant": dominant}
+    else:
+        groups = None
+    return LevelRows(BlockRows(m, edge_pc, every, cover_volumes, group_at, groups), classes)
+
+
+class BlockRows(Sequence):
+    """
+    The block dicts of one level (`LevelRows.blocks`), made as they are read, from the arrays that hold them: a level
+    has millions of blocks at the finest sizes, and a dict each is most of a run's memory (PERF.193). Reads like a
+    list: `len`, an index, a slice (a list of dicts) and iteration.
+    """
+
+    def __init__(self, m, edge_pc, keys, cover_volumes, group_at, groups):
+        self._m = m
+        self._edge_pc = edge_pc
+        self._keys = keys
+        self._cover_volumes = cover_volumes
+        self._group_at = group_at
+        self._groups = groups
+
+    def __len__(self):
+        return len(self._keys)
+
+    def __getitem__(self, index):
+        if isinstance(index, slice):
+            return [self._row(i) for i in range(*index.indices(len(self)))]
+        if index < 0:
+            index += len(self)
+        if not 0 <= index < len(self):
+            raise IndexError(index)
+        return self._row(index)
+
+    def _row(self, i):
+        shell, band, wedge = unpack(int(self._keys[i]))
+        g = int(self._group_at[i])
+        if g >= 0:
+            groups = self._groups
+            row = {
+                "nebula_count": int(groups["nebula_count"][g]), "volume_pc3": float(groups["volume_pc3"][g]),
+                "centroid_x_pc": float(groups["centroid"][g, 0]), "centroid_y_pc": float(groups["centroid"][g, 1]),
+                "centroid_z_pc": float(groups["centroid"][g, 2]), "bound_radius_pc": float(groups["bound"][g]),
+                "families": [float(v) for v in groups["families"][g]],
+                "dominant_class": CLASS_LETTERS[int(groups["dominant"][g])]}
+        else:
+            row = {
+                "nebula_count": 0, "volume_pc3": 0.0, "centroid_x_pc": None, "centroid_y_pc": None,
+                "centroid_z_pc": None, "bound_radius_pc": None, "families": [0.0] * len(FAMILIES),
+                "dominant_class": None}
+        cover_volume = float(self._cover_volumes[i])
+        row.update(m=self._m, shell_index=shell, band_index=band, wedge_index=wedge, cover_volume_pc3=cover_volume,
+                   cover=cover_of(cover_volume, block_volume_pc3(self._m, shell, band, wedge, self._edge_pc)))
+        return row
+
+
+def _lookup(sorted_keys, keys):
+    """For each of `keys` its position in `sorted_keys` (sorted, no repeats), or -1 where it is not there."""
+    if not len(sorted_keys):
+        return np.full(len(keys), -1, dtype=np.int64)
+    at = np.minimum(np.searchsorted(sorted_keys, keys), len(sorted_keys) - 1)
+    return np.where(sorted_keys[at] == keys, at, -1)
 
 
 def iter_rows(x, y, z, radius, codes, edge_pc, levels=LEVELS, on_level=None):

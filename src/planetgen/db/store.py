@@ -1366,7 +1366,8 @@ def get_connection(config=None, ensure_schema=True, statement_timeout_s=None):
                   area="sql")
     if ensure_schema and config._key() not in _schema_ensured:
         try:
-            _ensure_schema(conn)
+            if not _schema_is_current(conn):
+                _ensure_schema(conn)
         except BaseException:
             conn.close()
             raise
@@ -1570,6 +1571,18 @@ def _schema_lock(conn, what="schema"):
             conn.execute("SELECT RELEASE_LOCK(?)", (name,))
         except pymysql.err.MySQLError:  # a lost session has already dropped it
             pass
+
+
+def _schema_is_current(conn):
+    """
+    Whether the connected database already holds the schema `SCHEMA_VERSION` names, so `_ensure_schema` has nothing
+    to add (PERF.174): its version row is the code's version. Every change to `schema.sql` comes with a migration and a
+    new version, and a database behind it is refused by `_ensure_schema`, so a database at the current version already
+    has every table and view. A work unit is a new process, and without this each one ran the schema's ten-odd
+    `CREATE TABLE IF NOT EXISTS` and its views again under the schema lock (about 32,000 statements in one four-minute
+    scatter) to find nothing to do.
+    """
+    return _stored_version(conn, "schema_migrations") == SCHEMA_VERSION
 
 
 def _ensure_schema(conn):
