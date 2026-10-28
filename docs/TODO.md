@@ -13689,6 +13689,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   which it is.
   Prerequisites: none. Related: POP.30, TEST.425.
 
+- [ ] **GEN.854 Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug)**
+  Boss, 6:59 PM EDT 2026-10-28 (relayed by the coordinator), live
+  observation, so a bug: looking at the list of class M planets on his
+  server, most do not look habitable, only a tiny share are, and most
+  need a hardened pressure suit. Find out whether the class M assignment
+  is wrong (the class rules or the cut-over, GEN.646 / GEN.791), the
+  habitability scoring changed (epoch 115 steam-world changes #3504,
+  epoch 116 pressure and degassing recalibration #3510, the tectonic
+  regime), or the data on his server predates those epochs and only
+  needs a bring-to-epoch run. Count, on a fixture galaxy at current
+  main, how many class M planets rate Blue, Green or Yellow and what
+  pressure and temperature the rest have, and compare with the class M
+  definition. Fix the cause (changes generated output: epoch and lock
+  turn) and record any tweak in the stand-in registry with tier and
+  tweak level. Owner: Aux 9 diagnoses first (it owns the class chain,
+  GEN.646); if the fix is outside the class rules, it hands the finding
+  to Bug 1 or Core 3 before retiring.
+  Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
