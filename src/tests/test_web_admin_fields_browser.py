@@ -26,6 +26,7 @@ def _admin_page(browser, base_url, admin_token, viewport="desktop", scheme="ligh
     context = browser.new_context(viewport=VIEWPORTS[viewport], color_scheme=scheme, reduced_motion="reduce")
     context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
     page = context.new_page()
+    page.set_default_timeout(30000)
     problems = []
     page.on("console", lambda msg: msg.type == "error" and problems.append(f"console error: {msg.text}"))
     page.on("pageerror", lambda exc: problems.append(f"uncaught exception: {exc}"))
@@ -47,7 +48,7 @@ def test_the_admin_hub_creates_a_key_from_a_text_box_a_number_box_and_checkboxes
         page.locator("sl-input[name='label'] input").fill("ux126 script")
         page.locator("sl-input[name='expires_days'] input").fill("30")
         page.locator("sl-checkbox[name='scope'][value='read']").click()
-        page.locator("#api-keys form button[type=submit]").click()
+        page.get_by_role("button", name="Create key").click()
         page.wait_for_url("**/admin**")
         page.locator("#new-key").wait_for(state="visible")
         assert "ux126 script" in page.locator("#new-key").inner_text()
@@ -86,35 +87,41 @@ def test_the_facility_form_filters_hosts_by_placement_and_posts_its_preview(brow
     context, page, problems = _admin_page(browser, base_url, admin_token)
     try:
         page.goto(f"{base_url}/system/{sample_params['system_id']}", wait_until="load")
-        form = page.locator("form.facility-form")
-        if not form.count():
+        if not page.locator("#admin-facility-place").count():
             pytest.skip("the sample system offers no facility form")
-        _defined(page, "form.facility-form sl-select[name='placement']")
+        for _ in range(40):
+            if page.evaluate("typeof document.getElementById('admin-facility-place').show === 'function'"):
+                break
+            page.wait_for_timeout(500)
+        else:
+            pytest.fail("the Place a facility dialog never became a dialog: " + "; ".join(problems))
+        page.evaluate("document.getElementById('admin-facility-place').show()")
+        _defined(page, "#admin-facility-place form.facility-form sl-select[name='placement']")
         problems += [f"system page: {p}" for p in _overflow(page) + _axe_blocking(page, axe_source)]
 
         def offered(name):
             return page.evaluate(
-                """(name) => Array.from(document.querySelectorAll(`form.facility-form sl-select[name='${name}'] sl-option`))
+                """(name) => Array.from(document.querySelectorAll(`#admin-facility-place form.facility-form sl-select[name='${name}'] sl-option`))
                     .filter((o) => !o.hidden && !o.disabled).map((o) => o.value)""", name)
 
         placements = page.evaluate(
-            """() => Array.from(document.querySelectorAll("form.facility-form sl-select[name='placement'] sl-option"))
+            """() => Array.from(document.querySelectorAll("#admin-facility-place form.facility-form sl-select[name='placement'] sl-option"))
                 .map((o) => o.value)""")
         for placement in placements:
             page.evaluate(
-                """(value) => { const s = document.querySelector("form.facility-form sl-select[name='placement']");
+                """(value) => { const s = document.querySelector("#admin-facility-place form.facility-form sl-select[name='placement']");
                     s.value = value; s.dispatchEvent(new CustomEvent("sl-change", {bubbles: true})); }""", placement)
             allowed = page.evaluate(
-                """(value) => Array.from(document.querySelectorAll("form.facility-form sl-select[name='host'] sl-option"))
+                """(value) => Array.from(document.querySelectorAll("#admin-facility-place form.facility-form sl-select[name='host'] sl-option"))
                     .filter((o) => (o.dataset.placements || "").split(" ").includes(value)).map((o) => o.value)""",
                 placement)
             assert offered("host") == allowed, placement
-            chosen = page.evaluate("document.querySelector(\"form.facility-form sl-select[name='host']\").value")
+            chosen = page.evaluate("document.querySelector(\"#admin-facility-place form.facility-form sl-select[name='host']\").value")
             assert not allowed or chosen in allowed, (placement, chosen, allowed)
-        page.locator("form.facility-form sl-input[name='name'] input").fill("Ux126 test")
-        page.locator("form.facility-form button[value=preview]").click()
+        page.locator("#admin-facility-place form.facility-form sl-input[name='name'] input").fill("Ux126 test")
+        page.locator("#admin-facility-place form.facility-form button[value=preview]").click()
         page.wait_for_url("**/system/**")
-        assert page.locator("form.facility-form sl-input[name='name'] input").input_value() == "Ux126 test"
+        assert page.locator("#admin-facility-place form.facility-form sl-input[name='name'] input").input_value() == "Ux126 test"
     finally:
         context.close()
     assert not problems, "\n  ".join(problems)
