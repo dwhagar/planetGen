@@ -14427,6 +14427,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and close TEST.416 with it. Owner: Bug 1 (top priority, it is a real
   generator bug on main, not a test problem). Related: GEN.441,
   TEST.416, GEN.444.
+  Research (2026-10-09): Bug 1 read-only look (2026-10-28, 2:55 PM EDT
+  as the lane reported): the production callers (radiation._ground_dose
+  and rogue_habitability) pass a (K, Th, U) tuple from land_rock_ppm, so
+  the generator is fine; the float comes from
+  tests/test_habitability_explain.py, which still passes FELSIC = 0.3
+  (the pre-GEN.441 fraction) to ground_dose_msv_yr and surface_content.
+  So this is a test fixture fix (TEST.416); no generated value changes,
+  no golden. Bug 1 does it after DB.108, with a test that runs a real
+  generated body through the ground dose, and says so if that finds
+  anything else.
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
