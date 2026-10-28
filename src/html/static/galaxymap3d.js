@@ -67,6 +67,7 @@ const {
   BLACK_HOLE_KIND, INTEREST_KINDS, interestLines, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
+const { applyPrefs: applyPoiPrefs, savePrefs: savePoiPrefs } = await import(`./poiprefs.js${VERSION_QUERY}`);
 const { bodyMarkers, createHandoff } = await import(`./bodymarkers.js${VERSION_QUERY}`);
 const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VERSION_QUERY}`);
 const { regionLabels } = await import(`./regionlabels.js${VERSION_QUERY}`);
@@ -3565,6 +3566,7 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.__mapLayers = stageView.layers;
   // MAP.219: the marker layer (galaxymarkers.js): glyphs over the notable things, a toggle and a legend line per kind.
   var markerKinds = createMarkerKinds();
+  var POI_GROUP = "Points of interest";
   var INHABITED_MARKER_KIND = INTEREST_KINDS.find(function (kind) { return kind.interest === "inhabited"; });
   var markerLayer = null;
   var markersDirty = true;
@@ -3574,9 +3576,11 @@ function initGalaxyMap3d(canvasEl, data) {
     markerLayer = createMarkerLayer(scene, camera, canvasEl, isLightBackground() ? "#ffffff" : "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
     });
+    stageView.layers.bulkGroup(POI_GROUP);
     markerKinds.kinds().forEach(function (kind) {
       stageView.layers.register({
-        id: kind.id, label: kind.label, modes: ["galaxy"], group: "Markers", data: { marker: kind.glyph || kind.icon },
+        id: kind.id, label: kind.label, modes: ["galaxy"], group: kind.interest ? POI_GROUP : "Markers", forward: !!kind.interest,
+        data: { marker: kind.glyph || kind.icon },
         defaultOn: kind.defaultOn, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
         title: "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),
       });
@@ -3585,7 +3589,17 @@ function initGalaxyMap3d(canvasEl, data) {
     // stage writing the address back before it has taken its marks from it).
     stageView.readLayersFromLocation();
     stageView.layers.refresh();   // the Menu and legend were drawn before these kinds existed
-    stageView.layers.onChange(function (id) { if (markerKinds.get(id)) markersDirty = true; });
+    // MAP.306: the point-of-interest rows open as the visitor left them unless the address chose.
+    var poiIds = markerKinds.kinds().filter(function (kind) { return kind.interest; }).map(function (kind) { return kind.id; });
+    var poiDefaults = {};
+    poiIds.forEach(function (id) { poiDefaults[id] = markerKinds.get(id).defaultOn ? "shown" : "hidden"; });
+    var poiStorage = null;
+    try { poiStorage = window.localStorage; } catch (error) { poiStorage = null; }
+    if (poiStorage) applyPoiPrefs(poiStorage, stageView.layers, poiIds, poiDefaults);
+    stageView.layers.onChange(function (id) {
+      if (markerKinds.get(id)) markersDirty = true;
+      if (poiStorage && poiIds.indexOf(id) >= 0) savePoiPrefs(poiStorage, stageView.layers, poiIds);
+    });
     canvasEl.__mapMarkers = markerLayer;    // the browser tests read what is drawn
   }
   // MAP.327: the frame of the sector opened in place: a locked wireframe and an icon on each wall that faces a neighbour.
@@ -3876,6 +3890,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var chosen = selectMarkers({
       kinds: markerKinds.kinds(),
       isOn: function (id) { return stageView.layers.isOn(id); },
+      isPulled: function (id) { return stageView.layers.isPulled(id); },
       nodes: nodes,
       inView: function (item) {
         return markerFrustum.containsPoint(markerPoint.set(item.x, item.y, item.z)) && drawnByTheGalaxy(item.x, item.y, item.z);
@@ -3903,6 +3918,10 @@ function initGalaxyMap3d(canvasEl, data) {
           });
         }));
     }
+    // MAP.306: a symbol of a reason pulled forward is drawn over the others and named first, whatever level it is drawn at.
+    chosen.forEach(function (entry) {
+      if (!entry.pulled && entry.kind.interest && stageView.layers.isPulled(entry.kind.id)) entry.pulled = true;
+    });
     // MAP.305: marks too close on the screen to tell apart are one mark with a count.
     var viewW = canvasEl.clientWidth || 1;
     var viewH = canvasEl.clientHeight || 1;
@@ -4075,29 +4094,37 @@ function initGalaxyMap3d(canvasEl, data) {
   function worldNames() {
     if (!markerLayer) return [];
     return markerLayer.entries().filter(function (entry) {
-      return NAMED_WORLD_REASONS[entry.kind.interest] && entry.item.name && !entry.item.bodyRef && !entry.item.regionKey;
+      return (NAMED_WORLD_REASONS[entry.kind.interest] || entry.pulled) && entry.item.name && !entry.item.bodyRef && !entry.item.regionKey;
     }).map(function (entry) {
-      return { id: "world:" + entry.item.id, text: entry.item.name, x: entry.item.x, y: entry.item.y, z: entry.item.z, ref: { kind: "marker", entry: entry },
-        slice: { domain: "inhabited", category: NAMED_WORLD_REASONS[entry.kind.interest], inhabited: entry.kind.interest === "inhabited",
-          habitability: entry.item.score || 0, population: entry.item.population || 0 } };
+      var world = NAMED_WORLD_REASONS[entry.kind.interest];
+      // A reason pulled forward (MAP.306) is named first and kept when names are cut; one with no inhabitants of its own is in the uninhabited slice.
+      var slice = world
+        ? { domain: "inhabited", category: world, inhabited: entry.kind.interest === "inhabited", habitability: entry.item.score || 0, population: entry.item.population || 0 }
+        : { domain: "uninhabited", category: entry.kind.bodyName || entry.kind.interest, size: 0 };
+      if (entry.pulled) slice.first = true;
+      return { id: "world:" + entry.item.id, text: entry.item.name, x: entry.item.x, y: entry.item.y, z: entry.item.z, ref: { kind: "marker", entry: entry }, slice: slice };
     });
   }
   // The bodies of the open system, named as the stage offers them, except that a planet or moon whose inhabited or habitable symbol is
-  // drawn takes its place in the inhabited slice with the worlds (MAP.321), by its habitability score.
+  // drawn takes its place in the inhabited slice with the worlds (MAP.321), by its habitability score, and one whose reason is pulled forward
+  // is named first (MAP.306).
   function bodyNames() {
     var labels = stageView.bodyLabels();
     if (!markerLayer) return labels;
     var worlds = new Map();
     markerLayer.entries().forEach(function (entry) {
-      if (entry.item.bodyRef && NAMED_WORLD_REASONS[entry.kind.interest]) worlds.set(entry.item.bodyRef, entry);
+      if (entry.item.bodyRef && (NAMED_WORLD_REASONS[entry.kind.interest] || entry.pulled)) worlds.set(entry.item.bodyRef, entry);
     });
     if (!worlds.size) return labels;
     return labels.map(function (label) {
       var entry = worlds.get(label.id);
       if (!entry) return label;
       var body = label.ref.entry.body || {};
-      return Object.assign({}, label, { slice: { domain: "inhabited", category: label.ref.entry.kind, inhabited: entry.kind.interest === "inhabited",
-        habitability: body.phi4 || 0, population: 0 } });
+      var slice = NAMED_WORLD_REASONS[entry.kind.interest]
+        ? { domain: "inhabited", category: label.ref.entry.kind, inhabited: entry.kind.interest === "inhabited", habitability: body.phi4 || 0, population: 0 }
+        : Object.assign({}, label.slice);
+      if (entry.pulled) slice.first = true;
+      return Object.assign({}, label, { slice: slice });
     });
   }
 

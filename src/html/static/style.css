@@ -2798,6 +2798,24 @@ code {
   flex: 0 0 100%;
 }
 
+/* MAP.306: the Points of interest group's row that sets every kind at once, and each kind's second button (pull it forward). */
+.galaxy-kinds .galaxy-kinds-bulk {
+  display: flex;
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.galaxy-kinds .map-forward-toggle {
+  margin-left: -0.35rem;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.galaxy-kinds .map-forward-toggle:disabled {
+  opacity: 0.45;
+}
+
 .galaxy-sub > summary {
   cursor: pointer;
   font-size: 0.85rem;

@@ -2265,7 +2265,7 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
 
 MARKERS = """() => {
     const layer = document.getElementById("galaxymap3d-canvas").__mapMarkers;
-    return layer ? layer.entries().map((e) => ({kind: e.kind.id, name: e.item.name, regionKey: e.item.regionKey || null, count: e.item.count || null, members: (e.item.members || []).map((m) => m.name), x: e.x, y: e.y, z: e.z})) : null;
+    return layer ? layer.entries().map((e) => ({kind: e.kind.id, name: e.item.name, regionKey: e.item.regionKey || null, count: e.item.count || null, pulled: !!e.pulled, members: (e.item.members || []).map((m) => m.name), x: e.x, y: e.y, z: e.z})) : null;
 }"""
 
 
@@ -2663,6 +2663,70 @@ def test_the_default_map_marks_a_green_and_a_yellow_world_with_the_reason_listed
         page.mouse.click(*spot)
         assert page.locator("#galaxymap3d-info h3").inner_text() == name
         assert wanted in page.locator("#galaxymap3d-info").inner_text()
+
+
+def test_the_points_of_interest_menu_group_shows_pulls_forward_or_hides_each_kind_and_remembers_it(page, map_site):
+    """MAP.306: the Menu's Points of interest group has a row for each reason, whose second button pulls it forward (drawn over the
+    other marks, named first); a crowd takes its strongest member's state; hiding a kind takes its marks away; one row sets every
+    kind at once; the address (`front=`, `hide=`) and the browser keep the choice."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    _open_menu(page)
+    kinds = page.locator("#galaxymap3d-kinds")
+    assert "Points of interest" in kinds.inner_text()
+    forward = {layer: kinds.locator(f'button[data-forward="{layer}"]') for layer in POI_LAYERS}
+    assert all(button.count() == 1 for button in forward.values())
+    assert all(forward[layer].get_attribute("aria-pressed") == "false" for layer in POI_LAYERS)
+    assert forward["marker-uninhabitable"].is_disabled(), "a hidden row cannot be pulled forward by its own button"
+    # Pull the gas giants forward: their marks are drawn in front and named first.
+    forward["marker-gas-giant"].click()
+    assert "front=marker-gas-giant" in page.url
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-gas-giant" and e["pulled"] for e in entries))
+    assert {e["name"] for e in found if e["kind"] == "marker-gas-giant" and e["pulled"]} == {"Fixture Jove", "Fixture Eden"}, found
+    assert not [e for e in found if e["kind"] != "marker-gas-giant" and e["pulled"]]
+    page.wait_for_function(f"() => ({LABELS})().some((l) => l.kind === 'world' && l.text === 'Fixture Jove')", timeout=20000)
+    # Hide the habitable worlds: none of their marks is drawn.
+    kinds.locator('button[data-layer="marker-habitable"]').click()
+    found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-habitable" for e in entries))
+    assert not [e for e in found if e["kind"] == "marker-habitable"]
+    assert "hide=marker-habitable" in page.url
+    # A reload keeps the choices, from the address ...
+    url = page.url
+    page.reload()
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+    _settle(page)
+    _open_menu(page)
+    assert page.url == url
+    assert page.locator('#galaxymap3d-kinds button[data-forward="marker-gas-giant"]').get_attribute("aria-pressed") == "true"
+    assert page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').get_attribute("aria-pressed") == "false"
+    # ... and a fresh address, from the browser.
+    _open(page, f"{map_site}/galaxy", GALAXY_CANVAS)
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+    _open_menu(page)
+    assert page.locator('#galaxymap3d-kinds button[data-forward="marker-gas-giant"]').get_attribute("aria-pressed") == "true"
+    assert page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').get_attribute("aria-pressed") == "false"
+    # The one row sets every kind: all hidden, all shown.
+    page.locator('#galaxymap3d-kinds button[data-bulk="hidden"]').click()
+    assert all(page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').get_attribute("aria-pressed") == "false" for layer in POI_LAYERS)
+    page.locator('#galaxymap3d-kinds button[data-bulk="shown"]').click()
+    assert all(page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').get_attribute("aria-pressed") == "true" for layer in POI_LAYERS)
+    assert all(forward[layer].get_attribute("aria-pressed") == "false" for layer in POI_LAYERS)
+    page.locator('#galaxymap3d-kinds button[data-bulk="forward"]').click()
+    assert all(forward[layer].get_attribute("aria-pressed") == "true" for layer in POI_LAYERS)
+
+
+def test_a_crowd_of_marks_takes_the_state_of_its_strongest_kind(page, map_site):
+    """MAP.306: from far out the fixture's points of interest merge into one mark; with the gas giants pulled forward the crowd is a
+    gas giant's symbol, drawn in front, and with none pulled it is the best reason's symbol, not in front."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(1000)
+    crowd = lambda found: next((e for e in found if e["count"]), None)
+    found = _markers_until(page, lambda entries: crowd(entries) is not None)
+    assert crowd(found)["kind"] == "marker-inhabited" and not crowd(found)["pulled"]
+    _open_menu(page)
+    page.locator('#galaxymap3d-kinds button[data-forward="marker-gas-giant"]').click()
+    found = _markers_until(page, lambda entries: crowd(entries) and crowd(entries)["pulled"])
+    assert crowd(found)["kind"] == "marker-gas-giant" and crowd(found)["pulled"], found
 
 
 def test_galaxy_map_marks_each_system_with_its_best_worlds_symbol(page, map_site):

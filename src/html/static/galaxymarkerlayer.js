@@ -16,6 +16,7 @@ const TEXTURE_PX = 64;
 // A crowd's mark (MAP.305) is drawn this much larger than a lone one, with its count in a badge at the corner.
 const CROWD_SCALE = 1.4;
 const COUNT_CAP = 99;
+const PULLED_ORDER = 5;
 
 // A glyph's texture, drawn once per shape and color.
 function makeGlyphTexture(glyph, color, outline) {
@@ -140,13 +141,14 @@ export function createMarkerLayer(scene, camera, canvasEl, outline, options) {
   // Shows `chosen` (`[{kind, item}]`); the sprites left over are hidden.
   function set(chosen) {
     drawn = chosen.map(function (entry) {
-      return { x: entry.item.x, y: entry.item.y, z: entry.item.z, kind: entry.kind, item: entry.item };
+      return { x: entry.item.x, y: entry.item.y, z: entry.item.z, kind: entry.kind, item: entry.item, pulled: !!entry.pulled };
     });
     drawn.forEach(function (entry, index) {
       const sprite = spriteAt(index);
       sprite.material.map = textureOf(entry.kind, entry.item);
       sprite.material.needsUpdate = true;
       sprite.position.set(entry.x, entry.y, entry.z);
+      sprite.renderOrder = entry.pulled ? PULLED_ORDER : 4;    // a mark pulled forward (MAP.306) is drawn over the others
       sprite.visible = true;
     });
     for (let index = drawn.length; index < sprites.length; index++) sprites[index].visible = false;

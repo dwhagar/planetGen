@@ -225,6 +225,8 @@ export function createMarkerKinds() {
 //   nodes      `[{key, node}]`, the nodes of the view that are loaded;
 //   inView     optional `function (item) -> boolean`: false leaves an item out (off screen, behind the camera);
 //   pxOf       optional `function (item, kind) -> pixels` for an item with an `extentPc`: its on-screen size;
+//   isPulled   optional `function (kindId) -> boolean`: a kind pulled forward (MAP.306) has first call on the budget and on a
+//              system's symbol, and its entries carry `pulled: true`;
 //   budget     optional, MARKER_BUDGET.
 // Returns `[{kind, item}]`: per kind, highest rank first, at most the kind's share of the budget (an even share,
 // what a kind does not use going to the others), a node of a block bigger than a kind's `maxBlock` not counted for it,
@@ -233,9 +235,13 @@ export function selectMarkers(options) {
   const budget = options.budget == null ? MARKER_BUDGET : options.budget;
   const inView = options.inView || function () { return true; };
   const lists = [];
-  // A system with several interest reasons is drawn once, by the first reason that is on (MAP.305).
+  // A system with several interest reasons is drawn once, by the first reason that is on (MAP.305), a reason pulled forward before
+  // the others.
   const claimed = new Set();
-  options.kinds.forEach(function (kind) {
+  const isPulled = options.isPulled || function () { return false; };
+  const ordered = options.kinds.filter(function (kind) { return isPulled(kind.id); })
+    .concat(options.kinds.filter(function (kind) { return !isPulled(kind.id); }));
+  ordered.forEach(function (kind) {
     if (!options.isOn(kind.id)) return;
     const seen = new Map();
     options.nodes.forEach(function (entry) {
@@ -256,9 +262,15 @@ export function selectMarkers(options) {
     items.sort(function (p, q) { return kind.rank(q) - kind.rank(p) || (p.key < q.key ? -1 : p.key > q.key ? 1 : 0); });
     lists.push({ kind: kind, items: items, taken: 0 });
   });
-  // Even shares, then the leftovers handed round, until the budget is spent or every list is.
+  // A kind pulled forward is served first, whole, before the rest share what is left.
   let left = budget;
-  let open = lists.filter(function (list) { return list.items.length > 0; });
+  lists.forEach(function (list) {
+    if (!isPulled(list.kind.id)) return;
+    list.taken = Math.min(list.items.length, left);
+    left -= list.taken;
+  });
+  // Even shares, then the leftovers handed round, until the budget is spent or every list is.
+  let open = lists.filter(function (list) { return !isPulled(list.kind.id) && list.items.length > 0; });
   while (left > 0 && open.length) {
     const share = Math.max(1, Math.floor(left / open.length));
     open.forEach(function (list) {
@@ -270,7 +282,12 @@ export function selectMarkers(options) {
   }
   const chosen = [];
   lists.forEach(function (list) {
-    list.items.slice(0, list.taken).forEach(function (item) { chosen.push({ kind: list.kind, item: item }); });
+    const pulled = isPulled(list.kind.id);
+    list.items.slice(0, list.taken).forEach(function (item) {
+      const entry = { kind: list.kind, item: item };
+      if (pulled) entry.pulled = true;
+      chosen.push(entry);
+    });
   });
   return chosen;
 }
@@ -295,7 +312,7 @@ export const MERGE_PX = 22;
 // Merges the crowded star-level interest marks of `chosen` (`selectMarkers`' `[{kind, item}]`, with any other entries after them) into one
 // mark each. `screenOf(item)` is the item's place on the screen in CSS pixels, `{x, y}`, or null for one that has none. Only a system's
 // own interest mark merges (a kind with `interest`, no `bodyRef` or `regionKey`); a black hole, a body's symbol or a region's token stays
-// as it is. The marks are taken in the registry's order of reasons, most bodies first, each one gathering the unmerged marks within
+// as it is. The marks are taken pulled-forward ones first (MAP.306), then in the registry's order of reasons, most bodies first, each one gathering the unmerged marks within
 // `radiusPx` of it, so the same crowd always merges the same way and a mark's symbol is its crowd's best reason (an inhabited world
 // before a habitable one before the rest). A crowd of two or more becomes one entry whose item is
 //   `{key, id, x, y, z (the middle of its systems), n (their bodies), count (their number), tier (the best), members (their items),
@@ -313,7 +330,8 @@ export function mergeMarks(chosen, screenOf, radiusPx) {
     else rest.push(entry);
   });
   placed.sort(function (p, q) {
-    return order.indexOf(p.entry.kind.interest) - order.indexOf(q.entry.kind.interest) || (q.entry.item.n || 0) - (p.entry.item.n || 0)
+    return (q.entry.pulled ? 1 : 0) - (p.entry.pulled ? 1 : 0)
+      || order.indexOf(p.entry.kind.interest) - order.indexOf(q.entry.kind.interest) || (q.entry.item.n || 0) - (p.entry.item.n || 0)
       || (p.entry.item.key < q.entry.item.key ? -1 : p.entry.item.key > q.entry.item.key ? 1 : 0);
   });
   const taken = new Set();
@@ -345,7 +363,9 @@ function mergedEntry(entries) {
     members: entries.map(function (entry) { return entry.item; }),
   };
   if (best.item.tier != null) item.tier = best.item.tier;
-  return { kind: crowdKind(best.kind), item: item };
+  const merged = { kind: crowdKind(best.kind), item: item };
+  if (entries.some(function (entry) { return entry.pulled; })) merged.pulled = true;    // a crowd takes the strongest state of its members
+  return merged;
 }
 
 // The kind of a crowd's mark: its best reason's kind with the hover text of a crowd ("12 points of interest").

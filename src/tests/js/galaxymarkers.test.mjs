@@ -214,3 +214,31 @@ test("an item with no place on the screen is left as it is", () => {
   const chosen = [mark("marker-habitable", sys(1, "A", 0, 1)), mark("marker-habitable", sys(2, "B", 0, 1))];
   assert.equal(M.mergeMarks(chosen, () => null, 22).length, 2);
 });
+
+test("a kind pulled forward is served first from the budget and claims a system's symbol, its entries marked", () => {
+  const eden = { id: 5, name: "Eden", x: 1, y: 2, z: 3, reasons: { habitable: { n: 2, score: 0.82, tier: "Green" }, "gas-giant": { n: 1 } } };
+  const others = Array.from({ length: 6 }, (_, n) => ({ id: 20 + n, name: "G" + n, x: n, y: 0, z: 0, reasons: { "gas-giant": { n: 1 } } }));
+  const node = { interests: [eden].concat(others) };
+  const pick = (pulled) => M.selectMarkers({ kinds: M.INTEREST_KINDS, isOn: () => true, isPulled: (id) => pulled.includes(id),
+    nodes: [{ key: "1.0.0.0", node }], budget: 3 });
+  const plain = pick([]);
+  assert.equal(plain.length, 3);
+  assert.equal(plain.find((e) => e.item.name === "Eden").kind.interest, "habitable", "the registry's order decides without a pull");
+  const forward = pick(["marker-gas-giant"]);
+  assert.equal(forward.length, 3);
+  assert.ok(forward.every((e) => e.kind.interest === "gas-giant" && e.pulled === true), "the pulled kind has the whole budget and the system's symbol");
+  assert.ok(plain.every((e) => !e.pulled));
+});
+
+test("a crowd takes the strongest state of its marks: a pulled one gives it its symbol and its place in front", () => {
+  const chosen = [
+    mark("marker-habitable", sys(1, "A", 0, 1)),
+    Object.assign(mark("marker-gas-giant", sys(2, "B", 1, undefined)), { pulled: true }),
+  ];
+  const [crowd] = M.mergeMarks(chosen, atX, 22);
+  assert.equal(crowd.kind.id, "marker-gas-giant");
+  assert.equal(crowd.pulled, true);
+  const [plain] = M.mergeMarks(chosen.map((e) => ({ kind: e.kind, item: e.item })), atX, 22);
+  assert.equal(plain.kind.id, "marker-habitable");
+  assert.ok(!plain.pulled);
+});
