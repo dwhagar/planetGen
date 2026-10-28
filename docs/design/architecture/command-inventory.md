@@ -34,6 +34,7 @@ A command is added only if it follows all of these. `src/tests/test_command_rule
 | `planetgen system` | Generates one system and prints or writes it | Yes | none (registered by PERF.118) |
 | `planetgen population` | The population pass: species, civilizations and polities (`--rescan`); `--territories-only` is gone (PERF.125, done) | Yes | none |
 | `planetgen territories` | The territories pass: which polity owns which system (PERF.125, done) | Yes | none |
+| `planetgen bring-to-epoch` | Brings a stored galaxy to the running generator epoch: generates again the sectors whose fill is behind, makes the stale species again, runs the population pass (GEN.764) | One purpose, a fixed sequence of its own like `benchmark` | none |
 | `planetgen check-db` | Builds the list of the nine `check-*` commands (one per check: revision, tables, extended tables, orphans, ids, values, counts, version keys, systems) the arguments name, and hands it to the wrapper as a check run | Yes: each check is its own command; this only builds the list (PERF.126, done) | PERF.126 |
 | `planetgen check-math`, `versions`, `fingerprint` | The math check; list the version history; print the content digests | Yes | none |
 | `planetgen benchmark` | Runs `plan`, then `galaxy` over a small shell, in child processes and prints the timings | One purpose, but a fixed sequence of its own | PERF.128 |

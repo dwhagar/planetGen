@@ -3249,6 +3249,20 @@ export function createStageView(host) {
     return true;
   }
 
+  // MAP.327: the icon on a sector's wall: the camera goes to the neighbouring sector's window and the sector opens in place
+  // there (as the address ?sector=...&open=1 does), the address naming it.
+  function openSector(sector) {
+    const next = S.sectorStage(sector.shell, sector.band, sector.wedge);
+    if (!next) {
+      notice("Sector " + S.blockLabel(sector) + " is outside the galaxy.");
+      return false;
+    }
+    selectedSector = { shell: sector.shell, band: sector.band, wedge: sector.wedge };
+    pendingOpen = selectedSector;
+    go(next, { keepSector: true, query: sectorQuery(selectedSector, true) });
+    return true;
+  }
+
   function clearMatches() {
     if (els.matches) {
       els.matches.textContent = "";
@@ -3652,5 +3666,6 @@ export function createStageView(host) {
     outsideOutline: outsideOutline,
     go: go,
     locate: locate,
+    openSector: openSector,
   };
 }

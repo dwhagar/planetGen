@@ -56,7 +56,7 @@ from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.admin import activity_log
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, luminosity_floor, prevalence
-from planetgen.galaxy import drill, seed as galaxySeed, spherical, version_check, version_key
+from planetgen.galaxy import bring_to_epoch as bringToEpoch, drill, seed as galaxySeed, spherical, version_check, version_key
 from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -1345,6 +1345,29 @@ def add_territories_arguments(parser):
     add_logging_arguments(parser)
 
 
+def add_bring_to_epoch_arguments(parser):
+    """
+    Adds the `bring-to-epoch` subcommand's options: `--dry-run`, and the MySQL connection and logging args.
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
+    parser.add_argument('--dry-run', action='store_true',
+                        help="Say what would be generated again, which sectors would be left alone and why, and "
+                             "change nothing.")
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
+def run_bring_to_epoch(args):
+    """`planetgen bring-to-epoch` (GEN.764): brings the stored galaxy to the running generator epoch in part
+    (`planetgen.galaxy.bring_to_epoch`); exits 1 when the run refused or a sector failed."""
+    config = store.mysql_config_from_args(args)
+    result = bringToEpoch.run(config, store.control_mysql_config(config), dry_run=args.dry_run)
+    if result["refused"] or result["failed"]:
+        sys.exit(1)
+
+
 def build_parser():
     """
     Builds the top-level parser and every subcommand's own subparser.
@@ -1540,6 +1563,16 @@ def build_parser():
         description="Territories Pass",
         help="Work out which polity owns which system from the polities stored.")
     add_territories_arguments(territories_parser)
+    bring_to_epoch_parser = subparsers.add_parser(
+        'bring-to-epoch',
+        description="Brings the stored galaxy to the running generator epoch without a full regeneration: every "
+                    "galaxy-placed sector made under an older epoch whose change altered what a sector holds is "
+                    "generated again under the current code (its object IDs follow the galaxy's seed), the species "
+                    "of an older population epoch are made again, and a sector with admin edits is left alone and "
+                    "listed. A change of the galaxy's plan, or a scatter drawn under an older epoch, is refused with "
+                    "the reason. An interrupted run is resumed by running it again.",
+        help="Bring a stored galaxy to the running generator epoch.")
+    add_bring_to_epoch_arguments(bring_to_epoch_parser)
 
     benchmark_parser = subparsers.add_parser(
         'benchmark',
@@ -1611,6 +1644,7 @@ def build_parser():
         'phenomenon': phenomenon_parser,
         'population': population_parser,
         'territories': territories_parser,
+        'bring-to-epoch': bring_to_epoch_parser,
         'check-math': check_math_parser,
         'versions': versions_parser,
         'fingerprint': fingerprint_parser,
@@ -1770,6 +1804,7 @@ _COMMAND_HANDLERS = {
     'phenomenon': run_phenomenon.run_phenomenon,
     'population': run_population.run_population,
     'territories': run_population.run_territories,
+    'bring-to-epoch': run_bring_to_epoch,
 }
 
 
@@ -1777,7 +1812,8 @@ DATA_CHANGES = {"plan": ("everything",), "scatter": ("everything",), "clear-scat
                 "fill-map-luminosity": ("everything",),
                 "rescore-habitability": ("everything",), "fill-nebula-blocks": ("everything",), "fill-block-totals": ("everything",),
                 "clean-nebula-field": ("everything",),
-                "population": ("population",), "territories": ("population",)}
+                "population": ("population",), "territories": ("population",),
+                "bring-to-epoch": ("generated", "population")}
 """dict: The kinds of data change (`planetgen.db.dataversion.CHANGES`) a command makes when it is not just
 generation; any other writing command is `generated`."""
 
@@ -1813,7 +1849,8 @@ def main():
                       areas=args.debug_areas)
     except OSError as exc:
         _fatal(f"cannot open --debug file {args.debug!r}: {exc.strerror or exc}", logger_ready=False)
-    logged = not getattr(args, "output", None) and args.command not in READ_ONLY_COMMANDS
+    logged = (not getattr(args, "output", None) and args.command not in READ_ONLY_COMMANDS
+              and not (args.command == "bring-to-epoch" and args.dry_run))
     with log.untraced():    # the seed read must not put SQL lines in front of the run line
         run_line = version_key.run_line(_run_line_seed(args) if logged else None, " ".join(_run_argv(sys.argv[1:])))
     log.normal(run_line)

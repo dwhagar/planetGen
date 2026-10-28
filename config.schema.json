@@ -213,7 +213,8 @@
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many finished jobs stay in the job list."
+          "x-summary": "How many finished jobs stay in the job list.",
+          "x-unit": "jobs"
         },
         "python": {
           "default": "",
@@ -339,7 +340,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "The port the database server listens on."
+          "x-summary": "The port the database server listens on.",
+          "x-unit": "port number"
         },
         "statement_timeout_seconds": {
           "default": 10,
@@ -625,7 +627,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "The most answers kept in memory."
+          "x-summary": "The most answers kept in memory.",
+          "x-unit": "answers"
         },
         "max_mb": {
           "default": 64,
@@ -771,7 +774,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many threads one admin password check uses."
+          "x-summary": "How many threads one admin password check uses.",
+          "x-unit": "threads"
         },
         "time_cost": {
           "default": 2,
@@ -791,7 +795,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many passes one admin password check makes over its memory."
+          "x-summary": "How many passes one admin password check makes over its memory.",
+          "x-unit": "passes"
         }
       },
       "title": "PasswordHash",
@@ -817,7 +822,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many reverse proxies to trust for the visitor's address (0 means none)."
+          "x-summary": "How many reverse proxies to trust for the visitor's address (0 means none).",
+          "x-unit": "proxies"
         },
         "x_host": {
           "default": 0,
@@ -837,7 +843,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many reverse proxies to trust for the host name (0 means none)."
+          "x-summary": "How many reverse proxies to trust for the host name (0 means none).",
+          "x-unit": "proxies"
         },
         "x_proto": {
           "default": 0,
@@ -857,7 +864,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many reverse proxies to trust for http or https (0 means none)."
+          "x-summary": "How many reverse proxies to trust for http or https (0 means none).",
+          "x-unit": "proxies"
         }
       },
       "title": "ProxyFix",
@@ -1823,7 +1831,8 @@
       "x-restart": false,
       "x-secret": false,
       "x-slider": null,
-      "x-summary": "Which format version this settings file is in; the program keeps it up to date."
+      "x-summary": "Which format version this settings file is in; the program keeps it up to date.",
+      "x-unit": "format version"
     },
     "control_database": {
       "default": "planetgen_control",

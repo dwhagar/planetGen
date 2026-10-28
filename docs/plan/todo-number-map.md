@@ -17,12 +17,12 @@ release is stamped.
 | MAP | MAP.329 |
 | NAV | NAV.65 |
 | GEN | GEN.844 |
-| PERF | PERF.200 |
+| PERF | PERF.201 |
 | DB | DB.109 |
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.420 |
+| TEST | TEST.421 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.83 |
@@ -1840,7 +1840,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.246 | A loose group of stars far above the disc on a fresh galaxy cannot be reached by zoom or navigation and cannot be selected (bug) | none | folded into MAP.243 (Bug Hunt reproduced it on Boss's seed, 2026-10-17, 4:30 PM EDT as the lane reported) |
 | MAP.247 | The wheel zoom's column-density ray fallback: where the cursor ray hits nothing pickable, the point is the first sample where the integrated column density passes a threshold | none | done, PR #2229 |
 | MAP.248 | The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries | none | open |
-| MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) | none | open |
+| MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) | none | done, PR #3420 |
 | MAP.250 | When a map chooses which stars to show, halo and satellite-galaxy stars are the lowest priority and are always cut first, before anything else | none | done, PR #2155 |
 | MAP.251 | When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug) | none | done, PR #2375 |
 | MAP.252 | Viewing only the filled sectors does not dim the phenomena (bug) | none | done, PR #2252 |
@@ -1918,7 +1918,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.324 | The soft glow around stars on the Galaxy Map floods the view: at sector and sector-block zoom it makes big white blobs and haze that hide the stars, the black holes and the selection, so finding anything is nearly impossible (bug) | none | done, PR #3359 |
 | MAP.325 | The Galaxy Map infobox is too dense for a readable font: a block card lists ten rows plus a help paragraph in tiny text, and it sits over the zoom controls (bug) | none | done, PR #3331 |
 | MAP.326 | Zooming in from the Galaxy Map does not carry smoothly into the star system map: on no system could Boss zoom from the galaxy into the system view as one continuous move (bug) | none | done, PR #3345 |
-| MAP.327 | Sector view dims everything outside the sector's bounds and puts a clearly labelled move icon at the centre of each visible wall facing an adjacent sector | none | open |
+| MAP.327 | Galactic view draws a locked wireframe round the current region with no dimming (the sector part, dimming and wall icons, is done in #3422) | none | open |
 | MAP.328 | Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
@@ -2259,6 +2259,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.197 | Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2) | none | open |
 | PERF.198 | Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6) | none | open |
 | PERF.199 | The words "rough guess" are removed from every ETA, time left and time estimate display (bug) | none | done, PR #3271 |
+| PERF.200 | Galaxy Map node cut bookkeeping: about half the busy time in the profile is string building, geometry recomputation and cache re-insertion | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -2583,7 +2584,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.209 | Object pages order: At a glance, then About, then the Properties list, then the other details (bug) | none | done, PR #3196 |
 | UX.210 | Map infoboxes and labels: the orbit infobox eccentricity and every other number on a map says what it is and its unit (scan) (bug) | none | done, PR #3347 |
 | UX.211 | Pages, lists, search, Nearby and the admin pages: every number carries a unit, a noun or a label (scan) (bug) | none | done, PR #3210 |
-| UX.212 | Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug) | none | open |
+| UX.212 | Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug) | none | done, PR #3423 |
 | UX.213 | Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug) | none | open |
 | UX.214 | Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column | none | open |
 | UX.215 | Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table | none | open |
@@ -3130,6 +3131,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.417 | Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug) | none | open |
 | TEST.418 | Seven map browser tests are red on clean main (bug) | none | open |
 | TEST.419 | test_opening_a_sector_is_one_continuous_view_with_a_filled_panel failed once in a full file run and passed on the next two (bug) | none | open |
+| TEST.420 | Runner self-tests and the limit-slider follow-again browser test are red on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

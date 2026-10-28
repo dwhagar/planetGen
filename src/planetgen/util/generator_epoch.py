@@ -99,6 +99,15 @@ def stages_between(recorded, current=None):
     return tuple(stage for stage in stages() if stage in touched)
 
 
+def epochs_changing(stage, recorded, current=None):
+    """
+    The epochs after `recorded`, up to and including `current` (default the running one), whose change altered `stage`
+    (GEN.764), oldest first: the epochs a result of that stage made under `recorded` is behind by.
+    """
+    current = generator_epoch() if current is None else current
+    return tuple(epoch for epoch in range(recorded + 1, current + 1) if stage in affects(epoch))
+
+
 def needs_full_regeneration(recorded, current=None):
     """Whether a galaxy made under epoch `recorded` cannot be brought to `current` in part: an epoch since changed
     the plan (GEN.764)."""

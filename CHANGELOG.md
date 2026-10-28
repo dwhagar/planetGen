@@ -2,6 +2,33 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2392] - 2026-10-28
+
+**Headline:** The admin statistics and queue tiles now say what they count, and every numeric setting names its unit.
+
+### Changed
+- **Admin tiles and settings units (UX.212).** The Stats page tiles read "12 sectors", "3,456 systems", "2 names" instead of a bare number, and the Queue page's "Workers active" and "Runs live" tiles read "4 workers" and "1 run". The nine numeric settings that had no unit (database port, the three proxy counts, the two password hashing figures, cached answers, finished jobs kept, settings file version) now carry one. Tests pin both: no tile is a bare number, and every numeric setting has a unit.
+
+## [8.0.2391] - 2026-10-28
+
+**Headline:** Opening a sector on the Galaxy Map dims the space around it, frames it with a fixed wireframe, and puts a labelled icon on each wall that leads to the next sector.
+
+### Changed
+- **The rest of the map is dimmed (MAP.327).** With a sector open in place the stars outside it are drawn at 30 percent, with no glow, no names and no comets, rogue planets or black holes, so the sector reads on its own.
+- **A locked frame.** A wireframe round the sector's cell stays where the cell is as the camera moves and the pointer passes.
+- **An icon on each wall that faces another sector.** At the centre of each such wall (outward, inward, north, south, west, east; none where the galaxy ends) a labelled button names the neighbour; a click flies there and opens it. The icons stay the same size at any zoom. The region frame for the galactic view comes with the regions (MAP.316).
+
+## [8.0.2390] - 2026-10-28
+
+**Headline:** The Galaxy Map's node path has a benchmark that fails when a dive, a flight or a climb stalls.
+
+### Added
+- **A benchmark of the Galaxy Map over a large synthetic galaxy (MAP.249).** `large_site` serves 46,000 stars with
+  every node carrying its real star budget; `tests/test_web_browser_map_perf.py` dives from the whole galaxy to a sector,
+  flies across a level and climbs out, measuring each step's settle time, node requests and bytes, stars written to the
+  buffer, frame times and longest task, and fails a step over its limit. The numbers, the limits and a profile of where
+  the main thread's time goes are in `docs/design/interface/galaxy-map-performance.md`.
+
 ## [8.0.2389] - 2026-10-28
 
 **Headline:** Every number an API request takes now states its unit in its name or its description, and a test keeps it that way.

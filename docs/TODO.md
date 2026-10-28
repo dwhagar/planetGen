@@ -964,17 +964,6 @@ with `clamp()`.
   sampling); outside hours is GEN.768. The lane adds the excuse list and
   the failing test with these ids.
 
-- [ ] **UX.212 Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug)**
-  Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
-  as the lane reported; Boss rule: never a number without a unit or
-  context. Found by the UX.211 probe of the a11y sample: elements whose
-  whole text is a bare number. Give every admin statistics and queue
-  tile its noun or unit (for example '18 jobs queued'), and every
-  settings value its unit or scale. Done: the probe lists no bare number
-  on the admin pages and a browser test pins it. Version 8.1. Owner: Aux
-  12 (account, API and ops).
-  Prerequisites: none. Related: UX.208, GEN.772.
-
 - [ ] **UX.213 Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug)**
   Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
   as the lane reported; Boss rule: never a number without a unit or
@@ -1468,6 +1457,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its edge), drawn faint as context (MAP.141), and a step goes to the
   nearest system in the direction of the arrow; the System Map has no
   grid to step through. Build (1) and (2) first; (3) can be a later PR.
+  Progress (2026-10-09): MAP.327 merged (Aux 10, #3422, 11:48 AM EDT
+  2026-10-28 as the lane reported): the Sector Map part of (1) and part
+  of (2) are built: stars outside the opened sector at 30% with no glow,
+  names or phenomena, a locked wireframe round the sector cell, and a
+  labelled arrow icon on each wall that faces a neighbour that flies to
+  it via stageView.openSector. The six step buttons and keys for a
+  window of blocks were already built in #3391, and the sector wall
+  icons are the sector-level step. Left for this item: dimming of the
+  neighbouring blocks at the block level and the System Map part.
   Prerequisites: none.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
@@ -2421,115 +2419,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   there is no switch to follow. Unowned until they land; Core 2 takes it
   then.
 
-- [ ] **MAP.249 The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug)**
-  Boss (2026-10-17, 6:48 PM EDT, typed in the project chat, relayed by
-  the coordinator at 6:49 PM EDT): "Just tested the galaxy map it is
-  utterly unusable, it's laggy, slow, moving between zoom levels slogs
-  the entire thing down." Cause not known; nothing below is a finding
-  until it is measured. Candidates to measure, not to assume: the number
-  and size of the tiles a zoom step requests (the fly-through view loads
-  684 to 936 tiles all round, docs/design/interface/fly-through-view-distance.md),
-  tiles built per request with no cache (PERF.130 to PERF.134 are the
-  plan for that), the star and marker count one view holds against the
-  cap, per-frame work on the main thread (picking, the opacity law,
-  buffer rebuilds on a level change), and the server time to build a
-  tile on a whole-sphere galaxy. Do: profile first on Boss's own galaxy
-  (browser performance trace and the network panel for a zoom in and a
-  zoom out across several levels: requests, bytes and time per step,
-  main-thread time per frame, server time per tile), write the numbers
-  on the goal issue, name the cause, then fix the measured cause in
-  proportion. Done: the frame time while flying and the time from a
-  level change to a settled view are measured before and after on the
-  same galaxy and written on the issue, the cause is named, and a test
-  or benchmark in the PERF.31 style keeps the figure from regressing; if
-  the cause is the missing tile cache, the fix is PERF.130 to PERF.132
-  brought forward and this item says so. Fails on main: yes (Boss tested
-  his server, which runs main). Frequency: every level change on his
-  galaxy. Reproducer: open the Galaxy Map on his galaxy, zoom across
-  several levels. Owner: Core 2 (Boss via the coordinator, 6:49 PM EDT),
-  ahead of MAP.247 in its queue.
-  Prerequisites: none. Related: MAP.239, MAP.152, MAP.147, PERF.129,
-  PERF.130, PERF.131, PERF.132, PERF.133.
-  Profile result (Core 2, 5:07 AM EDT 2026-10-18 as the lane reported;
-  measured on a scaled copy of the galaxy with 528,250 bright stars,
-  387,916 of them halo, current main, tiles asked the way the page asks,
-  no cache; probe script `tileprobe.py` in Core 2's scratchpad and
-  database `lagprobe` in its container): at every camera distance from
-  300,000 pc down to 30 pc a view asks for 400 to 480 tiles (the cap is
-  512). From 10,000 pc inward a view is 7 to 8.8 MB of JSON (17,500 to
-  19,700 stars, 2,700 to 11,000 points) and takes 50 to 67 s of cold
-  server time; farther out it is 1.2 to 2 MB and 7 to 10 s. The cost is
-  the star-list piece (38 to 44 s) and the scattered-point piece (20 to
-  24 s); no single piece is over 3 s (the largest is 2.8 s). So a zoom
-  to a new level means about 450 new tiles and about 8 MB, which
-  explains the slog, and MAP.239, MAP.243, MAP.247 and MAP.250 do not
-  change it. Options put to Boss through the coordinator: (1) cut the
-  tiles per view to about 150 and set budgets so a view is about 2 MB,
-  (2) tile cache warming (PERF.130 to PERF.132), (3) both; Core 2
-  recommends (3) and starts (1) now.
-  Option 1 measured (Core 2, 5:15 AM EDT 2026-10-18 as the lane
-  reported, through the coordinator): cutting the payload about 40% (the
-  view cone from 70 to 50 degrees and the budget factor 3) costs about a
-  third of the stars and still leaves 23 to 37 s of cold server time for
-  each new level; the cut factor alone helps little when zoomed in. Core
-  2's updated recommendation is tile cache warming first (PERF.130 to
-  PERF.132), then trimming the cone and budgets only if a view is still
-  heavy. Boss's card was replaced with the three options (warm the cache
-  first, cut the payload first, both); his choice is recorded below (Both, cut payload first).
-  Decided (Boss, 2026-10-18, tapped on the card at about 8:54 AM EDT, as
-  the coordinator relayed): "Both, cut payload first". Cut the payload
-  first (fewer tiles per view, smaller star and point budgets, about 2
-  MB a view), then warm the tile cache ahead of the zoom path (PERF.130
-  to PERF.132, which follow the payload cut). Core 2 builds it and
-  states in the PR how many stars the cut loses.
-  Merged in part (Core 2, #2263, release 8.0.1827, reported about 12:55
-  PM EDT 2026-10-18 on the lane's clock): the payload cut. The distance
-  cut factor is 3 (was 2), the view cone 50 degrees (was 70),
-  `GALAXY_VIEW_MAX_STARS` 45,000 (was 70,000), the JS twins equal. Stars
-  drawn before to after on the scaled probe galaxy: 100,000 pc +30%;
-  30,000 pc -6%; 10,000 pc -52%; 3,000 pc -27%; 1,000 pc -31%; 100 pc
-  -41%; 30 pc -42%. Tiles per view 414 to 478 became 213 to 271, the
-  packed view at 1,000 pc 3.20 MB became 1.88 MB, and the cold server
-  build at 1,000 pc 62 s became 37 s (table in
-  docs/design/interface/fly-through-view-distance.md; Boss tunes it through
-  DISTANCE_CUT_EDGES, DISTANCE_CUT_HALF_ANGLE_DEG and the budgets). This
-  item stays open: the cache warming (PERF.130 to PERF.132, Core 2's
-  next PR) is the other half of Boss's 'Both' answer, and the item's own
-  Done (a before and after of the settled-view time) needs it.
-  Merged in part (Core 2, PERF.130, #2276, release 8.0.1836, reported
-  3:15 PM EDT 2026-10-18 as the coordinator relayed): `planetgen warm`
-  now builds the Galaxy Map's tiles ahead of the first visitor, a step
-  update.sh runs. On the scaled probe galaxy eight zoom views took 111 s
-  and now take 3.2 s; the warm step builds 7,112 tiles in about 12
-  minutes and 40 MB. The browser frame time was not measured. This item
-  stays open for PERF.131 and PERF.132 (separate PRs) and the settled-view
-  before and after its Done asks for.
-  Cause found code-side (Core 2, about 2:50 AM EDT 2026-10-22 as the
-  lane reported; the fix is in its gate): a zoom walked every drawn star
-  once per missing tile (measured 665 ms in node for 250 tiles by 45,000
-  stars, now 6.5 ms) and rebuilt a 45,000-star signature on every
-  unchanged call (about 160 ms), plus guards. The item stays open for
-  Boss's browser trace, which settles whether the page is fast in the
-  browser.
-  Code side merged as #2414 (Core 2, about 2:58 AM EDT 2026-10-22 as the
-  lane reported): a zoom no longer walks every drawn star per missing
-  tile (665 ms to 6.5 ms in node), an unchanged view no longer rebuilds
-  the 45,000-star signature, and a guard holds the tiles per view at 220
-  at eight distances. The item stays open: no browser frame-time trace
-  exists yet, so the before and after settled-view figure is owed from
-  Boss's server (Boss tests it after he runs update.sh; the coordinator
-  tells Core 2 when he has).
-  Rescope (2026-10-09): Rescoped by TODO (11:29 AM EDT 2026-10-28, on
-  Core 2's report): the 10-18 figures (400 to 480 tiles, 7 to 8 MB a
-  view) describe the old tile system; the map has since moved to the
-  node cut, packed nodes, IndexedDB and the tile cache (MAP.267,
-  PERF.130 to 134). Do now: a node-path benchmark on a large synthetic
-  galaxy (frame time while flying, time to settle after a level change)
-  as a PERF.31-style guard, and profile the node path with a trace where
-  it is slow. Done: the benchmark exists with a limit that fails on a
-  regression. Boss's own sighting of lag stays a bug until he says it is
-  gone; a new report is filed as its own bug.
-
 - [ ] **MAP.253 Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/architecture/unified-system-barycentre.md, decided: Boss's nine cards
@@ -3312,7 +3201,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: DB.108. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
 
-- [ ] **MAP.327 Sector view dims everything outside the sector's bounds and puts a clearly labelled move icon at the centre of each visible wall facing an adjacent sector**
+- [ ] **MAP.327 Galactic view draws a locked wireframe round the current region with no dimming (the sector part, dimming and wall icons, is done in #3422)**
   Boss, 2:38 AM EDT 2026-10-25: the star field outside the sector makes
   the sector view hard to read, so dim everything outside the sector
   bounds, and have clear labelled icons to move to the adjacent sectors,
@@ -3350,6 +3239,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxyprisms.neighbourBlock and the step function from MAP.121 part
   one (#3391) for the sector-level neighbour steps; do not write a
   second neighbour helper.
+  Progress (2026-10-09): Done by Aux 10 (#3422, 11:48 AM EDT 2026-10-28
+  as the lane reported): the sector part (outside dimmed, locked
+  wireframe round the sector, labelled wall icons that fly to the
+  neighbour). Open: the region wireframe in galactic view with no
+  dimming, which waits on MAP.316 (Aux 10 builds it there).
 
 - [ ] **MAP.328 Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views)**
   Boss, 2:48 AM EDT 2026-10-25: 'rendered objects should slowly rotate
@@ -15625,6 +15519,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed --resume`.
   Prerequisites: none. Related: PERF.125, GEN.411.
 
+- [ ] **PERF.200 Galaxy Map node cut bookkeeping: about half the busy time in the profile is string building, geometry recomputation and cache re-insertion**
+  Found by Core 2 (MAP.249 benchmark, #3420, as the lane reported 11:41
+  AM EDT 2026-10-28; profile in
+  docs/design/interface/galaxy-map-performance.md). About half the
+  page's busy time in the profile is the node cut's bookkeeping:
+  formatDrillKey builds a string per block, geometry is recomputed on
+  each cut, and memoryGet re-inserts an entry on every hit. Optional
+  until a sighting of lag needs it; Boss's lag sightings are filed as
+  bugs and then this item moves up. Do: key blocks by numbers instead of
+  strings, cache the geometry per block until the cut changes, and make
+  memoryGet leave a hit in place unless the entry is old, then re-run
+  the MAP.249 benchmark and tighten its limits to the new numbers. Done:
+  the benchmark's busy time falls by a third or more with the same node
+  and byte counts. Owner: Core 2 when free. Rules: no backward-compat
+  shims; keep the benchmark limits as the guard.
+  Prerequisites: none. Related: MAP.249, MAP.267.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -16881,6 +16792,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   is covered by that test. Still open: the property sheet (Aux 11),
   admin pages other than the Queue page and the stats and settings pages
   (Aux 12 after UX.211), the help pages and glossary (DOC.15), and the
+  numbers other commands print beyond Core 5's #3248 (a free lane or
+  Core 5).
+  Progress (2026-10-09): Aux 12 (UX.212, #3423, 11:52 AM EDT 2026-10-28
+  as the lane reported): the stats and settings pages are done: stats
+  tiles read '12 sectors', '3,456 systems'; queue tiles read '4
+  workers'; nine numeric settings with no unit now carry one; tests pin
+  it; other admin pages have no bare-number tiles. Still open: the
+  property sheet (Aux 11), the help pages and glossary (DOC.15), and the
   numbers other commands print beyond Core 5's #3248 (a free lane or
   Core 5).
   Prerequisites: none. Related: GEN.771, DOC.15.
@@ -20531,6 +20450,10 @@ clears each one.
   DB.108/GEN.826, or Core 2 for the ones in the Galaxy Map click paths.
   Rules: never skip or loosen a test to get green; keep the property
   each test checks.
+  Progress (2026-10-09): Aux 10 (MAP.327, #3422, 11:48 AM EDT 2026-10-28
+  as the lane reported) fixed four sector-click tests that its wall
+  icons affected; recheck which of the seven still fail on current main
+  before starting.
   Prerequisites: none. Related: MAP.209, MAP.210, TEST.414.
 
 - [ ] **TEST.419 test_opening_a_sector_is_one_continuous_view_with_a_filled_panel failed once in a full file run and passed on the next two (bug)**
@@ -20547,6 +20470,30 @@ clears each one.
   filled details panel). A new report of Boss seeing the flash or an
   empty panel is filed as its own bug.
   Prerequisites: none. Related: MAP.209, MAP.210.
+
+- [ ] **TEST.420 Runner self-tests and the limit-slider follow-again browser test are red on main (bug)**
+  Found by Aux 10 (as the lane reported 11:48 AM EDT 2026-10-28) while
+  merging MAP.327 (#3422): the runner self-tests (the tests of
+  scripts/test.py itself) and the limit-slider follow-again browser test
+  fail the same on main without that change. The habitability end-to-end
+  marker test is already TEST.414. Do: run each alone on main, find the
+  change that broke it, fix the code or the test so it still checks its
+  property, and name the exact test ids in this item as you find them
+  (the lane's PR gave no ids). Done: both pass on main in a combined
+  run. Owner: Bug 1 after DB.108/GEN.826, or Aux 10 for the slider test.
+  Rules: never skip or loosen a test to get green.
+  Test ids (2026-10-09): Test ids from Aux 10 (11:52 AM EDT 2026-10-28
+  as the lane reported; all fail alone on a clean origin/main worktree):
+  src/tests/test_progress_log.py::test_the_runner_starts_a_log_for_the_build_and_hands_its_path_to_pytest
+  and ::test_main_resumes_with_a_skip_list_and_says_so_on_its_last_line;
+  src/tests/test_redis_cleanup.py::test_the_runner_prints_what_it_cleared_before_the_first_phase;
+  src/tests/test_resume_across_builds.py::test_main_says_how_many_tests_were_reused_and_from_which_run
+  (the on_child keyword failures of TEST.406);
+  src/tests/test_web_browser_limit_sliders.py::test_ticking_follow_again_returns_the_core_to_the_galaxy_wide_limits
+  (the click on the Follow checkbox is intercepted by the site header,
+  then by the checkbox's own control span; 120 s timeout). The slider
+  one is Bug 1's.
+  Prerequisites: none. Related: TEST.414, TEST.418.
 
 ## USR: User accounts
 

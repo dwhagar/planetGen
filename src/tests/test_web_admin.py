@@ -1056,3 +1056,23 @@ def test_the_account_page_wears_the_shell_except_while_credentials_must_change(c
     assert re.search(r'data-destination="account" aria-current="page"', html)
     _logged_in(client, fake, must_change=True)
     assert "data-admin-shell" not in client.get("/account").get_data(as_text=True)
+
+
+def test_no_stats_tile_is_a_bare_number(client, fake):
+    """UX.212: every statistics tile names what it counts, in its value."""
+    _logged_in(client, fake)
+    html = client.get("/admin/stats").get_data(as_text=True)
+    values = re.findall(r'<span class="stat-value">([^<]*)</span>', html)
+    assert len(values) >= 8
+    assert [v for v in values if re.fullmatch(r"[\d.,\s]+", v.strip())] == []
+    assert "12 sectors" in values and "3,456 systems" in values
+
+
+def test_every_numeric_setting_names_its_unit():
+    """UX.212: a number on the settings page carries what it measures."""
+    from planetgen.util import settings
+    from planetgen.util.settings_view import kind_of
+
+    bare = [path for path, _info, meta in settings.iter_fields()
+            if kind_of(meta["annotation"]) in ("int", "float") and not meta.get("x-unit")]
+    assert bare == []
