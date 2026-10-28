@@ -1553,6 +1553,7 @@ def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):
     assert set(body["facets"]) == {
         "type", "spectral", "luminosity", "class", "body", "life", "equipment",
         "moon_class", "moon_body", "moon_life", "moon_equipment", "density", "phenomenon", "phenomenon_class",
+        "habitability", "domain", "life_level", "living", "moon_habitability", "moon_domain", "moon_life_level", "moon_living",
     }
     assert body["results"]["stars"] is None  # no filter active yet -- no reason to run
 
