@@ -1750,7 +1750,8 @@ PLANET_SURVIVAL_HOST_MASS_SOLAR = 0.5
 
 # A dictionary defining the properties of different planet classes.
 # Each class has a description, composition, radius range (in meters),
-# habitable zone compatibility, atmosphere type, and planet type ('t' for terrestrial, 'g' for gas giant).
+# habitable zone compatibility, whether it has air ("air": the gases are drawn from the body's own interior, sinks and
+# temperature, and the atmosphere text is written from that mixture, GEN.415), and planet type ('t' for terrestrial, 'g' for gas giant).
 # Zone flags: "h" hot zone, "e" ecosphere, "c" cold zone, and "r" (GEN.8)
 # whether a free-floating rogue planet may have the class -- "r" is the
 # rogue planet's zone. With no star to warm it, a rogue is a dead (C),
@@ -1770,16 +1771,15 @@ PLANET_CLASSES = {
         # Mercury (2,439.7km) sits ~28% through this range.
         "size_mode": 0.28,
         "h": True, "e": False, "c": False, "r": False,
-        "atmosphere": "a mix of sulfur dioxide and carbon dioxide",
+        "air": True,
         "type": "t",
     },
     "B": {
-        # "with a thin atmosphere" moved off the description and onto the
-        # atmosphere field itself ("a thin mix of...") -- the description
-        # used to collide with the render template's own "with an
-        # atmosphere of {atmosphere}" clause (generation/planet.py's
-        # to_paragraph_list), producing "...world with a thin atmosphere
-        # with an atmosphere of...".
+        # "with a thin atmosphere" left off the description -- it used to
+        # collide with the render template's own "with an atmosphere of
+        # {atmosphere}" clause (generation/planet.py's to_paragraph_list),
+        # producing "...world with a thin atmosphere with an atmosphere
+        # of...".
         # Radius ceiling raised to 7500 to absorb the same formerly-separate
         # "demon world" class's range as Class A above, and a second,
         # formerly-separate "stripped core from a gas giant" class (no
@@ -1787,7 +1787,7 @@ PLANET_CLASSES = {
         # small-molten-world physical envelope, rather than kept as a
         # separate atmosphere-less class -- real Mercury-analog worlds this
         # close to their star already have only a negligible exosphere, so
-        # B's existing "thin" atmosphere already covers that "no atmosphere"
+        # B's thin air already covers that "no atmosphere"
         # identity closely enough. "and sulfur" added to the composition for
         # the shared volcanic/irradiated theme. See CHANGELOG.md for the
         # full removal rationale.
@@ -1798,7 +1798,7 @@ PLANET_CLASSES = {
         # or newly-stripped world skews a bit smaller.
         "size_mode": 0.25,
         "h": True, "e": False, "c": False, "r": False,
-        "atmosphere": "a thin mix of helium, sodium, and oxygen",
+        "air": True,
         "type": "t",
     },
     "C": {
@@ -1810,7 +1810,7 @@ PLANET_CLASSES = {
         # and this class's own broadest-of-any range skews the same way.
         "size_mode": 0.20,
         "h": True, "e": True, "c": True, "r": True,
-        "atmosphere": None,
+        "air": False,
         "type": "t",
     },
     "D": {
@@ -1822,14 +1822,13 @@ PLANET_CLASSES = {
         # as a whole skews toward its smaller end.
         "size_mode": 0.25,
         "h": True, "e": True, "c": True, "r": True,
-        "atmosphere": None,
+        "air": False,
         "type": "t",
     },
     "E": {
-        # "and a thin atmosphere" moved off the description and onto the
-        # atmosphere field ("a thin mix of...") -- collided with the render
-        # template's own "with an atmosphere of {atmosphere}" clause
-        # otherwise (see Class B's note above).
+        # "and a thin atmosphere" left off the description -- it collided
+        # with the render template's own "with an atmosphere of
+        # {atmosphere}" clause (see Class B's note above).
         "description": "a world with a molten core and crust",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
@@ -1844,7 +1843,7 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.15,
         # "hydrogen compounds" made concrete as a real Hadean/Archean-analog
         # reducing mix (water vapor, ammonia, methane).
-        "atmosphere": "a thin mix of water vapor, ammonia, and methane",
+        "air": True,
         "type": "t",
         # Dark volcanic rock and minimal ice keep the albedo low: the youngest, most volcanic of the habitable classes.
         "albedo_range": (0.10, 0.18),
@@ -1859,7 +1858,7 @@ PLANET_CLASSES = {
         # Middle of the E->F->G progression positionally too -- see Class
         # K's own `zone_position_mode` note.
         "zone_position_mode": 0.30,
-        "atmosphere": "a mix of carbon dioxide, ammonia, and methane",
+        "air": True,
         "type": "t",
         # The middle step of the E->F->G progression: a higher albedo than E.
         "albedo_range": (0.15, 0.22),
@@ -1874,7 +1873,7 @@ PLANET_CLASSES = {
         # Converges near M's own position too -- see Class K's own
         # `zone_position_mode` note.
         "zone_position_mode": 0.44,
-        "atmosphere": "a mix of carbon dioxide, oxygen, and nitrogen",
+        "air": True,
         "type": "t",
         # The final step of the E->F->G progression, converging on M's and O's Earth-like range.
         "albedo_range": (0.20, 0.28),
@@ -1893,7 +1892,7 @@ PLANET_CLASSES = {
         # particulate, not metal vapor (that's a magma-ocean/ultra-hot-rocky
         # -exoplanet phenomenon, not a match for a class that still has some
         # liquid water).
-        "atmosphere": "a mix of oxygen, nitrogen, argon, and mineral dust",
+        "air": True,
         "type": "t",
         # Hot and dry: dark exposed rock and minimal ice or cloud cover keep the albedo low.
         "albedo_range": (0.18, 0.26),
@@ -1915,7 +1914,7 @@ PLANET_CLASSES = {
         # by Class B's "occasionally the stripped core of a former gas
         # giant" (see Class B's note).
         "h": False, "e": True, "c": True, "r": True,
-        "atmosphere": "a mix of hydrogen and helium",
+        "air": True,
         "type": "g",
     },
     "J": {
@@ -1936,13 +1935,13 @@ PLANET_CLASSES = {
         # generation path, including habitable-class ones -- the
         # "habitable exomoon around a giant planet" trope.
         "h": True, "e": True, "c": True, "r": True,
-        "atmosphere": "a mix of hydrogen and helium",
+        "air": True,
         "type": "g",
     },
     "K": {
         # "with a thin atmosphere" dropped -- already collided with the
         # render template's own "with an atmosphere of {atmosphere}" clause,
-        # and the atmosphere field below already says "a thin mix of...".
+        # and the atmosphere text already says how thin the air is.
         "description": "an adaptable world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (2500, 7500),
@@ -1957,7 +1956,7 @@ PLANET_CLASSES = {
         # Sun than Earth, so K is pushed toward the outer (colder) edge of
         # the zone rather than sharing Class M's own ~0.5 (center) position.
         "zone_position_mode": 0.90,
-        "atmosphere": "a thin mix of carbon dioxide and nitrogen",
+        "air": True,
         "type": "t",
         # Mars analog: a dusty, cold surface. The range is kept from the class's climate tuning; the temperature itself comes from the solved
         # air (`physics/surface_air.py`).
@@ -1975,7 +1974,7 @@ PLANET_CLASSES = {
         # Between M and K positionally too, closer to K -- see Class K's
         # own `zone_position_mode` note.
         "zone_position_mode": 0.70,
-        "atmosphere": "a mix of argon, oxygen, and trace elements",
+        "air": True,
         "type": "t",
         # Brighter than K (vegetation, more cloud) and darker than M; kept from the class's climate tuning.
         "albedo_range": (0.24, 0.30),
@@ -1993,15 +1992,15 @@ PLANET_CLASSES = {
         # class was already tuned against before `zone_position_mode`
         # existed, so this is a no-op for M specifically.
         "zone_position_mode": 0.50,
-        "atmosphere": "a mix of oxygen, nitrogen, and argon",
+        "air": True,
         "type": "t",
         # Earth's own Bond albedo, about 0.3.
         "albedo_range": (0.29, 0.31),
     },
     "N": {
-        # "dense, reducing atmosphere" moved onto the atmosphere field
-        # itself -- collided with the render template's own "with an
-        # atmosphere of {atmosphere}" clause otherwise.
+        # "dense, reducing atmosphere" left off the description -- it
+        # collided with the render template's own "with an atmosphere of
+        # {atmosphere}" clause.
         "description": "a hot world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
@@ -2012,7 +2011,7 @@ PLANET_CLASSES = {
         # closer to the Sun than Earth, so N is pushed toward the inner
         # (hotter) edge of the ecosphere zone.
         "zone_position_mode": 0.05,
-        "atmosphere": "a dense, reducing mix of carbon dioxide and sulfides",
+        "air": True,
         "type": "t",
         # Venus analog: its highly reflective cloud deck (Venus' Bond albedo is about 0.77).
         "albedo_range": (0.75, 0.90),
@@ -2032,7 +2031,7 @@ PLANET_CLASSES = {
         # Text now distinct from Class M's identical-before-this "oxygen,
         # nitrogen, and argon" -- water vapor is a real, tracked constituent
         # here.
-        "atmosphere": "a humid mix of oxygen, nitrogen, and water vapor",
+        "air": True,
         "type": "t",
         # Higher than M: more cloud cover over an ocean-dominated surface (the waterworld-climate literature).
         "albedo_range": (0.28, 0.35),
@@ -2050,7 +2049,7 @@ PLANET_CLASSES = {
         # Cold/glaciated -> pushed toward the zone's colder outer edge, same
         # as K -- see Class K's own `zone_position_mode` note.
         "zone_position_mode": 0.90,
-        "atmosphere": "a mix of oxygen, nitrogen, and argon (thinning with age)",
+        "air": True,
         "type": "t",
         # Icy/glaciated surfaces reflect far more sunlight than the default
         # rocky/Earth-like range (0.12, 0.35) -- real ice/snow Bond albedo is
@@ -2075,7 +2074,7 @@ PLANET_CLASSES = {
         # the habitable zone still swings meaningfully between its own
         # perihelion and aphelion.
         "h": False, "e": True, "c": False, "r": False,
-        "atmosphere": "a variable mix (thin to dense) of nitrogen, oxygen, and argon",
+        "air": True,
         "type": "t",
     },
     "S": {
@@ -2095,7 +2094,7 @@ PLANET_CLASSES = {
         "size_mode": 0.30,
         "density_range": (6.38, 9.45),
         "h": True, "e": True, "c": True, "r": True,
-        "atmosphere": None,
+        "air": False,
         "type": "t",
     },
     "T": {
@@ -2112,7 +2111,7 @@ PLANET_CLASSES = {
         # Neptune (24,622km) sits ~24% through this range.
         "size_mode": 0.24,
         "h": False, "e": False, "c": True, "r": True,
-        "atmosphere": "a mix of hydrogen, helium, and hydrocarbons",
+        "air": True,
         "type": "g",
     },
     "V": {
@@ -2135,7 +2134,7 @@ PLANET_CLASSES = {
         # latter -- "thick atmosphere with high surface temperature and
         # pressure" needs the heavier, more CO2-leaning composition; trace
         # hydrogen/helium kept as a minor primordial remnant, not the bulk.
-        "atmosphere": "a thick mix of carbon dioxide, oxygen, and trace hydrogen and helium",
+        "air": True,
         "type": "t",
         # The life-bearing super-Earth: a rocky albedo, like G's; its high gravity (from the larger radius_range above) is what lets it keep
         # a thick air, which the solved air (`physics/surface_air.py`) now finds for itself.

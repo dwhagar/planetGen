@@ -5,7 +5,7 @@ The one habitability describer (GEN.218): the protective gear a visitor needs on
 paragraph that say where each of the six PHI-6 categories falls and why (GEN.208, GEN.216), in Boss's short wording.
 `rating` returns the rows (domain, colour, score, sentence) that `describe` shows as a table; `paragraph` is the
 same rows as one paragraph for the text formats. Numbers go through `util/format.three_figures_or_tiny`, the
-formatter the unit ladders use, and the gases are named by `atmosphere.SPECIES_NAMES`.
+formatter the unit ladders use, and the gases are named as the gas table names them (`atmosphere.species_name`).
 
 The gear ladder is the research notes' (Environmental.Extremes.and.Protection.Research.md,
 Thermal.Respiratory.Protection.Research.md): modular gear (clothing, masks), intermediate
@@ -28,8 +28,8 @@ from planetgen.util.format import three_figures_or_tiny
 
 
 def _gas(symbol):
-    """A gas in a sentence: `CO2` is "carbon dioxide" (`atmosphere.SPECIES_NAMES`)."""
-    return atmosphere.SPECIES_NAMES[symbol.lower()]
+    """A gas in a sentence: `CO2` is "carbon dioxide" (the gas table's name)."""
+    return atmosphere.species_name(symbol.lower())
 
 
 def _join(items, conjunction="and"):

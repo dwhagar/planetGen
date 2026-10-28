@@ -192,12 +192,6 @@ def describe(letter):
         raise ClassError(f"{letter!r} is not a class letter") from None
 
 
-GAS_NAMES = {"o2": "oxygen", "co2": "carbon dioxide", "co": "carbon monoxide", "n2": "nitrogen", "ar": "argon",
-             "h2": "hydrogen", "h2o": "water vapour", "ch4": "methane", "h2s": "hydrogen sulfide",
-             "so2": "sulfur dioxide"}
-"""dict: The words for a stored gas in a rule's plain-language reading."""
-
-
 def _number(value, percent):
     if percent:
         return f"{value * 100:.12g} percent"
@@ -210,7 +204,7 @@ def condition_words(condition):
     if name.startswith("share_"):
         gas = name[len("share_"):]
         entry = DOCUMENT["quantities"]["share_<gas>"]
-        label, unit, percent = entry["label"].replace("<gas>", GAS_NAMES[gas]), "", True
+        label, unit, percent = entry["label"].replace("<gas>", atmosphere.species_name(gas)), "", True
     else:
         entry = DOCUMENT["quantities"][name]
         label, unit, percent = entry["label"], entry.get("unit", ""), entry.get("percent", False)

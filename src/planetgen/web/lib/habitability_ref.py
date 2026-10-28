@@ -94,7 +94,7 @@ def _gas_rows(gases):
     """One row per gas a filter handles: Blue under the long-term limit, Yellow up to ten times the short-term one."""
     rows = []
     for gas, _kpa, band in gases:
-        name = atmosphere.SPECIES_NAMES[gas.lower()].capitalize()
+        name = atmosphere.species_name(gas.lower()).capitalize()
         rows.append((f"{name} (a filter takes it out)", _under(band[4], "kPa"), "", _up_to(band[6], "kPa")))
     return rows
 

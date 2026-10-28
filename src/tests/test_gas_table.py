@@ -401,70 +401,39 @@ def test_the_data_file_is_what_the_builder_makes():
 
 NAMES = {row.name: row.formula for row in gases.GASES}
 
-FAMILIES = {
-    "hydrocarbons": ("CH4", "C2H6", "C2H4", "C2H2", "C3H8"),
-    "sulfides": ("H2S", "OCS", "CS2"),
-}
-"""dict: A word that names a family of gases in a text, and the rows it stands for (each must be in the table)."""
-
-NOT_GASES = {
-    "mineral dust": "a solid aerosol (research part 06), not a gas",
-    "trace elements": "unspecified traces; the drawn mix names the real minor gases (GEN.411)",
-}
-"""dict: Words of an atmosphere text that are not gases, and why."""
-
-_FILLER = re.compile(r"\b(a|an|mix|of|thin|thick|dense|humid|reducing|variable|trace|to|with|age|thinning)\b|\(.*?\)")
-
 NOT_FORMULAS = {"OH", "NUV", "UV", "ROS", "IW", "QFM", "FTT", "XUV", "FUV", "CIA", "MCP", "NOx", "CME", "CNS", "S0094"}
 """set: Tokens of the toxicity note that look like formulas and are not gases (the hydroxyl radical is an intermediate; the
 rest are acronyms, a journal article number, and the NOx family, which is NO and NO2)."""
 
 
-def _words_of_an_atmosphere_text(text):
-    """The names in an atmosphere text: its list items without the adjectives ("a thin mix of helium, sodium, and oxygen")."""
-    text = re.sub(r"\(.*?\)", " ", text.replace("trace elements", "trace_elements"))
-    out = []
-    for part in re.split(r"\band\b|,", text):
-        phrase = " ".join(_FILLER.sub(" ", part).split()).replace("trace_elements", "trace elements")
-        if phrase:
-            out.append(phrase)
-    return out
+def _names_in(text):
+    """The gas names an atmosphere text lists: its "mix of" list and its "traces of" list, without the adjectives."""
+    found = []
+    mix, _, traces = re.sub(r"^a .*?mix of (mostly )?", "", text).partition(", with traces of ")
+    for part in (mix, traces):
+        found.extend(name for name in re.split(r", and |, | and ", part) if name)
+    return found
 
 
-def _resolve(word):
-    """The formulas a word of a text stands for, or None if neither the table nor the exceptions know it."""
-    if word in NAMES:
-        return (NAMES[word],)
-    if word in FAMILIES:
-        return FAMILIES[word]
-    if word in NOT_GASES:
-        return ()
-    return None
+def test_no_planet_class_carries_an_atmosphere_text_only_whether_it_has_air():
+    """GEN.415: a class names no gas; the air is drawn from the body and the text is written from the stored mixture."""
+    for letter, class_data in tuning.PLANET_CLASSES.items():
+        assert "atmosphere" not in class_data, letter
+        assert isinstance(class_data["air"], bool), letter
 
 
-def test_every_gas_in_a_planet_class_atmosphere_text_is_in_the_table():
-    words = set()
-    for class_data in tuning.PLANET_CLASSES.values():
-        if class_data.get("atmosphere"):
-            words.update(_words_of_an_atmosphere_text(class_data["atmosphere"]))
-    assert len(words) > 10
-    missing = sorted(word for word in words if _resolve(word) is None)
-    assert not missing, f"gases named in tuning.PLANET_CLASSES atmosphere text and missing from physics/data/gases.json: {missing}"
-    for word in words:
-        for formula in _resolve(word):
-            assert gases.has(formula), (word, formula)
-
-
-def test_the_families_and_exceptions_are_real():
-    for family, members in FAMILIES.items():
-        assert all(gases.has(formula) for formula in members), family
-    assert not set(NOT_GASES) & set(NAMES)
-
-
-def test_every_stored_species_is_in_the_table():
-    for key, name in atmosphere.SPECIES_NAMES.items():
-        assert gases.stored(key).name == name, key
-    assert set(habitability_world.MOLAR_KG) == set(gases.STORED_PARTIALS)
+def test_every_gas_the_atmosphere_text_names_is_a_row_of_the_table():
+    """GEN.415: the text is written from the partial pressures, so a gas it names is a gas of the stored mixture, named as the table
+    names it (one spelling: "water vapor", never "water vapour"), whichever gases the air holds."""
+    for start in range(0, len(gases.GASES) - 5):
+        rows = gases.GASES[start:start + 6]
+        partials = {row.formula: 10.0 ** (3 - 0.8 * i) for i, row in enumerate(rows)}
+        text = atmosphere.describe(partials)
+        named = _names_in(text)
+        assert named, text
+        assert set(named) <= set(NAMES), (text, sorted(set(named) - set(NAMES)))
+        assert named[0] == rows[0].name, text
+    assert atmosphere.describe({"H2O": 1000.0}) == "a humid mix of mostly water vapor"
 
 
 def _formulas_in(text):
