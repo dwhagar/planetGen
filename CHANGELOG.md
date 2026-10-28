@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2427] - 2026-10-28
+
+**Headline:** A normal fill now charts one whole named region: a random start begins at the middle of a region nothing is generated in yet, and "this region" fills the region around any place.
+
+### Changed
+- **Random-start fills chart whole regions (GEN.826).** A random start used to be any empty sector. It is now the anchor sector (the middle) of a region, the 9-block cell of about 780 sectors the galaxy map names, that has no generated sector yet, and the usual 12 pc sphere around it is generated, so the finished fill is one charted, named region. Where the middle of the drawn cell lies outside the galaxy's outline, or beyond `--max-shell`, the drawn sector starts the fill as before. Which sectors a fill takes changes with this; what a sector generates does not.
+- **`--region` and the Generate page's "This region" (GEN.826).** `planetgen sectors` and `planetgen galaxy` take `--region` with `--center-sector` or `--shell --band --wedge`: the center moves to the anchor sector of the region holding it and the 12 pc sphere about it is generated (it replaces `--radius-pc`, which it refuses; `--center-sector` without `--radius-pc` is now allowed with it). On the Generate page, "Sectors around a place" has a "This region" box for a named sector, an address or a position; ticked, the radius is not used. No generated value changes, no migration, no epoch.
+TODO items resolved: GEN.826 (TODO closes it after reading this). Added: none.
+
 ## [8.0.2426] - 2026-10-28
 
 **Headline:** The day and night swing now reads as a clear range with plus or minus, and the equator's temperature shows its coldest and hottest hour with the stored value exactly in the middle.
