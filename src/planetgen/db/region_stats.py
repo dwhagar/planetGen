@@ -26,7 +26,7 @@ deleted, so they are kept by the hooks that keep `galaxy_block_stats` (`db/block
 import functools
 import math
 
-from planetgen.db import interests, query
+from planetgen.db import interests, population_slot, query
 from planetgen.galaxy import drill, named_regions, spherical
 from planetgen.physics import habitability
 
@@ -295,11 +295,13 @@ def charted_regions(conn, key, edge_pc):
     band, wedge, centre, radius, sector_count, capacity, share, clumps}` and, with a naming key in force, `name` and `parent`
     (`labels`): the cell's node key, the middle `[x, y, z]` and `radius` of its extent in parsecs, how many generated sectors it
     holds of how many its outline can, and `share`, that fraction (0 to 1, above 0 for every region). A region with an inhabited
-    world also has `inhabited` (MAP.321 c): `systems`, `worlds` and, when one is scored, the best `score` and its PHI-6 `tier`.
-    Sorted by share charted (largest first), ties by the cell.
+    world also has `inhabited` (MAP.321 c): `systems`, `worlds` and, when one is scored, the best `score` and its PHI-6 `tier`. A
+    region whose people are counted also carries `population` (`population_slot.region_totals`); the others do not, so nothing
+    shows a column for it while no head counts are stored (MAP.318). Sorted by share charted (largest first), ties by the cell.
     """
     found = []
     inhabited = inhabited_by_region(conn, edge_pc)
+    people = population_slot.region_totals(conn)
     for region in regions(conn):
         cell = region["block"]
         entry = {"key": drill.format_drill_key(cell), "m": cell.m, "shell": cell.shell, "band": cell.band, "wedge": cell.wedge,
@@ -315,5 +317,8 @@ def charted_regions(conn, key, edge_pc):
                 here["tier"] = habitability.tier(here["score"])
                 here["score"] = round(here["score"], 3)
             entry["inhabited"] = here
+        total = people.get((cell.shell, cell.band, cell.wedge))
+        if total:
+            entry["population"] = total
         found.append(entry)
     return found
