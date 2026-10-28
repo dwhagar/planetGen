@@ -1441,6 +1441,7 @@
 --   `ring_optical_depth`, a mean; `ring_ice_fraction`). NULL for a body with no ring, a moon, and a row made before v160, which gets its rings when the galaxy is regenerated.
 -- v162 (DB.96): `planets` and `moons` keep the colour of the body's air as one integer (`atmosphere_colour`, sRGB as red*65536 + green*256 + blue; NULL for a body with no air, no star
 --   temperature or no mixture, and a row made before v162, which gets it when the galaxy is regenerated). The cloud cover it was worked out with is `cloud_cover` (v138).
+-- v171 (GEN.836): `rogue_planets` keeps the same seven ring columns as `planets` (v160); a moon may hold a ring system too.
 -- v168 (DB.108): the mass of each generated sector and of the blocks and regions above it: `sector_stats.total_mass_kg`, `galaxy_block_stats.mass_sum_kg` and `region_stats.mass_sum_kg`, kilograms. See `db/sector_mass.py`.
 -- v169 (GEN.721): `planets` and `moons` also keep `lid_regime`, 'mobile' (plate tectonics) or 'stagnant' (one rigid plate), drawn once after the
 --   hydrosphere (`physics/interior_heat.py`); the heat flux law, the dynamo lifetime and the ground dose's felsic crust read it. NULL for a gas giant
@@ -3498,6 +3499,14 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     ocean_depth_km           DOUBLE,
     has_liquid_water         TINYINT(1),
     hp_ice_km                DOUBLE,  -- v74 (GEN.88)
+    -- v171 (GEN.836): the ring system, as on `planets` (v160); NULL for a planet with none.
+    ring_kind                VARCHAR(8) CHECK (ring_kind IN ('dusty', 'narrow', 'broad')),
+    ring_origin              VARCHAR(16) CHECK (ring_origin IN ('moon_erosion', 'disrupted_moon', 'captured_body')),
+    ring_inner_km            DOUBLE,
+    ring_outer_km            DOUBLE,
+    ring_mass_kg             DOUBLE,
+    ring_optical_depth       DOUBLE,
+    ring_ice_fraction        DOUBLE,
     -- v17: always populated (a rogue planet is always standalone).
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,

@@ -336,6 +336,9 @@ _ROGUE_PLANET = (
            ("l_solv", "Solvent suitability"), ("l_chem", "Chemistry suitability"), ("l_ener", "Energy suitability"),
            ("l_rad", "Radiation tolerance")),
     *_rows("radiation", ("shelter_column_g_cm2", "Shelter column")),
+    *_rows("composition", ("ring_kind", "Kind of ring system", TEXT), ("ring_origin", "Where the ring came from", TEXT),
+           ("ring_inner_km", "Ring inner edge"), ("ring_outer_km", "Ring outer edge"), ("ring_mass_kg", "Ring mass"),
+           ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
