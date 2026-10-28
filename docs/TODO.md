@@ -3406,7 +3406,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn at galactic scale. Owner: Aux 10. Rules: no backward-compat
   shims; every number has a unit or scale (GEN.772); tests are
   scripts/test.py changed --resume.
-  Prerequisites: DB.107, API.35. Related: GEN.825, DB.107,
+  Prerequisites: API.35. Related: GEN.825, DB.107,
   GEN.827, API.35, MAP.314.
 
 - [ ] **MAP.317 Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c)**
@@ -14483,20 +14483,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   offset is applied twice. Version 8.1. Owner: Units lane.
   Prerequisites: GEN.773. Related: GEN.773, GEN.656, GEN.769.
 
-- [ ] **GEN.797 Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level**
-  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
-  relayed 10:25 PM EDT 2026-10-24 as the lane reported. The stand-ins
-  live in tuning.py with brackets (member count weights for 3 to 5
-  stars, group radius, a 2.5 km/s dispersion, a 300 AU cap for the
-  remnant hierarchy, the 5 percent birth fraction, the 10,000 to 40,000
-  year decay age). Add a registry row for each
-  (docs/design/research/stand-in-values.md through its builder) with its
-  source, tier, tweak level, falsifier and replacing item, from the
-  Orion Trapezium and other young-group literature where it can be read.
-  Done: every constant has a row and `scripts/build_stand_in_values.py
-  --check` passes. Version 8.1. Owner: Core 3 or the Citations lane.
-  Prerequisites: none. Related: GEN.327, GEN.725.
-
 - [ ] **GEN.798 Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers)**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
@@ -16822,50 +16808,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   nothing in 8.1.
   Prerequisites: GEN.798. Related: DB.70, DB.101.
 
-- [ ] **DB.107 Region stats: the region_stats table, its save and delete hook and the charted percent (regions chain, step 1b)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
-  9-block cell (about 780 sectors) with at least one generated sector,
-  named from the block path by a new codec kind region (Word Region; the
-  27 Regions of one 81-block share the family word) and drawn as the
-  bounding sphere of its generated sectors, never smaller than the 12 pc
-  standard-fill sphere (about 109 sectors) about the cell's anchor; it
-  exists, and shows on the galactic map, as soon as any sector in the
-  cell is generated (anything above 0 percent), ranked by share charted
-  (generated sectors over the sectors its outline can hold, a standard
-  fill is about 14 percent); ungenerated space gets no region and no
-  sector line may join two unrelated places. Boss, 1:13 AM EDT
-  2026-10-25: the chain is in 8.1, regions are what the galactic-level
-  map shows so a user can always drill down to inhabited space. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
-  from the gated phoneme codec only, never from Milky Way or Solar
-  System lists. One row per 9-block cell with any generated sector (no
-  row means no region): region_stats(m=9 key, sector_count, capacity),
-  kept by the same hook as galaxy_block_stats (db/block_stats.py); the
-  count is recomputed for the one sphere a saved or deleted sector falls
-  in (about 109 cells). The charted percent is sector_count over
-  capacity (the sectors the outline can hold), and a region with any
-  sector above 0 percent exists; every sector of the cell counts, the
-  cell of a sector being found by its centre as the ladder does. One
-  migration and its epoch row at merge, as DB.100 did (new numeric
-  columns registered in db/column_units.py). Done: region_of(position)
-  and charted_percent(anchor) read from the table, order-independence
-  test (test_order_independence), one generated sector makes its region
-  exist at its small percent, deleting the last sector removes the
-  region. Owner: Core 3. Rules: no backward-compat shims; every number
-  has a unit or scale (GEN.772); tests are scripts/test.py changed
-  --resume.
-  Research (2026-10-09, Core 3 report 2026-10-28): GEN.825 and GEN.827
-  merged (#3375, Core 3, 7:54 AM EDT 10-28 as the lane reported): region
-  names (kind region), anchors, framing spheres and extents live in
-  galaxy/named_regions.py. Design corrections: an 81-block holds about
-  729 9-blocks (not 27); REGION_RADIUS_PC lives in named_regions, not
-  tuning; the local ordinal is 3 hex digits. This item takes migration
-  0161 and schema 161 (0160 is GEN.732); it rewrites no golden file so
-  it is exempt from the lock; any lane holding 0161 renumbers at its
-  merge.
-  Prerequisites: GEN.827. Related: GEN.825, GEN.827.
-
 - [ ] **DB.108 Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e)**
   Design section 0.4 of
   /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md,
@@ -17409,7 +17351,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   now or later. Owner: Aux 12. Rules: no backward-compat shims; every
   number has a unit or scale (GEN.772); tests are scripts/test.py
   changed --resume.
-  Prerequisites: DB.107, API.35. Related: GEN.825, DB.107, GEN.826,
+  Prerequisites: API.35. Related: GEN.825, DB.107, GEN.826,
   API.35, MAP.314, MAP.315, UX.231.
 
 ## ADM: Admin tools
@@ -20660,35 +20602,6 @@ clears each one.
   Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.34. Related: TEST.380, TEST.381, POP.33, MAP.310, NAV.63.
 
-- [ ] **TEST.383 test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug)**
-  Aux 4 final full check (219 minutes, 24446 passed, 24 failed), relayed
-  10:20 PM EDT 2026-10-24 as the lane reported; list in
-  reports/lane-e-full-check-2026-10-24.md. This test fails when run
-  alone (not an order dependence), in the wheel zoom anchor on empty
-  space of the sector reach map. Find out whether the test or the zoom
-  code is wrong, fix it, and keep the test. Done: the test passes alone
-  and in the file, and the cause is written in the PR. Version 8.1.
-  Owner: Aux 10 (map nodes and zoom) or Core 2.
-  Finding (2026-10-09): Aux 10 finding (12:50 AM EDT 2026-10-25): the
-  page header now pushes the map canvas below the 600 px test window
-  (canvas top at 403), and four map tests fail identically on
-  origin/main for that reason: wheel_zoom_turns_about_the_centre,
-  one_wheel_scroll_runs, black_hole_markers_have_a_toggle and the
-  sector_reach wheel anchor. Fix by scrolling the canvas into view in
-  the tests. Owner Aux 10 (taking it after MAP.311).
-  Finding (2026-10-09): Core 2, as the lane reported 3:19 AM EDT
-  2026-10-25:
-  test_wheel_zoom_turns_about_the_centre_and_a_shift_click_chooses_it is
-  red on clean main (the view drifts off the line of sight by about
-  0.004 pc); same family as the wheel anchor test Bug 1 is fixing
-  (window shape), Bug 1 checks both in the run.
-  Finding (2026-10-09): Core 2, as the lane reported 4:43 AM EDT
-  2026-10-25, red on clean main after #3345:
-  test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold
-  (sector_reach); this is the test Bug 1 is fixing here, MAP.326 changed
-  the wheel path further so Bug 1 re-checks it against main.
-  Prerequisites: none. Related: MAP.293, TEST.375.
-
 - [ ] **TEST.386 First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
@@ -20776,49 +20689,6 @@ clears each one.
   with the same sample size and tolerances.
   Prerequisites: none. Related: TEST.384, PERF.186.
 
-- [ ] **TEST.394 Six fixture-map browser tests are red on clean main (sector-click flow), and test_web_browser_fixture_maps.py is order-sensitive in one process because dense_site leaks extra worlds into the shared fixture (bug)**
-  Found by Core 2 (1:39 AM EDT 2026-10-25 as the lane reported):
-  test_sector_page_map_keeps_to_its_sector,
-  test_galaxy_map_a_sector_is_selected_from_the_galaxy_view,
-  test_galaxy_map_the_picked_sector_stays_picked_across_a_wheel_crossing,
-  test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view,
-  test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it
-  and test_a_selection_is_shown_once_and_over_the_map, all in the
-  sector-click flow, plus dense_site leaking extra worlds into the
-  shared fixture so the module result depends on test order. Do:
-  root-cause each (the sector-click flow changed with MAP.297, which
-  merged), rewrite the tests to the new flow where the flow is intended,
-  fix the dense_site fixture to isolate its worlds. Never skip a test to
-  get green. Owner: Bug 1 with Aux 10 (the map owner) for the intended
-  flow. Done: the module is green in any order on clean main.
-  Finding (2026-10-09): Core 2 (2:07 AM EDT 2026-10-25) adds two more
-  red tests on clean main from the dense_site fixture:
-  test_a_double_click_on_a_star_flies_to_it and
-  test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box.
-  Finding (2026-10-09): Bug 1, as the lane reported 3:10 AM EDT
-  2026-10-25: the 11 red fixture-map tests have two test-side causes:
-  the default 800x600 test window cuts the map off below the taller
-  header, and since MAP.298 a click or hover on a name takes the click
-  instead of the star or marker under it. Fix in progress: default test
-  window 1000x800, maps opened with the names hidden except in the tests
-  of the names (marked labels). TEST.383 (wheel anchor test, bound
-  assumed a square-ish window) handed from Aux 10 to Bug 1, which now
-  computes the focus-plane distance of the corner.
-  Finding (2026-10-09): Core 2, as the lane reported 3:19 AM EDT
-  2026-10-25, red on clean main after #3331 (not its change):
-  test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked
-  (tooltip empty on hover of Fixture Maw), likely the same
-  name-takes-the-click cause as the 11 fixture-map tests Bug 1 is
-  fixing, so Bug 1 checks it in that run; and
-  test_sector_map_click_on_the_selected_nebula_clears_it flaked once (no
-  spot named Fixture Veil) and passed on re-run (a second failure is
-  real).
-  Finding (2026-10-09): Core 2, as the lane reported 4:43 AM EDT
-  2026-10-25: four double-click flies tests in the sector_reach file
-  failed once under load and pass alone; Bug 1 checks them in the same
-  fixture-map run (window size, names hidden).
-  Prerequisites: none. Related: MAP.297, TEST.390.
-
 - [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
   From Aux 16's planet class distribution check (2:09 AM EDT 2026-10-25;
   report
@@ -20882,21 +20752,6 @@ clears each one.
   backward-compat shims; never skip or quarantine the test;
   scripts/test.py changed --resume.
   Prerequisites: none. Related: GEN.441, TEST.261.
-
-- [ ] **TEST.401 test_atmosphere_mixture_escape (abiotic oxygen) and test_atmosphere_mixture_rocky (delivered-water class) are red on main (bug)**
-  Found by the 4c lane (about 4:17 AM EDT): two atmosphere tests were
-  red on main before 4c merged and stay red: the abiotic oxygen case in
-  test_atmosphere_mixture_escape and the delivered-water class case in
-  test_atmosphere_mixture_rocky. Do: run both on clean main, say whether
-  the physics changed on purpose (then the test expectation moves, with
-  the reason, as a recorded stand-in tweak if the value is a tuned one)
-  or a regression (then fix the code); do not loosen a test without
-  writing why. Done: both pass on main. Owner: Aux 8 (Lane L atmosphere,
-  the owner of the mixture code) after GEN.830, or a free lane; tell
-  TODO if another lane's change broke them. Rules: no backward-compat
-  shims; never skip or quarantine the test; scripts/test.py changed
-  --resume.
-  Prerequisites: none. Related: GEN.411, GEN.422, GEN.668.
 
 - [ ] **TEST.402 test_db_column_round_trip fails once under load: the stars' disk columns read back NULL (bug)**
   Found by the 4c lane (about 4:17 AM EDT): test_db_column_round_trip
@@ -20983,6 +20838,39 @@ clears each one.
   lane. Rules: never skip or quarantine a test; scripts/test.py changed
   --resume.
   Prerequisites: none. Related: TEST.406.
+
+- [ ] **TEST.410 test_planet_physics_fixes::test_class_p_is_colder_than_class_m times out at 900 s: it generates 600 planets at about 5 s each since 4c, 14 of 16 seconds in the air solve (bug)**
+  Found by Aux 8 (as the lane reported 8:34 AM EDT 2026-10-28) while
+  retiring TEST.401. Not a hang: N_SAMPLE 300 for two classes generates
+  600 planets at about 5 s each since 4c. Profile of 3 planets: 14 s of
+  16 in the air solve, 4.5 s of that in thermosphere.kept_shares (83
+  calls, 75,600 diffusion_limited_flux calls). Do: (1) cut the sample to
+  what the comparison needs (the class P versus class M temperature gap
+  is large; a few dozen planets per class give the same verdict, state
+  the margin), (2) with GEN.841 (the exobase loop), make
+  thermosphere.kept_shares cheaper (cache or vectorise
+  diffusion_limited_flux over species) without changing a value; a
+  change in values must be stated as a stand-in tweak. Done: the test
+  passes in under 3 minutes and the air solve per planet is measurably
+  faster. Owner: Aux 8 together with GEN.841; if values move it needs a
+  lock turn. Rules: never skip or quarantine a test; scripts/test.py
+  changed --resume.
+  Prerequisites: none. Related: GEN.841, TEST.401.
+
+- [ ] **TEST.411 Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug)**
+  Found by Bug 1 (as the lane reported 8:36 AM EDT 2026-10-28) while
+  merging TEST.394 and TEST.383 (#3385): in a full-file run 132 of 136
+  passed; the dense click was fixed since, and the indexeddb revisit
+  test and two sector_reach double-click flight tests fail only after a
+  long run on a loaded 4-core box. Do: find what the loaded run changes
+  (animation timing, a flight that has not finished when the second
+  click lands, an indexeddb transaction not closed), replace fixed waits
+  with waits on the real condition (the flight end event, the db open
+  state), never raise a timeout to hide it. Done: the three tests pass
+  in a full-file run and under -n 4. Owner: Bug 1 or a free lane after
+  TEST.405/406/398/402. Rules: never skip or quarantine a test;
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.394, TEST.383.
 
 ## USR: User accounts
 
@@ -22377,7 +22265,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   check exists. Owner: Core 3. Rules: no backward-compat shims; every
   number has a unit or scale (GEN.772); tests are scripts/test.py
   changed --resume.
-  Prerequisites: DB.107, API.35. Related: GEN.825, DB.107,
+  Prerequisites: API.35. Related: GEN.825, DB.107,
   GEN.826, API.35, MAP.314, MAP.315, UX.231, API.36.
 
 ## VIEW: The view from a planet
