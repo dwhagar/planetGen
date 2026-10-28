@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2413] - 2026-10-28
+
+**Headline:** The Galaxy Map can mark systems with inhabited worlds, in the colour of their habitability, ahead of every other kind of world.
+
+### Added
+- **Inhabited worlds as a reason for a mark (MAP.321).** The Menu has an Inhabited worlds layer (a world whose timeline reached a technological civilization, or with a colony on it, as the system page decides it), off until asked for. Its symbol is coloured by the best habitability among those worlds and takes the star's mark before a habitable world's, a barren one's, a gas giant's or a belt's; the infobox lists them all.
+- Migration 0167 fills the reason from the planets, moons and colonies already stored (no epoch); adding, changing or removing a facility keeps a system's rows right.
+
 ## [8.0.2412] - 2026-10-28
 
 **Headline:** A table whose clustered index has a page the server cannot read can now be rebuilt in two steps with `planetgen repair-db --salvage` and `--reload`, and the rows the page took come back from the parity file.
