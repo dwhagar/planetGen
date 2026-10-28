@@ -5130,6 +5130,39 @@ p.hint a {
 }
 
 
+/* The icons on the walls of the sector opened in place (MAP.327, sectorframe.js): a labelled button at the centre of each
+   wall that faces a neighbouring sector, screen-sized whatever the zoom, over the names; a click flies there. */
+.map-wall-icons {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+}
+.map-wall-icon {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 7px;
+  border: 1px solid var(--accent, #4f5fe8);
+  border-radius: 999px;
+  background: rgba(11, 13, 20, 0.82);
+  color: #eef1fb;
+  font-size: 0.75rem;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.map-wall-icon[hidden] { display: none; }
+.map-wall-icon:hover, .map-wall-icon:focus-visible {
+  background: var(--accent, #4f5fe8);
+  color: #fff;
+}
+.map-wall-arrow { font-size: 0.8rem; }
+
 /* The map's names (MAP.268, maplabels.js): laid over the map, never picked, with a halo that reads on both
    themes; a fade in and out that reduced motion drops. */
 .map-labels {

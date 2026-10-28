@@ -497,7 +497,20 @@ def _settle(page):
         page.wait_for_timeout(150)
 
 
-def _open_galaxy(page, base, query=""):
+# Added to every document the page loads from here on (the map reloads itself when it opens a sector from the address).
+NO_WALL_ICONS = """{
+    // A constructed sheet: the page's content security policy refuses a style element of ours.
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(".map-wall-icons { display: none !important; }");
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+}"""
+
+
+def _open_galaxy(page, base, query="", wall_icons=False):
+    """Opens the Galaxy Map; the icons on the walls of an opened sector (MAP.327) are left out unless `wall_icons`, as
+    they sit over the points the tests look for."""
+    if not wall_icons:
+        page.add_init_script(NO_WALL_ICONS)
     _open(page, f"{base}/galaxy{query}", GALAXY_CANVAS)
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     _settle(page)
@@ -2400,6 +2413,49 @@ def test_a_name_is_only_offered_for_a_habitable_world_marker_that_is_drawn_and_a
     # No marker drawn, no name offered.
     button.click()
     page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'world')")
+
+
+SECTOR_FRAME = "() => { const f = document.querySelector('#galaxymap3d-canvas').__mapSectorFrame; return f && f.state(); }"
+SECTOR_VIEW = "() => document.querySelector('#galaxymap3d-canvas').galaxySectorView()"
+SECTOR_FRAME_LINES = "() => document.querySelector('#galaxymap3d-canvas').__mapSectorFrame.positions()"
+
+
+def test_the_opened_sector_is_framed_and_dimmed_around_with_a_labelled_icon_on_each_wall_that_flies_to_the_neighbour(page, map_site):
+    """MAP.327: with a sector opened in place the space outside it is dimmed (no glow), a wireframe round its cell stays
+    where the cell is, and each wall facing another sector has one labelled icon at its centre whose click arrives there."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, wall_icons=True)
+    assert page.evaluate(SECTOR_VIEW)["outsideDim"] == 1 and page.evaluate(SECTOR_FRAME)["framed"] is False
+    _open_galaxy(page, map_site, OPEN_PRIME, wall_icons=True)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_function(f"() => {{ const f = ({SECTOR_FRAME})(); return f && f.framed && f.icons.some((i) => i.shown); }}", timeout=20000)
+    _settle(page)
+    view = page.evaluate(SECTOR_VIEW)
+    assert view == {"outsideDim": 0.3, "glowVisible": False, "opened": True}, view
+    state = page.evaluate(SECTOR_FRAME)
+    names = [icon["name"] for icon in state["icons"]]
+    assert names and len(set(names)) == len(names) and all(name.startswith("Sector ") for name in names), names
+    # Each shown icon stands at the centre of its wall, the icon's own button what the page shows there.
+    shown = [icon for icon in state["icons"] if icon["shown"]]
+    assert shown
+    for icon in shown:
+        spot = _screen_of(page, tuple(icon["wall"]))
+        assert spot
+        on = page.evaluate("([x, y]) => { const e = document.elementFromPoint(x, y); const b = e && e.closest('.map-wall-icon'); return b && b.dataset.dir; }", [spot[0], spot[1]])
+        assert on == icon["dir"], (icon["dir"], on)
+    # The frame is fixed: the pointer moving over the map changes nothing of it.
+    before = page.evaluate(SECTOR_FRAME_LINES)
+    page.mouse.move(300, 300)
+    page.mouse.move(420, 360)
+    page.wait_for_timeout(300)
+    assert page.evaluate(SECTOR_FRAME_LINES) == before
+    # A click on an icon arrives at that neighbour: the address names it, the frame is round it.
+    target = shown[0]
+    designation = target["name"].replace("Sector ", "")
+    page.locator(f'.map-wall-icon[data-dir="{target["dir"]}"]').click()
+    page.wait_for_function("([d]) => location.search.includes('sector=' + d)", arg=[designation], timeout=20000)
+    _settle(page)
+    assert page.evaluate(SECTOR_FRAME_LINES) != before or not page.evaluate(SECTOR_VIEW)["opened"]
 
 
 def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):

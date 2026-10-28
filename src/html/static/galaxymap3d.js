@@ -54,9 +54,11 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
   cellAt, cellCoordinates, cellVertices, drillBandCount, drillBlockBounds, drillParent, drillWedgeCount, isFullTurn,
-  sectorAddressAt, sectorDesignation,
+  neighbourBlock, sectorAddressAt, sectorDesignation,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
+const { createSectorFrame } = await import(`./sectorframe.js${VERSION_QUERY}`);
+const { cellEdgePoints, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
@@ -816,6 +818,27 @@ function initGalaxyMap3d(canvasEl, data) {
     hiddenCell = bounds;
     markHiddenStars();
     updateClouds();
+    applySectorView();
+  }
+
+  // The middle of a cell given as bounds (radius, colatitude, longitude), in the galaxy's frame.
+  function cellCentre(b) {
+    var r = (b.r0 + b.r1) / 2;
+    var c = (b.c0 + b.c1) / 2;
+    var t = (b.t0 + b.t1) / 2;
+    return [r * Math.sin(c) * Math.cos(t), r * Math.sin(c) * Math.sin(t), r * Math.cos(c)];
+  }
+
+  // MAP.327: with a sector opened in place, what lies outside it is dimmed to SECTOR_OUTSIDE_SHARE (no glow, no names, no
+  // comets or rogue planets), the sector is framed by a wireframe that stays where the cell is, and each wall that faces a
+  // neighbouring sector carries an icon that flies there. With none opened the map is as it was.
+  var SECTOR_OUTSIDE_SHARE = 0.3;
+  var sectorFrame = null;
+  var glowLayerOn = true;
+  function applySectorView() {
+    starMaterial.uniforms.outsideDim.value = hiddenCell ? SECTOR_OUTSIDE_SHARE : 1;
+    if (glow) glow.setVisible(glowLayerOn && !hiddenCell);
+    if (sectorFrame) sectorFrame.set(hiddenCell);
   }
 
   // How far round from bearing a0 bearing `angle` is, 0 to a full turn.
@@ -1685,6 +1708,8 @@ function initGalaxyMap3d(canvasEl, data) {
       fadeIn: { value: Math.max(STAR_FADE_IN_MS, 1) / 1000 },
       chartedOnly: { value: 0 }, unchartedFarKeep: { value: UNCHARTED_FAR_KEEP }, focusPc: { value: 0 },
       zoomFadeOn: { value: 1 },
+      // MAP.327: the share of its light a star outside the opened sector keeps (1 with none opened).
+      outsideDim: { value: 1 },
       magLimit: { value: 1000 }, magOn: { value: 1 },
       camHigh: { value: new THREE.Vector3() }, camLow: { value: new THREE.Vector3() },
       viewRotation: { value: new THREE.Matrix3() },
@@ -1727,6 +1752,7 @@ function initGalaxyMap3d(canvasEl, data) {
       // MAP.252: the share of its light an object keeps under "Charted only" (1 for a charted one).
       "attribute float starKeep;",
       "uniform float chartedOnly;",
+      "uniform float outsideDim;",
       "uniform float unchartedFarKeep;",
       "uniform float focusPc;",
       UNCHARTED_FAR_GLSL,
@@ -1750,6 +1776,7 @@ function initGalaxyMap3d(canvasEl, data) {
       // the farther from the focus, the more.
       "  float keep = starKeep < 0.999 ? starKeep * mix(1.0, unchartedFarKeep, unchartedFar(dist, focusPc)) : 1.0;",
       "  vShown *= mix(1.0, keep, chartedOnly);",
+      "  vShown *= outsideDim;",
       "  float appMag = apparentMagnitude(starAbsMag, dist) + starTierMag;",
       "  vShown *= mix(1.0, magnitudeShare(appMag, magLimit), magOn);",
       "  gl_Position = projectionMatrix * mvPosition;",
@@ -1947,7 +1974,7 @@ function initGalaxyMap3d(canvasEl, data) {
     a.starGlow[3 * i + 2] = pointHaloPx(t);
     a.starBright[i] = light.bright;
     a.starPointBright[i] = pointBrightness(t);
-    a.starClipped[i] = drawnByTheGalaxy(star.x, star.y, star.z) ? 0 : 1;
+    a.starClipped[i] = clippedByTheSector(star);
     a.starNode[i] = 0;
     var key = starKey(star);
     var born = starBornByKey.get(key);
@@ -2255,6 +2282,13 @@ function initGalaxyMap3d(canvasEl, data) {
     return { total: starList.length, hidden: hidden };
   };
 
+  // 1 for a star the shader drops: one inside the opened sector's cell (it draws its own) and, with a sector opened, a
+  // phenomenon outside it (no comets, rogue planets or black holes of the space around, MAP.327).
+  function clippedByTheSector(star) {
+    if (!drawnByTheGalaxy(star.x, star.y, star.z)) return 1;
+    return hiddenCell && star.phenomenon ? 1 : 0;
+  }
+
   // Marks the stars inside the opened sector's cell, which the shader drops.
   function markHiddenStars() {
     var attribute = starPoints.geometry.getAttribute("starClipped");
@@ -2262,7 +2296,7 @@ function initGalaxyMap3d(canvasEl, data) {
       return;
     }
     starList.forEach(function (star, i) {
-      attribute.array[i] = drawnByTheGalaxy(star.x, star.y, star.z) ? 0 : 1;
+      attribute.array[i] = clippedByTheSector(star);
     });
     attribute.clearUpdateRanges();
     attribute.addUpdateRange(0, starList.length);
@@ -3488,6 +3522,29 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.layers.onChange(function (id) { if (markerKinds.get(id)) markersDirty = true; });
     canvasEl.__mapMarkers = markerLayer;    // the browser tests read what is drawn
   }
+  // MAP.327: the frame of the sector opened in place: a locked wireframe and an icon on each wall that faces a neighbour.
+  if (viewport && !data.pinned) {
+    sectorFrame = createSectorFrame({
+      THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl, parent: viewport, accent: accentColor, edgePc: edgePc,
+      // The sector across a wall is the one the shared step helper finds (galaxyprisms.neighbourBlock, as the arrow keys use).
+      neighbour: function (wall) {
+        if (!hiddenCell) return null;
+        var middle = cellCentre(hiddenCell);
+        var here = sectorAddressAt(middle[0], middle[1], middle[2], edgePc);
+        var found = neighbourBlock({ m: 1, shell: here.shell, band: here.band, wedge: here.wedge }, wall.dir, edgePc);
+        return found && stageOfSector(found.shell, found.band, found.wedge) ? { shell: found.shell, band: found.band, wedge: found.wedge } : null;
+      },
+      label: function (sector) { return "Sector " + sectorDesignation(sector.shell, sector.band, sector.wedge); },
+      cellPoints: cellEdgePoints,
+      onMove: function (sector) { stageView.openSector(sector); },
+    });
+    canvasEl.__mapSectorFrame = sectorFrame;    // the browser tests read it
+    // For tests (MAP.327): what the opened sector does to the rest of the map.
+    canvasEl.galaxySectorView = function () {
+      return { outsideDim: starMaterial.uniforms.outsideDim.value, glowVisible: glow ? glow.isVisible() : null, opened: !!hiddenCell };
+    };
+    sectorFrame.set(hiddenCell);
+  }
   // MAP.266: the glow is a layer of the Menu like the markers, on until the visitor says otherwise.
   if (glow) {
     stageView.layers.register({
@@ -3498,8 +3555,14 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     stageView.readLayersFromLocation();
     stageView.layers.refresh();
-    glow.setVisible(stageView.layers.isOn("glow"));
-    stageView.layers.onChange(function (id, on) { if (id === "glow") glow.setVisible(on); });
+    glowLayerOn = stageView.layers.isOn("glow");
+    glow.setVisible(glowLayerOn && !hiddenCell);
+    stageView.layers.onChange(function (id, on) {
+      if (id === "glow") {
+        glowLayerOn = on;
+        glow.setVisible(glowLayerOn && !hiddenCell);
+      }
+    });
     canvasEl.__mapGlow = glow;    // the browser tests read what is drawn
   }
   regionLookup = regionAt;
@@ -3697,6 +3760,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var NAMED_LIMIT = 400;
   function starNames() {
     var found = [];
+    if (hiddenCell) return found;
     var list = pickableStars();
     for (var i = list.length - 1; i >= 0 && found.length < NAMED_LIMIT; i--) {
       var star = list[i];
@@ -3709,6 +3773,7 @@ function initGalaxyMap3d(canvasEl, data) {
     return found;
   }
   function objectNames() {
+    if (hiddenCell) return [];
     pickableStars();
     return pickableCache.objects.slice(0, NAMED_LIMIT).map(function (point) {
       return { id: "object:" + point.type + ":" + point.id, text: point.name, x: point.x, y: point.y, z: point.z,
@@ -4028,6 +4093,7 @@ function initGalaxyMap3d(canvasEl, data) {
       if (markersDirty) refreshMarkers();
       markerLayer.update();
     }
+    if (sectorFrame) sectorFrame.update();
     if (galaxyLabels) galaxyLabels.update(now, false);
     renderer.render(scene, camera);
   })();
