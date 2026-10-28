@@ -31,7 +31,7 @@ every host condition.)
 import hashlib
 
 from planetgen import tuning
-from planetgen.db import store
+from planetgen.db import storage_checksum, store
 from planetgen.physics import habitability, life_scores
 from planetgen.population import facility_ratings as ratings, tech
 
@@ -177,6 +177,7 @@ def suggest_for_facility(conn, facility_id):
         clauses.append("ratings_source = 'generated'")
     clauses.append("ratings_set_at = CURRENT_TIMESTAMP")
     conn.execute(f"UPDATE facilities SET {', '.join(clauses)} WHERE id = ?", (*columns.values(), facility_id))
+    storage_checksum.mark_rows(conn, "facilities", [facility_id])
     return unset
 
 

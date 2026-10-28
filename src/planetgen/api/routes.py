@@ -1778,7 +1778,7 @@ def update_sector(sector_id):
             # real, unchanged sector as "not found".
             if conn.execute("SELECT id FROM sectors WHERE id = ?", (sector_id,)).fetchone() is None:
                 raise ApiError(f"no such sector: {sector_id}", status_code=404)
-            conn.execute(f"UPDATE sectors SET {', '.join(set_clauses)} WHERE id = ?", tuple(params))
+            conn.execute(f"UPDATE sectors SET {', '.join(set_clauses)}, parity_dirty = 1 WHERE id = ?", tuple(params))
     finally:
         conn.close()
 

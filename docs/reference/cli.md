@@ -664,7 +664,7 @@ stored galaxy is internal testing only.
 
 `planetgen check-db` looks for damage and changes nothing: the schema revision, table health (`CHECK TABLE`), rows without parents, ids, impossible values, sector counts and version keys. It ends with one pass or fail line per check, exits 1 when it found damage and 2 when a check could not run (DB.8, DB.21, PERF.126). The Generate page runs the same checks.
 
-Each check is a command of its own (`check-revision`, `check-tables`, `check-tables-extended`, `check-orphans`, `check-ids`, `check-values`, `check-counts`, `check-version-keys`, `check-systems`, `check-object-index`; `planetgen commands` lists them). `check-db` only builds the list of them and the wrapper queues them one after the other as a check run on the Redis queue, so it needs Redis (and a worker running as part of it) like every queue run, never holds up a generation run and shows no banner to the site's visitors. Name the checks to run only those. `object-index` is not in the default list: it compares the object index with the tables (PERF.140) and warns when the index has not been built yet.
+Each check is a command of its own (`check-revision`, `check-tables`, `check-tables-extended`, `check-orphans`, `check-ids`, `check-values`, `check-counts`, `check-version-keys`, `check-storage`, `check-systems`, `check-object-index`; `planetgen commands` lists them). `check-db` only builds the list of them and the wrapper queues them one after the other as a check run on the Redis queue, so it needs Redis (and a worker running as part of it) like every queue run, never holds up a generation run and shows no banner to the site's visitors. Name the checks to run only those. `object-index` is not in the default list: it compares the object index with the tables (PERF.140) and warns when the index has not been built yet.
 
 ```bash
 planetgen check-db                              # the default checks, the whole database
@@ -676,10 +676,10 @@ planetgen check-db tables-extended systems --yes   # the slow checks: CHECK TABL
 planetgen command-run check-ids '{"database": {...}}'   # one check alone
 ```
 
-*   Without a name the list is `revision tables orphans ids values counts version-keys`; `tables-extended` (`CHECK TABLE ... EXTENDED`) and `systems` (validates every star system) are the slow ones and run only when named.
+*   Without a name the list is `revision tables orphans ids values counts version-keys storage`; `tables-extended` (`CHECK TABLE ... EXTENDED`) and `systems` (validates every star system) are the slow ones and run only when named.
 *   `systems` is slow, so its time is estimated first and a yes is asked for; `--yes` goes ahead after the estimate without asking (needed off a terminal), and `--estimate-only` prints the estimate and stops (the Generate page uses it).
 *   `--wide-binaries` (with `systems`): validates only the wide binaries (S-type pairs), to count the pairs whose orbits overlap (GEN.228).
-*   `--shell` and `--sector` scope `values`, `counts`, `version-keys` and `systems`; the other checks always look at the whole database.
+*   `--shell` and `--sector` scope `values`, `counts`, `version-keys`, `storage` and `systems`; the other checks always look at the whole database.
 
 ## Version keys
 

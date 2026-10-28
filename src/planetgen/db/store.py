@@ -69,7 +69,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, point_columns, scatter_systems
+from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, point_columns, scatter_systems, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
@@ -652,6 +652,9 @@ against (PERF.12): replaying `schema.sql` on every checkout cost about
 122 statements per connection, twice per filled sector."""
 
 _id_blocks = {}
+_FLAGGING_TABLES = frozenset(storage_checksum.CONTENT_TABLES) - {"sectors"}
+"""frozenset: The tables an INSERT into marks a sector's `parity_dirty` (`Connection._flag_insert`, DB.45)."""
+
 _id_blocks_off = set()
 _id_lock = threading.Lock()
 _fk_ranks = {}
@@ -954,6 +957,9 @@ class Connection:
         current `batched()` scope (a read flushes the held-back INSERTs, so each is read once)."""
         self.orbit_epoch_unix = None
         """int or None: the orbit epoch a binary's tree is stored at, read once inside a `batched()` scope (GEN.311)."""
+        self._flagged = set()
+        """set: The `(kind, id)` of sectors and systems this transaction has already marked `parity_dirty` for an INSERT
+        (DB.45), and the systems it inserted itself (their sector was marked by the INSERT); cleared at commit and rollback."""
 
     def _run(self, sql, params):
         cur = self._conn.cursor()
@@ -1009,6 +1015,7 @@ class Connection:
                 if uid is not None:
                     shape = shape._replace(columns=[*shape.columns, "uid"], values=shape.values[:-1] + ", ?)")
                     params = (*params, uid)
+            self._flag_insert(shape, params, new_id)
             if self._batch is not None and (new_id is not None or shape.table in BATCH_CHILD_TABLES):
                 level = self._batch_level(shape.table)
                 self._batch.setdefault((shape.table, tuple(shape.columns), shape.values, level), []).append(
@@ -1021,6 +1028,24 @@ class Connection:
             return self._run(sql, params)
         self.flush()
         return self._run(sql, params)
+
+    def _flag_insert(self, shape, params, new_id):
+        """DB.45: an INSERT of a row a sector's storage checksum covers marks that sector's `parity_dirty` (once per sector
+        or system per transaction). A row filed by `sector_id` marks that sector; one filed by `star_system_id` marks the
+        system's sector, unless this transaction inserted the system (its own INSERT marked the sector)."""
+        table = shape.table
+        if table not in _FLAGGING_TABLES:
+            return
+        columns = shape.columns
+        if table == "star_systems" and new_id is not None:
+            self._flagged.add(("fresh", new_id))
+        for kind, column in (("sector", "sector_id"), ("system", "star_system_id")):
+            if column in columns and params[columns.index(column)] is not None:
+                key = (kind, params[columns.index(column)])
+                if key in self._flagged or (kind == "system" and ("fresh", key[1]) in self._flagged):
+                    continue
+                self._flagged.add(key)
+                self._run(storage_checksum.MARK_SECTOR_SQL if kind == "sector" else storage_checksum.MARK_SYSTEM_SQL, (key[1],))
 
     def batched(self):
         """
@@ -1204,6 +1229,7 @@ class Connection:
     def commit(self):
         self.flush()
         self._conn.commit()
+        self._flagged.clear()
         self._release_txn_locks()
         if log.debug_log_active():
             log.trace("SQL commit", area="sql")
@@ -1214,6 +1240,7 @@ class Connection:
                       f"held-back row(s) dropped)", area="sql")
         if self._batch:
             self._batch = {}
+        self._flagged.clear()
         try:
             self._conn.rollback()
         finally:
@@ -1968,6 +1995,7 @@ def rename_star_system(conn, star_system_id, new_name):
         "UPDATE star_systems SET name = ?, modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?",
         (new_name, star_system_id),
     )
+    storage_checksum.mark_system(conn, star_system_id)
     if row["binary_configuration"] == "wide":
         # A wide pair's stars and its primary's planets carry only the
         # system name's first word (GEN.62).
@@ -1994,6 +2022,7 @@ def rename_star(conn, star_id, new_name):
     if row["role"] == "single":
         return rename_star_system(conn, row["star_system_id"], new_name)
     conn.execute("UPDATE stars SET name = ? WHERE id = ?", (new_name, star_id))
+    storage_checksum.mark_system(conn, row["star_system_id"])
     # Since GEN.62 a wide pair's planets carry one word of their star's
     # name: the primary's the shared first word, the secondary's its own
     # last. Planets named before carry the whole star name.
@@ -2181,7 +2210,7 @@ def reserve_sector_name(conn, candidate_name, sector_id):
             # (`WHERE name = ?` still finds it: the collation ignores case
             # and accents).
             old_name, renamed_to = resolve_greek_roman_collision(row["base_name"], existing_count)[1]
-            conn.execute("UPDATE sectors SET name = ? WHERE name = ? AND id <> ?", (renamed_to, old_name, sector_id))
+            conn.execute("UPDATE sectors SET name = ?, parity_dirty = 1 WHERE name = ? AND id <> ?", (renamed_to, old_name, sector_id))
 
         return new_name, base
 
@@ -3506,6 +3535,7 @@ def _store_nebula_shape(conn, nebula_id, nebula):
     scalars, balls = nebula_shape.to_columns(nebula.get_shape())
     sets = ", ".join(f"{column} = ?" for column in scalars)
     conn.execute(f"UPDATE nebulae SET {sets} WHERE id = ?", (*scalars.values(), nebula_id))
+    storage_checksum.mark_rows(conn, "nebulae", [nebula_id])
     conn.execute("DELETE FROM nebula_shape_balls WHERE nebula_id = ?", (nebula_id,))
     for ball in balls:
         conn.execute(
@@ -5455,6 +5485,7 @@ def delete_facility(conn, facility_id):
     row = conn.execute("SELECT star_system_id FROM facilities WHERE id = ?", (facility_id,)).fetchone()
     if row is None:
         return False
+    storage_checksum.mark_rows(conn, "facilities", [facility_id])
     conn.execute("DELETE FROM facilities WHERE id = ?", (facility_id,))
     if row["star_system_id"] is not None:
         touch_star_system(conn, row["star_system_id"])
@@ -7122,7 +7153,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
     # final, collision-free name. See `reserve_sector_name`.
     final_name, _name_base = reserve_sector_name(conn, sector.name, sector_id)
     if final_name != sector.name:
-        conn.execute("UPDATE sectors SET name = ? WHERE id = ?", (final_name, sector_id))
+        conn.execute("UPDATE sectors SET name = ?, parity_dirty = 1 WHERE id = ?", (final_name, sector_id))
     sector.name = final_name
 
     # Every system and uniquely named phenomenon in the sector reserves
@@ -7512,6 +7543,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     row = conn.execute("SELECT name FROM star_systems WHERE id = ?", (star_system_id,)).fetchone()
     if row is None:
         return False
+    storage_checksum.mark_system(conn, star_system_id)
     # Saved standalone first (the registry gives it a temporary name),
     # then its bodies are moved under the kept row and the stand-in row
     # dropped, which also drops its name reservation.
@@ -8215,7 +8247,7 @@ def set_sector_uid(conn, sector_id):
         return
     address = (row["shell_index"], row["band_index"], row["wedge_index"])
     uid = galaxyUid.sector_uid(*address) if None not in address else galaxyUid.unplaced_sector_uid(sector_id)
-    conn.execute("UPDATE sectors SET uid = ?, modified_at = modified_at WHERE id = ?", (uid, sector_id))
+    conn.execute("UPDATE sectors SET uid = ?, parity_dirty = 1, modified_at = modified_at WHERE id = ?", (uid, sector_id))
 
 
 _UID_ISSUED_TABLES = frozenset(("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets",
@@ -9275,6 +9307,7 @@ def touch_star_system(conn, star_system_id):
     conn.execute(
         "UPDATE star_systems SET modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?", (star_system_id,),
     )
+    storage_checksum.mark_system(conn, star_system_id)
 
 
 def touch_sector(conn, sector_id):
@@ -9290,7 +9323,7 @@ def touch_sector(conn, sector_id):
     """
     if sector_id is None:
         return
-    conn.execute("UPDATE sectors SET modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?", (sector_id,))
+    conn.execute("UPDATE sectors SET modified_at = CURRENT_TIMESTAMP(3), parity_dirty = 1 WHERE id = ?", (sector_id,))
 
 
 def _schema_version(conn):

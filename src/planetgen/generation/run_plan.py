@@ -22,7 +22,7 @@ import time
 import types
 
 from planetgen.queue import commands, progress_rate, units, work as workQueue, wrapper
-from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, store
+from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, storage_checksum, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import generator_battery as generatorBattery
@@ -2347,6 +2347,7 @@ def clean_nebula_field_unit(params, report):
             sector_ids.update(store.sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
         for start in range(0, len(doomed), 500):
             ids = [nebula_id for nebula_id, _c, _r in doomed[start:start + 500]]
+            storage_checksum.mark_rows(conn, "nebulae", ids)
             conn.execute(f"DELETE FROM nebulae WHERE id IN ({','.join('?' * len(ids))})", ids)
             conn.commit()
             report(min(start + 500, len(doomed)), len(doomed))
