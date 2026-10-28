@@ -60,7 +60,7 @@ export function createMeasure(font) {
 }
 
 // Whether the candidate's size range lets it show; a label shown last time keeps showing a little beyond the range.
-function inRange(candidate, shownBefore) {
+export function inRange(candidate, shownBefore) {
   if (candidate.pixels === undefined || candidate.pixels === null) return true;
   const grow = shownBefore ? 1 + HOLD_SHARE : 1;
   const min = candidate.minPixels;

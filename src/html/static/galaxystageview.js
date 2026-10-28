@@ -3526,8 +3526,18 @@ export function createStageView(host) {
   // the body in parsecs, so its label shows once it is a few pixels across).
   function bodyLabels() {
     return systemStage.entries().filter(function (e) { return e.name && e.r > 0; }).map(function (e) {
-      return { id: e.ref, text: e.name, x: e.x, y: e.y, z: e.z, sizePc: 2 * e.r, ref: { kind: "body", entry: e } };
+      return { id: e.ref, text: e.name, x: e.x, y: e.y, z: e.z, sizePc: 2 * e.r, slice: bodySlice(e), ref: { kind: "body", entry: e } };
     });
+  }
+
+  // The label budget's view of a body (MAP.317): a star among the stars (by size, in solar radii: 1 R_sun is 2.2546e-8 pc),
+  // a gas giant, a moon, a comet or another world in a category of the uninhabited slice (by size in parsecs across).
+  const SOLAR_RADIUS_PC = 2.2546e-8;
+  function bodySlice(entry) {
+    if (entry.kind === "star") return { domain: "star", radiusSol: entry.r / SOLAR_RADIUS_PC, luminositySol: (entry.body && entry.body.luminosity_sol) || 0 };
+    const look = entry.body && entry.body.look;
+    const category = look && look.body === "gas" ? "gas giant" : entry.kind === "moon" ? "moon" : entry.kind === "comet" ? "comet" : "rocky or icy world";
+    return { domain: "uninhabited", category: category, size: 2 * entry.r };
   }
 
   // MAP.298: a click on a body's name selects the body and flies to it.

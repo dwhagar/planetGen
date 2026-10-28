@@ -2,6 +2,31 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2378] - 2026-10-28
+
+**Headline:** The named regions now have their own design page and a check that neighbouring regions never share a name.
+
+### Changed
+- **Region names documented and audited (DOC.82).** A new page, `docs/design/galaxy/named-regions.md`, says how a region is named, framed and stored (the measured numbers behind the choices included), and the pages for the block ladder, object pages and the map wire format point to it. The release audits gain a check that no two neighbouring regions share a full name, a first word across two families or an ordinal inside one (`tests/audit/region_names.py`, with its own tests). Nothing visible changes and no generated value changes.
+
+## [8.0.2377] - 2026-10-28
+
+**Headline:** The Galaxy Map's data now carries the name of every charted region, ready for the map to label.
+
+### Added
+- **Region names on the wire (API.35).** The node of a charted region (a 9-block holding at least one generated sector) has `name` ("Fardoo Beez Region") and `parent` (its family, "Fardoo Reach"), and so does the stage that lists such blocks as children and the stage of the region itself. Names come from the gated phoneme codec under the galaxy's naming key, so a new key renames them; uncharted blocks, other block sizes and a galaxy with no key carry none. The format document and API reference say so, and `tests/test_region_wire_names.py` pins the fields.
+
+### Changed
+- **The stored Galaxy Map nodes are rebuilt once** (`TILE_FORMAT` 5) so they pick up the names.
+
+## [8.0.2376] - 2026-10-28
+
+**Headline:** The Galaxy Map's names are shared out between kinds of thing, so a crowded view names some of everything and a sparse view names everything it draws.
+
+### Changed
+- **A share of the names for each kind (MAP.317).** The number of names the map offers is the screen area over the area one name takes. Habitable worlds, uninhabited bodies (rocky or icy worlds, moons, gas giants, comets, black holes, neutron stars, rogue planets), stars, nebulae and regions each get a share (30, 25, 30, 10 and 5 percent; a kind with fewer things than its share hands the rest on), each ranked by its own measure (habitability, mass, size, brightness and mass, volume). Stars are taken a third each by size, brightness and mass. A name is only offered for something the map draws.
+- **Names for habitable worlds.** The habitable-world markers carry the system's name when they are drawn; the Menu's Labels group has a "World names" switch. A click on the name selects the system and flies to it.
+
 ## [8.0.2375] - 2026-10-28
 
 **Headline:** Every planet and moon with air now stores the colour of that air, ready for the maps to paint with.

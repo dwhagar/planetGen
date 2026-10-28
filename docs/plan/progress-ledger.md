@@ -1548,3 +1548,6 @@ Baseline: PR #1817.
 | UX.126 | 8.1 | Admin control suite |
 | UX.49 | 8.1 | Admin control suite |
 | DB.96 | 9.0 | The headline |
+| MAP.317 | 8.1 | Fly-through map |
+| API.35 | 8.1 | Fly-through map |
+| DOC.82 | 8.1 | Fly-through map |

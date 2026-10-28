@@ -3422,7 +3422,7 @@ function initGalaxyMap3d(canvasEl, data) {
       THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers, light: isLightBackground(),
       sources: {
         sectors: stageView.sectorLabels, systems: stageView.systemLabels, bodies: stageView.bodyLabels, nebulae: cloudLabels,
-        stars: starNames, objects: objectNames,
+        stars: starNames, objects: objectNames, worlds: worldNames,
       },
     });
     canvasEl.__mapLabels = galaxyLabels;    // the browser tests read what is placed
@@ -3440,6 +3440,7 @@ function initGalaxyMap3d(canvasEl, data) {
         id: "cloud:" + cloudKey(cloud), text: cloud.name || cloudTypeLabel(cloud),
         x: sprite.position.x, y: sprite.position.y, z: sprite.position.z, pixels: 2 * cloudPixels(cloud, distance),
         ref: { kind: "nebula", cloud: cloud },
+        slice: { domain: "nebula", volume: 4 / 3 * Math.PI * Math.pow(cloud.radius_pc || 0, 3) },
       });
     });
     return found;
@@ -3590,7 +3591,8 @@ function initGalaxyMap3d(canvasEl, data) {
       var star = list[i];
       if (star.name) {
         found.push({ id: "star:" + star.id, text: star.name, x: star.x, y: star.y, z: star.z,
-          luminositySol: star.luminosity_sol || 0, ref: { kind: "star", star: star } });
+          luminositySol: star.luminosity_sol || 0, ref: { kind: "star", star: star },
+          slice: { domain: "star", radiusSol: star.radius_sol || 0, luminositySol: star.luminosity_sol || 0 } });
       }
     }
     return found;
@@ -3599,7 +3601,19 @@ function initGalaxyMap3d(canvasEl, data) {
     pickableStars();
     return pickableCache.objects.slice(0, NAMED_LIMIT).map(function (point) {
       return { id: "object:" + point.type + ":" + point.id, text: point.name, x: point.x, y: point.y, z: point.z,
-        luminositySol: point.map_luminosity_sol || point.luminosity_sol || 0, ref: { kind: "object", point: point } };
+        luminositySol: point.map_luminosity_sol || point.luminosity_sol || 0, ref: { kind: "object", point: point },
+        slice: { domain: "uninhabited", category: point.type === "rogue_planet" ? "rogue planet" : "non-luminous star-like object", mass: point.mass_solar || 0 } };
+    });
+  }
+
+  // The habitable-world markers the map draws, offered as names of the inhabited slice (MAP.317): a name is only offered
+  // for a marker that is drawn. The node lists a system's habitable worlds as a count, which ranks them until the stored
+  // habitability score and population do (MAP.318).
+  function worldNames() {
+    if (!markerLayer) return [];
+    return markerLayer.entries().filter(function (entry) { return entry.kind.id === HABITABLE_KIND.id && entry.item.name; }).map(function (entry) {
+      return { id: "world:" + entry.item.id, text: entry.item.name, x: entry.item.x, y: entry.item.y, z: entry.item.z, ref: { kind: "marker", entry: entry },
+        slice: { domain: "inhabited", category: "planet", habitability: entry.item.worlds || 0, population: entry.item.population || 0 } };
     });
   }
 
@@ -3615,6 +3629,9 @@ function initGalaxyMap3d(canvasEl, data) {
       highlightPosition(ref.point.x, ref.point.y, ref.point.z);
       showPointInfo(ref.point);
       stageView.flyToEntry(ref.point);
+    } else if (ref.kind === "marker") {
+      chooseMarker(ref.entry);
+      stageView.flyToEntry(ref.entry);
     } else if (ref.kind === "system") {
       stageView.selectEntry(ref.entry);
       stageView.flyToEntry(ref.entry);

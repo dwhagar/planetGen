@@ -17,7 +17,8 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 
-const { createLabelLayer } = await import(`./maplabels.js${VERSION_QUERY}`);
+const { createLabelLayer, inRange } = await import(`./maplabels.js${VERSION_QUERY}`);
+const { chooseLabels, labelBudget } = await import(`./labelbudget.js${VERSION_QUERY}`);
 
 export const LABEL_KINDS = [
   { id: "label-sector", kind: "sector", label: "Sector names", title: "Show or hide the names of generated sectors" },
@@ -25,6 +26,7 @@ export const LABEL_KINDS = [
   { id: "label-body", kind: "body", label: "Body names", title: "Show or hide the names of the planets and moons of an open system" },
   { id: "label-star", kind: "star", label: "Star names", title: "Show or hide the names of the named stars in view" },
   { id: "label-object", kind: "object", label: "Object names", title: "Show or hide the names of the other named objects in view: comets, rogue planets, black holes, neutron stars and the rest" },
+  { id: "label-world", kind: "world", label: "World names", title: "Show or hide the names of the habitable-world markers the map draws" },
   { id: "label-nebula", kind: "nebula", label: "Nebula names", title: "Show or hide the names of nebulae and remnants" },
 ];
 
@@ -32,7 +34,12 @@ export const LABEL_KINDS = [
 // camera is inside it, or it fills the view).
 export const MIN_PIXELS = { sector: 36, nebula: 48, body: 6 };
 export const MAX_PIXELS = { sector: 900, nebula: 1400 };
-const TIER = { nebula: 200, body: 150, sector: 100, system: 0, star: 0, object: 0 };
+// The share of the label budget (labelbudget.js, MAP.317) a kind of name draws on when its source does not say: a source
+// may give an item its own `slice` ({domain, category, and the domain's numbers}). A sector stands for its region and
+// is named first (the coarse structure), the rest take their place by share.
+const DOMAIN = { nebula: "nebula", body: "uninhabited", sector: "region", system: "star", star: "star", object: "uninhabited", world: "inhabited" };
+// Priority of a name chosen by the budget: the chosen first-ranked takes FIRST_PRIORITY and each next one a step less.
+const FIRST_PRIORITY = 10000;
 const REFRESH_MS = 120;
 
 export function createGalaxyLabels(options) {
@@ -75,46 +82,59 @@ export function createGalaxyLabels(options) {
     return sizePc * view.height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * Math.max(depth, 1e-9));
   }
 
+  // What the label engine is offered. Every source's things that are in view and in their size range are gathered with
+  // the domain they draw their share from (DOMAIN, or the item's own `slice`), the budget (screen area over a name's
+  // area, labelbudget.js) chooses which of them to offer, and a chosen one's priority is its rank, so the engine
+  // places the first-ranked first and none overlap (MAP.317).
   function candidates() {
     const found = [];
     camera.updateMatrixWorld();
     camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
-    function ranged(kind, item, priority, depth) {
-      const pixels = item.pixels !== undefined ? item.pixels : item.sizePc ? pixelsFor(item.sizePc, depth) : undefined;
-      found.push({
-        id: item.id, kind: kind, text: item.text, x: item.x, y: item.y, z: item.z, priority: TIER[kind] + priority, ref: item.ref,
-        pixels: pixels, minPixels: MIN_PIXELS[kind], maxPixels: MAX_PIXELS[kind],
-      });
-    }
+    const view = size();
     function depthOf(item) {
       return camera.position.distanceTo(point.set(item.x, item.y, item.z));
     }
-    if (layers.isOn("label-nebula")) {
-      sources.nebulae().forEach(function (item) { ranged("nebula", item, Math.log10(Math.max(item.pixels || 1, 1)), depthOf(item)); });
-    }
-    if (layers.isOn("label-body")) {
-      sources.bodies().forEach(function (item) {
-        const depth = depthOf(item);
-        ranged("body", item, Math.min(49, Math.log10(Math.max(pixelsFor(item.sizePc, depth), 1)) * 10), depth);
-      });
-    }
-    if (layers.isOn("label-sector")) {
-      sources.sectors().forEach(function (item) { ranged("sector", item, 0, depthOf(item)); });
-    }
-    // The stars of a sector, the stars of the galaxy in view and the other objects (comets, rogue planets, black
-    // holes...) are ranked alike, by apparent brightness, so in a crowd the brightest keeps its name (MAP.299).
-    function brightest(kind, items) {
+    function offer(kind, items) {
       items.forEach(function (item) {
-        const depth = Math.max(depthOf(item), 0.01);
-        // Apparent brightness on a log scale, 0 to 99 within the tier.
-        const priority = Math.max(0, Math.min(99, 50 + 10 * (Math.log10(Math.max(item.luminositySol || 0, 1e-6)) - 2 * Math.log10(depth))));
-        ranged(kind, item, priority, depth);
+        const depth = depthOf(item);
+        const pixels = item.pixels !== undefined ? item.pixels : item.sizePc ? pixelsFor(item.sizePc, depth) : undefined;
+        const candidate = {
+          id: item.id, kind: kind, text: item.text, x: item.x, y: item.y, z: item.z, ref: item.ref,
+          pixels: pixels, minPixels: MIN_PIXELS[kind], maxPixels: MAX_PIXELS[kind],
+        };
+        if (!inRange(candidate, true)) return;
+        const spot = project(item.x, item.y, item.z);
+        if (!spot || !(spot.x >= 0 && spot.x <= view.width && spot.y >= 0 && spot.y <= view.height)) return;
+        const slice = Object.assign({ domain: DOMAIN[kind], first: kind === "sector" }, defaultsOf(kind, item, depth, pixels), item.slice);
+        found.push({ candidate: candidate, slice: slice });
       });
     }
-    if (layers.isOn("label-system")) brightest("system", sources.systems());
-    if (sources.stars && layers.isOn("label-star")) brightest("star", sources.stars());
-    if (sources.objects && layers.isOn("label-object")) brightest("object", sources.objects());
-    return found;
+    // The numbers a kind's things are ranked by when the source gives no `slice` of its own.
+    function defaultsOf(kind, item, depth, pixels) {
+      if (kind === "system" || kind === "star") return { luminositySol: item.luminositySol || 0 };
+      if (kind === "nebula") return { volume: Math.pow(Math.max(pixels || 0, 1) * depth, 3) };
+      if (kind === "object") return { category: "star-like", mass: item.luminositySol || 0 };
+      if (kind === "body") return { category: "world", size: item.sizePc || 0 };
+      if (kind === "sector") return { shareCharted: 0 };
+      return {};
+    }
+    if (layers.isOn("label-nebula")) offer("nebula", sources.nebulae());
+    if (layers.isOn("label-body")) offer("body", sources.bodies());
+    if (layers.isOn("label-sector")) offer("sector", sources.sectors());
+    if (layers.isOn("label-system")) offer("system", sources.systems());
+    if (sources.stars && layers.isOn("label-star")) offer("star", sources.stars());
+    if (sources.objects && layers.isOn("label-object")) offer("object", sources.objects());
+    if (sources.worlds && layers.isOn("label-world")) offer("world", sources.worlds());
+    const out = [];
+    const items = found.map(function (entry, n) {
+      return Object.assign({ index: n, id: entry.candidate.id }, entry.slice);
+    });
+    chooseLabels(items, { budget: labelBudget(view) }).forEach(function (chosen) {
+      const candidate = found[chosen.index].candidate;
+      candidate.priority = FIRST_PRIORITY - chosen.rank;
+      out.push(candidate);
+    });
+    return out;
   }
 
   let last = 0;
