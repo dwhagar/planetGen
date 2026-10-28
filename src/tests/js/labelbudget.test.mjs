@@ -107,3 +107,17 @@ test("the choice is the same for the same items in any order", () => {
   const b = B.chooseLabels(items.slice().reverse(), { budget: 40 }).map((c) => c.id);
   assert.deepEqual(a, b);
 });
+
+test("an inhabited world is named before a habitable one, and its type is served first (MAP.321)", () => {
+  const home = Object.assign(world(1, "inhabited world", 0.2, 0), { inhabited: true });
+  const good = world(2, "habitable world", 1.4, 0);
+  const better = world(3, "habitable world", 1.6, 0);
+  const chosen = B.chooseLabels([good, better, home], { budget: 100 });
+  assert.deepEqual(chosen.map((c) => c.id), ["w1", "w3", "w2"]);
+});
+
+test("inside a type an inhabited world with no score yet still goes before a habitable one with a high score", () => {
+  const first = Object.assign(world(1, "planet", 0, 0), { inhabited: true });
+  const chosen = B.chooseLabels([world(2, "planet", 1.9, 0), first], { budget: 100 });
+  assert.deepEqual(chosen.map((c) => c.id), ["w1", "w2"]);
+});
