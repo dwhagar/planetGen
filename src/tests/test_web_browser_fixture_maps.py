@@ -3111,6 +3111,43 @@ def test_galaxy_map_names_the_bodies_of_an_open_system_down_to_a_planet(page, ma
     page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'body')")
 
 
+def test_the_bodies_of_an_open_system_carry_their_own_symbols_by_the_same_layers(page, map_site):
+    """MAP.321: with a system open in place its planets, moons and belt carry their own symbol (an inhabited Green world, a gas
+    giant, a barren moon, an asteroid belt) in the layers the Menu has on, the symbols ride the bodies, a layer that is off draws
+    none, and leaving the system takes them away."""
+    _open_system_in_place(page, map_site)
+    ids = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__bodyMarkersOn()") is True
+    assert not [e for e in page.evaluate(MARKERS) if e["kind"] in ids], "every layer is off until asked for"
+    _open_menu(page)
+    for layer in ids:
+        page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').click()
+    found = _markers_until(page, lambda entries: {e["kind"] for e in entries} >= {"marker-inhabited", "marker-gas-giant",
+                                                                                  "marker-uninhabitable", "marker-asteroid-field"})
+    kinds = sorted(e["kind"] for e in found if e["kind"] in ids)
+    assert kinds.count("marker-inhabited") == 1 and kinds.count("marker-gas-giant") == 1, kinds
+    assert kinds.count("marker-asteroid-field") == 1 and kinds.count("marker-uninhabitable") >= 1, kinds
+    assert "marker-habitable" not in kinds, "the Green world is inhabited, so it carries the inhabited symbol alone"
+    inhabited = next(e for e in found if e["kind"] == "marker-inhabited")
+    assert inhabited["name"].endswith(" I"), inhabited
+    # the symbol rides its body: where the marker is is where the body is
+    refs = _galaxy_system(page)["refs"]
+    assert "planet:1" in refs
+    spot = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySystem().screen('planet:1')")
+    assert spot is not None
+    # a layer that is off draws none of its symbols
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-gas-giant"]').click()
+    found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-gas-giant" for e in entries))
+    assert not [e for e in found if e["kind"] == "marker-gas-giant"]
+    assert any(e["kind"] == "marker-inhabited" for e in found)
+    # leaving the system hands the symbols back to the stars
+    page.click('#galaxymap3d-controls [data-action="up"]')
+    _wait_system(page, present=False)
+    found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-inhabited" and e["name"].endswith(" I") for e in entries))
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__bodyMarkersOn()") is False
+    assert not [e for e in found if e["kind"] == "marker-inhabited" and e["name"].endswith(" I")]
+
+
 def _nearest_that_way(here, others, direction, cone_deg=60.0):
     """The rule of static/systemstep.js worked out independently: the nearest of `others` (name, x, y, z) from `here` in
     the cone about `direction` in the galaxy's frame at `here`, or None."""

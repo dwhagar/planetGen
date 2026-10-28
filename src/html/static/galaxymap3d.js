@@ -61,12 +61,13 @@ const { createSectorFrame } = await import(`./sectorframe.js${VERSION_QUERY}`);
 const { cellEdgePoints, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
-const { formatDistancePc, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
+const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
   BLACK_HOLE_KIND, HABITABLE_KIND, INTEREST_KINDS, interestLines, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
+const { bodyMarkers, createHandoff } = await import(`./bodymarkers.js${VERSION_QUERY}`);
 const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VERSION_QUERY}`);
 const { regionLabels } = await import(`./regionlabels.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
@@ -3729,6 +3730,18 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.__mapInfo = infoPanel();    // the browser tests put long cards in it (MAP.295)
   // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
   function chooseMarker(entry) {
+    if (entry.item.bodyRef) {
+      if (entry.item.follow && entry.item.follow.kind === "belt") {
+        var belt = entry.item.follow.body;     // a belt is not a body to pick: its card says where it is
+        showInfo({
+          title: entry.item.name || "Asteroid belt",
+          fields: [["Kind", "Asteroid belt"], ["Inner edge", formatDistanceKm(belt.inner_km)], ["Outer edge", formatDistanceKm(belt.outer_km)]],
+        });
+      } else {
+        stageView.selectBodyRef(entry.item.bodyRef);   // a body's own symbol picks the body (MAP.321)
+      }
+      return;
+    }
     highlightPosition(entry.x, entry.y, entry.z);
     if (entry.item.type) showPointInfo(entry.item);
     else showInterestSystemInfo(entry.item);
@@ -3812,15 +3825,36 @@ function initGalaxyMap3d(canvasEl, data) {
     markerMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     markerFrustum.setFromProjectionMatrix(markerMatrix);
     var nodes = neededNodes().keys.map(function (key) { return { key: key, node: getNode(key) }; });
-    markerLayer.set(selectMarkers({
+    var chosen = selectMarkers({
       kinds: markerKinds.kinds(),
       isOn: function (id) { return stageView.layers.isOn(id); },
       nodes: nodes,
       inView: function (item) {
         return markerFrustum.containsPoint(markerPoint.set(item.x, item.y, item.z)) && drawnByTheGalaxy(item.x, item.y, item.z);
       },
-    }));
+    });
+    // MAP.321: inside the open system the star does not repeat its symbol, its bodies carry their own.
+    var inside = bodyHandoffSource();
+    if (inside) {
+      chosen = chosen.filter(function (entry) { return entry.item.id !== inside.id; })
+        .concat(bodyMarkers(INTEREST_KINDS, function (id) { return stageView.layers.isOn(id); }, inside.entries));
+    }
+    markerLayer.set(chosen);
   }
+  // MAP.321: the open system while the camera is close enough for the bodies to carry the symbols (bodymarkers.createHandoff's
+  // gap keeps a camera resting at the boundary from flickering between the levels), or null.
+  var bodyHandoff = createHandoff();
+  var lastBodyEntries = null;
+  function bodyHandoffSource() {
+    var source = stageView.systemMarkerSource();
+    if (!source || !source.centre) {
+      bodyHandoff.update(0, 0, false);
+      return null;
+    }
+    var distance = Math.hypot(camera.position.x - source.centre[0], camera.position.y - source.centre[1], camera.position.z - source.centre[2]);
+    return bodyHandoff.update(distance, source.radiusPc, true) ? source : null;
+  }
+  canvasEl.__bodyMarkersOn = function () { return bodyHandoff.isOn(); };
   // MAP.200: the on-map zoom slider and direction star.
   if (viewport) navPad = createNavPad(viewport, stageView, document.getElementById("galaxymap3d-centre"));
 
@@ -4285,6 +4319,20 @@ function initGalaxyMap3d(canvasEl, data) {
     hoverRing.update();
     updateCourseMarkers();
     if (markerLayer) {
+      // MAP.321: the symbols change level when the hand-off turns (or the open system's bodies change).
+      var bodiesOn = bodyHandoff.isOn();
+      var handoffSource = stageView.systemMarkerSource();
+      if (handoffSource && handoffSource.entries !== lastBodyEntries) {
+        lastBodyEntries = handoffSource.entries;    // a new scale rebuilds the bodies, a new system brings its own
+        if (bodiesOn) markersDirty = true;
+      }
+      if (handoffSource && handoffSource.centre) {
+        var handoffDistance = Math.hypot(camera.position.x - handoffSource.centre[0], camera.position.y - handoffSource.centre[1], camera.position.z - handoffSource.centre[2]);
+        if (bodyHandoff.update(handoffDistance, handoffSource.radiusPc, true) !== bodiesOn) markersDirty = true;
+      } else if (bodiesOn) {
+        bodyHandoff.update(0, 0, false);
+        markersDirty = true;
+      }
       if (markersDirty) refreshMarkers();
       markerLayer.update();
     }

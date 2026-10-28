@@ -90,6 +90,7 @@ export const BLACK_HOLE_KIND = {
 //   label      the Menu button's text and the legend line, also the infobox's name for the reason;
 //   icon       the symbol the system's mark takes when this is its first reason (poiicons.js);
 //   defaultOn  shown until the visitor says otherwise;
+//   body       what one body of this reason is called (a world on the map's system level, MAP.321: "habitable world");
 //   describe   `function (reason) -> string`: the infobox line for a system's `{n, score, tier}` of it.
 // The reasons are in the order the map prefers them (MAP.321: the best world's symbol, an inhabited one before a habitable one before a barren one before a
 // gas giant before a belt): a system with several is drawn once, with the first of them that is on (selectMarkers), and its infobox
@@ -99,6 +100,7 @@ export const INTEREST_REASONS = [
   {
     id: "inhabited",
     label: "Inhabited worlds",
+    body: "inhabited world",
     icon: "inhabited-world",
     defaultOn: false,
     describe: function (reason) {
@@ -108,6 +110,7 @@ export const INTEREST_REASONS = [
   {
     id: "habitable",
     label: "Habitable worlds",
+    body: "habitable world",
     icon: "habitable-world",
     defaultOn: false,
     describe: function (reason) {
@@ -117,6 +120,7 @@ export const INTEREST_REASONS = [
   {
     id: "uninhabitable",
     label: "Uninhabitable worlds",
+    body: "uninhabitable world",
     icon: "uninhabitable-world",
     defaultOn: false,
     describe: function (reason) { return reason.n + (reason.n === 1 ? " uninhabitable world" : " uninhabitable worlds"); },
@@ -124,6 +128,7 @@ export const INTEREST_REASONS = [
   {
     id: "gas-giant",
     label: "Gas giants",
+    body: "gas giant",
     icon: "gas-giant",
     defaultOn: false,
     describe: function (reason) { return reason.n + (reason.n === 1 ? " gas giant" : " gas giants"); },
@@ -131,6 +136,7 @@ export const INTEREST_REASONS = [
   {
     id: "asteroid-field",
     label: "Asteroid fields",
+    body: "asteroid belt",
     icon: "asteroid-field",
     defaultOn: false,
     describe: function (reason) { return reason.n + (reason.n === 1 ? " asteroid belt" : " asteroid belts"); },
@@ -159,6 +165,7 @@ export function interestKind(reason) {
     maxBlock: 81,
     defaultOn: reason.defaultOn,
     interest: reason.id,
+    bodyName: reason.body,
     source: function (node) { return interestItems(node, reason); },
     rank: function (item) { return item.n || 0; },
     describe: function (item) { return (item.name ? item.name + ", " : "") + reason.describe(item); },

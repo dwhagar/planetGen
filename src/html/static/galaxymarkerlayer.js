@@ -142,6 +142,15 @@ export function createMarkerLayer(scene, camera, canvasEl, outline, options) {
   // A sprite without size attenuation is scaled in units of the view's height at distance 1 (mappick.createRing).
   function update() {
     if (!drawn.length) return;
+    // A marker on a body that moves (MAP.321) names the entry that holds where the body is now (`item.follow`: x, y, z).
+    for (let index = 0; index < drawn.length; index++) {
+      const follow = drawn[index].item.follow;
+      if (!follow) continue;
+      drawn[index].x = follow.x;
+      drawn[index].y = follow.y;
+      drawn[index].z = follow.z;
+      sprites[index].position.set(follow.x, follow.y, follow.z);
+    }
     const heightPx = canvasEl.clientHeight || 1;
     const scale = (MARKER_PX / heightPx) * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
     for (let index = 0; index < drawn.length; index++) sprites[index].scale.set(scale, scale, 1);
