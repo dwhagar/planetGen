@@ -15197,6 +15197,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation lock second merges main in.
   Prerequisites: none. Related: GEN.683, GEN.646, GEN.689, GEN.822.
 
+- [ ] **GEN.841 thermosphere.exobase can loop for over 20 minutes in the planet atmosphere draw: a planet whose exobase never closes steps through a huge range (bug)**
+  Found by Math 1 (as the lane reported 8:10 AM EDT 2026-10-28) on main
+  0e7a20df:
+  test_bright_star_scatter.py::test_a_single_sector_run_leaves_the_backfill_to_the_end_of_the_run
+  and
+  test_atmosphere_mixture_rocky.py::test_the_inventory_follows_the_delivered_water_class
+  run past 20 minutes (the first 23 minutes CPU-bound, then pytest's
+  timeout) inside thermosphere.exobase (the while True loop, step 0.25
+  of the smaller of scale height and Bates length, until the exobase or
+  MAX_EXOBASE_RADII), called from mixture_escape.apply >
+  thermosphere.kept_shares in the planet atmosphere draw. Likely the
+  same hang as TEST.408 (the fill-stages pulsar test) and part of
+  TEST.401. Do: find the planet inputs where the exobase never closes
+  (zero or tiny scale height or Bates length, a very hot or very light
+  atmosphere), bound the loop (a step that grows with radius, a closed
+  form, or an early exit with the stated escape regime), keep results
+  identical for planets that do close, and add a regression test with
+  the failing input. Done: both tests and TEST.408 pass in minutes; a
+  stuck loop can never run unbounded. This is a physics fix to a loop
+  bound, so any change in generated values must be stated as a stand-in
+  tweak with its level and reason. Owner: Aux 8 (atmosphere, escape) or
+  Aux 6; changes generated output only if the loop bound moves results,
+  then it needs a lock turn.
+  Prerequisites: none. Related: TEST.408, TEST.401, TEST.409.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
