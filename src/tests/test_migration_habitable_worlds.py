@@ -23,27 +23,27 @@ CENTER_PC = (1000.0, 0.0, 0.0)
 
 
 def _fill_one_sector(conn):
-    """A sector at `ADDRESS` holding one system with potentially habitable worlds, its stats recorded; returns (sector id,
-    the number of bodies the stored scores put at Blue or Green overall)."""
+    """A sector at `ADDRESS` holding one system with planets, its stats recorded, the stored scores set so that exactly one world
+    (the system's first planet) is Green; returns (sector id, the number of bodies the stored scores put at Blue or Green overall).
+    The scores are set here, not drawn: how often a generated world scores Green moves with the generator."""
     conn.execute("INSERT INTO sectors (name, edge_mpc, shell_index, band_index, wedge_index) VALUES ('Habit', 13046, ?, ?, ?)",
                  ADDRESS)
     sector_id = conn.execute("SELECT id FROM sectors WHERE name = 'Habit'").fetchone()["id"]
-    for seed in range(120):
-        cfg = SystemConfig()
-        cfg.STAR_TYPE = "G2V"
-        cfg.PLANETS = True
-        cfg.MAX_PLANETS = True
-        cfg.BINARY_SYSTEM = False
-        cfg.HABITABLE_WORLD = True
-        with draw.bound(seed):
-            system = StarSystem(system_config=cfg)
-        system_id = store.insert_star_system(conn, system, cfg, sector_id=sector_id)
-        expected = _scored_green_or_better(conn, system_id)
-        if expected > 0:
-            break
-        conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
-    else:
-        pytest.fail("no system with a Blue or Green world in 120 seeds")
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.PLANETS = True
+    cfg.MAX_PLANETS = True
+    cfg.BINARY_SYSTEM = False
+    with draw.bound(0):
+        system = StarSystem(system_config=cfg)
+    system_id = store.insert_star_system(conn, system, cfg, sector_id=sector_id)
+    conn.execute("UPDATE planets SET phi4 = 0.1 WHERE star_system_id = ?", (system_id,))
+    conn.execute("UPDATE moons SET phi4 = 0.1 WHERE star_system_id = ?", (system_id,))
+    first = conn.execute("SELECT MIN(id) AS id FROM planets WHERE star_system_id = ?", (system_id,)).fetchone()["id"]
+    assert first is not None, "the system has no planet to score"
+    conn.execute("UPDATE planets SET phi4 = ? WHERE id = ?", (0.9, first))
+    expected = _scored_green_or_better(conn, system_id)
+    assert expected == 1
     store.record_sector_stats(conn, sector_id, ADDRESS, CENTER_PC)
     block_stats.refresh_chain(conn, ADDRESS)
     conn.commit()

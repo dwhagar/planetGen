@@ -17,11 +17,13 @@ from planetgen.physics import (
     habitability_world,
     radiation,
     radiogenic,
+    surface_composition,
 )
 from tests.air_support import fold_air
 
 AGE_GY = 4.568
-FELSIC = 0.3
+FELSIC = tuple(surface_composition.RESERVOIRS["felsic"][key] for key in ("k_ppm", "th_ppm", "u_ppm"))
+"""tuple: The `(K, Th, U)` ppm of the upper continental crust, the rock the ground of these records is made of."""
 
 
 def _sun():
