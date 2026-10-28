@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.233 |
 | MAP | MAP.329 |
 | NAV | NAV.65 |
-| GEN | GEN.840 |
+| GEN | GEN.841 |
 | PERF | PERF.200 |
 | DB | DB.109 |
 | API | API.37 |
@@ -1098,7 +1098,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.347 | The last-collisions admin view and the test that runs the whole collision path | none | open |
 | GEN.348 | Describer, CLI query lines and class page ranges take Quantity | none | done, PR #2539 |
 | GEN.349 | API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed | none | open |
-| GEN.350 | Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T | none | open |
+| GEN.350 | Class R, sub-Neptune, with the envelope-survival rule and the Hycean flag (class T stays: it is the sub-Neptune row of the classifier) | none | open |
 | GEN.351 | Class U, icy world | none | open |
 | GEN.352 | Classes W and X, subsurface ocean bodies | none | open |
 | GEN.353 | Class Y, Titan-like world | none | open |
@@ -1588,6 +1588,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.837 | Forced class M and class P planets in the habitable zone carry far too much steam: about a third of 300 draws sit above 400 K because the wet volatile inventories give hundreds of bar (bug) | none | open |
 | GEN.838 | A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling | none | open |
 | GEN.839 | The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug) | none | open |
+| GEN.840 | The atmosphere recipe tables still gate each mixture row on class letters: change the gate to kind plus conditions and drop the letter from the mixture subject (the recipe-gate half of GEN.683) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
