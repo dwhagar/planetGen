@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2409] - 2026-10-28
+
+**Headline:** The star glow now fades out much sooner, so blurred stars no longer leave huge faint halos over most of the screen.
+
+### Fixed
+- **Star glow halos grew huge when stars were blurred (MAP.330).** The glow of a block of unresolved stars began to fade only when the block was 100 pixels across and was drawn up to 220 pixels in radius, so faint halos covered most of the screen. It now begins to fade at a radius of 30 pixels, on a steeper curve, is nearly gone at four fifths of the way and is zero by 130 pixels, and a halo is never drawn larger than that.
+
 ## [8.0.2408] - 2026-10-28
 
 **Headline:** The Galaxy Map can mark the systems that hold a gas giant or a Yellow-or-better world, each with a reason you can read in its infobox.
