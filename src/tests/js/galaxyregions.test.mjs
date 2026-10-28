@@ -74,3 +74,41 @@ test("the share reads in percent, never rounding a nonzero one down to nothing",
   assert.equal(R.chartedText(0.0013), "under 1 percent charted");
   assert.equal(R.chartedText(1), "100 percent charted");
 });
+
+const inhabited = (extra) => Object.assign({ systems: 2, worlds: 3, score: 1.2, tier: "Blue" }, extra);
+const KIND = { id: "marker-inhabited", interest: "inhabited", icon: "inhabited-world" };
+const alwaysLook = () => ({ alpha: 0.4 });
+const yes = () => true;
+const no = () => false;
+
+test("a region's blob carries its inhabited worlds with the tier as an index, and none when it has none", () => {
+  const [lived, empty, odd] = R.regionBlobs([
+    region("a", 0.2, { inhabited: inhabited() }), region("b", 0.2), region("c", 0.2, { inhabited: { systems: 1, worlds: 1 } })]);
+  assert.deepEqual(lived.inhabited, { systems: 2, worlds: 3, tier: 0 });
+  assert.equal(empty.inhabited, null);
+  assert.deepEqual(odd.inhabited, { systems: 1, worlds: 1, tier: null });
+});
+
+test("a region with inhabited worlds gets one token at its middle, in its best tier, named for the region", () => {
+  const blobs = R.regionBlobs([region("a", 0.2, { inhabited: inhabited({ tier: "Green" }) }), region("b", 0.2)]);
+  const found = R.regionMarkers(KIND, blobs, alwaysLook, yes, no);
+  assert.equal(found.length, 1);
+  const { kind, item } = found[0];
+  assert.equal(kind.id, "marker-inhabited");
+  assert.deepEqual([item.x, item.y, item.z, item.n, item.systems, item.tier, item.regionKey], [100, 0, 0, 3, 2, 1, "a"]);
+  assert.equal(kind.describe(item), "Fardoo Beez Region, 3 inhabited worlds in 2 systems, best Green");
+});
+
+test("a region's token waits for its sphere to show, for the view, and for no system's own mark to stand for it", () => {
+  const blobs = R.regionBlobs([region("a", 0.2, { inhabited: inhabited() })]);
+  assert.equal(R.regionMarkers(KIND, blobs, () => ({ alpha: R.REGION_TOKEN_MIN_ALPHA / 2 }), yes, no).length, 0);
+  assert.equal(R.regionMarkers(KIND, blobs, alwaysLook, no, no).length, 0);
+  assert.equal(R.regionMarkers(KIND, blobs, alwaysLook, yes, yes).length, 0);
+  assert.equal(R.regionMarkers(KIND, blobs, alwaysLook, yes, no).length, 1);
+});
+
+test("the inhabited text is singular for one and says nothing without a tier or a region", () => {
+  assert.equal(R.inhabitedText({ worlds: 1, systems: 1, tier: null }), "1 inhabited world in 1 system");
+  assert.equal(R.inhabitedText({ worlds: 2, systems: 1, tier: 2 }), "2 inhabited worlds in 1 system, best Yellow");
+  assert.equal(R.inhabitedText(null), "");
+});

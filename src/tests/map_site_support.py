@@ -376,6 +376,10 @@ REGION_OUTLINE_SECTORS = 780
 """How many sectors the outline of a 9-block holds, about (the share charted, `charted`, MAP.314)."""
 
 
+REGION_INHABITED = {"9.0.0.0": {"systems": 2, "worlds": 3, "score": 1.2, "tier": "Blue"}}
+"""What the fixture's charted-regions list says of the inhabited worlds in a region (MAP.321 c), by the region's cell key."""
+
+
 def charted_regions():
     """The fixture's charted regions, `{(shell, band, wedge): {"key", "name", "parent", "centre", "radius", "sectors", "percent"}}`
     in the shape the node list of MAP.314 has (`region_stats.node_regions`): one per 9-block that holds a fixture sector."""
@@ -606,7 +610,8 @@ class FixtureApi:
             out.append({"key": region["key"], "m": cell.m, "shell": cell.shell, "band": cell.band, "wedge": cell.wedge,
                         "centre": region["centre"], "radius": region["radius"], "sector_count": region["sectors"],
                         "capacity": capacity, "share": region["sectors"] / capacity, "clumps": 1,
-                        "name": region["name"], "parent": region["parent"]})
+                        "name": region["name"], "parent": region["parent"],
+                        **({"inhabited": REGION_INHABITED[region["key"]]} if region["key"] in REGION_INHABITED else {})})
         return {"regions": sorted(out, key=lambda r: (-r["share"], r["key"])), "edge_pc": EDGE_PC}
 
     def get_galaxy_changes(self, db, since=None):

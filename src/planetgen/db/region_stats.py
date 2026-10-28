@@ -26,8 +26,9 @@ deleted, so they are kept by the hooks that keep `galaxy_block_stats` (`db/block
 import functools
 import math
 
-from planetgen.db import query
+from planetgen.db import interests, query
 from planetgen.galaxy import drill, named_regions, spherical
+from planetgen.physics import habitability
 
 LEVEL = named_regions.REGION_LEVEL
 """int: The block size of a region."""
@@ -267,15 +268,38 @@ def node_regions(conn, block, key, edge_pc):
     return listed
 
 
+def inhabited_by_region(conn, edge_pc):
+    """
+    The inhabited worlds of each region (MAP.321 c): `{cell: {"systems", "worlds", "score"}}` for every region cell that holds a system
+    with an `inhabited` interest (`db/interests.py`): how many such systems, how many inhabited worlds in them and the best PHI-6
+    score among them (`None` when none is scored). Read from `system_interests` at the time of asking (colonies are few), each system
+    put in the cell its position lies in, so it is never out of step with a colony that has just been founded.
+    """
+    found = {}
+    for row in conn.execute(
+            "SELECT n, best_score, galaxy_x_pc, galaxy_y_pc, galaxy_z_pc FROM system_interests WHERE reason = ?",
+            (interests.INHABITED,)).fetchall():
+        cell = region_cell(spherical.sector_address_at(
+            (row["galaxy_x_pc"], row["galaxy_y_pc"], row["galaxy_z_pc"]), edge_pc))
+        entry = found.setdefault(cell, {"systems": 0, "worlds": 0, "score": None})
+        entry["systems"] += 1
+        entry["worlds"] += int(row["n"])
+        if row["best_score"] is not None and (entry["score"] is None or float(row["best_score"]) > entry["score"]):
+            entry["score"] = float(row["best_score"])
+    return found
+
+
 def charted_regions(conn, key, edge_pc):
     """
     The charted regions as the Galaxy Map's list and its galactic-scale nodes read them (MAP.316), each one `{key, m, shell,
     band, wedge, centre, radius, sector_count, capacity, share, clumps}` and, with a naming key in force, `name` and `parent`
     (`labels`): the cell's node key, the middle `[x, y, z]` and `radius` of its extent in parsecs, how many generated sectors it
-    holds of how many its outline can, and `share`, that fraction (0 to 1, above 0 for every region). Sorted by share charted
-    (largest first), ties by the cell.
+    holds of how many its outline can, and `share`, that fraction (0 to 1, above 0 for every region). A region with an inhabited
+    world also has `inhabited` (MAP.321 c): `systems`, `worlds` and, when one is scored, the best `score` and its PHI-6 `tier`.
+    Sorted by share charted (largest first), ties by the cell.
     """
     found = []
+    inhabited = inhabited_by_region(conn, edge_pc)
     for region in regions(conn):
         cell = region["block"]
         entry = {"key": drill.format_drill_key(cell), "m": cell.m, "shell": cell.shell, "band": cell.band, "wedge": cell.wedge,
@@ -283,5 +307,13 @@ def charted_regions(conn, key, edge_pc):
                  "sector_count": region["sector_count"], "capacity": region["capacity"],
                  "share": region["sector_count"] / region["capacity"], "clumps": region["clump_count"]}
         entry.update(labels(cell, key, edge_pc) or {})
+        if cell in inhabited:
+            here = dict(inhabited[cell])
+            if here["score"] is None:
+                del here["score"]
+            else:
+                here["tier"] = habitability.tier(here["score"])
+                here["score"] = round(here["score"], 3)
+            entry["inhabited"] = here
         found.append(entry)
     return found

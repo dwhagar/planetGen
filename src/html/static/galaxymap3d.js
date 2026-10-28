@@ -88,7 +88,7 @@ const { nodeCut, parseNodeKey, settledExpanded, weightCalculator } = await impor
 const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuffer.js${VERSION_QUERY}`);
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
-const { regionBlobs, regionLook, chartedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
+const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode } = await import(`./tilepack.js${VERSION_QUERY}`);
 const {
@@ -491,6 +491,7 @@ function showRegionInfo(blob) {
     fields: [
       ["Charted", chartedText(blob.share)],
       ["Sectors generated", blob.sectorCount + " of " + blob.capacity],
+      ["Inhabited", blob.inhabited ? inhabitedText(blob.inhabited) : null],
       ["Family", blob.parent],
       ["Distance from core", formatDistancePc(Math.hypot(blob.x, blob.y, blob.z))],
     ],
@@ -1883,6 +1884,7 @@ function initGalaxyMap3d(canvasEl, data) {
     regionBlobList = list;
     regionByKey = new Map(list.map(function (blob) { return [blob.key, blob]; }));
     regionsVersion += 1;
+    markersDirty = true;    // the inhabited tokens of the regions (MAP.321 c)
     regionLayer.setBlobs(list, [0, 0, 0]);
     if (regionList) regionList.set(list);
   }
@@ -3563,6 +3565,7 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.__mapLayers = stageView.layers;
   // MAP.219: the marker layer (galaxymarkers.js): glyphs over the notable things, a toggle and a legend line per kind.
   var markerKinds = createMarkerKinds();
+  var INHABITED_MARKER_KIND = INTEREST_KINDS.find(function (kind) { return kind.interest === "inhabited"; });
   var markerLayer = null;
   var markersDirty = true;
   if (!data.pinned) {
@@ -3664,6 +3667,7 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.layers.onChange(function (id, on) {
       if (id === "regions") {
         regionsOn = on;
+        markersDirty = true;
         regionLayer.setVisible(regionsOn && !hiddenCell);
       }
     });
@@ -3730,6 +3734,14 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.__mapInfo = infoPanel();    // the browser tests put long cards in it (MAP.295)
   // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
   function chooseMarker(entry) {
+    if (entry.item.regionKey) {
+      var region = regionByKey.get(entry.item.regionKey);    // a region's inhabited token picks the region (MAP.321 c)
+      if (region) {
+        highlightPosition(region.x, region.y, region.z);
+        showRegionInfo(region);
+      }
+      return;
+    }
     if (entry.item.bodyRef) {
       if (entry.item.follow && entry.item.follow.kind === "belt") {
         var belt = entry.item.follow.body;     // a belt is not a body to pick: its card says where it is
@@ -3838,6 +3850,22 @@ function initGalaxyMap3d(canvasEl, data) {
     if (inside) {
       chosen = chosen.filter(function (entry) { return entry.item.id !== inside.id; })
         .concat(bodyMarkers(INTEREST_KINDS, function (id) { return stageView.layers.isOn(id); }, inside.entries));
+    }
+    // MAP.321 c: out at galactic scale a region with an inhabited world carries a token, while its sphere shows and no system's own mark
+    // stands for it.
+    var inhabitedKind = INHABITED_MARKER_KIND;
+    if (regionLayer && regionsOn && !hiddenCell && inhabitedKind && stageView.layers.isOn(inhabitedKind.id)) {
+      var here = camera.position.toArray();
+      var focal = focalPixels();
+      var marked = chosen.filter(function (entry) { return entry.kind.interest === "inhabited" && !entry.item.bodyRef; });
+      chosen = chosen.concat(regionMarkers(inhabitedKind, regionBlobList,
+        function (blob) { return regionLook(blob, here, focal); },
+        function (blob) { return markerFrustum.containsPoint(markerPoint.set(blob.x, blob.y, blob.z)); },
+        function (blob) {
+          return marked.some(function (entry) {
+            return Math.hypot(entry.item.x - blob.x, entry.item.y - blob.y, entry.item.z - blob.z) <= blob.radiusPc;
+          });
+        }));
     }
     markerLayer.set(chosen);
   }
