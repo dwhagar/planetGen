@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2454] - 2026-10-28
+
+**Headline:** Whether a close-in sub-Neptune keeps or loses its hydrogen envelope now comes from the published mass-loss rate of hot planets and its star's XUV history, and the radius valley still lands where Kepler found it.
+
+### Changed
+- **Envelope loss (GEN.822).** Rows e1 (bare core) and e2 (keeps its envelope) of the atmosphere recipes weigh by the share of the starting envelope lost, integrated with the hydro-based rate of Kubyshkina et al. 2018 (wired from GEN.738) over the star's XUV history while the planet shrinks as its envelope thins. The energy-limited formula and its fitted efficiency are gone. The first ten million years strip every core under 15 Earth masses inside 30 days in this model, so the integration starts at 1 Gyr and the earlier loss is part of the starting envelope; that onset is a tuned stand-in (registry row AM81), stated as such in the design note.
+- **Radius valley.** The survey of GEN.509 uses the same loss; with the onset and a narrower core-mass spread (0.25 in ln, registry row RV2) both published valley numbers (slope -0.11, 1.84 Earth radii at 10 days) land inside 2 sigma for any starting envelope of 0.04 to 0.2, and the recipe bracket for `f_env0` is now 0.05 to 0.2. The old `eta` ridge is gone.
+- **Generated planets.** The mixture draw reads these rows, so which sub-Neptunes and super-Earths of classes S, V, I and T draw a bare core and which keep an envelope changes, and the air that follows with it (epoch 110, stage fill). Tests for the new module and the valley (including the stellar-mass slopes of GEN.722), registry rows AM81 to AM84 and RV1, RV2, RV4, and a design note (`envelope-escape-wiring.md`).
+
+generation-output: changed
+
 ## [8.0.2453] - 2026-10-28
 
 **Headline:** The design notes now say what the generator does for the halo, the reach, the sector profile, the rate factors by place and the Wolf-Rayet stars.

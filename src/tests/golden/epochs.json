@@ -696,8 +696,7 @@
     },
     {
       "epoch": 117,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2454",
       "reason": "Whether a sub-Neptune or super-Earth of classes S, V, I and T draws a bare core or keeps its hydrogen envelope (rows e1 and e2) now follows the hydro-based mass-loss rate integrated over its star's XUV history from 1 Gyr (GEN.822), so the drawn option and the air that follows change for those planets",
       "affects": ["fill"]
     }
