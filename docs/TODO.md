@@ -7362,6 +7362,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   behind Lane I PR 4). The 'returned to the pool' line above is
   superseded. (TODO, 2026-10-24 5:27 PM EDT, from the physics fix plan
   thread's reconcile ask.)
+  Owner (2026-10-09): Owner now Core 4 (TODO, 12:31 PM EDT 2026-10-28,
+  Aux 8 confirmed it never started it).
 
 - [ ] **GEN.421 Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it**
   Boss (2026-10-16, 11:25 PM EDT): "We just found our seminal feature
@@ -7501,6 +7503,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wired in (that rides lane I's GEN.411, which takes the epoch), so no
   generated value moves. Opacities are labelled stand-ins until GEN.703
   (lane E). The item stays open for the wiring step.
+  Owner (2026-10-09): Owner now Core 4 (TODO, 12:31 PM EDT 2026-10-28;
+  Aux 8 never started it). Take it together with DB.67 in ONE PR and ONE
+  epoch (one lock turn). Aux 8's GEN.830 + GEN.837 branch touches
+  surface_air._shares, Setting and setting_of, so rebase on it if it
+  merges first.
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8390,6 +8397,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation is part of this item. Finding TEST.306 (Bug Hunt, 12:40 AM
   EDT 2026-10-24 as the lane reported),
   reports/test-306-test-only-modules-2026-10-24.md.
+  Owner (2026-10-09): Owner now Aux 9 (TODO, 12:31 PM EDT 2026-10-28, on
+  Aux 8's advice: once classes are derived from conditions in the
+  cut-over, CLASS_MIXES is deleted). Part of the class cut-over epoch.
 
 - [ ] **GEN.480 Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -15784,6 +15794,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Research (2026-10-09, 10-24 blocker scan): Owner assigned 2:08 PM EDT
   2026-10-24 (Boss asked for every blocker to have an owner): Lane L,
   after GEN.411, GEN.422, GEN.423 and GEN.424. Not started.
+  Owner (2026-10-09): Owner now Core 4 (TODO, 12:31 PM EDT 2026-10-28;
+  Aux 8 never started it). Take it together with GEN.423 in ONE PR and
+  ONE epoch (one lock turn); migration 0165 or the next free; the epoch
+  gets --affects for the stages that change.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
