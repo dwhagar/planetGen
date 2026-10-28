@@ -15458,36 +15458,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
 
-- [ ] **DB.83 `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug)**
-  Found by Blocker 2 (about 4:02 AM EDT 2026-10-22 as the lane reported,
-  while merging DB.44), filed by the TODO thread.
-  `src/planetgen/db/block_stats.py` (DB.25) has `refresh_chain`,
-  `refresh_sectors` and `rebuild`, but the only callers outside the
-  module are migration 0092 (once) and the revert path in `db/store.py`
-  (line 6471, `refresh_chain` after a fill is undone); no generation,
-  scatter, fill or edit path calls any of them.
-  docs/design/architecture/architecture.md (line 935) says the table is kept by
-  `db/block_stats.py`. Cells bigger than a sector read these totals
-  (docs/design/interface/drilldown-region-sizes.md), so a galaxy built or filled
-  after the migration can show stale or missing totals. Verify first
-  with a small galaxy: generate, scatter and fill, then compare
-  `galaxy_block_stats` with a sum over `sector_stats`. Do: call
-  `refresh_chain` (or the batched `refresh_sectors`) from the one place
-  each stored sector is written (the scatter and fill steps and the edit
-  paths), add a `planetgen` command or a `warm` step that runs
-  `rebuild`, and fix architecture.md if the design differs. Done: a test
-  that generates, fills and edits a galaxy and finds the block totals
-  equal to the sums over the sectors. Fails on main: yes by reading the
-  code, not yet reproduced. Owner: not assigned (a DB item; the DB items
-  chain lane or the bug queue).
-  Research (2026-10-09, Update): Lane 4 (9:16 AM EDT 2026-10-24, as the
-  lane reported): merged #2960: a sector the Galaxy Map generates when
-  visited (or regenerates) now counts in the block totals at once;
-  before, the totals above it stayed empty until fill-block-totals ran.
-  Not covered: the edit paths and the end of a scatter. The item stays
-  open for those two paths.
-  Prerequisites: none. Related: DB.25.
-
 - [ ] **DB.90 Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
   then D', relayed by the coordinator): 'Let's go with 3, since we're

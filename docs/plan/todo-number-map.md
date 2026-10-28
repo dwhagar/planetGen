@@ -641,7 +641,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.80 | `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug) | none | done, PR #2406 |
 | DB.81 | Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn' | none | done, PR #2403 |
 | DB.82 | The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug) | none | done, PR #2390 |
-| DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | open |
+| DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | done, PR #3476 |
 | DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | done, PR #2984 |
 | DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | done, PR #2582 |
 | DB.86 | Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more | none | done, PR #2801 |

@@ -1595,3 +1595,4 @@ Baseline: PR #1817.
 | GEN.415 | 8.1 | Consistency |
 | GEN.423 | 8.1 | Radiation chain for habitability (GEN.445) |
 | DB.67 | 8.1 | Mixture and stored values |
+| DB.83 | 8.1 | Reproducible galaxies |
