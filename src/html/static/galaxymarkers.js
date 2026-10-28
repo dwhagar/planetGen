@@ -15,7 +15,7 @@
 //   color       the glyph's color (CSS), also the legend swatch; an icon kind has none, its token colours it;
 //   maxBlock    the largest block size (shells) whose node lists this kind completely (a node of a bigger block does not
 //               list it, so the kind is not drawn from it; default: every node does);
-//   defaultOn   shown until the visitor says otherwise (default true);
+//   defaultOn   shown until the visitor says otherwise (default true; the inhabited, habitable and gas giant reasons are on, MAP.303);
 //   source      `function (node) -> [item]`: the kind's items in one node. An item has `key` (unique within the
 //               kind), `x`, `y`, `z` (galaxy frame, parsecs) and anything the kind needs to describe it;
 //   rank        `function (item) -> number`: higher is kept first when the budget cuts the list;
@@ -102,7 +102,7 @@ export const INTEREST_REASONS = [
     label: "Inhabited worlds",
     body: "inhabited world",
     icon: "inhabited-world",
-    defaultOn: false,
+    defaultOn: true,
     describe: function (reason) {
       return reason.n + (reason.n === 1 ? " inhabited world" : " inhabited worlds") + (reason.tier == null ? "" : ", best " + TIER_NAMES[reason.tier]);
     },
@@ -112,7 +112,7 @@ export const INTEREST_REASONS = [
     label: "Habitable worlds",
     body: "habitable world",
     icon: "habitable-world",
-    defaultOn: false,
+    defaultOn: true,
     describe: function (reason) {
       return reason.n + (reason.n === 1 ? " habitable world" : " habitable worlds") + (reason.tier == null ? "" : ", best " + TIER_NAMES[reason.tier]);
     },
@@ -130,7 +130,7 @@ export const INTEREST_REASONS = [
     label: "Gas giants",
     body: "gas giant",
     icon: "gas-giant",
-    defaultOn: false,
+    defaultOn: true,
     describe: function (reason) { return reason.n + (reason.n === 1 ? " gas giant" : " gas giants"); },
   },
   {
