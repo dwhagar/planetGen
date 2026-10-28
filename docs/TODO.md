@@ -2471,6 +2471,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09): Closes with the zoom redesign Z0 to Z5 (MAP.333
   to MAP.338, Boss answers 6:19 PM EDT 2026-10-28, owner Core 2);
   re-read MAP.299 to MAP.302, MAP.311, MAP.318 and MAP.322 against them.
+  Research (2026-10-09): Split (Boss 6:28 PM EDT 2026-10-28): this item
+  closes with Z0 (MAP.333) in 8.1. The rebuild Z1 to Z5 (MAP.334 to
+  MAP.338) and the preferences screen UX.236 are headline features of
+  8.2.
 - [ ] **MAP.266 S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu**
   Zoom design (reports in
   /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
@@ -2985,6 +2989,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test flies to a region, a sector and a system and finds the camera
   where the flight put it with no snap back, drags the slider through
   every level, and wheels at the ends without a dead end.
+  Research (2026-10-09): Stays in 8.1 (Boss 6:28 PM EDT 2026-10-28); the
+  rest of the zoom redesign, MAP.334 to MAP.338, is in 8.2 as a headline
+  feature. 8.1 infinite zoom (MAP.146) is already done and does not need
+  more.
   Prerequisites: none. Related: MAP.257, MAP.299, MAP.311.
 
 - [ ] **MAP.334 Zoom redesign Z1: one global zoom policy, with pace and clearance taken from the distance to the nearest thing; zoom floor 1e-10 pc (1e-12 pc after Z5)**
