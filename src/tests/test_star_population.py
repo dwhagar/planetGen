@@ -111,7 +111,7 @@ def test_white_dwarfs_are_earth_sized_and_dim(population):
     for state in white_dwarfs:
         low, high = prog_c.WD_MASS_RANGE_SOL
         assert low <= state["mass_sol"] <= high
-        assert 3000 < state["radius_km"] < 10000
+        assert 3000 < state["radius_km"] < 15000          # a hot 0.2 solar-mass white dwarf of the cooling sequences is 10,100 km (GEN.742)
         assert state["luminosity_sol"] <= prog_c.WD_LUMINOSITY_RANGE_SOL[1]
 
 
