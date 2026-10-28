@@ -10,7 +10,10 @@ A region is a 9-block of the Galaxy Map's block ladder that holds at least one g
   share charted is `sector_count / capacity` (a standard fill of 109 sectors in a cell of about 780 is about 14 percent);
 * the extent the map draws and frames the region with (`named_regions.region_extent`): the centre `extent_x_pc`,
   `extent_y_pc`, `extent_z_pc` and `extent_radius_pc` of the bounding sphere of the largest face-connected clump of its
-  generated sectors, never under the framing sphere, and `clump_count`, how many such clumps the cell holds.
+  generated sectors, never under the framing sphere, and `clump_count`, how many such clumps the cell holds;
+* `mass_sum_kg` (DB.108): the sum of its generated sectors' masses (`sector_stats.total_mass_kg`, `db/sector_mass.py`), added
+  exactly (`math.fsum`) so the same sectors give the same bits whatever order they were generated in; a sector that could not
+  be summed counts as nothing.
 
 A cell with no generated sector has no row, and the region does not exist. The rows only change when a sector is saved or
 deleted, so they are kept by the hooks that keep `galaxy_block_stats` (`db/block_stats.py` calls `refresh_chain`,
@@ -21,6 +24,7 @@ deleted, so they are kept by the hooks that keep `galaxy_block_stats` (`db/block
 """
 
 import functools
+import math
 
 from planetgen.db import query
 from planetgen.galaxy import drill, named_regions, spherical
@@ -29,7 +33,7 @@ LEVEL = named_regions.REGION_LEVEL
 """int: The block size of a region."""
 
 COLUMNS = ("shell_index", "band_index", "wedge_index", "sector_count", "capacity", "clump_count", "extent_x_pc",
-           "extent_y_pc", "extent_z_pc", "extent_radius_pc")
+           "extent_y_pc", "extent_z_pc", "extent_radius_pc", "mass_sum_kg")
 """tuple: The table's columns in the order `_row` writes them."""
 
 INSERT = f"INSERT INTO region_stats ({', '.join(COLUMNS)}) VALUES ({', '.join('?' for _ in COLUMNS)})"
@@ -67,10 +71,22 @@ def generated_sectors(conn, cell):
     return sorted((int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"])) for r in rows)
 
 
-def _row(cell, addresses, edge_pc):
+def generated_mass_kg(conn, cell):
+    """The summed mass, in kilograms, of the generated sectors of the region `cell` (`sector_stats.total_mass_kg`; 0 for a
+    sector with no figure)."""
+    where, params = query._sectors_where(cell_sectors(cell))
+    rows = conn.execute(
+        "SELECT st.total_mass_kg AS mass FROM (SELECT shell_index, band_index, wedge_index FROM sectors WHERE " + where + ") s"
+        " LEFT JOIN sector_stats st ON st.shell_index = s.shell_index AND st.band_index = s.band_index"
+        " AND st.wedge_index = s.wedge_index", params).fetchall()
+    return math.fsum(float(r["mass"] or 0.0) for r in rows)
+
+
+def _row(cell, addresses, edge_pc, mass_kg):
     extent = named_regions.region_extent(cell, addresses, edge_pc)
     x, y, z = extent.centre_pc
-    return (cell.shell, cell.band, cell.wedge, len(addresses), capacity_of(cell), extent.clumps, x, y, z, extent.radius_pc)
+    return (cell.shell, cell.band, cell.wedge, len(addresses), capacity_of(cell), extent.clumps, x, y, z, extent.radius_pc,
+            mass_kg)
 
 
 def refresh_cells(conn, cells, edge_pc=None):
@@ -83,7 +99,7 @@ def refresh_cells(conn, cells, edge_pc=None):
                      (cell.shell, cell.band, cell.wedge))
         addresses = generated_sectors(conn, cell)
         if addresses:
-            conn.execute(INSERT, _row(cell, addresses, edge_pc))
+            conn.execute(INSERT, _row(cell, addresses, edge_pc, generated_mass_kg(conn, cell)))
             written += 1
     return written
 
@@ -116,24 +132,28 @@ def rebuild(conn, on_progress=None):
         "SELECT DISTINCT shell_index FROM sectors WHERE shell_index IS NOT NULL ORDER BY shell_index").fetchall()]
     conn.execute("DELETE FROM region_stats")
     edge_pc = query.galaxy_edge_pc(conn)
-    cells, group, written = {}, None, 0
+    cells, masses, group, written = {}, {}, None, 0
 
     def flush():
         nonlocal written
         for cell in sorted(cells, key=tuple):
-            conn.execute(INSERT, _row(cell, sorted(cells[cell]), edge_pc))
+            conn.execute(INSERT, _row(cell, sorted(cells[cell]), edge_pc, math.fsum(masses[cell])))
             written += 1
         cells.clear()
+        masses.clear()
 
     for done, shell in enumerate(shells, start=1):
-        for r in conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE shell_index = ?",
-                              (shell,)).fetchall():
+        for r in conn.execute(
+                "SELECT s.shell_index, s.band_index, s.wedge_index, st.total_mass_kg FROM (SELECT * FROM sectors WHERE"
+                " shell_index = ?) s LEFT JOIN sector_stats st ON st.shell_index = s.shell_index"
+                " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index", (shell,)).fetchall():
             address = (int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"]))
             cell = region_cell(address)
             if group is not None and cell.shell != group:
                 flush()
             group = cell.shell
             cells.setdefault(cell, []).append(address)
+            masses.setdefault(cell, []).append(float(r["total_mass_kg"] or 0.0))
         if on_progress is not None:
             on_progress(done, len(shells))
     flush()
@@ -144,14 +164,14 @@ def _region(row):
     cell = drill.DrillBlock(LEVEL, int(row["shell_index"]), int(row["band_index"]), int(row["wedge_index"]))
     count, capacity = int(row["sector_count"]), int(row["capacity"])
     return {"block": cell, "sector_count": count, "capacity": capacity, "charted_percent": 100.0 * count / capacity,
-            "clump_count": int(row["clump_count"]),
+            "clump_count": int(row["clump_count"]), "mass_sum_kg": float(row["mass_sum_kg"]),
             "extent_centre_pc": (float(row["extent_x_pc"]), float(row["extent_y_pc"]), float(row["extent_z_pc"])),
             "extent_radius_pc": float(row["extent_radius_pc"])}
 
 
 def region_row(conn, cell):
     """The stored region of the 9-block `cell` (`block`, `sector_count`, `capacity`, `charted_percent`, `clump_count`,
-    `extent_centre_pc`, `extent_radius_pc`), or `None` when it holds no generated sector."""
+    `extent_centre_pc`, `extent_radius_pc`, `mass_sum_kg`), or `None` when it holds no generated sector."""
     row = conn.execute(f"SELECT {', '.join(COLUMNS)} FROM region_stats WHERE shell_index = ? AND band_index = ?"
                        " AND wedge_index = ?", (cell.shell, cell.band, cell.wedge)).fetchone()
     return None if row is None else _region(row)

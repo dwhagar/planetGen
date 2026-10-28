@@ -5121,7 +5121,7 @@ def galaxy_stage(conn, at=None):
             _add_stage_sums(counts, DrillBlock(1, r["shell_index"], r["band_index"], r["wedge_index"]), {
                 "n": 1, "systems": r["actual_systems"], "expected": r["expected_systems"], "stars": r["actual_stars"],
                 "age_sum": (r["mean_age_gy"] or 0.0) * (r["actual_stars"] or 0), "luminosity": r["total_luminosity_sol"],
-                "habitable": r["habitable_worlds"],
+                "habitable": r["habitable_worlds"], "mass": r["total_mass_kg"],
             })
         return {"at": format_drill_key(block), "child_m": 1, "children": _stage_children(counts), "sectors": sectors, "edge_pc": edge_pc}
 
@@ -5171,7 +5171,7 @@ def _sectors_where(sectors):
 
 _BLOCK_STATS_COLUMNS = (
     "shell_index, band_index, wedge_index, sector_count AS n, systems, expected_systems AS expected, stars, age_sum,"
-    " luminosity_sol AS luminosity, habitable_worlds AS habitable"
+    " luminosity_sol AS luminosity, habitable_worlds AS habitable, mass_sum_kg AS mass"
 )
 
 
@@ -5192,7 +5192,7 @@ def _block_rows(conn, m, cells=None):
 def galaxy_block_sums(conn, block):
     """
     The sums of the generated sectors inside one block (DB.25): `[sectors, systems, expected systems, stars, stars
-    times mean age, luminosity, habitable worlds]` (`_add_stage_sums`' order), or `None` for a block with no generated sector. A
+    times mean age, luminosity, habitable worlds, mass in kilograms]` (`_add_stage_sums`' order), or `None` for a block with no generated sector. A
     level-3 block adds up its sectors from `sectors` and `sector_stats`; a bigger one adds up the stored rows of its
     children, so a refresh climbs the ladder one level at a time and never reads a block's sectors in one go.
     """
@@ -5323,17 +5323,18 @@ def _sector_sums(row):
     """One sector's sums, in `_add_stage_sums`' order, for its own `stats`."""
     stars = row["actual_stars"] or 0
     return [1, row["actual_systems"] or 0, row["expected_systems"] or 0.0, stars,
-            (row["mean_age_gy"] or 0.0) * stars, row["total_luminosity_sol"] or 0.0, row["habitable_worlds"] or 0]
+            (row["mean_age_gy"] or 0.0) * stars, row["total_luminosity_sol"] or 0.0, row["habitable_worlds"] or 0,
+            row["total_mass_kg"] or 0.0]
 
 
 def _stage_sectors_with_stats(where, extra=""):
     """The placed sectors matching `where` (on `sectors`' own columns),
     each with the `sector_stats` the map colors from (DB.14):
     `actual_systems`, `expected_systems`, `actual_stars`, `mean_age_gy`,
-    `total_luminosity_sol` and `habitable_worlds` (NULL without a row or a fill)."""
+    `total_luminosity_sol`, `habitable_worlds` and `total_mass_kg` (NULL without a row or a fill)."""
     return (
         f"SELECT {extra}s.shell_index, s.band_index, s.wedge_index, st.actual_systems, st.expected_systems,"
-        " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds"
+        " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds, st.total_mass_kg"
         f" FROM (SELECT * FROM sectors WHERE {where}) s LEFT JOIN sector_stats st"
         " ON st.shell_index = s.shell_index AND st.band_index = s.band_index"
         " AND st.wedge_index = s.wedge_index"
@@ -5343,7 +5344,8 @@ def _stage_sectors_with_stats(where, extra=""):
 _STAGE_LOOK_SUMS = (
     "COUNT(*) AS n, SUM(COALESCE(actual_systems, 0)) AS systems, SUM(COALESCE(expected_systems, 0)) AS expected,"
     " SUM(COALESCE(actual_stars, 0)) AS stars, SUM(COALESCE(mean_age_gy, 0) * COALESCE(actual_stars, 0)) AS age_sum,"
-    " SUM(COALESCE(total_luminosity_sol, 0)) AS luminosity, SUM(COALESCE(habitable_worlds, 0)) AS habitable"
+    " SUM(COALESCE(total_luminosity_sol, 0)) AS luminosity, SUM(COALESCE(habitable_worlds, 0)) AS habitable,"
+    " SUM(CAST(COALESCE(total_mass_kg, 0) AS DECIMAL(65, 0))) AS mass"
 )
 """The per-group sums `galaxy_stage` folds into each child's stats."""
 
@@ -5351,8 +5353,8 @@ _STAGE_LOOK_SUMS = (
 def _add_stage_sums(counts, child, row):
     """Adds one group's sums (`_STAGE_LOOK_SUMS`) to `counts[child]`:
     `[sectors, systems, expected systems, stars, stars times mean age,
-    luminosity, habitable worlds]`."""
-    sums = counts.setdefault(child, [0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    luminosity, habitable worlds, mass in kilograms]`."""
+    sums = counts.setdefault(child, [0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     sums[0] += int(row["n"])
     sums[1] += float(row["systems"] or 0.0)
     sums[2] += float(row["expected"] or 0.0)
@@ -5360,6 +5362,7 @@ def _add_stage_sums(counts, child, row):
     sums[4] += float(row["age_sum"] or 0.0)
     sums[5] += float(row["luminosity"] or 0.0)
     sums[6] += float(row["habitable"] or 0.0)
+    sums[7] += float(row["mass"] or 0.0)
 
 
 def _stage_stats(sums):
@@ -5369,7 +5372,7 @@ def _stage_stats(sums):
     weighted by its star count; `None` without stars),
     `luminosity_sol` (the sum of their luminosity) and `habitable_worlds`
     (MAP.143: the Blue or Green planets and moons they hold)."""
-    _n, systems, expected, stars, age_sum, luminosity, habitable = sums
+    _n, systems, expected, stars, age_sum, luminosity, habitable, _mass = sums
     return {
         "systems": int(systems),
         "expected_systems": round(expected, 3),

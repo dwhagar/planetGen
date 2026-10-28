@@ -2258,7 +2258,8 @@ def fill_block_totals(args):
     Makes the totals of the Galaxy Map's blocks again, in the two tables the map's nodes read: what the generated
     sectors hold (MAP.258, `db.block_stats.rebuild`, which nothing but a sector's deletion kept up to date before) and
     the light of the pre-placed stars and scattered phenomena (MAP.259, `db.block_lights.rebuild`, a unit of shells at a
-    time).
+    time). The sectors' masses are made again with the first (DB.108); a sector holding a body with no stored mass is
+    listed in the log, left out of the sums and never guessed.
 
     Returns:
         int: The block rows written, both tables together.
@@ -2266,7 +2267,9 @@ def fill_block_totals(args):
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         log.normal("Making the block totals...")
-        stats = block_stats.rebuild(conn)
+        stats = block_stats.rebuild(conn, on_skipped=lambda addresses: log.normal(
+            f"{len(addresses):,} sectors hold a body with no stored mass and are left out of the mass sums: "
+            + ", ".join("-".join(str(part) for part in address) for address in addresses)))
         conn.commit()
         lights = block_lights.rebuild(conn, on_progress=lambda done, total: log.debug(f"units {done}/{total}"))
     finally:

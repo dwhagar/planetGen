@@ -246,6 +246,7 @@ TABLES = {
         "count": ("sector_count", "systems", "expected_systems", "stars", "habitable_worlds"),
         "Gyr": ("age_sum",),
         "Lsun": ("luminosity_sol",),
+        "kg": ("mass_sum_kg",),
     },
     "galaxy_block_lights": {
         "index": ("m", "shell_index", "band_index", "wedge_index"),
@@ -258,6 +259,7 @@ TABLES = {
         "index": ("shell_index", "band_index", "wedge_index"),
         "count": ("sector_count", "capacity", "clump_count"),
         "pc": ("extent_x_pc", "extent_y_pc", "extent_z_pc", "extent_radius_pc"),
+        "kg": ("mass_sum_kg",),
     },
     "galaxy_components": {
         "id": ("id", "parent_component_id"),
@@ -759,6 +761,7 @@ TABLES = {
         "index": ("shell_index", "band_index", "wedge_index"),
         "Lsun": ("bright_level_sol", "level_before_fill_sol", "mean_luminosity_sol", "total_luminosity_sol"),
         "Msun": ("bright_mass_sol",),
+        "kg": ("total_mass_kg",),
         "ratio": ("relative_density",),
         "count": ("expected_systems", "actual_systems", "actual_stars", "habitable_worlds"),
         "K": ("mean_temperature_k",),

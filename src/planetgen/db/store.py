@@ -69,7 +69,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, storage_checksum
+from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
@@ -6836,7 +6836,8 @@ def record_sector_stats(conn, sector_id, address, center_pc):
     expected density from the galaxy model, the systems and stars it got,
     the mean temperature, mean luminosity and age of those stars and
     their summed luminosity (DB.14; the map colors from these), the habitable
-    worlds they hold (MAP.143, `sector_habitable_worlds`), and
+    worlds they hold (MAP.143, `sector_habitable_worlds`), the mass of everything in it
+    (DB.108, `sector_mass.sector_mass_kg`), and
     level 0 (filled), keeping the level it had in
     `level_before_fill_sol`; then folds its actual-to-expected systems
     into `galaxy_shape`'s decaying average. Inside the sector's own save,
@@ -6879,14 +6880,14 @@ def record_sector_stats(conn, sector_id, address, center_pc):
     conn.execute(
         "INSERT INTO sector_stats (shell_index, band_index, wedge_index, bright_level_sol, level_before_fill_sol,"
         " relative_density, expected_systems, actual_systems, actual_stars, mean_temperature_k, mean_luminosity_sol,"
-        " mean_age_gy, total_luminosity_sol, habitable_worlds, filled_at)"
-        " VALUES (?, ?, ?, 0, -1, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3))"
+        " mean_age_gy, total_luminosity_sol, habitable_worlds, total_mass_kg, filled_at)"
+        " VALUES (?, ?, ?, 0, -1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3))"
         " ON DUPLICATE KEY UPDATE level_before_fill_sol = IF(bright_level_sol = 0, level_before_fill_sol,"
         " bright_level_sol), bright_level_sol = 0, relative_density = ?, expected_systems = ?, actual_systems = ?,"
         " actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?, mean_age_gy = ?,"
-        " total_luminosity_sol = ?, habitable_worlds = ?, filled_at = CURRENT_TIMESTAMP(3)",
+        " total_luminosity_sol = ?, habitable_worlds = ?, total_mass_kg = ?, filled_at = CURRENT_TIMESTAMP(3)",
         (*address, *(2 * (density, expected, systems, stars["n"], temperature, luminosity, age, total_luminosity,
-                          sector_habitable_worlds(conn, sector_id)))),
+                          sector_habitable_worlds(conn, sector_id), sector_mass.sector_mass_kg(conn, sector_id)))),
     )
     if expected:
         ratio = systems / expected
@@ -6910,7 +6911,7 @@ def forget_sector_fill(conn, address):
     conn.execute(
         "UPDATE sector_stats SET bright_level_sol = COALESCE(level_before_fill_sol, -1), level_before_fill_sol = NULL,"
         " actual_systems = NULL, actual_stars = NULL, mean_temperature_k = NULL, mean_luminosity_sol = NULL,"
-        " mean_age_gy = NULL, total_luminosity_sol = NULL, habitable_worlds = NULL,"
+        " mean_age_gy = NULL, total_luminosity_sol = NULL, habitable_worlds = NULL, total_mass_kg = NULL,"
         " filled_at = NULL WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND bright_level_sol = 0",
         tuple(address),
     )
