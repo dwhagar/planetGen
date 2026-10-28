@@ -9,7 +9,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, clathrate_brine, constants, gases, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import atmosphere, atmosphere_state, clathrate_brine, constants, gases, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -197,6 +197,30 @@ def test_the_stored_partials_add_up_to_the_pressure_and_the_state_follows_from_t
         if body.body_type == "g":
             assert body.atmospheric_pressure == pytest.approx(sa.REFERENCE_PRESSURE_BAR * 1.0e5, rel=1e-9)
     assert bodies > 0
+
+
+def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives():
+    """GEN.423 and DB.67: the molar density, the density, the scale height and the greenhouse multiplier a body stores are the ones
+    its stored partial pressures give at its surface temperature and gravity: the molar mass is `sum x_i M_i`, the density `P M / (R T)`,
+    the scale height `R T / (M g)`, and the multiplier is the warming `atmosphere_state.greenhouse_warming` finds for the stored mixture
+    at the starlight the body absorbs, which is the one its stored temperature `T_e (1 + G)^(1/4)` is made of."""
+    bodies = 0
+    for body in _generated(range(10)):
+        air = atmosphere.gas_partials_pa(body)
+        if not air or body.atmosphere == "None":
+            assert body.greenhouse_factor == 0.0 or body.greenhouse_factor is None
+            continue
+        bodies += 1
+        gravity = body.gravity * constants.EARTH_GRAVITY
+        state = atmosphere_state.air_state(air, body.surface_temperature, gravity)
+        assert body.atm_molar_density == pytest.approx(state.mean_molar_mass_kg_mol, rel=1e-6)
+        assert body.atm_density == pytest.approx(state.density_kg_m3, rel=1e-6)
+        assert body.scale_height == pytest.approx(state.scale_height_m / 1000.0, rel=1e-6)
+        assert body.bond_albedo is not None and 0.0 <= body.bond_albedo < 1.0
+        absorbed = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
+        warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed)
+        assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1e-6, abs=1e-9)
+    assert bodies > 5
 
 
 def test_a_system_replays_to_the_same_air():
