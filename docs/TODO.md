@@ -4537,7 +4537,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the nebula's stored `age_myr`, which the design says 'waits on a
     schema column' (nebula-and-asteroid-field-classes.md, Applying the
     rules at generation, and Nebula volume backfill step 3).
-    Prerequisites: GEN.357, GEN.358.
+    Prerequisites: GEN.358.
     Design: [docs/design/systems/nebula-and-asteroid-field-classes.md](design/systems/nebula-and-asteroid-field-classes.md)
 
 - [ ] **GEN.105 Orbital updates**
@@ -6964,31 +6964,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.355. Related: GEN.91,
   GEN.412, GEN.423, GEN.428.
 
-- [ ] **GEN.357 Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud**
-  Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). `surrounding_cloud` (set only at load
-  today) gains extinction, radius, age, host stars and centre at
-  generation; `run_sector` finds the containers of the sector box once
-  (`store._placed_containers`, `NebulaShape.contains`); after the
-  position is chosen `StarSystem.apply_cloud(cloud)` regenerates planets
-  only when the cloud's rules change something and stamps the radiation
-  tier, enrichment factor and composition flags. The same call serves
-  GEN.99's regenerate in place. Done: a system inside a seeded nebula
-  gets the cloud while it is generated, a system outside is
-  byte-identical.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report). READY: its blocker DB.59
-  turned out to be built already (the nebula and remnant age columns have
-  existed since v87 and v38; Core 2, 6:05 PM EDT), so Core 4 can take it
-  now.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): read docs/design/composition/composition-model.md before building it:
-  the nebula's composition flags are either dropped or routed through
-  the composition chain (GEN.428 reads the host's iron, magnesium and
-  silicon, GEN.440 derives the star's composition), so no second set of
-  composition fields is invented.
-  Prerequisites: none. Related: GEN.95, DB.59.
-
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
   Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Apply the rule table inside
@@ -7002,6 +6977,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   vis-viva, unbound above half the mass lost, engulfment overrides).
   Done: a test for each rule and the worked example (1 AU round 1 Msun
   dropping to 0.6 Msun moves to 1.67 AU).
+  Research (2026-10-09, Core 4 report 2026-10-28): GEN.357 merged
+  (#3367): a system placed in a seeded field cloud (classes M, N, P, Q)
+  now carries the cloud, the radiation tier and an Al-26 enrichment
+  factor in memory only (cloud_effects: no column, nothing reads it
+  after a save; this item or the habitability index decides whether to
+  store it). Stored nebulae and remnants (classes C to L, R to W) still
+  reach a system through the containment pass after the save (GEN.99
+  hands them to StarSystem.apply_cloud). Host stars sit at the cloud
+  centre (stand-in tuning.CLOUD_HOST_MIN_DISTANCE_PC); Wolf-Rayet hosts
+  of class X add nothing yet.
+  Research (2026-10-09, Core 4 report 2026-10-28): Stand-ins from
+  GEN.357 to enter in the stand-in registry
+  (docs/design/stand-in-values.md, tweak levels to be set by the owner):
+  CLOUD_FUV_FRACTION_BY_TEFF_K, CLOUD_G0_TIER_EDGES,
+  CLOUD_HOST_MIN_DISTANCE_PC (every host at the cloud centre),
+  CLOUD_CLASS_RADIATION_TIER, CLOUD_ENRICHMENT_* (design-note rule
+  table); HABING_FLUX_ERG_CM2_S is sourced; the O9V luminosity uses the
+  MIST zero-age row (3.1e4 Lsun) instead of the design table (1e5).
   Prerequisites: GEN.357. Related: GEN.95.
 
 - [ ] **GEN.359 Sector fill links cluster stars to their cluster and names the cluster at its first fill**
@@ -21045,6 +21038,32 @@ clears each one.
   but it touches tests.golden_update: merge it as soon as it is green
   and tell TODO so holders pull main.
   Prerequisites: none. Related: TEST.399, TEST.404.
+
+- [ ] **TEST.408 test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug)**
+  Found by Core 4 (as the lane reported 7:25 AM EDT 2026-10-28, report
+  reports/core4-gen357-report-2026-10-28.md) on clean main c0a6fdef7 or
+  earlier: every run on that lane machine, the 900 s signal timeout did
+  not stop it, and a worker crashed on it in the gate ("node down: Not
+  properly terminated"). Do: reproduce on clean main, find the loop (a
+  pulsar-system fill that never ends or a generation that retries
+  forever), fix the code or the fixture, and make the timeout actually
+  kill the test (a signal that C code or a thread ignores needs a hard
+  kill). Done: the test passes in a few minutes and a stuck test is
+  killed at its timeout. Owner: Bug 1 after TEST.407, or a free lane.
+  Rules: never skip or quarantine a test; scripts/test.py changed
+  --resume.
+  Prerequisites: none. Related: TEST.406, TEST.407.
+
+- [ ] **TEST.409 test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug)**
+  Found by Core 4 (as the lane reported 7:25 AM EDT 2026-10-28) on clean
+  main, every run. Do: reproduce, find out whether civilization
+  generation moved (GEN.441, 4c, class changes) or the fixture seed no
+  longer yields a civilization, and fix the code or the fixture with the
+  reason in the PR; the setup should fail in seconds, not 7.75 minutes.
+  Done: the test passes on main. Owner: Bug 1 after TEST.407, or a free
+  lane. Rules: never skip or quarantine a test; scripts/test.py changed
+  --resume.
+  Prerequisites: none. Related: TEST.406.
 
 ## USR: User accounts
 
