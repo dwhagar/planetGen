@@ -412,12 +412,82 @@ def system_scene_payload(system_id):
     return scene
 
 
+LARGE_DISC_STARS = 30000
+LARGE_CLUSTERS = 40
+LARGE_CLUSTER_STARS = 300
+LARGE_CORE_STARS = 4000
+LARGE_CORE_SCALE_PC = 25.0
+LARGE_CENTRE_PC = STAR_FIELD_CENTER_PC
+"""MAP.249: the large synthetic galaxy's size. `LARGE_DISC_STARS` stars spread over an exponential disc (scale 2800 pc,
+350 pc thick), `LARGE_CLUSTERS` clusters of `LARGE_CLUSTER_STARS` among them and one core cluster of `LARGE_CORE_STARS`
+(scale `LARGE_CORE_SCALE_PC`) at `LARGE_CENTRE_PC`, where the benchmark dives: every level of the dive there lists the
+node's full budget of stars (`nodes.NODE_STARS`, `NODE_SECTOR_STARS`), as a real galaxy's does."""
+
+
+def _large_field():
+    """MAP.249: the stars of a large synthetic galaxy (seeded), with their sector addresses and drill-down indexes (see
+    `LARGE_*`). Luminosities run 1e-4 to 1e5 L_sun with the faint end far commoner, as in a real population."""
+    import random
+
+    from planetgen.galaxy.spherical import sector_address_at
+
+    rng = random.Random(249)
+    centres = []
+    for _ in range(LARGE_CLUSTERS):
+        radius = min(12000.0, rng.expovariate(1.0 / 2800.0))
+        angle = rng.uniform(0.0, 2.0 * math.pi)
+        centres.append((radius * math.cos(angle), radius * math.sin(angle), rng.uniform(-300.0, 300.0), rng.uniform(6.0, 40.0)))
+    stars = []
+    count = LARGE_DISC_STARS + LARGE_CLUSTERS * LARGE_CLUSTER_STARS + LARGE_CORE_STARS
+    for i in range(count):
+        if i < LARGE_DISC_STARS:
+            radius = min(14000.0, rng.expovariate(1.0 / 2800.0))
+            angle = rng.uniform(0.0, 2.0 * math.pi)
+            x, y, z = radius * math.cos(angle), radius * math.sin(angle), rng.choice((-1, 1)) * rng.expovariate(1.0 / 350.0)
+        else:
+            if i < count - LARGE_CORE_STARS:
+                cx, cy, cz, scale = centres[(i - LARGE_DISC_STARS) // LARGE_CLUSTER_STARS]
+            else:
+                (cx, cy, cz), scale = LARGE_CENTRE_PC, LARGE_CORE_SCALE_PC
+            x, y, z = cx + rng.gauss(0.0, scale), cy + rng.gauss(0.0, scale), cz + rng.gauss(0.0, scale / 3.0)
+        lum = 10 ** (-4.0 + 9.0 * rng.random() ** 2.5)
+        shell, band, wedge = sector_address_at((x, y, z), EDGE_PC)
+        stars.append({
+            "id": 100000 + i, "name": None, "x": x, "y": y, "z": z,
+            "luminosity_sol": float("%.4g" % lum), "temperature_k": round(2600.0 + 30000.0 * (math.log10(lum) + 4.0) / 9.0 * rng.uniform(0.6, 1.0)),
+            "radius_sol": float("%.3g" % (lum ** 0.35)), "star_type": "fixture",
+            "shell_index": shell, "band_index": band, "wedge_index": wedge, "system_id": SYSTEMS[i % len(SYSTEMS)][0],
+        })
+    return stars
+
+
+def _bucketed(stars):
+    """The stars of every drill-down block, brightest first: `{DrillBlock: [star, ...]}` (a node's stars are the first
+    `NODE_STARS` of its block's)."""
+    from planetgen.db.nodes import ancestor_at
+    from planetgen.galaxy.drill import DRILL_LEVELS
+
+    memo = {}
+    buckets = {}
+    for star in stars:
+        address = (star["shell_index"], star["band_index"], star["wedge_index"])
+        for m in DRILL_LEVELS:
+            buckets.setdefault(ancestor_at(address, m, memo), []).append(star)
+    for bucket in buckets.values():
+        bucket.sort(key=lambda star: -star["luminosity_sol"])
+    return buckets
+
+
 class FixtureApi:
     """The `apiclient`/`tilecache` reads the map pages make."""
 
-    def __init__(self, halo=False, dense=False):
+    def __init__(self, halo=False, dense=False, large=False):
         self.shape = galaxy_shape()
         self.stars = STAR_FIELD + (HALO_STARS if halo else []) + (DENSE_STARS if dense else [])
+        self.buckets = None
+        if large:
+            self.stars = self.stars + _large_field()
+            self.buckets = _bucketed(self.stars)
         self.points = POINT_FIELD + (HALO_POINTS if halo else []) + (DENSE_POINTS if dense else [])
         self.worlds = WORLD_FIELD + (DENSE_WORLDS if dense else [])
         self._addresses = {}
@@ -463,7 +533,7 @@ class FixtureApi:
         return found
 
     def get_galaxy_nodes(self, db, node_keys):
-        from planetgen.db.nodes import address_in_block
+        from planetgen.db.nodes import NODE_SECTOR_STARS, NODE_STARS, address_in_block
         from planetgen.galaxy.drill import parse_node_key
         from planetgen.galaxy.nodecut import block_box
 
@@ -471,7 +541,12 @@ class FixtureApi:
         for key in node_keys:
             block = parse_node_key(key)
             lo, hi = block_box(block, EDGE_PC)
-            stars = [star for star in self.stars if address_in_block(self._address(star), block, self._memo)]
+            if self.buckets is None:
+                stars = [star for star in self.stars if address_in_block(self._address(star), block, self._memo)]
+                lit = stars
+            else:
+                lit = self.buckets.get(DrillBlock(*block), [])
+                stars = lit[:NODE_SECTOR_STARS if block.m == 1 else NODE_STARS]
             points = [point for point in self.points if address_in_block(self._address(point), block, self._memo)]
             worlds = [system for system in self.worlds
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
@@ -482,11 +557,11 @@ class FixtureApi:
                 if math.dist(nearest, [cloud[axis] for axis in "xyz"]) <= cloud["radius_pc"]:
                     clouds.append(cloud)
             # The light of the unlisted stars (MAP.266's glow): GLOW_EXTRA_SOL on top of the listed stars', centred on them.
-            lights = {"stars": len(stars), "star_luminosity_sol": sum(star["luminosity_sol"] for star in stars)}
-            if stars:
+            lights = {"stars": len(lit), "star_luminosity_sol": sum(star["luminosity_sol"] for star in lit)}
+            if lit:
                 lights["star_luminosity_sol"] += GLOW_EXTRA_SOL
-                weight = sum(star["luminosity_sol"] for star in stars)
-                lights["star_centre"] = [sum(star["luminosity_sol"] * star[axis] for star in stars) / weight for axis in "xyz"]
+                weight = sum(star["luminosity_sol"] for star in lit)
+                lights["star_centre"] = [sum(star["luminosity_sol"] * star[axis] for star in lit) / weight for axis in "xyz"]
                 lights["star_temperature_k"] = 5200
             nodes[key] = {"aggregate": {"generated": 0, "stats": None, "lights": lights}, "placed": [],
                           "clouds": clouds, "stars": stars, "generated": None, "points": points, "worlds": worlds}
@@ -664,4 +739,11 @@ def dense_site(request, tmp_path_factory):
     yield from _serve("dense", {"dense": True}, request, tmp_path_factory)
 
 
-__all__ = ["map_site", "halo_site", "dense_site", "dense_region_query", "DENSE_STARS", "DENSE_POINTS", "DENSE_WORLDS", "DENSE_CENTER_PC", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]
+@pytest.fixture()
+def large_site(request, tmp_path_factory):
+    """`map_site` with a large synthetic galaxy of tens of thousands of stars (MAP.249): the nodes carry their real
+    budgets, brightest stars first; the benchmark dives into `LARGE_CENTRE_PC`."""
+    yield from _serve("large", {"large": True}, request, tmp_path_factory)
+
+
+__all__ = ["map_site", "halo_site", "dense_site", "large_site", "LARGE_CENTRE_PC", "dense_region_query", "DENSE_STARS", "DENSE_POINTS", "DENSE_WORLDS", "DENSE_CENTER_PC", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]
