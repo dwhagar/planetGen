@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.37 |
 | TEST | TEST.430 |
 | USR | USR.32 |
-| OPS | OPS.77 |
+| OPS | OPS.78 |
 | DOC | DOC.83 |
 | VIEW | VIEW.19 |
 | POP | POP.46 |
@@ -2085,6 +2085,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.74 | Delete the uncalled helpers (class_allowed_in_zone, build_sector_configs, shell_chunks, draw_mass, mantle_mass_kg, build_nodes, get_galaxy_phenomena, register_card_renderer, read_config, settings_hash, mass_limit_argv) (G7, step 2) | none | open |
 | OPS.75 | update.sh ends with "the update failed at step 9/9, checking that the web app imports" when the import check passed and the real failure is the health check after the Apache reload; the site stays closed with a wrong reason (bug) | none | done, PR #3363 |
 | OPS.76 | update.sh warns "uncommitted local changes in /var/lib/planetGen -- these will be overwritten: ?? state/" on every update although state/ is expected (bug) | none | done, PR #3363 |
+| OPS.77 | update.sh ends with the site closed because its final /api/health check gets a 403 (a reemergence of OPS.75) (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
