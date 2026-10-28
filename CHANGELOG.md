@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2411] - 2026-10-28
+
+**Headline:** The Galaxy Map can mark systems with barren worlds and asteroid belts too, each star showing the symbol of its best world.
+
+### Added
+- **Two more reasons for a mark (MAP.321).** The Menu has Uninhabitable worlds (a scored rocky world below the Yellow floor, in brown) and Asteroid fields (a system with a belt, in grey) beside Habitable worlds and Gas giants, each off until asked for. A system with several is drawn once, with the symbol of its best world: a habitable world before a barren one before a gas giant before a belt, and its infobox lists them all.
+- Migration 0166 fills the two reasons from the planets, moons and belts already stored (no epoch).
+
 ## [8.0.2410] - 2026-10-28
 
 **Headline:** `planetgen repair-db` rebuilds damaged sectors from the parity file, so a flipped value or a lost row in a sector can be mended instead of regenerating the sector.
