@@ -21,10 +21,14 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
-from planetgen.physics import planet_classes
+from planetgen.physics import constants, planet_classes
 from planetgen.generation import life as planetLife
 
 ZONE_CHARS = "hec"
+
+# GEN.830: the mass share of a body that its air can hold beyond its water: the carbon, nitrogen and sulfur a mantle degasses, bounded by
+# the 9 percent that CI chondrites carry of them in all (Lodders); the degassed share of that is far smaller.
+VOLATILE_ALLOWANCE = 0.09
 
 # (class, zone) pairs PLANET_CLASSES actually declares valid.
 VALID_CLASS_ZONE_PAIRS = [
@@ -99,8 +103,12 @@ def test_planet_physical_properties_are_finite_and_sane(host_star, cls, zone):
         # Class N is tuned to real Venus values (~9.2MPa mean at this
         # module's G2V host, see PLANET_CLASSES["N"]); the upper bound is
         # raised well past that to stay a broad regression catch.
-        # GEN.411: the supply law of a massive ocean world can hold the weight of a tens-of-kilobar envelope (9e9 Pa seen for O in zone e).
-        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 1e10
+        # GEN.830: the weight of the air on the surface (g * m / area) is its mass, which cannot exceed the water the body has plus the
+        # degassed share of its other volatiles. This replaces the flat ceiling: a sealed ocean world that crosses the critical point of
+        # water holds all its surface water as steam (several GPa), which is its own inventory and no more.
+        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure
+        air_kg = planet.atmospheric_pressure * 4.0 * math.pi * (planet.radius * 1000.0) ** 2 / (planet.gravity * constants.EARTH_GRAVITY)
+        assert air_kg <= planet.mass * ((planet.water_mass_fraction or 0.0) + VOLATILE_ALLOWANCE)
         assert math.isfinite(planet.atm_density) and planet.atm_density > 0
         assert math.isfinite(planet.atm_molar_density) and planet.atm_molar_density > 0
         assert math.isfinite(planet.scale_height) and planet.scale_height > 0

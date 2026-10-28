@@ -316,6 +316,17 @@ def generate_interior(body):
     body.mantle_eta0_pa_s, body.mantle_activation_kj_mol = interior.eta0_pa_s, interior.activation_kj_mol
 
 
+def released_by(body, age_gy):
+    """
+    The heat the interior of `body` has carried out by `age_gy` (J): the thermal history of `update_heat` run to that age instead of the
+    star's. 0 for a body with no stored content or interior. No draws.
+    """
+    content, interior = radiogenic.content_of(body), interior_of(body)
+    if content is None or interior is None:
+        return 0.0
+    return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body)).released_j
+
+
 def update_heat(body):
     """
     Runs the thermal history of a rocky body to its star's age now and sets `OUTPUT_FIELDS` (the Urey ratio, the heat flow of its own and the
