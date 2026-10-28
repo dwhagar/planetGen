@@ -126,13 +126,14 @@ def test_a_planet_has_a_page_with_its_sheet_text_places_and_tree(client):
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert "<title>" in page and "Kepler b" in page
-    assert "A rocky world." in page                      # the description's paragraph
+    assert 'class="summary"' in page and "Kepler b is a world" in page      # UX.220: the summary is written from the data
+    assert "A rocky world." not in page                  # and the stored class description no longer opens the page
     assert 'id="item-properties"' in page and "Mass" in page and "Ocean depth" not in page   # the sheet; a value never stored is not listed (UX.199)
     assert 'href="/sector/4"' in page and 'href="/system/9"' in page          # the places it is in
     assert f'href="/object/{STAR}"' in page               # the star it orbits is on the chain
     assert 'data-tree-root' in page and f"/object/{MOON}" in page            # the bodies that belong to it, each a page
-    assert page.index('id="location"') < page.index('id="item-facts"') < page.index('id="item-properties"') \
-        < page.index('id="item-members"')
+    assert page.index('id="item-facts"') < page.index('id="location"') < page.index('id="item-properties"') \
+        < page.index('id="item-members"')      # UX.215: the Location row is the first row of the At a glance table
     assert "#planet-" not in page, "no more anchors on the system's page"
 
 
@@ -146,9 +147,9 @@ def test_a_scored_planet_shows_its_symbols_under_the_title_and_other_kinds_do_no
     """UX.100: the item page of a scored planet or moon carries the seven PHI-6 symbols; a star or unscored body none."""
     body = client.get(f"/object/{PLANET}").get_data(as_text=True)
     assert body.count("hab-symbol ") == 7 and 'aria-label="Radiation: Red"' in body
-    assert body.index("hab-symbols") < body.index("About Kepler b")
+    assert body.index("About Kepler b") < body.index("hab-symbols")        # UX.215: the symbols are a row of the table inside About
     # UX.188: the symbols are the first row of the At a glance table, above the property sheet
-    assert body.index('id="item-glance"') < body.index("hab-symbols") < body.index('id="item-properties"')
+    assert body.index('id="item-glance-heading"') < body.index("hab-symbols") < body.index('id="item-properties"')
     assert 'class="glance-habitability"' in body
     assert "hab-symbol" not in client.get(f"/object/{MOON}").get_data(as_text=True)  # the fake moon was not scored
     assert "hab-symbol" not in client.get(f"/object/{STAR}").get_data(as_text=True)
@@ -329,7 +330,7 @@ def test_the_breadcrumb_calls_the_system_link_system_and_the_star_link_by_the_st
 def test_the_properties_follow_the_about_block_right_after_at_a_glance(client):
     """Boss, 10-24: header and render, At a glance, About, then the property list."""
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
-    order = [page.index(f'id="{section}"') for section in ("item-glance", "item-facts", "item-properties")]
+    order = [page.index(f'id="{section}"') for section in ("item-facts", "item-glance-heading", "item-properties")]
     assert order == sorted(order)
 
 
@@ -354,3 +355,64 @@ def test_every_row_the_atmosphere_section_lists_has_a_label_and_a_value():
     listed = context["sheet"][0]["rows"]
     assert [r["label"] for r in listed] == ["Nitrogen partial pressure"]
     assert all(r["label"] and str(r["html"]) for r in listed) and context["hidden_rows"] == 14
+
+
+def _rich_sheet(ref):
+    q = model.qty
+    row = lambda key, label, value, raw=None: {"key": key, "label": label, "value": value, "text": label, "stored": True, "raw": raw}
+    return {"kind": "planet", "groups": [
+        {"key": "identity", "label": "Identity", "rows": [
+            row("planet_class", "Class", ["M"]),
+            row("zone", "Zone", ["Ecosphere / Habitable Zone, ", q("length", 1.4e8, "km"), " to ", q("length", 2e8, "km"), " from its star"])]},
+        {"key": "atmosphere", "label": "Atmosphere", "rows": [
+            row("atmospheric_pressure_pa", "Surface pressure", [q("pressure", 101325, "Pa")], 101325.0),
+            row("p_N2", "Nitrogen partial pressure", [q("pressure", 79000, "Pa")], 79000.0),
+            row("p_O2", "Oxygen partial pressure", [q("pressure", 22325, "Pa")], 22325.0)]},
+        {"key": "composition", "label": "Composition", "rows": [
+            row("metal_mass_fraction", "Metal", ["0.3"], 0.3), row("rock_mass_fraction", "Rock", ["0.7"], 0.7),
+            row("mantle_redox", "Mantle oxidation", ["Reduced"])]},
+        {"key": "habitability", "label": "Habitability", "rows": [row("phi4", "Habitability score (PHI-6)", ["0.8"], 0.8)]},
+        {"key": "physical", "label": "Physical", "rows": [row("mass_kg", "Mass", [q("mass", 5.97e24, "kg")])]}]}
+
+
+def _rich_document():
+    document = _document()
+    planet = document["sections"][0]["children"][0]
+    planet["blocks"] += [
+        model.ratings({"name": "PHI-6", "score": 0.8, "tier": "Green"}, [], []),
+        model.facts("Radiation", [model.fact("dose", "Total dose", "1 mSv")]),
+        model.prose("life", "Life based on carbon lives on this world."), model.prose("flavour", "Sensors show a green haze.")]
+    return document
+
+
+def test_a_planet_page_is_laid_out_about_habitability_atmosphere_composition_then_properties(client, monkeypatch):
+    """UX.215 to UX.222: About (a table with the Location row first, a summary, Life, Civilization), then PHI-6, the Atmosphere
+    and Composition tables, each a heading, then the rest of the properties."""
+    monkeypatch.setattr(apiclient, "get_object_sheet", lambda db, ref: _rich_sheet(ref))
+    monkeypatch.setattr(apiclient, "get_system_description", lambda db, system_id: _rich_document())
+    detail = _detail()
+    detail["planets"][0].update(planet_class="M", zone="e", body_type="t", phi4=0.8, tier_suitability=1, life_microbial=2, life_flora=0,
+                                life_fauna=0, life_sentient=0, atmospheric_pressure_pa=101325.0, inhabited=True,
+                                equipment={"required": ["a gas-mix mask"], "items": []})
+    monkeypatch.setattr(apiclient, "get_system", lambda db, system_id: detail)
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    headings = re.findall(r'<h([23])[^>]*>(.*?)</h\1>', page)
+    names = [re.sub(r"<[^>]+>", "", text) for _level, text in headings]
+    wanted = ["Sensor view", "About Kepler b", "At a glance", "Summary", "Life", "Civilization and politics", "Habitability (PHI-6)",
+              "Atmosphere", "Composition", "Properties"]
+    positions = [names.index(name) for name in wanted]
+    assert positions == sorted(positions), names
+    assert "Rendered example" not in page
+    assert page.index('id="location"') < page.index("hab-symbols") < page.index('class="summary"')
+    assert page.index("Life based on carbon") < page.index('id="habitability"') < page.index('id="sheet-atmosphere"') \
+        < page.index('id="sheet-composition"') < page.index('id="item-properties"')
+    assert 'id="location"' in page.split('id="item-facts"')[1].split("</section>")[0]     # the Location row is inside About
+    assert 'href="/classes/planet/M"' in page and "Ecosphere / Habitable Zone, " in page and " from its star" in page
+    assert "Mole fraction" in page and "Partial pressure" in page and "Share by mass" in page
+    assert "Metal (iron and nickel core)" in page and "70 percent of its mass" in page
+    assert "Dominant species" not in page and "A technological civilization or a colony lives here." in page
+
+
+def test_a_planet_with_no_life_or_people_has_no_life_or_civilization_section(client):
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert 'id="life-paragraph-heading"' not in page and 'id="civilization-heading"' not in page

@@ -314,7 +314,7 @@ connectivity to that specific schema rather than the default one.
   `composition`, `atmosphere`, `climate`, `water`, `magnetism`, `radiation`,
   `habitability`, `life`, the star's `zones`, `stellar`, `galactic`, `disk`, and
   a phenomenon's `gas`, `compact`, `activity`), each `{key, label, rows}`. A
-  row is `{key, label, value, text, stored, absent, show_absent}` (`absent`: the value is none, 0, false or empty; `show_absent`: a page lists it even then, UX.188, because its absence matters, such as no air or no magnetic field): `value` is the Document's inline
+  row is `{key, label, value, text, raw, stored, absent, show_absent}` (`raw`: the stored number, `null` for text and for a column with no value) (`absent`: the value is none, 0, false or empty; `show_absent`: a page lists it even then, UX.188, because its absence matters, such as no air or no magnetic field): `value` is the Document's inline
   list (a quantity is `{"qty": {"kind", "si"}}`, shown in the reader's units),
   `text` the same as plain text, and `stored` false, with the text "not
   stored", for a property the row holds no value for. Every stored column of

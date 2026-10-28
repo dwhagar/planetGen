@@ -266,7 +266,7 @@ def test_a_property_with_no_stored_value_says_so(client, mysql_config):
         conn.close()
     row = _rows(client.get(f"/api/objects/planet:{pid('planet', planet_id)}/sheet").get_json())["ocean_depth_km"]
     assert row == {"key": "ocean_depth_km", "label": "Ocean depth", "value": [sheet.NOT_STORED], "text": sheet.NOT_STORED,
-                   "stored": False, "absent": True, "show_absent": False}
+                   "raw": None, "stored": False, "absent": True, "show_absent": False}
 
 
 def test_a_kind_with_no_sheet_and_a_missing_object_are_404s(client, mysql_config):

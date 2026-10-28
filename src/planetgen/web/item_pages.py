@@ -25,7 +25,7 @@ from planetgen.describe.html import blocks_html, inline_html
 from planetgen.describe.model import sections
 from planetgen.galaxy import objectref
 from planetgen.web.lib import apiclient
-from planetgen.web.lib import bodyview, facility_display
+from planetgen.web.lib import bodyview, facility_display, planet_layout, planet_summary
 from planetgen.web.lib.habitability_chips import chips_html
 from planetgen.web.lib.fmt import esc
 from planetgen.web.lib.systempage import facilities_by_host, facilities_html
@@ -208,19 +208,31 @@ def _listed(row):
     return not row.get("absent") or row.get("show_absent", False)
 
 
+def _value_html(row):
+    """A sheet row's value as HTML. A body's class letter is a link to what that class is (UX.218); a class the catalog
+    does not know stays plain text."""
+    html = trusted_html(inline_html(row["value"]))
+    if row.get("key") == "planet_class" and row.get("stored", True):
+        code = row["value"][0] if row["value"] and isinstance(row["value"][0], str) else row["text"]
+        url = class_url("planet", code) or class_url("planet", code.lower())
+        if url:
+            return trusted_html(f'<a href="{esc(url)}">{esc(code)}</a>')
+    return html
+
+
 def sheet_view(sheet):
     """A property sheet (`GET /api/objects/<ref>/sheet`) as the page draws it: `[{"key", "label", "rows"}]` with each
     row's value as HTML (`describe.html.inline_html`, so a quantity reads in the reader's unit system). A row that holds
     nothing is left out unless its absence matters (`describe.sheet.SHOW_WHEN_ABSENT`); a group left empty goes too."""
     absent = set(sheet.get("missing") or ())
     groups = [{"key": group["key"], "label": group["label"],
-               "rows": [{"label": row["label"], "html": trusted_html(inline_html(row["value"])), "stored": row["stored"]}
+               "rows": [{"key": row["key"], "label": row["label"], "html": _value_html(row), "stored": row["stored"]}
                         for row in group["rows"] if _listed(row)]}
               for group in sheet["groups"] if group["key"] not in absent]    # UX.203: a section of zeros is one sentence
     if "atmosphere" in absent:
         groups.insert(next((i for i, group in enumerate(groups) if group["key"] == "climate"), len(groups)),
                       {"key": "atmosphere", "label": "Atmosphere", "rows": [
-                          {"label": "Atmosphere", "html": trusted_html("None"), "stored": True}]})
+                          {"key": "atmosphere_none", "label": "Atmosphere", "html": trusted_html("None"), "stored": True}]})
     return [group for group in groups if group["rows"]]
 
 
@@ -228,8 +240,42 @@ def glance_view(sheet):
     """The rows of a page's "At a glance" panel (UX.188): the kind's `describe.sheet.GLANCE` rows in that order, each
     `{"label", "html"}`, and only those the page lists. Empty for a kind with no panel yet."""
     rows = {row["key"]: row for group in sheet["groups"] for row in group["rows"]}
-    return [{"label": rows[key]["label"], "html": trusted_html(inline_html(rows[key]["value"]))}
+    return [{"label": rows[key]["label"], "html": _value_html(rows[key])}
             for key in sheet_registry.GLANCE.get(sheet["kind"], ()) if key in rows and _listed(rows[key])]
+
+
+def planet_sections(name, row, sheet, species, piece):
+    """
+    The sections of a planet's or moon's page in the order Boss set (UX.215 to UX.222), as template variables in
+    `planet`: the summary sentences (UX.220), the Life and civilization paragraphs when there is something to say
+    (UX.221), the PHI-6 section (the rating, radiation and survival equipment tables and the habitability rows), the
+    Atmosphere section (its rows and the table of the air by mole fraction) and the Composition section (its rows and the
+    table of the body by mass), and `sheet`, the property groups left for the Properties section (UX.219).
+    """
+    parts = planet_layout.split_blocks(piece["blocks"] if piece else [])
+    values = {r["key"]: _value_html(r) for g in sheet["groups"] for r in g["rows"] if r.get("stored", True)}
+    groups = {group["key"]: group for group in sheet_view(sheet)}
+
+    def without(key, drop):
+        group = groups.pop(key, None)
+        return None if group is None else {**group, "rows": [r for r in group["rows"] if not drop(r["key"])]}
+
+    atmosphere = without("atmosphere", lambda key: key.startswith("p_"))
+    composition = without("composition", lambda key: key in planet_layout.MASS_SHARED_KEYS)
+    phi6 = without("habitability", lambda key: False)
+    return {
+        "summary": [trusted_html(sentence) for sentence in planet_summary.summary_sentences(name, row or {}, values)],
+        "life": trusted_html(blocks_html(parts["life"], _ref_link)),
+        "civilization": [trusted_html(sentence) for sentence in planet_layout.civilization_sentences(row, species)],
+        "notes": trusted_html(blocks_html(parts["rest"], _ref_link)),
+        "phi6_blocks": trusted_html(blocks_html(parts["phi6"], _ref_link)),
+        "phi6": phi6 if phi6 and phi6["rows"] else None,
+        "atmosphere": atmosphere if atmosphere and atmosphere["rows"] else None,
+        "gases": [{**gas, "pressure": trusted_html(gas["pressure"])} for gas in planet_layout.gas_table(sheet)],
+        "composition": composition if composition and composition["rows"] else None,
+        "mass": planet_layout.mass_table(sheet),
+        "sheet": [group for group in groups.values() if group["rows"]],
+    }
 
 
 def sheet_context(sheet):
@@ -544,6 +590,7 @@ def render_item(kind, printed_id):
         chain_parents = [p for p in parents if p["kind"] != "planet"] + chain_places(detail, kind, row)
     previous, following = neighbours(detail, kind, row) if row is not None else (None, None)
     sheet = apiclient.get_object_sheet(db, ref)
+    species = dominant_species(db, kind, row) if row is not None else None
     tree = tree_panel(ref, name, apiclient.get_object_children(db, ref, limit=TREE_PAGE))
     admin = _admin_context(kind, printed_id, system_id)
     nav_ref = endpoint(kind, printed_id)
@@ -558,11 +605,12 @@ def render_item(kind, printed_id):
         habitability=found if kind in ("planet", "moon") else None,
         chips=trusted_html(chips_html(row, page_url("habitability_levels"))) if kind in ("planet", "moon") and row else "",
         facilities=hosted_facilities(db, system_id, kind, row) if row is not None else "",
-        species=dominant_species(db, kind, row) if row is not None else None,
+        species=species,
         object_id=printed_id,
         facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
         example=bodyview.view(kind, row, detail["stars"]) if row is not None else None,
         **sheet_context(sheet),
+        **({"planet": planet_sections(name, row, sheet, species, piece)} if kind in ("planet", "moon") else {}),
         tree=tree,
         location=location(chain_parents, detail.get("inside")),
         previous=previous,

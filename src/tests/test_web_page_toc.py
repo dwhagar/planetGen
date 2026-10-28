@@ -131,3 +131,28 @@ def test_no_page_shows_two_contents_lists(browser, base_url, page_targets, admin
         assert not two, "\n".join(two)
     finally:
         context.close()
+
+def test_the_contents_menu_stands_at_the_left_of_a_wide_page_and_above_a_narrow_one(browser, base_url, page_targets, admin_token):
+    """UX.215: on a wide window the contents list is a menu down the left side that stays in view as the page scrolls; on a phone it is
+    a list under the title."""
+    path, _needs_admin = page_targets["web.object_page"]
+    for width, beside in ((1280, True), (390, False)):
+        context = browser.new_context(viewport={"width": width, "height": 900}, reduced_motion="reduce")
+        context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
+        page = context.new_page()
+        try:
+            page.goto(base_url + path, wait_until="load")
+            toc = page.locator("nav.page-toc[aria-label='On this page']")
+            toc.wait_for(state="attached")
+            menu = toc.bounding_box()
+            first = page.locator("main .panel").first.bounding_box()
+            if beside:
+                assert menu["x"] + menu["width"] <= first["x"] + 1, (menu, first)
+                page.mouse.wheel(0, 1500)
+                page.wait_for_timeout(300)
+                assert toc.bounding_box()["y"] >= 0 and toc.bounding_box()["y"] < 200, "the menu scrolled out of view"
+            else:
+                assert menu["y"] + menu["height"] <= first["y"] + 1, (menu, first)
+            assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"), "the page scrolls sideways"
+        finally:
+            context.close()
