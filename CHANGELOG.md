@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2363] - 2026-10-28
+
+**Headline:** The update's reload check no longer fails just because the site is closed for the update.
+
+### Fixed
+- **`update.sh` reported "does not answer" for a healthy site (OPS.75).** The reload check asked `/api/health` while the update's own maintenance mode was still on, and got a 503. `/api/health` now stays open while the site is closed and reports `maintenance` (cause and reason). The warning names the failing check, the address and the answer, and says whether the site is in maintenance mode and why. The failing step is named for the reload, not "step 9/9".
+- **`update.sh` listed the `state/` folder as an uncommitted local change that would be overwritten (OPS.76).** That folder is the update's own (the maintenance switch and lock), and is no longer listed.
+
 ## [8.0.2362] - 2026-10-25
 
 **Headline:** The Galaxy Map's unresolved star glow no longer floods the view: it fades out as the stars resolve and never builds up to white.
