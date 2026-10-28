@@ -14997,43 +14997,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (proposed, after PERF.125).
   Prerequisites: PERF.125. Related: PERF.123.
 
-- [ ] **PERF.174 Every work unit's database connection runs the schema check again: skip it when the schema version is current**
-  Found by the Performance lane in PERF.156 to PERF.158 (relayed 7:34 PM
-  EDT 2026-10-23 as the lane's clock reads); filed by the TODO thread.
-  Measured on the benchmark suite: every unit's connection runs the
-  schema check (GET_LOCK, 10 CREATE TABLE IF NOT EXISTS, CREATE OR
-  REPLACE VIEW), 861 times, about 130 s of server time over the 617 s
-  band step. Kind: cost, value-neutral. Do: skip the check when the
-  stored schema version is current. Done: the same schema, with the
-  check run once per process or per version change. Owner: Performance
-  (proposed by the TODO thread, because the lane found it).
-  Research (2026-10-09, Lane OOM measurement): Update 2:38 PM EDT
-  2026-10-24 (Lane OOM, found in PERF.181, as the lane reported): one
-  4-minute scatter ran about 32,000 CREATE TABLE IF NOT EXISTS
-  statements and about 400 CREATE OR REPLACE VIEW statements, because
-  every new worker reruns the whole schema DDL on its first connection
-  (serialised by GET_LOCK). This slows worker start-up and adds server
-  load, so it is the same cause as this item, now with a second
-  measurement. Owner: Performance (unchanged); Lane OOM does not take
-  it.
-  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Aux 16 takes it after PERF.182 and
-  PERF.198.
-  Prerequisites: none. Related: PERF.146.
-
-- [ ] **PERF.175 benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug)**
-  Found by the Performance lane in PERF.156 to PERF.158 (relayed 7:34 PM
-  EDT 2026-10-23 as the lane's clock reads); filed by the TODO thread.
-  Reproducer: 'planetgen benchmark --suite --keep' on a run that
-  succeeds; fails on main, every run. Kind: bug. Expected: the scratch
-  databases stay. Observed: they are dropped on success. Do: honour
-  --keep on the success path. Done: a test that the databases survive a
-  successful run with --keep and go without it. Owner: Performance
-  (proposed by the TODO thread, because the lane found it).
-  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Aux 16 takes it with PERF.174.
-  Prerequisites: none. Related: PERF.146.
-
 - [ ] **PERF.178 The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug)**
   From the generation-log analysis of Boss's run
   job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
@@ -15137,19 +15100,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a change to how a slab unit carries its range), with a test that
   builds more than 4000 slabs. Owner: Core 5.
   Prerequisites: none. Related: PERF.191, PERF.180.
-
-- [ ] **PERF.193 The nebula block totals pass keeps the level-3 cover as Python dicts, about 2 GB on a 12 pc galaxy: hold it as numpy arrays (bug)**
-  Found by Bug 2 in its PERF.187 work. After the fix the scatter step
-  peaks at 2,100 MB on the 12 pc galaxy (it was 7,963 MB), and most of
-  what
-  is left is the level-3 cover that `galaxy/nebula_blocks.py`
-  `fine_cover`
-  and `roll_up` hold as Python dicts. Convert the cover to numpy arrays
-  (coordinates and totals as arrays, rolled up by index) so the step
-  stays
-  well under 1 GB, and record the before and after peak in the item.
-  Owner: Aux 16 (Performance).
-  Prerequisites: none. Related: PERF.187, PERF.184.
 
 - [ ] **PERF.194 The phenomena stage progress line still says "186M to place": the weight is printed as a number of phenomena instead of work (bug)**
   Found by Math lane 2 (8:11 PM EDT 2026-10-24 as the lane reported)
@@ -20182,6 +20132,18 @@ clears each one.
   test_system_interests.py, instead of relying on the draw. Owner: Bug
   1. Not caused by any lock holder; say so in a PR instead of fixing it
   there.
+  Prerequisites: none.
+
+- [ ] **TEST.422 test_generation_size_estimate (3 tests error in setup) and test_phenomenon_scatter (scatter_lists_each_shells_phenomena_by_kind, a_fill_builds_its_rows_at_their_stored_points) are red on clean main (bug)**
+  Found by Aux 16 at 1:27 PM EDT 2026-10-28 as the lane reported,
+  identical on clean main at 57f782d6 and not caused by its
+  PERF.193/174/175 PR (#3449). Its combined gate run also showed
+  test_gen_compact_orbit_laws, test_runaway_history, test_sulfur_balance
+  and test_prevalence failing; those four were not isolated, so the
+  first step is to run each alone on main and keep only the real ones
+  (test_gen_compact_orbit_laws may be fixed by GEN.832, #3433). Fix
+  each, or file the generator cause. Owner: Bug 1. Not caused by any
+  lock holder; say so in the PR instead of fixing it there.
   Prerequisites: none.
 
 ## USR: User accounts
