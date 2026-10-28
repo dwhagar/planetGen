@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2403] - 2026-10-28
+
+**Headline:** The stars, planets and moons of a system you open in the Galaxy Map's sector now turn slowly on their axes, and a Spin switch in the Menu holds them still.
+
+### Changed
+- **Bodies turn in the sector's open system (MAP.328).** Each sphere turns about its stored axis at the one shared rate of the System Map (no faster than one turn in 20 seconds, no slower than one in 10 minutes), a retrograde body the other way. A body with no stored rotation period stays still; no star has one stored yet, so the stars stand still for now.
+- **A Spin switch in the Menu.** The same standing preference as the System Map's Spin switch, and the reduced-motion setting still holds everything still. The galactic views turn nothing.
+
 ## [8.0.2402] - 2026-10-28
 
 **Headline:** The Galaxy Map marks every charted region as a soft sphere colored by how much of it is charted, names it, frames the region you are in, and lists them all in the Menu.
