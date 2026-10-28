@@ -1442,6 +1442,11 @@
 -- v162 (DB.96): `planets` and `moons` keep the colour of the body's air as one integer (`atmosphere_colour`, sRGB as red*65536 + green*256 + blue; NULL for a body with no air, no star
 --   temperature or no mixture, and a row made before v162, which gets it when the galaxy is regenerated). The cloud cover it was worked out with is `cloud_cover` (v138).
 -- v168 (DB.108): the mass of each generated sector and of the blocks and regions above it: `sector_stats.total_mass_kg`, `galaxy_block_stats.mass_sum_kg` and `region_stats.mass_sum_kg`, kilograms. See `db/sector_mass.py`.
+-- v169 (GEN.721): `planets` and `moons` also keep `lid_regime`, 'mobile' (plate tectonics) or 'stagnant' (one rigid plate), drawn once after the
+--   hydrosphere (`physics/interior_heat.py`); the heat flux law, the dynamo lifetime and the ground dose's felsic crust read it. NULL for a gas giant
+--   and a row made before v169, whose heat flux was a stagnant lid's.
+-- v170 (GEN.767): `planets` and `moons` also keep the day and night shares and the hours of daylight (`physics/daylight.py`): `day_share_equator`, `day_share_mean`,
+--   `parent_shadow_share` (a moon in its planet's shadow), `solar_day_hours`, `daylight_hours` and `polar_circle_deg`. NULL for a row made before v170.
 --
 -- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
@@ -2437,6 +2442,13 @@ CREATE TABLE IF NOT EXISTS planets (
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
     atmosphere_colour           INT UNSIGNED,  -- v162 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
+    lid_regime                  VARCHAR(10) NULL,  -- v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant
+    day_share_equator           DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit
+    day_share_mean              DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up, averaged over the surface, 0 to 1
+    parent_shadow_share         DOUBLE NULL,  -- v170 (GEN.767): a moon only, the share of its time in its planet's shadow, 0 to 1
+    solar_day_hours             DOUBLE NULL,  -- v170 (GEN.767): hours from one noon to the next, NULL for a world that turns once an orbit
+    daylight_hours              DOUBLE NULL,  -- v170 (GEN.767): hours of daylight in one solar day at the equator, NULL for a world that turns once an orbit
+    polar_circle_deg            DOUBLE NULL,  -- v170 (GEN.767): latitude beyond which the star stays up or down for at least a day, degrees
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2739,6 +2751,13 @@ CREATE TABLE IF NOT EXISTS moons (
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
     atmosphere_colour           INT UNSIGNED,  -- v161 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
+    lid_regime                  VARCHAR(10) NULL,  -- v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant
+    day_share_equator           DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit
+    day_share_mean              DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up, averaged over the surface, 0 to 1
+    parent_shadow_share         DOUBLE NULL,  -- v170 (GEN.767): a moon only, the share of its time in its planet's shadow, 0 to 1
+    solar_day_hours             DOUBLE NULL,  -- v170 (GEN.767): hours from one noon to the next, NULL for a world that turns once an orbit
+    daylight_hours              DOUBLE NULL,  -- v170 (GEN.767): hours of daylight in one solar day at the equator, NULL for a world that turns once an orbit
+    polar_circle_deg            DOUBLE NULL,  -- v170 (GEN.767): latitude beyond which the star stays up or down for at least a day, degrees
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

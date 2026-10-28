@@ -12,8 +12,8 @@ from planetgen.physics import surface_pressure as sp
 
 AGE_S = 4.5e9 * sb.YEAR_S
 EARTH_RADIUS_M = 6.371e6
-EARTH_RELEASED_J = 4.09e6 * sb.EARTH_MANTLE_KG
-"""float: The heat the Earth twin of the interior model has released: 4.09e6 J per kilogram of its mantle (`surface_pressure`)."""
+EARTH_RELEASED_J = 3.49e6 * sb.EARTH_MANTLE_KG
+"""float: The heat the Earth twin of the interior model has released: 3.49e6 J per kilogram of its mantle (`surface_pressure`)."""
 LIFETIMES = sb.Lifetimes(wet_s=1.0 * sb.DAY_S, dry_s=2.0e6 * sb.YEAR_S)
 
 

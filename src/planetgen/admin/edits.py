@@ -19,7 +19,7 @@ import math
 from collections import namedtuple
 
 from planetgen.generation import validation
-from planetgen.physics import constants, magnetism, planets as planetPhysics
+from planetgen.physics import constants, daylight, magnetism, planets as planetPhysics
 from planetgen import tuning
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.names.bodies import moon_letters
@@ -125,6 +125,7 @@ def make_moon(planet, distance_au, moon_class):
                   radius=radius, planet_class=moon_class, zone_override=planet.zone,
                   distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)
     magnetism.generate_induced_field(moon, planet)
+    daylight.generate(moon, planet)
     return moon
 
 

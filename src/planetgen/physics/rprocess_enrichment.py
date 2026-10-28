@@ -29,6 +29,7 @@ variation with galactocentric radius. The Solar System datum (CI chondrites at a
 6.5 Gyr) is a test point and not an input.
 """
 
+import functools
 import math
 
 import numpy as np
@@ -43,6 +44,10 @@ DELAY_NODES = 160
 
 SECONDS_PER_GYR = 3.15576e16
 """float: Seconds in a Gyr (Julian year)."""
+
+PRODUCTION_RATIO_RANGE = (1.667, 2.0)
+"""tuple: The r-process production ratio of thorium-232 to uranium-238 by number, the range of the theoretical predictions
+(Frebel 2007 Table 1, read in docs/design/composition/radioisotope-tuning.md section 2); a body draws one value from it."""
 
 
 def decay_constants_per_gy():
@@ -126,3 +131,25 @@ def th_u_factor_of_history(history, host_age_gy, tau_min_gy=None):
     times = span - np.asarray(history.age_gy, dtype=float)
     star_formation = np.sum(history.radius_scale_lengths[:, None] * history.rate, axis=0)
     return th_u_factor(times, star_formation, span - host_age_gy, tau_min_gy)
+
+
+@functools.lru_cache(maxsize=4096)
+def th_u_factor_of_shape(shape, host_age_gy):
+    """The factor `F` of a star of age `host_age_gy` in the thin disc of the galaxy of this `GalaxyShape` (`th_u_factor_of_history` of its
+    `galaxy.disk_history.history_of`), cached because every planet and moon of a star asks for it."""
+    from planetgen.galaxy import disk_history
+    return th_u_factor_of_history(disk_history.history_of(shape), host_age_gy)
+
+
+@functools.lru_cache(maxsize=64)
+def typical_th_u_factor(shape):
+    """The factor `F` of a typical star of the galaxy of this shape, for a body with no host star (a rogue planet): that of the star born when
+    half of the disc's stars had formed (the median of its star formation, the rings summed as `th_u_factor_of_history` does)."""
+    from planetgen.galaxy import disk_history
+    history = disk_history.history_of(shape)
+    span = float(history.age_gy[0])
+    times = span - np.asarray(history.age_gy, dtype=float)
+    rate = np.sum(history.radius_scale_lengths[:, None] * history.rate, axis=0)
+    cumulative = np.concatenate(([0.0], np.cumsum(0.5 * (rate[1:] + rate[:-1]) * np.diff(times))))
+    median = float(np.interp(0.5 * cumulative[-1], cumulative, times)) if cumulative[-1] > 0.0 else 0.5 * span
+    return th_u_factor(times, rate, median)

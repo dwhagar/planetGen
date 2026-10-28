@@ -19,6 +19,8 @@ EARTH = constants.EARTH_MASS_TO_KG
 EARTH_AGE_GY = 4.568
 EARTH_ROCK = radiogenic.Rock(0.675, 0.325, 0.0, radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
 MID = ih.Interior(1.0e12, 250.0)
+_EARTH_G = constants.G * EARTH / (6371.0e3) ** 2
+EARTH_CEILING_K = ih.mantle_ceiling_k(_EARTH_G, 6371.0e3 * (1 - 0.325 ** 0.5))
 
 
 def _bulk_silicate_earth():
@@ -70,7 +72,7 @@ def test_an_earth_twin_gives_a_heat_and_a_urey_ratio_in_the_published_ranges_wit
         found = _earth(interior)
         assert 25.5 <= found.total_w / 1e12 <= 51.8
         assert 0.1 <= found.urey_ratio <= 0.9
-        assert 1200.0 <= found.mantle_temperature_k <= tuning.INTERIOR_INITIAL_TEMPERATURE_CAP_K
+        assert 1200.0 <= found.mantle_temperature_k <= EARTH_CEILING_K
         assert found.primordial_w > 0
 
 
@@ -87,7 +89,8 @@ def test_a_younger_body_gives_more_heat_and_its_radiogenic_share_starts_small():
         found = [_earth(interior, age=age) for age in ages]
         totals = [f.total_w for f in found]
         assert totals == sorted(totals, reverse=True)
-        assert all(f.primordial_w > 0 for f in found)
+        # the stiffest rheology sits at the liquidus ceiling for its first half gigayear, radiating all it keeps: no primordial surplus yet
+        assert all(f.primordial_w >= 0 for f in found) and all(f.primordial_w > 0 for f in found[ages.index(1.0):])
         # once the first gigayear is behind it the interior holds between half and four fifths radiogenic heat, whatever the rheology
         assert all(0.5 <= f.urey_ratio <= 0.85 for f in found[ages.index(2.0):])
     assert _earth(age=0.1).total_w > 10 * _earth(age=4.5).total_w
@@ -96,7 +99,7 @@ def test_a_younger_body_gives_more_heat_and_its_radiogenic_share_starts_small():
 
 def test_the_mantle_cools_from_the_magma_ocean_and_never_holds_more_than_its_cap():
     hot = _earth(age=0.001)
-    assert hot.mantle_temperature_k == pytest.approx(tuning.INTERIOR_INITIAL_TEMPERATURE_CAP_K)
+    assert hot.mantle_temperature_k == pytest.approx(EARTH_CEILING_K)
     # held at the cap by radiating the 26Al heat away: the heat out is at least what the rock makes
     assert hot.total_w >= hot.radiogenic_w
     temperatures = [_earth(age=age).mantle_temperature_k for age in (0.001, 0.1, 1.0, 4.5)]
@@ -188,7 +191,7 @@ def test_a_body_with_no_stored_interior_has_no_heat_and_a_giant_none_at_all():
 
 
 def test_every_generated_rocky_body_stores_its_draws_and_an_urey_ratio_that_is_an_output():
-    seen = 0
+    seen = seen_convecting = 0
     for seed in range(8):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
@@ -204,7 +207,149 @@ def test_every_generated_rocky_body_stores_its_draws_and_an_urey_ratio_that_is_a
                 assert ih.interior_of(body) is not None
                 again = planets.internal_heat_flux_w_m2(body)  # no draws: the same answer twice
                 assert planets.internal_heat_flux_w_m2(body) == again == body.internal_heat_flux_w_m2
-                # A small cold-start body (a tiny moon) is heated by its radiogenic decay for most of its life, so what
-                # flows out can be a third of what the decay makes: the ratio is above 1 for it (TEST.353), not capped.
-                assert again > 0.0 and 0.0 < body.urey_ratio < math.inf
-    assert seen > 8
+                # the ratio is an output with no cap, and a mantle that is not convecting loses nothing
+                assert again >= 0.0 and body.urey_ratio >= 0.0
+                seen_convecting += again > 0.0
+    assert seen > 8 and seen_convecting > 0.8 * seen
+
+
+def _earth_lid(interior, lid, age=EARTH_AGE_GY):
+    return ih.heat_flow(_bulk_silicate_earth(), interior, EARTH, 6371.0, age, EARTH_ROCK, None, lid)
+
+
+def test_a_mobile_lid_cools_the_mantle_further_and_spends_its_heat_sooner():
+    """GEN.721: at one mantle temperature a mobile lid loses ten times the heat of a stagnant one, so the mantle ends up cooler (an Earth twin
+    near the Earth's potential temperature of 1,600 K, not the stagnant lid's 1,950 K) and the heat is spent sooner."""
+    for interior in CORNERS + [MID]:
+        stagnant, mobile = _earth_lid(interior, ih.STAGNANT), _earth_lid(interior, ih.MOBILE)
+        assert mobile.mantle_temperature_k < stagnant.mantle_temperature_k
+        assert mobile.urey_ratio > stagnant.urey_ratio
+        assert 22.0 <= mobile.total_w / 1e12 <= 36.0
+    assert _earth_lid(MID, ih.MOBILE, age=0.1).total_w > _earth_lid(MID, ih.STAGNANT, age=0.1).total_w  # early, at the middle rheology
+    assert _earth_lid(MID, ih.MOBILE).total_w < _earth_lid(MID, ih.STAGNANT).total_w  # late
+    assert 1300.0 <= _earth_lid(MID, ih.MOBILE).mantle_temperature_k <= 1700.0
+
+
+def test_the_default_lid_is_the_stagnant_one_and_a_body_reads_its_stored_regime():
+    assert _earth_lid(MID, ih.STAGNANT).total_w == _earth().total_w
+    body = SimpleNamespace(lid_regime=ih.MOBILE)
+    assert ih.lid_of(body) == ih.MOBILE
+    assert ih.lid_of(SimpleNamespace(lid_regime=None)) == ih.STAGNANT == ih.lid_of(SimpleNamespace())
+
+
+def _watery(mass_earth, hydrosphere):
+    return SimpleNamespace(mass=mass_earth * EARTH, hydrosphere=hydrosphere, c_k0_ppm=1.0, c_th0_ppm=1.0, c_u0_ppm=1.0, al26_ratio=1.0)
+
+
+def test_the_regime_is_one_draw_at_the_chance_of_the_old_coin_and_a_giant_has_none():
+    from planetgen.physics import magnetism
+    draw.set_run_seed(5)
+    bodies = [_watery(1.0, "surface ocean") for _ in range(600)]
+    for body in bodies:
+        ih.generate_lid(body)
+    mobile = sum(body.lid_regime == ih.MOBILE for body in bodies)
+    assert abs(mobile / 600 - magnetism.MOBILE_LID_CHANCE) < 0.07
+    for hydrosphere, mass in (("dry", 1.0), ("ice", 1.0), ("surface ocean", 0.3)):
+        dry = _watery(mass, hydrosphere)
+        ih.generate_lid(dry)
+        assert dry.lid_regime == ih.STAGNANT
+    giant = SimpleNamespace(mass=100 * EARTH, hydrosphere=None)
+    ih.generate_lid(giant)
+    assert giant.lid_regime is None
+    draw.set_run_seed(5)
+    first = draw.random()
+    draw.set_run_seed(5)
+    ih.generate_lid(_watery(1.0, "surface ocean"))
+    assert draw.random() != first  # exactly one draw was taken
+    draw.set_run_seed(5)
+    draw.random()
+    after_one = draw.random()
+    draw.set_run_seed(5)
+    ih.generate_lid(_watery(1.0, "surface ocean"))
+    assert draw.random() == after_one
+
+
+def test_the_liquidus_is_manskes_fit_and_the_ceiling_follows_the_pressure_in_the_mantle():
+    """Manske et al. 2025 Table 1: 1,874 K at the surface, 4,717 K at the Earth's core-mantle boundary (135 GPa). The Earth's mantle
+    ceiling is the liquidus at about 47 GPa, a Moon-sized body's is near the surface liquidus."""
+    assert ih.liquidus_k(0.0) == pytest.approx(1874.0, abs=3.0)
+    assert ih.liquidus_k(135.0) == pytest.approx(4717.0, abs=10.0)
+    assert 3000.0 <= EARTH_CEILING_K <= 3300.0
+    moon_g = constants.G * 7.3e22 / (1737e3) ** 2
+    assert 1900.0 <= ih.mantle_ceiling_k(moon_g, 1737e3 * 0.7) <= 2000.0
+    assert ih.mantle_ceiling_k(2 * _EARTH_G, 6371.0e3) > EARTH_CEILING_K
+
+
+def test_the_surface_temperature_a_mobile_lid_measures_its_drop_against_is_the_bodys_own():
+    """A hotter surface leaves a smaller drop, so a mobile lid loses less heat and its mantle stays warmer; a stagnant lid's boundary layer
+    does not read the surface at all but its birth temperature does."""
+    cold = ih.heat_flow(_bulk_silicate_earth(), MID, EARTH, 6371.0, EARTH_AGE_GY, EARTH_ROCK, None, ih.MOBILE, 200.0)
+    hot = ih.heat_flow(_bulk_silicate_earth(), MID, EARTH, 6371.0, EARTH_AGE_GY, EARTH_ROCK, None, ih.MOBILE, 737.0)
+    assert hot.mantle_temperature_k > cold.mantle_temperature_k
+    stagnant = [ih.heat_flow(_bulk_silicate_earth(), MID, EARTH, 6371.0, EARTH_AGE_GY, EARTH_ROCK, None, ih.STAGNANT, ts) for ts in (200.0, 737.0)]
+    assert stagnant[0].mantle_temperature_k == pytest.approx(stagnant[1].mantle_temperature_k, rel=0.01)
+
+
+def test_the_stored_heat_is_the_heat_at_the_stars_final_age_not_the_provisional_one():
+    """GEN.763: the star's age only rises after its planets are made, so a heat stored at the provisional age is wrong for the finished
+    system (many bodies sat at the ceiling with a Urey ratio of 1.0, and a small moon showed 4.8). The life pass runs the model again."""
+    seen = 0
+    for seed in (17, 3):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            for body in [planet, *getattr(planet, "moons", [])]:
+                if body.body_type in ("a", "g"):
+                    continue
+                stored = (body.urey_ratio, body.internal_heat_flux_w_m2)
+                ih.update_heat(body)
+                assert stored == (body.urey_ratio, body.internal_heat_flux_w_m2)
+                seen += 1
+    assert seen > 10
+
+
+SWEEP_MASSES_EARTH = (0.0004, 0.01, 0.1, 0.5, 1.0, 3.0, 10.0)
+
+
+def test_the_urey_ratio_of_a_bulk_silicate_earth_body_of_any_size_sits_between_the_published_extremes_once_it_is_a_gigayear_old():
+    """GEN.763: a table of small and large bodies (design note, section 3.2). The bounds of the sweep over 0.0004 to 10 Earth masses, 1, 4.5
+    and 10 Gy, both lids and the four rheology corners: a Urey ratio from 0.3 (a large stagnant lid, whose heat is mostly the
+    cooling) to 1.0 (the mantle held at its ceiling, losing exactly what is made). Guimond et al. 2022 have about 0.65 for 0.1 to 5
+    Earth masses; for the Earth the geochemical estimate is about 0.3 and the geophysical view close to one (Stamenkovic et al. 2012,
+    arXiv:1210.3838 section 3.1)."""
+    found = []
+    for mass_earth in SWEEP_MASSES_EARTH:
+        for lid in (ih.STAGNANT, ih.MOBILE):
+            for interior in CORNERS + [MID]:
+                for age in (1.0, 4.5, 10.0):
+                    heat = ih.heat_flow(_bulk_silicate_earth(), interior, mass_earth * EARTH, 6371.0 * mass_earth ** 0.3, age, EARTH_ROCK, None, lid, 273.0)
+                    assert heat.total_w > 0.0
+                    found.append((heat.urey_ratio, mass_earth, lid, age))
+    assert 0.3 <= min(f[0] for f in found) and max(f[0] for f in found) <= 1.0 + 1e-9
+    # the larger the body the more of its heat is the cooling: at 4.5 Gy the median falls with the mass
+    medians = []
+    for mass_earth in (0.0004, 1.0, 10.0):
+        ratios = sorted(f[0] for f in found if f[1] == mass_earth and f[3] == 4.5)
+        medians.append(ratios[len(ratios) // 2])
+    assert medians[0] > medians[1] > medians[2]
+    assert 0.55 <= medians[0] and medians[2] <= 0.8
+
+
+def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming():
+    """A mantle that is warming loses less than it makes, so the ratio passes 1 only then (a moon of 0.0008 Earth masses at 3 Gy gives
+    1.25), and a body past 8 Gy has settled. Over the sampled systems every body of a host past 2 Gy lies between 0.2 and 2."""
+    seen = 0
+    for seed in range(6):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            for body in [planet, *getattr(planet, "moons", [])]:
+                if body.body_type in ("a", "g") or not body.internal_heat_flux_w_m2 or body.star.age < 2.0:
+                    continue
+                seen += 1
+                assert 0.2 <= body.urey_ratio <= 2.0
+                if body.star.age >= 8.0:
+                    assert body.urey_ratio <= 1.0 + 1e-6
+    assert seen > 10

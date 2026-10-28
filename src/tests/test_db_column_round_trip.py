@@ -83,8 +83,6 @@ NULL_IN_THIS_GALAXY = {
     **{("moons", column): CHANCE for column in ("envelope_helium_fraction", "envelope_z_fraction")},
     # Only a world with no liquid at its surface can hold an aquifer, and whether any of this small galaxy's does is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("aquifer_depth_km", "aquifer_thickness_km")},
-    # Only an icy moon with a frozen surface has a tide; a planet has none.
-    ("planets", "tidal_flux_w_m2"): "a planet has no tide",
     # Facilities on stars, moons and asteroid fields, and the field's galaxy position.
     **{("facilities", column): "facility hosts used" for column in
        ("star_id", "moon_id", "asteroid_field_id", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc",
@@ -147,6 +145,7 @@ NULL_IN_THIS_GALAXY = {
     **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},
     ("species", "generator_epoch"): "no species in this galaxy (GEN.764)",
+    ("planets", "parent_shadow_share"): "only a moon is in its planet's shadow (GEN.767)",
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't
