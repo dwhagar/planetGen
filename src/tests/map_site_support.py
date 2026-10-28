@@ -15,6 +15,7 @@ Map's sector holds stars across the luminosity range, a binary, a
 nebula, a neutron star and two rogue planets.
 """
 
+import contextlib
 import math
 import threading
 
@@ -581,48 +582,76 @@ class _SiteConfig(Config):
     RATELIMIT_DEFAULT = API_LIMIT_OFF   # fixtures and pages call the API from one address (TEST.385)
 
 
-def _serve(api, tmp_path_factory):
-    """Serves the map pages over `api` (a `FixtureApi`) on a local server; yields its base URL."""
-    patch = pytest.MonkeyPatch()
-    try:
-        for name in _APICLIENT:
-            patch.setattr(apiclient, name, getattr(api, name))
-        for name in _TILECACHE:
-            patch.setattr(tilecache, name, getattr(api, name))
-        patch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
-        patch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path_factory.mktemp("tiles")))
-        patch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
-        app = create_app(_SiteConfig)
+class _Served:
+    """A local server for the map pages over one `FixtureApi`, and what routes the process's API calls to it."""
+
+    def __init__(self, api, tmp_path_factory):
+        self.api = api
+        self.tiles = tmp_path_factory.mktemp("tiles")
+        with self.routed():
+            app = create_app(_SiteConfig)
         app.testing = True
-        server = make_quiet_server("127.0.0.1", 0, app, threaded=True)
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
-        thread.start()
+        self.server = make_quiet_server("127.0.0.1", 0, app, threaded=True)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        self.url = f"http://127.0.0.1:{self.server.server_port}"
+
+    @contextlib.contextmanager
+    def routed(self):
+        """The API client and the tile cache answer from this site's `FixtureApi` while the block runs."""
+        patch = pytest.MonkeyPatch()
         try:
-            yield f"http://127.0.0.1:{server.server_port}"
+            for name in _APICLIENT:
+                patch.setattr(apiclient, name, getattr(self.api, name))
+            for name in _TILECACHE:
+                patch.setattr(tilecache, name, getattr(self.api, name))
+            patch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
+            patch.setenv("PLANETGEN_TILE_CACHE_DIR", str(self.tiles))
+            patch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
+            yield
         finally:
-            server.shutdown()
-            thread.join(timeout=10)
-    finally:
-        patch.undo()
+            patch.undo()
+
+    def stop(self):
+        self.server.shutdown()
+        self.thread.join(timeout=10)
 
 
-@pytest.fixture(scope="module")
-def map_site(tmp_path_factory):
+_SERVED = {}
+"""dict: The running sites by name, each started at the first test that needs it and stopped when pytest ends."""
+
+
+def _serve(name, api_arguments, request, tmp_path_factory):
+    """
+    Serves the map pages over a `FixtureApi(**api_arguments)` on a local server, started once; yields its base URL with
+    the process's API calls routed to it for the test (TEST.394). The sites patch the same functions, so a site that
+    stayed routed after its test would answer the next test's pages from its own worlds.
+    """
+    served = _SERVED.get(name)
+    if served is None:
+        served = _SERVED[name] = _Served(FixtureApi(**api_arguments), tmp_path_factory)
+        request.config.add_cleanup(served.stop)
+    with served.routed():
+        yield served.url
+
+
+@pytest.fixture()
+def map_site(request, tmp_path_factory):
     """The base URL of a local server for the map pages, on fixture data."""
-    yield from _serve(FixtureApi(), tmp_path_factory)
+    yield from _serve("map", {}, request, tmp_path_factory)
 
 
-@pytest.fixture(scope="module")
-def halo_site(tmp_path_factory):
+@pytest.fixture()
+def halo_site(request, tmp_path_factory):
     """`map_site` with a loose group of stars and a black hole beyond the galaxy's outline (MAP.243)."""
-    yield from _serve(FixtureApi(halo=True), tmp_path_factory)
+    yield from _serve("halo", {"halo": True}, request, tmp_path_factory)
 
 
-@pytest.fixture(scope="module")
-def dense_site(tmp_path_factory):
+@pytest.fixture()
+def dense_site(request, tmp_path_factory):
     """`map_site` with a dense region of stars, points and habitable-world systems in the first sector (TEST.368); open it
     at `dense_region_query()`."""
-    yield from _serve(FixtureApi(dense=True), tmp_path_factory)
+    yield from _serve("dense", {"dense": True}, request, tmp_path_factory)
 
 
 __all__ = ["map_site", "halo_site", "dense_site", "dense_region_query", "DENSE_STARS", "DENSE_POINTS", "DENSE_WORLDS", "DENSE_CENTER_PC", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]
