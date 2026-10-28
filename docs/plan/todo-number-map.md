@@ -22,7 +22,7 @@ release is stamped.
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.419 |
+| TEST | TEST.420 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.83 |
@@ -1800,8 +1800,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.206 | Galaxy Map drawing on shells | none | done, PR #1612 |
 | MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | none | open |
 | MAP.208 | Stars and all phenomena on the three maps draw as points of light until near sector level, phenomena as bright as a star of similar mass | none | done, PR #1774 |
-| MAP.209 | Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug) | none | open |
-| MAP.210 | Nothing on the map can be selected, even in sector view (bug) | none | open |
+| MAP.209 | Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug) | none | done, PR #FOLDED |
+| MAP.210 | Nothing on the map can be selected, even in sector view (bug) | none | done, PR #FOLDED |
 | MAP.211 | Hypervelocity stars show no accessible information: show their type, and a button to the phenomenon or the star system (bug) | none | done, PR #1787 |
 | MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | none | open |
 | MAP.213 | Scene, maps and the JavaScript twin for trees: per-node zoom, log-radial overview and positions_at in JavaScript | none | open |
@@ -3129,6 +3129,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.416 | test_habitability_explain fails ten tests on main: the tests still call the surface_content API as it was before GEN.441 (bug) | none | open |
 | TEST.417 | Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug) | none | open |
 | TEST.418 | Seven map browser tests are red on clean main (bug) | none | open |
+| TEST.419 | test_opening_a_sector_is_one_continuous_view_with_a_filled_panel failed once in a full file run and passed on the next two (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

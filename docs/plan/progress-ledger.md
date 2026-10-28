@@ -1564,3 +1564,5 @@ Baseline: PR #1817.
 | MAP.237 | 8.1 | Fly-through map |
 | DB.45 | 8.1 | Reproducible galaxies |
 | MAP.320 | 8.1 | Fly-through map |
+| MAP.209 | 8.1 | Fly-through map |
+| MAP.210 | 8.1 | Fly-through map |
