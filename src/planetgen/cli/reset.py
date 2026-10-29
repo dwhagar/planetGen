@@ -52,6 +52,7 @@ Usage:
 """
 
 import argparse
+import signal
 import sys
 
 import pymysql
@@ -61,6 +62,7 @@ from planetgen.db import dataversion
 from planetgen.db.store import (
     SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args, note_sector_deleted,
 )
+from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
 from planetgen.util import log
 
 _EXCLUDED_TABLES = {"schema_migrations", "id_blocks", "id_counters"}
@@ -147,10 +149,69 @@ def _confirm(database, host, total_rows):
     return typed.strip() == database
 
 
+def wipe(config, report=None):
+    """
+    Truncates every content table in `config.database` and tidies after it: every cache of the old galaxy is stale
+    (PERF.38), the id blocks this process holds are dropped, the pages read the empty galaxy at once (UX.161) and the page
+    cache's answers for the database go.
+
+    Args:
+        config (MySQLConfig): The database to wipe; nothing else on the server is touched.
+        report (callable, optional): `report(done, total)` as each table is wiped.
+
+    Returns:
+        list[str]: The tables wiped.
+    """
+    conn = get_connection(config)
+    try:
+        tables = list(_table_estimates(conn, config.database))
+        conn.execute("SET FOREIGN_KEY_CHECKS = 0")
+        try:
+            for number, table in enumerate(tables, start=1):
+                conn.execute(f"TRUNCATE TABLE {table}")
+                if report is not None:
+                    report(number, len(tables))
+        finally:
+            conn.execute("SET FOREIGN_KEY_CHECKS = 1")
+        note_sector_deleted(conn)  # PERF.38: every cache of the old galaxy is stale
+        conn.commit()
+        # This process starts fresh blocks (past every old one, since
+        # id_blocks is kept); not needed for safety, just tidy.
+        forget_id_blocks(config._key())
+        # The pages read the empty galaxy at once, not at the page cache's next look at the content stamp (UX.161).
+        dataversion.record(config.database, "everything")
+        _purge_page_cache(config.database)
+        return tables
+    finally:
+        conn.close()
+
+
+def expand_reset_galaxy(params):
+    """The `reset-galaxy` command's stage: one unit, the whole wipe."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def reset_galaxy_unit(params, report):
+    """
+    The `reset-galaxy` command (PERF.119): wipes every content table of the database the params name (`wipe`). It asks
+    nothing: the typed confirmation belongs to whoever builds the run (`reset_database`, the Generate page).
+
+    Args:
+        params (dict): `database` (`wrapper.database_args`).
+        report (callable): `report(done, total)`, a table at a time.
+
+    Returns:
+        dict: `database` and `tables`, how many were wiped.
+    """
+    from planetgen.generation import run_plan
+    config = run_plan._mysql_config_of(params)
+    return {"database": config.database, "tables": len(wipe(config, report))}
+
+
 def reset_database(config, dry_run=False, assume_yes=False):
     """
     Truncates every content table in `config.database`, after confirming
-    unless `assume_yes`.
+    unless `assume_yes`: a run of the `reset-galaxy` command through the wrapper.
 
     Args:
         config (MySQLConfig): Connection parameters -- `config.database`
@@ -168,47 +229,42 @@ def reset_database(config, dry_run=False, assume_yes=False):
     conn = get_connection(config)
     try:
         counts = _table_estimates(conn, config.database)
-        tables = list(counts)
-        if not tables:
-            log.normal(f"'{config.database}' has no content tables to wipe (already empty schema).")
-            return False
-
-        total_rows = sum(counts.values())
-
-        if dry_run:
-            log.normal(f"Would truncate {len(tables)} table(s) in '{config.database}' (about {total_rows:,} row(s) total):")
-            for table in sorted(tables):
-                log.normal(f"  {table}: about {counts[table]:,} row(s)")
-            return False
-
-        if not assume_yes and not _confirm(config.database, config.host, total_rows):
-            log.normal("Cancelled -- no changes made.")
-            return False
-
-        conn.execute("SET FOREIGN_KEY_CHECKS = 0")
-        try:
-            with StageProgress(len(tables), kind="reset") as bar:
-                for number, table in enumerate(tables, start=1):
-                    bar.stage(f"Wiping {table} (table {number} of {len(tables)})")
-                    conn.execute(f"TRUNCATE TABLE {table}")
-        finally:
-            conn.execute("SET FOREIGN_KEY_CHECKS = 1")
-        note_sector_deleted(conn)  # PERF.38: every cache of the old galaxy is stale
-        conn.commit()
-        # This process starts fresh blocks (past every old one, since
-        # id_blocks is kept); not needed for safety, just tidy.
-        forget_id_blocks(config._key())
-        # The pages read the empty galaxy at once, not at the page cache's next look at the content stamp (UX.161).
-        dataversion.record(config.database, "everything")
-        _purge_page_cache(config.database)
-
-        log.normal(f"Wiped {len(tables)} table(s) from '{config.database}'.")
-        log.normal("Ready for a new galaxy -- e.g.:")
-        log.normal("  planetgen plan ...   # rebuild the density skeleton")
-        log.normal("  planetgen galaxy ... # generate sectors into it")
-        return True
     finally:
         conn.close()
+    tables = list(counts)
+    if not tables:
+        log.normal(f"'{config.database}' has no content tables to wipe (already empty schema).")
+        return False
+
+    total_rows = sum(counts.values())
+
+    if dry_run:
+        log.normal(f"Would truncate {len(tables)} table(s) in '{config.database}' (about {total_rows:,} row(s) total):")
+        for table in sorted(tables):
+            log.normal(f"  {table}: about {counts[table]:,} row(s)")
+        return False
+
+    if not assume_yes and not _confirm(config.database, config.host, total_rows):
+        log.normal("Cancelled -- no changes made.")
+        return False
+
+    step = commands.Step("reset", "reset-galaxy", "Reset the galaxy", {"database": wrapper.database_args(config)})
+    with StageProgress(len(tables), kind="reset") as bar:
+        wrapper.run("Reset the galaxy", [step], lambda index, plan: None, lambda index, unit, result: None,
+                    lambda index, unit, done, estimate: bar.stage(f"Wiping tables ({done} of {estimate})"),
+                    database=config.database, argv=sys.argv[1:])
+    log.normal(f"Wiped {len(tables)} table(s) from '{config.database}'.")
+    log.normal("Ready for a new galaxy -- e.g.:")
+    log.normal("  planetgen plan ...   # rebuild the density skeleton")
+    log.normal("  planetgen galaxy ... # generate sectors into it")
+    return True
+
+
+def _stop_on_sigterm():
+    """Makes SIGTERM (Cancel on the Generate page) end the run as cancelled in Redis, as Ctrl+C does."""
+    def on_term(_signum, _frame):
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, on_term)
 
 
 def main():
@@ -228,9 +284,10 @@ def main():
     log.apply_debug_arguments(args, parser, errors_to_stderr=True)
 
     config = mysql_config_from_args(args)
+    _stop_on_sigterm()
     try:
         did_reset = reset_database(config, dry_run=args.dry_run, assume_yes=args.yes)
-    except (pymysql.MySQLError, SchemaTooNewError) as exc:
+    except (pymysql.MySQLError, SchemaTooNewError, redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
         log.error(str(exc))
         sys.exit(1)
 

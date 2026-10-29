@@ -58,7 +58,6 @@ from planetgen.admin import activity_log, updateguard
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, luminosity_floor, prevalence
 from planetgen.galaxy import bring_to_epoch as bringToEpoch, drill, seed as galaxySeed, spherical, version_check, version_key
-from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
@@ -1857,14 +1856,26 @@ def run_fingerprint(args):
 
 
 def run_check_math(args):
-    """`planetgen check-math`: prints the math check's report and exits
-    1 if any check failed (TEST.68)."""
-    results = mathcheck.run_all()
-    report = mathcheck.format_report(results, verbose=args.verbose)
-    if mathcheck.failures(results):
-        log.error(report)
+    """`planetgen check-math`: runs the `check-math` command as a check run through the wrapper, prints its report and
+    exits 1 if any check failed (TEST.68)."""
+    from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
+    step = commands.Step("math", "check-math", "Check the math", {"verbose": bool(args.verbose)})
+    found = []
+    previous_term = _exit_on_sigterm()
+    try:
+        wrapper.run("Math check", [step], lambda index, plan: None, lambda index, unit, result: found.append(result),
+                    kind=runrecord.CHECK, argv=sys.argv[1:])
+    except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
+        log.error(f"error: the math check could not run: {exc}")
         raise SystemExit(1)
-    log.normal(report)
+    finally:
+        if previous_term is not None:
+            signal.signal(signal.SIGTERM, previous_term)
+    result = found[0]
+    if result["failed"]:
+        log.error(result["report"])
+        raise SystemExit(1)
+    log.normal(result["report"])
 
 
 def run_versions(args):

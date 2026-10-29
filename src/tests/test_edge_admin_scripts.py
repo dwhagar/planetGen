@@ -269,7 +269,6 @@ def test_reset_reports_its_tables_to_the_progress_file(seeded, monkeypatch, tmp_
     finally:
         conn.close()
     assert body["completed"] == body["total"] == tables
-    assert body["description"].startswith("Wiping ") and f"table {tables} of {tables}" in body["description"]
 
 
 def test_reset_counts_rows_without_reading_the_tables(seeded):
