@@ -18565,16 +18565,6 @@ clears each one.
   one is Bug 1's.
   Prerequisites: none. Related: TEST.414, TEST.418.
 
-- [ ] **TEST.426 test_galaxy_map_window_follows_the_browser_window_when_it_is_resized fails in long full-file runs and passes alone (bug)**
-  Found by Core 2 with MAP.306 (#3501, 5:40 PM EDT 2026-10-28 as the
-  lane reported): the browser test failed twice in long full-file runs
-  and passes alone, so it depends on state left by an earlier test in
-  the file (a window size, a stored map choice in the browser, or a
-  leftover server job). Find the shared state and isolate it in the test
-  or its fixture; never skip or loosen the test. Owner: Bug 1, after
-  TEST.425.
-  Prerequisites: none. Related: TEST.425.
-
 - [ ] **TEST.427 Three column registry tests are red on main: aerosol_draw has no unit, tidal_flux_w_m2 is written but listed as NULL, host_eccentricity is not serializable (bug)**
   Found by Lane K (Aux 7) at 5:40 PM EDT 2026-10-28 as the lane
   reported, all red on clean main: tests/test_column_units
@@ -18587,14 +18577,6 @@ clears each one.
   DB.70 lock turn PR, since it already edits db/column_units.py; if it
   retires first, Bug 1.
   Prerequisites: none. Related: TEST.402, TEST.425.
-
-- [ ] **TEST.428 test_benchmark_suite (real run) and the test_work_units batch fills are red on main (bug)**
-  Found by Math 1 at 5:55 PM EDT 2026-10-28 as the lane reported:
-  tests/test_benchmark_suite real run and the batch fill tests in
-  tests/test_work_units fail identically on main and are not from its
-  change. Find the breaking commit for each and fix the code or the
-  fixture, never loosen or skip a test. Owner: Bug 1, after TEST.425.
-  Prerequisites: none. Related: TEST.425, TEST.426.
 
 - [ ] **TEST.430 Class census: a standing seeded report of every planet and moon class share and overall colour per star type and zone, with stored expected ranges and anomaly flags**
   Boss, 7:21 PM EDT 2026-10-28: "Can we make a prevalence tests to debug
@@ -18666,29 +18648,6 @@ clears each one.
   GEN.829 (class T never drawn), GEN.866 (the hang), GEN.812 (intended
   greenhouse change warms K5V ecosphere moons; the range waits for the
   class cut-over).
-
-- [ ] **TEST.434 Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug)**
-  Found by Aux 2 after merging MAP.220 (#3547, about 8:37 PM EDT
-  2026-10-28 as the lane reported); all fail on clean main, not from
-  MAP.220. (1)
-  tests/test_poi_icons_browser.py::test_the_galaxy_map_keys_all_seven_and_draws_the_habitable_world_marker_with_its_symbol
-  clicks the habitable layer, which is now on by default, so the click
-  turns it off. (2) test_no_todo_codes_shown fails twice on strings in
-  generate.py, hitran_cia, ir_ktables, repair, sheet and settings. (3)
-  Seven node-JS test files fail: galaxymap, galaxynodecut,
-  orbitpositions, sectorscene, starlight, systemscale and tilepack. Do:
-  find each cause, fix it in the test or the code (never skip, loosen or
-  quarantine a test), and check the habitable layer default is intended
-  (Boss asked for markers on). Owner: Bug 1.
-  Research (2026-10-09): Aux 11 (as the lane reported, 2026-10-28) saw
-  test_no_todo_codes_shown red on strings GEN.826 (cli/generate.py:700),
-  GEN.703 (datasets/hitran_cia.py, ir_ktables.py), DB.48 (db/repair.py),
-  GEN.441 (describe/sheet.py:460), DB.46 (util/settings.py:377) and the
-  generate help test; the exact list for part (2).
-  Research (2026-10-09): Update (Bug 1, #3665, 3:07 AM EDT 2026-10-29 as
-  the lane reported): parts (1) and (2) are fixed; part (3), the seven
-  node-JS test files, is still Bug 1's.
-  Prerequisites: none. Related: MAP.220, MAP.311, TEST.405, TEST.418.
 
 - [ ] **TEST.435 Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges**
   Boss (2026-10-28, 7:41 PM EDT): adds the life class and stage shares
