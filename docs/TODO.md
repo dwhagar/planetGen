@@ -14280,36 +14280,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   measurement after PERF.165 shows the saving is worth an epoch.
   Prerequisites: none. Related: PERF.163, PERF.165.
 
-- [ ] **PERF.180 Single-unit stages already past the unit ceiling on big galaxies: clearing the bright stars (211 s on the medium galaxy) and the cache-warm families (one unit each, minutes on a large galaxy)**
-  Found by the Performance lane while merging PERF.155 (#2923, the
-  unit-length ceiling queue.unit_ceiling_seconds, 300 s), as the lane
-  reported at 6:10 AM EDT 2026-10-24. Every queued command now says it
-  is one unit by nature or declares its longest unit, but two stages are
-  single units that already pass the ceiling: the clearing of the bright
-  stars (a delete of every row, 211 s on the medium galaxy, so longer on
-  a large one) and the cache-warm families (one unit each, minutes on a
-  large galaxy). The run's log names the stage when a unit goes over.
-  Do: split the bright-star clear into id-range chunks (or replace the
-  row-by-row delete with a cheaper reset, as PERF.167 and PERF.171 did
-  for the scatters), and split each cache-warm family into chunks of
-  sectors; measure both on the medium and large galaxies. Done: no unit
-  of either stage runs longer than the ceiling on the large galaxy, and
-  the declared longest units in the command table are updated. Owner:
-  Performance lane (proposed; it is retiring, so the pool or Core 5 if
-  it has already gone).
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 10 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Research (2026-10-09): Lock-free item given to Aux 7 (6:29 PM EDT
-  2026-10-29) after PERF.178/179 merged; taken out of Core 5's chain.
-  Owner: Aux 7.
-  Prerequisites: none. Related: PERF.155, PERF.167, PERF.171, PERF.123.
-
 - [ ] **PERF.188 The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python**
   Found by Bug Hunt while fixing the load flakes of TEST.344 (relayed
   5:04 PM EDT 2026-10-24 as the lane reported; filed by the TODO
