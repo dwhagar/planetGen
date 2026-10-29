@@ -34,7 +34,7 @@ def rgb8_of(integer):
 
 def _solid_colour(body):
     temperature = getattr(getattr(body, "star", None), "temperature", None)
-    if not temperature or temperature <= 0.0:
+    if not temperature or not photometry.gives_visible_light(temperature):
         return None
     column = air_column.column_of(body)
     if column is None:

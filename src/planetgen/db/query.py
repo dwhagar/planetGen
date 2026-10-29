@@ -2651,7 +2651,7 @@ def resolve_object(conn, kind, object_id):
             pos["sector_ly"] = [milliparsecs_to_ly(v) for v in mpc]
             if row["center_x_pc"] is not None:
                 center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
-                pos["galaxy_pc"] = [c + mpc_to_pc(v) for c, v in zip(center, mpc)]
+                pos["galaxy_pc"] = list(local_to_galaxy_pc(center, tuple(mpc_to_pc(v) for v in mpc)))   # the sector frame is oriented (TEST.453)
         return chain, pos
 
     def star_offset(star_id):
