@@ -1768,3 +1768,9 @@ Baseline: PR #1817.
 | TEST.452 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | PERF.192 | 8.1 | The headline closes |
 | TEST.276 | 8.1 | Bugs and flaky tests |
+| GEN.479 | 8.1 | Mixture and stored values |
+| GEN.646 | 8.1 | Consistency |
+| GEN.840 | 8.1 | Consistency |
+| GEN.903 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.861 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.860 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
