@@ -805,6 +805,9 @@ with `clamp()`.
   PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
   progress-line work only: no generated-output change and no lock turn;
   if any step turns out to change a stored value, stop and tell TODO.
+  Research (2026-10-09): Lock-free item given to Core 3 (5:56 PM EDT
+  2026-10-29) while it waits for its GEN.328 lock turn; MAP.286 merged
+  (#3746). Owner: Core 3.
   Prerequisites: none. Related: GEN.272, GEN.247.
 
 - [ ] **UX.187 Pages, lists, the API and the help text show every physics rectification output**
@@ -2113,21 +2116,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
   Prerequisites: VIEW.14.
-
-- [ ] **MAP.286 Supernova remnant shells drawn by age on the maps**
-  MAP.278 painted every phenomenon from stored data except the remnant
-  shells by age, because the sector scene payload carries no remnant
-  age. Do: add the age to phenomena_near_sector and sectorscene, then
-  paint the shell from it, with a test. From the body-rendering build
-  lane's retirement report (10:52 PM EDT 2026-10-23 as the lane
-  reported); design doc docs/design/interface/body-rendering.md.
-  Research (2026-10-09): OWNER Core 3 (assigned 5:21 PM EDT 2026-10-29
-  by TODO as the lane's one lock-free item while it waits for the
-  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
-  his ask at 5:18 PM EDT; separate branch, no generated-output change;
-  if the lane already holds a lock-free item it finishes that first). If
-  this step turns out to change a stored value, stop and tell TODO.
-  Prerequisites: none.
 
 - [ ] **MAP.299 In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
@@ -13768,6 +13756,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   supergiant about 1,540 Rsun (Levesque et al. 2009). MIST is sampled
   every 0.05 dex in age, so the Hertzsprung gap and blue loops are not
   resolved by it; take their durations from HPT.
+  Research (2026-10-09): Audit update 3 (10-29, as the audit lane
+  reported 5:55 PM EDT): the Cepheid instability strip is about 5,100 to
+  6,300 K at log L 3 and 4,700 to 5,600 K at log L 4 (verified, arXiv
+  2412.03652); the giant and supergiant temperature fix must reach those
+  temperatures. Horizontal branch luminosity holds; only hot subdwarf
+  luminosities remain unchecked (low importance).
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.936 The 0.08 to 0.1 solar mass main sequence comes from the Baraffe 2015 table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap)**
@@ -13974,6 +13968,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   depends on it; report under /mnt/project-files/reports. Lock-free (no
   code change). Owner: Bug 2 (proposed by TODO: it owns the audit
   harnesses and the census). Version 8.1.
+  Research (2026-10-09): Bug 2 accepted this item (as the lane reported
+  5:51 PM EDT 2026-10-29), after TEST.417 (it started TEST.417 then).
   Prerequisites: none. Related: GEN.725, GEN.754, GEN.922.
 
 - [ ] **GEN.946 Burn down the hand-tuned constants: replace each L3 or L4 registry row and each unregistered constant the audit ranks high with the data we hold, or record why no data exists**
@@ -14036,6 +14032,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   distance reads the table. Low priority. Stand-in tier Verified (L0)
   once read. Owner: none yet. Version 8.4.
   Prerequisites: none. Related: GEN.944, GEN.468.
+
+- [ ] **GEN.951 Companion mass ratio depends on the primary mass and the orbital period, with the twin excess (Moe and Di Stefano 2017 Table 13) instead of a flat 0.1 to 1 (low priority)**
+  Audit finding L7 (low priority; item 12 of the star class audit,
+  /mnt/project-files/reports/star-class-audit-2026-10-29.md). Today the
+  companion mass ratio is flat 0.1 to 1 for every system. Do: draw it
+  from the Moe and Di Stefano 2017 Table 13 distribution, which depends
+  on the primary mass and the orbital period and carries a twin excess
+  at short periods. The multiplicity table itself matches exactly
+  (checked in the audit); this is the mass-ratio input of the GEN.922
+  chain item that derives the primary function from multiplicity, so it
+  changes the primary function slightly. Stand-in tier Verified (L0).
+  Rides the GEN.932 epoch if ready in time, else a later epoch. Owner:
+  Bug 1 (the mass-ratio input of the GEN.922 chain; TODO proposed it,
+  Bug 1 may hand it to Star 1 if it is busy). Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.932.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19007,6 +19018,8 @@ clears each one.
   the test lets shrink and never grow; the check names the module and
   the constant. Pairs with GEN.754. Lock-free. Owner: Bug 2 (proposed by
   TODO). Version 8.1.
+  Research (2026-10-09): Bug 2 accepted this item (as the lane reported
+  5:51 PM EDT 2026-10-29), after TEST.417.
   Prerequisites: GEN.945. Related: GEN.725, GEN.754, GEN.945.
 
 - [ ] **TEST.456 A test that the generated [X/Fe] abundances match the Brewer and Fischer 2016 table, not only its trend and scatter (low priority)**
