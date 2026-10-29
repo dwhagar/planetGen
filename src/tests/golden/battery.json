@@ -21,8 +21,8 @@
       "5f1d7ce043386f4f91361a0fd895cbca7569d8674e1f539b8f5b735944ca7c84"
     ],
     "sector-a": [
-      "6092a664bc68cf4ce1e95b74f5de91af80df43b31881d35302da9ff7625cb875",
-      "35f714d7c4fcc6519cd268de5716ba415d49557612a21df66e1d1c5996fb4029"
+      "455176677b39326dca8515df52d6a8c63d85929501e547c895e41bfd3edfd085",
+      "90ff283703a983e448973e559aa00d3d487ee4d9518286ad8688b94a9712055c"
     ],
     "sector-b": [
       "cc014df4c7326bc6360d714e843f01831a31d98cc8f94aa1ed9f8023357b427b",
@@ -37,7 +37,7 @@
     "astropy": "8.0.2",
     "numpy": "2.5.4",
     "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
-    "python": "3.13.17"
+    "python": "3.13.16"
   },
-  "overall": "d4b43dac30410880bea3d90d7b2123ed91845798a9b5ff1e02fa85b59e6de2ab"
+  "overall": "9e6ed79a21b71db6a4ea0e117ad775ea5019d507d4846d496f0fb30ce6fc08e9"
 }
