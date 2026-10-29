@@ -18687,6 +18687,17 @@ clears each one.
   Owner: Bug 2 (with the census harness of TEST.430 and TEST.435); runs
   with the targeted gate when life, classes or habitability change.
   Version 8.1.
+  Research (2026-10-09): First layer merged (Bug 2, PR 3716, about 3:45
+  PM EDT as the lane reported): every terrestrial planet and moon of the
+  test sweep (576 bodies) is given each of the 20 class letters with its
+  conditions unchanged, and the life classes it supports and its
+  habitability index must not move; plus a scan of the life code listing
+  every read of the class letter (3 today, all flavour or description
+  text). It passes on main, so the life judging is already class-blind.
+  Still to do (keeps the item open): the layer that asserts the
+  generator actually draws life on every capable body and gives equal
+  odds across classes; it needs the class store of Aux 2's epoch 120 and
+  is built when that merges (same trigger as the TEST.435 re-baseline).
   Prerequisites: GEN.915. Related: TEST.430, TEST.435, GEN.915.
 
 ## USR: User accounts
