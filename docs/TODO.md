@@ -19159,6 +19159,26 @@ clears each one.
   the tests. Not a skip. Done: the file passes on main. Owner: Aux 3
   (its remaining queue is the lock turn only; it fixed the TEST.442 map
   reds); ask Core 3 about the black hole test. Prerequisites: none.
+  Research (2026-10-09): Update (Core 3, 1:35 AM EDT 2026-10-29 as the
+  lane reported): the black hole markers, point phenomena and wide map
+  card tests all passed at the MAP.340 release (5dd761c1d) and fail from
+  #3639: removing the contents menu widened the Galaxy Map canvas, so
+  the label engine now puts 'Fixture Cloud' over the Fixture Maw glyph
+  and the label takes the pointer first. (1)
+  black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked: Core
+  3 fixes it inside its MAP.341 PR (the test hovers a few pixels off the
+  label); drop it from Aux 3's list. (2)
+  point_phenomena_that_link_to_their_pages: on the wide map the neutron
+  star sits within a few pixels of the black hole, whose point wins the
+  pick, so the pulsar is never reached; the test needs a different view
+  or a hidden hole. (3)
+  the_map_card_goes_wide_but_the_title_keeps_the_page_edge: UX.62
+  expects the Galaxy page title at the Sector page's left edge (88
+  against 264 px) but #3639 removed the contents column only on the
+  Galaxy page; a design call: compare against the page's main edge in
+  the test, or give the wide page the same offset (Aux 3 decides and
+  tells me). (4) sector_map_click_on_the_selected_nebula_clears_it:
+  cause not yet known. Aux 3 owns items 2 to 4.
   Related: TEST.442, MAP.339, MAP.340, MAP.335.
   Prerequisites: none. Related: TEST.442, MAP.339, MAP.340, MAP.335.
 
