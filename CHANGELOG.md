@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2514] - 2026-10-29
+
+**Headline:** The life census names the open item for the low animal share of life worlds.
+
+### Changed
+
+- **The life census tag is GEN.907 (TEST.435).** The known-anomaly note on the share of life worlds that reach animals now cites GEN.907, because GEN.855 has merged and the share is still near zero (4 of 1,246 life worlds are oxygenic). Test data only.
+
 ## [8.0.2513] - 2026-10-29
 
 **Headline:** The life census report now counts the life worlds that have oxygenic life, and the notes on two known test faults name what is still open after the biogenic oxygen change.
