@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2468] - 2026-10-29
+
+**Headline:** Inside an open system the planets and moons now carry the life, sentient life, civilization and planet class symbols when those Menu layers are on.
+
+### Changed
+
+- **Body-level symbols for the reasons to look (MAP.343).** The Life, Sentient life, Civilizations and World classes markers (off until chosen) used to mark only the star systems. With a system open, each planet and moon now carries the symbol of its strongest reason whose layer is on, as a star's mark does: inhabited, civilization, sentient life, life, habitable, barren, gas giant, then its class. A layer that is off lets the next reason name the body, where before a body whose strongest reason was off showed nothing. The system scene carries the four life scores, the timeline stage and the class for this; nothing else changes.
+
 ## [8.0.2467] - 2026-10-29
 
 **Headline:** The planet and moon page is laid out as About, Habitability, Atmosphere and Composition, with a contents menu down the left side.
