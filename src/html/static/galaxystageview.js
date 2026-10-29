@@ -132,6 +132,11 @@ const STAR_ANCHOR_PX = 14;
 const COLUMN_SHARE = 0.5;
 const COLUMN_REACH = 2;
 const COLUMN_NEAREST = 0.25;
+// MAP.301: a wheel step heads for the densest layer of drawn stars in front of the eye along the cursor ray when there are at least
+// CROWD_MIN_STARS of them within CROWD_CONE (the tangent of the angle, about 24 pixels at the default lens) of it, in front of the
+// thing the wheel would otherwise head for and no nearer than twice the clearance, so the approach slows and stops in a cluster instead of flying through it.
+const CROWD_CONE = 0.025;
+const CROWD_MIN_STARS = 12;
 const CROSS_PX = 12; // MAP.247: a pointer this near the middle of the map is on the cross
 
 // The zoom policies (mapcontrol.js): a short range around the fit, and
@@ -2508,10 +2513,23 @@ export function createStageView(host) {
 
   // MAP.334: the nearest thing along the ray through a screen point, which the zoom steps are shares of: {point, kind, distance} with the point
   // in the world (parsecs), the distance `h` from the eye to it and the kind "star", "body" (a picked body of the open system, with its
-  // `radius`), "pick" (any other thing the picker found), "column" (the galaxy's stars thickening along the ray) or "plane" (nothing drawn
+  // `radius`), "pick" (any other thing the picker found), "crowd" (the densest layer of drawn stars in front of the thing the wheel would otherwise head for, MAP.301), "column" (the galaxy's stars thickening along the ray) or "plane" (nothing drawn
   // there: the focus plane's point). The same law in every stage: a wheel step covers a share of h and never takes the eye within the clearance
   // of the thing (`limitedStep`), so there is no wall and no landing on a surface.
   function nearestThingAlong(clientX, clientY) {
+    const found = thingAlong(clientX, clientY);
+    if (!found || found.kind === "body") return found;
+    // MAP.301: a crowd of drawn stars in front of that thing is what the wheel heads for first.
+    const rect = canvasEl.getBoundingClientRect();
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1), camera);
+    const crowd = crowdAlong(ray.ray.origin, ray.ray.direction, found.distance);
+    if (!crowd) return found;
+    const eye = camera.position;
+    return { point: crowd, kind: "crowd", distance: Math.hypot(crowd[0] - eye.x, crowd[1] - eye.y, crowd[2] - eye.z) };
+  }
+
+  function thingAlong(clientX, clientY) {
     const rect = canvasEl.getBoundingClientRect();
     if (!view || !rect.width || !rect.height) return null;
     const eye = camera.position;
@@ -2541,6 +2559,15 @@ export function createStageView(host) {
     const column = !onCross && columnAnchor(origin, direction, forward, onPlane);
     if (column) return thing(column, "column");
     return onPlane ? thing(onPlane, "plane") : null;
+  }
+
+  // MAP.301: the densest layer of the drawn stars along the cursor ray, nearer the eye than `farthest` (where the wheel would otherwise head),
+  // or null: no stars supplied, a system open, or no crowd of CROWD_MIN_STARS in front of that.
+  function crowdAlong(origin, direction, farthest) {
+    if (!host.drawnStars || enteredSystem || !(farthest > 0)) return null;
+    const found = MC.densestLayerAlong(origin.toArray(), direction.toArray(), host.drawnStars(),
+      { cone: CROWD_CONE, nearest: 2 * ZOOM_CLEARANCE * view.dist, farthest: farthest, minPoints: CROWD_MIN_STARS });
+    return found ? found.point : null;
   }
 
   // MAP.247: the first point of the cursor ray where the column of the galaxy's stars passes the threshold

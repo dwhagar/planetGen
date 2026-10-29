@@ -289,3 +289,19 @@ test("MAP.247: the column point is the first place the density along a ray adds 
   assert.equal(MC.columnDensityPoint([0, 0, 0], [0, 0, 1], () => NaN, 10, 100), null);
   assert.equal(MC.columnDensityPoint([0, 0, 0], [0, 0, 1], () => 1, 10, 0), null);
 });
+
+test("MAP.301: the densest layer along a ray is the crowd of stars in front, not a lone star behind it", () => {
+  const crowd = [];
+  for (let i = 0; i < 40; i += 1) crowd.push({ x: ((i * 7) % 11 - 5) * 0.02, y: ((i * 3) % 7 - 3) * 0.02, z: 20 + (i % 5) * 0.1 });
+  const stars = [...crowd, { x: 0, y: 0, z: 60 }, { x: 30, y: 0, z: 10 }];
+  const found = MC.densestLayerAlong([0, 0, 0], [0, 0, 1], stars, { cone: 0.025, minPoints: 12 });
+  assert.ok(found && Math.abs(found.point[2] - 20.2) < 0.5 && found.count >= 12, found);
+  assert.deepEqual([found.point[0], found.point[1]], [0, 0]);
+  // Beyond the far limit or nearer than the near limit the crowd is not counted.
+  assert.equal(MC.densestLayerAlong([0, 0, 0], [0, 0, 1], stars, { farthest: 15, minPoints: 12 }), null);
+  assert.equal(MC.densestLayerAlong([0, 0, 0], [0, 0, 1], stars, { nearest: 25, minPoints: 12 }), null);
+  // A handful of stars is no crowd, and a ray that misses them finds nothing.
+  assert.equal(MC.densestLayerAlong([0, 0, 0], [0, 0, 1], stars.slice(0, 5), { minPoints: 12 }), null);
+  assert.equal(MC.densestLayerAlong([0, 0, 0], [1, 0, 0], stars, { minPoints: 12 }), null);
+  assert.equal(MC.densestLayerAlong([0, 0, 0], [0, 0, 1], [], {}), null);
+});
