@@ -25,7 +25,9 @@ from planetgen.queue import redisclient
 from planetgen.util.settings import get_settings
 
 GENERATION_QUEUE = "planetgen-generation"
-"""str: Sector fills, shell scatters and backfill blocks."""
+"""str: The queue of the first design (PERF.24), where the supervising process of a run put its tasks. Nothing is queued on
+it since the rebuild: a run's units go to `BULK_QUEUE`. The name stays in `QUEUES` and in the worker's warm-up
+(`cli/worker.warm`), which treat it as a generation queue."""
 
 BULK_QUEUE = "planetgen-bulk"
 """str: A run's units of work (PERF.95): the scatters, sector fills and backfill blocks of the work queue

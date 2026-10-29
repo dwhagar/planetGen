@@ -430,6 +430,8 @@ matter, not speed.
 
 ## 7. Resumable runs: PERF.29 and PERF.30
 
+**Status (2026-10-29): not built, dropped.** Boss decided there is no automatic resume after an interruption (2026-10-14, PERF.86): an admin starts or cancels a run, and PERF.29 and PERF.30 are dropped. What the rebuilt queue does instead (built by PERF.95 to PERF.100, PERF.107 and PERF.108): a run's record lives in Redis and a unit that fails or whose worker is killed ends the run, naming the unit (`queue/units.py`); a rerun of the same command picks up where the stored sectors leave off, because the sector fill skips sectors that exist and each unit writes only its own sectors in its own transactions. The post-steps that name their sectors by when they were saved (links, settle, backfill) now read the database's clock at the start of the run (`since`) and cut their units from it, so they cover the sectors a run made, not a restarted run's. A new run does not pick up what an interrupted one still owed those steps: that is the gap 7.1 describes, and nothing closes it. The text below is the research as written and the `RQExecutor` it names is gone.
+
 ### 7.1 What exists
 
 A sector save is **one transaction** (`save_sector` inside `conn.batched()`:
@@ -460,8 +462,8 @@ final contents, population is global), so a bitmask fits.
 **RQ semantics** [S, `rq` 2.12.0 wheel, `registry.py`]: a job whose worker died
 stops heartbeating; `StartedJobRegistry.cleanup()` finds the expired entry and, if
 `retries_left > 0`, calls `job.retry()`, otherwise files it as `AbandonedJobError`.
-The project's `RQExecutor` enqueues with `retry=rq.Retry(max=TASK_RETRIES)`,
-`job_timeout=-1`, and treats a dead worker as `WorkerDied`. Retry reruns the
+The project's `RQExecutor` (since removed, OPS.66; a unit is now an RQ job queued by `queue/units.py` with `retry=rq.Retry(max=1)`) enqueued with `retry=rq.Retry(max=TASK_RETRIES)`,
+`job_timeout=-1`, and treated a dead worker as `WorkerDied`. Retry reruns the
 whole job, so every task must be idempotent: sector fills skip existing
 addresses and a backfill chunk rechecks its levels under the row lock. The lock
 pins rq 2.12.0 for Python 3.10 and later, 2.8.0 for 3.9; only 2.12.0 was read.

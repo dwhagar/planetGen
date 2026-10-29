@@ -1,6 +1,6 @@
 # What the site starts, and what moves to the work queue (PERF.19)
 
-**Status (2026-10-15):** built (PERF.19, #492; PERF.24, #517). PERF.86 (open) replaces the parent and child job tree and the `work_lease` described here with plain Redis queues.
+**Status (2026-10-29):** built (PERF.19, #492; PERF.24, #517), then rebuilt by PERF.86. The audit of 2026-10-07 below says where each path ran before the move and where it went. The queue it planned (one parent job for a run with the sector, scatter and backfill units as children, the `work_lease` in MySQL) was replaced: a run lives only in Redis (a run record with stages, units that are RQ jobs on the bulk queue carrying JSON, and the unit that finishes a stage queuing the next), and the MySQL job tree and its tables are gone (control schema v21, PERF.98 and PERF.100). The paths in the table went to the queue as planned, the API's long jobs on the interactive and long queues (`queue/api_jobs.py`). What was built is in [redis-and-the-work-queue.md](redis-and-the-work-queue.md), "As built".
 
 The audit PERF.19 asks for. Boss (2026-10-01 22:13Z): "I want
 _everything_ that communicates with the API to use the work queue
@@ -11,18 +11,18 @@ on Redis with RQ. The moves themselves are done in PERF.24.
 
 Audited on 2026-10-07 against `main` after the package move (OPS.24).
 
-## Today: two kinds of background work, and the rest in the request
+## At the audit (2026-10-07): two kinds of background work, and the rest in the request
 
 - **Web jobs** (`planetgen.web.jobs`, run by `planetgen.cli.job`). A job
   is a list of command lines (`python -m planetgen.cli.generate ...`,
   `planetgen.cli.reset`) that a detached runner process works through,
   with its state and log in the jobs folder. Only one runs at a time
   (`JobBusy`).
-- **The generation work queue** (`planetgen.queue.work`). Inside a
-  bulk command, it spreads sectors, layer scatters and backfill blocks
-  over worker processes, using leases, heartbeats and reclaim in MySQL
-  (`work_lease`). The web never calls it directly. It reaches it only
-  through a web job that runs the CLI.
+- **The generation work queue** (`planetgen.queue.work`, since replaced:
+  see the status above). Inside a bulk command, it spread sectors, layer
+  scatters and backfill blocks over worker processes, using leases,
+  heartbeats and reclaim in MySQL (`work_lease`). The web never called it
+  directly. It reached it only through a web job that ran the CLI.
 - **Everything else runs inside the request**, in the web server's own
   process, while the browser or API client waits.
 
@@ -49,14 +49,16 @@ No GET route writes anything: map visits and page views generate
 nothing. The Galaxy Map's tiles come from `tilecache.py` and the
 database only.
 
-## The plan for PERF.24
+## The plan for PERF.24 (as planned; PERF.86 later changed point 1)
 
 1. **One queue for everything.** RQ on Redis replaces both web jobs
    (`planetgen.cli.job`, the jobs folder) and the generation work queue
    (`planetgen.queue.work`, `work_lease`). A Generate page run is a
    parent job whose children are the sector, scatter and backfill
    units. The admin pages read status, progress and logs from RQ, and
-   ADM.22 streams them.
+   ADM.22 streams them. (As built, a run is a record in Redis whose
+   stages hold the units; there is no parent and child tree, and the
+   Generate page's job keeps its folder for its log and state.)
 2. **Long work leaves the request.** The neighborhood route, sector
    regenerate and wiki uploads return `202 Accepted` with a job id and a
    status URL (`GET /api/jobs/<id>`). The website shows the job the way
@@ -87,7 +89,7 @@ queue, at the cost of a Redis round trip on each edit. Boss approved
 the plan on 2026-10-07 with the recommendation: queue it, waited on, as
 above.
 
-## How PERF.24 gets built
+## How PERF.24 gets built (as planned; step 2's `WorkQueue` and the job tree were later removed by PERF.86)
 
 RQ needs worker processes that wait on Redis. Today nothing runs in the
 background between runs: a `planetgen` run supervises its own pool and

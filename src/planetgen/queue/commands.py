@@ -7,9 +7,10 @@ Commands, and the step list the wrapper builds from a request (PERF.118, docs/de
 **A command is a kind in `REGISTRY`.** It does one thing and nothing else: it does not know what ran before it, what
 runs after it or where it sits in the order. A command with a `unit` is queued as a stage of units; one with an
 `expand` is cut into those units when its stage starts, from its `params` (plain JSON) and the database alone. A
-command with neither is *inline*: it still runs in the process that started the run (the stages PERF.106 to PERF.108
-and the commands of PERF.121 to PERF.128 turn into units, one at a time). Every command the wrapper can name is
-registered here, so a list can be printed and checked without running anything.
+command with neither is *inline*: it runs in the process that started the run. PERF.106 to PERF.108 and PERF.121 to
+PERF.128 turned the stages into units one at a time, and none is inline now; the inline path stays for a command
+that has no units to give. Every command the wrapper can name is registered here, so a list can be printed and
+checked without running anything.
 
 **A step is a command and its parameters.** `build_steps` is the wrapper's pure function: the arguments of
 `planetgen galaxy` or `planetgen plan` in, the ordered `Step`s that will run out. A stage the request does not
