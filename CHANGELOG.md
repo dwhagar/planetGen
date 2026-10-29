@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2492] - 2026-10-29
+
+**Headline:** The composition of every kind of star, brown dwarf and remnant is now checked together against one set of rules.
+
+### Added
+- **A star composition sweep (TEST.211).** Seeded sectors filled on the census harness, plus a ladder of masses and ages through the generator's own stellar evolution, give stars of every kind (protostar to black hole). One set of rules runs over their compositions: the fractions add up to one and stay in range, the helium follows the metals, the metals follow the iron, the old metal-poor stars are high-alpha and the young ones never are, only a red giant has a first dredge-up, remnants have their layers (white dwarf core, atmosphere, envelope and radius; neutron star crust; black hole horizon), a Wolf-Rayet star is hydrogen-free unless it is a late WN star, a brown dwarf's burning limits follow its mass, no star lacks a composition, and the result is the same in another order and at four workers as at one. A second test breaks each rule in turn on copies of the compositions and checks the rule named for it reports it, and a distribution test checks a solar-neighbourhood mix against the Brewer and Fischer 2016 medians and the Thiabaud 2015 box. No generation or stored value changes.
+
 ## [8.0.2491] - 2026-10-29
 
 **Headline:** The Galaxy Map now shows nebulae as soft glowing groups, in the colour of their kind.
