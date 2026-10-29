@@ -49,9 +49,10 @@ def test_a_step_the_request_does_not_select_is_not_in_the_list():
     assert "scatter-mass" in kinds(["galaxy"]) and "scatter-mass" not in kinds(["sectors"])
     assert kinds(["galaxy", "--shell", "2"])[0] == "generate-sectors" and kinds(["link"]) == ["link-neighbours"]
     assert kinds(["plan"]) == ["plan-skeleton"]
-    assert kinds(["scatter", "--mass"]) == ["scatter-mass"]
+    assert kinds(["scatter", "--mass"]) == ["scatter-mass", "refresh-block-lights"]
     assert "scatter-backfill" in kinds(["galaxy"]) and kinds(["backfill"]) == ["scatter-backfill"]
-    assert kinds(["scatter", "--phenomena"]) == ["scatter-phenomena"]
+    assert kinds(["scatter", "--phenomena"]) == [
+        "scatter-phenomena", "finish-phenomena", "draw-nebula-field", "refresh-block-lights"]
     assert kinds(["fill-map-luminosity"]) == ["fill-map-luminosity"]
     assert kinds(["rescore-habitability"]) == ["rescore-habitability"]
     assert kinds(["clean-nebula-field"]) == ["clean-nebula-field"]
@@ -62,10 +63,12 @@ def test_the_star_scatters_are_the_stages_the_wrapper_queues_first_in_the_order_
     args = _args(["galaxy"])
     assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))
             if step.kind in ("scatter-mass", "scatter-luminosity")] == ["scatter-mass", "scatter-luminosity"]
-    for argv, kind in ((["scatter", "--mass"], "scatter-mass"), (["scatter", "--luminosity"], "scatter-luminosity"),
-                       (["scatter", "--phenomena"], "scatter-phenomena")):
+    for argv, kinds in ((["scatter", "--mass"], ["scatter-mass", "refresh-block-lights"]),
+                        (["scatter", "--luminosity"], ["scatter-luminosity", "refresh-block-lights"]),
+                        (["scatter", "--phenomena"], ["scatter-phenomena", "finish-phenomena", "draw-nebula-field",
+                                                      "refresh-block-lights"])):
         args = _args(argv)
-        assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))] == [kind]
+        assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))] == kinds
     args = _args(["scatter", "--band", "--down-to", "10"])
     assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))] == ["scatter-band"]
 
