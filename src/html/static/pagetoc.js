@@ -58,4 +58,5 @@
 
   const anchor = main.querySelector(".page-subhead") || main.querySelector("h1");
   if (anchor) anchor.after(nav);
+  main.classList.add("has-page-toc");
 })();

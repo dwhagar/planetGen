@@ -5477,7 +5477,8 @@ p.hint a {
   font-size: 0.95rem;
 }
 
-/* UX.196: the "On this page" contents list (static/pagetoc.js). */
+/* UX.196, UX.215: the "On this page" contents menu (static/pagetoc.js). On a wide window it is a menu down the left side of
+   the page that stays in view; on a narrow one it is a list under the title. */
 .page-toc {
   margin: 0 0 1rem;
   padding: 0.5rem 0.75rem;
@@ -5494,10 +5495,68 @@ p.hint a {
 .page-toc ul {
   margin: 0;
   padding-left: 1.25rem;
-  columns: 14rem auto;
 }
 
 .page-toc li ul {
-  columns: 1;
   font-size: 0.9em;
+}
+
+@media (min-width: 64rem) {
+  .app .app-main.has-page-toc {
+    display: grid;
+    grid-template-columns: 13.5rem minmax(0, 1fr);
+    column-gap: 1.5rem;
+    align-content: start;
+    max-width: 84rem;
+  }
+
+  .app .app-main.has-page-toc > * {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .app .app-main.has-page-toc > .page-toc {
+    grid-column: 1;
+    grid-row: 1 / span 60;
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    margin: 0;
+  }
+
+  .page-toc ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .page-toc li ul {
+    padding-left: 0.9rem;
+  }
+
+  .page-toc a {
+    display: block;
+    padding: 0.15rem 0;
+  }
+}
+
+/* UX.215: the Location row of the at-a-glance table: the places above the object, then the cloud it sits inside. */
+.location-chain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.location-chain li + li::before {
+  content: "\203A";
+  margin-right: 0.4rem;
+  color: var(--text-muted);
+}
+
+.location-inside {
+  margin: 0.25rem 0 0;
 }

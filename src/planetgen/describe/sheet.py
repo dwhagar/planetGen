@@ -788,6 +788,30 @@ def _gas_rows(conn, kind, object_id):
              row["partial_pa"]) for row in held]
 
 
+ZONE_NAMES = {"h": "Hot Zone", "e": "Ecosphere / Habitable Zone", "c": "Cold Zone"}
+"""dict: What a body's stored zone letter (`h`, `e`, `c`) is called on a page (UX.217)."""
+
+
+def _zone_value(letter, by_key, specs, table):
+    """The zone row of a planet or moon as an inline list (UX.217): the zone's name and the range of orbit distances it
+    covers, from the star's habitable zone edges the body row stores: the Hot Zone lies inside the inner edge, the
+    Ecosphere / Habitable Zone between the two, the Cold Zone beyond the outer edge."""
+    name = ZONE_NAMES.get(str(letter).lower())
+    if name is None:
+        return None
+    edge = {spec.key: spec for spec in specs}
+    inner, outer = by_key.get("habitable_zone_inner_km"), by_key.get("habitable_zone_outer_km")
+    if inner is None or outer is None:
+        return [name]
+    near, far = (_value(edge["habitable_zone_inner_km"], table, inner)[0], _value(edge["habitable_zone_outer_km"], table, outer)[0])
+    letter = str(letter).lower()
+    if letter == "h":
+        return [f"{name}, closer than ", near]
+    if letter == "c":
+        return [f"{name}, farther than ", far]
+    return [f"{name}, ", near, " to ", far, " from its star"]
+
+
 def sheet(conn, kind, object_id):
     """
     The property sheet of one body.
@@ -799,7 +823,7 @@ def sheet(conn, kind, object_id):
 
     Returns:
         dict: `kind`, `groups`: the non-empty groups in `GROUPS` order, each `{"key", "label", "rows"}`; a row is
-            `{"key", "label", "value" (the inline list), "text" (it as plain text), "stored" (whether the column held a
+            `{"key", "label", "value" (the inline list), "text" (it as plain text), "raw" (the stored number, `None` for text), "stored" (whether the column held a
             value), "absent" (none or 0), "show_absent" (a page lists it even then)}`.
 
     Raises:
@@ -816,12 +840,15 @@ def sheet(conn, kind, object_id):
         stored = row[spec.stored_column()]
         value = _range_value(spec, table, stored, row)
         absent = stored is None or stored == 0 or stored == ""
+        if spec.key == "zone" and kind in ("planet", "moon") and stored:
+            value = _zone_value(stored, {s.key: row[s.stored_column()] for s in specs}, specs, table) or value
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value,
-                                     "text": inline_text(value), "stored": stored is not None, "absent": absent,
+                                     "text": inline_text(value), "raw": stored if isinstance(stored, (int, float)) else None,
+                                     "stored": stored is not None, "absent": absent,
                                      "show_absent": spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     for spec, pascals in _gas_rows(conn, kind, object_id) if kind in GAS_TABLES else ():
         value = _value(spec, GAS_TABLES[kind][0], pascals)
-        by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "stored": True,
+        by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "raw": pascals, "stored": True,
                                      "absent": not pascals, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
