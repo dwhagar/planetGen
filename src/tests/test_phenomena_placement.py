@@ -406,6 +406,26 @@ def test_save_phenomenon_now_wires_sector_id_for_supernova_remnant_rogue_planet_
     assert comet_row["sector_id"] == sector_id
 
 
+def test_phenomena_near_sector_gives_a_supernova_remnant_its_age_and_no_other_type(mysql_config):
+    """MAP.286: the Sector Map paints a remnant's shell from `age_years`; a nebula beside it has none."""
+    sector_id = _place_sector(mysql_config, "Remnant Age Sector", (300.0, 0.0, 0.0))
+    cfg = SystemConfig()
+    remnant = SupernovaRemnant(cfg)
+    nebula = Nebula(cfg)
+    nebula.radius_ly = 5.0
+    store.save_phenomenon(remnant, cfg, "supernova-remnant", config=mysql_config, sector_id=sector_id)
+    store.save_phenomenon(nebula, cfg, "nebula", config=mysql_config, sector_id=sector_id)
+
+    conn = store.get_connection(mysql_config)
+    try:
+        found = {match["type"]: match for match in query.phenomena_near_sector(conn, sector_id)}
+    finally:
+        conn.close()
+
+    assert found["supernova_remnant"]["age_years"] == pytest.approx(remnant.age_years)
+    assert found["nebula"]["age_years"] is None
+
+
 def test_save_phenomenon_computes_real_placement_for_a_sector_linked_black_hole(mysql_config):
     # save_phenomenon's own compute_phenomenon_placement jitter path (for
     # phenomenonGen.py's standalone --sector-id use), now also reachable

@@ -69,7 +69,7 @@ export function infoSpec(entry, data, navPick) {
     return spec;
   }
   if (entry.kind) {
-    spec.fields = [["Type", entry.typeLabel], ["Radius", entry.radiusText], ["Surface gravity", entry.gravityText], ["Distance", entry.distanceText]];
+    spec.fields = [["Type", entry.typeLabel], ["Radius", entry.radiusText], ["Age", entry.ageText], ["Surface gravity", entry.gravityText], ["Distance", entry.distanceText]];
     spec.bookmark = endpointBookmark(entry.key, entry.name, entry.href);
     if (navPick) spec.nav = navPick.actionsFor(entry.key, entry.name);
     if (!picking) {
@@ -405,7 +405,34 @@ var CLOUD_VOLUMES = {
   supernovaRemnant: { innerRatio: 0.82, density: 3.0, color: "#ff8a5c", alpha: 0.5 },
 };
 
+// MAP.286: a remnant's shell by its age (stand-in look, tweak scale L0: the rule of the design table, not a fitted value). The generator
+// draws a remnant 50 years to 100,000 years old (tuning.NEBULA_CLASSES); on a log scale across that span a young remnant is a thin,
+// bright, hot-coloured rim and an old one a thick, faint, cooler shell, the blast wave having swept up more gas as it slowed.
+var REMNANT_AGE_YR = [50, 100000];
+var REMNANT_YOUNG = { innerRatio: 0.93, density: 4.0, alpha: 0.65, color: [255, 176, 138] };
+var REMNANT_OLD = { innerRatio: 0.62, density: 2.0, alpha: 0.3, color: [196, 80, 58] };
+
+export function remnantShell(ageYears) {
+  var base = CLOUD_VOLUMES.supernovaRemnant;
+  if (!(ageYears > 0)) {
+    return base;
+  }
+  var span = Math.log(REMNANT_AGE_YR[1] / REMNANT_AGE_YR[0]);
+  var t = Math.min(1, Math.max(0, Math.log(ageYears / REMNANT_AGE_YR[0]) / span));
+  function mix(a, b) { return a + (b - a) * t; }
+  var channels = REMNANT_YOUNG.color.map(function (value, i) { return Math.round(mix(value, REMNANT_OLD.color[i])); });
+  return {
+    innerRatio: mix(REMNANT_YOUNG.innerRatio, REMNANT_OLD.innerRatio),
+    density: mix(REMNANT_YOUNG.density, REMNANT_OLD.density),
+    alpha: mix(REMNANT_YOUNG.alpha, REMNANT_OLD.alpha),
+    color: "#" + channels.map(function (value) { return ("0" + value.toString(16)).slice(-2); }).join(""),
+  };
+}
+
 function makeCloudVolume(cloud, volume) {
+  if (cloud.kind === "supernovaRemnant") {
+    volume = remnantShell(cloud.ageYears);
+  }
   var color = volume.color || (cloud.coreColor || "#c9a8e090").slice(0, 7);
   var alpha = volume.alpha;
   if (alpha === undefined) {

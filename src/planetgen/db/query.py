@@ -2089,7 +2089,7 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
             labels), `name`, `descriptor`, `radius_ly` (0 for the
             point-like types), `class` (see `_PHENOMENON_CLASS_COLUMNS`), `gravity_g` (rogue planets only: the
             surface gravity in g, UX.99), `mass_solar` (a black hole, neutron star or quasar's mass, MAP.208;
-            else `None`), `x`/`y`/`z` (`center_x/y/z_pc`), `galactic_radius_pc`.
+            else `None`), `x`/`y`/`z` (`center_x/y/z_pc`), `galactic_radius_pc`, and for a supernova remnant `age_years` (MAP.286).
     """
     where_bbox = ""
     bbox_params = ()
@@ -2117,7 +2117,8 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
                    {_PHENOMENON_CLASS_COLUMNS.get(table, "NULL")} AS class_code,
                    center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
                    {"mass_kg, radius_km" if table == "rogue_planets" else "NULL AS mass_kg, NULL AS radius_km"},
-                   {_PHENOMENON_MASS_COLUMNS.get(table, "NULL")} AS mass_solar
+                   {_PHENOMENON_MASS_COLUMNS.get(table, "NULL")} AS mass_solar,
+                   {"age_years" if table == "supernova_remnants" else "NULL"} AS age_years
             FROM {table}
             WHERE center_x_pc IS NOT NULL
             {where_bbox}
@@ -2134,6 +2135,8 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
             })
             if table == "rogue_planets":
                 rows[-1]["gravity_g"] = rogue_planet_gravity_g(row["mass_kg"], row["radius_km"])
+            elif table == "supernova_remnants":
+                rows[-1]["age_years"] = row["age_years"]
     return rows
 
 
@@ -3203,7 +3206,8 @@ def phenomena_near_sector(conn, sector_id):
         list[dict]: One entry per candidate phenomenon, nearest first:
             `id`, `type` (one of `_PHENOMENON_TABLES`' type labels),
             `name`, `descriptor`, `class` (letter class or `None`),
-            `radius_ly`, `mass_solar` (black holes, neutron stars and quasars), `distance_ly` (sector center to phenomenon
+            `radius_ly`, `mass_solar` (black holes, neutron stars and quasars), `age_years` (a supernova remnant's, MAP.286; else
+            `None`), `distance_ly` (sector center to phenomenon
             center), and `offset_x_ly`/`offset_y_ly`/`offset_z_ly` (the
             phenomenon's center relative to the sector's own center, in
             light-years -- the same frame `starmap.py` already places
@@ -3256,7 +3260,7 @@ def phenomena_near_sector(conn, sector_id):
             "id": phenomenon["id"], "type": phenomenon["type"], "name": phenomenon["name"],
             "descriptor": phenomenon["descriptor"], "radius_ly": phenomenon["radius_ly"],
             "class": phenomenon["class"], "gravity_g": phenomenon.get("gravity_g"),
-            "mass_solar": phenomenon.get("mass_solar"),
+            "mass_solar": phenomenon.get("mass_solar"), "age_years": phenomenon.get("age_years"),
             "distance_ly": pc_to_ly(distance_pc),
             "offset_x_ly": pc_to_ly(dx), "offset_y_ly": pc_to_ly(dy), "offset_z_ly": pc_to_ly(dz),
             "octant": octant,

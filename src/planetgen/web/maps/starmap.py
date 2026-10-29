@@ -42,7 +42,7 @@ import math
 
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.web.lib.fmt import (
-    format_distance_ly, format_luminosity_sol, format_members, format_number, format_speed_kms)
+    format_distance_ly, format_luminosity_sol, format_members, format_number, format_period_years, format_speed_kms)
 
 try:
     from planetgen.physics.constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
@@ -1032,6 +1032,10 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px, brightest_sol
     elif phenomenon_type == "supernova_remnant":
         data["kind"] = "supernovaRemnant"
         data["typeLabel"] = f'Supernova Remnant ({descriptor.capitalize()})' if descriptor else "Supernova Remnant"
+        if phenomenon.get("age_years"):
+            # MAP.286: sectorscene.js paints the shell from the age (a young remnant is a thin bright rim, an old one a thick faint one).
+            data["ageYears"] = phenomenon["age_years"]
+            data["ageText"] = format_period_years(phenomenon["age_years"])
     elif phenomenon_type == "rogue_planet":
         data["kind"] = "roguePlanet"
         # GEN.8: its planet class first, e.g. "Rogue Planet (Class C, terrestrial)".

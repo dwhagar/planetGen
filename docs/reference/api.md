@@ -138,7 +138,7 @@ connectivity to that specific schema rather than the default one.
   `descriptor`, `radius_ly` (always 0 for a black hole/neutron star/rogue
   planet/interstellar comet/quasar — point-like at this scale), `distance_ly`,
   `offset_x_ly`/`offset_y_ly`/`offset_z_ly`, its center
-  relative to this sector's own, and `home` (`true` when generated as
+  relative to this sector's own, `age_years` (a supernova remnant's age, MAP.286; `null` for every other type), and `home` (`true` when generated as
   part of this sector, `false` for a neighbor's cloud) — `queryDb.phenomena_near_sector`, empty
   for an unplaced sector; see `schema.sql`'s "v18"/"v21"/"v28" header
   notes),

@@ -291,6 +291,17 @@ def test_map_scene_data_draws_a_nebula_cloud_with_its_own_kind_and_colors():
     assert cloud["coreColor"].startswith("#6fa8ff")
 
 
+def test_a_supernova_remnant_cloud_carries_its_age_for_the_shell_and_the_info_card():
+    """MAP.286: the sector scene sends the remnant's age, as years for sectorscene.js to paint the shell from and as text for the card."""
+    system = _make_system()
+    phenomenon = dict(_phenomenon(type_="supernova_remnant", descriptor="shell"), age_years=1200.0)
+    cloud = map_scene_data(_link, 1000.0, None, None, [system], phenomena=[phenomenon])["clouds"][0]
+    assert cloud["kind"] == "supernovaRemnant"
+    assert cloud["ageYears"] == 1200.0 and cloud["ageText"] == "1.2 kyr"
+    unknown = map_scene_data(_link, 1000.0, None, None, [system], phenomena=[_phenomenon(type_="supernova_remnant")])["clouds"][0]
+    assert "ageYears" not in unknown and "ageText" not in unknown
+
+
 def test_map_scene_data_draws_an_asteroid_field_cloud():
     system = _make_system()
     phenomenon = _phenomenon(type_="asteroid_field", descriptor="dense")
