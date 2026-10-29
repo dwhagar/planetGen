@@ -21,6 +21,37 @@ test("a body's reason follows the order of the stars' marks: inhabited, gas gian
   assert.equal(B.reasonOfBody(null), null);
 });
 
+test("a body has every reason it qualifies for, strongest first, from the stored life scores and class as they are (MAP.343)", () => {
+  const planet = (extra) => Object.assign({ kind: "planet", body_type: "t", inhabited: false, tier: null }, extra);
+  const reasons = (body) => B.reasonsOfBody(body).map((one) => one.reason);
+  assert.deepEqual(reasons(planet({ life_microbial: 1 })), ["life"]);
+  assert.deepEqual(reasons(planet({ life_microbial: 0, life_flora: 0, life_fauna: null, life_sentient: null })), [], "a zero score is none");
+  assert.deepEqual(reasons(planet({ life_sentient: 2 })), ["sentient", "life"]);
+  assert.deepEqual(reasons(planet({ life_stage: "technological_civilization", life_sentient: 4, inhabited: true, tier: "Green", planet_class: "M" })),
+    ["inhabited", "civilization", "sentient", "life", "habitable", "class-M"]);
+  assert.deepEqual(B.reasonsOfBody(planet({ inhabited: true, tier: "Green" }))[0], { reason: "inhabited", tier: 1 });
+  assert.deepEqual(B.reasonsOfBody(planet({ life_microbial: 2, tier: "Green" })).map((one) => one.tier), [null, 1], "only the world reasons carry the habitability tier");
+  assert.deepEqual(reasons(planet({ body_type: "g", planet_class: "J" })), ["gas-giant", "class-J"]);
+  assert.deepEqual(reasons(planet({ planet_class: "R" })), [], "a letter that is not a class has no symbol");
+  assert.deepEqual(reasons({ kind: "moon", body_type: "t", tier: "Red", planet_class: "D", life_microbial: 1 }), ["life", "uninhabitable", "class-D"]);
+  assert.deepEqual(reasons({ kind: "star", life_microbial: 9 }), []);
+  assert.deepEqual(reasons(null), []);
+  assert.deepEqual(B.reasonOfBody(planet({ life_flora: 1 })), { reason: "life", tier: null });
+});
+
+test("the symbol of a body is its strongest reason whose layer is on, and a layer that is off lets the next one name it (MAP.343)", () => {
+  const body = { body_type: "t", tier: "Green", inhabited: true, life_microbial: 2, life_sentient: 1, life_stage: "technological_civilization", planet_class: "M" };
+  const home = { ref: "planet:1", kind: "planet", name: "Home", x: 0, y: 0, z: 0, body };
+  const on = (...ids) => B.bodyMarkers(M.INTEREST_KINDS, (id) => ids.indexOf(id) >= 0, [home]).map((c) => [c.kind.id, c.item.tier]);
+  assert.deepEqual(on("marker-inhabited", "marker-life"), [["marker-inhabited", 1]]);
+  assert.deepEqual(on("marker-life", "marker-habitable"), [["marker-life", undefined]]);
+  assert.deepEqual(on("marker-habitable"), [["marker-habitable", 1]], "the inhabited layer being off, the habitable one names it");
+  assert.deepEqual(on("marker-sentient", "marker-civilization"), [["marker-civilization", undefined]]);
+  assert.deepEqual(on("marker-class-M"), [["marker-class-M", undefined]]);
+  assert.deepEqual(on("marker-class-K"), []);
+  assert.equal(B.bodyMarkers(M.INTEREST_KINDS, (id) => id === "marker-class-M", [home])[0].kind.describe({ name: "Home" }), "Home, class M world");
+});
+
 test("the markers for the bodies follow the bodies and only the layers that are on draw", () => {
   const earth = { ref: "planet:1", kind: "planet", name: "Earthlike", x: 1, y: 2, z: 3, body: { body_type: "t", tier: "Green", inhabited: true } };
   const rock = { ref: "planet:2", kind: "planet", name: "Rock", x: 4, y: 5, z: 6, body: { body_type: "t", tier: "Red" } };

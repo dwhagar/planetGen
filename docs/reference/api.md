@@ -272,7 +272,7 @@ connectivity to that specific schema rather than the default one.
   `period_years`, `inclination_deg`, `ascending_node_deg`, `phase_deg`; a
   comet's holds its Kepler elements under `kepler`). A planet or moon also carries `habitable`, `inhabited`,
   `body_type` (`t` terrestrial, `g` gas giant), `phi4` (its overall habitability score, `null` unscored) and `tier`
-  (that score's colour, `Blue` to `Red`, or `null`), which the Galaxy Map draws its symbol from (MAP.321).
+  (that score's colour, `Blue` to `Red`, or `null`), which the Galaxy Map draws its symbol from (MAP.321), and the four life scores `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` (0 none to 9 abundant, `null` unscored) with `life_stage` (kept for a class that can carry life only) and `planet_class`, which its symbols for life, sentient life, a civilization and a planet class read (MAP.343).
 - `GET /api/near?from=<ref>&distance=<pc>` (or `point=x,y,z` in galaxy-frame
   parsecs) — everything generated within `distance` parsecs (at most 50) of
   a place (NAV.43, `planetgen.db.near.objects_within`): systems, stars,

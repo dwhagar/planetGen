@@ -83,6 +83,9 @@ def test_the_scene_has_every_body_with_orbit_elements(saved):
     assert star["look"]["body"] == "star" and star["look"]["seed"] and "color" not in star
     assert planet["look"]["body"] in ("solid", "gas") and planet["look"]["seed"] and "color" not in planet
     assert moon["look"]["kind"] == "moon" and moon["look"]["body"] == "solid" and "color" not in moon
+    # MAP.343: the fields the map's reasons to look read, as the rows hold them
+    for body in (planet, moon):
+        assert {"life_microbial", "life_flora", "life_fauna", "life_sentient", "life_stage", "planet_class"} <= set(body), sorted(body)
     json.dumps(scene, allow_nan=False)    # a look record never carries a NaN or an infinity
     comet = scene["comets"][0]
     assert comet["ref"].startswith("comet:") and comet["orbit"]["kepler"]["eccentricity"] >= 0

@@ -164,6 +164,11 @@ def _planet(planet, around, kind="planet", parent=None):
         # The symbol a body carries on the Galaxy Map (MAP.321): terrestrial or gas giant, its overall habitability and the colour of it.
         "body_type": planet.get("body_type"), "phi4": planet.get("phi4"),
         "tier": habitability.tier(planet["phi4"]) if planet.get("phi4") is not None else None,
+        # What the map's reasons to look read (MAP.343, as `db.interests.REASONS` does for the Galaxy Map): the stored life scores (0 none to 9
+        # abundant, None for no score) and the stage of the timeline, kept for a class that can carry life only.
+        "life_microbial": planet.get("life_microbial"), "life_flora": planet.get("life_flora"),
+        "life_fauna": planet.get("life_fauna"), "life_sentient": planet.get("life_sentient"),
+        "life_stage": planet.get("life_stage"),
     }
     if parent is not None:
         item["parent"] = parent
