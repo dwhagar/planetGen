@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2537] - 2026-10-29
+
+**Headline:** The phenomena stage says how many phenomena it expects to place, in total and per unit, not a bare weight.
+
+### Changed
+- **The phenomena stage's lines name what they count.** "Phenomena: about 186,000,000 to place" now reads "about 186,000,000 phenomena to place", and each unit's line ("unit 3 of 9, about 1,200 rows expected") now gives the phenomena that unit is expected to place instead of the bar's weight, which adds a cost per band. The units' numbers add up to the stage line's total. The bar still moves by weight and shows a percent.
+
 ## [8.0.2536] - 2026-10-29
 
 **Headline:** The Generate page's neutron star and black hole mass choices say "1 solar mass", "2 solar masses", not a bare 1, 2, 4, 6.
