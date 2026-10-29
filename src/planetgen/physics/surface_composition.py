@@ -56,9 +56,6 @@ SOURCES = {
     "millero": "mean ocean salinity 35 g/kg (Millero et al. 2008, Deep-Sea Research I 55, 50)",
 }
 
-GIANT_CLASSES = ("I", "J", "T")
-"""tuple: The classes with no solid ground (every field empty)."""
-
 RANGES = {
     "volcanism_floor_w_m2": (1.0e-4, 1.0e-3),
     "overturn_feo_scale": 0.20,
@@ -200,7 +197,8 @@ class SurfaceInputs:
     What the surface draw reads (the stored values of a planet or moon).
 
     Attributes:
-        planet_class (str): The class letter.
+        giant (bool): The body is a gas or ice giant: no solid ground, every field empty. Read from the body's structure (its
+            `body_type`), never from its class letter (GEN.917, GEN.915).
         surface_temperature_k, pressure_pa (float): The surface temperature and the air pressure (0 for none).
         o2_partial_pa (float): The free oxygen's partial pressure.
         partial_pressures_pa (dict): Other gases' partial pressures by formula (`CO2`, `N2`, ...), for the ices that stand.
@@ -218,8 +216,8 @@ class SurfaceInputs:
         mobile_lid (bool): Whether the body has plate tectonics (its stored `lid_regime`, GEN.721).
     """
 
-    planet_class: str
     surface_temperature_k: float
+    giant: bool = False
     pressure_pa: float = 0.0
     o2_partial_pa: float = 0.0
     partial_pressures_pa: dict = field(default_factory=dict)
@@ -358,7 +356,7 @@ def draw_surface(inputs):
     Returns:
         SurfaceComposition or None: `None` for a giant, which has no solid ground.
     """
-    if inputs.planet_class in GIANT_CLASSES:
+    if inputs.giant:
         return None
     frozen = _frozen_components(inputs)
     quantities = _quantities(inputs, frozen)
@@ -370,7 +368,7 @@ def draw_surface(inputs):
         mix[kind] = covered
     land = 1.0 - covered
     if land > 1e-12:
-        dominant = DOMINANT_TABLE.draw(inputs.planet_class, quantities).name
+        dominant = DOMINANT_TABLE.draw(pt.ANY_CLASS, quantities).name
         mods = _modifiers(inputs, kind)
         if dominant in ("metal", "carbon"):
             mods.pop("felsic", None)
@@ -516,7 +514,7 @@ def inputs_of(body):
     pressure = getattr(body, "atmospheric_pressure", None) or 0.0
     partials = mixture.partial_pressures_pa(body)
     return SurfaceInputs(
-        planet_class=body.planet_class, surface_temperature_k=body.surface_temperature or 0.0, pressure_pa=pressure,
+        giant=body.body_type == "g", surface_temperature_k=body.surface_temperature or 0.0, pressure_pa=pressure,
         o2_partial_pa=partials.get("O2", 0.0), partial_pressures_pa=partials,
         water_mass_fraction=getattr(body, "water_mass_fraction", None) or 0.0,
         ice_mass_fraction=getattr(body, "ice_mass_fraction", None) or 0.0,
