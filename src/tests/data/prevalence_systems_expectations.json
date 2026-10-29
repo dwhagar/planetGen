@@ -1,7 +1,8 @@
 {
  "anomalies": {
   "GEN.750": "an intended change, not a fault: the life timeline is five hard steps with the means Boss chose (epoch 119: 0.5, 1.5, 2.5, 3 and 60 Gyr), so photosynthesis comes later than the old pace tables gave and a civilization needs more time than an F star lives; the ranges wait for the re-baseline",
-  "GEN.855": "the air now follows the life (epoch 119), but the star-type chemistry lists (STAR_EVOLUTION) give no oxygenic chemistry to A and M stars, so their worlds still reach no complex cells, multicellular life or civilization, and few count as Blue or Green"
+  "GEN.855": "the air now follows the life (epoch 119), but the star-type chemistry lists (STAR_EVOLUTION) give no oxygenic chemistry to A and M stars, so their worlds still reach no complex cells, multicellular life or civilization, and few count as Blue or Green",
+  "GEN.889": "an intended change, not a fault: each life world stores one of the life classes (epoch 120). Chemical classes under ice reach complex cells more often than the old pace tables allowed, and a world counts as Blue or Green only with a sunlit sea for the Flora its food rung needs, which the cold air of GEN.909 and the frozen oceans of GEN.908 keep rare; the ranges wait for the re-baseline after the class cut-over (GEN.646)"
  },
  "errors": {
   "anomaly": ""
@@ -41,6 +42,7 @@
      "source": "pre-cut-over 0.640 over 150 systems at 0b4d0ccef"
     },
     "blue_green": {
+     "anomaly": "GEN.889",
      "kind": "stand-in",
      "max": 0.2326,
      "min": 0.01,
@@ -71,7 +73,6 @@
      "source": "pre-cut-over 0.540 over 150 systems at 0b4d0ccef"
     },
     "life_complex_cells": {
-     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.2326,
      "min": 0.01,
@@ -137,7 +138,6 @@
      "source": "pre-cut-over 0.533 over 150 systems at 0b4d0ccef"
     },
     "blue_green": {
-     "anomaly": "GEN.750",
      "kind": "stand-in",
      "max": 0.3794,
      "min": 0.01,
@@ -264,6 +264,7 @@
      "source": "pre-cut-over 0.780 over 150 systems at 0b4d0ccef"
     },
     "life_complex_cells": {
+     "anomaly": "GEN.889",
      "kind": "stand-in",
      "max": 0.176,
      "min": 0.0,
@@ -424,6 +425,7 @@
      "source": "pre-cut-over 0.380 over 150 systems at 0b4d0ccef"
     },
     "blue_green": {
+     "anomaly": "GEN.889",
      "kind": "stand-in",
      "max": 0.2455,
      "min": 0.01,
@@ -454,6 +456,7 @@
      "source": "pre-cut-over 0.793 over 150 systems at 0b4d0ccef"
     },
     "life_complex_cells": {
+     "anomaly": "GEN.889",
      "kind": "stand-in",
      "max": 0.2056,
      "min": 0.0,
@@ -549,21 +552,18 @@
      "source": "pre-cut-over 0.887 over 150 systems at 0b4d0ccef"
     },
     "life_complex_cells": {
-     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.3692,
      "min": 0.01,
      "source": "pre-cut-over 0.140 over 150 systems at 0b4d0ccef"
     },
     "life_multicellularity": {
-     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.3692,
      "min": 0.01,
      "source": "pre-cut-over 0.140 over 150 systems at 0b4d0ccef"
     },
     "life_photosynthesis": {
-     "anomaly": "GEN.750",
      "kind": "stand-in",
      "max": 0.9762,
      "min": 0.3971,
