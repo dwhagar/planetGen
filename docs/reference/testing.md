@@ -468,6 +468,18 @@ design says per-class bands are measured and not forced; the class store (GEN.88
 `life-census-latest.md`; about a minute on 4 cores; `python -m tests.audit.prevalence_life` prints it without the test. Known anomaly: GEN.855
 (no biogenic oxygen, so no world reaches animals).
 
+Part H, the class-blind life test (TEST.452, `src/tests/audit/sweep_life.py`, `src/tests/test_sweep_life.py`; Boss 2:46 PM EDT 10-29, GEN.915):
+life depends only on the conditions, never on the class letter. Every terrestrial body of the shared sweep is given each of the 20 class
+letters with its stored conditions unchanged, and the life model (`life_classes.score_classes`, its best class) and the habitability index
+must answer the same on every letter; a failure names the body, the letter and the life class or index field that moved. The life code is
+scanned (AST) for every read of the class letter or the class tables, and each one must be listed with its reason in
+`src/tests/data/class_blind_life_notes.json` (today the class description text, the planet or orbital flavour line, and the value copy that
+the index does not read); an unlisted read fails, a listed place that no longer reads it is reported stale. Both checks are proved able to
+fail by breaking the life model, the index and a planted module. The report is `class-blind-life-latest.md` (with the life-capable bodies of
+each letter). The draws that run before the life model and key on the letter (water fraction, albedo range, porosity, mass-radius branch)
+change the conditions and not the way they are judged; they are GEN.915 and GEN.646. The layer that checks the generator draws life on every
+capable body waits for the class store (epoch 120).
+
 ## Setting up a cloud session
 
 A fresh container needs `pip install -e ".[test,api,browser]"`, the NLTK
