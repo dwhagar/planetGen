@@ -13767,105 +13767,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   kernel code of its own.
   Design: [docs/design/orbits/gravity-map.md](design/orbits/gravity-map.md)
 
-- [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
-  GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
-  (Boss, 2026-10-13 02:41Z): "I was mistaken about how Redis worked and
-  so I made our queuing system way too complicated. I need to look at
-  what we're doing and junk all of the logic on what makes a task and
-  subtask and all of that. It's going to be a lot of work too but I
-  think I'm wasting a lot of efficiency." Done: a design note on what
-  the queue does today, what it needs to do, and the simplest design on plain Redis queues,
-  then the rebuild; PERF.40, PERF.78, ADM.15 (all folded into PERF.95,
-  done, PR #1506), PERF.29 and PERF.30 waited for this plan and are
-  folded in or dropped. Decided (Boss, 2026-10-14
-  13:24Z): keep a "cancel now" that stops a job, progress bars and ETAs
-  per stage, per-stage timing records (Boss wants stats on how long
-  everything takes) and the job log with its download link; an admin
-  starts or cancels a run, so there is no automatic resume after an
-  interruption; several workers on one job are fine. CHANGED from the
-  2026-10-10 decision: the scatter no longer stays one job. Each scatter
-  becomes its own item in the queue, run one after another, and the same
-  applies to the phases of anything. Boss asks the research to cover the
-  best ways to use Redis in a situation like ours and to give him
-  options before the rebuild starts. Owner: a research thread first
-  (coordinator to assign), then Foundations lane 1.
-  Prerequisites: none. Related: PERF.40 (done, PR #1506), PERF.78 (done, PR #1506),
-  PERF.29, PERF.30, ADM.15 (done, PR #1506), PERF.24.
-  Redis review (2026-10-14): research done (Research Lane 1, PR #1350,
-  docs/design/operations/redis-and-the-work-queue.md, with
-  /mnt/project-files/research/redis-review/). Boss adopted its Option A
-  and approved every default in it on 2026-10-14 21:08Z (see the
-  Decided line below). Filed from the same review, independent of the
-  rebuild: PERF.93 (bug, done, PR #1364), PERF.94 (done, PR #1383), OPS.48 (done, PR #1395), ADM.54 (done, PR #1401).
-  Decided (Boss, 2026-10-14 21:08Z): Option A of
-  the Redis review, every default approved. Build steps filed as PERF.95
-  (queue spine), PERF.96 (run record and ETA library, done, PR #1553), PERF.97 (mass
-  scatter end to end), PERF.98 (remaining stages), PERF.99 (pages and
-  cancel), PERF.100 (delete old machinery, migration). PERF.86 is done
-  when they are; it follows the dead-worker bug PERF.93 (done) and the client
-  module PERF.94 (done) in Foundations lane 1. DOC.20 rewrites the notes after
-  step 6.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, 2026-10-17, 4:12 PM EDT): every part of the generate
-  process, all the scatter phases included, is an individual command,
-  and a general process wrapper makes the list of the commands to run
-  and puts them into the Redis queue individually: the wrapper builds
-  the command list, each command is one queue item. Built by PERF.118
-  (the wrapper), PERF.106 to PERF.108 (the stages as commands) and
-  PERF.119 (every start path).
-
-- [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
-  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
-  docs/design/operations/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
-  the only place a run lives; each scatter its own queue item run in
-  order; counters plus an event stream for progress; cancel in about 0.5
-  s; the MySQL job tree retired); Redis required for every run including
-  one worker; workers on demand with an idle timeout and no always-on
-  service; one Redis instance; no Redis password while it binds
-  loopback; stage timing into the existing MySQL stage tables from the
-  completing unit; the event stream is the live log, written to the jobs
-  directory at run end with the last 20 kept. Each step leaves main
-  working, one PR, Foundations lane 1. Section 5.3, 5.7 and 5.11 step 6.
-  Delete queue/work.py's WorkQueue, the job tree and the lease,
-  RQExecutor, RQFuture and Channel, web/jobs.py's files and
-  web/job_runner.py, queue/progress_file.py, submit_each's adaptive
-  chunking, the in-process no-Redis fallback and GENERATION_QUEUE, with
-  one Alembic revision dropping work_jobs, work_job_args, work_tasks and
-  work_lease (Foundations lane 1 only adds migrations). PERF.29 and
-  PERF.30 (resume) are dropped when this lands: Boss decided there is no
-  automatic resume. Done when: the suite is green with the old code gone
-  and the line count is recorded in the PR.
-  Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the old Core queue runs
-  after the new top 5 work, routed by area): PERF.97 right after the 8.1
-  phase 1 top 5, PERF.98 to PERF.100 after the infinite zoom tree.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md):
-  web/job_runner.py is not deleted: PERF.119 (Boss's card F1,
-  2026-10-18, 5:14 PM EDT) keeps it cut down to the detached starter
-  that only starts the run and does not build or order commands. The
-  delete list and the "no old code" Done line carry that exception.
-  Research (2026-10-09, 10-24 Core 5): PERF.99 merged (#3030, 2:30 PM
-  EDT 2026-10-24 as the lane reported). Left for this item with the
-  work_* tables: progress.json and progress_file.py, the work.py
-  writers, the job runner's step estimates from work_jobs, the update
-  guard's reads of them.
-  Research (2026-10-09): Update (Core 4, DB.29 #3645, 1:15 AM EDT
-  2026-10-29 as the lane reported): delete WorkRunSource in
-  updateguard.py together with the work tables; the update guard now
-  stops update.sh and migrate while any job is active unless --yes is
-  passed (--yes replaced --cancel-running, no shim).
-  Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
-  Owner: Aux 2 (lock-free item while it waits for the generation lock, 1:58 AM EDT 2026-10-29; PERF.98 merged as #3654 and DB.29 as #3645, so the old tree code in work.py and the work_* tables have no writer; delete WorkRunSource in updateguard.py with them; this replaces any earlier owner line on this item). Separate branch; check main for the next free migration number; no epoch, no golden.
-
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
   Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
   process, all the scatter phases, are individual commands, then a
@@ -13918,6 +13819,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   F2 and the Generate page, reset, check-math and data-check parts,
   which remain with PERF.123 to PERF.125.
   Prerequisites: PERF.98. Related: PERF.99, PERF.118.
+  Owner: Aux 2 (lock-free item while it waits for the generation lock, 2:30 AM EDT 2026-10-29; PERF.98 merged as #3654 so the prerequisite is met; PERF.154 waits on it; this replaces any earlier owner line on this item). Separate branch; if a step changes generated output, park that step for the lock.
 
 - [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
@@ -19061,6 +18963,22 @@ clears each one.
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
 
+- [ ] **TEST.446 Two tests red on main: the generated config.schema.json out of date, and the batch-fill units listing rescore-habitability first (bug)**
+  Found by Aux 2 (2:27 AM EDT 2026-10-29 as the lane reported) after
+  PERF.100 (#3656):
+  test_settings.py::test_the_generated_files_match_the_model
+  (config.schema.json is out of date after a settings change, not from
+  PERF.100; Aux 2 named MAP.342, but MAP.342 was dropped with no change,
+  so find the commit that added a setting without regenerating the file,
+  probably MAP.335 or MAP.341) and
+  test_work_units.py::test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands
+  (rescore-habitability is listed first in the batch units). Do:
+  regenerate the file with the repo tooling and add the missing
+  regeneration to the change that skipped it; fix the unit order or the
+  test, whichever is wrong. Not a skip. Done: both pass on main. Owner:
+  Bug 1. Prerequisites: none. Related: PERF.100, TEST.441.
+  Prerequisites: none. Related: PERF.100, TEST.441.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20030,7 +19948,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisite: PERF.86.
 
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
   Step 10 (design note 11 item 10). `database-schema.md` (the two new
