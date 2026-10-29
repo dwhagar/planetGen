@@ -313,7 +313,9 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
             k2 = rate(t + 0.5 * h, temperature + 0.5 * h * k1)
             k3 = rate(t + 0.5 * h, temperature + 0.5 * h * k2)
             k4 = rate(t + h, temperature + h * k3)
-            temperature = min(temperature + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0, cap_k)
+            # a step can overshoot the cold end as well as the cap: below the surface the viscosity law runs on a negative or tiny exponent
+            # and the flux (and so the stiffness) is astronomical, which collapses the step to nothing (GEN.866)
+            temperature = min(max(temperature + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0, surface_k), cap_k)
             released_j += 0.5 * (flux + _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)) * area_dry_m2 * h * GY_S
             t += h
             step = min(step * STEP_GROWTH, STEP_LIMIT_GY)
