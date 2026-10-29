@@ -72,10 +72,9 @@ Boss: the zoom chain is a seminal feature of 8.2. Z0 (MAP.333, the quick fixes) 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.335 | Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source |  |  |
 | MAP.336 | Zoom redesign Z3: one goTo(target) for every fly with the verb Go to, a find-a-place box, a vertical log ruler with named clickable stops, crumbs as Go to, and Up one level |  |  |
-| MAP.337 | Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests | MAP.335, MAP.336 |  |
-| MAP.338 | Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers | MAP.335 |  |
+| MAP.337 | Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests | MAP.336 |  |
+| MAP.338 | Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers |  |  |
 | UX.236 | User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest) |  |  |
 
 ### Halo mass research

@@ -612,6 +612,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.905 | Mantle redox and delta-IW are empty on class V ocean worlds (bug) |  |  |
 | TEST.434 | Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug) |  |  |
 | TEST.441 | Tests red on main from the albedo-greenhouse, moon-tidal-flux and mass-backfill migrations; the white dwarf models dataset is also missing on a fresh test machine (bug) |  |  |
+| TEST.445 | Four map browser tests in test_web_browser_fixture_maps.py red on main: point phenomena links, black hole markers toggle and legend, nebula click clears the selection, wide map card keeps the page edge (bug) |  |  |
 | GEN.861 | Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need | GEN.855, GEN.750 |  |
 | GEN.860 | Melanin radiotrophs weighted by radiation dose: the star weight times a dose factor from 0.1 at Earth dose to 1.0 at about 1,000 times Earth dose | GEN.855, GEN.750 |  |
 | GEN.859 | Microbial worlds without O2 keep a capped CO2 and CH4 air: the limit on how much CO2 and CH4 anoxic microbial life leaves in the air | GEN.855, GEN.750 |  |
