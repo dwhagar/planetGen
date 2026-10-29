@@ -2781,62 +2781,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: NAV.6, NAV.49, NAV.58, NAV.4. Related: GEN.198,
   MAP.167.
 
-- [ ] **NAV.61 Nearest-first by a radius ladder, and a dense-core guard with an early-stop count**
-  Step 4 (design note sections 6.5 and 9 item 4). "The nearest K"
-  (NAV.12's route hops and the ordering of the nearby page) asks for 2
-  pc, then 4, 8, 16 and 32, stopping at the first sphere that holds K
-  rows, so it is cheap wherever it is; counts shown capped ("300+") come
-  from `SELECT COUNT(*) FROM (SELECT 1 ... LIMIT 10001)`, at most 11 ms
-  even where the sphere holds a million systems; the API refuses, or
-  only counts, a query whose early-stop count passes a limit (Core's
-  call; 100,000 systems is about 70 ms of scan) with the text that says
-  to shrink the radius. A 50 pc sphere at the core holds about 7.9
-  million systems, so no uncapped top-200 runs there. Keyset paging
-  `(distance, kind, id)` stays. Done: the ladder returns the nearest K
-  at the core and at the Sun in milliseconds, the cap fires with a clear
-  message at the core, and NAV.44's page shows "300+" from the
-  early-stop count. Owner: Interface (2026-10-15; moved off Core by the
-  lane queue, Core owns the star model or the key it builds on). Boss
-  (2026-10-15 5:32 PM EDT): "if it's not ready in time before the
-  spherical sector layout is, then we'll skip it and move to the next
-  sequence until it's finished research and we can plan it." The
-  research is finished and merged (#1659), so stage C is live.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: NAV.60 (Core 2). Core 4 takes it when it unblocks.
-  Merged: NAV.60 (Core 2, #1977, 2026-10-17, 2:12 AM EDT as the lane
-  reported; gate `scripts/test.py changed --base origin/main` started
-  12:48 AM EDT, PASS in 82 min 37 s, 18,568 passed and 103 skipped). It
-  is unblocked now. Core 2's measurement (3 tables of 340,000 rows each,
-  a 200 pc cube, 196 runs, median of 9, load average about 6 on 4 cores,
-  so not a quiet box): one statement per table 7.1, 13, 82 and 533 ms
-  against one WITH ... UNION ALL 6.2, 11, 82 and 480 ms at 5, 10, 25 and
-  50 pc (73, 508, 8,316 and 66,661 rows, mostly rows returned); one
-  statement alone, COUNT and top 200: 9 and 10 ms at 10 pc, 47 and 44 at
-  25 pc, 260 and 253 at 50 pc. The capped counts and the ladder of this
-  item are the fix for the dense case; the 'tens of milliseconds at 50
-  pc at the Sun's density' of NAV.60 is not met on that box (533 ms for
-  66,661 rows) and is to be re-measured on a quiet box, as part of this
-  item's done.
-  Distance rule (Core 2, NAV.60, 2:12 AM EDT as the lane reported):
-  NAV.60 as built measures phenomena to the object's position, the
-  NAV.43 rule, and not to the edge as its text said ('search r + widest
-  radius, measure to the edge'), which also conflicted with its own
-  'results equal the old path's'. Default taken by Core 2, standing as
-  Decided: keep the position rule. If Boss wants the distance to the
-  edge for nebulae and remnants it is a follow-up in `db/near.py`
-  `_phenomena` (search r + the widest placed radius, measure to the
-  centre minus the radius).
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Core 4 (Boss approved the lane at 4:31 PM EDT, 2026-10-16); the
-  earlier "Owner: Interface" line is superseded.
-  Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: NAV.12, NAV.44, NAV.45.
-  Design: [docs/design/galaxy/spherical-region-queries.md](design/galaxy/spherical-region-queries.md)
-
 - [ ] **NAV.62 Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model**
   Boss (2026-10-16, 5:01 PM EDT, on the cell cap of GEN.364): "in the
   core there are just too many stars to make all of them, no matter how
@@ -12719,8 +12663,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sheet as Earth radii; pick the first if any reader divides by the
   planet radius, and record which in the unit registry. Done: the unit,
   label and value agree for Earth, Jupiter and Mars in a test that reads
-  the stored value back. Owner: Aux 7 after GEN.746 to GEN.748, or Aux
-  4 (radiation docs). Rules: no backward-compat shims; any new numeric
+  the stored value back. Owner: Core 1 (6:38 AM EDT 2026-10-29: it built the fix
+  locally; it changes a stored value, so it rides Core 1's second change
+  in the same epoch, GEN.857 to GEN.861 + GEN.906, not a lock-free item). Rules: no backward-compat shims; any new numeric
   column goes in db/column_units.py.
   Prerequisites: none. Related: GEN.749, GEN.568.
 
