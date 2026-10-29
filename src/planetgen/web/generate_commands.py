@@ -10,6 +10,7 @@ still a button on it. The grammar is small on purpose.
     add sectors shell S [band B] [limit N]                       a whole shell
     add sectors shells A:B [bands A:B] [wedges A:B] [limit N]    a range of the grid
     check [deep]                                                  check the database
+    finish run                                                   carry on the last run that stopped
     scatter | new galaxy | wipe                                  open that task's form
 
 `parse` returns `None` for a line that is not a command, a `Command` for one that is, and raises `CommandError` (with a
@@ -25,6 +26,7 @@ VERBS = (
     ("add sectors", "add-sectors"), ("add", "add-sectors"), ("sectors", "add-sectors"),
     ("scatters", "scatters"), ("scatter", "scatters"),
     ("new galaxy", "new-galaxy"), ("plan only", "plan-only"), ("plan", "plan-only"), ("wipe", "wipe"), ("check", "check"),
+    ("finish run", "finish-run"), ("finish", "finish-run"),
 )
 """tuple: The words that start a command, longest first, and the task each opens."""
 
@@ -95,6 +97,10 @@ def parse(text):
             raise CommandError(f"Check takes only 'deep', not '{deep[0]}'.")
         return Command("check", {"action": "check_db", **({"deep": "1"} if words else {})}, True,
                        "Check the database" + (", deeply" if words else ""))
+    if task == "finish-run":
+        if words:
+            raise CommandError("Finish run takes no options; it carries on the last run that stopped.")
+        return Command("finish-run", {"action": "finish_run"}, True, "Finish the last run")
     if task in OPEN_ONLY:
         if words:
             raise CommandError("That task opens its form; choose its options there.")

@@ -656,7 +656,8 @@ def test_the_start_screen_has_a_card_per_task_and_no_folds(site, client):
     assert 'id="current-job"' not in html
     cards = re.findall(r'href="(/admin/generate/[^"]*)"><strong>', html)
     assert cards == ["/admin/generate/task/add-sectors", "/admin/generate/task/new-galaxy",
-                     "/admin/generate/task/plan-only", "/admin/generate/task/scatters", "/admin/generate/task/bring-to-epoch", "/admin/generate/system",
+                     "/admin/generate/task/plan-only", "/admin/generate/task/scatters", "/admin/generate/task/bring-to-epoch", "/admin/generate/task/finish-run",
+                     "/admin/generate/system",
                      "/admin/generate/task/check",
                      "/admin/generate/task/wipe"]
     assert "generatefolds.js" not in html and "generatecustomize.js" not in html and "data-fold" not in html
@@ -2000,6 +2001,46 @@ def test_bring_to_epoch_job_runs_the_command(site, client, no_spawn, monkeypatch
     (job,) = no_spawn
     assert job["kind"] == "bring_to_epoch"
     assert _argv(job["steps"][-1]) == ["bring-to-epoch"]
+
+
+def _finish_found(**over):
+    found = {"error": None, "run": "20261029-120000-ab12", "title": "New galaxy", "stopped_in": "Scatter the phenomena",
+             "carried": ["Plan", "Sectors"], "again": ["Scatter the phenomena", "Index the phenomena"],
+             "later": [{"label": "Link the sectors", "argv": ["python3", "x", "link"]}]}
+    found.update(over)
+    return found
+
+
+def test_finish_run_page_says_which_run_it_carries_on_and_what_it_keeps(site, client, monkeypatch):
+    monkeypatch.setattr(generate_flow, "finish_status", lambda database: _finish_found())
+    html = _task_html(client, "finish-run")
+    assert "New galaxy" in html and "stopped in <strong>Scatter the phenomena</strong>" in html
+    assert "Plan, Sectors" in html and "Link the sectors" in html
+    assert 'name="action" value="finish_run"' in html and "data-review" in html
+
+
+def test_finish_run_page_says_why_there_is_nothing_to_carry_on(site, client, monkeypatch):
+    monkeypatch.setattr(generate_flow, "finish_status", lambda database: {"error": "No run stopped before it was done."})
+    html = _task_html(client, "finish-run")
+    assert "No run stopped before it was done." in html and "data-review" not in html
+
+
+def test_finish_run_job_carries_on_the_run_then_the_steps_of_its_job_that_never_started(site, client, no_spawn, monkeypatch):
+    monkeypatch.setattr(generate_page, "finish_status", lambda database: _finish_found())
+    assert _post(client, action="finish_run").status_code == 303
+    (job,) = no_spawn
+    assert job["kind"] == "finish_run"
+    assert [_argv(step) for step in job["steps"][:1]] == [["finish-run", "--run", "20261029-120000-ab12"]]
+    assert [step["label"] for step in job["steps"]] == ["Finish the last run: New galaxy", "Link the sectors"], \
+        "no data check of its own: the run being carried on made it"
+
+
+def test_finish_run_does_not_start_when_no_run_can_be_carried_on(site, client, no_spawn, monkeypatch):
+    monkeypatch.setattr(generate_page, "finish_status",
+                        lambda database: {"error": "The galaxy was planned again since run 1 started."})
+    resp = _post(client, action="finish_run")
+    assert resp.status_code == 400 and "planned again" in resp.get_data(as_text=True)
+    assert no_spawn == []
 
 
 @pytest.mark.parametrize("found, said", [
