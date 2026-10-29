@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 230 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 234 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 46 | 3 | 2 | 6 | 0 | 57 |
 | T4 | 13 | 0 | 0 | 1 | 0 | 14 |
 | T5 | 11 | 3 | 1 | 0 | 0 | 15 |
-| T6 | 27 | 6 | 1 | 4 | 0 | 38 |
-| T7 | 12 | 2 | 0 | 1 | 0 | 15 |
+| T6 | 28 | 6 | 1 | 4 | 0 | 39 |
+| T7 | 14 | 2 | 0 | 1 | 0 | 17 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
-| T9 | 0 | 0 | 0 | 2 | 1 | 3 |
-| All | 193 | 14 | 7 | 14 | 2 | 230 |
+| T9 | 0 | 0 | 1 | 2 | 1 | 4 |
+| All | 196 | 14 | 8 | 14 | 2 | 234 |
 
 ## How the labels were given
 
@@ -357,3 +357,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | IH4 | P | T5 | L0 | interior_heat._flux_w_m2: zero heat flux when `Ea / R T` exceeds 600 (a mantle too cold to convect warms on its radiogenic heat until it does) | none | cold small bodies far from their star | a conductive heat loss that matters at that size | a conduction term added to the flux | design (a viscosity of 1e260 times the prefactor is a rigid body; the conduction through it is below the radiogenic heat by orders of magnitude) |
 | RP1 | P | T4 | L0 | rprocess_enrichment.TAU_MIN_GY 0.03 and the 1/tau delay-time law of the r-process sources (the slope 1 and the 30 Myr floor are RECALLED) | slope 0.8 to 1.2, floor 10 to 100 Myr | the Th/U factor of a disc star | a delay-time law measured from the neutron star merger rate (Hotokezaka 2018, Simonetti 2019 read in full) | the measured law | RECALLED (Hotokezaka 2018 and Simonetti 2019 as remembered; not opened) |
 | RP2 | P | T2 | L0 | rprocess_enrichment.PRODUCTION_RATIO_RANGE 1.667 to 2.0 (the Th/U production ratio of the r-process, drawn uniform) | the range itself | the uranium of every rocky body | a production ratio outside the range from a nucleosynthesis model | a drawn ratio from a model | Frebel 2007 (second hand; the paper not opened) |
+
+## 6.17 Stand-ins of the water vapour profile and the cloud of the greenhouse
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| GH1 | P | T7 | L0 | infrared_opacity.HUMIDITY_TOP, vapour_profile | the 0.02 top and the linear fall: 0.01 to 0.05 | a temperate air with water below its critical temperature; a supercritical surface keeps its vapour mixed until the cold condenses it | test_the_vapour_thins_with_height_and_holds_about_the_measured_column_for_the_earth | a convective-adjustment humidity from the lapse rate itself (a moist-adiabat model) | READ for the Earth (Manabe and Wetherald 1967: relative humidity h = h_s (p/p_s - 0.02)/0.98, h_s 0.77); carried to other gases, pressures and gravities from the Earth, which is the inference |
+| GH2 | D | T6 | L0 | infrared_opacity.LAPSE_SCALING_CONDENSABLE used by vapour_profile | alpha 0.5 to 0.7 | a troposphere under the radiative-convective boundary | test_the_layered_continuum_converges_with_the_number_of_layers | a moist adiabat that follows the latent heat of the vapour | COMPUTED (the troposphere of Robinson and Catling 2012: T = T_s (p/p_s)^beta, beta = alpha (gamma - 1)/gamma, with alpha 0.6 for an air whose opacity is condensable vapour) |
+| GH3 | P | T9 | L2 | infrared_opacity.CLOUD_LONGWAVE_TAU0 | 0.2 to 0.6 | an air with water vapour below its critical temperature | test_an_earth_twin_at_its_own_fixed_point_lands_within_two_kelvin_of_the_measured_288 | a cloud model (condensate path from the saturation excess, particle size, cloud top) | none for the value: set so the Earth twin (1 bar N2, 400 ppm CO2, 239 W/m2) at its own fixed point sits at the measured 288 K; the published statistic is the cloud longwave effect, 26.5 W/m2 (CERES EBAF, recalled, not opened), of which the module needs 17 W/m2 because its clear-sky greenhouse is a little thick (256 W/m2 absorbed holds 288 K, against the measured clear-sky 266) |
+| GH4 | P | T7 | L0 | infrared_opacity.EARTH_HUMIDITY, Vapour.cloud_cover | linear to square root of the humidity | a temperate air with water | test_the_cloud_scales_with_the_surface_humidity_and_adds_its_depth_to_the_rest | a cloud model | design (the cloud scales with the surface humidity over the Earth's 0.77, and is nil where the surface is above water's critical temperature) |

@@ -38,7 +38,6 @@ from planetgen.physics import (
     greenhouse,
     infrared_opacity,
     mixture,
-    species_thermo,
 )
 
 
@@ -115,21 +114,6 @@ def gas_column_mass_kg_m2(partial_pressures_pa, gravity_m_s2):
             for formula, pressure in partial_pressures_pa.items()}
 
 
-def heat_capacity_ratio(partial_pressures_pa, temperature_k):
-    """
-    `gamma = cp / (cp - R)` of the mixture at `temperature_k` (mole-fraction mean of the NASA fits' `cp / R`; the temperature is held
-    inside the fits' range, so the cold end of a fit stands in below it).
-    """
-    cp_over_r = 0.0
-    for formula, fraction in mixture.mole_fractions(partial_pressures_pa).items():
-        if fraction == 0.0:
-            continue
-        thermo = species_thermo.gas(formula)
-        low, high = thermo.range_k
-        cp_over_r += fraction * thermo.cp_over_r(min(max(temperature_k, low), high))
-    return cp_over_r / (cp_over_r - 1.0)
-
-
 def greenhouse_warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2):
     """
     The warming of an air under an absorbed flux (the globally averaged W/m2 of `greenhouse.absorbed_flux_w_m2`).
@@ -145,7 +129,7 @@ def greenhouse_warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2):
     """
     _check_positive(absorbed_flux_w_m2=absorbed_flux_w_m2, gravity_m_s2=gravity_m_s2)
     effective = greenhouse.effective_temperature_k(absorbed_flux_w_m2)
-    gamma = heat_capacity_ratio(partial_pressures_pa, effective)
+    gamma = mixture.heat_capacity_ratio(partial_pressures_pa, effective)
     temperature = effective
     for step in range(infrared_opacity.ITERATIONS):
         opacity = infrared_opacity.optical_depth(partial_pressures_pa, temperature, gravity_m_s2)

@@ -16,7 +16,7 @@ Use:
     fractions = mixture.mole_fractions(mix)
 """
 
-from planetgen.physics import atmosphere, gases
+from planetgen.physics import atmosphere, gases, species_thermo
 
 
 def partial_pressures_pa(body):
@@ -57,3 +57,18 @@ def mean_molar_mass_kg_mol(mixture):
         planetgen.physics.gases.UnknownGas: A key is not a row of the gas table.
     """
     return sum(fraction * gases.gas(formula).molar_mass for formula, fraction in mole_fractions(mixture).items())
+
+
+def heat_capacity_ratio(mixture, temperature_k):
+    """
+    `gamma = cp / (cp - R)` of the mixture at `temperature_k` (mole-fraction mean of the NASA fits' `cp / R`; the temperature is held
+    inside the fits' range, so the cold end of a fit stands in below it).
+    """
+    cp_over_r = 0.0
+    for formula, fraction in mole_fractions(mixture).items():
+        if fraction == 0.0:
+            continue
+        thermo = species_thermo.gas(formula)
+        low, high = thermo.range_k
+        cp_over_r += fraction * thermo.cp_over_r(min(max(temperature_k, low), high))
+    return cp_over_r / (cp_over_r - 1.0)
