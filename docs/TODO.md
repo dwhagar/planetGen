@@ -13479,6 +13479,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   record any tweak with its level in the stand-in registry. A change
   that moves the scatter is a generation change (lock queue, epoch).
   Version 8.1. Owner: Bug 1.
+  Research (2026-10-09): BOSS DECIDED (3:02 PM EDT 2026-10-29, card
+  option 1 'following physics as much as possible'): all three misses
+  share one cause, the galaxy holds 0.46 of the stars its own history
+  implies (report
+  /mnt/project-files/reports/bug1/star-count-normalisation-2026-10-29.md).
+  Fixed at the root by GEN.918 (supernova remnants 256 to about 555 once
+  the star count is scaled, no per-constant tuning). Owner Bug 1. Closes
+  when GEN.918 merges and the census is re-baselined.
   Prerequisites: none. Related: TEST.433, GEN.898, GEN.278, TEST.430.
 
 - [ ] **GEN.901 Magnetars: the reference galaxy gets 22 while 26 are known (McGill catalog) and tuning.py (GEN.278) aims at about 100 active (30 to 600) (bug)**
@@ -13491,6 +13499,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cause, record any tweak with its level in the stand-in registry. A
   change that moves the scatter is a generation change (lock queue,
   epoch). Version 8.1. Owner: Bug 1.
+  Research (2026-10-09): BOSS DECIDED (3:02 PM EDT 2026-10-29, card
+  option 1 'following physics as much as possible'): all three misses
+  share one cause, the galaxy holds 0.46 of the stars its own history
+  implies (report
+  /mnt/project-files/reports/bug1/star-count-normalisation-2026-10-29.md).
+  Fixed at the root by GEN.918 (magnetars 21 to about 46 once the star
+  count is scaled, no per-constant tuning). Owner Bug 1. Closes when
+  GEN.918 merges and the census is re-baselined.
   Prerequisites: none. Related: TEST.433, GEN.898, GEN.278, GEN.897.
 
 - [ ] **GEN.902 Wolf-Rayet stars: the reference galaxy gets about 590 while Rosslowe and Crowther 2015 estimate 1200 (+300, -100) (bug)**
@@ -13505,6 +13521,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tweak with its level in the stand-in registry. A change that moves the
   scatter is a generation change (lock queue, epoch). Version 8.1.
   Owner: Bug 1.
+  Research (2026-10-09): BOSS DECIDED (3:02 PM EDT 2026-10-29, card
+  option 1 'following physics as much as possible'): all three misses
+  share one cause, the galaxy holds 0.46 of the stars its own history
+  implies (report
+  /mnt/project-files/reports/bug1/star-count-normalisation-2026-10-29.md).
+  Fixed at the root by GEN.918 (Wolf-Rayet stars 580 to about 1,260 once
+  the star count is scaled, no per-constant tuning). Owner Bug 1. Closes
+  when GEN.918 merges and the census is re-baselined.
   Prerequisites: none. Related: TEST.433, GEN.898, GEN.900, GEN.901.
 
 - [ ] **GEN.903 Atmosphere possibility table e: rows e1 and e2 (bare rock, retained H/He envelope) are never reached for class I because group b has only row b4 for class I (low priority) (bug)**
@@ -13520,6 +13544,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class list (fix the list), update the note file, and keep the sweep
   passing. If a fix moves draws it is a generation change (lock queue).
   Low priority, ride the class cut-over. Version 8.1. Owner: Aux 1.
+  Research (2026-10-09): Aux 1 (3:03 PM EDT 2026-10-29, as the lane
+  reported): on its cut-over branch rows b1 to b4 are all gated by body
+  type and mass up to 35 Earth masses and none names a class letter (the
+  class is derived afterwards), so an icy or sub-Neptune body is not
+  limited to b4, and e1 and e2 weigh (1 - p[b4]) times the loss share,
+  nonzero unless the water-rich row is certain. The gate_text strings
+  still list letters as documentation text only. Aux 1 takes this as
+  closed with the GEN.646 cut-over PR (no sweep of icy bodies was run to
+  count e1/e2 hits). Retire when GEN.646 merges unless Bug 2's
+  possibility sweep (TEST.214) then shows e1/e2 still unreachable.
   Prerequisites: none. Related: TEST.214, GEN.646.
 
 - [ ] **GEN.904 Daylight columns stay stale or empty after an orbit move: re-run daylight after generate_spin in the reconcile (bug)**
@@ -13683,6 +13717,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star-statistics change (GEN.897+898+899) if found in time. Version
   8.1. Owner: Bug 1. Prerequisites: none. Related: GEN.897, GEN.898,
   GEN.899.
+  Research (2026-10-09): Boss decided the star-count question (3:02 PM
+  EDT 2026-10-29, option 1 'following physics as much as possible', see
+  GEN.918): the star count follows the model's own history. GEN.914 is
+  decided with it: check the G share after the root fix, and if still
+  low, nudge the Kroupa slope inside its source uncertainty (alpha1 1.3
+  +/- 0.5) in the same epoch, recorded as a stand-in row (L1). Owner
+  stays Bug 1.
   Prerequisites: none. Related: GEN.897, GEN.898, GEN.899.
 
 - [ ] **GEN.915 Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class**
@@ -13763,6 +13804,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   conditions. A generation change: lock turn after GEN.646. Owner: Aux 7
   (surfaces). Version 8.1.
   Prerequisites: GEN.646. Related: GEN.915, GEN.916, GEN.646.
+
+- [ ] **GEN.918 The galaxy's star count follows its own star-formation history: the density model counts systems per parsec cubed while the history counts stars formed, so the galaxy holds 0.46 of the stars its history implies (root of GEN.900, GEN.901, GEN.902)**
+  BOSS DECIDED (3:02 PM EDT 2026-10-29), card answer option 1 'following
+  physics as much as possible': fix the root, no per-constant tuning.
+  Found by Bug 1 (report
+  /mnt/project-files/reports/bug1/star-count-normalisation-2026-10-29.md):
+  the disk history (GEN.469) implies 1.65 Msun/yr now, about 2.8e8 young
+  stars and 366,000 living stars of 8 Msun or more; the census galaxy
+  holds 1.30e8 and 170,000, a factor 2.17 low, and the old and
+  intermediate stars are low by about the same. Applying 2.17 lands
+  every miss: Wolf-Rayet 580 to 1,260 (target 943 to 1,714), neutron
+  stars 3.77e8 to 8.2e8 (observed about 1e9), supernova remnants 256 to
+  555 (target 400 to 5,000), magnetars 21 to 46. The density model is
+  anchored on local systems per cubic parsec while the history counts
+  stars formed. Do: make the model's star count follow its own history
+  by scaling the stars per system or the density anchor from observed
+  physics (the multiplicity statistics and the local stellar density),
+  with no new tuning constant; record any stand-in with its tier and
+  tweak scale (a new row beside SC1 and SC2); decide GEN.914 (the Kroupa
+  slope from 0.5 to 1 solar mass, G share) in the same epoch if the root
+  fix leaves G low. Closes GEN.900, GEN.901, GEN.902 when it merges and
+  the phenomena census (TEST.433) and class census (TEST.430) are
+  re-baselined. A generation change that moves the galaxy's star counts
+  (plan stage): its own epoch with --affects plan and the later stages,
+  lock turn after Bug 1's #3713 (or in the same turn if it is ready).
+  Owner: Bug 1. Version 8.1.
+  Prerequisites: none. Related: GEN.900, GEN.901, GEN.902, GEN.914,
+  GEN.469, TEST.433, TEST.430.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
