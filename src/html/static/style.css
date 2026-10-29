@@ -5630,6 +5630,13 @@ p.hint a {
   font-style: italic;
 }
 
+.sheet-source {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  margin-top: 0.125rem;
+}
+
 .sheet-hidden {
   color: var(--text-muted);
   font-size: 0.875rem;

@@ -24,6 +24,7 @@ from planetgen import tuning
 from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
+from planetgen.describe.sheet_sources import source_of
 from planetgen.physics import constants, daylight, gases, habitability_world, regional_temperature, unit_registry
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -908,7 +909,7 @@ def sheet(conn, kind, object_id):
     Returns:
         dict: `kind`, `groups`: the non-empty groups in `GROUPS` order, each `{"key", "label", "rows"}`; a row is
             `{"key", "label", "value" (the inline list), "text" (it as plain text), "raw" (the stored number, `None` for text), "stored" (whether the column held a
-            value), "absent" (none or 0), "show_absent" (a page lists it even then)}`.
+            value), "absent" (none or 0), "source" (a one-line source for a physics row, UX.187, else `None`), "show_absent" (a page lists it even then)}`.
 
     Raises:
         ValueError: For a kind with no sheet or a missing row.
@@ -928,17 +929,17 @@ def sheet(conn, kind, object_id):
             value = _zone_value(stored, {s.key: row[s.stored_column()] for s in specs}, specs, table) or value
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value,
                                      "text": inline_text(value), "raw": stored if isinstance(stored, (int, float)) else None,
-                                     "stored": stored is not None, "absent": absent,
+                                     "stored": stored is not None, "absent": absent, "source": source_of(kind, spec.key),
                                      "show_absent": spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     for spec, pascals in _gas_rows(conn, kind, object_id) if kind in GAS_TABLES else ():
         value = _value(spec, GAS_TABLES[kind][0], pascals)
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "raw": pascals, "stored": True,
-                                     "absent": not pascals, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
+                                     "absent": not pascals, "source": None, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     eclipse = _longest_eclipse(conn, kind, object_id) if kind == "moon" else None
     if eclipse:
         value = [model.qty("time", eclipse, "h")]
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
-                                     "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "show_absent": False})
+                                     "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
     return {"kind": kind, "groups": groups, "missing": missing(kind, stored)}
