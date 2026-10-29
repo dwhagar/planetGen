@@ -1065,7 +1065,7 @@
         },
         "max_waiting": {
           "default": 8,
-          "description": "How many entries the one waiting list holds (PERF.154): generation runs and API jobs that wait for the machine, and Generate page jobs that wait for the running job. One more than this is refused, naming the list.",
+          "description": "How many entries the one waiting list holds: generation runs and API jobs that wait for the machine, and Generate page jobs that wait for the running job. One more than this is refused, naming the list.",
           "maximum": 100,
           "minimum": 1,
           "title": "Max Waiting",
