@@ -1,0 +1,175 @@
+{
+ "version": 1,
+ "rungs": {
+  "0": {
+   "name": "No life yet",
+   "description": "The world supports Class {n} life, but the star is too young, or the clock has not run far enough, for it to have started."
+  },
+  "1": {
+   "name": "Microbial origin",
+   "description": "The first cells of Class {n} life have appeared. They are microbes."
+  },
+  "2": {
+   "name": "Producers",
+   "description": "Class {n} life now makes its own food, and that changes the water and the air."
+  },
+  "3": {
+   "name": "Complex cells",
+   "description": "Cells with internal structure have appeared among Class {n} life."
+  },
+  "4": {
+   "name": "Multicellular life",
+   "description": "Class {n} life has grown into colonies, mats or bodies big enough to see."
+  },
+  "5": {
+   "name": "Animals",
+   "description": "Animals have appeared among Class {n} life."
+  },
+  "6": {
+   "name": "Sentient life",
+   "description": "A species of Class {n} life builds tools, settlements and a civilization."
+  }
+ },
+ "grades": {
+  "A1": {
+   "name": "Sessile animals",
+   "description": "Animals that stay where they grow: sponge-like feeders and filter feeders."
+  },
+  "A2": {
+   "name": "Small mobile animals",
+   "description": "Animals that crawl or swim, mostly small, grazing and hunting."
+  },
+  "A3": {
+   "name": "Large active animals",
+   "description": "Big, fast animals. They need a rich supply of oxidant to run on."
+  }
+ },
+ "classes": {
+  "1": {
+   "1": {
+    "name": "Microbes before light",
+    "description": "Microbes living on chemistry in the water, before any of them learn to use light."
+   },
+   "2": {
+    "name": "Oxygenating mats",
+    "description": "Light-eating microbes spread through the sunlit water and begin putting oxygen into it. At first rock and iron soak the oxygen up."
+   },
+   "3": {
+    "name": "Protists and plankton",
+    "description": "Cells with internal structure drift in the sunlit water and feed on the mats."
+   },
+   "4": {
+    "name": "Plants and sponge-grade life",
+    "description": "Algae and mats cover the shallows, with the first sponge-like feeders among them."
+   },
+   "6": {
+    "name": "Sentient life",
+    "description": "A species that builds tools, settlements and a civilization, living on an oxygen-rich world."
+   }
+  },
+  "2": {
+   "1": {
+    "name": "Microbes before light",
+    "description": "Microbes living on chemistry, before any of them learn to use near-infrared light."
+   },
+   "2": {
+    "name": "Anoxic mats",
+    "description": "Purple and green mats use near-infrared light and a donor such as hydrogen sulfide or iron. They make no oxygen, and their food web fills the air with methane."
+   },
+   "3": {
+    "name": "Complex cells without oxygen",
+    "description": "Cells with internal structure that live without oxygen and feed on the mats."
+   },
+   "4": {
+    "name": "Thick layered mats",
+    "description": "Layered mats and colonies. Animals would need an oxidant from some other source."
+   }
+  },
+  "3": {
+   "1": {
+    "name": "Microbes on hydrogen",
+    "description": "Microbes living on hydrogen from rock and water, in vents, deep rock and aquifers."
+   },
+   "2": {
+    "name": "Hydrogen-eating communities",
+    "description": "Dark communities that turn hydrogen and carbon dioxide into methane, with no light at all."
+   }
+  },
+  "4": {
+   "1": {
+    "name": "Microbes at the redox edge",
+    "description": "Microbes living where a fuel such as sulfide, iron or ammonium meets an oxidant."
+   },
+   "2": {
+    "name": "Chemosynthetic mats",
+    "description": "Mats at vents, seeps and where an oxidant meets sulfide, living on that chemical difference."
+   },
+   "3": {
+    "name": "Chemosynthetic protists",
+    "description": "Cells with internal structure that graze the vent and seep mats."
+   },
+   "4": {
+    "name": "Chemosynthetic colonies",
+    "description": "Multicellular life around vents and seeps, living on sulfide, iron or ammonium."
+   },
+   "5": {
+    "name": "Vent and seep animals",
+    "description": "Animals that live beside the vent and host or eat chemosynthetic microbes: tubeworms, clams and the animals that graze them."
+   },
+   "6": {
+    "name": "Sentient life",
+    "description": "A species that builds tools, settlements and a civilization, rising from a chemosynthetic food web."
+   }
+  },
+  "5": {
+   "1": {
+    "name": "Acid-tolerant microbes",
+    "description": "Microbes living in concentrated sulfuric acid, in cloud droplets or pools on warm dry ground."
+   },
+   "2": {
+    "name": "Acid plankton and mats",
+    "description": "Plankton in the cloud deck or mats in the pools, living on reduced sulfur and organic carbon, breathing the acid itself."
+   }
+  },
+  "6": {
+   "1": {
+    "name": "Microbes in liquid carbon dioxide",
+    "description": "Microbes living in liquid or supercritical carbon dioxide."
+   },
+   "2": {
+    "name": "Dense carbon dioxide communities",
+    "description": "Slow communities that use hydrogen as fuel and shed the water they make."
+   }
+  },
+  "7": {
+   "1": {
+    "name": "Microbes in a hydrocarbon sea",
+    "description": "Microbes living in liquid methane and ethane, at around 90 to 190 K."
+   },
+   "2": {
+    "name": "Hydrocarbon sea mats",
+    "description": "Slow mats that live on hydrogen and acetylene and give off methane."
+   }
+  },
+  "8": {
+   "1": {
+    "name": "Microbes in ammonia brine",
+    "description": "Microbes living in cold ammonia-water brine, mostly inside ice."
+   },
+   "2": {
+    "name": "Ammonia brine communities",
+    "description": "Slow communities in the brine, living on hydrogen and chemical gradients."
+   }
+  },
+  "9": {
+   "1": {
+    "name": "Silicon microbes in acid",
+    "description": "Microbes whose chemistry includes organosilicon compounds, living in concentrated sulfuric acid."
+   },
+   "2": {
+    "name": "Silicon-acid communities",
+    "description": "Mats that leave solid silica behind as they live on reduced sulfur and organic carbon."
+   }
+  }
+ }
+}

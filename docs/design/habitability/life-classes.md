@@ -97,6 +97,10 @@ Boss's rule is "if it's possible life will develop", so an idea is left out only
 
 Each of these can come back as a new class number if a source changes; the reserve numbers exist for that.
 
+### 10.4 The words (GEN.892)
+
+Built: `src/planetgen/physics/life_class_text.py` with `physics/data/life_class_text.json` gives the name and a sentence for every rung of the ladder (0 to 6, and the animal grades A1 to A3), with words of their own for the rungs each class may reach and generic words for the rest, so a strange-solvent class that does reach a high rung still reads correctly. `lines(class)` and `sentence(class)` give "It drinks ..., eats ..., breathes ... and gives off ..." from the rule file. Nothing shows them yet: the planet page, search and API read them when the class switch (GEN.889) lands.
+
 ---
 
 ## 4. What each class eats, drinks, breathes and excretes (the ledger)
