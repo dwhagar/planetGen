@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2480] - 2026-10-29
+
+**Headline:** A generation job's log now ends each stage with a finish line, says why a failed run failed, and the data, orbit and reset steps write their lines into the job's records file.
+
+### Changed
+- **Stage finish and failure lines (UX.122).** A generation run writes `=== Stage N of M finished after 31 s ===` when a stage ends and `=== Stage N of M failed after 31 s: reason ===` when it fails, on the command line and in the job's records file, the same wording the job runner uses.
+- **Data, orbit and reset commands (UX.122).** `planetgen datasets`, `planetgen orbits` and `planetgen reset` report through the logging layer, so what they say in the Generate page's log is also in the job's `records.log`; warnings and errors still go to stderr and the text is unchanged. The interactive prompts and the listing commands (`query`, `config`, `backup`, `queue`, `maintenance`, `accounts`) print as before.
+- **Activity log (UX.122).** Its line keeps its form on purpose, because the fail2ban filters match it; the logging standard records the decision.
+
 ## [8.0.2479] - 2026-10-29
 
 **Headline:** The complex organics density row says why it is 1.5 g/cm3 and how it relates to the 2 g/cm3 reported for Rosetta's comet.
