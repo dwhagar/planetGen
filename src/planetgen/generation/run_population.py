@@ -14,7 +14,7 @@ from planetgen.generation import run_common, stages, steps
 from planetgen.db import store
 from planetgen.generation import run_plan
 from planetgen.population import model
-from planetgen.queue import commands, units, work as workQueue, wrapper
+from planetgen.queue import commands, units, wrapper
 from planetgen.util import log
 
 
@@ -118,12 +118,10 @@ def run_territories(args):
 def run_population_stage(args):
     """The population pass as a stage of a run (a `galaxy` run's, or `planetgen population`'s own)."""
     stages.enter("population")
-    with workQueue.job_node("population", "Population pass"):
-        _run_pass(args, "population", "Population pass", "population", {"rescan": bool(getattr(args, "rescan", False))})
+    _run_pass(args, "population", "Population pass", "population", {"rescan": bool(getattr(args, "rescan", False))})
 
 
 def run_territories_stage(args):
     """The territories pass as a stage of a run."""
     stages.enter("territories")
-    with workQueue.job_node("territories", "Territories pass"):
-        _run_pass(args, "territories", "Territories pass", "territories", {})
+    _run_pass(args, "territories", "Territories pass", "territories", {})

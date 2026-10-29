@@ -71,6 +71,18 @@ def control_config(mysql_config):
     return mysql_config
 
 
+def _run_states(redis_url, database, prefix=None):
+    """The states of the runs on Redis that were made on `database` (the run records, PERF.98), newest first. `prefix` is the
+    key prefix of a run made by another process (a test's own process has its private one)."""
+    from unittest import mock
+
+    from planetgen.queue import redisqueue, runrecord
+    conn = redisqueue.connect(redis_url)
+    with mock.patch.object(runrecord, "PREFIX", prefix or runrecord.PREFIX):
+        runs = [runrecord.read_run(conn, run_id) for run_id in runrecord.recent_runs(conn)]
+    return [run["state"] for run in runs if run and run["database"] == database]
+
+
 def _rows(config, sql, params=()):
     conn = store.get_control_connection(config)
     try:
@@ -110,7 +122,7 @@ def _run_galaxy(argv):
         sys.argv = old_argv
 
 
-def test_a_parallel_galaxy_run_links_neighbors_like_a_serial_one(control_config, monkeypatch):
+def test_a_parallel_galaxy_run_links_neighbors_like_a_serial_one(control_config, monkeypatch, redis_server):
     """Two workers fill one shell at once: every sector is saved once, the
     run counts them all, and every stored nearest-system list matches a
     from-scratch recompute (neighbors saved at the same moment still see
@@ -140,5 +152,5 @@ def test_a_parallel_galaxy_run_links_neighbors_like_a_serial_one(control_config,
     finally:
         conn.close()
 
-    run = _rows(control_config, "SELECT state FROM work_jobs WHERE parent_id IS NULL")[0]    # the run's own node (PERF.107)
-    assert run["state"] == "done"
+    states = _run_states(redis_server, control_config.database)        # the runs' own records on Redis (PERF.98)
+    assert states and set(states) == {"done"}

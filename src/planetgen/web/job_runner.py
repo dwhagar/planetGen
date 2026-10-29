@@ -29,14 +29,10 @@ does the same (a server shutting down, on POSIX).
 When it is done it removes the jobs directory's `active` lock, if the lock is still
 this job's, so the next job can start.
 
-The job is also the root of a job tree (ADM.12, `work.open_node`):
-a "web-job" node with one "step" node per step, each step's
-`planetgen` run hanging its own nodes under its step
-(`work.PARENT_ENV_VAR`), so the admin queue page shows the whole
-job with timings. That part is best effort.
+How long each step took is kept by its label in the jobs directory (`STEP_TIMES_NAME`), for the next job's estimates.
 
 Standard library only at the top, so a broken install still leaves a
-readable `state.json` behind (`_JobTree` imports the rest only once that
+readable `state.json` behind (the estimates import the rest only once that
 is written).
 """
 
@@ -60,9 +56,9 @@ CANCEL_NAME = "cancel"
 PID_NAME = "runner.pid"
 """str: The job's worker's pid, written by `jobs.start_job`."""
 
-CANCELLED_EXIT_CODE = 130
-"""int: A step's exit status when an admin cancelled it from the queue
-page (must match `work.CANCELLED_EXIT_CODE`)."""
+STEP_TIMES_NAME = "step-times.json"
+"""str: The file in the jobs directory with how long each kind of step took in the jobs that succeeded (PERF.33): `{label:
+[how many times, total seconds]}`, read for the next job's estimates (`recorded_step_seconds`)."""
 
 MEMORY_NAME = "memory.json"
 """str: The file in a job's directory with the memory peak of each step that ran (PERF.183): a list of
@@ -282,7 +278,40 @@ def _step_stage_counts(steps):
     return [max(len(step.get("stages") or []), 1) for step in steps]
 
 
-def step_estimates(conn, steps):
+def recorded_step_seconds(jobs_dir):
+    """
+    How long each kind of step took in the jobs that ran before (PERF.33): the mean seconds of every step that succeeded, by its
+    label, from `STEP_TIMES_NAME` in `jobs_dir`; empty where there is no record.
+
+    Returns:
+        dict: `{label: mean seconds}`.
+    """
+    try:
+        with open(os.path.join(jobs_dir, STEP_TIMES_NAME), "r", encoding="utf-8") as handle:
+            kept = json.load(handle)
+        return {label: total / count for label, (count, total) in kept.items() if count}
+    except (OSError, ValueError, TypeError):
+        return {}
+
+
+def _record_step_seconds(jobs_dir, label, seconds):
+    """Adds one succeeded step's `seconds` to the mean the jobs directory keeps for `label`. Best effort: a lost sample
+    only makes the next estimate a little less sure."""
+    path = os.path.join(jobs_dir, STEP_TIMES_NAME)
+    try:
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                kept = json.load(handle)
+        except (OSError, ValueError):
+            kept = {}
+        count, total = kept.get(label, [0, 0.0])
+        kept[label] = [count + 1, total + seconds]
+        _write_json(path, kept)
+    except (OSError, ValueError, TypeError):
+        pass
+
+
+def step_estimates(conn, steps, recorded):
     """
     `(per step, per stage)`: the seconds each step and each stage of each step is expected to take (`None` where
     there is no record), for the overall bar (PERF.55): a `galaxy` or `plan` step from the stored time of each
@@ -291,13 +320,11 @@ def step_estimates(conn, steps):
     job, in order (a step with no stage list counts as one).
 
     Args:
-        conn: A control database connection.
+        conn: A control database connection (the stored stage times).
         steps (list[dict]): The job's steps.
+        recorded (dict): What each step took in earlier jobs (`recorded_step_seconds`).
     """
-    from planetgen.queue import work
-
     counts = _step_stage_counts(steps)
-    recorded = work.recorded_step_seconds(conn)
     per_step, per_stage = [], []
     for step, count in zip(steps, counts):
         argv = step.get("argv") or []
@@ -316,9 +343,11 @@ def expected_seconds(job):
     try:
         from planetgen.db import store
 
+        from planetgen.web import jobs
+
         conn = store.get_control_connection(store.control_mysql_config(_mysql_config(job)))
         try:
-            per_step, _per_stage = step_estimates(conn, job["steps"])
+            per_step, _per_stage = step_estimates(conn, job["steps"], recorded_step_seconds(jobs.configured_jobs_dir()))
         finally:
             conn.close()
     except Exception:  # noqa: BLE001 -- no estimate: the job gets the fixed limit
@@ -326,62 +355,23 @@ def expected_seconds(job):
     return None if not per_step or any(seconds is None for seconds in per_step) else sum(per_step)
 
 
-class _JobTree:
-    """The job's nodes in the control database's job tree, or nothing at
-    all when planetGen's modules or the control database aren't there."""
+def _run_estimates(job, jobs_dir):
+    """
+    `(per step, per stage)` for `step_estimates`, or `None`s where there is no control database or the planetGen modules are
+    not there: the bar then estimates from the running step alone.
+    """
+    steps = job["steps"]
+    nothing = ([None] * len(steps), [None] * sum(_step_stage_counts(steps)))
+    try:
+        from planetgen.db import store
 
-    def __init__(self, job):
-        self.queue = None
-        self.root = None
+        conn = store.get_control_connection(store.control_mysql_config(_mysql_config(job)))
         try:
-            from planetgen.queue import work
-            from planetgen.db import store
-
-            base = _mysql_config(job)
-            self.queue = work
-            self.root = work.open_node(
-                "web-job", job.get("title") or job["id"], store.control_mysql_config(base),
-                web_job_id=job["id"], database=job.get("database"),
-            )
-        except Exception:  # noqa: BLE001 -- the job runs without its tree
-            self.queue = self.root = None
-
-    def open_step(self, label):
-        if self.queue is None:
-            return None
-        try:
-            return self.queue.open_node("step", label)
-        except Exception:  # noqa: BLE001
-            return None
-
-    def step_estimates(self, steps):
-        """
-        `(per step, per stage)` for `step_estimates` (the module's), or `None`s where this tree has no control
-        database.
-        """
-        nothing = ([None] * len(steps), [None] * sum(_step_stage_counts(steps)))
-        if self.queue is None or not self.root.store.available:
-            return nothing
-        try:
-            conn = self.root.store._connect()
-            try:
-                return step_estimates(conn, steps)
-            finally:
-                conn.close()
-        except Exception:  # noqa: BLE001 -- the bar then estimates from the running step alone
-            return nothing
-
-    def close(self, node, state):
-        if self.queue is None or node is None:
-            return
-        try:
-            self.queue.close_node(node, state)
-        except Exception:  # noqa: BLE001
-            pass
-
-
-_TREE_STATES = {"succeeded": "done", "failed": "failed", "cancelled": "cancelled"}
-"""dict: `state.json` status -> job tree node state."""
+            return step_estimates(conn, steps, recorded_step_seconds(jobs_dir))
+        finally:
+            conn.close()
+    except Exception:  # noqa: BLE001
+        return nothing
 
 
 def _log_traceback(job_dir):
@@ -437,9 +427,7 @@ def run(job_dir):
     env[JOB_ENV] = job["id"]
 
     steps = job["steps"]
-    tree = _JobTree(job)
-    step_node = None
-    state["step_estimates"], state["stage_estimates"] = tree.step_estimates(steps)
+    state["step_estimates"], state["stage_estimates"] = _run_estimates(job, jobs_dir)
     _write_json(state_path, state)
     try:
         records_path = os.path.join(job_dir, RECORDS_FILE)
@@ -471,9 +459,6 @@ def run(job_dir):
                      blank_before=True)
                 env[STAGE_OFFSET_ENV] = str(first - 1)
                 env[STAGE_TOTAL_ENV] = str(total)
-                step_node = tree.open_step(step["label"])
-                if step_node is not None:
-                    env[tree.queue.PARENT_ENV_VAR] = step_node.id
                 started = time.time()
                 with memwatch.PeakTracker() as watch:
                     current["proc"] = subprocess.Popen(
@@ -498,22 +483,15 @@ def run(job_dir):
                 current["proc"] = None
                 state.pop("step_pid", None)
                 _record_memory(job_dir, log, watch, index, step["label"], first, count)
-                tree.close(step_node, "cancelled" if current["cancelled"] or code == CANCELLED_EXIT_CODE
-                           else ("done" if code == 0 else "failed"))
-                step_node = None
                 took = time.time() - started
                 if code == 0:
+                    _record_step_seconds(jobs_dir, step["label"], took)
                     mark(logrecord.stage_record(logrecord.STAGE_FINISH, "job", first, total, seconds=took, count=count))
                 else:
                     mark(logrecord.stage_record(
                         logrecord.STAGE_FAILED, "job", first, total, seconds=took, count=count,
-                        reason="cancelled" if current["cancelled"] or code == CANCELLED_EXIT_CODE
-                        else f"exited with status {code}"))
+                        reason="cancelled" if current["cancelled"] else f"exited with status {code}"))
                 state["exit_code"] = code
-                if code == CANCELLED_EXIT_CODE and not current["cancelled"]:
-                    # Cancelled from the admin queue page (ADM.10).
-                    current["cancelled"] = True
-                    current["by_queue"] = True
                 if current["cancelled"]:
                     break
                 if code != 0:
@@ -522,8 +500,7 @@ def run(job_dir):
                     break
         if current["cancelled"]:
             state["status"] = "cancelled"
-            state["error"] = ("Cancelled from the admin queue page." if current.get("by_queue")
-                              else "Cancelled by an admin.")
+            state["error"] = "Cancelled by an admin."
         elif state["status"] == "running":
             state["status"] = "succeeded"
     except Exception as exc:  # noqa: BLE001 -- recorded for the page, never lost
@@ -542,8 +519,6 @@ def run(job_dir):
         # a moment after).
         _drop_queue(job["id"])
         _release_lock(jobs_dir, job["id"])
-        tree.close(step_node, "failed")
-        tree.close(tree.root, _TREE_STATES.get(state["status"], "failed"))
         _start_waiting_job(jobs_dir, job_dir)
     return 0 if state["status"] == "succeeded" else 1
 

@@ -21,7 +21,7 @@ import threading
 import time
 import types
 
-from planetgen.queue import commands, progress_rate, units, work as workQueue, wrapper
+from planetgen.queue import commands, progress_rate, units, wrapper
 from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, storage_checksum, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
@@ -2655,8 +2655,7 @@ def run_plan(args):
     """
     stages.begin(stages.plan_stages(args), args, "plan")
     stages.enter("skeleton")
-    with workQueue.job_node("skeleton", "Galaxy skeleton"):
-        summary = _skeleton_on_queue(args)
+    summary = _skeleton_on_queue(args)
     if summary["shell_count"]:
         shells = f"{summary['shell_count']:,} shells"
     else:
@@ -2712,18 +2711,14 @@ def run_scatter(args):
     stages.begin(stages.scatter_stages(args), args, "scatter")
     if kind == "band":
         stages.enter("band")
-        with workQueue.job_node("bright-stars", f"Bright stars down to {args.down_to:g} L_sun"):
-            add_bright_star_band(args)
+        add_bright_star_band(args)
     elif kind == "phenomena":
-        with workQueue.job_node("phenomena", "Phenomena"):
-            scatter_phenomena(args)
+        scatter_phenomena(args)
     elif kind == "nebula-field":
         stages.enter(NEBULA_DRAW_KEY)
-        with workQueue.job_node("nebula-field", "Nebula field"):
-            redraw_nebula_field(args)
+        redraw_nebula_field(args)
     else:
-        with workQueue.job_node("bright-stars", "Bright stars"):
-            scatter_bright_stars(args, passes=(kind,))
+        scatter_bright_stars(args, passes=(kind,))
     stages.finish()
 
 
@@ -2801,8 +2796,7 @@ def run_clear_scatter(args):
     kind = stages.clear_kind(args)
     stages.begin(stages.clear_stages(args), args, "clear-scatter")
     stages.enter(stages.CLEAR_STAGE[kind].key)
-    with workQueue.job_node("clear-scatter", stages.CLEAR_STAGE[kind].label):
-        clear_scatter(args)
+    clear_scatter(args)
     stages.finish()
 
 
@@ -2810,8 +2804,7 @@ def run_fill_map_luminosity(args):
     """`planetgen fill-map-luminosity` (PERF.122): `fill_map_luminosity`, the one stage of its run."""
     stages.begin(stages.for_command("fill-map-luminosity", args), args, "fill-map-luminosity")
     stages.enter("map-luminosity")
-    with workQueue.job_node("map-luminosity", "Map luminosity"):
-        fill_map_luminosity(args)
+    fill_map_luminosity(args)
     stages.finish()
 
 
@@ -2819,8 +2812,7 @@ def run_rescore_habitability(args):
     """`planetgen rescore-habitability` (PERF.122): `fill_habitability`, the one stage of its run."""
     stages.begin(stages.for_command("rescore-habitability", args), args, "rescore-habitability")
     stages.enter("habitability")
-    with workQueue.job_node("habitability", "Habitability"):
-        fill_habitability(args)
+    fill_habitability(args)
     stages.finish()
 
 
@@ -2828,8 +2820,7 @@ def run_fill_nebula_blocks(args):
     """`planetgen fill-nebula-blocks` (MAP.172, PERF.122): `fill_nebula_blocks`, the one stage of its run."""
     stages.begin(stages.for_command("fill-nebula-blocks", args), args, "fill-nebula-blocks")
     stages.enter("nebula-blocks")
-    with workQueue.job_node("nebula-blocks", "Nebula block totals"):
-        fill_nebula_blocks(args)
+    fill_nebula_blocks(args)
     stages.finish()
 
 
@@ -2837,8 +2828,7 @@ def run_fill_block_totals(args):
     """`planetgen fill-block-totals` (MAP.259): `fill_block_totals`, the one stage of its run."""
     stages.begin(stages.for_command("fill-block-totals", args), args, "fill-block-totals")
     stages.enter("block-totals")
-    with workQueue.job_node("block-totals", "Block totals"):
-        fill_block_totals(args)
+    fill_block_totals(args)
     stages.finish()
 
 
@@ -2846,6 +2836,5 @@ def run_clean_nebula_field(args):
     """`planetgen clean-nebula-field` (PERF.122): `clean_nebula_field`, the one stage of its run."""
     stages.begin(stages.for_command("clean-nebula-field", args), args, "clean-nebula-field")
     stages.enter("nebula-field")
-    with workQueue.job_node("nebula-field", "Nebula field"):
-        clean_nebula_field(args)
+    clean_nebula_field(args)
     stages.finish()

@@ -137,6 +137,13 @@ def test_a_run_offered_during_the_update_does_not_start(updating):
     assert work.current_node() is None
 
 
+def test_a_generate_command_offered_during_the_update_does_not_start(updating, monkeypatch):
+    from planetgen.cli import generate
+    monkeypatch.setattr(sys, "argv", ["planetgen", "fill-map-luminosity"])
+    with pytest.raises(updateguard.UpdateRunning, match="A run can't start"):
+        generate.main()
+
+
 def test_the_workers_take_no_job_during_the_update(updating, capsys):
     from planetgen.cli import worker
     assert workers.ensure_workers("planetgen-bulk", connection=object(), url="redis://never") == 0
