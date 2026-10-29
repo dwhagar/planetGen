@@ -12455,6 +12455,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   animals and 0.9 to 1.8 percent civilisations by 6 Gyr (the report's
   Monte Carlo ignores the temperature clock). Boss wants animals common
   and civilisations no more common than before.
+  Research (2026-10-09): Boss, 9:01 PM EDT 2026-10-28: review the animal
+  and civilisation step timing as soon as possible (see the Monte Carlo
+  note above). Core 1 reviews the step means with the temperature clock
+  included and brings Boss a plain-words proposal (animals common on
+  suitable worlds, civilisations no more common than before) before the
+  GEN.855 + GEN.750 epoch is merged.
   Prerequisites: none. Related: GEN.649, GEN.740.
 
 - [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
@@ -13919,6 +13925,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rung (0.5), and the stage text says what is there. The producer itself
   (chemolithoautotrophs) is a 8.4 item. Size S to M. Changes values
   (lock turn).
+  Research (2026-10-09): Boss, 9:01 PM EDT 2026-10-28, card answer:
+  sub-ice microbial mats do NOT count as food. No Flora and no edible
+  (macroscopic food rung) scores for aphotic or sub-ice life; it stays
+  Microbial with the microbial food rung.
   Prerequisites: GEN.855. Related: GEN.861.
 
 - [ ] **GEN.872 The life pass draws from a per-body sub-stream, so a life-model change no longer re-rolls the names and flavour text of every later body in the system**
