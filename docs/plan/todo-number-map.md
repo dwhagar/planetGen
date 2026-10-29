@@ -1829,7 +1829,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | none | done, PR #3609 |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | none | done, PR #2694 |
 | MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | done, PR #1203 |
-| MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | none | open |
+| MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | none | done, PR #3623 |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | none | open |
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table | none | open |
 | MAP.179 | Scattered nebulae as markers from level 8 | none | open |
