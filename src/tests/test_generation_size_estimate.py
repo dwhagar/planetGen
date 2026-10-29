@@ -36,10 +36,19 @@ def _table_bytes(conn):
     return {row["t"]: int(row["b"] or 0) for row in rows}
 
 
+_FILLED = {}
+"""dict: The measurements of the one fill, made by the first test that needs it. The fill is the same for all three tests and
+takes minutes, and a gate's four workers each ran it three times, past the test timeout (TEST.422)."""
+
+
 @pytest.fixture
-def filled(mysql_config, monkeypatch):
+def filled(request):
     """A planned galaxy before and after a fill of 12 sectors of 40
-    systems each."""
+    systems each, measured once for the tests of this file."""
+    if _FILLED:
+        return _FILLED
+    mysql_config = request.getfixturevalue("mysql_config")
+    monkeypatch = request.getfixturevalue("monkeypatch")
     first_fill.without_the_deepest_floor(monkeypatch)   # exactly the 40 systems asked for in each sector (GEN.633)
     _plan_wide_galaxy(mysql_config)
     conn = store.get_connection(mysql_config)
@@ -53,7 +62,8 @@ def filled(mysql_config, monkeypatch):
     finally:
         conn.close()
     growth = sum(after.values()) - sum(before.values())
-    return {"growth_per_system": growth / systems, "systems": systems, "after": after, "measured": measured}
+    _FILLED.update({"growth_per_system": growth / systems, "systems": systems, "after": after, "measured": measured})
+    return _FILLED
 
 
 def test_the_default_size_per_system_matches_a_real_fill(filled):

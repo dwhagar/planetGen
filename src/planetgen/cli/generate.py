@@ -697,7 +697,7 @@ def add_sectors_arguments(parser):
                                  "stored center.")
 
     parser.add_argument('--region', action='store_true',
-                        help="With --center-sector or --shell --band --wedge (GEN.826): move the center to the anchor sector of "
+                        help="With --center-sector or --shell --band --wedge: move the center to the anchor sector of "
                              "the region (9-block) that holds it and fill the standard sphere of that anchor "
                              f"({program_constants.DEFAULT_GENERATE_RADIUS_PC:g} pc, about 109 sectors), so the finished fill charts and names the whole "
                              "region. Replaces --radius-pc.")

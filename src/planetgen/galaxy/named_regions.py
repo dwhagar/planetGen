@@ -35,6 +35,7 @@ from planetgen import tuning
 from planetgen.galaxy import drill, spherical
 from planetgen.names import naming_key
 from planetgen.names.gated_phoneme_codec import GatedPhonemeCodec
+from planetgen.util import detmath
 
 REGION_RADIUS_PC = tuning.DEFAULT_GENERATE_RADIUS_PC
 """float: The radius of a region's standard sphere, parsecs: the sphere a standard fill of one anchor fills (about 109 sectors)
@@ -130,7 +131,7 @@ def anchor_address(block, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
     if region_of(address) == block:
         return tuple(address)
     return min(drill.block_addresses(block),
-               key=lambda found: (math.dist(spherical.sector_position_pc(*found, edge_pc), anchor), found))
+               key=lambda found: (detmath.dist(spherical.sector_position_pc(*found, edge_pc), anchor), found))
 
 
 def snap_to_anchor(address, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):

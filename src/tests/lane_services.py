@@ -15,7 +15,8 @@ the middle fails every test that runs until someone notices.
   when they are missing, starts MySQL and Redis when they do not answer (with the commands `planetgen-env-up` runs;
   not that script itself, which also starts Apache), purges the MySQL binlogs when the disk is nearly full, and checks the
   packages the tests import (`argon2-cffi`) and the one browser package that must match the installed Chromium
-  (`playwright`, the version `examples/cloud-environment/setup-planetgen-env.sh` pins). What it could not repair comes
+  (`playwright`, the version `examples/cloud-environment/setup-planetgen-env.sh` pins), and downloads the data the tests
+  read as it is (`TEST_DATASETS`) when the machine has not (TEST.441). What it could not repair comes
   back as problems, and the run does not start.
 - `Watchdog` during a run: a thread that asks MySQL and Redis every `INTERVAL` seconds. A server that does not answer is
   restarted at once and the watchdog tells the runner, which stops the phase's pytest, and starts it again without the
@@ -31,6 +32,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import threading
 import time
 from urllib.parse import urlparse
@@ -47,6 +49,10 @@ HUNG_AFTER = 3
 connection counts at once, since nothing is listening."""
 START_WAIT = 90
 """int: Seconds a restarted server has to answer."""
+TEST_DATASETS = ("white_dwarf_models",)
+"""tuple: The downloaded data the tests read as it is, not through a stand-in: the white-dwarf cooling sequences (a stand-in gives other
+stars, so the same-seed and migration tests disagree with a machine that has them). `planetgen.cli.datasets fetch` is the setup step of
+`update.sh`; a fresh test machine has not run it (TEST.441)."""
 LOW_DISK_MB = 3000
 """int: Free space under which the MySQL binlogs are purged."""
 
@@ -225,6 +231,27 @@ def package_problems(browser):
     return problems
 
 
+def dataset_problems(say=print, run=None):
+    """
+    Fetches the `TEST_DATASETS` a machine lacks (`planetgen.cli.datasets status` exits 1 for a missing one, `fetch` downloads it).
+
+    Returns:
+        list: One sentence per dataset that is still missing after the fetch.
+    """
+    run = run or _run
+    problems = []
+    for key in TEST_DATASETS:
+        command = [sys.executable, "-m", "planetgen.cli.datasets"]
+        if run([*command, "status", key]).returncode == 0:
+            continue
+        say(f"preflight: the {key} data is not downloaded; fetching it")
+        run([*command, "fetch", key])
+        if run([*command, "status", key]).returncode != 0:
+            problems.append(f"the {key} data could not be downloaded (python3 -m planetgen.cli.datasets fetch {key}); "
+                            "the tests that read it would give other stars")
+    return problems
+
+
 def preflight(environ, browser=True, say=print):
     """
     Makes a run's footing sound.
@@ -266,6 +293,7 @@ def preflight(environ, browser=True, say=print):
         else:
             say("preflight: Redis is up again")
     problems += package_problems(browser)
+    problems += dataset_problems(say)
     return problems
 
 

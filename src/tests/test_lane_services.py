@@ -50,6 +50,7 @@ def ordinary(monkeypatch):
     monkeypatch.setattr(services, "redis_state", lambda environ: "up")
     monkeypatch.setattr(services, "free_mb", lambda path="/": 50_000)
     monkeypatch.setattr(services, "package_problems", lambda browser: [])
+    monkeypatch.setattr(services, "dataset_problems", lambda say=print, run=None: [])
     monkeypatch.setattr(services, "load_profile", lambda environ, path=services.PROFILE: [])
 
 
@@ -354,3 +355,25 @@ def test_a_lost_service_stops_the_run_with_a_resume_hint(monkeypatch, capsys):
     assert runner.main(["quick"]) == 3
     out = capsys.readouterr().out
     assert "FAIL" in out and "NOT restarted" in out and "--resume" in out
+
+
+# --- the downloaded data ---------------------------------------------------------------
+
+def test_a_dataset_the_machine_lacks_is_fetched_and_one_that_cannot_be_is_a_problem():
+    from types import SimpleNamespace
+    calls, present = [], {"now": False}
+
+    def run(command):
+        calls.append(command[-2:])
+        if command[-2] == "fetch":
+            present["now"] = True
+        return SimpleNamespace(returncode=0 if present["now"] else 1)
+
+    said = []
+    assert services.dataset_problems(said.append, run) == []
+    assert calls == [["status", "white_dwarf_models"], ["fetch", "white_dwarf_models"], ["status", "white_dwarf_models"]]
+    assert "white_dwarf_models" in said[0]
+    calls.clear()
+    assert services.dataset_problems(said.append, run) == [] and calls == [["status", "white_dwarf_models"]]     # there: left alone
+    problem, = services.dataset_problems(lambda text: None, lambda command: SimpleNamespace(returncode=1))
+    assert "white_dwarf_models" in problem and "datasets fetch white_dwarf_models" in problem

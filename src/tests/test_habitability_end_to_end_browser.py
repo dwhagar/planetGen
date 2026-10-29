@@ -31,7 +31,7 @@ from planetgen.web.lib import habitability_ref
 
 from tests.habitability_site import BARREN_CENTER_PC, HABITABLE_CENTER_PC, SYSTEM_OFFSET_PC, habitable_galaxy  # noqa: F401
 from tests.test_web_browser_fixture_maps import (  # noqa: F401 -- fixtures and the map drivers the lanes' own tests share
-    MARKERS, _markers_until, _open_galaxy, _open_menu, _screen_of, _settle, gl_browser, page)
+    MARKERS, _markers_until, _open_galaxy, _open_menu, _poi_layers, _screen_of, _settle, gl_browser, page)
 
 pytestmark = pytest.mark.browser
 
@@ -236,6 +236,7 @@ def _hue_shift(before, after, page, center_pc):
 
 # --- 3. The markers ---------------------------------------------------------------------------------------------------
 
+@pytest.mark.names_hidden     # the system's name is drawn over its marker and takes the pointer first (MAP.298)
 def test_the_habitable_world_marker_finds_the_system_with_the_stored_count_and_goes_with_its_toggle(page, habitable_galaxy):
     _open_galaxy(page, habitable_galaxy.base_url, "")
     page.evaluate("([cell, g]) => document.querySelector('#galaxymap3d-canvas').galaxyOpenWindow(cell, g)",
@@ -243,12 +244,9 @@ def test_the_habitable_world_marker_finds_the_system_with_the_stored_count_and_g
     _settle(page)
     page.wait_for_timeout(500)
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]')
-    _open_menu(page)
-    assert button.count() == 1 and button.get_attribute("aria-pressed") == "false"
-    assert not [e for e in (page.evaluate(MARKERS) or []) if e["kind"] == "marker-habitable"]    # off until switched on
-
-    button.click()
-    assert "show=marker-habitable" in page.url
+    _poi_layers(page, "marker-habitable")     # the other kinds are on until the visitor says otherwise (MAP.303) and the gas giant beside it would merge with it (MAP.305)
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    assert "marker-habitable" not in page.url
     found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries or []))
     named = {e["name"] for e in found if e["kind"] == "marker-habitable"}
     assert named == {habitable_galaxy.habitable_system_name}, named
@@ -261,20 +259,31 @@ def test_the_habitable_world_marker_finds_the_system_with_the_stored_count_and_g
     system = tuple(c + o for c, o in zip(HABITABLE_CENTER_PC, SYSTEM_OFFSET_PC))
     spot = _screen_of(page, system)
     assert spot
-    page.mouse.move(*spot)
-    page.mouse.move(spot[0] + 1, spot[1])
-    page.wait_for_timeout(200)
     count = habitable_galaxy.habitable_worlds
     words = f"{habitable_galaxy.habitable_system_name}, {count} habitable world{'' if count == 1 else 's'}"
-    assert words in page.locator("#galaxymap3d-tooltip").inner_text()
+    # The pointer is moved about the point until the symbol under it is named: the charted region's outline is named where it is not, and
+    # how far the symbol is drawn from the point depends on the view.
+    tips = set()
+    for dy, dx in ((dy, dx) for dy in (8, 0, -8, 4, -4, 12, -12, 16, -16) for dx in (0, -8, 8, -4, 4)):
+        page.mouse.move(spot[0] + dx - 1, spot[1] + dy)
+        page.mouse.move(spot[0] + dx, spot[1] + dy)
+        page.wait_for_timeout(100)
+        tips.add(page.locator("#galaxymap3d-tooltip").inner_text())
+        if any(words in tip for tip in tips):
+            break
+    assert any(words in tip for tip in tips), tips
     assert "Habitable worlds" in page.locator("#galaxymap3d-layer-legend").inner_text()
 
-    # Switched off again, the marker is gone and the address forgets it.
+    # Switched off, the marker is gone and the address says so; switched on again, it is back and the address forgets it.
     _open_menu(page)
     button.click()
-    assert button.get_attribute("aria-pressed") == "false" and "marker-habitable" not in page.url
+    assert button.get_attribute("aria-pressed") == "false" and re.search(r"hide=[^&]*\bmarker-habitable\b", page.url), page.url
     page.wait_for_timeout(400)
     assert not [e for e in (page.evaluate(MARKERS) or []) if e["kind"] == "marker-habitable"]
+    button.click()
+    assert button.get_attribute("aria-pressed") == "true" and "marker-habitable" not in page.url
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries or []))
+    assert {e["name"] for e in found if e["kind"] == "marker-habitable"} == {habitable_galaxy.habitable_system_name}
 
 
 # --- 4. The help page -------------------------------------------------------------------------------------------------
@@ -289,7 +298,7 @@ def test_a_symbol_opens_its_planets_habitability_group_and_the_help_page_lists_t
     assert target.count() == 1
     assert page.evaluate("() => document.querySelector(':target') === document.getElementById('habitability')")
     assert page.locator('#habitability a.help-link[href^="/help/habitability"]').count() == 1    # one click on to the help page
-    assert page.evaluate("() => document.getElementById('habitability').open")    # UX.204: the link opened the collapsed group
+    assert target.is_visible() and page.evaluate("() => !document.getElementById('habitability').closest('details')")    # UX.215: a planet's habitability is a panel of its own, not a collapsed group
     assert page.evaluate("() => document.getElementById('sheet-physical').open === false")
     page.go_back()
     page.wait_for_selector("svg.hab-symbol", state="attached")

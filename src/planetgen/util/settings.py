@@ -374,7 +374,7 @@ class Jobs(_Section):
 
 
 class Parity(_Section):
-    enabled: bool = opt(False, "Keep a parity file beside the database that can rebuild a damaged sector (DB.46): every saved "
+    enabled: bool = opt(False, "Keep a parity file beside the database that can rebuild a damaged sector: every saved "
                         "or edited sector updates the parity of its group, which costs a few milliseconds a save and about "
                         "7 percent of the sectors' size in disk space. Off, saves write no parity and `planetgen "
                         "refresh-parity` builds it later.", env="PLANETGEN_PARITY", restart=True, group="housekeeping",
