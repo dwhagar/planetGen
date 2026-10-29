@@ -1313,6 +1313,11 @@ with `clamp()`.
   ledger, no stored column; marked 'speculative chemistry' with the tier
   for Classes 5 to 9. Collapsible block starts collapsed; absent or zero
   values hidden.
+  Research (2026-10-09): Owner: Core 5 (Boss's rule, relayed 9:24 PM EDT
+  2026-10-28: Aux lanes retire when their queue ends, so the new life
+  class page goes to a Core lane), when the class data is ready (GEN.889
+  and GEN.891). Aux 6 (old Aux 11) finishes UX.215 to UX.222 and
+  retires.
   Prerequisites: GEN.889, GEN.891. Related: UX.221.
 
 ## MAP: Galaxy Map, Sector Map, System Map
