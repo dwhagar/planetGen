@@ -2646,31 +2646,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: MAP.309. Related: MAP.295, MAP.296.
 
-- [ ] **MAP.311 Map markers and a menu filter for worlds with life, with sentient life and with a civilization, beside the habitable-world markers**
-  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
-  are there any other places where are habitability / life scores aren't
-  used and should be?" Found by the TODO thread's code audit of
-  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
-  population/facility_suggest.py, admin/edits.py, population/model.py).
-  MAP.220, MAP.303 and MAP.306 cover habitable worlds (PHI-6 Yellow and
-  above) and kinds; nothing marks a world that has life, a sentient
-  species or a civilization, which Boss's design uses everywhere else.
-  Add three marker kinds and menu filters (life, sentient, civilization
-  with its tech band) on the Galaxy Map, the Sector Map and the System
-  Map, from the stored life scores and the population tables. Done: a
-  browser test turns each filter on in a sample galaxy and sees only
-  those systems. Version 8.1. Owner: Core 2 (map menu). Rules: a unit or
-  scale on every number (GEN.772); tests are `scripts/test.py changed
-  --resume`; no fixed content from the Milky Way or the Solar System.
-  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
-  2026-10-24 (fix each): Aux 10 (map nodes and menu), after MAP.306.
-  Revision (2026-10-09): Revision (Boss, 1:19 AM EDT 2026-10-25): the
-  markers use the distinct token set of MAP.320 (habitable world,
-  inhabited world coloured by habitability score, uninhabitable world,
-  gas giant, asteroid field) and the level rules of MAP.321; the life,
-  sentient and civilization filters sit beside them in the same menu.
-  Prerequisites: none. Related: MAP.220, MAP.303, MAP.306, MAP.307.
-
 - [ ] **MAP.312 Resource locations become points of interest: interest reasons for valuable asteroid belts and fields, icy bodies and giants, each with its own row in the map menu filter**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
@@ -2952,6 +2927,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   holes the near-field rule will drop anyway. Do it only after MAP.339
   shows it saves real bytes. Owner: Core 2 when dry.
   Prerequisites: MAP.339. Related: MAP.339, MAP.340.
+
+- [ ] **MAP.343 Sector Map and System Map signs for the reasons to look (life, sentient life, civilization) and the chosen-class markers: body-level markers know only inhabited, gas giant, habitable, uninhabitable and belt**
+  Left out of MAP.311 and MAP.220 (Aux 4, as the lane reported, 9:18 PM
+  EDT 2026-10-28): the Galaxy Map has the three reason glyph kinds and
+  the 20 class marker kinds, but body-level reasonOfBody in
+  bodymarkers.js only knows inhabited, gas giant, habitable,
+  uninhabitable and belt, so the Sector Map and System Map show none of
+  them. Add the same reasons and class markers there, off by default in
+  the same Points of interest group, with a browser test per map.
+  Prerequisites: none. Related: MAP.311, MAP.220.
+
+- [ ] **MAP.344 The civilization marker gains a technology band: filter and mark worlds by the technology level of their species**
+  Left out of MAP.311 (needs species tech_level, which is not stored on
+  the map side): store or derive the technology band per civilization
+  world and let the civilization reason in the interests filter choose a
+  band. Boss: sentient and civilised worlds are the rarest kind of life.
+  Prerequisites: MAP.343. Related: MAP.311.
 
 ## NAV: Navigation and courses
 
@@ -19809,14 +19801,6 @@ clears each one.
   (knows the climate draws).
   Prerequisites: none. Related: TEST.434, GEN.812.
 
-- [ ] **TEST.438 test_planet_classes test_only_the_known_writers_assign_a_class fails: db/interests.py is a new writer of planet_class and is not in CLASS_WRITERS (bug)**
-  Found by Aux 4 (9:02 PM EDT 2026-10-28). MAP.220 (migration 0172, Aux
-  2, #3547) added db/interests.py, which assigns planet_class; the
-  test's CLASS_WRITERS list needs the file, after checking that the
-  writer is the intended one (a stored user interest, not a generation
-  write). Small, no epoch. Owner: Aux 4.
-  Prerequisites: none. Related: MAP.220.
-
 - [ ] **TEST.439 test_web_browser_map_perf.py fails on main: the climb moves stars over the buffer at up 1 and up 4, and teardown raises page errors on indexOf and scale (bug)**
   Found by Core 2 (9:02 PM EDT 2026-10-28, as the lane reported) while
   merging MAP.333 (#3556); it fails on main without Z0. Find which
@@ -19824,6 +19808,14 @@ clears each one.
   or the node JSON systems field of MAP.122) and the two page errors,
   fix the code, or the test if its expectation is stale. Owner: Bug 1.
   Prerequisites: none. Related: TEST.434, MAP.240.
+
+- [ ] **TEST.440 test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale fails on main: the scale text reads 0.25 sectors where 2.5 is expected (bug)**
+  Found by Aux 4 (old Aux 2; as the lane reported, 9:18 PM EDT
+  2026-10-28) on a clean main while merging MAP.311. Find whether the
+  arrow keys really change the scale (a code bug) or the expected text
+  is stale after the zoom changes (MAP.333), and fix the code or the
+  test. Owner: Aux 4.
+  Prerequisites: none. Related: TEST.434, MAP.333.
 
 ## USR: User accounts
 
