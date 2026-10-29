@@ -3504,6 +3504,8 @@ function initGalaxyMap3d(canvasEl, data) {
     // center of the block the camera is inside, or null) the block drawn
     // from the inside (MAP.149).
     nearFieldAt: nearFieldAt,
+    // MAP.301: the stars the map draws now (their x, y, z in parsecs), which the wheel reads to head for a crowd of them.
+    drawnStars: function () { return starList; },
     // MAP.188: the blocks' alpha share (see gridUniform).
     setGridScale: function (scale) { gridUniform.value = scale; },
     gridScale: function () { return gridUniform.value; },

@@ -5169,3 +5169,32 @@ def test_the_wheel_does_not_stop_at_the_end_of_a_window_whose_sector_was_picked(
     box = page.locator(GALAXY_CANVAS).bounding_box()
     page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
     assert _wheel_until(page, 400, lambda: page.evaluate(STAGE_M) != 1, ticks=240), "the wheel stopped at the end of the sector window"
+
+
+
+def test_the_wheel_heads_for_the_crowd_in_front_of_the_zoom_and_does_not_fly_through_it(page, dense_site):
+    """MAP.301: looking at a point behind the dense region (the camera 40 pc over it, its focus 60 pc under it), a wheel scroll with the
+    pointer on the region takes the camera into the region and ends in it, where before it flew through to a star 13 pc beyond; a
+    pointer off the region has no crowd to head for."""
+    page.set_viewport_size(VIEWPORT)
+    x, y, z = DENSE_CENTER_PC
+    _open_galaxy(page, dense_site, f"?cam={x:.6f},{y:.6f},{z - 60:.6f},100,0,0,0,1")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFill().count > 0", timeout=20000)
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    _settle(page)
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    middle = (box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    thing = page.evaluate("([a, b]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(a, b)", list(middle))
+    assert thing["kind"] == "crowd" and math.dist(thing["point"], DENSE_CENTER_PC) < 2.0, thing
+    aside = page.evaluate("([a, b]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(a, b)", [middle[0] + 150, middle[1]])
+    assert aside["kind"] != "crowd", aside
+
+    page.mouse.move(*middle)
+    nearest = None
+    for _ in range(30):
+        page.mouse.wheel(0, -250)
+        page.wait_for_timeout(120)
+    eye = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")["eye"]
+    nearest = math.dist(eye, DENSE_CENTER_PC)
+    assert nearest < DENSE_HALO_RADIUS_PC / 2, f"the camera came into the region ({nearest:.2f} pc from its middle)"
+    assert eye[2] > z - DENSE_HALO_RADIUS_PC / 2, f"and did not go on through it ({eye})"
