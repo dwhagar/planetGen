@@ -1642,3 +1642,4 @@ Baseline: PR #1817.
 | MAP.331 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | DOC.48 | 8.1 | Docs |
 | GEN.822 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.123 | 8.1 | Admin and API housekeeping |

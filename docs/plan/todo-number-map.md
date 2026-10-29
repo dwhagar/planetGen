@@ -2524,7 +2524,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.120 | The system page and the one-off system page use it: every body's detail from the Document | none | done, PR #2206 |
 | UX.121 | The logging layer and the written standard | none | done, PR #3049 |
 | UX.122 | The command line, the job log files and the downloadable log use the layer | none | open |
-| UX.123 | The Generate page log, the admin log pages and update.sh output use the layer | none | open |
+| UX.123 | The Generate page log, the admin log pages and update.sh output use the layer | none | done, PR #3540 |
 | UX.124 | One form-field look and error slot, piloted on the search, nearby and list-filter fields | none | done, PR #2716 |
 | UX.125 | The Generate page and the one-off system page on the field macro | none | done, PR #3184 |
 | UX.126 | The admin pages and the edit dialogs on the field macro | none | done, PR #3387 |
