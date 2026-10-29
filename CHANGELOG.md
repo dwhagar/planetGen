@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2543] - 2026-10-29
+
+**Headline:** A planet's or moon's class is no longer drawn: every body is made from its mass, where it formed and its star, and the class letter is worked out from what it comes out as.
+
+### Changed
+generation-output: changed
+
+- **The class cut-over (GEN.646, GEN.681, GEN.682, GEN.684, GEN.685, GEN.687, GEN.688, GEN.689, GEN.690, GEN.840, and the mass-function half of GEN.829).** A planet's mass comes from the mass law (`physics/planet_mass.py`), its kind (rocky or giant) and origin (inside or beyond the snow line) from its formation (`physics/planet_kind.py`), its radius from its structure, its water from where it formed, its air from the air solver, and its class from `classify` at the end of its build and again once its star's flux variation is known. The class tables (`PLANET_CLASS_PROBABILITIES`, the zone gates, the radius, albedo and size-mode ranges, the moon blacklist) and every draw keyed by a class letter are deleted. A moon is a rocky body whose mass follows `dN/dlogM ~ M^-0.5` up to a share of its parent's mass. A rogue planet, a pulsar's disc planet and a forced habitable world are made by the same law and classed by the same classifier. A request that names a class (a slot's `planet_class`, `FORCE_CLASS`, a habitable world) draws whole planets at the place until one is that class (`StarSystem.build_planet`), and a request no draw can meet (a white dwarf's ecosphere holds no air) is left unmet instead of redrawing the system. A caller who gives a mass or radius outside 1e12 to 2.5e28 kg and 0.5 to 200,000 km, or a density outside what a planet can have, now gets a `ValueError`.
+- **Two bounds of the air solver, both stand-ins (registry rows CC7 and CC8).** The surface a greenhouse can reach stops at 2000 K, and a pressure that falls under 1 Pa is taken as an exosphere (airless); both were found by the first sweeps of the cut-over, where the iteration reached 3700 K and 1e-10 bar and the gas equilibrium did not converge. A sky colour is shown as none where an air of hundreds of kilobars leaves no light at the zenith.
+- **What changes for a reader of a system.** Every planet and moon is a different draw (new masses, makes and airs), so every generated system changes. The class sweep (`tests/class_sweep_cli.py`, report `class-cutover-sweep-2026-10-28.md`) lists the shares. Class T stays rare until the envelope law of the gas dwarfs (GEN.822, Aux 17), and class N is a large share of the warm planets until Aux 8's sinks and hydrogen cap (GEN.830, GEN.837) merge.
+- **Life reads conditions, not the letter.** Water share, porosity, albedo and the air no longer read a class letter (a body has class None until its conditions are final). Still keyed by the letter and filed apart: the dominant surface material (`surface_composition`), the stream label of the aerosols, the redraw of a life class in the ecosphere when `HABITABLE_WORLD` is False and the request steering by class (GEN.915, GEN.916).
+- **Prevalence.** The usual `habitable_world` share is 0.722 (it counts the classes that can carry life, mostly Q, P, V and K, while few worlds are habitable by the score; GEN.911 reworks the aim). The class census is re-baselined at this code and no longer bars a class from a zone; the system census shifts are tagged GEN.646.
+
 ## [8.0.2542] - 2026-10-29
 
 **Headline:** The clear-scatter test no longer fails when an earlier test left the logger silent.
