@@ -19216,6 +19216,14 @@ clears each one.
   Do: bisect the double-click pair and the POI key test, fix the cause
   (the test or the code, whichever is wrong), keep the tests. Not a
   skip. Done: both files pass on main. Owner: Aux 3 (it is bisecting).
+  Research (2026-10-09): Update (Core 2, 12:51 AM EDT 2026-10-29 as the
+  lane reported): the sector_reach double-click pair, the Go to test and
+  the Enter test (four tests) need no bisect: the info card covers the
+  pressed point and labels overlap the star, so the second click lands
+  on the card. Core 2 fixed it in its MAP.335 branch (mappick.js
+  clearOfPress flips the card away from the press; the test fly setup
+  hides labels) and they pass there. Aux 3 drops those four tests from
+  TEST.444 and keeps only the POI icon key test; they land with MAP.335.
   Prerequisites: none. Related: TEST.442, MAP.333, MAP.303.
   Prerequisites: none. Related: TEST.442, MAP.333, MAP.303.
 
