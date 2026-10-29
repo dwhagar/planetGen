@@ -18992,14 +18992,6 @@ clears each one.
   priority. Owner: none yet. Version 8.4.
   Prerequisites: none. Related: TEST.455.
 
-- [ ] **TEST.457 test_no_todo_codes_shown fails on main: util/settings.py shows the item code PERF.154 to users (bug)**
-  Found by Aux 7 while building UX.205 (as the lane reported 6:16 PM EDT
-  2026-10-29), red on clean main since PERF.154 (#3727): a user-visible
-  text in planetgen/util/settings.py names PERF.154. Do: reword the text
-  so no item code reaches a user (code comments may keep it), and run
-  the test. Owner: Aux 2 (it built PERF.154). Version 8.1.
-  Prerequisites: none. Related: PERF.154.
-
 - [ ] **TEST.458 test_sector_map_scale_line_follows_the_zoom fails on main (bug)**
   Found by Aux 4 while merging MAP.301 (#3756, as the lane reported 6:17
   PM EDT 2026-10-29): the browser test
