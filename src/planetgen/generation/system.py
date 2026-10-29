@@ -874,10 +874,6 @@ class StarSystem:
         # the end of that lifetime, the star itself keeps its age.
         draw_age_yr = min(age_yr, 0.95 * evolution.main_sequence_lifetime_gy(placed.birth_mass_solar) * 1.0e9)
 
-        # A forced count keeps a brown dwarf as a star at the hydrogen-burning limit, as a forced pair always had one.
-        unbuilt = (tuple(kind for kind in stored_trees.UNBUILT_KINDS if kind != "brown-dwarf")
-                   if count is not None else stored_trees.UNBUILT_KINDS)
-
         def tree(n_stars):
             for tree_age_yr in (age_yr, draw_age_yr):
                 try:
@@ -885,7 +881,7 @@ class StarSystem:
                         multistar.draw_member_tree(placed, tree_age_yr, max_stars=config.MAX_STARS, n_stars=n_stars,
                                                prevalence=prevalence.multi_star_scale(config), max_axis_au=limit_au,
                                                pair_placed=True),
-                        unbuilt)
+                        stored_trees.UNBUILT_KINDS)
                 except ValueError:    # the placed star has collapsed by this age
                     continue
             return multistar.draw_member_tree(placed, 0.0, n_stars=1)

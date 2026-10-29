@@ -312,10 +312,13 @@ COOL_WHITE_DWARF_BELOW_K = HOT_WHITE_DWARF_TEMP_RANGES['B'][0]  # a white dwarf 
 COOL_WHITE_DWARF_MAX_MASS_SOL = 1.0
 WHITE_DWARF_MASS_RADIUS_EXPONENT = -1/3
 
-# Temperature ranges for each spectral class in Kelvin
+# Temperature ranges for each spectral class in Kelvin. The A/F edge is F0V's 7220 K and the K/M edge M0V's 3850 K
+# (Pecaut and Mamajek 2013, the survey spectral-type table, to the nearest 100 K; recalled, to verify; GEN.897). Before it K ran down to 3700 K, so
+# stars of 0.4 to 0.55 solar masses, M0 to M2 in the surveys, came out K8 and K9 (K 19% of stars against 12% observed). The
+# luminosity ranges below already put the K/M edge at 0.08 solar luminosities, which is about 3900 K on the main sequence.
 TEMP_RANGES = {
-    'O': (30000, 60000), 'B': (10000, 30000), 'A': (7500, 10000), 'F': (6000, 7500),
-    'G': (5200, 6000), 'K': (3700, 5200), 'M': (2400, 3700)
+    'O': (30000, 60000), 'B': (10000, 30000), 'A': (7200, 10000), 'F': (6000, 7200),
+    'G': (5200, 6000), 'K': (3900, 5200), 'M': (2400, 3900)
 }
 
 # Luminosity ranges based on a star's spectral class (color/temperature).
@@ -333,7 +336,7 @@ SPECTRAL_LUMINOSITY_RANGES = {
 # radius (see `spaceSector.hill_radius_ly`) across spectral types.
 SPECTRAL_MASS_RANGES = {
     'O': (15, 90), 'B': (2, 16), 'A': (1.4, 2.1), 'F': (1.0, 1.4),
-    'G': (0.89, 1.07), 'K': (0.6, 0.9), 'M': (0.08, 0.45)
+    'G': (0.89, 1.07), 'K': (0.58, 0.9), 'M': (0.08, 0.58)
 }
 
 # Approximate luminosity ranges for each Yerkes luminosity class, in solar luminosities.

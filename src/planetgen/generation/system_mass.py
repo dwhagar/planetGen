@@ -14,9 +14,10 @@ age:
    too: a remnant is the placed object of the system it left.
 2. **The other stars.** The number of stars of its system is the `star-count` table's, by the placed star's class and
    with the 8 to 12 tail (`multistar.expected_star_count`); each further star has a birth mass of the placed star's
-   times a uniform 0.1 to 1 (`multistar.companion_ratio_range`) and is taken to its own state at the same age.
+   times a uniform 0.1 to 1, no lower than 0.08 solar masses (`multistar.companion_ratio_range`), and is taken to its own state at the same age.
 
-Not counted: a compact companion added to a massive star's tree (1% of the stars of 2 to 14 solar masses a white dwarf,
+Not counted: a brown dwarf companion (3% of the drawn trees, GEN.899, about 0.04 solar masses: under 0.1% of a system's
+mass), a compact companion added to a massive star's tree (1% of the stars of 2 to 14 solar masses a white dwarf,
 0.03% a neutron star, 0.02% a black hole: under 0.2% of a system's mass, `COMPACT_COMPANION_SHARE_BOUND`), the companions
 of the remnants the scatter places (a few percent of systems whose remnant has a companion at all), planets, and the
 mass the giant branch's wind takes (a living star is at its birth mass, which `present_day_moments` has always done).

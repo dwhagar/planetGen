@@ -18,10 +18,11 @@ and 7); the stability criteria, the Kozai-Lidov screen and the Peters time are
    that continues the table's last column, and the `prevalence` knob on the
    five-or-more columns. A forced `n_stars` or a lower `max_stars` wins.
 2. **Which members.** The other stars have initial masses `m1 * U(0.1, 1)`
-   (the ratio no lower than keeps the star over the deuterium limit, GEN.596)
-   and take their present state from the system's age (main sequence, giant,
-   white dwarf, pre-main-sequence, protostar; a brown dwarf below 0.08
-   solar masses). A compact companion (white dwarf, neutron star, black hole)
+   (the ratio no lower than keeps the star over the hydrogen-burning limit,
+   GEN.899: the table counts stars) and take their present state from the
+   system's age (main sequence, giant, white dwarf, pre-main-sequence,
+   protostar). A brown dwarf is one more member, in `tuning.BROWN_DWARF_COMPANION_CHANCE`
+   of the trees a directive does not count. A compact companion (white dwarf, neutron star, black hole)
    is added at the odds of `MEMBER_STATE_BY_PLACED`, one uniform draw per
    placed object, so the scatter's bulk pass can screen with it
    (`companion_state`) and call the tree only for the hits.
@@ -307,7 +308,7 @@ class MemberTree:
 
     @property
     def star_count(self):
-        return sum(member.kind not in COMPACT_KINDS for member in self.members)
+        return sum(member.kind not in COMPACT_KINDS and member.kind != "brown-dwarf" for member in self.members)
 
     @property
     def compact_count(self):
@@ -1335,12 +1336,12 @@ state itself."""
 
 def companion_ratio_range(birth):
     """The range `(low, high)` the birth mass of another star of a tree is drawn over, as a share of the primary's `birth`
-    solar masses, uniform: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the deuterium
-    limit (`brown_dwarf.mass_range_solar`): lighter objects are planets, filled in as planets are, not members of a tree
-    and not on the cooling tracks (GEN.596)."""
+    solar masses, uniform: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the hydrogen-burning
+    limit (`BROWN_DWARF_MAX_MASS_SOL`): the `star-count` table counts stars, so a lighter object would use up one of its
+    places (GEN.899). The brown dwarfs of a tree are a member of their own (`tuning.BROWN_DWARF_COMPANION_CHANCE`); lighter
+    objects than they are planets, filled in as planets are, not members of a tree (GEN.596)."""
     low_ratio, high_ratio = tuning.BINARY_MASS_RATIO_RANGE
-    floor = brown_dwarf.mass_range_solar()[0]
-    return min(max(low_ratio, floor / birth), high_ratio), high_ratio
+    return min(max(low_ratio, BROWN_DWARF_MAX_MASS_SOL / birth), high_ratio), high_ratio
 
 
 def _companion_mass(birth, rng):
@@ -1396,13 +1397,19 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
             count = max(1, min(n_stars, max_stars - (compact is not None)))
         for _ in range(count - 1):
             leaves.append(_star_leaf(_companion_mass(birth, rng), age_yr, rng, fe_h=placed.tree_fe_h))
+        # A brown dwarf is no star of the table's count: a drawn tree may hold one more member (a directive's count is
+        # of stars, so it adds none).
+        brown = (n_stars is None and birth > BROWN_DWARF_MAX_MASS_SOL and len(leaves) < max_stars - (compact is not None)
+                 and rng.random() < tuning.BROWN_DWARF_COMPANION_CHANCE)
+        if brown:
+            leaves.append(_star_leaf(brown_dwarf.sample_mass_solar(rng), age_yr, rng, fe_h=placed.tree_fe_h))
         if stripped and count >= 2:
             leaves[1] = _stripped_helium_leaf(birth, rng)
             leaf.flags |= MEMBER_MASS_GAINER
         if compact is not None:
             leaves.append(compact)
             units[0] = (0, len(leaves) - 1)
-        units.extend(range(1, count))
+        units.extend(range(1, count + brown))
         return leaves, units
     base = {"black-hole": _remnant_leaf("black-hole", birth, placed.mass_solar, _placed_direct_collapse(placed)),
             "intermediate-mass-black-hole": _remnant_leaf("black-hole", birth, placed.mass_solar, True),

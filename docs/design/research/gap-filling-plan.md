@@ -904,6 +904,17 @@ The class cut-over (GEN.646) makes a body from its mass, where it formed and its
 | CC10 | P | T9 | L3 | tuning.HABITABLE_REQUEST_FREE_ATTEMPTS 8 and HABITABLE_REQUEST_MASS_EARTH (0.5, 2.0) (a request for a habitable world draws freely, then draws Earth-like masses) | free attempts 4 to 16; masses 0.3 to 3 | the request only | test_gen_builder_internals::test_a_habitable_request_turns_to_earth_like_masses_after_its_free_draws; a request met in under 80 percent of systems around a K or A star | the PHI-6 steering of habitable requests (a follow-up of GEN.688) | design (needed output: a free draw in the ecosphere of an M5 dwarf gave a life class in none of 30, an Earth-like mass in 20 of 30) |
 <!-- class-cutover-standins:end -->
 
+### 6.23 Stand-ins of the star class edges and the brown dwarf companion (GEN.897, GEN.899)
+
+Rows SC1 and SC2. The star census (`tests/audit/prevalence_stars.py`, TEST.432) found K dwarfs at 19% of stars against 12% observed and an M2V primary with a companion star in 16% of systems against the table's 27%; both are fixed at the cause, and the two stand-ins they leave are here. Tiers T1 to T9 and tweak levels L0 to L4 as in 6.6a (GEN.725); the lane's reading (Bug 1), for the owner to confirm.
+
+<!-- star-census-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SC1 | P | T2 | L1 | constants.TEMP_RANGES: the A/F edge 7200 K and the K/M edge 3900 K (before, 7500 K and 3700 K); the F/G and G/K edges 6000 K and 5200 K are as they were | 100 K each | main-sequence stars of the solar neighbourhood | the star census mix of K, M and A against RECONS (`tests/audit/prevalence_stars.py`) | the spectral-type temperature table of Pecaut and Mamajek read in full | RECALLED (Pecaut and Mamajek 2013: F0V 7220 K, M0V 3850 K, rounded to 100 K; the luminosity ranges already put the K/M edge at 0.08 solar luminosities, about 3900 K) |
+| SC2 | P | T2 | L0 | tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars | 0.01 to 0.06 | stars heavier than 0.08 solar masses, trees a directive does not count | test_multistar.test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member | a brown dwarf companion survey of M dwarfs | RECALLED (Metchev and Hillenbrand 2009: 3.2 percent of solar-type stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU) |
+<!-- star-census-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

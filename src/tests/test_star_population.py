@@ -58,7 +58,9 @@ def population():
 # sampling noise and later tuning of the letter boundaries.
 EXPECTED_SHARES = [
     ("M dwarf", 68.0, 80.0),
-    ("K dwarf", 11.0, 18.0),
+    # GEN.897: the K/M edge is 3900 K (M0V), so K is the observed 12% of the main-sequence stars, 8.6% of this sample, which also
+    # holds the pre-main-sequence stars, white dwarfs and giants (K was 11 to 18% with the edge at 3700 K, where it ran to 19%)
+    ("K dwarf", 7.0, 12.0),
     ("G dwarf", 2.0, 6.0),
     ("F dwarf", 1.2, 3.0),
     # GEN.652: on the MIST main sequence a star is A-type (7500 to 10000 K) between about 1.75 and 2.4 solar masses and

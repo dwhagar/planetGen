@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 317 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 319 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,7 +37,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 38 | 0 | 3 | 0 | 0 | 41 |
-| T2 | 56 | 0 | 0 | 1 | 0 | 57 |
+| T2 | 57 | 1 | 0 | 1 | 0 | 59 |
 | T3 | 48 | 3 | 2 | 10 | 0 | 63 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
 | T5 | 14 | 5 | 1 | 0 | 0 | 20 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 16 | 3 | 0 | 7 | 0 | 26 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 216 | 18 | 10 | 56 | 17 | 317 |
+| All | 217 | 19 | 10 | 56 | 17 | 319 |
 
 ## How the labels were given
 
@@ -474,3 +474,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CC8 | P | T5 | L0 | surface_air.VACUUM_PRESSURE_PA 1 (below it the fixed point has no air to equilibrate: the body keeps an exosphere and is airless) | 0.1 to 10 | rocky bodies | test_surface_air::test_a_pressure_that_falls_to_a_vacuum_is_airless | an exosphere model | READ-level fact (the Moon and Mercury hold 1e-10 Pa and under); the edge is the solver's |
 | CC9 | P | T4 | L0 | tuning.GIVEN_MASS_KG_BOUNDS (1e12, 2.47e28) and GIVEN_RADIUS_KM_BOUNDS (0.5, 200000) (the mass and radius a caller may give; outside them the request is an error) | none | given inputs only | test_gen_moon_helpers::test_a_radius_or_mass_that_cannot_be_a_planet_raises | none | design (the lightest body the bulk draw builds to 13 Jupiter masses and the largest inflated giant) |
 | CC10 | P | T9 | L3 | tuning.HABITABLE_REQUEST_FREE_ATTEMPTS 8 and HABITABLE_REQUEST_MASS_EARTH (0.5, 2.0) (a request for a habitable world draws freely, then draws Earth-like masses) | free attempts 4 to 16; masses 0.3 to 3 | the request only | test_gen_builder_internals::test_a_habitable_request_turns_to_earth_like_masses_after_its_free_draws; a request met in under 80 percent of systems around a K or A star | the PHI-6 steering of habitable requests (a follow-up of GEN.688) | design (needed output: a free draw in the ecosphere of an M5 dwarf gave a life class in none of 30, an Earth-like mass in 20 of 30) |
+
+## 6.23 Stand-ins of the star class edges and the brown dwarf companion
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SC1 | P | T2 | L1 | constants.TEMP_RANGES: the A/F edge 7200 K and the K/M edge 3900 K (before, 7500 K and 3700 K); the F/G and G/K edges 6000 K and 5200 K are as they were | 100 K each | main-sequence stars of the solar neighbourhood | the star census mix of K, M and A against RECONS (`tests/audit/prevalence_stars.py`) | the spectral-type temperature table of Pecaut and Mamajek read in full | RECALLED (Pecaut and Mamajek 2013: F0V 7220 K, M0V 3850 K, rounded to 100 K; the luminosity ranges already put the K/M edge at 0.08 solar luminosities, about 3900 K) |
+| SC2 | P | T2 | L0 | tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars | 0.01 to 0.06 | stars heavier than 0.08 solar masses, trees a directive does not count | test_multistar.test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member | a brown dwarf companion survey of M dwarfs | RECALLED (Metchev and Hillenbrand 2009: 3.2 percent of solar-type stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU) |

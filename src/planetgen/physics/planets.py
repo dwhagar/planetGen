@@ -419,8 +419,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
 
 
 def _mantle_redox(planet, air, distance, water_lost):
-    """The mantle redox (log10 above iron-wuestite) of a rocky body whose air is not drawn: the mixture's when it has one, else the
-    recipe's redox rows at the body's own mass and age (`surface_air.mantle_redox_diw`)."""
+    """The mantle redox (log10 above iron-wuestite) of a rocky body: the air mixture's when it has one, else (no air, or an envelope's
+    mixture, which has none) the recipe's redox rows at the body's own mass and age (`surface_air.mantle_redox_diw`)."""
     if air is not None and air.mixture.redox_diw is not None:
         return air.mixture.redox_diw
     return surface_air.mantle_redox_diw(planet, distance, water_lost)
