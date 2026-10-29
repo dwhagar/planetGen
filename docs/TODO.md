@@ -10938,6 +10938,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gas-giant reason reads through that). Behaviour change to record in
   the PR: a request no draw can meet (a white dwarf ecosphere) reports
   unmet instead of redrawing.
+  Research (2026-10-09): Update (Bug 2, 3:16 AM EDT 2026-10-29 as the
+  lane reported): after GEN.855 the +habitable_world requests are still
+  12 of 12 unmet (class M drawn first lands on cold airless bodies, 177
+  to 270 K around M and K dwarfs); this cut-over is the cure and its
+  census should show the habitable requests met. See GEN.854.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -12804,32 +12809,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.715, GEN.717, GEN.718, GEN.850,
   GEN.851.
 
-- [ ] **GEN.853 No generated system reaches a technological civilization any more: tests/test_population.py cannot build one after 200 tries (bug)**
-  Found by Aux 9 on a clean checkout of main at e1953de0 (6:49 PM EDT
-  2026-10-28 as the lane reported): all 11 tests in
-  tests/test_population.py error at setup with "could not generate a
-  system with a civilization" after 200 tries (about 6 minutes per
-  test), so either no habitable G2V system reaches a technological
-  civilization in generation any more (a real regression after the air
-  and life changes, which would mean a galaxy with no civilizations) or
-  the _civilized_system filter in the test is stale. First settle which:
-  generate a fixture galaxy and count technological civilizations, then
-  compare with the pre-air-change count. If generation is wrong, fix it
-  (it changes generated output: epoch and lock turn); if only the test
-  filter is stale, fix the filter. Never loosen or skip the tests.
-  Owner: Bug 1, first in its queue after UX.234 follow-ups; tell me
-  which it is.
-  Research (2026-10-09): Cause found (Bug 1, 7:12 PM EDT as the lane
-  reported): 4c leaves no free oxygen in the air and nothing makes
-  biogenic oxygen; fixed by GEN.855 (Core 1). Retires with GEN.855.
-  Research (2026-10-09): Update (TODO, 3:06 AM EDT 2026-10-29): the
-  cause GEN.855 merged as #3663 (epoch 119). This item retires when
-  tests/test_population.py builds a civilization again on main; Bug 1
-  reruns it after #3663 and tells me. Core 1's census: civilizations G2V
-  0 in 100, K5V 2 in 100, so the test filter may need a K or a longer
-  search.
-  Prerequisites: none. Related: POP.30, TEST.425.
-
 - [ ] **GEN.854 Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug)**
   Boss, 6:59 PM EDT 2026-10-28 (relayed by the coordinator), live
   observation, so a bug: looking at the list of class M planets on his
@@ -12858,6 +12837,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   limit (Chlorophyll a needs a sunlit sea and is vetoed on A and M
   stars, GEN.867), so many class M worlds stay not habitable by design.
   This item retires after Boss regenerates and looks.
+  Research (2026-10-09): Update (Bug 2, 3:16 AM EDT 2026-10-29 as the
+  lane reported): GEN.855 alone did not clear this. After #3663, the
+  +habitable_world requests are still 12 of 12 unmet: the requested
+  class M worlds come out at 177 to 270 K around M and K dwarfs, almost
+  all with zero air (one at 2.7 atm), Melanin or no life, phi4 0.29 to
+  0.61. The letter-first draw puts class M on airless cold bodies; the
+  class-from-conditions cut-over GEN.646 is the intended cure. Life
+  prevalence is GEN.907.
   Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
 
 - [ ] **GEN.857 Biogenic gases for non-oxygenic worlds: methane and haze from anoxygenic and chemoautotroph communities, donor drawdown, and registry entries for each stand-in**
@@ -13606,6 +13593,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after Aux 2's life bundle). Prerequisites: none. Related: TEST.441,
   UX.208.
   Prerequisites: none. Related: TEST.441, UX.208.
+
+- [ ] **GEN.907 Life census: only 0.08% of life worlds reach animals against the 15 to 35% band, because almost all life worlds are Melanin or Retinal and few ordinary worlds are oxygenic (bug)**
+  Found by Bug 2 (3:16 AM EDT 2026-10-29 as the lane reported),
+  re-running the censuses on main after GEN.855 + GEN.750 (#3663). Life
+  census (240 systems, 1246 life worlds): 1 world (0.08%) reaches
+  animals against the 15 to 35% band of life-classes.md 5.2. Cause: 1242
+  of the 1246 life worlds are Melanin (radiotrophic) or Retinal, only 4
+  are oxygenic (chlorophyll); Core 1's 21 to 33 per 100 describes
+  oxygenic life only. Either random systems almost never produce
+  oxygenic life worlds (the chlorophyll window needs a temperate
+  liquid-water world and few ordinary worlds are one), or the band in
+  life-classes.md 5.2 should be per oxygenic world, not per life world.
+  A CALL FOR BOSS OR CORE 1: which is wrong, the generator or the band.
+  Do: Core 1 measures how many ordinary temperate liquid-water worlds
+  the generator makes and whether the oxygenic share is physically
+  expected, then puts the choice to Boss in plain words (change the
+  generator, or re-state the band per oxygenic world); then the chosen
+  fix with its census retag. Version 8.1. Owner: Core 1 (first the
+  diagnosis; Aux 2 owns the chemistry weights GEN.867 and the life
+  classes, so tell it). Prerequisites: none. Related: GEN.867, GEN.855,
+  GEN.750, GEN.646, GEN.853, GEN.854, TEST.430.
+  Prerequisites: none. Related: GEN.867, GEN.855, GEN.750, GEN.646,
+  GEN.853, GEN.854, TEST.430.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
