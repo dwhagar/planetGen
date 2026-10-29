@@ -57,6 +57,7 @@ Use:
     # atmosphere_state.greenhouse_warming solves the surface temperature with tau0(T_s) (the fixed point)
 """
 
+import functools
 import math
 from dataclasses import dataclass
 
@@ -221,17 +222,53 @@ class Vapour:
     cloud_cover: float
 
 
+_PLANCK_TERMS = 40
+"""int: The terms of the Planck fraction's series for a large `x`."""
+_PLANCK_N = np.arange(1, _PLANCK_TERMS + 1).astype(float)[:, None]
+_PLANCK_N2 = (np.arange(1, _PLANCK_TERMS + 1) ** 2).astype(float)[:, None]
+_PLANCK_N3 = (np.arange(1, _PLANCK_TERMS + 1) ** 3).astype(float)[:, None]
+_PLANCK_NEGLIGIBLE = 45.0
+"""float: Term `n` of the series is `exp(-(n - 1) x)` times the first at most, so from `(n - 1) x` of 45 on (3e-20) it is under half the
+last bit of the sum and adding it changes nothing: a sum that stops there has the bits of one that goes on to the 40th term."""
+
+
+_PLANCK_STEPS = (2.0, 6.0, 20.0, 50.0)
+"""tuple: The `x` from which a series of fewer terms is as good as the 40 (`_PLANCK_NEGLIGIBLE`), the smallest `x` of a group fixing its terms."""
+
+
+def _planck_sum(large, count):
+    """The series of the Planck fraction at `large` (a 1-d array of `x` of 2 and over), its first `count` terms added in order."""
+    n, n2, n3 = _PLANCK_N[:count], _PLANCK_N2[:count], _PLANCK_N3[:count]
+    terms = np.exp(-n * large) / n * (large ** 3 + 3.0 * large ** 2 / n + 6.0 * large / n2 + 6.0 / n3)
+    return np.add.accumulate(terms, axis=0)[-1]
+
+
 def planck_fraction_below(x):
     """The share of a blackbody's power below the dimensionless frequency `x = h c nu / (k T)`, array in, array out."""
     x = np.asarray(x, dtype=float)
-    small = np.minimum(x, 2.0)
-    series = 15.0 / math.pi ** 4 * (small ** 3 / 3.0 - small ** 4 / 8.0 + small ** 5 / 60.0 - small ** 7 / 5040.0
-                                    + small ** 9 / 272160.0 - small ** 11 / 13305600.0)
-    large = np.maximum(x, 2.0)
-    total = np.zeros_like(large)
-    for n in range(1, 41):
-        total += np.exp(-n * large) / n * (large ** 3 + 3.0 * large ** 2 / n + 6.0 * large / n ** 2 + 6.0 / n ** 3)
-    return np.where(x < 2.0, series, 1.0 - 15.0 / math.pi ** 4 * total)
+    shape = x.shape
+    x = x.reshape(-1)
+    result = np.empty_like(x)
+    below = x < 2.0
+    small = x[below]
+    result[below] = 15.0 / math.pi ** 4 * (small ** 3 / 3.0 - small ** 4 / 8.0 + small ** 5 / 60.0 - small ** 7 / 5040.0
+                                           + small ** 9 / 272160.0 - small ** 11 / 13305600.0)
+    large = x[~below]
+    if large.size:
+        # The terms are formed at once and added in order (`add.accumulate` adds one after the other where `add.reduce` adds pairwise), the
+        # sum having the bits of a loop that adds `n = 1, 2, ...` to a running total (PERF.201); each `x` has only as many terms as it needs.
+        total = np.empty_like(large)
+        done = np.zeros(large.shape, dtype=bool)
+        for least in reversed(_PLANCK_STEPS):
+            group = ~done & (large >= least)
+            if group.any():
+                total[group] = _planck_sum(large[group], 1 + math.ceil(_PLANCK_NEGLIGIBLE / least))
+                done |= group
+        rest = ~done                                                 # a NaN: no comparison holds, the whole sum is made
+        if rest.any():
+            total[rest] = _planck_sum(large[rest], _PLANCK_TERMS)
+        result[~below] = 1.0 - 15.0 / math.pi ** 4 * total
+    return result.reshape(shape)
 
 
 def planck_weights(temperature_k):
@@ -259,10 +296,22 @@ def _band_depth(formula, column_kg_m2, pressure_scaling):
     """The optical depth of a gas's bands in every bin: the plateau opacity grows with the pressure (line widths do)."""
     kappa0 = (BAND_KAPPA0_M2_KG if gases.gas(formula).ir == "ir" else WEAK_KAPPA0_M2_KG) * pressure_scaling
     depth = np.zeros_like(CENTRES_CM1)
+    for factor, falloff in _band_falloffs(formula):
+        depth += factor * kappa0 * column_kg_m2 * falloff
+    return depth
+
+
+@functools.lru_cache(maxsize=None)
+def _band_falloffs(formula):
+    """`[(factor, falloff)]` for a gas's plateaus: the shape each one has over the bins, which depends on neither the column nor the
+    pressure (PERF.201: worked out once per gas; the arrays are shared and cannot be written to)."""
+    shapes = []
     for low, high, factor in _plateaus(formula):
         distance = np.maximum(np.maximum(low - CENTRES_CM1, CENTRES_CM1 - high), 0.0)
-        depth += factor * kappa0 * column_kg_m2 * np.exp(-distance / WING_E_FOLD_CM1)
-    return depth
+        falloff = np.exp(-distance / WING_E_FOLD_CM1)
+        falloff.flags.writeable = False
+        shapes.append((factor, falloff))
+    return tuple(shapes)
 
 
 def _wing_depth(formula, column_kg_m2, pressure_scaling):
@@ -343,6 +392,19 @@ def pair_coefficient(pair, temperature_k):
     return _interpolate(entry[0], temperature_k)
 
 
+@functools.lru_cache(maxsize=1)
+def _continuum_on_grid():
+    """The water continuum's table on the grid bins it covers, which do not depend on the temperature: the mask of those bins, the
+    self coefficient at the reference temperature, its temperature exponent and the foreign coefficient (PERF.201: worked out once)."""
+    nus = [row[0] for row in WATER_CONTINUUM]
+    log_self = [math.log(row[1]) for row in WATER_CONTINUUM]
+    log_for = [math.log(row[2]) for row in WATER_CONTINUUM]
+    exponent = [row[3] for row in WATER_CONTINUUM]
+    inside = (CENTRES_CM1 >= nus[0]) & (CENTRES_CM1 <= nus[-1])
+    nu = CENTRES_CM1[inside]
+    return inside, np.exp(np.interp(nu, nus, log_self)), np.interp(nu, nus, exponent), np.exp(np.interp(nu, nus, log_for))
+
+
 def _water_continuum_depth(vapour, molar_mass_kg_mol, gravity_m_s2):
     """The continuum's optical depth in every bin, summed over the layers of the vapour profile (zero without water vapour)."""
     depth = np.zeros_like(CENTRES_CM1)
@@ -351,15 +413,9 @@ def _water_continuum_depth(vapour, molar_mass_kg_mol, gravity_m_s2):
     q = vapour.fraction[:, None]
     density_cm3 = (vapour.pressure_pa / (constants.BOLTZMANN * vapour.temperature_k) * 1.0e-6)[:, None]
     height_cm = (constants.R * vapour.temperature_k / (molar_mass_kg_mol * gravity_m_s2) * vapour.log_step * 100.0)[:, None]
-    nus = [row[0] for row in WATER_CONTINUUM]
-    log_self = [math.log(row[1]) for row in WATER_CONTINUUM]
-    log_for = [math.log(row[2]) for row in WATER_CONTINUUM]
-    exponent = [row[3] for row in WATER_CONTINUUM]
-    inside = (CENTRES_CM1 >= nus[0]) & (CENTRES_CM1 <= nus[-1])
-    nu = CENTRES_CM1[inside]
+    inside, sigma_self_reference, exponent, sigma_for = _continuum_on_grid()
     cold = (WATER_CONTINUUM_REFERENCE_K / vapour.temperature_k)[:, None]
-    sigma_self = np.exp(np.interp(nu, nus, log_self)) * cold ** np.interp(nu, nus, exponent)
-    sigma_for = np.exp(np.interp(nu, nus, log_for))
+    sigma_self = sigma_self_reference * cold ** exponent
     # tau = (sigma_self (n_w / n_ref) + sigma_for (n_for / n_ref)) n_w dz per layer: n_w = q n, n_for = (1 - q) n, dz = H d(ln p)
     reference = WATER_CONTINUUM_REFERENCE_DENSITY_CM3
     depth[inside] = (((sigma_self * q + sigma_for * (1.0 - q)) * q * density_cm3 ** 2 / reference) * height_cm).sum(axis=0)

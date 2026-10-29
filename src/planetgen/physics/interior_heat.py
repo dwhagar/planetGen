@@ -298,25 +298,35 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         """The temperature and released heat at `age_gy` with `source_w` of constant heat added to the radiogenic."""
         temperature = min(surface_k + energy_j / capacity, cap_k)
 
-        def rate(t_gy, kelvin):
+        def rate(radiogenic, conduction):
+            return GY_S * (radiogenic + source_w - conduction) / capacity
+
+        def conduction_at(kelvin):
             # a strong tide moves the temperature past the cap within one step, and a stage beyond the range of the viscosity law makes no sense
-            kelvin = min(max(kelvin, surface_k), cap_k)
-            return GY_S * (radiogenic_w(t_gy) + source_w - conduction_w(kelvin)) / capacity
+            return conduction_w(min(max(kelvin, surface_k), cap_k))
 
         t, step, released_j = 0.0, FIRST_STEP_GY, 0.0
+        # the radiogenic power at the start of a step is that at the end of the one before, and the two middle stages share one time;
+        # the flux at the start is the one the last step ended with (PERF.201: the same values, each worked out once)
+        radiogenic_start = radiogenic_w(0.0)
+        flux = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)
         while t < age_gy:
-            flux = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)
             # the cooling rate's own time scale: the flux changes by Ea / (R T^2) per kelvin (an overestimate by about three)
             stiffness = GY_S * flux * area_dry_m2 / capacity * activation / (GAS_CONSTANT * temperature ** 2)
             h = min(step, age_gy - t, 1.0 / stiffness if stiffness > 0.0 else step)
-            k1 = rate(t, temperature)
-            k2 = rate(t + 0.5 * h, temperature + 0.5 * h * k1)
-            k3 = rate(t + 0.5 * h, temperature + 0.5 * h * k2)
-            k4 = rate(t + h, temperature + h * k3)
+            radiogenic_middle = radiogenic_w(t + 0.5 * h)
+            radiogenic_end = radiogenic_w(t + h)
+            k1 = rate(radiogenic_start, flux * area_dry_m2 if surface_k <= temperature <= cap_k else conduction_at(temperature))
+            k2 = rate(radiogenic_middle, conduction_at(temperature + 0.5 * h * k1))
+            k3 = rate(radiogenic_middle, conduction_at(temperature + 0.5 * h * k2))
+            k4 = rate(radiogenic_end, conduction_at(temperature + h * k3))
             # a step can overshoot the cold end as well as the cap: below the surface the viscosity law runs on a negative or tiny exponent
             # and the flux (and so the stiffness) is astronomical, which collapses the step to nothing (GEN.866)
             temperature = min(max(temperature + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0, surface_k), cap_k)
-            released_j += 0.5 * (flux + _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)) * area_dry_m2 * h * GY_S
+            flux_end = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)
+            released_j += 0.5 * (flux + flux_end) * area_dry_m2 * h * GY_S
+            flux = flux_end
+            radiogenic_start = radiogenic_end
             t += h
             step = min(step * STEP_GROWTH, STEP_LIMIT_GY)
         return temperature, released_j
