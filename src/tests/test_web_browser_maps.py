@@ -107,16 +107,20 @@ def _click_body(marker):
     marker.locator("circle.sysmap-body-fill").click()
 
 
+@pytest.mark.viewport(1280, 900)  # the planet's info card (MAP.332 sizes it to its content) covers the moons in a window of 800x600
 def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     client = site_app.test_client()
     systems = client.get("/api/systems?limit=100").get_json()["items"]
     target = None
     for system in systems:
         resp = client.get(f"/system/{system['id']}")
-        if b'data-scene="' in resp.data and re.search(rb'data-kind="planet"[^>]*data-scene="', resp.data):
+        # The whole-system scene draws planets only for a single-star system (a system of several stars draws its
+        # stars there, and each star's planets in a scene of its own), so the planet with moons must be in that scene.
+        whole = re.search(rb'<svg class="sysmap-svg" data-scene="system".*?</svg>', resp.data, re.S)
+        if whole and re.search(rb'data-kind="planet"[^>]*data-scene="', whole.group(0)):
             target = system["id"]
             break
-    assert target, "no generated system has a planet with moons"
+    assert target, "no generated single-star system has a planet with moons"
     # The map's own ready mark (its click handlers are on), not a fixed
     # wait: under load the script can still be loading after a second (TEST.104).
     # The diagram, as a visitor who chose it sees it (3D is the default).
@@ -989,7 +993,7 @@ def test_galaxy_map_menu_filters_sit_side_by_side(page, base_url, size):
     assert len(chips) >= 7
     assert all(c["w"] < panel / 2 for c in chips), chips
     assert len({c["top"] for c in chips}) < len(chips) / 2, "toggles should share rows"
-    assert page.locator("#galaxymap3d-menu .galaxy-sub > summary").is_visible()
+    assert page.locator("#galaxymap3d-show > summary").is_visible()
 
 
 

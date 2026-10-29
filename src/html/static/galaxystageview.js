@@ -2062,6 +2062,12 @@ export function createStageView(host) {
     return ambient && !ambient.loading ? { id: ambient.id, key: ambient.key, share: ambientShare } : null;
   };
 
+  // For the browser tests (TEST.442): the sector opened in place once its scene is up and takes clicks, {id, share}, or null
+  // (the panel names the sector from its address before the scene has been fetched, and a click then falls on a cell).
+  canvasEl.galaxyOpenSector = function () {
+    return sectorStage.isOpen() ? { id: sectorStage.sectorId(), share: sectorStage.fade() } : null;
+  };
+
   // --- The sector opened in place (MAP.66) ------------------------------------
 
   // Closes the open sector's scene; the stage it sits in stays.

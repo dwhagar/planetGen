@@ -3,10 +3,11 @@
 // A link to a heading inside a collapsed section opens that section (opensection.js). Pages with fewer than three
 // headings, and headings in dialogs or hidden regions, get no list. A page that already has a contents list of its own gets no
 // second one (UX.235): a nav in <main>, or any element flagged `data-own-toc`, with three or more links to headings or sections on
-// the same page (the Settings page's group list is one); a menu of links to other pages is not.
+// the same page (the Settings page's group list is one); a menu of links to other pages is not. The Galaxy Map's page (the wide
+// main column, `app-main-wide`) gets none: its map takes the page's whole width, and the menu's column would narrow it (TEST.442).
 (function () {
   const main = document.getElementById("main");
-  if (!main) return;
+  if (!main || main.classList.contains("app-main-wide")) return;
   const heads = [...main.querySelectorAll("h2, h3")].filter(
     h => !h.closest("sl-dialog, dialog, [hidden], .page-toc") && (!h.checkVisibility || h.checkVisibility()));
   if (heads.length < 3) return;
