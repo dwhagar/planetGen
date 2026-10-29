@@ -621,6 +621,9 @@ def main(argv=None):
 
     previous_handler = signal.signal(signal.SIGTERM, interrupted)  # a stop from outside ends like Ctrl-C: with the INTERRUPTED line
     try:
+        stale = reap_strays()   # TEST.398: a worker an earlier run left (even one running old code) would take this run's units
+        if stale:
+            print(f"scripts/test.py {key}: before the run, ended {stale}", flush=True)
         for label, marker, workers in build_phases(args.command, args.areas, args.workers, args.browser_workers):
             phase = label
             capped = ""

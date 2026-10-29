@@ -51,7 +51,22 @@ WATCH = """() => {
 # The controls inside an open popover menu that overlap one another.
 MENU_OVERLAPS = """([menu, selector]) => {
   const root = document.querySelectorAll(menu)[0];
-  const boxes = [...root.querySelectorAll(selector)].filter((el) => el.checkVisibility()).map((el) => ({ el, r: el.getBoundingClientRect() }))
+  // What can be seen of a control: its box cut to every scrolling or clipping ancestor inside the menu. A panel taller
+  // than the room it has scrolls inside, and the controls past its edge lie geometrically over the button they hang
+  // from without being drawn there (TEST.418).
+  const seen = (el) => {
+    const b = el.getBoundingClientRect();
+    let r = { left: b.left, top: b.top, right: b.right, bottom: b.bottom };
+    for (let p = el.parentElement; p && p !== root.parentElement; p = p.parentElement) {
+      const style = getComputedStyle(p);
+      if (/auto|scroll|hidden|clip/.test(style.overflowX + style.overflowY)) {
+        const c = p.getBoundingClientRect();
+        r = { left: Math.max(r.left, c.left), top: Math.max(r.top, c.top), right: Math.min(r.right, c.right), bottom: Math.min(r.bottom, c.bottom) };
+      }
+    }
+    return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.right - r.left, height: r.bottom - r.top };
+  };
+  const boxes = [...root.querySelectorAll(selector)].filter((el) => el.checkVisibility()).map((el) => ({ el, r: seen(el) }))
     .filter(({ r }) => r.width > 1 && r.height > 1);
   const found = [];
   for (let i = 0; i < boxes.length; i++) {

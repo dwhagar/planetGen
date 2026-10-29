@@ -114,6 +114,18 @@ def test_budget_runs_only_the_budget_tests_on_one_worker_and_switches_them_on(mo
     assert seen[0]["PLANETGEN_BUDGET"] == "1"
 
 
+def test_a_run_ends_the_queue_workers_an_earlier_run_left_before_its_first_phase(monkeypatch, capsys):
+    """TEST.398: a worker left by an earlier run picks up the units of this one, so it is ended before the first phase."""
+    order = []
+    monkeypatch.setattr(runner, "reap_strays", lambda: order.append("reap") or "2 queue worker process(es) a test started and did not stop")
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: order.append("phase") or (0, {"passed": 1}))
+    monkeypatch.setattr(runner, "save_run", lambda *args: None)
+    monkeypatch.setattr(runner, "load_runs", lambda: {})
+    assert runner.main(["budget"]) == 0
+    assert order[0] == "reap" and "phase" in order and order.index("reap") < order.index("phase")
+    assert "before the run, ended 2 queue worker process(es)" in capsys.readouterr().out
+
+
 def test_only_the_end_of_version_run_switches_on_the_version_gate(monkeypatch):
     seen = []
     monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: seen.append(environment) or (0, {"passed": 1}))

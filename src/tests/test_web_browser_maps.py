@@ -991,7 +991,10 @@ def test_galaxy_map_menu_filters_sit_side_by_side(page, base_url, size):
         .map(b => { const r = b.getBoundingClientRect(); return {w: r.width, top: Math.round(r.top)}; })""")
     panel = page.evaluate("document.querySelector('#galaxymap3d-menu .galaxy-menu-panel').getBoundingClientRect().width")
     assert len(chips) >= 7
-    assert all(c["w"] < panel / 2 for c in chips), chips
+    # Natural width, not one full-width button each: a long label (a 70-chip Menu has a few) may pass half the panel,
+    # none takes the row, and nearly all stay under half (TEST.418).
+    assert all(c["w"] < panel * 0.75 for c in chips), chips
+    assert sum(c["w"] < panel / 2 for c in chips) >= 0.9 * len(chips), chips
     assert len({c["top"] for c in chips}) < len(chips) / 2, "toggles should share rows"
     assert page.locator("#galaxymap3d-show > summary").is_visible()
 
