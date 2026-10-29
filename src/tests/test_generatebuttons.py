@@ -110,3 +110,31 @@ def test_sector_buttons_post_the_generate_pages_address_and_shell_modes():
         ("Generate the entire shell (not recommended)",
          {**base, "mode": "shell", "shell_index": "40", "whole_shell": "1"}),
     ]
+
+
+def test_the_block_button_posts_the_generate_pages_block_mode():
+    """UX.127: a block of the ladder posts `mode=block` with its key, and asks first when it is large or its size unknown."""
+    out = _run(_FAKE_DOM + """
+const box = G.blockGenerateButtons(TARGET, "9.40.2.5", 600);
+const big = G.blockGenerateButtons(TARGET, "243.0.0.0", 90000);
+console.log(JSON.stringify({forms: forms(box), hint: box.children[1].textContent, bigConfirms: !!big.children[0].listeners.submit,
+  smallConfirms: !!box.children[0].listeners.submit,
+  unknownConfirms: !!G.blockGenerateButtons(TARGET, "9.40.2.5").children[0].listeners.submit}));""")
+    assert out["forms"] == [{"action": "/admin/generate", "label": "Generate this block", "fields": {
+        "csrf_token": "tok", "action": "galaxy", "mode": "block", "block_key": "9.40.2.5", "whole_block": "1"}}]
+    assert out["hint"] == "Starts a background job on the Generate page."
+    assert out["bigConfirms"] and out["unknownConfirms"] and not out["smallConfirms"]
+
+
+def test_the_block_button_is_disabled_with_its_reason_while_a_job_runs():
+    out = _run(_FAKE_DOM + """
+const target = {...TARGET, busy: "Generate sectors", jobUrl: "/admin/generate#current-job"};
+const box = G.blockGenerateButtons(target, "9.40.2.5", 600);
+const button = box.children[0].children.find((c) => c.tag === "button");
+const hint = box.children[1];
+console.log(JSON.stringify({disabled: button.disabled, title: button.title, hint: hint.textContent,
+  link: hint.children.map((a) => [a.href, a.textContent])}));""")
+    assert out["disabled"] is True
+    assert out["title"] == "Another job is running"
+    assert out["hint"].startswith("Not now: Generate sectors is still running.")
+    assert out["link"] == [["/admin/generate#current-job", "See its progress"]]

@@ -629,7 +629,8 @@ class FixtureApi:
         return {"items": [], "total": 0, "limit": limit, "offset": offset}
 
     def auth_me(self, cookie_header):
-        return None
+        """Nobody is signed in, unless the browser sends a session cookie (UX.127's admin Generate buttons)."""
+        return {"username": "fixture-admin", "must_change_credentials": False} if cookie_header else None
 
     def get_galaxy_nebula_cover(self, db, at=None, g=None):
         """No fixture cell lies inside a nebula, and the real API is not asked for a database that does not exist."""

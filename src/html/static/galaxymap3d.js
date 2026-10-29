@@ -53,7 +53,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
-  cellAt, cellCoordinates, cellVertices, drillBandCount, drillBlockBounds, drillParent, drillWedgeCount, isFullTurn,
+  cellAt, cellCoordinates, cellVertices, drillBandCount, drillBlockBounds, drillParent, drillWedgeCount, formatDrillKey, isFullTurn,
   neighbourBlock, sectorAddressAt, sectorDesignation,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
@@ -101,7 +101,7 @@ const {
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
-const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
+const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 const {
   NEBULA_MESH_MIN_PX, buildNebulaMesh, createShapeLoader, disposeNebulaMesh,
 } = await import(`./nebulamesh.js${VERSION_QUERY}`);
@@ -417,6 +417,8 @@ function showBlockInfo(info, edgePc) {
     fields: fields,
     more: more,
     buttons: info.enter ? [{ label: "Fly into this block →", onClick: info.enter }] : [],
+    // UX.127: an admin's Generate for the block, the same job the command's --block runs.
+    generate: sceneData.generate ? blockGenerateButtons(sceneData.generate, formatDrillKey(block), info.total) : null,
   }, block.m <= REGION_BLOCK_MAX ? cellCoordinates(b).cartesian : null));
 }
 

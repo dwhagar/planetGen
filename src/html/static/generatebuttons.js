@@ -126,6 +126,40 @@ export function neighborhoodForm(target, shell, band, wedge, edgeLy) {
   return form;
 }
 
+// The Generate button of a block of the Galaxy Map's ladder (UX.127, GEN.310): `blockKey` is "m.shell.band.wedge" and
+// `sectors` how many sectors the block holds, when the map knows. The job is `planetgen sectors --block`, started on the
+// Generate page, which the post lands on. A job already running (`target.busy`, its title) leaves the button disabled
+// with that as its reason and a link to the job's progress.
+export function blockGenerateButtons(target, blockKey, sectors) {
+  var box = document.createElement("div");
+  box.className = "starmap-generate starmap-generate-block";
+  if (!(sectors > 0)) sectors = null;
+  var big = sectors == null || sectors > NEIGHBORHOOD_CONFIRM_SECTORS;
+  var form = generateForm(target, "Generate this block",
+    [["mode", "block"], ["block_key", blockKey], ["whole_block", "1"]],
+    big ? "This generates every sector the galaxy's outline holds in block " + blockKey
+      + (sectors == null ? "" : " (up to about " + formatNumber(sectors) + " sectors)") + ", and can run for hours. Start it anyway?" : null);
+  box.appendChild(form);
+  var hint = document.createElement("p");
+  hint.className = "hint";
+  if (target.busy) {
+    var button = form.lastChild;
+    button.disabled = true;
+    button.title = "Another job is running";
+    hint.textContent = "Not now: " + target.busy + " is still running. ";
+    if (target.jobUrl) {
+      var link = document.createElement("a");
+      link.href = target.jobUrl;
+      link.textContent = "See its progress";
+      hint.appendChild(link);
+    }
+  } else {
+    hint.textContent = "Starts a background job on the Generate page.";
+  }
+  box.appendChild(hint);
+  return box;
+}
+
 // The three buttons for sector (shell, band, wedge): it alone, its
 // neighborhood (with a radius to set), and its whole shell (after a
 // confirm). `edgeLy` (the sector edge, light years) is optional: without

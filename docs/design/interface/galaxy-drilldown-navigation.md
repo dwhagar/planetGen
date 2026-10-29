@@ -518,6 +518,13 @@ the Generate page's block mode (`--block`, `--block-layer`). The
 progress line below is not built; the form still posts and follows the
 redirect to the job page.
 
+**Block buttons since the shell ladder (UX.127):** the layer and slab forms went with the old addresses. A block of the
+ladder (3, 9, 27, 81 or 243 sectors a side) offers one "Generate this block" in its info card
+(`blockGenerateButtons`), posting the Generate page's Block mode (`mode=block`, `block_key=m.shell.band.wedge`,
+`whole_block=1`, which becomes `--yes`) and landing on the job's progress. It asks first when the block is large or its
+size is unknown, and it is disabled with the running job's title and a link to it while another job holds the Generate
+page (`generate_target`'s `busy` and `jobUrl`).
+
 **After starting (planned):** the form posts to the admin Generate page as today.
 Instead of following the redirect, the map sends it with `fetch` and
 reads the job URL. The panel then shows a progress line (polling the
