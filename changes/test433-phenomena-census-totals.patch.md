@@ -1,0 +1,6 @@
+**Headline:** The prevalence suite now checks how many black holes, neutron stars, magnetars, planetary nebulae, supernova remnants and Wolf-Rayet stars the Galaxy holds against the surveys.
+
+### Added
+- **The phenomena census, first cut (TEST.433).** `src/tests/audit/prevalence_phenomena.py` sums the phenomenon scatter's expected count of each class over every shell of the Milky Way-shaped reference galaxy (no mass cut) and checks the totals of stellar-mass and intermediate-mass black holes, neutron stars, magnetars, planetary nebulae, supernova remnants and Wolf-Rayet stars against `src/tests/data/prevalence_phenomena_expectations.json`: the catalogued counts as floors (294 supernova remnants, 26 magnetars, nearly 3000 planetary nebulae) and Rosslowe and Crowther's 1200 Wolf-Rayet stars. The first run found three faults (GEN.900 too few supernova remnants, GEN.901 too few magnetars, GEN.902 too few Wolf-Rayet stars) and the researched estimates above them. A range the generator breaks carries the item that will fix it and prints in `phenomena-census-latest.md` instead of failing.
+
+TODO items resolved: none (TEST.433 stays open for open clusters, rogue planets, interstellar comets and the nebula classes; giant molecular clouds and globular clusters have tests of their own). Added: none.
