@@ -84,7 +84,7 @@ def _download_progress():
     console = Console()
     if console.is_terminal:
         return _Bars(console)
-    return fetch.PlainProgress(lambda text: print(text, flush=True))
+    return fetch.PlainProgress(log.normal)
 
 
 def main(argv=None):
@@ -99,7 +99,7 @@ def main(argv=None):
     log.apply_debug_arguments(args, parser)
     datasets = _chosen(args.keys)
     if not datasets:
-        print("No datasets are registered yet.")
+        log.normal("No datasets are registered yet.")
         return 0
     absent = 0
     progress = _download_progress() if args.command == "fetch" else None
@@ -108,22 +108,22 @@ def main(argv=None):
             result = fetch.fetch(dataset, progress=progress)
             if result.status == "missing":
                 absent += 1
-                print(_line(dataset, True, "; ".join(result.reasons)) + _CONSEQUENCE.format(dataset.replaces))
+                log.normal(_line(dataset, True, "; ".join(result.reasons)) + _CONSEQUENCE.format(dataset.replaces))
             else:
-                print(_line(dataset, False, f"{result.status} ({len(dataset.pieces)} files, {fetch.folder(dataset)})"))
+                log.normal(_line(dataset, False, f"{result.status} ({len(dataset.pieces)} files, {fetch.folder(dataset)})"))
             for handled in result.pieces:
-                print(_piece_line(handled.state, handled.piece, handled.reason))
+                log.normal(_piece_line(handled.state, handled.piece, handled.reason))
         else:
             located = fetch.locate(dataset)
             if located.missing:
                 taken = args.disregard_missing_data and bool(dataset.fallback)
                 absent += not taken
-                print(_line(dataset, True, located.reason)
-                      + (_DISREGARDED.format(dataset.fallback) if taken else _CONSEQUENCE.format(dataset.replaces)))
+                log.normal(_line(dataset, True, located.reason)
+                           + (_DISREGARDED.format(dataset.fallback) if taken else _CONSEQUENCE.format(dataset.replaces)))
                 for piece, reason in located.lacking:
-                    print(_piece_line("missing", piece, reason))
+                    log.normal(_piece_line("missing", piece, reason))
             else:
-                print(_line(dataset, False, f"present in {located.folder}"))
+                log.normal(_line(dataset, False, f"present in {located.folder}"))
     return 1 if absent else 0
 
 

@@ -284,25 +284,27 @@ class _ConsoleHandler(logging.Handler):
         super().__init__()
         self._console = None
         self.to_stderr = False
+        self.errors_to_stderr = False
 
     def set_console(self, console):
         self._console = console
 
     def emit(self, record):
-        self.write(self.format(record))
+        self.write(self.format(record), to_stderr=self.errors_to_stderr and record.levelno >= logging.WARNING)
 
-    def write(self, message):
-        """One finished line to the console (a line a worker formatted comes through here too)."""
+    def write(self, message, to_stderr=False):
+        """One finished line to the console (a line a worker formatted comes through here too). `to_stderr` sends it to stderr
+        whatever the handler's own stream."""
         if self._console is not None:
             # ADM.23: one line, wrapped by whatever shows it (a terminal,
             # the web job log), never hard-broken at the console's width
             # (80 when piped); and brackets are text, not rich markup.
             self._console.print(message, soft_wrap=True, markup=False)
         else:
-            stream = sys.stderr if self.to_stderr else sys.stdout
+            stream = sys.stderr if (self.to_stderr or to_stderr) else sys.stdout
             print(message, file=stream)
         try:
-            (sys.stderr if self.to_stderr else sys.stdout).flush()
+            (sys.stderr if (self.to_stderr or to_stderr) else sys.stdout).flush()
         except (OSError, ValueError):
             pass
 
@@ -365,7 +367,7 @@ def _attach_record_file(level):
     _record_handler = handler
 
 
-def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, areas=None):
+def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, areas=None, errors_to_stderr=False):
     """
     (Re)configures the shared logger for the given console severity `level`
     (`SILENT`/`NORMAL`/`DEBUG`). `debug_file`, if given, is opened as an
@@ -387,6 +389,8 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
             web interface, where stdout is the HTTP response (CGI) or not
             ours to write to (mod_wsgi).
         to_stderr (bool): Write the console's lines to stderr, for a command whose own result goes to stdout.
+        errors_to_stderr (bool): Write the lines of `warning` severity and above to stderr and the rest to stdout, as a standalone
+            command's own messages go (UX.122).
         areas (str | None): The areas debug output is limited to (`parse_areas`); `None` takes `PLANETGEN_DEBUG_AREAS`,
             then `config.json`'s `"debug_areas"`, then every area.
     """
@@ -403,6 +407,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
     _console_handler.setFormatter(formatter)
     _console_handler.setLevel(console_level)
     _console_handler.to_stderr = to_stderr
+    _console_handler.errors_to_stderr = errors_to_stderr
     _console_handler.filters.clear()
     if level == DEBUG:
         _console_handler.addFilter(_origin_filter)
@@ -490,10 +495,11 @@ def add_debug_arguments(parser):
                 add_records(sub, argparse.SUPPRESS)
 
 
-def apply_debug_arguments(args, parser=None):
+def apply_debug_arguments(args, parser=None, errors_to_stderr=False):
     """
     Configures logging for a standalone command from the options `add_debug_arguments` added, and from debug mode in
-    `config.json`. Call it right after parsing. Debug output goes to stdout.
+    `config.json`. Call it right after parsing. Debug output goes to stdout; with `errors_to_stderr` the lines of `warning`
+    severity and above go to stderr (see `configure`).
     """
     wanted = getattr(args, "debug", False) or config_debug()
     areas = getattr(args, "debug_areas", None)
@@ -505,7 +511,7 @@ def apply_debug_arguments(args, parser=None):
                 raise
             parser.error(f"--debug-areas: {exc}")
     apply_record_arguments(args)
-    configure(DEBUG if wanted else NORMAL, areas=areas)
+    configure(DEBUG if wanted else NORMAL, areas=areas, errors_to_stderr=errors_to_stderr)
 
 
 _SECRET_OPTIONS = ("--mysql-password",)
@@ -1143,6 +1149,11 @@ def debug(message, *args, area=None, **kwargs):
 def normal(message, *args, **kwargs):
     kwargs.setdefault("stacklevel", 2)
     _logger.info(message, *args, **kwargs)
+
+
+def warning(message, *args, **kwargs):
+    kwargs.setdefault("stacklevel", 2)
+    _logger.warning(message, *args, **kwargs)
 
 
 def error(message, *args, **kwargs):

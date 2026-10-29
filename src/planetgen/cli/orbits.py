@@ -213,8 +213,7 @@ class _Cancel:
         if not self.moving or (self.requested and signum == signal.SIGINT):
             raise KeyboardInterrupt
         if not self.requested:
-            print("Cancel requested: finishing this orbital update first so the stored positions stay consistent.",
-                  flush=True)
+            log.normal("Cancel requested: finishing this orbital update first so the stored positions stay consistent.")
         self.requested = True
 
     def __enter__(self):
@@ -242,7 +241,7 @@ def main():
     parser.add_argument('--version', action=VersionAction, banner=version_banner('planetgen.cli.orbits'))
     log.add_debug_arguments(parser)
     args = parser.parse_args()
-    log.apply_debug_arguments(args, parser)
+    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
     if args.row_ceiling < 0:
         parser.error("--row-ceiling must be 0 (no ceiling) or more.")
 
@@ -251,13 +250,13 @@ def main():
     try:
         updateguard.refuse_while_updating("The orbital update")
     except updateguard.UpdateRunning as exc:
-        print(f"The orbital update did not run and moved nothing: {exc}", file=sys.stderr)
+        log.error(f"The orbital update did not run and moved nothing: {exc}")
         sys.exit(updateguard.EX_TEMPFAIL)
 
     try:
         conn = get_connection(config)
     except Exception as exc:
-        print(f"error: could not open the database ({exc}).", file=sys.stderr)
+        log.error(f"could not open the database ({exc}).")
         sys.exit(1)
 
     cancel = _Cancel()
@@ -265,13 +264,13 @@ def main():
         with updateguard.running("orbits", "Orbital update"), cancel:
             _run(conn, cancel, args.row_ceiling)
         if cancel.requested:
-            print("The cancel request came during the run: the update finished first, so nothing is half moved.")
+            log.normal("The cancel request came during the run: the update finished first, so nothing is half moved.")
     except KeyboardInterrupt:
-        print("Stopped part-way by a second interrupt: run the orbital update again to finish it." if cancel.moving
-              else "Cancelled before any position moved.", file=sys.stderr)
+        log.error("Stopped part-way by a second interrupt: run the orbital update again to finish it." if cancel.moving
+                  else "Cancelled before any position moved.")
         sys.exit(130)
     except Exception as exc:
-        print(f"error: {exc}", file=sys.stderr)
+        log.error(str(exc))
         sys.exit(1)
     finally:
         conn.close()
@@ -283,15 +282,15 @@ def _run(conn, cancel, row_ceiling):
     """One orbital update on `conn`; from the first stage on it does not stop for a cancel (`_Cancel`)."""
     elapsed_years = get_orbit_update_elapsed_years(conn)
     if elapsed_years is None:
-        print("No previous orbit update found for this database -- moving what is due since each "
+        log.normal("No previous orbit update found for this database -- moving what is due since each "
               "object was made.")
     elif elapsed_years < 0:
         # The server's clock went back since the last run: never move
         # anything backwards; this run restarts the clock from now.
-        print(f"The last orbit update is {-elapsed_years:.6f} years in the future (the database server's "
+        log.normal(f"The last orbit update is {-elapsed_years:.6f} years in the future (the database server's "
               "clock moved back?) -- moving nothing and restarting the clock from now.")
     else:
-        print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing what is due.")
+        log.normal(f"{elapsed_years:.6f} years elapsed since the last update -- advancing what is due.")
     clock = orbit_clock(conn)
     budget = RowBudget(row_ceiling)
     budget.plan(conn, clock)
@@ -332,16 +331,15 @@ def _run(conn, cancel, row_ceiling):
             bar.detail("sector paths", done, len(sectors))
         conn.commit()
     summary = ", ".join(f"{counts[table]} {label}" for table, label in TABLE_LABELS.items())
-    print(f"Updated: {summary} (only what was due).")
+    log.normal(f"Updated: {summary} (only what was due).")
     warning = budget.warning()
     if warning:
-        print(f"warning: {warning}", file=sys.stderr)
-        log.normal(f"orbit update: {warning}")
+        log.warning(warning)
     elif budget.limits:
-        print("Everything that was due fit under the row ceiling.")
-    print(f"Moved {motion['moved']} object(s) along their galactic orbits; {motion['refiled']} changed "
+        log.normal("Everything that was due fit under the row ceiling.")
+    log.normal(f"Moved {motion['moved']} object(s) along their galactic orbits; {motion['refiled']} changed "
           f"sector. Refreshed nearest systems and containment; rewrote {after['locations']} location(s).")
-    print(f"{after['entered_nebula']} object(s) entered a nebula and {after['left_nebula']} left one; "
+    log.normal(f"{after['entered_nebula']} object(s) entered a nebula and {after['left_nebula']} left one; "
           f"{after['entered_remnant']} entered a supernova remnant and {after['left_remnant']} left one.")
 
 
