@@ -843,7 +843,7 @@ with `clamp()`.
   free body with no rotation stored) shows nothing; also replaces the
   "Hours of daylight a person can be outside: not stored" row (UX.199)
   with these shares. Done: page tests on Earth-like, locked and moon
-  cases find the shares and the sentence. Owner: Aux 6, after GEN.767
+  cases find the shares and the sentence. Owner: unowned (Aux 6 retired 2026-10-28; lock-free pool), after GEN.767
   supplies the columns. Related: UX.199, GEN.767.
   Research (2026-10-09, Daylight and outside hours): Boss, 8:22 PM EDT
   2026-10-24 (message
@@ -923,7 +923,7 @@ with `clamp()`.
   and lists them in reports/. Done: the test passes on main with the
   empty applicable columns excused by filed item numbers (a list in the
   test, each entry an item id that is open), and the Enuakyadas IV page
-  has no "not stored" row. Owner: Aux 6 (property sheet). Related:
+  has no "not stored" row. Owner: unowned (Aux 6 retired 2026-10-28; lock-free pool) (property sheet). Related:
   UX.188, UX.198, UX.199, UX.203, UX.205, TEST.358, GEN.767, GEN.768.
   Prerequisites: none. Related: UX.188, UX.198, UX.199, UX.203, UX.205,
   TEST.358, GEN.767, GEN.768.
@@ -946,173 +946,6 @@ with `clamp()`.
   each. Done: the probe lists no bare number on the Generate page and a
   browser test pins it. Version 8.1. Owner: Core 5.
   Prerequisites: none. Related: UX.208, GEN.772.
-
-- [ ] **UX.215 Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table**
-  Boss, 10:26 PM EDT 2026-10-24 (relayed by the coordinator), planet
-  page redesign: "on page TOC should be a menu on the left side and
-  let's put the location links inside at a glance under a Location table
-  item, change the title from 'Rendered Example' to something more
-  fitting the in-universe nav feel, instead of zone E let's have it just
-  say Ecosphere / Habitable Zone and give the range for that zone in
-  appropriate units.  The same goes for Hot Zone and Cold Zone, the
-  class letter 'M' should be a link to what Class M is.  Atmosphere
-  section on a planet display should be a heading, then just show the
-  atmosphere table, since it shows more than the gas list.  Same for
-  composition.  We should show the planet's actual composition by mass
-  in a table.  Then, instead of 'It is a temperate world' (or other
-  text) the system should procedurally generate a short summary of the
-  planet based on the data.  No details, class, surface conditions,
-  safety equipment needed, PHI-6 summary, sustainability score and life
-  scores in paragraph form.  Radiation and Survival equipment along with
-  the PHI-6 score details should come above the atmosphere composition.
-  So should go: About planet; Table; Summary Paragraph; Life Paragraph
-  (only when it exists); Civ / Political Paragraph (only when it
-  exists); PHI-6 Table / Details; Atmosphere Table (w/ heading);
-  Composition Table (w/ heading). Each of those should be a heading in
-  the TOC menu." This item: the TOC (UX.196) becomes a menu fixed on the
-  left side of the page (a drawer under the narrow-screen breakpoint,
-  reachable by keyboard), with an entry for each section heading in the
-  order of UX.221; the links up the chain (galaxy, sector, system,
-  parent star or planet, containing region, UX.144) move into a Location
-  row of the at-a-glance table, where the top breadcrumb used to carry
-  them. Done: a browser test checks the menu entries match the headings
-  and the Location row holds every link of the chain. Rules: every
-  number has a unit or scale (GEN.772); absent or zero values hidden
-  unless the absence matters; collapsible sections start collapsed;
-  tests are `scripts/test.py changed --resume` with a browser test on a
-  sample planet page. Version 8.1. Owner: Aux 6. Part of the planet
-  page redesign: UX.215 to UX.222.
-  Prerequisites: none. Related: UX.196, UX.195, UX.188.
-
-- [ ] **UX.216 Object pages: the "Rendered example" panel gets an in-universe navigation title**
-  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
-  UX.215). Rename the panel (item.html, the rendered example of UX.171)
-  to a title that fits the navigation console feel (for example "Optical
-  survey" for a body, "Chart view" for a system; Aux 11 picks the words,
-  one per kind, and lists them in the PR). Done: no page says "Rendered
-  example"; a test pins the titles. Rules: every number has a unit or
-  scale (GEN.772); absent or zero values hidden unless the absence
-  matters; collapsible sections start collapsed; tests are
-  `scripts/test.py changed --resume` with a browser test on a sample
-  planet page. Version 8.1. Owner: Aux 6. Part of the planet page
-  redesign: UX.215 to UX.222.
-  Prerequisites: none. Related: UX.196, UX.195, UX.188.
-
-- [ ] **UX.217 System and planet pages name the zones: "Ecosphere / Habitable Zone", "Hot Zone", "Cold Zone", each with its range in appropriate units, instead of "Zone E"**
-  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
-  UX.215). Where a page says a body is in "zone E" (or the zone letters
-  of the star zones), say "Ecosphere / Habitable Zone" for the habitable
-  zone and "Hot Zone" and "Cold Zone" for the inner and outer zones, and
-  give each zone's range from the star: inner and outer edge in AU (with
-  light-minutes beside it for the inner ones, or km for a very close
-  zone; the unit registry picks the unit, GEN.769 rules). Done: a planet
-  page shows "Ecosphere / Habitable Zone, 0.95 to 1.37 AU" (values from
-  the star) in every unit setting; no page prints a bare zone letter.
-  Rules: every number has a unit or scale (GEN.772); absent or zero
-  values hidden unless the absence matters; collapsible sections start
-  collapsed; tests are `scripts/test.py changed --resume` with a browser
-  test on a sample planet page. Version 8.1. Owner: Aux 6. Part of the
-  planet page redesign: UX.215 to UX.222.
-  Prerequisites: none. Related: UX.196, UX.195, UX.188.
-
-- [ ] **UX.218 The class letter on pages is a link to the page for that class (Class M and the rest)**
-  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
-  UX.215). Everywhere a page prints a planet or moon class letter (the
-  at-a-glance table, lists, search, the infobox, the sheet) the letter
-  links to the class page (web/class_pages.py), with the class name
-  beside it where there is room. Done: a browser test follows the link
-  from a class M planet to the Class M page. Rules: every number has a
-  unit or scale (GEN.772); absent or zero values hidden unless the
-  absence matters; collapsible sections start collapsed; tests are
-  `scripts/test.py changed --resume` with a browser test on a sample
-  planet page. Version 8.1. Owner: Aux 6. Part of the planet page
-  redesign: UX.215 to UX.222.
-  Prerequisites: none. Related: UX.196, UX.195, UX.188.
-
-- [ ] **UX.219 Planet pages: Atmosphere and Composition are each a heading followed by their table; the composition table is the planet's actual composition by mass**
-  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
-  UX.215). Atmosphere: a heading, then only the atmosphere table (it
-  holds more than the gas list: pressure, density, scale height,
-  greenhouse and the rest), no separate gas list above it. Composition:
-  a heading, then a table of the planet's actual composition by mass
-  (each component with its mass fraction in percent and its mass in kg
-  or Earth masses, from the stored bulk composition, GEN.642 and DB.70),
-  absent components hidden. Done: both appear as headings in the TOC
-  with tables, for a rocky, an ocean and a gas giant sample, and the
-  composition fractions sum to 100 percent. Rules: every number has a
-  unit or scale (GEN.772); absent or zero values hidden unless the
-  absence matters; collapsible sections start collapsed; tests are
-  `scripts/test.py changed --resume` with a browser test on a sample
-  planet page. Version 8.1. Owner: Aux 6. Part of the planet page
-  redesign: UX.215 to UX.222.
-  Research (2026-10-09, Progress): Boss, 10:30 PM EDT 2026-10-24
-  (relayed by the coordinator): atmosphere composition is measured by
-  the standard measure for an atmosphere, whether partial pressure or
-  mole (volume) fraction, and it is named in the table heading; use the
-  mole fraction as the main column with the partial pressure beside it,
-  and put the measure in the heading (for example "Atmosphere
-  composition (mole fraction, partial pressure in kPa)"). The solid
-  composition table is by mass and says so in its heading ("Composition
-  (mass fraction)").
-  Prerequisites: none. Related: UX.196, UX.195, UX.188.
-
-- [ ] **UX.220 Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores**
-  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
-  UX.215). Generate a short summary paragraph (two or three sentences)
-  from the stored data: what kind of world it is (size, mass, surface or
-  giant, what it is made of), its place (orbit, zone, star) and the one
-  or two things that stand out (a thick atmosphere, an ocean, a tidally
-  locked face, rings), in the in-universe voice of the pages. It must
-  not repeat what sits in the tables or sections below: no class,
-  surface conditions, safety equipment, PHI-6 summary, sustainability
-  score or life scores. Procedural: sentences are chosen by rules over
-  the data, not a fixed text per class, and the same planet always gets
-  the same paragraph (a hash of the object id picks among phrasings).
-  Done: 100 sample planets give 100 sensible paragraphs with no repeated
-  block of text for different data, and a test checks the banned content
-  is absent. Rules: every number has a unit or scale (GEN.772); absent
-  or zero values hidden unless the absence matters; collapsible sections
-  start collapsed; tests are `scripts/test.py changed --resume` with a
-  browser test on a sample planet page. Version 8.1. Owner: Aux 6. Part
-  of the planet page redesign: UX.215 to UX.222.
-  Prerequisites: none. Related: UX.196, UX.195, UX.188.
-
-- [ ] **UX.221 Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities**
-  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
-  UX.215). Life paragraph: shown only when Flora, Fauna or Sentient is
-  above 0: what lives there in words from the four life scores and the
-  life stage, present tense (GEN.766), with the food situation. Civ /
-  Political paragraph: shown only when a species with a civilization
-  lives there: the species, its tech band, its polity or polities and
-  nations where POP.18 to POP.20 exist, otherwise only what the stored
-  population tables hold. Hidden entirely when absent. Done: a world
-  with no life shows neither paragraph, a living world shows Life, a
-  civilized world shows both, in a browser test. Rules: every number has
-  a unit or scale (GEN.772); absent or zero values hidden unless the
-  absence matters; collapsible sections start collapsed; tests are
-  `scripts/test.py changed --resume` with a browser test on a sample
-  planet page. Version 8.1. Owner: Aux 6. Part of the planet page
-  redesign: UX.215 to UX.222.
-  Prerequisites: UX.220. Related: UX.196, UX.195, UX.188.
-
-- [ ] **UX.222 Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu**
-  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
-  UX.215). Put the sections in this order: About planet; the at-a-glance
-  Table; the Summary paragraph; the Life paragraph (only when it
-  exists); the Civilization / Political paragraph (only when it exists);
-  the PHI-6 table and details with Radiation and Survival equipment (all
-  above the atmosphere); the Atmosphere table; the Composition table.
-  Each is a heading and an entry in the left TOC menu. Moons use the
-  same order; stars, belts and the other kinds keep their own orders and
-  move only if they carry the same sections. Done: a browser test reads
-  the heading order on a rocky, an ocean, a gas giant, a living and a
-  civilized sample. Rules: every number has a unit or scale (GEN.772);
-  absent or zero values hidden unless the absence matters; collapsible
-  sections start collapsed; tests are `scripts/test.py changed --resume`
-  with a browser test on a sample planet page. Version 8.1. Owner: Aux
-  11. Part of the planet page redesign: UX.215 to UX.222.
-  Prerequisites: UX.215, UX.220, UX.221. Related: UX.196, UX.195, UX.219.
-  UX.188.
 
 - [ ] **UX.223 Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
@@ -1251,7 +1084,7 @@ with `clamp()`.
   from the gated phoneme codec only, never from Milky Way or Solar
   System lists. An object is placed by the block holding its current
   position, never by its ID. Done: the line on sector, system and body
-  pages, hidden when absent, test pinned. Owner: Aux 6. Rules: no
+  pages, hidden when absent, test pinned. Owner: unowned (Aux 6 retired 2026-10-28; lock-free pool). Rules: no
   backward-compat shims; every number has a unit or scale (GEN.772);
   tests are scripts/test.py changed --resume.
   Prerequisites: DB.107. Related: GEN.825, DB.107, GEN.826, API.35,
@@ -1266,7 +1099,7 @@ with `clamp()`.
   seven symbols and score colours as the Galaxy Map key. Done: a page
   test finds the key on a star system page that carries a
   habitable-world marker and not on a page without markers, and the key
-  lines match the Galaxy Map key. Owner: Aux 6 (object pages). Version:
+  lines match the Galaxy Map key. Owner: unowned (Aux 6 retired 2026-10-28; lock-free pool) (object pages). Version:
   8.1.
   Prerequisites: none. Related: MAP.320, MAP.305.
 
@@ -2702,80 +2535,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
   nothing in 8.1.
   Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
-
-- [ ] **MAP.328 Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views)**
-  Boss, 2:48 AM EDT 2026-10-25: 'rendered objects should slowly rotate
-  on their axis in all views, all stars should do the same in all views
-  where it can be seen (excludes galactic views).' Do: every body drawn
-  as a sphere or mesh (planets, moons, asteroids and comets that have a
-  shape, stars in the sector view, the star system views and the object
-  view) turns about its own axis. The axis follows the stored axial tilt
-  and the direction follows the stored spin direction (retrograde turns
-  the other way); the rate is the body's stored rotation period scaled
-  by one shared view-time factor so the slowest day still shows a
-  visible turn and the fastest does not strobe (a cap of about one turn
-  in 20 seconds, a floor of about one turn in 10 minutes, the same
-  factor on every body so the order of speeds stays true). Bodies with
-  no stored period (or tidally locked, which then turn once per orbit)
-  use the period the generator gives them and never a made-up one: if a
-  value is absent the body is left still and the gap is listed in the
-  PR. The galactic views (galaxy, regions, sector blocks as points and
-  glows) do not rotate anything. The turn is drawn with the painter's
-  own texture and lighting so the terminator, glow and clouds stay put
-  relative to the star while the surface turns; with MAP.277 and MAP.280
-  the clouds turn a little differently from the ground. A menu switch
-  'Spin' (default on) and the reduced-motion setting turn it off. Done:
-  a browser test samples a planet's texture offset twice a second apart
-  and sees it change at the capped rate, a retrograde body turns the
-  other way, a locked moon turns once per orbit, stars turn in the
-  sector view and nothing turns in the galaxy view, and the switch and
-  reduced-motion stop it. Owner: Core 2 (the system and object views)
-  with Aux 10 for stars in the sector view. Version: 8.1 (small, rides
-  the existing renderer). Related to the rendering-from-composition
-  chain R0-R12 only for the painter hooks (MAP.275, MAP.277, MAP.280);
-  it does not wait on them. Rules: no backward-compat shims; tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: MAP.193, MAP.275, MAP.277, MAP.280,
-  MAP.285, GEN.731.
-  Added (2026-10-09): Boss, 2:48 AM EDT 2026-10-25: this is particularly
-  true of every individual object details page: the rendered example on
-  every star, planet, moon, belt body and other object page turns slowly
-  on its axis with the same rule. Owner for the object pages: Aux 11,
-  who reuses the same turning function Core 2 builds (one function, one
-  scale factor, one Spin switch and reduced-motion handling shared by
-  the map views and the pages; the pages are the first thing Boss will
-  look at). Done adds: a browser test on a star page, a planet page and
-  a moon page samples the rendered example twice and sees it turn at the
-  capped rate.
-  Part merged (2026-10-09): Part merged as #3337 (Core 2, as the lane
-  reported 3:56 AM EDT 2026-10-25): planets, moons and stars turn slowly
-  on the System Map and in the 3D system view, each at a speed that
-  follows its real day (fastest one turn in 20 s, slowest one in 10
-  minutes, a longer day never faster), retrograde bodies the other way,
-  bodies with no stored period stay still; a Spin button in the System
-  Map Menu and the reduced-motion setting hold everything still. The
-  shared function is static/spin.js (Spin.turn, tick, pictureAxisOf);
-  the look record now carries spinH, axis and tiltDeg. The rate law is
-  recorded as stand-in SP1 (tier T9, tweak level L4) in gap-filling-plan
-  6.9 and the generated stand-in list. Still open: stars in the sector
-  view (Aux 10) and the object details pages (Aux 11), both on the
-  shared function.
-  Progress (2026-10-09): Part done by Core 2 (#3408, 10:41 AM EDT
-  2026-10-28 as the lane reported; object pages were Aux 11's in the
-  text above, Core 2 took them): the rendered example on every star,
-  planet and moon page turns slowly on its axis, same law as the System
-  Map (retrograde backwards, light fixed, no stored period means the
-  body stays still), with a Spin button and reduced motion honoured.
-  Open: stars in the Sector Map view (Aux 10); belts and comets have no
-  picture to turn (no look record); the black-hole, neutron-star and
-  nebula views are separate renderers.
-  Research (2026-10-09): Progress (2026-10-28): the stars-in-sector part
-  merged as #3447 (1:00 PM EDT as the lane reported, Aux 10): planets,
-  moons and stars of a system opened in the Galaxy Map sector turn by
-  the System Map's one spin law, and a Spin layer in the Menu holds them
-  still. Stars stand still until they have a stored rotation period
-  (GEN.846). Still open: the system view and the object pages (Core 2
-  and Aux 11 with the planet page redesign UX.215-222).
 
 - [ ] **MAP.329 System Map stepping reaches systems across a sector's edge**
   Follow-up from MAP.121 (Core 2, #3430, 12:13 PM EDT 2026-10-28 as the
@@ -19146,6 +18905,9 @@ clears each one.
   are the likely sources) and make the test force a comet the way
   test_systems forces a belt. Done: the test passes. Owner: Bug Hunt
   (proposed).
+  Research (2026-10-09): Aux 11 (as the lane reported, 2026-10-28) saw
+  test_object_rows round-trip red again on clean main while merging
+  #3573; still open, Bug 1.
   Prerequisites: none. Related: GEN.631, TEST.313.
 
 - [ ] **TEST.333 test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug)**
@@ -19877,6 +19639,11 @@ clears each one.
   find each cause, fix it in the test or the code (never skip, loosen or
   quarantine a test), and check the habitable layer default is intended
   (Boss asked for markers on). Owner: Bug 1.
+  Research (2026-10-09): Aux 11 (as the lane reported, 2026-10-28) saw
+  test_no_todo_codes_shown red on strings GEN.826 (cli/generate.py:700),
+  GEN.703 (datasets/hitran_cia.py, ir_ktables.py), DB.48 (db/repair.py),
+  GEN.441 (describe/sheet.py:460), DB.46 (util/settings.py:377) and the
+  generate help test; the exact list for part (2).
   Prerequisites: none. Related: MAP.220, MAP.311, TEST.405, TEST.418.
 
 - [ ] **TEST.435 Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges**
@@ -19919,6 +19686,20 @@ clears each one.
   or the node JSON systems field of MAP.122) and the two page errors,
   fix the code, or the test if its expectation is stale. Owner: Bug 1.
   Prerequisites: none. Related: TEST.434, MAP.240.
+
+- [ ] **TEST.441 Tests red on main from the albedo-greenhouse, moon-tidal-flux and mass-backfill migrations; the white dwarf models dataset is also missing on a fresh test machine (bug)**
+  Found by Aux 11 (as the lane reported, 2026-10-28) while merging
+  UX.215-222 (#3573) on the slow-machine allowance; none are in its
+  files. Red: test_mass_backfill (same-seed stars),
+  test_migration_albedo_greenhouse (two tests),
+  test_migration_moon_tidal_flux. A fresh test machine also needs
+  `datasets fetch white_dwarf_models` before the suite runs; the setup
+  step that fetches the datasets (update.sh path) should do it, or the
+  tests that need it should say so. Do: find each cause (check the last
+  epoch and migration that touched these), fix the test or the code
+  (never skip, loosen or quarantine a test), and make the white dwarf
+  models fetch part of test setup. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.332, TEST.434, TEST.405.
 
 ## USR: User accounts
 
