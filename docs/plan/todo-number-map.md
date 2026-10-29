@@ -2240,7 +2240,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | none | done, PR #1506 |
 | PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | none | done, PR #1553 |
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | none | done, PR #1999 |
-| PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | none | open |
+| PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | none | done, PR #3654 |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | none | done, PR #3030 |
 | PERF.100 | Work queue step 6: delete the old machinery and the work_* tables (Alembic migration) | none | open |
 | PERF.101 | No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug) | none | done, PR #1620 |
