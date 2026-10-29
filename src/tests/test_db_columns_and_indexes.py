@@ -13,7 +13,6 @@ columns the searches filter and sort on are indexed.
 - A run's command line and a job's command line are one row per argument.
 """
 
-import json
 import uuid
 
 import pymysql
@@ -46,7 +45,7 @@ PROSE_TEXT_COLUMNS = {
     # DB.62: the list of errors an upload unit met, as a JSON document
     ("upload_units", "errors"),
     # Control schema: an error message and the audit log's note.
-    ("work_tasks", "error"), ("admin_audit_log", "detail"),
+    ("admin_audit_log", "detail"),
     ("generation_stage_runs", "settings"), ("generation_stage_runs", "metrics"),
     # OPS.58: the generator battery's digest per case and the environment record, as JSON documents read whole
     ("galaxy_shape", "battery_cases"), ("version_key_history", "battery_cases"), ("version_key_history", "environment"),
@@ -138,17 +137,17 @@ def test_a_generation_runs_command_line_is_one_row_per_argument(mysql_config):
         conn.close()
 
 
-def test_control_schema_moves_job_command_lines_into_rows_and_drops_unread_results(control_config):
+def test_control_schema_v21_drops_the_work_queue_tables(control_config):
+    tables = ("work_job_args", "work_tasks", "work_jobs", "work_lease")
     conn = store.get_control_connection(control_config)
     try:
-        conn.execute("ALTER TABLE work_jobs ADD COLUMN argv TEXT NULL")
-        conn.execute("ALTER TABLE work_tasks ADD COLUMN result TEXT NULL")
-        conn.execute(
-            "INSERT INTO work_jobs (id, title, holder, state, workers, created_at, heartbeat_at, argv)"
-            " VALUES ('j1', 't', 'h', 'done', 0, NOW(6), NOW(6), ?)", (json.dumps(["galaxy", "--fast"]),))
-        conn.execute(
-            "INSERT INTO work_jobs (id, title, holder, state, workers, created_at, heartbeat_at, argv)"
-            " VALUES ('j2', 't', 'h', 'done', 0, NOW(6), NOW(6), '{broken')")
+        conn.execute("CREATE TABLE work_jobs (id VARCHAR(32) NOT NULL PRIMARY KEY)")
+        for child in ("work_job_args", "work_tasks"):
+            conn.execute(f"CREATE TABLE {child} (job_id VARCHAR(32) NOT NULL, CONSTRAINT fk_{child}_job"
+                         " FOREIGN KEY (job_id) REFERENCES work_jobs(id) ON DELETE CASCADE)")
+        conn.execute("CREATE TABLE work_lease (id TINYINT UNSIGNED NOT NULL PRIMARY KEY)")
+        conn.execute("DELETE FROM control_schema_migrations WHERE version >= 21")
+        conn.execute("INSERT IGNORE INTO control_schema_migrations (version) VALUES (20)")
         conn.commit()
     finally:
         conn.close()
@@ -156,12 +155,22 @@ def test_control_schema_moves_job_command_lines_into_rows_and_drops_unread_resul
 
     conn = store.get_control_connection(control_config, ensure_schema=True)
     try:
-        rows = conn.execute("SELECT job_id, position, value FROM work_job_args ORDER BY job_id, position").fetchall()
-        assert [(row["job_id"], row["position"], row["value"]) for row in rows] == [
-            ("j1", 0, "galaxy"), ("j1", 1, "--fast")]
-        columns = {(row["t"], row["c"]) for row in conn.execute(
-            "SELECT table_name AS t, column_name AS c FROM information_schema.columns"
-            " WHERE table_schema = DATABASE()").fetchall()}
-        assert ("work_jobs", "argv") not in columns and ("work_tasks", "result") not in columns
+        found = {row["t"] for row in conn.execute(
+            "SELECT table_name AS t FROM information_schema.tables WHERE table_schema = DATABASE()").fetchall()}
+        assert not found & set(tables)
+        assert conn.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()["v"] == store.CONTROL_SCHEMA_VERSION
+    finally:
+        conn.close()
+
+
+def test_a_fresh_control_schema_matches_the_added_columns(control_config):
+    """`control_schema.sql`'s CREATE TABLEs and `_CONTROL_COLUMNS` agree, so a new install and an upgraded one end up the
+    same."""
+    conn = store.get_control_connection(control_config)
+    try:
+        for table, added in store._CONTROL_COLUMNS.items():
+            rows = conn.execute("SELECT COLUMN_NAME AS name FROM information_schema.COLUMNS"
+                                " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", (table,)).fetchall()
+            assert {name for name, _definition in added} <= {row["name"] for row in rows}, table
     finally:
         conn.close()

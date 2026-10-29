@@ -368,25 +368,14 @@ bar. The Generate page shows both lines too.
 
 Only one run's workers use the machine at a time: a run started while
 another is generating (from the command line or the Generate page) says
-it's waiting and starts when the other finishes. The control database
-keeps the lease and one row per run and per sector (`work_jobs`,
-`work_tasks`, see [`database-schema.md`](database-schema.md)); without
-it (before `update.sh` has created the tables) runs don't wait for each
-other. A run stopped with Ctrl-C, or Cancel on the Generate page, stops
-its workers mid-sector (each sector is saved in one transaction, so an
-unfinished one is rolled back, never half written), queues nothing more
-and is recorded as cancelled, with the lease freed at once; a run that
-was killed outright frees the lease after 30 seconds. A worker that
-dies fails the run; losing the control database mid-run doesn't stop
-it (only its rows stop being updated).
-
-Every run is also recorded as a job tree (control schema v7): the run
-at the top, its phases (the skeleton, the bright stars, the population
-pass) under it, each work queue under those, and the queue's sectors or
-shells as its leaves, each with its own start, end and duration. A run
-the Generate page started hangs under that page job and its step. This
-happens with one worker too (without the lease), and is skipped without
-the control database.
+it's waiting and starts when the other finishes. Redis keeps the run
+and its units (the run record, `planetgen/queue/runrecord.py`); the
+Queue page reads them from there. A run stopped with Ctrl-C, or Cancel
+on the Generate page, stops its workers mid-sector (each sector is saved
+in one transaction, so an unfinished one is rolled back, never half
+written), queues nothing more and is recorded as cancelled, and the
+machine is free at once; a run that was killed outright is cleared once
+it shows no sign of life. A worker that dies fails the run.
 
 ### Size and time estimates
 

@@ -20,7 +20,6 @@ import argparse
 import sys
 
 from planetgen.admin import maintenance, updateguard
-from planetgen.db import store
 from planetgen.util import log
 
 
@@ -32,11 +31,9 @@ def main(argv=None):
                         help="Cancel the running and queued work without asking.")
     parser.add_argument("--failed", action="store_true", help="With end: the update failed.")
     parser.add_argument("--step", default=None, help="With end --failed: the step that failed.")
-    store.add_mysql_connection_args(parser)
     log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
     log.apply_debug_arguments(args, parser)
-    config = store.mysql_config_from_args(args)
 
     if args.command == "status":
         lock = updateguard.read_lock()
@@ -47,7 +44,7 @@ def main(argv=None):
             print(f"An update failed and left the site closed ({updateguard.TURN_OFF_HINT} opens it).")
         else:
             print("No update is running.")
-        items = updateguard.list_running(updateguard.default_sources(config))
+        items = updateguard.list_running(updateguard.default_sources())
         print("Running or queued work:" if items else "Nothing is running or queued.")
         for line in updateguard.describe(items):
             print(line)
@@ -56,7 +53,7 @@ def main(argv=None):
     if args.pid is None:
         parser.error(f"{args.command} needs --pid")
     if args.command == "begin":
-        ok = updateguard.begin(args.pid, config=config, interactive=sys.stdin.isatty(),
+        ok = updateguard.begin(args.pid, interactive=sys.stdin.isatty(),
                                yes=args.yes, unattended=updateguard.started_unattended())
         return 0 if ok else 1
     updateguard.end(args.pid, ok=not args.failed, step=args.step)

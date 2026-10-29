@@ -4,7 +4,7 @@
 The pause of the work queues (PERF.152): one flag in Redis, `planetgen:queue:paused`, written by the admin Queue
 page's Pause and Resume and read by every worker before it takes a job. A paused queue starts no new unit; a unit
 already running finishes. The flag holds who paused and when, as JSON, so the page can say so. It replaces the
-`paused` column of `work_lease` (PERF.100 drops that table), which only the old executor ever read.
+`paused` column of `work_lease` (control schema v21 dropped that table, PERF.100), which only the old executor ever read.
 
 Pause is for the bulk and maintenance lanes (the units of a run, the cache warm-up, the database check). The
 interactive and long lanes (`redisqueue.INTERACTIVE_QUEUE`, `LONG_QUEUE`) are never held: an admin who pauses the

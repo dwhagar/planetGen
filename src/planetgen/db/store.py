@@ -242,7 +242,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 20
+CONTROL_SCHEMA_VERSION = 21
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -253,29 +253,14 @@ PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
 of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
-version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36). New tables need nothing more than
+version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36), v21 the drop of the work queue's four tables, `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` (PERF.100). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
 _CONTROL_COLUMNS = {
-    "work_jobs": [
-        ("parent_id", "VARCHAR(32) NULL"),
-        ("root_id", "VARCHAR(32) NULL"),
-        ("kind", "VARCHAR(32) NOT NULL DEFAULT 'queue'"),
-        ("seconds", "DOUBLE NULL"),
-        ("tasks_total", "INT UNSIGNED NULL"),
-        ("web_job_id", "VARCHAR(32) NULL"),
-        ("database_name", "VARCHAR(64) NULL"),
-        ("control", "VARCHAR(16) NULL"),
-    ],
     "admin_api_keys": [
         ("key_prefix", "CHAR(8) NULL"),
         ("expires_at", "TIMESTAMP NULL"),
-    ],
-    "work_lease": [
-        ("paused", "TINYINT(1) NOT NULL DEFAULT 0"),
-        ("paused_by", "VARCHAR(64) NULL"),
-        ("paused_at", "DATETIME(6) NULL"),
     ],
     "version_key_history": [
         ("generator_epoch", "SMALLINT UNSIGNED NULL"),
@@ -1766,13 +1751,14 @@ def _apply_control_schema(conn):
     with open(CONTROL_SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
     _add_control_columns(conn)
-    _retire_control_json_columns(conn)
 
     row = conn.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()
     if row["v"] is not None and row["v"] < 13:
         _grandfather_api_key_scopes(conn)
     if row["v"] is not None and row["v"] < 15:
         _promote_control_owner(conn)
+    if row["v"] is not None and row["v"] < 21:
+        _drop_work_queue_tables(conn)
     if row["v"] is None or row["v"] < CONTROL_SCHEMA_VERSION:
         conn.execute("INSERT INTO control_schema_migrations (version) VALUES (?)", (CONTROL_SCHEMA_VERSION,))
         conn.commit()
@@ -1823,36 +1809,20 @@ def _drop_old_generation_stats(conn):
         conn.commit()
 
 
-def _retire_control_json_columns(conn):
+def _drop_work_queue_tables(conn):
     """
-    v10 (DB.13): moves `work_jobs.argv` (a JSON command line) into
-    `work_job_args` rows and drops it, and drops `work_tasks.result` (a JSON
-    summary nothing read) -- each only while the column is still there.
+    v21 (PERF.100): drops the work queue's tables, `work_job_args`, `work_tasks`, `work_jobs` and `work_lease` (the
+    children first, they reference `work_jobs`). The job tree has had no writer since PERF.98, and a run and the pause of
+    the queues are on Redis.
     """
-    def has(table, column):
-        return conn.execute(
-            "SELECT COUNT(*) AS n FROM information_schema.COLUMNS"
-            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?", (table, column),
-        ).fetchone()["n"] > 0
-
-    if has("work_jobs", "argv"):
-        for row in conn.execute("SELECT id, argv FROM work_jobs WHERE argv IS NOT NULL").fetchall():
-            try:
-                arguments = [str(argument) for argument in json.loads(row["argv"])]
-            except (TypeError, ValueError):
-                continue
-            for position, argument in enumerate(arguments):
-                conn.execute("INSERT IGNORE INTO work_job_args (job_id, position, value) VALUES (?, ?, ?)",
-                             (row["id"], position, argument[:1024]))
-        conn.execute("ALTER TABLE work_jobs DROP COLUMN argv")
-    if has("work_tasks", "result"):
-        conn.execute("ALTER TABLE work_tasks DROP COLUMN result")
+    for table in ("work_job_args", "work_tasks", "work_jobs", "work_lease"):
+        conn.execute(f"DROP TABLE IF EXISTS {table}")
     conn.commit()
 
 
 def _add_control_columns(conn):
     """
-    Adds `_CONTROL_COLUMNS` (and the job tree's index and parent key) to
+    Adds `_CONTROL_COLUMNS` and `_CONTROL_CONSTRAINTS` to
     control tables created before them -- each only when missing, so it
     is safe to run on every deploy (MySQL has no `ADD COLUMN IF NOT EXISTS`).
     """
@@ -1869,14 +1839,6 @@ def _add_control_columns(conn):
         if name not in existing("SELECT CONSTRAINT_NAME AS name FROM information_schema.TABLE_CONSTRAINTS"
                                 " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", table):
             conn.execute(f"ALTER TABLE {table} {clause}")
-    if "idx_work_jobs_root" not in existing("SELECT INDEX_NAME AS name FROM information_schema.STATISTICS"
-                                            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", "work_jobs"):
-        conn.execute("ALTER TABLE work_jobs ADD KEY idx_work_jobs_root (root_id)")
-    if "fk_work_jobs_parent" not in existing(
-            "SELECT CONSTRAINT_NAME AS name FROM information_schema.TABLE_CONSTRAINTS"
-            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", "work_jobs"):
-        conn.execute("ALTER TABLE work_jobs ADD CONSTRAINT fk_work_jobs_parent"
-                     " FOREIGN KEY (parent_id) REFERENCES work_jobs(id) ON DELETE CASCADE")
     conn.commit()
 
 

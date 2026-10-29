@@ -154,7 +154,7 @@ def test_the_stage_view_names_the_running_stage_by_its_place_in_the_whole_job():
 
 @pytest.fixture
 def control_config(mysql_config, monkeypatch):
-    """The test database doubling as the control database (as `test_job_tree.py` does)."""
+    """The test database doubling as the control database (as `test_job_runner_step_times.py` does)."""
     from planetgen.db import store
     store.get_control_connection(mysql_config, ensure_schema=True).close()
     monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)

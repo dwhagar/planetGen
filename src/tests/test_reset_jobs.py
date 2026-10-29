@@ -17,8 +17,7 @@ import rq
 
 from planetgen.admin import updateguard
 from planetgen.cli import reset_jobs
-from planetgen.db import store
-from planetgen.queue import pause, redisqueue, runrecord, work, workers
+from planetgen.queue import pause, redisqueue, runrecord, workers
 from tests.test_update_guard import FakeWork, REPO, run_shell
 
 pytestmark = pytest.mark.real_queue
@@ -144,9 +143,7 @@ def database_of_its_own(redis_server):
     return redis_server.rsplit("/", 1)[0] + "/14" if redis_server.count("/") > 2 else redis_server + "/14"
 
 
-def test_reset_jobs_clears_the_queue_the_jobs_and_the_lease_and_keeps_the_rest(redis_server, mysql_config):
-    conn = store.get_control_connection(mysql_config, ensure_schema=True)
-    conn.close()
+def test_reset_jobs_clears_the_queue_and_the_runs_and_keeps_the_rest(redis_server):
     url = database_of_its_own(redis_server)
     connection = redisqueue.connect(url)
     connection.flushdb()
@@ -160,51 +157,36 @@ def test_reset_jobs_clears_the_queue_the_jobs_and_the_lease_and_keeps_the_rest(r
     stale_run = runrecord.start_run(connection, "Stale run", [runrecord.Stage("mass", "Mass", units=3)])
     with pytest.raises(runrecord.Busy):
         runrecord.start_run(connection, "Blocked", [runrecord.Stage("mass", "Mass")])
-    node = work.open_node("plan", "Stuck run", control_config=mysql_config)
-    control = store.get_control_connection(mysql_config)
     try:
-        control.execute("INSERT IGNORE INTO work_lease (id) VALUES (1)")
-        control.execute("UPDATE work_lease SET holder = 'host:1:x', job_id = ?, heartbeat_at = NOW(6) "
-                        "WHERE id = 1", (node.id,))
-        control.commit()
         lines = []
         stuck = FakeWork("Stuck run")
 
-        assert reset_jobs.reset_jobs(mysql_config, redis_url=url, dry_run=True, sources=[stuck], write=lines.append,
-                                     control=mysql_config)
+        assert reset_jobs.reset_jobs(redis_url=url, dry_run=True, sources=[stuck], write=lines.append)
         assert stuck.cancelled == [] and connection.exists(waiting.key) == 1
         assert any("Redis: " in line and "key(s)" in line for line in lines)
-        assert any("1 job(s)" in line and "held by host:1:x" in line for line in lines)
 
         questions = []
-        assert not reset_jobs.reset_jobs(mysql_config, redis_url=url, sources=[stuck], write=lines.append,
-                                         answer=lambda text: questions.append(text) or "n", control=mysql_config)
+        assert not reset_jobs.reset_jobs(redis_url=url, sources=[stuck], write=lines.append,
+                                         answer=lambda text: questions.append(text) or "n")
         assert len(questions) == 1 and stuck.cancelled == [] and connection.exists(waiting.key) == 1
 
         lines.clear()
-        assert reset_jobs.reset_jobs(mysql_config, redis_url=url, assume_yes=True, sources=[stuck], write=lines.append,
-                                     control=mysql_config)
+        assert reset_jobs.reset_jobs(redis_url=url, assume_yes=True, sources=[stuck], write=lines.append)
         assert stuck.cancelled == ["job-0"]
         assert list(connection.scan_iter(match="rq:*")) == []
         assert list(connection.scan_iter(match="planetgen:run:*")) == [] and runrecord.active_run(connection) is None
         assert runrecord.read_run(connection, stale_run) is None
         assert list(connection.scan_iter(match=workers.STARTING_PREFIX + "*")) == []
         assert connection.get(workers.WANTED_KEY) == b"3" and connection.get("planetgen:page:kept") == b"1"
-        assert control.execute("SELECT COUNT(*) AS n FROM work_jobs").fetchone()["n"] == 0
-        lease = control.execute("SELECT holder, job_id FROM work_lease WHERE id = 1").fetchone()
-        assert (lease["holder"], lease["job_id"]) == (None, None)
         assert not pause.is_paused(connection)          # the pause flag goes with the rest
         text = "\n".join(lines)
-        assert "Redis: removed" in text and "Control database: removed 1 job(s)" in text and "Jobs and queue reset" in text
+        assert "Redis: removed" in text and "Jobs and queue reset" in text
 
         lines.clear()
-        assert reset_jobs.reset_jobs(mysql_config, redis_url=url, assume_yes=True, sources=[], write=lines.append,
-                                     control=mysql_config)
+        assert reset_jobs.reset_jobs(redis_url=url, assume_yes=True, sources=[], write=lines.append)
         assert lines[-1] == "Nothing to reset."
         assert runrecord.start_run(connection, "Fresh", [runrecord.Stage("mass", "Mass")])      # no Busy
     finally:
-        work.close_node(node, "cancelled")      # the run this process opened, whose rows the reset removed
-        control.close()
         connection.flushdb()
 
 
@@ -217,7 +199,7 @@ def test_reset_jobs_kills_a_worker_process_of_this_host(redis_server):
         queue = redisqueue.queue(redisqueue.INTERACTIVE_QUEUE, connection)
         register_worker(queue, connection, "sleeper-worker", sleeper.pid)
         lines = []
-        assert reset_jobs.reset_jobs(None, redis_url=url, assume_yes=True, sources=[], write=lines.append)
+        assert reset_jobs.reset_jobs(redis_url=url, assume_yes=True, sources=[], write=lines.append)
         assert sleeper.wait(timeout=30) == -9
         assert any("Killing worker sleeper-worker" in line for line in lines)
     finally:
