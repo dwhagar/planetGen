@@ -375,7 +375,10 @@ def main():
     ac["note"] = "No density source reached; the value depends on the hydrogen content and the formation."
     rows["amorphous_carbon"] = ac
     co_ = new_row("complex_organics", "complex organic compounds", "organic", None, ["complex organic compounds"],
-                  composition="refractory organics of comets and primitive bodies")
+                  composition="refractory organics of comets and primitive bodies",
+                  note="Choukroun et al. 2020 is reported (not read in the repository) to have about 2 g/cm3 for a comet's refractory "
+                       "organics; Blum and Bischoff's 1.0 to 2.0 covers it, so the row keeps the middle, 1.5, inside the widest range "
+                       "(GEN.660). The comet draw reads this row and holds no density of its own for the organics (GEN.712).")
     co_["props"]["rho_grain_g_cm3"] = prop(1.5, "R", "blum-bischoff", "g/cm3", measured_range=[1.0, 2.0], basis="organics 1000 to 2000 kg/m3: the middle")
     rows["complex_organics"] = co_
     anth = new_row("anthracite", "anthracite", "carbon", None, ["anthracite"], composition="high-rank coal")
