@@ -65,6 +65,7 @@ class FakeData:
         self.cover_cells = [[2, 1, 0, 0.25]]
         self.fail_cover = None
         self.stage_children = []
+        self.stage_sectors = []
         self.polity_total = 2
 
     def get_polities(self, db, limit=None, offset=None):
@@ -104,7 +105,8 @@ class FakeData:
         self.stage_calls.append(at)
         return {"at": at, "child_m": 243 if at is None else 27, "children": [dict(c, stats=dict(c["stats"]))
                                                                              for c in self.stage_children],
-                "sectors": None, "edge_pc": 3.526}
+                "sectors": [dict(r, stats=dict(r.get("stats") or {})) for r in self.stage_sectors] if at and at.startswith("3.") else None,
+                "edge_pc": 3.526}
 
     def get_galaxy_window(self, db, at, g):
         self.dbs.add(db)
@@ -451,6 +453,47 @@ def test_window_endpoint_rejects_bad_keys_and_widths(client, fake):
         assert resp.status_code == 400, query
         assert "error" in resp.get_json()
     assert fake.stage_calls == [] and fake.window_calls == []
+
+
+def _sector(shell, band, wedge, sector_id):
+    return {"shell": shell, "band": band, "wedge": wedge, "id": sector_id, "name": f"Sector {sector_id}", "system_count": 2, "stats": {"stars": 5}}
+
+
+def test_near_endpoint_lists_the_generated_sectors_round_a_point(client, fake):
+    """MAP.335: the sectors a scene can be fetched for round the eye, cut from the cached stages like a window of sectors."""
+    from planetgen.galaxy import spherical
+
+    x, y, z = spherical.sector_position_pc(4, 1, 0, 3.526)
+    fake.stage_sectors = [_sector(4, 1, 0, 11), _sector(5, 1, 0, 12), _sector(60, 0, 0, 13)]
+    resp = client.get(f"/galaxy/near?x={x}&y={y}&z={z}&r=5")
+    assert resp.status_code == 200, resp.get_data(as_text=True)
+    assert resp.headers["Cache-Control"] == "no-store"
+    near = resp.get_json()
+    assert near["at"] == "1.4.1.0" and near["edge_pc"] == 3.526 and near["r"] == 5 and near["stamp"] == STAMP
+    ids = {s["id"] for s in near["sectors"]}
+    assert 11 in ids and 13 not in ids, "the sector holding the point is in, one far away is not"
+    assert {"shell", "band", "wedge", "id", "name", "system_count", "stats"} <= set(near["sectors"][0])
+    calls = list(fake.stage_calls)
+    client.get(f"/galaxy/near?x={x}&y={y}&z={z}&r=5")
+    assert fake.stage_calls == calls, "the stages are cached"
+    assert fake.window_calls == []
+
+
+def test_near_endpoint_holds_the_radius_and_says_nothing_outside_the_grid(client, fake):
+    far = client.get("/galaxy/near?x=100&y=50&z=0&r=100000").get_json()
+    assert far["r"] == pytest.approx(4.5 * 3.526)
+    outside = client.get("/galaxy/near?x=1e15&y=0&z=0&r=5").get_json()
+    assert outside["at"] is None and outside["sectors"] == []
+    plain = client.get("/galaxy/near?x=100&y=50&z=0")
+    assert plain.status_code == 200 and plain.get_json()["r"] == 0
+
+
+def test_near_endpoint_rejects_bad_numbers(client, fake):
+    for query in ("", "x=1&y=2", "x=a&y=2&z=3&r=1", "x=1&y=2&z=3&r=-1", "x=nan&y=2&z=3&r=1", "x=1&y=inf&z=3&r=1"):
+        resp = client.get(f"/galaxy/near?{query}")
+        assert resp.status_code == 400, query
+        assert "error" in resp.get_json()
+    assert fake.stage_calls == [] or all(call is None for call in fake.stage_calls)
 
 
 def test_galaxy_page_offers_territories_once_polities_exist(client, fake):

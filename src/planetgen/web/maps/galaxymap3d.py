@@ -443,7 +443,7 @@ def _course_readout_html(course):
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/nodes",
                               sector_url=None, generate=None, phenomenon_url=None,
                               system_url=None, stage_path="/galaxy/stage", window_path="/galaxy/window",
-                              locate_path="/galaxy/locate", course=None, made=None,
+                              near_path="/galaxy/near", locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None,
                               uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None,
@@ -502,6 +502,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             (`static/galaxystageview.js`).
         window_path (str): The data window's endpoint (`/galaxy/window`,
             MAP.151), which a window stage reads.
+        near_path (str): The generated sectors near a point's endpoint
+            (`/galaxy/near`, MAP.335), which the camera coming near a
+            sector asks for its scene's id.
         locate_path (str): The address bar's name lookup
             (`/galaxy/locate`).
         territory_path (str or None): The territory overlay's endpoint
@@ -569,6 +572,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "fetchPath": fetch_path,
         "stagePath": stage_path,
         "windowPath": window_path,
+        "nearPath": near_path,
         "locatePath": locate_path,
         "territoryPath": territory_path,
         "nebulaShapePath": nebula_shape_path,

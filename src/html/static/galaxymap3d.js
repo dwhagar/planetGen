@@ -3543,6 +3543,16 @@ function initGalaxyMap3d(canvasEl, data) {
           return response.json();
         });
     },
+    // MAP.335: the generated sectors near a point (the eye), asked for as the camera comes near them.
+    fetchNear: function (query) {
+      return fetch((data.nearPath || "/galaxy/near") + query, { headers: { Accept: "application/json" } })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          return response.json();
+        });
+    },
     showBlockInfo: function (info) { showBlockInfo(info, edgePc); },
     showPlacedInfo: showPlacedInfo,
     showCellInfo: showCellInfo,

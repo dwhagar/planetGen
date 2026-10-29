@@ -34,7 +34,7 @@ from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.web.lib import tileprefetch
 from planetgen.web.lib import tilecache
 from planetgen.web.lib.tilecache import (
-    TileRequestError, fetch_nodes, fetch_nodes_wire, fetch_stage, fetch_window)
+    TileRequestError, fetch_near, fetch_nodes, fetch_nodes_wire, fetch_stage, fetch_window)
 
 from planetgen.api.limiter import page_limit
 
@@ -202,6 +202,7 @@ def galaxy():
         regions_path=url_for("web.galaxy_regions"),
         stage_path=url_for("web.galaxy_stage"),
         window_path=url_for("web.galaxy_window"),
+        near_path=url_for("web.galaxy_near"),
         locate_path=url_for("web.galaxy_locate"),
         territory_path=url_for("web.galaxy_territories") if _has_territories(db) else None,
         course=course,
@@ -436,6 +437,31 @@ def galaxy_window():
 
 
 galaxy_window.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+@bp.route("/galaxy/near")
+@page_limit("galaxy_tiles")
+def galaxy_near():
+    """
+    JSON for the map's camera coming near sectors (MAP.335): `?x=&y=&z=` a point in parsecs (the eye) and `?r=` how far round
+    it to look, parsecs. Returns `tilecache.fetch_near`'s payload, the generated sectors with the ids a scene is fetched by; a
+    malformed number is a 400, an API failure a 502, both as `{"error": ...}` JSON.
+    """
+    try:
+        payload = fetch_near(db_name(), request.args.get("x"), request.args.get("y"), request.args.get("z"), request.args.get("r") or 0)
+    except TileRequestError as exc:
+        return _json_error(str(exc), 400)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching the sectors near a point: {exc}")
+        return _json_error("The map could not be loaded. Please try again shortly.", 502)
+    response = jsonify(payload)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+galaxy_near.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 @bp.route("/galaxy/locate")

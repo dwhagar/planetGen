@@ -357,7 +357,10 @@ export function createInfoPanel(panelEl) {
     if (!overlay || panelEl.dataset.state !== "selected" || typeof panelEl.scrollHeight !== "number") return;
     delete panelEl.dataset.tall;
     shrinkToFit();
-    if (!panelEl.hasAttribute("data-scroll") && !overflows()) return;
+    if (!panelEl.hasAttribute("data-scroll") && !overflows()) {
+      clearOfPress();
+      return;
+    }
     const view = panelEl.parentElement;
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
     if (!view || view.clientWidth < TALL_BESIDE_REM * rem) return;
@@ -365,6 +368,25 @@ export function createInfoPanel(panelEl) {
     if (pad) panelEl.style.setProperty("--info-pad-clear", Math.ceil(view.getBoundingClientRect().right - pad.getBoundingClientRect().left + 8) + "px");
     panelEl.dataset.tall = "";
     shrinkToFit();
+    clearOfPress();
+  }
+  // The card sits on the side of the map away from the press, but a card wide enough, or standing beside the zoom controls, can still lie
+  // over the place pressed (a press near the middle of a short map): then it takes the other side, if that leaves the place clear, so a
+  // second click of a double click, or the star just picked, is not under the card's own buttons.
+  function clearOfPress() {
+    const host = panelEl.parentElement;
+    const was = panelEl.dataset.corner;
+    if (!pressed || !host || !was) return;
+    const box = host.getBoundingClientRect();
+    const x = box.left + pressed.x * box.width;
+    const y = box.top + pressed.y * box.height;
+    const covers = function () {
+      const r = panelEl.getBoundingClientRect();
+      return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
+    };
+    if (!covers()) return;
+    panelEl.dataset.corner = was.replace(/(left|right)$/, function (side) { return side === "left" ? "right" : "left"; });
+    if (covers()) panelEl.dataset.corner = was;
   }
   // Opening or closing a More changes what the card has to hold: it is fitted again (a `toggle` does not bubble).
   if (overlay) panelEl.addEventListener("toggle", fit, true);

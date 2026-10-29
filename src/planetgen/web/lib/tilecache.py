@@ -45,6 +45,7 @@ fetched from the API again, never an error page.
 
 import hashlib
 import json
+import math
 import os
 import random
 import re
@@ -58,7 +59,10 @@ from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_nodes, ge
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util.settings import get_settings
 from planetgen.galaxy.drill import format_drill_key, parse_node_key, parse_stage_key
-from planetgen.galaxy.window import DEFAULT_WINDOW, check_width, crop_stages, parse_window_key, window_cells, window_parents
+from planetgen.galaxy import spherical
+from planetgen.galaxy.drill import DrillBlock
+from planetgen.galaxy.window import (
+    DEFAULT_WINDOW, WINDOW_WIDTHS, check_width, crop_stages, parse_window_key, window_cells, window_parents)
 
 DEFAULT_CACHE_DIR = "/var/cache/planetgen/tiles"
 """str: Used when neither `PLANETGEN_TILE_CACHE_DIR` nor `config.json`'s
@@ -805,6 +809,57 @@ def fetch_window(db, at, g=DEFAULT_WINDOW):
         key = format_drill_key(parent) if parent else "galaxy"
         stages[key] = galaxy if parent is None else fetch_stage(db, key)
     return {**crop_stages(centre, width, stages, edge_pc), "stamp": stamp}
+
+
+NEAR_MAX_EDGES = 4.5
+"""float: The farthest `fetch_near` looks, in sector edges: the widest window (11 cells across) holds a point's sector and the cells within
+4.5 edges of it, allowing the half edge between the point and its sector's centre."""
+
+
+def fetch_near(db, x, y, z, r):
+    """
+    The generated sectors near a point (MAP.335): what the map's camera needs to show a sector's own scene because the eye
+    is near it, with no stage window. Cut from the same cached stages a window of sectors is, round the sector holding the
+    point, so a warm cache serves it without a query.
+
+    Args:
+        db (str): The `?db=` value.
+        x, y, z (float): The point, parsecs in the galaxy frame.
+        r (float): How far round it to look, parsecs (held to `NEAR_MAX_EDGES` sector edges).
+
+    Returns:
+        dict: `at` (the key of the sector holding the point, `1.shell.band.wedge`, or `None` outside the grid), `edge_pc`,
+            `r` (the radius used), `sectors` (the generated sectors of the cells within the radius of the sector's
+            centre, as a stage lists them: `shell`, `band`, `wedge`, `id`, `name`, `system_count`, `stats`) and `stamp`.
+
+    Raises:
+        TileRequestError: On a coordinate or radius that is not a finite number.
+        apiclient.ApiError / NotFoundError: If the API is needed and fails.
+    """
+    try:
+        point = (float(x), float(y), float(z))
+        radius = float(r)
+    except (TypeError, ValueError):
+        raise TileRequestError("x, y, z and r must be numbers") from None
+    if not all(math.isfinite(v) for v in (*point, radius)) or radius < 0:
+        raise TileRequestError("x, y, z and r must be finite and r not negative")
+    galaxy = fetch_stage(db, None)
+    edge_pc = galaxy["edge_pc"]
+    stamp = galaxy.get("stamp")
+    radius = min(radius, NEAR_MAX_EDGES * edge_pc)
+    nothing = {"at": None, "edge_pc": edge_pc, "r": radius, "sectors": [], "stamp": stamp}
+    if math.sqrt(point[0] ** 2 + point[1] ** 2 + point[2] ** 2) > (spherical.MAX_ADDRESSABLE_SHELL + 0.5) * edge_pc:
+        return nothing
+    try:
+        shell, band, wedge = spherical.sector_address_at(point, edge_pc)
+        spherical.sector_position_pc(shell, band, wedge, edge_pc)
+    except ValueError:
+        return nothing
+    key = format_drill_key(DrillBlock(1, shell, band, wedge))
+    # A window is a ball of `g` cells across round the centre cell's own centre, the point up to a half edge from it.
+    width = next((w for w in WINDOW_WIDTHS if w >= 2 * (radius / edge_pc + 1)), WINDOW_WIDTHS[-1])
+    window = fetch_window(db, key, width)
+    return {"at": key, "edge_pc": edge_pc, "r": radius, "sectors": window.get("sectors") or [], "stamp": window.get("stamp", stamp)}
 
 
 KEPT_FILES = ("stamp.json", "meta.json", ".full")

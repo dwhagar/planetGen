@@ -434,6 +434,9 @@ export function createSectorStage(host) {
       if (changed && host.kindsChanged) host.kindsChanged();
     },
     entries: function () { return live() ? open.sector.entries : []; },
+    // MAP.335: the entries of the scene that is up, whether the sector is open in place or the scene is only up for the camera coming near it.
+    sceneEntries: function () { return open ? open.sector.entries : []; },
+    sceneHides: function (entry) { return open ? open.sector.hides(entry) : false; },
     // Whether an entry of the open sector is left off the map (a hidden kind, class or the luminosity floor).
     hides: function (entry) { return live() ? open.sector.hides(entry) : false; },
     // The entry picked in the open sector, if any.
