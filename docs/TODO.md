@@ -14008,6 +14008,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unchanged (no epoch if the golden files do not move), and add a
   regression test with the repro system. Version 8.1. Owner: Aux 2 with
   GEN.866.
+  Research (2026-10-09): Core 2 (as the lane reported, 2026-10-28) hit
+  the same ZeroDivisionError at interior_heat.py line 249 (_flux_w_m2,
+  the Rayleigh number divided by viscosity 0) once while running browser
+  tests on the sample-run fixture (shell 0 band 0), reached from
+  generate_directed_sector via generate_sectors_unit (the released_j
+  accumulation loop); intermittent, the next three runs were fine. So it
+  also fails the sample-run fixture, not only the census.
   Prerequisites: none. Related: GEN.866, GEN.856, GEN.763, TEST.430.
 
 - [ ] **GEN.896 Since 4c (epoch 106) hot-zone planets and moons almost never score Yellow: the Yellow share fell to 0 for M2V, G2V and F5V (bug)**
