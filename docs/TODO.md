@@ -13733,6 +13733,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (lock turn).
   Prerequisites: GEN.872, GEN.855, GEN.750. Related: GEN.863,
   GEN.867.
+  Research (2026-10-09): Bug 2 side note (TEST.435 first run,
+  2026-10-28; no fault claimed): 794 of 1,246 life worlds get no shadow
+  life class at or above the line from the GEN.886 classifier. Check
+  this when the class switch is built.
 
 - [ ] **GEN.890 The complexity index and animal grades per class (sessile, small mobile, large active), and the Fauna rule for chemosymbiotic life (fauna never exceeds its class's producer base)**
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
@@ -19256,34 +19260,6 @@ clears each one.
   greenhouse change warms K5V ecosphere moons; the range waits for the
   class cut-over).
 
-- [ ] **TEST.433 Phenomena census: black holes, neutron stars, magnetars, pulsars, Wolf-Rayet stars, planetary nebulae, supernova remnants, nebula classes, asteroid fields, clusters, rogue planets and interstellar comets against researched densities (prevalence suite part D)**
-  Part of the full prevalence suite (TEST.430, Boss 7:27 PM EDT
-  2026-10-28). Plan:
-  /mnt/project-files/reports/bug2/prevalence-suite-plan-2026-10-28.md.
-  Shared design: one harness, src/tests/audit/prevalence.py, seeded from
-  each cell's name so a run repeats; one stored expectations file per
-  part (src/tests/data/prevalence_*.json) whose every range has min,
-  max, a kind (observed rate, norm researched, or stand-in with its tier
-  and tweak level per GEN.725), a source or "measured at commit X, N
-  draws", and an optional known-anomaly item number; a test fails on a
-  flag with no known anomaly, known anomalies print in the report and
-  never hide; one latest-run report per part; selected by
-  scripts/test.py changed whenever generation code changes; a baseline
-  builder re-measures a commit and rewrites the ranges. Owner: Bug 2,
-  build order A (TEST.430), B (this), E (TEST.395), C, D, F
-  (TEST.209/210/214/301). Do: per star or per volume on a seeded galaxy
-  region, against researched densities (cite each); reuse the existing
-  nebula, black hole, neutron star and cluster tests. Done: the part
-  runs from one command, a seeded run repeats, and a deliberately broken
-  input trips each flag.
-  Research (2026-10-09): Bug 2 (PR 3607, 2026-10-28): first cut merged.
-  Done: black hole, neutron star, magnetar, planetary nebula, supernova
-  remnant and Wolf-Rayet totals. Giant molecular clouds and globular
-  clusters already have tests (test_nebula_rates.py,
-  test_cluster_count_law.py). Still to do: open clusters, rogue planets,
-  interstellar comets and nebula classes. Stays open.
-  Prerequisites: none. Related: TEST.430, TEST.239, TEST.204.
-
 - [ ] **TEST.434 Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug)**
   Found by Aux 2 after merging MAP.220 (#3547, about 8:37 PM EDT
   2026-10-28 as the lane reported); all fail on clean main, not from
@@ -19312,6 +19288,11 @@ clears each one.
   be the most rare kind of life, with most life stopping at animal life.
   Census and generation targets order the stages by prevalence: sentient
   is the rarest stage, animals the common ceiling.
+  Research (2026-10-09): Bug 2 (PR 3622, 2026-10-28): first run merged,
+  counting the shadow class from GEN.886. 1,246 life worlds in 3,917
+  terrestrial worlds, none past producers, so the 15 to 35 percent
+  animals band fails; tagged GEN.855. Stays open: the census reads the
+  stored class once GEN.889 lands.
   Prerequisites: GEN.863, TEST.430.
 
 - [ ] **TEST.436 Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges**
