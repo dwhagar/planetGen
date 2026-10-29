@@ -98,17 +98,30 @@ def tally(config):
     return result
 
 
+def unexplained(result):
+    """`{(kind, key): [(class, bodies, empty where it applies)]}`: the columns empty where they apply that are neither ruled
+    out by `describe.sheet.APPLIES` nor excused by an open item of `describe.sheet.OPEN_GAPS`: a gap nobody has filed."""
+    found = {}
+    for (kind, klass), entry in sorted((k, v) for k, v in result.items() if k != "bare"):
+        for key, (_filled, gap, _not_applicable) in entry["columns"].items():
+            if gap and (kind, key) not in sheet.OPEN_GAPS:
+                found.setdefault((kind, key), []).append((klass, entry["bodies"], gap))
+    return found
+
+
 def lines(result, target=30):
     """The report as text: per kind and class the number of samples (marked when under `target`), then each column that
-    is empty in some sample, with how many were empty where it applies and where it does not, then the values printed as
-    a bare number."""
+    is empty in some sample, with how many were empty where it applies (and the open item that excuses it, or NEW when
+    none does) and where it does not, then the values printed as a bare number."""
     out = []
     for (kind, klass), entry in sorted((k, v) for k, v in result.items() if k != "bare"):
         short = "" if entry["bodies"] >= target else f"   (fewer than {target} samples)"
         out.append(f"{kind} {klass}: {entry['bodies']} bodies{short}")
         for key, (filled, gap, not_applicable) in entry["columns"].items():
             if gap or not_applicable:
-                out.append(f"    {key}: {filled} filled, {gap} empty where it applies, {not_applicable} empty where it does not")
+                excuse = sheet.OPEN_GAPS.get((kind, key), "NEW") if gap else None
+                where = f"{gap} empty where it applies ({excuse})" if gap else "0 empty where it applies"
+                out.append(f"    {key}: {filled} filled, {where}, {not_applicable} empty where it does not")
     out.append("")
     out.append("Values printed as a bare number (no unit, noun or label), by kind, column and label:")
     for (kind, key, label), count in sorted(result.get("bare", {}).items()):

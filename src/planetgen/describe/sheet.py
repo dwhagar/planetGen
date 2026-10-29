@@ -730,6 +730,11 @@ _LIFE_DETAIL = ("life_chemical", "evolutionary_pace", "life_stage", "life_milest
                 "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
 _BANDS = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k")
 _ZONES = ("temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
+_DAYLIGHT = ("day_share_equator", "solar_day_hours", "daylight_hours")
+_RING_COLUMNS = ("ring_kind", "ring_origin", "ring_inner_km", "ring_outer_km", "ring_mass_kg", "ring_optical_depth", "ring_ice_fraction")
+_AQUIFER_COLUMNS = ("aquifer_depth_km", "aquifer_thickness_km")
+ICE_SHELL_STATES = ("ice", "ice-covered ocean")
+"""tuple: The hydrospheres with an ice shell (`ice_shell_km`)."""
 _AIR = ("atm_density", "atm_molar_density", "scale_height_km", "tau_haze", "tau_dust", "tau_cloud", "cloud_cover")
 
 def _locked(row):
@@ -744,8 +749,24 @@ _BODY_RULES = [
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world"),
     (_SURFACE, lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life or surface temperature"),
-    (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES,
-     "a dead world, a small icy body and an airless super-Earth have no air column to give a density, scale height or haze"),
+    (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES and (row is None or (row.get("atmospheric_pressure_pa") or 0) > 0),
+     "a dead world, a small icy body and an airless super-Earth, and any body whose air has gone to nothing, have no air column to give a density, scale height or haze"),
+    (("lid_regime",), lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant has no lid: only a rocky or icy body has a crust over a mantle"),
+    (_DAYLIGHT, lambda klass, row: _locked(row) is not True,
+     "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight or day share to give"),
+    (("shelter_column_g_cm2",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0 or (row.get("eq_shelter_rec") or 0) > 0,
+     "a shelter column is given only for a body whose radiation calls for a shelter, required or recommended"),
+    (("outside_hours",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0,
+     "the hours a person can be outside in a year are limited by dose only where a shelter is required"),
+    (("ice_shell_km",), lambda klass, row: row is None or row.get("hydrosphere") in ICE_SHELL_STATES,
+     "an ice shell covers a body whose water is ice or an ocean frozen over; a dry body, an open ocean and a vapour world have none"),
+    (_RING_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _RING_COLUMNS),
+     "only a body with a ring system has ring columns; a body without rings stores none"),
+    (_AQUIFER_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _AQUIFER_COLUMNS),
+     "underground water needs a layer between the freezing and the boiling line of water under the crust, which a body either has or lacks; a body without one stores none"),
+    (("hp_ice_km",), lambda klass, row: row is None or row.get("hydrosphere") in ICE_SHELL_STATES,
+     "high-pressure ice lies under the water of a body whose water is ice or a frozen-over ocean; a dry body, an open ocean and a vapour world have none"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
      "an ocean's depth, chemistry, pH and water activity exist only where there is a liquid ocean"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
@@ -758,11 +779,44 @@ _BODY_RULES = [
      "a world that turns on its own has latitude bands in place of day, terminator and night zones"),
 ]
 
-APPLIES = {"planet": _BODY_RULES, "moon": _BODY_RULES}
+_PLANET_RULES = [
+    (("parent_shadow_share", "induced_moment_a_m2"), lambda klass, row: False,
+     "only a moon sits in the shadow of its planet or in the planet's magnetic field; a planet orbits its star alone"),
+]
+
+_STAR_RULES = [
+    (("wide_binary_a_crit_km",), lambda klass, row: row is None or row.get("role") != "single",
+     "the critical orbit radius is set by a companion star, so a single star has none"),
+]
+
+_COMET_RULES = [
+    (("mean_anomaly_deg", "orbital_period_years", "period_class"), lambda klass, row: row is None or row.get("orbit_type") == "elliptical",
+     "a comet on a parabolic path comes by once, so it has no period, period class or place on an orbit to give"),
+]
+
+APPLIES = {"planet": _BODY_RULES + _PLANET_RULES, "moon": _BODY_RULES, "star": _STAR_RULES, "comet": _COMET_RULES}
 """dict: Where a sheet column does not apply (UX.208), `{kind: [(keys, test, reason)]}`: each rule names the column keys, a
 function `(class) -> bool` that is true for the classes the columns apply to, and the sentence that says why they do not
 apply elsewhere. A column no rule names applies to every class of its kind, so one that is empty there is a gap in the
 generation pathway, not a rule."""
+
+
+OPEN_GAPS = {
+    **{(kind, key): item for kind in ("planet", "moon") for key, item in (
+        ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
+        ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
+    ("moon", "induced_moment_a_m2"): "GEN.779",
+    **{("planet", key): "GEN.904" for key in ("solar_day_hours", "daylight_hours", "day_share_equator")},
+    **{("planet", key): "GEN.905" for key in ("mantle_redox", "mantle_delta_iw")},
+    **{("star", key): item for key, item in (
+        ("state", "GEN.786"), ("decay_age_yr", "GEN.785"), ("lethal_event_rate_per_gyr", "GEN.785"),
+        ("disk_kind", "GEN.787"), ("disk_mass_solar", "GEN.787"), ("disk_inner_au", "GEN.787"), ("disk_outer_au", "GEN.787"),
+        ("flare_alpha", "GEN.788"), ("uv_c_share", "GEN.788"), ("log_lx_lbol", "GEN.788"), ("lifespan_gy", "GEN.788"),
+        ("wide_binary_a_crit_km", "GEN.789"))},
+}
+"""dict: The columns known to be empty where they apply (UX.208), `{(kind, key): item id}`: each is a gap in the generation
+pathway, filed as the item named, and excused until that item is done. The fill audit (`tests/test_sheet_fill.py`) fails
+for an empty applicable column that is not here, and the item's owner removes its entry when the column is filled."""
 
 
 def applies(kind, klass, key, row=None):
