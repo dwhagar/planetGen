@@ -2439,20 +2439,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.340 Black hole crowd badges: crowded black hole marks merge into one mark with a count badge and a click list (bug)**
-  Found by the research thread (report
-  /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
-  section 6; Boss answered 6:22 PM EDT 2026-10-28: density default 1.2,
-  one mark per 120 by 120 px, as a user preference; rare heavy holes
-  2.2, no landmark exemption). Boss live observation, so a bug. Owner:
-  Core 2. Extend the MAP.305 crowd merge (mergeMarks) to the black hole
-  kind: holes within the merge distance draw as one mark with a count
-  badge; a click lists them with a Zoom in on them button. Done: a
-  browser test finds one merged black hole mark with its list in a crowd
-  and the split on zoom in.
-  Prerequisites: none. Related: MAP.305, MAP.339.
-  Owner: Core 3 (lock-free item while it waits for the generation lock, 12:16 AM EDT 2026-10-29; MAP.339 merged as #3636; same file mappreferences.js and the black hole markers; Core 2 is in galaxystageview.js, so tell it before each PR; this replaces any earlier owner line on this item). Separate branch.
-
 - [ ] **MAP.341 Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug)**
   Found by the research thread (report
   /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
@@ -2464,6 +2450,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   marker outside the opened sector the same way. Done: a browser test
   opens a sector and finds the outside markers dimmed.
   Prerequisites: none. Related: MAP.327.
+  Owner: Core 3 (lock-free item while it waits for the generation lock, 12:45 AM EDT 2026-10-29; MAP.340 merged as #3640; the marker code is Core 3's; Core 2 owns the opened-sector view, so tell it before the PR; this replaces any earlier owner line on this item). Separate branch.
 
 - [ ] **MAP.342 Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority)**
   Found by the research thread (report
@@ -2489,38 +2476,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L10 part 2. The sector colouring by habitable
   locations is unchanged.
   Prerequisites: GEN.889. Related: MAP.311.
-
-- [ ] **MAP.346 Map browser tests fail on main since MAP.240 (#3605): the wheel moves the target off its line of sight, the window does not fill the page, the info popup does not scroll (bug)**
-  Found by Core 2 (4:06 AM UTC relay, about 12:06 AM EDT 2026-10-29 as
-  the lane reported). On the bare main commit after MAP.240 (PR #3605)
-  these browser tests fail though they passed an hour earlier:
-  test_web_browser_fixture_maps.py::test_wheel_zoom_turns_about_the_centre_and_a_shift_click_chooses_it
-  (the wheel with the pointer on the cross moves the target off its line
-  of sight),
-  ::test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves[1280-720],
-  ::test_galaxy_map_info_popup_scrolls_with_the_wheel_and_hands_the_rest_to_the_map.
-  On the MAP.335 branch rebased on main,
-  test_web_browser_sector_reach.py (the wheel never zooms; the camera
-  stays at 6.58 pc) and test_web_browser_system_handover.py also fail,
-  likely the same cause (camera-relative buffers). Do: find which of
-  these fail on bare main and which only on the MAP.335 branch, fix the
-  cause in the map code, keep the tests. Not a skip. Done: the five test
-  files pass on main and on the MAP.335 branch. Owner: Core 2 (the
-  MAP.240 lane, Aux 6, is retired; Core 2 owns the files and is blocked
-  on this for MAP.335). Prerequisites: none. Related: MAP.240, MAP.335,
-  TEST.442.
-  Research (2026-10-09): Update (Core 2, 12:25 AM EDT 2026-10-29 as the
-  lane reported): not a map bug and not MAP.240. Aux 3 bisected it: the
-  Galaxy page got an 'On this page' contents column from UX.215-222
-  (pagetoc.js), which pushed the map 169 px right and the page past the
-  1280 window, so the wheel, cross and info popup tests failed. Aux 3
-  fixes it under TEST.442 on branch claude/test442-browser-map-reds (no
-  contents menu on the wide map page, plus test fixes for the other map
-  reds). MAP.346 is covered by TEST.442: retire it when TEST.442 merges.
-  Core 2 holds MAP.335 until then. Owner is now Aux 3 (through
-  TEST.442).
-  Prerequisites: none. Related: MAP.240, MAP.335, TEST.442.
-  Owner: Aux 3, through TEST.442 (this replaces any earlier owner line on this item).
 
 ## NAV: Navigation and courses
 
@@ -19238,21 +19193,6 @@ clears each one.
   migration is wrong.
   Prerequisites: none. Related: TEST.332, TEST.434, TEST.405.
 
-- [ ] **TEST.442 Browser map tests red on main: menu_filters_sit_side_by_side (2 tests), test_system_map_selection_drill_and_measure and test_a_star_in_a_sector_far_from_the_core_is_selectable (bug)**
-  Found by Aux 3 (as the lane reported, 2026-10-28) in the MAP.240 gate
-  (#3605); none come from MAP.240. The two menu_filters_sit_side_by_side
-  tests fail on current main;
-  test_system_map_selection_drill_and_measure and
-  test_a_star_in_a_sector_far_from_the_core_is_selectable fail on the
-  base commit 33bf209ed without the change. Four double-click, wheel and
-  node-path tests are load flakes that pass alone (tracked by TEST.439
-  and TEST.194). Do: run each alone, find the cause (layout change from
-  the habitable-world marker default, selection after the map offset
-  rework, or an old fixture), fix the test or the code, never skip,
-  loosen or quarantine a test. Version 8.1. Owner: Aux 3 (lock-free item
-  while waiting).
-  Prerequisites: none. Related: TEST.439, TEST.434, TEST.194, MAP.240.
-
 - [ ] **TEST.443 Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not**
   The remainder of TEST.301 (its sweep part merged as #3619 with Bug 2:
   every planet and moon has a class of its own kind, classify is total
@@ -19264,6 +19204,20 @@ clears each one.
   edits a field not used by the rules and finds the class unchanged;
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
+
+- [ ] **TEST.444 Browser map tests still red on main after TEST.442: the sector_reach double-click tests and the POI icon key test (bug)**
+  Found by Aux 3 (12:4x AM EDT 2026-10-29 as the lane reported) after
+  TEST.442 merged (#3639). Still red on main:
+  test_web_browser_sector_reach.py
+  test_a_double_click_on_a_star_flies_the_camera_to_it and its
+  slow-to-answer-the-first-click twin (the camera ends 0.2 pc from the
+  star), red since at least MAP.333 (59a6ccf53), and
+  test_poi_icons_browser.py::test_the_galaxy_map_keys_all_seven_and_draws_the_habitable_world_marker_with_its_symbol.
+  Do: bisect the double-click pair and the POI key test, fix the cause
+  (the test or the code, whichever is wrong), keep the tests. Not a
+  skip. Done: both files pass on main. Owner: Aux 3 (it is bisecting).
+  Prerequisites: none. Related: TEST.442, MAP.333, MAP.303.
+  Prerequisites: none. Related: TEST.442, MAP.333, MAP.303.
 
 ## USR: User accounts
 
