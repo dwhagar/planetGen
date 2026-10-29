@@ -58,7 +58,7 @@ from flask import (Response, abort, current_app, jsonify, make_response, redirec
 
 from pydantic import Field, TypeAdapter, ValidationError
 
-from planetgen.queue import api_jobs, progress_rate, redisqueue, roughtime, runrecord, runview
+from planetgen.queue import api_jobs, progress_rate, redisqueue, roughtime, runline, runrecord, runview
 from planetgen.queue.commands import DEEP_CHECKS, STAGED_COMMANDS
 from planetgen.web import limit_sliders
 from planetgen.web.lib import apiclient, estimatecache
@@ -1191,11 +1191,11 @@ def _back_to_page():
 
 def strip_view():
     """
-    What the admin shell's job strip shows (ADM.119, ADM.123), or `None` when nothing runs or waits:
-    `{"job", "queued"}`. `job` is the running job's `id`, `title`, `status`, `url`, `text` (the stage, else the
-    progress), `elapsed_text` and `value` (0 to 1, or `None` when it does not know how far it is); `queued` is the
-    one job waiting behind it (`title`, `admin`, `held`: why it is waiting for an admin, or `None`).
-    `static/adminjobstrip.js` keeps it current from `/admin/generate/status`.
+    What the admin shell's job strip shows (ADM.119, ADM.123, PERF.154), or `None` when nothing runs or waits:
+    `{"job", "line"}`. `job` is the running job's `id`, `title`, `status`, `url`, `text` (the stage, else the
+    progress), `elapsed_text` and `value` (0 to 1, or `None` when it does not know how far it is); `line` is the waiting
+    list in the order it arrived (`line_entries`). `static/adminjobstrip.js` keeps it current from
+    `/admin/generate/status`.
 
     A waiting job whose predecessor has ended is started here, so it never waits for the runner's last act.
     """
@@ -1203,10 +1203,10 @@ def strip_view():
         root = jobs.jobs_dir()
         jobs.promote_queued(root)
         job = jobs.active_job(root)
-        queued = jobs.queued_job(root)
+        line = line_entries(root)
     except OSError:
         return None
-    if job is None and queued is None:
+    if job is None and not line:
         return None
     view = _job_view(job) if job else None
     value = None
@@ -1220,8 +1220,29 @@ def strip_view():
             "url": view["url"], "text": view.get("stage_text") or view.get("progress_text") or "",
             "elapsed_text": view.get("elapsed_text") or "", "value": value,
         } if view else None,
-        "queued": {"title": queued["title"], "admin": queued["admin"], "held": queued["held"]} if queued else None,
+        "line": line,
     }
+
+
+def line_entries(root=None):
+    """
+    The waiting list as the strip and the Generate page show it, in the order it arrived: `{"ticket", "type" (`job` or
+    `run`), "title", "who", "held", "position" (in its own order, 1 next), "note" (the words), "startable" (Start now
+    is offered), "discardable"}`. A job waits for the running job, a run for the machine.
+    """
+    found = jobs.line_view(root)
+    return [{**entry, "note": _line_note(entry), "startable": entry["type"] == "job" and entry["position"] == 1 and bool(entry["held"]),
+             "discardable": entry["type"] == "job"} for entry in found]
+
+
+def _line_note(entry):
+    if entry["held"]:
+        return entry["held"]
+    if entry["type"] == "run":
+        return f"Waiting for the machine, place {entry['position']}."
+    if entry["position"] > 1:
+        return f"Starts after the {entry['position'] - 1} job{'s' if entry['position'] > 2 else ''} ahead of it."
+    return "Starts when the running job ends."
 
 
 def overall_view(job, step_remaining, now=None):
@@ -1423,7 +1444,8 @@ def page_context(admin, form=None, error=None, status=200):
         generate_anyway_field=GENERATE_ANYWAY_FIELD,
         status=status,
         last_job=_job_view(recent[0]) if recent and not active else None,
-        queued_job=_queued(),
+        line=_line(),
+        line_full=_line_full(),
     )
 
 
@@ -1431,11 +1453,19 @@ ADVANCED_PREFIXES = ("prevalence_", "star_mix_", "directive_", "max_stars")
 """tuple: Form fields that live in the Advanced block; a draft shown again that holds one opens it."""
 
 
-def _queued():
+def _line():
     try:
-        return jobs.queued_job()
+        return line_entries()
     except OSError:
-        return None
+        return []
+
+
+def _line_full():
+    """Whether the waiting list holds `queue.max_waiting` entries, so a job could not join it."""
+    try:
+        return len(jobs.line_view()) >= runline.max_waiting()
+    except OSError:
+        return False
 
 
 @bp.route("/admin/generate", methods=["GET", "POST"])
@@ -1459,8 +1489,9 @@ def generate():
         return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
 
     if action in ("discard_queued", "start_queued"):
+        ticket = request.form.get("ticket") or None
         if action == "discard_queued":
-            if jobs.discard_queued():
+            if jobs.discard_queued(ticket=ticket):
                 activity_log.event("GEN", "job.unqueue", user=admin.get("username"))
         else:
             started = jobs.promote_queued(force=True)
@@ -1496,33 +1527,28 @@ def generate():
             }), 409))
         return generate_flow.review_page(admin, action, kind, title, steps, request.form, estimate=_estimate_view(estimate))
     try:
-        job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database,
+        submitted = jobs.submit(kind, title, steps, env=env, admin=admin.get("username"), database=database,
                                 draft=generate_flow.draft_of(action, request.form))
-        activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
-                          title=title)
-        if kind == "galaxy" and request.form.get(GENERATE_ANYWAY_FIELD):
-            activity_log.event("GEN", "job.generate_anyway", user=admin.get("username"), job=job_id, db=database,
-                               title=title)
-    except jobs.JobBusy as exc:
-        running = exc.job["title"] if exc.job else "Another job"
-        if not wants_json:
-            try:
-                jobs.queue_next(kind, title, steps, env=env, admin=admin.get("username"), database=database,
-                                draft=generate_flow.draft_of(action, request.form))
-                jobs.promote_queued()       # the running job may have ended since the lock was refused
-                activity_log.event("GEN", "job.queue", user=admin.get("username"), kind=kind, db=database, title=title)
-                return _no_store(redirect(url_for("web.generate"), code=303))
-            except jobs.QueueFull:
-                return refuse(f"{running} is still running and another job is already waiting behind it. "
-                              "Discard the waiting job, or wait for the running one to finish.", 409)
-            except OSError as queue_exc:
-                log.error(f"Could not queue a {kind} job: {queue_exc}")
-        return refuse(f"{running} is still running. Wait for it to finish, or cancel it first.", 409)
+    except runline.LineFull as exc:
+        return refuse(str(exc), 409)
     except updateguard.UpdateRunning as exc:
         return refuse(str(exc), 503)
     except OSError as exc:
         log.exception(f"Could not start a {kind} job: {exc}")
         return refuse(f"The job could not be started: {exc}", 500)
+    job_id = submitted.job_id
+    if job_id is None:         # another job is running: this one waits in the list and starts by itself (PERF.154)
+        activity_log.event("GEN", "job.queue", user=admin.get("username"), kind=kind, db=database, title=title)
+        if wants_json:
+            return _no_store(make_response(jsonify({
+                "queued": True, "ticket": submitted.ticket, "position": submitted.position, "waiting_for": submitted.running,
+                "status_url": url_for("web.generate_status"),
+            }), 202))
+        return _no_store(redirect(url_for("web.generate"), code=303))
+    activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database, title=title)
+    if kind == "galaxy" and request.form.get(GENERATE_ANYWAY_FIELD):
+        activity_log.event("GEN", "job.generate_anyway", user=admin.get("username"), job=job_id, db=database,
+                           title=title)
     if wants_json:
         return _no_store(make_response(jsonify({
             "job": job_id,

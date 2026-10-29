@@ -209,7 +209,7 @@ RQ here is a process launcher more than a shared queue [S, code]:
 
 | Use | Queue | Worker | Admission |
 |---|---|---|---|
-| Web job (Generate page) | one per job, `web/jobs.py` | one detached burst worker | the `active` file lock admits one job |
+| Web job (Generate page) | one per job, `web/jobs.py` | one detached burst worker | the job lock (a Redis hash, PERF.154) admits one job; the next wait in the one waiting list |
 | A run's tasks (before OPS.66, 2026-10-24: `RQExecutor` is removed; units are RQ jobs, `queue/units.py`) | one per run, `RQExecutor` | up to `worker_count()` burst workers started by the run | the `work_lease` row admits one run's pool at a time |
 | API job (`api_jobs.submit`) | one per job, `planetgen-api-<id>` | one detached burst worker | none |
 
@@ -280,7 +280,7 @@ the site and database usable (PERF.34, ADM.15).
 **As built (2026-10-29).** There are four shared queues, and a worker serves exactly one of them (a worker that serves several loses RQ's reliable dequeue, `redis-and-the-work-queue.md` F6): `planetgen-bulk` (a run's units; up to the admin's worker count, `workers.wanted`), `planetgen-interactive` (short API jobs; its own reserved warm worker, `queue.interactive_workers`), `planetgen-long` (API jobs expected to run long, PERF.151) and `planetgen-maintenance` (the cache warm-up, the database check and the node prefetch, PERF.150; capped apart from the bulk workers). One cap on all of the host's planetgen workers (`workers.host_worker_cap`, PERF.185) keeps the machine's memory safe. The table's `[interactive, bulk]` order is not built: separate workers do the same job without a priority order.
 - The reserved worker bounds an edit's wait to its own start-up; without it an edit waits for the current bulk task (a bright-star layer takes about 60 s or more).
 - Bulk workers take `[interactive, bulk]`, so interactive jobs go first; strict order cannot starve bulk work because interactive jobs are rare.
-- The `work_lease` and the web `active` lock keep their job: one bulk run at a time, a second waits. (As built the lease is the Redis key `planetgen:run:active`; the web `active` lock stays.)
+- The `work_lease` and the web `active` lock keep their job: one bulk run at a time, a second waits. (As built the lease is the Redis key `planetgen:run:active`; the web job lock is the Redis hash `planetgen:job:active`; both wait in the one waiting list, PERF.154.)
 - **ADM.15.** The protections Boss asks for are the right ones, with one gap: lowered priority protects the web server's CPU but not the database, which is not niced and is the real bottleneck (5.1). Keep one connection per worker, cap total worker connections below the server's limit, set Ludicrous Speed to 95% of the cores while keeping the reserved interactive worker, and re-run PERF.34's page-time test under it.
 
 ## 4. Caching

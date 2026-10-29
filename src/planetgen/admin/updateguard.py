@@ -256,7 +256,10 @@ class GenerateJobSource:
         from planetgen.web import jobs
         found = []
         for root in dict.fromkeys((jobs.configured_jobs_dir(), os.path.join(tempfile.gettempdir(), "planetgen-jobs"))):
-            job = jobs.active_job(root) if os.path.isdir(root) else None
+            try:
+                job = jobs.active_job(root) if os.path.isdir(root) else None
+            except OSError:         # no Redis server answers: the lock is kept there, so no job holds it
+                job = None
             if job is None:
                 continue
             started = (datetime.fromtimestamp(job["created_at"], timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

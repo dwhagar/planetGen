@@ -1716,7 +1716,7 @@ means no Redis server answered.
 - `GET /api/jobs/<id>` (admin) — `{"id", "state", "result", "error",
   "error_status", "made_url", "waiting"}`; `error_status` is the HTTP status of a
   refusal; `waiting` is, for a running job that waits in line for the generation run in front of it
-  (PERF.153: `queue.wait_minutes`, 60 by default, then it fails naming that run), `{"run", "position", "text"}`
+  (PERF.153, PERF.154: the one waiting list holds up to `queue.max_waiting` entries, 8 by default, and refuses one more with the list named; `queue.wait_minutes`, 60 by default, then it fails naming that run), `{"run", "position", "text"}`
   (`text` reads "Waiting at position 1 for run ..."), else `null`; `made_url` is, for a finished job that generated sectors
   (a neighborhood or a regenerate), the Galaxy Map fitted to them and
   highlighting them, else `null`.

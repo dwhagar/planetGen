@@ -233,6 +233,7 @@ def _template_globals():
         "galaxy_status": galaxy_status_now,
         "pending_restart_options": settings_view.pending_restart,
         "csrf_field": csrf.csrf_field,
+        "csrf_token": csrf.csrf_token,
         "edit_flashes": edit_flashes,
         "slow_notice": slow_notice,
         "math_check_failures": math_check_failures,

@@ -44,8 +44,8 @@ two folders."""
 OLD_SETTINGS_DIR_NAME = "galaxy-settings"
 """The folder of creation-settings files inside the jobs directory before ADM.50."""
 LOCK_NAME = "active"
-"""The running job's lock in the jobs directory
-(`planetgen.web.jobs.LOCK_NAME`): its first line is the job's id."""
+"""The running job's lock file in the old jobs directory, as it was before the lock moved to Redis (PERF.154): its first
+line is the job's id. Only the old folder is read for it."""
 
 
 def load_config(repo_dir):

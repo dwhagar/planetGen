@@ -362,7 +362,7 @@ The work queue and the API's long jobs, on Redis with RQ.
 | [`runeta.py`](../../../src/planetgen/queue/runeta.py) | The time left in a run (PERF.96, PERF.33), as a pure function of the counters `runrecord.read_run` returns: no Redis, no clock of its own (`now` is passed), so the terminal bar, the Generate and Queue pages, the banner (UX.3) and a migration bar all show the same number and a test can drive it with a fake clock. |
 | [`runrecord.py`](../../../src/planetgen/queue/runrecord.py) | A run's record in Redis (PERF.96, step 2 of the work queue rebuild, docs/design/operations/redis-and-the-work-queue.md 5.1 and 5.2): the one place a run lives. |
 | [`runview.py`](../../../src/planetgen/queue/runview.py) | A run as the pages show it (PERF.99): `runrecord.read_run`'s dict turned into plain JSON-able numbers and words, in one place, so the Queue page's API, the Generate page and the job log all say the same thing about the same run. |
-| [`runwait.py`](../../../src/planetgen/queue/runwait.py) | A run that finds the machine taken waits in line instead of failing (PERF.153, the interim of PERF.154): Boss, 2026-10-22: "a task that arrives is never lost or failed only because another is running". |
+| [`runline.py`](../../../src/planetgen/queue/runline.py) | The one waiting list for work that cannot start yet (PERF.154): a run that finds the machine taken and a Generate page job that finds a job running each take a place in one Redis list (`queue.max_waiting`, 8 by default), first come first served within their kind, refused with the list named when it is full. Replaces the interim `runwait.py` (PERF.153) and ADM.123's `next.json`. |
 | [`stagetimes.py`](../../../src/planetgen/queue/stagetimes.py) | What this server has learned about how long each kind of stage takes (PERF.184): when a stage of a queue run ends, its wall seconds and its cost per worker second go into a Redis hash, one field per stage key, as a running average that leans on the newest run. |
 | [`stopall.py`](../../../src/planetgen/queue/stopall.py) | Stop everything (PERF.186): the one way to end all work on the host and keep it from starting again until an admin says so. |
 | [`units.py`](../../../src/planetgen/queue/units.py) | A stage of a run on the new work queue (PERF.97, step 3 of the rebuild, docs/design/operations/redis-and-the-work-queue.md 5.1): the units of one stage queued on the bulk queue, run by the idle-timeout workers (`workers.ensure_workers`), and followed by the process that started the run until the stage is done. |
@@ -1047,7 +1047,7 @@ non-API POST.
 
 **Jobs.** `/admin/generate` turns a form into a list of command lines
 (`generate_page.py`) and calls `web/jobs.start_job`. That writes `job.json`
-into a new job directory, takes the one-job `active` lock, queues
+into a new job directory, takes the one-job lock (a hash in Redis), queues
 `web/job_runner.run` as an RQ job and starts a burst worker for it,
 detached from the web server, so a request timeout or a
 server reload does not stop it. The runner runs each step with the site's

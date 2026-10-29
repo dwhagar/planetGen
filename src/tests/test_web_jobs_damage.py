@@ -23,6 +23,7 @@ import time
 
 import pytest
 
+from planetgen.queue import redisqueue
 from planetgen.web import jobs
 
 PY = sys.executable
@@ -52,6 +53,11 @@ def _wait_finished(job_id, root, timeout=30):
             return job
         time.sleep(0.05)
     raise AssertionError(f"job {job_id} did not finish: {jobs.get_job(job_id, root)}")
+
+
+def _age_lock(seconds):
+    """Pretend the job lock was taken `seconds` ago."""
+    redisqueue.connect().hset(jobs._lock_key(), "at", time.time() - seconds)
 
 
 def _age(path, seconds):
@@ -107,6 +113,7 @@ except jobs.JobBusy:
 """
 
 
+@pytest.mark.real_queue
 def test_many_processes_starting_at_once_start_one_job(jobs_root, tmp_path):
     """Separate processes, as two Apache workers would be."""
     os.makedirs(jobs_root)
@@ -130,60 +137,44 @@ def test_many_processes_starting_at_once_start_one_job(jobs_root, tmp_path):
     assert jobs.active_job(jobs_root)["id"] == started[0]
     # The losers left no job directories behind.
     assert [name for name in os.listdir(jobs_root) if jobs.JOB_ID_RE.match(name)] == started
+    jobs.free_lock()        # this test ran on the default key prefix, which no other test clears
 
 
-def test_the_lock_is_never_seen_empty(jobs_root, monkeypatch):
-    """The lock appears with the job id already in it: a caller reading it
-    between creating and writing used to see an empty lock, judge it
-    stale and start a second job."""
-    seen = []
-    real_link = os.link
-
-    def watching_link(src, dst):
-        real_link(src, dst)
-        with open(dst) as f:
-            seen.append(f.read())
-
-    monkeypatch.setattr(jobs.os, "link", watching_link)
+def test_the_lock_is_never_seen_half_made(jobs_root):
+    """The lock appears with the job id and the time already in it, in one step: a caller reading it between creating
+    and filling it used to see an empty lock, judge it stale and start a second job."""
     job_id = _start(root=jobs_root)
-    assert seen == [job_id]
+    held = redisqueue.connect().hgetall(jobs._lock_key())
+    assert {key.decode(): value.decode() for key, value in held.items()}.keys() == {"id", "at"}
+    assert held[b"id"].decode() == job_id
 
 
-def test_lock_works_without_hard_links(jobs_root, monkeypatch):
-    """Some filesystems (FAT, some network shares) have no hard links."""
-    def no_link(src, dst):
-        raise OSError(1, "Operation not permitted")
-
-    monkeypatch.setattr(jobs.os, "link", no_link)
-    first = _start(root=jobs_root)
-    with pytest.raises(jobs.JobBusy):
-        _start(root=jobs_root)
-    assert jobs.active_job(jobs_root)["id"] == first
-    assert not [name for name in os.listdir(jobs_root) if name.startswith(".active-")]
-
-
-def test_a_stale_lock_is_cleared_by_one_caller_only(jobs_root):
+def test_a_late_release_never_frees_another_jobs_lock(jobs_root):
+    """Clearing a stale lock and freeing a finished job's are both 'only if it still names that job'."""
     first = _start(root=jobs_root)
     _backdate_job(jobs_root, first)
-    clearing = os.path.join(jobs_root, jobs.CLEARING_NAME)
-    open(clearing, "w").close()  # someone else is clearing it right now
-    with pytest.raises(jobs.JobBusy):
-        _start(root=jobs_root)
-    os.remove(clearing)
-    second = _start(root=jobs_root)
+    second = _start(root=jobs_root)             # the first one's lock was stale: cleared, then taken
     assert jobs.active_job(jobs_root)["id"] == second
+    jobs.release_lock(first)                    # the first job's runner finishes late
+    assert jobs.active_job(jobs_root)["id"] == second
+    jobs.release_lock(second)
+    assert jobs.active_job(jobs_root) is None
 
 
-def test_a_clearing_mark_left_by_a_dead_process_expires(jobs_root):
-    first = _start(root=jobs_root)
-    _backdate_job(jobs_root, first)
-    clearing = os.path.join(jobs_root, jobs.CLEARING_NAME)
-    open(clearing, "w").close()
-    _age(clearing, jobs.STARTING_GRACE_SECONDS + 5)
-    with pytest.raises(jobs.JobBusy):
-        _start(root=jobs_root)  # removes the old mark
-    assert not os.path.exists(clearing)
-    _start(root=jobs_root)
+def test_the_lock_is_kept_in_redis_not_in_the_jobs_directory(jobs_root):
+    job_id = _start(root=jobs_root)
+    assert redisqueue.connect().hget(jobs._lock_key(), "id").decode() == job_id
+    assert not [name for name in os.listdir(jobs_root) if not jobs.JOB_ID_RE.match(name)]
+
+
+def test_with_no_redis_a_job_does_not_start_and_the_pages_see_no_job(jobs_root, monkeypatch):
+    real_connect = redisqueue.connect
+    monkeypatch.setattr(jobs.redisqueue, "connect",
+                        lambda *a, **k: real_connect("redis://127.0.0.1:1/0"))
+    with pytest.raises(OSError, match="no Redis server answers"):
+        _start(root=jobs_root)
+    with pytest.raises(OSError, match="no Redis server answers"):
+        jobs.active_job(jobs_root)
 
 
 # --- TEST.41 Job files damaged -------------------------------------------------------
@@ -202,7 +193,7 @@ def test_corrupt_job_json_is_an_unknown_job(jobs_root, content):
     with pytest.raises(jobs.JobBusy) as busy:
         _start(root=jobs_root)
     assert busy.value.job is None
-    _age(os.path.join(jobs_root, jobs.LOCK_NAME), jobs.STARTING_GRACE_SECONDS + 5)
+    _age_lock(jobs.STARTING_GRACE_SECONDS + 5)
     second = _start(root=jobs_root)
     assert jobs.active_job(jobs_root)["id"] == second
 
@@ -234,15 +225,13 @@ def test_corrupt_progress_json_shows_no_progress(jobs_root, monkeypatch):
 @pytest.mark.parametrize("garbage", ["", "garbage", "../../etc/passwd", "20990101-000000-abcd", "\x00" * 50])
 def test_a_lock_holding_garbage(jobs_root, garbage):
     os.makedirs(jobs_root)
-    lock = os.path.join(jobs_root, jobs.LOCK_NAME)
-    with open(lock, "w", encoding="utf-8") as f:
-        f.write(garbage)
+    redisqueue.connect().hset(jobs._lock_key(), mapping={"id": garbage, "at": time.time()})
     assert jobs.active_job(jobs_root) is None
     # Fresh: maybe a job being written right now, so wait.
     with pytest.raises(jobs.JobBusy):
         _start(root=jobs_root)
     # Old: nothing will ever finish writing it.
-    _age(lock, jobs.STARTING_GRACE_SECONDS + 5)
+    _age_lock(jobs.STARTING_GRACE_SECONDS + 5)
     job_id = _start(root=jobs_root)
     assert jobs.active_job(jobs_root)["id"] == job_id
     assert not os.path.exists(os.path.join(os.path.dirname(jobs_root), "etc"))
