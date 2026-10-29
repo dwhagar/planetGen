@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2497] - 2026-10-29
+
+**Headline:** Crowded black holes on the Galaxy Map now merge into one mark with a count, and split as you zoom in.
+
+### Fixed
+- **Black hole crowd badges (MAP.340).** Black hole marks that lay on top of each other on the screen were an unreadable pile, because black holes were the one kind of mark that never merged. Now black holes within the merge distance (22 pixels) of each other, and about the same distance from the camera, are drawn as one larger mark with the number of holes in a badge. Clicking it opens a card that lists them (heaviest first, each with its mass; clicking one shows it and flies to it) and a Zoom in on them button; as you zoom in the crowd splits into smaller crowds and single marks. Black holes never merge with the marks of systems.
+
 ## [8.0.2496] - 2026-10-29
 
 **Headline:** The Galaxy Map shows the black holes near what you are looking at, not a pile of far ones.
