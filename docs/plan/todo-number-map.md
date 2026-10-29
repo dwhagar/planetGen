@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.238 |
 | MAP | MAP.346 |
 | NAV | NAV.65 |
-| GEN | GEN.895 |
+| GEN | GEN.897 |
 | PERF | PERF.201 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1645,6 +1645,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.892 | Class text: stage names and descriptions per class, and the eats-drinks-breathes-gives-off lines, replacing the chemistry text | none | open |
 | GEN.893 | Stand-in registry rows for every class window, supply and complexity threshold, with tier and tweak level | none | open |
 | GEN.894 | Strange-solvent life classes 5 to 9 (acid-world, dense CO2, cold hydrocarbon sea, ammonia-water, silicon-bearing in acid): windows, supplies, texts, stand-ins and tiers | none | open |
+| GEN.895 | A system draw crashes with ZeroDivisionError in interior_heat._flux_w_m2 (viscosity 0), reached through validation.reconcile_moved_planet for a moon of a moved planet (bug) | none | open |
+| GEN.896 | Since 4c (epoch 106) hot-zone planets and moons almost never score Yellow: the Yellow share fell to 0 for M2V, G2V and F5V (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
