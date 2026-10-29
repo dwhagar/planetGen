@@ -241,7 +241,8 @@ def test_the_log_setup_never_stops_an_install_or_update():
     for script in ("install.sh", "update.sh"):
         with open(os.path.join(REPO_DIR, script), encoding="utf-8") as f:
             text = f.read()
-        assert 'setup-debug-log.sh" \\\n    || echo "warning:' in text, script
+        warns = 'log_warning "' if script == "update.sh" else 'echo "warning:'      # update.sh speaks through the logging layer (UX.123)
+        assert f'setup-debug-log.sh" \\\n    || {warns}' in text, script
     # Only running it without root, or with no Python at all, is an error.
     assert _code_lines("setup-debug-log.sh").count("exit 1") == 2
 

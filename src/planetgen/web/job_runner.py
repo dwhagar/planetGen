@@ -447,8 +447,9 @@ def run(job_dir):
         with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log, \
                 open(records_path, "ab", buffering=0) as records:
             def mark(record, blank_before=False):
-                """A stage mark: the plain divider in the output the page shows, the record in the records file."""
-                log.write((("\n" if blank_before else "") + logrecord.plain_line(record) + "\n").encode("utf-8"))
+                """A stage mark: the display line in the output the page shows and the download holds (the logging standard's
+                web form, with its time), the record in the records file."""
+                log.write((("\n" if blank_before else "") + logrecord.display_line(record) + "\n").encode("utf-8"))
                 records.write((logrecord.file_line(record) + "\n").encode("utf-8"))
 
             log.write((_run_line(job) + "\n").encode("utf-8"))

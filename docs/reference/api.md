@@ -902,7 +902,7 @@ forced credential change. They back the admin stats page
   "stages": [{"key", "label", "state" ("waiting", "running" or "done"),
   "units", "done", "cost", "cost_done", "started", "ended", "seconds",
   "longest_unit"}], "events": the last 300 lines of its log [{"id", "t",
-  "level", "kind", "message"}], "log": true}`; 404 for an unknown run.
+  "level", "kind", "message"} and, where the event has them, "stage" (from 0), "stages", "unit" and "seconds"], "log": true}`; 404 for an unknown run.
   `GET /api/admin/work/<id>/log` answers the whole log as `{"text": ...}`,
   from Redis while the run's record lasts (30 days) and from the file in the
   jobs directory's `runs` folder after (the last 20 are kept).

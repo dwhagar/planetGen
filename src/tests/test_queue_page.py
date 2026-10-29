@@ -10,6 +10,7 @@ configured/reachable; those that take `redis_server` when there is no Redis.
 """
 
 import pytest
+from html import escape as html_escape
 
 from planetgen.admin import auth as adminAuth
 from planetgen.api.config import Config
@@ -210,6 +211,28 @@ def test_the_run_page_shows_its_stages_and_log(admin_client, conn):
     assert f"/admin/queue/confirm/cancel?run={run_id}" in html
     assert admin_client.get("/admin/queue/20260101-000000-00000000").status_code == 404
     assert admin_client.get("/admin/queue/not-a-run").status_code == 404
+
+
+def test_the_run_page_log_lines_are_the_display_lines_of_the_records_the_download_holds(admin_client, conn):
+    """UX.123: the page draws each event with the logging layer's display line, the download writes the same record as a file line."""
+    from planetgen.util import logrecord
+    run_id = _run(conn, queued=False)
+    records = runrecord.log_records(conn, run_id)
+    html = admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
+    assert records
+    for record in records:
+        assert html_escape(logrecord.display_line(record)) in html
+    assert " INFO     run: sector 1,0,0 saved" in html
+    downloaded = [logrecord.parse_file_line(line) for line in runrecord.log_text(conn, run_id).splitlines()]
+    assert [logrecord.display_line(r) for r in downloaded] == [logrecord.display_line(r) for r in records]
+
+
+def test_the_api_events_carry_the_fields_the_record_is_made_of(admin_client, conn):
+    run_id = _run(conn, queued=False)
+    events = admin_client.get(f"/api/admin/work/{run_id}").get_json()["events"]
+    rebuilt = [runrecord.event_record(event) for event in events]
+    assert [r.message for r in rebuilt] == [r.message for r in runrecord.log_records(conn, run_id)]
+    assert any(r.fields.get("stage") for r in rebuilt)
 
 
 def test_the_log_downloads_from_redis_and_then_from_the_file(admin_client, conn, tmp_path):

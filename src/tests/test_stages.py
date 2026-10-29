@@ -516,7 +516,8 @@ def test_the_new_galaxy_log_counts_eleven_tasks_not_ten(tmp_path):
     assert "=== Stages 4 to 5 of 11 finished after " in log_text
     from planetgen.util import logrecord
     records = [logrecord.parse_file_line(line) for line in (job_dir / "records.log").read_text().splitlines()]
-    assert [logrecord.plain_line(r) for r in records if r.event] == [line for line in log_text.splitlines() if line.startswith("=== ")]
+    # UX.123: the page and the download hold the display line (with its time) of each stage mark, the records file the record
+    assert [logrecord.display_line(r) for r in records if r.event] == [line for line in log_text.splitlines() if " job: === " in line]
     assert sum(1 for r in records if r.event == logrecord.STAGE_START) == 10
     assert "\n3 11\n" in log_text      # the sectors step's process was told its stages start at 4 of 11
 
