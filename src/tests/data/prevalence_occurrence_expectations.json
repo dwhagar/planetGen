@@ -1,7 +1,8 @@
 {
  "anomalies": {
   "GEN.828": "hot Jupiters per M dwarf are about 0.07 to 0.12 against under 0.002 observed",
-  "GEN.829": "planets of 10 to 50 Earth masses outnumber those of 2 to 10: the mass function is inverted against observation"
+  "GEN.829": "planets of 10 to 50 Earth masses outnumber those of 2 to 10: the mass function is inverted against observation",
+  "GEN.872": "a draw-stream shift, not a fault of the giants: the census draws each star type from one stream and life now takes a different number of values from it (epoch 119), so later systems differ (KGF giants 0.31 before, 0.37 after, over 300 systems); a sub-stream for life (GEN.872) keeps the rest of a system's draws where they were"
  },
  "errors": {
   "anomaly": ""
@@ -40,6 +41,7 @@
      "source": "Earth-mass planets in the ecosphere (eta-Earth) 0.2 to 0.6 per Sun-like star (Bryson et al. 2021, Petigura et al. 2018), widened for 300 stars"
     },
     "giants": {
+     "anomaly": "GEN.872",
      "kind": "observed",
      "max": 0.35,
      "min": 0.08,
