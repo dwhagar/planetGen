@@ -107,6 +107,12 @@ NULL_IN_THIS_GALAXY = {
     **{("planets", column): CHANCE for column in
        ("evolutionary_pace", "flavor_key", "life_chemical", "life_milestone_age_gyr", "life_stage",
         "life_system_age_gyr")},
+    # The ages from complex cells on exist only for a world whose air holds or builds free oxygen (GEN.750), which is
+    # chance for the few living worlds of this small galaxy (TEST.402).
+    **{("planets", column): CHANCE for column in
+       ("life_age_complex_cells_gyr", "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")},
+    # A young star's disk (GEN.787): whether any star of this small galaxy is young enough to have one is chance.
+    **{("stars", column): CHANCE for column in ("disk_kind", "disk_mass_solar", "disk_inner_au", "disk_outer_au")},
     **{("planet_reflection_spectrum", column): CHANCE for column in
        ("id", "planet_id", "spectrum_type", "position", "value")},
     # The CLI places an interstellar comet near the galaxy's sectors only sometimes.

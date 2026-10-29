@@ -128,7 +128,7 @@ def test_the_runner_prints_what_it_cleared_before_the_first_phase(tmp_path, monk
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     monkeypatch.setattr(runner, "rerun_failures", lambda environment: None)
     order = []
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: order.append("phase") or (0, {"passed": 1}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: order.append("phase") or (0, {"passed": 1}))
     assert runner.main(["quick"]) == 0
     lines = capsys.readouterr().out.splitlines()
     assert any(line.endswith("removed 7 keys earlier test runs left on the test Redis") for line in lines)
