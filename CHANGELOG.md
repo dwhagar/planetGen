@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2529] - 2026-10-29
+
+**Headline:** `planetgen benchmark` times the real runs instead of a sequence of its own.
+
+### Changed
+- **The benchmark is `plan` and then `galaxy`.** The scatters, the backfill, the population and the settle are stages of the galaxy run (PERF.172), so the benchmark no longer runs the scatters before the fill as commands of its own.
+- **The stage timings come from the runs' records.** The report reads each stage's wall time, units and worker seconds from the run records in Redis (the figures the Queue page shows) instead of the stage rows in the control database.
+
 ## [8.0.2528] - 2026-10-29
 
 **Headline:** The hot-zone Yellow share that fell to 0 since the solved air is explained, and the class census now expects it.
