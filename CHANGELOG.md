@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2555] - 2026-10-29
+
+**Headline:** The progress bars in a job log are guarded by a test that they are never cut off at the log's width.
+
+### Fixed
+- **PERF.179: progress bars cut off in the job log ("elapsed 0:0... remaining 0:00:...").** The cut was rich assuming 80 columns for output that is not a terminal; the bars are drawn 160 wide there (already in place). New tests render the bars to a log the way a job does and fail if the elapsed or remaining time is cut, if the line passes the log width for the longest realistic step name, count and run time, or if a terminal or a `COLUMNS` setting stops being left to rich. No stored value changes.
+
 ## [8.0.2554] - 2026-10-29
 
 **Headline:** The star mass function now has a test that measures the generator's stars bin by bin in mass against the published curves.
