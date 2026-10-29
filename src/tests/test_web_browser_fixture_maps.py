@@ -27,7 +27,7 @@ from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
     BARREN_FIELD, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
-    dense_region_query, dense_site, HOLE_FIELD,
+    dense_region_query, dense_site, HOLE_FIELD, FAR_BUBBLE,
     far_site, halo_site, holes_site,
     map_site,
 )
@@ -864,6 +864,40 @@ SAFE_EXTENT_PC = 10000
 SAFE_EXTENT_PC): float32 holds 10 kpc to 0.001 pc, a tenth of a pixel at the closest zoom of a layer."""
 
 BUFFER_EXTENTS = "() => document.querySelector('#galaxymap3d-canvas').galaxyBufferExtents()"
+
+
+@pytest.mark.parametrize("scheme", ("dark", "light"))
+def test_a_superbubble_has_a_crisp_rim_brighter_than_its_fill_and_a_fill_fainter_than_the_old_circles(page, far_site, scheme):
+    """MAP.236: a superbubble is its sphere, a faint fill (under the 0.14 of the three circles it was) and a rim where the sphere meets
+    the line of sight that stands out from the background more than the fill does, in the dark and the light theme."""
+    page.emulate_media(color_scheme=scheme)
+    _open_galaxy(page, far_site, "")
+    x, y, z, radius = FAR_BUBBLE
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})",
+                  [[x, y, z], radius * 1.25])
+    _settle(page)
+    page.wait_for_timeout(500)
+    look = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyBubbleLook()")
+    assert look and look["count"] == 1, look
+    assert look["fillAlpha"] < 0.14, look
+    assert look["rimAlpha"] > 3 * look["fillAlpha"], look
+    spot = _screen_of(page, (x, y, z))
+    assert spot
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    image = Image.open(io.BytesIO(_shot(page, GALAXY_CANVAS))).convert("RGB")
+    row = int(spot[1] - box["y"])
+    middle = int(spot[0] - box["x"])
+    luminance = [sum(image.getpixel((column, row))) for column in range(image.width)]
+    background = sum(luminance[2:12]) / 10
+    shown = [column for column, value in enumerate(luminance) if abs(value - background) > 3 and 12 < column < image.width - 12]
+    assert shown, "no bubble on the row through its middle"
+    left, right = min(shown), max(shown)
+    assert right - left > 100, (left, right)
+    # Halfway out from the middle on the left the fill alone is drawn (the view's cross sits at the middle); at the edge the rim is.
+    fill = sum(luminance[(left + middle) // 2 - 3:(left + middle) // 2 + 4]) / 7
+    rim = max(luminance[left:left + 6], key=lambda value: abs(value - background))
+    assert abs(fill - background) > 3, (fill, background)
+    assert abs(rim - background) > abs(fill - background) + 6, (rim, fill, background)
 
 
 def test_layers_far_from_the_centre_are_built_relative_to_origins_of_their_own(page, far_site):

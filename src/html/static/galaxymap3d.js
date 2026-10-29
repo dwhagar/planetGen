@@ -60,6 +60,7 @@ const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`)
 const { createSectorFrame } = await import(`./sectorframe.js${VERSION_QUERY}`);
 const { cellEdgePoints, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
+const superbubble = await import(`./superbubble.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
@@ -3137,42 +3138,44 @@ function initGalaxyMap3d(canvasEl, data) {
   //
   // The cavities the supernovae of OB associations blow in the gas (the Local Bubble
   // is one), from the galaxy's seed: the page embeds each one's centre and radius in
-  // galaxy-frame parsecs. Each is drawn as three faint great circles, a thin shell,
-  // in one line object under everything else and never picked. No molecular cloud
-  // lies inside one.
+  // galaxy-frame parsecs. Each is drawn as its sphere (MAP.236, superbubble.js): a faint fill and a
+  // crisp rim where the sphere meets the line of sight, under everything else and never picked. No
+  // molecular cloud lies inside one.
   var bubbles = data.superbubbles || [];
+  var bubbleLook = superbubble.bubbleLook(isLightBackground());
+  var bubbleMaterial = null;
   if (bubbles.length) {
-    var BUBBLE_SEGMENTS = 48;
-    // MAP.240: one line object for each bubble, at its centre, so no vertex is more than the radius from its origin.
+    // MAP.240: one object for each bubble, at its centre, so no vertex is more than the radius from its origin.
+    bubbleMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        color: { value: new THREE.Vector3().fromArray(superbubble.colorComponents(bubbleLook.color)) },
+        fillAlpha: { value: bubbleLook.fillAlpha },
+        rimAlpha: { value: bubbleLook.rimAlpha },
+        rimPx: { value: superbubble.RIM_PX },
+      },
+      vertexShader: superbubble.VERTEX_SHADER,
+      fragmentShader: superbubble.FRAGMENT_SHADER,
+      transparent: true, depthWrite: false, depthTest: false, side: THREE.BackSide,
+    });
     bubbles.forEach(function (bubble) {
-      var bubbleVertices = [];
-      for (var plane = 0; plane < 3; plane += 1) {
-        for (var step = 0; step < BUBBLE_SEGMENTS; step += 1) {
-          [step, step + 1].forEach(function (at) {
-            var u = bubble[3] * Math.cos(2 * Math.PI * at / BUBBLE_SEGMENTS);
-            var v = bubble[3] * Math.sin(2 * Math.PI * at / BUBBLE_SEGMENTS);
-            // The xy, xz and yz circles, about the centre.
-            bubbleVertices.push(
-              plane === 2 ? 0 : u,
-              plane === 0 ? v : plane === 1 ? 0 : u,
-              plane === 0 ? 0 : v);
-          });
-        }
-      }
-      var bubbleGeometry = new THREE.BufferGeometry();
-      bubbleGeometry.setAttribute("position", new THREE.Float32BufferAttribute(bubbleVertices, 3));
-      var bubbleLines = new THREE.LineSegments(bubbleGeometry, new THREE.LineBasicMaterial({
-        color: new THREE.Color(0x6fb3d8), transparent: true, opacity: 0.14, depthWrite: false, depthTest: false,
-      }));
-      bubbleLines.position.set(bubble[0], bubble[1], bubble[2]);
-      bubbleLines.renderOrder = 0;
-      bubbleLines.frustumCulled = false;
-      bubbleLines.name = "superbubbles";
-      bubbleLines.userData.relativeLayer = "superbubbles";
-      scene.add(bubbleLines);
+      var bubbleMesh = new THREE.Mesh(new THREE.SphereGeometry(bubble[3], 48, 24), bubbleMaterial);
+      bubbleMesh.position.set(bubble[0], bubble[1], bubble[2]);
+      bubbleMesh.renderOrder = 0;
+      bubbleMesh.frustumCulled = false;
+      bubbleMesh.name = "superbubbles";
+      bubbleMesh.userData.relativeLayer = "superbubbles";
+      scene.add(bubbleMesh);
     });
     renderer.domElement.dataset.superbubbles = String(bubbles.length);
   }
+
+  // For the browser tests (MAP.236): the look the bubbles are drawn with.
+  canvasEl.galaxyBubbleLook = function () {
+    return bubbleMaterial ? {
+      count: bubbles.length, color: bubbleLook.color, fillAlpha: bubbleMaterial.uniforms.fillAlpha.value,
+      rimAlpha: bubbleMaterial.uniforms.rimAlpha.value, rimPx: bubbleMaterial.uniforms.rimPx.value,
+    } : null;
+  };
 
   // --- Sectors a generate job made (ADM.31) ---------------------------------------
   //
