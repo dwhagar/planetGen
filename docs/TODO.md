@@ -13616,51 +13616,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   UX.208.
   Prerequisites: none. Related: TEST.441, UX.208.
 
-- [ ] **GEN.907 Life census: only 0.08% of life worlds reach animals against the 15 to 35% band, because almost all life worlds are Melanin or Retinal and few ordinary worlds are oxygenic (bug)**
-  Found by Bug 2 (3:16 AM EDT 2026-10-29 as the lane reported),
-  re-running the censuses on main after GEN.855 + GEN.750 (#3663). Life
-  census (240 systems, 1246 life worlds): 1 world (0.08%) reaches
-  animals against the 15 to 35% band of life-classes.md 5.2. Cause: 1242
-  of the 1246 life worlds are Melanin (radiotrophic) or Retinal, only 4
-  are oxygenic (chlorophyll); Core 1's 21 to 33 per 100 describes
-  oxygenic life only. Either random systems almost never produce
-  oxygenic life worlds (the chlorophyll window needs a temperate
-  liquid-water world and few ordinary worlds are one), or the band in
-  life-classes.md 5.2 should be per oxygenic world, not per life world.
-  A CALL FOR BOSS OR CORE 1: which is wrong, the generator or the band.
-  Do: Core 1 measures how many ordinary temperate liquid-water worlds
-  the generator makes and whether the oxygenic share is physically
-  expected, then puts the choice to Boss in plain words (change the
-  generator, or re-state the band per oxygenic world); then the chosen
-  fix with its census retag. Version 8.1. Owner: Core 1 (first the
-  diagnosis; Aux 2 owns the chemistry weights GEN.867 and the life
-  classes, so tell it). Prerequisites: none. Related: GEN.867, GEN.855,
-  GEN.750, GEN.646, GEN.853, GEN.854, TEST.430.
-  Prerequisites: none. Related: GEN.867, GEN.855, GEN.750, GEN.646,
-  GEN.853, GEN.854, TEST.430.
-  Research (2026-10-09): Update (Core 1, about 3:31 AM EDT 2026-10-29 as
-  the lane reported): diagnosed, report
-  /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md.
-  The generator is consistent: 1222 of 1246 census life worlds are
-  Melanin (no requirement, M dwarfs are 79 percent of default systems
-  and list no oxygenic chemistry), 4 oxygenic; where oxygenic life lives
-  on a sea world 3 of 17 reached animals, near the band. The band's
-  denominator is the mismatch. Core 1 put the choice to Boss on a card
-  (restate per oxygenic world, change the lists via GEN.867, or both;
-  recommended: restate the bands now, then GEN.867 lists). Two new
-  faults found: GEN.908, GEN.909. Waits for Boss's answer.
-  Research (2026-10-09): Update (Aux 2, about 3:31 AM EDT 2026-10-29 as
-  the lane reported): Aux 2's epoch 120 bundle rewrites life.py: the
-  classes are scored (physics/life_classes.py, merged), the dominant
-  class is drawn by net primary production per body (GEN.872),
-  tuning.LIFE_CHEMICALS and the star weights and lists go away,
-  Chlorophyll a and Blue-Optimized become classes 1a and 1b by the
-  star's light against the pigment band, M dwarfs get far-red class 1c,
-  Melanin is gone (airless rocks get no class). This changes the
-  denominator Core 1 diagnosed, so re-take the life census after epoch
-  120 before restating any band; Core 1's second change waits for Aux
-  2's merge and rebases onto the new life.py.
-
 - [ ] **GEN.908 Worlds labelled surface ocean are mostly frozen: at least half have a mean surface temperature below 273 K (bug)**
   Found by Core 1 (7:31 AM UTC relay, about 3:31 AM EDT as the lane
   reported) while diagnosing GEN.907; report
@@ -18696,25 +18651,6 @@ clears each one.
   fixture, never loosen or skip a test. Owner: Bug 1, after TEST.425.
   Prerequisites: none. Related: TEST.425, TEST.426.
 
-- [ ] **TEST.429 Four test groups are red on clean main: three test_api_job_runs tests, and test_web_seo for web.galaxy_system_nearest (bug)**
-  Found by the search-filters merge lane after #3518 (6:38 PM EDT
-  2026-10-28 as the lane reported), all on clean main and not from its
-  change: (1) tests/test_api_job_runs: regenerating a sector, the
-  neighborhood job and the settle job fail; (2)
-  tests/test_web_seo::test_every_web_page_is_classified_on_purpose:
-  web.galaxy_system_nearest is missing from the indexing matrix in
-  web/seo.py (classify it on purpose: indexed or not, with the reason).
-  The test_db_column_round_trip::test_every_column_is_written red it
-  also saw is TEST.427 (Aux 7 fixes it inside its lock turn). Find each
-  breaking commit and fix the code or the matrix, never loosen or skip a
-  test. Owner: Bug 1, after TEST.425.
-  Research (2026-10-09): Aux 1 saw test_api_job_runs red on main again
-  (2026-10-28, GEN.791 gate); already tracked here.
-  Research (2026-10-09): Update (Bug 1, #3665, 3:07 AM EDT 2026-10-29 as
-  the lane reported): the seo matrix part is fixed; the
-  test_api_job_runs part (job_runs) is still Bug 1's.
-  Prerequisites: none. Related: TEST.425, TEST.427, TEST.428.
-
 - [ ] **TEST.430 Class census: a standing seeded report of every planet and moon class share and overall colour per star type and zone, with stored expected ranges and anomaly flags**
   Boss, 7:21 PM EDT 2026-10-28: "Can we make a prevalence tests to debug
   consistently all the class likelihoods so we can always check for
@@ -18822,6 +18758,18 @@ clears each one.
   terrestrial worlds, none past producers, so the 15 to 35 percent
   animals band fails; tagged GEN.855. Stays open: the census reads the
   stored class once GEN.889 lands.
+  Research (2026-10-09): Update (Boss answer to Core 1's GEN.907 card,
+  about 6:04 AM EDT 2026-10-29: 'Both, in order'): FIRST restate the
+  life-census bands per oxygenic world (or per sea world with air), not
+  per life world, in docs/design/habitability/life-classes.md 5.2 and in
+  these prevalence tests; THEN, after Aux 2's epoch 120 (GEN.867: class
+  rewrite, Melanin gone, chlorophyll/blue-optimized/far-red classes by
+  starlight) lands, re-baseline the numbers. Take the census after epoch
+  120 merges before setting numbers, because epoch 120 changes the
+  denominator. Core 1's diagnosis:
+  /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md.
+  Bug 2 owns the tests; the band text in life-classes.md is Bug 2's edit
+  with Core 1's report as the source.
   Prerequisites: GEN.863, TEST.430.
 
 - [ ] **TEST.436 Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges**
@@ -18847,19 +18795,6 @@ clears each one.
   edits a field not used by the rules and finds the class unchanged;
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
-
-- [ ] **TEST.449 test_sheet_fill "no empty column that applies" is red on main: life_age_complex_cells_gyr is empty (bug)**
-  Found by Aux 7 (about 4:15 AM EDT 2026-10-29 as the lane reported),
-  identical on main without its change: the sheet-fill test finds the
-  column life_age_complex_cells_gyr empty where the rules say it
-  applies. Either the column has no filler since the life timeline
-  (GEN.750, epoch 119) or the applies rule is wrong. Do: find which;
-  fill the column or fix the rule (a generation change goes in a lock
-  turn; a rule or test change does not), then rerun test_sheet_fill.
-  Version 8.1. Owner: Bug 1 (diagnose; hand to Core 1 if the filler
-  belongs to the life timeline). Prerequisites: none. Related: GEN.750,
-  GEN.855.
-  Prerequisites: none. Related: GEN.750, GEN.855.
 
 ## USR: User accounts
 

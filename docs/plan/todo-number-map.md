@@ -1657,7 +1657,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.904 | Daylight columns stay stale or empty after an orbit move: re-run daylight after generate_spin in the reconcile (bug) | none | open |
 | GEN.905 | Mantle redox and delta-IW are empty on class V ocean worlds (bug) | none | open |
 | GEN.906 | Icy-moon tide is stored as 0.0 where it should be NULL (bug) | none | open |
-| GEN.907 | Life census: only 0.08% of life worlds reach animals against the 15 to 35% band, because almost all life worlds are Melanin or Retinal and few ordinary worlds are oxygenic (bug) | none | open |
+| GEN.907 | Life census: only 0.08% of life worlds reach animals against the 15 to 35% band, because almost all life worlds are Melanin or Retinal and few ordinary worlds are oxygenic (bug) | none | done, diagnosed and decided (Boss 6:04 AM EDT 10-29: both in order, restate the bands first, then re-baseline after GEN.867); the work is TEST.435 |
 | GEN.908 | Worlds labelled surface ocean are mostly frozen: at least half have a mean surface temperature below 273 K (bug) | none | open |
 | GEN.909 | Temperate liquid-water worlds (273 to 323 K, 10 kPa to 1 MPa, ocean) are rare: 10 in 120 systems at G2V, 6 at K5V, 0 at M2V (bug) | none | done, diagnosis only (cold by the physics, no code change; report gen909-cold-ecosphere-diagnosis-2026-10-29.md) |
 | GEN.910 | K5V worlds are also cold in the inner third of the habitable zone (9 of 13 under 273 K): split the cold share by flux and by CO2 to find out why (bug) | none | done, diagnosis only (no K5V-specific fault; report gen910-k5v-cold-share-2026-10-29.md) |
@@ -3237,7 +3237,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.426 | test_galaxy_map_window_follows_the_browser_window_when_it_is_resized fails in long full-file runs and passes alone (bug) | none | open |
 | TEST.427 | Three column registry tests are red on main: aerosol_draw has no unit, tidal_flux_w_m2 is written but listed as NULL, host_eccentricity is not serializable (bug) | none | open |
 | TEST.428 | test_benchmark_suite (real run) and the test_work_units batch fills are red on main (bug) | none | open |
-| TEST.429 | Four test groups are red on clean main: three test_api_job_runs tests, and test_web_seo for web.galaxy_system_nearest (bug) | none | open |
+| TEST.429 | Four test groups are red on clean main: three test_api_job_runs tests, and test_web_seo for web.galaxy_system_nearest (bug) | none | done, PR #3681 |
 | TEST.430 | Class census: a standing seeded report of every planet and moon class share and overall colour per star type and zone, with stored expected ranges and anomaly flags | none | open |
 | TEST.431 | System census: full systems per star type with planets, moons, belts and comets per system, the zero-planet share, binary share, habitable-world share, and life stage and civilization shares (prevalence suite part B) | none | done, PR #3585 |
 | TEST.432 | Star census: star type mix, white dwarfs, subgiants, giants, pre-main-sequence stars, brown dwarfs and multiplicity by type against RECONS and Kroupa (prevalence suite part C) | none | done, PR #3588 |
@@ -3256,7 +3256,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.445 | Four map browser tests in test_web_browser_fixture_maps.py red on main: point phenomena links, black hole markers toggle and legend, nebula click clears the selection, wide map card keeps the page edge (bug) | none | done, PR #3650 |
 | TEST.446 | Two tests red on main: the generated config.schema.json out of date, and the batch-fill units listing rescore-habitability first (bug) | none | done, PR #3665 |
 | TEST.448 | test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count is red on main: blocks show no tint in the new sector view (bug) | none | done, PR #3672 |
-| TEST.449 | test_sheet_fill "no empty column that applies" is red on main: life_age_complex_cells_gyr is empty (bug) | none | open |
+| TEST.449 | test_sheet_fill "no empty column that applies" is red on main: life_age_complex_cells_gyr is empty (bug) | none | done, PR #3681 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
