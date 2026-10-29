@@ -34,7 +34,7 @@ INSTRUMENT = """() => {
     const perf = window.__perf = {requests: 0, bytes: 0, inflight: 0, frames: [], longTasks: [], last: 0};
     const fetchNow = window.fetch.bind(window);
     window.fetch = function (input, init) {
-        const url = typeof input === "string" ? input : input.url;
+        const url = typeof input === "string" ? input : (input.url || String(input));   // a Request has .url, a URL (an icon file, MAP.320) is its own string
         const counted = url.indexOf("/nodes") >= 0;
         if (counted) { perf.requests++; perf.inflight++; }
         return fetchNow(input, init).then((response) => {
@@ -86,7 +86,8 @@ STEP = """([wait_ms]) => new Promise((resolve) => {
 """str: Waits for the view to settle after what the test just did (no flight, no node request in the air and no change to
 the star buffer for `wait_ms`) and returns the figures of the step since it began."""
 
-QUIET_MS = 400
+QUIET_MS = 1000
+"""int: How long the view must stay still for a step to count as settled: longer than the map's 300 ms fetch debounce plus the stored-node lookup and the request's start on a busy machine (at 400 ms a climb step could end before its fetch had begun and the next step took the blame, TEST.439), shorter than its 1.5 s prefetch idle."""
 WHEEL_DELTA = 400
 DIVE_STEPS_MAX = 30
 """The wheel steps of the dive in, at most (it stops at the closest zoom)."""
