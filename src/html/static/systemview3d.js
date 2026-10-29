@@ -207,6 +207,7 @@ export function buildSystemScene(scene, layout, options) {
     size: 5, sizeAttenuation: false, vertexColors: true, transparent: true, opacity: 0.95, depthWrite: false,
   }));
   dots.frustumCulled = false;
+  dots.userData.relativeLayer = "system dots";   // MAP.240: in the system's own units, inside a group at the system
   group.add(dots);
 
   scene.belts.forEach((belt) => {
@@ -225,6 +226,7 @@ export function buildSystemScene(scene, layout, options) {
       color: 0xb8a58a, size: 1.6, sizeAttenuation: false, transparent: true, opacity: 0.8, depthWrite: false,
     }));
     points.userData.ref = belt.ref;
+    points.userData.relativeLayer = "system belts";
     hang(belt.around, points);
     // MAP.321: where the belt's symbol sits, on the belt's ring half way across it, riding what the belt goes round.
     beltAnchors.push({

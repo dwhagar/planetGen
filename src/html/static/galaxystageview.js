@@ -64,6 +64,7 @@ const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 const SR = await import(`./sectorreach.js${VERSION_QUERY}`);
 const SYS = await import(`./systemreach.js${VERSION_QUERY}`);
 const FIT = await import(`./flytofit.js${VERSION_QUERY}`);
+const { centreOf, offsetsFrom } = await import(`./camerarelative.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
@@ -444,20 +445,30 @@ export function createStageView(host) {
       });
     });
     if (!points.length) return null;
-    const line = new THREE.LineSegments(
-      lineGeometry(points),
+    const line = lineObject(
+      points,
       new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: CHARTED_LINE_OPACITY, depthTest: false, depthWrite: false }),
+      "charted lines",
     );
     line.renderOrder = 4;
     line.frustumCulled = false;
     return line;
   }
 
-  // A line-segment geometry from a flat [x, y, z, ...] list of end points.
-  function lineGeometry(points) {
+  // A line-segment geometry from a flat [x, y, z, ...] list of end points, as offsets from `origin` (MAP.240).
+  function lineGeometry(points, origin) {
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+    geometry.setAttribute("position", new THREE.BufferAttribute(offsetsFrom(points, origin), 3));
     return geometry;
+  }
+
+  // The line segments through `points`, an object at the middle of them with offsets from it (MAP.240).
+  function lineObject(points, material, layer) {
+    const origin = centreOf(points);
+    const line = new THREE.LineSegments(lineGeometry(points, origin), material);
+    line.position.set(origin[0], origin[1], origin[2]);
+    line.userData.relativeLayer = layer;
+    return line;
   }
 
   function disposeDisplay(d) {
@@ -779,7 +790,7 @@ export function createStageView(host) {
         const position = part.geometry.getAttribute("position");
         hovered.lines += position.count / 2;
         for (let i = 0; i < position.count; i++) {
-          const z = position.getZ(i);
+          const z = position.getZ(i) + part.position.z;
           hovered.zMin = hovered.zMin === null ? z : Math.min(hovered.zMin, z);
           hovered.zMax = hovered.zMax === null ? z : Math.max(hovered.zMax, z);
         }
@@ -1594,9 +1605,10 @@ export function createStageView(host) {
       outlineGroup.renderOrder = 6;
       host.scene.add(outlineGroup);
     }
-    const line = new THREE.LineSegments(
-      lineGeometry(points),
+    const line = lineObject(
+      points,
       new THREE.LineBasicMaterial({ color: accent, depthTest: false, transparent: true, opacity: opacity }),
+      "block outline",
     );
     line.renderOrder = 6;
     line.frustumCulled = false;
@@ -1615,7 +1627,9 @@ export function createStageView(host) {
     // A sector opened in place keeps its outline and no shade: its own scene
     // is drawn inside, and picking its stars must not be dimmed.
     if (entered) return;
-    const built = P.buildPrismGeometry(option.blocks.map(function (block) { return block.bounds; }));
+    const shadeBounds = option.blocks.map(function (block) { return block.bounds; });
+    const shadeOrigin = centreOf([].concat.apply([], shadeBounds.map(function (b) { return P.cellCoordinates(b).cartesian; })));
+    const built = P.buildPrismGeometry(shadeBounds, shadeOrigin);
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.BufferAttribute(built.positions, 3));
     geometry.setIndex(new THREE.BufferAttribute(built.indices, 1));
@@ -1623,6 +1637,8 @@ export function createStageView(host) {
       geometry,
       new THREE.MeshBasicMaterial({ color: accent, transparent: true, opacity: HOVER_SHADE_OPACITY, depthTest: false, depthWrite: false, side: THREE.DoubleSide }),
     );
+    fill.position.set(shadeOrigin[0], shadeOrigin[1], shadeOrigin[2]);
+    fill.userData.relativeLayer = "block shade";
     fill.renderOrder = 5;
     fill.frustumCulled = false;
     fill.userData.hoverShade = true;

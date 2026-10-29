@@ -101,6 +101,7 @@ const {
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
+const { extentOf, groupByCell, linePieces } = await import(`./camerarelative.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 const {
   NEBULA_MESH_MIN_PX, buildNebulaMesh, createShapeLoader, disposeNebulaMesh,
@@ -1086,6 +1087,9 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("prismFill", new THREE.BufferAttribute(part.fills, 1, true));
     geometry.setIndex(new THREE.BufferAttribute(part.indices, 1));
     var mesh = new THREE.Mesh(geometry, makeBlockMaterial(translucent));
+    // MAP.240: the part's vertices are offsets from its origin, which the mesh carries.
+    if (part.origin) mesh.position.set(part.origin[0], part.origin[1], part.origin[2]);
+    mesh.userData.relativeLayer = "block prisms";
     mesh.frustumCulled = false;
     mesh.visible = part.vertexCount > 0;
     mesh.userData.part = part;
@@ -2858,12 +2862,14 @@ function initGalaxyMap3d(canvasEl, data) {
   // and the dots keep a fixed size on screen, so zooming out never turns
   // them into a smear. Fetched once, the first time the button is
   // pressed, and listed under the map with each polity's system count.
+  // MAP.240: the cube, in parsecs, a layer of many scattered points is split into so each part has an origin near it
+  // (static/camerarelative.js); half its diagonal is under SAFE_EXTENT_PC.
+  var RELATIVE_CELL_PC = 1000;
   var TERRITORY_DOT_PX = 3.5;
   var TERRITORY_BALL_OPACITY = 0.1;
   var territoryGroup = null;
   var territoryLoading = false;
   var territoryWanted = false;
-  var territoryDots = null;
 
   function lyToPc(ly) {
     return convert(ly, "ly", "pc");
@@ -2894,26 +2900,33 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     var points = payload.points || [];
     if (points.length) {
-      var positions = new Float32Array(points.length * 3);
-      var colors = new Float32Array(points.length * 3);
-      points.forEach(function (point, n) {
-        positions[3 * n] = point.x;
-        positions[3 * n + 1] = point.y;
-        positions[3 * n + 2] = point.z;
+      var flat = [];
+      var tints = [];
+      points.forEach(function (point) {
+        flat.push(point.x, point.y, point.z);
         var color = territoryColor(point.color);
-        colors[3 * n] = color.r;
-        colors[3 * n + 1] = color.g;
-        colors[3 * n + 2] = color.b;
+        tints.push(color.r, color.g, color.b);
       });
-      var geometry = new THREE.BufferGeometry();
-      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
-      territoryDots = new THREE.Points(geometry, new THREE.PointsMaterial({
-        size: TERRITORY_DOT_PX * renderer.getPixelRatio(), sizeAttenuation: false, vertexColors: true,
-        transparent: true, depthWrite: false,
-      }));
-      territoryDots.frustumCulled = false;
-      group.add(territoryDots);
+      // MAP.240: the dots in cubes of their own, each an object at its cube's middle with offsets from it.
+      groupByCell(flat, RELATIVE_CELL_PC).forEach(function (chunk) {
+        var colors = new Float32Array(chunk.indices.length * 3);
+        chunk.indices.forEach(function (at, n) {
+          colors[3 * n] = tints[3 * at];
+          colors[3 * n + 1] = tints[3 * at + 1];
+          colors[3 * n + 2] = tints[3 * at + 2];
+        });
+        var geometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.BufferAttribute(chunk.positions, 3));
+        geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+        var dots = new THREE.Points(geometry, new THREE.PointsMaterial({
+          size: TERRITORY_DOT_PX * renderer.getPixelRatio(), sizeAttenuation: false, vertexColors: true,
+          transparent: true, depthWrite: false,
+        }));
+        dots.position.set(chunk.origin[0], chunk.origin[1], chunk.origin[2]);
+        dots.userData.relativeLayer = "territory dots";
+        dots.frustumCulled = false;
+        group.add(dots);
+      });
     }
     return group;
   }
@@ -3019,6 +3032,23 @@ function initGalaxyMap3d(canvasEl, data) {
   // all (galaxystages.courseStage), unless the URL names a stage itself.
   // A course inside one sector has no line to draw: the map opens that
   // sector instead.
+  // A line through `points` (Vector3s of doubles) as a group of short THREE.Lines (MAP.240): each piece is at most
+  // LINE_PIECE_PC long, an object at its own middle with offsets from it, so a course across the galaxy stays exact too.
+  // `dashed` has each piece's line distances worked out (a dash pattern starts again on each piece).
+  var LINE_PIECE_PC = 4000;
+  function lineFrom(points, material, dashed) {
+    var group = new THREE.Group();
+    linePieces(points.map(function (point) { return [point.x, point.y, point.z]; }), LINE_PIECE_PC).forEach(function (built) {
+      var geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(built.positions, 3));
+      var line = new THREE.Line(geometry, material);
+      line.position.set(built.origin[0], built.origin[1], built.origin[2]);
+      line.userData.relativeLayer = "course line";
+      if (dashed) line.computeLineDistances();
+      group.add(line);
+    });
+    return group;
+  }
   var course = data.course && (data.course.points || []).length >= 2 ? data.course : null;
   var courseSectors = [];
   var courseMarkers = [];
@@ -3033,24 +3063,17 @@ function initGalaxyMap3d(canvasEl, data) {
     courseGroup.renderOrder = 4;
     scene.add(courseGroup);
     var linePoints = course.points.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
-    courseGroup.add(new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(linePoints),
-      new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })
-    ));
+    // MAP.240: a line is an object at its first stop with offsets from it.
+    courseGroup.add(lineFrom(linePoints, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })));
     // NAV.20: with stops on the way, the straight line from the start to the
     // end is drawn apart from the route, dashed and muted.
     if (course.direct && course.direct.length === 2) {
       var directPoints = course.direct.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
-      var directLine = new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints(directPoints),
-        new THREE.LineDashedMaterial({
-          color: new THREE.Color(0x9aa3b8), depthTest: false, transparent: true,
-          dashSize: directPoints[0].distanceTo(directPoints[1]) / 60,
-          gapSize: directPoints[0].distanceTo(directPoints[1]) / 120,
-        })
-      );
-      directLine.computeLineDistances();
-      courseGroup.add(directLine);
+      courseGroup.add(lineFrom(directPoints, new THREE.LineDashedMaterial({
+        color: new THREE.Color(0x9aa3b8), depthTest: false, transparent: true,
+        dashSize: directPoints[0].distanceTo(directPoints[1]) / 60,
+        gapSize: directPoints[0].distanceTo(directPoints[1]) / 120,
+      }), true));
     }
     course.points.forEach(function (point, n) {
       var ends = n === 0 || n === course.points.length - 1;
@@ -3087,31 +3110,34 @@ function initGalaxyMap3d(canvasEl, data) {
   var bubbles = data.superbubbles || [];
   if (bubbles.length) {
     var BUBBLE_SEGMENTS = 48;
-    var bubbleVertices = [];
+    // MAP.240: one line object for each bubble, at its centre, so no vertex is more than the radius from its origin.
     bubbles.forEach(function (bubble) {
+      var bubbleVertices = [];
       for (var plane = 0; plane < 3; plane += 1) {
         for (var step = 0; step < BUBBLE_SEGMENTS; step += 1) {
           [step, step + 1].forEach(function (at) {
             var u = bubble[3] * Math.cos(2 * Math.PI * at / BUBBLE_SEGMENTS);
             var v = bubble[3] * Math.sin(2 * Math.PI * at / BUBBLE_SEGMENTS);
-            // The xy, xz and yz circles.
+            // The xy, xz and yz circles, about the centre.
             bubbleVertices.push(
-              bubble[0] + (plane === 2 ? 0 : u),
-              bubble[1] + (plane === 0 ? v : plane === 1 ? 0 : u),
-              bubble[2] + (plane === 0 ? 0 : v));
+              plane === 2 ? 0 : u,
+              plane === 0 ? v : plane === 1 ? 0 : u,
+              plane === 0 ? 0 : v);
           });
         }
       }
+      var bubbleGeometry = new THREE.BufferGeometry();
+      bubbleGeometry.setAttribute("position", new THREE.Float32BufferAttribute(bubbleVertices, 3));
+      var bubbleLines = new THREE.LineSegments(bubbleGeometry, new THREE.LineBasicMaterial({
+        color: new THREE.Color(0x6fb3d8), transparent: true, opacity: 0.14, depthWrite: false, depthTest: false,
+      }));
+      bubbleLines.position.set(bubble[0], bubble[1], bubble[2]);
+      bubbleLines.renderOrder = 0;
+      bubbleLines.frustumCulled = false;
+      bubbleLines.name = "superbubbles";
+      bubbleLines.userData.relativeLayer = "superbubbles";
+      scene.add(bubbleLines);
     });
-    var bubbleGeometry = new THREE.BufferGeometry();
-    bubbleGeometry.setAttribute("position", new THREE.Float32BufferAttribute(bubbleVertices, 3));
-    var bubbleLines = new THREE.LineSegments(bubbleGeometry, new THREE.LineBasicMaterial({
-      color: new THREE.Color(0x6fb3d8), transparent: true, opacity: 0.14, depthWrite: false, depthTest: false,
-    }));
-    bubbleLines.renderOrder = 0;
-    bubbleLines.frustumCulled = false;
-    bubbleLines.name = "superbubbles";
-    scene.add(bubbleLines);
     renderer.domElement.dataset.superbubbles = String(bubbles.length);
   }
 
@@ -3126,16 +3152,21 @@ function initGalaxyMap3d(canvasEl, data) {
   var MADE_RING_PX = 16;
   var MADE_FIT_LIMIT = 300;
   if (made) {
-    var madeGeometry = new THREE.BufferGeometry();
-    madeGeometry.setAttribute("position", new THREE.Float32BufferAttribute(
-      made.points.reduce(function (all, point) { all.push(point.x, point.y, point.z); return all; }, []), 3));
-    var madePoints = new THREE.Points(madeGeometry, new THREE.PointsMaterial({
-      map: highlightTexture, size: MADE_RING_PX, sizeAttenuation: false, transparent: true,
-      depthWrite: false, depthTest: false, alphaTest: 0.05,
-    }));
-    madePoints.renderOrder = 4;
-    madePoints.frustumCulled = false;
-    scene.add(madePoints);
+    var madeFlat = made.points.reduce(function (all, point) { all.push(point.x, point.y, point.z); return all; }, []);
+    // MAP.240: the rings in cubes of their own, each an object at its cube's middle.
+    groupByCell(madeFlat, RELATIVE_CELL_PC).forEach(function (chunk) {
+      var madeGeometry = new THREE.BufferGeometry();
+      madeGeometry.setAttribute("position", new THREE.BufferAttribute(chunk.positions, 3));
+      var madePoints = new THREE.Points(madeGeometry, new THREE.PointsMaterial({
+        map: highlightTexture, size: MADE_RING_PX, sizeAttenuation: false, transparent: true,
+        depthWrite: false, depthTest: false, alphaTest: 0.05,
+      }));
+      madePoints.position.set(chunk.origin[0], chunk.origin[1], chunk.origin[2]);
+      madePoints.userData.relativeLayer = "made rings";
+      madePoints.renderOrder = 4;
+      madePoints.frustumCulled = false;
+      scene.add(madePoints);
+    });
     // A stage that holds the extremes and an even sample holds them all.
     var madeFit = made.sectors;
     if (madeFit.length > MADE_FIT_LIMIT) {
@@ -4227,6 +4258,23 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // For tests (MAP.304): the stars a click can pick now, brightest first, with where each is on the screen (CSS pixels
   // from the canvas's top left; `visible` false off the screen).
+  // For tests (MAP.240): every layer built relative to an origin of its own -- its name, how far its farthest buffer value is
+  // from the object's origin in parsecs (the value times the object's scale), and where the origin is.
+  canvasEl.galaxyBufferExtents = function () {
+    var found = [];
+    scene.updateMatrixWorld(true);
+    scene.traverse(function (object) {
+      var layer = object.userData && object.userData.relativeLayer;
+      var position = layer && object.geometry && object.geometry.getAttribute("position");
+      if (!position) return;
+      found.push({
+        layer: layer, extentPc: extentOf(position.array) * object.matrixWorld.getMaxScaleOnAxis(),
+        origin: new THREE.Vector3().setFromMatrixPosition(object.matrixWorld).toArray(), count: position.count,
+      });
+    });
+    return found;
+  };
+
   canvasEl.galaxyPickableStars = function () {
     var width = canvasEl.clientWidth;
     var height = canvasEl.clientHeight;

@@ -598,10 +598,22 @@ def _bucketed(stars):
     return buckets
 
 
+FAR_BUBBLE = (250000.0, 30000.0, 800.0, 150.0)
+"""tuple: A superbubble's centre and radius (pc) of the `far` site, 250 kpc from the galaxy's middle (MAP.240)."""
+
+FAR_OWNED_PC = [(250000.0 + dx, 30000.0 + dy, 800.0 + dz) for dx, dy, dz in
+                ((0.0, 0.0, 0.0), (2400.0, -300.0, 20.0), (-3100.0, 1700.0, 5.0), (4200.0, 2200.0, -60.0), (-4800.0, -4100.0, 90.0))]
+"""list: The systems of the `far` site's polity, spread over several kiloparsecs round its capital."""
+
+FAR_MADE_PC = [(150000.0 + dx, 20000.0 + dy, 400.0) for dx, dy in ((0.0, 0.0), (3000.0, 500.0), (-2500.0, 4000.0))]
+"""list: Sectors a job made on the `far` site, 150 kpc out (MAP.240)."""
+
+
 class FixtureApi:
     """The `apiclient`/`tilecache` reads the map pages make."""
 
-    def __init__(self, halo=False, dense=False, large=False):
+    def __init__(self, halo=False, dense=False, large=False, far=False):
+        self.far = far
         self.shape = galaxy_shape()
         self.stars = STAR_FIELD + (HALO_STARS if halo else []) + (DENSE_STARS if dense else [])
         self.buckets = None
@@ -626,13 +638,31 @@ class FixtureApi:
         return self.shape
 
     def get_superbubbles(self, db):
-        return []
+        return [dict(zip(("x", "y", "z", "radius_pc"), FAR_BUBBLE))] if self.far else []
 
     def get_containers(self, db, kind=None):
         return []
 
     def get_polities(self, db, limit=None, offset=None):
+        if self.far:
+            return {"items": [{"id": 1, "name": "Far Dominion", "color": "#cc6633", "government": "Republic", "system_count": len(FAR_OWNED_PC)}],
+                    "total": 1, "limit": limit, "offset": offset}
         return {"items": [], "total": 0, "limit": limit, "offset": offset}
+
+    def get_territories(self, db):
+        """MAP.240: a polity and its systems 250 kpc out, the dots spread over several kiloparsecs."""
+        return {"polities": [{"id": 1, "capital_pc": list(FAR_BUBBLE[:3]), "reach_ly": 500.0}],
+                "points": [{"x": x, "y": y, "z": z, "color": "#cc6633"} for x, y, z in FAR_OWNED_PC]}
+
+    def get_galaxy_made(self, db, since, until=None):
+        """MAP.240: sectors a job made far out, as `GET /api/galaxy/made` lists them."""
+        from planetgen.galaxy.spherical import sector_address_at
+
+        items = []
+        for x, y, z in FAR_MADE_PC:
+            shell, band, wedge = sector_address_at((x, y, z), EDGE_PC)
+            items.append({"x": x, "y": y, "z": z, "shell_index": shell, "band_index": band, "wedge_index": wedge})
+        return {"total": len(items), "items": items}
 
     def auth_me(self, cookie_header):
         """Nobody is signed in, unless the browser sends a session cookie (UX.127's admin Generate buttons)."""
@@ -813,7 +843,7 @@ class FixtureApi:
         return cell
 
 
-_APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
+_APICLIENT = ("get_territories", "get_galaxy_made", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
               "get_galaxy_changes", "get_galaxy_nebula_cover", "get_nebula_shape", "get_system_scene",
               "get_uncharted_sector", "get_system", "get_galaxy_charted_regions")
@@ -885,6 +915,12 @@ def _serve(name, api_arguments, request, tmp_path_factory):
 def map_site(request, tmp_path_factory):
     """The base URL of a local server for the map pages, on fixture data."""
     yield from _serve("map", {}, request, tmp_path_factory)
+
+
+@pytest.fixture()
+def far_site(request, tmp_path_factory):
+    """The base URL of a local server for the map pages with a superbubble, a polity and a job's made sectors 100 to 250 kpc out."""
+    yield from _serve("far", {"far": True}, request, tmp_path_factory)
 
 
 @pytest.fixture()
