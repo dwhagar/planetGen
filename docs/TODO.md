@@ -1846,6 +1846,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   becomes an optional overlay, off by default, once the bubbles shape the
   stars (GEN.391); this item stays, at lower priority, for when the
   overlay is on.
+  Research (2026-10-09): OWNER Aux 3 (assigned 5:21 PM EDT 2026-10-29 by
+  TODO as the lane's one lock-free item while it waits for the
+  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
+  his ask at 5:18 PM EDT; separate branch, no generated-output change;
+  if the lane already holds a lock-free item it finishes that first). If
+  this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: MAP.240. Related: MAP.234, MAP.235, GEN.254.
 
 - [ ] **MAP.242 The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body**
@@ -2143,6 +2149,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   paint the shell from it, with a test. From the body-rendering build
   lane's retirement report (10:52 PM EDT 2026-10-23 as the lane
   reported); design doc docs/design/interface/body-rendering.md.
+  Research (2026-10-09): OWNER Core 3 (assigned 5:21 PM EDT 2026-10-29
+  by TODO as the lane's one lock-free item while it waits for the
+  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
+  his ask at 5:18 PM EDT; separate branch, no generated-output change;
+  if the lane already holds a lock-free item it finishes that first). If
+  this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none.
 
 - [ ] **MAP.289 The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug)**
@@ -2154,6 +2166,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   answer is cached (or built by the warm run), not the one fresh answer,
   and test it with a warm run over several sectors. Owner: the map nodes
   lane, with MAP.260 (the warm-up), which it builds next.
+  Research (2026-10-09): OWNER Aux 4 (assigned 5:21 PM EDT 2026-10-29 by
+  TODO as the lane's one lock-free item while it waits for the
+  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
+  his ask at 5:18 PM EDT; separate branch, no generated-output change;
+  if the lane already holds a lock-free item it finishes that first). If
+  this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none. Related: MAP.258, MAP.260.
 
 - [ ] **MAP.299 In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug)**
@@ -2190,6 +2208,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   message: TEST.368 (fixture galaxy), MAP.295 and MAP.296 (infobox, Core
   2), MAP.297 to MAP.303 (clicking, labels, zoom, icons; Aux 10). Owner:
   Aux 10.
+  Research (2026-10-09): OWNER Aux 7 (assigned 5:21 PM EDT 2026-10-29 by
+  TODO as the lane's one lock-free item while it waits for the
+  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
+  his ask at 5:18 PM EDT; separate branch, no generated-output change;
+  if the lane already holds a lock-free item it finishes that first). If
+  this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: TEST.368. Related: MAP.257, MAP.292, MAP.267, MAP.301.
 
 - [ ] **MAP.301 Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug)**
@@ -2392,6 +2416,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with a browser test. Owner: Core 2 when free. Rules: no
   backward-compat shims; reuse stageView.openSector and
   galaxyprisms.neighbourBlock.
+  Research (2026-10-09): OWNER Core 2 (assigned 5:21 PM EDT 2026-10-29
+  by TODO as the lane's one lock-free item while it waits for the
+  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
+  his ask at 5:18 PM EDT; separate branch, no generated-output change;
+  if the lane already holds a lock-free item it finishes that first). If
+  this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none. Related: MAP.121, MAP.141.
 
 - [ ] **MAP.336 Zoom redesign Z3: one goTo(target) for every fly with the verb Go to, a find-a-place box, a vertical log ruler with named clickable stops, crumbs as Go to, and Up one level**
@@ -18231,6 +18261,12 @@ clears each one.
   otherwise a free lane (PERF.174/175 family). Rules: no backward-compat
   shims; never skip or quarantine a test; scripts/test.py changed
   --resume.
+  Research (2026-10-09): OWNER Aux 5 (assigned 5:21 PM EDT 2026-10-29 by
+  TODO as the lane's one lock-free item while it waits for the
+  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
+  his ask at 5:18 PM EDT; separate branch, no generated-output change;
+  if the lane already holds a lock-free item it finishes that first). If
+  this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none. Related: PERF.174, PERF.175, PERF.193.
 
 - [ ] **TEST.408 test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug)**
@@ -18319,6 +18355,12 @@ clears each one.
   scripts/test.py changed runs longer than 5 minutes on a lane machine.
   Owner: Bug 1 after DB.108/GEN.826. Rules: never skip or loosen a test
   to get green; keep the property each test checks. Related: TEST.408.
+  Research (2026-10-09): OWNER Bug 2 (assigned 5:21 PM EDT 2026-10-29 by
+  TODO as the lane's one lock-free item while it waits for the
+  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
+  his ask at 5:18 PM EDT; separate branch, no generated-output change;
+  if the lane already holds a lock-free item it finishes that first). If
+  this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none. Related: TEST.408, TEST.410.
 
 - [ ] **TEST.427 Three column registry tests are red on main: aerosol_draw has no unit, tidal_flux_w_m2 is written but listed as NULL, host_eccentricity is not serializable (bug)**
