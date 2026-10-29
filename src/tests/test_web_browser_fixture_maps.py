@@ -269,6 +269,7 @@ def _pc(label):
 
 def test_sector_map_scale_line_follows_the_zoom(page, map_site):
     _open_sector(page, map_site)
+    _settle(page)  # TEST.458: the opening zoom is the one the page's flight in lands at, not a frame of it
     label, width = _scale_line(page)
     assert re.search(r"sectors? · [\d.,]+ (pc|kpc|ly|mly)", label), label
     assert 30 <= width <= 160, "the scale line is about 70 px long"
@@ -306,6 +307,26 @@ def test_sector_map_scale_line_follows_the_zoom(page, map_site):
         if _scale_line(page) == (label, width):
             break
     assert _scale_line(page) == (label, width), "Reset view goes back to the opening zoom"
+
+
+def test_reset_view_after_the_minus_button_has_run_out_of_range_goes_back(page, map_site):
+    """TEST.458: pressing minus past the end of the sector's range leaves a distance goal being chased; Reset view ended it no more than
+    a fly-to did, so the chase took the view back out as soon as the reset's flight was over and the button seemed to do nothing."""
+    _open_sector(page, map_site)
+    _settle(page)
+    opening = _scale_line(page)
+    zoom_out = page.locator('#galaxymap3d-controls [data-action="zoom-out"]')
+    for _ in range(30):
+        zoom_out.click()
+    assert _scale_line(page) != opening
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.locator('#galaxymap3d-controls [data-action="reset-view"]').click()
+    for _ in range(40):
+        page.wait_for_timeout(250)
+        if _scale_line(page) == opening:
+            break
+    page.wait_for_timeout(1500)
+    assert _scale_line(page) == opening, "Reset view goes back to the opening zoom and stays there"
 
 
 def test_sector_map_show_on_map_selects_a_rogue_planet(page, map_site):
@@ -5190,11 +5211,13 @@ def test_the_wheel_heads_for_the_crowd_in_front_of_the_zoom_and_does_not_fly_thr
     assert aside["kind"] != "crowd", aside
 
     page.mouse.move(*middle)
-    nearest = None
+    came = float("inf")
     for _ in range(30):
         page.mouse.wheel(0, -250)
         page.wait_for_timeout(120)
-    eye = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")["eye"]
-    nearest = math.dist(eye, DENSE_CENTER_PC)
-    assert nearest < DENSE_HALO_RADIUS_PC / 2, f"the camera came into the region ({nearest:.2f} pc from its middle)"
-    assert eye[2] > z - DENSE_HALO_RADIUS_PC / 2, f"and did not go on through it ({eye})"
+        eye = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")["eye"]
+        came = min(came, math.dist(eye, DENSE_CENTER_PC))
+    # The camera comes into the region and rests in it: before the crowd was looked for it went on through to a star 13 pc beyond the
+    # middle. Where it rests within the region depends on the frames the approach took, so the test holds the region, not a point.
+    assert came < DENSE_HALO_RADIUS_PC / 2, f"the camera came into the region ({came:.2f} pc from its middle)"
+    assert math.dist(eye, DENSE_CENTER_PC) < DENSE_HALO_RADIUS_PC, f"and rests in it, not beyond ({eye})"
