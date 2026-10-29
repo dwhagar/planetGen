@@ -54,6 +54,7 @@ Usage:
 import argparse
 import signal
 import sys
+from collections import namedtuple
 
 import pymysql
 
@@ -64,6 +65,7 @@ from planetgen.db.store import (
 )
 from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
 from planetgen.util import log
+from planetgen.util.format import counted
 
 _EXCLUDED_TABLES = {"schema_migrations", "id_blocks", "id_counters"}
 """set: Real tables that exist in every fresh database but hold
@@ -149,6 +151,40 @@ def _confirm(database, host, total_rows):
     return typed.strip() == database
 
 
+EXACT_COUNT_BELOW = 200_000
+"""int: A table the database's statistics put under this many rows is counted exactly before it is wiped (`COUNT(*)` reads it in a
+moment, and the statistic of a small or fresh table is the one that is wrong: "about 1 row" for an empty database, UX.164); a larger
+table keeps the statistic, which counting row by row would take minutes to replace."""
+
+
+def _rows_held(conn, table, estimate):
+    """`(rows, exact)`: the rows `table` holds, counted when its statistic `estimate` says it is small (`EXACT_COUNT_BELOW`), else the
+    statistic itself."""
+    if estimate >= EXACT_COUNT_BELOW:
+        return estimate, False
+    return int(conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"]), True
+
+
+class Wiped(namedtuple("Wiped", "tables with_rows exact_rows estimated_rows")):
+    """What a wipe did (UX.164): `tables` (the names), `with_rows` (how many held any row), `exact_rows` (rows counted before the tables
+    holding them were wiped) and `estimated_rows` (the database's statistic for the large tables, which are not counted row by row)."""
+
+    __slots__ = ()
+
+    def text(self, database):
+        """The line that says what the wipe did, with real counts: the tables cleared, how many held rows, the rows removed, and the
+        large tables' share as a statistic."""
+        tables = f"{len(self.tables)} {counted('table', len(self.tables))}"
+        if not self.with_rows:
+            return f"Wiped {tables} from '{database}' (all were already empty)."
+        held = f"{self.with_rows} {counted('table', self.with_rows)} held rows"
+        removed = f"{self.exact_rows:,} {counted('row', self.exact_rows)} removed"
+        if self.estimated_rows:
+            removed = (f"{self.exact_rows:,} {counted('row', self.exact_rows)} counted and about {self.estimated_rows:,} more by the "
+                       f"database's statistics in its large tables removed")
+        return f"Wiped {tables} from '{database}' ({held}, {removed})."
+
+
 def wipe(config, report=None):
     """
     Truncates every content table in `config.database` and tidies after it: every cache of the old galaxy is stale
@@ -160,14 +196,22 @@ def wipe(config, report=None):
         report (callable, optional): `report(done, total)` as each table is wiped.
 
     Returns:
-        list[str]: The tables wiped.
+        Wiped: The tables wiped and the rows they held (UX.164).
     """
     conn = get_connection(config)
     try:
-        tables = list(_table_estimates(conn, config.database))
+        estimates = _table_estimates(conn, config.database)
+        tables = list(estimates)
+        exact_rows = estimated_rows = with_rows = 0
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
         try:
             for number, table in enumerate(tables, start=1):
+                held, exact = _rows_held(conn, table, estimates[table])
+                with_rows += 1 if held else 0
+                if exact:
+                    exact_rows += held
+                else:
+                    estimated_rows += held
                 conn.execute(f"TRUNCATE TABLE {table}")
                 if report is not None:
                     report(number, len(tables))
@@ -181,7 +225,7 @@ def wipe(config, report=None):
         # The pages read the empty galaxy at once, not at the page cache's next look at the content stamp (UX.161).
         dataversion.record(config.database, "everything")
         _purge_page_cache(config.database)
-        return tables
+        return Wiped(tables, with_rows, exact_rows, estimated_rows)
     finally:
         conn.close()
 
@@ -205,7 +249,9 @@ def reset_galaxy_unit(params, report):
     """
     from planetgen.generation import run_plan
     config = run_plan._mysql_config_of(params)
-    return {"database": config.database, "tables": len(wipe(config, report))}
+    wiped = wipe(config, report)
+    return {"database": config.database, "tables": len(wiped.tables), "with_rows": wiped.with_rows,
+            "exact_rows": wiped.exact_rows, "estimated_rows": wiped.estimated_rows}
 
 
 def reset_database(config, dry_run=False, assume_yes=False):
@@ -249,11 +295,14 @@ def reset_database(config, dry_run=False, assume_yes=False):
         return False
 
     step = commands.Step("reset", "reset-galaxy", "Reset the galaxy", {"database": wrapper.database_args(config)})
+    results = []
     with StageProgress(len(tables), kind="reset") as bar:
-        wrapper.run("Reset the galaxy", [step], lambda index, plan: None, lambda index, unit, result: None,
+        wrapper.run("Reset the galaxy", [step], lambda index, plan: None, lambda index, unit, result: results.append(result),
                     lambda index, unit, done, estimate: bar.stage(f"Wiping tables ({done} of {estimate})"),
                     database=config.database, argv=sys.argv[1:])
-    log.normal(f"Wiped {len(tables)} table(s) from '{config.database}'.")
+    wiped = next((r for r in results if isinstance(r, dict) and "exact_rows" in r), None)
+    log.normal(Wiped(tables, wiped["with_rows"], wiped["exact_rows"], wiped["estimated_rows"]).text(config.database) if wiped
+               else f"Wiped {len(tables)} {counted('table', len(tables))} from '{config.database}'.")
     log.normal("Ready for a new galaxy -- e.g.:")
     log.normal("  planetgen plan ...   # rebuild the density skeleton")
     log.normal("  planetgen galaxy ... # generate sectors into it")
