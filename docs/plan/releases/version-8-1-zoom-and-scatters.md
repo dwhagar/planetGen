@@ -606,6 +606,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.903 | Atmosphere possibility table e: rows e1 and e2 (bare rock, retained H/He envelope) are never reached for class I because group b has only row b4 for class I (low priority) (bug) |  |  |
 | GEN.904 | Daylight columns stay stale or empty after an orbit move: re-run daylight after generate_spin in the reconcile (bug) |  |  |
 | GEN.906 | Icy-moon tide is stored as 0.0 where it should be NULL (bug) |  |  |
+| GEN.907 | Life census: only 0.08% of life worlds reach animals against the 15 to 35% band, because almost all life worlds are Melanin or Retinal and few ordinary worlds are oxygenic (bug) |  |  |
 | GEN.905 | Mantle redox and delta-IW are empty on class V ocean worlds (bug) |  |  |
 | TEST.434 | Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug) |  |  |
 | GEN.861 | Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need |  |  |
@@ -643,7 +644,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.863 | Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters | GEN.862, GEN.889, UX.237, API.37, MAP.345 | A migration; moved to 8.1 by Boss, 9:10 PM EDT 2026-10-28. |
 | TEST.435 | Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges | GEN.863, TEST.430 | Extends the TEST.430 suite; moved to 8.1 (Boss 9:20 PM EDT); sentient the rarest rung, animals to civilizations at least 20 to 1. |
 | GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) |  |  |
-| GEN.853 | No generated system reaches a technological civilization any more: tests/test_population.py cannot build one after 200 tries (bug) |  |  |
 | TEST.429 | Four test groups are red on clean main: three test_api_job_runs tests, and test_web_seo for web.galaxy_system_nearest (bug) |  |  |
 | TEST.428 | test_benchmark_suite (real run) and the test_work_units batch fills are red on main (bug) |  |  |
 | GEN.852 | Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others) |  |  |

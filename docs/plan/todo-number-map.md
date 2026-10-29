@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.238 |
 | MAP | MAP.347 |
 | NAV | NAV.65 |
-| GEN | GEN.907 |
+| GEN | GEN.908 |
 | PERF | PERF.204 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1603,7 +1603,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.850 | Wire radiative_convective.warming into generation behind a lookup table of the model answers, and delete the infrared_opacity.py plateau code | none | open |
 | GEN.851 | Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today) | none | open |
 | GEN.852 | Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others) | none | open |
-| GEN.853 | No generated system reaches a technological civilization any more: tests/test_population.py cannot build one after 200 tries (bug) | none | open |
+| GEN.853 | No generated system reaches a technological civilization any more: tests/test_population.py cannot build one after 200 tries (bug) | none | done, PR #3663 |
 | GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) | none | open |
 | GEN.855 | Biogenic oxygen: photosynthesis releases free oxygen into the air as the life timeline passes it, so habitable worlds can reach multicellular life (bug) | none | done, PR #3663 |
 | GEN.856 | interior_heat._flux_w_m2 raises ZeroDivisionError and fails the albedo and tidal migration tests on clean main (bug) | none | done, PR #3665 |
@@ -1657,6 +1657,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.904 | Daylight columns stay stale or empty after an orbit move: re-run daylight after generate_spin in the reconcile (bug) | none | open |
 | GEN.905 | Mantle redox and delta-IW are empty on class V ocean worlds (bug) | none | open |
 | GEN.906 | Icy-moon tide is stored as 0.0 where it should be NULL (bug) | none | open |
+| GEN.907 | Life census: only 0.08% of life worlds reach animals against the 15 to 35% band, because almost all life worlds are Melanin or Retinal and few ordinary worlds are oxygenic (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
