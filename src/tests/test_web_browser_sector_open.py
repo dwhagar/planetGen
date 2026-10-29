@@ -146,6 +146,9 @@ def _spot(page, point):
 PICK_WAIT_MS = 3000
 """int: How long a click on a star may take to name it in the panel."""
 
+SCENE_WAIT_MS = 60000
+"""int: How long the opened sector's scene may take to come up before the stars are clicked."""
+
 PICK_TRIES = 4
 """int: How many times a star is clicked, where it is drawn then, before the next star is tried."""
 
@@ -247,6 +250,12 @@ def _selects_a_star(page, base_url, site_app, detail):
     page.goto(f"{base_url}/galaxy?sector={_designation(detail)}&open=1", wait_until="load")
     page.wait_for_selector(CANVAS, state="attached")
     _settled(page, (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"]))
+    # The sector's scene is fetched after the camera comes to rest (the dwell, then the request, which the server works out
+    # for a sector far from the core), and its stars take no click until it is up. The panel names the sector from its
+    # address before that, so it is the map that is asked; a click before then fell on a cell of the galaxy and was taken
+    # for a miss (TEST.442).
+    page.wait_for_function("() => { const open = document.querySelector('#galaxymap3d-canvas').galaxyOpenSector();"
+                           " return !!open && open.share >= 0.999; }", timeout=SCENE_WAIT_MS)
     points = _star_points(site_app, sector_id)
     assert points, "no star of the sector is on the map"
     name = _picks_a_star(page, points)
