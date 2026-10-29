@@ -1,0 +1,163 @@
+# planetgen/physics/life_air.py
+
+"""
+The gases a life class puts into the air besides oxygen (GEN.891, GEN.857, GEN.858, GEN.859)
+================================================================================================
+
+`physics/biogenic_oxygen.py` gives the air the oxygen of a class that splits water. This module gives it the rest of the class's ledger
+(`physics/data/life_ledger.json`, docs/design/habitability/life-classes.md section 4): the methane that anoxygenic, hydrogen-eating and
+(before the oxygen rise) oxygenic life makes, and the hydrogen the hydrogen-eaters draw down.
+
+**Methane.** A class's flux is its fuel supply (a share of Earth's, `physics/life_supply.py`; for the oxygenic class the organic carbon its
+photosynthesis buries, `biogenic_oxygen.productivity`) times the area over Earth's times the flux Earth's supply gives
+(`earth_donor_methane_tmol_yr`: the food web of the anoxygenic photoferrotrophs, 10 Tmol a year, inside the 9 to 67 Tmol of the published
+Archean model; `earth_h2_tmol_yr` over `h2_per_methane` for the hydrogen-eaters). The air holds the flux times the life of methane in an air with
+no free oxygen (`methane_lifetime_yr`), at most `methane_max_share` of its molecules, and the carbon of that methane comes out of the air's
+own carbon dioxide, of which (with the methane) `carbon_left_share` stays carbon dioxide at least: methane cannot be made from carbon the world does not have.
+
+**Hydrogen.** An air where hydrogen-eating life lives holds no more than `hydrogen_max_share` of it.
+
+**Stage.** A class's gases begin when its producers do (the second step of the schedule) and a class whose methane ends at the oxygen rise
+(`until: "oxygen"`) gives none to a world whose air has risen: the oxygen has burned it (`biogenic_oxygen.burn`). Before the producers, and
+for a world that has no life, the air is the abiotic one.
+
+What this does not do: the haze's cooling of the ground (the haze itself, its ultraviolet shield and its colour are redrawn from the new air
+by `generation.life`), the sulfur ledger of Class 4 and the acid classes (GEN.888, GEN.894), and the hydrosphere: a world that the new air
+moves across the freezing point keeps its stored state of water, as it does after the oxygen. Every number is a stand-in with its tier and
+tweak level in the ledger file.
+"""
+
+import json
+import os
+
+from planetgen.physics import biogenic_oxygen, constants, elements, habitability_world, life_supply
+
+DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_ledger.json")
+TMOL = 1.0e12
+FUELS = ("burial", "donor_supply", "h2_supply")
+"""tuple: What a methane row's fuel may be: the carbon buried (`burial`) or a supply of `physics/life_supply.py`."""
+STATUSES = ("built", "pending")
+
+
+class LifeLedgerError(ValueError):
+    """A ledger file that is refused."""
+
+
+def _check_entry(owner, entry):
+    if entry.get("tier") not in tuple(f"T{n}" for n in range(1, 10)) or entry.get("tweak") not in tuple(f"L{n}" for n in range(5)) or not entry.get("basis"):
+        raise LifeLedgerError(f"{owner}: every number and class needs a tier T1..T9, a tweak L0..L4 and a basis, got {entry!r}")
+
+
+def _load():
+    with open(DATA_FILE, encoding="utf-8") as handle:
+        document = json.load(handle)
+    for name, entry in document["numbers"].items():
+        _check_entry(name, entry)
+        if "value" not in entry:
+            raise LifeLedgerError(f"{name}: a number needs a value")
+    for number, row in document["classes"].items():
+        _check_entry(f"class {number}", row)
+        if row.get("status") not in STATUSES:
+            raise LifeLedgerError(f"class {number}: the status is one of {STATUSES}")
+        methane = row.get("methane")
+        if row["status"] == "built" and methane and methane.get("fuel") not in FUELS:
+            raise LifeLedgerError(f"class {number}: the methane fuel is one of {FUELS}")
+    return document
+
+
+DOCUMENT = _load()
+NUMBERS = DOCUMENT["numbers"]
+CLASSES = DOCUMENT["classes"]
+VERSION = DOCUMENT["version"]
+
+
+def number(name):
+    """The value of the ledger's number `name`."""
+    return NUMBERS[name]["value"]
+
+
+def row_of(life_class):
+    """The ledger row of a `life_classes.LifeClass` (by its class number)."""
+    return CLASSES[str(life_class.number)]
+
+
+def methane_flux_mol_yr(body, life_class, supplies=None):
+    """
+    The methane, mol a year, the class makes on `body` (0 for a class with no methane row, a pending row, a body without radius or a fuel it
+    does not have). `supplies` is `life_supply.supplies` of the body, worked out if not given.
+    """
+    row = row_of(life_class)
+    methane = row.get("methane")
+    if row["status"] != "built" or not methane or not getattr(body, "radius", None) or not getattr(body, "gravity", None):
+        return 0.0
+    area_ratio = biogenic_oxygen.area_m2(body) / biogenic_oxygen.EARTH_AREA_M2
+    fuel = methane["fuel"]
+    if fuel == "burial":
+        return number("methane_per_buried_carbon") * biogenic_oxygen.productivity(body, biogenic_oxygen.area_m2(body))
+    if supplies is None:
+        supplies = life_supply.supplies(habitability_world.values_from_body(body))
+    share = supplies.get(fuel, 0.0)
+    if fuel == "donor_supply":
+        return share * area_ratio * number("earth_donor_methane_tmol_yr") * TMOL
+    return share * area_ratio * number("earth_h2_tmol_yr") * TMOL / number("h2_per_methane")
+
+
+def methane_target_mol(flux_mol_yr, moles):
+    """The methane, mol, an air of `moles` (formula to mol) holds at that flux: the flux over its life, within `methane_max_share` of the
+    air's molecules (making methane out of carbon dioxide keeps their number) and within the carbon the air has (`carbon_left_share` of its
+    carbon dioxide and methane stays carbon dioxide)."""
+    steady = flux_mol_yr * number("methane_lifetime_yr")
+    share = number("methane_max_share")
+    carbon = moles.get("CO2", 0.0) + moles.get("CH4", 0.0)
+    return min(steady, share * sum(moles.values()), (1.0 - number("carbon_left_share")) * carbon)
+
+
+def _producing(body, life_class, rose):
+    """Whether the class has producers by the star's age and its gases have not ended (`rose`: the oxygen has risen on this world)."""
+    methane = row_of(life_class).get("methane") or {}
+    started = getattr(body, "life_age_photosynthesis_gyr", None)
+    star_age = getattr(getattr(body, "star", None), "age", None)
+    if started is None or star_age is None or star_age < started:
+        return False
+    return not (rose and methane.get("until") == "oxygen")
+
+
+def apply_gases(body, life_class, rose):
+    """
+    Gives the air of `body` the gases of the ledger row of `life_class` at the star's age: the methane its flux holds (the carbon dioxide it is made
+    from taken out) and the hydrogen drawn down. `rose` says the class's oxygen has risen on this world (`biogenic_oxygen.apply` returned
+    true): a row that ends there gives no methane. Applying it twice changes nothing more. Returns whether the air changed; the doses,
+    aerosols, colour and score that read the air are the caller's to make again (`generation.life`).
+    """
+    row = row_of(life_class)
+    if row["status"] != "built" or getattr(body, "body_type", "t") == "g":
+        return False
+    moles = biogenic_oxygen.air_moles(body)
+    if not moles:
+        return False
+    changed = False
+    new = dict(moles)
+    oxygen_free = moles.get("O2", 0.0) <= number("oxygen_max_share") * sum(moles.values())
+    if oxygen_free and _producing(body, life_class, rose) and row.get("methane"):
+        flux = methane_flux_mol_yr(body, life_class)
+        if flux > 0.0:
+            have = moles.get("CH4", 0.0)
+            wanted = methane_target_mol(flux, moles)
+            if wanted > have * number("apply_rise"):
+                new["CH4"] = wanted
+                new["CO2"] = moles["CO2"] - (wanted - have)
+                changed = True
+    if "H2" in row["draws_down"] and _producing(body, life_class, False):
+        share = number("hydrogen_max_share")
+        limit = share / (1.0 - share) * (sum(new.values()) - new.get("H2", 0.0))
+        if new.get("H2", 0.0) > limit * (1.0 + 1e-9):
+            new["H2"] = limit
+            changed = True
+    if not changed:
+        return False
+    new = {formula: amount for formula, amount in new.items() if amount > 0.0}
+    air = biogenic_oxygen.partials_pa(body, new)
+    if not air:
+        return False
+    biogenic_oxygen.store_air(body, air)
+    return True
