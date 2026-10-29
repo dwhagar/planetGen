@@ -73,16 +73,7 @@ def test_a_v159_galaxy_gets_the_columns_empty(mysql_config):
             system_id = store.insert_star_system(conn, system, cfg)
     finally:
         conn.close()
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        db_schema_support.drop_rings(conn)
-        conn.execute("UPDATE alembic_version SET version_num = '0159'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (159)")
-        conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 159
-    finally:
-        conn.close()
+    db_schema_support.downgrade_to(mysql_config, 159)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:

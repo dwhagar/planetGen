@@ -12,6 +12,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import life_scores
 from planetgen.util import draw
+from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -33,21 +34,7 @@ def _system():
 
 
 def _downgrade(config):
-    conn = store.get_connection(config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN tidal_flux_w_m2, ALGORITHM=COPY")  # v152
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN life_microbial, DROP COLUMN life_flora, DROP COLUMN life_fauna,"
-                         " DROP COLUMN life_sentient, ADD COLUMN phi_bio DOUBLE, ADD COLUMN phi_cpx DOUBLE,"
-                         " ADD COLUMN phi_tech DOUBLE, ALGORITHM=COPY")
-        conn.execute("UPDATE alembic_version SET version_num = '0149'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (149)")
-        conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 149
-    finally:
-        conn.close()
+    db_schema_support.downgrade_to(config, 149)
 
 
 def test_a_saved_system_keeps_its_life_scores(mysql_config):

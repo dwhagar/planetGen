@@ -8,23 +8,13 @@ import pytest
 
 from planetgen.db import store
 from planetgen.physics import aquifers
+from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
 
 def test_a_v156_galaxy_keeps_its_planets_with_no_aquifer(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        for table in ("planets", "moons"):
-            drops = ", ".join(f"DROP COLUMN {column}" for column in aquifers.AQUIFER_FIELDS)
-            conn.execute(f"ALTER TABLE {table} {drops}, ALGORITHM=COPY")
-        conn.execute("UPDATE alembic_version SET version_num = '0156'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (156)")
-        conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 156
-    finally:
-        conn.close()
+    db_schema_support.downgrade_to(mysql_config, 156)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:

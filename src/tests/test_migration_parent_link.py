@@ -17,15 +17,6 @@ NEW_TABLES = ("stars", "asteroid_belts", "comets", "black_holes", "neutron_stars
               "interstellar_comets")
 
 
-def undo_parent_link(conn):
-    """Takes a current database back to before v140 (the columns gone, the rows kept), for the tests that rebuild an older one."""
-    conn.execute("ALTER TABLE moons DROP FOREIGN KEY fk_moons_rogue_planet, DROP KEY idx_moons_rogue_planet_id,"
-                 " DROP COLUMN rogue_planet_id, ALGORITHM=COPY")
-    for table in NEW_TABLES:
-        conn.execute(f"ALTER TABLE {table} DROP CHECK chk_{table}_parent_type, DROP KEY idx_{table}_parent,"
-                     " DROP COLUMN parent_type, DROP COLUMN parent_id, ALGORITHM=COPY")
-
-
 def _old_database(mysql_config):
     load_old_schema(mysql_config, 139)
     conn = store.get_connection(mysql_config, ensure_schema=False)

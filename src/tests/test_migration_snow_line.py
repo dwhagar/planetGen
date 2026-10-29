@@ -11,9 +11,8 @@ import pytest
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, equipment, formation, regional_temperature
+from planetgen.physics import constants, formation
 from planetgen.util import draw
-from tests.test_migration_parent_link import undo_parent_link
 from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
@@ -65,52 +64,11 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
     # make it a v131 galaxy again: the columns gone, the rows kept
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN lid_regime, ALGORITHM=COPY")  # v160 (GEN.721)
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN mantle_eta0_pa_s, DROP COLUMN mantle_activation_kj_mol,"
-                         " DROP COLUMN internal_heat_flux_w_m2, ALGORITHM=COPY")  # v153 (GEN.699)
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN water_base_pressure_pa, ALGORITHM=COPY")  # v151 (GEN.461)
-        conn.execute("DROP TABLE system_interests")  # v165 (MAP.305; the chain makes v148's again and then replaces it)
-        conn.execute("DELETE FROM galaxy_block_stats WHERE m > 65535")      # v146 (MAP.258)
-        conn.execute("ALTER TABLE galaxy_block_stats MODIFY COLUMN m SMALLINT UNSIGNED NOT NULL")
-        conn.execute("ALTER TABLE stars DROP COLUMN uv_c_share, ALGORITHM=COPY")  # v145 (GEN.443)
-        db_schema_support.drop_bulk_composition(conn)  # v144 (DB.69)
-        for table in ("planets", "moons"):  # v141 (GEN.459)
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN c_k0_ppm, DROP COLUMN c_th0_ppm, DROP COLUMN c_u0_ppm, DROP COLUMN al26_ratio,"
-                         " DROP COLUMN urey_ratio, ALGORITHM=COPY")
-        undo_parent_link(conn)  # v140 (DB.73)
-        conn.execute("ALTER TABLE sector_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139 (MAP.143)
-        conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139 (MAP.143)
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN tidal_flux_w_m2, ALGORITHM=COPY")  # v152
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN life_microbial, DROP COLUMN life_flora, DROP COLUMN life_fauna,"
-                         " DROP COLUMN life_sentient, ADD COLUMN phi_bio DOUBLE, ADD COLUMN phi_cpx DOUBLE,"
-                         " ADD COLUMN phi_tech DOUBLE, ALGORITHM=COPY")  # v150 (GEN.649)
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL, ALGORITHM=COPY")  # v143 (GEN.666)
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor,"
-                         " DROP COLUMN albedo_basis, ALGORITHM=COPY")  # v142 (GEN.412)
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN tau_haze, DROP COLUMN tau_dust, DROP COLUMN tau_cloud, DROP COLUMN cloud_cover,"
-                         " DROP COLUMN aerosol_draw, ALGORITHM=COPY")  # v138 (GEN.414)
-            conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in regional_temperature.FIELDS)
-                         + ", ALGORITHM=COPY")  # v137 (GEN.656)
-            conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in equipment.FIELDS)
-                         + ", ADD COLUMN equipment_tier TINYINT NULL, ALGORITHM=COPY")  # v136 (GEN.655)
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN ozone_column_du, ALGORITHM=COPY")  # v135 (GEN.413)
-        conn.execute("ALTER TABLE system_configs DROP COLUMN stars, DROP COLUMN max_stars, DROP COLUMN prevalence_multi_star,"
-                     " ALGORITHM=COPY")  # v134 (GEN.267)
-        conn.execute("ALTER TABLE stars DROP COLUMN slot, ALGORITHM=COPY")    # v133 (GEN.630)
-        conn.execute("ALTER TABLE stars DROP COLUMN snow_line_km, ALGORITHM=COPY")
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN born_beyond_snow_line, ALGORITHM=COPY")
-        conn.execute("UPDATE alembic_version SET version_num = '0131'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (131)")
+        conn.execute("DELETE FROM galaxy_block_stats WHERE m > 65535")      # a block of an older galaxy never held more (MAP.258, v146)
         conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 131
     finally:
         conn.close()
+    db_schema_support.downgrade_to(mysql_config, 131)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:

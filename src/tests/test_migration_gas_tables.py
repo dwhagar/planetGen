@@ -12,6 +12,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import atmosphere
 from planetgen.util import draw
+from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -62,19 +63,12 @@ def test_a_v154_galaxy_gets_its_air_in_the_child_tables(mysql_config):
             system_id = store.insert_star_system(conn, system, cfg)
     finally:
         conn.close()
+    db_schema_support.downgrade_to(mysql_config, 154)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
-            for gas in _GASES:
-                conn.execute(f"ALTER TABLE {table} ADD COLUMN p_{gas}_kpa DOUBLE NULL")
             conn.execute(f"UPDATE {table} SET p_o2_kpa = 21.2, p_n2_kpa = 78.8, p_ch4_kpa = 0 WHERE star_system_id = ?", (system_id,))
-        conn.execute("DROP TABLE planet_gases")
-        conn.execute("DROP TABLE moon_gases")
-        conn.execute("UPDATE alembic_version SET version_num = '0154'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (154)")
         conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 154
     finally:
         conn.close()
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION

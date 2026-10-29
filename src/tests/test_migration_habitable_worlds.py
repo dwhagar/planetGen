@@ -14,7 +14,6 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability
 from planetgen.util import draw
 from tests import db_schema_support
-from tests.test_migration_parent_link import undo_parent_link
 
 pytestmark = pytest.mark.fresh_database
 
@@ -121,24 +120,11 @@ def test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds(mysql
     # make it a v138 galaxy again: the columns gone, the rows kept
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        conn.execute("DROP TABLE system_interests")  # v165 (MAP.305; the chain makes v148's again and then replaces it)
-        db_schema_support.drop_bulk_composition(conn)    # v144
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor, DROP COLUMN albedo_basis,"
-                         " ALGORITHM=COPY")    # v142
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN c_k0_ppm, DROP COLUMN c_th0_ppm, DROP COLUMN c_u0_ppm,"
-                         " DROP COLUMN al26_ratio, DROP COLUMN urey_ratio, ALGORITHM=COPY")    # v141
-        undo_parent_link(conn)    # v140
-        conn.execute("ALTER TABLE sector_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")
-        conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")
-        conn.execute("UPDATE alembic_version SET version_num = '0138'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (138)")
+        conn.execute("DELETE FROM galaxy_block_stats WHERE m > 65535")      # a block of an older galaxy never held more (MAP.258, v146)
         conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 138
     finally:
         conn.close()
+    db_schema_support.downgrade_to(mysql_config, 138)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
