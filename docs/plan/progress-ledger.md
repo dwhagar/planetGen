@@ -1796,3 +1796,4 @@ Baseline: PR #1817.
 | PERF.178 | 8.1 | The headline closes |
 | TEST.458 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | PERF.180 | 8.1 | The headline closes |
+| UX.186 | 8.1 | Habitability system |
