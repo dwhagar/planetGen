@@ -763,6 +763,26 @@ export function createStageView(host) {
     };
   };
 
+  // For the browser tests (TEST.448): what the stage drew for each charted block, {shell, band, wedge, m, filled, habitable,
+  // noFill, opacity}: `noFill` is a block the chosen colour mode leaves unfilled (no habitable worlds under "Habitable worlds"),
+  // which a screenshot's few faint pixels cannot tell from a filled one.
+  canvasEl.galaxyBlockLooks = function () {
+    const looks = [];
+    if (!display) return looks;
+    display.groups.forEach(function (group) {
+      group.meshes.forEach(function (mesh) {
+        (mesh.userData.cells || []).forEach(function (cell) {
+          if (!(cell.filled > 0) || !cell.block) return;
+          looks.push({
+            shell: cell.block.shell, band: cell.block.band, wedge: cell.block.wedge, m: cell.block.m, filled: cell.filled,
+            habitable: cell.stats ? cell.stats.habitable_worlds : null, noFill: !!cell.noFill, opacity: cell.opacity,
+          });
+        });
+      });
+    });
+    return looks;
+  };
+
   // Which lines the stage draws: {blockEdges} (the blocks' own edges on or
   // off), {blocksDrawn} (how many block meshes are drawn: none unless the cell grid, a fill or "Charted only" is on,
   // MAP.265) and {chartedLines} (how many line pieces outline the charted

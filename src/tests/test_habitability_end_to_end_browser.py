@@ -29,7 +29,7 @@ from planetgen.physics import habitability
 from planetgen.physics.habitability_world import TIER_NAMES
 from planetgen.web.lib import habitability_ref
 
-from tests.habitability_site import BARREN_CENTER_PC, HABITABLE_CENTER_PC, SYSTEM_OFFSET_PC, habitable_galaxy  # noqa: F401
+from tests.habitability_site import HABITABLE_CENTER_PC, SYSTEM_OFFSET_PC, habitable_galaxy  # noqa: F401
 from tests.test_web_browser_fixture_maps import (  # noqa: F401 -- fixtures and the map drivers the lanes' own tests share
     MARKERS, _markers_until, _open_galaxy, _open_menu, _poi_layers, _screen_of, _settle, gl_browser, page)
 
@@ -154,14 +154,6 @@ def _shot(page):
     return np.asarray(Image.open(io.BytesIO(page.locator("#galaxymap3d-canvas").screenshot())).convert("RGB")).astype(float)
 
 
-def _patch(image, page, center_pc, half=8):
-    """The mean colour of the patch of the map around a sector's center."""
-    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(center_pc))
-    box = page.locator("#galaxymap3d-canvas").bounding_box()
-    x, y = int(spot["x"] - box["x"]), int(spot["y"] - box["y"])
-    return image[y - half:y + half + 1, x - half:x + half + 1].reshape(-1, 3).mean(axis=0)
-
-
 def _legend_number(text):
     return float(text.replace(",", ""))
 
@@ -217,21 +209,22 @@ def test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_s
     assert low <= per_sector <= high, (low, per_sector, high)
     assert "color=habitable" in page.url
 
-    # The habitable sector turns green and the one without worlds does not.
-    green_shift = _hue_shift(before, after, page, HABITABLE_CENTER_PC)
-    barren_shift = _hue_shift(before, after, page, BARREN_CENTER_PC)
-    assert green_shift > barren_shift + 3.0, (green_shift, barren_shift)
+    # The habitable sector is filled in the ramp's colours and the one without worlds is left unfilled. This is read from what the stage
+    # drew: the fill is faint and low in the map under the legend lines, so a patch of the screenshot gave the same few levels for
+    # both, and for either one as often as not (TEST.448).
+    looks = page.evaluate("document.querySelector('#galaxymap3d-canvas').galaxyBlockLooks()")
+    assert len(looks) == 2, looks
+    with_worlds = [look for look in looks if look["habitable"]]
+    without = [look for look in looks if not look["habitable"]]
+    assert len(with_worlds) == 1 and len(without) == 1, looks
+    assert with_worlds[0]["habitable"] == habitable_galaxy.habitable_worlds and not with_worlds[0]["noFill"], with_worlds
+    assert without[0]["noFill"], without
+    assert (before != after).any(), "choosing the colour changed nothing on the map"
 
 
 def _open_menu_closed(page):
     if page.locator("#galaxymap3d-menu").evaluate("m => m.open"):
         page.locator("#galaxymap3d-menu > summary").click()
-
-
-def _hue_shift(before, after, page, center_pc):
-    """How much greener (green less blue, 0 to 255) the patch round a sector got between two screenshots."""
-    first, second = _patch(before, page, center_pc), _patch(after, page, center_pc)
-    return float((second[1] - second[2]) - (first[1] - first[2]))
 
 
 # --- 3. The markers ---------------------------------------------------------------------------------------------------
