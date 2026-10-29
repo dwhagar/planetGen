@@ -41,7 +41,7 @@ import numpy as np
 from planetgen import tuning
 from planetgen.galaxy import mass_chain
 from planetgen.galaxy.age_law import AgeLaw
-from planetgen.physics import imf
+from planetgen.physics import imf, mass_boundaries
 
 _GYR_PER_HUBBLE_TIME = 977.792
 """float: `1 / H0` in Gy for `H0 = 1` km/s/Mpc over 100 (so `977.792 / (100 h)` Gy)."""
@@ -196,7 +196,7 @@ def mass_return_fraction(breaks, slopes):
     mass = np.geomspace(breaks[0], breaks[-1], 200_001)
     density = imf.density(mass, breaks, slopes)
     intercept, slope = tuning.WHITE_DWARF_REMNANT_MASS_SOL["intercept"], tuning.WHITE_DWARF_REMNANT_MASS_SOL["slope"]
-    remnant = np.where(mass < 8.0, intercept + slope * mass,
+    remnant = np.where(mass < mass_boundaries.sol("core_collapse_limit"), intercept + slope * mass,
                        np.where(mass < tuning.BLACK_HOLE_RETURN_MASS_SOL, tuning.NEUTRON_STAR_RETURN_REMNANT_SOL, mass))
     returned = np.where(mass >= tuning.RECYCLING_MASS_SOL, mass - remnant, 0.0)
     log_mass = np.log(mass)

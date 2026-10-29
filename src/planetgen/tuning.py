@@ -26,6 +26,7 @@ down, not minus how far) and subtracted where it is used.
 
 from planetgen.generation.phenomena import registry as _phenomena_registry
 from planetgen.physics import constants as _physical_constants
+from planetgen.physics import mass_boundaries as _boundaries
 from planetgen.physics import unit_registry as units
 
 _myr_to_gyr = units.converter("Myr", "Gyr")
@@ -648,10 +649,6 @@ per primary inside log P (days) 3.7; `single`, `binary`, `multiple`: the fractio
 and two or more (triples and quadruples). The chance of a companion is 1 - `single`. The rows of
 `generation.phenomena.hosts.STAR_COUNT_PROBABILITIES` for mid and early B stars are rederived from these (GEN.449)."""
 
-B_SUBCLASS_LOWER_MASS_SOL = (("B-early", 9.0), ("B-mid", 5.0))
-"""tuple: The birth mass at which the B-star sub-classes begin, heaviest first (Table 13's bins); a B star below the
-last is late B and keeps the letter's row."""
-
 # --- Star population model (stellarEvolution.py) ---
 # A random star is drawn as physics, not from a letter table: a mass from
 # the initial mass function, an age from the star-formation history, and
@@ -665,7 +662,7 @@ last is late B and keeps the letter's row."""
 # power law dN/dM ~ M^-alpha: alpha = 1.3 from 0.08 to 0.5 Msun and 2.3
 # above, up to the ~150 Msun upper limit of real stars. IMF_BREAKS_SOL are
 # the segment edges and IMF_SLOPES each segment's alpha.
-IMF_BREAKS_SOL = (0.08, 0.5, 150.0)
+IMF_BREAKS_SOL = (_boundaries.sol("hydrogen_burning_limit"), 0.5, 150.0)
 IMF_SLOPES = (1.3, 2.3)
 
 # The default star-formation history: ages uniform over the thin disk's
@@ -698,7 +695,7 @@ AGB_MS_FRACTION = 0.002
 
 # Stars at or above this initial mass end as supergiants and then neutron
 # stars or black holes (core collapse); below it, as giants and white dwarfs.
-SUPERGIANT_MIN_MASS_SOL = 8.0
+SUPERGIANT_MIN_MASS_SOL = _boundaries.sol("core_collapse_limit")
 # Giants at or above this initial mass are bright giants (II), not III.
 BRIGHT_GIANT_MIN_MASS_SOL = 4.0
 # Giant-branch luminosities (Lsun) and temperatures (K). A giant lighter than
@@ -889,7 +886,7 @@ LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
 WD_ENGULFMENT_BASE_AU = 1.5
 WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN = 0.8
-WD_PROGENITOR_MASS_RANGE_SOL = (1.0, 8.0)
+WD_PROGENITOR_MASS_RANGE_SOL = (1.0, _boundaries.sol("core_collapse_limit"))
 
 # A planetary nebula's central star is a close pair in PLANETARY_NEBULA_COMPANION_CHANCE of nebulae (a post-common-envelope
 # pair); such a pair still inside its ejecta holds a circumbinary disk and no planets (GEN.318, design note 1.3). A white
@@ -930,7 +927,7 @@ POST_AGB_DISK_MASS_RANGE_SOLAR = (0.01, 0.1)
 # it becomes agree. At 1 to 10 Myr the luminosity is within 0.25 dex of the table up
 # to 0.3 solar masses and up to 0.35 dex too bright from 0.5 to 1.4, where the
 # derived Hayashi phase falls more slowly than the table's.
-PRE_MAIN_SEQUENCE_MAX_MASS_SOL = 8.0
+PRE_MAIN_SEQUENCE_MAX_MASS_SOL = _boundaries.sol("core_collapse_limit")
 # No star contracts longer than this: the track takes the lightest star (0.08 solar masses) 0.94 Gyr (GEN.652). A shortcut for
 # the old stars, which are nearly all of them; the test checks it against the track.
 PRE_MAIN_SEQUENCE_LONGEST_YR = 1.0e9
@@ -1648,7 +1645,7 @@ the pair holds the placed star brings the share to the catalogue's 60% (measured
 none kept, 94% with all kept; a stand-in until GEN.631's fill measures it again)."""
 
 YOUNG_GROUP_AGE_MAX_YR = 3.0e5
-"""float: A massive system (O or early B, a birth mass of `B_SUBCLASS_LOWER_MASS_SOL`'s early-B limit and up) older than this is
+"""float: A massive system (O or early B, a birth mass of `mass_boundaries.B_SUBCLASS_LOWER_MASS_SOL`'s early-B limit and up) older than this is
 never drawn as a young group (the design note's 0.3 Myr, GEN.327). The share that is a group is the `young-group` row of
 `SYSTEM_TYPE_RATES`."""
 
@@ -1675,7 +1672,7 @@ rest harden, so the remnant is tighter than the field's draw (multi-star-systems
 
 MERGER_MASSIVE_MIN_MASS_SOL = 9.0
 """float: The birth mass from which a star counts as massive for the merger-product and mass-gainer shares (the
-early-B and O stars, `B_SUBCLASS_LOWER_MASS_SOL`; de Mink et al. 2014 give the 8% and 20% for O and early-B stars)."""
+early-B and O stars, `mass_boundaries.B_SUBCLASS_LOWER_MASS_SOL`; de Mink et al. 2014 give the 8% and 20% for O and early-B stars)."""
 
 YOUNG_POPULATION_MAX_AGE_GY = STELLAR_POPULATION_AGE_RANGES_GY["young"][1]
 """float: The age under which a star belongs to the young population, Gy: the gate of the Be stars, the massive merger
@@ -2351,7 +2348,7 @@ NEUTRON_STAR_MASS_RANGE_SOLAR = (1.1, 2.2)
 
 # The initial mass of the stars that end as a white dwarf. A star of 8 solar masses or more ends as a neutron star or a
 # black hole, by the windows of `EXPLOSION_FAILURE_ISLANDS_SOL` (GEN.554, `physics.remnant_progenitors`).
-WHITE_DWARF_PROGENITOR_SOL = (0.8, 8.0)
+WHITE_DWARF_PROGENITOR_SOL = (_boundaries.sol("white_dwarf_progenitor_floor"), _boundaries.sol("core_collapse_limit"))
 
 EXPLOSION_FAILURE_ISLANDS_SOL = ((23.0, 25.0), (35.0, 45.0))
 """tuple: The windows of initial mass, solar masses, in which a star of solar metallicity fails to explode and leaves a black
@@ -2853,7 +2850,7 @@ _ROGUE_PLANET_BIN_EDGES_EARTH = {
     "terrestrial": (0.1, 2.0),
     "sub-neptune": (2.0, 20.0),
     "saturn": (20.0, 317.8),
-    "jupiter": (317.8, 13 * 317.8),
+    "jupiter": (317.8, _boundaries.jupiter("deuterium_burning_limit") * 317.8),
 }
 
 
@@ -2870,7 +2867,7 @@ ROGUE_PLANET_MASS_BINS = _rogue_planet_mass_bins()
 """dict: bin name -> `(min_mass_earth, max_mass_earth, per_star_rate)`.
 The rates' sum is the rogue-planet rate per star (`ROGUE_PLANET_RATE_PER_STAR`)."""
 
-ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (13.0, 80.0)
+ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (_boundaries.jupiter("deuterium_burning_limit"), _boundaries.jupiter("brown_dwarf_upper_limit"))
 """tuple: A free-floating brown dwarf, between the deuterium-burning
 (~13 Mjup) and hydrogen-burning (~80 Mjup) limits. Stored as a
 `rogue_planets` row with `mass_bin = 'brown-dwarf'` (schema v37)."""

@@ -66,6 +66,7 @@ from collections import defaultdict
 
 from planetgen.physics import bulk_draw
 from planetgen.physics import constants as pc
+from planetgen.physics import mass_boundaries
 from planetgen.physics import relations
 from planetgen import tuning as prog_c
 from planetgen.generation.config import SystemConfig
@@ -120,7 +121,7 @@ def distance_for_zone(star, zone):
 
 GIANT_RADIUS_KM_BOUNDS = (10000.0, 200000.0)
 """tuple: The smallest and largest radius a giant can have (a Neptune-like body of ten Earth masses; a hot, inflated gas giant), km."""
-GIANT_MASS_EARTH_BOUNDS = (10.0, 13.0 * pc.JUPITER_MASS_TO_KG / pc.EARTH_MASS_TO_KG)
+GIANT_MASS_EARTH_BOUNDS = (10.0, mass_boundaries.kg("deuterium_burning_limit") / pc.EARTH_MASS_TO_KG)
 """tuple: The lightest and heaviest giant, Earth masses (the core-critical mass; the 13 Jupiter-mass limit)."""
 TERRESTRIAL_MAX_RADIUS_KM = 40000.0
 """float: The largest radius a terrestrial body has (a 20 Earth-mass water world is about 25,000 km), km."""

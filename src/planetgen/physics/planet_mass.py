@@ -24,7 +24,7 @@ giant. A pure law over the star and the formation distance; it reads no class an
 import collections
 
 from planetgen import tuning
-from planetgen.physics import constants, formation, metallicity
+from planetgen.physics import constants, formation, mass_boundaries, metallicity
 from planetgen.util import draw
 
 PlanetMass = collections.namedtuple("PlanetMass", ("mass_kg", "core_kg", "runaway"))
@@ -32,7 +32,7 @@ PlanetMass = collections.namedtuple("PlanetMass", ("mass_kg", "core_kg", "runawa
 `runaway` whether it became a gas giant."""
 
 _EARTH_KG = constants.EARTH_MASS_TO_KG
-_BROWN_DWARF_LIMIT_KG = 13.0 * constants.JUPITER_MASS_TO_KG
+_BROWN_DWARF_LIMIT_KG = mass_boundaries.kg("deuterium_burning_limit")
 
 
 def assembled_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio=1.0, stream=None):

@@ -33,7 +33,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.generation import multistar
-from planetgen.physics import imf, ms_lifetime, remnant_mass, remnant_progenitors, stellar_evolution
+from planetgen.physics import imf, mass_boundaries, ms_lifetime, remnant_mass, remnant_progenitors, stellar_evolution
 
 COHORT_AGES = 24
 """int: Ages of the midpoint rule that averages a population's cohorts, which formed at a steady rate over its range."""
@@ -147,8 +147,8 @@ def _placed_bins():
     IMF between its edges (and the edges of the star-count classes, so a class's count never straddles a bin): the IMF's
     number in each, the mean birth mass of those stars, and the stars a system of that mass holds besides the placed one.
     """
-    class_edges = [lower for _letter, lower in multistar.SPECTRAL_CLASS_LOWER_MASS_SOL]
-    class_edges += [lower for _name, lower in tuning.B_SUBCLASS_LOWER_MASS_SOL]
+    class_edges = [lower for _letter, lower in mass_boundaries.SPECTRAL_CLASS_LOWER_MASS_SOL]
+    class_edges += [lower for _name, lower in mass_boundaries.B_SUBCLASS_LOWER_MASS_SOL]
     low, top = imf.lowest_mass_sol(), imf.highest_mass_sol()
     edges = np.concatenate([np.geomspace(low, top, MASS_BINS + 1), tuning.IMF_BREAKS_SOL, class_edges])
     edges = np.unique(edges[(edges >= low) & (edges <= top)])
