@@ -12861,6 +12861,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   because the ecosphere there cannot hold life. Aux 1 rebases onto main
   when the lock approaches and reports the met and unmet counts as a
   number; this item and GEN.854 judge the cure on that number.
+  Research (2026-10-09): Update (Core 4, about 4:54 AM EDT 2026-10-29 as
+  the lane reported): GEN.909 diagnosed, no fault: the outer habitable
+  zone is cold by the physics (carbonate-silicate cycle leaves 1e-4 to
+  0.1 bar CO2 at 1.2 to 1.7 AU), so the habitable requests landing on
+  cold worlds is the zone's shape. See GEN.911 (where habitable
+  requests aim, Boss decision) and GEN.910 (K5V inner third).
   Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
 
 - [ ] **GEN.857 Biogenic gases for non-oxygenic worlds: methane and haze from anoxygenic and chemoautotroph communities, donor drawdown, and registry entries for each stand-in**
@@ -13675,23 +13681,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.812.
   Owner: Aux 7 (surface labels), 3:47 AM EDT 2026-10-29. Root cause (Core 1, section 6 of /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md): the frozen 'surface ocean' bodies are GEN.762 chloride brines: 13 of 20 (G2V) and 14 of 21 (K5V) ecosphere 'surface ocean' bodies hold under 1e-5 of their mass as water (Earth 2e-4), so the brine melts at 200 to 270 K, often with no air. By design but misleading. Fix: a state or label (brine seep) and not counting it as a sunlit sea (SUNLIT_OCEAN, LIVING_HYDROSPHERES). Core 1 will make the SUNLIT_OCEAN part in its second change only if Aux 2's life.py rewrite (epoch 120) does not already remove it (it does remove it). Changes generated output: lock turn, order with Aux 7's GEN.746-748. (this replaces any earlier owner line)
 
-- [ ] **GEN.909 Temperate liquid-water worlds (273 to 323 K, 10 kPa to 1 MPa, ocean) are rare: 10 in 120 systems at G2V, 6 at K5V, 0 at M2V (bug)**
-  Found by Core 1 (about 3:31 AM EDT as the lane reported) while
-  diagnosing GEN.907; report
-  /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md.
-  The count of worlds that can hold a sunlit sea is so small that
-  oxygenic life and habitable requests starve. Likely shares a cause
-  with GEN.908 and with Bug 2's unmet +habitable_world requests
-  (GEN.854): cold air after 4c and GEN.812, or the ocean label ignoring
-  freezing. Not root-caused. Do: with GEN.908, measure the temperature,
-  pressure and ocean share of Earth-mass worlds in the habitable zone at
-  current main against what a well-known planet-formation and climate
-  model gives, and say whether the rarity is physical or a fault; if a
-  fault, fix it. Version 8.1. Owner: Core 1 with GEN.908 (one
-  diagnosis). Prerequisites: none. Related: GEN.907, GEN.908, GEN.854,
-  GEN.646.
-  Prerequisites: none. Related: GEN.907, GEN.908, GEN.854, GEN.646.
-  Owner: Core 4 (air diagnosis), 3:47 AM EDT 2026-10-29, after its ADM.58 lock-free item, as a lock-free diagnosis on a separate branch. Root cause so far (Core 1, section 6 of /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md): the ecosphere is cold WITH real air: 45 of 70 G2V and 45 of 65 K5V ecosphere bodies are under 273 K (median 267 K on G2V); only 11 and 7 of those are airless. Of 45 G2V bodies of 0.8 Earth masses or more, 30 are frozen and only 8 are temperate with at least 10 kPa. The carbonate-silicate thermostat does not lift CO2 across the outer ecosphere. Suspects: surface_air.solve (CO2 inventory and sink, GEN.411/422, the GEN.812 greenhouse change) or ice-albedo. Find which; the fix changes generated output (lock turn), record any tweak in the stand-in registry. (this replaces any earlier owner line)
+- [ ] **GEN.910 K5V worlds are also cold in the inner third of the habitable zone (9 of 13 under 273 K): split the cold share by flux and by CO2 to find out why (bug)**
+  Found by Core 4 (about 4:54 AM EDT 2026-10-29 as the lane reported) in
+  the GEN.909 diagnosis, report
+  /mnt/project-files/reports/gen909-cold-ecosphere-diagnosis-2026-10-29.md.
+  The outer zone being cold is physical (the Kopparapu
+  maximum-greenhouse outer edge needs about 8 bar of CO2 and the
+  carbonate-silicate cycle leaves 1e-4 to 0.1 bar at 1.2 to 1.7 AU), but
+  K5V is cold in its inner third too: 9 of 13 bodies of 0.8 Earth masses
+  or more are under 273 K, 11 of 13 in the middle, 11 of 14 outer; G2V
+  inner third is 6 of 15. Not explained. Do: split by absorbed flux, CO2
+  inventory, albedo and greenhouse for K5V bodies in the inner third;
+  say whether the cause is the K-star spectrum (albedo or Rayleigh), a
+  tidal or rotation effect, the zone edges or a fault; no code change
+  unless a fault is found (a fix changes generated output: lock turn;
+  record any tweak in the stand-in registry). Version 8.1. Owner: Core 4
+  (it holds the probe scripts in
+  /mnt/project-files/reports/gen909-probe/), lock-free diagnosis on a
+  separate branch. Prerequisites: none. Related: GEN.909 (diagnosed,
+  retired), GEN.854, GEN.646, GEN.907.
+  Prerequisites: none. Related: GEN.854, GEN.646, GEN.907.
+
+- [ ] **GEN.911 Habitable-world requests and the habitable zone: the zone mostly holds frozen worlds, so decide where habitable requests aim (inner half of the zone or a temperate band from the solved climate)**
+  Boss decision needed, found by Core 4 in the GEN.909 diagnosis (report
+  /mnt/project-files/reports/gen909-cold-ecosphere-diagnosis-2026-10-29.md):
+  the generator's habitable zone is physically cold in its outer part,
+  so only 16 of 45 G2V and 6 of 40 K5V bodies of 0.8 Earth masses or
+  more are temperate with 10 kPa or more. Bug 2's +habitable_world
+  requests land on cold bodies for this reason (GEN.854). Options: (1)
+  aim habitable requests at the inner half of the zone; (2) derive a
+  temperate band from the solved climate (the band where the solved
+  surface temperature is liquid-water, not from the zone edges) and aim
+  there; (3) keep the physics as is and say so on the help page. Core 4
+  and Aux 1 recommend 2 if it stays physical, 1 if a cheaper rule is
+  wanted. Do: put the choice to Boss in plain words, then wire the
+  chosen aim into the habitable-request steering of GEN.646 (Aux 1); a
+  generation change, lock turn. Version 8.1. Owner: Aux 1 (GEN.646
+  request steering), after Boss decides. Prerequisites: none. Related:
+  GEN.909, GEN.854, GEN.646, GEN.907.
+  Prerequisites: none. Related: GEN.909, GEN.854, GEN.646, GEN.907.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
