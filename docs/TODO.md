@@ -13431,6 +13431,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the model, not a hard-coded neighbourhood), fix the mix or the young
   fraction, and re-run the census. If the fix is a tweak, record it in
   the stand-in registry. Version 8.1. Owner: Bug 1.
+  Research (2026-10-09): Update (Bug 1, about 1:09 PM EDT 2026-10-29 as
+  the lane reported): not an age-mix bug. A rises only 0.11% to 0.15%
+  with the A/F edge move (7500 to 7200 K). The star formation history
+  (young + intermediate 12.5%) matches the observed present star
+  formation over the mean (0.27 to 0.38 against 0.20) and B (0.04%);
+  four times more recent stars would break both, and a constant history
+  gives only A 0.3%. The 0.6% to 1.1% norm is 4 stars of 378. Bug 1
+  recommends closing as 'edge fixed, residual documented': A stays a
+  documented known anomaly, no model change. Closes when the
+  star-statistics change merges.
   Prerequisites: none. Related: TEST.432, TEST.430, GEN.896.
 
 - [ ] **GEN.899 An M2V primary has a companion star in 15.8% of systems; the star-count table says 27% and Duchene and Kraus 2013 give 26% +/- 3% (bug)**
@@ -13443,6 +13453,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cannot lower the stellar companion share), and keep the brown dwarf
   share as it is. A change that moves the draws is a generation change
   (lock queue, epoch). Version 8.1. Owner: Bug 1.
+  Research (2026-10-09): Update (Bug 1, about 1:09 PM EDT 2026-10-29 as
+  the lane reported): fixed at the cause. A companion's mass was drawn
+  0.1 to 1 times the primary's, so over half of a low-mass M dwarf's
+  companions were brown dwarfs and got cut out. Now every counted
+  companion is a star (at least 0.08 solar masses) and a brown dwarf is
+  one extra member in 3% of trees (tuning.BROWN_DWARF_COMPANION_CHANCE,
+  stand-in row SC2, T2 L0). This lowers the brown dwarf share from about
+  17% of M2V trees to 3% (against the item text 'keep the brown dwarf
+  share'; the old share was unphysical, the brown dwarf desert, and made
+  scattered trees incomplete). M2V companion share 15.8% to 26.6% (norm
+  22 to 35%).
   Prerequisites: none. Related: TEST.432, GEN.229, TEST.430.
 
 - [ ] **GEN.900 Supernova remnants: the reference galaxy gets 260 while 294 are already catalogued (Green 2019) and the design target in tuning.py is 400 to 3000 (bug)**
@@ -13647,6 +13668,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2's second turn (GEN.888, GEN.894) or after. Version 8.1. Owner: Aux
   2. Prerequisites: GEN.867. Related: GEN.646, GEN.854, GEN.872.
   Prerequisites: none. Related: GEN.646, GEN.854, GEN.872.
+
+- [ ] **GEN.914 G dwarfs are 3.1% of stars against 4.1% to 5.0% observed: the mass function from 0.5 to 1 solar mass (Kroupa slope 2.3) gives too few stars of 0.86 to 1.1 solar masses (bug)**
+  Found by Bug 1 (as the lane reported, about 1:09 PM EDT 2026-10-29)
+  while fixing GEN.897 (K/M edge 3700 to 3900 K, A/F edge 7500 to 7200
+  K, rows SC1). With the K share fixed (19.4% to 10.8%), G dwarfs are
+  still 3.1% of stars against 4.1% to 5.0% observed. The Kroupa mass
+  function between 0.5 and 1 solar mass (slope 2.3) gives too few stars
+  of 0.86 to 1.1 solar masses. Do: check the mass function and the
+  mass-to-class map in that range against the sources used for GEN.897,
+  find whether the G share is low from the slope, the mass limits of
+  class G, or the age mix; fix or document with the stand-in registry
+  tier and tweak level; a generation change: lock turn, can ride Bug 1's
+  star-statistics change (GEN.897+898+899) if found in time. Version
+  8.1. Owner: Bug 1. Prerequisites: none. Related: GEN.897, GEN.898,
+  GEN.899.
+  Prerequisites: none. Related: GEN.897, GEN.898, GEN.899.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
