@@ -1800,7 +1800,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) | none | done, PR #1288 |
 | MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) | none | done, PR #1289 |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | none | open |
-| MAP.190 | Several separate regions of created sectors: which one the Galaxy Map opens on | none | open |
+| MAP.190 | Several separate regions of created sectors: which one the Galaxy Map opens on | none | done, PR #3445 |
 | MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | none | open |
 | MAP.192 | See the objects whose positions changed in the last orbital update | none | open |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | none | open |

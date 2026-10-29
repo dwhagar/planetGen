@@ -169,8 +169,7 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | MAP.173, GEN.202 | Foundations lane 1. |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option |  | Boss 2026-10-09 23:17Z; secondary option, not a main control. |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) |  | Deferred; MAP.147 recommendation step 3. |
-| MAP.190 | Several separate regions of created sectors: which one the Galaxy Map opens on |  |  |
-| MAP.189 | The Galaxy Map opens flown in to the created sectors | MAP.190 |  |
+| MAP.189 | The Galaxy Map opens flown in to the created sectors |  |  |
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws |  | Boss 7:15 PM EDT; the superbubble layer is its sibling item. |
 | MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts |  | GEN.372 audit; Boss card. |
 | MAP.311 | Map markers and a menu filter for worlds with life, with sentient life and with a civilization, beside the habitable-world markers |  |  |
