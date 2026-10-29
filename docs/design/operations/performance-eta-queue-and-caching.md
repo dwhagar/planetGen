@@ -13,7 +13,7 @@ their statements are done, replaced or still open.
 
 Informs: PERF.31, PERF.32, PERF.33, PERF.34, PERF.20, PERF.18, UX.3, ADM.15, DB.15 (and the finished PERF.3, PERF.7, PERF.10, PERF.24, PERF.25, ADM.39 they build on)
 
-Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
+Status (2026-10-29): research of 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation. The queue it describes was rebuilt (PERF.86, built by PERF.95 to PERF.100, PERF.106 to PERF.108, PERF.118 and PERF.119, PERF.121 to PERF.128): sections 1, 2.5, 3.1 and 3.4 and the task and subtask wording elsewhere describe the queue as it was in October, and each has an "As built" note. The estimators of section 2 were built as `queue/runeta.py` (PERF.96, PERF.33), `queue/progress_rate.py`, `queue/stagetimes.py` and `queue/hourdisplay.py` (UX.3). The design of the rebuilt queue and how it was built is [redis-and-the-work-queue.md](redis-and-the-work-queue.md).
 
 The measured profile of the scatters and the sector fill is in [generation-performance-study.md](../generation/generation-performance-study.md).
 
@@ -58,6 +58,8 @@ ratios, not the production server's speed.
 
 `queue.work.timing_by_kind` computes mean, minimum and maximum seconds per kind and
 has no caller [S, grep].
+
+**As built (2026-10-29).** The job tree row is gone: `queue/work.py` no longer has a tree, `_roll_up` or `timing_by_kind`, and the `work_jobs`, `work_tasks`, `work_lease` and `work_job_args` tables are dropped (control schema v21, PERF.98, PERF.100). A run's counters live in its record in Redis (`queue/runrecord.py`), and one pure function of them, `queue/runeta.py`, gives the time left to the terminal bar, the Generate and Queue pages and the banner. A web job estimates each of its steps from the seconds the same step took before, kept in `step-times.json` in the jobs folder. `progress.json` and `progress_file.py` stay for the Generate page's bar. The other rows (the bar's rate, the pre-run estimate, the stored speed) are as described.
 
 ## 2. Estimating the time left
 
@@ -190,6 +192,8 @@ than holding a stream open (the Guide's starvation warning, section 7). The job 
 the control database stays the history the Queue page reads and stops computing its
 own ETA. `progress.json` stays for web-started runs until the jobs folder goes.
 
+**As built (2026-10-29).** The record is the run's hash in Redis, `planetgen:run:<id>` with a hash of counters, a done set and a results hash for each stage, an event stream for the log and a `:banner` key for the whole hours the site banner shows (`queue/runrecord.py`); there is no `planetgen:progress:<run id>` key. The job tree no longer exists, so the Queue page reads the runs (`queue/runview.py`), not a history table. A run started from the command line or the Generate page writes a record, and the machine's one-run-at-a-time rule is the key `planetgen:run:active` (`SET NX`), with a run that finds it taken waiting in line (`queue/runwait.py`); `MAINTENANCE` and `CHECK` runs take a key of their own and do not block a generation run.
+
 UX.3 asks whether command-line runs should appear. They take no lock today. Let
 `planetgen galaxy|plan|reset` always publish the record and refresh a Redis key
 `planetgen:active:<db>` (60 s expiry), which the banner reads. The file lock stays for
@@ -198,6 +202,8 @@ mutual exclusion.
 ## 3. The job queue
 
 ### 3.1 What the queue is today
+
+**As built (2026-10-29).** The table below is the October queue; the second row no longer exists. A run's units are RQ jobs carrying JSON on the shared queues (`queue/units.py`, `queue/wrapper.py`), run by idle-timeout workers that `queue/workers.py` starts up to the admin's count, and the one-run-at-a-time rule is the Redis key `planetgen:run:active`, not the `work_lease` row. The Generate page's job keeps its queue per job and its `active` file lock, and the API's jobs are on the shared interactive and long queues (`queue/api_jobs.py`).
 
 RQ here is a process launcher more than a shared queue [S, code]:
 
@@ -271,9 +277,10 @@ the site and database usable (PERF.34, ADM.15).
 | `planetgen-interactive` | single-object generation, estimates, one wiki page, settle of a few sectors, neighbourhood requests under a size limit | 1 reserved worker serving only this queue |
 | `planetgen-bulk` | a run's sector, scatter and backfill tasks, Generate page runs | up to `worker_count()`, serving `[interactive, bulk]` in that order |
 
+**As built (2026-10-29).** There are four shared queues, and a worker serves exactly one of them (a worker that serves several loses RQ's reliable dequeue, `redis-and-the-work-queue.md` F6): `planetgen-bulk` (a run's units; up to the admin's worker count, `workers.wanted`), `planetgen-interactive` (short API jobs; its own reserved warm worker, `queue.interactive_workers`), `planetgen-long` (API jobs expected to run long, PERF.151) and `planetgen-maintenance` (the cache warm-up, the database check and the node prefetch, PERF.150; capped apart from the bulk workers). One cap on all of the host's planetgen workers (`workers.host_worker_cap`, PERF.185) keeps the machine's memory safe. The table's `[interactive, bulk]` order is not built: separate workers do the same job without a priority order.
 - The reserved worker bounds an edit's wait to its own start-up; without it an edit waits for the current bulk task (a bright-star layer takes about 60 s or more).
 - Bulk workers take `[interactive, bulk]`, so interactive jobs go first; strict order cannot starve bulk work because interactive jobs are rare.
-- The `work_lease` and the web `active` lock keep their job: one bulk run at a time, a second waits.
+- The `work_lease` and the web `active` lock keep their job: one bulk run at a time, a second waits. (As built the lease is the Redis key `planetgen:run:active`; the web `active` lock stays.)
 - **ADM.15.** The protections Boss asks for are the right ones, with one gap: lowered priority protects the web server's CPU but not the database, which is not niced and is the real bottleneck (5.1). Keep one connection per worker, cap total worker connections below the server's limit, set Ludicrous Speed to 95% of the cores while keeping the reserved interactive worker, and re-run PERF.34's page-time test under it.
 
 ## 4. Caching

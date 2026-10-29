@@ -8,7 +8,7 @@ and Job Management Guide.md") and records where this plan departs from them. Mea
 health of the front-end libraries are in
 [map-ui-and-frontend-libraries.md](../interface/map-ui-and-frontend-libraries.md).
 
-**Status (2026-10-15).** Built: OPS.20 to OPS.24, DB.11, PERF.24, UX.39 to UX.41, ADM.22 and MAP.102. The work queue of section 3 is being redone under PERF.86 (Redis is the only place a run lives; the MySQL job tree is retired). Astropy was dropped by GEN.211 (#1310), the Python floor is 3.12 and numba is required (OPS.42, #1291). Section 6 is the plan from before the move (its "where things live today" names, such as `stellarObjects` and the single `generate.py`, are history); the packages that exist now are in [architecture.md](architecture.md).
+**Status (2026-10-15).** Built: OPS.20 to OPS.24, DB.11, PERF.24, UX.39 to UX.41, ADM.22 and MAP.102. The work queue of section 3 was rebuilt under PERF.86 (built by PERF.95 to PERF.100 and the command steps after them): Redis is the only place a run lives, and the MySQL job tree and its tables are gone. Astropy was dropped by GEN.211 (#1310), the Python floor is 3.12 and numba is required (OPS.42, #1291). Section 6 is the plan from before the move (its "where things live today" names, such as `stellarObjects` and the single `generate.py`, are history); the packages that exist now are in [architecture.md](architecture.md).
 
 ## 1. What Boss asked for
 
@@ -42,7 +42,7 @@ by the new libraries rather than patched in the old code.
 | Two-step sign-in | `totp.py` and `qrcodegen.py`, deleted (SEC.29, PR #612) | pyotp, segno | Same secrets, step and window, so enrolled users keep working. segno renders SVG with no further dependencies. |
 | Markdown | `mdconvert.py`, replaced by `web/lib/mdrender.py` (UX.39, PR #759) | markdown | Narrow subset only; everything else stays plain text and is escaped. |
 | Rate limits | `loginThrottle.py`, `api/limiter.py`, `api/loginguard.py` | Flask-Limiter (Redis storage) | The lockout rules in login-brute-force-protection.md are kept. |
-| Work queue and web jobs | `workQueue.py` (1,600 lines), `planetgen.cli.job`, the `work_lease` table | RQ on Redis | See section 3. |
+| Work queue and web jobs | `workQueue.py` (1,600 lines), `planetgen.cli.job`, the `work_lease` table | RQ on Redis | Done (PERF.24, rebuilt by PERF.86). See section 3. |
 | Caches | `pagecache.py`, `tilecache.py` | cachetools for `pagecache.py` only (done: a `TTLCache` sized by body length, `max_entries` held on top; PERF.25) | Boss agreed (2026-10-07 13:27Z): `tilecache.py` stays (JSON only, never unpickles, prunes by size, checks its folder is private). Out: diskcache and sqlitedict (unfixed advisories PYSEC-2026-2447 and PYSEC-2026-1939, rejected by pip-audit), cachelib and Flask-Caching (pickle by default, count items not bytes). Fallback if disk caching proves slow: an optional Redis backend through redis-py storing JSON, on its own instance or with TTL'd keys so tile eviction can't evict rate-limit counters. |
 | Database | `store.py` (9,800 lines), `planetgen.cli.migrate` with `schema_vNN.sql.gz` fixtures | SQLAlchemy, Alembic | Alembic starts from a baseline that recognises existing databases at the current schema. |
 | Validation | `validation.py` | Pydantic | The same limits; errors list every field. |
@@ -68,6 +68,18 @@ so this plan uses **RQ on Redis**:
 - Results must match the old queue for the same seed at any worker count
   (reproducible-galaxies.md, section 5).
 - The jobs folder keeps only downloadable logs.
+
+As built (PERF.24, then PERF.86 on 2026-10-29): this is the plan of
+October; two of its lines changed. A run is not a tree of jobs: its record,
+stages, unit results, counters and log events are in Redis
+(`queue/runrecord.py`), a stage is cut into units that are RQ jobs on the
+bulk queue carrying JSON (`queue/units.py`, `queue/wrapper.py`), and the unit
+that finishes a stage queues the next, so the command that started the run
+only follows it. The MySQL `work_*` tables, the `work_lease` and the
+parent and child nodes are gone (control schema v21). The Generate page's
+job still keeps its folder (`job.json`, `state.json`, `output.log`,
+`progress.json`) beside the runs it starts. The design and how it was built
+are in [redis-and-the-work-queue.md](../operations/redis-and-the-work-queue.md).
 
 Huey and Celery were looked at: Huey would avoid Redis but Boss chose
 Redis; Celery is heavier than a single-host deployment needs.

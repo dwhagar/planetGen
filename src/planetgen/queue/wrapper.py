@@ -18,8 +18,8 @@ the one place that knows the order of the run's commands, and the only code that
   from the run record alone.
 
 A step whose command is inline (`commands.CommandSpec.inline`) is not queued and has no stage in the run record; the
-process that started the run still does it, between the queued stages, until PERF.106 to PERF.108 and PERF.121 to
-PERF.128 give it units.
+process that started the run does it, between the queued stages. No registered command is inline now (PERF.106 to
+PERF.108 and PERF.121 to PERF.128 gave each its units), so every step of a run is a stage.
 """
 
 import json

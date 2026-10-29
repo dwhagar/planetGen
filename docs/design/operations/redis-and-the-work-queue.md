@@ -4,7 +4,7 @@ Boss (2026-10-14 20:01Z) asked for three things in order: look at how planetGen 
 
 Informs: PERF.86 (and the items it folds in or drops: PERF.29, PERF.30, PERF.40, PERF.78, ADM.15), PERF.20, PERF.33, ADM.22, UX.3, DOC.20, DOC.44, OPS.21, OPS.46.
 
-Status: research, 2026-10-14. No code was changed. Decisions marked "Boss" are his; everything else is a recommendation.
+Status (2026-10-29): research of 2026-10-14, then built as PERF.86 (PERF.95 to PERF.100 and the command steps PERF.106 to PERF.108, PERF.118, PERF.119, PERF.121 to PERF.128; the MySQL job tree and its tables are gone, PERF.98 and PERF.100). The findings and the options are as written then; the "As built" paragraphs in section 5.12 say what was built. Decisions marked "Boss" are his; everything else is a recommendation.
 
 It builds on [work-queue-audit.md](work-queue-audit.md), [performance-eta-queue-and-caching.md](performance-eta-queue-and-caching.md) and [sampling-backfill-and-resume.md](../generation/sampling-backfill-and-resume.md) and does not repeat them. Where this note and those disagree, this note is newer and was checked against `main` at 8.0.1089.
 
@@ -297,7 +297,7 @@ For the TODO thread to file if Boss agrees. Each is one PR; the numbers in brack
    4. The remaining stages and the sector and backfill units.
    5. Generate page, Queue page, banner and job log read Redis; cancel through the stop command; log written to the jobs directory at run end for the download link [UX.3, ADM.22].
    6. Delete the old machinery, with the schema migration for the `work_*` tables [PERF.29, PERF.30].
-   7. Rewrite the notes and docstrings that describe the old model [DOC.20].
+   7. Rewrite the notes and docstrings that describe the old model [DOC.20, done].
 5. A health check on the admin page: Redis answering, AOF on, memory policy, `used_memory`, last save status, worker count (monitoring, 2.3). Optional.
 
 ### 5.12 Every stage a command, one wrapper (Boss, 2026-10-17, 4:12 PM EDT)

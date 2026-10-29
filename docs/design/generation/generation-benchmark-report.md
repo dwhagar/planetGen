@@ -1,6 +1,6 @@
 # Generation benchmark report (PERF.31)
 
-**Status (2026-10-15):** a measurement report (PERF.31, #1179), a dated snapshot of one build box. Where it says a scatter is one job whose chunks are tasks, PERF.86 (open) changes that: each scatter becomes its own queue item.
+**Status (2026-10-29):** a measurement report (PERF.31, #1179), a dated snapshot of one build box on the old queue. Where it says a scatter is one job whose chunks are tasks, that was replaced by PERF.86 (built): each scatter kind is its own stage of a run and its units are RQ jobs on the bulk queue. The timings were not re-measured.
 
 Measured with `planetgen benchmark --workers 1,2 --profile` on the lane's
 build box (4 cores, 16 GB, MariaDB 10.11 on the same box, Redis local).
@@ -100,7 +100,7 @@ The plan's three scatter passes now send their layers to the workers in at most 
 | 1 | 38.5 s | 18.4 s | 8.8 s | 6.7 s | 52,517 |
 | 2 | 24.2 s | 8.2 s | 6.0 s | 5.4 s | 52,517 |
 
-Before the change two workers took 593.9 s for the plan (about 12 times slower than one). The object counts match between one and two workers, so the rows are the same. The scatter is still one job on the RQ queue; the chunks are tasks of that job.
+Before the change two workers took 593.9 s for the plan (about 12 times slower than one). The object counts match between one and two workers, so the rows are the same. At the time of this change the scatter was one job on the RQ queue and the chunks were tasks of that job (`WorkQueue.submit_each`). That model is gone (PERF.86, built by PERF.95 to PERF.100 and PERF.106, PERF.118, PERF.121, PERF.122): each scatter kind is its own command and its own stage of a run, cut into units of shells of equal expected work (about 512, never more than 4,000, the same at any worker count), and each unit is an RQ job on the bulk queue carrying JSON; the timings above are of the old queue and have not been re-measured (see [redis-and-the-work-queue.md](../operations/redis-and-the-work-queue.md), "As built").
 
 ## Writing the phenomenon rows (PERF.73)
 

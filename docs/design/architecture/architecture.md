@@ -346,20 +346,31 @@ The work queue and the API's long jobs, on Redis with RQ.
 | Path | What it holds |
 |---|---|
 | [`__init__.py`](../../../src/planetgen/queue/__init__.py) | The work queue: runs of generation and the API's long jobs, on Redis with RQ. |
-| [`api_jobs.py`](../../../src/planetgen/queue/api_jobs.py) | Long API work on the Redis queue (PERF.24 step 4): the route answers `202 Accepted` with a job id and the client reads the outcome from `GET /api/jobs/<id>`. |
+| [`api_jobs.py`](../../../src/planetgen/queue/api_jobs.py) | Long API work on the Redis queue (PERF.24 step 4): a route that would hold a web worker for minutes queues the work with `submit`, answers `202 Accepted` with the job's id at once, and the client reads the outcome from `GET /api/jobs/<id>` (`status`). |
+| [`commands.py`](../../../src/planetgen/queue/commands.py) | Commands, and the step list the wrapper builds from a request (PERF.118, docs/design/operations/redis-and-the-work-queue.md 5.12 and docs/design/architecture/command-inventory.md). |
+| [`hourdisplay.py`](../../../src/planetgen/queue/hourdisplay.py) | The time left shown as whole hours (UX.3), by the rule of section 2.4 of docs/design/operations/performance-eta-queue-and-caching.md. |
 | [`load.py`](../../../src/planetgen/queue/load.py) | The server's load for the admin queue page (ADM.10), as the three numbers "x / x / x" over the last 1, 5 and 15 minutes: the load average (`os.getloadavg`), runnable processes decaying over each window. |
+| [`pagejobs.py`](../../../src/planetgen/queue/pagejobs.py) | Slow page requests as jobs (PERF.105; design in docs/design/operations/slow-page-answers.md). |
+| [`pause.py`](../../../src/planetgen/queue/pause.py) | The pause of the work queues (PERF.152): one flag in Redis, `planetgen:queue:paused`, written by the admin Queue page's Pause and Resume and read by every worker before it takes a job. |
 | [`progress_file.py`](../../../src/planetgen/queue/progress_file.py) | Machine-readable progress for a run started from the web interface. |
-| [`progress_rate.py`](../../../src/planetgen/queue/progress_rate.py) | The rate behind every generation progress bar's ETA (PERF.7, PERF.37): work finished per second as an exponentially weighted average over time. |
+| [`progress_rate.py`](../../../src/planetgen/queue/progress_rate.py) | The rate behind every generation progress bar's ETA (PERF.7, PERF.37): work finished per second as an exponentially weighted average over time, so the estimate follows the run's current speed (a dense stretch of the galaxy, more workers, a busy database) instead of rich's own short window, and stays steady while many workers report at once. |
 | [`redisclient.py`](../../../src/planetgen/queue/redisclient.py) | The one place a Redis client is made (PERF.94, finding F9 of docs/design/operations/redis-and-the-work-queue.md). |
-| [`redishealth.py`](../../../src/planetgen/queue/redishealth.py) | What the admin Stats page shows about Redis (ADM.54): whether it answers and the settings (append-only file, memory policy) that decide whether the queue survives a restart. |
-| [`redisqueue.py`](../../../src/planetgen/queue/redisqueue.py) | The work queue on Redis with RQ (PERF.24, step 1): the connection, the queues, and the workers that run them. |
-| [`runeta.py`](../../../src/planetgen/queue/runeta.py) | The time left in a run (PERF.96, PERF.33), a pure function of the counters `runrecord.read_run` returns, shared by the terminal bar, the Generate and Queue pages and the banner. |
-| [`hourdisplay.py`](../../../src/planetgen/queue/hourdisplay.py) | The time left as whole hours for the galaxy banner (UX.3): the top of the likely range rounded up, never below one hour; it falls as the estimate falls and rises only when even the low end is longer than the figure shown. |
+| [`redishealth.py`](../../../src/planetgen/queue/redishealth.py) | What the admin Stats page shows about Redis (ADM.54): whether it answers, and the settings and figures that decide whether the work queue survives a restart (docs/design/operations/redis-and-the-work-queue.md, section 2.3): the append-only file, the memory policy, the memory used, the last save, and how many workers are alive. |
+| [`redisqueue.py`](../../../src/planetgen/queue/redisqueue.py) | The work queue on Redis with RQ (PERF.24): the connection, the queues, the serializers and timeouts of their jobs, and the detached workers that run them. |
+| [`roughtime.py`](../../../src/planetgen/queue/roughtime.py) | A rough time for work nothing has timed yet (PERF.184). |
+| [`runcontrol.py`](../../../src/planetgen/queue/runcontrol.py) | What an admin can do to a run in Redis (PERF.99, docs/design/operations/redis-and-the-work-queue.md 5.5 and 5.6): cancel it, clear one that has stopped answering, delete a finished one, and keep its log. |
+| [`runeta.py`](../../../src/planetgen/queue/runeta.py) | The time left in a run (PERF.96, PERF.33), as a pure function of the counters `runrecord.read_run` returns: no Redis, no clock of its own (`now` is passed), so the terminal bar, the Generate and Queue pages, the banner (UX.3) and a migration bar all show the same number and a test can drive it with a fake clock. |
 | [`runrecord.py`](../../../src/planetgen/queue/runrecord.py) | A run's record in Redis (PERF.96, step 2 of the work queue rebuild, docs/design/operations/redis-and-the-work-queue.md 5.1 and 5.2): the one place a run lives. |
-| [`runcontrol.py`](../../../src/planetgen/queue/runcontrol.py) | What an admin does to a run in Redis (PERF.99, docs/design/operations/redis-and-the-work-queue.md 5.5 and 5.6): cancel it through the stop command, clear one that stopped answering, delete finished ones and keep the last 20 run logs. |
-| [`runview.py`](../../../src/planetgen/queue/runview.py) | A run as the pages show it (PERF.99): `runrecord.read_run`'s dict as plain JSON-able numbers and words, shared by the Queue page, its API and the Generate page. |
-| [`work.py`](../../../src/planetgen/queue/work.py) | The generation work queue (PERF.8): runs independent units of work (a sector to fill, a run of shells to scatter) on a pool of worker processes, at most about 80% of the machine's cores. |
-| [`workers.py`](../../../src/planetgen/queue/workers.py) | The workers of the two shared queues (PERF.95, folding in PERF.40, PERF.78 and ADM.15): who starts them, how many there are, and how a running job is stopped. |
+| [`runview.py`](../../../src/planetgen/queue/runview.py) | A run as the pages show it (PERF.99): `runrecord.read_run`'s dict turned into plain JSON-able numbers and words, in one place, so the Queue page's API, the Generate page and the job log all say the same thing about the same run. |
+| [`runwait.py`](../../../src/planetgen/queue/runwait.py) | A run that finds the machine taken waits in line instead of failing (PERF.153, the interim of PERF.154): Boss, 2026-10-22: "a task that arrives is never lost or failed only because another is running". |
+| [`stagetimes.py`](../../../src/planetgen/queue/stagetimes.py) | What this server has learned about how long each kind of stage takes (PERF.184): when a stage of a queue run ends, its wall seconds and its cost per worker second go into a Redis hash, one field per stage key, as a running average that leans on the newest run. |
+| [`stopall.py`](../../../src/planetgen/queue/stopall.py) | Stop everything (PERF.186): the one way to end all work on the host and keep it from starting again until an admin says so. |
+| [`units.py`](../../../src/planetgen/queue/units.py) | A stage of a run on the new work queue (PERF.97, step 3 of the rebuild, docs/design/operations/redis-and-the-work-queue.md 5.1): the units of one stage queued on the bulk queue, run by the idle-timeout workers (`workers.ensure_workers`), and followed by the process that started the run until the stage is done. |
+| [`warmphases.py`](../../../src/planetgen/queue/warmphases.py) | What the warm-up has done, phase by phase, for the admin page (PERF.141, docs/design/operations/cache-warm-up.md). |
+| [`warmstart.py`](../../../src/planetgen/queue/warmstart.py) | The warm-up that starts by itself (PERF.141, docs/design/operations/cache-warm-up.md). |
+| [`work.py`](../../../src/planetgen/queue/work.py) | The machine's worker count and a task's seed. |
+| [`workers.py`](../../../src/planetgen/queue/workers.py) | The workers of the shared queues (PERF.95, folding in PERF.40, PERF.78 and ADM.15): who starts them, how many there are, and how a running job is stopped. |
+| [`wrapper.py`](../../../src/planetgen/queue/wrapper.py) | The wrapper of a `planetgen galaxy` or `planetgen plan` run (PERF.118, docs/design/operations/redis-and-the-work-queue.md 5.12): the one place that knows the order of the run's commands, and the only code that starts one. |
 
 #### src/planetgen/db/
 
@@ -1045,13 +1056,12 @@ database in `PLANETGEN_MYSQL_*` and `PLANETGEN_PROGRESS_FILE` set; it
 writes `state.json` and `output.log`, and `planetgen` writes
 `progress.json`. The page only reads those files: the status (`/admin/generate/status`, polled by `static/generatejobs.js`) and the job's log (`/admin/generate/jobs/<id>/stream`, a live stream that ends on purpose every few seconds, and `.../log`, shown by `static/joblog.js` in a terminal box). Cancel
 writes a `cancel` file the runner watches. A lock left by a dead runner is
-cleared by the next `start_job`. (The job's progress and counters are
-moving to Redis; see [redis-and-the-work-queue.md](../operations/redis-and-the-work-queue.md) for the decision and how far it has come.)
+cleared by the next `start_job`. The job itself is only that list of steps; the work a step does is a run on the Redis work queue (below), and the Queue page, the job's page and cancel read and act on the runs in Redis (`queue/runview.py`, `queue/runcontrol.py`: a run started under a job is listed under it, and cancelling the job cancels its runs). See [redis-and-the-work-queue.md](../operations/redis-and-the-work-queue.md) for the design and how it was built (PERF.86).
 
 Planning runs the bright-star scatter as its own step (`planetgen plan
 --bright-stars-only` after `plan --no-bright-stars`), so the job shows its
 progress bar and count; "Skip all scatters" leaves it out, and
-"Rebuild the bright stars" runs it alone on the stored plan. The sectors a job generates run on the same Redis work queue (`planetgen/queue/work.py`) in worker processes, so a sector or a shell's scatter is one unit of work. Generate
+"Rebuild the bright stars" runs it alone on the stored plan. Each step of a `planetgen galaxy`, `plan`, `scatter`, `sector` or `system` command is a stage of a run on the Redis work queue: the wrapper (`queue/wrapper.py`) turns the arguments into the list of commands to run (`queue/commands.py`), writes the run's record in Redis (`queue/runrecord.py`: its stages, counters, results, log events) and cuts the first stage into units; a unit is an RQ job on the bulk queue carrying JSON, run by the idle-timeout workers (`queue/workers.py`, `planetgen.cli.worker`) that `ensure_workers` starts, and the unit that finishes the last of a stage queues the next stage, so the command that started the run only follows it. A chunk of sectors, a chunk of a shell scatter and a backfill block are each one unit. Generate
 neighborhood (on the Sector Map and the Galaxy Map, `static/generatebuttons.js`)
 asks for a radius in light years, 13 to 652, and asks again past about
 5,000 sectors.

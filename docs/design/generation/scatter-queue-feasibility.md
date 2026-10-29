@@ -1,6 +1,6 @@
 # Scatter "sector queue" feasibility study
 
-**Status (2026-10-15):** research; its recommendations are built as PERF.58 (#1108, which replaced PERF.57), PERF.60 (#1106) and PERF.63 (#1174). PERF.61's prototype measured no gain and was not merged; PERF.59 was closed as superseded. Lines saying "not on main" or suggesting items are history. The queue itself is being redone under PERF.86 (open); this note does not cover it.
+**Status (2026-10-29):** research; its recommendations are built as PERF.58 (#1108, which replaced PERF.57), PERF.60 (#1106) and PERF.63 (#1174). PERF.61's prototype measured no gain and was not merged; PERF.59 was closed as superseded. Lines saying "not on main" or suggesting items are history. The queue itself was rebuilt under PERF.86 (each scatter kind is its own command and stage of a run, cut into units that are RQ jobs on the bulk queue); this note does not cover it, see [redis-and-the-work-queue.md](../operations/redis-and-the-work-queue.md).
 
 Question (Boss, 2026-10-10): would a shuffled list of every available sector, popped one object at a time, make scattering faster, and what would it change?
 
