@@ -18,7 +18,8 @@ Imports no Flask, so the describe renderer and the list builders can use it.
 from collections import namedtuple
 from html import escape
 
-from planetgen.physics.habitability_world import TIER_NAMES
+from planetgen.physics import habitability
+from planetgen.physics.habitability_world import TIER_INDEX, TIER_NAMES
 
 PoiIcon = namedtuple("PoiIcon", "id label shape meaning scored")
 """A symbol: its file's name `id`, its accessible name `label`, what its `shape` looks like (the sign that does not
@@ -76,3 +77,32 @@ def symbol_html(icon_id, file_url, tier=None):
     label = icon.label if not icon.scored or tier is None else f"{icon.label}: {TIER_NAMES[tier]}"
     return (f'<svg class="{" ".join(classes)}" role="img" aria-label="{escape(label)}" data-poi="{icon.id}" '
             f'focusable="false"><use href="{escape(file_url(f"poi/{icon.id}.svg"))}#{SPRITE_ID}"></use></svg>')
+
+
+HABITABLE_MAX_TIER = 2
+"""int: The last tier number (0 Blue, 1 Green, 2 Yellow) a world is marked habitable at, as the map does (`db/interests.HABITABLE_MIN_SCORE`)."""
+
+
+def mark_of_body(kind, summary):
+    """
+    The point-of-interest symbol a body of a summary row carries, as the map's system level draws it (`static/bodymarkers.js`
+    `reasonsOfBody`, UX.233): `(icon id, tier or None)`, or `None` for a body with no symbol (a star, a comet, an unscored
+    body that is not a gas giant). A belt is an asteroid field; a gas giant is one by its body type; a scored world is a habitable
+    one at Yellow or better and an uninhabitable one below. A row does not carry the facts of the inhabited, civilization,
+    sentient and life reasons (the timeline's stage, the facilities), so those symbols are not drawn here.
+
+    Parameters:
+        kind (str): The row's kind (`"planet"`, `"moon"`, `"belt"`).
+        summary (dict): The row's summary (`body_type`, `phi4`).
+    """
+    if kind == "belt":
+        return ("asteroid-field", None)
+    if kind not in ("planet", "moon"):
+        return None
+    if summary.get("body_type") == "g":
+        return ("gas-giant", None)
+    score = summary.get("phi4")
+    if score is None:
+        return None
+    tier = TIER_INDEX[habitability.tier(score)]
+    return ("habitable-world", tier) if tier <= HABITABLE_MAX_TIER else ("uninhabitable-world", tier)

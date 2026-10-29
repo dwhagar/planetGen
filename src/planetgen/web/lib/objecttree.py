@@ -15,13 +15,14 @@ than a page ends in a "Show more" row), and adds the arrow-key behaviour of the 
 
 The items are what `GET /api/objects/<ref>/children` returns (`db/children.py`): `ref`, `kind`, `name`, `summary`,
 `counts` and `child_count`. Every value from the database is escaped here; the only raw markup is `fmt`'s unit
-formatters (built from floats and fixed unit literals) and the habitability symbols.
+formatters (built from floats and fixed unit literals), the habitability symbols and the point-of-interest symbol of a body.
 """
 
 import dataclasses
 
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes, star_type_split
 from planetgen.web.lib.fmt import distance_km_html, esc, measured_html, period_years_html
+from planetgen.web.lib import poi_icons
 from planetgen.web.lib.habitability_symbols import symbol_row
 
 KIND_LABELS = {
@@ -56,6 +57,8 @@ class TreeContext:
         class_url: The class-page hook `(type_slug, code) -> url or None`, or `None` for plain text.
         sprite_url: The icon sprite, for the PHI-6 symbols of a scored planet or moon (none drawn without it).
         help_url: The habitability page the symbols link into, or `None`.
+        static_url: A function from a path under `static/` to its URL, for the point-of-interest symbol of a body (UX.233; none
+            drawn without it).
     """
 
     item_url: object
@@ -63,6 +66,7 @@ class TreeContext:
     class_url: object = None
     sprite_url: str = ""
     help_url: str = None
+    static_url: object = None
 
 
 def _link(url, text_html):
@@ -99,6 +103,20 @@ def _star_stats(summary, context):
             _stat(esc(summary["role"].capitalize()) if summary.get("role") not in (None, "single") else ""),
             _stat(f"{measured_html('kg', summary['mass_kg'])}" if summary.get("mass_kg") is not None else ""),
             _stat(f"{measured_html('W', summary['luminosity_w'])}" if summary.get("luminosity_w") is not None else "")]
+
+
+def poi_mark_html(kind, summary, context):
+    """The point-of-interest symbol of a row (UX.233) as a `.stat`, or `""` for a row with none or a context with no `static_url`."""
+    mark = poi_icons.mark_of_body(kind, summary) if context.static_url else None
+    if mark is None:
+        return ""
+    return f'<span class="stat tree-poi">{poi_icons.symbol_html(mark[0], context.static_url, mark[1])}</span>'
+
+
+def has_poi_mark(items):
+    """Whether any row of `items` (the items of a level) carries a point-of-interest symbol, whatever the context: the page shows its key
+    when it does."""
+    return any(poi_icons.mark_of_body(item["kind"], item.get("summary") or {}) for item in items)
 
 
 def _body_stats(summary, context, page=None):
@@ -145,8 +163,11 @@ def stats_html(item, context):
     kind = item["kind"]
     if kind in ("planet", "moon"):    # a body's symbols link to the Habitability group of its own page
         stats = _body_stats(item.get("summary") or {}, context, context.item_url(item["ref"]))
+        stats.insert(0, poi_mark_html(kind, item.get("summary") or {}, context))
     else:
         stats = _STATS[kind](item.get("summary") or {}, context) if kind in _STATS else [_stat(esc(KIND_LABELS.get(kind, kind)))]
+        if kind == "belt":
+            stats.insert(0, poi_mark_html(kind, {}, context))
     below = counts_text(item.get("counts") or {})
     return "".join(stats) + _stat(esc(below))
 

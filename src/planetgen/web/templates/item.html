@@ -3,6 +3,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
+{% from "partials/poi_key.html" import poi_key_panel with context %}
 {#- The Admin menu of this one body (Regenerate, Change class, Delete), as the system page's per-body menu was (ADM.8, ADM.6). -#}
 {%- set groups = [] %}
 {%- if edit %}
@@ -220,5 +221,8 @@
   <div class="panel-header"><h2 id="item-members-heading">Belonging to it</h2></div>
   {{ tree }}
 </section>
+{%- if tree_marks %}
+{{ poi_key_panel("item-map-symbols") }}
+{%- endif %}
 {%- endif %}
 {% endblock %}

@@ -305,6 +305,7 @@ def system(system_id):
     # links; the NAV page itself works out whether cross-sector NAV applies.
     links, pick = pick_nav("system", system_id, request.args) if detail["sector_id"] is not None else (None, None)
 
+    tree, tree_marks = item_pages.system_tree(db, system_id, detail["name"])
     return render_page(
         "system.html",
         title=detail["name"],
@@ -329,7 +330,8 @@ def system(system_id):
         code_buttons=_code_buttons(system_id, code_fmt),
         overview=trusted_html(blocks_html(sections["overview"], item_pages._ref_link) if sections["overview"] else ""),
         glance=glance.system_rows(detail, facilities, habitability_symbol_row),
-        tree=item_pages.system_tree(db, system_id, detail["name"]),
+        tree=tree,
+        tree_marks=tree_marks,
         territory=_territory(db, system_id),
         admin=admin,
         facilities=system_facilities.facility_rows(facilities),

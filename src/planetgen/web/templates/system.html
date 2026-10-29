@@ -4,6 +4,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
+{% from "partials/poi_key.html" import poi_key_panel with context %}
 {% from "partials/pick_banner.html" import pick_banner %}
 {% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
 {#- ADM.34, UX.68: the groups of admin actions are built here, outside the blocks, so the
@@ -222,6 +223,9 @@
   <div class="panel-header"><h2 id="system-members-heading">Stars and bodies</h2></div>
   {{ tree }}
 </section>
+{%- if tree_marks %}
+{{ poi_key_panel("system-map-symbols") }}
+{%- endif %}
 {%- endif %}
 {%- if facilities or facility_status %}
 <section class="panel" id="facilities" aria-labelledby="facilities-heading">
