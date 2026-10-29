@@ -171,6 +171,7 @@
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
   {%- for group in planet.sheet %}{{ group_details(group) }}{% endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
+  <p class="sheet-help"><a class="help-link" href="{{ page_url('property_help_page') }}">Where these values come from</a></p>
 </section>
 {%- else %}
 {%- if glance or symbols or location.chain or location.inside %}
@@ -198,6 +199,9 @@
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
   {%- for group in sheet %}{{ group_details(group) }}{% endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
+  {%- if kind in ("star", "planet", "moon") %}
+  <p class="sheet-help"><a class="help-link" href="{{ page_url('property_help_page') }}">Where these values come from</a></p>
+  {%- endif %}
 </section>
 {%- endif %}
 {%- if tree %}

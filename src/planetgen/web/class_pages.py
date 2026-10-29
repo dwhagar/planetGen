@@ -17,7 +17,7 @@ phenomenon and other pages use to link a class label here.
 from flask import abort
 from markupsafe import Markup
 
-from planetgen.web.lib import habitability_ref
+from planetgen.web.lib import habitability_ref, property_help
 from planetgen.web.lib.classref import alphabetical, catalog, class_entry, class_type, class_url_parts
 
 from . import bp
@@ -85,6 +85,20 @@ def habitability_levels():
         breadcrumbs=[crumb("Habitability")],
         description="What the equipment levels, the Blue to Red domain colours and the Habitable chips mean.",
         **habitability_ref.page(),
+    )
+
+
+@bp.route("/help/properties")
+def property_help_page():
+    """UX.187: where the physics values on the star, planet and moon pages come from: each value's unit, who has it and the
+    one-line source its page shows under it."""
+    return render_page(
+        "property_help.html",
+        title="Properties",
+        section="help",
+        breadcrumbs=[crumb("Properties")],
+        description="Where the orbit, heat, spin, field, ring and life values on a star, planet or moon page come from.",
+        **property_help.page(),
     )
 
 
