@@ -702,8 +702,7 @@
     },
     {
       "epoch": 118,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2458",
       "reason": "The air of a planet is solved with a greenhouse that thins its water vapour with height and carries a grey cloud depth for the cloud longwave effect, so the surface temperature, the air that follows and the habitability of wet planets change (GEN.812)",
       "affects": ["fill"]
     }
