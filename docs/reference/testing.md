@@ -383,6 +383,20 @@ allows (complex life, microbial only, none) against `src/tests/data/prevalence_e
 - **When it runs.** It is a `slow` test that reads the generation code, so `scripts/test.py changed` selects it whenever
   generation changes. About 8 minutes on 4 cores.
 
+Part B, the system census (TEST.431, `src/tests/audit/prevalence_systems.py`, `src/tests/test_prevalence_systems_census.py`), draws
+100 full systems of each census star type and checks what only a whole system decides: planets, belts and comets per system, moons
+per planet, the share with no planet, the share that are pairs, the share with a habitable-class world or a Blue or Green one, and the
+share where life reaches each milestone (abiogenesis to a technological civilization), against
+`src/tests/data/prevalence_systems_expectations.json`. Part E, planet occurrence (TEST.395,
+`src/tests/audit/prevalence_occurrence.py`), reads the same systems and checks giants, hot Jupiters, cold giants, 1 to 20
+Earth-mass planets inside 0.5 AU, Earth-mass planets in the ecosphere and the super-Earth to Neptune ratio per host group against
+observed rates (`src/tests/data/prevalence_occurrence_expectations.json`, kind `observed`, recalled and unverified until the papers
+are read). One live test draws the systems once for both; their reports are `system-census-latest.md` and
+`occurrence-census-latest.md`. A system that raises is the `error` flag, as one over 180 s is `hang`.
+
+Re-baselining B and E: `python -m tests.audit.prevalence_systems measure` and `build`, `python -m tests.audit.prevalence_occurrence`.
+
+
 ## Setting up a cloud session
 
 A fresh container needs `pip install -e ".[test,api,browser]"`, the NLTK

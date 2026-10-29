@@ -31,11 +31,17 @@ MIN_EXPECTED_SHARE = 0.06
 
 SIGMAS = 4.0
 
+MUST_APPEAR = 5
+"""int: A colour or life share expected this many times or more in a run must appear at least once, whatever its band. A class
+share does not get the rule: the classes are about to be reassigned from conditions (GEN.689), and a class's own band is wide."""
 
-def _range(share, n_ref, n_run):
+
+def _range(share, n_ref, n_run, must_appear=True):
     sigma = math.sqrt(max(share * (1.0 - share), 0.0) * (1.0 / max(n_ref, 1) + 1.0 / max(n_run, 1)))
     half = SIGMAS * sigma + PAD
     low = max(0.0, share - half) if share >= MIN_EXPECTED_SHARE else 0.0
+    if must_appear and share * n_run >= MUST_APPEAR:
+        low = max(low, 1.0 / max(n_run, 1))  # expected five or more times: none at all is a collapse, whatever the band says
     return round(low, 4), round(min(1.0, share + half), 4)
 
 
@@ -66,7 +72,7 @@ def build(records, commit, label, count):
                          "seeds": "crc32 of 'cell:<star>:<zone>' and 'orbit:<star>:<zone>' (tests.audit.prevalence.seed_for)",
                          "kind": "stand-in: pre-cut-over prevalence, no observed class rates exist",
                          "pad": PAD, "sigmas": SIGMAS},
-           "anomalies": {}, "hangs": {"anomaly": ""}, "cells": {}}
+           "anomalies": {}, "hangs": {"anomaly": ""}, "errors": {"anomaly": ""}, "cells": {}}
     for (star, zone, kind), cell in sorted(cells.items()):
         if not cell["n"] or kind not in ("planet", "moon"):
             continue
@@ -75,7 +81,7 @@ def build(records, commit, label, count):
         for letter, count_ in sorted(cell["cls"].items()):
             if letter in spec["barred"]:
                 continue
-            low, high = _range(count_ / cell["n"], cell["n"], cell["n"])
+            low, high = _range(count_ / cell["n"], cell["n"], cell["n"], must_appear=False)
             spec["classes"][letter] = {"min": low, "max": high, "kind": "stand-in",
                                        "source": f"pre-cut-over share {count_ / cell['n']:.3f} at {commit[:9]}"}
         scored = sum(cell["tier"].values())
@@ -103,7 +109,7 @@ def tag_current(expectations, records, item, note, only=None):
     findings = census.compare(census.tally(records), expectations)
     tagged = 0
     for finding in findings:
-        if finding.kind == "hang":
+        if finding.kind in ("hang", "error"):
             continue
         spec = expectations["cells"][finding.cell]
         prefix, name = finding.measure.split(" ", 1)
@@ -134,6 +140,7 @@ def main(argv=None):
     build_p.add_argument("--anomaly")
     build_p.add_argument("--anomaly-note", default="")
     build_p.add_argument("--hang-anomaly", default="", help="the item that explains a draw over the time limit")
+    build_p.add_argument("--error-anomaly", default="", help="the item that explains a draw that raised")
     args = parser.parse_args(argv)
     if args.command == "measure":
         records = census.draw_cells(args.count)
@@ -145,6 +152,7 @@ def main(argv=None):
         records = json.load(handle)
     expectations = build(records, args.commit, args.label, args.count)
     expectations["hangs"]["anomaly"] = args.hang_anomaly
+    expectations["errors"]["anomaly"] = args.error_anomaly
     if args.tag_current:
         with open(args.tag_current, encoding="utf-8") as handle:
             current = json.load(handle)

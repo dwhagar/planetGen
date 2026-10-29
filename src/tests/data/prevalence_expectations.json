@@ -2,7 +2,8 @@
  "anomalies": {
   "GEN.812": "an intended physics change, not a fault: the greenhouse water vapour thinning with height and the grey cloud depth (epoch 118) warm the K5V ecosphere moons, so their Yellow share fell and Red rose past the pre-cut-over range; the range waits for the class cut-over to settle before it is re-baselined",
   "GEN.829": "class T (gas dwarf) is never drawn: no 2 to 20 Earth-mass sub-Neptune population exists (GEN.829); the pre-cut-over spine drew it almost never either",
-  "GEN.855": "since 4c (epoch 106) the solved air has no free oxygen and nothing makes biogenic O2, so habitable-class worlds score Red or Yellow where they scored Green or Blue, and no scored world allows complex life; main at 134d8bb differs from the pre-4c reference by this; the microbial ceiling share rises by what the unlimited share loses"
+  "GEN.855": "since 4c (epoch 106) the solved air has no free oxygen and nothing makes biogenic O2, so habitable-class worlds score Red or Yellow where they scored Green or Blue, and no scored world allows complex life; the microbial ceiling share rises by what the unlimited share loses",
+  "GEN.896": "since 4c (epoch 106) hot-zone planets and moons almost never score Yellow (before: 3 to 21 percent by star type); not the oxygen loss, cause not yet found"
  },
  "cells": {
   "A0V/cold/moon": {
@@ -106,7 +107,7 @@
     "microbial": {
      "kind": "stand-in",
      "max": 0.449,
-     "min": 0.0,
+     "min": 0.0069,
      "source": "pre-cut-over share 0.215 of 144 scored bodies at 0b4d0ccef"
     },
     "none": {
@@ -210,9 +211,10 @@
      "source": "pre-cut-over share 0.200 of 335 scored bodies at 0b4d0ccef"
     },
     "unlimited": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.1729,
-     "min": 0.0,
+     "min": 0.003,
      "source": "pre-cut-over share 0.060 of 335 scored bodies at 0b4d0ccef"
     }
    },
@@ -302,7 +304,7 @@
     "Yellow": {
      "kind": "stand-in",
      "max": 0.1868,
-     "min": 0.0,
+     "min": 0.003,
      "source": "pre-cut-over share 0.069 of 335 scored bodies at 0b4d0ccef"
     }
    }
@@ -443,9 +445,10 @@
      "source": "pre-cut-over share 0.000 of 179 scored bodies at 0b4d0ccef"
     },
     "Green": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.3422,
-     "min": 0.0,
+     "min": 0.0056,
      "source": "pre-cut-over share 0.151 of 179 scored bodies at 0b4d0ccef"
     },
     "Red": {
@@ -484,7 +487,7 @@
     "microbial": {
      "kind": "stand-in",
      "max": 0.3323,
-     "min": 0.0,
+     "min": 0.004,
      "source": "pre-cut-over share 0.161 of 249 scored bodies at 0b4d0ccef"
     },
     "none": {
@@ -548,9 +551,10 @@
      "source": "pre-cut-over share 0.968 of 249 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
+     "anomaly": "GEN.896",
      "kind": "stand-in",
      "max": 0.1353,
-     "min": 0.0,
+     "min": 0.004,
      "source": "pre-cut-over share 0.032 of 249 scored bodies at 0b4d0ccef"
     }
    }
@@ -576,7 +580,7 @@
     "microbial": {
      "kind": "stand-in",
      "max": 0.3152,
-     "min": 0.0,
+     "min": 0.0055,
      "source": "pre-cut-over share 0.133 of 181 scored bodies at 0b4d0ccef"
     },
     "none": {
@@ -652,9 +656,10 @@
      "source": "pre-cut-over share 0.956 of 181 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
+     "anomaly": "GEN.896",
      "kind": "stand-in",
      "max": 0.1706,
-     "min": 0.0,
+     "min": 0.0055,
      "source": "pre-cut-over share 0.044 of 181 scored bodies at 0b4d0ccef"
     }
    }
@@ -866,9 +871,10 @@
      "source": "pre-cut-over share 0.273 of 315 scored bodies at 0b4d0ccef"
     },
     "unlimited": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.166,
-     "min": 0.0,
+     "min": 0.0032,
      "source": "pre-cut-over share 0.054 of 315 scored bodies at 0b4d0ccef"
     }
    },
@@ -952,7 +958,7 @@
     "Yellow": {
      "kind": "stand-in",
      "max": 0.1911,
-     "min": 0.0,
+     "min": 0.0032,
      "source": "pre-cut-over share 0.070 of 315 scored bodies at 0b4d0ccef"
     }
    }
@@ -977,9 +983,10 @@
      "source": "pre-cut-over share 0.262 of 168 scored bodies at 0b4d0ccef"
     },
     "unlimited": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.4098,
-     "min": 0.0,
+     "min": 0.006,
      "source": "pre-cut-over share 0.196 of 168 scored bodies at 0b4d0ccef"
     }
    },
@@ -1079,15 +1086,17 @@
    "source": "pre-cut-over measured at 0b4d0ccef",
    "tiers": {
     "Blue": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.1567,
-     "min": 0.0,
+     "min": 0.006,
      "source": "pre-cut-over share 0.036 of 168 scored bodies at 0b4d0ccef"
     },
     "Green": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.2634,
-     "min": 0.0,
+     "min": 0.006,
      "source": "pre-cut-over share 0.095 of 168 scored bodies at 0b4d0ccef"
     },
     "Red": {
@@ -1189,9 +1198,10 @@
      "source": "pre-cut-over share 0.981 of 259 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
+     "anomaly": "GEN.896",
      "kind": "stand-in",
      "max": 0.1077,
-     "min": 0.0,
+     "min": 0.0039,
      "source": "pre-cut-over share 0.019 of 259 scored bodies at 0b4d0ccef"
     }
    }
@@ -1217,7 +1227,7 @@
     "microbial": {
      "kind": "stand-in",
      "max": 0.4252,
-     "min": 0.0,
+     "min": 0.0056,
      "source": "pre-cut-over share 0.212 of 179 scored bodies at 0b4d0ccef"
     },
     "none": {
@@ -1293,9 +1303,10 @@
      "source": "pre-cut-over share 0.966 of 179 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
+     "anomaly": "GEN.896",
      "kind": "stand-in",
      "max": 0.1496,
-     "min": 0.0,
+     "min": 0.0056,
      "source": "pre-cut-over share 0.034 of 179 scored bodies at 0b4d0ccef"
     }
    }
@@ -1401,7 +1412,7 @@
     "microbial": {
      "kind": "stand-in",
      "max": 0.2907,
-     "min": 0.0,
+     "min": 0.0078,
      "source": "pre-cut-over share 0.101 of 129 scored bodies at 0b4d0ccef"
     },
     "none": {
@@ -1505,9 +1516,10 @@
      "source": "pre-cut-over share 0.256 of 297 scored bodies at 0b4d0ccef"
     },
     "unlimited": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.1948,
-     "min": 0.0,
+     "min": 0.0034,
      "source": "pre-cut-over share 0.071 of 297 scored bodies at 0b4d0ccef"
     }
    },
@@ -1609,7 +1621,7 @@
     "Yellow": {
      "kind": "stand-in",
      "max": 0.2399,
-     "min": 0.0,
+     "min": 0.0034,
      "source": "pre-cut-over share 0.101 of 297 scored bodies at 0b4d0ccef"
     }
    }
@@ -1853,9 +1865,10 @@
      "source": "pre-cut-over share 0.927 of 206 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
+     "anomaly": "GEN.896",
      "kind": "stand-in",
      "max": 0.2152,
-     "min": 0.0,
+     "min": 0.0049,
      "source": "pre-cut-over share 0.073 of 206 scored bodies at 0b4d0ccef"
     }
    }
@@ -1957,9 +1970,10 @@
      "source": "pre-cut-over share 0.893 of 177 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
+     "anomaly": "GEN.896",
      "kind": "stand-in",
      "max": 0.279,
-     "min": 0.0,
+     "min": 0.0056,
      "source": "pre-cut-over share 0.107 of 177 scored bodies at 0b4d0ccef"
     }
    }
@@ -2071,7 +2085,7 @@
     "none": {
      "kind": "stand-in",
      "max": 0.3395,
-     "min": 0.0,
+     "min": 0.0071,
      "source": "pre-cut-over share 0.136 of 140 scored bodies at 0b4d0ccef"
     },
     "unlimited": {
@@ -2169,9 +2183,10 @@
      "source": "pre-cut-over share 0.243 of 304 scored bodies at 0b4d0ccef"
     },
     "unlimited": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.1541,
-     "min": 0.0,
+     "min": 0.0033,
      "source": "pre-cut-over share 0.046 of 304 scored bodies at 0b4d0ccef"
     }
    },
@@ -2261,7 +2276,7 @@
     "Yellow": {
      "kind": "stand-in",
      "max": 0.2163,
-     "min": 0.0,
+     "min": 0.0033,
      "source": "pre-cut-over share 0.086 of 304 scored bodies at 0b4d0ccef"
     }
    }
@@ -2282,7 +2297,7 @@
     "none": {
      "kind": "stand-in",
      "max": 0.4433,
-     "min": 0.0,
+     "min": 0.006,
      "source": "pre-cut-over share 0.222 of 167 scored bodies at 0b4d0ccef"
     },
     "unlimited": {
@@ -2383,15 +2398,17 @@
    "source": "pre-cut-over measured at 0b4d0ccef",
    "tiers": {
     "Blue": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.1696,
-     "min": 0.0,
+     "min": 0.006,
      "source": "pre-cut-over share 0.042 of 167 scored bodies at 0b4d0ccef"
     },
     "Green": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.2928,
-     "min": 0.0,
+     "min": 0.006,
      "source": "pre-cut-over share 0.114 of 167 scored bodies at 0b4d0ccef"
     },
     "Red": {
@@ -2495,7 +2512,7 @@
     "Yellow": {
      "kind": "stand-in",
      "max": 0.2317,
-     "min": 0.0,
+     "min": 0.0038,
      "source": "pre-cut-over share 0.091 of 263 scored bodies at 0b4d0ccef"
     }
    }
@@ -2599,7 +2616,7 @@
     "Yellow": {
      "kind": "stand-in",
      "max": 0.3188,
-     "min": 0.0,
+     "min": 0.0054,
      "source": "pre-cut-over share 0.136 of 184 scored bodies at 0b4d0ccef"
     }
    }
@@ -2809,9 +2826,10 @@
      "source": "pre-cut-over share 0.374 of 262 scored bodies at 0b4d0ccef"
     },
     "unlimited": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.1848,
-     "min": 0.0,
+     "min": 0.0038,
      "source": "pre-cut-over share 0.061 of 262 scored bodies at 0b4d0ccef"
     }
    },
@@ -3046,7 +3064,7 @@
     "Green": {
      "kind": "stand-in",
      "max": 0.2217,
-     "min": 0.0,
+     "min": 0.0059,
      "source": "pre-cut-over share 0.071 of 170 scored bodies at 0b4d0ccef"
     },
     "Red": {
@@ -3254,7 +3272,7 @@
     "Yellow": {
      "kind": "stand-in",
      "max": 0.4212,
-     "min": 0.0,
+     "min": 0.0055,
      "source": "pre-cut-over share 0.210 of 181 scored bodies at 0b4d0ccef"
     }
    }
@@ -3465,9 +3483,10 @@
      "source": "pre-cut-over share 0.523 of 214 scored bodies at 0b4d0ccef"
     },
     "unlimited": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.1683,
-     "min": 0.0,
+     "min": 0.0047,
      "source": "pre-cut-over share 0.047 of 214 scored bodies at 0b4d0ccef"
     }
    },
@@ -3555,9 +3574,10 @@
      "source": "pre-cut-over share 0.930 of 214 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
+     "anomaly": "GEN.855",
      "kind": "stand-in",
      "max": 0.1931,
-     "min": 0.0,
+     "min": 0.0047,
      "source": "pre-cut-over share 0.061 of 214 scored bodies at 0b4d0ccef"
     }
    }
@@ -3572,7 +3592,7 @@
     "microbial": {
      "kind": "stand-in",
      "max": 0.3854,
-     "min": 0.0,
+     "min": 0.0061,
      "source": "pre-cut-over share 0.177 of 164 scored bodies at 0b4d0ccef"
     },
     "none": {
@@ -3803,9 +3823,10 @@
      "source": "pre-cut-over share 0.868 of 106 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
+     "anomaly": "GEN.896",
      "kind": "stand-in",
      "max": 0.3581,
-     "min": 0.0,
+     "min": 0.0094,
      "source": "pre-cut-over share 0.132 of 106 scored bodies at 0b4d0ccef"
     }
    }
@@ -3907,13 +3928,17 @@
      "source": "pre-cut-over share 0.906 of 181 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
+     "anomaly": "GEN.896",
      "kind": "stand-in",
      "max": 0.2566,
-     "min": 0.0,
+     "min": 0.0055,
      "source": "pre-cut-over share 0.094 of 181 scored bodies at 0b4d0ccef"
     }
    }
   }
+ },
+ "errors": {
+  "anomaly": "GEN.895"
  },
  "hangs": {
   "anomaly": "GEN.866"
