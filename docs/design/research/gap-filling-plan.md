@@ -924,6 +924,16 @@ The class cut-over (GEN.646) makes a body from its mass, where it formed and its
 | CC10 | P | T9 | L3 | tuning.HABITABLE_REQUEST_FREE_ATTEMPTS 8 and HABITABLE_REQUEST_MASS_EARTH (0.5, 2.0) (a request for a habitable world draws freely, then draws Earth-like masses) | free attempts 4 to 16; masses 0.3 to 3 | the request only | test_gen_builder_internals::test_a_habitable_request_turns_to_earth_like_masses_after_its_free_draws; a request met in under 80 percent of systems around a K or A star | the PHI-6 steering of habitable requests (a follow-up of GEN.688) | design (needed output: a free draw in the ecosphere of an M5 dwarf gave a life class in none of 30, an Earth-like mass in 20 of 30) |
 <!-- class-cutover-standins:end -->
 
+### 6.24 Stand-ins of the star counts' composition (GEN.661)
+
+The number of stars a population puts in a mass band or above a luminosity (`generation/star_population.py`) depends on metallicity: a metal-poor star of one mass is brighter and hotter, so more of a metal-poor population is bright. The counts are worked out once for the whole population at the composition the population holds on average (`reference_fe_h`), not star by star. Each star's own birth [Fe/H] is drawn separately and does follow its component.
+
+<!-- star-count-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SCC1 | D | T5 | L0 | star_population.reference_fe_h: a population's counts are worked out at its mean [Fe/H] at the Sun's distance (the disc has no radial gradient here, a component has no value of its own in the counts) | none | the bright fraction is nearly linear in [Fe/H] over the range of a population (25 to 45 percent between 0 and -1.5 at 500 Lsun), so the fraction at the mean stands for the mixture | a population whose spread is wide enough that the fraction at the mean differs from the mean of the fractions by more than the count noise | counts worked out per component at its own [Fe/H] and per disc radius | COMPUTED (the bright fraction of the isochrone tables at [Fe/H] 0 and -1.5, test_star_population) |
+<!-- star-count-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

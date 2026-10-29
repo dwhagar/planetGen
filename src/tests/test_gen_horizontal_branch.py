@@ -140,8 +140,7 @@ def test_a_star_without_an_fe_h_draws_one_first_and_keeps_it():
     params = se.star_params(MASS, 5.0, drawn)
     assert params["metallicity_fe_h"] == drawn["metallicity_fe_h"]
     # A scattered bright star stores the one its colour was drawn from, not a second draw.
-    assert star_fe_h("halo", params) == params["metallicity_fe_h"]
-    assert star_fe_h("cluster", params) is None
+    assert star_fe_h(params) == params["metallicity_fe_h"]
 
 
 def test_no_horizontal_branch_star_is_brighter_than_the_top_of_its_range_or_a_floor_above_it():

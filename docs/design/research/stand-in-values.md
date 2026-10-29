@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 329 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 330 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,12 +40,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T2 | 59 | 0 | 0 | 1 | 0 | 60 |
 | T3 | 51 | 4 | 2 | 10 | 0 | 67 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
-| T5 | 14 | 5 | 1 | 0 | 0 | 20 |
+| T5 | 15 | 5 | 1 | 0 | 0 | 21 |
 | T6 | 28 | 8 | 3 | 12 | 0 | 51 |
 | T7 | 17 | 3 | 0 | 7 | 0 | 27 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 25 | 16 | 44 |
-| All | 224 | 20 | 11 | 57 | 17 | 329 |
+| All | 225 | 20 | 11 | 57 | 17 | 330 |
 
 ## How the labels were given
 
@@ -491,3 +491,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OZ1 | D | T2 | L0 | datasets.ozone_uv.CHAPPUIS_TEMPERATURES_K, physics/data/ozone_chappuis.json | none | 410 to 760 nm, 220 to 298 K | tables to colder and warmer layers | the temperature ratio of the Chappuis band to the 298 K table is read from the Burkholder and Talukdar 1994 files (220 to 298 K, Mainz atlas); a body uses the ratio at the temperature of its ozone layer |
 | OZ2 | P | T6 | L1 | atmospheric_radiation.SKIN_TEMPERATURE_FACTOR, DEFAULT_BOND_ALBEDO, DEFAULT_OZONE_TEMPERATURE_K | 200 to 270 K | a body with ozone | a temperature profile from the radiative model | the ozone layer sits at the skin temperature, 2 to the power of -1/4 of the equilibrium temperature (213.6 K for Earth, whose stratosphere is 217 to 270 K); the Bond albedo is 0.3 where a body has none |
 | OZ3 | B | T3 | L1 | ozone.STRUCTURE_KNOTS | the six ends | a body with ozone | model runs for each host at each oxygen level | the ozone column spreads between the lowest and highest ratio the published models give to the fit at that oxygen level: 1.45 to 1.70 at 100 percent, 0.85 to 1.34 at 10 percent, 0.85 to 1.71 at 1 percent and below (Cooke 2022, Grenfell 2007, Segura 2003 and 2005, second-hand through the sources check); linear in log PAL between; the Sun host's ratios are applied to every host |
+
+## 6.24 Stand-ins of the star counts' composition
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SCC1 | D | T5 | L0 | star_population.reference_fe_h: a population's counts are worked out at its mean [Fe/H] at the Sun's distance (the disc has no radial gradient here, a component has no value of its own in the counts) | none | the bright fraction is nearly linear in [Fe/H] over the range of a population (25 to 45 percent between 0 and -1.5 at 500 Lsun), so the fraction at the mean stands for the mixture | a population whose spread is wide enough that the fraction at the mean differs from the mean of the fractions by more than the count noise | counts worked out per component at its own [Fe/H] and per disc radius | COMPUTED (the bright fraction of the isochrone tables at [Fe/H] 0 and -1.5, test_star_population) |
