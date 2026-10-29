@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2462] - 2026-10-29
+
+**Headline:** The Galaxy Map can mark the star systems that hold a world with life, with sentient life or with a civilization, each an optional marker beside the habitable worlds.
+
+### Changed
+
+- **Markers for worlds with life (MAP.311).** The Menu's Points of interest group has three new markers, all off until turned on (`show=marker-life`, `show=marker-sentient`, `show=marker-civilization`): Life (a world with any of the four life scores at 1 or more), Sentient life (the sentient score at 1 or more) and Civilizations (a timeline that reached a technological civilization). Each has its own sign (a leaf, a head and shoulders, a row of towers); a system with several is marked once, by the strongest, and its card lists every reason. They use the stored life scores as they are, so the number of worlds that qualify follows the generator. Migration 0173 (schema v173) fills the new rows of `system_interests` from the planets and moons already stored; nothing a generator draws changes. The Sector Map and System Map signs are not part of this change.
+
 ## [8.0.2461] - 2026-10-29
 
 **Headline:** The climate draws test measures the starlight the way the generator does, so it passes again.
