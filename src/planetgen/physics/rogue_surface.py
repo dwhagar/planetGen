@@ -26,7 +26,7 @@ a new `RoguePlanet` and back-fills stored rows (`store._migrate_v47_to_v48`).
 
 import math
 
-from planetgen.physics import brown_dwarf, constants, gases, hydrosphere, interior_heat, radiogenic, relations, saturation, water_layer
+from planetgen.physics import brown_dwarf, constants, gases, hydrosphere, interior_heat, mass_boundaries, radiogenic, relations, saturation, water_layer
 from planetgen import tuning
 from planetgen.util.random import log_uniform
 from planetgen.util import draw
@@ -77,6 +77,7 @@ def _giant_luminosity_w(mass_kg, age_gy):
     track; below 13 Mjup fading as t^-1.3 (`ROGUE_GIANT_COOLING_TIME_EXPONENT`)."""
     pc = tuning
     phys = constants
+    deuterium_jup = mass_boundaries.jupiter("deuterium_burning_limit")
     jupiter_l = pc.ROGUE_JUPITER_INTERNAL_FLUX_W_M2 * 4 * math.pi * (phys.JUPITER_RADIUS_KM * 1000.0) ** 2
     neptune_mass_kg, neptune_radius_m = 1.024e26, 2.4764e7
     neptune_l = _sigma() * pc.ROGUE_NEPTUNE_INTERNAL_TEMPERATURE_K ** 4 * 4 * math.pi * neptune_radius_m ** 2
@@ -86,11 +87,11 @@ def _giant_luminosity_w(mass_kg, age_gy):
 
     m_jup = mass_kg / phys.JUPITER_MASS_TO_KG
     age_factor = (age_gy / pc.ROGUE_EARTH_REFERENCE_AGE_GY) ** pc.ROGUE_GIANT_COOLING_TIME_EXPONENT
-    if m_jup >= 13.0:
+    if m_jup >= deuterium_jup:
         return brown_dwarf_l(mass_kg, age_gy)
     if m_jup >= 1.0:
-        at_13 = brown_dwarf_l(13.0 * phys.JUPITER_MASS_TO_KG, pc.ROGUE_EARTH_REFERENCE_AGE_GY)
-        exponent = math.log(at_13 / jupiter_l) / math.log(13.0)
+        at_13 = brown_dwarf_l(mass_boundaries.kg("deuterium_burning_limit"), pc.ROGUE_EARTH_REFERENCE_AGE_GY)
+        exponent = math.log(at_13 / jupiter_l) / math.log(deuterium_jup)
         return jupiter_l * m_jup ** exponent * age_factor
     exponent = math.log(jupiter_l / neptune_l) / math.log(phys.JUPITER_MASS_TO_KG / neptune_mass_kg)
     return jupiter_l * m_jup ** exponent * age_factor
