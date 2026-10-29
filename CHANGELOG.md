@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2470] - 2026-10-29
+
+**Headline:** Every number the life draw and the habitability index run on now has a stand-in registry row with its source tier and tweak level.
+
+### Added
+- **Stand-in rows for the life constants (GEN.870).** Section 6.18 of `gap-filling-plan.md` and the generated `stand-in-values.md` list 30 rows (LF1 to LF30): the chemistries' gates and star weights, the stars' lifespans and the evolutionary timelines, the score thresholds, the solvent factors, the toxicity limits, the oxygen band, the energy flux and its shares, each with its tier (T1 to T9), tweak level (L0 to L4), what would replace it and what would falsify it. The tiers and tweaks are the life chemistry review's proposal, for the owner of each area to correct.
+- **A test that fails when a life constant has no row.** `tests/test_life_standin_registry.py` checks that every row names an existing constant and that every constant of `tuning.py` (`LIFE_*`, `STAR_EVOLUTION`, `EVOLUTIONARY_*`, `HABITABILITY_LIFE_*`), `habitability.py` and `habitability_world.py` has a row or is on the short list of names that carry no value, each with its reason.
+
 ## [8.0.2469] - 2026-10-29
 
 **Headline:** A planet draw no longer hangs or crashes on a world whose surface is hotter than its interior would be.
