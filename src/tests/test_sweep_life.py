@@ -170,3 +170,76 @@ def test_an_index_that_reads_the_letter_is_reported(monkeypatch, capable_entry):
     monkeypatch.setattr(habitability_world, "compute", reads_the_letter)
     problems = rules._check_scores_class_blind(capable_entry)
     assert any(f"as class {letter} the habitability index differs" in problem and "phi_bio" in problem for problem in problems), problems
+
+
+# --- The generator's draws -----------------------------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def planets():
+    return rules.forced_planets()
+
+
+@pytest.fixture(scope="module")
+def supported_planet(planets):
+    """A planet the life model supports, to break the generator on."""
+    for _, planet in planets:
+        if planet.body_type == "t" and rules._supported(planet):
+            return planet
+    pytest.fail("the forced-class sampler holds no planet the life model supports")
+
+
+@pytest.mark.slow
+def test_the_sampler_holds_every_class_letter_and_enough_supported_planets(planets):
+    rates = rules.draw_rates(planets)
+    assert set(rates) >= {letter for letter in rules.letters() if letter not in "IJRTU"}
+    assert sum(supported for _, supported, _ in rates.values()) >= 30
+    assert len([letter for letter, (_, supported, _) in rates.items() if supported]) >= 12
+
+
+@pytest.mark.slow
+def test_the_generator_gives_life_to_every_supported_planet_and_the_same_life_under_every_class_letter(planets):
+    problems = [(label, problem) for label, planet in planets for problem in rules.draw_problems(planet)]
+    rates = rules.draw_rates(planets)
+    lines = [f"draw-rates: {len(problems)} problems over {len(planets)} forced-class planets", "class letter: planets, supported by the model, given life by the generator:"]
+    lines += [f"  {letter}: {total}, {supported}, {drawn}" for letter, (total, supported, drawn) in sorted(rates.items())]
+    census.write_report("\n".join(lines) + "\n", name="class-blind-life-draws-latest.md")
+    assert not problems, f"{len(problems)} problems, first {problems[:5]}"
+    assert all(drawn == supported for _, supported, drawn in rates.values())
+
+
+@pytest.mark.slow
+def test_a_generator_that_skips_life_for_one_letter_is_reported(monkeypatch, supported_planet):
+    from planetgen.generation import life
+
+    real = life.apply_life_data
+
+    def skips(planet, keep_stored=False):
+        real(planet, keep_stored)
+        if planet.planet_class == "K":
+            planet.life_class = None
+            planet.life_class_variant = None
+
+    monkeypatch.setattr(life, "apply_life_data", skips)
+    problems = rules.draw_problems(supported_planet, other_letters=["K"])
+    assert any("as class K give None" in problem for problem in problems), problems
+    monkeypatch.setattr(supported_planet, "planet_class", "K")
+    assert any("the generator drew no life" in problem for problem in rules.draw_problems(supported_planet, other_letters=[]))
+
+
+@pytest.mark.slow
+def test_life_drawn_where_the_model_supports_nothing_is_reported(monkeypatch, supported_planet):
+    monkeypatch.setattr(rules, "_supported", lambda planet: {})
+    problems = rules.draw_problems(supported_planet)
+    assert any("no life class is supported and the generator drew" in problem for problem in problems), problems
+
+
+@pytest.mark.slow
+def test_a_class_that_the_model_does_not_support_is_reported(monkeypatch, supported_planet):
+    monkeypatch.setattr(rules, "_supported", lambda planet: {"9z": 5})
+    problems = rules.draw_problems(supported_planet, other_letters=[])
+    assert any("which the model does not support" in problem for problem in problems), problems
+
+
+def test_a_giant_is_not_judged_by_the_draw_check():
+    assert rules.draw_problems(types.SimpleNamespace(body_type="g")) == []

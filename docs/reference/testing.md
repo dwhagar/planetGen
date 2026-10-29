@@ -465,7 +465,7 @@ multicellular, animals, sentient), and the shares of life worlds checked against
 sentient and fewer than one in twenty animal worlds) in `src/tests/data/prevalence_life_expectations.json`, widened by four binomial sigma of
 the run's life worlds. The shadow life class of each life world (`life_classes.best`, GEN.886) is counted in the report and not checked, as the
 design says per-class bands are measured and not forced; the class store (GEN.889) will let the census read the stored class. The report is
-`life-census-latest.md`; about a minute on 4 cores; `python -m tests.audit.prevalence_life` prints it without the test. Known anomaly: GEN.855
+`life-census-latest.md`; about a minute on 4 cores; `python -m tests.audit.prevalence_life [--host-systems N]` prints it without the test (the live test draws 300 host systems each; with only about 30 oxygenic worlds in a run the four-sigma slack makes the animal band wide, so a baseline run takes several times more). The report also lists the highest rung reached by each stored life class (epoch 120). Known anomaly: GEN.855
 (no biogenic oxygen, so no world reaches animals).
 
 Part H, the class-blind life test (TEST.452, `src/tests/audit/sweep_life.py`, `src/tests/test_sweep_life.py`; Boss 2:46 PM EDT 10-29, GEN.915):
@@ -477,8 +477,11 @@ scanned (AST) for every read of the class letter or the class tables, and each o
 the index does not read); an unlisted read fails, a listed place that no longer reads it is reported stale. Both checks are proved able to
 fail by breaking the life model, the index and a planted module. The report is `class-blind-life-latest.md` (with the life-capable bodies of
 each letter). The draws that run before the life model and key on the letter (water fraction, albedo range, porosity, mass-radius branch)
-change the conditions and not the way they are judged; they are GEN.915 and GEN.646. The layer that checks the generator draws life on every
-capable body waits for the class store (epoch 120).
+change the conditions and not the way they are judged; they are GEN.915 and GEN.646. The second layer (epoch 120) is on the generator: 174 planets, one
+for each class letter and zone round an M2V, a G2V and an F5V star (3 each), go through the life step (`generation.life.apply_life_data`) on a copy; a
+planet the life model supports must be given life and one it does not support must not, the class drawn must be a supported one, and the same
+conditions put under every other class letter must give the same class, stage and schedule on the same stream. A failure names the letter and the
+class. The report `class-blind-life-draws-latest.md` lists, for each letter, the planets, the supported ones and the ones given life.
 
 ## Setting up a cloud session
 
