@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.450 |
+| TEST | TEST.451 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -3206,15 +3206,15 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.395 | A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q | none | open |
 | TEST.396 | test_fuzz_web_routes is red on main: the admin queue log route answers 302 where the test expects 403 (bug) | none | done, PR #3329 |
 | TEST.397 | test_api_auth_sweep is red on main (bug) | none | done, PR #3418 |
-| TEST.398 | The test preflight kills stale planetgen.cli.worker processes, which pick up the units of later runs (bug) | none | open |
+| TEST.398 | The test preflight kills stale planetgen.cli.worker processes, which pick up the units of later runs (bug) | none | done, PR #3690 |
 | TEST.399 | test_golden_seed::test_the_pinned_galaxy_is_made_at_one_worker_and_at_four is red on main: the pinned galaxy differs between one worker and four (bug) | none | done, PR #3504 |
 | TEST.400 | test_habitability_fill::test_the_command_re_scores_every_system is red on main: Namespace has no attribute 'command' in generate.validate_fill_args (bug) | none | done, PR #3358 |
 | TEST.401 | test_atmosphere_mixture_escape (abiotic oxygen) and test_atmosphere_mixture_rocky (delivered-water class) are red on main (bug) | none | done, PR #3381 |
-| TEST.402 | test_db_column_round_trip fails once under load: the stars' disk columns read back NULL (bug) | none | open |
+| TEST.402 | test_db_column_round_trip fails once under load: the stars' disk columns read back NULL (bug) | none | done, PR #3689 |
 | TEST.403 | Three scatter tests are far too slow: test_a_galaxy_with_no_scatter_still_rolls_its_own runs over 4.5 minutes, and two others hang for an hour under -n 4 (bug) | none | open |
 | TEST.404 | golden_update's first run wrote galaxy.json with the sector section made before the epoch bump, so test_golden_seed failed until a second run on the same tree (bug) | none | done, PR #3358 |
-| TEST.405 | The system page tests and the migration 0148 habitable_systems test are red on main (bug) | none | open |
-| TEST.406 | Four tests are red on main: test_surface_air stored-partials sum (1e-9 relative) and test_resume_across_builds, test_progress_log (2), test_redis_cleanup fail with an unexpected keyword on_child (bug) | none | open |
+| TEST.405 | The system page tests and the migration 0148 habitable_systems test are red on main (bug) | none | done, PR #3689 |
+| TEST.406 | Four tests are red on main: test_surface_air stored-partials sum (1e-9 relative) and test_resume_across_builds, test_progress_log (2), test_redis_cleanup fail with an unexpected keyword on_child (bug) | none | done, PR #3689 |
 | TEST.407 | golden_update takes about 55 minutes because its pinned-galaxy test builds the galaxy twice (one worker, then four), so it blocks every generation merge (bug) | none | done, PR #3371 |
 | TEST.408 | test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug) | none | open |
 | TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) | none | open |
@@ -3228,7 +3228,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.417 | Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug) | none | open |
 | TEST.418 | Seven map browser tests are red on clean main (bug) | none | open |
 | TEST.419 | test_opening_a_sector_is_one_continuous_view_with_a_filled_panel failed once in a full file run and passed on the next two (bug) | none | done, PR #3428 |
-| TEST.420 | Runner self-tests and the limit-slider follow-again browser test are red on main (bug) | none | open |
+| TEST.420 | Runner self-tests and the limit-slider follow-again browser test are red on main (bug) | none | done, PR #3690 |
 | TEST.421 | test_migration_habitable_worlds: the filled-sector test finds no system with a Blue or Green world in 120 seeds, its _fill_one_sector helper no longer draws one (bug) | none | done, PR #3467 |
 | TEST.422 | test_generation_size_estimate (3 tests error in setup) and test_phenomenon_scatter (scatter_lists_each_shells_phenomena_by_kind, a_fill_builds_its_rows_at_their_stored_points) are red on clean main (bug) | none | done, PR #3665 |
 | TEST.423 | test_admin_edits::test_recommended_class_change_saves_and_validates fails on clean main: the stand-in body has no eccentricity since migration 0163 (bug) | none | done, PR #3486 |
@@ -3257,6 +3257,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.446 | Two tests red on main: the generated config.schema.json out of date, and the batch-fill units listing rescore-habitability first (bug) | none | done, PR #3665 |
 | TEST.448 | test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count is red on main: blocks show no tint in the new sector view (bug) | none | done, PR #3672 |
 | TEST.449 | test_sheet_fill "no empty column that applies" is red on main: life_age_complex_cells_gyr is empty (bug) | none | done, PR #3681 |
+| TEST.450 | test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel is red on main: 80 wheel ticks at a sector centre no longer reach open=1 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

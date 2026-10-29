@@ -578,11 +578,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.828 | Giant planet occurrence falls with host mass and rises with metallicity, and hot Jupiters are rare: giants per M dwarf are about 0.48 today against 0.03 to 0.06 observed, hot Jupiters 0.117 per M dwarf and 0.026 per FGK star against under 0.002 and 0.005 to 0.01 |  |  |
 | GEN.829 | A 2 to 20 Earth-mass population exists: sub-Neptunes with a hydrogen envelope, 0.5 to 1 planets per FGK star inside 1 AU against 0.195 today, and the mass function falls steadily above about 10 Earth masses |  |  |
 | TEST.395 | A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q | GEN.689, GEN.828, GEN.829, GEN.728 |  |
-| TEST.398 | The test preflight kills stale planetgen.cli.worker processes, which pick up the units of later runs (bug) |  |  |
-| TEST.402 | test_db_column_round_trip fails once under load: the stars' disk columns read back NULL (bug) |  |  |
 | TEST.403 | Three scatter tests are far too slow: test_a_galaxy_with_no_scatter_still_rolls_its_own runs over 4.5 minutes, and two others hang for an hour under -n 4 (bug) |  |  |
-| TEST.405 | The system page tests and the migration 0148 habitable_systems test are red on main (bug) |  |  |
-| TEST.406 | Four tests are red on main: test_surface_air stored-partials sum (1e-9 relative) and test_resume_across_builds, test_progress_log (2), test_redis_cleanup fail with an unexpected keyword on_child (bug) |  |  |
 | TEST.408 | test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug) |  |  |
 | TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) |  |  |
 | TEST.411 | Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug) |  |  |
@@ -590,7 +586,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.414 | test_habitability_end_to_end_browser errors: the database fixture times out at 900 s before any page loads (8 errors) (bug) |  |  |
 | TEST.417 | Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug) |  | found by Aux 8 |
 | TEST.418 | Seven map browser tests are red on clean main (bug) |  | found by Core 4 |
-| TEST.420 | Runner self-tests and the limit-slider follow-again browser test are red on main (bug) |  | found by Aux 10 |
 | GEN.845 | Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764) |  |  |
 | GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) |  |  |
 | GEN.896 | Since 4c (epoch 106) hot-zone planets and moons almost never score Yellow: the Yellow share fell to 0 for M2V, G2V and F5V (bug) |  |  |
@@ -629,6 +624,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.883 | Route R3, low-oxygen sessile animals: sponge-grade animals with Fauna capped low, on air above 0.5 percent of today's O2 or a CO2 or iron-rich ocean | GEN.877 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
 | GEN.884 | Route R4, rare anoxic animals: a few percent of anoxic sulfidic worlds get animals that have lost aerobic respiration, Fauna capped low | GEN.877 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
 | TEST.436 | Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges | TEST.430, GEN.879, GEN.880, GEN.882, GEN.883, GEN.876 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
+| TEST.450 | test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel is red on main: 80 wheel ticks at a sector centre no longer reach open=1 (bug) |  |  |
 | GEN.887 | Life supply quantities: h2_supply, donor_supply, oxidant_supply, co2_phase and nh3_inventory, with stand-in rows and units registry entries | GEN.862 | Life class system (order final, Boss 9:20 PM EDT). |
 | GEN.888 | The acid medium model: a sulfuric acid cloud layer and acid pools from the temperature profile and the SO2 and water shares, filling the dead solvent() sulfuric branch | GEN.887 | Life class system (order final, Boss 9:20 PM EDT). |
 | GEN.889 | The class switch: life_class, life_class_variant, life_class_best, the life_class_scores table and migration, life_chemical and the star weights and lists dropped, dominant class by net primary production | GEN.872 | Life class system (order final, Boss 9:20 PM EDT). |
