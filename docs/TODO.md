@@ -19938,7 +19938,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   know about. Done: the sweep is run again on main, anything new is
   fixed in the same pass, README's headline feature list and the release
   headline are checked, and the result is recorded here.
-  Prerequisites: DOC.20, DOC.50, DOC.51.
+  Prerequisites: DOC.50, DOC.51.
   Related: DOC.4.
   Runs last: re-run the sweep when the other 8.1 DOC items are done
   (2026-10-16 review).
@@ -19971,24 +19971,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   standard (UX.121, UX.122, UX.123, TEST.183) is built. Core 5 is its
   proposed owner, after the command follow-ups.
   Prerequisite: UX.102.
-
-- [ ] **DOC.20 After PERF.86: rewrite the queue and scatter notes and the queue docstrings**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  10 to 12, 14, 15 and part of 36. When each scatter becomes its own
-  queue item run in turn (PERF.86), these describe the old model:
-  generation-benchmark-report.md line 101 (scatter is still one job),
-  performance-eta-queue-and-caching.md, work-queue-audit.md,
-  sampling-backfill-and-resume.md section 7 (resume, which PERF.86
-  decided against), library-migration.md section 3, architecture.md Flow
-  4, and the docstrings of queue/work.py and queue/redisqueue.py. Done:
-  all of them describe the queue as built.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: Aux 4 (lock-free item while it waits for the generation lock, 2:42 AM EDT 2026-10-29; PERF.86 is done (PERF.98 #3654, PERF.100 #3656) so the prerequisite is met; this replaces any earlier owner line on this item). Separate branch; docs only. Aux 2 holds the queue code knowledge: ask it for anything unclear, it does not fold this into PERF.119.
 
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
   Step 10 (design note 11 item 10). `database-schema.md` (the two new
