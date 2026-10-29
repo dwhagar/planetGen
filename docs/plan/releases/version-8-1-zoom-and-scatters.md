@@ -99,7 +99,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.298 | test_admin_script_cli.py: four fixture-finalizer errors under load in a gate (bug) |  | Core 2 found it. |
 | TEST.297 | The 13 tests of test_work_queue_failures.py and test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel fail in a gate at load 6 to 8 and pass alone (bug) |  | Core 2 found it. |
 | TEST.295 | test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw hit the 900 s timeout waiting for its queue workers in a saturated gate (bug) |  |  |
-| TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) |  |  |
 | GEN.542 | scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug) |  |  |
@@ -590,6 +589,10 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.906 | Icy-moon tide is stored as 0.0 where it should be NULL (bug) |  |  |
 | GEN.911 | Habitable-world requests and the habitable zone: the zone mostly holds frozen worlds, so decide where habitable requests aim (inner half of the zone or a temperate band from the solved climate) |  |  |
 | GEN.913 | A forced civilization (+intelligent_life request) should retry placement until a civilization-capable world exists; today it usually fails to appear (bug) |  |  |
+| PERF.208 | A stored, indexed sector system count, density and quadrant so the remaining Sectors list sorts page by key (slice 5 of the PERF.137 OFFSET audit) |  |  |
+| PERF.207 | planetgen planets and moons take --limit and --after (keyset), replacing OFFSET listing (slice 4 of the PERF.137 OFFSET audit) |  |  |
+| PERF.206 | Keyset walk for the octant and binary system group queries (slice 3 of the PERF.137 OFFSET audit) |  |  |
+| PERF.205 | Keyset paging for the species list and the built phenomena list (slice 2 of the PERF.137 OFFSET audit) |  |  |
 | GEN.919 | White dwarfs are 8.1% of stars against 4.5% to 7% expected once the low-mass slope is 1.1; their share follows the old-population age spread, not the slope (bug) |  |  |
 | TEST.453 | Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug) |  |  |
 | GEN.918 | The galaxy's star count follows its own star-formation history: the density model counts systems per parsec cubed while the history counts stars formed, so the galaxy holds 0.46 of the stars its history implies (root of GEN.900, GEN.901, GEN.902) |  |  |
@@ -693,7 +696,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | PERF.179 | Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug) |  | Boss run log; generation-log lane. |
 | PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) |  | Boss run log; generation-log lane. |
-| PERF.192 | The nebula field slab stage queues one unit per 50 pc slab with no cap handling, so a large galaxy can exceed the 4000-unit limit (bug) |  |  |
 | PERF.190 | Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates |  |  |
 | PERF.188 | The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python |  |  |
 | PERF.180 | Single-unit stages already past the unit ceiling on big galaxies: clearing the bright stars (211 s on the medium galaxy) and the cache-warm families (one unit each, minutes on a large galaxy) |  |  |

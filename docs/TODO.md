@@ -13886,7 +13886,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 5
   held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: PERF.75, PERF.135.
+  Research (2026-10-09): Audit done (Core 5, 4:40 PM EDT 2026-10-29 as
+  the lane reported), report
+  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md: 15 OFFSET
+  sites; measured at 1,000,000 sectors the Sectors list takes 0.9 to 2.6
+  s on page 1 and 5 to 8 s deep on every sort (full filesort), while the
+  keyset form takes 1 to 26 ms. The 'deepest page under 50 ms at a full
+  galaxy' check cannot be measured without a full-galaxy database (only
+  1,000,000 sectors were measured). Slice 1 (Sectors list default and
+  name sorts: placed-then-unplaced reads plus keyset) is Core 5's, in
+  progress as PERF.137's first slice. The other slices are separate
+  items filed 2026-10-29 (PERF.205 species list and built phenomena,
+  PERF.206 octant and binary system group walk, PERF.207 planetgen
+  planets and moons --limit and --after, PERF.208 a stored indexed
+  sector system count, density and quadrant). PERF.137 closes when
+  the slices are done.
+  Prerequisites: none. Related: PERF.75, PERF.135, PERF.205, PERF.206, PERF.207, PERF.208.
 
 - [ ] **PERF.147 A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds**
   Boss (2026-10-21, as the coordinator relayed at 8:46 PM EDT): every
@@ -14034,17 +14049,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   output exists (PERF.189), so the log lines show where the time goes.
   Owner: Aux 16 (Performance).
   Prerequisites: none. Related: MAP.259.
-
-- [ ] **PERF.192 The nebula field slab stage queues one unit per 50 pc slab with no cap handling, so a large galaxy can exceed the 4000-unit limit (bug)**
-  Found by Core 5 while fixing PERF.191 (#3120, 6:18 PM EDT 2026-10-24
-  as the lane reported): the nebula field slab stage still queues one
-  unit per 50 pc slab and does not use the new units.coarsen (each unit
-  a whole multiple of the chunk), so a galaxy large enough to give more
-  than 4000 slabs fails with 'a stage queues at most 4000 units' like
-  the warm-up did. Do: route the stage through units.coarsen (this needs
-  a change to how a slab unit carries its range), with a test that
-  builds more than 4000 slabs. Owner: Core 5.
-  Prerequisites: none. Related: PERF.191, PERF.180.
 
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
   Unused stored values audit (the "Find stored values nothing uses"
@@ -14207,6 +14211,51 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.2. Owner: none yet (Core 5 is the natural owner); follows
   PERF.149.
   Prerequisites: none. Related: PERF.149.
+
+- [ ] **PERF.205 Keyset paging for the species list and the built phenomena list (slice 2 of the PERF.137 OFFSET audit)**
+  Slice 2 of the PERF.137 audit (report
+  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
+  2026-10-29): the species list and built phenomena list still use LIMIT
+  ? OFFSET ?, so a deep page costs a scan of every row before it. Do:
+  move both to keyset paging on their sort key plus id, keep the page
+  links and the API offset working through a cursor, and measure page 1
+  and a deep page at a large table. No generated-output change. Owner:
+  Core 5. Version 8.1.
+  Prerequisites: none. Related: PERF.137, PERF.75.
+
+- [ ] **PERF.206 Keyset walk for the octant and binary system group queries (slice 3 of the PERF.137 OFFSET audit)**
+  Slice 3 of the PERF.137 audit (report
+  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
+  2026-10-29): the octant and binary system group walk uses LIMIT ?
+  OFFSET ?. Do: walk it by key (the last seen id of the group) so each
+  step costs the same, and measure at a large galaxy. No
+  generated-output change. Owner: Core 5. Version 8.1.
+  Prerequisites: none. Related: PERF.137.
+
+- [ ] **PERF.207 planetgen planets and moons take --limit and --after (keyset), replacing OFFSET listing (slice 4 of the PERF.137 OFFSET audit)**
+  Slice 4 of the PERF.137 audit (report
+  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
+  2026-10-29): the planetgen planets and moons list commands page with
+  OFFSET. Do: add --limit and --after (the last id seen) with keyset
+  paging and print the next --after value, update docs/reference/cli.md
+  and the command tests. No generated-output change. Owner: Core 5.
+  Version 8.1.
+  Prerequisites: none. Related: PERF.137.
+
+- [ ] **PERF.208 A stored, indexed sector system count, density and quadrant so the remaining Sectors list sorts page by key (slice 5 of the PERF.137 OFFSET audit)**
+  Slice 5 of the PERF.137 audit (report
+  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
+  2026-10-29): the three other Sectors list sorts (system count,
+  density, quadrant) cannot page by key because the sort value is
+  computed per row, so every page is a full filesort (5 to 8 s deep at
+  1,000,000 sectors). Do: store the sector system count, density and
+  quadrant as indexed columns written by the stage that places the
+  systems (new numeric columns go in db/column_units.py), page those
+  sorts by (value, id), and rescore existing galaxies with a repair
+  command rather than a shim. A schema change (Alembic revision) and a
+  stored-value change; lock-free only if no generated value moves.
+  Follows slice 1. Owner: Core 5. Version 8.1.
+  Prerequisites: none. Related: PERF.137.
 
 ## DB: Database and schema
 
@@ -17469,23 +17518,6 @@ clears each one.
   recurrence, or file the cause from the new failure message (pointer
   event times) if one appears.
   Prerequisites: none. Related: TEST.252.
-
-- [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
-  Found by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
-  the lane's clock reads), filed by the TODO thread. Kind: flake. Test:
-  src/tests/test_scatter_kinds.py::test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing.
-  Failure: it failed once under parallel load with an empty `readouterr`
-  (the message the test expects was not captured); it passes alone.
-  Fails on main: not checked. Frequency: 1 sighting. Reproducer: a full
-  `scripts/test.py changed` gate; not reproducible alone. The test is
-  part of PERF.121/122's `clear-scatter` work (#2441). Do: find why the
-  captured output is empty under load (output written through a logger
-  or a child process instead of stdout, or a read of the capture before
-  the command flushes) and make the test read the right stream; no retry
-  loop. Done: the cause is on this item and the test passes in 20
-  full-gate runs. Owner: Core 5 (proposed; it wrote the test) or Bug
-  Hunt.
-  Prerequisites: none. Related: PERF.121, PERF.122, TEST.265.
 
 - [ ] **TEST.284 test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug)**
   Found by the Performance lane (relayed 10:25 PM EDT 2026-10-22 as the

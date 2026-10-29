@@ -17,7 +17,7 @@ release is stamped.
 | MAP | MAP.347 |
 | NAV | NAV.65 |
 | GEN | GEN.920 |
-| PERF | PERF.205 |
+| PERF | PERF.209 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
@@ -2348,7 +2348,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.189 | The block light rebuild at the end of every scatter reports its progress (Step bar, a log line, phase lines) (bug) | none | done, PR #3125 |
 | PERF.190 | Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates | none | open |
 | PERF.191 | The warm-up after an epoch change fails: "a stage queues at most 4000 units, not 4051" (bug) | none | done, PR #3120 |
-| PERF.192 | The nebula field slab stage queues one unit per 50 pc slab with no cap handling, so a large galaxy can exceed the 4000-unit limit (bug) | none | open |
+| PERF.192 | The nebula field slab stage queues one unit per 50 pc slab with no cap handling, so a large galaxy can exceed the 4000-unit limit (bug) | none | done, PR #3731 |
 | PERF.193 | The nebula block totals pass keeps the level-3 cover as Python dicts, about 2 GB on a 12 pc galaxy: hold it as numpy arrays (bug) | none | done, PR #3449 |
 | PERF.194 | The phenomena stage progress line still says "186M to place": the weight is printed as a number of phenomena instead of work (bug) | none | done, PR #3726 |
 | PERF.195 | Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5) | none | open |
@@ -2361,6 +2361,10 @@ Parents marked "new parent" had no old number of their own.
 | PERF.202 | Move each generating verb's starter handlers and start-time checks into the step units, so a verb is expressible as units in one run | none | open |
 | PERF.203 | The Generate page and job_runner follow one wrapper run: one command list, one run, with the page's progress, state and log files kept | none | open |
 | PERF.204 | An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2) | none | open |
+| PERF.205 | Keyset paging for the species list and the built phenomena list (slice 2 of the PERF.137 OFFSET audit) | none | open |
+| PERF.206 | Keyset walk for the octant and binary system group queries (slice 3 of the PERF.137 OFFSET audit) | none | open |
+| PERF.207 | planetgen planets and moons take --limit and --after (keyset), replacing OFFSET listing (slice 4 of the PERF.137 OFFSET audit) | none | open |
+| PERF.208 | A stored, indexed sector system count, density and quadrant so the remaining Sectors list sorts page by key (slice 5 of the PERF.137 OFFSET audit) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -3092,7 +3096,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.274 | test_orbital_limits.py::test_a_circular_body_far_from_its_epoch_is_where_the_remainder_puts_it fails on main: _relative_circular_km was removed by #2481 (bug) | none | done, PR #2493 |
 | TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | done, PR #2600 |
 | TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | done, PR #2600 |
-| TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) | none | open |
+| TEST.276 | test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake) | none | done, PR #3732 |
 | TEST.277 | test_a_dead_worker_never_hangs_the_run times out once each for [1] and [2] under heavy load (flake) | none | done, PR #2600 |
 | TEST.278 | test_column_units fails on main: 36 columns of orbital_events and orbital_event_bodies are not declared in column_units.py (bug) | none | done, PR #2510 |
 | TEST.279 | Eight phenomenon page tests answer 404 on main: test_web_system_phen.py and test_class_pages.py (bug) | none | done, PR #2540 |
