@@ -856,7 +856,7 @@ with `clamp()`.
   free body with no rotation stored) shows nothing; also replaces the
   "Hours of daylight a person can be outside: not stored" row (UX.199)
   with these shares. Done: page tests on Earth-like, locked and moon
-  cases find the shares and the sentence. Owner: Aux 11, after GEN.767
+  cases find the shares and the sentence. Owner: Aux 6, after GEN.767
   supplies the columns. Related: UX.199, GEN.767.
   Research (2026-10-09, Daylight and outside hours): Boss, 8:22 PM EDT
   2026-10-24 (message
@@ -936,7 +936,7 @@ with `clamp()`.
   and lists them in reports/. Done: the test passes on main with the
   empty applicable columns excused by filed item numbers (a list in the
   test, each entry an item id that is open), and the Enuakyadas IV page
-  has no "not stored" row. Owner: Aux 11 (property sheet). Related:
+  has no "not stored" row. Owner: Aux 6 (property sheet). Related:
   UX.188, UX.198, UX.199, UX.203, UX.205, TEST.358, GEN.767, GEN.768.
   Prerequisites: none. Related: UX.188, UX.198, UX.199, UX.203, UX.205,
   TEST.358, GEN.767, GEN.768.
@@ -993,7 +993,7 @@ with `clamp()`.
   number has a unit or scale (GEN.772); absent or zero values hidden
   unless the absence matters; collapsible sections start collapsed;
   tests are `scripts/test.py changed --resume` with a browser test on a
-  sample planet page. Version 8.1. Owner: Aux 11. Part of the planet
+  sample planet page. Version 8.1. Owner: Aux 6. Part of the planet
   page redesign: UX.215 to UX.222.
   Prerequisites: none. Related: UX.196, UX.195, UX.188.
 
@@ -1007,7 +1007,7 @@ with `clamp()`.
   scale (GEN.772); absent or zero values hidden unless the absence
   matters; collapsible sections start collapsed; tests are
   `scripts/test.py changed --resume` with a browser test on a sample
-  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  planet page. Version 8.1. Owner: Aux 6. Part of the planet page
   redesign: UX.215 to UX.222.
   Prerequisites: none. Related: UX.196, UX.195, UX.188.
 
@@ -1024,7 +1024,7 @@ with `clamp()`.
   Rules: every number has a unit or scale (GEN.772); absent or zero
   values hidden unless the absence matters; collapsible sections start
   collapsed; tests are `scripts/test.py changed --resume` with a browser
-  test on a sample planet page. Version 8.1. Owner: Aux 11. Part of the
+  test on a sample planet page. Version 8.1. Owner: Aux 6. Part of the
   planet page redesign: UX.215 to UX.222.
   Prerequisites: none. Related: UX.196, UX.195, UX.188.
 
@@ -1038,7 +1038,7 @@ with `clamp()`.
   unit or scale (GEN.772); absent or zero values hidden unless the
   absence matters; collapsible sections start collapsed; tests are
   `scripts/test.py changed --resume` with a browser test on a sample
-  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  planet page. Version 8.1. Owner: Aux 6. Part of the planet page
   redesign: UX.215 to UX.222.
   Prerequisites: none. Related: UX.196, UX.195, UX.188.
 
@@ -1056,7 +1056,7 @@ with `clamp()`.
   unit or scale (GEN.772); absent or zero values hidden unless the
   absence matters; collapsible sections start collapsed; tests are
   `scripts/test.py changed --resume` with a browser test on a sample
-  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  planet page. Version 8.1. Owner: Aux 6. Part of the planet page
   redesign: UX.215 to UX.222.
   Research (2026-10-09, Progress): Boss, 10:30 PM EDT 2026-10-24
   (relayed by the coordinator): atmosphere composition is measured by
@@ -1086,7 +1086,7 @@ with `clamp()`.
   is absent. Rules: every number has a unit or scale (GEN.772); absent
   or zero values hidden unless the absence matters; collapsible sections
   start collapsed; tests are `scripts/test.py changed --resume` with a
-  browser test on a sample planet page. Version 8.1. Owner: Aux 11. Part
+  browser test on a sample planet page. Version 8.1. Owner: Aux 6. Part
   of the planet page redesign: UX.215 to UX.222.
   Prerequisites: none. Related: UX.196, UX.195, UX.188.
 
@@ -1104,7 +1104,7 @@ with `clamp()`.
   a unit or scale (GEN.772); absent or zero values hidden unless the
   absence matters; collapsible sections start collapsed; tests are
   `scripts/test.py changed --resume` with a browser test on a sample
-  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  planet page. Version 8.1. Owner: Aux 6. Part of the planet page
   redesign: UX.215 to UX.222.
   Prerequisites: UX.220. Related: UX.196, UX.195, UX.188.
 
@@ -1141,7 +1141,7 @@ with `clamp()`.
   and moon lists and the search page gain filters and sorting by
   resource kind and minimum score (with UX.214's score filters); the API
   returns the same fields. Done: pages and lists for a sample galaxy and
-  a browser test of the filter. Version 8.4, phase 2. Owner: Aux 11
+  a browser test of the filter. Version 8.4, phase 2. Owner: Aux 6
   style. Rules: draws through draw.py; stand-ins get GEN.725 registry
   rows with tier and tweak level; every number has a unit or scale
   (GEN.772) and a column_units entry; a change to drawn output carries
@@ -1167,7 +1167,7 @@ with `clamp()`.
   (habitability_ref.CHIPS) so Inhabited says it is habitable and of a
   habitable class. Done: a unit test for every combination of the three
   flags and a browser test on an inhabited world showing one chip.
-  Version 8.1. Owner: Aux 11 (chips and description), with Aux 3 if the
+  Version 8.1. Owner: Aux 6 (chips and description), with Aux 3 if the
   flag logic sits in habitability. Rules: no backward-compat shims;
   every number has a unit or scale (GEN.772); draws through draw.py; a
   changed generated value carries `tests.golden_update --reason ...
@@ -1192,7 +1192,7 @@ with `clamp()`.
   unit shown (unit registry GEN.568) so 'planets with 0.8 to 1.2 g and a
   dose under 2 mSv a year' is one query. Done: a browser test runs that
   query on a sample galaxy and the API documents the parameters. Version
-  8.2, phase 2. Owner: Aux 11 with Aux 12 for the API. Rules: no
+  8.2, phase 2. Owner: Aux 6 with Aux 12 for the API. Rules: no
   backward-compat shims; every number has a unit or scale (GEN.772);
   draws through draw.py; a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
@@ -1225,7 +1225,7 @@ with `clamp()`.
   issue). Range inputs and sort options on the search page for the keys
   of UX.226, with the unit beside each, shown as filter chips
   (active_filters). Done: a browser test sets a gravity and a dose range
-  and gets the right planets. Version 8.2, phase 2. Owner: Aux 11.
+  and gets the right planets. Version 8.2, phase 2. Owner: Aux 6.
   Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); a changed generated value carries `tests.golden_update
   --reason ... --affects <stage>` and the next epoch; tests are
@@ -1238,7 +1238,7 @@ with `clamp()`.
   and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
   issue). The planet, moon, star and system lists and Nearby gain the
   range filters and sort keys of UX.226. Done: a browser test on a list
-  and on Nearby. Version 8.2, phase 2. Owner: Aux 11. Rules: no
+  and on Nearby. Version 8.2, phase 2. Owner: Aux 6. Rules: no
   backward-compat shims; every number has a unit or scale (GEN.772); a
   changed generated value carries `tests.golden_update --reason ...
   --affects <stage>` and the next epoch; tests are `scripts/test.py
@@ -1264,7 +1264,7 @@ with `clamp()`.
   from the gated phoneme codec only, never from Milky Way or Solar
   System lists. An object is placed by the block holding its current
   position, never by its ID. Done: the line on sector, system and body
-  pages, hidden when absent, test pinned. Owner: Aux 11. Rules: no
+  pages, hidden when absent, test pinned. Owner: Aux 6. Rules: no
   backward-compat shims; every number has a unit or scale (GEN.772);
   tests are scripts/test.py changed --resume.
   Prerequisites: DB.107. Related: GEN.825, DB.107, GEN.826, API.35,
@@ -1279,7 +1279,7 @@ with `clamp()`.
   seven symbols and score colours as the Galaxy Map key. Done: a page
   test finds the key on a star system page that carries a
   habitable-world marker and not on a page without markers, and the key
-  lines match the Galaxy Map key. Owner: Aux 11 (object pages). Version:
+  lines match the Galaxy Map key. Owner: Aux 6 (object pages). Version:
   8.1.
   Prerequisites: none. Related: MAP.320, MAP.305.
 
@@ -11639,7 +11639,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Blocker 3 data owner of GEN.427 (finished lane; the TODO thread
   proposes lane K, which found it, takes it).
   Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Aux 9 (class lane) takes it while
+  take one-off 8.1 items. Owner: Aux 1 (class lane) takes it while
   GEN.646 waits on 4c; a small table fix.
   Prerequisites: none. Related: GEN.427, GEN.442.
 
@@ -11984,7 +11984,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registered as labelled stand-ins. Owner: Lane Draws (after GEN.510 and
   GEN.512).
   Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Math 2 takes it when free.
+  take one-off 8.1 items. Owner: Aux 7 takes it when free.
   Prerequisites: none. Related: GEN.509, GEN.510.
 
 - [ ] **GEN.724 Register the GEN.272 stand-ins in the gap plan registry and correct the registry row millisecond-pulsar-companion (5 percent) to the 0.2 percent the code keeps**
@@ -12569,7 +12569,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   desert world (heat binds), a cold world (cold binds), a high-dose
   world (dose binds), a locked world, and a vacuum world (air binds);
   the column and its unit are in column_units.py; one migration and one
-  epoch with `--affects fill`. Owner: Aux 4 (Lane E: radiation,
+  epoch with `--affects fill`. Owner: Aux 2 (Lane E: radiation,
   protection limits, the equipment rules), after GEN.767 (Aux 5).
   Related: GEN.767, GEN.656, GEN.725, UX.199, UX.205.
   Prerequisites: none. Related: GEN.767, GEN.656, GEN.725, UX.199,
@@ -12981,7 +12981,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `--affects fill` and the next epoch. Done: a sample galaxy has
   resource rows for belts, fields and giants, an M-type belt scores high
   on iron and metals, a C-type on carbon and water, and the same seed
-  gives the same rows. Version 8.3, phase 4. Owner: Aux 6 style. Rules:
+  gives the same rows. Version 8.3, phase 4. Owner: Aux 3 style. Rules:
   draws through draw.py; stand-ins get GEN.725 registry rows with tier
   and tweak level; every number has a unit or scale (GEN.772) and a
   column_units entry; a change to drawn output carries
@@ -13035,7 +13035,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   description says what the interior is. Done: a Jupiter-like, a
   Saturn-like and a hot giant sample change their field and text with
   their interior, and the six columns have readers. Version 8.4, phase
-  1. Owner: Aux 6 (bulk composition), after GEN.733. Rules: no
+  1. Owner: Aux 3 (bulk composition), after GEN.733. Rules: no
   backward-compat shims; every number has a unit or scale (GEN.772);
   draws through draw.py; a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
@@ -13052,7 +13052,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing reads. Escape and retention (GEN.738) read them instead of
   recomputing, and a planet inside a large magnetopause loses less.
   Done: two planets differing only in field strength retain different
-  atmospheres, test-pinned. Version 8.4, phase 1. Owner: Aux 4 or Aux 5.
+  atmospheres, test-pinned. Version 8.4, phase 1. Owner: Aux 2 or Aux 5.
   Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); a changed generated value carries `tests.golden_update
   --reason ... --affects <stage>` and the next epoch; tests are
@@ -13067,7 +13067,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dose and the PHI-6 radiation component read the flare irradiation
   index and the magnetopause size. Done: a flare-active star's planet
   shows a higher dose than a quiet star's at the same distance. Version
-  8.4, phase 1. Owner: Aux 4. Rules: no backward-compat shims; every
+  8.4, phase 1. Owner: Aux 2. Rules: no backward-compat shims; every
   number has a unit or scale (GEN.772); a changed generated value
   carries `tests.golden_update --reason ... --affects <stage>` and the
   next epoch; tests are `scripts/test.py changed --resume`.
@@ -13095,7 +13095,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the XUV saturation to the rotation period (the activity-rotation
   relation), and let the stored values feed GEN.804 and GEN.805. Done: a
   fast rotator has a higher flare rate than a slow one of the same mass,
-  and the six columns have readers. Version 8.4, phase 1. Owner: Aux 2
+  and the six columns have readers. Version 8.4, phase 1. Owner: Aux 4
   (stars). Rules: no backward-compat shims; every number has a unit or
   scale (GEN.772); a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
@@ -13110,7 +13110,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by nothing. Let it raise the UV dose reaching the surface, which
   limits the life stage and lightens the sky and ground look. Done: a
   world whose ozone is lost shows the higher UV dose and the lower life
-  score. Version 8.4, phase 1. Owner: Aux 4. Rules: no backward-compat
+  score. Version 8.4, phase 1. Owner: Aux 2. Rules: no backward-compat
   shims; every number has a unit or scale (GEN.772); a changed generated
   value carries `tests.golden_update --reason ... --affects <stage>` and
   the next epoch; tests are `scripts/test.py changed --resume`.
@@ -13126,7 +13126,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   magnetism.py takes the giant's dipole from the outer radius of
   metallization and the dilute core. Done: Jupiter-like, Saturn-like and
   hot-giant samples differ in field with their interior. Version 8.4,
-  phase 1. Owner: Aux 6, after GEN.733. Rules: no backward-compat shims;
+  phase 1. Owner: Aux 3, after GEN.733. Rules: no backward-compat shims;
   every number has a unit or scale (GEN.772); a changed generated value
   carries `tests.golden_update --reason ... --affects <stage>` and the
   next epoch; tests are `scripts/test.py changed --resume`.
@@ -13140,7 +13140,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   helium_depletion and has_helium_shell (helium rain heating). Done: a
   Saturn-like giant with a helium shell has a larger internal heat flux
   than one without, and the columns have readers. Version 8.4, phase 1.
-  Owner: Aux 6. Rules: no backward-compat shims; every number has a unit
+  Owner: Aux 3. Rules: no backward-compat shims; every number has a unit
   or scale (GEN.772); a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
   epoch; tests are `scripts/test.py changed --resume`.
@@ -13153,7 +13153,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   issue). The description text names the interior kind, the metallic
   layer, the dilute core and the helium shell where they exist, in the
   in-universe voice of the pages. Done: three samples read differently
-  and a test pins the wording keys. Version 8.4, phase 1. Owner: Aux 6
+  and a test pins the wording keys. Version 8.4, phase 1. Owner: Aux 3
   with Aux 11. Rules: no backward-compat shims; every number has a unit
   or scale (GEN.772); a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
@@ -13167,7 +13167,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse of absorbed starlight alone. Add the internal heat flux
   (GEN.735, and the interior layers of GEN.810) so a Jupiter-like giant
   at 5 AU lands near 165 K. Done: Jupiter, Saturn, Uranus and Neptune
-  samples land near their 1 bar temperatures. Owner: Aux 6 (giants).
+  samples land near their 1 bar temperatures. Owner: Aux 3 (giants).
   Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); stand-ins get GEN.725 registry rows with a tier and tweak
   level; a changed generated value carries `tests.golden_update --reason
@@ -13230,7 +13230,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Either cap it at 0.1 with the source or document why 0.2 holds (a
   verified source or a registry row with its tier and tweak level).
   Done: the bracket matches its cited source or carries a GEN.725 row
-  that says why not. Owner: Aux 6 (bulk composition) with Aux 8. Rules:
+  that says why not. Owner: Aux 3 (bulk composition) with Aux 8. Rules:
   no backward-compat shims; a changed generated value carries the next
   epoch.
   Prerequisites: none. Related: GEN.814, GEN.823.
@@ -13317,7 +13317,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   range and checks their ice cover follows the water the body holds (a
   moon with a thick ice shell is covered), and bound planets keep their
   results unless the real coverage differs, in which case the PR lists
-  which. Owner: Aux 7 (Lane K surfaces) or a free lane. Rules: no
+  which. Owner: Aux 5 (Lane K surfaces) or a free lane. Rules: no
   backward-compat shims; the epoch carries --affects.
   Prerequisites: none. Related: GEN.441, GEN.699.
 
@@ -13332,7 +13332,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   db/column_units.py); one migration and epoch at merge; readers (object
   page ice list, MAP painter hooks, search filters) take it. Done: a
   round trip test stores and reads the species of a Pluto-like body and
-  a CO2-frost Mars-like body; the sheet fill audit passes. Owner: Aux 7
+  a CO2-frost Mars-like body; the sheet fill audit passes. Owner: Aux 5
   (Lane K) or a free lane. Rules: no backward-compat shims; the epoch
   carries --affects.
   Prerequisites: none. Related: GEN.441, GEN.282, DB.67.
@@ -13345,7 +13345,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flux next to the radiogenic and primordial heat it uses, so a strongly
   tidally heated moon gets the sulfur surface it should; no new stand-in
   without its registry row. Done: a test draws a high tidal flux moon
-  and a low one and the sulfur share follows. Owner: Aux 7 (Lane K)
+  and a low one and the sulfur share follows. Owner: Aux 5 (Lane K)
   after GEN.778. Rules: no backward-compat shims; the epoch carries
   --affects.
   Prerequisites: none. Related: GEN.441, GEN.778, .
@@ -13363,7 +13363,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-in with its tier and tweak level). Done: the core cools on its
   own curve, the stored urey_ratio and heat flow do not change for
   planets without a core split, stand-ins registered in
-  docs/design/stand-in-values.md. Owner: Aux 5 after its stack. Changes
+  docs/design/stand-in-values.md. Owner: unowned (old Aux 5, retired) after its stack. Changes
   stored values, so it needs a lock turn (epoch, --affects fill).
   Prerequisites: none. Related: GEN.735, GEN.763.
 
@@ -13379,7 +13379,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   heat without changing the draw order (compute them after the final age
   with the same draws kept, or use an epoch to reorder the draws), then
   rescore. Done: ice shell and volcanism gate follow the stored
-  final-age heat. Owner: Aux 5 after GEN.763; changes generated output
+  final-age heat. Owner: unowned (old Aux 5, retired) after GEN.763; changes generated output
   so it needs an epoch (--affects fill) and a lock turn, ideally the
   same one as the rest of Aux 5's stack if it is not yet merged.
   Prerequisites: none. Related: GEN.763, GEN.735.
@@ -13394,7 +13394,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   plus conditions (mass, temperature, pressure, origin) with the same
   selection, drop the letter from the mixture subject, and keep the
   rows' content unchanged. Done: nothing in the recipe tables or the
-  mixture code names a class letter. Owner: Aux 9, inside the GEN.646
+  mixture code names a class letter. Owner: Aux 1, inside the GEN.646
   cut-over PR and its single epoch; no other lane starts it. It touches
   the same JSON as Aux 17's GEN.822 (PR #3354): whichever takes the
   generation lock second merges main in.
@@ -13413,7 +13413,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   short days (stand-in rows SP1 to SP10 carry the tiers). Do: close (1)
   and (3) as code, and decide (2) and (4) with Boss by option card
   before building. Done: flux uses the mean flux everywhere, rogue
-  planets use the spin law, and the open ones are decided. Owner: Math 2
+  planets use the spin law, and the open ones are decided. Owner: Aux 7
   after GEN.746 to GEN.749. Rules: any new stand-in adds its registry
   row with tier and tweak level.
   Prerequisites: none. Related: GEN.727, GEN.731, GEN.737, GEN.725.
@@ -13430,7 +13430,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sheet as Earth radii; pick the first if any reader divides by the
   planet radius, and record which in the unit registry. Done: the unit,
   label and value agree for Earth, Jupiter and Mars in a test that reads
-  the stored value back. Owner: Math 2 after GEN.746 to GEN.748, or Aux
+  the stored value back. Owner: Aux 7 after GEN.746 to GEN.748, or Aux
   4 (radiation docs). Rules: no backward-compat shims; any new numeric
   column goes in db/column_units.py.
   Prerequisites: none. Related: GEN.749, GEN.568.
@@ -13562,7 +13562,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pressure and temperature the rest have, and compare with the class M
   definition. Fix the cause (changes generated output: epoch and lock
   turn) and record any tweak in the stand-in registry with tier and
-  tweak level. Owner: Aux 9 diagnoses first (it owns the class chain,
+  tweak level. Owner: Aux 1 diagnoses first (it owns the class chain,
   GEN.646); if the fix is outside the class rules, it hands the finding
   to Bug 1 or Core 3 before retiring.
   Research (2026-10-09): Cause found (Bug 1, 7:12 PM EDT as the lane
@@ -19609,7 +19609,7 @@ clears each one.
   written, so drop it from NULL_IN_THIS_GALAXY), and
   test_bughunt_serialization_fuzz (host_eccentricity is not in
   SERIALIZABLE_FIELDS). Fix each in the code or registry it names, never
-  loosen or skip a test. Owner: Aux 7 (Lane K), inside its GEN.462 +
+  loosen or skip a test. Owner: Aux 5 (Lane K), inside its GEN.462 +
   DB.70 lock turn PR, since it already edits db/column_units.py; if it
   retires first, Bug 1.
   Prerequisites: none. Related: TEST.402, TEST.425.
@@ -19805,7 +19805,7 @@ clears each one.
   rebuilt from the stored draws; find which step changes the temperature
   after the draws are stored (a later pass, a rounding, or the
   greenhouse solve running twice) and make the draws and the stored
-  value agree, or correct the test if the formula is stale. Owner: Aux 4
+  value agree, or correct the test if the formula is stale. Owner: Aux 2
   (knows the climate draws).
   Prerequisites: none. Related: TEST.434, GEN.812.
 
@@ -19814,7 +19814,7 @@ clears each one.
   2, #3547) added db/interests.py, which assigns planet_class; the
   test's CLASS_WRITERS list needs the file, after checking that the
   writer is the intended one (a stored user interest, not a generation
-  write). Small, no epoch. Owner: Aux 2.
+  write). Small, no epoch. Owner: Aux 4.
   Prerequisites: none. Related: MAP.220.
 
 - [ ] **TEST.439 test_web_browser_map_perf.py fails on main: the climb moves stars over the buffer at up 1 and up 4, and teardown raises page errors on indexOf and scale (bug)**
@@ -21162,7 +21162,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   nearest-resource tool, and the pages that show them, in the
   pilot's-console voice. Done: the page exists, links from the help
   index and the object pages, and the coverage test lists it. Version
-  8.7, phase 1. Owner: Aux 11 style. Rules: draws through draw.py;
+  8.7, phase 1. Owner: Aux 6 style. Rules: draws through draw.py;
   stand-ins get GEN.725 registry rows with tier and tweak level; every
   number has a unit or scale (GEN.772) and a column_units entry; a
   change to drawn output carries `tests.golden_update --reason ...
@@ -21802,7 +21802,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   hidden, UX rules), collapsed at start, with units on every number
   (GEN.772). Done: pages and API for a sample world, sections hidden for
   a world below the gate, and a browser test. Version 8.4, phase 2.
-  Owner: Aux 11. Rules for every item of this tree: draws go through
+  Owner: Aux 6. Rules for every item of this tree: draws go through
   draw.py (one named stream per draw, order fixed); a PR that changes
   drawn output carries `tests.golden_update --reason ... --affects
   population` and takes the next epoch; every number it adds has a unit
@@ -21988,7 +21988,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   and sizes (every number with its unit or noun, GEN.772); the API
   returns the same. Sections hidden when absent, collapsed at start.
   Done: pages and API for a galaxy with N=5, and a browser test of the
-  legend. Version 8.2, phase 3. Owner: Aux 11 and Core 2 (the overlay
+  legend. Version 8.2, phase 3. Owner: Aux 6 and Core 2 (the overlay
   legend). Rules: draws through draw.py (GEN.774 streams); a PR that
   changes drawn output carries `tests.golden_update --reason ...
   --affects population` and the next epoch; every number has a unit or
@@ -22127,7 +22127,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   polity's total population, on the object pages and in the API; hidden
   when absent, in the Properties list, collapsed sections at start.
   Done: pages and API for a sample world and species, and a browser
-  test. Version 8.3, phase 4. Owner: Aux 11. Rules: draws through
+  test. Version 8.3, phase 4. Owner: Aux 6. Rules: draws through
   draw.py (GEN.774 streams); a PR that changes drawn output carries
   `tests.golden_update --reason ... --affects population` and the next
   epoch; every number has a unit or scale (GEN.772) and a column_units
@@ -22242,7 +22242,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   the travel time (units on every number, GEN.772). Not per account: no
   account owns a route. Done: pages and API for a sample galaxy, the
   same list from two accounts, and a browser test. Version 8.5, phase 4.
-  Owner: Aux 11 and Aux 12 (API). Rules: draws through draw.py (GEN.774
+  Owner: Aux 6 and Aux 12 (API). Rules: draws through draw.py (GEN.774
   streams); a PR that changes drawn output carries `tests.golden_update
   --reason ... --affects population` and the next epoch; every number
   has a unit or scale (GEN.772) and a column_units entry; stand-ins get
@@ -22402,7 +22402,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   issue). The species, settlement and facility pages show the traits of
   POP.40 and the host's dose, pressure, air and kit behind each rating
   of POP.41 and POP.42, each with its unit. Done: a browser test on a
-  sample facility shows the reasons. Version 8.4, phase 2. Owner: Aux 11
+  sample facility shows the reasons. Version 8.4, phase 2. Owner: Aux 6
   style. Rules: no backward-compat shims; every number has a unit or
   scale (GEN.772); a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
