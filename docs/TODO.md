@@ -13718,6 +13718,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   these are gone and files or names the rest; water fraction, albedo,
   porosity and mass-radius draws not keyed on the letter are part of
   this item if GEN.646 leaves them.
+  Research (2026-10-09): Aux 1 report (2:52 PM EDT as the lane
+  reported): its GEN.646 cut-over branch already removes the class
+  letter from bulk_draw (water share by origin range, porosity from the
+  compaction law, no S branch) and climate_draws, and a body has class
+  None until its conditions are final. The letter is still read in
+  physics/surface_composition.py and physics/aerosols.py (filed as
+  GEN.917) and in generation/planet.py (a redraw when HABITABLE_WORLD is
+  False and a life class lands in the ecosphere) and
+  generation/system.py (request steering, the habitable guarantee, the M
+  count), filed as GEN.916 (Core 1).
 
 - [ ] **GEN.916 The habitable-world guarantee is judged on the conditions (a world that can hold life), not on the class letter M**
   Found by Aux 2 (2:50 PM EDT 2026-10-29 as the lane reported), from
@@ -13730,7 +13740,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   temperature window, pressure, energy supply), for any class. Fits Core
   1's second change with GEN.911 (after GEN.646 puts the class last).
   Owner: Core 1. Version 8.1.
+  Research (2026-10-09): Aux 1 report (2:52 PM EDT as the lane
+  reported), more letter reads to remove here: generation/planet.py
+  redraws a body when HABITABLE_WORLD is False and a life class lands in
+  the ecosphere, and generation/system.py steers requests, the habitable
+  guarantee and the M count by class letters. Aux 1's GEN.646 PR does
+  not change them.
   Prerequisites: GEN.646. Related: GEN.915, GEN.911, GEN.646.
+
+- [ ] **GEN.917 The dominant surface material and the aerosol draw are chosen from the conditions, not from the class letter**
+  Found by Aux 1 (2:52 PM EDT 2026-10-29 as the lane reported) in its
+  GEN.646 cut-over branch, from Boss's requirement of 2:46 PM EDT that
+  life and everything it depends on follow conditions only (GEN.915):
+  physics/surface_composition.py draws the dominant surface material
+  from the class letter (DOMINANT_TABLE.draw(planet_class) and a giant
+  class check), so the ground follows the letter; physics/aerosols.py
+  keys its draw stream on the letter (a stream label only, no physics,
+  but it ties the draws to the class). Do: the dominant surface material
+  comes from the composition, temperature, pressure and age the body
+  already has, with the tier and tweak scale recorded in the stand-in
+  registry; the aerosol stream is keyed on the body's own identity and
+  conditions. A generation change: lock turn after GEN.646. Owner: Aux 7
+  (surfaces). Version 8.1.
+  Prerequisites: GEN.646. Related: GEN.915, GEN.916, GEN.646.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

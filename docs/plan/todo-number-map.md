@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.238 |
 | MAP | MAP.347 |
 | NAV | NAV.65 |
-| GEN | GEN.917 |
+| GEN | GEN.918 |
 | PERF | PERF.205 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1667,6 +1667,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.914 | G dwarfs are 3.1% of stars against 4.1% to 5.0% observed: the mass function from 0.5 to 1 solar mass (Kroupa slope 2.3) gives too few stars of 0.86 to 1.1 solar masses (bug) | none | open |
 | GEN.915 | Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class | none | open |
 | GEN.916 | The habitable-world guarantee is judged on the conditions (a world that can hold life), not on the class letter M | none | open |
+| GEN.917 | The dominant surface material and the aerosol draw are chosen from the conditions, not from the class letter | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
