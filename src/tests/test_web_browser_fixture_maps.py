@@ -27,8 +27,8 @@ from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
     BARREN_FIELD, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
-    dense_region_query, dense_site,
-    far_site, halo_site,
+    dense_region_query, dense_site, HOLE_FIELD,
+    far_site, halo_site, holes_site,
     map_site,
 )
 
@@ -2445,6 +2445,69 @@ def _markers_until(page, done, seconds=20):
         if done(found) or time.monotonic() > deadline:
             return found
         page.wait_for_timeout(100)
+
+
+def _hole_view(page, base, density=None, dist_pc=10.0):
+    """The Galaxy Map of `holes_site` looking at its star field from `dist_pc` parsecs (a 10 pc zoom), the density preference set to
+    `density` pixels first when given; returns the black hole marks drawn once they have settled, and the view's facts."""
+    if density is not None:
+        page.add_init_script(f"try {{ localStorage.setItem('planetgen.pref.map.blackHoleDensity', '{density}'); }} catch (e) {{}}")
+    x, y, z = STAR_FIELD_CENTER_PC
+    _open_galaxy(page, base, f"?cam={x:.6f},{y:.6f},{z:.6f},{dist_pc:.6f},0,0,0,1")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.entries().length > 0", timeout=20000)
+    last = None
+    for _ in range(30):
+        names = sorted(e["name"] for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole")
+        if names == last:
+            break
+        last = names
+        page.wait_for_timeout(300)
+    view = page.evaluate("""() => { const c = document.querySelector('#galaxymap3d-canvas');
+        return {dist: c.galaxyCamera().dist, width: c.clientWidth, height: c.clientHeight}; }""")
+    return last, view
+
+
+def _hole_rule(hole, dist):
+    """MAP.339's rule in Python: within 3 view distances, or heavy enough for how far (5 solar masses at the reach, rising as the square)."""
+    cx, cy, cz = STAR_FIELD_CENTER_PC
+    r = math.dist((hole["x"], hole["y"], hole["z"]), (cx, cy, cz))
+    return r <= 3 * dist or hole["mass_solar"] >= 5 * (r / (3 * dist)) ** 2
+
+
+def test_black_holes_are_the_near_ones_and_the_heavy_enough_at_a_10_pc_zoom_and_the_density_key_sets_the_cap(page, holes_site):
+    """MAP.339: at a 10 pc zoom of a galaxy listing 183 black holes, the marks are those within 3 view distances of what the camera
+    looks at and those heavy enough for how far they are, no more than one per 120 by 120 pixels of the screen (the default of the
+    `map.blackHoleDensity` preference), and a smaller side in the key lets more of the near ones show."""
+    page.set_viewport_size(VIEWPORT)
+    drawn, view = _hole_view(page, holes_site)
+    by_name = {hole["name"]: hole for hole in HOLE_FIELD}
+    accepted = {name for name, hole in by_name.items() if _hole_rule(hole, view["dist"])}
+    assert drawn and set(drawn) <= accepted, sorted(set(drawn) - accepted)
+    assert not [name for name in drawn if name.startswith("Far Hole")], "no far light hole is drawn"
+    cap = int(view["width"] * view["height"] // (120 * 120))
+    assert len(drawn) <= cap, (len(drawn), cap)
+    near = [name for name in drawn if name.startswith("Near Hole")]
+    assert len(near) >= 1 and len([n for n in accepted if n.startswith("Near Hole")]) > cap - 3, "the near holes fill the cap"
+    assert {"Heavy Hole 1", "Heavy Hole 2"} <= set(drawn) or len(drawn) == cap, "a rare heavy hole follows the same rule, ranked by mass over distance squared"
+    # A smaller square per mark lets more of the near ones show.
+    page.evaluate("() => localStorage.setItem('planetgen.pref.map.blackHoleDensity', '50')")
+    page.reload(wait_until="load")
+    _settle(page)
+    denser, _view = _hole_view_after_reload(page)
+    assert len(denser) > len(drawn) and set(denser) <= accepted, (len(denser), len(drawn))
+    assert len(denser) <= int(view["width"] * view["height"] // (50 * 50))
+
+
+def _hole_view_after_reload(page):
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.entries().length > 0", timeout=20000)
+    last = None
+    for _ in range(30):
+        names = sorted(e["name"] for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole")
+        if names == last:
+            break
+        last = names
+        page.wait_for_timeout(300)
+    return last, None
 
 
 def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked(page, map_site):
