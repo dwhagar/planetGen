@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2525] - 2026-10-29
+
+**Headline:** The migration tests no longer carry their own hand-written undo of every later migration; one helper takes a database back to any released version.
+
+### Changed
+- **One `downgrade_to(config, version)` replaces the per-test undo blocks.** It loads the stored `schema_v<N>` fixture into a scratch database, compares it with the test database table by table (columns, keys, constraints, views), and alters the test database to match, keeping the rows and stamping the old version. The seventeen migration tests that each listed the columns and tables later migrations had added (and had to be edited every time a migration landed) now call it; the old per-feature `drop_*` helpers and `undo_parent_link` are gone. A new test checks the result against every fixture it is asked for, and that the real migrations bring a downgraded database back (TEST.328).
+
+TODO items resolved: TEST.328.
+
 ## [8.0.2524] - 2026-10-29
 
 **Headline:** `scripts/test.py` ends the queue workers an earlier run left behind before it starts, not only after it.
