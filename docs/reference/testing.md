@@ -432,6 +432,18 @@ model's, to a millionth for a planet and 4 percent for a moon, with bodies that 
 as its materials at zero pressure; the phrase names exactly the materials the shares hold). About a minute each on 4 cores. A sweep
 that ever fails on a real fault is filed as a bug and tagged in the test with its item until it is fixed.
 
+The third is the possibility tables (TEST.214, `tests/audit/sweep_tables.py`, `tests/test_sweep_tables.py`). It walks every table of
+`possibility_table.REGISTRY` (it imports the modules that use the loader, so a table added later is covered without a change to the test)
+with 60 seeded subjects for each class a table names, plus two that satisfy each row's own conditions, and checks that: every row has a
+source and a state (no licence assertion; licences are in `DATA-LICENSE.md`); every named class reaches a row; the gated weights of every
+subject add up to 1 within 1e-12; no subject fails for a reason but an empty gate; each row's drawn fractions add up to 1 and name only
+components of the shared materials table; `Table.draw` picks each row as often as its probability says (five binomial sigma); every row is
+given a probability for every class it names; the open rows are the ones listed with a note in `tests/data/possibility_sweep_notes.json`
+(a new open row needs a note there); and every `Table` that a fresh process holds after the imports is the registered one. The same file
+lists, each with a note, the tables whose rows are independent flags and not exclusive odds (an all-zero answer is allowed there) and the
+rows that no subject reaches today. Subjects take their numbers from physical ranges and agree with one another where the generator's do
+(the escape speed follows the mass, the equilibrium temperature the insolation).
+
 
 ## Setting up a cloud session
 
