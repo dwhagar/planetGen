@@ -3,10 +3,10 @@
   "GEN.855": "since 4c (epoch 106) the solved air has no free oxygen and nothing makes biogenic O2, so no world reaches complex cells, multicellular life or a technological civilization, and fewer count as habitable class or Blue or Green"
  },
  "errors": {
-  "anomaly": "GEN.895"
+  "anomaly": ""
  },
  "hangs": {
-  "anomaly": "GEN.866"
+  "anomaly": ""
  },
  "reference": {
   "commit": "0b4d0ccefe867a9937c9e5e630db1f9d0a8fed1d",

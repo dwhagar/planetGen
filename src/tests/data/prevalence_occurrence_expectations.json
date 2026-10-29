@@ -4,10 +4,10 @@
   "GEN.829": "planets of 10 to 50 Earth masses outnumber those of 2 to 10: the mass function is inverted against observation"
  },
  "errors": {
-  "anomaly": "GEN.895"
+  "anomaly": ""
  },
  "hangs": {
-  "anomaly": "GEN.866"
+  "anomaly": ""
  },
  "reference": {
   "groups": {

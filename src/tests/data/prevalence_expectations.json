@@ -3938,10 +3938,10 @@
   }
  },
  "errors": {
-  "anomaly": "GEN.895"
+  "anomaly": ""
  },
  "hangs": {
-  "anomaly": "GEN.866"
+  "anomaly": ""
  },
  "reference": {
   "commit": "0b4d0ccefe867a9937c9e5e630db1f9d0a8fed1d",
