@@ -49,7 +49,7 @@ from planetgen.galaxy.skeleton import (
 )
 from planetgen.generation import plan_outline as planOutline
 from planetgen.generation import run_common
-from planetgen.generation import stages, steps
+from planetgen.generation import stagerun, stages, steps
 
 
 BACKFILL_CHUNK_SECTORS = 200
@@ -2767,28 +2767,26 @@ def clear_scatter_unit(params, report):
     return {"part": part, "lines": [f"Cleared the {name} scatter."]}
 
 
-def clear_scatter(args):
-    """`planetgen clear-scatter`'s work on the new queue: the `clear-scatter` command, one unit, and its lines logged."""
+def clear_scatter_part(args):
+    """The `clear-scatter` stage of a run as a `stagerun.Part` (PERF.202): one unit, whose lines the starter logs."""
     kind = stages.clear_kind(args)
     key = stages.CLEAR_STAGE[kind].key
     mysql_config = store.mysql_config_from_args(args)
     step, listing = wrapper.step_for(args, key, stages.CLEAR_STAGE[kind].label, {
         "database": wrapper.database_args(mysql_config)})
-    row = stages.hand_over_open_stage()
 
-    def on_result(_index, _unit, result):
+    def say(result):
         for line in result["lines"]:
             log.normal(line)
 
-    try:
-        wrapper.run(step.label, [step], lambda _index, plan: None, on_result, workers_count=1,
-                    who=getattr(args, "who", None), database=mysql_config.database, argv=getattr(args, "argv", None),
-                    seed=None, listing=listing, rows=None if row is None else {key: row})
-    except units.RunStopped as exc:
-        marker = "RuntimeError: "
-        if marker not in str(exc):
-            raise
-        raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
+    return stagerun.Part(step, listing, fold=say, row=stages.hand_over_open_stage())
+
+
+def clear_scatter(args):
+    """`planetgen clear-scatter`'s work on the new queue: the `clear-scatter` command, one unit, and its lines logged.
+    A refusal of the unit is raised as a `RuntimeError` of its own words (`stagerun.refusal_of`)."""
+    part = clear_scatter_part(args)
+    stagerun.run_parts(args, part.step.label, [part], workers=1)
 
 
 def run_clear_scatter(args):

@@ -47,7 +47,7 @@ from planetgen.generation import run_common
 from planetgen.generation import run_plan
 from planetgen.generation import run_population
 from planetgen.generation import run_sector
-from planetgen.generation import stages, steps
+from planetgen.generation import stagerun, stages, steps
 from planetgen.generation import stats as generationStats
 from planetgen.util import draw
 from planetgen.util import detmath
@@ -600,56 +600,50 @@ def backfill_bright_stars_unit(unit_args, report):
                        for shell, types in shells.items()}}
 
 
-def _backfill_on_queue(args, started_at, center_pc=None):
+def backfill_part(args, started_at, center_pc=None):
     """
-    The backfill of a `galaxy` run on the new queue (PERF.108): the wrapper selects the `scatter-backfill` command from
-    this run's steps, finds the sectors to draw once and cuts them into units (`expand_backfill_bright_stars`), this
-    process follows the units with a bar of the sectors they visit (PERF.28) and says how many stars each shell was
-    given, and the unit that completes the stage stores the stage's row.
+    The backfill stage of a run as a `stagerun.Part` (PERF.108, PERF.202): the wrapper selects the `scatter-backfill`
+    command from this run's steps, finds the sectors to draw once and cuts them into units
+    (`expand_backfill_bright_stars`), the process that follows the run draws a bar of the sectors they visit (PERF.28)
+    and says how many stars each shell was given, and the unit that completes the stage stores the stage's row.
 
     Args:
         center_pc (tuple, optional): Backfill around this one point instead of around the sectors created since
             `started_at` (an API job's requested sector, GEN.30).
 
     Returns:
-        dict: `sectors` (drawn) and `stars` (placed), summed over the units.
+        tuple: The `Part`, and the stars placed per shell and kind that the part's units report, filled as they do.
     """
     mysql_config = store.mysql_config_from_args(args)
     workers = run_common._worker_count(args)
     step, listing = wrapper.step_for(args, "backfill", "Bright-star backfill", {
         "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "), "workers": workers,
         **({} if center_pc is None else {"center_pc": list(center_pc)})})
-    row = stages.hand_over_open_stage()
-    summary = {"sectors": 0, "stars": 0}
     shells = {}
-    with run_common._generation_progress() as progress:
-        log.set_console(progress.console)
-        try:
-            with steps.Step("Bright-star backfill (sectors)", "backfill", 1, args=args, progress=progress,
-                            workers=workers) as bar:
-                def on_plan(_index, plan):
-                    bar.update(total=max(plan["detail"]["sectors"], 1))
 
-                def on_result(_index, _unit, result):
-                    summary["sectors"] += result["sectors"]
-                    summary["stars"] += result["stars"]
-                    for shell, types in result["shells"].items():
-                        counts = shells.setdefault(int(shell), collections.Counter())
-                        for label, plural, count in types:
-                            counts[(label, plural)] += count
-                    bar.update(advance=result["visited"])
+    def fold(result):
+        for shell, types in result["shells"].items():
+            counts = shells.setdefault(int(shell), collections.Counter())
+            for label, plural, count in types:
+                counts[(label, plural)] += count
 
-                try:
-                    wrapper.run("Bright-star backfill", [step], on_plan, on_result, workers_count=workers,
-                                who=getattr(args, "who", None), database=mysql_config.database,
-                                argv=getattr(args, "argv", None), seed=None, listing=listing,
-                                rows=None if row is None else {"backfill": row})
-                finally:
-                    run_common._finish_stats(args)
-        finally:
-            log.reset_console()
+    part = stagerun.Part(step, listing, bar="Bright-star backfill (sectors)", kind="backfill",
+                         advance=lambda result: result["visited"], sums=("sectors", "stars"), fold=fold,
+                         row=stages.hand_over_open_stage())
+    return part, shells
+
+
+def _backfill_on_queue(args, started_at, center_pc=None):
+    """
+    The backfill of a `galaxy` run on the new queue (PERF.108): `backfill_part` as the one stage of a run.
+
+    Returns:
+        dict: `sectors` (drawn) and `stars` (placed), summed over the units.
+    """
+    part, shells = backfill_part(args, started_at, center_pc)
+    stagerun.run_parts(args, "Bright-star backfill", [part], finally_=lambda: run_common._finish_stats(args))
     run_plan.log_shells("Bright-star backfill", shells)
-    return summary
+    return dict(part.totals)
 
 
 def backfill_after_run(args, edge_pc, started_at):
@@ -750,39 +744,31 @@ def link_neighbours_unit(params, report):
                                                   skip=_sectors_since(params))}
 
 
-def _link_on_queue(args, started_at):
+def link_part(args, started_at):
     """
-    The link stage of a run on the new queue (PERF.113): the wrapper selects the `link-neighbours` command from this run's
-    steps, finds the sectors to link once and cuts them into units (`expand_link_neighbours`), this process follows the
-    units with a bar of the sectors they link, and the unit that completes the stage stores the stage's row.
-
-    Returns:
-        int: How many sectors were linked, summed over the units.
+    The link stage of a run as a `stagerun.Part` (PERF.113, PERF.202): the wrapper selects the `link-neighbours`
+    command from this run's steps, finds the sectors to link once and cuts them into units (`expand_link_neighbours`),
+    the process that follows the run draws a bar of the sectors they link, and the unit that completes the stage
+    stores the stage's row. The part's `totals["linked"]` is how many sectors were linked, summed over the units.
     """
     mysql_config = store.mysql_config_from_args(args)
     workers = run_common._worker_count(args)
     step, listing = wrapper.step_for(args, "link", "Neighbours", {
         "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "), "workers": workers})
-    row = stages.hand_over_open_stage()
-    linked = [0]
-    with run_common._generation_progress() as progress:
-        log.set_console(progress.console)
-        try:
-            with steps.Step("Neighbours", "link", 1, args=args, progress=progress, workers=workers) as bar:
-                def on_plan(_index, plan):
-                    bar.update(total=max(plan["detail"]["sectors"], 1))
+    return stagerun.Part(step, listing, bar="Neighbours", kind="link", advance=lambda result: result["linked"],
+                         sums=("linked",), row=stages.hand_over_open_stage())
 
-                def on_result(_index, _unit, result):
-                    linked[0] += result["linked"]
-                    bar.update(advance=result["linked"])
 
-                wrapper.run("Neighbours", [step], on_plan, on_result, workers_count=workers,
-                            who=getattr(args, "who", None), database=mysql_config.database,
-                            argv=getattr(args, "argv", None), seed=None, listing=listing,
-                            rows=None if row is None else {"link": row})
-        finally:
-            log.reset_console()
-    return linked[0]
+def _link_on_queue(args, started_at):
+    """
+    The link stage of a run on the new queue (PERF.113): `link_part` as the one stage of a run.
+
+    Returns:
+        int: How many sectors were linked, summed over the units.
+    """
+    part = link_part(args, started_at)
+    stagerun.run_parts(args, "Neighbours", [part])
+    return part.totals["linked"]
 
 
 def link_after_run(args, started_at):
@@ -926,45 +912,37 @@ def save_sector_paths_unit(params, report):
         conn.close()
 
 
-def _settle_on_queue(args, started_at, extra=None):
+def settle_part(args, started_at, extra=None):
     """
-    The settle stage of a run on the new queue (PERF.115): the wrapper selects the `settle-sector-paths` command from this
-    run's steps, finds the sectors to settle once and cuts them into units (`expand_save_sector_paths`), this process
-    follows the units with a bar of the sectors they settle, and the unit that completes the stage stores the stage's row.
+    The settle stage of a run as a `stagerun.Part` (PERF.115, PERF.202): the wrapper selects the `settle-sector-paths`
+    command from this run's steps, finds the sectors to settle once and cuts them into units
+    (`expand_save_sector_paths`), the process that follows the run draws a bar of the sectors they settle, and the
+    unit that completes the stage stores the stage's row. The part's `totals["saved"]` is how many paths were saved.
 
     Args:
         started_at: The sectors saved since this (the database's clock when the run started) are the run's, unless
             `extra["sector_ids"]` names them.
         extra (dict, optional): More params for the stage: `sector_ids` and `expand`.
-
-    Returns:
-        int: How many paths were saved, summed over the units.
     """
     mysql_config = store.mysql_config_from_args(args)
     workers = run_common._worker_count(args)
     step, listing = wrapper.step_for(args, "settle", "Sector paths", {
         "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "), "workers": workers,
         **(extra or {})})
-    row = stages.hand_over_open_stage()
-    saved = [0]
-    with run_common._generation_progress() as progress:
-        log.set_console(progress.console)
-        try:
-            with steps.Step("Sector paths", "paths", 1, args=args, progress=progress, workers=workers) as bar:
-                def on_plan(_index, plan):
-                    bar.update(total=max(plan["detail"]["sectors"], 1))
+    return stagerun.Part(step, listing, bar="Sector paths", kind="paths", advance=lambda result: result["visited"],
+                         sums=("saved",), row=stages.hand_over_open_stage())
 
-                def on_result(_index, _unit, result):
-                    saved[0] += result["saved"]
-                    bar.update(advance=result["visited"])
 
-                wrapper.run("Sector paths", [step], on_plan, on_result, workers_count=workers,
-                            who=getattr(args, "who", None), database=mysql_config.database,
-                            argv=getattr(args, "argv", None), seed=None, listing=listing,
-                            rows=None if row is None else {"settle": row})
-        finally:
-            log.reset_console()
-    return saved[0]
+def _settle_on_queue(args, started_at, extra=None):
+    """
+    The settle stage of a run on the new queue (PERF.115): `settle_part` as the one stage of a run.
+
+    Returns:
+        int: How many paths were saved, summed over the units.
+    """
+    part = settle_part(args, started_at, extra)
+    stagerun.run_parts(args, "Sector paths", [part])
+    return part.totals["saved"]
 
 
 def settle_after_run(args, started_at):

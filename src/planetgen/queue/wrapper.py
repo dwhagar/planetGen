@@ -244,7 +244,7 @@ def report_wait(holder, position):
 
 
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
-        seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None):
+        seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None, on_stage_done=None):
     """
     Runs the queued `steps` as one run: starts the run record (the machine is busy for it), queues the first stage,
     makes sure workers are running (`workers_count` of them at most: the run's `--workers`) and follows each stage to
@@ -257,6 +257,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
             `plan` is `{"kind", "units", "cost", "detail"}`, `detail` the command's JSON summary of the stage.
         on_result (callable): `on_result(index, unit, result)`, once for each unit as it finishes.
         on_progress (callable, optional): `on_progress(index, unit, done, estimate)` for the units still working.
+        on_stage_done (callable, optional): `on_stage_done(index)` when stage `index` has finished: all its units are
+            done, or it had none (PERF.202: the bar of a stage closes here, the next stage's opens at its `on_plan`).
         listing (list[commands.Step], optional): Every step of the run, inline ones too, as the wrapper's list
             (`steps_for`); stored in the run record. Default: `steps`.
         rows (dict, optional): `{stage key: row}`, the `generation_stage_runs` row the unit that completes each stage
@@ -319,6 +321,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                     None if on_progress is None else
                     (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
                     ensure, on_debug=on_debug)
+            if on_stage_done is not None:
+                on_stage_done(index)
         runrecord.finish_run(conn, run_id, "done")      # a stage of no units has no last unit to do it
         log.trace(f"run {run_id} finished: done", area="queue")
         if relay:
