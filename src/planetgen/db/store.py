@@ -6338,6 +6338,15 @@ def record_phenomenon_scatter_classes(conn, counts):
         [(kind, subtype, int(count)) for (kind, subtype), count in sorted(counts.items()) if count])
 
 
+def add_phenomenon_scatter_classes(conn, counts):
+    """Adds to the classes `record_phenomenon_scatter_classes` stored (`{(kind, subtype): count}`): the special phenomena
+    a scatter writes once its shells are done."""
+    conn.executemany(
+        "INSERT INTO phenomenon_scatter_classes (kind, subtype, placed, built) VALUES (?, ?, ?, 0) AS added"
+        " ON DUPLICATE KEY UPDATE placed = phenomenon_scatter_classes.placed + added.placed",
+        [(kind, subtype, int(count)) for (kind, subtype), count in sorted(counts.items()) if count])
+
+
 def phenomenon_scatter_classes(conn):
     """`[{"kind", "subtype", "unbuilt"}]`: each scattered class with phenomena no sector has built yet."""
     return [{"kind": row["kind"], "subtype": row["subtype"], "unbuilt": int(row["unbuilt"])}

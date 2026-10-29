@@ -10,11 +10,11 @@ and each its own registered command, `run-population` and `run-territories`, of 
 two as consecutive stages (`run_population_stage`, `run_territories_stage`); neither knows the other.
 """
 
-from planetgen.generation import run_common, stages, steps
+from planetgen.generation import followed, stages, steps
 from planetgen.db import store
 from planetgen.generation import run_plan
 from planetgen.population import model
-from planetgen.queue import commands, units, wrapper
+from planetgen.queue import commands
 from planetgen.util import log
 
 
@@ -70,29 +70,32 @@ def territories_unit(params, report):
     return {**counts, "lines": [f"Territories: {_territories_summary(counts)}"]}
 
 
-def _run_pass(args, key, label, step_kind, extra):
-    """One pass as the one stage of a run on the queue: the step for stage `key` (`wrapper.step_for`), followed from here
-    with a bar, each line the unit returns logged."""
-    mysql_config = store.mysql_config_from_args(args)
-    workers = run_common._worker_count(args)
-    step, listing = wrapper.step_for(args, key, label, {"workers": workers, "database": wrapper.database_args(mysql_config),
-                                                         **extra})
-    row = stages.hand_over_open_stage()
+class PassFollower(followed.Follower):
+    """One pass as a stage of a run on the queue: followed from here with a bar, each line the unit returns logged."""
 
-    def on_result(_index, _unit, result):
+    def __init__(self, args, key, label, step_kind, extra):
+        super().__init__(args)
+        self.key, self.label, self.step_kind, self.extra = key, label, step_kind, extra
+
+    def params(self):
+        return dict(self.extra)
+
+    def on_plan(self, plan):
+        self.hold(steps.Step(self.label, self.step_kind, 1, args=self.args, progress=self.progress))
+
+    def on_result(self, unit, result):
         for line in result["lines"]:
             log.normal(line)
 
-    with run_common._generation_progress() as progress:
-        log.set_console(progress.console)
-        try:
-            with steps.Step(label, step_kind, 1, args=args, progress=progress):
-                wrapper.run(label, [step], lambda _index, plan: None, on_result, workers_count=workers,
-                            who=getattr(args, "who", None), database=mysql_config.database,
-                            argv=getattr(args, "argv", None), seed=None, listing=listing,
-                            rows=None if row is None else {key: row})
-        finally:
-            log.reset_console()
+
+def population_follower(args):
+    """The follower of the population stage of a run."""
+    return PassFollower(args, "population", "Population pass", "population", {"rescan": bool(getattr(args, "rescan", False))})
+
+
+def territories_follower(args):
+    """The follower of the territories stage of a run."""
+    return PassFollower(args, "territories", "Territories pass", "territories", {})
 
 
 def run_population(args):
@@ -116,12 +119,12 @@ def run_territories(args):
 
 
 def run_population_stage(args):
-    """The population pass as a stage of a run (a `galaxy` run's, or `planetgen population`'s own)."""
+    """The population pass as a run of its own (`planetgen population`)."""
     stages.enter("population")
-    _run_pass(args, "population", "Population pass", "population", {"rescan": bool(getattr(args, "rescan", False))})
+    followed.run_followed(args, [population_follower(args)], "Population pass")
 
 
 def run_territories_stage(args):
-    """The territories pass as a stage of a run."""
+    """The territories pass as a run of its own (`planetgen territories`)."""
     stages.enter("territories")
-    _run_pass(args, "territories", "Territories pass", "territories", {})
+    followed.run_followed(args, [territories_follower(args)], "Territories pass")

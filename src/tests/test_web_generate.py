@@ -1757,8 +1757,8 @@ def test_redo_scatters_clears_then_draws_each_ticked_scatter_with_its_setting(si
         ["scatter", "--luminosity", "--bright-star-min-luminosity", "2500"],
         ["scatter", "--phenomena", "--compact-min-mass", "2"]]
     for step in steps:
-        assert [entry["label"] for entry in step["stages"]] == [step["label"]]
-        assert [entry["skipped"] for entry in step["stages"]] == [None]
+        assert step["stages"][0]["label"] == step["label"], "the step's own stage comes first, any it ends with after it"
+        assert [entry["skipped"] for entry in step["stages"]] == [None] * len(step["stages"])
 
 
 def test_redo_scatters_leaves_the_unticked_ones_out_and_their_settings_unsent(site, client, no_spawn):

@@ -74,6 +74,33 @@ def step_for(args, key, label, params):
     return step, listing[:later] + [step] + listing[later:]
 
 
+def plan_steps(args, parts):
+    """
+    The steps of a run that follows several stages (PERF.172), and the run's whole list with them: `parts` is
+    `(key, label, params)` for each stage the run queues, in order, `params` what the stage needs besides the request's
+    own settings (`step_for` for one). A stage the request's list holds takes that step's label and settings; one it
+    does not (a luminosity redo with no scatter stored yet needs the massive stars too) is added to the list before the
+    luminosity pass, where `step_for` puts it.
+
+    Returns:
+        tuple: `(steps, listing)`.
+    """
+    from planetgen.generation import stages
+    command = getattr(args, "command", None)
+    listing = steps_for(command, args) if command in commands.STAGED_COMMANDS else []
+    steps = []
+    for key, label, params in parts:
+        found = next((step for step in listing if step.key == key), None)
+        steps.append(commands.Step(key, commands.KIND_OF_STAGE[key], found.label if found else label,
+                                   {**(found.params if found else stages.stage_settings(key, args)), **params}))
+    by_key = {step.key: step for step in steps}
+    listing = [by_key.pop(item.key, item) if item.key in by_key else item for item in listing]
+    if by_key:
+        later = next((index for index, item in enumerate(listing) if item.key == "luminosity"), len(listing))
+        listing = listing[:later] + list(by_key.values()) + listing[later:]
+    return steps, listing
+
+
 def queued(steps):
     """The steps of `steps` that are queued as stages of units (the rest are inline), in order."""
     return [step for step in steps if not commands.spec(step.kind).inline]
@@ -91,12 +118,18 @@ def _expand(conn, run_id, index):
     key = stages[index]["key"]
     step = next(commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id) if item["key"] == key)
     started = time.time()       # the stage's time counts from before it was cut: reading the galaxy is part of it
+    prepare = commands.prepare_function(step.kind)
+    if prepare is not None:
+        prepare(step.params)
     expansion = commands.expand_function(step.kind)(step.params)
     cost = sum(unit_cost for _args, unit_cost in expansion.units)
     runrecord.set_stage_plan(conn, run_id, index, len(expansion.units), cost,
                              {"kind": step.kind, "units": len(expansion.units), "cost": cost,
                               "detail": expansion.plan})
     runrecord.begin_stage(conn, run_id, index, now=started)
+    if not expansion.units and commands.conclude_function(step.kind) is not None:
+        _conclude_empty_stage(conn, run_id, index, stage_label(conn, run_id, index))
+        return 0
     units.enqueue_units(conn, run_id, index, step.kind, expansion.units,
                         queue_name=queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind"))),
                         expected_seconds=json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
@@ -104,32 +137,96 @@ def _expand(conn, run_id, index):
     return len(expansion.units)
 
 
-def finish_stage(conn, run_id, index):
+def _conclude_empty_stage(conn, run_id, index, label):
+    """A stage whose cut gave no unit (a plan with no shells, say) has no last unit to conclude it, so whichever process cut it
+    does: it ended as it began, its `conclude` runs, and its row is stored, as the unit that completes a stage would."""
+    runrecord.end_stage(conn, run_id, index)
+    try:
+        took = conclude_stage(conn, run_id, index)
+    except Exception as exc:
+        runrecord.finish_run(conn, run_id, "failed", error=f"the end of stage {label} failed: {type(exc).__name__}: {exc}")
+        raise
+    finish_stage(conn, run_id, index, took)
+
+
+def stage_label(conn, run_id, index):
+    """The label stage `index` of the run was declared with, `None` past the last."""
+    declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
+    return runrecord._s(declared[index]["label"]) if 0 <= index < len(declared) else None
+
+
+def _stage_step(conn, run_id, index):
+    """`(declared, step)` of stage `index`: how the run declared it and the step the run record holds for it."""
+    declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
+    step = next(commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)
+                if item["key"] == declared["key"])
+    return declared, step
+
+
+def _stage_results(conn, run_id, index):
+    """Every unit's result of stage `index`, in unit order."""
+    return [json.loads(runrecord._s(raw)) for _unit, raw in sorted(
+        conn.hgetall(runrecord.results_key(run_id, index)).items(), key=lambda pair: int(pair[0]))]
+
+
+def conclude_stage(conn, run_id, index):
+    """
+    What the unit that completes stage `index` does first (PERF.172): the command's `conclude`, with the step's
+    parameters, the stage's plan, every unit's result and the seconds the stage took. What it returns is stored
+    with the stage (`read_conclusion`), and the stage counts as concluded (`wait_concluded`). A command with no
+    `conclude` records nothing. Unlike `finish_stage` a failure here is not swallowed: it is the stage's own work,
+    so it fails the run.
+
+    Returns:
+        float: The seconds the hook took (0.0 for a command with none).
+    """
+    try:
+        _declared, step = _stage_step(conn, run_id, index)
+    except StopIteration:        # a run that holds no steps (it was started by hand) has no command to conclude
+        return 0.0
+    hook = commands.conclude_function(step.kind)
+    if hook is None:
+        return 0.0
+    record = {runrecord._s(name): runrecord._s(value)
+              for name, value in conn.hgetall(runrecord.stage_key(run_id, index)).items()}
+    plan = runrecord.read_plan(conn, run_id, index)
+    began = time.time()
+    conclusion = hook(step.params, plan["detail"], _stage_results(conn, run_id, index),
+                      max(float(record["ended"]) - float(record["started"]), 0.0)) or {}
+    took = time.time() - began
+    runrecord.set_conclusion(conn, run_id, index, conclusion)
+    return took
+
+
+def finish_stage(conn, run_id, index, concluded_seconds=0.0):
     """
     What the unit that completes stage `index` does before the run moves on (PERF.106): the command's `finish`
     records its units' speeds and gives the stage's metrics (`CommandSpec.finish`), and the stage's row
     (`runrecord.Stage.row`) is stored in `generation_stage_runs` with the seconds from the stage's start to its last
-    unit's end. Statistics are a nicety: a failure here is logged and the run goes on.
+    unit's end, and those the command's `conclude` took (`concluded_seconds`). A stage whose expansion said it had
+    nothing to do (`detail["skip"]`, the reason) is stored as skipped. Statistics are a nicety: a failure here is
+    logged and the run goes on.
     """
     from planetgen.generation import stages
     try:
-        declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
-        step = next(commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)
-                    if item["key"] == declared["key"])
+        declared, step = _stage_step(conn, run_id, index)
         record = {runrecord._s(name): runrecord._s(value)
                   for name, value in conn.hgetall(runrecord.stage_key(run_id, index)).items()}
         _log_long_unit(conn, run_id, index, step, declared, float(record.get("longest_unit") or 0.0))
-        seconds = max(float(record["ended"]) - float(record["started"]), 0.0)
+        seconds = max(float(record["ended"]) - float(record["started"]), 0.0) + concluded_seconds
         hook = commands.finish_function(step.kind)
+        plan = runrecord.read_plan(conn, run_id, index)
         metrics = {}
         if hook is not None:
-            results = [json.loads(runrecord._s(raw)) for _unit, raw in sorted(
-                conn.hgetall(runrecord.results_key(run_id, index)).items(), key=lambda pair: int(pair[0]))]
-            plan = runrecord.read_plan(conn, run_id, index)
-            metrics = hook(step.params, plan["detail"], results, seconds) or {}
+            metrics = hook(step.params, plan["detail"], _stage_results(conn, run_id, index), seconds) or {}
         if declared.get("row"):
-            stages.write_queued_row(_mysql_config(step.params["database"]), declared["key"], declared["row"], seconds,
-                                    metrics)
+            skipped = (plan["detail"] or {}).get("skip")
+            if skipped:
+                stages.write_skipped_row(_mysql_config(step.params["database"]), declared["key"], declared["row"],
+                                         skipped)
+            else:
+                stages.write_queued_row(_mysql_config(step.params["database"]), declared["key"], declared["row"],
+                                        seconds, metrics)
     except Exception as exc:  # noqa: BLE001 -- statistics are a nicety, never a reason to fail a run
         from planetgen.util import log
         log.debug(f"Stage statistics: not recorded ({exc}).")
@@ -212,6 +309,26 @@ def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sl
         sleep(units.POLL_SECONDS)
 
 
+def _await_conclusion(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None):
+    """What stage `index`'s conclusion found (`conclude_stage`), once the unit that completed the stage has made it."""
+    last_ensure = float("-inf")
+    while True:
+        runrecord.touch(conn, run_id)
+        if on_debug is not None:
+            on_debug()
+        found = runrecord.conclusion(conn, run_id, index)
+        if found is not None:
+            return found
+        state = runrecord._s(conn.hget(runrecord.run_key(run_id), "state"))
+        if state not in runrecord.LIVE_STATES:
+            error = runrecord._s(conn.hget(runrecord.run_key(run_id), "error"))
+            raise units.RunStopped(error or f"the run {state} before stage {index} was concluded")
+        if ensure is not None and clock() - last_ensure >= units.ENSURE_SECONDS:
+            last_ensure = clock()
+            ensure()
+        sleep(units.POLL_SECONDS)
+
+
 def queue_of(kind):
     """The queue the units of a run of `kind` go on (PERF.150): the maintenance queue for a `MAINTENANCE` or `CHECK`
     run, the bulk queue for a `GENERATION` run."""
@@ -244,7 +361,7 @@ def report_wait(holder, position):
 
 
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
-        seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None):
+        seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None, on_stage_done=None):
     """
     Runs the queued `steps` as one run: starts the run record (the machine is busy for it), queues the first stage,
     makes sure workers are running (`workers_count` of them at most: the run's `--workers`) and follows each stage to
@@ -259,8 +376,10 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         on_progress (callable, optional): `on_progress(index, unit, done, estimate)` for the units still working.
         listing (list[commands.Step], optional): Every step of the run, inline ones too, as the wrapper's list
             (`steps_for`); stored in the run record. Default: `steps`.
+        on_stage_done (callable, optional): `on_stage_done(index, conclusion)` when every unit of stage `index` is done
+            and its command's `conclude` has run (`conclusion` is what it returned, `None` for a command with none).
         rows (dict, optional): `{stage key: row}`, the `generation_stage_runs` row the unit that completes each stage
-            writes (`generation.stages.hand_over_open_stage`); a stage with none stores no row.
+            writes (`generation.stages.hand_over_open_stage`, `stages.row_for`); a stage with none stores no row.
         kind (str): `runrecord.GENERATION` for a run that changes the galaxy (it owns the machine and shows the
             visitors' banner) or `runrecord.MAINTENANCE` for one that only keeps the site in order, such as the
             cache warm-up (PERF.127).
@@ -313,12 +432,17 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
             log.trace(f"run {run_id}: stage {index} ({steps[index].label}) queued as {plan['units']} unit(s) of total "
                       f"cost {plan['cost']}", area="queue")
             on_plan(index, plan)
+            conclusion = None
             if plan["units"]:
                 units.follow_stage(
                     conn, run_id, index, plan["units"], lambda unit, result, index=index: on_result(index, unit, result),
                     None if on_progress is None else
                     (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
                     ensure, on_debug=on_debug)
+            if commands.spec(steps[index].kind).conclude is not None:
+                conclusion = _await_conclusion(conn, run_id, index, ensure, on_debug=on_debug)
+            if on_stage_done is not None:
+                on_stage_done(index, conclusion)
         runrecord.finish_run(conn, run_id, "done")      # a stage of no units has no last unit to do it
         log.trace(f"run {run_id} finished: done", area="queue")
         if relay:

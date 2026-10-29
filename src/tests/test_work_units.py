@@ -359,14 +359,15 @@ def _scatter_mass(mysql_config, workers):
     from planetgen.generation import run_plan
     from tests.test_bright_star_scatter import _scatter_args, _seed_galaxy
     _seed_galaxy(mysql_config)
-    args = _scatter_args(mysql_config, "--mass", "--workers", str(workers))
+    args = _scatter_args(mysql_config, "--mass", "--phenomenon-min-mass", "8", "--bright-star-min-luminosity", "2500",
+                         "--workers", str(workers))
     conn = store.get_connection(mysql_config)
     try:
         conn.execute("DELETE FROM bright_stars")
         conn.commit()
     finally:
         conn.close()
-    run_plan._scatter_mass(args, mysql_config, 1000.0, 8.0, 77)
+    run_plan.scatter_bright_stars(args, ("mass",))
     return _stored_stars(mysql_config)
 
 
@@ -386,11 +387,11 @@ def test_the_mass_scatter_records_its_run_with_a_unit_per_run_of_shells(mysql_co
     conn = redisqueue.connect()
     run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and run["database"] == mysql_config.database
-    assert [stage["key"] for stage in run["stages"]] == ["mass"]
+    assert [stage["key"] for stage in run["stages"]] == ["mass", "block-lights"]
     assert run["stages"][0]["done"] == run["stages"][0]["units"] > 0
     plan = runrecord.read_plan(conn, runs[0], 0)
     assert plan["kind"] == "scatter-mass" and plan["units"] == run["stages"][0]["units"]
-    assert [step["kind"] for step in runrecord.read_steps(conn, runs[0])] == ["scatter-mass"]
+    assert [step["kind"] for step in runrecord.read_steps(conn, runs[0])] == ["scatter-mass", "refresh-block-lights"]
 
 
 def _scatter_then_band(mysql_config, workers):
@@ -415,7 +416,7 @@ def test_the_luminosity_pass_and_the_band_give_the_same_stars_at_any_worker_coun
     assert len(scattered) > 20 and len(banded) > len(scattered)
     conn = redisqueue.connect()
     assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == [
-        "scatter-mass", "scatter-luminosity", "scatter-band"]
+        "scatter-mass", "scatter-luminosity", "refresh-block-lights", "scatter-band"]
     for run_id in runs:
         run = runrecord.read_run(conn, run_id)
         assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 0
@@ -434,7 +435,8 @@ def test_a_scatter_stage_is_stored_once_by_the_unit_that_completes_it_with_its_s
     monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
     _seed_galaxy(mysql_config)
     args = _scatter_args(mysql_config, "--mass", "--workers", "2")
-    stages.begin(stages.for_command("scatter", args), args, "scatter")
+    stages.begin([stages.SCATTER_STAGE["mass"], stages.SCATTER_STAGE["luminosity"], stages.BLOCK_LIGHTS_STAGE], args,
+                 "scatter")
     summary = run_plan.scatter_bright_stars(args)
     stages.finish()
     conn = store.get_control_connection(mysql_config)
@@ -451,7 +453,7 @@ def test_a_scatter_stage_is_stored_once_by_the_unit_that_completes_it_with_its_s
     assert {key: len(rows) for key, rows in by_key.items() if key in ("mass", "luminosity")} == {"mass": 1, "luminosity": 1}
     mass, light = by_key["mass"][0], by_key["luminosity"][0]
     assert mass["settings"]["workers"] == 2 and mass["seconds"] > 0 and not mass["skipped"]
-    assert (mass["stage_n"], mass["stage_total"]) == (1, 1) and (light["stage_n"], light["stage_total"]) == (1, 1)
+    assert (mass["stage_n"], mass["stage_total"]) == (1, 3) and (light["stage_n"], light["stage_total"]) == (2, 3)
     assert mass["metrics"]["objects"] + light["metrics"]["objects"] == summary["total"] > 20
     assert mass["metrics"]["shells"] > 0 and 0 < mass["metrics"]["shells_modified"] <= mass["metrics"]["shells"]
     assert mass["metrics"]["seconds_per_shell"] == pytest.approx(mass["seconds"] / mass["metrics"]["shells"])
@@ -539,7 +541,7 @@ def test_the_phenomena_scatter_gives_the_same_rows_at_any_worker_count_and_recor
     assert len(one) > 50
     conn = redisqueue.connect()
     assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == [
-        "scatter-phenomena", "draw-nebula-field"]
+        "scatter-phenomena", "finish-phenomena", "draw-nebula-field", "refresh-block-lights"]
     run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 1
     monkeypatch.setattr(wrapper, "run", real)
@@ -559,7 +561,8 @@ def test_a_unit_of_the_phenomena_scatter_runs_alone_from_its_json_arguments(mysq
     assert expansion.units == run_plan.expand_scatter_phenomena(json.loads(json.dumps(params))).units
     assert expansion.plan == json.loads(json.dumps(expansion.plan))
     shape = run_plan._PhenomenaShape.from_json(expansion.plan)
-    assert shape.to_json() == expansion.plan and len(shape.tasks) == len(expansion.units) > 1
+    assert shape.to_json() == {key: value for key, value in expansion.plan.items() if key != "filled"} \
+        and len(shape.tasks) == len(expansion.units) > 1
     conn = store.get_connection(mysql_config)
     try:
         conn.execute("DELETE FROM phenomenon_scatter")
@@ -713,9 +716,10 @@ def test_the_nebula_field_is_a_unit_per_slab_and_the_clean_up_one_unit(mysql_con
     monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
     run_plan.scatter_phenomena(_scatter_args(mysql_config))
     conn = redisqueue.connect()
-    drawn = [run for run in runs if [step["kind"] for step in runrecord.read_steps(conn, run)] == ["draw-nebula-field"]]
-    assert len(drawn) == 1
-    slabs = runrecord.read_run(conn, drawn[0])["stages"][0]["units"]
+    drawn = [run for run in runs if "draw-nebula-field" in [step["kind"] for step in runrecord.read_steps(conn, run)]]
+    assert len(drawn) == 1, "the nebula field is a stage of the phenomena run"
+    [field] = [stage for stage in runrecord.read_run(conn, drawn[0])["stages"] if stage["key"] == "nebula-draw"]
+    slabs = field["units"]
     assert slabs > 1 and sum(len(_table(mysql_config, f"cell_i = {i}")) for i in range(-slabs, slabs)) == len(_table(mysql_config))
     params = {"database": wrapper.database_args(mysql_config)}
     expansion = run_plan.expand_draw_nebula_field(params)
@@ -835,7 +839,7 @@ def _backfilled_rows(config, monkeypatch, unit_cells):
     args.shell, args.band, args.wedge = address
     cut = run_galaxy.expand_backfill_bright_stars({"database": wrapper.database_args(config),
                                                    "since": started.isoformat(sep=" ")})
-    summary = run_galaxy.backfill_after_run(args, EDGE_PC, started)
+    summary = run_galaxy._backfill_on_queue(args, started)
     conn = store.get_connection(config)
     try:
         rows = [tuple(row.values()) for row in conn.execute(
@@ -886,7 +890,8 @@ def test_a_backfill_with_nothing_to_draw_is_one_empty_unit_and_stores_its_stage(
     _seed_galaxy(mysql_config)
     cut = run_galaxy.expand_backfill_bright_stars({"database": wrapper.database_args(mysql_config),
                                                    "since": _database_now(mysql_config).isoformat(sep=" ")})
-    assert [unit[0]["items"] for unit in cut.units] == [[]] and cut.plan == {"sectors": 0}
+    assert [unit[0]["items"] for unit in cut.units] == [[]] and cut.plan == {
+        "sectors": 0, "skip": "the run generated no sector"}
     result = commands.run_alone("scatter-backfill", cut.units[0][0])
     assert result == {"sectors": 0, "stars": 0, "visited": 0, "shells": {}}
 

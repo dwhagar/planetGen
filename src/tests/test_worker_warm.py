@@ -131,7 +131,8 @@ def test_a_warmed_scatter_unit_builds_no_sampling_table_of_its_own(mysql_config,
 
     monkeypatch.setattr(run_plan, "scatter_shells_unit", recording)
     _seed_galaxy(mysql_config)
-    run_plan._scatter_mass(_scatter_args(mysql_config, "--mass", "--workers", "1"), mysql_config, 1000.0, 8.0, 77)
+    run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass", "--phenomenon-min-mass", "8",
+                                                "--bright-star-min-luminosity", "2500", "--workers", "1"), ("mass",))
     assert seen
     conn = store.get_connection(mysql_config)
     try:

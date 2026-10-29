@@ -115,17 +115,18 @@ def test_a_local_neighborhood_generates_its_sectors_in_the_fill_order_and_says_h
     (seed,) = _all_sectors(mysql_config)
     center = (seed["center_x_pc"], seed["center_y_pc"], seed["center_z_pc"])
     submitted = []
-    monkeypatch.setattr(run_galaxy, "_submit_batch",
-                        lambda args, batch, *rest, **kwargs: submitted.append((args, list(batch), kwargs)))
+    monkeypatch.setattr(run_galaxy.followed, "run_followed",
+                        lambda args, followers, title, seed=None: submitted.append((args, followers)))
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
     radius = 14.0
     _run_cli(["--center-sector", str(seed["id"]), "--radius-pc", str(radius), "--num-systems", "1"]
              + _mysql_argv(mysql_config))
-    ((args, batch, options),) = submitted
+    ((args, [stage, *_later]),) = submitted
     expected = [cell for cell in fill_order.fill_order(_cells(center, radius), center, EDGE_PC)
                 if cell[:3] != (seed["shell_index"], seed["band_index"], seed["wedge_index"])]
-    assert batch == [] and options["planned"] == "neighborhood" and options["count"] == len(expected)
+    assert stage.key == "sectors" and stage.batch == () and stage.planned == "neighborhood" \
+        and stage.count == len(expected)
     items, suffixes = run_galaxy.planned_items({
         "database": wrapper.database_args(mysql_config), "args": run_galaxy._sector_args_json(args),
         "edge_pc": EDGE_PC, "items": [], "planned": "neighborhood"})

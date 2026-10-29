@@ -206,9 +206,30 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
               area="queue")
     if outcome.advance:
         from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
-        wrapper.finish_stage(conn, run_id, stage)
-        wrapper.advance(conn, run_id, stage + 1)
+        _end_stage(conn, run_id, stage, wrapper)
     return {"seconds": seconds}
+
+
+def _end_stage(conn, run_id, stage, wrapper):
+    """
+    What the unit that completes `stage` does for the run (PERF.172): the command's conclusion, the stage's
+    statistics, and the opening of the next stage. A failure in the conclusion or in opening the next stage (its
+    `prepare`, or reading the galaxy to cut it) is the run's failure, said at once with the stage named; left to
+    RQ it would read as a unit that failed after it was done, and the run would wait for a stage nobody queues.
+    """
+    try:
+        took = wrapper.conclude_stage(conn, run_id, stage)
+    except Exception as exc:
+        runrecord.finish_run(conn, run_id, "failed", error=f"the end of stage {wrapper.stage_label(conn, run_id, stage)} "
+                                                           f"failed: {type(exc).__name__}: {exc}")
+        raise
+    wrapper.finish_stage(conn, run_id, stage, took)
+    try:
+        wrapper.advance(conn, run_id, stage + 1)
+    except Exception as exc:
+        runrecord.finish_run(conn, run_id, "failed", error=f"stage {wrapper.stage_label(conn, run_id, stage + 1)} could not "
+                                                           f"start: {type(exc).__name__}: {exc}")
+        raise
 
 
 def _short(value, limit=300):
