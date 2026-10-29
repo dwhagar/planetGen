@@ -1061,6 +1061,27 @@ def format_report(results, verbose=False):
     return "\n".join(lines)
 
 
+def expand_check_math(params):
+    """The `check-math` command's stage: one unit, the whole check."""
+    from planetgen.queue import commands
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def check_math_unit(params, report):
+    """
+    The `check-math` command (PERF.119): runs every check and reports (TEST.68).
+
+    Args:
+        params (dict): `verbose` (a line for every check, not only the failures).
+        report (callable): Unused: the unit is one step.
+
+    Returns:
+        dict: `failed` (how many checks failed) and `report`, the text `format_report` gives.
+    """
+    results = run_all()
+    return {"failed": len(failures(results)), "report": format_report(results, verbose=bool(params.get("verbose")))}
+
+
 _STARTUP_RESULTS = None
 
 

@@ -18,12 +18,14 @@ downloads at run time.
 """
 
 import argparse
+import signal
 import sys
 
 from rich.console import Console
 from rich.progress import BarColumn, DownloadColumn, Progress, TextColumn, TimeRemainingColumn, TransferSpeedColumn
 
 from planetgen.datasets import catalogue, fetch
+from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
 from planetgen.util import log
 
 
@@ -87,6 +89,80 @@ def _download_progress():
     return fetch.PlainProgress(log.normal)
 
 
+def status_lines(datasets, disregard_missing_data=False):
+    """
+    Where each of `datasets` stands, as the lines the data check prints and how many it counts as absent (a dataset with
+    a fallback counts as present when `disregard_missing_data` takes the fallback). Fetches nothing.
+
+    Returns:
+        tuple: `(lines, absent)`.
+    """
+    lines, absent = [], 0
+    for dataset in datasets:
+        located = fetch.locate(dataset)
+        if located.missing:
+            taken = disregard_missing_data and bool(dataset.fallback)
+            absent += not taken
+            lines.append(_line(dataset, True, located.reason)
+                         + (_DISREGARDED.format(dataset.fallback) if taken else _CONSEQUENCE.format(dataset.replaces)))
+            lines.extend(_piece_line("missing", piece, reason) for piece, reason in located.lacking)
+        else:
+            lines.append(_line(dataset, False, f"present in {located.folder}"))
+    return lines, absent
+
+
+def expand_check_datasets(params):
+    """The `check-datasets` command's stage: one unit, the whole check."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def check_datasets_unit(params, report):
+    """
+    The `check-datasets` command (PERF.119): says where each dataset stands and fetches nothing, the data check in front
+    of every Generate job (GEN.590).
+
+    Args:
+        params (dict): `keys` (the datasets to check; none means all) and `disregard` (a missing dataset with a fallback
+            is taken as one).
+        report (callable): Unused: the unit is one step.
+
+    Returns:
+        dict: `lines`, what the check prints, and `absent`, how many datasets are missing for good.
+    """
+    lines, absent = status_lines(_chosen(params.get("keys") or []), bool(params.get("disregard")))
+    return {"lines": lines, "absent": absent}
+
+
+def _raise_interrupt(_signum, _frame):
+    raise KeyboardInterrupt
+
+
+def run_status(keys, disregard_missing_data):
+    """
+    `datasets status`: runs the `check-datasets` command through the wrapper as a check run and prints its lines.
+
+    Returns:
+        int: 1 when a dataset is missing for good, else 0.
+    """
+    _chosen(keys)       # an unknown key is refused here, with the list of the known ones
+    step = commands.Step("datasets", "check-datasets", "Check the data sets",
+                         {"keys": list(keys), "disregard": bool(disregard_missing_data)})
+    found = []
+    previous_term = signal.signal(signal.SIGTERM, _raise_interrupt)      # Cancel ends the run as cancelled in Redis
+    try:
+        wrapper.run("Data check", [step], lambda index, plan: None, lambda index, unit, result: found.append(result),
+                    kind=runrecord.CHECK, argv=sys.argv[1:])
+    except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
+        log.error(f"error: the data check could not run: {exc}")
+        return 1
+    finally:
+        signal.signal(signal.SIGTERM, previous_term)
+    for result in found:
+        for line in result["lines"]:
+            log.normal(line)
+    return 1 if any(result["absent"] for result in found) else 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("command", choices=("fetch", "status"))
@@ -101,29 +177,19 @@ def main(argv=None):
     if not datasets:
         log.normal("No datasets are registered yet.")
         return 0
+    if args.command == "status":
+        return run_status(args.keys, args.disregard_missing_data)
     absent = 0
-    progress = _download_progress() if args.command == "fetch" else None
+    progress = _download_progress()
     for dataset in datasets:
-        if args.command == "fetch":
-            result = fetch.fetch(dataset, progress=progress)
-            if result.status == "missing":
-                absent += 1
-                log.normal(_line(dataset, True, "; ".join(result.reasons)) + _CONSEQUENCE.format(dataset.replaces))
-            else:
-                log.normal(_line(dataset, False, f"{result.status} ({len(dataset.pieces)} files, {fetch.folder(dataset)})"))
-            for handled in result.pieces:
-                log.normal(_piece_line(handled.state, handled.piece, handled.reason))
+        result = fetch.fetch(dataset, progress=progress)
+        if result.status == "missing":
+            absent += 1
+            log.normal(_line(dataset, True, "; ".join(result.reasons)) + _CONSEQUENCE.format(dataset.replaces))
         else:
-            located = fetch.locate(dataset)
-            if located.missing:
-                taken = args.disregard_missing_data and bool(dataset.fallback)
-                absent += not taken
-                log.normal(_line(dataset, True, located.reason)
-                           + (_DISREGARDED.format(dataset.fallback) if taken else _CONSEQUENCE.format(dataset.replaces)))
-                for piece, reason in located.lacking:
-                    log.normal(_piece_line("missing", piece, reason))
-            else:
-                log.normal(_line(dataset, False, f"present in {located.folder}"))
+            log.normal(_line(dataset, False, f"{result.status} ({len(dataset.pieces)} files, {fetch.folder(dataset)})"))
+        for handled in result.pieces:
+            log.normal(_piece_line(handled.state, handled.piece, handled.reason))
     return 1 if absent else 0
 
 

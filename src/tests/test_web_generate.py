@@ -1213,7 +1213,7 @@ def test_old_jobs_are_pruned(jobs_root, monkeypatch, redis_server):
         _wait_finished(job_id, jobs_root)
         ids.append(job_id)
         time.sleep(1.01)  # job ids are per second
-    assert sorted(os.listdir(jobs_root)) == sorted(ids[-2:])
+    assert sorted(n for n in os.listdir(jobs_root) if n != "step-times.json") == sorted(ids[-2:])
 
 
 def test_log_tail_collapses_carriage_returns(jobs_root):
@@ -1257,7 +1257,7 @@ def test_reset_job_empties_a_real_database(mysql_config, jobs_root, redis_server
     job_id = jobs.start_job("reset", "Reset", [{
         "label": "Reset the galaxy", "argv": [PY, *jobs.RESET_COMMAND, "--yes"],
     }], env=jobs.mysql_env(mysql_config, mysql_config.database))
-    job = _wait_finished(job_id, jobs_root, timeout=60)
+    job = _wait_finished(job_id, jobs_root, timeout=240)  # the reset is a queued run now: a cold worker takes a while to start
     assert job["status"] == "succeeded", jobs.log_tail(job_id)
     conn = _db.get_connection(mysql_config)
     try:
