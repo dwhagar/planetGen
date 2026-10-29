@@ -19162,6 +19162,10 @@ clears each one.
   Research (2026-10-09): Part E of the prevalence suite (TEST.430 plan,
   Bug 2): kept as its own item, built after TEST.430 and TEST.431;
   supersedes the earlier "folded into TEST.430, retire with it" note.
+  Research (2026-10-09): Bug 2 (PR 3585, 2026-10-28): first cut merged,
+  built on the system draw host mix. Stays open for the repeat on
+  galaxy-placed stars and the final classes after the class cut-over
+  (GEN.646).
 
 - [ ] **TEST.398 The test preflight kills stale planetgen.cli.worker processes, which pick up the units of later runs (bug)**
   Math 1 finding (3:49 AM EDT 2026-10-25): stale planetgen.cli.worker
@@ -19504,30 +19508,6 @@ clears each one.
   GEN.829 (class T never drawn), GEN.866 (the hang), GEN.812 (intended
   greenhouse change warms K5V ecosphere moons; the range waits for the
   class cut-over).
-
-- [ ] **TEST.431 System census: full systems per star type with planets, moons, belts and comets per system, the zero-planet share, binary share, habitable-world share, and life stage and civilization shares (prevalence suite part B)**
-  Part of the full prevalence suite (TEST.430, Boss 7:27 PM EDT
-  2026-10-28). Plan:
-  /mnt/project-files/reports/bug2/prevalence-suite-plan-2026-10-28.md.
-  Shared design: one harness, src/tests/audit/prevalence.py, seeded from
-  each cell's name so a run repeats; one stored expectations file per
-  part (src/tests/data/prevalence_*.json) whose every range has min,
-  max, a kind (observed rate, norm researched, or stand-in with its tier
-  and tweak level per GEN.725), a source or "measured at commit X, N
-  draws", and an optional known-anomaly item number; a test fails on a
-  flag with no known anomaly, known anomalies print in the report and
-  never hide; one latest-run report per part; selected by
-  scripts/test.py changed whenever generation code changes; a baseline
-  builder re-measures a commit and rewrites the ranges. Owner: Bug 2,
-  build order A (TEST.430), B (this), E (TEST.395), C, D, F
-  (TEST.209/210/214/301). Do: full seeded systems per star type;
-  per-system counts and shares as listed; ranges from researched norms
-  where they exist, otherwise the prevalence before the class cut-over
-  (reference: before 4c, commit 86f5e3993^) marked as stand-ins. The
-  GEN.52 feature-knob tests in test_prevalence.py stay. Done: the part
-  runs from one command, a seeded run repeats, and a deliberately broken
-  input trips each flag.
-  Prerequisites: none. Related: TEST.430, TEST.395, GEN.855, GEN.725.
 
 - [ ] **TEST.432 Star census: star type mix, white dwarfs, subgiants, giants, pre-main-sequence stars, brown dwarfs and multiplicity by type against RECONS and Kroupa (prevalence suite part C)**
   Part of the full prevalence suite (TEST.430, Boss 7:27 PM EDT
