@@ -13571,46 +13571,108 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.1.
   Prerequisites: none. Related: GEN.914, GEN.919, GEN.918, GEN.897,
   GEN.898, GEN.899, TEST.430.
+  Research (2026-10-09): Chain filed from Bug 1's plan
+  (/mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md,
+  2026-10-29): TEST.454 (observed curve as data and per-bin harness,
+  lock-free), GEN.926 (one IMF module, no output change, lock-free),
+  GEN.927 (single-star curve rows, design note), GEN.928 (primaries from
+  the single-star curve plus multiplicity, brown dwarf companions),
+  GEN.929 (systems per stellar mass and star count, supersedes GEN.918),
+  GEN.930 (remnants and giants against the curve, absorbs GEN.919),
+  GEN.931 (arm contrast by population), GEN.932 (the epoch: items
+  GEN.927 to GEN.931 as one merge in one lock turn). The first drafts
+  GEN.923 to GEN.925 were dropped in favour of this chain. GEN.922
+  closes when GEN.932 merges.
 
-- [ ] **GEN.923 Observed star-population targets, with sources, for every mass segment and star-like object type (the table the star mass function must match)**
-  Child of GEN.922. Build the table of observed present-day shares and
-  number densities by segment and type: brown dwarfs, M, K, G, F, A, B,
-  O dwarfs, giants, white dwarfs, neutron stars, black holes, and the
-  stellar mass share per segment, from the 10 pc and 20 pc censuses
-  (RECONS, Gaia), the Gaia 100 pc and 150 pc samples, the local
-  luminosity function and the initial mass function literature (Kroupa
-  2001, Chabrier 2003, Salpeter), with the uncertainty of each number,
-  the verified or unverified tier of each source (verified wins; two
-  verified in doubt = newest; two in question = widest range) and the
-  multiplicity statistics per segment. Output is a data file under
-  src/planetgen/physics/data with the sources and a report; papers Boss
-  cannot access are taken second-hand per
-  reports/secondhand-citations-2026-10-24.md. Owner: Bug 1. Version 8.1.
+- [ ] **GEN.926 One initial mass function module (physics/imf.py) replaces the six copies of the power-law code, with no change of output**
+  Item 2 of the star mass function chain (GEN.922). One module holds the
+  single-star initial mass function (density, integral, quantile,
+  sampler) over segments read from tuning rows; star_population,
+  system_mass, disk_history, stellar_evolution, hii,
+  black_hole_formation, mathcheck and star.py all call it. Proves the
+  refactor with the golden unchanged, so the curve can change in one
+  place later. Lock-free (golden unchanged). Part of the GEN.922 chain,
+  plan
+  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
+  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
   Prerequisites: none. Related: GEN.922.
 
-- [ ] **GEN.924 A segmented initial mass function with sourced breakpoints and slopes replaces the single low-mass slope, for the whole mass range down to the brown dwarfs and up to the most massive stars**
-  Child of GEN.922. Replace the Kroupa single low-mass slope with a
-  segmented initial mass function (breakpoints and slopes from the
-  sourced table, including the sub-stellar tail and the massive end),
-  keeping the normalisation tied to the local stellar density and the
-  system count (a galaxy of the same stellar mass must hold the observed
-  number of systems per cubic parsec at the Sun, 0.0984) so the mean
-  system mass is set by the curve and not by a fudge factor; record each
-  breakpoint and slope as a stand-in with its tier and tweak scale.
-  Owner: Bug 1. Prerequisites: the targets table. Version 8.1.
-  Prerequisites: GEN.923. Related: GEN.922.
+- [ ] **GEN.927 Single-star mass function rows: a bell below 1 solar mass, the field slope from 1 to 8, the sub-stellar tail and the massive end, with stand-in tiers and tweak levels and a design note**
+  Item 3 of the star mass function chain (GEN.922). Replace the hand-set
+  broken line (1.3 below 0.5, 2.3 above) with sourced rows for the
+  sub-stellar tail, the low-mass bell, the solar range, the field slope
+  from 1 to 8 solar masses and the massive end; research check that the
+  field steepening is a birth function and not a count of stars already
+  dead; stand-in rows with tier and tweak scale; new design note
+  docs/design/galaxy/stellar-mass-function.md. Part of the one epoch
+  (item GEN.932). Part of the GEN.922 chain, plan
+  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
+  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
+  Prerequisites: TEST.454, GEN.926. Related: GEN.922, GEN.914.
 
-- [ ] **GEN.925 Present-day star populations follow from the initial mass function, the star-formation history, main-sequence lifetimes and remnant masses: white dwarfs, neutron stars and black holes fall out, not tuned**
-  Child of GEN.922. Derive the present-day mix from the initial mass
-  function (the segmented one), the disk, bulge and halo star-formation
-  histories (GEN.469 chain), lifetimes by mass and metallicity, and
-  remnant masses: white dwarfs (target 4.5 to 7 percent now 8.1 at slope
-  1.1), neutron stars (about 1e9 in the Galaxy) and black holes then
-  follow without separate shares; the census reference galaxy is the
-  Milky Way-like shape (GEN.918). Closes GEN.919 and the neutron star
-  and black hole density notes (GEN.560/563 chain). Owner: Bug 1.
-  Prerequisites: the segmented initial mass function. Version 8.1.
-  Prerequisites: GEN.924. Related: GEN.922, GEN.919, GEN.918.
+- [ ] **GEN.928 System primaries follow from the single-star curve plus multiplicity (a top-down solve), with brown dwarf companions and the brown dwarf desert; the star-count table agrees**
+  Item 4 of the star mass function chain (GEN.922). For each mass m,
+  single stars at m equal primaries at m plus companions at m from
+  heavier primaries; solve from the top mass down with no iteration.
+  Inputs are the companion fraction by primary mass and the mass-ratio
+  distribution (Raghavan 2010, Duchene and Kraus 2013, Moe and Di
+  Stefano 2017; today a uniform ratio 0.1 to 1 and the star-count
+  table), each a sourced row with a tier. The system function (peak near
+  0.2 solar masses) then comes out of the physics. Part of the one epoch
+  (GEN.932). Part of the GEN.922 chain, plan
+  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
+  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
+  Prerequisites: GEN.927. Related: GEN.922.
+
+- [ ] **GEN.929 Systems per stellar mass and the galaxy's star count come from the same construction (the mean system mass of item 4); supersedes GEN.918**
+  Item 5 of the star mass function chain (GEN.922). The number of
+  systems per unit stellar mass is the mean system mass of the
+  construction in the primary-function item, one number and not a second
+  anchor, so the galaxy's star count follows its own star-formation
+  history; closes the root of GEN.900 to 902 permanently and supersedes
+  GEN.918 (the census-galaxy fix). Part of the one epoch (GEN.932). Part
+  of the GEN.922 chain, plan
+  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
+  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
+  Prerequisites: GEN.928. Related: GEN.922, GEN.918.
+
+- [ ] **GEN.930 Remnants (white dwarfs, neutron stars, black holes) and giants follow from the curve and are checked against it; the pinned derived-density tests are re-derived, not loosened**
+  Item 6 of the star mass function chain (GEN.922). White dwarfs come
+  from the 0.8 to 8 solar mass stars that have died (initial-final
+  relation, the disk history ages), neutron stars and black holes from
+  the massive share, giants from the evolved stars; no separate anchor
+  for the massive share unless a derivation fails and then a recorded
+  L2. The tests that pin the old shares (black hole 0.00637, neutron
+  star, place terms, GEN.560/563 chain) are re-derived. Absorbs GEN.919
+  (white dwarf share). Part of the one epoch (GEN.932). Part of the
+  GEN.922 chain, plan
+  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
+  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
+  Prerequisites: GEN.929. Related: GEN.922, GEN.919.
+
+- [ ] **GEN.931 The spiral-arm contrast at the Sun's place is set per stellar population (young arm populations strong, A stars weak), not by the single inter-arm minimum (the A-star lever of GEN.898)**
+  Item 7 of the star mass function chain (GEN.922). The arm contrast at
+  the Sun is a population-by-population value from the literature (A
+  stars are 0.1 to 1 Gy old, so weak), not one inter-arm minimum;
+  literature check on the Sun's place; recorded as stand-in rows. Part
+  of the one epoch (GEN.932). Part of the GEN.922 chain, plan
+  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
+  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.898.
+
+- [ ] **GEN.932 The star mass function epoch: golden, design docs, census targets and tags, retire the old tags; items 3 to 7 land as one merge in one lock turn**
+  Item 8 of the star mass function chain (GEN.922), the long-term epoch
+  Boss wants (5:24 PM EDT 2026-10-29): items 3 to 7 land together in one
+  epoch (allocate_numbers, golden_update, --affects plan and later
+  stages), with the census targets and tags updated, the old GEN.914 and
+  GEN.919 tags retired, the design note and docs finished, and the
+  TEST.430, phenomena and star censuses green. Lock turn after the lanes ahead of it
+  in the order and Bug 1's #3713 turn (Bug 1 says when it is ready). Part of the GEN.922
+  chain, plan
+  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
+  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
+  Prerequisites: GEN.927, GEN.928, GEN.929, GEN.930, GEN.931. Related:
+  GEN.922.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18556,6 +18618,19 @@ clears each one.
   tests that time out at 900 s on the slower machines (also on main) are
   a machine limit, not part of this item. Owner: Bug 1. Version 8.1.
   Prerequisites: none. Related: TEST.411, TEST.450.
+
+- [ ] **TEST.454 The observed star mass-function curve as data, with a per-bin harness that measures the generator against it (segments from 0.01 to 150 solar masses by object type)**
+  Item 1 of the star mass function chain (GEN.922). Build the observed
+  curve as a data file: segments from 0.01 to 150 solar masses and by
+  type (brown dwarf, M, K, G, F, A, B, O, white dwarf, neutron star,
+  black hole, giant), for primaries and for all stars, each with source,
+  tier and tolerance; a harness measures the generator per mass bin and
+  reports the miss. It comes first so that every later step shows it
+  moves the right bins. Lock-free: no generated-output change. Part of
+  the GEN.922 chain, plan
+  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
+  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
+  Prerequisites: none. Related: GEN.922, TEST.430.
 
 ## USR: User accounts
 

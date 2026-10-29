@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.238 |
 | MAP | MAP.347 |
 | NAV | NAV.65 |
-| GEN | GEN.926 |
+| GEN | GEN.933 |
 | PERF | PERF.209 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.454 |
+| TEST | TEST.455 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -1673,9 +1673,16 @@ Parents marked "new parent" had no old number of their own.
 | GEN.920 | Giants around F, G and K stars are too rare after the class cut-over: 0.03 cold and 0.07 in all per star against 0.05 to 0.25 and 0.08 to 0.35 observed; retune the mass-law gas share (bug) | none | open |
 | GEN.921 | Moons per planet rose after the class cut-over (G2V 1.90 against 1.25): find out why and whether it is right (bug) | none | open |
 | GEN.922 | The star mass function is built right: initial mass function and present-day populations match the observed curve segment by segment, for every mass range and every star-like object type (parent, replaces the one-number GEN.914 tweak) | none | open |
-| GEN.923 | Observed star-population targets, with sources, for every mass segment and star-like object type (the table the star mass function must match) | none | open |
-| GEN.924 | A segmented initial mass function with sourced breakpoints and slopes replaces the single low-mass slope, for the whole mass range down to the brown dwarfs and up to the most massive stars | none | open |
-| GEN.925 | Present-day star populations follow from the initial mass function, the star-formation history, main-sequence lifetimes and remnant masses: white dwarfs, neutron stars and black holes fall out, not tuned | none | open |
+| GEN.923 | Observed star-population targets, with sources, for every mass segment and star-like object type (the table the star mass function must match) | none | dropped, replaced by TEST.454 and GEN.926 to GEN.932 (Bug 1 plan) |
+| GEN.924 | A segmented initial mass function with sourced breakpoints and slopes replaces the single low-mass slope, for the whole mass range down to the brown dwarfs and up to the most massive stars | none | dropped, replaced by GEN.927 and GEN.928 (Bug 1 plan) |
+| GEN.925 | Present-day star populations follow from the initial mass function, the star-formation history, main-sequence lifetimes and remnant masses: white dwarfs, neutron stars and black holes fall out, not tuned | none | dropped, replaced by GEN.929 and GEN.930 (Bug 1 plan) |
+| GEN.926 | One initial mass function module (physics/imf.py) replaces the six copies of the power-law code, with no change of output | none | open |
+| GEN.927 | Single-star mass function rows: a bell below 1 solar mass, the field slope from 1 to 8, the sub-stellar tail and the massive end, with stand-in tiers and tweak levels and a design note | none | open |
+| GEN.928 | System primaries follow from the single-star curve plus multiplicity (a top-down solve), with brown dwarf companions and the brown dwarf desert; the star-count table agrees | none | open |
+| GEN.929 | Systems per stellar mass and the galaxy's star count come from the same construction (the mean system mass of item 4); supersedes GEN.918 | none | open |
+| GEN.930 | Remnants (white dwarfs, neutron stars, black holes) and giants follow from the curve and are checked against it; the pinned derived-density tests are re-derived, not loosened | none | open |
+| GEN.931 | The spiral-arm contrast at the Sun's place is set per stellar population (young arm populations strong, A stars weak), not by the single inter-arm minimum (the A-star lever of GEN.898) | none | open |
+| GEN.932 | The star mass function epoch: golden, design docs, census targets and tags, retire the old tags; items 3 to 7 land as one merge in one lock turn | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3279,6 +3286,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.451 | Ten reds Core 5 saw on main at its PERF.172 merge (9:59 AM EDT 2026-10-29): re-run each on current main, close the ones already fixed, file the real ones (bug) | none | done, PR #3707 |
 | TEST.452 | A sweep finds the life-capable conditions on every planet class and proves the generator lets life evolve there (a class-blind life test) | none | done, PR #3728 |
 | TEST.453 | Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug) | none | open |
+| TEST.454 | The observed star mass-function curve as data, with a per-bin harness that measures the generator against it (segments from 0.01 to 150 solar masses by object type) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
