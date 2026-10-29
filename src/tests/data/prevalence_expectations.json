@@ -2,8 +2,7 @@
  "anomalies": {
   "GEN.812": "an intended physics change, not a fault: the greenhouse water vapour thinning with height and the grey cloud depth (epoch 118) warm the K5V ecosphere moons, so their Yellow share fell and Red rose past the pre-cut-over range; the range waits for the class cut-over to settle before it is re-baselined",
   "GEN.829": "class T (gas dwarf) is never drawn: no 2 to 20 Earth-mass sub-Neptune population exists (GEN.829); the pre-cut-over spine drew it almost never either",
-  "GEN.855": "since 4c (epoch 106) the solved air has no free oxygen and nothing makes biogenic O2, so habitable-class worlds score Red or Yellow where they scored Green or Blue, and no scored world allows complex life; the microbial ceiling share rises by what the unlimited share loses",
-  "GEN.896": "since 4c (epoch 106) hot-zone planets and moons almost never score Yellow (before: 3 to 21 percent by star type); not the oxygen loss, cause not yet found"
+  "GEN.855": "since 4c (epoch 106) the solved air has no free oxygen and nothing makes biogenic O2, so habitable-class worlds score Red or Yellow where they scored Green or Blue, and no scored world allows complex life; the microbial ceiling share rises by what the unlimited share loses"
  },
  "cells": {
   "A0V/cold/moon": {
@@ -551,11 +550,10 @@
      "source": "pre-cut-over share 0.968 of 249 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
-     "anomaly": "GEN.896",
      "kind": "stand-in",
-     "max": 0.1353,
-     "min": 0.004,
-     "source": "pre-cut-over share 0.032 of 249 scored bodies at 0b4d0ccef"
+     "max": 0.04,
+     "min": 0.0,
+     "source": "since 4c (epoch 106) the hot zone holds only tiny rocks that keep no air, so the ultraviolet or dose is unshielded and Radiation scores Red (GEN.896, physics, not a fault); was pre-cut-over share 0.032 of 249 scored bodies at 0b4d0ccef"
     }
    }
   },
@@ -656,11 +654,10 @@
      "source": "pre-cut-over share 0.956 of 181 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
-     "anomaly": "GEN.896",
      "kind": "stand-in",
-     "max": 0.1706,
-     "min": 0.0055,
-     "source": "pre-cut-over share 0.044 of 181 scored bodies at 0b4d0ccef"
+     "max": 0.04,
+     "min": 0.0,
+     "source": "since 4c (epoch 106) the hot zone holds only tiny rocks that keep no air, so the ultraviolet or dose is unshielded and Radiation scores Red (GEN.896, physics, not a fault); was pre-cut-over share 0.044 of 181 scored bodies at 0b4d0ccef"
     }
    }
   },
@@ -1198,11 +1195,10 @@
      "source": "pre-cut-over share 0.981 of 259 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
-     "anomaly": "GEN.896",
      "kind": "stand-in",
-     "max": 0.1077,
-     "min": 0.0039,
-     "source": "pre-cut-over share 0.019 of 259 scored bodies at 0b4d0ccef"
+     "max": 0.04,
+     "min": 0.0,
+     "source": "since 4c (epoch 106) the hot zone holds only tiny rocks that keep no air, so the ultraviolet or dose is unshielded and Radiation scores Red (GEN.896, physics, not a fault); was pre-cut-over share 0.019 of 259 scored bodies at 0b4d0ccef"
     }
    }
   },
@@ -1303,11 +1299,10 @@
      "source": "pre-cut-over share 0.966 of 179 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
-     "anomaly": "GEN.896",
      "kind": "stand-in",
-     "max": 0.1496,
-     "min": 0.0056,
-     "source": "pre-cut-over share 0.034 of 179 scored bodies at 0b4d0ccef"
+     "max": 0.04,
+     "min": 0.0,
+     "source": "since 4c (epoch 106) the hot zone holds only tiny rocks that keep no air, so the ultraviolet or dose is unshielded and Radiation scores Red (GEN.896, physics, not a fault); was pre-cut-over share 0.034 of 179 scored bodies at 0b4d0ccef"
     }
    }
   },
@@ -1865,11 +1860,10 @@
      "source": "pre-cut-over share 0.927 of 206 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
-     "anomaly": "GEN.896",
      "kind": "stand-in",
-     "max": 0.2152,
-     "min": 0.0049,
-     "source": "pre-cut-over share 0.073 of 206 scored bodies at 0b4d0ccef"
+     "max": 0.04,
+     "min": 0.0,
+     "source": "since 4c (epoch 106) the hot zone holds only tiny rocks that keep no air, so the ultraviolet or dose is unshielded and Radiation scores Red (GEN.896, physics, not a fault); was pre-cut-over share 0.073 of 206 scored bodies at 0b4d0ccef"
     }
    }
   },
@@ -1970,11 +1964,10 @@
      "source": "pre-cut-over share 0.893 of 177 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
-     "anomaly": "GEN.896",
      "kind": "stand-in",
-     "max": 0.279,
-     "min": 0.0056,
-     "source": "pre-cut-over share 0.107 of 177 scored bodies at 0b4d0ccef"
+     "max": 0.04,
+     "min": 0.0,
+     "source": "since 4c (epoch 106) the hot zone holds only tiny rocks that keep no air, so the ultraviolet or dose is unshielded and Radiation scores Red (GEN.896, physics, not a fault); was pre-cut-over share 0.107 of 177 scored bodies at 0b4d0ccef"
     }
    }
   },
@@ -3823,11 +3816,10 @@
      "source": "pre-cut-over share 0.868 of 106 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
-     "anomaly": "GEN.896",
      "kind": "stand-in",
-     "max": 0.3581,
-     "min": 0.0094,
-     "source": "pre-cut-over share 0.132 of 106 scored bodies at 0b4d0ccef"
+     "max": 0.04,
+     "min": 0.0,
+     "source": "since 4c (epoch 106) the hot zone holds only tiny rocks that keep no air, so the ultraviolet or dose is unshielded and Radiation scores Red (GEN.896, physics, not a fault); was pre-cut-over share 0.132 of 106 scored bodies at 0b4d0ccef"
     }
    }
   },
@@ -3928,11 +3920,10 @@
      "source": "pre-cut-over share 0.906 of 181 scored bodies at 0b4d0ccef"
     },
     "Yellow": {
-     "anomaly": "GEN.896",
      "kind": "stand-in",
-     "max": 0.2566,
-     "min": 0.0055,
-     "source": "pre-cut-over share 0.094 of 181 scored bodies at 0b4d0ccef"
+     "max": 0.04,
+     "min": 0.0,
+     "source": "since 4c (epoch 106) the hot zone holds only tiny rocks that keep no air, so the ultraviolet or dose is unshielded and Radiation scores Red (GEN.896, physics, not a fault); was pre-cut-over share 0.094 of 181 scored bodies at 0b4d0ccef"
     }
    }
   }
