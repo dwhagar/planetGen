@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2542] - 2026-10-29
+
+**Headline:** The clear-scatter test no longer fails when an earlier test left the logger silent.
+
+### Changed
+- **The test that reads the console sets the console first.** `test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing` read `capsys.out` but the logger belongs to the test process: a test that ran `main()` with `--quiet`, `--silent` or `--output -` (or the web app, which has no console handler) left it silent or writing to stderr, so under a parallel gate the message came back as an empty string. The module now sets the logger to write to stdout before each test. Tests only; the product is unchanged.
+
 ## [8.0.2541] - 2026-10-29
 
 **Headline:** A galaxy with more than 4,000 nebula field slabs no longer fails the nebula field stage; its units cover several slabs each.
