@@ -11,7 +11,7 @@ import pytest
 from planetgen import tuning
 from planetgen.galaxy import structure
 from planetgen.generation import multistar
-from planetgen.physics import black_hole_formation, remnant_progenitors as progenitors, stellar_evolution
+from planetgen.physics import black_hole_formation, imf, remnant_progenitors as progenitors
 from planetgen.util import draw
 
 BOTTOM, TOP = tuning.CORE_COLLAPSE_MASS_RANGE_SOL
@@ -19,7 +19,7 @@ SHARES = (0.0, 0.01, 0.03, 0.05, 0.07, 0.09, 0.15, 0.2, 0.32, 0.45, 1.0)
 
 
 def _share(windows):
-    return sum(stellar_evolution.imf_number(low, high) for low, high in windows) / stellar_evolution.imf_number(BOTTOM, TOP)
+    return sum(imf.number(low, high) for low, high in windows) / imf.number(BOTTOM, TOP)
 
 
 def _inside(windows, mass):
@@ -103,7 +103,7 @@ def test_progenitors_follow_the_imf_over_the_windows():
     share = 0.2
     windows = progenitors.kind_windows("black-hole", share)
     wide = max(windows, key=lambda w: w[1] - w[0])
-    weight = stellar_evolution.imf_number(*wide) / sum(stellar_evolution.imf_number(*w) for w in windows)
+    weight = imf.number(*wide) / sum(imf.number(*w) for w in windows)
     with draw.bound(5541):
         masses = [progenitors.sample_mass_sol("black-hole", 0.0, draw, share) for _ in range(4000)]
     assert sum(wide[0] <= mass <= wide[1] for mass in masses) / len(masses) == pytest.approx(weight, abs=0.03)
@@ -120,7 +120,7 @@ def test_a_seed_gives_the_same_progenitor():
 
 
 def test_the_number_of_a_kind_is_its_share_of_the_massive_stars():
-    total = stellar_evolution.imf_number(BOTTOM, TOP)
+    total = imf.number(BOTTOM, TOP)
     assert progenitors.number("black-hole", 0.0, 0.25) / total == pytest.approx(0.25, abs=1e-5)
     assert progenitors.number("neutron-star", 0.0, 0.25) / total == pytest.approx(0.75, abs=1e-5)
     assert progenitors.number("neutron-star", TOP, 0.25) == 0.0

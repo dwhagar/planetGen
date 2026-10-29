@@ -15,7 +15,7 @@ import random
 import pytest
 
 from planetgen.generation import star as starData, star_population
-from planetgen.physics import constants, main_sequence, stellar_evolution
+from planetgen.physics import constants, imf, main_sequence, stellar_evolution
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
@@ -375,13 +375,13 @@ def test_bad_star_type_raises(star_type):
 @pytest.mark.parametrize("low, high", [(1.0, 1.0), (5.0, 2.0), (200.0, None), (None, 0.01)])
 def test_imf_empty_range_raises(low, high):
     with pytest.raises(ValueError, match=r"empty IMF range \["):
-        stellar_evolution.sample_imf_mass_sol(low, high)
+        imf.sample(low, high)
 
 
 def test_imf_draw_stays_inside_its_truncation():
     rng = random.Random(5)
     for _ in range(200):
-        assert 0.4 <= stellar_evolution.sample_imf_mass_sol(0.4, 0.6, rng) <= 0.6
+        assert 0.4 <= imf.sample(0.4, 0.6, rng) <= 0.6
 
 
 def test_no_living_star_raises_after_max_redraws(monkeypatch):

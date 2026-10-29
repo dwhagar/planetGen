@@ -53,7 +53,7 @@ from statistics import NormalDist
 from planetgen import tuning
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, brown_dwarf, constants, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
+    accretion, brown_dwarf, constants, imf, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
     stability, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
@@ -643,7 +643,7 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None, fe_h=0.0):
         low = max(low, lowest, evolution.youngest_progenitor_sol(age_yr, fe_h))
         if low >= high:
             return None
-        progenitor = evolution.sample_imf_mass_sol(low, high, rng)
+        progenitor = imf.sample(low, high, rng)
         return _remnant_leaf(kind, progenitor, remnant_mass.white_dwarf_mass_sol(progenitor))
     progenitor = remnant_progenitors.sample_mass_sol(kind, max(lowest, evolution.youngest_progenitor_sol(age_yr, fe_h)),
                                                      rng)
@@ -660,7 +660,7 @@ def _alive_star_mass(low, high, age_yr, rng, fe_h=0.0):
     caps the range) for a star of birth [Fe/H] `fe_h`."""
     cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9, fe_h)
     high = max(min(high, cap), low * 1.0001)
-    return evolution.sample_imf_mass_sol(low, high, rng)
+    return imf.sample(low, high, rng)
 
 
 def _is_direct_collapse(leaf):

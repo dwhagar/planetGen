@@ -22,7 +22,7 @@ from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.physics import hii, stellar_evolution, wolf_rayet
+from planetgen.physics import hii, imf, wolf_rayet
 from planetgen.util.random import log_uniform
 
 
@@ -254,7 +254,7 @@ class Nebula(LazySaladName):
         if host is not None:
             name, seed_log_q = f"{host[0]}{host[1]}V", hii.log_q_of_type(*host)
         else:
-            mass = stellar_evolution.sample_imf_mass_sol(*tuning.NEBULA_SEED_MASS_RANGE_SOL[letter])
+            mass = imf.sample(*tuning.NEBULA_SEED_MASS_RANGE_SOL[letter])
             name, seed_log_q = hii.type_name_of_mass(mass), hii.log_q_of_mass(mass)
         counts = {name: 1}
         others = []

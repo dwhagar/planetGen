@@ -64,10 +64,10 @@ import math
 
 from planetgen.galaxy.age_law import AgeLaw
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
-from planetgen.physics import constants, wolf_rayet
+from planetgen.physics import constants, imf, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
-    _power_law_integral, _sample_power_law, agb_bright_chance, birth_fe_h, evolve_star, giant_bright_chance,
+    agb_bright_chance, birth_fe_h, evolve_star, giant_bright_chance,
     giant_end_fraction, has_core_helium_phases, horizontal_branch_bright_chance, main_sequence_bright_from_gy,
     main_sequence_end_luminosity_sol, main_sequence_lifetime_gy, population_age_range_gy, sample_living_star, star_params, subgiant_end_fraction, subgiant_end_luminosity_sol,
 )
@@ -282,7 +282,7 @@ def _mass_grid(extra_edges=(), cells=None):
     with every mass where the IMF slope or a phase rule changes added as an edge (and `extra_edges`, a mass cut a
     draw splits at), and each cell's IMF slope and continuity factor."""
     pc = tuning
-    low, high = pc.IMF_BREAKS_SOL[0], pc.IMF_BREAKS_SOL[-1]
+    low, high = imf.lowest_mass_sol(), imf.highest_mass_sol()
     cells = pc.BRIGHT_STAR_MASS_GRID_CELLS if cells is None else cells
     edges = {low * (high / low) ** (i / cells) for i in range(cells + 1)}
     edges.update(pc.IMF_BREAKS_SOL)
@@ -290,13 +290,10 @@ def _mass_grid(extra_edges=(), cells=None):
     edges.update(extra_edges)
     edges = sorted(edge for edge in edges if low <= edge <= high)
 
-    norms = [1.0]
-    for i in range(1, len(pc.IMF_SLOPES)):
-        norms.append(norms[-1] * pc.IMF_BREAKS_SOL[i] ** (pc.IMF_SLOPES[i] - pc.IMF_SLOPES[i - 1]))
     grid = []
     for a, b in zip(edges, edges[1:]):
-        segment = bisect.bisect_right(pc.IMF_BREAKS_SOL, a) - 1
-        grid.append((a, b, pc.IMF_SLOPES[segment], norms[segment]))
+        _low, _high, alpha, norm = imf.segment_at(a)
+        grid.append((a, b, alpha, norm))
     return grid
 
 
@@ -386,7 +383,7 @@ def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, 
     with_fraction = fe_bin == 0.0
     for a, b, alpha, norm in _mass_grid(tuple(edge for edge in (mass_low, mass_high) if edge is not None),
                                         _grid_cells(fe_bin)):
-        count = norm * _power_law_integral(a, b, alpha)
+        count = norm * imf.power_law_integral(a, b, alpha)
         if with_fraction:
             # E[measure] over the cell by stratified IMF quantiles.
             points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
@@ -508,7 +505,7 @@ def _sample_one_bright(min_luminosity_sol, population, mass_range, window, rng, 
         span = law.window
         index = min(bisect.bisect_right(cumulative, rng.random() * cumulative[-1]), len(cells) - 1)
         a, b, alpha, bound = cells[index]
-        mass = _sample_power_law(a, b, alpha, rng)
+        mass = imf.sample_power_law(a, b, alpha, rng)
         pieces = [(max(start, span[0]), min(end, span[1]), chance)
                   for start, end, chance in _bright_windows(mass, min_luminosity_sol, fe_h)]
         weights = [max(0.0, end - start) * chance for start, end, chance in pieces]
@@ -627,7 +624,7 @@ def _mass_band_table(mass_range, population, window=None, fe_bin=0.0):
     running = born = living = 0.0
     with_fraction = fe_bin == 0.0
     for a, b, alpha, norm in _mass_grid(tuple(edge for edge in mass_range if edge is not None), _grid_cells(fe_bin)):
-        count = norm * _power_law_integral(a, b, alpha)
+        count = norm * imf.power_law_integral(a, b, alpha)
         measure = 0.0
         if with_fraction:
             points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
@@ -681,7 +678,7 @@ def _sample_one_in_mass_band(band, population, law, max_luminosity_sol, rng, sou
         window = table["law"].window
         index = min(bisect.bisect_right(cumulative, rng.random() * cumulative[-1]), len(cells) - 1)
         a, b, alpha, bound = cells[index]
-        mass = _sample_power_law(a, b, alpha, rng)
+        mass = imf.sample_power_law(a, b, alpha, rng)
         if rng.random() * bound >= _living_measure(mass, law, fe_h):
             continue
         oldest = window[1]

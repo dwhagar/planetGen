@@ -26,8 +26,7 @@ from the ionizing photon rate" and "Lifetimes by class":
 
 import math
 
-from planetgen import tuning
-from planetgen.physics import stellar_evolution
+from planetgen.physics import imf, stellar_evolution
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -184,25 +183,8 @@ def _poisson(mean):
 def _stars_per_solar_mass():
     """The mean number of host-capable stars (at least `MIN_IONIZING_MASS_SOL`) per
     solar mass of cluster: the IMF's count above that mass over its total mass."""
-    low, high = tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1]
-    return _imf_integral(MIN_IONIZING_MASS_SOL, high, 0.0) / _imf_integral(low, high, 1.0)
-
-
-def _imf_integral(a, b, power):
-    """The integral of `m^power dN/dm` over `[a, b]` for the IMF in `tuning` (its
-    segments joined continuously at the breaks, as `star_population._mass_grid` joins them)."""
-    breaks, slopes = tuning.IMF_BREAKS_SOL, tuning.IMF_SLOPES
-    norms = [1.0]
-    for i in range(1, len(slopes)):
-        norms.append(norms[-1] * breaks[i] ** (slopes[i] - slopes[i - 1]))
-    total = 0.0
-    for i, alpha in enumerate(slopes):
-        lo, hi = max(a, breaks[i]), min(b, breaks[i + 1])
-        if lo >= hi:
-            continue
-        p = power - alpha + 1.0
-        total += norms[i] * (math.log(hi / lo) if abs(p) < 1e-12 else (hi ** p - lo ** p) / p)
-    return total
+    low, high = imf.lowest_mass_sol(), imf.highest_mass_sol()
+    return imf.integral(0.0, MIN_IONIZING_MASS_SOL, high) / imf.integral(1.0, low, high)
 
 
 def cluster_hosts(cluster_mass_sol, age_myr):
@@ -218,7 +200,7 @@ def cluster_hosts(cluster_mass_sol, age_myr):
     """
     count = _poisson(cluster_mass_sol * _stars_per_solar_mass())
     age_gy = age_myr / 1000.0
-    masses = [stellar_evolution.sample_imf_mass_sol(MIN_IONIZING_MASS_SOL) for _ in range(count)]
+    masses = [imf.sample(MIN_IONIZING_MASS_SOL) for _ in range(count)]
     return sorted((m for m in masses if stellar_evolution.main_sequence_lifetime_gy(m) > age_gy), reverse=True)
 
 

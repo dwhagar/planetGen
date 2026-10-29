@@ -24,7 +24,7 @@ The age of a remnant follows from its progenitor (`collapse_age_gy`).
 import functools
 
 from planetgen import tuning
-from planetgen.physics import stellar_evolution
+from planetgen.physics import imf, stellar_evolution
 from planetgen.util import draw
 
 NEUTRON_STAR = "neutron-star"
@@ -44,7 +44,7 @@ def reference_failed_share():
 
 
 def _number(low, high):
-    return stellar_evolution.imf_number(low, high)
+    return imf.number(low, high)
 
 
 def _union(intervals):
@@ -152,7 +152,7 @@ def sample_mass_sol(kind, lowest_sol=0.0, rng=draw, failed_share=None):
         if pick < weight:
             break
         pick -= weight
-    return stellar_evolution.sample_imf_mass_sol(low, high, rng)
+    return imf.sample(low, high, rng)
 
 
 def collapse_age_gy(kind, age_bias=None, rng=draw, population=None, age_law=None, failed_share=None):

@@ -13,8 +13,9 @@ import pytest
 
 from planetgen import tuning
 from planetgen.cli import generate as generate_cli
-from planetgen.generation import multistar, prevalence, run_system, system_mass
+from planetgen.generation import multistar, prevalence, run_system
 from planetgen.generation.config import SystemConfig
+from planetgen.physics import imf
 from planetgen.web import generate_page
 
 
@@ -148,7 +149,7 @@ def test_the_usual_share_of_five_or_more_stars_is_the_tables_over_the_mass_funct
     grid = np.geomspace(low, high, 400)
     total = five = 0.0
     for a, b in zip(grid[:-1], grid[1:]):
-        number = system_mass.imf_integral(0.0, a, b)
+        number = imf.integral(0.0, a, b)
         weights = multistar.star_count_weights((a * b) ** 0.5)
         total += number
         five += number * sum(weights[4:]) / sum(weights)

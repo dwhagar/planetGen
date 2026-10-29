@@ -6,7 +6,7 @@ Star Population Model
 
 Draws a random star as physics rather than from a spectral-letter table:
 
-1. a mass from the Kroupa (2001) initial mass function (`sample_imf_mass_sol`),
+1. a mass from the Kroupa (2001) initial mass function (`imf.sample`),
 2. an age from the star-formation history (`sample_star_age_gy`),
 3. the star's present state from how far that age is into its own
    main-sequence lifetime (`evolve_star`): main sequence (V), subgiant
@@ -31,7 +31,7 @@ import math
 from planetgen.datasets import fetch, white_dwarf_models
 from planetgen.galaxy import scales
 from planetgen.physics import (
-    constants, giant_branch, main_sequence, metallicity, ms_lifetime, remnant_mass, wolf_rayet)
+    constants, giant_branch, imf, main_sequence, metallicity, ms_lifetime, remnant_mass, wolf_rayet)
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -62,70 +62,6 @@ def main_sequence_lifetime_gy(mass_sol, fe_h=0.0):
     reference composition), from `ms_lifetime` (Hurley, Pols and Tout 2000, GEN.467), the one the rest of the
     generator uses."""
     return ms_lifetime.lifetime_gy(mass_sol, fe_h)
-
-
-def sample_imf_mass_sol(min_mass_sol=None, max_mass_sol=None, rng=draw):
-    """
-    Draws an initial mass (Msun) from the Kroupa broken power law
-    (`IMF_BREAKS_SOL`/`IMF_SLOPES`), optionally truncated to
-    `[min_mass_sol, max_mass_sol]`.
-
-    Each segment's number weight is its power-law integral (with the
-    segments joined continuously at the breaks); a segment is picked by
-    weight and the mass drawn from it by inverse transform.
-    """
-    breaks = tuning.IMF_BREAKS_SOL
-    slopes = tuning.IMF_SLOPES
-    lo = breaks[0] if min_mass_sol is None else max(min_mass_sol, breaks[0])
-    hi = breaks[-1] if max_mass_sol is None else min(max_mass_sol, breaks[-1])
-    if not lo < hi:
-        raise ValueError(f"empty IMF range [{lo}, {hi}] Msun")
-
-    segments = []
-    norm = 1.0  # continuity factor k_i, with k_0 = 1
-    for i, alpha in enumerate(slopes):
-        a, b = breaks[i], breaks[i + 1]
-        if i > 0:
-            norm *= breaks[i] ** (alpha - slopes[i - 1])
-        a, b = max(a, lo), min(b, hi)
-        if a < b:
-            segments.append((a, b, alpha, norm * _power_law_integral(a, b, alpha)))
-
-    total = sum(weight for *_, weight in segments)
-    pick = rng.random() * total
-    for a, b, alpha, weight in segments:
-        if pick < weight:
-            break
-        pick -= weight
-    return _sample_power_law(a, b, alpha, rng)
-
-
-def _power_law_integral(a, b, alpha):
-    if alpha == 1.0:
-        return math.log(b / a)
-    return (b ** (1 - alpha) - a ** (1 - alpha)) / (1 - alpha)
-
-
-def imf_number(low_sol, high_sol):
-    """The number of stars in `[low_sol, high_sol]` solar masses per unit of the IMF (`IMF_BREAKS_SOL` and `IMF_SLOPES`, the
-    segments joined continuously at the breaks); only the ratio of two means anything. 0 for an empty range."""
-    breaks, slopes = tuning.IMF_BREAKS_SOL, tuning.IMF_SLOPES
-    norm, total = 1.0, 0.0
-    for i, alpha in enumerate(slopes):
-        if i > 0:
-            norm *= breaks[i] ** (alpha - slopes[i - 1])
-        a, b = max(low_sol, breaks[i]), min(high_sol, breaks[i + 1])
-        if a < b:
-            total += norm * _power_law_integral(a, b, alpha)
-    return total
-
-
-def _sample_power_law(a, b, alpha, rng):
-    u = rng.random()
-    if alpha == 1.0:
-        return a * (b / a) ** u
-    p = 1 - alpha
-    return (a ** p + u * (b ** p - a ** p)) ** (1 / p)
 
 
 def age_window_gy(low, high, age_bias=None):
@@ -672,7 +608,7 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
     for _ in range(pc.STAR_MODEL_MAX_REDRAWS):
         birth = fe_h if fe_h is not None else birth_fe_h(rng, population, fe_h_peaks, galactic_center_dist_ly)
         if large_star:
-            mass = sample_imf_mass_sol(min_mass_sol=pc.LARGE_STAR_MIN_MASS_SOL, rng=rng)
+            mass = imf.sample(min_mass_sol=pc.LARGE_STAR_MIN_MASS_SOL, rng=rng)
             if max_mass_sol is not None and mass >= max_mass_sol:
                 continue
             low, high = population_age_range_gy(population)
@@ -682,7 +618,7 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
             low, high = age_window_gy(low, high, age_bias)
             age = rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng)
         else:
-            mass = sample_imf_mass_sol(rng=rng)
+            mass = imf.sample(rng=rng)
             if large_star is False and mass >= pc.LARGE_STAR_MIN_MASS_SOL:
                 continue
             if max_mass_sol is not None and mass >= max_mass_sol:
