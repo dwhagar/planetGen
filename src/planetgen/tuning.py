@@ -3564,13 +3564,16 @@ SYSTEM_COMET_CHANCE = 0.3
 # 2026-10-23 after GEN.146 widened the zone to the Kopparapu edges, the same
 # 20,000 systems: 0.4216 where it was 0.253; all four remeasured 2026-10-23 over
 # 20,000 systems, four seeds of 5,000, after GEN.631 drew a system's stars as a
-# tree: its pairs are closer, so fewer have room for planets). A sector or galaxy run's
+# tree: its pairs are closer, so fewer have room for planets; habitable_world alone
+# remeasured 2026-10-29 over 6,000 systems, four seeds of 1,500, after GEN.855 let
+# the air follow its life: 0.354 where it was 0.402, since a world needs the
+# oxygen its life made before it counts as habitable). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.402,   # a habitable planet or moon
+    "habitable_world": 0.354,   # a habitable planet or moon
     "asteroid_belt": 0.549,     # an asteroid belt
     "large_star": 0.049,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
     "planets": 0.941,           # at least one planet or belt
