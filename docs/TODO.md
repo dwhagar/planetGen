@@ -13887,19 +13887,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   turn.
   Prerequisites: GEN.889, GEN.857, GEN.858. Related: GEN.857, GEN.858.
 
-- [ ] **GEN.892 Class text: stage names and descriptions per class, and the eats-drinks-breathes-gives-off lines, replacing the chemistry text**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L11 (extends GEN.869 and GEN.881). Plain words
-  per class: 'It drinks hydrocarbons and gives off methane'. Text only,
-  no epoch.
-  Prerequisites: GEN.886. Related: GEN.869, GEN.881.
-
-- [ ] **GEN.893 Stand-in registry rows for every class window, supply and complexity threshold, with tier and tweak level**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L13 (extends GEN.870). Docs and registry; a test
-  fails when a class constant has no row.
-  Prerequisites: GEN.886. Related: GEN.870, GEN.725.
-
 - [ ] **GEN.894 Strange-solvent life classes 5 to 9 (acid-world, dense CO2, cold hydrocarbon sea, ammonia-water, silicon-bearing in acid): windows, supplies, texts, stand-ins and tiers**
   Life class system design (design thread, Boss 9:10 to 9:20 PM EDT
   2026-10-28; Boss answered all four design cards with option 1):
@@ -19401,7 +19388,7 @@ clears each one.
   and test_prevalence failing; those four were not isolated, so the
   first step is to run each alone on main and keep only the real ones
   (test_gen_compact_orbit_laws may be fixed by GEN.832, #3433). Fix
-  each, or file the generator cause. Owner: Bug 1. Not caused by any
+  each, or file the generator cause. Owner: Aux 2 (lock-free item while waiting, from Bug 1). Not caused by any
   lock holder; say so in the PR instead of fixing it there.
   Research (2026-10-09): Aux 1 saw test_phenomenon_scatter red on main
   again (2026-10-28, GEN.791 gate); already tracked here.
