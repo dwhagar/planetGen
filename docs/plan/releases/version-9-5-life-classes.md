@@ -22,12 +22,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | GEN.864 | Sentient life per life class: sentient species and civilizations draw from the life class scores of a world | GEN.863 | Share of sentient worlds unchanged. |
 
-### Census
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| TEST.435 | Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges | GEN.863, TEST.430 | Extends the TEST.430 suite. |
-
 ## Phase 2: The headline closes
 
 ### The headline closes
