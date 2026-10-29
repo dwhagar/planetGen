@@ -3,8 +3,7 @@
 """
 OPS.53: before an update changes anything it lists the work that runs and stops unless the operator agrees to
 cancel it, and from then on nothing new starts. Fake work for the decisions (`tests/test_update_guard.py` has
-`FakeWork`), real processes, a real Generate job directory, the work queue's rows and a Redis queue for the
-sources.
+`FakeWork`), real processes, a real Generate job directory and a Redis queue for the sources.
 """
 
 import math
@@ -17,8 +16,7 @@ import pytest
 import rq
 
 from planetgen.admin import maintenance, updateguard
-from planetgen.db import store
-from planetgen.queue import api_jobs, redisqueue, work, workers
+from planetgen.queue import api_jobs, redisqueue, workers
 from tests.test_update_guard import FakeWork, begin, lines, say  # noqa: F401 -- fixtures
 
 pytestmark = pytest.mark.real_queue
@@ -131,12 +129,6 @@ def test_a_queue_job_offered_during_the_update_is_not_queued(updating):
         api_jobs.submit(math.pow, 2, 2)
 
 
-def test_a_run_offered_during_the_update_does_not_start(updating):
-    with pytest.raises(updateguard.UpdateRunning, match="A run can't start"):
-        work.open_node("plan", "A run")
-    assert work.current_node() is None
-
-
 def test_a_generate_command_offered_during_the_update_does_not_start(updating, monkeypatch):
     from planetgen.cli import generate
     monkeypatch.setattr(sys, "argv", ["planetgen", "fill-map-luminosity"])
@@ -222,44 +214,6 @@ def test_no_jobs_directory_is_listed_as_nothing_and_not_created(tmp_path, monkey
     monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(tmp_path / "not-there"))
     assert updateguard.GenerateJobSource().items() == []
     assert not (tmp_path / "not-there").exists()
-
-
-@pytest.fixture
-def control_config(mysql_config):
-    conn = store.get_control_connection(mysql_config, ensure_schema=True)
-    conn.close()
-    return mysql_config
-
-
-def test_a_work_queue_run_is_listed_and_cancelled_through_its_control_request(control_config):
-    source = updateguard.WorkRunSource(control_config)
-    assert source.items() == []
-    node = work.open_node("plan", "Generate sectors by command", control_config=control_config)
-    try:
-        found = source.items()
-        assert [(item["kind"], item["title"], item["queued"]) for item in found] == [
-            ("plan", "Generate sectors by command", False)]
-        assert source.cancel(found[0]) is True
-        conn = store.get_control_connection(control_config)
-        try:
-            assert conn.execute("SELECT control FROM work_jobs WHERE id = ?", (node.id,)).fetchone()["control"] == "cancel"
-        finally:
-            conn.close()
-    finally:
-        work.close_node(node, "cancelled")
-    assert source.items() == []
-
-
-def test_a_run_of_a_generate_job_is_left_to_the_job(control_config):
-    node = work.open_node("web-job", "Generate", control_config=control_config, web_job_id="20261016-000000-abcd")
-    try:
-        assert updateguard.WorkRunSource(control_config).items() == []
-    finally:
-        work.close_node(node, "done")
-
-
-def test_without_a_control_database_no_run_is_listed():
-    assert updateguard.WorkRunSource(None).items() == []
 
 
 def test_queued_and_running_jobs_on_the_shared_queues_are_listed_and_cancelled(redis_server, monkeypatch):

@@ -13,7 +13,6 @@ import time
 
 import pytest
 
-from planetgen.queue import work as workQueue
 from planetgen.db import store as _db
 
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
@@ -63,7 +62,6 @@ _LAUNCH_GENERATE = ("from planetgen.generation import run_galaxy; run_galaxy.req
 def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(control_config, redis_server, sig, group):
     _plan_wide_galaxy(control_config)
     env = dict(os.environ, PLANETGEN_CONTROL_DATABASE=control_config.database, PLANETGEN_WORKERS="2")
-    env.pop(workQueue.PARENT_ENV_VAR, None)
     run = subprocess.Popen(
         [sys.executable, "-c", _LAUNCH_GENERATE, "sectors", "--shell", str(GALAXY_SHELL),
          "--num-systems", str(NUM_SYSTEMS), "--workers", "2"] + _mysql_argv(control_config),

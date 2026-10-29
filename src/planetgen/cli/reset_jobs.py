@@ -6,20 +6,17 @@ Resets every job and the queue: for the day a job is stuck somewhere and nothing
 
     python3 -m planetgen.cli.reset_jobs [--yes] [--dry-run] [--mysql-* ...]
 
-It stops what the update guard lists (Generate jobs, work queue runs, queued jobs, registered command-line runs),
+It stops what the update guard lists (Generate jobs, runs in the run record, queued jobs, registered command-line runs),
 kills the queue workers on this host, then removes what is left:
 
 * **Redis**: every RQ key (`rq:*`: the queues, their registries, the jobs, the workers), every run record
   (`planetgen:run:*`, with the active-run keys and event streams), the counters of workers being started and the
   pause flag of the Queue page (the queues are un-paused). The admin's worker count (`planetgen:workers:wanted`)
   and every cache are kept.
-* **The control database**: every row of `work_jobs` (their tasks and arguments go with them) and the work lease,
-  which is freed.
 
-The galaxy databases and the Generate page's job directories are not touched. `update.sh --reset-jobs` runs this
+The databases and the Generate page's job directories are not touched. `update.sh --reset-jobs` runs this
 first. It asks before it changes anything (`--yes` is the answer for a script); `--dry-run` only prints what
-there is. It exits 0 when it finished (or has nothing to do) and 1 when it was cancelled or could not reach a
-store it was told to reset.
+there is. It exits 0 when it finished (or has nothing to do) and 1 when it was cancelled or failed.
 """
 
 import argparse
@@ -32,7 +29,6 @@ import time
 import rq
 
 from planetgen.admin import updateguard
-from planetgen.db import store
 from planetgen.queue import pause, redisqueue, runrecord, workers
 from planetgen.util import log
 
@@ -94,61 +90,27 @@ def _kill_worker(pid, write):
         write(f"  could not kill worker process {pid}: {exc}")
 
 
-def _survey_work_rows(control):
-    """`(jobs by state, task count, lease holder)` of the control database, or `None` when it has no
-    work tables to reset."""
-    conn = store.get_control_connection(control, ensure_schema=False)
-    try:
-        try:
-            jobs = {row["state"]: int(row["n"]) for row in conn.execute(
-                "SELECT state, COUNT(*) AS n FROM work_jobs GROUP BY state").fetchall()}
-            tasks = int(conn.execute("SELECT COUNT(*) AS n FROM work_tasks").fetchone()["n"])
-            lease = conn.execute("SELECT holder FROM work_lease WHERE id = 1").fetchone() or {}
-        except Exception:  # noqa: BLE001 -- a control schema without the work queue
-            return None
-        conn.rollback()
-        return jobs, tasks, lease.get("holder")
-    finally:
-        conn.close()
-
-
-def _clear_work_rows(control):
-    conn = store.get_control_connection(control, ensure_schema=False)
-    try:
-        conn.execute("DELETE FROM work_jobs")
-        conn.execute("UPDATE work_lease SET holder = NULL, job_id = NULL, heartbeat_at = NULL "
-                     "WHERE id = 1")
-        conn.commit()
-    finally:
-        conn.close()
-
-
-def reset_jobs(config, redis_url=None, assume_yes=False, dry_run=False, sources=None, write=print, answer=input,
-               stop_seconds=STOP_SECONDS, control=None):
+def reset_jobs(redis_url=None, assume_yes=False, dry_run=False, sources=None, write=print, answer=input,
+               stop_seconds=STOP_SECONDS):
     """
     Resets the jobs and the queue (the module's docstring says what that is).
 
     Args:
-        config (MySQLConfig | None): The galaxy database's connection parameters (the control database is next to
-            it); `None` leaves the control database alone.
         redis_url (str): The Redis server (default the configured one).
         assume_yes (bool): Do not ask.
         dry_run (bool): Print what there is, change nothing.
         sources: What the update guard looks at (default `updateguard.default_sources()`).
         write, answer: Where the lines go and how a question is asked.
-        control (MySQLConfig): The control database (default the one next to `config`).
 
     Returns:
         bool: Whether it finished (a dry run counts); `False` when the operator said no.
     """
     sources = sources if sources is not None else updateguard.default_sources()
-    control = control or (store.control_mysql_config(config) if config is not None else None)
     connection = _redis(redis_url)
     running = updateguard.list_running(sources)
     queues = _count_queues(connection) if connection is not None else {}
     local = _local_workers(connection) if connection is not None else []
     keys = _redis_keys(connection) if connection is not None else []
-    rows = _survey_work_rows(control) if control is not None else None
 
     write("Running or queued work the update guard sees:" if running else "The update guard sees no running or queued work.")
     for line in updateguard.describe(running):
@@ -159,17 +121,10 @@ def reset_jobs(config, redis_url=None, assume_yes=False, dry_run=False, sources=
         for name, (waiting, started) in sorted(queues.items()):
             write(f"Redis queue {name}: {waiting} waiting, {started} running")
         write(f"Redis: {len(keys)} key(s) of the queues, {len(local)} worker process(es) on this host")
-    if rows is None:
-        write("Control database: no work queue tables to reset." if control is not None else "Control database: left alone.")
-    else:
-        jobs, tasks, holder = rows
-        states = ", ".join(f"{count} {state}" for state, count in sorted(jobs.items())) or "none"
-        write(f"Control database: {sum(jobs.values())} job(s) ({states}), {tasks} task(s); the work lease is "
-              f"{'held by ' + holder if holder else 'free'}")
     if dry_run:
         write("Dry run: nothing was changed.")
         return True
-    if not (running or keys or local or rows and (rows[0] or rows[2])):
+    if not (running or keys or local):
         write("Nothing to reset.")
         return True
     if not assume_yes:
@@ -200,9 +155,6 @@ def reset_jobs(config, redis_url=None, assume_yes=False, dry_run=False, sources=
         for start in range(0, len(keys), 500):
             connection.delete(*keys[start:start + 500])
         write(f"Redis: removed {len(keys)} key(s)")
-    if rows is not None:
-        _clear_work_rows(control)
-        write(f"Control database: removed {sum(rows[0].values())} job(s) and {rows[1]} task(s), freed the work lease")
     write("Jobs and queue reset. Anything that was cancelled has to be started again.")
     return True
 
@@ -211,16 +163,14 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--yes", "-y", action="store_true", help="Do not ask.")
     parser.add_argument("--dry-run", action="store_true", help="Print what there is, change nothing.")
-    store.add_mysql_connection_args(parser)
     log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
     log.apply_debug_arguments(args, parser)
-    config = store.mysql_config_from_args(args)
     if not args.yes and not args.dry_run and not sys.stdin.isatty():
         print("error: there is no terminal to ask on; add --yes to reset without asking.", file=sys.stderr)
         return 1
     try:
-        done = reset_jobs(config, assume_yes=args.yes, dry_run=args.dry_run)
+        done = reset_jobs(assume_yes=args.yes, dry_run=args.dry_run)
     except Exception as exc:  # noqa: BLE001 -- said plainly; nothing half-reported
         print(f"error: {exc}", file=sys.stderr)
         return 1

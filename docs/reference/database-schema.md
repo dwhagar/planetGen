@@ -794,14 +794,14 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Twenty-seven tables, versioned independently via `control_schema_migrations`
-(currently version 18, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
+Twenty-three tables, versioned independently via `control_schema_migrations`
+(currently version 21, `store.CONTROL_SCHEMA_VERSION`, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, which v8 dropped (SEC.30: the login lockouts live in Redis), v3 `admin_devices`, v4 `admin_totp` and
 `admin_recovery_codes`, v5 the work queue's three tables, v6
 `generation_stats` and `generation_size`, v7 the work queue's job
 tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
 `version_key_history`, v12 the `version_key` column of `generation_stats`, v14
-`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables v17 `generate_recipes` and `generate_recipe_fields` and v18 the epoch, battery and environment columns of `version_key_history`; the new tables are added to an older schema by
+`generation_stage_runs`, v15 the account columns of `admin_users`, `account_tokens` and `invite_uses`, v16 the five upload tables v17 `generate_recipes` and `generate_recipe_fields` and v18 the epoch, battery and environment columns of `version_key_history`, and v21 the drop of the work queue's four tables (PERF.100); the new tables are added to an older schema by
 `CREATE TABLE IF NOT EXISTS` on the next `planetgen.cli.migrate` run, and v7 and v12 add columns, see below):
 
 - **`admin_users`** — one row per account (`username`, `password_hash`,
@@ -880,37 +880,12 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
   code works twice).
 - **`admin_recovery_codes`** (v4) — ten single-use codes per admin with
   two-factor sign-in on: `code_hash` (SHA-256), `used_at`.
-- **`work_jobs`**, **`work_tasks`**, **`work_lease`** (v5, PERF.8) — the
-  generation work queue (`planetgen/queue/work.py`, see
-  [`cli.md`](cli.md#parallel-generation)). `work_jobs` is one row per
-  run that used worker processes (`title`, `holder` host:pid:token,
-  `state` waiting/running/done/failed/cancelled, `workers`, task
-  counts, timings, `heartbeat_at`); `work_tasks` one per sector it
-  handed out (`kind`, `task_key` such as "shell,band,wedge", `state`,
-  the worker's `seconds`, a short JSON `result` or the `error`);
-  `work_lease` the single row naming the run whose workers are using
-  the machine, refreshed every 5 s. A lease or job not refreshed for
-  30 s belongs to a run that died: the next run takes the lease and
-  marks that run's unfinished tasks cancelled. Jobs older than a week
-  are deleted with their tasks.
-- **Job tree columns** (v7, ADM.12) — every job is a tree. `work_jobs`
-  gained `parent_id` (the node above, deleting a node deletes its
-  subtree), `root_id` (the top of its tree), `kind` (`web-job` for a
-  Generate page job, `step` for one of its steps, a `planetgen`
-  command such as `plan` or `galaxy` for a run, a phase such as
-  `skeleton`, `bright-stars` or `population`, and `queue` for a work
-  queue, whose leaves are its `work_tasks`), `seconds` (its own
-  duration), `tasks_total` (tasks the queue said it would queue, for
-  the ETA), `web_job_id`, `database_name`, `argv` (the run's command
-  line as JSON, without the `--mysql-*` and `--debug` options) and
-  `control` (`pause` or `cancel`, asked from the admin queue page).
-  Every node, not only those with workers, is recorded and timed; a
-  parent's totals are added up from its children when the tree is read
-  (`workQueue.load_tree`). A node whose run stopped refreshing it for
-  30 s reads as interrupted. Finished trees older than a week are
-  deleted whole. `work_lease` gained `paused`, `paused_by` and
-  `paused_at` for "Pause the queue" (ADM.10). The columns are added to
-  an older control schema by `update.sh` (`_db._add_control_columns`).
+- **`work_jobs`**, **`work_tasks`**, **`work_lease`** and **`work_job_args`** (v5 to v10, PERF.8, ADM.12, DB.13) —
+  gone in v21 (PERF.100). They were the MySQL job tree of a run, its tasks and the lease on the machine. A run is
+  a record in Redis now (`planetgen/queue/runrecord.py`: stages, units, state, log), the pause of the queues is a Redis
+  flag (`planetgen/queue/pause.py`), and the time each step of a Generate page job took is kept in
+  `step-times.json` in the jobs folder. `update.sh` drops the four tables when it moves an older control schema to v21.
+
 - **`galaxy_naming`** (v9, GEN.70) — one row per galaxy database:
   `naming_key` (8 uppercase hex digits), drawn from the galaxy seed when
   the galaxy is planned (`planetgen plan` draws a new one for a new seed
@@ -921,9 +896,6 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
   phoneme codec names are computed from their ID and this key
   (`planetgen/names/naming_key.py`), so changing it rewrites no row. A
   galaxy reset keeps the row until the next plan draws a new key.
-- **`work_job_args`** (v10, DB.13) — a job's command line, one row per
-  argument in order (`job_id`, `position`, `value`), without the `--mysql-*`
-  options. It replaced the JSON text column `work_jobs.argv`.
 - **`version_key_history`** (v11, OPS.13) — the version key each update ran
   under, per galaxy database, newest last: `database_name`, `galaxy_seed`
   (32 hex digits), `version_key` (22), `planetgen_version`,
@@ -1025,7 +997,7 @@ Control schema:
 
 | Item | Change |
 |---|---|
-| PERF.100 | `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` are dropped once the work queue lives in Redis only (PERF.86); the Redis keys are not part of this schema. |
+| PERF.100 | Done in control schema v21: `work_jobs`, `work_job_args`, `work_tasks` and `work_lease` are dropped now the work queue lives in Redis only (PERF.86); the Redis keys are not part of this schema. |
 | API.15 | Every API call logged: time, route, account (the key's owner, the signed-in admin, or "god" for the console), how it came in (API key, web session or console) and the HTTP response code. Where the rows are kept is decided with that item. |
 | USR.2, USR.4, USR.7, USR.11, NAV.19, API.6 | Accounts with roles, invite links, per-account bookmarks and saved courses, a home field, and API keys owned by accounts. |
 

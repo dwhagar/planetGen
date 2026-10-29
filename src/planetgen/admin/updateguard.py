@@ -272,59 +272,6 @@ class GenerateJobSource:
         return jobs.cancel_job(item["id"], item["root"])
 
 
-class WorkRunSource:
-    """The work queue's live runs (`queue/work.py`) that no Generate job owns: a `planetgen` run from the command
-    line. Cancelled through the run's control request, which it obeys between tasks."""
-
-    name = "work-run"
-
-    def __init__(self, config):
-        self.config = config        # the control database's (`store.control_mysql_config`), or None
-
-    def _connect(self):
-        from planetgen.db import store
-        return store.get_control_connection(self.config, ensure_schema=False)
-
-    def items(self):
-        if self.config is None:
-            return []
-        from planetgen.queue import work
-        try:
-            conn = self._connect()
-        except Exception:  # noqa: BLE001 -- no control database yet (first install): no runs
-            return []
-        try:
-            try:
-                status = work.queue_status(conn)
-                rows = conn.execute(
-                    "SELECT id, kind, title, state, web_job_id, UNIX_TIMESTAMP(COALESCE(started_at, created_at)) AS t"
-                    " FROM work_jobs WHERE parent_id IS NULL AND state IN ('waiting', 'running', 'paused')"
-                    " AND heartbeat_at >= NOW(6) - INTERVAL ? SECOND", (work.STALE_SECONDS,)).fetchall()
-            except Exception:  # noqa: BLE001 -- a control schema older than the job tree: no runs
-                return []
-            conn.rollback()
-        finally:
-            conn.close()
-        found = []
-        for row in rows:
-            if row.get("web_job_id"):
-                continue    # the Generate job that started it is listed (and cancelled) instead
-            started = datetime.fromtimestamp(float(row["t"]), timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ") \
-                if row.get("t") else None
-            holds = "the work lease" if status.get("job_id") == row["id"] else "no lease yet"
-            found.append({"source": self.name, "kind": row["kind"], "id": row["id"], "title": row["title"],
-                          "started": started, "holds": holds, "queued": row["state"] == "waiting"})
-        return found
-
-    def cancel(self, item):
-        from planetgen.queue import work
-        conn = self._connect()
-        try:
-            return work.request_control(conn, item["id"], "cancel")
-        finally:
-            conn.close()
-
-
 class QueuedJobSource:
     """The jobs waiting or running on the shared queues (`queue/redisqueue.py`: bulk, interactive and
     generation). A run's own queue belongs to the run and is cancelled with it. Cancelled with
@@ -411,14 +358,9 @@ class RunRecordSource:
         return runcontrol.cancel_run(self._connection(), item["id"], who="update") is not None
 
 
-def default_sources(config=None, url=None):
-    """The sources the guard looks at: Generate jobs, work queue runs, runs in the run record, queued jobs,
-    registered runs."""
-    control = None
-    if config is not None:
-        from planetgen.db import store
-        control = store.control_mysql_config(config)
-    return [GenerateJobSource(), WorkRunSource(control), RunRecordSource(url), QueuedJobSource(url), MarkerSource()]
+def default_sources(url=None):
+    """The sources the guard looks at: Generate jobs, runs in the run record, queued jobs, registered runs."""
+    return [GenerateJobSource(), RunRecordSource(url), QueuedJobSource(url), MarkerSource()]
 
 
 # ---------------------------------------------------------------------
@@ -536,7 +478,7 @@ def wait_until_idle(sources, timeout=STOP_SECONDS, poll=POLL_SECONDS, write=prin
 # Beginning and ending an update
 # ---------------------------------------------------------------------
 
-def begin(pid, by="update.sh", sources=None, config=None, interactive=False, yes=False, unattended=None,
+def begin(pid, by="update.sh", sources=None, interactive=False, yes=False, unattended=None,
           answer=None, write=print, timeout=STOP_SECONDS, poll=POLL_SECONDS):
     """
     Starts an update: lists what runs and gets the operator's word to cancel it, takes the lock, closes the site and
@@ -544,7 +486,7 @@ def begin(pid, by="update.sh", sources=None, config=None, interactive=False, yes
 
     Args:
         pid (int): The process that holds the lock for as long as it lives (`update.sh`'s shell).
-        sources: What to look at (`default_sources` for `config`).
+        sources: What to look at (`default_sources`).
         interactive (bool): Whether there is a terminal to ask on.
         yes (bool): The operator already agreed (`--yes`).
         unattended (str | None): Who started this run with nobody at the keyboard (`started_unattended`): it asks
@@ -556,7 +498,7 @@ def begin(pid, by="update.sh", sources=None, config=None, interactive=False, yes
         bool: Whether the update may go on. `False` leaves everything as it was (nothing cancelled that was not
         agreed, the site open, no lock).
     """
-    sources = sources if sources is not None else default_sources(config)
+    sources = sources if sources is not None else default_sources()
     answer = answer_within if answer is None else answer
     existing = read_lock()
     if existing is not None and existing["pid"] != pid:

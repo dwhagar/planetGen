@@ -6,7 +6,7 @@ import pytest
 
 from planetgen.generation import run_common
 from planetgen.generation.stats import Bucket, Estimate, GenerationStats
-from planetgen.queue import progress_rate, work
+from planetgen.queue import progress_rate
 from planetgen.web import generate_page, queue_page
 
 
@@ -115,33 +115,6 @@ def test_the_queue_page_shows_a_range_or_estimating():
     assert queue_page._eta_text({"seconds": 100.0, "stalled": True}, live=True) == "waiting on progress"
 
 
-def _node(done, done_seconds, planned, recorded, workers=2):
-    return {"own_counts": {"done": (done, done_seconds)} if done else {}, "tasks_total": planned, "live": True,
-            "workers": workers, "started_at": None, "finished_at": None, "children": [],
-            "recorded_task_seconds": recorded}
-
-
-def test_the_queue_blends_the_recorded_task_time_into_the_runs_own_pace():
-    # 10 of 110 tasks done at 4 worker-seconds each; earlier runs took 2 s a task.
-    node = _node(10, 40.0, 110, recorded=2.0)
-    work._roll_up(node)
-    n = 10
-    rate = progress_rate.blended_rate(10 / 40.0, n, 1 / 2.0)
-    assert node["totals"]["eta_seconds"] == pytest.approx(100 / rate / 2)
-    own_only = _node(10, 40.0, 110, recorded=None)
-    work._roll_up(own_only)
-    assert own_only["totals"]["eta_seconds"] == pytest.approx(100 * 4.0 / 2)
-
-
-def test_the_queue_has_a_time_left_before_the_first_task_with_a_recorded_rate():
-    node = _node(0, 0.0, 100, recorded=3.0)
-    work._roll_up(node)
-    assert node["totals"]["eta_seconds"] == pytest.approx(100 * 3.0 / 2)
-    none = _node(0, 0.0, 100, recorded=None)
-    work._roll_up(none)
-    assert none["totals"]["eta_seconds"] is None
-
-
 def test_the_sector_bar_carries_the_recorded_rate_into_the_progress_bar():
     class Args:
         _sector_prior = (0.4, 90.0)
@@ -157,26 +130,6 @@ def test_the_sector_bar_carries_the_recorded_rate_into_the_progress_bar():
 
         with run_common.sector_bar(progress, Unrecorded(), "Sectors", 10):
             assert progress.tasks[1].fields["rate"].prior is None
-
-
-def test_a_job_adds_the_time_of_each_step_not_started_yet():
-    node = _node(0, 0.0, 0, recorded=None)
-    node["unstarted_step_seconds"] = [60.0, 30.0]
-    work._roll_up(node)
-    assert node["totals"]["eta_seconds"] == pytest.approx(90.0)
-    assert node["totals"]["eta_partial"] is False
-
-
-def test_a_step_with_no_recorded_time_makes_the_job_estimate_partial():
-    node = _node(0, 0.0, 0, recorded=None)
-    node["unstarted_step_seconds"] = [60.0, None]
-    work._roll_up(node)
-    assert node["totals"]["eta_seconds"] == pytest.approx(60.0)
-    assert node["totals"]["eta_partial"] is True
-    nothing = _node(0, 0.0, 0, recorded=None)
-    work._roll_up(nothing)
-    assert nothing["totals"]["eta_seconds"] is None
-    assert nothing["totals"]["eta_partial"] is False
 
 
 def _job(**fields):

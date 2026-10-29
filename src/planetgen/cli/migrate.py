@@ -205,7 +205,7 @@ def _update_guard(config, yes):
         yield
         return
     pid = os.getpid()
-    if not updateguard.begin(pid, by="migrate", config=config, interactive=sys.stdin.isatty(),
+    if not updateguard.begin(pid, by="migrate", interactive=sys.stdin.isatty(),
                              yes=yes, unattended=updateguard.started_unattended()):
         sys.exit(1)
     ok = False
