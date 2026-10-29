@@ -1826,34 +1826,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held it before; this replaces any earlier owner line).
   Prerequisites: none. Related: MAP.234, MAP.217, GEN.254.
 
-- [ ] **MAP.236 Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map**
-  Boss (2026-10-16, 7:24 PM EDT, timeline): "the super bubbles need
-  better definition to the bounds and be slightly more transparent."
-  Today each superbubble (GEN.254) is three faint great circles
-  (`static/galaxymap3d.js`, "Superbubbles (GEN.254)", colour 0x6fb3d8,
-  opacity 0.14, always on), so the bound reads as two crossing ellipses
-  and the inside has no edge. Done: the bound of each bubble is clearly
-  defined (a brighter rim where the shell meets the line of sight, or a
-  crisp outline of the true sphere silhouette, not three crossing
-  rings), and the fill is slightly more transparent than today; both
-  read in the dark and the light theme and at every zoom stage, and the
-  look is drawn the same on the Sector Map where a bubble is shown. A
-  browser screenshot test checks that the rim is brighter than the fill
-  and the fill alpha is lower than 0.14. The key entry and toggle are
-  MAP.234 and MAP.235; this item changes only the look.
-  Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
-  Superbubble density, Decided (Boss, 2026-10-16, 9:38 PM EDT): the layer
-  becomes an optional overlay, off by default, once the bubbles shape the
-  stars (GEN.391); this item stays, at lower priority, for when the
-  overlay is on.
-  Research (2026-10-09): OWNER Aux 3 (assigned 5:21 PM EDT 2026-10-29 by
-  TODO as the lane's one lock-free item while it waits for the
-  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
-  his ask at 5:18 PM EDT; separate branch, no generated-output change;
-  if the lane already holds a lock-free item it finishes that first). If
-  this step turns out to change a stored value, stop and tell TODO.
-  Prerequisites: MAP.240. Related: MAP.234, MAP.235, GEN.254.
-
 - [ ] **MAP.242 The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -2191,6 +2163,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TEST.368 (fixture galaxy), MAP.295 and MAP.296 (infobox, Core 2),
   MAP.297 to MAP.303 (clicking, labels, zoom, icons; Aux 10). Owner: Aux
   10.
+  Research (2026-10-09): OWNER Aux 3 (assigned 5:29 PM EDT 2026-10-29 by
+  TODO as the lane's next lock-free item after MAP.236 merged; separate
+  branch, no generated-output change; the former owner lane is retired).
+  If this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: TEST.368. Related: MAP.229, MAP.298, MAP.241.
 
 - [ ] **MAP.300 Zoom reaches far enough in to single out one item in even a dense cluster (bug)**
@@ -13583,6 +13559,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.927 to GEN.931 as one merge in one lock turn). The first drafts
   GEN.923 to GEN.925 were dropped in favour of this chain. GEN.922
   closes when GEN.932 merges.
+  Research (2026-10-09): Added from Bug 1's unified mass assessment
+  (Boss's question of 5:27 PM EDT 2026-10-29): GEN.933 (one
+  mass-boundary table, between GEN.926 and GEN.927) and GEN.934 (hand
+  conversions to the registry helper, off the critical path).
 
 - [ ] **GEN.926 One initial mass function module (physics/imf.py) replaces the six copies of the power-law code, with no change of output**
   Item 2 of the star mass function chain (GEN.922). One module holds the
@@ -13608,7 +13588,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (item GEN.932). Part of the GEN.922 chain, plan
   /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
   (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
-  Prerequisites: TEST.454, GEN.926. Related: GEN.922, GEN.914.
+  Prerequisites: GEN.933, TEST.454, GEN.926. Related: GEN.922, GEN.914.
 
 - [ ] **GEN.928 System primaries follow from the single-star curve plus multiplicity (a top-down solve), with brown dwarf companions and the brown dwarf desert; the star-count table agrees**
   Item 4 of the star mass function chain (GEN.922). For each mass m,
@@ -13673,6 +13653,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
   Prerequisites: GEN.927, GEN.928, GEN.929, GEN.930, GEN.931. Related:
   GEN.922.
+
+- [ ] **GEN.933 One mass-boundary table (brown dwarf/star, planet/brown dwarf, spectral-class mass edges, Chandrasekhar, neutron star/black hole) with sources and tiers, read by the mass function, companions, rogue bodies and the display ladders**
+  Found by Bug 1 (5:27 PM EDT 2026-10-29 as the lane reported) answering
+  Boss's question whether a unified mass system would help: the object
+  side is already decided and built (mass_object.py MassObject core,
+  StellarObject, PlanetaryObject, SmallBody;
+  docs/design/architecture/mass-object-class.md; open GEN.565 remainder,
+  DB.74, TEST.240) and the unit side is unified (constants, unit
+  registry GEN.568, column_units), but the mass RULES are not:
+  object-boundary masses live in several places (brown dwarf/star 0.08
+  in the initial mass function and multistar code, 0.075 in the display
+  ladders, 80 Mjup = 0.0764 solar masses for rogue brown dwarfs; 13 Mjup
+  typed in 3 modules; spectral-class mass edges in 2 tables;
+  Chandrasekhar separate). Do: one table of boundaries with source and
+  tier per row (stand-in registry rules), read by the curve, the
+  companions, the rogue bodies and the ladders; the initial-final
+  relation and neutron star/black hole mass draw copies are recounted
+  under GEN.930. Lock-free where the output is unchanged (the golden
+  must not move); any boundary that moves is recorded and goes into the
+  GEN.932 epoch. Sits between GEN.926 and GEN.927 in the order. Part of
+  the GEN.922 chain. Owner: Bug 1. Version 8.1.
+  Prerequisites: GEN.926. Related: GEN.922, GEN.565, GEN.568.
+
+- [ ] **GEN.934 Replace the hand-written mass conversions in about 47 modules with the unit registry helper (do not rename _sol/_solar)**
+  Hygiene item from Bug 1's unified mass assessment (5:27 PM EDT
+  2026-10-29 as the lane reported): about 47 modules convert between
+  solar masses, Jupiter masses and Earth masses by hand. Do: use the
+  registry helper everywhere and add a test that finds a hand-written
+  mass constant; do NOT rename the _sol/_solar suffixed names. Lock-free
+  (no output change), off the critical path of the GEN.922 chain. Owner:
+  Bug 1. Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.568.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
