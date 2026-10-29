@@ -13214,6 +13214,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pass cannot change the pace after the biogenic oxygen has been added
   (section 11 point 5).
   Prerequisites: GEN.855. Related: GEN.750.
+  Owner: Aux 2 (3:15 AM EDT 2026-10-29 as the lane reported: GEN.872, the per-body life sub-stream, is a stated prerequisite of GEN.889, so Aux 2 takes it in its epoch 120 life bundle; Core 1 drops it from its second change; this replaces any earlier owner line on this item).
 
 - [ ] **GEN.873 Standing life chemistry tests: star weights match the star lists, every pace can reach complex cells inside the age of the universe, no life chemistry without a stage, no Flora under ice, no chemistry on a non-water solvent, every life constant is registered, an oxygenic world past photosynthesis has more O2**
   Life chemistry review (research thread, 2026-10-28,
