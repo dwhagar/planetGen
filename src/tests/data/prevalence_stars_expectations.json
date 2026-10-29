@@ -1,0 +1,65 @@
+{
+ "reference": {
+  "kind": "norm: researched local-neighbourhood figures; no generator run sets a range",
+  "mix_draws": 40000,
+  "systems_per_type": 2500,
+  "sigmas": 4.0,
+  "point": "the default galaxy's reference solar position (8.2 kpc, in the plane), each population picked by its density there",
+  "sources": {
+   "RECONS": "RECONS census of objects nearer than 10 parsecs, Henry et al., data of 2018-04-12 (read 2026-10-28): 378 stars of which 21 white dwarfs (A 4, F 7, G 19, K 44, M 283), 50 brown dwarfs, 317 systems (232 single, 66 double, 14 triple, 3 quadruple, 2 quintuple), multiplicity rate 27%",
+   "Mamajek": "Mamajek, Number Densities of Stars of Different Types in the Solar Vicinity (read 2026-10-28): fraction of stars O 5e-7, B 3.9e-4, A 6.0e-3, F 0.031, G 0.041, K 0.129, M 0.725 (0.687 from the RECONS 10 pc density), white dwarfs 0.059",
+   "multiplicity": "Duchene and Kraus 2013 (ARA&A 51:269): M dwarfs 26 +/- 3%; Raghavan et al. 2010 (ApJS 190:1): solar-type 46% with 56% single, 33% double, 8% triple, 3% higher (44 +/- 2% in Duchene and Kraus); De Rosa et al. 2014: A stars; Moe and Di Stefano 2017 (ApJS 230:15) Table 13: A and late B 0.59 +/- 0.11. Recalled, not reopened (tier T2/T3); the same figures tuning.py quotes"
+  }
+ },
+ "anomalies": {
+  "GEN.897": "K dwarfs are 19.4% of stars against 11.6% to 12.9% observed, and G 3.1% against 4.1% to 5.0%: constants.TEMP_RANGES runs K down to 3700 K (rounded to 100 K), so 0.4 to 0.55 solar mass stars (M0 to M2 in surveys) come out K8 and K9. G stays near the bottom of its range when K is fixed; check it again then",
+  "GEN.898": "A stars are 0.11% of stars against 0.6% (Mamajek) to 1.1% (RECONS), and B 0.01% against 0.04%: at the reference solar position the population mix is 87% old, 12% intermediate and 0.1% young",
+  "GEN.899": "an M2V primary has a companion star in 15.8% of systems against the star-count table's 27% and Duchene and Kraus's 26 +/- 3%: _drawn_plan drops brown dwarf members from the drawn tree without replacing them"
+ },
+ "hangs": {"anomaly": ""},
+ "errors": {"anomaly": ""},
+ "mix": {
+  "M": {"norm_min": 0.67, "norm_max": 0.78, "kind": "observed",
+        "source": "RECONS 283 of 378 = 0.749; Mamajek 0.725 and 0.687 (RECONS 10 pc density)"},
+  "K": {"norm_min": 0.10, "norm_max": 0.14, "kind": "observed",
+        "source": "RECONS 44 of 378 = 0.116; Mamajek 0.129", "anomaly": "GEN.897"},
+  "G": {"norm_min": 0.035, "norm_max": 0.065, "kind": "observed",
+        "source": "RECONS 19 of 378 = 0.050; Mamajek 0.041", "anomaly": "GEN.897"},
+  "F": {"norm_min": 0.012, "norm_max": 0.040, "kind": "observed",
+        "source": "RECONS 7 of 378 = 0.019; Mamajek 0.031"},
+  "A": {"norm_min": 0.004, "norm_max": 0.016, "kind": "observed",
+        "source": "RECONS 4 of 378 = 0.011; Mamajek 0.006", "anomaly": "GEN.898"},
+  "B": {"norm_min": 0.0001, "norm_max": 0.0010, "kind": "observed",
+        "source": "Mamajek 3.9e-4 (Hipparcos, d < 70 pc, N=46); RECONS none within 10 pc"},
+  "O": {"norm_min": 0.0, "norm_max": 0.0001, "kind": "observed",
+        "source": "Mamajek 5e-7 (5 stars within 300 pc); RECONS none"},
+  "wd": {"norm_min": 0.045, "norm_max": 0.070, "kind": "observed",
+         "source": "RECONS 21 of 378 = 0.056; Mamajek 0.059"},
+  "evolved": {"norm_min": 0.0, "norm_max": 0.010, "kind": "observed",
+              "source": "RECONS none of 378 (an upper bound of 3 in 378 at 95%)"}
+ },
+ "multiplicity": {
+  "M2V": {
+   "companion": {"norm_min": 0.22, "norm_max": 0.35, "kind": "norm",
+                 "source": "Duchene and Kraus 2013 M dwarfs 26 +/- 3%; RECONS multiplicity rate 27% of all systems (mostly M); an early M dwarf is more often a pair than a late one", "anomaly": "GEN.899"}
+  },
+  "K5V": {
+   "companion": {"norm_min": 0.35, "norm_max": 0.47, "kind": "norm",
+                 "source": "Raghavan et al. 2010 K dwarfs, about 0.41; tuning.py anchors K at 0.40"}
+  },
+  "G2V": {
+   "companion": {"norm_min": 0.42, "norm_max": 0.50, "kind": "norm",
+                 "source": "Raghavan et al. 2010 solar-type 46 +/- 2%; Duchene and Kraus 2013 44 +/- 2%"},
+   "triple_or_more": {"norm_min": 0.07, "norm_max": 0.15, "kind": "norm",
+                      "source": "Raghavan et al. 2010: 8% triple and 3% higher"}
+  },
+  "F5V": {
+   "companion": {"norm_min": 0.42, "norm_max": 0.55, "kind": "norm",
+                 "source": "Raghavan et al. 2010 F6 to F7 about 0.5; tuning.py anchors F at 0.47"}
+  },
+  "A0V": {
+   "companion": {"norm_min": 0.44, "norm_max": 0.70, "kind": "norm",
+                 "source": "De Rosa et al. 2014 about 0.44 from companions found; Duchene and Kraus 2013 at least 0.5; Moe and Di Stefano 2017 A and late B 0.59 +/- 0.11"}
+  }
+ }
+}

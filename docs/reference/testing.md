@@ -396,6 +396,16 @@ are read). One live test draws the systems once for both; their reports are `sys
 
 Re-baselining B and E: `python -m tests.audit.prevalence_systems measure` and `build`, `python -m tests.audit.prevalence_occurrence`.
 
+Part C, the star census (TEST.432, `src/tests/audit/prevalence_stars.py`, `src/tests/test_prevalence_stars_census.py`), draws 40,000
+stars from the population model at the default galaxy's reference solar position and 2,500 planetless systems around each of M2V,
+K5V, G2V, F5V and A0V. It checks the star type mix (M, K, G, F, A, B, O, white dwarfs, evolved stars) as shares of all stars against
+the RECONS 10 parsec census and Mamajek's number densities, and the share of systems with a companion star (and, for G2V, with three
+or more) against Duchene and Kraus 2013, Raghavan 2010, De Rosa 2014 and Moe and Di Stefano 2017
+(`src/tests/data/prevalence_stars_expectations.json`, kind `observed` or `norm`). The file holds the norm range, never a generator
+run: where two sources differ the widest range stands, and the sampling slack of the run (four binomial sigma at its own draw count)
+is added when it is compared. A known fault carries its item as in the other parts. The report is `star-census-latest.md`; about 15
+seconds on 4 cores. `python -m tests.audit.prevalence_stars` prints it without the test.
+
 
 ## Setting up a cloud session
 
