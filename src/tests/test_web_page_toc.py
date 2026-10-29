@@ -114,6 +114,20 @@ def test_the_automatic_contents_bar_skips_a_page_that_has_its_own_contents_list_
         bare.close()
 
 
+def test_the_wide_map_page_gets_no_contents_menu_so_its_map_keeps_the_page_width(browser):
+    """TEST.442: the Galaxy Map's page (main column `app-main-wide`) shows no "On this page" bar, which on a wide window is a
+    column down the left that narrowed its map past the window (UX.215); a page without that class still gets one."""
+    for classes, bars in (("app-main app-main-wide", 0), ("app-main", 1)):
+        page = browser.new_page()
+        try:
+            page.set_content(f"<main id='main' class='{classes}'><h1>Title</h1>" + HEADED + "</main>")
+            page.add_script_tag(path=str(PAGETOC_SOURCE))
+            assert page.locator("nav.page-toc").count() == bars, classes
+            assert page.evaluate("document.getElementById('main').classList.contains('has-page-toc')") is bool(bars)
+        finally:
+            page.close()
+
+
 def test_no_page_shows_two_contents_lists(browser, base_url, page_targets, admin_token):
     """UX.235: over every page of the site, the automatic bar and a page's own contents list never both show."""
     context = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
