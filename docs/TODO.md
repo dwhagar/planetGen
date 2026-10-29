@@ -2005,26 +2005,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   closes with Z0 (MAP.333) in 8.1. The rebuild Z1 to Z5 (MAP.334 to
   MAP.338) and the preferences screen UX.236 are headline features of
   8.2.
-- [ ] **MAP.266 S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu**
-  Zoom design (reports in
-  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
-  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
-  cards: 1 the full single space, 2 only a sector plus an optional grid
-  tool, 3 a soft glow switchable in the layers menu, 4 move to
-  sector-block nodes FIRST (not the default). Part of MAP.257. Draw N2's
-  aggregate through N4's cut as a soft blob with the flux-conserving
-  hand-over to resolved stars so nothing pops (Boss card 3: yes,
-  switchable). The look needs a tone curve tuned by eye. Size M. Done:
-  the galaxy has a soft light that resolves into stars on zooming in
-  without a pop, the layers menu switches it off, and a browser test
-  checks the toggle. Owner: lane Map nodes (the coordinator's new lane,
-  5:53 PM EDT as the lane reported), with Core 2 as owner of
-  galaxymap3d.js and galaxystageview.js (rebase on its merges and tell
-  it before each PR).
-  Prerequisites: none. Related: MAP.257, MAP.146,
-  MAP.249.
-  Owner: Aux 7 (lock-free item while it waits for the generation lock, 12:07 AM EDT 2026-10-29; this replaces any earlier owner line on this item). Separate branch; rebase on Core 2's merges to galaxymap3d.js and galaxystageview.js and tell Core 2 before each PR.
-
 - [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
   Boss live observation (8:51 PM EDT 2026-10-23, relayed by the
   coordinator, found by Bug Hunt): stars on the map should glow, with
