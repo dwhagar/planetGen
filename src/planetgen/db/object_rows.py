@@ -75,7 +75,11 @@ def scaled(column, name, factor, null=None, nullable=False):
 
 def each(names):
     """Columns filled from the attributes of the same names, `None` for one the object lacks."""
-    return Field(tuple(names), lambda obj, context: tuple(getattr(obj, name, None) for name in names),
+    names = tuple(names)
+    if len(names) == 1:
+        (only,) = names
+        return Field(names, lambda obj, context: getattr(obj, only, None), lambda row: {only: row[only]})
+    return Field(names, lambda obj, context: tuple(getattr(obj, name, None) for name in names),
                  lambda row: {name: row[name] for name in names})
 
 
