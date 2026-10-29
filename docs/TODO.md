@@ -13885,6 +13885,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bug 1.
   Prerequisites: none. Related: TEST.433, GEN.898, GEN.900, GEN.901.
 
+- [ ] **GEN.903 Atmosphere possibility table e: rows e1 and e2 (bare rock, retained H/He envelope) are never reached for class I because group b has only row b4 for class I (low priority) (bug)**
+  Found by Bug 2 in the possibility table sweep (TEST.214, PR 3615),
+  2026-10-28; recorded in src/tests/data/possibility_sweep_notes.json.
+  In atmosphere table e, rows e1 and e2 are never reached for class I:
+  group b has only row b4 for class I, so p(b4) is always 1. The
+  generator draws an I planet air from the giant mixture, so this is not
+  on the generation path, but the gate or weight is inconsistent with
+  the table class list. The e3 and e4 rows for class T are probably
+  intended (no water-world gas giant). Do: decide whether the rows
+  should be reachable (fix the gate or the weight) or should leave the
+  class list (fix the list), update the note file, and keep the sweep
+  passing. If a fix moves draws it is a generation change (lock queue).
+  Low priority, ride the class cut-over. Version 8.1. Owner: Aux 1.
+  Prerequisites: none. Related: TEST.214, GEN.646.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -17543,86 +17558,6 @@ clears each one.
   planet, moon and star class, built as a census check on TEST.186's
   harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
   over it, not four builds.
-
-- [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
-  Boss (2026-10-17, 1:38 AM EDT, typed in the project chat): "We have to
-  add to our composition plans that what I'd like to do is for each
-  composition have a list of possibilities with their weighted
-  probabilities (for all compositions, each category will have a table
-  of possibilities and their associated values). So, list items will be
-  gated, each table line has a list of supported planet or object
-  classes and then we draw composition based on the composition
-  probabilities to add up to 100%." Boss's check: the weights of the
-  rows that pass a class's gate add up to 100 percent. Do: one test
-  walks the registry of the possibility-table loader (GEN.472), so a
-  table added later is covered without a change to the test, and for
-  every table and every class in the code's class lists builds the gated
-  set at a sweep of stars and formation distances (the weight functions'
-  arguments), and checks that the normalised weights add up to 1.0
-  within 1e-12, that the gate of no class is empty, that no row has a
-  weight below zero or without a source and a licence, that the `open`
-  weights are reported and their number does not grow without a note,
-  and that a table in the code which is not registered fails the test
-  (no composition table outside the loader). It also checks the second
-  sum: the fractions or partial pressures a drawn row supplies add up to
-  one for a seeded sample of every class. Done: the test passes on every
-  table the build has and fails when a weight, a gate or a source is
-  broken on purpose in a copy of a table. Owner: Core 4 (proposed, with
-  the composition chain).
-  Progress (Blocker 3, relayed 11:32 PM EDT 2026-10-22 as the lane
-  reported): GEN.478 merged as #2587 with 104 rows in 16 tables
-  (atmosphere-a to atmosphere-p). Source states after its tests: 8
-  verified, 51 partly verified and 45 open rows, and the 43 open rows
-  name GEN.480 to GEN.494. The draw in physics/atmosphere_recipes.py is
-  the one this test must use for open rows: its sum test cannot add the
-  weights of open rows, because they are drawn from their bracket.
-  Condition.one_of was added to the loader. No licence assertions
-  (GEN.623).
-  Prerequisites: none. Related: TEST.211,
-  TEST.210, TEST.209, GEN.428, GEN.411.
-  Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
-  (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
-  proportions of a drawn possibility use the table weights directly
-  where a sourced kernel exists, and a Dirichlet draw around those
-  weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
-  Solar System shapes (the asteroid taxon shares and the zone kernel,
-  the Earth rock-type library) enter a table only as flagged temporary
-  stand-ins, each with its own research item that replaces it with a
-  derived or general distribution. This test adds: a `stand-in` row
-  names a replacement item that exists in the plan, the stand-in report
-  is listed and does not grow without a note, and the Dirichlet-drawn
-  fractions of a seeded sample add up to one.
-  Decided (Boss, 2026-10-17, 1:51 AM EDT, a card, as the coordinator
-  relayed it): the table weights are the odds of picking a possibility,
-  the fractions inside the drawn row are normalised separately, and both
-  sums are tested.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 8, "Flagged
-  stand-ins only": a measured Solar System shape may enter a generator
-  table only as a row flagged `stand-in` that names an existing
-  replacement item; unflagged Solar System sourced rows and the
-  calibration targets (Earth, Mars, Moon, Galilean moons, Sirius B) are
-  never a table source. TEST.215's assertion exempts rows flagged
-  `stand-in` with a replacement item and fails on any other Solar System
-  sourced row. GEN.520 D6 (the Solar System population as the
-  within-system comet shape) is kept as a flagged stand-in with the
-  replacement item GEN.595.
-  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
-  and "Weights pick the row", as the coordinator reported it): the
-  weights pick the row; the proportions inside a drawn row come from the
-  row's own sourced kernel, or a Dirichlet draw where only a range
-  exists, so the 1:38 AM and 1:51 AM EDT 2026-10-17 texts agree.
-  Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
-  lane's clock reads): data tables carry no licence column and no check of
-  one; the licence information lives in DATA-LICENSE.md. This
-  overrides every line of this item that calls the licence column
-  mandatory; GEN.623 does the removal.
-  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
-  EDT 2026-10-28, high priority) takes this with TEST.430 where it
-  overlaps the class census; confirm any other lane's claim with TODO
-  first.
-
 
 - [ ] **TEST.215 The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one**
   Body composition research lane, section 14.4 of
