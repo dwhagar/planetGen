@@ -1,0 +1,931 @@
+{
+ "version": 1,
+ "title": "The life class rules",
+ "description": "Windows, solvents and energy sources of the nine life classes (docs/design/habitability/life-classes.md section 3). Every number carries its source tier (T1 to T9) and tweak level (L0 to L4) next to it. A quantity the body does not store makes a rule that reads it fail (the class scores 0 and the sweep names the quantity); a supply that is not stored yet is a stated placeholder (GEN.887).",
+ "reference_star_k": 5772.0,
+ "reference_band_nm": [
+  400.0,
+  700.0
+ ],
+ "reference_basis": "The Sun's effective temperature and the band of Class 1a; a class's light energy is its band's share of the star's photons over the Sun's share of 400 to 700 nm, capped at 1 (the pigment's band times the spectrum, GEN.878)",
+ "classes": [
+  {
+   "id": "1a",
+   "number": 1,
+   "variant": "a",
+   "name": "Oxygenic light-eaters: visible pigment (Chlorophyll a)",
+   "drinks": "water",
+   "eats": "light 400 to 700 nm, carbon dioxide and water, plus nitrogen, phosphorus and iron",
+   "breathes": "oxygen once it exists (aerobes); before that nothing",
+   "gives_off": "oxygen (net, after the sinks fill) and buried organic carbon; methane only through a small food web",
+   "reaches": "Animals",
+   "tier": "T1",
+   "solvent": {
+    "medium": "water",
+    "factor": 1.0,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Liquid water; the index's own L_solv (water activity and chaotropicity) applies"
+   },
+   "energy": {
+    "source": "light",
+    "band_nm": [
+     400.0,
+     700.0
+    ],
+    "efficiency": 1.0,
+    "tier": "T1",
+    "tweak": "L0",
+    "basis": "A star spectrum rich in 400 to 700 nm: F, G, K and bright early M; the Sun's share of photons in the band is the reference (efficiency 1)"
+   },
+   "gates": [
+    {
+     "quantity": "hydrosphere",
+     "in": [
+      "surface ocean",
+      "hycean"
+     ],
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light"
+    },
+    {
+     "quantity": "pressure_pa",
+     "min": 10.0,
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)"
+    },
+    {
+     "quantity": "co2_partial_pa",
+     "min": 5.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)"
+    },
+    {
+     "quantity": "band_light_vs_earth",
+     "min": 0.01,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 255.0,
+     "high": 395.0,
+     "sigma_low": 15.0,
+     "sigma_high": 15.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
+    }
+   ],
+   "supply": null,
+   "note": "Class 1a on an Earth-like world is exactly today's PHI_bio (life-classes.md 8.1). The old oxygen gate of Chlorophyll a is gone: Class 1 makes the oxygen (GEN.855)."
+  },
+  {
+   "id": "1b",
+   "number": 1,
+   "variant": "b",
+   "name": "Oxygenic light-eaters: blue and UV tuned (Blue-Optimized Porphyrins)",
+   "drinks": "water",
+   "eats": "light 300 to 500 nm, carbon dioxide and water",
+   "breathes": "oxygen once it exists",
+   "gives_off": "oxygen and buried organic carbon",
+   "reaches": "Animals",
+   "tier": "T6",
+   "solvent": {
+    "medium": "water",
+    "factor": 1.0,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Liquid water"
+   },
+   "energy": {
+    "source": "light",
+    "band_nm": [
+     300.0,
+     500.0
+    ],
+    "efficiency": 1.0,
+    "tier": "T7",
+    "tweak": "L3",
+    "basis": "Hot bright stars: late B to F; a UV shield from fluorescent proteins (life-classes.md 3.1); tier T6 to T7: a reasoned invention"
+   },
+   "gates": [
+    {
+     "quantity": "hydrosphere",
+     "in": [
+      "surface ocean",
+      "hycean"
+     ],
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light"
+    },
+    {
+     "quantity": "pressure_pa",
+     "min": 10.0,
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)"
+    },
+    {
+     "quantity": "co2_partial_pa",
+     "min": 5.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)"
+    },
+    {
+     "quantity": "band_light_vs_earth",
+     "min": 0.01,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 255.0,
+     "high": 395.0,
+     "sigma_low": 15.0,
+     "sigma_high": 15.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
+    }
+   ],
+   "supply": null,
+   "note": ""
+  },
+  {
+   "id": "1c",
+   "number": 1,
+   "variant": "c",
+   "name": "Oxygenic light-eaters: far-red (chlorophyll d and f)",
+   "drinks": "water",
+   "eats": "light 700 to 800 nm and beyond, carbon dioxide and water",
+   "breathes": "oxygen once it exists",
+   "gives_off": "oxygen and buried organic carbon",
+   "reaches": "Animals",
+   "tier": "T5",
+   "solvent": {
+    "medium": "water",
+    "factor": 1.0,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Liquid water"
+   },
+   "energy": {
+    "source": "light",
+    "band_nm": [
+     700.0,
+     800.0
+    ],
+    "efficiency": 0.8,
+    "tier": "T7",
+    "tweak": "L3",
+    "basis": "K and M stars; an efficiency penalty for the lower photon energy: the chemistry is T5, the penalty 0.8 is T7 (life-classes.md 3.1)"
+   },
+   "gates": [
+    {
+     "quantity": "hydrosphere",
+     "in": [
+      "surface ocean",
+      "hycean"
+     ],
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light"
+    },
+    {
+     "quantity": "pressure_pa",
+     "min": 10.0,
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)"
+    },
+    {
+     "quantity": "co2_partial_pa",
+     "min": 5.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)"
+    },
+    {
+     "quantity": "band_light_vs_earth",
+     "min": 0.01,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 255.0,
+     "high": 395.0,
+     "sigma_low": 15.0,
+     "sigma_high": 15.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
+    }
+   ],
+   "supply": null,
+   "note": ""
+  },
+  {
+   "id": "2",
+   "number": 2,
+   "variant": "",
+   "name": "Anoxygenic light-eaters (Bacteriochlorophylls)",
+   "drinks": "water",
+   "eats": "near-infrared light 800 to 1050 nm, carbon dioxide and a donor: hydrogen, ferrous iron or hydrogen sulfide",
+   "breathes": "nothing (anaerobes); free oxygen poisons them",
+   "gives_off": "sulfate, sulfur, Fe(III), organic carbon; methane from their food web",
+   "reaches": "Microbial mats; animals only if another oxidant source exists",
+   "tier": "T1",
+   "solvent": {
+    "medium": "water",
+    "factor": 1.0,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Liquid water"
+   },
+   "energy": {
+    "source": "light",
+    "band_nm": [
+     800.0,
+     1050.0
+    ],
+    "efficiency": 0.8,
+    "tier": "T7",
+    "tweak": "L3",
+    "basis": "Near-infrared light, 800 to 1050 nm; the lower photon energy costs efficiency (T7)"
+   },
+   "gates": [
+    {
+     "quantity": "hydrosphere",
+     "in": [
+      "surface ocean",
+      "hycean"
+     ],
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light"
+    },
+    {
+     "quantity": "pressure_pa",
+     "min": 10.0,
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)"
+    },
+    {
+     "quantity": "co2_partial_pa",
+     "min": 5.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)"
+    },
+    {
+     "quantity": "band_light_vs_earth",
+     "min": 0.01,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model"
+    },
+    {
+     "quantity": "share_o2",
+     "lt": 0.03,
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "Free oxygen below 3 percent poisons an anoxygenic or hydrogen-eating microbe: the existing gate (life-classes.md 3.1, Class 2 window)"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 255.0,
+     "high": 370.0,
+     "sigma_low": 15.0,
+     "sigma_high": 15.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Habitat 255 to 370 K (life-classes.md 3.1, Class 2 window)"
+    }
+   ],
+   "supply": {
+    "quantity": "donor_supply",
+    "placeholder": 1.0,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "The donor supply (hydrogen, Fe2+ or H2S delivered) is not stored yet (GEN.887); the placeholder 1 assumes an anoxic ocean has its donors"
+   },
+   "note": ""
+  },
+  {
+   "id": "3a",
+   "number": 3,
+   "variant": "a",
+   "name": "Hydrogen eaters: geochemical hydrogen (serpentinisation, vents)",
+   "drinks": "water",
+   "eats": "hydrogen from rock and water, and carbon dioxide",
+   "breathes": "carbon dioxide (methanogens, acetogens)",
+   "gives_off": "methane and acetate",
+   "reaches": "Microbial",
+   "tier": "T2",
+   "solvent": {
+    "medium": "water",
+    "factor": 1.0,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Liquid water in contact with rock (ocean, ice-covered ocean or aquifer)"
+   },
+   "energy": {
+    "source": "chemical",
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "The share of the body's heat flow that life can use (CHEMICAL_SHARE), as the index already scores sub-ice life; no light needed"
+   },
+   "gates": [
+    {
+     "quantity": "pressure_pa",
+     "min": 0.0,
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "Any pressure: a deep ocean or aquifer is not exposed to the air"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 255.0,
+     "high": 395.0,
+     "sigma_low": 15.0,
+     "sigma_high": 15.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
+    }
+   ],
+   "supply": {
+    "quantity": "h2_supply",
+    "placeholder": 1.0,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "The hydrogen supply from serpentinisation (rock type, water, heat) is not stored yet (GEN.887); the placeholder 1 assumes ultramafic rock is present"
+   },
+   "note": ""
+  },
+  {
+   "id": "3b",
+   "number": 3,
+   "variant": "b",
+   "name": "Hydrogen eaters: radiolytic hydrogen and sulfate (deep crust, aquifers)",
+   "drinks": "water",
+   "eats": "hydrogen from the radiolysis of water, and carbon dioxide or sulfate",
+   "breathes": "carbon dioxide or sulfate",
+   "gives_off": "methane, acetate, sulfide",
+   "reaches": "Microbial",
+   "tier": "T2",
+   "solvent": {
+    "medium": "water",
+    "factor": 1.0,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Liquid water in contact with rock"
+   },
+   "energy": {
+    "source": "chemical",
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "The share of the body's heat flow that life can use; radiogenic heat and dose make the hydrogen"
+   },
+   "gates": [
+    {
+     "quantity": "pressure_pa",
+     "min": 0.0,
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "Any pressure: a deep ocean or aquifer is not exposed to the air"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 255.0,
+     "high": 395.0,
+     "sigma_low": 15.0,
+     "sigma_high": 15.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
+    }
+   ],
+   "supply": {
+    "quantity": "radiolytic_h2_supply",
+    "placeholder": 1.0,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "Radiolytic hydrogen from the rock's uranium, thorium and potassium and the water is not stored yet (GEN.887); the placeholder 1 assumes enough"
+   },
+   "note": ""
+  },
+  {
+   "id": "4a",
+   "number": 4,
+   "variant": "a",
+   "name": "Sulfur, iron and nitrogen eaters: oxygen as the oxidant",
+   "drinks": "water",
+   "eats": "hydrogen sulfide, ferrous iron, ammonium or methane",
+   "breathes": "oxygen",
+   "gives_off": "sulfate, Fe(III), nitrogen, carbon dioxide",
+   "reaches": "Animals (chemosymbiotic tubeworm, clam and mussel communities)",
+   "tier": "T2",
+   "solvent": {
+    "medium": "water",
+    "factor": 1.0,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Liquid water"
+   },
+   "energy": {
+    "source": "chemical",
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "The energy of the fuel meeting the oxidant, scored on the share of the heat flow life can use"
+   },
+   "gates": [
+    {
+     "quantity": "share_o2",
+     "min": 0.001,
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "An oxygen sea: oxygen at least 0.1 percent of the air for the oxidant to reach the vents (life-classes.md 3.1, Class 4 window)"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 255.0,
+     "high": 395.0,
+     "sigma_low": 15.0,
+     "sigma_high": 15.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
+    }
+   ],
+   "supply": {
+    "quantity": "donor_supply",
+    "placeholder": 1.0,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "The reduced fuel supply (H2S, Fe2+, NH4+, CH4) is not stored yet (GEN.887); the placeholder 1 assumes vents or seeps supply it"
+   },
+   "note": ""
+  },
+  {
+   "id": "4b",
+   "number": 4,
+   "variant": "b",
+   "name": "Sulfur, iron and nitrogen eaters: nitrate and nitrogen oxides as the oxidant",
+   "drinks": "water",
+   "eats": "hydrogen sulfide, ferrous iron, ammonium or methane",
+   "breathes": "nitrate and nitrogen oxides",
+   "gives_off": "sulfate, Fe(III), nitrogen, carbon dioxide",
+   "reaches": "Animals (small)",
+   "tier": "T2",
+   "solvent": {
+    "medium": "water",
+    "factor": 1.0,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Liquid water"
+   },
+   "energy": {
+    "source": "chemical",
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "The energy of the fuel meeting the oxidant"
+   },
+   "gates": [
+    {
+     "quantity": "pressure_pa",
+     "min": 0.0,
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "Any pressure: a deep ocean or aquifer is not exposed to the air"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 255.0,
+     "high": 395.0,
+     "sigma_low": 15.0,
+     "sigma_high": 15.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
+    }
+   ],
+   "supply": {
+    "quantity": "oxidant_supply",
+    "placeholder": 0.3,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "Nitrate and nitrogen-oxide delivery is not stored yet (GEN.887); the placeholder 0.3 stands for a slow oxidant supply"
+   },
+   "note": ""
+  },
+  {
+   "id": "4c",
+   "number": 4,
+   "variant": "c",
+   "name": "Sulfur, iron and nitrogen eaters: chlorate and perchlorate as the oxidant",
+   "drinks": "water",
+   "eats": "hydrogen sulfide, ferrous iron, ammonium or methane",
+   "breathes": "chlorate and perchlorate",
+   "gives_off": "sulfate, Fe(III), nitrogen, carbon dioxide, chloride",
+   "reaches": "Microbial; animals are speculative (T8)",
+   "tier": "T8",
+   "solvent": {
+    "medium": "water",
+    "factor": 1.0,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Liquid water"
+   },
+   "energy": {
+    "source": "chemical",
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "The energy of the fuel meeting the oxidant"
+   },
+   "gates": [
+    {
+     "quantity": "pressure_pa",
+     "min": 0.0,
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "Any pressure: a deep ocean or aquifer is not exposed to the air"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 255.0,
+     "high": 395.0,
+     "sigma_low": 15.0,
+     "sigma_high": 15.0,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
+    }
+   ],
+   "supply": {
+    "quantity": "oxidant_supply",
+    "placeholder": 0.1,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "Perchlorate delivery is not stored yet (GEN.887); the placeholder 0.1 stands for a very slow supply"
+   },
+   "note": ""
+  },
+  {
+   "id": "5a",
+   "number": 5,
+   "variant": "a",
+   "name": "Acid-world life: cloud-deck plankton",
+   "drinks": "concentrated sulfuric acid (81 to 100 percent)",
+   "eats": "reduced sulfur, organic carbon, blue and UV light",
+   "breathes": "the acid itself (reduced to SO2 and sulfur); traces of oxygen",
+   "gives_off": "SO2, sulfur, carbon dioxide, water",
+   "reaches": "Mats and aerial plankton; at most simple colonial forms",
+   "tier": "T6",
+   "solvent": {
+    "medium": "sulfuric",
+    "factor": 0.1,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Concentrated sulfuric acid as the liquid; the existing SOLVENT_FACTOR of sulfuric acid, 0.1 (planetGen's choice)"
+   },
+   "energy": {
+    "source": "chemical",
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Chemical energy of the acid medium; light too in the cloud layer"
+   },
+   "gates": [
+    {
+     "quantity": "acid_medium",
+     "min": 1.0,
+     "tier": "T6",
+     "tweak": "L4",
+     "basis": "A liquid sulfuric acid layer is present: nothing in the generator models it yet (GEN.888), so this class scores 0 until then"
+    }
+   ],
+   "windows": [],
+   "supply": null,
+   "note": ""
+  },
+  {
+   "id": "5b",
+   "number": 5,
+   "variant": "b",
+   "name": "Acid-world life: pool and crust mats",
+   "drinks": "concentrated sulfuric acid",
+   "eats": "reduced sulfur, organic carbon",
+   "breathes": "the acid itself",
+   "gives_off": "SO2, sulfur, carbon dioxide, water",
+   "reaches": "Mats",
+   "tier": "T6",
+   "solvent": {
+    "medium": "sulfuric",
+    "factor": 0.1,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Concentrated sulfuric acid as the liquid; SOLVENT_FACTOR 0.1"
+   },
+   "energy": {
+    "source": "chemical",
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Chemical energy of the acid medium"
+   },
+   "gates": [
+    {
+     "quantity": "acid_medium",
+     "min": 1.0,
+     "tier": "T6",
+     "tweak": "L4",
+     "basis": "A liquid sulfuric acid pool is present: not modelled yet (GEN.888)"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 283.0,
+     "high": 373.0,
+     "sigma_low": 15.0,
+     "sigma_high": 15.0,
+     "tier": "T6",
+     "tweak": "L3",
+     "basis": "Warm dry ground, acid pools 283 to 373 K (life-classes.md 3.1, Class 5b window)"
+    }
+   ],
+   "supply": null,
+   "note": ""
+  },
+  {
+   "id": "6",
+   "number": 6,
+   "variant": "",
+   "name": "Dense-CO2 life",
+   "drinks": "liquid or supercritical carbon dioxide",
+   "eats": "hydrogen as fuel",
+   "breathes": "carbon dioxide (the solvent is the oxidant)",
+   "gives_off": "methane, water (which separates out)",
+   "reaches": "Microbial, at most mats",
+   "tier": "T7",
+   "solvent": {
+    "medium": "co2",
+    "factor": 0.1,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Liquid or supercritical CO2 as the solvent; no existing factor, 0.1 like the other strange solvents (planetGen's choice)"
+   },
+   "energy": {
+    "source": "chemical",
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Chemical energy of hydrogen fuel, scored on the share of the heat flow life can use"
+   },
+   "gates": [
+    {
+     "quantity": "share_co2",
+     "min": 0.5,
+     "tier": "T7",
+     "tweak": "L3",
+     "basis": "A dense CO2 air or sea: carbon dioxide at least half of the air (life-classes.md 3.1, Class 6 window)"
+    },
+    {
+     "quantity": "pressure_pa",
+     "min": 518000.0,
+     "tier": "T2",
+     "tweak": "L0",
+     "basis": "Liquid CO2 needs above 5.2 bar (the triple point is 5.18 bar)"
+    },
+    {
+     "quantity": "co2_phase",
+     "in": [
+      "liquid",
+      "supercritical"
+     ],
+     "tier": "T2",
+     "tweak": "L0",
+     "basis": "The CO2 is liquid or supercritical at the surface"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 217.0,
+     "high": 400.0,
+     "sigma_low": 20.0,
+     "sigma_high": 40.0,
+     "tier": "T8",
+     "tweak": "L3",
+     "basis": "Liquid below 304 K, supercritical above that and about 73 bar (life-classes.md 3.1)"
+    }
+   ],
+   "supply": {
+    "quantity": "h2_supply",
+    "placeholder": 0.5,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "The hydrogen supply is not stored yet (GEN.887); 0.5 stands for a half of Class 3's"
+   },
+   "note": ""
+  },
+  {
+   "id": "7",
+   "number": 7,
+   "variant": "",
+   "name": "Cold hydrocarbon-sea life",
+   "drinks": "liquid methane and ethane",
+   "eats": "hydrogen and acetylene (hydrogenation)",
+   "breathes": "nothing",
+   "gives_off": "methane",
+   "reaches": "Microbial mats",
+   "tier": "T8",
+   "solvent": {
+    "medium": "hydrocarbon",
+    "factor": 0.2,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "The existing SOLVENT_FACTOR of a hydrocarbon sea, 0.2 (planetGen's choice); the index's `solvent()` rule says when a methane sea exists"
+   },
+   "energy": {
+    "source": "chemical",
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Chemical energy of hydrogen and acetylene, scored on the share of the heat flow life can use"
+   },
+   "gates": [],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 90.0,
+     "high": 190.0,
+     "sigma_low": 10.0,
+     "sigma_high": 10.0,
+     "tier": "T8",
+     "tweak": "L3",
+     "basis": "90 to 190 K (life-classes.md 3.1, Class 7 window)"
+    },
+    {
+     "quantity": "pressure_pa",
+     "low": 50000.0,
+     "high": 500000.0,
+     "sigma_low": 30000.0,
+     "sigma_high": 300000.0,
+     "tier": "T8",
+     "tweak": "L3",
+     "basis": "N2 and CH4 air around 1.5 bar (life-classes.md 3.1, Class 7 window)"
+    }
+   ],
+   "supply": {
+    "quantity": "hydrogen_acetylene_supply",
+    "placeholder": 0.5,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "The hydrogen and acetylene supply (haze organics) is not stored yet (GEN.887); 0.5 is a stand-in"
+   },
+   "note": ""
+  },
+  {
+   "id": "8",
+   "number": 8,
+   "variant": "",
+   "name": "Ammonia-water life",
+   "drinks": "water with ammonia",
+   "eats": "hydrogen and chemical gradients in cold alkaline brine",
+   "breathes": "carbon dioxide or carbonate",
+   "gives_off": "methane, nitrogen",
+   "reaches": "Microbial",
+   "tier": "T8",
+   "solvent": {
+    "medium": "ammonia_water",
+    "factor": 0.1,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Water with ammonia as the liquid; 0.1 like the other strange solvents (planetGen's choice)"
+   },
+   "energy": {
+    "source": "chemical",
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Chemical energy of hydrogen and gradients, scored on the share of the heat flow life can use"
+   },
+   "gates": [
+    {
+     "quantity": "ammonia_water_mass_fraction",
+     "min": 0.1,
+     "tier": "T8",
+     "tweak": "L3",
+     "basis": "Ammonia at least 10 percent of the water mass (life-classes.md 3.1, Class 8 window); the ammonia inventory is not stored yet (GEN.887), so this class scores 0 until then"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 176.0,
+     "high": 273.0,
+     "sigma_low": 10.0,
+     "sigma_high": 10.0,
+     "tier": "T8",
+     "tweak": "L3",
+     "basis": "176 to 273 K: the water-ammonia eutectic is about 176 K (recalled)"
+    }
+   ],
+   "supply": {
+    "quantity": "h2_supply",
+    "placeholder": 0.5,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "The hydrogen supply is not stored yet (GEN.887); 0.5 is a stand-in"
+   },
+   "note": ""
+  },
+  {
+   "id": "9",
+   "number": 9,
+   "variant": "",
+   "name": "Silicon-bearing life in acid",
+   "drinks": "concentrated sulfuric acid",
+   "eats": "as Class 5, with organosilicon chemistry",
+   "breathes": "the acid itself",
+   "gives_off": "SO2, silica (solid SiO2)",
+   "reaches": "Microbial",
+   "tier": "T9",
+   "solvent": {
+    "medium": "sulfuric",
+    "factor": 0.1,
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Concentrated sulfuric acid as the liquid; SOLVENT_FACTOR 0.1"
+   },
+   "energy": {
+    "source": "chemical",
+    "tier": "T9",
+    "tweak": "L3",
+    "basis": "Chemical energy of the acid medium"
+   },
+   "gates": [
+    {
+     "quantity": "acid_medium",
+     "min": 1.0,
+     "tier": "T6",
+     "tweak": "L4",
+     "basis": "A liquid sulfuric acid layer or pool is present: not modelled yet (GEN.888)"
+    },
+    {
+     "quantity": "silicon_rich_crust",
+     "min": 1.0,
+     "tier": "T9",
+     "tweak": "L4",
+     "basis": "A silicon-rich crust (GEN.441 crust composition); not exposed as a quantity yet"
+    }
+   ],
+   "windows": [
+    {
+     "quantity": "temperature_k",
+     "low": 283.0,
+     "high": 363.0,
+     "sigma_low": 15.0,
+     "sigma_high": 10.0,
+     "tier": "T9",
+     "tweak": "L3",
+     "basis": "As Class 5; silicones resist 98 percent acid at 90 C (life-classes.md 3.1, read in the climates report)"
+    }
+   ],
+   "supply": null,
+   "note": ""
+  }
+ ],
+ "non_water_chemistry": {
+  "hydrogen_inventory_floor": 1.0,
+  "tier": "T9",
+  "tweak": "L4",
+  "basis": "The index's chemistry term needs carbon, nitrogen and hydrogen in Earth units, and hydrogen comes from the water; a class that does not drink water gets its hydrogen from the supply term (GEN.887), so its inventory is held at this floor, and phosphate is the index's NON_AQUEOUS_PHOSPHATE_UMOL_L"
+ }
+}
