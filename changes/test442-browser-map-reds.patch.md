@@ -1,7 +1,0 @@
-**Headline:** Four browser map tests that had gone red test what they meant to, the Galaxy Map keeps the whole page width again, and a hook says when an opened sector can be clicked.
-
-### Fixed
-- **The Menu filters test matched two summaries (TEST.442).** The Charted regions list is a second `galaxy-sub` group in the Menu; the test now asks for the "Show on the map" group by its id.
-- **The System Map drill test picked a system whose whole-system scene draws only stars (TEST.442).** A system of several stars draws its stars there and each star's planets in a scene of its own, so the test now picks a single-star system with a planet that has moons, and runs in a 1280x900 window because the planet's info card (MAP.332) covers the moons in 800x600.
-- **A click on a star of an opened sector came before the sector's scene was up (TEST.442).** The panel names a sector from its address before its scene is fetched, and a click then fell on a cell of the galaxy. `canvas.galaxyOpenSector()` (a hook for the browser tests, like `galaxyAmbient`) now reports the open sector once its scene is whole, and the test waits on it.
-- **The Galaxy Map's page was given the "On this page" menu column (UX.215), which narrowed its map past the window (TEST.442).** In a 1280 px window the map's left edge sat 169 px in and its right edge 1351 px, so the page scrolled sideways, a wheel on the cross turned the view off its line of sight, and the info card's wheel test timed out. The page with the wide main column gets no contents menu now; pages without it keep theirs.
