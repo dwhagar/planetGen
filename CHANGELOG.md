@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2553] - 2026-10-29
+
+**Headline:** The waiting-list setting's help text no longer shows an internal item code.
+
+### Fixed
+- **The `queue.max_waiting` help text named an internal item code.** It is reworded, so no item code reaches the settings page, the config reference or the example file (TEST.457).
+
 ## [8.0.2552] - 2026-10-29
 
 **Headline:** The stellar mass function now lives in one module, so the next change to it is made in one place.
