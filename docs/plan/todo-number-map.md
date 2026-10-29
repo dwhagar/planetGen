@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.238 |
 | MAP | MAP.347 |
 | NAV | NAV.65 |
-| GEN | GEN.912 |
+| GEN | GEN.913 |
 | PERF | PERF.204 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1660,8 +1660,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.907 | Life census: only 0.08% of life worlds reach animals against the 15 to 35% band, because almost all life worlds are Melanin or Retinal and few ordinary worlds are oxygenic (bug) | none | open |
 | GEN.908 | Worlds labelled surface ocean are mostly frozen: at least half have a mean surface temperature below 273 K (bug) | none | open |
 | GEN.909 | Temperate liquid-water worlds (273 to 323 K, 10 kPa to 1 MPa, ocean) are rare: 10 in 120 systems at G2V, 6 at K5V, 0 at M2V (bug) | none | done, diagnosis only (cold by the physics, no code change; report gen909-cold-ecosphere-diagnosis-2026-10-29.md) |
-| GEN.910 | K5V worlds are also cold in the inner third of the habitable zone (9 of 13 under 273 K): split the cold share by flux and by CO2 to find out why (bug) | none | open |
+| GEN.910 | K5V worlds are also cold in the inner third of the habitable zone (9 of 13 under 273 K): split the cold share by flux and by CO2 to find out why (bug) | none | done, diagnosis only (no K5V-specific fault; report gen910-k5v-cold-share-2026-10-29.md) |
 | GEN.911 | Habitable-world requests and the habitable zone: the zone mostly holds frozen worlds, so decide where habitable requests aim (inner half of the zone or a temperate band from the solved climate) | none | open |
+| GEN.912 | The planet albedo draw does not follow the star's colour, so planets of cool stars come out a little too cold (stand-in) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

@@ -13681,27 +13681,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.812.
   Owner: Aux 7 (surface labels), 3:47 AM EDT 2026-10-29. Root cause (Core 1, section 6 of /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md): the frozen 'surface ocean' bodies are GEN.762 chloride brines: 13 of 20 (G2V) and 14 of 21 (K5V) ecosphere 'surface ocean' bodies hold under 1e-5 of their mass as water (Earth 2e-4), so the brine melts at 200 to 270 K, often with no air. By design but misleading. Fix: a state or label (brine seep) and not counting it as a sunlit sea (SUNLIT_OCEAN, LIVING_HYDROSPHERES). Core 1 will make the SUNLIT_OCEAN part in its second change only if Aux 2's life.py rewrite (epoch 120) does not already remove it (it does remove it). Changes generated output: lock turn, order with Aux 7's GEN.746-748. (this replaces any earlier owner line)
 
-- [ ] **GEN.910 K5V worlds are also cold in the inner third of the habitable zone (9 of 13 under 273 K): split the cold share by flux and by CO2 to find out why (bug)**
-  Found by Core 4 (about 4:54 AM EDT 2026-10-29 as the lane reported) in
-  the GEN.909 diagnosis, report
-  /mnt/project-files/reports/gen909-cold-ecosphere-diagnosis-2026-10-29.md.
-  The outer zone being cold is physical (the Kopparapu
-  maximum-greenhouse outer edge needs about 8 bar of CO2 and the
-  carbonate-silicate cycle leaves 1e-4 to 0.1 bar at 1.2 to 1.7 AU), but
-  K5V is cold in its inner third too: 9 of 13 bodies of 0.8 Earth masses
-  or more are under 273 K, 11 of 13 in the middle, 11 of 14 outer; G2V
-  inner third is 6 of 15. Not explained. Do: split by absorbed flux, CO2
-  inventory, albedo and greenhouse for K5V bodies in the inner third;
-  say whether the cause is the K-star spectrum (albedo or Rayleigh), a
-  tidal or rotation effect, the zone edges or a fault; no code change
-  unless a fault is found (a fix changes generated output: lock turn;
-  record any tweak in the stand-in registry). Version 8.1. Owner: Core 4
-  (it holds the probe scripts in
-  /mnt/project-files/reports/gen909-probe/), lock-free diagnosis on a
-  separate branch. Prerequisites: none. Related: GEN.909 (diagnosed,
-  retired), GEN.854, GEN.646, GEN.907.
-  Prerequisites: none. Related: GEN.854, GEN.646, GEN.907.
-
 - [ ] **GEN.911 Habitable-world requests and the habitable zone: the zone mostly holds frozen worlds, so decide where habitable requests aim (inner half of the zone or a temperate band from the solved climate)**
   Boss decision needed, found by Core 4 in the GEN.909 diagnosis (report
   /mnt/project-files/reports/gen909-cold-ecosphere-diagnosis-2026-10-29.md):
@@ -13719,7 +13698,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation change, lock turn. Version 8.1. Owner: Aux 1 (GEN.646
   request steering), after Boss decides. Prerequisites: none. Related:
   GEN.909, GEN.854, GEN.646, GEN.907.
+  Research (2026-10-09): Update (Core 4, about 5:07 AM EDT 2026-10-29 as
+  the lane reported): GEN.910 found no K5V-specific fault. At equal flux
+  G2V and K5V match within sampling error (0.5 to 0.7 of Earth's
+  sunlight: G2V 21 of 36 under 273 K, K5V 20 of 28), and the carbonate
+  cycle pins the typical body near 270 K whatever the flux (G2V 270,
+  269, 269 K at 0.5, 0.7, 0.9 of Earth's sunlight), so whether a world
+  is temperate or cold is down to the drawn constants. This favours
+  option 1 (a temperate band from the solved climate) over aiming at the
+  inner half. The albedo-follows-star-colour gap is GEN.912. Owner moves
+  from Aux 1 (retiring) to Core 1 once Boss decides.
   Prerequisites: none. Related: GEN.909, GEN.854, GEN.646, GEN.907.
+
+- [ ] **GEN.912 The planet albedo draw does not follow the star's colour, so planets of cool stars come out a little too cold (stand-in)**
+  Found by Core 4 (about 5:07 AM EDT 2026-10-29 as the lane reported) in
+  the GEN.910 diagnosis, report
+  /mnt/project-files/reports/gen910-k5v-cold-share-2026-10-29.md. Real
+  planets around cool (red) stars absorb more of the star's light (water
+  ice and clouds are darker in the near infrared), so their Bond albedo
+  is lower than around a Sun-like star. The generator draws albedo
+  without regard to the star's colour, which makes K and M dwarf planets
+  somewhat too cold; the size is unknown. Do: derive the albedo shift
+  from the star's spectrum and the surface and cloud reflectance spectra
+  (Joshi and Haberle 2012 and Shields 2013 give the published size for
+  ice and snow), measure how many K5V and M2V bodies change class of
+  temperature, and record the stand-in tier and tweak level. A
+  generation change: lock turn, version 8.4 (physics). Owner: Core 4.
+  Prerequisites: none. Related: GEN.909, GEN.910, GEN.911.
+  Prerequisites: none. Related: GEN.909, GEN.910, GEN.911.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
