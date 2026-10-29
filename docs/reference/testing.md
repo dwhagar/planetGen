@@ -406,6 +406,16 @@ run: where two sources differ the widest range stands, and the sampling slack of
 is added when it is compared. A known fault carries its item as in the other parts. The report is `star-census-latest.md`; about 15
 seconds on 4 cores. `python -m tests.audit.prevalence_stars` prints it without the test.
 
+The star mass function census (TEST.454, `src/tests/audit/mass_curve.py`, `src/tests/test_mass_function_curve.py`; item 1 of the star mass
+function chain, GEN.922) measures the same population bin by bin in mass against the published disk curves held as data in
+`src/tests/data/mass_function_curve.json` (Chabrier 2003's log-normal fits for single stars and for systems, Kroupa 2001's broken power law,
+all recalled, tier T2, until a lane reads the papers). It draws 60,000 systems at the reference solar position and counts two samples below
+0.8 solar masses, where every star born is still alive: the primaries (held to the system function) and every star of the systems' member
+trees (held to the single-star functions), and reports the generator's primaries above 0.8 solar masses by phase (main sequence, subgiant,
+giant, supergiant, white dwarf) and the white dwarfs' mean mass (a norm). A bin's range is the lowest and highest share the sample's curves
+give it, widened by the sample's relative tolerance and by four binomial sigma of the run. A bin a later item of the chain fixes carries
+that item's number. The report is `mass-curve-latest.md`; about 20 seconds on 4 cores. `python -m tests.audit.mass_curve` prints it.
+
 Part D, the phenomena census (TEST.433, `src/tests/audit/prevalence_phenomena.py`, `src/tests/test_prevalence_phenomena_census.py`),
 first cut: the galaxy-wide totals of the classes the phenomenon scatter places (stellar-mass and intermediate-mass black holes, neutron
 stars, magnetars, planetary nebulae, supernova remnants, and Wolf-Rayet stars), against `src/tests/data/prevalence_phenomena_expectations.json`. A total is the

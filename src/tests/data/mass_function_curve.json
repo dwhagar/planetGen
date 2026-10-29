@@ -1,0 +1,95 @@
+{
+ "reference": {
+  "kind": "norm: published fits of the Galactic disk mass function (recalled, tier T2, until a lane reads the papers); no generator run sets a range",
+  "point": "the default galaxy's reference solar position (tests.audit.prevalence_stars.solar_populations)",
+  "primaries": 60000,
+  "note": "A bin's range is the lowest and the highest share the named curves give it, widened by the relative tolerance and then by four binomial sigma of the run. The two samples answer two questions: what the generator draws as the primary of a system (compared with the system function), and what its systems hold in all (compared with the single-star function). Below 0.8 solar masses every star born is still alive, so the born shares are the present shares; above it the sample is the living stars of the population model and the rows only report what the generator makes (no norm yet).",
+  "sources": [
+   "Chabrier 2003, PASP 115:763, Table 2, Galactic disk (recalled, T2)",
+   "Kroupa 2001, MNRAS 322:231 (recalled, T2)"
+  ]
+ },
+ "curves": {
+  "chabrier2003_individual": {
+   "kind": "lognormal below break, power law above, joined continuously",
+   "m_c": 0.079,
+   "sigma": 0.69,
+   "break_sol": 1.0,
+   "power_law_x": 1.3,
+   "source": "Chabrier 2003 Table 2, Galactic disk, individual stars: log-normal in log mass, centre 0.079 solar masses, width 0.69 dex, power law x = 1.3 above 1 solar mass (recalled, T2)"
+  },
+  "chabrier2003_system": {
+   "kind": "lognormal below break, power law above, joined continuously",
+   "m_c": 0.22,
+   "sigma": 0.57,
+   "break_sol": 1.0,
+   "power_law_x": 1.3,
+   "source": "Chabrier 2003 Table 2, Galactic disk, systems: log-normal in log mass, centre 0.22 solar masses, width 0.57 dex, power law x = 1.3 above 1 solar mass (recalled, T2)"
+  },
+  "kroupa2001": {
+   "kind": "broken power law in dN/dM",
+   "breaks_sol": [
+    0.08,
+    0.5,
+    150.0
+   ],
+   "slopes": [
+    1.3,
+    2.3
+   ],
+   "source": "Kroupa 2001: dN/dM ~ M^-1.3 from 0.08 to 0.5 and M^-2.3 above, corrected for unresolved binaries (recalled, T2); the shape the generator's rows carry today"
+  }
+ },
+ "bins": {
+  "edges_sol": [
+   0.08,
+   0.12,
+   0.2,
+   0.3,
+   0.45,
+   0.6,
+   0.8
+  ],
+  "evolved_report_edges_sol": [
+   0.8,
+   1.2,
+   2.0,
+   4.0,
+   8.0,
+   20.0,
+   150.0
+  ]
+ },
+ "samples": {
+  "primaries": {
+   "curves": [
+    "chabrier2003_system"
+   ],
+   "tolerance_relative": 0.2,
+   "what": "the primary star of each system drawn at the reference place"
+  },
+  "all_stars": {
+   "curves": [
+    "chabrier2003_individual",
+    "kroupa2001"
+   ],
+   "tolerance_relative": 0.15,
+   "what": "every star of every system (the primary and the stars of its member tree), as the stars the generator holds"
+  }
+ },
+ "norms": {
+  "white_dwarf_mean_mass_sol": {
+   "norm_min": 0.55,
+   "norm_max": 0.7,
+   "kind": "observed",
+   "source": "local white dwarf samples 0.60 to 0.65 solar masses, SDSS and Gaia 0.59 to 0.65 (recalled, T2); the widest range stands"
+  }
+ },
+ "anomalies": {
+  "primaries 0.08-0.12": "GEN.928",
+  "primaries 0.6-0.8": "GEN.928"
+ },
+ "anomaly_notes": {
+  "GEN.928": "the generator draws a system's primary from the single-star mass function; the system function (Chabrier 2003, centre 0.22 solar masses) has fewer primaries at 0.08 to 0.12 and more at 0.6 to 0.8: measured 23.8% and 6.9% against 13 to 20% and 7.7 to 12%"
+ }
+}
