@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2510] - 2026-10-29
+
+**Headline:** A planet or moon whose surface is hotter than its mantle's melting point no longer crashes or hangs the generator.
+
+### Fixed
+- **A surface above the mantle's liquidus broke the interior heat model (GEN.856).** A mobile-lid body there divided by a zero temperature drop (or took a complex power), and a stagnant-lid one ended with a mantle cooler than its own surface. Such a body is now a magma ocean: its mantle sits at the surface's temperature, the melt carries out what the body makes (the decay heat of its silicate, and a tide that flexes a molten body), and the heat released over its age is what it made. A mobile lid with no temperature drop carries no heat. Bodies under a cooler surface are unchanged.
+
+TODO items resolved: GEN.856.
+
 ## [8.0.2509] - 2026-10-29
 
 **Headline:** The reset, the math check and the data check now run as recorded runs on the work queue, like every other command.
