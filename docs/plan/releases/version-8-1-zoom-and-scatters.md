@@ -660,7 +660,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.821 | Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure |  |  |
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample |  |  |
 | GEN.819 | Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet |  |  |
-| ADM.134 | /admin/queue/<run_id>/log answers 302 to a visitor, but the auth sweep expects 403 for a json_only view: test_admin_pages_send_an_admin_on_seeded_credentials_to_account and test_admin_pages_send_anonymous_visitors_to_login fail on clean main (bug) |  |  |
 | GEN.824 | The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2 |  |  |
 | GEN.833 | Cold icy moons get sparse ice cover because the hydrosphere's toy ocean_fraction feeds the ground draw (bug) |  |  |
 | GEN.834 | Non-water ice species (CO2, CH4, N2 and others) are drawn into the ground but not stored per species |  |  |

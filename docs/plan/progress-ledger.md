@@ -1742,3 +1742,4 @@ Baseline: PR #1817.
 | TEST.418 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | OPS.71 | 8.1 | Bugs and flaky tests |
 | PERF.172 | 8.1 | Queue, caches and performance |
+| ADM.134 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

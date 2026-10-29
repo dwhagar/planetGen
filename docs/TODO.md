@@ -15995,18 +15995,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: DB.106, GEN.799. Related: ADM.62, ADM.130, ADM.131.
 
-- [ ] **ADM.134 /admin/queue/<run_id>/log answers 302 to a visitor, but the auth sweep expects 403 for a json_only view: test_admin_pages_send_an_admin_on_seeded_credentials_to_account and test_admin_pages_send_anonymous_visitors_to_login fail on clean main (bug)**
-  Blocker I (Aux 1) reported 10:40 PM EDT 2026-10-24 as the lane
-  reported: src/tests/test_api_auth_sweep.py fails in its gate with no
-  web file changed. web.admin_queue_log is marked json_only in
-  queue_page.py:367 yet answers 302 to an anonymous visitor where the
-  sweep expects a plain 403 (it came in with PERF.99 or PERF.186 or
-  later). Decide which is right (a JSON endpoint answers 403, not a
-  login redirect) and fix the view or the sweep, with a test. Done: both
-  sweep tests pass on main. Owner: the Queue page owner (Perf lane, Core
-  5).
-  Prerequisites: none. Related: PERF.99, PERF.186, TEST.384.
-
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
