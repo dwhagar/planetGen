@@ -68,11 +68,12 @@ def class_of(body):
 def draw_life(indices):
     """`{"systems", "worlds", "life", "rungs": {rung: n}, "classes": {class: n}, "abandoned", "errors", "error_count"}` for the systems
     of `indices` (seeded by their index)."""
+    from planetgen.generation import evolution
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from planetgen.util import draw
 
-    rungs, classes, errors = Counter(), Counter(), []
+    rungs, classes, oxygenic, errors = Counter(), Counter(), Counter(), []
     worlds = life = abandoned = error_count = 0
 
     def _alarm(*_):
@@ -95,6 +96,8 @@ def draw_life(indices):
                         if body.life_chemical:
                             life += 1
                             rungs[rung(body)] += 1
+                            if evolution.releases_oxygen(body.life_chemical):
+                                oxygenic[rung(body)] += 1
                             classes[str(class_of(body))] += 1
             except _Abandoned:
                 abandoned += 1
@@ -107,7 +110,7 @@ def draw_life(indices):
     finally:
         signal.signal(signal.SIGALRM, previous)
     return {"systems": len(list(indices)), "worlds": worlds, "life": life, "rungs": dict(rungs), "classes": dict(classes),
-            "abandoned": abandoned, "errors": sorted(set(errors)), "error_count": error_count}
+            "oxygenic": dict(oxygenic), "abandoned": abandoned, "errors": sorted(set(errors)), "error_count": error_count}
 
 
 def run(systems=SYSTEMS, workers=None):
@@ -116,14 +119,16 @@ def run(systems=SYSTEMS, workers=None):
     chunks = [list(range(start, systems, workers)) for start in range(workers)]
     with multiprocessing.get_context("fork").Pool(workers) as pool:
         parts = pool.map(draw_life, chunks, chunksize=1)
-    merged = {"systems": 0, "worlds": 0, "life": 0, "rungs": Counter(), "classes": Counter(), "abandoned": 0, "errors": [], "error_count": 0}
+    merged = {"systems": 0, "worlds": 0, "life": 0, "rungs": Counter(), "classes": Counter(), "oxygenic": Counter(), "abandoned": 0, "errors": [], "error_count": 0}
     for part in parts:
         for key in ("systems", "worlds", "life", "abandoned", "error_count"):
             merged[key] += part[key]
         merged["rungs"].update(part["rungs"])
         merged["classes"].update(part["classes"])
+        merged["oxygenic"].update(part["oxygenic"])
         merged["errors"] += part["errors"]
-    merged["rungs"], merged["classes"], merged["errors"] = dict(merged["rungs"]), dict(merged["classes"]), sorted(set(merged["errors"]))
+    merged["rungs"], merged["classes"], merged["oxygenic"] = dict(merged["rungs"]), dict(merged["classes"]), dict(merged["oxygenic"])
+    merged["errors"] = sorted(set(merged["errors"]))
     return merged
 
 
@@ -199,6 +204,9 @@ def format_report(result, findings, header=""):
     lines += ["", f"## {result['systems']} systems, {result['worlds']} terrestrial worlds, {result['life']} with life", ""]
     lines += [f"- {measure}: {values[measure]:.4f} (of {counts[measure]})" for measure in MEASURES]
     lines += ["", "Highest rung: " + ", ".join(f"{name} {result['rungs'].get(name, 0)}" for name in RUNGS)]
+    oxygenic = result.get("oxygenic", {})
+    lines += ["", f"Oxygenic life worlds (the population Core 1's animal figures describe): {sum(oxygenic.values())} of {result['life']}"
+              + (", highest rung: " + ", ".join(f"{name} {oxygenic.get(name, 0)}" for name in RUNGS) if oxygenic else "")]
     lines += ["", "Shadow life class of the life worlds (an outcome to measure, not checked): "
               + ", ".join(f"{name} {count}" for name, count in sorted(result["classes"].items(), key=lambda item: -item[1]))]
     return "\n".join(lines) + "\n"
