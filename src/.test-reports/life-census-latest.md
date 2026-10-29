@@ -7,7 +7,7 @@ Flags: 0 new, 1 known anomalies.
 
 Known anomalies:
 
-- OUT-OF-RANGE life reaches_animals: 0.0008 not in [0.1095, 0.4040] [stand-in: about 15 to 35 percent of life worlds reach animals (any grade), Core 1's figures of 21 to 33 per 100 for oxygenic life] (known: GEN.855)
+- OUT-OF-RANGE life reaches_animals: 0.0008 not in [0.1095, 0.4040] [stand-in: about 15 to 35 percent of life worlds reach animals (any grade), Core 1's figures of 21 to 33 per 100 for oxygenic life] (known: GEN.907)
 
 ## 240 systems, 3917 terrestrial worlds, 1246 with life
 
