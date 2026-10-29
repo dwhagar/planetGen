@@ -82,7 +82,7 @@ def draw_life(indices, star_type=None):
     from planetgen.generation.system import StarSystem
     from planetgen.util import draw
 
-    rungs, classes, oxygenic, errors = Counter(), Counter(), Counter(), []
+    rungs, classes, oxygenic, by_class, errors = Counter(), Counter(), Counter(), Counter(), []
     worlds = life = abandoned = error_count = 0
 
     def _alarm(*_):
@@ -110,6 +110,7 @@ def draw_life(indices, star_type=None):
                             if evolution.releases_oxygen(body.life_class_id):
                                 oxygenic[rung(body)] += 1
                             classes[str(class_of(body))] += 1
+                            by_class[f"{class_of(body)}:{rung(body)}"] += 1
             except _Abandoned:
                 abandoned += 1
             except Exception as error:
@@ -121,7 +122,7 @@ def draw_life(indices, star_type=None):
     finally:
         signal.signal(signal.SIGALRM, previous)
     return {"systems": len(list(indices)), "worlds": worlds, "life": life, "rungs": dict(rungs), "classes": dict(classes),
-            "oxygenic": dict(oxygenic), "abandoned": abandoned, "errors": sorted(set(errors)), "error_count": error_count}
+            "oxygenic": dict(oxygenic), "by_class": dict(by_class), "abandoned": abandoned, "errors": sorted(set(errors)), "error_count": error_count}
 
 
 def _job(job):
@@ -137,7 +138,7 @@ def run(systems=SYSTEMS, workers=None, host_systems=HOST_SYSTEMS):
     with multiprocessing.get_context("fork").Pool(workers) as pool:
         parts = pool.map(_job, jobs, chunksize=1)
     merged = {"systems": 0, "worlds": 0, "life": 0, "rungs": Counter(), "classes": Counter(), "oxygenic": Counter(),
-              "host_systems": 0, "host_oxygenic": Counter(), "abandoned": 0, "errors": [], "error_count": 0}
+              "by_class": Counter(), "host_systems": 0, "host_oxygenic": Counter(), "abandoned": 0, "errors": [], "error_count": 0}
     for (_, host), part in zip(jobs, parts):
         for key in ("abandoned", "error_count"):
             merged[key] += part[key]
@@ -148,10 +149,11 @@ def run(systems=SYSTEMS, workers=None, host_systems=HOST_SYSTEMS):
             merged["rungs"].update(part["rungs"])
             merged["classes"].update(part["classes"])
             merged["oxygenic"].update(part["oxygenic"])
+            merged["by_class"].update(part["by_class"])
         else:
             merged["host_systems"] += part["systems"]
             merged["host_oxygenic"].update(part["oxygenic"])
-    for key in ("rungs", "classes", "oxygenic", "host_oxygenic"):
+    for key in ("rungs", "classes", "oxygenic", "by_class", "host_oxygenic"):
         merged[key] = dict(merged[key])
     merged["errors"] = sorted(set(merged["errors"]))
     return merged
@@ -243,8 +245,14 @@ def format_report(result, findings, header=""):
     lines += ["", f"Oxygenic life worlds in {result.get('host_systems', 0)} systems around {', '.join(OXYGENIC_HOSTS)} (the population of "
               f"reaches_animals, reaches_sentient and sentient_of_animal_worlds): {sum(host.values())}"
               + (", highest rung: " + ", ".join(f"{name} {host.get(name, 0)}" for name in RUNGS) if host else "")]
-    lines += ["", "Shadow life class of the life worlds (an outcome to measure, not checked): "
+    lines += ["", "Stored life class of the life worlds (an outcome to measure, not checked): "
               + ", ".join(f"{name} {count}" for name, count in sorted(result["classes"].items(), key=lambda item: -item[1]))]
+    by_class = result.get("by_class", {})
+    if by_class:
+        lines += ["", "Highest rung by stored life class (worlds):", ""]
+        for class_id in sorted(result["classes"]):
+            row = {name: by_class.get(f"{class_id}:{name}", 0) for name in RUNGS}
+            lines.append(f"- {class_id}: " + ", ".join(f"{name} {count}" for name, count in row.items() if count))
     return "\n".join(lines) + "\n"
 
 
@@ -254,8 +262,10 @@ def main(argv=None):
 
     parser = argparse.ArgumentParser(description="How far the life of generated worlds gets (TEST.435).")
     parser.add_argument("--systems", type=int, default=SYSTEMS)
+    parser.add_argument("--host-systems", type=int, default=HOST_SYSTEMS,
+                        help="systems around each of the oxygenic hosts; the live test uses the default, a baseline run takes several times more")
     args = parser.parse_args(argv)
-    result = run(args.systems)
+    result = run(args.systems, host_systems=args.host_systems)
     sys.stdout.write(format_report(result, compare(result, load_expectations())))
     return 0
 

@@ -41,7 +41,6 @@
      "source": "Earth-mass planets in the ecosphere (eta-Earth) 0.2 to 0.6 per Sun-like star (Bryson et al. 2021, Petigura et al. 2018), widened for 300 stars"
     },
     "giants": {
-     "anomaly": "GEN.872",
      "kind": "observed",
      "max": 0.35,
      "min": 0.08,
