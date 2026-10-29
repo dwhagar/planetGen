@@ -24,9 +24,12 @@ def _body(**fields):
     return types.SimpleNamespace(**base)
 
 
-def _result(**rungs):
+def _result(oxygenic=None, **rungs):
+    """A run whose life worlds stand on `rungs`; the oxygenic worlds of the host systems stand on `oxygenic` (default: the same rungs)."""
     life_worlds = sum(rungs.values())
-    return {"systems": 10, "worlds": 100, "life": life_worlds, "rungs": rungs, "classes": {}, "abandoned": 0, "errors": [], "error_count": 0}
+    host = rungs if oxygenic is None else oxygenic
+    return {"systems": 10, "worlds": 100, "life": life_worlds, "rungs": rungs, "classes": {}, "host_systems": 10, "host_oxygenic": host,
+            "abandoned": 0, "errors": [], "error_count": 0}
 
 
 def _expectations(**changes):
@@ -70,6 +73,19 @@ def test_a_share_outside_its_band_is_flagged_both_ways():
         "out-of-range"]
 
 
+def test_the_animal_shares_are_taken_over_the_oxygenic_worlds_and_not_over_all_life_worlds():
+    result = _result(origin=950, producers=50, oxygenic={"producers": 3, "animals": 6, "sentient": 1})
+    values, counts = life.summarize(result)
+    assert values["stops_before_animals"] == 1.0 and counts["stops_before_animals"] == 1000
+    assert values["reaches_animals"] == 0.7 and counts["reaches_animals"] == 10
+    assert values["reaches_sentient"] == 0.1 and values["sentient_of_animal_worlds"] == 1 / 7 and counts["sentient_of_animal_worlds"] == 7
+
+
+def test_a_host_run_that_found_no_oxygenic_world_is_flagged_missing():
+    result = _result(origin=100, oxygenic={})
+    assert any(f.measure == "oxygenic life worlds" and f.kind == "missing" for f in life.compare(result, _expectations()))
+
+
 def test_no_animals_at_all_is_flagged_missing():
     flags = life.compare(_result(origin=100), _expectations(reaches_animals={"min": 0.5}))
     assert [f.kind for f in flags] == ["missing"]
@@ -107,15 +123,15 @@ def test_the_report_names_the_flags_the_shares_and_the_rungs():
     result["classes"] = {"None": 60, "3a": 40}
     report = life.format_report(result, life.compare(result, _expectations()))
     assert "reaches_animals" in report and "Highest rung: origin 100" in report and "3a 40" in report
-    assert "Oxygenic life worlds (the population Core 1's animal figures describe): 0 of 100" in report
+    assert "Oxygenic life worlds of the default systems: 0 of 100" in report
 
 
 def test_the_report_counts_the_oxygenic_life_worlds_and_the_rung_they_reached():
     result = _result(origin=96, animals=4)
     result["oxygenic"] = {"producers": 3, "animals": 1}
     report = life.format_report(result, life.compare(result, _expectations()))
-    assert "worlds (the population Core 1's animal figures describe): 4 of 100, highest rung: origin 0, producers 3" in report
-    assert "animals 1" in report
+    assert "Oxygenic life worlds of the default systems: 4 of 100, highest rung: origin 0, producers 3" in report
+    assert "around G2V, K5V" in report and "animals 1" in report
 
 
 # --- The stored bands --------------------------------------------------------------------------------------------------------

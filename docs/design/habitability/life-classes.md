@@ -151,11 +151,13 @@ Flora is macroscopic photosynthesis or a surface mat route (Classes 1 and 2); Fa
 
 Sentient is the rarest outcome and most life ends at microbes, plants or animals. The anchor is Core 1's timing review, which Boss chose at 9:03 PM EDT (complex cells 2.5, animals 3, civilization 60 Gyr, scale 1.0): for worlds with oxygenic life, G stars give about 21 in 100 animals and 0.6 civilizations, K about 33 and 1.5, M about 23 and 0.7. Animals to civilizations is therefore about 20 to 40 to 1. These are the bands the census (TEST.435, moved into 8.1) should hold. They are stand-ins, T9 and L3, set from Boss's rule and Core 1's model, not from observation.
 
-| Of all worlds that have any life | Target band | Why |
+| Population | Target band | Why |
 |---|---|---|
-| Stop at origin, producers or complex cells | the majority (more than half) | "most life stopping" below sentience; includes every strange-solvent world that cannot get past mats |
-| Reach animals (any grade) | about 15 to 35 percent of life worlds; for Class 1 worlds old enough, about 20 to 35 percent | Core 1's figures |
-| Reach sentient | no more than 1 to 2 percent of life worlds, and always fewer than one in twenty of the worlds that have animals | Boss: rarest; share unchanged from today |
+| Of all worlds that have any life: stop at origin, producers or complex cells | the majority (more than half) | "most life stopping" below sentience; includes every strange-solvent world that cannot get past mats |
+| Of worlds with oxygenic life: reach animals (any grade) | about 15 to 35 percent; for Class 1 worlds old enough, about 20 to 35 percent | Core 1's figures, which describe oxygenic life (GEN.907, Boss 6:04 AM EDT 10-29: per oxygenic world, not per life world) |
+| Of worlds with oxygenic life: reach sentient | no more than 1 to 2 percent, and always fewer than one in twenty of the worlds that have animals | Boss: rarest; share unchanged from today |
+
+The census (TEST.435) measures the animal and sentient bands on the oxygenic life worlds of systems made around G2V and K5V stars, because the default galaxy holds almost none (4 in 1,246 life worlds on 10-29, chlorophyll chemistries being listed for G and K stars only). The numbers are re-taken and re-baselined after epoch 120 (GEN.867) lands; none are changed before.
 
 Per class, the build thread sets a target band from the class's speed and energy and records it in the registry. Class 1 carries almost all the animals and all the sentient worlds in 8.1. Class 4 animals are chemosymbiotic and small. Classes 5 to 9 are expected to show a low single-digit share of animals at most, and that is an outcome to measure (TEST.435 reports it), not to force.
 

@@ -1,15 +1,13 @@
 {
  "reference": {
   "kind": "stand-in: Boss's prevalence targets for the life class system (docs/design/habitability/life-classes.md 5.2, 9:13 PM EDT 2026-10-28), tier T9, tweak level L3; set from Boss's rule that sentient life is the rarest and from Core 1's timing review (complex cells 2.5, animals 3, civilization 60 Gyr, scale 1.0), not from observation",
-  "worlds": "every terrestrial planet and moon with a life chemistry in whole seeded systems, with the default configuration"
+  "worlds": "stops_before_animals: every terrestrial planet and moon with a life chemistry in whole seeded systems, with the default configuration. The other three measures: the oxygenic ones among them, in systems made around G2V and K5V (GEN.907, Boss 6:04 AM EDT 10-29: the bands are per oxygenic world, Core 1's figures describe oxygenic life)"
  },
- "anomalies": {
-  "GEN.907": "after GEN.855 and GEN.750 (epoch 119) only 4 of 1,246 life worlds are oxygenic and 1 reaches animals; the band is Core 1's figure for oxygenic life, so either the generator or the band is off (Boss or Core 1 to call)"
- },
+ "anomalies": {},
  "measures": {
   "stops_before_animals": {"min": 0.5, "max": 1.0, "kind": "stand-in", "source": "the majority (more than half) of life worlds stop at origin, producers or complex cells"},
-  "reaches_animals": {"min": 0.15, "max": 0.35, "kind": "stand-in", "source": "about 15 to 35 percent of life worlds reach animals (any grade), Core 1's figures of 21 to 33 per 100 for oxygenic life", "anomaly": "GEN.907"},
-  "reaches_sentient": {"min": 0.0, "max": 0.02, "kind": "stand-in", "source": "no more than 1 to 2 percent of life worlds are sentient (Boss: rarest)"},
+  "reaches_animals": {"min": 0.15, "max": 0.35, "kind": "stand-in", "source": "about 15 to 35 percent of oxygenic life worlds reach animals (any grade), Core 1's figures of 21 to 33 per 100 for oxygenic life"},
+  "reaches_sentient": {"min": 0.0, "max": 0.02, "kind": "stand-in", "source": "no more than 1 to 2 percent of oxygenic life worlds are sentient (Boss: rarest)"},
   "sentient_of_animal_worlds": {"min": 0.0, "max": 0.05, "kind": "stand-in", "source": "always fewer than one in twenty of the worlds that have animals are sentient (animals to civilizations 20 to 40 to 1)"}
  }
 }
