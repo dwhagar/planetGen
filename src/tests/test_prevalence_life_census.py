@@ -107,6 +107,15 @@ def test_the_report_names_the_flags_the_shares_and_the_rungs():
     result["classes"] = {"None": 60, "3a": 40}
     report = life.format_report(result, life.compare(result, _expectations()))
     assert "reaches_animals" in report and "Highest rung: origin 100" in report and "3a 40" in report
+    assert "Oxygenic life worlds (the population Core 1's animal figures describe): 0 of 100" in report
+
+
+def test_the_report_counts_the_oxygenic_life_worlds_and_the_rung_they_reached():
+    result = _result(origin=96, animals=4)
+    result["oxygenic"] = {"producers": 3, "animals": 1}
+    report = life.format_report(result, life.compare(result, _expectations()))
+    assert "worlds (the population Core 1's animal figures describe): 4 of 100, highest rung: origin 0, producers 3" in report
+    assert "animals 1" in report
 
 
 # --- The stored bands --------------------------------------------------------------------------------------------------------

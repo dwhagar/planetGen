@@ -7,15 +7,17 @@ Flags: 0 new, 1 known anomalies.
 
 Known anomalies:
 
-- MISSING life reaches_animals: 0.0000 not in [0.1095, 0.4040] [stand-in: about 15 to 35 percent of life worlds reach animals (any grade), Core 1's figures of 21 to 33 per 100 for oxygenic life] (known: GEN.855)
+- OUT-OF-RANGE life reaches_animals: 0.0008 not in [0.1095, 0.4040] [stand-in: about 15 to 35 percent of life worlds reach animals (any grade), Core 1's figures of 21 to 33 per 100 for oxygenic life] (known: GEN.855)
 
 ## 240 systems, 3917 terrestrial worlds, 1246 with life
 
-- stops_before_animals: 1.0000 (of 1246)
-- reaches_animals: 0.0000 (of 1246)
+- stops_before_animals: 0.9992 (of 1246)
+- reaches_animals: 0.0008 (of 1246)
 - reaches_sentient: 0.0000 (of 1246)
-- sentient_of_animal_worlds: 0.0000 (of 0)
+- sentient_of_animal_worlds: 0.0000 (of 1)
 
-Highest rung: origin 743, producers 503, complex 0, multicellular 0, animals 0, sentient 0
+Highest rung: origin 999, producers 246, complex 0, multicellular 0, animals 1, sentient 0
+
+Oxygenic life worlds (the population Core 1's animal figures describe): 4 of 1246, highest rung: origin 0, producers 3, complex 0, multicellular 0, animals 1, sentient 0
 
 Shadow life class of the life worlds (an outcome to measure, not checked): None 794, 3a 449, 1a 3
