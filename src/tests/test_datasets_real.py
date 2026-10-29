@@ -9,8 +9,8 @@ not run `update.sh`; the offline fixtures of `test_datasets_readers.py` and `tes
 
 import pytest
 
-from planetgen.datasets import catalogue, fetch, isochrones, neutron_star_matter, white_dwarf_models
-from planetgen.physics import stellar_composition as sc
+from planetgen.datasets import catalogue, fetch, hhe_eos, isochrones, neutron_star_matter, white_dwarf_models
+from planetgen.physics import constants, giant_structure, stellar_composition as sc
 
 pytestmark = [pytest.mark.real_datasets, pytest.mark.skipif(
     any(fetch.locate(dataset).missing for dataset in catalogue.ALL),
@@ -51,6 +51,46 @@ def test_a_neutron_star_from_the_real_tables_has_an_iron_surface():
     for n in range(20):
         star = sc.star_makeup(sc.NEUTRON_STAR, None, 0.1, 1.4, f"ns{n}")
         assert star.detail["outer_crust"][0] == "Fe-56" and star.detail["crust_model"] in neutron_star_matter.crust_models()
+
+
+def test_hydrogen_helium_at_a_megabar_is_a_little_under_one_gram_per_cubic_centimetre():
+    """Chabrier and Debras 2021 at 100 GPa and 5,000 K, Y = 0.275 (Jupiter's mid-envelope is near 1 g/cm3)."""
+    assert 600.0 < hhe_eos.density_kg_m3(5000.0, 100e9) < 1100.0
+    assert hhe_eos.density_kg_m3(5000.0, 100e9, 0.5) > hhe_eos.density_kg_m3(5000.0, 100e9, 0.1)      # helium is the denser fluid
+    assert hhe_eos.entropy_mj_kg_k(8000.0, 100e9) > hhe_eos.entropy_mj_kg_k(4000.0, 100e9)
+
+
+EARTH = constants.EARTH_MASS_TO_KG
+
+
+def _fit(mass_earth, radius_km, heavy_earth, z, t1bar, y=0.27, ice=0.0, core_ice=0.0):
+    return giant_structure.fit_adiabat(giant_structure.StructureSubject(
+        mass_earth * EARTH, radius_km * 1e3, y, envelope_z=z, heavy_mass_kg=heavy_earth * EARTH, temperature_1bar_k=t1bar,
+        envelope_ice_fraction=ice, core_ice_fraction=core_ice))
+
+
+def test_the_ice_giants_close_on_adiabats_near_their_measured_one_bar_temperatures():
+    """Uranus (76 K at one bar, Lindal et al. 1987) and Neptune (72 K): the model has the radius and finds the adiabat itself, so
+    for a heavy-element mass and an ice share inside the range of the interior models the adiabat is within a third of what was
+    measured (the tables and the radius decide it; the shares are the only choice, and it moves the answer by tens of kelvin)."""
+    uranus = _fit(14.54, 25362.0, 12.5, 0.1, 76.0, ice=0.8, core_ice=0.8)
+    neptune = _fit(17.15, 24622.0, 14.5, 0.1, 72.0, ice=0.8, core_ice=0.6)
+    assert uranus.closed and neptune.closed
+    assert 50.0 < uranus.adiabat_1bar_k < 100.0 and 40.0 < neptune.adiabat_1bar_k < 100.0
+    assert 1.0e11 < uranus.central_pressure_pa < 4.0e12
+
+
+def test_a_gas_giant_closes_and_a_lighter_one_is_less_deep():
+    jupiter = _fit(317.8, 69911.0, 25.0, 0.04, 166.0)
+    saturn = _fit(95.16, 58232.0, 20.0, 0.04, 134.0)
+    assert jupiter.closed and saturn.closed and 3.0e12 < jupiter.central_pressure_pa < 1.5e13
+    assert saturn.central_pressure_pa < jupiter.central_pressure_pa
+
+
+def test_a_brown_dwarf_is_degenerate_at_the_centre():
+    mass = 40 * 317.8
+    dwarf = _fit(mass, 0.9 * 71492.0, 0.015 * mass, 0.015, 1000.0)
+    assert dwarf.closed and dwarf.central_pressure_pa > 1.0e13
 
 
 def test_the_catalogue_reports_nothing_missing():

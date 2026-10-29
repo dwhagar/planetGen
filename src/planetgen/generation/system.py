@@ -551,6 +551,7 @@ class StarSystem:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue
                 interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
+                planetPhysics.refresh_at_final_age(obj)  # GEN.839: the ice shell and the volcanism gate follow it (the body's own stream)
                 planetPhysics.apply_class(obj)  # GEN.689: the seasonal swing of the light (P, Q) is known only now
                 for moon in obj.moons:
                     planetPhysics.apply_class(moon)
@@ -558,6 +559,7 @@ class StarSystem:
                 planetLife.decide_flavor_text(obj)
                 for moon in obj.moons:
                     interior_heat.update_heat(moon)
+                    planetPhysics.refresh_at_final_age(moon)
                     magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
                     planetLife.apply_life_data(moon)
                     planetLife.decide_flavor_text(moon)

@@ -270,15 +270,15 @@ to 3.5 R_p for locked planets, matching Zuluaga 2013's 1.5 to 4.0 (locked) and
 For a rocky planet with mass M (Earth masses), age, rotation period P, core
 mass fraction c (Earth 0.325) and lid regime:
 
-1. **Eligibility.** M >= 0.05 and c >= 0.15, else no intrinsic field (Mercury,
-   0.055 Me, has one because its core is 70 percent of its mass).
-2. **Dynamo lifetime.** `tau_dyn = 4.0 Gyr * M^0.5 * U(0.5, 1.5)`; times 0.4 for a
-   stagnant lid (Venus, Mars) and 0.5 if c < 0.2. Active if age < `tau_dyn`.
-   Zuluaga and Cuartas-Restrepo: low-mass super-Earths have strong fields
-   lasting 2 to 4 Gyr when P > 1.5 d; the literature is unsettled [S].
-3. **Strength.** `M_dip = 7.8e22 * M^1.0 * (c/0.325)^1.0 * LN(0.4 dex) *
-   (1 - age/tau_dyn)^0.3`. Mercury-like (M under 0.1, c over 0.5): 3e19 *
-   LN(0.5 dex).
+1. **The core decides (GEN.838).** The interior heat model keeps a core temperature beside the mantle's (`physics/core_heat.py`,
+   `docs/design/composition/interior-heat.md` section 3.3); the dynamo runs while the heat the core loses across the core-mantle boundary,
+   and the gravitational energy of its inner core's growth, exceed the heat it conducts down its own adiabat, in a liquid shell of at least a
+   quarter of the core's radius. No metal, no dynamo. Mercury (0.055 Me, a core of 70 percent of its mass) keeps its observed field
+   whatever the model says: its iron-sulfide core melts lower than the pure iron the model has.
+2. **Lid.** The lid regime acts on the mantle's temperature, and so on the base of the mantle the core is measured against; the
+   dynamo lifetime draw and the stagnant-lid factor of GEN.86 and GEN.177 are gone.
+3. **Strength.** `M_dip = 7.8e22 * (R / R_e)^2 (P / P_e)^(1/3) (rho / rho_e)^(1/6) * LN(0.4 dex)` for the core's radius, dynamo power and
+   density over the Earth's as the model makes it. Mercury-like (M 0.05 to 0.1, c over 0.4): 3e19 * LN(0.5 dex).
 4. **Rotation switch.** `Ro_l = 0.09 (P / 24 h)^1.23`; `f_dip = 0.15 + 0.85 /
    (1 + (Ro_l / 0.12)^4)`. A locked M-dwarf planet has `f_dip` about 0.15.
 5. **Giants.** Always magnetized; log-normal 0.4 dex by bin: Neptune and
@@ -292,17 +292,11 @@ mass fraction c (Earth 0.325) and lid regime:
    `magnetopause_rp` (the standoff in radii of the body itself, `R_planet` in the unit registry: Earth's 9.75 Earth radii scaled by the
    field and the wind, then divided by the body's own radius, GEN.843).
 
-**Lid regime, as built (GEN.177).** Rule 2's stagnant-lid factor is applied in
-`magnetism._rocky_moment`: the dynamo lifetime is times 0.4 unless the planet
-has a mobile lid. The regime is not stored; it is drawn once per planet from
-`mobile_lid_chance`: a liquid surface ocean (`hydrosphere == "surface ocean"`)
-is required, from half an Earth mass up, with a 0.6 chance for 0.5 to 5 Earth
-masses and 0.3 above (the literature on super-Earth plate tectonics is split,
-so the chance falls rather than rises). Every other rocky planet is stagnant:
-Venus, Mars, dry worlds, ice-covered oceans and Hycean worlds. At 4.5 Gyr
-a watery Earth-mass world now keeps its field about 22 times in 100 (it was 38),
-and a dry one never does.
-
+**Lid regime, as built (GEN.177, GEN.721, GEN.838).** The regime is drawn once per planet from `mobile_lid_chance`: a liquid surface ocean
+(`hydrosphere == "surface ocean"`) is required, from half an Earth mass up, with a 0.6 chance for 0.5 to 5 Earth masses and 0.3 above (the
+literature on super-Earth plate tectonics is split, so the chance falls rather than rises). Every other rocky planet is stagnant: Venus,
+Mars, dry worlds, ice-covered oceans and Hycean worlds. It is stored (`lid_regime`) and read by the mantle's heat flux law, so a stagnant
+lid keeps the base of the mantle hotter, which slows the core's cooling; it no longer shortens the dynamo by a factor.
 
 **Induced fields, as built (GEN.178).** Rule 6's flag became a number:
 `magnetism.generate_induced_field` gives an ocean moon (`ice-covered ocean`,
