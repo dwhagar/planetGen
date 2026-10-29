@@ -414,7 +414,7 @@ with `clamp()`.
   follow-ups first (PERF.99, PERF.100, DB.29, PERF.120 to PERF.128)
   after PERF.135; this logging standard chain (UX.121 to UX.123,
   TEST.183) comes after them. Core 5 is the proposed owner.
-  Prerequisites: UX.122, TEST.183. Related: PERF.66.
+  Prerequisites: TEST.183. Related: PERF.66.
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
@@ -442,29 +442,6 @@ with `clamp()`.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: NAV.61.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
-
-- [ ] **UX.122 The command line, the job log files and the downloadable log use the layer**
-  Split from UX.102 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Move the CLI commands' output, the
-  job log files (including the file the Redis run record writes at the
-  end of a run, PERF.99) and the download onto the layer. Done: a run's
-  CLI text, its log file and its download agree line for line; tests for
-  each command family.
-  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
-  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
-  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
-  Research (2026-10-09, Aux 16 report): First slice merged (#3256, Aux
-  16, 11:20 PM EDT 2026-10-24 as the lane reported): the command line
-  text, the run log file, the job runner stage lines and a new
-  records.log beside a job output.log come from the UX.121 record layer;
-  new options --record-file and --record-json (settings record_file,
-  record_format) write every log line as a record and the job page
-  offers them at /log?form=records. Still open: finish and failure lines
-  on the command line, the commands that print directly (about 154 print
-  calls), the activity log shape decision, per-command tests.
-  Prerequisites: none. Related: UX.102.
 
 - [ ] **UX.130 Console design brief: colours, type, panel shapes and iconography, approved by Boss**
   Split from UX.43 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -14726,6 +14703,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and byte counts. Owner: Core 2 when free. Rules: no backward-compat
   shims; keep the benchmark limits as the guard.
   Prerequisites: none. Related: MAP.249, MAP.267.
+
+- [ ] **PERF.201 The neighborhood job test (test_api_job_runs, a_neighborhood_job_runs_its_sectors_through_the_wrapper) takes over 150 s because generation physics is slow on main: find the slow step and speed it up with identical values (bug)**
+  Found by Aux 7 (as the lane reported, 2026-10-28) while merging UX.122
+  (#3600): on a slow lane machine the test takes over 150 s, and the
+  time is spent in generation physics on main as well, not in the
+  change. Do: profile the neighborhood job (cProfile on the test), name
+  the slowest steps, speed them up without changing a single stored
+  value (golden_seed and the golden files must not change; if a speed-up
+  moves values, stop and file it as a generation change), and add a time
+  bound test for the step. Related to the interior heat integrator
+  (GEN.866 fixed a step that overshot). Version 8.1. Owner: Aux 7
+  (lock-free item while waiting).
+  Prerequisites: none. Related: TEST.429, GEN.866, PERF.190.
 
 ## DB: Database and schema
 
