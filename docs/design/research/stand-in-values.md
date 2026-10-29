@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 316 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 317 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 48 | 3 | 2 | 10 | 0 | 63 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
 | T5 | 14 | 5 | 1 | 0 | 0 | 20 |
-| T6 | 28 | 7 | 2 | 11 | 0 | 48 |
+| T6 | 28 | 7 | 2 | 12 | 0 | 49 |
 | T7 | 16 | 3 | 0 | 7 | 0 | 26 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 216 | 18 | 10 | 55 | 17 | 316 |
+| All | 216 | 18 | 10 | 56 | 17 | 317 |
 
 ## How the labels were given
 
@@ -429,6 +429,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | LF47 | P | T9 | L4 | life_classes.json non_water_chemistry hydrogen_inventory_floor 1.0 (Earth units), with habitability_world.NON_AQUEOUS_PHOSPHATE_UMOL_L | 0.25 to 1.0 | the chemistry term of a class that does not drink water | a measured hydrogen budget of a non-water biosphere | the stored hydrogen supply (GEN.887) | the index's chemistry term needs hydrogen in Earth units and a non-water world has none stored; the floor lets the other terms speak |
 | LF48 | D | T1 | L0 | life_classes.json reference_star_k 5772 and reference_band_nm 400 to 700 | none | the energy of a light class against Class 1a on the Sun | none | none needed | the Sun's effective temperature and the visible band; Class 1a on the Sun is the index's PHI_bio |
 | LF59 | P | T9 | L4 | life_supply.json numbers (GEN.887): the heat flow of Earth 0.087 W/m2, the heat share cap 10, the water-rock contact of an ocean 1, a reachable aquifer 0.5 and a deep one 0.15, the mantle redox multipliers of hydrogen and donors, the radiolytic dose reference 0.5 mSv/yr, the habitat temperature (ice-lid base 273.15 K, crust conductivity 2.5 W/m/K, cap 420 K), the nitrate, perchlorate and haze constants | each number a factor of 2 either way; the redox multipliers 0.3 to 3 | the six supplies (h2, radiolytic h2, donor, nitrate, perchlorate, hydrogen and acetylene) of every rocky body | a measured hydrogen or oxidant flux of a world with a known interior | measured supplies in the stored columns | each number carries its own tier and tweak in the file; the least certain are the contacts, the redox multipliers and the haze share (design, GEN.887) |
+| LF60 | P | T6 | L3 | life_ledger.json numbers (GEN.891, GEN.857, GEN.859): Earth's methane from the donor food web 10 Tmol/yr (inside the published 9 to 67), Earth's hydrogen 2.3 Tmol/yr with 4 H2 per CH4, 0.5 CH4 per buried carbon, the life of methane in an oxygen-free air 30,000 yr, the methane cap 3.5 percent of molecules, 10 percent of the carbon dioxide kept, the oxygen limit 0.001 and the hydrogen floor 1e-4 of molecules, the 1 percent rise that counts as a change | the flux 9 to 67 Tmol/yr; the lifetime a factor of 3 either way; the caps a factor of 3 | the methane and hydrogen of every class with a built row (1, 2, 3, 6, 8) after its producers start | a measured methane or hydrogen mixing ratio of a world whose life class is known, or the Archean methane the geochemical models give | measured mixing ratios in the stored air | each number carries its own tier and tweak in the file; the least certain are the methane life (it falls as ultraviolet and haze change it) and the carbon left (design); the sulfur ledger of Class 4 and Classes 5, 7 and 9 are `pending` rows (GEN.888, GEN.894) |
 | LF53 | P | T7 | L3 | life_classes.json `life.first_step_scale` of each class (Class 2 anoxygenic 0.6, the oxygenic Class 1 pigments 1.0, the chemical classes 1.0) on the second step | each 0.3 to 1.0, keeping the order | the classes with a light step | test_life_schedule.test_the_first_light_comes_earlier_for_a_simpler_way_of_harvesting_it | ages of the first pigments and reaction centres | design (anoxygenic photosynthesis before about 3.5 Gyr and oxygenic after about 3 Gyr on Earth, recalled); replaces tuning.LIFE_FIRST_LIGHT_SCALE |
 
 ## 6.20 Stand-ins of the planet mass law

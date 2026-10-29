@@ -142,11 +142,12 @@ def test_every_generated_body_stores_the_tide_of_its_orbit_and_the_habitability_
             seen += 1
             forcing = tidal_heating.forcing_of(body)
             if forcing is None:  # a planet or captured moon the tide has circularised has none left
-                assert body.eccentricity == 0.0 and not body.tidal_flux_w_m2
+                assert body.eccentricity == 0.0 and body.tidal_flux_w_m2 is None
                 continue
             if (body.water_mass_fraction or 0.0) >= hydrosphere.ICY_MIN_WATER_FRACTION:
                 icy += 1
-                assert body.tidal_flux_w_m2 == pytest.approx(tidal_heating.icy_flux_w_m2(forcing, body.radius))
+                assert body.tidal_flux_w_m2 is None or body.tidal_flux_w_m2 > 0.0, body.name   # GEN.906: never a stored 0.0
+                assert (body.tidal_flux_w_m2 or 0.0) == pytest.approx(tidal_heating.icy_flux_w_m2(forcing, body.radius))
             elif body.tidal_flux_w_m2 is not None:
                 rocky += 1
                 assert body.tidal_flux_w_m2 > 0.0
@@ -156,3 +157,23 @@ def test_every_generated_body_stores_the_tide_of_its_orbit_and_the_habitability_
             # the own heat flow does not contain the tide: the habitability energy term adds it
             assert body.internal_heat_flux_w_m2 is not None and body.internal_heat_flux_w_m2 > 0.0
     assert seen > 10 and rocky > 0
+
+
+def test_an_icy_body_on_an_orbit_so_round_the_tide_underflows_stores_none_not_zero():
+    """GEN.906: an eccentricity of 1e-203 squares to 0.0, and a tide of 0.0 W/m2 is stored as none, as the rocky body's is."""
+    from planetgen.physics import hydrosphere
+    for seed in range(12):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for body in _bodies(system):
+            if body.body_type in ("g", "a") or (body.water_mass_fraction or 0.0) < hydrosphere.ICY_MIN_WATER_FRACTION:
+                continue
+            if tidal_heating.forcing_of(body) is None:
+                continue
+            body.eccentricity = 1.0e-203
+            interior_heat.update_heat(body)
+            assert tidal_heating.icy_flux_w_m2(tidal_heating.forcing_of(body), body.radius) == 0.0
+            assert body.tidal_flux_w_m2 is None
+            return
+    pytest.skip("no icy body on an orbit in these seeds")
