@@ -1532,8 +1532,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.779 | Fill induced_moment_a_m2: the induced magnetic dipole moment of conducting oceans and cores in a varying field (never filled; every planet empty) | none | open |
 | GEN.780 | Fill porosity for rocky and icy bodies: the surface and crust porosity from composition and gravity (never filled) | none | open |
 | GEN.781 | Fill hp_ice_km: the thickness of the high-pressure ice layer under an ocean (never filled) | none | open |
-| GEN.782 | Fill ice_shell_km for every world with a surface ice shell, and state in the sheet rule which worlds have none | none | open |
-| GEN.783 | Fill shelter_column_g_cm2: the column mass of rock or ice that shields a shelter from radiation, for every world where it applies | none | open |
+| GEN.782 | Fill ice_shell_km for every world with a surface ice shell, and state in the sheet rule which worlds have none | none | done, PR #3629 |
+| GEN.783 | Fill shelter_column_g_cm2: the column mass of rock or ice that shields a shelter from radiation, for every world where it applies | none | done, PR #3629 |
 | GEN.784 | Fill energy_flux_w_m2 and flux_variation for giant planets: internal and absorbed energy flux and its variation (never filled for classes I, J, T) | none | open |
 | GEN.785 | Fill star decay_age_yr and lethal_event_rate_per_gyr (never filled for any star) | none | open |
 | GEN.786 | Fill star state (never filled for any star): the evolutionary state of each star | none | open |
@@ -2663,7 +2663,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.205 | Object pages show the day and night time shares, moons with the extra night from their planet | none | open |
 | UX.206 | Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view | none | open |
 | UX.207 | Breadcrumb bar: the system link is labelled "System" and the star link carries the star(s) name (bug) | none | done, PR #3188 |
-| UX.208 | Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column | none | open |
+| UX.208 | Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column | none | done, PR #3629 |
 | UX.209 | Object pages order: At a glance, then About, then the Properties list, then the other details (bug) | none | done, PR #3196 |
 | UX.210 | Map infoboxes and labels: the orbit infobox eccentricity and every other number on a map says what it is and its unit (scan) (bug) | none | done, PR #3347 |
 | UX.211 | Pages, lists, search, Nearby and the admin pages: every number carries a unit, a noun or a label (scan) (bug) | none | done, PR #3210 |

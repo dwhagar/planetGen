@@ -1692,3 +1692,6 @@ Baseline: PR #1817.
 | TEST.433 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.176 | 8.8 | Nebula drawing |
 | TEST.211 | 8.1 | Composition proofs |
+| UX.208 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.783 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.782 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

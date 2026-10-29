@@ -872,49 +872,6 @@ with `clamp()`.
   UX.179, PERF.134, ADM.44, MAP.158.
   Prerequisites: UX.179. Related: UX.179, PERF.134, ADM.44, MAP.158.
 
-- [ ] **UX.208 Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column**
-  Boss, 8:29 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi6oJmNKFKoyienFmHsrWDEM was the breadcrumb
-  note; this one is the coordinator's relay of "I want all 'not stored'
-  text to be in the pathway", 8:24 PM EDT): every property a page can
-  show as "not stored", or leave out under "N properties with no value
-  are not listed" (27 on the Enuakyadas IV page), must have a filling
-  item in the generation pathway so the text goes away. TODO's static
-  check (reports/not-stored-audit-2026-10-24.md) found a writer in the
-  generation code for every sheet column, so the empty ones are
-  conditional (class, kind, stage order), which only a run shows. Do:
-  (1) add to describe/sheet.py one registry `APPLIES` of the sheet
-  columns by body kind and class (planet, moon, star, belt, comet and
-  the phenomena; class letters or the class family: rocky, icy, giant,
-  locked, airless, and so on) saying where a column applies and why it
-  does not elsewhere (a sentence per rule); (2) a test and a report
-  script (scripts/sheet_fill_report.py, writes a table to the console
-  and to reports/) that generate sample bodies of every class (at least
-  30 per class, fixed seeds) and, for each sheet column, count filled,
-  empty where it applies, and empty where the registry says it does not;
-  (3) the sheet shows "not applicable" (or leaves the row out, per
-  UX.203) for a column that does not apply and never shows "not stored"
-  for one that does; the test fails for an applicable column that is
-  empty in any sample; (4) deliver the report to TODO, which files one
-  filling item per empty applicable column with an owner and an 8.1 slot
-  and lists them in reports/. Done: the test passes on main with the
-  empty applicable columns excused by filed item numbers (a list in the
-  test, each entry an item id that is open), and the Enuakyadas IV page
-  has no "not stored" row. Owner: Aux 2 (lock-free item while waiting; Aux 6 retired) (property sheet). Related:
-  UX.188, UX.198, UX.199, UX.203, UX.205, TEST.358, GEN.767, GEN.768.
-  Prerequisites: none. Related: UX.188, UX.198, UX.199, UX.203, UX.205,
-  TEST.358, GEN.767, GEN.768.
-  Research (2026-10-09, Progress): Fill audit delivered (merged #3205,
-  Aux 11, relayed 9:46 PM EDT 2026-10-24 as the lane reported): the
-  empty applicable columns are filed as GEN.778 (tidal flux), GEN.779
-  (induced moment), GEN.780 (porosity), GEN.781 (hp ice), GEN.782 (ice
-  shell), GEN.783 (shelter column), GEN.784 (giant energy flux), GEN.785
-  (star decay age and lethal event rate), GEN.786 (star state), GEN.787
-  (star disk), GEN.788 (star flare, UV-C, X-ray, lifespan), GEN.789
-  (wide binary rule), GEN.790 (comet rule), GEN.791 (force a class for
-  sampling); outside hours is GEN.768. The lane adds the excuse list and
-  the failing test with these ids.
-
 - [ ] **UX.213 Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug)**
   Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
   as the lane reported; Boss rule: never a number without a unit or
@@ -11196,7 +11153,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/survival-equipment-fields-2026-10-23.md, approved by
   Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
   build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
-  Owner: Survival equipment lane (thread 'Survival equipment fields').
+  Owner: Aux 2 (lock-free item while it waits for the generation lock, 11:59 PM EDT 2026-10-28; separate branch, no generation change; the former survival equipment lane is retired).
   Prerequisites: GEN.424. Related: GEN.424, DB.71.
 
 - [ ] **GEN.660 The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug)**
@@ -12282,42 +12239,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
   UX.208. Suggested owner: Aux 6 (bulk composition).
   Prerequisites: none. Related: UX.208, GEN.725, GEN.642.
-
-- [ ] **GEN.782 Fill ice_shell_km for every world with a surface ice shell, and state in the sheet rule which worlds have none**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): Filled for some bodies of a class and not others: 1600 planets
-  and 1301 moons empty, among them 715 of 2289 class C planets and 776
-  of 4102 class C moons. A condition the registry does not yet state.
-  Done: the column is filled for every body the sheet rule says it
-  applies to, or the sheet rule is changed to say why it does not apply
-  (a sentence of reason in describe/sheet.py APPLIES), and the UX.208
-  test lists no empty applicable pair for it; a drawn or computed value
-  has a source and a GEN.725 registry row with tier and tweak level, a
-  unit (GEN.772) and a column_units entry; a change to generated output
-  carries `tests.golden_update --reason ... --affects <stage>` and the
-  next epoch; tests are `scripts/test.py changed --resume`. Version 8.1,
-  with UX.208. Suggested owner: Aux 6 (bulk composition) with Units lane
-  for the km and m display (GEN.769).
-  Prerequisites: none. Related: UX.208, GEN.725, GEN.769.
-
-- [ ] **GEN.783 Fill shelter_column_g_cm2: the column mass of rock or ice that shields a shelter from radiation, for every world where it applies**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): Filled for some bodies and not others: 556 planets and 272
-  moons empty (all class M, N, O, V; 168 of 274 class A moons). Done:
-  the column is filled for every body the sheet rule says it applies to,
-  or the sheet rule is changed to say why it does not apply (a sentence
-  of reason in describe/sheet.py APPLIES), and the UX.208 test lists no
-  empty applicable pair for it; a drawn or computed value has a source
-  and a GEN.725 registry row with tier and tweak level, a unit (GEN.772)
-  and a column_units entry; a change to generated output carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
-  UX.208. Suggested owner: Aux 4 (radiation) .
-  Prerequisites: none. Related: UX.208, GEN.725, GEN.670.
 
 - [ ] **GEN.784 Fill energy_flux_w_m2 and flux_variation for giant planets: internal and absorbed energy flux and its variation (never filled for classes I, J, T)**
   Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
