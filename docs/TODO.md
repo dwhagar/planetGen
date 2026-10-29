@@ -13862,14 +13862,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.890.
   Prerequisites: GEN.877.
 
-- [ ] **GEN.886 The life class rule file and classifier: physics/data/life_classes.json, physics/life_classes.py, a shadow sweep that scores every body with no stored change, and a generated docs page**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L2. Mirrors the planet class classifier (holds
-  and quantities machinery, class_shadow_cli.py); every window number
-  lives in the file with its tier and tweak level. Lock-free until the
-  draw switches over (L5).
-  Prerequisites: GEN.862. Related: GEN.863.
-
 - [ ] **GEN.887 Life supply quantities: h2_supply, donor_supply, oxidant_supply, co2_phase and nh3_inventory, with stand-in rows and units registry entries**
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
   2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L3. Hydrogen from serpentinisation and
@@ -13894,7 +13886,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the star weights of GEN.867. Needs the per-body life sub-stream
   (GEN.872) and Core 1's GEN.855 + GEN.750. One epoch and one migration
   (lock turn).
-  Prerequisites: GEN.886, GEN.872, GEN.855, GEN.750. Related: GEN.863,
+  Prerequisites: GEN.872, GEN.855, GEN.750. Related: GEN.863,
   GEN.867.
 
 - [ ] **GEN.890 The complexity index and animal grades per class (sessile, small mobile, large active), and the Fauna rule for chemosymbiotic life (fauna never exceeds its class's producer base)**
