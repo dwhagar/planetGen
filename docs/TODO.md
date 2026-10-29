@@ -13906,6 +13906,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane's clock reads, with PERF.119).
   Prerequisites: PERF.119. Related: PERF.98, PERF.119, PERF.123,
   PERF.124, PERF.125, MAP.146.
+  Research (2026-10-09): Update (Core 5, PR 3705, 11:53 AM EDT
+  2026-10-29 as the lane reported): rule 1 is merged. While a run
+  changes the galaxy, /galaxy answers 503 with a page saying a
+  generation is running (stage, the banner's sentence, a Queue link for
+  admins, checks again every 30 s) and shows the map when the run ends;
+  page tests and a Chromium test cover both states. PERF.149 stays open
+  for rule 2 only: no web route generates a sector today
+  (`ensure_sector_generated` has no caller in the site or API, no GET
+  route writes), so Core 5 proposes option 1 (tests that a visit
+  generates and queues nothing, and remove the dead in-request entry
+  point). Waiting on Boss's answer (asked at 11:48 AM EDT).
 
 - [ ] **PERF.154 One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5)**
   Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
@@ -14048,8 +14059,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   kills a run in two different stages and compares. Related: GEN.633
   (storage repair, Core 1) is a different thing (it repairs stored data,
   it does not continue a run); PERF.181, TEST.23. Phase: 8.2 phase 2.
-  Owner: none yet.
-  Prerequisites: none. Related: PERF.181, GEN.633, PERF.98, PERF.99.
+  Owner: Core 5 (11:55 AM EDT 2026-10-29), as its next item after PERF.149:
+  it built the one step list of `planetgen galaxy` (PERF.172), which the
+  per-stage record and Finish run sit on. No generation change, no epoch.
+  Prerequisites: none. Related: PERF.181, GEN.633, PERF.98, PERF.99, PERF.172.
 
 - [ ] **PERF.188 The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python**
   Found by Bug Hunt while fixing the load flakes of TEST.344 (relayed
