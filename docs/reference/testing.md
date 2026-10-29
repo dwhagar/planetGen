@@ -477,11 +477,11 @@ scanned (AST) for every read of the class letter or the class tables, and each o
 the index does not read); an unlisted read fails, a listed place that no longer reads it is reported stale. Both checks are proved able to
 fail by breaking the life model, the index and a planted module. The report is `class-blind-life-latest.md` (with the life-capable bodies of
 each letter). The draws that run before the life model and key on the letter (water fraction, albedo range, porosity, mass-radius branch)
-change the conditions and not the way they are judged; they are GEN.915 and GEN.646. The second layer (epoch 120) is on the generator: 174 planets, one
-for each class letter and zone round an M2V, a G2V and an F5V star (3 each), go through the life step (`generation.life.apply_life_data`) on a copy; a
+change the conditions and not the way they are judged; they are GEN.915 and GEN.646. The second layer (epoch 120) is on the generator: every planet and moon of the shared sweep (M2V, G2V, F5V; the class is derived from the
+conditions since epoch 121, so it cannot be forced on a bare `Planet`) goes through the life step (`generation.life.apply_life_data`) on a copy; a
 planet the life model supports must be given life and one it does not support must not, the class drawn must be a supported one, and the same
 conditions put under every other class letter must give the same class, stage and schedule on the same stream. A failure names the letter and the
-class. The report `class-blind-life-draws-latest.md` lists, for each letter, the planets, the supported ones and the ones given life.
+class. The report `class-blind-life-draws-latest.md` lists, for each derived letter, the planets, the supported ones and the ones given life.
 
 ## Setting up a cloud session
 

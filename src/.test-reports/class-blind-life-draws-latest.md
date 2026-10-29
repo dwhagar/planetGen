@@ -1,19 +1,13 @@
-draw-rates: 0 problems over 261 forced-class planets
+draw-rates: 0 problems over 388 planets and moons of the sweep
 class letter: planets, supported by the model, given life by the generator:
-  A: 9, 2, 2
-  B: 9, 0, 0
-  C: 27, 6, 6
-  D: 27, 6, 6
-  E: 9, 5, 5
-  F: 9, 3, 3
-  G: 9, 2, 2
-  H: 9, 4, 4
-  K: 9, 4, 4
-  L: 9, 5, 5
-  M: 9, 6, 6
-  N: 9, 3, 3
-  O: 9, 8, 8
+  A: 1, 0, 0
+  B: 7, 4, 4
+  C: 146, 11, 11
+  D: 140, 40, 40
+  F: 12, 5, 5
+  H: 7, 2, 2
+  K: 3, 0, 0
+  M: 1, 1, 1
+  N: 33, 7, 7
   P: 9, 5, 5
-  Q: 9, 5, 5
-  S: 27, 12, 12
-  V: 9, 3, 3
+  V: 19, 10, 10
