@@ -91,6 +91,17 @@
       "changes": [
         "GET /api/systems/<id>/scene: stars, planets and moons have look (the body look record, which holds the color and what the painters need) and no color; a comet keeps color"
       ]
+    },
+    {
+      "version": 10,
+      "first_release": null,
+      "pending": true,
+      "items": ["API.37"],
+      "summary": "A planet or moon names its life by class, not by chemistry.",
+      "changes": [
+        "GET /api/systems/<id>: planets and moons have no life_chemical; they have life_class (the class number), life_class_variant, life_class_best, life_class_best_score, life_animal_grade and life_complexity (the columns), and life_class_id (such as 1a) and life_class_scores (the score of every class the body supports)",
+        "the species of GET /api/planets/<id>/species and GET /api/planets/<id>/habitable-species have life_class (the class id) in place of life_chemical"
+      ]
     }
   ]
 }
