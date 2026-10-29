@@ -51,7 +51,7 @@ def _moon():
             "habitable_class": False, "inhabited": False, "zone": "e", "distance_km": 384_400.0, "period_years": 0.075, "gravity_g": 0.17,
             "mass_kg": 7.35e22, "hill_radius_km": 61_500.0,
             "orbital_index": 0, "radius_km": 1737.0, "position_x_km": 384_400.0, "position_y_km": 0.0,
-            "life_chemical": None}
+            "life_class": None}
 
 
 def _planet(planet_id, name, body_type, distance_au, moons=()):
@@ -61,7 +61,7 @@ def _planet(planet_id, name, body_type, distance_au, moons=()):
             "radius_km": 6371.0 if body_type == "t" else 69_911.0, "position_x_km": distance_au * AU_KM,
             "mass_kg": 5.97e24 if body_type == "t" else 1.898e27,
             "hill_radius_km": 1.5e6 if body_type == "t" else 5.3e7,
-            "position_y_km": 0.0, "life_chemical": None, "moons": list(moons)}
+            "position_y_km": 0.0, "life_class": None, "moons": list(moons)}
 
 
 def _system():

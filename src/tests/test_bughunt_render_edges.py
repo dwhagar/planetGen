@@ -84,7 +84,7 @@ def _planet(id_, star_id, x_km, y_km, **kw):
         "id": id_, "star_id": star_id, "name": "P", "position_x_km": x_km, "position_y_km": y_km,
         "position_z_km": 0.0, "distance_km": math.hypot(x_km, y_km) if math.isfinite(x_km) and math.isfinite(y_km) else x_km,
         "radius_km": 6371.0, "planet_class": "G", "body_type": "t", "zone": "e", "period_years": 1.0,
-        "gravity_g": 1.0, "life_chemical": None, "moons": [], "atmosphere": None, "composition": None,
+        "gravity_g": 1.0, "life_class": None, "moons": [], "atmosphere": None, "composition": None,
         "surface_temperature_k": None,
     }
     d.update(kw)

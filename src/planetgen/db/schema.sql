@@ -559,8 +559,8 @@
 --   DISTINCT name ... ORDER BY name LIMIT n` -- an index lets this walk the
 --   index in name order and stop at the limit instead of sorting the whole
 --   table) and on `stars.yerkes_class`/`planets.planet_class`/
---   `planets.body_type`/`planets.life_chemical`/`moons.planet_class`/
---   `moons.body_type`/`moons.life_chemical`/`asteroid_belts.density` (the
+--   `planets.body_type`/`planets.life_class`/`moons.planet_class`/
+--   `moons.body_type`/`moons.life_class`/`asteroid_belts.density` (the
 --   search page's own facet counts -- `GROUP BY` on one of these -- and
 --   result-panel `IN (...)` filters). None of these speed up a name *term*
 --   search itself (`name LIKE '%text%'` -- a leading wildcard, which no
@@ -1500,6 +1500,11 @@
 --   four life scores of 1 or more), no score kept; no column changes, the migration fills them from the planets and moons already stored.
 -- v174 (MAP.344): the `civilization` rows of `system_interests` keep, as `best_score`, the technology level of the system's most advanced species (NULL until its species is drawn); no column
 --   changes, the migration sets it from the species already stored.
+-- v175 (GEN.889, GEN.890): the life class switch. `planets` and `moons` lose `life_chemical` and gain `life_class` (the class number that lives on the body) and `life_class_variant` (its pigment or
+--   habitat letter), `life_class_best` (the class id the body supports best) and `life_class_best_score` (0 to 9), `life_animal_grade` (0 none to 3 large and active) and `life_complexity` (the
+--   complexity index of the class, `physics/life_complexity.py`); the classes a body supports are the child tables `planet_life_class_scores` and `moon_life_class_scores` (one row for each class
+--   with a score of 1 or more); `species.life_chemical` becomes `species.life_class` (the id). A row made before v175 keeps the class its chemistry stood for and nothing else
+--   (see `migrations/versions/0175_life_classes.py`); the rest comes when the galaxy is regenerated.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2253,7 +2258,6 @@ CREATE TABLE IF NOT EXISTS planets (
     min_orbit_distance_km     DOUBLE,
     habitable_zone_inner_km   DOUBLE NOT NULL,   -- copied from host star at generation time
     habitable_zone_outer_km   DOUBLE NOT NULL,
-    life_chemical             VARCHAR(64),
     flavor_text_count         INT NOT NULL DEFAULT 0,
     life_stage                VARCHAR(32),      -- v110 (DB.50): a MILESTONE_KEYS key, NULL before any milestone
     evolutionary_pace         VARCHAR(16),      -- v110: the pace life evolves at (fast, normal, slow), drawn once, set with any life chemistry (v143)
@@ -2456,6 +2460,12 @@ CREATE TABLE IF NOT EXISTS planets (
     solar_day_hours             DOUBLE NULL,  -- v170 (GEN.767): hours from one noon to the next, NULL for a world that turns once an orbit
     daylight_hours              DOUBLE NULL,  -- v170 (GEN.767): hours of daylight in one solar day at the equator, NULL for a world that turns once an orbit
     polar_circle_deg            DOUBLE NULL,  -- v170 (GEN.767): latitude beyond which the star stays up or down for at least a day, degrees
+    life_class                  TINYINT UNSIGNED NULL,  -- v175 (GEN.889): the number of the life class that lives on the body (physics/life_classes.py), NULL for none
+    life_class_variant          CHAR(1) NULL,  -- v175: its pigment or habitat letter (1a, 1b, 1c, 3a ...), NULL for a class with none
+    life_class_best             VARCHAR(2) NULL,  -- v175: the id of the best-supported class, NULL when no class is supported
+    life_class_best_score       TINYINT UNSIGNED NULL,  -- v175: its score, 0 to 9
+    life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
+    life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2469,7 +2479,7 @@ CREATE TABLE IF NOT EXISTS planets (
     FULLTEXT KEY ft_planets_name (name),
     KEY idx_planets_planet_class (planet_class),
     KEY idx_planets_body_type (body_type),
-    KEY idx_planets_life_chemical (life_chemical),
+    KEY idx_planets_life_class (life_class),
     KEY idx_planets_radius_km (radius_km),
     CONSTRAINT chk_planets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_planets_parent (parent_type, parent_id),
@@ -2531,6 +2541,20 @@ CREATE TABLE IF NOT EXISTS planet_gases (
     UNIQUE KEY uq_planet_gases (planet_id, gas)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The life classes a planet supports (v175, GEN.889): one row for each class of `physics/life_classes.py` whose score for the body is 1 or more (0 to 9). Indexed on the class and the score so the
+-- map filter and the search facet are cheap.
+CREATE TABLE IF NOT EXISTS planet_life_class_scores (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id   BIGINT UNSIGNED NOT NULL,
+    life_class  VARCHAR(2) NOT NULL,
+    score       TINYINT UNSIGNED NOT NULL CHECK (score BETWEEN 1 AND 9),
+
+    CONSTRAINT fk_planet_life_class_scores_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_planet_life_class_scores (planet_id, life_class),
+    KEY idx_planet_life_class_scores_class (life_class, score)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------
 -- moons -- one row per moon, as of schema v2 (see the header comment's
 -- "v2" note). Exactly the same column shape as `planets` (moons are
@@ -2571,7 +2595,6 @@ CREATE TABLE IF NOT EXISTS moons (
     min_orbit_distance_km     DOUBLE,
     habitable_zone_inner_km   DOUBLE NOT NULL,
     habitable_zone_outer_km   DOUBLE NOT NULL,
-    life_chemical             VARCHAR(64),
     flavor_text_count         INT NOT NULL DEFAULT 0,
     life_stage                VARCHAR(32),      -- v110 (DB.50): a MILESTONE_KEYS key, NULL before any milestone
     evolutionary_pace         VARCHAR(16),      -- v110: the pace life evolves at (fast, normal, slow), drawn once, set with any life chemistry (v143)
@@ -2765,6 +2788,12 @@ CREATE TABLE IF NOT EXISTS moons (
     solar_day_hours             DOUBLE NULL,  -- v170 (GEN.767): hours from one noon to the next, NULL for a world that turns once an orbit
     daylight_hours              DOUBLE NULL,  -- v170 (GEN.767): hours of daylight in one solar day at the equator, NULL for a world that turns once an orbit
     polar_circle_deg            DOUBLE NULL,  -- v170 (GEN.767): latitude beyond which the star stays up or down for at least a day, degrees
+    life_class                  TINYINT UNSIGNED NULL,  -- v175 (GEN.889): the number of the life class that lives on the body (physics/life_classes.py), NULL for none
+    life_class_variant          CHAR(1) NULL,  -- v175: its pigment or habitat letter (1a, 1b, 1c, 3a ...), NULL for a class with none
+    life_class_best             VARCHAR(2) NULL,  -- v175: the id of the best-supported class, NULL when no class is supported
+    life_class_best_score       TINYINT UNSIGNED NULL,  -- v175: its score, 0 to 9
+    life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
+    life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet
@@ -2784,7 +2813,7 @@ CREATE TABLE IF NOT EXISTS moons (
     FULLTEXT KEY ft_moons_name (name),
     KEY idx_moons_planet_class (planet_class),
     KEY idx_moons_body_type (body_type),
-    KEY idx_moons_life_chemical (life_chemical),
+    KEY idx_moons_life_class (life_class),
     KEY idx_moons_radius_km (radius_km),
     CONSTRAINT chk_moons_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_moons_parent (parent_type, parent_id),
@@ -2841,6 +2870,20 @@ CREATE TABLE IF NOT EXISTS moon_gases (
     CONSTRAINT fk_moon_gases_moon
         FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
     UNIQUE KEY uq_moon_gases (moon_id, gas)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The life classes a moon supports (v175, GEN.889): one row for each class of `physics/life_classes.py` whose score for the body is 1 or more (0 to 9). Indexed on the class and the score so the
+-- map filter and the search facet are cheap.
+CREATE TABLE IF NOT EXISTS moon_life_class_scores (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    moon_id   BIGINT UNSIGNED NOT NULL,
+    life_class  VARCHAR(2) NOT NULL,
+    score       TINYINT UNSIGNED NOT NULL CHECK (score BETWEEN 1 AND 9),
+
+    CONSTRAINT fk_moon_life_class_scores_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_moon_life_class_scores (moon_id, life_class),
+    KEY idx_moon_life_class_scores_class (life_class, score)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -4585,7 +4628,7 @@ CREATE TABLE IF NOT EXISTS species (
     name                     VARCHAR(255) NOT NULL,
     homeworld_planet_id      BIGINT UNSIGNED NOT NULL,
     star_system_id           BIGINT UNSIGNED NOT NULL,
-    life_chemical            VARCHAR(64),
+    life_class               VARCHAR(2),
     life_stage               VARCHAR(32) NOT NULL,
     build                    VARCHAR(16) NOT NULL,
     climate                  VARCHAR(16) NOT NULL,

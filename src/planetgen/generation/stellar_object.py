@@ -376,8 +376,8 @@ def get_star_spectral_class(star):
 
 def get_star_evolutionary_profile(star):
     """
-    Returns the `STAR_EVOLUTION`-shaped profile describing which life
-    chemicals and evolutionary paces are plausible for planets orbiting
+    Returns the `STAR_EVOLUTION`-shaped profile describing which
+    evolutionary paces are plausible for planets orbiting
     `star`, correctly accounting for its Yerkes luminosity class.
 
     `STAR_EVOLUTION` is keyed by spectral letter (e.g. 'G'), which for a
@@ -391,10 +391,7 @@ def get_star_evolutionary_profile(star):
     an "F5VII" white dwarf merely glows at F-like temperature; it did not
     live and die as an F-type main-sequence star. Using STAR_EVOLUTION['F']
     directly for such a star would misapply a main-sequence lifespan/scale
-    table to an unrelated evolutionary history. `potentially_viable_chemicals`
-    (driven by the star's current emission spectrum) is still taken from the
-    current-temperature letter, since that part genuinely is about current
-    color. `supported_evolutionary_scales`, which is really a proxy for how
+    table to an unrelated evolutionary history. `supported_evolutionary_scales`, which is really a proxy for how
     much time was available for a biosphere to develop, is instead derived
     from the star's own already-computed age/lifespan (already correctly
     yerkes-class-aware -- see `Star._calculate_initial_star_age_and_lifespan`),
@@ -406,8 +403,7 @@ def get_star_evolutionary_profile(star):
 
     Returns:
         dict: A `STAR_EVOLUTION`-entry-shaped dict (with at least
-              `potentially_viable_chemicals` and `supported_evolutionary_scales`
-              keys), or `{}` if the spectral letter has no entry.
+              the `supported_evolutionary_scales` key), or `{}` if the spectral letter has no entry.
     """
     reference_star = star._primary if hasattr(star, '_primary') else star
     spectral_class_char = reference_star.type[0].upper()

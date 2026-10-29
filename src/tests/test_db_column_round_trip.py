@@ -89,7 +89,8 @@ NULL_IN_THIS_GALAXY = {
         "galactic_radius_pc")},
     # A life-bearing moon (rare) and its paragraphs and spectrum.
     **{("moons", column): CHANCE for column in
-       ("atm_density", "atm_molar_density", "scale_height_km", "life_chemical",
+       ("atm_density", "atm_molar_density", "scale_height_km", "life_class", "life_class_variant", "life_class_best", "life_class_best_score",
+        "life_animal_grade", "life_complexity",
         "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS)},
     **{("moon_reflection_spectrum", column): CHANCE for column in
        ("id", "moon_id", "spectrum_type", "position", "value")},
@@ -105,7 +106,8 @@ NULL_IN_THIS_GALAXY = {
         "nh3_ice", "ch4_ice")},
     # The same for a planet: whether any planet of this small galaxy bears life is chance.
     **{("planets", column): CHANCE for column in
-       ("evolutionary_pace", "flavor_key", "life_chemical", "life_milestone_age_gyr", "life_stage",
+       ("evolutionary_pace", "flavor_key", "life_class", "life_class_variant", "life_class_best", "life_class_best_score",
+        "life_animal_grade", "life_complexity", "life_milestone_age_gyr", "life_stage",
         "life_system_age_gyr")},
     # The ages from complex cells on exist only for a world whose air holds or builds free oxygen (GEN.750), which is
     # chance for the few living worlds of this small galaxy (TEST.402).
@@ -166,7 +168,7 @@ NEVER_READ = {
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "system_config_slots", "system_configs")},
+        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "system_config_slots", "system_configs")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
         ("asteroid_field_composition", "field_id"),

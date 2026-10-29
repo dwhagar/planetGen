@@ -580,7 +580,7 @@ docs/design/habitability/population-and-politics.md. `species` holds one dominan
 species per life world (a planet whose evolutionary milestone is
 multicellularity or a technological civilization): a galaxy-unique
 `name`, its homeworld (`homeworld_planet_id`, `star_system_id`, both
-cascading), `life_chemical`, `life_stage`, `build`/`climate`/`size`, and
+cascading), `life_class` (the id of its life class, v175), `life_stage`, `build`/`climate`/`size`, and
 for a civilization its `civilization_age_years`, `era` and `spacefaring`.
 `polities` holds one government per spacefaring species (`species_id`
 and `capital_system_id` cascade) with its `government`, map `color` and
@@ -1372,7 +1372,9 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `composition` | TEXT | nullable | Descriptive string — contrast `asteroid_belt_composition`'s structured (component, concentration) rows. |
 | `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km` | DOUBLE | nullable | |
 | `habitable_zone_inner_km`, `_outer_km` | DOUBLE | NOT NULL | Copied from the host star at generation time, never recomputed. |
-| `life_chemical` | TEXT | nullable | Set by life-data generation, if any. The pace life evolves at is `evolutionary_pace` (below, since v135). |
+| `life_class`, `life_class_variant` | TINYINT UNSIGNED, CHAR(1) | nullable | v175 (GEN.889). The life class that lives on the body (`physics/life_classes.py`): its number and its letter (`1`, `a` is Class 1a; Class 6 has no letter). Set by life-data generation, NULL for none; replaces `life_chemical`. The pace life evolves at is `evolutionary_pace` (below, since v135). |
+| `life_class_best`, `life_class_best_score` | VARCHAR(2), TINYINT UNSIGNED | nullable | v175. The class the body supports best and its score, 0 to 9; the classes it supports at all are the rows of `planet_life_class_scores` / `moon_life_class_scores` (one row for each class scoring 1 or more). |
+| `life_animal_grade`, `life_complexity` | TINYINT UNSIGNED, DOUBLE | nullable | v175 (GEN.890). The animal grade (0 none, 1 sessile, 2 small and mobile, 3 large and active) and the complexity index of the class on the body (`physics/life_complexity.py`; 1 is an Earth-like biosphere). |
 | `flavor_text_count` | INTEGER | NOT NULL, default 0 | |
 | `orbital_inclination_deg`, `orbital_ascending_node_deg` | DOUBLE | NOT NULL | Added in v9. Fixed at generation time — together they orient this (circular) orbital plane in 3D. |
 | `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`orbits.orbital_position_au`). `planetgen.cli.orbits` moves it by `kepler.universal_step` (v109: there is no stored phase; the phase is derived from this position). |
@@ -1967,7 +1969,7 @@ above and `docs/design/habitability/population-and-politics.md`.
 | `name` | VARCHAR(255) | NOT NULL, UNIQUE | |
 | `homeworld_planet_id` | BIGINT UNSIGNED | FK -> `planets.id`, `ON DELETE CASCADE`, NOT NULL, UNIQUE | |
 | `star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | |
-| `life_chemical` | VARCHAR(64) | nullable | |
+| `life_class` | VARCHAR(2) | nullable | v175: the id of the life class of its homeworld (`1a`, `4c`, `6` ...); replaces `life_chemical`. |
 | `life_stage` | VARCHAR(32) | NOT NULL, CHECK IN ('multicellularity','technological_civilization') | |
 | `build`, `climate`, `size` | VARCHAR(16) | NOT NULL | |
 | `civilization_age_years`, `era` | DOUBLE, VARCHAR(16) | nullable | NULL without a civilization. |
@@ -2192,6 +2194,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v175 (GEN.889, GEN.890): the life class switch
+
+Migration 0175 drops `life_chemical` (and its index) from `planets` and `moons` and adds `life_class` (TINYINT UNSIGNED, the class number), `life_class_variant` (CHAR(1)), `life_class_best` (VARCHAR(2)), `life_class_best_score` (TINYINT UNSIGNED), `life_animal_grade` (TINYINT UNSIGNED) and `life_complexity` (DOUBLE), all nullable, plus the child tables `planet_life_class_scores` and `moon_life_class_scores` (`planet_id` or `moon_id`, `life_class` VARCHAR(2), `score` 1 to 9; unique for a body and class; indexed on class and score). `species.life_chemical` becomes `species.life_class` (the class id). A row made before keeps the class its chemistry stood for (Chlorophyll a is 1a, Blue-Optimized Porphyrins 1b, Bacteriochlorophylls and Retinal 2, Melanin 3b, Zinc-Bacteriochlorophyll 5b) and nothing else: no scores, grade or complexity are worked out, so a galaxy shows the new life only after `planetgen bring-to-epoch` or a regeneration (epoch 120). The columns are added with one ALTER for each table (no `ALGORITHM=INSTANT`: both tables carry a FULLTEXT index), and a stopped run starts again where it stopped.
 
 ### v174 (MAP.344): the technology level of a civilization
 

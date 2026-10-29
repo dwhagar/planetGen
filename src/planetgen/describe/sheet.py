@@ -222,7 +222,9 @@ _BODY_GROUPS = (
            ("tier_pressure", "Pressure rating", TIER), ("tier_temperature", "Temperature rating", TIER),
            ("tier_air", "Air rating", TIER), ("tier_water", "Water rating", TIER),
            ("tier_suitability", "Suitability rating", TIER), ("tier_radiation", "Radiation rating", TIER)),
-    *_rows("life", ("life_chemical", "Life chemistry", TEXT), ("evolutionary_pace", "Evolutionary pace", TEXT), ("life_stage", "Life stage", TEXT),
+    *_rows("life", ("life_class", "Life class number", TEXT), ("life_class_variant", "Life class letter", TEXT),
+           ("life_class_best", "Best-supported life class", TEXT), ("life_class_best_score", "Best-supported class score"),
+           ("life_animal_grade", "Animal grade"), ("life_complexity", "Complexity index"), ("evolutionary_pace", "Evolutionary pace", TEXT), ("life_stage", "Life stage", TEXT),
            ("life_milestone_age_gyr", "Age of that stage"), ("life_system_age_gyr", "Age of the system when it was written"),
            ("life_age_abiogenesis_gyr", "Age of abiogenesis"), ("life_age_photosynthesis_gyr", "Age of photosynthesis"),
            ("life_age_complex_cells_gyr", "Age of complex cells"), ("life_age_multicellularity_gyr", "Age of multicellularity"),
@@ -719,14 +721,16 @@ _SURFACE = (
     "life_microbial", "life_flora", "life_fauna", "life_sentient", "l_solv", "l_chem", "l_ener", "l_rad",
     "c_k0_ppm", "c_th0_ppm", "c_u0_ppm", "al26_ratio", "urey_ratio", "internal_heat_flux_w_m2", "mantle_eta0_pa_s",
     "mantle_activation_kj_mol", *_BANDS_AND_ZONES,
-    "life_chemical", "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
+    "life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity",
+    "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
     "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
     "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", "phosphorus", "magnetopause_rp",
 )
 _OCEAN = ("ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "water_base_pressure_pa")
 OCEAN_STATES = ("surface ocean", "ice-covered ocean", "hycean")
 """tuple: The hydrospheres that hold a liquid ocean, the ones the ocean columns describe."""
-_LIFE_DETAIL = ("life_chemical", "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
+_LIFE_DETAIL = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity",
+                "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
                 "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
                 "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
 _LIFE_AFTER_OXYGEN = ("life_age_complex_cells_gyr", "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")

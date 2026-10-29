@@ -52,7 +52,7 @@ A gas giant has no surface and no score (every field `None`).
 import math
 
 from planetgen import tuning
-from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, habitability, life_scores, magnetism, radiation, regional_temperature
+from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, habitability, life_scores, magnetism, protection_limits, radiation, regional_temperature
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -85,7 +85,7 @@ SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w
 
 LIKELIHOOD_FIELDS = ("phi_bio", "phi_cpx")
 """tuple: The microbial and complex-life likelihoods `compute` also returns and `generate` and `rescore` keep on the body
-in memory: the life draw reads them (`life.life_ceiling`) and the life scores are made from them. They are not stored
+in memory: the life draw reads them (`life.apply_life_data`) and the life scores are made from them. They are not stored
 (GEN.649), so a loaded body has none; the stored `life_*` scores say what they gave."""
 
 LETHAL_DOSE_SV_YR = 1000.0
@@ -138,6 +138,7 @@ CARBON_KG_MOL = 0.012011
 NITROGEN_KG_MOL = 0.014007
 
 _GAS_NAMES = {"o2": "O2", "co2": "CO2", "co": "CO", "h2s": "H2S", "so2": "SO2"}
+"""dict: The stored partials the world reads by their lower-case key; every other gas of `protection_limits.TOXIC` (NH3, HF, HCl, Cl2, NO2, HCN, O3) is read by its formula (GEN.657)."""
 
 
 def values_from_body(body):
@@ -172,14 +173,20 @@ def values_from_body(body):
         "period_years": getattr(body, "period", None),
         "is_moon": bool(getattr(body, "is_moon", False)),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
-        "native_life": native_life(getattr(body, "life_chemical", None), getattr(body, "life_stage", None),
+        "native_life": native_life(getattr(body, "life_class", None), getattr(body, "life_stage", None),
                                    getattr(body, "life_system_age_gyr", None) is not None),
         "flux_variation": getattr(body, "flux_variation", None),
-        "life_chemical": getattr(body, "life_chemical", None),
+        "life_class": getattr(body, "life_class", None),
+        "life_class_variant": getattr(body, "life_class_variant", None),
+        "life_animal_grade": getattr(body, "life_animal_grade", None),
         "life_stage": getattr(body, "life_stage", None),
         "evolutionary_pace": getattr(body, "evolutionary_pace", None),
         "life_milestone_age_gyr": getattr(body, "life_milestone_age_gyr", None),
         "life_system_age_gyr": getattr(body, "life_system_age_gyr", None),
+        "internal_heat_flux_w_m2": getattr(body, "internal_heat_flux_w_m2", None),
+        "tidal_flux_w_m2": getattr(body, "tidal_flux_w_m2", None),
+        "mantle_redox": getattr(body, "mantle_redox", None),
+        "star_teff_k": getattr(getattr(body, "star", None), "temperature", None),
     }
     values[atmosphere.GAS_FIELD] = atmosphere.gas_partials_pa(body)
     return values
@@ -192,16 +199,16 @@ _STAGE_OF_MILESTONE = {
 """dict: `{evolutionary milestone: life stage}`."""
 
 
-def native_life(life_chemical, milestone, has_timeline):
+def native_life(life_class, milestone, has_timeline):
     """
     The `habitability.LIFE_STAGES` stage of a body's native life, from its life
-    chemistry (`None` for none), the latest evolutionary milestone its timeline
+    class (`None` for none), the latest evolutionary milestone its timeline
     reached (`life_stage` on the body, `None` for none) and whether it has a
-    timeline (`life_system_age_gyr` is set). Every body with a chemistry has a
-    timeline since 2026-10-23 (a moon or a cold world too); one without (a hand-built body) is microbial; a
+    timeline (`life_system_age_gyr` is set). Every body with a class has a
+    timeline (a moon or a cold world too); one without (a hand-built body) is microbial; a
     timeline that has reached no milestone yet is none.
     """
-    if not life_chemical:
+    if not life_class:
         return "none"
     if not has_timeline:
         return "microbial"
@@ -317,6 +324,9 @@ def world_from(values, lethal_host=None):
     if pressure_kpa > 0.0:
         for gas, name in _GAS_NAMES.items():
             gases[name] = atmosphere.partial_kpa(values, gas) / pressure_kpa
+        air = atmosphere.gas_partials_pa(values)
+        for formula in protection_limits.TOXIC:
+            gases.setdefault(formula, air.get(formula, 0.0) / (1000.0 * pressure_kpa))
     return habitability.World(
         pressure_kpa=pressure_kpa,
         temperature_c=values["surface_temperature_k"] - constants.CELSIUS_ZERO_K,
@@ -376,8 +386,7 @@ def compute(values, compact_host=None):
     world = world_from(values, lethal_host=compact_host)
     # The life scores come first: the Suitability food rung is made from them (Flora and Fauna, GEN.649)
     stage = life_scores.stage_of(world.life_stage, values.get("life_stage"), values.get("evolutionary_pace") is not None)
-    life = life_scores.scores(round(habitability.phi_bio(world), 3), round(habitability.phi_cpx(world), 3), stage,
-                              values.get("life_milestone_age_gyr"), values.get("life_system_age_gyr"))
+    life = class_life_scores(values, world, stage)
     world.life_stage = life_scores.food_stage(life[0], life[1], life[2])
     result = habitability.scores(world)
     out = {"phi4": result["PHI-4"], "phi_bio": result["PHI_bio"], "phi_cpx": result["PHI_cpx"],
@@ -390,6 +399,28 @@ def compute(values, compact_host=None):
     out.update(equipment.compute(world))
     out.update(regional_temperature.compute(values))
     return out
+
+
+def class_life_scores(values, world, stage):
+    """
+    `(microbial, flora, fauna, sentient)` of the life class a body stores (`life_class`, `life_class_variant`), at the `stage` its timeline
+    reached: the class's likelihood on the body is the microbial one, the complex-life one that times the factor its complexity index gives
+    (`life_complexity`) and the toxins of the air, and the animal grade is the stored one (`life_animal_grade`, which includes route R4) or the
+    one the index allows. No class is no life.
+    """
+    from planetgen.physics import life_classes, life_complexity      # life_classes reads this module
+    class_id = life_classes.class_id(values.get("life_class"), values.get("life_class_variant"))
+    if class_id is None or stage is None:
+        return 0, 0, 0, 0
+    result = life_classes.score_classes(values).get(class_id)
+    if result is None:
+        return 0, 0, 0, 0
+    row = life_classes.BY_ID[class_id]
+    complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(values, "o2"), values["surface_temperature_k"])
+    grade = values.get("life_animal_grade")
+    complex_likelihood = result.likelihood * life_complexity.complex_factor(complexity.index) * habitability.toxin_factor(world)
+    return life_scores.scores(round(result.likelihood, 3), round(complex_likelihood, 3), stage, values.get("life_milestone_age_gyr"),
+                              values.get("life_system_age_gyr"), light_producer=row.light, grade=complexity.grade if grade is None else grade)
 
 
 def compact_host_name(star):

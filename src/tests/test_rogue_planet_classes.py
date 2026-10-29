@@ -31,7 +31,7 @@ def test_every_class_has_a_rogue_flag_and_no_rogue_class_has_life():
     for code, data in tuning.PLANET_CLASSES.items():
         assert isinstance(data.get("r"), bool), code
         if data["r"]:
-            assert not data.get("life_chemical"), code
+            assert not data.get("life_class"), code
             assert code not in tuning.HABITABLE_PLANET_CLASSES
     assert rogue_planet_classes("t") == ["C", "D", "S"]
     assert rogue_planet_classes("g") == ["I", "J", "T"]

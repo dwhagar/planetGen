@@ -175,9 +175,9 @@ def _add_population(config):
             "SELECT id, star_system_id FROM planets WHERE id NOT IN (SELECT homeworld_planet_id FROM species) "
             "ORDER BY id LIMIT 1").fetchone()
         conn.execute(
-            "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_chemical, life_stage, build, "
+            "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_class, life_stage, build, "
             "climate, size, civilization_age_years, era, spacefaring) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("Velarix", planet["id"], planet["star_system_id"], "chlorophyll", "technological_civilization",
+            ("Velarix", planet["id"], planet["star_system_id"], "1a", "technological_civilization",
              "medium", "temperate", "medium", 60000.0, "established", 1),
         )
         species_id = conn.execute("SELECT id FROM species WHERE homeworld_planet_id = ?",

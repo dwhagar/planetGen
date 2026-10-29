@@ -136,7 +136,8 @@ IDLH, from the newest NIOSH IDLH document where it revised the pocket guide's nu
 differ, the more permissive is the long-term limit (Boss's rule of 2026-10-14), kept as the built limits already were for CO, H2S
 and SO2. ACGIH threshold values are not used: they are not freely published, and the OSHA and NIOSH numbers stand under the
 standing source rules. The generator stores every one of these gases (GEN.424, `planet_gases`); `habitability_world.world_from`
-reads CO, H2S and SO2 today and the rest wait on the generation lock (GEN.657, wiring)."""
+reads every one of them (GEN.657, wiring), so the filter and the corrosive test see ammonia, hydrogen fluoride, hydrogen chloride,
+chlorine, nitrogen dioxide, hydrogen cyanide and ozone as well as CO, H2S and SO2."""
 
 TOXIC = {row.gas: row for row in TOXIC_GASES}
 """dict: The `TOXIC_GASES` rows by gas symbol."""

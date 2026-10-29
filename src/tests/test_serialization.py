@@ -148,7 +148,7 @@ def test_asteroid_belt_round_trip_preserves_composition_as_tuples():
 
 def test_planet_round_trip_preserves_frozen_life_data():
     system, planet = _first_matching(
-        lambda s: next((p for p in s.planets if p.body_type != "a" and p.life_chemical), None),
+        lambda s: next((p for p in s.planets if p.body_type != "a" and p.life_class), None),
         lambda: make_system("G2V", HABITABLE_WORLD=True, PLANETS=True),
     )
 

@@ -678,7 +678,7 @@ connectivity to that specific schema rather than the default one.
   dominant species of every life world, by name, paginated (see
   docs/design/habitability/population-and-politics.md). Each item has its homeworld
   (`homeworld_planet_id`, `homeworld_name`, `star_system_id`,
-  `system_name`), `life_chemical`, `life_stage` (`multicellularity` or
+  `system_name`), `life_class` (the id of its life class), `life_stage` (`multicellularity` or
   `technological_civilization`), `build`/`climate`/`size`,
   `civilization_age_years` and `era` (`null` without a civilization),
   `spacefaring`, and its `polity_id`/`polity_name` (`null` unless

@@ -2184,86 +2184,8 @@ PLANET_CLASS_PROBABILITIES = {
     'S': 0.0300, 'T': 0.0001, 'V': 0.0045
 }
 
-# --- Life and Photosynthesis Data ---
-
-# Each chemical's `requires` is a list of conditions on the body's stored values (the quantity names and the `min`, `lt`,
-# `equals` and `not_equals` operators of `physics/planet_classes.py`); a chemical a body does not satisfy is not
-# drawn for it (GEN.92, GEN.647). The pigments that harvest light need air (10 Pa or more): an airless body's life, in an ocean under
-# its ice, keeps only the radiotroph. The thresholds follow each description below (oxygenic: free oxygen; anoxygenic: none;
-# Zinc-Bacteriochlorophyll: an acidic ocean, pH 1.5 to 3.0) and are planetGen defaults.
-SUNLIT_OCEAN = ({"quantity": "hydrosphere", "not_equals": "dry"}, {"quantity": "hydrosphere", "not_equals": "vapour"},
-                {"quantity": "hydrosphere", "not_equals": "ice"}, {"quantity": "hydrosphere", "not_equals": "ice-covered ocean"})
-"""tuple: The `requires` conditions of a sea open to the light: a surface ocean, or a hycean one (a shallow ocean under a
-hydrogen envelope, whose water reaches the surface). An ocean under ice, or none, is left out."""
-
-LIFE_CHEMICALS = {
-    "Retinal": {
-        "requires": [{"quantity": "share_o2", "lt": 0.1}, {"quantity": "pressure_pa", "min": 10.0}],
-        "description": "a primitive photosensitive chemical that represents a young/early biosphere precursor, operating via proton-motive gradients rather than electron transport chains in pre-oxygenated, reducing atmospheres",
-        "metabolism": "retinal",
-        "absorption_spectrum": ["Green", "Yellow", "500-650 nm"],
-        "reflection_spectrum_visible": ["Blue", "Red", "Purple", "Magenta"],
-        "reflection_spectrum_non_visible": ["Green edge (inverse of the standard Vegetation Red Edge)"],
-        "star_spectra_probabilities": {
-            "O": 10, "B": 10, "A": 15, "F": 20, "G": 35, "K": 35, "M": 20
-        }
-    },
-    "Melanin": {
-        "requires": [],
-        "description": "a radiotrophic chemical that thrives in environments with lethal ionizing radiation or stellar flaring, and is viable on rogue planets subject to cosmic ray bombardment without a thick protective atmosphere",
-        "metabolism": "radiotrophic",
-        "absorption_spectrum": ["Extreme Ultraviolet (EUV)", "X-rays", "Gamma rays", "Ionizing radiation"],
-        "reflection_spectrum_visible": ["None (Charcoal-black)"],
-        "reflection_spectrum_non_visible": ["Extremely low albedo across all bands"],
-        "star_spectra_probabilities": {
-            "O": 90, "B": 85, "A": 60, "F": 30, "G": 5, "K": 5, "M": 75
-        }
-    },
-    "Chlorophyll a": {
-        "requires": [*SUNLIT_OCEAN, {"quantity": "pressure_pa", "min": 10.0}],
-        "description": "a standard porphyrin that drives oxygenic photosynthesis, splitting the water of a sunlit sea and so making the oxygen of its own atmosphere, in stable, moderate radiation environments",
-        "metabolism": "oxygenic",
-        "absorption_spectrum": ["Red (644-746 nm)", "Blue (468-476 nm)"],
-        "reflection_spectrum_visible": ["Green"],
-        "reflection_spectrum_non_visible": ["Near-infrared edge (Canonical Vegetation Red Edge / VRE)"],
-        "star_spectra_probabilities": {
-            "O": 0, "B": 0, "A": 5, "F": 25, "G": 90, "K": 60, "M": 5
-        }
-    },
-    "Blue-Optimized Porphyrins": {
-        "requires": [*SUNLIT_OCEAN, {"quantity": "pressure_pa", "min": 10.0}],
-        "description": "a porphyrin that requires simultaneous evolution of biofluorescence for UV shielding, down-converting lethal high-energy light into safe visible wavelengths and creating transient, global optical fluorescence aligned with stellar flares",
-        "metabolism": "oxygenic",
-        "absorption_spectrum": ["Intense Blue (468-476 nm)", "Ultraviolet (UV)"],
-        "reflection_spectrum_visible": ["Red", "Orange", "Yellow", "Biofluorescent Green", "Biofluorescent Red"],
-        "reflection_spectrum_non_visible": ["Blue-shifted vegetation edge", "Strong UV absorption"],
-        "star_spectra_probabilities": {
-            "O": 5, "B": 10, "A": 40, "F": 85, "G": 15, "K": 0, "M": 0
-        }
-    },
-    "Bacteriochlorophylls": {
-        "requires": [{"quantity": "share_o2", "lt": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
-        "description": "a chemical that drives anoxygenic photosynthesis, does not split water, and requires chemical electron donors like Hydrogen Sulfide (H2S), Ferrous Iron (Fe2+), or Molecular Hydrogen (H2), resulting in reducing atmospheres lacking Oxygen (O2) or Ozone (O3)",
-        "metabolism": "anoxygenic",
-        "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (805-890 nm)", "Deep Infrared (987-1050 nm)"],
-        "reflection_spectrum_visible": ["None (Black)"],
-        "reflection_spectrum_non_visible": ["Deep infrared edge (> 1.0 µm)"],
-        "star_spectra_probabilities": {
-            "O": 0, "B": 0, "A": 0, "F": 5, "G": 10, "K": 40, "M": 95
-        }
-    },
-    "Zinc-Bacteriochlorophyll": {
-        "requires": [{"quantity": "ocean_ph", "lt": 3.0}, {"quantity": "pressure_pa", "min": 10.0}],
-        "description": "a secondary adaptation derived from standard magnesium-chelatase pathways that requires highly acidic global oceans (pH 1.5 - 3.0) and planetary heavy metal abundance and mobilization, often tied to severe volcanic outgassing",
-        "metabolism": "anoxygenic",
-        "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (793 nm, 853 nm)"],
-        "reflection_spectrum_visible": ["None (Black)"],
-        "reflection_spectrum_non_visible": ["Blue-shifted near-infrared edge"],
-        "star_spectra_probabilities": {
-            "O": 5, "B": 5, "A": 10, "F": 10, "G": 10, "K": 20, "M": 40
-        }
-    }
-}
+# --- Life Data ---
+# What lives on a world is a life class (`physics/data/life_classes.json`, GEN.889), drawn from the conditions the world stores.
 
 # Main-sequence lifespan ranges, derived from t = 10 Gy * (M/Msun)^-2.5 (the
 # standard mass-luminosity-based lifetime scaling, anchored to the Sun at 1
@@ -2281,43 +2203,36 @@ STAR_EVOLUTION = {
     "O": {
         "lifespan_gy": (0.001, 0.01), # 1 Million - 10 Million years
         "supported_evolutionary_scales": ["fast"],
-        "potentially_viable_chemicals": ["Retinal"],
         "evolutionary_constraint_notes": "It burns out and explodes before planets can cool enough to hold oceans, so only the simplest light-driven chemistry could arise."
     },
     "B": {
         "lifespan_gy": (0.01, 1.5), # 10 Million - 1.5 Billion years
         "supported_evolutionary_scales": ["fast"],
-        "potentially_viable_chemicals": ["Retinal"],
         "evolutionary_constraint_notes": "It is volatile and short-lived, which leaves barely enough time for a planet to cool and for single-celled life to appear."
     },
     "A": {
         "lifespan_gy": (1.5, 4.3), # 1.5 Billion - 4.3 Billion years
         "supported_evolutionary_scales": ["fast", "normal"],
-        "potentially_viable_chemicals": ["Retinal", "Melanin"],
         "evolutionary_constraint_notes": "It lasts long enough for early biospheres and radiation-tolerant life, but probably not for slow, complex photosynthesis to mature."
     },
     "F": {
         "lifespan_gy": (4.3, 9.1), # 4.3 Billion - 9.1 Billion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "potentially_viable_chemicals": ["Retinal", "Melanin", "Blue-Optimized Porphyrins (+ GFPs)", "Zinc-Bacteriochlorophyll"],
         "evolutionary_constraint_notes": "It lasts long enough for complex biospheres to emerge, including UV shielding and fluorescent adaptations."
     },
     "G": {
         "lifespan_gy": (9.1, 17.5), # 9.1 Billion - 17.5 Billion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "potentially_viable_chemicals": ["Retinal", "Melanin", "Chlorophyll a (Standard Porphyrins)", "Zinc-Bacteriochlorophyll"],
         "evolutionary_constraint_notes": "It is steady for a long time, which suits the slow evolution of complex, oxygen-making photosynthesis."
     },
     "K": {
         "lifespan_gy": (17.5, 73.5), # 17.5 Billion - 73.5 Billion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "potentially_viable_chemicals": ["Retinal", "Melanin", "Chlorophyll a (Standard Porphyrins)", "Zinc-Bacteriochlorophyll"],
         "evolutionary_constraint_notes": "It is very stable and lives for tens of billions of years, so slow-evolving biospheres can reach a climax and adapt to its slight red shift."
     },
     "M": {
         "lifespan_gy": (73.5, 5500.0), # 73.5 Billion - 5.5 Trillion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "potentially_viable_chemicals": ["Retinal", "Melanin", "Bacteriochlorophylls (BChls)", "Zinc-Bacteriochlorophyll"],
         "evolutionary_constraint_notes": "Early flares demand quick adaptation, such as radiotrophic melanin, but trillions of years of stability let deep-infrared photosynthesis last for good."
     }
 }
@@ -2356,75 +2271,6 @@ EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "
 """dict: How each `EVOLUTIONARY_TIMELINES` pace is worded in the life sentence (DB.100: the words are not in the milestone
 table, so a page is written from a world's stored pace and needs no table of ages)."""
 
-LIFE_METABOLISMS = {
-    "oxygenic": {
-        "stage_name": "photosynthesis",
-        "text": (
-            "The biosphere is dominated by simple, light-harvesting microbes. While macroscopic flora "
-            "and fauna still do not exist, vast microbial mats and stony biological structures (similar "
-            "to stromatolites) line the shallow waters and coastlines. These organisms are actively "
-            "terraforming the planet by releasing oxygen into the atmosphere."
-        ),
-    },
-    "anoxygenic": {
-        "stage_name": "anoxygenic photosynthesis",
-        "text": (
-            "The biosphere is dominated by simple, light-harvesting microbes that draw their electrons "
-            "from hydrogen sulfide, ferrous iron or hydrogen instead of water, so they release no oxygen. "
-            "While macroscopic flora and fauna still do not exist, vast microbial mats and stony "
-            "biological structures line the shallow waters and coastlines."
-        ),
-    },
-    "retinal": {
-        "stage_name": "retinal phototrophy",
-        "text": (
-            "The biosphere is dominated by simple microbes that harvest light with retinal pigments, "
-            "pumping protons across their membranes instead of splitting water, so they release no "
-            "oxygen. While macroscopic flora and fauna still do not exist, vast microbial mats line the "
-            "shallow waters and coastlines."
-        ),
-    },
-    "radiotrophic": {
-        "stage_name": "radiotrophy",
-        "text": (
-            "The biosphere is dominated by simple microbes that feed on ionizing radiation, using "
-            "melanin to turn it into energy, so they release no oxygen. While macroscopic flora and "
-            "fauna still do not exist, dark microbial mats cover the shallow waters, coastlines and "
-            "exposed ground."
-        ),
-    },
-}
-"""dict[str, dict]: How a life chemistry (`LIFE_CHEMICALS[...]["metabolism"]`) harvests its energy, and so what the
-"photosynthesis" milestone of `EVOLUTIONARY_TIMELINES` is called and says on a world with that chemistry
-(`stage_name`, `text`). A world whose life does not split water must not be told it is releasing oxygen."""
-
-EVOLUTIONARY_TEXT = {
-    "abiogenesis": (
-        "Life is in its absolute infancy, consisting entirely of simple, single-celled organisms "
-        "without a nucleus. There is no true flora or fauna. The biosphere is largely limited to "
-        "chemotrophs and extremophiles thriving in nutrient-rich primordial pools or around "
-        "hydrothermal vents, feeding on chemical reactions."
-    ),
-    "complex_cells": (
-        "Microscopic life has evolved distinct internal structures and nuclei (eukaryotes). This stage "
-        "introduces the first single-celled protozoa-analogues (early microscopic 'fauna') and "
-        "planktonic autotrophs (early microscopic 'flora'). The land remains barren, but the oceans "
-        "teem with a complex microscopic food web of tiny predators and prey."
-    ),
-    "multicellularity": (
-        "Cells have cooperated to form complex, macroscopic organisms, marking the true arrival of "
-        "flora and fauna. The oceans are populated by macro-algae, sponges, and early invertebrates "
-        "like arthropod or jellyfish analogues. On land, pioneering flora—such as moss, ferns, and "
-        "primitive vascular plants—have taken root, supporting emerging land-dwelling animals."
-    ),
-    "technological_civilization": (
-        "The planet has a fully mature, highly complex biosphere featuring diverse ecosystems, "
-        "topped by at least one sapient, tool-using species. Complex flora forms sprawling forests "
-        "and varied biomes, while highly evolved fauna occupy vast ecological niches. The sapient "
-        "population actively reshapes the world through agriculture, architecture, and industry."
-    )
-}
-
 # --- Planet Generation Specific Constants ---
 HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'Q', 'V']
 """
@@ -2449,7 +2295,7 @@ index allows no life of that kind, so the description must not claim it.
 
 LIFE_MILESTONES = ("abiogenesis", "photosynthesis", "complex_cells", "multicellularity", "technological_civilization")
 """
-tuple[str]: The evolutionary milestones (`EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT` keys) in ascending order of life
+tuple[str]: The evolutionary milestones (`EVOLUTIONARY_TIMELINES` keys) in ascending order of life
 complexity. `evolution.MILESTONE_KEYS` and `physics.life_scores` read it.
 """
 
@@ -2465,14 +2311,6 @@ civilisation. Each step takes an exponential waiting time with this mean once th
 Watson 2008; the early means are shorter than the later because the first steps came early on the one world we know, which is a test point and
 not a preset). Boss chose these on 10-28 (9:03 PM EDT) from a Monte Carlo of the timeline: complex cells 2.5, animals 3 and a civilization 60
 Gyr make animals common and a civilization rare. Stand-in T7, L3.
-"""
-
-LIFE_FIRST_LIGHT_SCALE = {"oxygenic": 1.0, "anoxygenic": 0.6, "retinal": 0.4, "radiotrophic": 1.0}
-"""
-dict: A factor on the second step's wait (the first harvesting of light, GEN.750) for each `metabolism` of `LIFE_CHEMICALS`. Retinal needs
-one pigment and a proton gradient, anoxygenic photosynthesis one reaction centre and no water splitting, and oxygenic photosynthesis both
-reaction centres and the water-splitting cluster, which the geological record puts last of the three (anoxygenic before about 3.5 Gyr,
-oxygenic after about 3 Gyr on Earth); radiotrophy is left at the reference. Stand-in T7, L3: the ratios are chosen to keep that order.
 """
 
 LIFE_STEP_SCALE = 1.0
@@ -2521,6 +2359,44 @@ cells) never rise above this, however kind the surface (DESIGN, GEN.649)."""
 LIFE_SCORE_SENTIENT_FULL_GYR = 0.01
 """float: Gyr a technological civilization needs after its milestone to fill its surface (Sentient 9 at the best
 conditions); a younger one scores in proportion, never less than 1 (DESIGN, GEN.649: 10 Myr)."""
+
+LIFE_NPP = {
+    "chemosynthesis_share": 1.0e-3,
+    "light_ratio_max": 3.0,
+    "tie_factor": 2.0,
+}
+"""
+dict: The net primary production of a life class, the number that picks the class that lives on a world (GEN.889,
+docs/design/habitability/life-classes.md 8.2). A light class's is the usable light of the surface over Earth's, times its pigment band's share of
+the star's photons over the Sun's share of 400 to 700 nm (at most `light_ratio_max`); a chemical class's is `chemosynthesis_share` times its heat
+flow in Earth's. Classes whose production is within `tie_factor` of the largest are tied and the draw between them is weighted by production.
+`chemosynthesis_share`: chemosynthesis is about a thousandth of the primary production of Earth's ocean (vent and seep estimates of 0.02 to 0.2
+Gt C a year against 50; recalled), stand-in T4, L3. `light_ratio_max` keeps a hot star's photon surplus from running away, T9, L3. `tie_factor` is
+the design's "within a factor of 2" (life-classes.md 8.2), T9, L3.
+"""
+
+LIFE_COMPLEXITY = {
+    "thresholds": {"complex_cells": 1.0e-5, "multicellularity": 3.0e-5, "A1": 1.0e-4, "A2": 1.0e-3, "A3": 1.0e-1},
+    "oxygen_floor_kpa": {"A1": 0.1, "A2": 2.0, "A3": 6.0},
+    "oxygen_full_yield_kpa": 2.0,
+    "anaerobic_yield": 0.11,
+    "full_complexity": 0.3,
+    "fauna_cap": (0, 3, 6, 9),
+    "anoxic_animal_chance": 0.03,
+    "anoxic_animal_donor_min": 0.3,
+}
+"""
+dict: The complexity index and the animal grades (GEN.890, GEN.877, GEN.882 to GEN.884; life-classes.md 7.3). A class's index C is its net primary
+production over Earth's (`LIFE_NPP`, `life_classes.ClassScore.npp`) times the yield of what it breathes (1 for aerobic respiration, `anaerobic_yield`,
+a ninth, for none; an oxygen breather's follows the air, rising from the anaerobic yield to 1 at `oxygen_full_yield_kpa`) times the temperature rate
+factor of its clock (`life_timeline.rate_factor`). `thresholds` are the C a class needs for complex cells, multicellular bodies and the three animal
+grades A1 (sessile), A2 (small mobile) and A3 (large active; a civilization needs it). `oxygen_floor_kpa` is the oxygen partial pressure, kPa, an
+oxygen-breathing class needs for each grade: about 0.1 to 0.8 kPa for sponge-grade animals (Mills et al. 2014; recalled), rising with body size by the
+diffusion argument (Catling et al. 2005; recalled). `full_complexity` is the C at which the complex-life score is full. `fauna_cap` is the most
+Fauna each grade shows (0 to 9). `anoxic_animal_chance` is the share of anoxic worlds with a donor supply of `anoxic_animal_donor_min` or more that
+get animals that have lost aerobic respiration (route R4; contested: Danovaro 2010, Yahalomi 2020). Stand-ins T9, L3 (the floors T2 for A1, T7 above;
+the R4 chance T4); set from the first census, not fixed.
+"""
 
 MOON_BLACKLIST = ['Q', 'S', 'V']
 """

@@ -60,11 +60,11 @@ FACET_TITLES = {
     "luminosity": "Star: Luminosity Class",
     "class": "Planet Class",
     "body": "Planet Body Type",
-    "life": "Planet Supported Life Chemistry",
+    "life": "Planet Life Class",
     "equipment": "Planet: Equipment a Human Needs",
     "moon_class": "Moon Class",
     "moon_body": "Moon Body Type",
-    "moon_life": "Moon Supported Life Chemistry",
+    "moon_life": "Moon Life Class",
     "moon_equipment": "Moon: Equipment a Human Needs",
     **{name: f"Planet: {title}" for name, (title, _ticks) in score_filters.FACETS.items()},
     **{f"moon_{name}": f"Moon: {title}" for name, (title, _ticks) in score_filters.FACETS.items()},
@@ -372,9 +372,9 @@ _PANEL_COLUMNS = {
     "sectors": ["Name", "Edge", "Galaxy Map"],
     "systems": ["Name", "Sector", "Binary", "Star type", "Galaxy Map"],
     "stars": ["Name", "Role", "Type", "Radius", "System", "Sector"],
-    "planets": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "Habitability", *SCORE_COLUMNS,
+    "planets": ["Name", "Class", "Body", "Radius", "Life Class", "Equipment", "Habitability", *SCORE_COLUMNS,
                 "System", "Sector"],
-    "moons": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "Habitability", *SCORE_COLUMNS, "Orbits",
+    "moons": ["Name", "Class", "Body", "Radius", "Life Class", "Equipment", "Habitability", *SCORE_COLUMNS, "Orbits",
               "System", "Sector"],
     "belts": ["Density", "Composition", "System", "Sector"],
     "phenomena": ["Name", "Type", "Class", "Sector"],
@@ -411,7 +411,7 @@ def _cells(panel, row):
                 _link(row["system_name"], row["system_url"]), _sector_link(row)]
     if panel in ("planets", "moons"):
         cells = [_link(row["name"], row["url"]), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
-                 {"text": row["life_chemical"] or "—"},
+                 {"text": row["life_class_id"] or "—"},
                  equipment_cell(row),
                  habitability_cell(row, row["url"]), *_score_cells(row)]
         if panel == "moons":

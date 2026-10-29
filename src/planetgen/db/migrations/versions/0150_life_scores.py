@@ -15,6 +15,9 @@ from alembic import op
 
 from planetgen.db import alembic_runner
 from planetgen.db.migrations import helpers
+import math
+
+from planetgen import tuning
 from planetgen.physics import habitability_world, life_scores
 
 revision = "0150"
@@ -35,12 +38,42 @@ _SELECT = """
     ORDER BY id LIMIT :n"""
 
 
+def scores_at_v150(phi_bio, phi_cpx, stage, milestone_age_gyr, system_age_gyr):
+    """`life_scores.scores` as v150 had it (the later class switch, v175, gave Flora and Fauna their own rules), kept here so the
+    migration stays what it was."""
+    def from_likelihood(likelihood):
+        if likelihood is None or likelihood < tuning.HABITABILITY_LIFE_SCORE_MIN:
+            return 0
+        return max(1, min(tuning.LIFE_SCORE_MAX, math.ceil(tuning.LIFE_SCORE_MAX * likelihood)))
+
+    rank = life_scores.stage_index(stage)
+    if rank < 0:
+        return 0, 0, 0, 0
+    microbial = from_likelihood(phi_bio)
+    if microbial == 0:
+        return 0, 0, 0, 0
+    flora = fauna = sentient = 0
+    if rank >= life_scores.stage_index("photosynthesis"):
+        flora = microbial
+        if rank < life_scores.stage_index("multicellularity"):
+            flora = min(flora, tuning.LIFE_SCORE_SIMPLE_FLORA_MAX)
+    if rank >= life_scores.stage_index("multicellularity"):
+        complex_score = from_likelihood(phi_cpx)
+        flora = max(flora, complex_score)
+        fauna = min(complex_score, flora)
+    if rank >= life_scores.stage_index("technological_civilization") and fauna > 0:
+        spread = 1.0
+        if milestone_age_gyr is not None and system_age_gyr is not None:
+            spread = min(1.0, max(0.0, system_age_gyr - milestone_age_gyr) / tuning.LIFE_SCORE_SENTIENT_FULL_GYR)
+        sentient = max(1, round(fauna * spread))
+    return microbial, flora, fauna, sentient
+
+
 def worked_out(row):
     """The four scores of one stored row."""
     native = habitability_world.native_life(row["life_chemical"], row["life_stage"], row["evolutionary_pace"] is not None)
     stage = life_scores.stage_of(native, row["life_stage"], row["evolutionary_pace"] is not None)
-    return life_scores.scores(row["phi_bio"] or 0.0, row["phi_cpx"] or 0.0, stage, row["life_milestone_age_gyr"],
-                              row["life_system_age_gyr"])
+    return scores_at_v150(row["phi_bio"] or 0.0, row["phi_cpx"] or 0.0, stage, row["life_milestone_age_gyr"], row["life_system_age_gyr"])
 
 
 def upgrade():

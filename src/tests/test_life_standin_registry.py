@@ -19,8 +19,6 @@ NAME = re.compile(r"\b(tuning|habitability_world|habitability)\.([A-Z][A-Z0-9_]*
 TUNING_PREFIXES = ("LIFE_", "STAR_EVOLUTION", "EVOLUTIONARY_", "HABITABILITY_LIFE_")
 
 NEEDS_NO_ROW = {
-    "tuning.LIFE_METABOLISMS": "words for the photosynthesis milestone by metabolism: text, no number",
-    "tuning.EVOLUTIONARY_TEXT": "the sentence of each milestone: text",
     "tuning.EVOLUTIONARY_PACE_LABELS": "how each pace is worded: text",
     "tuning.LIFE_MILESTONES": "the names of the milestones in order: structure",
     "tuning.LIFE_SCHEDULE_FIELDS": "the column names of the milestone ages: structure",

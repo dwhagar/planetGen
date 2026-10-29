@@ -193,7 +193,7 @@ The aerobic yield is about nine times the anaerobic yield (Gale and Wandel, read
 
 ### 7.3 The complexity index and animal grades
 
-A class reaches a rung when its **complexity index C** passes a threshold. C is the class's biomass energy (relative to Earth's biosphere = 1) times the oxidant yield factor (1 for aerobic O2 respiration, about 0.11 for anaerobic) times the temperature-speed factor. Proposed starting thresholds (T9, L3; to be set from the first census, not fixed here): complex cells 1e-4, sessile or sponge-grade animals 1e-3, small mobile animals 1e-2, large active animals 1e-1. This is the generalisation of GEN.877 (the animal oxygen floor by grade): for Class 1 the oxidant factor reads the world's own O2, with the sponge floor of about 0.1 to 0.8 kPa from Mills et al. 2014 (recalled), rising with body size by the diffusion argument of Catling, Glein, Zahnle and McKay 2005 (recalled). It also gives routes R2 to R5 a home: R2 is Class 4a, R3 is a low-O2 Class 1 world at grade A1, R4 is a rare anoxic animal niche on Class 2 and 3 sulfidic worlds, R5 is Classes 4b and 4c. They are no longer separate items with an approval gate.
+A class reaches a rung when its **complexity index C** passes a threshold. C is the class's biomass energy (relative to Earth's biosphere = 1) times the oxidant yield factor (1 for aerobic O2 respiration, about 0.11 for anaerobic) times the temperature-speed factor. Starting thresholds (T9, L3; fitted on a first probe of the chemical classes and to be reset from the census): complex cells 1e-5, multicellular bodies 3e-5, sessile or sponge-grade animals 1e-4, small mobile animals 1e-3, large active animals 1e-1. This is the generalisation of GEN.877 (the animal oxygen floor by grade): for Class 1 the oxidant factor reads the world's own O2, with the sponge floor of about 0.1 to 0.8 kPa from Mills et al. 2014 (recalled), rising with body size by the diffusion argument of Catling, Glein, Zahnle and McKay 2005 (recalled). It also gives routes R2 to R5 a home: R2 is Class 4a, R3 is a low-O2 Class 1 world at grade A1, R4 is a rare anoxic animal niche on Class 2 and 3 sulfidic worlds, R5 is Classes 4b and 4c. They are no longer separate items with an approval gate.
 
 ### 7.4 Traits stay, and move thresholds
 
@@ -271,6 +271,16 @@ Planets and moons each gain:
 Mirroring the planet class classifier: a rule file `src/planetgen/physics/data/life_classes.json` and a pure module `physics/life_classes.py` with `classify_life(values)` returning the per-class scores, built on the same `holds` and `quantities` machinery as `physics/planet_classes.py`. A shadow sweep (like `class_shadow_cli.py`) can run the classifier on generated bodies with no stored change before the draw switches over. Every window number lives in the file with its tier and tweak level; the docs page is generated from the file, as the planet class pages are.
 
 ---
+
+### 10.5 As built (generator epoch 120, schema 175; GEN.867 to GEN.872, GEN.887, GEN.889, GEN.890)
+
+The draw switched over in one lock turn. What differs from the plan above:
+
+- **Storage.** `life_class` is the class number (TINYINT) with `life_class_variant` (CHAR(1)), `life_class_best`, `life_class_best_score`, `life_animal_grade` and `life_complexity` are stored on the body, and the scores are two tables, `planet_life_class_scores` and `moon_life_class_scores` (a child table for each body kind, like the gas tables). `life_chemical` is gone and `species.life_chemical` became `species.life_class` (the id). Migration 0175 maps the six old chemistries to a class and works nothing else out; the scores, grade and complexity come when a galaxy is brought to epoch 120.
+- **The supplies** (section 8.3) are not stored: `physics/life_supply.py` works the six shares of Earth's (`h2_supply`, `radiolytic_h2_supply`, `donor_supply`, `nitrate_supply`, `perchlorate_supply`, `hydrogen_acetylene_supply`) from the columns the body stores, with every number in `physics/data/life_supply.json` carrying its tier and tweak. `nh3` and the acid medium are still GEN.888 and GEN.894.
+- **Dominance** (8.2) is the supported class with the largest net primary production (`tuning.LIFE_NPP`); classes within a factor of 2 are tied and an NPP-weighted draw picks among them. The draw is made on a stream of the body's own, seeded by one draw of the run's (GEN.872), so a change to this model no longer moves the names and flavour text of later bodies.
+- **Complexity** (7.3) is `physics/life_complexity.py`: C is the class's net primary production times the yield of its oxidant times the temperature rate factor, the thresholds, the oxygen floors for an oxygen breather and the anoxic route R4 are `tuning.LIFE_COMPLEXITY`, and the highest milestone a body can reach is capped by C. Flora needs a class that eats light (GEN.871); Fauna needs an animal grade and never exceeds its producer base.
+- **Text** (GEN.869, GEN.892): the life and timeline sentences name the class ("Class 1a life, the oxygenic light-eaters ...") and use the class's own words for each rung and for the animal grade.
 
 ## 11. Overlap with Core 1 and Aux 4, and what changes in their items
 

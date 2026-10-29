@@ -30,7 +30,7 @@ from tests.publicids import pid
 
 SPECIES = {
     "id": 3, "name": "Vel<ar>", "homeworld_planet_id": 11, "homeworld_name": "Home", "star_system_id": 5,
-    "system_name": "Kepler", "life_chemical": "chlorophyll", "life_stage": "technological_civilization",
+    "system_name": "Kepler", "life_class": "1a", "life_stage": "technological_civilization",
     "build": "gracile", "climate": "temperate", "size": "medium", "civilization_age_years": 3.4e6,
     "era": "ancient", "spacefaring": True, "polity_id": 2, "polity_name": "Velar Concord",
     "energy_index": 5, "materials_index": 4, "information_index": 6, "medical_index": 3, "propulsion_index": 5,
@@ -129,7 +129,7 @@ def _nav(html):
 
 def _planet(planet_id, name, life=None):
     planet = _facility_planet(planet_id, name, "t", float(planet_id))
-    planet["life_chemical"] = life
+    planet["life_class"] = life
     return planet
 
 
@@ -143,7 +143,7 @@ def test_format_years():
 
 def test_without_population_nothing_shows(monkeypatch, client, fake):
     data = _install(monkeypatch, NONE)
-    fake.system["planets"] = [_planet(11, "Home", life="chlorophyll")]
+    fake.system["planets"] = [_planet(11, "Home", life="1")]
     page = client.get("/system/5").get_data(as_text=True)
     assert "Species" not in _nav(page)
     assert "Dominant species" not in page and "Territory of" not in page
@@ -258,7 +258,7 @@ def test_system_page_names_the_territory(monkeypatch, client, fake):
     """The system page names the polity that holds it; the dominant species of a world is on the world's own page
     (UX.176, `tests/test_item_pages.py::test_a_life_worlds_page_names_its_dominant_species`)."""
     _install(monkeypatch, ALL)
-    fake.system["planets"] = [_planet(11, "Home", life="chlorophyll"), _planet(12, "Rock")]
+    fake.system["planets"] = [_planet(11, "Home", life="1"), _planet(12, "Rock")]
     page = client.get("/system/5").get_data(as_text=True)
     assert 'Territory of <a href="/polities/2">Velar Concord</a>' in page
     assert "Dominant species" not in page

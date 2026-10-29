@@ -23,9 +23,9 @@ def world(mysql_config):
         star_id = conn.execute("SELECT id FROM stars WHERE star_system_id = ? LIMIT 1", (system_id,)).fetchone()["id"]
         planet = conn.execute("SELECT id FROM planets WHERE star_system_id = ? LIMIT 1", (system_id,)).fetchone()
         conn.execute(
-            "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_chemical, life_stage, build, "
+            "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_class, life_stage, build, "
             "climate, size, civilization_age_years, era, spacefaring) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            ("Velarix", planet["id"], system_id, "chlorophyll", "technological_civilization", "medium",
+            ("Velarix", planet["id"], system_id, "1a", "technological_civilization", "medium",
              "temperate", "medium", 60000.0, "established", 1))
         species_id = conn.execute("SELECT id FROM species").fetchone()["id"]
         conn.execute("INSERT INTO polities (name, species_id, capital_system_id, government, color, reach_ly) "

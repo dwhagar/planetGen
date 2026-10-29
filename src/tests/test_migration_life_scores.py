@@ -5,6 +5,8 @@ GEN.649: a saved system keeps its four life scores; migration 0150 gives a galax
 two likelihoods and the evolutionary path its rows stored, and drops the three old habitability scores.
 """
 
+import importlib
+
 import pytest
 
 from planetgen.db import store
@@ -15,6 +17,8 @@ from planetgen.util import draw
 from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
+
+migration_0150 = importlib.import_module("planetgen.db.migrations.versions.0150_life_scores")
 
 OLD_COLUMNS = ("phi_bio", "phi_cpx", "phi_tech")
 
@@ -90,7 +94,7 @@ def test_a_v149_galaxy_gets_its_scores_from_the_stored_likelihoods_and_path(mysq
         civilization, microbes = (conn.execute(
             "SELECT life_microbial, life_flora, life_fauna, life_sentient FROM planets WHERE id = ?", (i,)).fetchone()
             for i in ids[:2])
-        assert tuple(civilization[name] for name in life_scores.FIELDS) == life_scores.scores(0.8, 0.6, "technological_civilization", 4.0, 4.6)
+        assert tuple(civilization[name] for name in life_scores.FIELDS) == migration_0150.scores_at_v150(0.8, 0.6, "technological_civilization", 4.0, 4.6)
         assert civilization["life_sentient"] > 0
         assert tuple(microbes[name] for name in life_scores.FIELDS) == (4, 0, 0, 0)  # life with no timeline is microbial only
         for table in ("planets", "moons"):

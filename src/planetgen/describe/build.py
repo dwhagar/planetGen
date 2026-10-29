@@ -366,17 +366,17 @@ def _colours(names):
 
 def _life_sentences(life):
     """The life paragraph, written from the `life_facts.LifeFacts` alone, in the present tense: life that has reached a
-    milestone lives on the world; a world that suits a chemistry and has no life yet says so."""
+    milestone lives on the world; a world that suits a life class and has no life yet says so."""
     if life is None:
         return []
     lives = life.timeline is None or life.timeline.stage is not None
     if lives:
         pace = "" if life.pace is None else f", evolving at a {life.pace} pace"
-        sentences = [f"Life based on {life.chemical} lives on this {life.noun}{pace}."]
+        sentences = [f"Class {life.class_id} life, the {life.class_name[0].lower() + life.class_name[1:]}, lives on this {life.noun}{pace}."]
         subject = "that life"
     else:
         pace = "" if life.pace is None else f", which evolves at a {life.pace} pace"
-        sentences = [f"Conditions on this {life.noun} suit life based on {life.chemical}{pace}, but none has appeared yet."]
+        sentences = [f"Conditions on this {life.noun} suit Class {life.class_id} life, the {life.class_name[0].lower() + life.class_name[1:]}{pace}, but none has appeared yet."]
         subject = "such life"
     if life.visible:
         sentences.append(f"In visible light {subject} looks {_colours(life.visible)}.")

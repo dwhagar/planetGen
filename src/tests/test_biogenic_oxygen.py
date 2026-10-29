@@ -8,7 +8,7 @@ from planetgen import tuning
 from planetgen.generation import evolution
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, biogenic_oxygen as bo, gases
+from planetgen.physics import atmosphere, biogenic_oxygen as bo, gases, life_classes
 
 from tests.fuzz_support import deterministic_entropy
 
@@ -84,13 +84,13 @@ def test_a_world_without_a_sunlit_sea_makes_no_oxygen(worlds):
 def test_only_oxygenic_life_holds_oxygen_it_made_and_only_in_a_sunlit_sea(worlds):
     seen = 0
     for world in worlds:
-        if not world.life_chemical:
+        if not world.life_class_id:
             continue
         o2_kpa = atmosphere.partial_kpa(world, "o2")
-        if o2_kpa > 0.2 and not evolution.releases_oxygen(world.life_chemical):
+        if o2_kpa > 0.2 and not evolution.releases_oxygen(world.life_class_id):
             # an abiotic oxygen air is allowed, but an oxygenic world is the only one that grows its own
             assert world.life_age_complex_cells_gyr is not None
-        if evolution.releases_oxygen(world.life_chemical):
+        if evolution.releases_oxygen(world.life_class_id):
             assert world.hydrosphere in bo.LIVING_HYDROSPHERES, (world.name, world.hydrosphere)
             seen += 1
     assert seen >= 1
@@ -98,7 +98,7 @@ def test_only_oxygenic_life_holds_oxygen_it_made_and_only_in_a_sunlit_sea(worlds
 
 def test_the_stored_air_stays_one_air_after_the_oxygen_goes_in(worlds):
     for world in worlds:
-        if world.life_chemical and evolution.releases_oxygen(world.life_chemical) and atmosphere.partial_kpa(world, "o2") > 1.0:
+        if world.life_class_id and evolution.releases_oxygen(world.life_class_id) and atmosphere.partial_kpa(world, "o2") > 1.0:
             partials = atmosphere.gas_partials_pa(world)
             assert sum(partials.values()) == pytest.approx(world.atmospheric_pressure, rel=2e-3), world.name
             assert not (set(partials) & set(bo.REDUCED_GASES)) or partials["O2"] < 1e-3 * sum(partials.values())
@@ -107,10 +107,11 @@ def test_the_stored_air_stays_one_air_after_the_oxygen_goes_in(worlds):
     pytest.skip("no oxygen made in these seeds")
 
 
-def test_an_oxygenic_chemistry_asks_for_a_sunlit_sea():
-    for name, data in tuning.LIFE_CHEMICALS.items():
-        if data["metabolism"] == "oxygenic":
-            assert all(condition in data["requires"] for condition in tuning.SUNLIT_OCEAN), name
+def test_an_oxygenic_class_eats_light():
+    oxygenic = [row for row in life_classes.CLASSES if row.releases_oxygen]
+    assert oxygenic
+    for row in oxygenic:
+        assert row.light and row.metabolism == "oxygenic", row.id
 
 
 def test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none(worlds):
@@ -118,7 +119,7 @@ def test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_n
     its air had before (none made by life)."""
     past = before = 0
     for world in worlds:
-        if not (world.life_chemical and evolution.releases_oxygen(world.life_chemical)):
+        if not (world.life_class_id and evolution.releases_oxygen(world.life_class_id)):
             continue
         profile = bo.profile_of(world)
         age = world.star.age - world.life_age_photosynthesis_gyr

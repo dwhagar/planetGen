@@ -3,7 +3,7 @@
 """
 The facts of a world's life, resolved once, from which every sentence about that life is written.
 
-The generator draws the chemistry, the pace and the timeline of a world once and stores them (`life.apply_life_data`).
+The generator draws the life class, the pace and the timeline of a world once and stores them (`life.apply_life_data`).
 `resolve` reads them into one `LifeFacts`, and `build.py` writes the life paragraph and the timeline paragraph from it
 alone, so two sentences cannot name a different pace, milestone or age. A fact a sentence needs is a field here; a
 sentence never reads the planet again.
@@ -13,6 +13,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
+from planetgen.physics import life_classes
 
 
 @dataclass(frozen=True)
@@ -29,7 +30,8 @@ class Timeline:
 class LifeFacts:
     """Everything the text says about a world's life."""
     noun: str
-    chemical: str
+    class_id: str
+    class_name: str      # the name of the class before its colon (the pigment or habitat of a variant is in its id)
     pace: str | None
     visible: tuple
     non_visible: tuple
@@ -43,17 +45,19 @@ def pace_label(scale):
 
 
 def resolve(planet):
-    """The `LifeFacts` of a planet or moon, or `None` for a body with no life chemistry."""
-    if not planet.life_chemical:
+    """The `LifeFacts` of a planet or moon, or `None` for a body with no life class."""
+    class_id = life_classes.class_id(planet.life_class, planet.life_class_variant)
+    if class_id is None:
         return None
+    grade = planet.life_animal_grade or 0
     timeline = None
     if planet.has_timeline:
         stage = planet.life_stage
         timeline = Timeline(
             planet.life_system_age_gyr, stage,
-            None if stage is None else evolution.stage_name(stage, planet.life_chemical).lower(),
-            planet.life_milestone_age_gyr, None if stage is None else evolution.stage_text(stage, planet.life_chemical))
+            None if stage is None else evolution.stage_name(stage, class_id, grade).lower(),
+            planet.life_milestone_age_gyr, None if stage is None else evolution.stage_text(stage, class_id, grade))
     return LifeFacts(
-        "moon" if planet.is_moon else "planet", planet.life_chemical.lower(),
+        "moon" if planet.is_moon else "planet", class_id, life_classes.describe(class_id).name.split(":")[0],
         None if planet.evolutionary_pace is None else pace_label(planet.evolutionary_pace),
         tuple(planet.reflection_spectrum_visible or ()), tuple(planet.reflection_spectrum_non_visible or ()), timeline)

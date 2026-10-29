@@ -8,8 +8,9 @@ A life class is a way of making a living: what the life drinks (its solvent), ea
 class number is the metabolism, a letter after it the pigment or habitat variant. `score_classes` reads the conditions a
 finished planet or moon stores (its temperature and pressure, its air, its water, the light its star gives in each pigment's
 band, its heat flow and dose) and gives every class a likelihood from 0 to 1 and a score from 0 to `tuning.LIFE_SCORE_MAX`:
-"this body supports Class N life". It reads nothing the generator draws, and it stores nothing: until the class switch (GEN.889)
-the shadow sweep (`src/tests/life_class_shadow_cli.py`) is the only caller.
+"this body supports Class N life". It reads nothing the generator draws. The class switch (GEN.889, `generation/life.py`) draws
+the class that lives on a world from these scores: the supported class with the largest net primary production (`ClassScore.npp`),
+and stores the scores that reach the line (`life_class_scores`).
 
 The rules are the rows of `physics/data/life_classes.json`, one per class, and every number in them carries its source tier
 (T1 to T9) and tweak level (L0 to L4) beside it:
@@ -22,8 +23,11 @@ The rules are the rows of `physics/data/life_classes.json`, one per class, and e
   chemical share of the body's own heat flow, on the index's log curve (`ENERGY_FLUX_MIN_W_M2` to `ENERGY_FLUX_REF_W_M2`);
 * `gates`: conditions that must hold (`min`, `lt`, `equals`, `not_equals`, `in`, `not_in`) on named quantities;
 * `windows`: a band a quantity should lie in; outside it the score falls as a half Gaussian of the rule's sigma;
-* `supply`: a fuel or oxidant supply the generator does not store yet. The rule gives a placeholder; a body that stores the
-  real quantity (GEN.887) is scored on it against `ref`.
+* `supply`: the fuel and oxidant supplies the class needs (one entry or a list), each a share of Earth's from `physics/life_supply.py`
+  (GEN.887), scored against the entry's `ref`; `placeholder` stands in only for a body whose values carry no such quantity;
+* `life`: how the class lives: its `metabolism`, the `oxidant` it breathes and that oxidant's `oxidant_yield` (aerobic respiration is 1;
+  an oxygen breather's yield follows the oxygen of the air, `physics/life_complexity.py`), the `first_step_scale` of its first
+  light or chemistry (`physics/life_timeline.py`) and the colours its life shows.
 
 The likelihood of a class is the index's Liebig blend (`habitability.LIEBIG_MIN_WEIGHT`) of the solvent, chemistry, energy and
 dose terms, times the product of its windows and its supply. A likelihood under `tuning.HABITABILITY_LIFE_SCORE_MIN` is none.
@@ -42,7 +46,7 @@ import os
 from collections.abc import Mapping
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, elements, habitability, habitability_world
+from planetgen.physics import atmosphere, constants, elements, habitability, habitability_world, life_supply
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_classes.json")
 
@@ -63,10 +67,22 @@ CO2_TRIPLE_K, CO2_TRIPLE_PA = 216.59, 518500.0
 CO2_CRITICAL_K, CO2_CRITICAL_PA = 304.13, 7377300.0
 """float: The triple and critical points of carbon dioxide (read, NIST)."""
 OPTIONAL_QUANTITIES = ("acid_medium", "ammonia_water_mass_fraction", "silicon_rich_crust")
-"""tuple: Quantities the generator does not store yet (GEN.887, GEN.888); a body that carries one in its values is scored on it, and a
+"""tuple: Quantities the generator does not model yet (GEN.888, GEN.894); a body that carries one in its values is scored on it, and a
 rule that reads one the body lacks fails and names it."""
+OXIDANTS = ("o2", "nitrate", "perchlorate", "sulfate", "co2", "acid", "none")
+"""tuple: What a class breathes (`life.oxidant`); `"o2"` is the oxidant whose yield follows the air's oxygen."""
+METABOLISMS = ("oxygenic", "anoxygenic", "hydrogenotroph", "chemolithotroph", "hydrogenator", "acidophile")
+"""tuple: How a class makes its living (`life.metabolism`): only an `"oxygenic"` one splits water and so makes free oxygen."""
 CO2_DENSE_SHARE = 0.5
 """float: The share of the air that carbon dioxide must be for its phase to be the surface fluid's (the same as the Class 6 rule)."""
+
+
+BODY_FIELDS = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity")
+"""tuple: What the life pass stores on a body besides the schedule, the stage and the four scores (columns of `planets` and `moons`): the class that
+lives on it (the number and the variant letter), the best-supported class and its score, the animal grade (0 to 3) and the complexity index."""
+
+SCORES_FIELD = "life_class_scores"
+"""str: The body attribute holding `{class id: score}` for every class that reaches the line (the child table `life_class_scores`)."""
 
 
 class LifeClassError(ValueError):
@@ -76,11 +92,12 @@ class LifeClassError(ValueError):
 class ClassScore:
     """One class's result for one body: its likelihood, its 0 to 9 score, the terms it is made of and what it lacked."""
 
-    __slots__ = ("id", "likelihood", "score", "terms", "failed", "missing", "placeholders", "band_ratio")
+    __slots__ = ("id", "likelihood", "score", "terms", "failed", "missing", "placeholders", "band_ratio", "npp")
 
-    def __init__(self, class_id, likelihood, terms, failed, missing, placeholders, band_ratio=None):
+    def __init__(self, class_id, likelihood, terms, failed, missing, placeholders, band_ratio=None, npp=0.0):
         self.id = class_id
         self.band_ratio = band_ratio
+        self.npp = npp
         self.likelihood = likelihood
         self.score = score_of(likelihood)
         self.terms = terms
@@ -156,14 +173,43 @@ class LifeClass:
     """One class: its words, its tier, and the rules that score it."""
 
     __slots__ = ("id", "number", "variant", "name", "drinks", "eats", "breathes", "gives_off", "reaches", "tier", "solvent",
-                 "energy", "gates", "windows", "supply", "note")
+                 "energy", "gates", "windows", "supplies", "life", "note")
 
     def __init__(self, row):
         for name in self.__slots__:
             setattr(self, name, row.get(name))
         self.gates = tuple(row.get("gates") or ())
         self.windows = tuple(row.get("windows") or ())
+        self.supplies = supplies_of(row)
         self.note = row.get("note") or ""
+
+    @property
+    def metabolism(self):
+        """How the class makes its living (`METABOLISMS`)."""
+        return self.life["metabolism"]
+
+    @property
+    def oxidant(self):
+        """What the class breathes (`OXIDANTS`)."""
+        return self.life["oxidant"]
+
+    @property
+    def releases_oxygen(self):
+        """Whether the class splits water for its electrons and so makes free oxygen (`biogenic_oxygen`)."""
+        return self.life["metabolism"] == "oxygenic"
+
+    @property
+    def light(self):
+        """Whether the class eats starlight (a producer that needs a sunlit surface and can make Flora)."""
+        return self.energy["source"] == "light"
+
+
+def supplies_of(row):
+    """The supplies of a rule row as a tuple: its `supply` is one entry, a list of them or none."""
+    supply = row.get("supply")
+    if not supply:
+        return ()
+    return tuple(supply) if isinstance(supply, list) else (supply,)
 
 
 def _check_standin(owner, entry):
@@ -196,11 +242,20 @@ def _check(row):
         if any(key not in window for key in keys) or window["low"] >= window["high"] or min(window["sigma_low"], window["sigma_high"]) <= 0.0:
             raise LifeClassError(f"{owner}: a window has {keys} with low under high and sigmas over zero, got {window!r}")
         _check_standin(f"{owner} window {window['quantity']}", window)
-    supply = row.get("supply")
-    if supply is not None:
-        if "quantity" not in supply or not 0.0 <= supply.get("placeholder", -1.0) <= 1.0:
-            raise LifeClassError(f"{owner}: a supply is a quantity and a placeholder from 0 to 1, got {supply!r}")
-        _check_standin(f"{owner} supply", supply)
+    for supply in supplies_of(row):
+        if "quantity" not in supply or not 0.0 <= supply.get("placeholder", -1.0) <= 1.0 or not supply.get("ref", 0.0) > 0.0:
+            raise LifeClassError(f"{owner}: a supply is a quantity, a ref over 0 and a placeholder from 0 to 1, got {supply!r}")
+        if "npp_per_unit" in supply and not supply["npp_per_unit"] > 0.0:
+            raise LifeClassError(f"{owner}: npp_per_unit is over 0, got {supply!r}")
+        _check_standin(f"{owner} supply {supply['quantity']}", supply)
+    life = row.get("life") or {}
+    if life.get("metabolism") not in METABOLISMS or life.get("oxidant") not in OXIDANTS:
+        raise LifeClassError(f"{owner}: life has a metabolism from {METABOLISMS} and an oxidant from {OXIDANTS}, got {life!r}")
+    if (life["oxidant"] == "o2") != (life.get("oxidant_yield") is None) or not (life.get("oxidant_yield") is None or 0.0 < life["oxidant_yield"] <= 1.0):
+        raise LifeClassError(f"{owner}: an oxygen breather has no oxidant_yield (the air's oxygen sets it), any other oxidant has one over 0 and at most 1")
+    if not life.get("first_step_scale", 0.0) > 0.0:
+        raise LifeClassError(f"{owner}: life needs a first_step_scale over 0")
+    _check_standin(f"{owner} life", life)
 
 
 def _load():
@@ -238,18 +293,9 @@ def describe(class_id):
 # --- The quantities the rules read -----------------------------------------------------------
 
 def values_from_body(body):
-    """A planet or moon (in memory) as the column-named dict `score_classes` reads: the index's inputs and the heat flows, the star's
-    temperature and luminosity and the distance to it."""
-    values = habitability_world.values_from_body(body)
-    star = getattr(body, "star", None)
-    values.update({
-        "internal_heat_flux_w_m2": getattr(body, "internal_heat_flux_w_m2", None),
-        "tidal_flux_w_m2": getattr(body, "tidal_flux_w_m2", None),
-        "star_teff_k": getattr(star, "temperature", None),
-        "star_luminosity_w": getattr(star, "luminosity", None),
-        "star_distance_au": getattr(body, "_star_distance_au", None),
-    })
-    return values
+    """A planet or moon (in memory) as the column-named dict `score_classes` reads: the index's inputs, the heat flows, the redox state and the
+    temperature of the star (`habitability_world.values_from_body`)."""
+    return habitability_world.values_from_body(body)
 
 
 def _earth_band_flux():
@@ -271,14 +317,16 @@ def quantities(values):
         partial_pa = atmosphere.partial_kpa(values, gas) * 1000.0
         found[f"share_{gas}"] = min(1.0, partial_pa / pressure) if pressure > 0.0 else 0.0
     found["co2_partial_pa"] = atmosphere.partial_kpa(values, "co2") * 1000.0
+    habitat = life_supply.habitat_temperature_k(values)
+    if habitat is not None:
+        found["habitat_temperature_k"] = habitat
     temperature = found["temperature_k"]
     if temperature:
         phase = co2_phase(temperature, pressure) if found["share_co2"] >= CO2_DENSE_SHARE else "gas"
         found["co2_phase"] = phase
-    teff, luminosity, distance = values.get("star_teff_k"), values.get("star_luminosity_w"), values.get("star_distance_au")
-    if teff and luminosity and distance:
-        starlight = luminosity / (4.0 * math.pi * (distance * constants.AU_TO_M) ** 2)
-        found["starlight_w_m2"] = starlight
+    teff, flux = values.get("star_teff_k"), values.get("energy_flux_w_m2")
+    if teff and flux:
+        found["starlight_w_m2"] = flux / habitability_world.LIGHT_SHARE
     if teff:
         found["_teff_k"] = teff
     for name in OPTIONAL_QUANTITIES:
@@ -399,32 +447,61 @@ def score_class(row, found, world, values):
                                             * math.prod(blend) ** ((1.0 - habitability.LIEBIG_MIN_WEIGHT) / len(blend)))
     if terms["energy"] <= 0.0:
         failed = failed + ["energy"]
-    window_product = 1.0
+    windows_only = 1.0
     for window in row.windows:
         factor = _window(window, found.get(window["quantity"]))
         terms[f"window:{window['quantity']}"] = factor
-        window_product *= factor
+        windows_only *= factor
     placeholders = []
-    if row.supply:
-        stored = values.get(row.supply["quantity"])
+    availability = 1.0
+    productivity = 1.0
+    for supply in row.supplies:
+        stored = values.get(supply["quantity"])
         if stored is None:
-            supply_factor = row.supply["placeholder"]
-            placeholders.append(row.supply["quantity"])
+            factor = productive = supply["placeholder"]
+            placeholders.append(supply["quantity"])
         else:
-            supply_factor = min(1.0, stored / row.supply.get("ref", 1.0))
-        terms[f"supply:{row.supply['quantity']}"] = supply_factor
-        window_product *= supply_factor
-    likelihood = likelihood * window_product if ok else 0.0
+            factor = min(1.0, stored / supply["ref"])
+            productive = min(1.0, stored * supply["npp_per_unit"]) if "npp_per_unit" in supply else factor
+        terms[f"supply:{supply['quantity']}"] = factor
+        availability *= factor
+        productivity *= productive
+    likelihood = likelihood * windows_only * availability if ok else 0.0
+    npp = net_primary_production(row, found, world, values) * productivity * windows_only if likelihood > 0.0 else 0.0
     return ClassScore(row.id, likelihood, terms, list(dict.fromkeys(failed)), missing, placeholders,
-                      band_ratio(row, found) if row.energy["source"] == "light" else None)
+                      band_ratio(row, found) if row.energy["source"] == "light" else None, npp)
+
+
+def earth_light_w_m2():
+    """The usable light Earth's surface gets, W/m2 (`habitability_world.LIGHT_SHARE` of the solar constant): a producer's light of 1."""
+    return habitability_world.LIGHT_SHARE * constants.SOLAR_LUMINOSITY / (4.0 * math.pi * constants.AU_TO_M ** 2)
+
+
+def net_primary_production(row, found, world, values):
+    """
+    A class's net primary production before its supplies and windows, as a share of Earth's (1 is an oxygenic biosphere under the Sun):
+    a light class's is the usable light of the surface times its band's share of the star's photons over the Sun's (`band_ratio`
+    without its cap at 1, itself capped at `tuning.LIFE_NPP["light_ratio_max"]`), a chemical class's is the share of Earth's primary
+    production that chemosynthesis gives (`tuning.LIFE_NPP["chemosynthesis_share"]`) times its heat flow in Earth's
+    (`life_supply.heat_share`). Which class is the dominant one of a world is the one with the largest (GEN.889).
+    """
+    if row.energy["source"] == "chemical":
+        return tuning.LIFE_NPP["chemosynthesis_share"] * life_supply.heat_share(values)
+    if not (values.get("hydrosphere") != "ice-covered ocean" and world.life_on_surface):
+        return 0.0
+    teff = found.get("_teff_k")
+    ratio = 1.0 if not teff else band_fraction(teff, row.energy["band_nm"]) * row.energy["efficiency"] / _earth_band_flux()
+    return world.energy_flux_w_m2 / earth_light_w_m2() * min(ratio, tuning.LIFE_NPP["light_ratio_max"])
 
 
 def score_classes(body):
     """`{class id: ClassScore}` for a finished planet or moon (an object, or a column-named mapping of its values). A gas giant, or a
     body with no surface temperature, is scored nowhere: `{}`."""
-    values = body if isinstance(body, Mapping) else values_from_body(body)
+    values = dict(body) if isinstance(body, Mapping) else values_from_body(body)
     if values.get("body_type") == "g" or values.get("surface_temperature_k") is None:
         return {}
+    for quantity, supplied in life_supply.supplies(values).items():
+        values.setdefault(quantity, supplied)
     found = quantities(values)
     world = habitability_world.world_from(values)
     return {row.id: score_class(row, found, world, values) for row in CLASSES}
@@ -434,3 +511,37 @@ def best(scores):
     """The `ClassScore` with the largest likelihood among those at or above the line, ties to the lower class number; `None` if none."""
     live = [s for s in scores.values() if s.score > 0]
     return max(live, key=lambda s: (s.likelihood, -IDS.index(s.id))) if live else None
+
+
+def best_npp(scores, among=None):
+    """The `ClassScore`s that are supported (a score of 1 or more), largest net primary production first; those of the ids `among` only."""
+    live = [s for s in scores.values() if s.score > 0 and (among is None or s.id in among)]
+    return sorted(live, key=lambda s: (-s.npp, IDS.index(s.id)))
+
+
+def dominant(scores, draw_stream):
+    """
+    The class that lives on a world (GEN.889, life-classes.md 8.2): of the supported classes, the one with the largest net primary
+    production; classes within `tuning.LIFE_NPP["tie_factor"]` of it are tied, and a tie is broken by a draw weighted by net primary
+    production (`draw_stream` is anything with `random()`: a `draw.Stream`, or the `draw` module). `None` when no class is supported.
+    A single candidate costs no draw.
+    """
+    ranked = best_npp(scores)
+    if not ranked or ranked[0].npp <= 0.0:
+        return None
+    tied = [s for s in ranked if s.npp * tuning.LIFE_NPP["tie_factor"] >= ranked[0].npp]
+    if len(tied) == 1:
+        return tied[0]
+    pick = draw_stream.random() * sum(s.npp for s in tied)
+    for candidate in tied:
+        pick -= candidate.npp
+        if pick < 0.0:
+            return candidate
+    return tied[-1]
+
+
+def class_id(number, variant=None):
+    """The id of a class from its stored number and variant letter (`4, "c"` gives `"4c"`; `6, None` gives `"6"`), `None` for no class."""
+    if number is None:
+        return None
+    return f"{int(number)}{variant or ''}"

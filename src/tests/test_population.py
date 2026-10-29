@@ -54,12 +54,7 @@ def test_a_timeline_needs_both_ages():
 
 def test_timeline_of_reads_real_generated_planets():
     """A generated planet's stored structure reads back as a timeline."""
-    for _ in range(200):
-        cfg = SystemConfig()
-        cfg.STAR_TYPE = "G2V"
-        cfg.INTELLIGENT_LIFE = True
-        cfg.HABITABLE_WORLD = True
-        system = StarSystem(system_config=cfg)
+    for system, _config in _civilized_candidates():
         for planet in system.planets:
             timeline = population.timeline_of(getattr(planet, "life_stage", None),
                                               getattr(planet, "life_system_age_gyr", None),
@@ -173,11 +168,19 @@ def _gets_a_species(conn, system_id):
     return False
 
 
-def _civilized_system(mysql_config):
-    """A saved system with a habitable planet that reached a technological civilization and will get a species --
-    retried, since generation is random. A system the pass would leave without a species is deleted again (TEST.296:
-    one in a few kept by the old test of the timeline alone, and a test counting the species failed)."""
-    for _ in range(200):
+_CIVILIZED_POOL = []
+"""list: Generated `(system, config)` pairs with a technological civilization, kept for the run: a forced civilization needs a sunlit sea
+and an oxygen air (life class 1, GEN.889), about one system in thirteen, so each test draws from the pool before it generates another."""
+
+
+def _civilized_candidates():
+    """The pool's systems, then new ones as they are generated."""
+    index = 0
+    for _ in range(400):
+        if index < len(_CIVILIZED_POOL):
+            yield _CIVILIZED_POOL[index]
+            index += 1
+            continue
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         cfg.INTELLIGENT_LIFE = True
@@ -185,15 +188,25 @@ def _civilized_system(mysql_config):
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
         if any(getattr(p, "life_stage", None) == "technological_civilization" for p in system.planets):
-            system_id = store.save_system(system, cfg, config=mysql_config)
-            conn = store.get_connection(mysql_config)
-            try:
-                if _gets_a_species(conn, system_id):
-                    return system_id
-                with conn:
-                    conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
-            finally:
-                conn.close()
+            _CIVILIZED_POOL.append((system, cfg))
+            yield _CIVILIZED_POOL[-1]
+            index += 1
+
+
+def _civilized_system(mysql_config):
+    """A saved system with a habitable planet that reached a technological civilization and will get a species -- taken from the
+    pool of generated ones, since generation is random and slow. A system the pass would leave without a species is deleted again
+    (TEST.296: one in a few kept by the old test of the timeline alone, and a test counting the species failed)."""
+    for system, cfg in _civilized_candidates():
+        system_id = store.save_system(system, cfg, config=mysql_config)
+        conn = store.get_connection(mysql_config)
+        try:
+            if _gets_a_species(conn, system_id):
+                return system_id
+            with conn:
+                conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
+        finally:
+            conn.close()
     pytest.fail("could not generate a system with a civilization")
 
 
@@ -313,9 +326,9 @@ def test_a_pass_removes_species_stored_without_a_civilization(mysql_config, gala
         with conn:
             conn.execute("DELETE FROM species WHERE homeworld_planet_id = ?", (planet["id"],))
             conn.execute(
-                "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_chemical, life_stage, build, "
+                "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_class, life_stage, build, "
                 "climate, size, civilization_age_years, era, spacefaring) "
-                "VALUES ('Leftover', ?, ?, 'carbon', 'multicellularity', 'average', 'temperate', 'medium', "
+                "VALUES ('Leftover', ?, ?, '1a', 'multicellularity', 'average', 'temperate', 'medium', "
                 "NULL, NULL, 0)", (planet["id"], planet["star_system_id"]),
             )
         populate(conn)

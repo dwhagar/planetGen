@@ -681,7 +681,14 @@ def phi_bio(world):
     return lowest ** LIEBIG_MIN_WEIGHT * math.prod(terms) ** ((1.0 - LIEBIG_MIN_WEIGHT) / len(terms))
 
 
+def toxin_factor(world):
+    """The share of animal life that carbon monoxide and carbon dioxide leave (the toxic terms of `t_metazoa`): 1 for clean air."""
+    return (math.exp(-(world.partial_kpa("CO") / CO_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("CO2") / CO2_TOX_KPA) ** 2))
+
+
 def t_metazoa(world):
+    """The human-comfort window of animal life: the oxygen band of a person's air and the toxins (`toxin_factor`). The life scores of
+    a world read its life class's own oxygen floors instead (`life_complexity`, GEN.877)."""
     o2 = world.partial_kpa("O2")
     if o2 < METAZOA_O2_LOW_KPA:
         f_o2 = math.exp(-0.5 * ((METAZOA_O2_LOW_KPA - o2) / METAZOA_O2_SIGMA_LOW_KPA) ** 2)
@@ -689,8 +696,7 @@ def t_metazoa(world):
         f_o2 = math.exp(-0.5 * ((o2 - METAZOA_O2_HIGH_KPA) / METAZOA_O2_SIGMA_HIGH_KPA) ** 2)
     else:
         f_o2 = 1.0
-    return (math.exp(-(world.partial_kpa("CO") / CO_TOX_KPA) ** 2)
-            * math.exp(-(world.partial_kpa("CO2") / CO2_TOX_KPA) ** 2) * f_o2)
+    return toxin_factor(world) * f_o2
 
 
 def phi_cpx(world):

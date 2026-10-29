@@ -84,7 +84,7 @@ def test_the_oxygen_a_world_has_makes_the_anoxygenic_class_unsupported_and_none_
     assert life_classes.score_classes(world())["2"].score == 0
     anoxic = world(**{atmosphere.GAS_FIELD: {"N2": 78000.0, "CO2": 20000.0, "CH4": 1000.0}})
     scores = life_classes.score_classes(anoxic)
-    assert scores["2"].score > 0 and scores["2"].placeholders == ["donor_supply"]
+    assert scores["2"].score > 0 and scores["2"].placeholders == []  # the donors are worked out from the heat (GEN.887)
     assert scores["1a"].score > 0  # Class 1 makes the oxygen; it does not need it (GEN.855)
 
 
@@ -109,7 +109,7 @@ def test_a_methane_sea_world_supports_class_7_and_not_class_1a():
                   energy_flux_w_m2=1e-3, **{atmosphere.GAS_FIELD: {"N2": 140000.0, "CH4": methane_kpa * 1000.0}})
     scores = life_classes.score_classes(titan)
     assert scores["7"].score > 0
-    assert scores["1a"].score == 0 and scores["7"].likelihood <= 0.2 + 1e-9
+    assert scores["1a"].score == 0 and scores["7"].likelihood > 0.0 and scores["7"].placeholders == []
 
 
 def test_the_phase_of_carbon_dioxide_follows_its_triple_and_critical_points():
@@ -124,11 +124,11 @@ def test_the_phase_of_carbon_dioxide_follows_its_triple_and_critical_points():
 
 def test_a_dense_carbon_dioxide_world_supports_class_6():
     dense = world(hydrosphere="dry", surface_temperature_k=280.0, atmospheric_pressure_pa=6.0e6, ocean_ph=None, water_activity=None,
-                  water_mass_fraction=0.0, **{atmosphere.GAS_FIELD: {"CO2": 5.7e6, "N2": 3.0e5}})
+                  water_mass_fraction=0.0, h2_supply=0.5, **{atmosphere.GAS_FIELD: {"CO2": 5.7e6, "N2": 3.0e5}})
     result = life_classes.score_classes(dense)["6"]
-    assert result.score > 0 and result.likelihood <= 0.1 + 1e-9
+    assert result.score > 0 and result.likelihood <= 0.2  # the 0.1 solvent factor, lifted by the blend of the other terms
     thin = world(hydrosphere="dry", surface_temperature_k=280.0, atmospheric_pressure_pa=1.0e5, ocean_ph=None, water_activity=None,
-                 water_mass_fraction=0.0, **{atmosphere.GAS_FIELD: {"CO2": 9.5e4, "N2": 5.0e3}})
+                 water_mass_fraction=0.0, h2_supply=0.5, **{atmosphere.GAS_FIELD: {"CO2": 9.5e4, "N2": 5.0e3}})
     assert life_classes.score_classes(thin)["6"].score == 0
 
 
@@ -141,14 +141,19 @@ def test_the_acid_and_ammonia_classes_wait_for_their_quantities_and_score_once_t
     assert given["5b"].score > 0 and given["5b"].missing == []
     cold = dict(dry, surface_temperature_k=220.0)
     assert life_classes.score_classes(world(**cold))["8"].missing == ["ammonia_water_mass_fraction"]
-    assert life_classes.score_classes(world(ammonia_water_mass_fraction=0.2, **cold))["8"].score > 0
+    # a dry rock has no water in touch with its rock to make hydrogen (GEN.887), so the hydrogen of this one is given
+    assert life_classes.score_classes(world(ammonia_water_mass_fraction=0.2, h2_supply=0.5, **cold))["8"].score > 0
 
 
-def test_a_stored_supply_replaces_its_placeholder():
-    placeholder = life_classes.score_classes(world(hydrosphere="ice-covered ocean"))["3a"]
+def test_a_stored_supply_replaces_the_one_worked_out_from_the_body():
+    from planetgen.physics import life_supply
+    under_ice = world(hydrosphere="ice-covered ocean")
+    derived = life_supply.supplies(under_ice)["h2_supply"]
+    ref = life_classes.describe("3a").supplies[0]["ref"]
+    worked_out = life_classes.score_classes(under_ice)["3a"]
     stored = life_classes.score_classes(world(hydrosphere="ice-covered ocean", h2_supply=0.25))["3a"]
-    assert placeholder.placeholders == ["h2_supply"] and stored.placeholders == []
-    assert stored.likelihood == pytest.approx(placeholder.likelihood * 0.25)
+    assert worked_out.placeholders == [] and stored.placeholders == []
+    assert stored.likelihood == pytest.approx(worked_out.likelihood * min(1.0, 0.25 / ref) / min(1.0, derived / ref))
 
 
 def test_a_cool_red_star_favours_the_far_red_pigment_relative_to_the_visible_one_more_than_the_sun_does():

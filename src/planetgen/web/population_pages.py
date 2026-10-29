@@ -220,7 +220,7 @@ def species_page(species_id):
         ("Homeworld", item.get("homeworld_name")),
         ("Star system", item.get("system_name")),
         ("Most advanced life", _label(item.get("life_stage"))),
-        ("Light-harvesting pigment", _label(item.get("life_chemical"))),
+        ("Life class", _label(item.get("life_class"))),
         ("Build", _label(item.get("build"))),
         ("Climate", _label(item.get("climate"))),
         ("Size", _label(item.get("size"))),

@@ -19,7 +19,7 @@ MU = constants.G * 1.0e-9 * (PLANET_MASS_KG + MOON_MASS_KG)
 def _planet(moons):
     return {"id": 7, "name": "Aster", "planet_class": "M", "body_type": "r", "radius_km": PLANET_RADIUS_KM,
             "mass_kg": PLANET_MASS_KG, "moons": moons, "atmosphere": "None", "distance_km": 1.5e8,
-            "zone": "e", "period_years": 1.0, "gravity_g": 1.0, "life_chemical": None}
+            "zone": "e", "period_years": 1.0, "gravity_g": 1.0, "life_class": None}
 
 
 def _moon(index, periapsis_km, eccentricity, inclination_deg=10.0, radius_km=1737.0, true_anomaly=1.0):
@@ -27,7 +27,7 @@ def _moon(index, periapsis_km, eccentricity, inclination_deg=10.0, radius_km=173
                                              0.7, 0.4, true_anomaly)
     return {"id": 100 + index, "name": f"Moon {index}", "planet_class": "C", "body_type": "r", "radius_km": radius_km,
             "mass_kg": MOON_MASS_KG, "zone": "e", "period_years": 0.07, "gravity_g": 0.16,
-            "life_chemical": None, "distance_km": periapsis_km / (1 - eccentricity),
+            "life_class": None, "distance_km": periapsis_km / (1 - eccentricity),
             "position_x_km": position[0], "position_y_km": position[1], "position_z_km": position[2],
             "velocity_x_kms": velocity[0], "velocity_y_kms": velocity[1], "velocity_z_kms": velocity[2],
             "atmosphere": "None"}

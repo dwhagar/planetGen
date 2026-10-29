@@ -41,8 +41,7 @@ ZONE_NAMES = {"h": "hot", "e": "ecosphere", "c": "cold"}
 TIERS = ("Blue", "Green", "Yellow", "Red")
 
 CEILINGS = ("unlimited", "microbial", "none")
-"""tuple: What the habitability index allows to live on a scored body (`generation.life.life_ceiling`): complex life allowed (no
-ceiling), microbial life only, or no life."""
+"""tuple: What the life class of a scored body allows (`ceiling_of`): complex life allowed (no ceiling), microbial life only, or no life."""
 
 GROUPS = (("classes", "class"), ("tiers", "tier"), ("ceilings", "ceiling"))
 """tuple: The measures a cell's ranges hold: `(key in the file, name in a finding)`."""
@@ -76,6 +75,18 @@ def _orbit_au(zone, habitable_zone, rng):
     return high * 1.1 * (20.0 / 1.1) ** rng.random()
 
 
+def ceiling_of(body):
+    """`CEILINGS` entry of a scored body: no life class is `none`, a class whose complexity index stays under the multicellular threshold is
+    `microbial`, any other `unlimited`."""
+    from planetgen import tuning
+
+    if body.life_class is None:
+        return "none"
+    if body.life_complexity is not None and body.life_complexity < tuning.LIFE_COMPLEXITY["thresholds"]["multicellularity"]:
+        return "microbial"
+    return "unlimited"
+
+
 def _body_record(body, star_type, zone, kind, life):
     from planetgen.physics import habitability
 
@@ -83,7 +94,7 @@ def _body_record(body, star_type, zone, kind, life):
     return {
         "star": star_type, "zone": zone, "kind": kind, "cls": body.planet_class,
         "tier": habitability.tier(score) if score is not None else None,
-        "ceiling": life.life_ceiling(body) if score is not None else None,
+        "ceiling": ceiling_of(body) if score is not None else None,
         "habitable": habitability.is_habitable(score),
     }
 

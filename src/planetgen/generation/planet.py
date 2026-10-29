@@ -26,7 +26,7 @@ import math
 from planetgen import tuning
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import aerosols, atmosphere, body_colour, bulk_composition, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, magnetism, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
+from planetgen.physics import aerosols, atmosphere, body_colour, bulk_composition, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen.util import draw
 from planetgen.generation.planetary_object import PlanetaryObject
@@ -103,8 +103,12 @@ class Planet(PlanetaryObject):
                                    `StarSystem._mutual_min_separation_au`
                                    -- not this single-body value.
         name (str): The generated name of the planet or moon.
-        life_chemical (str): The primary chemical basis for any potential life
-                             (set by `life.apply_life_data`, None until then).
+        life_class, life_class_variant (int, str or None): The life class that lives on the body, its number and its pigment or
+                             habitat letter (`physics.life_classes`; set by `life.apply_life_data`, None until then or with none).
+        life_class_best, life_class_best_score (str, int or None): The best-supported class and its score, 0 to 9.
+        life_class_scores (dict or None): `{class id: score}` for every class the body supports (a score of 1 or more).
+        life_animal_grade (int or None): The grade of its animals, 0 none to 3 large and active (`physics.life_complexity`).
+        life_complexity (float or None): The complexity index of its life class (`physics.life_complexity`).
         reflection_spectrum_visible (list): Visible-light reflection descriptors
                                             for any life present (set by
                                             `life.apply_life_data`, None until then).
@@ -195,7 +199,7 @@ class Planet(PlanetaryObject):
         "atm_density", "surface_temperature", "density", "atmospheric_pressure",
         "mass", "atmosphere", "composition", "radius", "planet_class", "distance",
         "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
-        "life_chemical", "reflection_spectrum_visible",
+        *life_classes.BODY_FIELDS, life_classes.SCORES_FIELD, "reflection_spectrum_visible",
         "reflection_spectrum_non_visible", "life_stage", "evolutionary_pace",
         "life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS, "flavor_key",
         "flavor_text_count", "habitable_zone", "volume", "period",
@@ -356,7 +360,9 @@ class Planet(PlanetaryObject):
         self.hill_radius = None
         self.min_orbit_distance = None
         self.name = None # Set by the owning StarSystem (names.bodies.name_bodies) once orbits are final.
-        self.life_chemical = None
+        for field in life_classes.BODY_FIELDS:
+            setattr(self, field, None)
+        setattr(self, life_classes.SCORES_FIELD, None)
         self.reflection_spectrum_visible = None
         self.reflection_spectrum_non_visible = None
         self.life_stage = None # Set later by life.apply_life_data, with the next three
@@ -472,9 +478,14 @@ class Planet(PlanetaryObject):
         self.habitable_zone = tuple(data["habitable_zone"])
 
     @property
+    def life_class_id(self):
+        """The id of the life class that lives on the body (`"1a"`, `"4c"`, `"6"` ...), `None` for none."""
+        return life_classes.class_id(self.life_class, self.life_class_variant)
+
+    @property
     def has_timeline(self):
         """Whether the body has an evolutionary timeline (the system's age at which `life_stage` was reached), as
-        against a chemistry that only has a pace."""
+        against a class that only has a pace."""
         return self.life_system_age_gyr is not None
 
     @property

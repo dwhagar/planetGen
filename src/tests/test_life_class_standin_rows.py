@@ -25,8 +25,13 @@ def _classes():
         return json.load(handle)["classes"]
 
 
+def _supplies(row):
+    supply = row.get("supply")
+    return [] if not supply else supply if isinstance(supply, list) else [supply]
+
+
 def _numbers(row):
-    return [row["solvent"], row["energy"], *row["gates"], *row["windows"], *([row["supply"]] if row.get("supply") else [])]
+    return [row["solvent"], row["energy"], *row["gates"], *row["windows"], *_supplies(row), row["life"]]
 
 
 def _by_class():
@@ -49,7 +54,8 @@ def test_the_row_of_a_class_has_the_tier_and_tweak_of_its_least_certain_number(r
 def test_the_row_of_a_class_names_every_gate_window_solvent_and_supply_of_it(rule):
     text = _by_class()[rule["id"]][4]
     assert rule["solvent"]["medium"] in text
-    for number in [*rule["gates"], *rule["windows"], *([rule["supply"]] if rule.get("supply") else [])]:
+    assert rule["life"]["metabolism"] in text
+    for number in [*rule["gates"], *rule["windows"], *_supplies(rule)]:
         assert number["quantity"] in text, (rule["id"], number["quantity"])
 
 

@@ -446,7 +446,7 @@ function infoFields(el) {
   return [["Class", classField(el)], ["Type", d.bodytype], ["Radius", d.radius], ["Mass", d.mass], ["Zone", d.zone],
     ["Distance", d.distance], ["Period", d.period], ["Gravity", d.gravity], ["Atmosphere", d.atmosphere],
     ["Surface composition", d.composition], ["Surface temperature", d.surfacetemp],
-    ["Surface pressure", d.surfacepressure], ["Life Chemistry", d.life], ["Colour", d.looknote],
+    ["Surface pressure", d.surfacepressure], ["Life Class", d.life], ["Colour", d.looknote],
     kind === "moon" ? ["Orbits", d.parent] : ["Moons", d.moons], ["Note", d.note]];
 }
 
