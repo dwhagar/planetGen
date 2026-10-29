@@ -1,8 +1,0 @@
-**Headline:** One "Go to" for every move on the Galaxy Map, a find-a-place box that takes names, coordinates, sector designations, object IDs, regions and recent places, and a log ruler with named, clickable scales.
-
-### Changed
-- **One verb, "Go to" (MAP.336).** Every animated move on the Galaxy Map is now called Go to: the buttons that said "Fly to" and "Zoom in on them", the sector wall icons and the double click all go through one function. Zoom is only the wheel, the plus and minus buttons, the slider, the pinch and the keys.
-- **Find a place.** The address box is now a find-a-place box (press `/` anywhere on the page to reach it). As you type it lists what the line can be: coordinates (`x y z` in parsecs), a sector designation or shell/band/wedge, an object ID (its system opens, and a planet or moon is picked), charted regions by name, names the server finds, and places you went to before (an empty box lists them, and the way to the whole galaxy). Enter or a click goes there.
-- **A log ruler.** The zoom slider became a vertical log ruler: the whole galaxy at the top, a moon at the bottom, a named stop for each scale (galaxy, arm and halo, region, sector, neighbourhood, planetary system, planet, moon), each a Go to for that scale about the middle of the map, and a readout of the distance and the nearest thing. A card on the right now stands to the left of the ruler.
-- **Crumbs and Up.** Each crumb is a Go to for what it names, and the Up button is "Up one level".
-- **Where Go to a region lands.** A region is framed on its charted part by default. A browser setting, `map.regionLanding` (`densest`), lands on the cluster of the region's heaviest sectors instead; the setting's own page is UX.236.
