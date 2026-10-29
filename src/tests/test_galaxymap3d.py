@@ -203,6 +203,7 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["fetchPath"] == "/galaxy/nodes"
     assert data["stagePath"] == "/galaxy/stage"
     assert data["windowPath"] == "/galaxy/window"
+    assert data["nearPath"] == "/galaxy/near"
     assert data["territoryPath"] == "/galaxy/territories"
     assert data["sectorUrl"] == "/sector/{id}"
     assert data["hasShape"] is True

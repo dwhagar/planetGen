@@ -379,7 +379,9 @@ def test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the
 def _fly_setup(page, base_url, site_app, sample_params):
     """The sector opened, and a star of it with a system: the star's point in the map (pc) and where it is on screen."""
     scene = _Scene(page, base_url, site_app, sample_params)
-    page.goto(f"{base_url}/galaxy?sector={scene.code}&open=1", wait_until="load")
+    # No names over the stars: a click on a name flies to the thing it names (MAP.298), not to the star under it, and the name of a
+    # neighbour can lie over the star aimed at.
+    page.goto(f"{base_url}/galaxy?sector={scene.code}&open=1&hide=label-system,label-star,label-object", wait_until="load")
     page.wait_for_selector(CANVAS, state="attached")
     _ready(page)
     star, point = _star_point(page, base_url, scene)

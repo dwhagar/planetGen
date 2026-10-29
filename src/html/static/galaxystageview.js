@@ -1776,7 +1776,7 @@ export function createStageView(host) {
   function showSectorInfo(block) {
     // A sector page names its sector itself.
     if (pinned) return;
-    const sector = sectorRecord(block);
+    const sector = sectorRecord(block) || (isEnteredCell(block) ? nearRecords.get(cellKey(block)) : null);
     if (sector) host.showPlacedInfo(sectorEntry(block, sector));
     else host.showCellInfo({
       m: 1, bounds: block.bounds, address: { shell: block.shell, band: block.band, wedge: block.wedge }, filled: 0,
@@ -1951,6 +1951,61 @@ export function createStageView(host) {
     return display.ambientCandidates;
   }
 
+  // MAP.335: in a window of bigger cells there are no sector records to hold scenes by, so the sectors the eye is near are asked of the
+  // server (`host.fetchNear`, GET /galaxy/near): the generated ones within NEAR_ASK_EDGES sector edges of the eye, read again when the eye has
+  // gone NEAR_REUSE_EDGES from where it was asked. The scene is then chosen from the camera alone, with no window of sectors in front of it.
+  const NEAR_ASK_EDGES = 4;
+  const NEAR_REUSE_EDGES = 1;
+  // Past this view distance, in sector edges, no sector's scene can be in range of the eye and the server is not asked.
+  const NEAR_MAX_VIEW_EDGES = 60;
+  const NEAR_RETRY_MS = 5000;
+  let nearRead = null;
+  let nearAsk = null;
+  let nearToken = 0;
+  let nearRetryAt = 0;
+  // Every sector the server has named, by cell: what the sector's panel and scene need (its id and name).
+  const nearRecords = new Map();
+  const nearFailed = new Set();
+
+  function distanceBetween(a, b) {
+    return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  }
+
+  function askNear(eye) {
+    const token = ++nearToken;
+    const at = eye.slice();
+    nearAsk = { at: at };
+    const query = "?x=" + at[0].toFixed(3) + "&y=" + at[1].toFixed(3) + "&z=" + at[2].toFixed(3) + "&r=" + (NEAR_ASK_EDGES * edgePc).toFixed(3);
+    host.fetchNear(query).then(function (payload) {
+      if (!active || token !== nearToken) return;
+      nearAsk = null;
+      const candidates = [];
+      ((payload && payload.sectors) || []).forEach(function (sector) {
+        const block = { m: 1, shell: sector.shell, band: sector.band, wedge: sector.wedge };
+        block.bounds = P.drillBlockBounds(block, edgePc);
+        const key = cellKey(block);
+        nearRecords.set(key, sector);
+        if (!nearFailed.has(key)) candidates.push({ key: key, center: P.cellCenter(block.bounds), block: block, record: sector });
+      });
+      nearRead = { at: at, candidates: candidates };
+      ambientEye = null;
+    }, function () {
+      if (!active || token !== nearToken) return;
+      nearAsk = null;
+      nearRetryAt = performance.now() + NEAR_RETRY_MS;
+      ambientEye = null;
+    });
+  }
+
+  // The sectors of the near read for an eye at `eye`: [{key, center, block, record}], asking again when the last read was made from further
+  // than NEAR_REUSE_EDGES away (the last read stands meanwhile). Null when the map has no such read.
+  function nearCandidates(eye, now) {
+    if (!host.fetchNear) return null;
+    const reuse = NEAR_REUSE_EDGES * edgePc;
+    if ((!nearRead || distanceBetween(eye, nearRead.at) > reuse) && (!nearAsk || distanceBetween(eye, nearAsk.at) > reuse) && now >= nearRetryAt) askNear(eye);
+    return nearRead ? nearRead.candidates : [];
+  }
+
   // Drops the sector scene the camera came up to, and what was waiting for its dwell.
   function closeAmbient() {
     const was = ambient;
@@ -1959,6 +2014,8 @@ export function createStageView(host) {
     ambientEye = null;
     ambient = null;
     ambientShare = 0;
+    // MAP.335: a star's system comes up out of the sector's scene, so it goes with it.
+    if (was && !entered && systemAmbient && !enteredSystem) closeSystemAmbient();
     if (was && !entering && sectorStage.isAmbient()) sectorStage.close();
     if (was && display) applyHover();
   }
@@ -1999,6 +2056,8 @@ export function createStageView(host) {
       // Left out of this window's candidates, so it is not asked for again and again.
       if (display && display.ambientFailed) display.ambientFailed.add(candidate.key);
       if (display) display.ambientCandidates = null;
+      nearFailed.add(candidate.key);
+      if (nearRead) nearRead.candidates = nearRead.candidates.filter(function (c) { return c.key !== candidate.key; });
       ambient = null;
     };
     sectorStage.open(candidate.record.id, candidate.block.bounds, null, true).then(function (geo) {
@@ -2014,7 +2073,11 @@ export function createStageView(host) {
 
   // Every frame: which sector scene the camera wants up and how much of it shows.
   function updateAmbient(now) {
-    const eligible = !pinned && view && display && resolved && isSectorView(resolved) && !entered && !enteredSystem;
+    // MAP.335: in a window of sector cells the scenes are held by its records; in any other stage (a window of bigger cells, the whole galaxy,
+    // a camera that has flown in) they come from the sectors near the eye, once the view is near enough for one to be in range.
+    const sectorWindow = !!(view && display && resolved && isSectorView(resolved));
+    const fromEye = !sectorWindow && !!(host.fetchNear && view && display && resolved && view.dist <= NEAR_MAX_VIEW_EDGES * edgePc);
+    const eligible = !pinned && (sectorWindow || fromEye) && !entered && !enteredSystem;
     if (!eligible) {
       if (ambient && !entered) closeAmbient();
       return;
@@ -2025,7 +2088,8 @@ export function createStageView(host) {
       && eye[0] === ambientEye[0] && eye[1] === ambientEye[1] && eye[2] === ambientEye[2]) return;
     ambientEye = eye;
     ambientSeenIn = display;
-    const chosen = SR.chooseSector(eye, ambientCandidates(), edgePc, ambient ? ambient.key : null);
+    const candidates = sectorWindow ? ambientCandidates() : nearCandidates(eye, now);
+    const chosen = SR.chooseSector(eye, candidates, edgePc, ambient ? ambient.key : null);
     if (!chosen) {
       if (ambient || ambientWant) closeAmbient();
       return;
@@ -2040,7 +2104,7 @@ export function createStageView(host) {
       return;
     }
     if (now - ambientWant.since < SR.DWELL_MS) return;
-    const candidate = ambientCandidates().find(function (c) { return c.key === chosen.key; });
+    const candidate = candidates.find(function (c) { return c.key === chosen.key; });
     if (candidate) loadAmbient(candidate);
   }
 
@@ -2171,17 +2235,19 @@ export function createStageView(host) {
   const systemRadii = new Map();
 
   function systemCandidates() {
-    if (!entered.systemCandidates) {
-      entered.systemCandidates = sectorStage.entries().filter(function (e) {
+    // MAP.335: of the sector opened, or of the sector scene the camera came up to.
+    const holder = entered || ambient;
+    if (!holder.systemCandidates) {
+      holder.systemCandidates = sectorStage.sceneEntries().filter(function (e) {
         return e.href && e.endpoint && e.endpoint.indexOf("system:") === 0 && !systemFailed.has(e.href);
       }).map(function (e) {
         return { key: e.href, center: [e.x, e.y, e.z], radiusPc: null, entry: e };
       });
     }
-    entered.systemCandidates.forEach(function (c) {
+    holder.systemCandidates.forEach(function (c) {
       c.radiusPc = systemRadii.get(c.key) || null;
     });
-    return entered.systemCandidates;
+    return holder.systemCandidates;
   }
 
   // Drops the system scene the camera came up to.
@@ -2214,6 +2280,7 @@ export function createStageView(host) {
       if (!active || token !== systemToken || systemAmbient !== mine) return;
       systemFailed.add(candidate.key);
       if (entered) entered.systemCandidates = null;
+      if (ambient) ambient.systemCandidates = null;
       systemAmbient = null;
     };
     systemStage.open(candidate.entry.href, candidate.entry.name, [candidate.entry.x, candidate.entry.y, candidate.entry.z], undefined, true).then(function (geo) {
@@ -2230,7 +2297,7 @@ export function createStageView(host) {
 
   // Every frame: which system scene the camera wants up and how much of it shows.
   function updateSystemAmbient(now) {
-    const eligible = !pinned && view && entered && !enteredSystem && host.fetchSystemScene;
+    const eligible = !pinned && view && (entered || ambientShown()) && !enteredSystem && host.fetchSystemScene;
     if (!eligible) {
       if (systemAmbient && !enteredSystem) closeSystemAmbient();
       return;
@@ -2387,9 +2454,9 @@ export function createStageView(host) {
   // MAP.245: the stars of the open sector the wheel and the clicks can take for a thing: those with a system, not
   // left off the map.
   function sectorStars(inSystem) {
-    if (!entered || (enteredSystem && !inSystem)) return [];
-    return sectorStage.entries().filter(function (e) {
-      return e.href && e.endpoint && e.endpoint.indexOf("system:") === 0 && !sectorStage.hides(e);
+    if (!(entered || ambientShown()) || (enteredSystem && !inSystem)) return [];
+    return sectorStage.sceneEntries().filter(function (e) {
+      return e.href && e.endpoint && e.endpoint.indexOf("system:") === 0 && !sectorStage.sceneHides(e);
     });
   }
 
@@ -2928,6 +2995,14 @@ export function createStageView(host) {
 
   // For the browser tests: flies to a bounding sphere (MAP.319).
   canvasEl.galaxyFlyToFit = function (target) { flyToFit(target); };
+  // MAP.335: flies the camera to a point, `dist` parsecs from it, wherever that is; read by the browser tests.
+  canvasEl.galaxyFlyToPoint = function (point, dist) { flyToPoint(point.slice(), dist); };
+  // MAP.335: flies to a body of the open system, as a click on it does; read by the browser tests.
+  canvasEl.galaxyFlyToBody = function (ref) {
+    const entry = systemStage.entry(ref);
+    if (entry) flyToBody(entry);
+    return !!entry;
+  };
   canvasEl.galaxyFov = function () { return camera.fov; };
 
   // For the browser tests: whether the camera is on its way to a stage, waiting for the stage's data or flying
