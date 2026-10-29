@@ -756,6 +756,14 @@ with `clamp()`.
   Related: UX.161 (the main page counts after a reset). Done: a test on
   the wording against a wiped test database. Owner: Generation-log
   analysis lane (proposed by the lane).
+  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
+  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
+  Core 5; the former owner lane is retired). Step 7 of 10 in Core 5's
+  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
+  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
+  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
+  progress-line work only: no generated-output change and no lock turn;
+  if any step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none.
 
 - [ ] **UX.179 Sitemap entries and an Open Graph image for object pages (optional, can wait)**
@@ -789,6 +797,14 @@ with `clamp()`.
   and spider kind (black widow or redback) on the star page and in the
   API, with units from the registry. Done: a page test for each kind.
   Owner: pool (display lane). Prerequisites: none.
+  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
+  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
+  Core 5; the former owner lane is retired). Step 4 of 10 in Core 5's
+  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
+  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
+  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
+  progress-line work only: no generated-output change and no lock turn;
+  if any step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none. Related: GEN.272, GEN.247.
 
 - [ ] **UX.187 Pages, lists, the API and the help text show every physics rectification output**
@@ -807,6 +823,14 @@ with `clamp()`.
   Aux 11 (Lane 3, pages), after the DB columns of its items.
   Prerequisites: none. Related: UX.143, UX.150, UX.158, GEN.415,
   GEN.430, GEN.445.
+  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
+  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
+  Core 5; the former owner lane is retired). Step 5 of 10 in Core 5's
+  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
+  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
+  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
+  progress-line work only: no generated-output change and no lock turn;
+  if any step turns out to change a stored value, stop and tell TODO.
 
 - [ ] **UX.205 Object pages show the day and night time shares, moons with the extra night from their planet**
   Boss, 7:54 PM EDT 2026-10-24 (message
@@ -841,6 +865,14 @@ with `clamp()`.
   relabel the yearly dose-limited `outside_hours` row "Hours a person
   can work outside per year (dose limit)"; the "not stored" row then
   disappears (UX.199).
+  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
+  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
+  Core 5; the former owner lane is retired). Step 3 of 10 in Core 5's
+  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
+  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
+  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
+  progress-line work only: no generated-output change and no lock turn;
+  if any step turns out to change a stored value, stop and tell TODO.
   Prerequisites: GEN.768. Related: UX.199, UX.203.
 
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
@@ -2420,6 +2452,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
   2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L10 part 2. The sector colouring by habitable
   locations is unchanged.
+  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
+  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
+  Core 5; the former owner lane is retired). Step 2 of 10 in Core 5's
+  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
+  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
+  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
+  progress-line work only: no generated-output change and no lock turn;
+  if any step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none. Related: MAP.311.
 
 ## NAV: Navigation and courses
@@ -13835,6 +13875,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator reported): the wording part (the line no longer says
   Refused and Going ahead) merged in #2831; the estimate accuracy part
   remains. Owner: Generation-log analysis lane (not Performance).
+  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
+  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
+  Core 5; the former owner lane is retired). Step 9 of 10 in Core 5's
+  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
+  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
+  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
+  progress-line work only: no generated-output change and no lock turn;
+  if any step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none.
 
 - [ ] **PERF.179 Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug)**
@@ -13846,6 +13894,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per-task progress bar with an ETA) is related. Done: a test that a
   progress line is not cut at the log's width. Owner: Generation-log
   analysis lane (proposed by the lane).
+  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
+  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
+  Core 5; the former owner lane is retired). Step 8 of 10 in Core 5's
+  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
+  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
+  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
+  progress-line work only: no generated-output change and no lock turn;
+  if any step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none.
 
 - [ ] **PERF.180 Single-unit stages already past the unit ceiling on big galaxies: clearing the bright stars (211 s on the medium galaxy) and the cache-warm families (one unit each, minutes on a large galaxy)**
@@ -13865,6 +13921,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the declared longest units in the command table are updated. Owner:
   Performance lane (proposed; it is retiring, so the pool or Core 5 if
   it has already gone).
+  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
+  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
+  Core 5; the former owner lane is retired). Step 10 of 10 in Core 5's
+  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
+  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
+  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
+  progress-line work only: no generated-output change and no lock turn;
+  if any step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none. Related: PERF.155, PERF.167, PERF.171, PERF.123.
 
 - [ ] **PERF.188 The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python**
@@ -15080,6 +15144,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   property sheet (Aux 11), the help pages and glossary (DOC.15), and the
   numbers other commands print beyond Core 5's #3248 (a free lane or
   Core 5).
+  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
+  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
+  Core 5; the former owner lane is retired). Step 6 of 10 in Core 5's
+  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
+  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
+  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
+  progress-line work only: no generated-output change and no lock turn;
+  if any step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none. Related: GEN.771, DOC.15.
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
@@ -15135,6 +15207,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
   2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L10 part 1 (testing mode allows the bump); the
   API compatibility page lists it.
+  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
+  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
+  Core 5; the former owner lane is retired). Step 1 of 10 in Core 5's
+  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
+  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
+  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
+  progress-line work only: no generated-output change and no lock turn;
+  if any step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none.
 
 ## ADM: Admin tools
