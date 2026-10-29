@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2540] - 2026-10-29
+
+**Headline:** Anything that has to wait for the machine now waits in one list, up to eight entries (a setting), and the job strip shows the order.
+
+### Changed
+- **One waiting list in Redis (PERF.154).** A generation run, an API job (a one-sector regenerate, a neighbourhood) or a Generate page job that finds the machine or the running job busy takes a place in one ordered list (`planetgen/queue/runline.py`) instead of failing with "busy" or taking the single `next.json` slot. The list holds `queue.max_waiting` entries (8 by default, on the admin settings page); one more is refused with the list named. Jobs and runs each start in the order they arrived. A script that posts to the Generate page behind a running job gets `202 {"queued": true, "position": ...}` instead of a 409.
+- **The job strip shows the list.** Every waiting job and run is listed in the order it arrived with its place; a waiting job has Discard (and Start now when the job before it failed); a waiting run shows its place for the machine.
+- **The Generate page's job lock moved to Redis** (`planetgen:job:active`), and a waiting job's recipe is a private file `queued-<ticket>.json` in the jobs folder (it holds the database environment, which stays out of Redis). The `active` and `next.json` files, `queue/runwait.py` and the file-lock clean-up marker are gone. The Queue page's fill buttons no longer refuse while a run is live; they wait their turn.
+- No generated value changes: the list only decides when a run starts, never how its work is cut.
+
 ## [8.0.2539] - 2026-10-29
 
 **Headline:** The class-blind life test now also runs the generator's life step and checks it gives life exactly where the life model says it can live, whatever the class letter is.
