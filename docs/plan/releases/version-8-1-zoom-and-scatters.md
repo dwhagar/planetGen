@@ -170,7 +170,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) |  |  |
 | MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) |  |  |
 | MAP.299 | In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug) |  |  |
-| MAP.344 | The civilization marker gains a technology band: filter and mark worlds by the technology level of their species |  |  |
 | MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map |  | Boss 7:24 PM EDT; look only. |
 
 

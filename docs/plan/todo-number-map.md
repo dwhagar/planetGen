@@ -1999,7 +1999,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.341 | Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug) | none | done, PR #3652 |
 | MAP.342 | Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority) | none | dropped (measured by Core 3, 2026-10-29: saves under 15 KB gzipped once per view) |
 | MAP.343 | Sector Map and System Map signs for the reasons to look (life, sentient life, civilization) and the chosen-class markers: body-level markers know only inhabited, gas giant, habitable, uninhabitable and belt | none | done, PR #3576 |
-| MAP.344 | The civilization marker gains a technology band: filter and mark worlds by the technology level of their species | none | open |
+| MAP.344 | The civilization marker gains a technology band: filter and mark worlds by the technology level of their species | none | done, PR #3659 |
 | MAP.345 | Map and search filters: a world filter for 'supports Class N' and 'has Class N' with a minimum score, from the life_class_scores index | none | open |
 | MAP.346 | Map browser tests fail on main since MAP.240 (#3605): the wheel moves the target off its line of sight, the window does not fill the page, the info popup does not scroll (bug) | none | done, PR #3639 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
