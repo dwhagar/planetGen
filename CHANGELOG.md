@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2500] - 2026-10-29
+
+**Headline:** The update and every migration now refuse to start while jobs are active, unless you say yes.
+
+### Changed
+- **update.sh and migrations check for active jobs first (DB.29).** Before anything changes, `update.sh` and `planetgen.cli.migrate` list every active job: Generate jobs, runs in the run record (the live runs the Queue page shows), jobs on the shared queues, the orbital update and the map warm-up. With none, they go on as before. With any, they stop and change nothing unless you pass `--yes` or type a y to cancel them. Nobody to ask is a no: a run started by systemd or cron, a run with no terminal, and 30 seconds without an answer all stop it with exit status 1 and name the work. `--yes` replaces `--cancel-running` (the maintenance timer example, INSTALL.md and the deployment guide say so). The units of a run are no longer listed one by one beside the run, and cancelling a run takes its waiting units off the queue and stops its started ones in one step.
+
 ## [8.0.2499] - 2026-10-29
 
 **Headline:** The browser test of the point-of-interest key and the habitable world marker matches the markers as they now begin on and merge.
