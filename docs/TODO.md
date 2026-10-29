@@ -2023,6 +2023,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it before each PR).
   Prerequisites: none. Related: MAP.257, MAP.146,
   MAP.249.
+  Owner: Aux 7 (lock-free item while it waits for the generation lock, 12:07 AM EDT 2026-10-29; this replaces any earlier owner line on this item). Separate branch; rebase on Core 2's merges to galaxymap3d.js and galaxystageview.js and tell Core 2 before each PR.
 
 - [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
   Boss live observation (8:51 PM EDT 2026-10-23, relayed by the
@@ -2515,6 +2516,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L10 part 2. The sector colouring by habitable
   locations is unchanged.
   Prerequisites: GEN.889. Related: MAP.311.
+
+- [ ] **MAP.346 Map browser tests fail on main since MAP.240 (#3605): the wheel moves the target off its line of sight, the window does not fill the page, the info popup does not scroll (bug)**
+  Found by Core 2 (4:06 AM UTC relay, about 12:06 AM EDT 2026-10-29 as
+  the lane reported). On the bare main commit after MAP.240 (PR #3605)
+  these browser tests fail though they passed an hour earlier:
+  test_web_browser_fixture_maps.py::test_wheel_zoom_turns_about_the_centre_and_a_shift_click_chooses_it
+  (the wheel with the pointer on the cross moves the target off its line
+  of sight),
+  ::test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves[1280-720],
+  ::test_galaxy_map_info_popup_scrolls_with_the_wheel_and_hands_the_rest_to_the_map.
+  On the MAP.335 branch rebased on main,
+  test_web_browser_sector_reach.py (the wheel never zooms; the camera
+  stays at 6.58 pc) and test_web_browser_system_handover.py also fail,
+  likely the same cause (camera-relative buffers). Do: find which of
+  these fail on bare main and which only on the MAP.335 branch, fix the
+  cause in the map code, keep the tests. Not a skip. Done: the five test
+  files pass on main and on the MAP.335 branch. Owner: Core 2 (the
+  MAP.240 lane, Aux 6, is retired; Core 2 owns the files and is blocked
+  on this for MAP.335). Prerequisites: none. Related: MAP.240, MAP.335,
+  TEST.442.
+  Prerequisites: none. Related: MAP.240, MAP.335, TEST.442.
 
 ## NAV: Navigation and courses
 
@@ -14611,19 +14633,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shims; keep the benchmark limits as the guard.
   Prerequisites: none. Related: MAP.249, MAP.267.
 
-- [ ] **PERF.201 The neighborhood job test (test_api_job_runs, a_neighborhood_job_runs_its_sectors_through_the_wrapper) takes over 150 s because generation physics is slow on main: find the slow step and speed it up with identical values (bug)**
-  Found by Aux 7 (as the lane reported, 2026-10-28) while merging UX.122
-  (#3600): on a slow lane machine the test takes over 150 s, and the
-  time is spent in generation physics on main as well, not in the
-  change. Do: profile the neighborhood job (cProfile on the test), name
-  the slowest steps, speed them up without changing a single stored
-  value (golden_seed and the golden files must not change; if a speed-up
-  moves values, stop and file it as a generation change), and add a time
-  bound test for the step. Related to the interior heat integrator
-  (GEN.866 fixed a step that overshot). Version 8.1. Owner: Aux 7
-  (lock-free item while waiting).
-  Prerequisites: none. Related: TEST.429, GEN.866, PERF.190.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -18747,6 +18756,11 @@ clears each one.
   (util/detmath). Replace math.hypot with the deterministic helper in
   both files. Done: the guard passes. Owner: the Citations lane for
   impact_history.py, the Math lane for iron_branch_tuning.py.
+  Research (2026-10-09): Update (Aux 7, 12:06 AM EDT 2026-10-29 as the
+  lane reported): the same guard now also fails on math.dist at
+  galaxy/named_regions.py:133 (GEN.826, #3490). Replace it with the
+  deterministic helper there too. The Citations and Math lanes are
+  retired: Owner now Bug 1 for all three files.
   Prerequisites: none. Related: TEST.384, GEN.739, GEN.512.
 
 - [ ] **TEST.389 test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug)**
@@ -19233,6 +19247,11 @@ clears each one.
   MAP.173 gate) also saw the SC2 dataset missing on a fresh lane
   machine; same fix as the white dwarf models: the test setup fetches
   every dataset the suite needs.
+  Research (2026-10-09): Update (Aux 7, 12:06 AM EDT 2026-10-29 as the
+  lane reported): two tests in test_migration_albedo_greenhouse fail on
+  main without PERF.201 (surface temperature 429.74 K against the
+  expected 429.70 K). Bug 1 decides whether the expected value or the
+  migration is wrong.
   Prerequisites: none. Related: TEST.332, TEST.434, TEST.405.
 
 - [ ] **TEST.442 Browser map tests red on main: menu_filters_sit_side_by_side (2 tests), test_system_map_selection_drill_and_measure and test_a_star_in_a_sector_far_from_the_core_is_selectable (bug)**
