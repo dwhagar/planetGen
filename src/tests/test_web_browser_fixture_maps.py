@@ -2223,6 +2223,66 @@ def _on_the_canvas(page, spot):
     return page.evaluate("([x, y]) => { const e = document.elementFromPoint(x, y); return !!e && e.id === 'galaxymap3d-canvas'; }", list(spot))
 
 
+LABEL_RECTS = """() => [...document.querySelector('.map-labels').children].filter((e) => e.style.opacity !== '0').map((e) => {
+    const r = e.getBoundingClientRect(); return {text: e.textContent, kind: e.dataset.kind, left: r.left, top: r.top, right: r.right, bottom: r.bottom};
+})"""
+
+
+def _label_gaps(rects):
+    """The smallest clear space between two names' boxes (negative where they overlap), or None for fewer than two."""
+    gaps = []
+    for i, a in enumerate(rects):
+        for b in rects[i + 1:]:
+            gaps.append(max(b["left"] - a["right"], a["left"] - b["right"], b["top"] - a["bottom"], a["top"] - b["bottom"]))
+    return min(gaps) if gaps else None
+
+
+def _named_stars_by_brightness(page):
+    """The dense region's named stars that fall inside the map now, brightest first: [(luminosity, name, x, y)] in page pixels."""
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    found = []
+    for star in DENSE_STARS:
+        if not star["name"]:
+            continue
+        spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", [star["x"], star["y"], star["z"]])
+        if spot and box["x"] + 20 <= spot["x"] <= box["x"] + box["width"] - 20 and box["y"] + 20 <= spot["y"] <= box["y"] + box["height"] - 20:
+            found.append((star["luminosity_sol"], star["name"], spot["x"], spot["y"]))
+    return sorted(found, reverse=True)
+
+
+@pytest.mark.viewport(1000, 900)
+@pytest.mark.parametrize("dist_pc, buffer_px", ((6.0, 4), (14.0, 4), (30.0, 4), (14.0, 12)))
+def test_names_in_the_dense_region_keep_a_buffer_and_the_brightest_in_a_crowd_keeps_its_name(page, dense_site, dist_pc, buffer_px):
+    """MAP.299: in the dense fixture region no two names overlap or stand closer than the buffer (4 px, the `map.labelBuffer`
+    preference, here also 12), and where names must be cut the brighter star keeps its name: the brightest named star in view is
+    named, and a bright star that lost its name lost it to a name that is no dimmer (another kind of name, or a star at least as bright)."""
+    if buffer_px != 4:
+        page.add_init_script(f"try {{ localStorage.setItem('planetgen.pref.map.labelBuffer', '{buffer_px}'); }} catch (e) {{}}")
+    open_dense_region(page, dense_site, dist_pc)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapLabels.shown().length > 10", timeout=20000)
+    page.wait_for_timeout(2500)
+    rects = page.evaluate(LABEL_RECTS)
+    assert len(rects) > 10, rects
+    gap = _label_gaps(rects)
+    assert gap >= buffer_px - 0.5, (gap, buffer_px)
+    brightness = {s["name"]: s["luminosity_sol"] for s in DENSE_STARS if s["name"]}
+    shown = {r["text"] for r in rects}
+    ranked = _named_stars_by_brightness(page)
+    assert ranked, "no named star of the dense region is in view"
+    assert ranked[0][1] in shown, ("the brightest named star in view lost its name", ranked[0], sorted(shown))
+    for luminosity, name, x, y in ranked[:10]:
+        if name in shown:
+            continue
+        # Where its name would stand (a name of this length is about 74 px by 16, above the star). A bright star that lost its name lost it
+        # to a name in the way that outranks it: one of another kind (a sector, a world) or a star at least as bright, never only to dimmer stars.
+        left, top = x - 37 - buffer_px, y - 22 - buffer_px
+        in_the_way = [rect for rect in rects
+                      if rect["left"] < left + 74 + 2 * buffer_px and left < rect["right"]
+                      and rect["top"] < top + 16 + 2 * buffer_px and top < rect["bottom"]]
+        justified = [rect for rect in in_the_way if rect["text"] not in brightness or brightness[rect["text"]] >= luminosity]
+        assert justified, (name, luminosity, [(r["text"], r["kind"], brightness.get(r["text"])) for r in in_the_way])
+
+
 def test_names_stand_on_stars_and_other_objects_and_a_click_on_one_flies_to_its_item(page, dense_site):
     """MAP.298: the dense region's named stars and its named objects (rogue planets, a neutron star, a black hole)
     carry their names on the map, and a click on a name selects its item (the panel names it) and flies the camera there."""

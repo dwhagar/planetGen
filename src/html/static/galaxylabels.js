@@ -73,7 +73,7 @@ export function createGalaxyLabels(options) {
   }
 
   const layer = createLabelLayer({
-    container: container, project: project, viewport: size, budget: options.budget,
+    container: container, project: project, viewport: size, budget: options.budget, padding: options.padding,
     reducedMotion: function () { return !!(reduced && reduced.matches); },
   });
 
@@ -119,6 +119,15 @@ export function createGalaxyLabels(options) {
       if (kind === "sector") return { shareCharted: 0 };
       return {};
     }
+    // What a kind's names are cut by when they compete for room (MAP.299): a star by its brightness, an object or a body by its mass
+    // (a body whose mass the map does not carry by its size), a nebula by its volume. A region, a sector and a world keep the budget's order.
+    function weightOf(kind, slice) {
+      if (kind === "system" || kind === "star") return slice.luminositySol;
+      if (kind === "object") return slice.mass;
+      if (kind === "body") return slice.mass || slice.size;
+      if (kind === "nebula") return slice.volume;
+      return undefined;
+    }
     if (sources.regions && layers.isOn("label-region")) offer("region", sources.regions());
     if (layers.isOn("label-nebula")) offer("nebula", sources.nebulae());
     if (layers.isOn("label-body")) offer("body", sources.bodies());
@@ -134,6 +143,7 @@ export function createGalaxyLabels(options) {
     chooseLabels(items, { budget: labelBudget(view) }).forEach(function (chosen) {
       const candidate = found[chosen.index].candidate;
       candidate.priority = FIRST_PRIORITY - chosen.rank;
+      candidate.weight = weightOf(candidate.kind, found[chosen.index].slice);
       out.push(candidate);
     });
     return out;
@@ -156,8 +166,17 @@ export function createGalaxyLabels(options) {
     const moved = cameraMoved();
     if (!force && !moved && now - last < REFRESH_MS) return;
     last = now;
-    layer.update(candidates());
+    offered = candidates();
+    layer.update(offered);
+  }
+  // For the browser tests (MAP.299): what the budget offered the engine at the last placement, each {id, kind, text, priority, weight}.
+  let offered = [];
+
+  function offeredNames() {
+    return offered.map(function (candidate) {
+      return { id: candidate.id, kind: candidate.kind, text: candidate.text, priority: candidate.priority, weight: candidate.weight };
+    });
   }
 
-  return { update: update, shown: layer.shown, element: container, clear: layer.clear, at: layer.at, setHot: layer.setHot };
+  return { update: update, offered: offeredNames, shown: layer.shown, element: container, clear: layer.clear, at: layer.at, setHot: layer.setHot };
 }

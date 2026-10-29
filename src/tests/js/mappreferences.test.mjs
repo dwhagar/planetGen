@@ -30,3 +30,12 @@ test("storage that throws reads as the default and an unknown key is an error", 
   assert.equal(P.blackHoleDensityPx({ getItem() { throw new Error("blocked"); } }), 120);
   assert.throws(() => P.readNumber(store({}), "map.nope"));
 });
+
+test("the label buffer reads as a number of pixels from 0 to 40 and is 4 when missing or out of range", () => {
+  assert.equal(P.labelBufferPx(store({})), 4);
+  assert.equal(P.labelBufferPx(null), 4);
+  assert.equal(P.labelBufferPx(store({ "planetgen.pref.map.labelBuffer": "12" })), 12);
+  assert.equal(P.labelBufferPx(store({ "planetgen.pref.map.labelBuffer": "0" })), 0);
+  assert.equal(P.labelBufferPx(store({ "planetgen.pref.map.labelBuffer": "41" })), 4);
+  assert.equal(P.labelBufferPx(store({ "planetgen.pref.map.labelBuffer": "wide" })), 4);
+});

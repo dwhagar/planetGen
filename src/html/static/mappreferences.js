@@ -13,6 +13,8 @@ export const NUMBER_SETTINGS = {
   // The side in pixels of the square one black hole mark may stand on (a smaller number shows more marks); one mark per 120 by
   // 120 pixels by default (Boss, 6:22 PM EDT 2026-10-28).
   "map.blackHoleDensity": { fallback: 120, min: 30, max: 1000 },
+  // The clear margin in pixels the label engine keeps between one name and the next (MAP.299).
+  "map.labelBuffer": { fallback: 4, min: 0, max: 40 },
 };
 
 // The setting `key` as a number: the stored value when it is a finite number inside its range, else the default.
@@ -32,4 +34,9 @@ export function readNumber(storage, key) {
 // The black hole density setting: the side in pixels of the square one mark may stand on.
 export function blackHoleDensityPx(storage) {
   return readNumber(storage, "map.blackHoleDensity");
+}
+
+// The label buffer setting: the clear margin in pixels between two names.
+export function labelBufferPx(storage) {
+  return readNumber(storage, "map.labelBuffer");
 }
