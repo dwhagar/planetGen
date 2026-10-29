@@ -61,7 +61,9 @@ def test_a_world_the_index_gives_no_microbial_life_makes_no_claim_of_life(host_s
 
 
 @pytest.mark.parametrize("cls", ECOSPHERE_HABITABLE)
-def test_a_world_the_index_allows_only_microbial_life_stops_its_timeline_before_complex_life(host_star, cls):
+def test_a_world_the_index_allows_only_microbial_life_stops_its_timeline_before_complex_life(host_star, cls, monkeypatch):
+    # GEN.855 makes the habitability score again after the life has put oxygen in the air; this test sets the score by hand.
+    monkeypatch.setattr(planetLife.habitability_world, "generate", lambda *args, **kwargs: None)
     for _ in range(12):  # the pace and age draws differ; the cap holds on every one
         planet = _planet(host_star, cls)
         planet.phi_bio, planet.phi_cpx = 0.6, 0.0

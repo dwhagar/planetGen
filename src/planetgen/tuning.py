@@ -2191,11 +2191,15 @@ PLANET_CLASS_PROBABILITIES = {
 # drawn for it (GEN.92, GEN.647). The pigments that harvest light need air (10 Pa or more): an airless body's life, in an ocean under
 # its ice, keeps only the radiotroph. The thresholds follow each description below (oxygenic: free oxygen; anoxygenic: none;
 # Zinc-Bacteriochlorophyll: an acidic ocean, pH 1.5 to 3.0) and are planetGen defaults.
+SUNLIT_OCEAN = ({"quantity": "hydrosphere", "not_equals": "dry"}, {"quantity": "hydrosphere", "not_equals": "vapour"},
+                {"quantity": "hydrosphere", "not_equals": "ice"}, {"quantity": "hydrosphere", "not_equals": "ice-covered ocean"})
+"""tuple: The `requires` conditions of a sea open to the light: a surface ocean, or a hycean one (a shallow ocean under a
+hydrogen envelope, whose water reaches the surface). An ocean under ice, or none, is left out."""
+
 LIFE_CHEMICALS = {
     "Retinal": {
         "requires": [{"quantity": "share_o2", "lt": 0.1}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a primitive photosensitive chemical that represents a young/early biosphere precursor, operating via proton-motive gradients rather than electron transport chains in pre-oxygenated, reducing atmospheres",
-        "evolutionary_time_scale": "fast",
         "metabolism": "retinal",
         "absorption_spectrum": ["Green", "Yellow", "500-650 nm"],
         "reflection_spectrum_visible": ["Blue", "Red", "Purple", "Magenta"],
@@ -2207,7 +2211,6 @@ LIFE_CHEMICALS = {
     "Melanin": {
         "requires": [],
         "description": "a radiotrophic chemical that thrives in environments with lethal ionizing radiation or stellar flaring, and is viable on rogue planets subject to cosmic ray bombardment without a thick protective atmosphere",
-        "evolutionary_time_scale": "normal",
         "metabolism": "radiotrophic",
         "absorption_spectrum": ["Extreme Ultraviolet (EUV)", "X-rays", "Gamma rays", "Ionizing radiation"],
         "reflection_spectrum_visible": ["None (Charcoal-black)"],
@@ -2217,9 +2220,8 @@ LIFE_CHEMICALS = {
         }
     },
     "Chlorophyll a": {
-        "requires": [{"quantity": "share_o2", "min": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
-        "description": "a standard porphyrin that drives oxygenic photosynthesis, requiring an oxygenated atmosphere as a climax ecology and stable, moderate radiation environments",
-        "evolutionary_time_scale": "slow",
+        "requires": [*SUNLIT_OCEAN, {"quantity": "pressure_pa", "min": 10.0}],
+        "description": "a standard porphyrin that drives oxygenic photosynthesis, splitting the water of a sunlit sea and so making the oxygen of its own atmosphere, in stable, moderate radiation environments",
         "metabolism": "oxygenic",
         "absorption_spectrum": ["Red (644-746 nm)", "Blue (468-476 nm)"],
         "reflection_spectrum_visible": ["Green"],
@@ -2229,9 +2231,8 @@ LIFE_CHEMICALS = {
         }
     },
     "Blue-Optimized Porphyrins": {
-        "requires": [{"quantity": "share_o2", "min": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
+        "requires": [*SUNLIT_OCEAN, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a porphyrin that requires simultaneous evolution of biofluorescence for UV shielding, down-converting lethal high-energy light into safe visible wavelengths and creating transient, global optical fluorescence aligned with stellar flares",
-        "evolutionary_time_scale": "slow",
         "metabolism": "oxygenic",
         "absorption_spectrum": ["Intense Blue (468-476 nm)", "Ultraviolet (UV)"],
         "reflection_spectrum_visible": ["Red", "Orange", "Yellow", "Biofluorescent Green", "Biofluorescent Red"],
@@ -2243,7 +2244,6 @@ LIFE_CHEMICALS = {
     "Bacteriochlorophylls": {
         "requires": [{"quantity": "share_o2", "lt": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a chemical that drives anoxygenic photosynthesis, does not split water, and requires chemical electron donors like Hydrogen Sulfide (H2S), Ferrous Iron (Fe2+), or Molecular Hydrogen (H2), resulting in reducing atmospheres lacking Oxygen (O2) or Ozone (O3)",
-        "evolutionary_time_scale": "slow",
         "metabolism": "anoxygenic",
         "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (805-890 nm)", "Deep Infrared (987-1050 nm)"],
         "reflection_spectrum_visible": ["None (Black)"],
@@ -2255,7 +2255,6 @@ LIFE_CHEMICALS = {
     "Zinc-Bacteriochlorophyll": {
         "requires": [{"quantity": "ocean_ph", "lt": 3.0}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a secondary adaptation derived from standard magnesium-chelatase pathways that requires highly acidic global oceans (pH 1.5 - 3.0) and planetary heavy metal abundance and mobilization, often tied to severe volcanic outgassing",
-        "evolutionary_time_scale": "slow",
         "metabolism": "anoxygenic",
         "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (793 nm, 853 nm)"],
         "reflection_spectrum_visible": ["None (Black)"],
@@ -2323,6 +2322,9 @@ STAR_EVOLUTION = {
     }
 }
 
+# Not a world's schedule since GEN.750: a world draws its own five ages (`physics.life_timeline`, `LIFE_STEP_MEANS_GYR`). This table
+# names the three paces (the words `life_facts.pace_label` writes), gives the star-level helpers their lifespan classes
+# (`stellar_object.get_star_evolutionary_profile`, `age_needs`) and is what migration 0156 read to fill the ages of an older database.
 EVOLUTIONARY_TIMELINES = {
     "normal": { # Changed from "norm" to "normal" for consistency
         "star_lifespan": 10.0, # Billion Years
@@ -2454,6 +2456,60 @@ complexity. `evolution.MILESTONE_KEYS` and `physics.life_scores` read it.
 LIFE_SCHEDULE_FIELDS = tuple(f"life_age_{key}_gyr" for key in LIFE_MILESTONES)
 """tuple[str]: The body columns holding a world's milestone schedule (DB.100), one age in Gyr for each `LIFE_MILESTONES`
 milestone in order: `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr`."""
+
+LIFE_STEP_MEANS_GYR = (0.5, 1.5, 2.5, 3.0, 60.0)
+"""
+tuple[float]: The mean waiting time of each hard step of `LIFE_MILESTONES`, Gyr (GEN.750; docs/design/habitability/life-timeline-and-oxygen.md,
+reports/best-guess-standins-2026-10-24.md section 14): abiogenesis, oxygenic-type photosynthesis, complex cells, multicellular animals,
+civilisation. Each step takes an exponential waiting time with this mean once the one before it is done (the hard-step model of Carter 1983 and
+Watson 2008; the early means are shorter than the later because the first steps came early on the one world we know, which is a test point and
+not a preset). Boss chose these on 10-28 (9:03 PM EDT) from a Monte Carlo of the timeline: complex cells 2.5, animals 3 and a civilization 60
+Gyr make animals common and a civilization rare. Stand-in T7, L3.
+"""
+
+LIFE_FIRST_LIGHT_SCALE = {"oxygenic": 1.0, "anoxygenic": 0.6, "retinal": 0.4, "radiotrophic": 1.0}
+"""
+dict: A factor on the second step's wait (the first harvesting of light, GEN.750) for each `metabolism` of `LIFE_CHEMICALS`. Retinal needs
+one pigment and a proton gradient, anoxygenic photosynthesis one reaction centre and no water splitting, and oxygenic photosynthesis both
+reaction centres and the water-splitting cluster, which the geological record puts last of the three (anoxygenic before about 3.5 Gyr,
+oxygenic after about 3 Gyr on Earth); radiotrophy is left at the reference. Stand-in T7, L3: the ratios are chosen to keep that order.
+"""
+
+LIFE_STEP_SCALE = 1.0
+"""
+float: A factor on every `LIFE_STEP_MEANS_GYR` mean, the one knob that scales how common every stage is (GEN.750). It is 1.0: the means are the
+ones Boss chose. Measured by drawing 40,000 timelines (`life_timeline.schedule`) against a star of any age from 3 to 13 Gyr, oxygenic life at the
+reference temperature and oxygen 2 Gyr after the first photosynthesis: complex cells are reached in 65 in 100, animals in 41 in 100 and a
+civilization in 2 in 100 (oxygen at 0.7 Gyr: 76, 51 and 2.9). For stars of 1 to 10 Gyr (G) and 1 to 13.8 Gyr (K, M) animals are 21, 33 and 23 in
+100 and a civilization 0.6, 1.5 and 0.7. Stand-in T9, L3: chosen so that animals are common and a civilization rare; Boss can retune it.
+"""
+
+LIFE_START_AGE_GYR = 0.1
+"""float: The age of a world, Gyr, at which the waiting for abiogenesis starts: its surface has cooled and its first ocean has settled (stand-in
+T6, L0; Earth's oceans were there by about 4.4 Ga, 0.15 Gyr after it formed)."""
+
+LIFE_ACTIVATION_ENERGY_EV = 0.30
+"""float: The activation energy, eV, of the rate of every hard step: a step goes faster on a warm world by a Boltzmann factor. Metabolic theory
+gives 0.65 eV for the rate of a cell's chemistry (Gillooly et al. 2001; Allen and Gillooly 2006 for the rate of evolution itself; from memory);
+a hard step is a rare event of mutation and selection, whose temperature dependence the geological record cannot pin, and 0.65 eV makes a world at
+26 C three times faster than the reference, so that nearly half of the warm worlds of a Sun-like star would have a civilization by 8 Gyr. Half of it
+gives 1.6. Stand-in T7, L3: lowered to keep the stages rare on a warm world, inside the range of 0.2 to 0.8 eV of the same papers."""
+
+LIFE_REFERENCE_TEMPERATURE_K = 288.0
+"""float: The surface temperature, K, at which a step takes its mean time (the temperature of the world that gave the first test point)."""
+
+LIFE_RATE_FACTOR_RANGE = (0.25, 2.5)
+"""tuple[float]: The least and most the temperature changes the rate of a step (stand-in T6, L1: the factor of a few over the liquid range that
+the Boltzmann law gives at `LIFE_ACTIVATION_ENERGY_EV`, kept from running away at the edges of it)."""
+
+LIFE_PACE_FAST_ABOVE = 1.5
+LIFE_PACE_SLOW_BELOW = 0.67
+"""float: A world whose rate factor is above `LIFE_PACE_FAST_ABOVE` has the pace "fast", below `LIFE_PACE_SLOW_BELOW` "slow", else "normal"
+(the words the life sentence uses; the pace is a label of how warm the world is, not a table)."""
+
+LIFE_FORCED_TRIES = 4000
+"""int: How many timelines a forced technological civilization (`INTELLIGENT_LIFE`) tries before it falls back to squeezing the last one into the
+world's age (`life_timeline.forced_waits`)."""
 
 LIFE_SCORE_MAX = 9
 """int: The top of the four life scores (Microbial, Flora, Fauna, Sentient): 0 is none, 9 is abundant (GEN.649)."""
@@ -3508,13 +3564,15 @@ SYSTEM_COMET_CHANCE = 0.3
 # 2026-10-23 after GEN.146 widened the zone to the Kopparapu edges, the same
 # 20,000 systems: 0.4216 where it was 0.253; all four remeasured 2026-10-23 over
 # 20,000 systems, four seeds of 5,000, after GEN.631 drew a system's stars as a
-# tree: its pairs are closer, so fewer have room for planets). A sector or galaxy run's
+# tree: its pairs are closer, so fewer have room for planets; habitable_world alone
+# remeasured 2026-10-29 over 6,000 systems, four seeds of 1,500, after GEN.855 let
+# the air follow its life: 0.354 where it was 0.402). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.402,   # a habitable planet or moon
+    "habitable_world": 0.354,   # a habitable planet or moon
     "asteroid_belt": 0.549,     # an asteroid belt
     "large_star": 0.049,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
     "planets": 0.941,           # at least one planet or belt

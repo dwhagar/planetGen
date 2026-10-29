@@ -1,28 +1,20 @@
 # planetgen/generation/evolution.py
 
 """
-Evolutionary Timeline Generation
-================================
+Evolutionary Timeline
+=====================
 
-This module contains functions for generating a speculative evolutionary
-timeline for a planet based on its host star's spectral class. The timelines
-are based on a set of predefined milestones and are adjusted based on the
-star's type, with hotter, more massive stars having accelerated timelines and
-cooler, less massive stars having decelerated timelines.
-
-The timelines are purely speculative and are intended for creative world-building
-purposes. They are not based on any established scientific models of astrobiology.
+What a world's life has reached at its star's age: the stage whose age on the world's schedule is the latest not past it, capped by what
+the habitability index allows and by a forced or forbidden civilization. The schedule itself, a draw of five hard steps (GEN.750), is
+`physics.life_timeline`; the oxygen the oxygenic ones make is `physics.biogenic_oxygen`; `generation.life.apply_life_data` joins them.
 """
 
 
 from planetgen import tuning
-from planetgen.util import draw
-from planetgen.util import log
-from planetgen.generation.stellar_object import get_star_evolutionary_profile
 
 MILESTONE_KEYS = tuning.LIFE_MILESTONES
 """
-tuple[str]: `EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT`'s own milestone
+tuple[str]: `EVOLUTIONARY_TEXT`'s own milestone
 keys, in ascending order of life complexity -- shared by
 `get_evolutionary_state` for both display-name lookup and comparing a
 milestone against a cap (`life.stage_ceiling`).
@@ -42,109 +34,28 @@ SCHEDULE_FIELDS = tuning.LIFE_SCHEDULE_FIELDS
 milestone in order."""
 
 
-def schedule(scale):
+def get_evolutionary_state(star, ages, max_stage=None):
     """
-    The ages (Gyr) at which a pace reaches each milestone, in `MILESTONE_KEYS` order: the values stored in
-    `SCHEDULE_FIELDS` when a world is made, so a saved world keeps its own ages if the table is tuned later.
-
-    Args:
-        scale (str): The pace, a `tuning.EVOLUTIONARY_TIMELINES` key.
-
-    Returns:
-        tuple[float]: One age for each milestone.
-    """
-    timeline = tuning.EVOLUTIONARY_TIMELINES[scale]
-    return tuple(timeline[key] for key in MILESTONE_KEYS)
-
-
-def candidate_scales(star, chemical_scales=None):
-    """
-    The paces a world may have: the ones the star's lifespan supports and, when the world has a life chemistry, the ones
-    that chemistry needs (`chemical_scales`, `LIFE_CHEMICALS[...]["evolutionary_time_scale"]`; a star that supports none
-    of them decides alone). A forced technological civilization (`INTELLIGENT_LIFE`) keeps the paces whose civilization
-    fits inside the star's actual, already-finalized age, or the fastest one when none does.
+    The evolutionary state of a planet at its host star's age, on the schedule it was drawn (`physics.life_timeline.schedule`): the
+    latest milestone reached and the ages (DB.51). This is the structure the stored columns hold; `describe/build.py` writes it as
+    prose. It draws nothing.
 
     Args:
         star (Star): The host star.
-        chemical_scales (list[str], optional): The paces the life chemistry allows.
-
-    Returns:
-        tuple[list[str], bool]: The candidate paces, and whether a pace is drawn among them (`False`: the one pace is
-            the fallback, nothing is drawn).
-    """
-    # Uses get_star_evolutionary_profile rather than a raw STAR_EVOLUTION[spectral_class]
-    # lookup so giants/supergiants/white dwarfs etc. (whose spectral letter reflects
-    # only current temperature, not a main-sequence lifespan) are handled correctly.
-    star_info = get_star_evolutionary_profile(star)
-
-    # "normal" is the fallback if the star's supported_evolutionary_scales is empty or missing
-    supported_scales = star_info.get("supported_evolutionary_scales")
-    if supported_scales and chemical_scales:
-        supported_scales = [scale for scale in supported_scales if scale in chemical_scales] or supported_scales
-    if not supported_scales:
-        return ["normal"], False
-    if star.system_config.INTELLIGENT_LIFE is True:
-        # Pick randomly among whichever supported scales are actually reachable at that age (so
-        # "fast" isn't always favored just because it's usually reachable --
-        # a G-type star forcing intelligent life should still often read as
-        # "Standard" pace, not always "Hyper-Accelerated"). If none
-        # fit, fall back to the fastest supported scale, and the milestone
-        # age is capped to the star's current age when reporting it.
-        scale_speed_order = [s for s in ["fast", "normal", "slow"] if s in supported_scales]
-        reachable_scales = [
-            s for s in scale_speed_order
-            if tuning.EVOLUTIONARY_TIMELINES[s]['technological_civilization'] <= star.age
-        ]
-        if reachable_scales:
-            return reachable_scales, True
-        return [scale_speed_order[0]], False
-    return list(supported_scales), True
-
-
-def draw_scale(star, chemical_scales=None):
-    """
-    Draws a world's evolutionary pace once, as a `tuning.EVOLUTIONARY_TIMELINES` key. Everything the world says
-    about its pace (the life sentence, the timeline, the stored column) is this one value. The pace is one of
-    `candidate_scales`.
-
-    Args:
-        star (Star): The host star.
-        chemical_scales (list[str], optional): The paces the life chemistry allows.
-
-    Returns:
-        str: `"fast"`, `"normal"` or `"slow"`.
-    """
-    scales, drawn = candidate_scales(star, chemical_scales)
-    if not drawn:
-        log.choice("Evolutionary scale", scales[0], f"the only pace the star and chemistry allow is {scales[0]}")
-        return scales[0]
-    evolutionary_scale = draw.choice(scales)
-    log.choice("Evolutionary scale", evolutionary_scale, f"uniform draw among the paces {scales} the star and chemistry allow")
-    return evolutionary_scale
-
-
-def get_evolutionary_state(star, scale, max_stage=None):
-    """
-    The speculative evolutionary state of a planet at its host star's age, at the pace `draw_scale` drew for it:
-    the latest milestone reached and the ages (DB.51). This is the structure the stored columns hold;
-    `describe/build.py` writes it as prose. It draws nothing.
-
-    Args:
-        star (Star): The host star.
-        scale (str): The pace, a `tuning.EVOLUTIONARY_TIMELINES` key (`draw_scale`).
+        ages (tuple): The age, Gyr, of each `MILESTONE_KEYS` milestone (`None` for one the world never reaches).
         max_stage (str, optional): A `MILESTONE_KEYS` key capping the milestone, whether from the natural age-based
             roll below or a forced `INTELLIGENT_LIFE=True`: the habitability index allows a world only microbial life
             (GEN.206), so its timeline stops at "photosynthesis" (`life.stage_ceiling`). The class letter caps nothing
             (GEN.647).
 
     Returns:
-        dict: `scale` (the one given), `stage` (a `MILESTONE_KEYS` key, `None` when no milestone has been reached),
-            `milestone_age_gyr` (`None` with no stage) and `system_age_gyr`.
+        dict: `stage` (a `MILESTONE_KEYS` key, `None` when no milestone has been reached), `milestone_age_gyr` (`None` with no stage)
+            and `system_age_gyr`.
     """
-    timeline = tuning.EVOLUTIONARY_TIMELINES[scale]
+    timeline = dict(zip(MILESTONE_KEYS, ages))
 
     # The current system age is always the star's actual, already-finalized age
-    # (see Star.adjust_age_for_planets) — never inflated past it, so this sentence
+    # (see Star.adjust_age_for_planets) -- never inflated past it, so this sentence
     # can never contradict the star's own stated age/lifespan elsewhere in the output.
     current_system_age = star.age
 
@@ -166,7 +77,7 @@ def get_evolutionary_state(star, scale, max_stage=None):
     # Find the most recent milestone prior to or at the current system age
     for key in allowed_keys:
         age = timeline[key]
-        if age <= current_system_age and age > most_recent_milestone_age:
+        if age is not None and age <= current_system_age and age > most_recent_milestone_age:
             most_recent_milestone_age = age
             most_recent_key = key
 
@@ -175,10 +86,10 @@ def get_evolutionary_state(star, scale, max_stage=None):
     # habitability index caps it lower.
     if star.system_config.INTELLIGENT_LIFE is True:
         most_recent_key = allowed_keys[-1]
-        # Capped at the current system age: even on the fastest supported scale, a
-        # very young star may still be younger than that scale's own tech-civ
-        # threshold, and the milestone can never be claimed to predate "now".
-        most_recent_milestone_age = min(timeline[most_recent_key], current_system_age)
+        # Capped at the current system age: a timeline that could not be fitted into the world's age (it never
+        # makes the oxygen) still can't claim a milestone that predates "now".
+        forced_age = timeline[most_recent_key]
+        most_recent_milestone_age = current_system_age if forced_age is None else min(forced_age, current_system_age)
 
     # Hard invariant, not just a silent clamp: whatever got selected above
     # must never exceed max_index. Structurally impossible given the
@@ -188,7 +99,7 @@ def get_evolutionary_state(star, scale, max_stage=None):
             f"get_evolutionary_state picked {most_recent_key!r}, exceeding its cap {MILESTONE_KEYS[max_index]!r}"
         )
 
-    return {"scale": scale, "stage": most_recent_key,
+    return {"stage": most_recent_key,
             "milestone_age_gyr": most_recent_milestone_age if most_recent_key is not None else None,
             "system_age_gyr": current_system_age}
 
@@ -212,3 +123,9 @@ def stage_text(stage, life_chemical):
 def metabolism(life_chemical):
     """How a life chemistry harvests its energy (`tuning.LIFE_CHEMICALS[...]["metabolism"]`)."""
     return tuning.LIFE_CHEMICALS[life_chemical]["metabolism"]
+
+
+def releases_oxygen(life_chemical):
+    """Whether a life chemistry splits water for its electrons and so makes free oxygen (`metabolism` is `oxygenic`;
+    `physics.biogenic_oxygen`)."""
+    return bool(life_chemical) and metabolism(life_chemical) == "oxygenic"

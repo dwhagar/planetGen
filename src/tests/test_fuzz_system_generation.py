@@ -47,7 +47,7 @@ from hypothesis import strategies as st
 from planetgen.generation import evolution
 from planetgen.physics import constants as pc, kepler as km
 from planetgen.generation import life as planetLife
-from planetgen.physics import planets as pp
+from planetgen.physics import life_timeline, planets as pp
 from planetgen import tuning as prog
 from planetgen.galaxy import galactic_orbit
 from planetgen.physics import formation
@@ -646,8 +646,8 @@ def test_evolutionary_timeline_respects_caps_for_any_star(seed, star_type, max_s
     cfg.AGE = age
     with _deterministic_entropy(seed):
         star = Star(cfg)
-        state = evolution.get_evolutionary_state(star, evolution.draw_scale(star), max_stage=max_stage)
-    assert state["scale"] in prog.EVOLUTIONARY_TIMELINES
+        ages = life_timeline.schedule(life_timeline.unit_waits(), 1.0)
+        state = evolution.get_evolutionary_state(star, ages, max_stage=max_stage)
     assert all(state[key] is None or math.isfinite(state[key]) for key in ("milestone_age_gyr", "system_age_gyr"))
     stage = state["stage"]
     if stage is not None:

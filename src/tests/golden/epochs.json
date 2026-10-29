@@ -705,6 +705,13 @@
       "first_release": "8.0.2458",
       "reason": "The air of a planet is solved with a greenhouse that thins its water vapour with height and carries a grey cloud depth for the cloud longwave effect, so the surface temperature, the air that follows and the habitability of wet planets change (GEN.812)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 119,
+      "first_release": null,
+      "pending": true,
+      "reason": "Worlds with oxygenic life and a sunlit sea grow the oxygen their life has had time to make, and every world's life reaches each stage on a hard-step timeline drawn from its own surface temperature and air (five waits of 0.5, 1.5, 2.5, 3 and 60 Gyr), replacing the three fixed paces, so the air, the greenhouse, the doses, the colour, the habitability scores and the life stages of living worlds change (GEN.855, GEN.750)",
+      "affects": ["fill"]
     }
   ]
 }
