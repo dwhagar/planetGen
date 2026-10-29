@@ -1,6 +1,0 @@
-**Headline:** Flying to a place now lands where it was asked, the zoom slider is one scale from the galaxy to a moon, and the wheel no longer stops at the end of a window.
-
-### Changed
-- **Fly-tos are no longer held to the zone (MAP.333).** A region, label, star or system flown to lands at the distance asked for (a region of 3 pc is framed from a few parsecs, not from half the galaxy's width) and the view stays there instead of snapping back out after the flight. Only the galaxy's width and a floor of 1e-10 pc limit a fly-to.
-- **The zoom slider is one log scale (MAP.333).** The slider stands for the camera's distance on a single scale, the whole galaxy at the top and 1e-10 pc at the bottom, the same wherever the view is, instead of repeating from 63 to 100 percent at every level. Dragging it, the plus and minus buttons and a pinch now carry the view across the levels as the wheel does (the windows, the sector, the system) and are no longer stopped at the end of a zone or disabled during a flight.
-- **The wheel does not dead-end (MAP.333).** At the end of a window's range the wheel now goes to the parent window, or the window round the middle of the view when no block is under the pointer, instead of stopping.
