@@ -815,6 +815,8 @@ with `clamp()`.
   the spider kind (black widow or redback) are stored and built now,
   with a page test per kind. The X-ray luminosity row is NOT in this PR:
   it waits for GEN.952 (stored member radius).
+  Research (2026-10-09): Moved out of Core 5's chain (6:14 PM EDT
+  2026-10-29): Core 3 already holds and is building it. Core 5 skips it.
   Prerequisites: none. Related: GEN.272, GEN.247.
 
 - [ ] **UX.187 Pages, lists, the API and the help text show every physics rectification output**
@@ -886,6 +888,8 @@ with `clamp()`.
   Research (2026-10-09): Lock-free item given to Aux 7 (6:04 PM EDT
   2026-10-29) while it waits for its lock turn; MAP.300 merged (#3751).
   Owner: Aux 7.
+  Research (2026-10-09): Moved out of Core 5's chain (6:14 PM EDT
+  2026-10-29): Aux 7 holds it as its lock-free item. Core 5 skips it.
   Prerequisites: GEN.768. Related: UX.199, UX.203.
 
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
@@ -2126,29 +2130,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
   Prerequisites: VIEW.14.
-
-- [ ] **MAP.299 In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: if it is too dense each name
-  must not overlap with an adjacent one and must have a buffer to the
-  nearby names, so when names need to be cut, it's on mass / brightness
-  of the object. Do: extend the label engine's placement so every placed
-  name keeps a clear margin (a few pixels, a setting) to every neighbour
-  and, when there is no room, the names of the lowest mass or brightness
-  are dropped first (a star by luminosity, a body by mass, a phenomenon
-  by its map luminosity), and a dropped name returns as you zoom in.
-  Done: a browser test on the fixture's densest region finds no two
-  names overlapping or closer than the buffer, and the brightest item in
-  any crowd keeps its name. Part of one chain filed from that message:
-  TEST.368 (fixture galaxy), MAP.295 and MAP.296 (infobox, Core 2),
-  MAP.297 to MAP.303 (clicking, labels, zoom, icons; Aux 10). Owner: Aux
-  10.
-  Research (2026-10-09): OWNER Aux 3 (assigned 5:29 PM EDT 2026-10-29 by
-  TODO as the lane's next lock-free item after MAP.236 merged; separate
-  branch, no generated-output change; the former owner lane is retired).
-  If this step turns out to change a stored value, stop and tell TODO.
-  Prerequisites: TEST.368. Related: MAP.229, MAP.298, MAP.241.
 
 - [ ] **MAP.301 Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
@@ -19749,6 +19730,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `tests.golden_update --reason ... --affects <stage>` and the next
   epoch; tests are `scripts/test.py changed --resume`; stand-ins get
   GEN.725 registry rows.
+  Research (2026-10-09): Lock-free item given to Aux 3 (6:14 PM EDT
+  2026-10-29) while it waits for its GEN.816 lock turn; MAP.299 merged
+  (#3754). Owner: Aux 3. No output change; tuning.py is also edited by
+  the star lanes, so rebase before the PR.
   Prerequisites: OPS.73, OPS.74. Related: GEN.754, OPS.73, OPS.74.
 
 - [ ] **OPS.73 Delete the dead tuning knobs (HABITABLE_ZONE_BUFFER_AU, ROUND_RADIUS_KM, RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD, STELLAR_PROTO_HELIUM_OFFSET_DEX, MAX_FLAVOR_PLANET, NAV_COURSE_DECIMAL_PLACES, STELLAR_U_TH_UNCERTAINTY) (G7, step 1)**
@@ -19763,6 +19748,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   shims; every number has a unit or scale (GEN.772); a changed generated
   value carries `tests.golden_update --reason ... --affects <stage>` and
   the next epoch; tests are `scripts/test.py changed --resume`.
+  Research (2026-10-09): Lock-free item given to Aux 3 (6:14 PM EDT
+  2026-10-29) while it waits for its GEN.816 lock turn; MAP.299 merged
+  (#3754). Owner: Aux 3. No output change; tuning.py is also edited by
+  the star lanes, so rebase before the PR.
   Prerequisites: none. Related: OPS.72.
 
 - [ ] **OPS.74 Delete the uncalled helpers (class_allowed_in_zone, build_sector_configs, shell_chunks, draw_mass, mantle_mass_kg, build_nodes, get_galaxy_phenomena, register_card_renderer, read_config, settings_hash, mass_limit_argv) (G7, step 2)**
@@ -19785,6 +19774,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   scale (GEN.772); a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
   epoch; tests are `scripts/test.py changed --resume`.
+  Research (2026-10-09): Lock-free item given to Aux 3 (6:14 PM EDT
+  2026-10-29) while it waits for its GEN.816 lock turn; MAP.299 merged
+  (#3754). Owner: Aux 3. No output change; tuning.py is also edited by
+  the star lanes, so rebase before the PR.
   Prerequisites: none. Related: OPS.72.
 
 ## DOC: Documentation
