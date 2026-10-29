@@ -5,11 +5,21 @@ import itertools
 
 import pytest
 
-from planetgen.generation import run_galaxy
+from planetgen.generation import run_galaxy, run_sector
 from planetgen.queue import api_jobs, commands, redisqueue, runrecord
+from tests import first_fill
 from tests.test_galaxy_gen import _all_sectors, _seed_skeleton, _shells
 
 pytestmark = [pytest.mark.db, pytest.mark.usefixtures("unit_density_plans")]
+
+
+@pytest.fixture(autouse=True)
+def few_systems(monkeypatch):
+    """Each sector these jobs fill holds one system, and the first fill does not draw down to the backfill's deepest floor
+    (GEN.633): a sector of the toy galaxy holds hundreds of systems, so a test that makes a few sectors ran past its time,
+    and what is tested is the runs a job starts, not what a sector holds (TEST.429)."""
+    first_fill.without_the_deepest_floor(monkeypatch)
+    monkeypatch.setattr(run_sector, "_sample_poisson_count", lambda mean, rng=None: 1)
 
 
 @pytest.fixture
