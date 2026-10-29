@@ -1348,41 +1348,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galactic view." Done: the admin menu on a block, slab or wedge runs
   the bright-star backfill for it as a job.
 
-- [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
-  Boss (2026-10-07 11:47Z): "Button in Galaxy display to allow selecting
-  a star / star system or other object that is normally blocked from
-  being selected in the galaxy interface across all interfaces." And:
-  "At all galactic views we have a 'Select Mode' it defaults to Galaxy
-  (wedges, blocks, slabs, etc like we have right now), but one can have
-  a Star Select mode where the stars become selectable, when a star is
-  selected you can bookmark it or set a waypoint." Done: a Select mode
-  control on every galaxy view (default Galaxy); in Star mode stars and
-  other objects pick, hover and open their info panel with Bookmark and
-  Waypoint actions.
-  Research (2026-10-09, map-ui-and-frontend-libraries.md): specify a
-  radiogroup control, the URL parameter `select=stars`, 10 px mouse and
-  22 px touch reach with a disambiguation list, and a boundary filter
-  (MAP.141). Picking cost measured: 5.4 ms at 70,000 stars with a
-  typed-array loop; the BVH is not needed (remove three-mesh-bvh
-  wording, see the stale-text item).
-  Scope after the review (2026-10-16 review): the Select mode
-  (radiogroup, select = stars, 10 px and 22 px reach with a
-  disambiguation list) and the Bookmark action; NAV.49 adds the Waypoint
-  action when waypoints exist.
-  Decided (Boss, 2026-10-16, 3:00 PM EDT, decision card): this item goes
-  after the MAP.146 subitems and before the label items. Owner: Core 2.
-  Research (2026-10-09): Rescoped 7:40 PM EDT 2026-10-28 on Lane J (Aux
-  6) findings from main: stars are already selectable at every zoom with
-  no mode (MAP.304 nearest drawn star within 8 px, MAP.298 names), other
-  objects have their own pickers, and the sector-block pick that a
-  Galaxy or Star switch would separate is being removed by Boss's 10-24
-  order (MAP.299). So the Galaxy/Star radiogroup and select=stars are
-  dropped. What remains: (a) a Bookmark action on a star's panel, (b) 22
-  px reach on touch with a short disambiguation list when several stars
-  lie within reach. NAV.49 then only needs the Waypoint button on the
-  same panel. Boss may overrule and ask for the literal radiogroup; the
-  owner builds that if he does. Owner: Aux 6 (lock-free pool).
-
 - [ ] **MAP.132 Overlay markers for black holes, nebulae and habitable worlds**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
   Later. The sector and block fills carry only age, density and

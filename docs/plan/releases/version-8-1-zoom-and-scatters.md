@@ -162,7 +162,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.286 | Supernova remnant shells drawn by age on the maps |  | Body rendering follow-up (R9a rest); lane report. |
 | MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | MAP.266 |  |
 | PERF.200 | Galaxy Map node cut bookkeeping: about half the busy time in the profile is string building, geometry recomputation and cache re-insertion |  | optional until a lag sighting; Core 2 |
-| MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") |  | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
 | MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent |  |  |
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists |  | Foundations lane 2. |
