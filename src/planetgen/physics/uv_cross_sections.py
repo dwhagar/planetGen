@@ -30,6 +30,9 @@ EDGES_NM = np.concatenate([np.arange(100.0, 400.0, 1.0), np.arange(400.0, 1100.0
 DOBSON_CM2 = 2.687e16
 """float: Molecules per square centimetre in one Dobson unit."""
 
+DEFAULT_OZONE_TEMPERATURE_K = 220.0
+"""float: The temperature of the ozone layer of a body that has none worked out, K (Earth's stratosphere at the layer, 210 to 230 K)."""
+
 
 def standard_edges():
     """The cell edges of the radiation model's wavelength grid, nm (`EDGES_NM`)."""
@@ -82,7 +85,7 @@ def cross_section_cm2(formula, edges):
 
 def ozone_cross_section_cm2(edges, temperature_k=None):
     """
-    The ozone cross section on the cells of `edges` at `temperature_k` (K; 220 K when `None`), cm2 per molecule.
+    The ozone cross section on the cells of `edges` at `temperature_k` (K; `DEFAULT_OZONE_TEMPERATURE_K` when `None`), cm2 per molecule.
 
     The downloaded high-resolution tables (`datasets/ozone_uv.py`) are used: cell means, linear in temperature between 218, 243
     and 295 K, held outside that range, the gas table's bins under 195 nm. A run that disregards missing data
@@ -93,4 +96,4 @@ def ozone_cross_section_cm2(edges, temperature_k=None):
     located = fetch.locate(ozone_uv.DATASET)
     if located.use_stand_in("ozone cross sections from the 20 nm bins of the gas table"):
         return bins
-    return ozone_uv.cross_section_cm2(located, edges, 220.0 if temperature_k is None else temperature_k, bins)
+    return ozone_uv.cross_section_cm2(located, edges, DEFAULT_OZONE_TEMPERATURE_K if temperature_k is None else temperature_k, bins)

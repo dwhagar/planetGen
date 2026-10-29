@@ -26,11 +26,12 @@ def _index(edges, nm):
     return int(np.searchsorted(edges, nm, side="right") - 1)
 
 
-def test_the_archive_is_replaced_by_one_compact_file_with_the_four_tables(installed, cache):
+def test_the_archive_is_replaced_by_one_compact_file_with_the_nine_tables(installed, cache):
     assert not (cache / "ozone_uv" / ozone_uv.ARCHIVE).exists()
     with np.load(cache / "ozone_uv" / ozone_uv.DERIVED) as data:
         assert sorted(data.files) == sorted(f"{kind}_{key}" for kind in ("nm", "sigma") for key in ozone_uv.MEMBERS)
         assert data["nm_218"][0] == 195.0 and data["nm_218"][-1] == 345.0 and data["nm_vis"][-1] == 830.0
+        assert data["nm_bt220"][0] == 407.0 and data["nm_bt298"][-1] == 762.0
 
 
 def test_cells_are_means_of_the_table_and_the_gas_bins_fill_what_it_does_not_reach(installed):
@@ -56,6 +57,32 @@ def test_the_temperature_is_linear_between_the_three_tables_and_held_outside_the
     assert uvx.ozone_cross_section_cm2(edges, 150.0)[cell] == cold
     assert uvx.ozone_cross_section_cm2(edges, 500.0)[cell] == hot
     assert uvx.ozone_cross_section_cm2(edges, None)[cell] == pytest.approx(uvx.ozone_cross_section_cm2(edges, 220.0)[cell])
+
+
+def test_the_chappuis_band_is_weaker_in_the_cold_at_its_blue_edge_and_the_ratio_is_linear_between_the_tables(installed):
+    """GEN.748: the five tables of Burkholder and Talukdar (1994) give the band's temperature dependence as a ratio to the 298 K one."""
+    edges = uvx.standard_edges()
+    blue, peak = _index(edges, 425.0), _index(edges, 605.0)
+    located = fetch.locate(ozone_uv.DATASET)
+    ratio = {t: ozone_uv.chappuis_ratio(located, edges, t) for t in (220.0, 230.0, 250.0, 298.0, 350.0, 150.0)}
+    for t in (220.0, 250.0):
+        assert ratio[t][blue] == pytest.approx(support.ozone_fixture_chappuis_ratio(425.0, t), abs=0.01)
+    assert ratio[220.0][blue] < ratio[250.0][blue] < ratio[298.0][blue] == 1.0
+    assert ratio[220.0][peak] > ratio[220.0][blue] and abs(ratio[220.0][peak] - 1.0) < 0.05
+    assert ratio[350.0][blue] == 1.0 and ratio[150.0][blue] == ratio[220.0][blue]              # held outside 220 to 298 K
+    assert ratio[220.0][_index(edges, 350.5)] == 1.0 and ratio[220.0][_index(edges, 800.0)] == 1.0   # 1 where the tables do not reach
+    # halfway between 220 and 240 K the ratio is the mean of the two tables'
+    low, high = (ozone_uv.chappuis_ratio(located, edges, t)[blue] for t in (220.0, 240.0))
+    assert ozone_uv.chappuis_ratio(located, edges, 230.0)[blue] == pytest.approx(0.5 * (low + high), rel=1e-9)
+
+
+def test_the_cross_section_in_the_visible_follows_the_temperature_and_the_ultraviolet_does_not_move_with_it_in_the_chappuis_band(installed):
+    edges = uvx.standard_edges()
+    blue = _index(edges, 425.0)
+    cold, warm = uvx.ozone_cross_section_cm2(edges, 220.0)[blue], uvx.ozone_cross_section_cm2(edges, 298.0)[blue]
+    assert cold < warm
+    assert cold / warm == pytest.approx(support.ozone_fixture_chappuis_ratio(425.0, 220.0), abs=0.02)
+    assert uvx.ozone_cross_section_cm2(edges, None)[blue] == pytest.approx(uvx.ozone_cross_section_cm2(edges, uvx.DEFAULT_OZONE_TEMPERATURE_K)[blue])
 
 
 def test_without_the_download_a_run_is_refused_unless_it_disregards_missing_data(cache):

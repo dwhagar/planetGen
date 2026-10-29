@@ -143,6 +143,29 @@ def test_ozone_matters_more_when_the_sun_is_low_and_the_table_is_the_chappuis_ba
     assert 0.05 < 1.0 - low_ozone.luminance_ratio / low.luminance_ratio < 0.2
 
 
+def test_the_chappuis_band_is_weaker_in_the_cold_at_its_blue_edge_and_unchanged_at_its_peak():
+    """GEN.748: the ratio of Burkholder and Talukdar (1994) at 220 K to 298 K is 0.64 to 0.8 between 410 and 450 nm, within 2 percent of 1 near
+    the 600 nm peak, and the table at 298 K is the Brion-team one."""
+    cold, warm, default = ac.chappuis_cross_section_cm2(220.0), ac.chappuis_cross_section_cm2(298.0), ac.chappuis_cross_section_cm2()
+    nm = ac.WAVELENGTHS_NM
+    blue = (nm >= 410.0) & (nm <= 440.0)
+    assert np.all(cold[blue] / warm[blue] < 0.85) and np.all(cold[blue] / warm[blue] > 0.55)
+    peak = (nm >= 580.0) & (nm <= 620.0)
+    assert np.all(np.abs(cold[peak] / warm[peak] - 1.0) < 0.03)
+    assert np.allclose(default, ac.chappuis_cross_section_cm2(220.0))
+    assert np.allclose(ac.chappuis_cross_section_cm2(150.0), cold) and np.allclose(ac.chappuis_cross_section_cm2(400.0), warm)
+    middle = ac.chappuis_cross_section_cm2(230.0)
+    assert np.allclose(middle, 0.5 * (cold + ac.chappuis_cross_section_cm2(240.0)))
+    assert warm.max() == pytest.approx(5.1e-21, rel=0.03)
+
+
+def test_a_colder_ozone_layer_lets_a_little_more_blue_through_the_air_at_a_low_sun():
+    warm = ac.atmosphere_colour(_earth(), temperature_k=SUN_K, mu0=0.2, ozone_du=300.0, ozone_temperature_k=298.0)
+    cold = ac.atmosphere_colour(_earth(), temperature_k=SUN_K, mu0=0.2, ozone_du=300.0, ozone_temperature_k=220.0)
+    assert cold.luminance_ratio >= warm.luminance_ratio
+    assert abs(cold.colour.x - warm.colour.x) < 0.01 and abs(cold.colour.y - warm.colour.y) < 0.01
+
+
 def test_a_cool_star_has_the_bt_settl_offset_and_no_step_at_4500_kelvin():
     for temperature in (2500.0, 3000.0, 3500.0, 4000.0):
         spectrum = ac.star_spectrum(temperature)

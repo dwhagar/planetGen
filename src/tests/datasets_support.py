@@ -157,6 +157,17 @@ def ozone_fixture_sigma(nm, temperature_k):
             + 5e-21 * np.exp(-((nm - 600.0) / 60.0) ** 2)) * (1.0 + (temperature_k - 218.0) / 770.0)
 
 
+def ozone_fixture_chappuis_ratio(nm, temperature_k):
+    """The fixture's Chappuis band at `temperature_k` over its 298 K self: colder is weaker, most at the blue edge (as Burkholder and Talukdar)."""
+    return 1.0 - (298.0 - temperature_k) / 298.0 * 1.2 * np.exp(-(nm - 407.0) / 60.0)
+
+
+def _ozone_chappuis_text(temperature_k):
+    grid = np.arange(407.0, 762.0 + 1e-9, 1.0)
+    values = ozone_fixture_sigma(grid, 295.0) * ozone_fixture_chappuis_ratio(grid, temperature_k)
+    return ("\n".join(f"{nm:.1f}    {value:.5e}" for nm, value in zip(grid, values)) + "\n\n").encode()
+
+
 def _ozone_text(low, high, step, temperature_k):
     grid = np.arange(low, high + 1e-9, step)
     return ("\n".join(f"{nm:.2f}    {ozone_fixture_sigma(nm, temperature_k):.5e}" for nm in grid) + "\n\n").encode()
@@ -168,6 +179,8 @@ def _ozone_archive():
         for key, member in ozone_uv.MEMBERS.items():
             if key == "vis":
                 archive.writestr(member, _ozone_text(195.0, 830.0, 1.0, 295.0))
+            elif key.startswith("bt"):
+                archive.writestr(member, _ozone_chappuis_text(float(key[2:])))
             else:
                 archive.writestr(member, _ozone_text(195.0, 345.0, 0.05, float(key)))
         archive.writestr("cross_sections/Ozone/readme.txt", b"not read\n")

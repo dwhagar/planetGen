@@ -17,9 +17,12 @@ hot hosts peak at a quarter of the present level, cooler hosts rise to the highe
   cooler than the M5V row (3000 K) takes the M5V row. Hotter than G0V (6000 K) there is no fit: the G0V curve is scaled to the
   100 percent columns of F7V (8.62e18 cm-2, 321 DU, 6240 K) and F0V (1.15e19, 428 DU, 7000 K) of Rugheimer et al. 2015
   (Table 1, read; the 6240 K of F7V is the spectral-type temperature, recalled), a stand-in labelled in the gap plan.
-- **Spread.** The models differ (the Sun at Earth oxygen: 192 DU here, 279 DU Cooke 2022, 296 to 327 Grenfell 2007, 313
-  Segura 2005), so the draw multiplies the median by a structure factor log-uniform on 0.85 to 1.71, which spans every
-  sampled model and level (Earth air: 163 to 328 DU). The Earth range of 279 to 300 DU is a test, not a constant.
+- **Spread (GEN.748).** The models differ, and the fit is the lowest of them (the Sun at Earth oxygen: 192 DU here, 279 DU Cooke 2022, 296
+  to 327 Grenfell 2007, 313 Segura 2005; at a tenth of the oxygen the models run from 0.85 (Cooke) to 1.34 (Segura 2003) of the fit). The draw
+  multiplies the median by a structure factor, log-uniform between the lowest and highest ratio the models give at that oxygen level
+  (`structure_range`): 1.45 to 1.70 at the present level and above (Earth air: 278 to 326 DU, the models' own range), 0.85 to 1.34 at a tenth, and
+  the whole of the earlier 0.85 to 1.71 at a hundredth and below, where no model narrows it; between those levels the two ends are straight
+  lines in the log of the level. The ratios are those of the Sun host and are used for every host. The Earth range of 279 to 300 DU is a test.
 - **Below 0.01 percent PAL** (abiotic oxygen) the column is 0.01 to 0.1 percent of the same host's 100 percent column,
   log-uniform, and 15 percent for an F host (Domagal-Goldman 2014, Table 3, read second-hand). No oxygen gives none.
 
@@ -62,8 +65,12 @@ F_STARS = ((6000.0, None), (6240.0, 8.62e18), (7000.0, 1.15e19))
 F_HOST_K = 6240.0
 """float: From F7V on, the abiotic branch is the F share."""
 
-STRUCTURE_RANGE = (0.85, 1.71)
-"""tuple: The spread factor on the median, drawn log-uniformly (decision 19 of the atmosphere colour design)."""
+STRUCTURE_KNOTS = ((0.01, 0.85, 1.71), (0.1, 0.85, 1.34), (1.0, 1.45, 1.70))
+"""tuple: `(oxygen level PAL, lowest ratio, highest ratio)` of the published models to the fit (the Sun host): at 100 percent the 3-D model of
+Cooke 2022 (279 DU, 1.45) and the 1-D models of Grenfell 2007 (296 to 327 DU) and Segura 2005 (313 DU), highest 1.70; at 10 percent Cooke (0.85) to
+Segura 2003 (1.34); at 1 percent and below the earlier range of the atmosphere colour design (decision 19), kept as no model narrows it. Held
+outside the first and last level. Source tier T3 (the models are read second-hand through the sources check), tweak level L1 (the ends between the
+levels are straight lines in log PAL)."""
 ABIOTIC_SHARE_RANGE = (1e-4, 1e-3)
 """tuple: The abiotic column as a share of the same host's 100 percent column (G, K and M hosts), drawn log-uniformly."""
 ABIOTIC_SHARE_F = 0.15
@@ -127,6 +134,21 @@ def abiotic_column_range_du(teff_k):
     return full * ABIOTIC_SHARE_RANGE[0], full * ABIOTIC_SHARE_RANGE[1]
 
 
+def structure_range(pal):
+    """The `(low, high)` of the structure factor at an oxygen level `pal` (fraction of the present level): the ends of `STRUCTURE_KNOTS`, straight
+    lines in log PAL between them and held outside."""
+    knots = STRUCTURE_KNOTS
+    if pal <= knots[0][0]:
+        return knots[0][1], knots[0][2]
+    if pal >= knots[-1][0]:
+        return knots[-1][1], knots[-1][2]
+    for (p0, low0, high0), (p1, low1, high1) in zip(knots, knots[1:]):
+        if pal <= p1:
+            f = math.log(pal / p0) / math.log(p1 / p0)
+            return low0 + f * (low1 - low0), high0 + f * (high1 - high0)
+    return knots[-1][1], knots[-1][2]
+
+
 def draw_column_du(teff_k, p_o2_pa, gravity_g, rng=draw):
     """The stored ozone column, DU: the fit times the structure factor (one draw), or the abiotic branch (one draw) below
     0.01 percent PAL; 0 and no draw for no oxygen or no star temperature."""
@@ -136,7 +158,7 @@ def draw_column_du(teff_k, p_o2_pa, gravity_g, rng=draw):
     if pal < PAL_MIN:
         low, high = abiotic_column_range_du(teff_k)
         return log_uniform(low, high, rng) if high > low else low
-    return median_column_du(teff_k, pal) * log_uniform(*STRUCTURE_RANGE, rng)
+    return median_column_du(teff_k, pal) * log_uniform(*structure_range(pal), rng)
 
 
 def column_mean_partial_pressure_pa(column_du, pressure_pa, mean_molar_mass_kg_mol, gravity_m_s2):
