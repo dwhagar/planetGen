@@ -19549,31 +19549,6 @@ clears each one.
   greenhouse change warms K5V ecosphere moons; the range waits for the
   class cut-over).
 
-- [ ] **TEST.432 Star census: star type mix, white dwarfs, subgiants, giants, pre-main-sequence stars, brown dwarfs and multiplicity by type against RECONS and Kroupa (prevalence suite part C)**
-  Part of the full prevalence suite (TEST.430, Boss 7:27 PM EDT
-  2026-10-28). Plan:
-  /mnt/project-files/reports/bug2/prevalence-suite-plan-2026-10-28.md.
-  Shared design: one harness, src/tests/audit/prevalence.py, seeded from
-  each cell's name so a run repeats; one stored expectations file per
-  part (src/tests/data/prevalence_*.json) whose every range has min,
-  max, a kind (observed rate, norm researched, or stand-in with its tier
-  and tweak level per GEN.725), a source or "measured at commit X, N
-  draws", and an optional known-anomaly item number; a test fails on a
-  flag with no known anomaly, known anomalies print in the report and
-  never hide; one latest-run report per part; selected by
-  scripts/test.py changed whenever generation code changes; a baseline
-  builder re-measures a commit and rewrites the ranges. Owner: Bug 2,
-  build order A (TEST.430), B (this), E (TEST.395), C, D, F
-  (TEST.209/210/214/301). Do: a galaxy-placed seeded draw; the type mix
-  (M, K, G, F, A, B, O), white dwarfs, subgiants, giants,
-  pre-main-sequence stars and brown dwarfs, and multiplicity by type,
-  against the RECONS 10 pc census and the Kroupa initial mass function
-  norms (stars have robust published prevalence data, Boss 7:27 PM EDT);
-  reuse the existing star population tests. Done: the part runs from one
-  command, a seeded run repeats, and a deliberately broken input trips
-  each flag.
-  Prerequisites: none. Related: TEST.430, TEST.204, TEST.239, TEST.211.
-
 - [ ] **TEST.433 Phenomena census: black holes, neutron stars, magnetars, pulsars, Wolf-Rayet stars, planetary nebulae, supernova remnants, nebula classes, asteroid fields, clusters, rogue planets and interstellar comets against researched densities (prevalence suite part D)**
   Part of the full prevalence suite (TEST.430, Boss 7:27 PM EDT
   2026-10-28). Plan:
