@@ -1099,7 +1099,7 @@ with `clamp()`.
   seven symbols and score colours as the Galaxy Map key. Done: a page
   test finds the key on a star system page that carries a
   habitable-world marker and not on a page without markers, and the key
-  lines match the Galaxy Map key. Owner: unowned (Aux 6 retired 2026-10-28; lock-free pool) (object pages). Version:
+  lines match the Galaxy Map key. Owner: Aux 2 (lock-free item while waiting; Aux 6 retired) (object pages). Version:
   8.1.
   Prerequisites: none. Related: MAP.320, MAP.305.
 
@@ -19363,7 +19363,7 @@ clears each one.
   and test_prevalence failing; those four were not isolated, so the
   first step is to run each alone on main and keep only the real ones
   (test_gen_compact_orbit_laws may be fixed by GEN.832, #3433). Fix
-  each, or file the generator cause. Owner: Aux 2 (lock-free item while waiting, from Bug 1). Not caused by any
+  each, or file the generator cause. Owner: Bug 1. Not caused by any
   lock holder; say so in the PR instead of fixing it there.
   Research (2026-10-09): Aux 1 saw test_phenomenon_scatter red on main
   again (2026-10-28, GEN.791 gate); already tracked here.
