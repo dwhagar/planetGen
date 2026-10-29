@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2499] - 2026-10-29
+
+**Headline:** The browser test of the point-of-interest key and the habitable world marker matches the markers as they now begin on and merge.
+
+### Changed
+- **The key and habitable marker test (TEST.444).** The habitable worlds layer begins on (MAP.303), so the test no longer clicks it off, and it closes in on the fixture's star field as far as its systems stand apart (marks closer than the merge distance are drawn as one, MAP.305) before it looks for the marker; an inhabited world names its system before a habitable one does (MAP.321), so only Fixture Eden wears the habitable mark and Fixture Rest the inhabited one.
+
 ## [8.0.2498] - 2026-10-29
 
 **Headline:** Four browser map tests that had gone red test what they meant to, the Galaxy Map keeps the whole page width again, and a hook says when an opened sector can be clicked.
