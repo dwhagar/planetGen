@@ -514,6 +514,8 @@ def sector_detail(sector_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     detail["superbubble"] = superbubble_of(conn, detail)
+    detail["region"] = region_of(conn, (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
+                                 if detail.get("placed") else None)
     detail["unresolved"] = unresolved_of(conn, detail)
     detail["scatter_tier"] = scatter_tier_of(conn, detail)
     return jsonify(detail)
@@ -599,8 +601,10 @@ def systems():
 
 @bp.route("/systems/<uid:system_id>")
 def system_detail(system_id):
+    conn = get_db()
     try:
-        detail = query_system_detail(get_db(), system_id)
+        detail = query_system_detail(conn, system_id)
+        detail["region"] = region_of(conn, resolve_object(conn, "system", system_id)["positions"]["galaxy_pc"])
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     return jsonify(detail)
@@ -955,6 +959,19 @@ def galaxy_superbubbles():
     return jsonify({"superbubbles": [
         {"x": round(b.center_pc[0], 1), "y": round(b.center_pc[1], 1), "z": round(b.center_pc[2], 1),
          "radius_pc": round(b.radius_pc, 1)} for b in bubbles]})
+
+
+def region_of(conn, position_pc):
+    """
+    The named region holding a point (UX.231, `region_stats.region_of`): `{"name": "Vang Zarh Region", "parent": "Vang Reach"}`, or `None`
+    for a point with no position, one in a cell with no generated sector (no region exists there), or a galaxy with no naming key (the
+    name cannot be spelled). A sector, system or object answer carries it as `region`.
+    """
+    if position_pc is None:
+        return None
+    edge_pc = galaxy_edge_pc(conn)
+    found = region_stats.region_of(conn, position_pc, edge_pc)
+    return None if found is None else region_stats.labels(found["block"], naming_key.active_key(), edge_pc)
 
 
 def superbubble_of(conn, detail):
@@ -1558,7 +1575,9 @@ def object_ref_route(ref):
         if resolved is None:
             raise ValueError(f"nothing has the ID {ref}")
         kind, object_id = object_ref.parse(resolved)
-        return jsonify(resolve_object(get_db(), kind, object_id))
+        found = resolve_object(get_db(), kind, object_id)
+        found["region"] = region_of(get_db(), found["positions"]["galaxy_pc"])
+        return jsonify(found)
     except ValueError as exc:  # includes ids.IdError
         return jsonify({"error": str(exc)}), 404
 

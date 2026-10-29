@@ -245,10 +245,12 @@ def _with_keep_out(context, ref):
     """A page's sheet context with the object's keep-out row first in its At a glance panel (UX.192). The page opens
     without the row when the object cannot be read, as it does without its contents list."""
     try:
-        row = glance.keep_out_row(apiclient.get_object(db_name(), ref))
+        found = apiclient.get_object(db_name(), ref)
     except (apiclient.ApiError, apiclient.NotFoundError):
-        row = None
-    return {**context, "glance": ([row] if row else []) + context["glance"]}
+        return context
+    row, region = glance.keep_out_row(found), item_pages.region_row(found)
+    region = region and {"label": region["label"], "html": trusted_html(region["html"])}
+    return {**context, "glance": ([row] if row else []) + context["glance"] + ([region] if region else [])}
 
 
 @bp.route("/system/<uid:system_id>/scene")

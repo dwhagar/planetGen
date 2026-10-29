@@ -69,6 +69,9 @@ def system_rows(detail, facilities, symbols):
     perimeters = [s["system_perimeter_km"] for s in stars if s.get("system_perimeter_km")]
     if perimeters:
         rows.append({"label": "System perimeter", "html": inline_html([model.qty("length", max(perimeters), "km")])})
+    region = item_pages.region_row(detail)
+    if region:
+        rows.append(region)
     return [{"label": row["label"], "html": trusted_html(row["html"])} for row in rows]
 
 
@@ -106,6 +109,9 @@ def sector_rows(detail, facilities, type_labels):
     bubble = detail.get("superbubble")
     if bubble:
         rows.append({"label": "Inside", "html": esc(f"a superbubble {bubble['radius_pc'] * 2:g} pc across")})
+    region = item_pages.region_row(detail)
+    if region:
+        rows.append(region)
     return [{"label": row["label"], "html": trusted_html(row["html"])} for row in rows]
 
 
