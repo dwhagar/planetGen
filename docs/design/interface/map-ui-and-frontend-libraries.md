@@ -618,6 +618,18 @@ Use a single-hue sequential ramp that survives greyscale (cividis or viridis sty
 [R]) in 4 to 5 bins with a legend; a sector with zero habitable worlds has no fill,
 not the darkest bin. Blocks are never fully opaque (Boss, MAP.132).
 
+### 5.8 Superbubbles (MAP.236)
+
+Boss (2026-10-16): the superbubbles need better definition to the bounds and should be slightly more transparent. A bubble was
+three faint great circles (opacity 0.14), so its bound read as two crossing ellipses and the inside had no edge. It is now its
+sphere, drawn from the inside of its far wall (back faces only, so a camera outside sees one layer and a camera inside the bubble,
+as the Sun is, sees the shell round it): a faint even fill (0.06 in the dark theme, 0.07 in the light) and a crisp rim about two
+pixels wide where the sphere meets the line of sight, at 0.7 and 0.75, so the true silhouette is the bound. The colour is #6fb3d8
+on the dark map and the darker #1f6a99 on the light one. The look lives in `static/superbubble.js` (the numbers and the shader
+text, held by `tests/js/superbubble.test.mjs`); `galaxymap3d.js` builds one object per bubble at its centre (MAP.240) sharing one
+material, and `canvas.galaxyBubbleLook()` reports the look to the browser test, which reads the rim against the fill in a
+screenshot in both themes. The layer's toggle, hover and key row are MAP.234 and MAP.235.
+
 ## 6. Bookmarks and charted regions (UX.45 to UX.48)
 
 Behaviour that stays valid is in [galaxy-drilldown-navigation.md](galaxy-drilldown-navigation.md)
