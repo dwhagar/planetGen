@@ -56,7 +56,7 @@ BODY_FIELDS = ("ring_kind", "ring_origin", "ring_inner_km", "ring_outer_km", "ri
 """tuple: The attributes (and `planets`/`moons` columns, GEN.732) of a ring system; all `None` on a body without one."""
 
 UNITS = {"ring_kind": "text", "ring_origin": "text", "ring_inner_km": "km", "ring_outer_km": "km", "ring_mass_kg": "kg",
-         "ring_optical_depth": "tau", "ring_ice_fraction": "frac"}
+         "ring_optical_depth": "ratio", "ring_ice_fraction": "frac"}
 """dict: Each field of `BODY_FIELDS` and its native unit (GEN.570), as `RoguePlanet.FIELD_UNITS` carries it."""
 
 ROCHE_COEFFICIENT = 2.456

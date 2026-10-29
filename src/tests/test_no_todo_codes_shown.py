@@ -27,6 +27,12 @@ TODO_CODE = re.compile(rf"\b(?:{CATEGORIES})\.\d+\b")
 ALLOWED = {}
 """dict: `{path relative to src: reason}` for a file where a code is wanted. None are."""
 
+NOT_SHOWN = {("planetgen/describe/sheet.py", "OPEN_GAPS"):
+             "the sheet audit's register of the open items that excuse an empty column (UX.208): read by `test_sheet_fill`, which checks each "
+             "is still open, and shown to no one"}
+"""dict: `{(path relative to src, module-level name): reason}` for a constant whose strings are item codes for the people who keep the
+code, not text any user sees."""
+
 
 def _shown(path):
     return [p for p in path if "vendor" not in p.parts and "__pycache__" not in p.parts
@@ -70,6 +76,11 @@ def test_strings_the_code_shows_have_no_todo_code():
         tree = ast.parse(path.read_text(encoding="utf-8"))
         documentation = {id(n.value) for n in ast.walk(tree)
                          if isinstance(n, ast.Expr) and isinstance(n.value, ast.Constant)}
+        relative = path.relative_to(SRC).as_posix()
+        for statement in tree.body:
+            if isinstance(statement, ast.Assign) and any(isinstance(target, ast.Name) and (relative, target.id) in NOT_SHOWN
+                                                         for target in statement.targets):
+                documentation |= {id(n) for n in ast.walk(statement.value) if isinstance(n, ast.Constant)}
         for node in ast.walk(tree):
             if isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in documentation \
                     and TODO_CODE.search(node.value):

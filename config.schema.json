@@ -756,7 +756,7 @@
         },
         "enabled": {
           "default": false,
-          "description": "Keep a parity file beside the database that can rebuild a damaged sector (DB.46): every saved or edited sector updates the parity of its group, which costs a few milliseconds a save and about 7 percent of the sectors' size in disk space. Off, saves write no parity and `planetgen refresh-parity` builds it later.",
+          "description": "Keep a parity file beside the database that can rebuild a damaged sector: every saved or edited sector updates the parity of its group, which costs a few milliseconds a save and about 7 percent of the sectors' size in disk space. Off, saves write no parity and `planetgen refresh-parity` builds it later.",
           "title": "Enabled",
           "type": "boolean",
           "x-advanced": false,
@@ -1183,7 +1183,7 @@
         },
         "galaxy_tiles": {
           "default": "600 per minute",
-          "description": "Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.",
+          "description": "Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window, /galaxy/near and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.",
           "title": "Galaxy Tiles",
           "type": "string",
           "x-advanced": false,

@@ -372,3 +372,41 @@ def test_a_hot_surface_never_collapses_the_step_below_it():
     assert time.monotonic() - started < 20.0
     assert surface_k <= found.mantle_temperature_k
     assert math.isfinite(found.total_w) and math.isfinite(found.released_j) and found.total_w > 0.0
+
+
+def _earth_under(surface_k, lid, forcing=None):
+    return ih.heat_flow(_bulk_silicate_earth(), MID, EARTH, 6371.0, EARTH_AGE_GY, EARTH_ROCK, forcing, lid, surface_k)
+
+
+@pytest.mark.parametrize("lid", [ih.STAGNANT, ih.MOBILE])
+def test_a_surface_above_the_mantles_liquidus_leaves_a_mantle_at_the_surface_which_makes_its_heat_and_ends(lid):
+    """GEN.856: the integrator ran the mantle's temperature down past zero and never ended (a stagnant lid), or divided by a zero drop
+    (a mobile one), for a surface hotter than the liquidus. A mantle can be no cooler than its surface: it sits at it and the melt
+    carries out what the silicate made."""
+    surface_k = EARTH_CEILING_K + 300.0
+    found = _earth_under(surface_k, lid)
+    assert found.mantle_temperature_k == surface_k
+    assert found.total_w == pytest.approx(found.radiogenic_w) and found.primordial_w == 0.0 and found.tidal_w == 0.0
+    assert found.flux_w_m2 == pytest.approx(found.total_w / (4 * math.pi * (6371e3) ** 2))
+    cool = _earth_lid(MID, lid)
+    assert found.radiogenic_w == pytest.approx(cool.radiogenic_w)                 # the same decay heat as a cool surface
+    assert 0.0 < found.released_j < cool.released_j * 10 and found.released_j > found.radiogenic_w * ih.GY_S
+
+
+def test_a_surface_exactly_at_the_liquidus_is_that_body_too():
+    assert _earth_under(EARTH_CEILING_K, ih.STAGNANT).mantle_temperature_k == EARTH_CEILING_K
+
+
+def test_a_molten_body_under_a_hot_surface_is_flexed_as_a_molten_one():
+    from planetgen.physics import tidal_heating
+    forcing = tidal_heating.Forcing(1.9e27, 4.2e8, 0.05)
+    found = _earth_under(EARTH_CEILING_K + 300.0, ih.STAGNANT, forcing)
+    dry_m = ih.dry_radius_km(EARTH, 6371.0, EARTH_ROCK) * 1000.0
+    assert found.tidal_w == pytest.approx(tidal_heating.molten_power_w(forcing, dry_m)) and found.tidal_w > 0.0
+    assert found.total_w == pytest.approx(found.radiogenic_w + found.tidal_w) and found.primordial_w == 0.0
+
+
+def test_a_mobile_lid_with_no_drop_carries_no_heat():
+    assert ih._flux_w_m2(300.0, MID, 9.8, 3.0e6, ih.MOBILE, 300.0) == 0.0
+    assert ih._flux_w_m2(250.0, MID, 9.8, 3.0e6, ih.MOBILE, 300.0) == 0.0
+    assert ih._flux_w_m2(1500.0, MID, 9.8, 3.0e6, ih.MOBILE, 300.0) > 0.0

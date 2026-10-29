@@ -246,9 +246,27 @@ def _flux_w_m2(temperature_k, interior, gravity, thickness_m, lid=STAGNANT, surf
     else:
         drop, critical, exponent = (VISCOSITY_SCALE_COEFFICIENT * GAS_CONSTANT * temperature_k ** 2 / activation,
                                     CRITICAL_RAYLEIGH, HEAT_FLOW_EXPONENT)
+    if drop <= 0.0:
+        return 0.0      # no temperature difference to carry heat across: a mobile lid whose mantle is at its surface's temperature
     rayleigh = MANTLE_EXPANSIVITY * MANTLE_DENSITY * gravity * drop * thickness_m ** 3 / (MANTLE_DIFFUSIVITY * viscosity)
     layer = thickness_m * (critical / rayleigh) ** exponent
     return MANTLE_CONDUCTIVITY * drop / layer
+
+
+def _under_a_magma_ocean(terms, silicate_kg, area_m2, age_gy, surface_k, forcing, dry_m):
+    """
+    The `Heat` of a body whose surface is at or above its mantle's liquidus (`mantle_ceiling_k`): a magma ocean under a hot air. The
+    mantle can be no cooler than the surface it lies under and cannot be hotter than its ceiling, so it sits at the surface's temperature
+    with no drop to carry heat across; the melt carries out what the body makes, the decay of its silicate and a tide that flexes a
+    molten body (`tidal_heating.molten_power_w`, as for a melt-limited body), and nothing is left over from the heat it was born with.
+    The heat released over its age is what it made (GEN.856: the box's flux laws have no meaning without a drop, and ran to a zero
+    divisor on a mobile lid and to a mantle cooler than its surface on a stagnant one).
+    """
+    now_w = silicate_kg * math.fsum(a * math.exp(-rate * age_gy) for a, rate in terms)
+    made_w_gy = silicate_kg * math.fsum(a * (age_gy if rate == 0.0 else (1.0 - math.exp(-rate * age_gy)) / rate) for a, rate in terms)
+    molten_w = tidal_heating.molten_power_w(forcing, dry_m) if forcing is not None else 0.0
+    total_w = now_w + molten_w
+    return Heat(total_w, now_w, 0.0, surface_k, total_w / area_m2, made_w_gy * GY_S + molten_w * age_gy * GY_S, molten_w)
 
 
 def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
@@ -290,6 +308,8 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
     energy_j = binding_energy_j(dry_kg, dry_m, metal_kg, core_m)
     activation = interior.activation_kj_mol * 1000.0
     cap_k = mantle_ceiling_k(gravity, thickness_m)
+    if surface_k >= cap_k:
+        return _under_a_magma_ocean(terms, silicate_kg, area_m2, age_gy, surface_k, forcing, dry_m)
 
     def conduction_w(kelvin):
         return _flux_w_m2(kelvin, interior, gravity, thickness_m, lid, surface_k) * area_dry_m2

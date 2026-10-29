@@ -245,7 +245,7 @@ def test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter(m
     for label in scatter.EXPECTED_LABELS:  # whole labels: "magnetar neutron-star" is not a "neutron-star"
         assert (label in listed) == bool(summary["counts"].get(label)), label
     assert " 0 " not in final
-    placed = sum(int(m.split(": placed ")[1].split(":")[0].replace(",", "")) for m in shell_lines)
+    placed = sum(int(m.split(": placed ")[1].split(" phenomena:")[0].replace(",", "")) for m in shell_lines)   # "placed 2,032 phenomena: ..." (API.33)
     assert placed <= summary["total"]
 
 
@@ -314,7 +314,8 @@ def _busiest_cell(mysql_config, kind_filter):
     return (row["shell_index"], row["band_index"], row["wedge_index"])
 
 
-def test_a_fill_builds_its_rows_at_their_stored_points_and_rolls_none_of_those_kinds(mysql_config):
+def test_a_fill_builds_its_rows_at_their_stored_points_and_rolls_none_of_those_kinds(mysql_config, monkeypatch):
+    first_fill.without_the_deepest_floor(monkeypatch)   # the toy galaxy's first fill would draw its thousands of stars (GEN.633, TEST.422)
     _seed_galaxy(mysql_config)
     run_plan.scatter_phenomena(_scatter_args(mysql_config))
     address = _busiest_cell(mysql_config, "kind IN ('black-hole', 'neutron-star', 'supernova-remnant')")
@@ -352,7 +353,8 @@ def test_a_fill_builds_its_rows_at_their_stored_points_and_rolls_none_of_those_k
     assert sector_id
 
 
-def test_built_neutron_stars_sit_where_the_scatter_put_them(mysql_config):
+def test_built_neutron_stars_sit_where_the_scatter_put_them(mysql_config, monkeypatch):
+    first_fill.without_the_deepest_floor(monkeypatch)   # the toy galaxy's first fill would draw its thousands of stars (GEN.633, TEST.422)
     _seed_galaxy(mysql_config)
     run_plan.scatter_phenomena(_scatter_args(mysql_config))
     address = _busiest_cell(mysql_config, "kind = 'neutron-star'")
@@ -400,7 +402,8 @@ def test_the_same_row_builds_the_same_object(mysql_config):
     assert first.mass == second.mass and first.mass_class == second.mass_class
 
 
-def test_a_galaxy_with_no_scatter_still_rolls_its_own(mysql_config):
+def test_a_galaxy_with_no_scatter_still_rolls_its_own(mysql_config, monkeypatch):
+    first_fill.without_the_deepest_floor(monkeypatch)   # the toy galaxy's first fill would draw its thousands of stars (GEN.633, TEST.422)
     _seed_galaxy(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
@@ -416,7 +419,8 @@ def test_a_galaxy_with_no_scatter_still_rolls_its_own(mysql_config):
     assert [entry for entry in sector.phenomena if entry.phenomenon_type in ("quasar", "black-hole")]
 
 
-def test_the_nucleus_row_builds_the_nucleus_and_the_fill_rolls_none(mysql_config):
+def test_the_nucleus_row_builds_the_nucleus_and_the_fill_rolls_none(mysql_config, monkeypatch):
+    first_fill.without_the_deepest_floor(monkeypatch)   # the toy galaxy's first fill would draw its thousands of stars (GEN.633, TEST.422)
     _seed_galaxy(mysql_config)
     run_plan.scatter_phenomena(_scatter_args(mysql_config))
     args = run_galaxy._default_generation_args(config=mysql_config)
@@ -548,6 +552,7 @@ def test_a_scattered_black_hole_is_built_above_the_cut(mysql_config):
 
 
 def test_a_plan_records_its_cut_and_a_fill_draws_below_it(mysql_config, monkeypatch):
+    first_fill.without_the_deepest_floor(monkeypatch)   # the toy galaxy's first fill would draw its thousands of stars (GEN.633, TEST.422)
     _seed_galaxy(mysql_config)
     run_plan.scatter_phenomena(_scatter_args(mysql_config, "--phenomenon-min-mass", "20"))
     conn = store.get_connection(mysql_config)
@@ -611,6 +616,7 @@ def test_phenomena_only_rescatters_at_a_new_cut(mysql_config):
 
 
 def test_a_scatter_with_no_stored_cut_draws_nothing_below_one(mysql_config, monkeypatch):
+    first_fill.without_the_deepest_floor(monkeypatch)   # the toy galaxy's first fill would draw its thousands of stars (GEN.633, TEST.422)
     # A scatter recorded before v71 placed every mass: its sectors are
     # complete from their rows and draw no neutron star or black hole on top.
     _seed_galaxy(mysql_config)

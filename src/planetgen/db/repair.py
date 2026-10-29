@@ -349,7 +349,7 @@ def repair(conn, scope=None, dry_run=False, say=log.normal):
     parity_store = parity.store()
     report = Report()
     damaged, unreadable, report.unprotected = find_damaged(conn, scope, say)
-    report.results.extend(Result(sector_id, UNREADABLE, f"{why}; DB.48 rebuilds the table") for sector_id, why in unreadable)
+    report.results.extend(Result(sector_id, UNREADABLE, f"{why}; the table is rebuilt") for sector_id, why in unreadable)
     say(f"Repair: {len(damaged):,} damaged sector(s), {len(unreadable):,} unreadable, {report.unprotected:,} unprotected.")
     plan = {}
     for sector_id in damaged:
@@ -365,7 +365,7 @@ def repair(conn, scope=None, dry_run=False, say=log.normal):
             current = storage_checksum.checksum(conn, sector_id)
         except READ_ERRORS as exc:
             conn.rollback()
-            report.results.append(Result(sector_id, UNREADABLE, f"{type(exc).__name__}: {exc}; DB.48 rebuilds the table"))
+            report.results.append(Result(sector_id, UNREADABLE, f"{type(exc).__name__}: {exc}; the table is rebuilt"))
             continue
         conn.commit()
         if current == bytes(member.checksum):

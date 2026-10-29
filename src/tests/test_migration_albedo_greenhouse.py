@@ -11,7 +11,7 @@ import pytest
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import climate_draws, constants
+from planetgen.physics import climate_draws, constants, orbit_elements
 from planetgen.util import draw
 from tests import db_schema_support
 
@@ -54,13 +54,15 @@ def test_a_saved_system_keeps_its_draws_and_the_temperature_follows_them(mysql_c
         assert rows
         luminosity = conn.execute("SELECT luminosity_w FROM stars WHERE star_system_id = ?", (system_id,)).fetchone()[
             "luminosity_w"]
-        distances = {row["id"]: row["distance_km"] for row in conn.execute(
-            "SELECT id, distance_km FROM planets WHERE star_system_id = ?", (system_id,)).fetchall()}
+        orbits = {row["id"]: (row["distance_km"], row["eccentricity"]) for row in conn.execute(
+            "SELECT id, distance_km, eccentricity FROM planets WHERE star_system_id = ?", (system_id,)).fetchall()}
         for (table, body_id), row in rows.items():
             assert row["albedo_basis"] == climate_draws.BASIS_GENERATED
             assert 0.0 <= row["bond_albedo"] < 1.0 and row["greenhouse_factor"] >= 0.0
             if table == "planets":
-                flux = climate_draws.starlight_w_m2(luminosity, distances[body_id])
+                distance_km, eccentricity = orbits[body_id]
+                # the climate goes by the mean light of the orbit (GEN.727)
+                flux = climate_draws.starlight_w_m2(luminosity, distance_km) * orbit_elements.mean_flux_factor(eccentricity)
                 assert row["surface_temperature_k"] == pytest.approx(
                     climate_draws.surface_temperature_k(row["bond_albedo"], row["greenhouse_factor"], flux), rel=1e-9)
         loaded = store.load_star_system(conn, system_id)
@@ -74,7 +76,10 @@ def test_a_saved_system_keeps_its_draws_and_the_temperature_follows_them(mysql_c
         conn.close()
 
 
-def test_a_v141_galaxy_gets_the_draws_back_and_keeps_its_temperatures(mysql_config):
+def test_a_v141_galaxy_gets_the_draws_back_and_keeps_its_temperatures(mysql_config, monkeypatch):
+    # A v141 galaxy knew the light at the semi-major axis only: its temperatures are made from it, so the migration's exact inverse is too
+    # (a galaxy from after GEN.727 has the orbit's mean light in its temperatures, which an inverse from the circle does not return).
+    monkeypatch.setattr(orbit_elements, "flux_distance_au", lambda semi_major_axis_au, eccentricity: semi_major_axis_au)
     system, cfg = _system_with_moons()
     conn = store.get_connection(mysql_config)
     try:

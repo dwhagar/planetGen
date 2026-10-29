@@ -31,7 +31,8 @@ lanes' gates then gets fewer workers instead of timeouts and OOM kills; the phas
 
 Containers (TEST.376): before every run, `src/tests/lane_services.py` loads the `PLANETGEN_TEST_*` variables from
 /etc/profile.d/planetgen-test.sh when they are missing, starts MySQL and Redis when they do not answer, purges the
-MySQL binlogs when the disk is nearly full and checks `argon2-cffi` and (for the browser tests) `playwright` 1.56.0;
+MySQL binlogs when the disk is nearly full, checks `argon2-cffi` and (for the browser tests) `playwright` 1.56.0 and fetches the
+white-dwarf data a fresh machine lacks;
 what it cannot repair stops the run before it starts (exit 2, `--no-preflight` skips the check). While a phase runs a
 watchdog asks MySQL and Redis every 15 seconds; one that is gone is restarted at once, the phase's pytest is stopped and
 started again without the tests that already passed (the progress log, as `--resume` does), up to 5 times a phase, so a

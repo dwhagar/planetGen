@@ -107,10 +107,12 @@ def test_a_mass_backfill_places_stars_in_their_cell_between_its_masses():
 
 
 def test_the_same_seed_gives_the_same_stars_and_a_step_gives_the_tail_of_one_draw():
-    assert _cells(1.0, 20.0, THRESHOLD) == _cells(1.0, 20.0, THRESHOLD)
-    assert _cells(1.0, 20.0, THRESHOLD) != _cells(1.0, 20.0, THRESHOLD, seed=12)
-    whole = _cells(1.0, 20.0, THRESHOLD)
-    stepped = _cells(5.0, 20.0, THRESHOLD) + _cells(1.0, 5.0, THRESHOLD)
+    # three cells of the two shells: the draw is eight runs of the whole mass range, three minutes each over all of them (TEST.441)
+    cells = ADDRESSES[:1] + ADDRESSES[-2:]
+    assert _cells(1.0, 20.0, THRESHOLD, addresses=cells) == _cells(1.0, 20.0, THRESHOLD, addresses=cells)
+    assert _cells(1.0, 20.0, THRESHOLD, addresses=cells) != _cells(1.0, 20.0, THRESHOLD, seed=12, addresses=cells)
+    whole = _cells(1.0, 20.0, THRESHOLD, addresses=cells)
+    stepped = _cells(5.0, 20.0, THRESHOLD, addresses=cells) + _cells(1.0, 5.0, THRESHOLD, addresses=cells)
     assert sorted(stepped) == sorted(whole)
 
 

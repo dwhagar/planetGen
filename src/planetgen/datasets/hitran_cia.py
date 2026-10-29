@@ -141,7 +141,7 @@ DATASET = fetch.Dataset(
     title="Collision-induced absorption of N2, O2, CO2, H2, He and CH4 pairs (HITRAN CIA, 2011 to 2024 releases)",
     source="Karman et al. 2019 (Icarus 328, 160), HITRAN collision-induced absorption files from hitran.org",
     pieces=tuple(fetch.Piece(name, URL + name, sha, size, transient=True) for name, sha, size in FILES.values()),
-    replaces="the coarse pair coefficients of GEN.703 (physics/infrared_opacity.CIA_PAIRS), read at six temperatures from a part-03 table",
+    replaces="the coarse pair coefficients of the infrared opacity (physics/infrared_opacity.CIA_PAIRS), read at six temperatures from a part-03 table",
     fill="AD11",
     fallback="the band stand-ins of the infrared opacity (no pair absorption)",
     derived=(DERIVED,),
