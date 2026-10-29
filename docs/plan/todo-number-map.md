@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.445 |
+| TEST | TEST.446 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -1990,7 +1990,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.332 | The Galaxy Map info card (Block 10 1 63 and similar) is cut off at the bottom, so its region line and buttons are hidden below the More row (bug) | none | done, PR #3533 |
 | MAP.333 | Zoom redesign Z0: fly-tos are no longer clamped to the zone and do not snap back after a region flight; the slider shows absolute log distance over one global range and works in flights; plus, minus, slider and pinch cross levels like the wheel; the wheel never dead-ends (bug) | none | done, PR #3556 |
 | MAP.334 | Zoom redesign Z1: one global zoom policy, with pace and clearance taken from the distance to the nearest thing; zoom floor 1e-10 pc (1e-12 pc after Z5) | none | done, PR #3569 |
-| MAP.335 | Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source | none | open |
+| MAP.335 | Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source | none | done, PR #3647 |
 | MAP.336 | Zoom redesign Z3: one goTo(target) for every fly with the verb Go to, a find-a-place box, a vertical log ruler with named clickable stops, crumbs as Go to, and Up one level | none | open |
 | MAP.337 | Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests | none | open |
 | MAP.338 | Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers | none | open |
@@ -3244,6 +3244,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.442 | Browser map tests red on main: menu_filters_sit_side_by_side (2 tests), test_system_map_selection_drill_and_measure and test_a_star_in_a_sector_far_from_the_core_is_selectable (bug) | none | done, PR #3639 |
 | TEST.443 | Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not | none | open |
 | TEST.444 | Browser map tests still red on main after TEST.442: the sector_reach double-click tests and the POI icon key test (bug) | none | done, PR #3643 |
+| TEST.445 | Four map browser tests in test_web_browser_fixture_maps.py red on main: point phenomena links, black hole markers toggle and legend, nebula click clears the selection, wide map card keeps the page edge (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

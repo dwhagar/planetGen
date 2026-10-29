@@ -2371,20 +2371,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxyprisms.neighbourBlock.
   Prerequisites: none. Related: MAP.121, MAP.141.
 
-- [ ] **MAP.335 Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source**
-  Size L. Boss answered the research cards at 6:19 PM EDT 2026-10-28
-  (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
-  vertical log ruler with named stops, 4.1 a region lands framed on the
-  charted part, 5.1 moon in view first). Design:
-  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
-  (section 6 plan, section 9 decisions). Owner: Core 2. The scene
-  follows the camera instead of a stage, fed by one new read that
-  returns the generated sectors near a point. It takes an API addition
-  (next API number from TODO) and no migration. Done: a browser test
-  flies from the galaxy to a planet with no stage switch and every scene
-  comes from the camera position.
-  Prerequisites: MAP.334. Related: MAP.257, MAP.318, MAP.322.
-
 - [ ] **MAP.336 Zoom redesign Z3: one goTo(target) for every fly with the verb Go to, a find-a-place box, a vertical log ruler with named clickable stops, crumbs as Go to, and Up one level**
   Size M; may start with Z0. Boss answered the research cards at 6:19 PM
   EDT 2026-10-28 (1.1 quick fixes then the full rebuild, 2.1 one verb Go
@@ -2423,7 +2409,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   machinery and the stage URLs once the camera-driven scenes (Z2) and
   goTo (Z3) carry everything; no compatibility shim. Done: no stage code
   or URL remains, and the rewritten browser tests pass.
-  Prerequisites: MAP.335, MAP.336. Related: MAP.257.
+  Prerequisites: MAP.336. Related: MAP.257.
 
 - [ ] **MAP.338 Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers**
   Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
@@ -19158,6 +19144,23 @@ clears each one.
   edits a field not used by the rules and finds the class unchanged;
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
+
+- [ ] **TEST.445 Four map browser tests in test_web_browser_fixture_maps.py red on main: point phenomena links, black hole markers toggle and legend, nebula click clears the selection, wide map card keeps the page edge (bug)**
+  Found by Core 2 (1:22 AM EDT 2026-10-29 as the lane reported) while
+  merging MAP.335 (#3647): these four fail the same on bare main and are
+  not from MAP.335. test_web_browser_fixture_maps.py:
+  draws_point_phenomena_that_link_to_their_pages;
+  black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked
+  (likely the MAP.339 near-field rule, #3636, or MAP.340 crowd marks,
+  #3640: the fixture black holes may no longer pass the distance rule or
+  are merged); sector_map_click_on_the_selected_nebula_clears_it;
+  the_map_card_goes_wide_but_the_title_keeps_the_page_edge. Do: bisect
+  each, fix the cause in the test or the code, whichever is wrong, keep
+  the tests. Not a skip. Done: the file passes on main. Owner: Aux 3
+  (its remaining queue is the lock turn only; it fixed the TEST.442 map
+  reds); ask Core 3 about the black hole test. Prerequisites: none.
+  Related: TEST.442, MAP.339, MAP.340, MAP.335.
+  Prerequisites: none. Related: TEST.442, MAP.339, MAP.340, MAP.335.
 
 ## USR: User accounts
 
