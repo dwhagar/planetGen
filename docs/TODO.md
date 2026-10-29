@@ -2129,23 +2129,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none.
 
-- [ ] **MAP.289 The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug)**
-  Found by the map nodes lane while merging MAP.258 (#2896), as the lane
-  reported at 5:12 AM EDT 2026-10-24. /galaxy/profile is answered fresh
-  on every warm run for addressed sectors, so the warm-sectors figure
-  always shows one answer built instead of the count of sectors that are
-  really warm. Do: make the warm-sectors figure count the sectors whose
-  answer is cached (or built by the warm run), not the one fresh answer,
-  and test it with a warm run over several sectors. Owner: the map nodes
-  lane, with MAP.260 (the warm-up), which it builds next.
-  Research (2026-10-09): OWNER Aux 4 (assigned 5:21 PM EDT 2026-10-29 by
-  TODO as the lane's one lock-free item while it waits for the
-  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
-  his ask at 5:18 PM EDT; separate branch, no generated-output change;
-  if the lane already holds a lock-free item it finishes that first). If
-  this step turns out to change a stored value, stop and tell TODO.
-  Prerequisites: none. Related: MAP.258, MAP.260.
-
 - [ ] **MAP.299 In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
@@ -2208,6 +2191,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking, labels, zoom,
   icons; Aux 10). Owner: Aux 10 (with MAP.292, which fixed the stuck
   wheel zoom).
+  Research (2026-10-09): OWNER Aux 4 (assigned 5:45 PM EDT 2026-10-29 by
+  TODO as the lane's next lock-free item after MAP.289 merged; separate
+  branch, no generated-output change; the former owner lane is retired).
+  If this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: TEST.368. Related: MAP.292, MAP.257, MAP.300, MAP.302.
 
 - [ ] **MAP.302 At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug)**
@@ -13900,6 +13887,46 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none yet (Bug 1 later). Version 8.4.
   Prerequisites: none. Related: GEN.922.
 
+- [ ] **GEN.945 Audit every numeric constant the generator uses against the data we already download or hold: which are registered stand-ins, which come from a table, and which are unregistered hand-tuned numbers; ranked findings with a data source named for each**
+  Boss asked (5:44 PM EDT 2026-10-29) for a chain that makes sure the
+  generator consistently uses our downloaded and table data (MIST,
+  Baraffe, Harris, HITRAN and the rest) rather than hand-tuned numbers
+  wherever it can. What exists: the stand-in registry (GEN.725,
+  docs/design/research/stand-in-values.md, 316 rows, source tier T1 to
+  T9 and tweak level L0 to L4; 74 rows are L3 or L4, hand-tuned against
+  a sweep or fitted with no source), the wiring guard GEN.754 (open: a
+  test that fails for a registered table nothing reads), the
+  unused-stored-values chains G1 to G7 (values stored but not shown) and
+  the physics fix plan wiring register (tables built but not read), the
+  star items GEN.935 to GEN.940. What was missing: a sweep of the whole
+  code base, because the registry only holds the constants somebody
+  registered (tuning.py alone holds about 700 constants, and modules
+  hold more) and the GEN.754 guard goes the other way (data nobody
+  reads). Do: list every numeric constant in generation and physics code
+  (tuning.py, module level names, inline literals in draws), classify
+  each as registered, from a table or download, derived, or unregistered
+  hand-tuned; for each unregistered or L3 and L4 one, name the
+  downloaded or available dataset that could replace it (or say none
+  exists and the tier it would carry); rank by how much generated output
+  depends on it; report under /mnt/project-files/reports. Lock-free (no
+  code change). Owner: Bug 2 (proposed by TODO: it owns the audit
+  harnesses and the census). Version 8.1.
+  Prerequisites: none. Related: GEN.725, GEN.754, GEN.922.
+
+- [ ] **GEN.946 Burn down the hand-tuned constants: replace each L3 or L4 registry row and each unregistered constant the audit ranks high with the data we hold, or record why no data exists**
+  Follows GEN.945 (Boss, 5:44 PM EDT 2026-10-29): the registry shows 74
+  rows at tweak level L3 or L4. For each one, and for each high-ranked
+  unregistered constant from the audit, replace the number with a value
+  read from the downloaded or table data (MIST, Baraffe, Harris, HITRAN
+  and the rest) where the data exists, lowering the tier and tweak level
+  to L0 or L1, or record in the registry why no data exists and which
+  tier it keeps. Findings that change generated values are one epoch;
+  Boss decides which ride the long-term epoch GEN.932 and which wait.
+  Split into per-area items from the audit report as they are filed
+  (stars are GEN.935 to GEN.940 already). Owner: per area, assigned from
+  the audit. Version 8.1.
+  Prerequisites: GEN.945. Related: GEN.725, GEN.945.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18857,6 +18884,20 @@ clears each one.
   /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
   (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
   Prerequisites: none. Related: GEN.922, TEST.430.
+
+- [ ] **TEST.455 A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink**
+  Companion of GEN.945, asked by Boss (5:44 PM EDT 2026-10-29). Today
+  only the atmosphere draw has a test that its constants are all
+  registered (test_atmosphere_standin_registry.py); no test stops a new
+  hand-tuned number from entering anywhere else. Do: a test that scans
+  the generation and physics modules for module-level numeric constants
+  and inline draw literals and fails for one with no registry row
+  (docs/design/research/gap-filling-plan.md) and no table source; an
+  allowlist file of today's unregistered constants (from the audit) that
+  the test lets shrink and never grow; the check names the module and
+  the constant. Pairs with GEN.754. Lock-free. Owner: Bug 2 (proposed by
+  TODO). Version 8.1.
+  Prerequisites: GEN.945. Related: GEN.725, GEN.754, GEN.945.
 
 ## USR: User accounts
 
