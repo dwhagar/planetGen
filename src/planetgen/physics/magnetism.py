@@ -4,22 +4,17 @@ Planetary magnetic fields and the star's radiation at the planet (GEN.86).
 The rules are docs/design/habitability/activity-magnetism-radiation-hydrosphere.md
 section 3.5 (design defaults):
 
-1. **Rocky bodies.** A dynamo needs mass of at least 0.05 Earth and a core
-   mass fraction of at least 0.15. The core fraction comes from the bulk
-   density (`core_mass_fraction`): the density is uncompressed with
-   `1 + 0.25 sqrt(M)`, mixed from rock (3.3 g/cm3) and iron (7.9), and
-   scaled so Earth gives 0.325. The dynamo lasts `4 Gyr * M^0.5 *
-   U(0.5, 1.5)` (half as long under a core fraction of 0.2); the moment is
-   `7.8e22 A m2 * M * (c / 0.325)`, log-normal 0.4 dex, fading as
-   `(1 - age / tau)^0.3`. A small, iron-rich body (Mercury) gets 3e19,
-   log-normal 0.5 dex. A planet with a **stagnant lid** (one rigid plate, no
-   plate tectonics: Venus, Mars) cools its core slowly, so its dynamo lasts
-   0.4 as long (GEN.177). Plate tectonics (a mobile lid) needs a liquid surface
-   ocean to lubricate the plates: a body of 0.5 to 5 Earth masses with one has
-   a 0.6 chance of a mobile lid, a heavier one 0.3 (the literature is
-   unsettled about super-Earths, so the odds fall rather than rise), and any
-   other rocky planet is stagnant (`mobile_lid_chance`). The regime is drawn once, with the body's interior
-   (`interior_heat.generate_lid`, GEN.721), and stored as `lid_regime`; the dynamo, the heat and the ground dose read it.
+1. **Rocky bodies.** The dynamo is the core's (GEN.838, `core_heat`): the interior heat model keeps a core temperature beside the mantle's,
+   the core loses heat across the core-mantle boundary, and the dynamo runs while that heat and the gravitational energy of the inner core's
+   growth leave power over the core's own adiabatic conduction (and the liquid shell is thick enough). The moment is Earth's
+   `7.8e22 A m2` times the buoyancy-flux scaling of the core (`core_heat.Core.dipole_scale`: its radius squared, its power to the 1/3, its
+   density to the 1/6), log-normal 0.4 dex. A dead core has no moment. A small, iron-rich body (Mercury) whose bulk density says so
+   (mass 0.05 to 0.1 Earth, core fraction over 0.4) gets 3e19, log-normal 0.5 dex, whatever the model says: its iron-sulfide core melts
+   at lower temperatures than the pure iron the model has, and Mercury's field is alive at 4.5 Gyr. Plate tectonics (a mobile lid) needs a
+   liquid surface ocean to lubricate the plates: a body of 0.5 to 5 Earth masses with one has a 0.6 chance of a mobile lid, a heavier one
+   0.3 (the literature is unsettled about super-Earths, so the odds fall rather than rise), and any other rocky planet is stagnant
+   (`mobile_lid_chance`). The regime is drawn once, with the body's interior (`interior_heat.generate_lid`, GEN.721), and stored as `lid_regime`;
+   the mantle's heat flow (and so the core's) and the ground dose read it.
 2. **Rotation.** Slow rotation makes the field multipolar: `Ro_l = 0.09 (P /
    24 h)^1.23` and `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)`. A tidally
    locked M-dwarf planet keeps about 0.15 of its moment in the dipole.
@@ -80,18 +75,14 @@ ROCK_DENSITY = 3.3
 IRON_DENSITY = 7.9
 EARTH_DENSITY = 5.51
 MIN_DYNAMO_MASS_EARTH = 0.05
-MIN_CORE_FRACTION = 0.15
-DYNAMO_LIFETIME_GY = 4.0
 LID_MOBILE = "mobile"
 """str: What a body's stored `lid_regime` is when it has plate tectonics (`interior_heat.generate_lid`, GEN.721)."""
-STAGNANT_LID_LIFETIME_FACTOR = 0.4
 MOBILE_LID_MIN_MASS_EARTH = 0.5
 MOBILE_LID_MAX_MASS_EARTH = 5.0
 MOBILE_LID_CHANCE = 0.6
 MOBILE_LID_HEAVY_CHANCE = 0.3
-"""float: Rule 1's lid regime (GEN.177; design note section 3.5 rule 2): the dynamo
-lifetime factor of a stagnant lid, and the chance that a planet with a liquid
-surface ocean has plate tectonics, by mass (planetGen defaults)."""
+"""float: Rule 1's lid regime (GEN.177; design note section 3.5 rule 2): the chance
+that a planet with a liquid surface ocean has plate tectonics, by mass (planetGen defaults)."""
 MERCURY_MOMENT_A_M2 = 3e19
 GANYMEDE_MOMENT_A_M2 = 1.3e20
 GANYMEDE_MIN_MASS_EARTH = 0.02
@@ -176,39 +167,30 @@ def mobile_lid_chance(body, mass_earth):
     return MOBILE_LID_CHANCE if mass_earth <= MOBILE_LID_MAX_MASS_EARTH else MOBILE_LID_HEAVY_CHANCE
 
 
-def _rocky_moment(body, mass_earth, age_gy):
-    """Rule 1's moment for a rocky planet, or 0."""
-    core = core_mass_fraction(mass_earth, getattr(body, "density", None) or EARTH_DENSITY)
-    lifetime = DYNAMO_LIFETIME_GY * math.sqrt(mass_earth) * draw.uniform(0.5, 1.5)
+def _rocky_moment(body, mass_earth, core):
+    """Rule 1's moment for a rocky planet, or 0: `core` is its `core_heat.Core` (`interior_heat.core_of`), `None` for a body with no metal."""
     strength = _log_normal(0.4)
-    mobile_lid = getattr(body, "lid_regime", None) == LID_MOBILE
-    if mass_earth < MIN_DYNAMO_MASS_EARTH or core < MIN_CORE_FRACTION:
+    density = getattr(body, "density", None) or EARTH_DENSITY
+    if MIN_DYNAMO_MASS_EARTH <= mass_earth < 0.1 and core_mass_fraction(mass_earth, density) > 0.4:
+        return MERCURY_MOMENT_A_M2 * _log_normal(0.5)
+    if core is None:
         return 0.0
-    if mass_earth < 0.1 and core > 0.4:
-        return MERCURY_MOMENT_A_M2 * _log_normal(0.5)  # before the lifetime test: Mercury's field is alive at 4.5 Gyr
-    if not mobile_lid:
-        lifetime *= STAGNANT_LID_LIFETIME_FACTOR
-    if core < 0.2:
-        lifetime *= 0.5
-    if age_gy >= lifetime:
-        return 0.0
-    return (EARTH_MOMENT_A_M2 * mass_earth * (core / EARTH_CORE_FRACTION) * strength
-            * (1.0 - age_gy / lifetime) ** 0.3)
+    return EARTH_MOMENT_A_M2 * strength * core.dipole_scale
 
 
-def generate_field(body):
+def generate_field(body, core=None):
     """Draws `magnetic_moment_a_m2` and `dipole_class` for a planet or moon
     (call once its rotation period is known), and its magnetopause when
-    `update_exposure` has given its distance from the star."""
+    `update_exposure` has given its distance from the star. `core` is a rocky
+    planet's `core_heat.Core` (`interior_heat.core_of`, GEN.838)."""
     mass_earth = _kg_to_mearth(body.mass)
-    age_gy = getattr(body.star, "age", None) or 0.0
     if body.body_type == "g":
         moment = _giant_moment(mass_earth) * _log_normal(0.4)
     elif body.is_moon:
         ganymede = mass_earth >= GANYMEDE_MIN_MASS_EARTH and draw.random() < GANYMEDE_CHANCE
         moment = GANYMEDE_MOMENT_A_M2 * _log_normal(0.7) if ganymede else 0.0
     else:
-        moment = _rocky_moment(body, mass_earth, age_gy)
+        moment = _rocky_moment(body, mass_earth, core)
     share = body_dipole_share(body)
     body.magnetic_moment_a_m2 = moment
     if moment <= 0.0:
