@@ -1337,11 +1337,11 @@ state itself."""
 def companion_ratio_range(birth):
     """The range `(low, high)` the birth mass of another star of a tree is drawn over, as a share of the primary's `birth`
     solar masses, uniform: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the hydrogen-burning
-    limit (`BROWN_DWARF_MAX_MASS_SOL`): the `star-count` table counts stars, so a lighter object would use up one of its
+    limit (`mass_boundaries.sol("hydrogen_burning_limit")`): the `star-count` table counts stars, so a lighter object would use up one of its
     places (GEN.899). The brown dwarfs of a tree are a member of their own (`tuning.BROWN_DWARF_COMPANION_CHANCE`); lighter
     objects than they are planets, filled in as planets are, not members of a tree (GEN.596)."""
     low_ratio, high_ratio = tuning.BINARY_MASS_RATIO_RANGE
-    return min(max(low_ratio, BROWN_DWARF_MAX_MASS_SOL / birth), high_ratio), high_ratio
+    return min(max(low_ratio, mass_boundaries.sol("hydrogen_burning_limit") / birth), high_ratio), high_ratio
 
 
 def _companion_mass(birth, rng):
@@ -1399,7 +1399,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
             leaves.append(_star_leaf(_companion_mass(birth, rng), age_yr, rng, fe_h=placed.tree_fe_h))
         # A brown dwarf is no star of the table's count: a drawn tree may hold one more member (a directive's count is
         # of stars, so it adds none).
-        brown = (n_stars is None and birth > BROWN_DWARF_MAX_MASS_SOL and len(leaves) < max_stars - (compact is not None)
+        brown = (n_stars is None and birth > mass_boundaries.sol("hydrogen_burning_limit") and len(leaves) < max_stars - (compact is not None)
                  and rng.random() < tuning.BROWN_DWARF_COMPANION_CHANCE)
         if brown:
             leaves.append(_star_leaf(brown_dwarf.sample_mass_solar(rng), age_yr, rng, fe_h=placed.tree_fe_h))

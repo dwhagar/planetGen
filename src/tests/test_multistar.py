@@ -15,7 +15,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import multistar
 from planetgen.generation.phenomena import hosts
-from planetgen.physics import brown_dwarf, ms_lifetime, stability, stellar_evolution as evolution
+from planetgen.physics import brown_dwarf, mass_boundaries, ms_lifetime, stability, stellar_evolution as evolution
 from planetgen.util import draw
 
 OLD = 8.0e9
@@ -201,7 +201,7 @@ def test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_
         kinds = Counter(member.kind == "brown-dwarf" for member in tree.members[1:])
         dwarfs += kinds[True]
         stars[1 + kinds[False]] += 1
-        assert all(member.initial_mass_solar >= multistar.BROWN_DWARF_MAX_MASS_SOL
+        assert all(member.initial_mass_solar >= mass_boundaries.sol("hydrogen_burning_limit")
                    for member in tree.members[1:] if member.kind != "brown-dwarf")
     share = 1.0 - table[0] / sum(table)
     assert abs((1.0 - stars[1] / draws) - share) < 4.0 * math.sqrt(share * (1.0 - share) / draws) + 0.005
