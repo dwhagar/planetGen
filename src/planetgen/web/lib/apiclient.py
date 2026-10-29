@@ -154,8 +154,10 @@ def set_response_cache(provider):
 
 
 cache_stats = {"hits": 0, "misses": 0}
-"""dict: How many cached GETs were answered from the response cache and how many had to be fetched, in this
-process (the warm-up reports them, PERF.104)."""
+"""dict: How many cached GETs were answered from the response cache and how many had to be fetched and were answered, in
+this process (the warm-up reports them, PERF.104). A GET the API refused (a 404, a 400) built no answer and counts as neither:
+the sector page of a sector with a grid address asks for its Profile, which a database with no planned galaxy refuses
+every time (MAP.289)."""
 
 
 def _cache_db(params):
@@ -289,7 +291,8 @@ def _body_of(path, target, db, queueing=True):
     if cache is None:
         return _send("GET", target).body
     body = cache.get(db, target)
-    cache_stats["hits" if body is not None else "misses"] += 1
+    if body is not None:
+        cache_stats["hits"] += 1
     if body is None:
         if queueing and slowpages.pending_allowed():
             if db is not None:
@@ -302,6 +305,7 @@ def _body_of(path, target, db, queueing=True):
         token = cache.begin(db)
         started = time.perf_counter()
         body = _send("GET", target).body
+        cache_stats["misses"] += 1    # an answer built; one the API refused (a 404, a 400) was not, and is asked again next time
         seconds = time.perf_counter() - started
         stored = cache.put(db, target, body, token)
         if db is not None:
