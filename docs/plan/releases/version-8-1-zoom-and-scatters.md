@@ -290,6 +290,7 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary |  |  |
+| GEN.952 | Store each scatter member's radius (scatter_members.radius_au) so a page can show the X-ray luminosity of an accreting pair without guessing |  |  |
 | UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) |  | Boss run log; generation-log lane. |
 | GEN.706 | Low-mass M dwarfs get fewer companions than the star-count table, forced pairs around M8 primaries come back unmet, and compact companions of living stars are cut from fill trees (bug) |  |  |
 | GEN.705 | The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug) |  |  |
