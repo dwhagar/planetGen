@@ -291,15 +291,16 @@ def _assert_solar_day_follows_the_motion(planet):
     assert planet.solar_day_hours == (pytest.approx(expected) if expected is not None else None)
 
 
-@pytest.mark.parametrize("planet_class, move", [("J", 2.0), ("M", 4.0)])
-def test_reconcile_leaves_the_daylight_of_a_moved_planet_and_its_moons_in_step_with_its_spin(system, planet_class, move):
+@pytest.mark.parametrize("mass_earth, move", [(GIANT_EARTH, 2.0), (EARTH, 4.0)], ids=["giant", "rocky"])
+def test_reconcile_leaves_the_daylight_of_a_moved_planet_and_its_moons_in_step_with_its_spin(system, mass_earth, move):
     """GEN.904: `generate_spin` runs again for a moved planet (and a reclassified one is regenerated), so its solar day and
     daylight follow the new rotation and orbit, on the planet and on each moon."""
     inner, outer = system.star.habitable_zone
     for _ in range(12):
-        distance = outer * 3.0 if planet_class == "J" else (inner + outer) / 2
-        planet = planet_at(system, distance, planet_class, moon_count=2)
-        planet.distance = distance * move if planet_class == "J" else outer * move
+        giant = mass_earth == GIANT_EARTH
+        distance = outer * 3.0 if giant else (inner + outer) / 2
+        planet = planet_at(system, distance, mass_earth, moon_count=2)
+        planet.distance = distance * move if giant else outer * move
         system._reconcile_moved_planet(planet)
         if planet.rotation_period_hours:
             assert planet.day_share_mean is not None
