@@ -1,0 +1,33 @@
+{
+ "reference": {
+  "kind": "norm: researched Milky Way totals; no generator run sets a range",
+  "galaxy": "the Milky Way's published shape (tests.test_satellites.SHAPE: disk scale length 2600 pc, thin disk height 300 pc, bulge 1580 pc, two arms) with the default sector edge; the scatter's own expectation summed over every shell of the outline, with no mass cut",
+  "sources": {
+   "Green2019": "Green, A revised catalogue of 294 Galactic supernova remnants (arXiv:1907.02638, read 2026-10-29): 294 catalogued",
+   "McGill": "Olausen and Kaspi 2014, The McGill Magnetar Catalog (arXiv:1309.4167, read 2026-10-29): 26 known magnetars and candidates",
+   "FrewParker": "Frew and Parker 2010, Planetary Nebulae: Observational Properties, Mimics, and Diagnostics (arXiv:1002.1525, read 2026-10-29): nearly 3000 true, likely and possible planetary nebulae known",
+   "Rosslowe": "Rosslowe and Crowther 2015 (arXiv:1412.0699, read 2026-10-29): 1200, +300 and -100, Wolf-Rayet stars in the Galaxy (used by the second cut of the census)"
+  }
+ },
+ "anomalies": {
+  "GEN.900": "supernova remnants: the scatter expects 260 in the Galaxy, fewer than the 294 catalogued (Green 2019); the design target in tuning.py is 400 to 3000",
+  "GEN.902": "Wolf-Rayet stars: about 590 in the Galaxy against 1200 (+300, -100) estimated (Rosslowe and Crowther 2015); the binary-stripped channel is likely missing",
+  "GEN.901": "magnetars: the scatter expects 22 in the Galaxy, fewer than the 26 known; GEN.278 aims at about 100 active"
+ },
+ "measures": {
+  "stellar_black_holes": {"min": 1.0e7, "max": 1.0e9, "kind": "norm",
+                          "source": "about 1e8 (Olejak et al. 2020, A&A 638:A94; Sahu et al. 2022, ApJ 933:83; the figures tuning.py quotes), recalled and unverified (tier T3); the range is a decade either side"},
+  "neutron_stars": {"min": 1.0e8, "max": 1.0e9, "kind": "norm",
+                    "source": "about 1e9 (Sartore et al. 2010, A&A 510:A23; the figure tuning.py quotes), recalled and unverified (tier T3); the lower edge is the 1e8 of the lower population estimates"},
+  "magnetars": {"min": 26, "max": 600, "kind": "observed",
+                "source": "26 known (McGill catalog, a floor); 100 active with 30 to 600 estimated (Olausen and Kaspi 2014 as tuning.py quotes it, recalled and unverified)", "anomaly": "GEN.901"},
+  "intermediate_black_holes": {"min": 100, "max": 1000, "kind": "stand-in",
+                               "source": "Boss's decision card of 2026-10-16 (GEN.259): hundreds, as the few candidates suggest; no confirmed one in the field"},
+  "planetary_nebulae": {"min": 3000, "max": 40000, "kind": "norm",
+                        "source": "nearly 3000 known (Frew and Parker 2010, a floor); about 20000 galaxy-wide as tuning.py quotes it (recalled and unverified, tier T3); the upper edge twice that"},
+  "wolf_rayet_stars": {"min": 1100, "max": 1500, "kind": "observed",
+                       "source": "Rosslowe and Crowther 2015 (arXiv:1412.0699): 1200, +300 and -100, Wolf-Rayet stars in the Galaxy (read 2026-10-29); 322 found since the VIIth catalogue", "anomaly": "GEN.902"},
+  "supernova_remnants": {"min": 294, "max": 3000, "kind": "observed",
+                         "source": "294 catalogued (Green 2019, a floor); 400 to 3000 still visible from the supernova rate (GEN.203, tuning.py), recalled", "anomaly": "GEN.900"}
+ }
+}

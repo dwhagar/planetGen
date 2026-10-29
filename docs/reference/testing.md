@@ -406,6 +406,17 @@ run: where two sources differ the widest range stands, and the sampling slack of
 is added when it is compared. A known fault carries its item as in the other parts. The report is `star-census-latest.md`; about 15
 seconds on 4 cores. `python -m tests.audit.prevalence_stars` prints it without the test.
 
+Part D, the phenomena census (TEST.433, `src/tests/audit/prevalence_phenomena.py`, `src/tests/test_prevalence_phenomena_census.py`),
+first cut: the galaxy-wide totals of the classes the phenomenon scatter places (stellar-mass and intermediate-mass black holes, neutron
+stars, magnetars, planetary nebulae, supernova remnants, and Wolf-Rayet stars), against `src/tests/data/prevalence_phenomena_expectations.json`. A total is the
+scatter's own expectation (`shell_expected_by_class`) summed over every shell of the Milky Way-shaped reference galaxy with no mass cut, so
+it is the same on every run and a range is the researched range itself (a catalogue count is a floor). The Wolf-Rayet total is the
+population model's share of Wolf-Rayet stars among its living stars of 8 solar masses or more (120,000 draws) times the galaxy's stars
+by population, with the range widened by four Poisson sigma of the draws. About a minute on 4 cores; `python -m tests.audit.prevalence_phenomena`
+prints the report without the test. Giant molecular clouds, planetary nebulae and supernova remnant counts per star, and the globular
+cluster count already have tests of their own (`test_nebula_rates.py`, `test_cluster_count_law.py`); the rest of TEST.433 (open
+clusters, rogue planets, interstellar comets, nebula classes) follows in a later cut.
+
 
 ## Setting up a cloud session
 
