@@ -14005,6 +14005,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.874 and GEN.885.
   Prerequisites: GEN.887, GEN.888, GEN.889.
 
+- [ ] **GEN.895 A system draw crashes with ZeroDivisionError in interior_heat._flux_w_m2 (viscosity 0), reached through validation.reconcile_moved_planet for a moon of a moved planet (bug)**
+  Found by Bug 2 in the class census (TEST.430), 2026-10-28: about 2 in
+  600 F5V and K0III systems on main (7dd638ac4) crash; it is system 71
+  of the F5V seed. Repro: python3
+  /mnt/project-files/reports/bug2/interior-heat-zero-division-repro.py
+  from the repo root. Same area as GEN.866 (the interior-heat hang), so
+  the same fix may cover both; a crash fails a whole sector fill. Do:
+  find why the viscosity reaches 0 (a moved planet reconciles its moon
+  with a state the heat step never sees in the normal path), fix it at
+  the cause with a floor or a proper limit, keep the normal-path values
+  unchanged (no epoch if the golden files do not move), and add a
+  regression test with the repro system. Version 8.1. Owner: Aux 2 with
+  GEN.866.
+  Prerequisites: none. Related: GEN.866, GEN.856, GEN.763, TEST.430.
+
+- [ ] **GEN.896 Since 4c (epoch 106) hot-zone planets and moons almost never score Yellow: the Yellow share fell to 0 for M2V, G2V and F5V (bug)**
+  Found by Bug 2 in the class census (TEST.430), 2026-10-28. Share of
+  hot-zone planets and moons scoring Yellow, before 4c then on main: M2V
+  9% then 0%; K5V 21% then 21% (unchanged); G2V 11% then 0%; F5V 3% then
+  0%; A0V 4% then 1%; K0III 14% then 4%. The cause is unknown: it is not
+  the oxygen loss (GEN.855), so look at the solved air and its
+  temperature in the hot zone. Do: bisect the change between epoch 105
+  and 106 on hot-zone bare draws, find which input drops the score, fix
+  it at the cause, and keep the prevalence targets of TEST.430 as the
+  check (record the tweak level if physics has to be nudged). Version
+  8.1. Owner: Bug 1.
+  Prerequisites: none. Related: GEN.855, GEN.853, GEN.854, TEST.430,
+  GEN.646.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
