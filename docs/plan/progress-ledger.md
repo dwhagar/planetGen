@@ -1748,3 +1748,16 @@ Baseline: PR #1817.
 | GEN.896 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.451 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | PERF.182 | 8.2 | Viewers and object pages |
+| GEN.657 | 8.1 | Mixture and stored values |
+| GEN.867 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.869 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.868 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.871 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.872 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.877 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.882 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.883 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.884 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.887 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.889 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.890 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

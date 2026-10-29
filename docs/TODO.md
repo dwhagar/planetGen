@@ -1043,7 +1043,7 @@ with `clamp()`.
   class page goes to a Core lane), when the class data is ready (GEN.889
   and GEN.891). Aux 6 (old Aux 11) finishes UX.215 to UX.222 and
   retires.
-  Prerequisites: GEN.889, GEN.891. Related: UX.221.
+  Prerequisites: GEN.891. Related: UX.221.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2429,7 +2429,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
   2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L10 part 2. The sector colouring by habitable
   locations is unchanged.
-  Prerequisites: GEN.889. Related: MAP.311.
+  Prerequisites: none. Related: MAP.311.
 
 ## NAV: Navigation and courses
 
@@ -11014,21 +11014,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
   Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
 
-- [ ] **GEN.657 Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH**
-  Section 11 item 6 of the design draft. Do: the toxic rows (H2S, CO,
-  NH3, Cl2, SO2, HCN and the rest of the table) read from the gas rows
-  stored by GEN.424, the RECALLED limits of the draft section 12
-  verified against the NIOSH and ACGIH sources before use under the
-  standing source rules, and a test that the filter grade follows the
-  physics (Boss, B). Done: every toxic row cites a verified source and
-  the filter grade of a sample of worlds matches the draft. Design:
-  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
-  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
-  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
-  Owner: Aux 2 (lock-free item while it waits for the generation lock, 11:59 PM EDT 2026-10-28; separate branch, no generation change; the former survival equipment lane is retired).
-  Prerequisites: GEN.424. Related: GEN.424, DB.71.
-  Progress (Aux 2, 12:04 AM EDT 2026-10-29 as the lane reported): the lock-free half merged as #3631 (the ten toxic limits read from the NIOSH Pocket Guide; NO2 danger level 13 ppm; a test holds the filter grade to the physics). Remaining, needs the lock: world_from feeds only five stored gases (O2, CO2, CO, H2S, SO2) to the equipment rules, so ammonia (about 12% of planets, up to 30x its danger level), HCN and the rest never trigger a filter, own air or chemical suit; wiring them changes stored equipment columns and the golden. Aux 2 adds it to its life bundle epoch.
-
 - [ ] **GEN.660 The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug)**
   Found by Habitability lane K (relayed 8:21 PM EDT 2026-10-23 as the
   lane reported, reports/lane-k-contracts-2026-10-23.md); filed by the
@@ -13037,7 +13022,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and stage.
   Parent of the build items of the life class design: L5 GEN.889 (the store),
   L9 UX.237 (the page), L10 API.37 and MAP.345 (API and filters).
-  Prerequisites: GEN.862, GEN.889, UX.237, API.37, MAP.345.
+  Prerequisites: GEN.862, UX.237, API.37, MAP.345.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
   Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for
@@ -13060,116 +13045,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 9.5 (life classes and sentient life).
   Prerequisites: GEN.864, TEST.435.
 
-- [ ] **GEN.867 The star lists and the chemistry weights agree, and a carbon and water chemistry is never drawn on a non-water solvent**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 4.2 and 8, fix
-  2. 15 of the 35 positive star weights in tuning.LIFE_CHEMICALS are
-  dead because STAR_EVOLUTION potentially_viable_chemicals does not list
-  the chemistry (Melanin on O and B, Chlorophyll a on A, F and M,
-  Blue-Optimized on O, B, A and G, Bacteriochlorophylls on F, G and K,
-  Zinc on O, B and A), so Chlorophyll a can never occur around A or M
-  stars. Derive one table from the other (a weight of 0 means not
-  listed), state which weights you chose as a tweak and why (stand-in
-  registry rows), and add a one-line requires on the water hydrosphere
-  so no chemistry is drawn on a hydrocarbon or other solvent (nothing
-  outside Boss's approval appears by accident). Check the same for Core
-  1's branch (the sunlit ocean gate must not be vetoed on A and M).
-  Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water and
-  carbon based, stop at animals; sentient life and the life class system
-  wait for 9.5. Size S. Changes draws, so it takes a lock turn after
-  GEN.855.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): replaced. The star
-  weights and star lists go away in the class switch GEN.889 (the
-  dominant class follows net primary production), and the
-  water-chemistry-on-non-water-solvent guard becomes the class's solvent
-  term in GEN.886. Do not build this item separately; it closes when
-  GEN.889 merges.
-  Research (2026-10-09): Update (Core 1, GEN.855 #3663, 3:05 AM EDT
-  2026-10-29 as the lane reported): STAR_EVOLUTION gives A and M stars
-  no oxygenic chemistry; 15 of 35 weights are dead and Chlorophyll a is
-  vetoed on A and M; M/A complex-cell flags in the census expectations
-  stay tagged GEN.855 with that new reason; this item owns the fix.
-  Prerequisites: GEN.855. Related: GEN.861, GEN.725.
-
-- [ ] **GEN.868 A world has a life chemistry only after abiogenesis has happened: the map icons, search facet and population code read life_stage, not life_chemical**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 4.7, fix 6. 176
-  of the 2,190 life worlds on main (8 percent: 123 around
-  pre-main-sequence stars, 53 around young stars) have a chemistry, a
-  pace and a schedule but life_stage None and Microbial 0, and
-  everything that tests life_chemical for has-life
-  (web/maps/systemmap.py, db/query.py search facet, population/model.py)
-  calls them living. Either set the chemistry only when abiogenesis has
-  happened, or make every has-life test read life_stage (or the
-  Microbial score). Size S. Changes values, so it takes a lock turn
-  (bundle with the A change).
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): kept; it reads 'class
-  only after abiogenesis' once GEN.889 lands.
-  Prerequisites: GEN.855. Related: GEN.853.
-
-- [ ] **GEN.869 Life descriptions and labels say what the chemistry does: Chlorophyll a builds the oxygen, Retinal is a supplement, Zinc-Bacteriochlorophyll is an aerobic acidophile, Melanin is not a pigment, and hosts without a life row are stated**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 4.8, 4.9, fix
-  12. Text contradicts the chemistry: Chlorophyll a says it requires an
-  oxygenated atmosphere as a climax ecology (it makes the oxygen);
-  Retinal says it works in reducing air (proteorhodopsin is abundant in
-  oxygenated surface ocean, Gomez-Consarnau 2019) and makes ATP, not
-  biomass; Zinc-Bacteriochlorophyll uses the anoxygenic text although
-  the only known organism (Acidiphilium rubrum, Wakao 1996) is an
-  aerobic acidophilic heterotroph; the population page labels every
-  chemistry Light-harvesting pigment, including Melanin. Also say in the
-  code, or add rows for it, that a host with no O to M letter (brown
-  dwarfs, remnants) gets no life. Text and labels only, so no epoch and
-  no lock; coordinate the Retinal wording with GEN.861 (Core 1).
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): kept; the text moves
-  from chemistry text to class text (GEN.892).
-  Prerequisites: none. Related: GEN.861.
-
-- [ ] **GEN.871 Sub-ice microbial mats are scored as Flora and as edible plant food, and described with coastlines and light they do not have (bug)**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 4.6, fix 5
-  (quick part). On main 955 of the 1,055 worlds at stage photosynthesis
-  are Melanin radiotroph mats in an ice-covered ocean; the stage text
-  says dark microbial mats cover shallow waters and coastlines;
-  life_scores then gives Flora 1 to 3 and life_scores.food_stage turns
-  flora alone into the macroscopic food rung (0.85, Green) for
-  Suitability. Decide with Boss whether mats count as food; the
-  recommended rule: Flora needs a light-driven or surface mat route,
-  aphotic and sub-ice life is Microbial only with the microbial food
-  rung (0.5), and the stage text says what is there. The producer itself
-  (chemolithoautotrophs) is a 8.4 item. Size S to M. Changes values
-  (lock turn).
-  Research (2026-10-09): Boss, 9:01 PM EDT 2026-10-28, card answer:
-  sub-ice microbial mats do NOT count as food. No Flora and no edible
-  (macroscopic food rung) scores for aphotic or sub-ice life; it stays
-  Microbial with the microbial food rung.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): kept; Class 3 and 4
-  microbes under ice are not Flora and not food (Boss).
-  Prerequisites: GEN.855. Related: GEN.861.
-
-- [ ] **GEN.872 The life pass draws from a per-body sub-stream, so a life-model change no longer re-rolls the names and flavour text of every later body in the system**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 9.1, fix 13. Per
-  body the life pass draws chemistry, pace and flavour in that order and
-  skips draws depending on scores, which depend on the air, so one
-  change in the life model shifts every later body's draws. A per-body
-  sub-stream (draw.bound(Stream(seed_of_body))) makes life changes
-  local. It costs one epoch to introduce and saves every later one; Core
-  1 should bundle it into the GEN.855 + GEN.750 epoch if ready, else it
-  takes the next lock turn. Also make sure the _again redraw in the life
-  pass cannot change the pace after the biogenic oxygen has been added
-  (section 11 point 5).
-  Prerequisites: GEN.855. Related: GEN.750.
-  Owner: Aux 2 (3:15 AM EDT 2026-10-29 as the lane reported: GEN.872, the per-body life sub-stream, is a stated prerequisite of GEN.889, so Aux 2 takes it in its epoch 120 life bundle; Core 1 drops it from its second change; this replaces any earlier owner line on this item).
-
 - [ ] **GEN.873 Standing life chemistry tests: star weights match the star lists, every pace can reach complex cells inside the age of the universe, no life chemistry without a stage, no Flora under ice, no chemistry on a non-water solvent, every life constant is registered, an oxygenic world past photosynthesis has more O2**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 9.3 tests 1, 2,
@@ -13177,7 +13052,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prevalence band per chemistry per star letter, goes into the TEST.430
   chain). Each test must fail on today's main for the defect it names
   and pass after its fix. Size S to M.
-  Prerequisites: GEN.867, GEN.868, GEN.871. Related:
+  Prerequisites: none. Related:
   TEST.430.
   Research (2026-10-09): Life class design
   (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
@@ -13205,27 +13080,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   threshold (phi_cpx currently reuses phi_bio animal 10 Gy/yr); that
   changes values, so it ships in the same epoch as the build. Builds in
   the class-switch lock turn.
-  Prerequisites: GEN.872.
-
-- [ ] **GEN.877 Animal oxygen floor by grade: route R1 replaces the human 8 to 50 kPa window, with a floor of about 0.1 to 0.8 kPa for sponge-grade animals rising with body size**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 4.4, 7.2 R1, fix
-  3. habitability.t_metazoa uses the human breathing window, so Fauna
-  cannot be high on any world a human cannot breathe on; the real animal
-  floor is far lower (sponge Halichondria panicea grows at 0.5 to 4
-  percent of present O2, Mills 2014, recalled and to be spot-checked;
-  diffusion limits scale with body size, Catling 2005). Keep the old
-  window only as a human-comfort score. Tier T2 for the sponge floor, T7
-  for larger animals. Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth
-  worlds, water and carbon based, stop at animals; sentient life and the
-  life class system wait for 9.5.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): generalised into the
-  complexity index and animal grades of GEN.890 (the sponge floor of
-  about 0.1 to 0.8 kPa from Mills 2014 stays the Class 1 anchor); build
-  it as part of GEN.890.
-  Prerequisites: GEN.867.
+  Prerequisites: none.
 
 - [ ] **GEN.878 Chemistry-specific energy: the pigment's absorption band times the star's spectrum is the multiplier on LIGHT_SHARE, instead of one bolometric curve for every metabolism**
   Life chemistry review (research thread, 2026-10-28,
@@ -13242,7 +13097,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT 2026-10-28, all four design cards option 1): kept; it is the
   pigment band times the star spectrum, the pigment selector of Class 1
   and 2.
-  Prerequisites: GEN.867.
+  Prerequisites: none.
 
 - [ ] **GEN.879 A far-red oxygenic chemistry (chlorophyll d and f) that K and M stars can draw, so the most common stars can have oxygenic life and animals**
   Life chemistry review (research thread, 2026-10-28,
@@ -13262,7 +13117,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT 2026-10-28, all four design cards option 1): kept; it is Class 1c
   (far-red). Write it as a class-table row from the start, not as a new
   entry in the old LIFE_CHEMICALS dictionary.
-  Prerequisites: GEN.878, GEN.867.
+  Prerequisites: GEN.878.
 
 - [ ] **GEN.880 Chemolithoautotroph producers (H2 methanogens and acetogens, sulfur and iron oxidisers, radiolytic H2) replace Melanin as the producer under ice and in aquifers, with an oxidant budget that caps aphotic animals**
   Life chemistry review (research thread, 2026-10-28,
@@ -13282,7 +13137,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and 4 with the supply quantities of GEN.887. Write it as class-table
   rows from the start. Complex cells depend on the class's own oxidant
   instead of free O2 (GEN.890), after GEN.855 and GEN.750 merge.
-  Prerequisites: GEN.861, GEN.871, GEN.857.
+  Prerequisites: GEN.861, GEN.857.
 
 - [ ] **GEN.881 Retinal becomes a photoheterotroph supplement that needs a carbon fixer, and Melanin becomes the radiotolerance adaptation with dose in its draw, not a radiation food**
   Life chemistry review (research thread, 2026-10-28,
@@ -13302,85 +13157,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   trait.
   Prerequisites: GEN.861, GEN.876.
 
-- [ ] **GEN.882 Route R2, chemosymbiotic animals: tubeworm, clam, mussel and cave-molly style communities on sulfide, methane or H2 with an oxidant, no light needed**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 7.2 R2, fix 15.
-  Verified on Earth (Cavanaugh 1981, Arp and Childress 1983); the limit
-  is oxidant delivery. Tier T2, L2. Carbon and water only. Scope (Boss,
-  7:41 PM EDT 2026-10-28): near-Earth worlds, water and carbon based,
-  stop at animals; sentient life and the life class system wait for 9.5.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): kept as the animal
-  route R2 (Class 4a chemosymbiotic animals), built with GEN.890.
-  Prerequisites: GEN.880, GEN.877.
-
-- [ ] **GEN.883 Route R3, low-oxygen sessile animals: sponge-grade animals with Fauna capped low, on air above 0.5 percent of today's O2 or a CO2 or iron-rich ocean**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 7.2 R3, fix 15.
-  Tier T2 for the sponge result (recalled), T3, L3 for the cap. Scope
-  (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water and carbon
-  based, stop at animals; sentient life and the life class system wait
-  for 9.5.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): kept as route R3
-  (low-oxygen Class 1 sessile animals, grade A1), built with GEN.890.
-  Prerequisites: GEN.877.
-
-- [ ] **GEN.884 Route R4, rare anoxic animals: a few percent of anoxic sulfidic worlds get animals that have lost aerobic respiration, Fauna capped low**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 7.2 R4, fix 15.
-  Contested: Loricifera in the L'Atalante basin (Danovaro 2010) and the
-  parasite Henneguya salminicola (Yahalomi 2020). Tier T3 to T4, L3.
-  Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water and
-  carbon based, stop at animals; sentient life and the life class system
-  wait for 9.5.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): kept as route R4
-  (rare anoxic animals on Class 2 and 3 sulfidic worlds), built with
-  GEN.890.
-  Prerequisites: GEN.877.
-
-- [ ] **GEN.887 Life supply quantities: h2_supply, donor_supply, oxidant_supply, co2_phase and nh3_inventory, with stand-in rows and units registry entries**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L3. Hydrogen from serpentinisation and
-  radiolysis, H2S and Fe2+ delivery, O2/nitrate/perchlorate oxidant
-  delivery, liquid or supercritical CO2, ammonia share of the water;
-  builds on GEN.880 (chemolithoautotroph producers) and GEN.441 (crust
-  composition). New stored values, so it takes a lock turn.
-  Prerequisites: GEN.862. Related: GEN.880.
-
 - [ ] **GEN.888 The acid medium model: a sulfuric acid cloud layer and acid pools from the temperature profile and the SO2 and water shares, filling the dead solvent() sulfuric branch**
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
   2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L4. Nothing in the generator models sulfuric
   clouds or pools today (no H2SO4 row in the aerosol module). Feeds
   Classes 5 and 9. Lock turn.
-  Prerequisites: GEN.887.
-
-- [ ] **GEN.889 The class switch: life_class, life_class_variant, life_class_best, the life_class_scores table and migration, life_chemical and the star weights and lists dropped, dominant class by net primary production**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L5 (GEN.863 build part 1). No backward-compat
-  shim: the old column is dropped in the same migration and the
-  population, search and map readers move in the same change. Replaces
-  the star weights of GEN.867. Needs the per-body life sub-stream
-  (GEN.872) and Core 1's GEN.855 + GEN.750. One epoch and one migration
-  (lock turn).
-  Prerequisites: GEN.872. Related: GEN.863,
-  GEN.867.
-  Research (2026-10-09): Bug 2 side note (TEST.435 first run,
-  2026-10-28; no fault claimed): 794 of 1,246 life worlds get no shadow
-  life class at or above the line from the GEN.886 classifier. Check
-  this when the class switch is built.
-
-- [ ] **GEN.890 The complexity index and animal grades per class (sessile, small mobile, large active), and the Fauna rule for chemosymbiotic life (fauna never exceeds its class's producer base)**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L6. Generalises GEN.877 (the animal oxygen floor
-  by grade): complexity index C = biomass energy x oxidant yield factor
-  x temperature-speed factor, thresholds are T9 L3 stand-ins set from
-  the first census. Lock turn.
-  Prerequisites: GEN.889, GEN.877. Related: GEN.877.
+  Prerequisites: none.
 
 - [ ] **GEN.891 The class ledger and the class-keyed stage-aware air for Classes 2 to 9 (O2 rows come from GEN.855; the gas rows of GEN.857/GEN.858 carry class numbers from the start)**
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
@@ -13390,7 +13172,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changes where the number comes from. This item adds the ledger rows
   for Classes 3 to 9 (stage multiplier and sink limit per row). Lock
   turn.
-  Prerequisites: GEN.889, GEN.857, GEN.858. Related: GEN.857, GEN.858.
+  Prerequisites: GEN.857, GEN.858. Related: GEN.857, GEN.858.
 
 - [ ] **GEN.894 Strange-solvent life classes 5 to 9 (acid-world, dense CO2, cold hydrocarbon sea, ammonia-water, silicon-bearing in acid): windows, supplies, texts, stand-ins and tiers**
   Life class system design (design thread, Boss 9:10 to 9:20 PM EDT
@@ -13403,7 +13185,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stay slow. Classes 4b and 4c (nitrate, chlorate and perchlorate
   oxidants) ride with the Class 4 rows of the classifier. Supersedes
   GEN.874 and GEN.885.
-  Prerequisites: GEN.887, GEN.888, GEN.889.
+  Prerequisites: GEN.888.
 
 - [ ] **GEN.897 K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug)**
   Found by Bug 2 in the star census (TEST.432, first draw of 40,000
@@ -13700,7 +13482,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   request steers (GEN.646); a request that no system in the allowed
   tries can meet says so plainly. A generation change: lock turn in Aux
   2's second turn (GEN.888, GEN.894) or after. Version 8.1. Owner: Aux
-  2. Prerequisites: GEN.867. Related: GEN.646, GEN.854, GEN.872.
+  2.
   Prerequisites: none. Related: GEN.646, GEN.854, GEN.872.
 
 - [ ] **GEN.914 G dwarfs are 3.1% of stars against 4.1% to 5.0% observed: the mass function from 0.5 to 1 solar mass (Kroupa slope 2.3) gives too few stars of 0.86 to 1.1 solar masses (bug)**
@@ -13743,7 +13525,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rule in the stand-in registry with its reason. Aux 2 checks this
   against epoch 120 first and fixes what it finds in that epoch or its
   second turn. Owner: Aux 2. Version 8.1.
-  Prerequisites: GEN.867. Related: GEN.867, GEN.646, GEN.888, GEN.894,
+  Prerequisites: none. Related: GEN.867, GEN.646, GEN.888, GEN.894,
   GEN.913, TEST.435.
   Research (2026-10-09): Aux 2 audit of epoch 120 (PR #3702, 2:50 PM EDT
   as the lane reported): the life code (physics/life_classes.py,
@@ -13769,6 +13551,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   False and a life class lands in the ecosphere) and
   generation/system.py (request steering, the habitable guarantee, the M
   count), filed as GEN.916 (Core 1).
+  Research (2026-10-09): Epoch 120 merged (PR #3702, Aux 2, 3:02 PM EDT
+  as the lane reported): the audit confirms no class-letter or star-type
+  veto in the life code. Open work under this item is the upstream
+  letter reads: Aux 1's GEN.646 cut-over (next in the lock order)
+  removes the bulk and climate draws; GEN.917 (surface material,
+  aerosols) and GEN.916 (habitable guarantee) remain. Retire when
+  GEN.646, GEN.916 and GEN.917 have merged and TEST.452 passes its
+  draw-rate layer.
 
 - [ ] **GEN.916 The habitable-world guarantee is judged on the conditions (a world that can hold life), not on the class letter M**
   Found by Aux 2 (2:50 PM EDT 2026-10-29 as the lane reported), from
@@ -15455,7 +15245,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
   2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L10 part 1 (testing mode allows the bump); the
   API compatibility page lists it.
-  Prerequisites: GEN.889.
+  Prerequisites: none.
 
 ## ADM: Admin tools
 
@@ -18707,7 +18497,7 @@ clears each one.
   now). Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water
   and carbon based, stop at animals; sentient life and the life class
   system wait for 9.5.
-  Prerequisites: TEST.430, GEN.879, GEN.880, GEN.882, GEN.883, GEN.876.
+  Prerequisites: TEST.430, GEN.879, GEN.880, GEN.876.
 
 - [ ] **TEST.443 Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not**
   The remainder of TEST.301 (its sweep part merged as #3619 with Bug 2:
@@ -18768,6 +18558,19 @@ clears each one.
   odds across classes; it needs the class store of Aux 2's epoch 120 and
   is built when that merges (same trigger as the TEST.435 re-baseline).
   Prerequisites: GEN.915. Related: TEST.430, TEST.435, GEN.915.
+
+- [ ] **TEST.453 Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug)**
+  Found by Aux 2 (about 3:02 PM EDT 2026-10-29 as the lane reported)
+  running the epoch 120 gate (PR #3702); each fails identically on a
+  clean main, so none is caused by the life change. Do: find the cause
+  of each (the query near test expects exit code 2; the two planet-page
+  tests in item_pages; the migration test for the moon tidal flux
+  column; the fuzz test for an O star hanging in physics gas_equilibrium
+  past its timeout), fix the code or the stale expectation, and keep any
+  of them from coming back red. The test_prevalence 2,000-system timing
+  tests that time out at 900 s on the slower machines (also on main) are
+  a machine limit, not part of this item. Owner: Bug 1. Version 8.1.
+  Prerequisites: none. Related: TEST.411, TEST.450.
 
 ## USR: User accounts
 
