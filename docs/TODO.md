@@ -13859,6 +13859,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Low priority, ride the class cut-over. Version 8.1. Owner: Aux 1.
   Prerequisites: none. Related: TEST.214, GEN.646.
 
+- [ ] **GEN.904 Daylight columns stay stale or empty after an orbit move: re-run daylight after generate_spin in the reconcile (bug)**
+  Found by Aux 2 (UX.208 audit, report
+  /mnt/project-files/reports/sheet-fill-report-2026-10-29.md).
+  solar_day_hours, daylight_hours and day_share_equator are empty on 158
+  of 1,100 rotating planets in the 150-system sample (classes C, D, H,
+  I, J, S). Cause traced: daylight.generate runs once in planet.py, but
+  the reconcile in validation.py after an orbit move re-runs
+  generate_spin (a new rotation period) without re-running daylight, so
+  the values are stale or missing. Example: seed 1002, planet 2 has a
+  2.02 h rotation but a 3.41 h solar day. Fix: re-run daylight after
+  generate_spin in the reconcile. A generation change (needs the
+  generation lock, new epoch). Done: no rotating planet in the sample
+  has an empty daylight column, the solar day matches the rotation
+  period and orbit, and a test checks it after an orbit move. Owner: Bug
+  1 (takes its lock turn with the other generation bugs). Prerequisites:
+  none. Related: UX.208, GEN.767, GEN.768, UX.205.
+  Prerequisites: none. Related: UX.208, GEN.767, GEN.768, UX.205.
+
+- [ ] **GEN.905 Mantle redox and delta-IW are empty on class V ocean worlds (bug)**
+  Found by Aux 2 (UX.208 audit, report
+  /mnt/project-files/reports/sheet-fill-report-2026-10-29.md).
+  mantle_redox and mantle_delta_iw are empty on class V (ocean world)
+  planets, 2 of 2 sampled. Every rocky world with a mantle should carry
+  them. Find why the class V path skips the mantle redox step and fill
+  it from the same physics as the other classes. May change generation
+  (needs the lock, new epoch). Done: class V planets in a sample have
+  both columns, and the UX.208 audit test no longer excuses the gap.
+  Owner: Bug 1 (takes its lock turn with the other generation bugs).
+  Prerequisites: none. Related: UX.208, GEN.904.
+  Prerequisites: none. Related: UX.208, GEN.904.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
