@@ -4878,6 +4878,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  Research (2026-10-09): Correction from the data-use audit (10-29,
+  /mnt/project-files/reports/data-use-audit-2026-10-29.md): the 'Done'
+  text above says the Harris reference reader and a test exist; neither
+  is in the repo, and the Harris file is never opened. The work is open:
+  add the Harris file to the setup catalogue (or a reduced committed
+  table; Boss decides, the licence is free if the source is named) so a
+  fresh server has it, then the reader and the calibration test.
   Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.300 Every quantity in the code moves onto the Quantity class, and hand conversions are removed**
@@ -4931,7 +4938,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.741, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.741, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.752, GEN.753, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -11646,6 +11653,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
   EDT, Math lane 2 started): proposed owner Math lane 2, after its first
   five items; takes it only if nobody has started it.
+  Research (2026-10-09): Data-use audit (10-29): the NOAA proton event
+  set (255 events) is held only in the project files; add it to the
+  setup catalogue (or a reduced committed table, licence is Boss's) so a
+  fresh server has it before the lane that takes this item starts.
   Prerequisites: none. Related: GEN.436, GEN.444.
 
 - [ ] **GEN.748 Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's**
@@ -11720,23 +11731,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   output); this keeps that from recurring. No shim: an unread module is
   either wired, filed, or deleted. Found by the physics fix plan thread.
   Owner: the registry owner (Lane L, with GEN.725).
+  Research (2026-10-09): Data-use audit (10-29,
+  /mnt/project-files/reports/data-use-audit-2026-10-29.md): extend the
+  guard to datasets as well as modules: a downloaded dataset with no
+  caller must fail a test and be named in the registry with an open
+  wiring item. It would have caught ExoMol and HITRAN (1,453 MB of the
+  1,806 MB setup downloads, read by nothing) on the day they merged.
   Prerequisites: GEN.725. Related: GEN.711, GEN.699, GEN.428, GEN.478.
-
-- [ ] **GEN.755 Check whether the downloaded MIST grid holds post-main-sequence phases; if not, add a setup fetch under GEN.741**
-  GEN.652 makes the MIST grid the one source for main-sequence stars.
-  Check whether the table the setup step downloads (update.sh) contains
-  the post-main-sequence phases (subgiant, red giant branch, horizontal
-  branch, asymptotic giant branch) with luminosity, radius and
-  temperature by age. If it does, GEN.741 reads them. If not, add the
-  setup download of those tracks (raw data never in the repo, licence
-  note only in DATA-LICENSE.md) and reduce them to the table GEN.741
-  needs. Found by the physics fix plan thread. Owner: Lane A (after
-  GEN.652, with GEN.741).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Prerequisites: GEN.652. Related: GEN.741, GEN.553.
 
 - [ ] **GEN.768 Hours a person can be outside in a day: daylight hours limited by heat, cold, pressure, air supply and radiation dose, computed and stored per planet and moon**
   Boss, 8:22 PM EDT 2026-10-24 (message
@@ -12640,6 +12641,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changes generated output, so it takes an epoch with --affects fill and
   a lock turn. Owner: none yet (Math 1 retired); released pool for a
   fresh lane.
+  Research (2026-10-09): Data-use audit (10-29): ExoMol plus HITRAN are
+  1,453 MB of the 1,806 MB setup downloads and nothing calls them; every
+  atmosphere world's surface temperature comes from hand plateau
+  opacities. Ranked first of the unused data in
+  /mnt/project-files/reports/data-use-audit-2026-10-29.md. An owner is
+  needed (no lane holds it; staffing put to the coordinator 5:52 PM
+  EDT). Boss's call, not filed as a decision: keep downloading, or pause
+  the two datasets until this starts.
   Prerequisites: none. Related: GEN.715, GEN.717, GEN.718.
 
 - [ ] **GEN.851 Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today)**
@@ -12652,6 +12661,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tweak level. It changes generated output, so it takes an epoch with
   --affects fill and a lock turn; do it in the same turn as the
   lookup-table wiring. Owner: none yet; released pool.
+  Research (2026-10-09): Data-use audit (10-29): goes with GEN.850 (same
+  unowned wiring); see its note.
   Prerequisites: none. Related: GEN.715, GEN.717, GEN.718, GEN.850.
 
 - [ ] **GEN.852 Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others)**
@@ -13627,6 +13638,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   metallicity black hole law; former GEN.937) and the one white dwarf
   initial-final relation (former GEN.938). Both are dropped as separate
   items.
+  Research (2026-10-09): Audit update (10-29, second pass): black holes
+  keep the 8 to 10 solar mass peak and NO mass gap is built (Ray, Farr
+  and Kalogera 2025: gravitational-wave sample not consistent with a
+  gap); the neutron star Gaussians in tuning are confirmed (Ozel and
+  Freire 2016: slow 1.49 +- 0.19, recycled 1.54 +- 0.23, double 1.33 +-
+  0.09; Antoniadis et al. 2016: 1.39 and 1.81). The wrong white dwarf
+  relation is the disk history and mass_loss one (Weidemann 2000, 0.12
+  low at 5 to 7 solar masses); the star model's Kalirai 2008 is within
+  0.04 of Cummings 2018 from 2 to 8 and 0.06 low at 1. Use Cummings et
+  al. 2018 (MIST version, three linear pieces 0.83 to 2.85, 2.85 to 3.6,
+  3.6 to 7.2 solar masses) everywhere, in one place. Do not use the
+  withdrawn Wolf-Rayet binary fraction.
   Prerequisites: GEN.929. Related: GEN.922, GEN.919.
 
 - [ ] **GEN.931 The spiral-arm contrast at the Sun's place is set per stellar population (young arm populations strong, A stars weak), not by the single inter-arm minimum (the A-star lever of GEN.898)**
@@ -13721,14 +13744,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
   2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
   the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
-  or a fresh star-physics lane). Version 8.1.
+  stated. Owner: Star 1 (Boss 5:49 PM EDT 2026-10-29, option 1, a fresh
+  lane). Version 8.1.
   Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
   lane reported): the post-main-sequence and label work goes to a
   star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
   (fresh star-physics lane, Core 5, or Core 3). Must start now: the
   GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
   merged back to back inside the one GEN.932 turn.
+  Research (2026-10-09): Audit update (10-29, second pass, as the audit
+  lane reported 5:50 PM EDT): sharper numbers. A 3 solar mass core
+  helium burning star is 113 to 144 Lsun at about 4,950 K and 14 to 16
+  Rsun in MIST against the code's 580 to 1,960 Lsun (5 to 15 times too
+  bright, 3 to 6 times too large); 5 solar masses 1,507 Lsun against
+  1,300 to 8,500; 8 solar masses matches. The fixed subgiant phase is 10
+  percent of main-sequence life in the code and under 1 percent (0.3 to
+  0.8) by the project's own Hurley, Pols and Tout code at 2.5 to 8 solar
+  masses; keep the HPT durations. The red giant tip (Serenelli et al.
+  2017 Table 2, 1 solar mass) is 65 Rsun at Z 0.0001 and 123 Rsun at Z
+  0.004, the AGB tip about 6,000 Lsun (M_bol -7.2). Red supergiant limit
+  log L 5.5 (Davies, Crowther and Beasor 2018) and 5.2 for type II
+  progenitors (Davies and Beasor 2020) verified; largest real red
+  supergiant about 1,540 Rsun (Levesque et al. 2009). MIST is sampled
+  every 0.05 dex in age, so the Hertzsprung gap and blue loops are not
+  resolved by it; take their durations from HPT.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.936 The 0.08 to 0.1 solar mass main sequence comes from the Baraffe 2015 table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap)**
@@ -13750,23 +13789,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   or a fresh star-physics lane). Version 8.1.
   Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
   lane reported): Bug 1 keeps it (the floor of the same mass curve).
+  Research (2026-10-09): Data-use audit (10-29): the Baraffe 2015 table
+  exists only in the project files, not at setup. First step: a setup
+  catalogue entry with a source URL (raw data never in the repo; licence
+  note is Boss's, DATA-LICENSE.md), so a fresh server has it. The
+  age-dependent brown dwarf radius is GEN.948.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
-- [ ] **GEN.939 Wolf-Rayet luminosity and mass follow the star: a helium-star mass-luminosity relation, and a binary-stripped Wolf-Rayet route**
+- [ ] **GEN.939 Wolf-Rayet luminosity follows the present mass by the helium-star mass-luminosity relation (low priority)**
   Audit finding M3. Wolf-Rayet luminosity is log-uniform 1e5 to 1e6 Lsun
   whatever the progenitor (median 3e5 for 25 or 100 solar masses) and
-  present mass is a uniform 0.4 to 0.6 of the initial mass;
-  binary-stripped Wolf-Rayet stars (about half of real ones) have no
-  route outside the exotic types; very massive WNh stars cannot occur.
-  Do: luminosity from the present mass by a helium-star mass-luminosity
-  relation; present mass from the mass-loss law; the stripped route. The
+  present mass is a uniform 0.4 to 0.6 of the initial mass; very
+  massive WNh stars cannot occur. Low priority after the audit
+  re-check: the range is right up to about 40 solar masses and the
+  code is too low only above about 60 (Crowther 2007 relation [V]);
+  the binary-stripped route is dropped (Shenar et al. 2020: observed
+  binary fractions 30 to 40 percent).
+  Do: luminosity from the present mass by the helium-star
+  mass-luminosity relation; present mass from the mass-loss law. The
   Wolf-Rayet count target is Bug 1's census (GEN.902 root, now GEN.929).
   From the star class audit
   (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
   2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
   the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
-  or a fresh star-physics lane). Version 8.1.
+  stated. Owner: Star 1 (Boss 5:49 PM EDT 2026-10-29, option 1, a fresh
+  lane). Version 8.1.
   Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
   lane reported): the post-main-sequence and label work goes to a
   star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
@@ -13789,8 +13836,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
   2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
   the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
-  or a fresh star-physics lane). Version 8.1.
+  stated. Owner: Star 1 (Boss 5:49 PM EDT 2026-10-29, option 1, a fresh
+  lane). Version 8.1.
   Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
   lane reported): the post-main-sequence and label work goes to a
   star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
@@ -13816,8 +13863,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
   2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
   the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
-  or a fresh star-physics lane). Version 8.1.
+  stated. Owner: Star 1 (Boss 5:49 PM EDT 2026-10-29, option 1, a fresh
+  lane). Version 8.1.
   Research (2026-10-09): BOSS DECIDED (5:42 PM EDT 2026-10-29, card
   answer option 1): this item is IN the long-term epoch GEN.932, so star
   subclass names, forced types and life paces are settled once. Owner
@@ -13871,8 +13918,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
   2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
   the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
-  or a fresh star-physics lane). Version 8.1.
+  stated. Owner: Star 1 (Boss 5:49 PM EDT 2026-10-29, option 1, a fresh
+  lane). Version 8.1.
   Research (2026-10-09): BOSS DECIDED (5:42 PM EDT 2026-10-29, card
   answer option 1): this item is IN the long-term epoch GEN.932, so star
   subclass names, forced types and life paces are settled once. Owner
@@ -13883,6 +13930,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (fresh star-physics lane, Core 5, or Core 3). Must start now: the
   GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
   merged back to back inside the one GEN.932 turn.
+  Research (2026-10-09): Audit update (10-29, second pass): checked
+  against Mamajek's table, 50 of its 87 types come out off by 1 to 3
+  subclass steps in the generator (the Sun reads G3, K0 reads G8, M0
+  reads K8); Mamajek's temperatures B5V 15,700 K, O9.5V 31,900 K, O3V
+  44,900 K.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.944 Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars)**
@@ -13937,6 +13989,53 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (stars are GEN.935 to GEN.940 already). Owner: per area, assigned from
   the audit. Version 8.1.
   Prerequisites: GEN.945. Related: GEN.725, GEN.945.
+
+- [ ] **GEN.947 Pre-main-sequence contraction times are calibrated to MIST (about 2 times too short at 1.5 solar masses and up and at 0.2 solar masses) (low priority)**
+  Audit finding L6 (low priority, second pass of the star class audit,
+  /mnt/project-files/reports/star-class-audit-2026-10-29.md, section 6).
+  The pre-main-sequence contraction times are about 2 times too short
+  from 1.5 solar masses up and at 0.2 solar masses, compared with MIST;
+  below 0.5 to 1 solar mass they agree with Baraffe. Do: calibrate the
+  contraction time to the MIST pre-main-sequence rows setup already
+  downloads (or record a stand-in tier and tweak level). Rides the
+  GEN.932 epoch only if it is ready in time; otherwise a later epoch.
+  Stand-in tier Verified for MIST rows (L0). Owner: Star 1 (Boss 5:49 PM
+  EDT 2026-10-29, a fresh lane; TODO filed this at the audit lane's word
+  5:50 PM EDT). Version 8.1.
+  Research (2026-10-09): Data-use audit (10-29, as the audit lane
+  reported 5:51 PM EDT): do this from the MIST pre-main-sequence rows
+  (phase -1) that setup already downloads and discards; today
+  pre-main-sequence uses 3 constants fitted to Baraffe (a registered
+  stand-in until replaced).
+  Prerequisites: none. Related: GEN.935, GEN.932.
+
+- [ ] **GEN.948 Brown dwarf radius from an age-dependent table (Baraffe 2015) instead of nine hard-coded points**
+  Found by the data-use audit
+  (/mnt/project-files/reports/data-use-audit-2026-10-29.md, rank 3,
+  10-29): the brown dwarf radius is nine hard-coded points at one age
+  and one metallicity. Do: read the age-dependent Baraffe 2015 table
+  (the same file GEN.936 adds to the setup catalogue) so a brown dwarf's
+  radius depends on mass and age. Stand-in tier Verified (L0). Rides the
+  GEN.932 epoch with GEN.936. Owner: Bug 1 (with GEN.936). Version 8.1.
+  Prerequisites: none. Related: GEN.936, GEN.932.
+
+- [ ] **GEN.949 Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets**
+  Found by the data-use audit (rank 8, 10-29): giant visible colour
+  comes from coarse bins; the better tables are held and not read, and
+  no item wires them. Licence first: the Oxford page states no licence
+  ("not yet fully verified"), so a fetch waits for Boss's entry in
+  DATA-LICENSE.md. Do: read the tables into the colour path for giants.
+  Stand-in tier Verified (L0) once read. Owner: none yet. Version 8.4.
+  Prerequisites: none. Related: GEN.944.
+
+- [ ] **GEN.950 Water share of solids by distance from Lodders 2003 Table 11 and its condensation temperatures, replacing the fixed 170 K snow line (low priority)**
+  Found by the data-use audit (rank 10, 10-29): the snow line is fixed
+  at 170 K and the water shares are tuned; the held Lodders 2003 Table
+  11 and condensation temperatures (and Weisberg chondrite data) are
+  only a research pass today (GEN.468). Do: the water share of solids by
+  distance reads the table. Low priority. Stand-in tier Verified (L0)
+  once read. Owner: none yet. Version 8.4.
+  Prerequisites: none. Related: GEN.944, GEN.468.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18909,6 +19008,13 @@ clears each one.
   the constant. Pairs with GEN.754. Lock-free. Owner: Bug 2 (proposed by
   TODO). Version 8.1.
   Prerequisites: GEN.945. Related: GEN.725, GEN.754, GEN.945.
+
+- [ ] **TEST.456 A test that the generated [X/Fe] abundances match the Brewer and Fischer 2016 table, not only its trend and scatter (low priority)**
+  Found by the data-use audit (rank 9, 10-29): the fit keeps the trend
+  and the scatter, not the real joint distribution. Do: a test comparing
+  the generated [X/Fe] distribution against the held table. Low
+  priority. Owner: none yet. Version 8.4.
+  Prerequisites: none. Related: TEST.455.
 
 ## USR: User accounts
 
