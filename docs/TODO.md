@@ -14216,6 +14216,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Related: PERF.119, PERF.203, PERF.154, PERF.118.
   Prerequisites: PERF.119. Related: PERF.119, PERF.203, PERF.154,
   PERF.118.
+  Research (2026-10-09): Re-scoped (Core 5, 3:17 PM EDT 2026-10-29 as
+  the lane reported, read from main at 2:50 PM EDT): PERF.172 and
+  PERF.182 built the shape (generation/followed.py, `planetgen galaxy`
+  as one wrapper run over one step list, finish-run) but this item is
+  NOT done. Still missing: the one-step wrapper.run starters in
+  run_plan.py (skeleton plan, the scatter family at about line 2243,
+  nebula field about 2518, fill/clean about 3058), run_sector.py
+  (sector) and run_system.py (system); a verb run on its own is still
+  its own starter with handlers around a one-step run; the test of two
+  verbs in one run with both refusals firing in order does not exist.
+  The one-unit maintenance commands (checkdb, datasets check, math
+  check, reset, warm) may stay as they are if they are not generating
+  verbs. Convert verb by verb, steps are data (Step(key, kind, label,
+  params), wrapper.plan_steps builds them from followers); scatter
+  prepare hooks (prepare_scatter_pass, prepare_scatter_phenomena,
+  prepare_draw_nebula_field) already empty what a stage rewrites, so a
+  verb moved into a shared run keeps its refusal by putting the check in
+  its prepare hook, as finish-run does. Aux 2's older parked branch
+  (47943db72) is superseded; start fresh from main.
 
 - [ ] **PERF.203 The Generate page and job_runner follow one wrapper run: one command list, one run, with the page's progress, state and log files kept**
   Split from PERF.119 by Aux 2 (2:36 AM EDT 2026-10-29 as the lane
@@ -14234,6 +14253,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.99.
   Prerequisites: PERF.202. Related: PERF.119, PERF.202, PERF.154,
   PERF.99.
+  Research (2026-10-09): Status (Core 5, 3:17 PM EDT 2026-10-29 as the
+  lane reported): not started. The Generate page still builds a job of
+  separate commands (reset, plan, sectors, link, scatters, settle...),
+  each its own run; jobs.job_runs(job_id) lists several runs and
+  job_runner follows the job's processes, not one run. Follows PERF.202.
 
 - [ ] **PERF.204 An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2)**
   Boss (1:19 PM EDT 2026-10-29), asked by Core 5 what a visit to an
