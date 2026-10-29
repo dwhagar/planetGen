@@ -872,15 +872,6 @@ with `clamp()`.
   UX.179, PERF.134, ADM.44, MAP.158.
   Prerequisites: UX.179. Related: UX.179, PERF.134, ADM.44, MAP.158.
 
-- [ ] **UX.213 Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug)**
-  Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
-  as the lane reported; Boss rule: never a number without a unit or
-  context. The Generate page's task option values 1/2/4/6 print with no
-  unit or noun. Name what they count (workers, tasks, threads) beside
-  each. Done: the probe lists no bare number on the Generate page and a
-  browser test pins it. Version 8.1. Owner: Core 5.
-  Prerequisites: none. Related: UX.208, GEN.772.
-
 - [ ] **UX.223 Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
@@ -13925,37 +13916,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fix), not here (the coordinator, 8:48 PM EDT 2026-10-21).
   Prerequisites: none. Related: PERF.145, PERF.142, PERF.143, PERF.146.
 
-- [ ] **PERF.154 One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5)**
-  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
-  (design report
-  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
-  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
-  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
-  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
-  and shows its position; the run line holds up to 8 runs, a setting;
-  jobs expected over 60 s go to a long lane; the wait bound defaults to
-  60 minutes, a setting). No Alembic revision and no generator epoch;
-  the same seed must still give the same sectors at 1 and 4 workers.
-  Every new setting needs the settings model, `config.schema.json`, the
-  admin settings page entry (ADM.84) and `docs/reference/cli.md`. F5, size L. A
-  run that cannot start joins one Redis waiting list (maximum 8, a
-  setting) instead of failing with Busy; the list is ordered data, the
-  job strip (ADM.119) reads it, and a waiting run or one-sector
-  regenerate shows its position. It removes ADM.123's `next.json` file
-  slot, the file lock and the Busy path, and F4's interim retry. Redis
-  only. Done: a ninth run is refused with the line named; the strip
-  shows the order; a test that the same seed gives the same sectors
-  whichever position it ran from. Collision: needs PERF.119, PERF.123
-  and PERF.99 merged first, and touches the same files as Core 5. Owner:
-  Core 5 (proposed; it owns those files), last in the order.
-  Progress (the coordinator, relayed 11:13 PM EDT 2026-10-22): PERF.150
-  (the maintenance lane) merged as #2588 and the Fair scheduling lane is
-  retired. PERF.150 left an interim wait in queue/runwait.py; this item
-  lands with Core 5 and removes that file when the waiting list
-  replaces it.
-  Prerequisites: PERF.203. Related: PERF.98, PERF.99,
-  PERF.100, PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
-
 - [ ] **PERF.162 Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word**
   Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
   2026-10-22 as the lane's clock reads), measured at release 8.0.1930
@@ -14085,19 +14045,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a change to how a slab unit carries its range), with a test that
   builds more than 4000 slabs. Owner: Core 5.
   Prerequisites: none. Related: PERF.191, PERF.180.
-
-- [ ] **PERF.194 The phenomena stage progress line still says "186M to place": the weight is printed as a number of phenomena instead of work (bug)**
-  Found by Math lane 2 (8:11 PM EDT 2026-10-24 as the lane reported)
-  while fixing GEN.398: the phenomena-stage progress weight wording
-  ("186M to place") remains after GEN.397 and GEN.398. Do: print the
-  weight as the work the stage does (sectors and phenomena groups
-  placed, or the percent of the stage), consistent with the PERF.184
-  time estimate, in `planetgen plan` stage 2 and the Generate page
-  progress. Done: a test over the progress text of the phenomena stage
-  finds no raw count of phenomena as a weight. Owner: Core 5 (PERF.184
-  owner; the estimate and the progress text are one piece). Related:
-  GEN.397, GEN.398, PERF.184.
-  Prerequisites: none. Related: GEN.397, GEN.398, PERF.184.
 
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
   Unused stored values audit (the "Find stored values nothing uses"
@@ -18581,33 +18528,6 @@ clears each one.
   picture inside MAP.336's PR. The last test of TEST.418 (now retired)
   is this one.
   Prerequisites: none. Related: MAP.335, MAP.333.
-
-- [ ] **TEST.452 A sweep finds the life-capable conditions on every planet class and proves the generator lets life evolve there (a class-blind life test)**
-  Boss requirement (2:46 PM EDT 2026-10-29), companion of GEN.915: life
-  must depend only on conditions, never on the class letter. Do: for
-  each of the 20 class letters, sweep the conditions the class can take
-  (temperature, pressure, solvent, energy supply, radiation, age) with
-  the forced-class sampler, mark the combinations that the life model
-  says can host life, and assert that the generator actually draws life
-  for them at a rate inside the model's own probability (not zero, not
-  class-dependent when the conditions are equal). Also assert that two
-  worlds of different classes with identical conditions get identical
-  life odds. A failure names the class and the condition combination.
-  Owner: Bug 2 (with the census harness of TEST.430 and TEST.435); runs
-  with the targeted gate when life, classes or habitability change.
-  Version 8.1.
-  Research (2026-10-09): First layer merged (Bug 2, PR 3716, about 3:45
-  PM EDT as the lane reported): every terrestrial planet and moon of the
-  test sweep (576 bodies) is given each of the 20 class letters with its
-  conditions unchanged, and the life classes it supports and its
-  habitability index must not move; plus a scan of the life code listing
-  every read of the class letter (3 today, all flavour or description
-  text). It passes on main, so the life judging is already class-blind.
-  Still to do (keeps the item open): the layer that asserts the
-  generator actually draws life on every capable body and gives equal
-  odds across classes; it needs the class store of Aux 2's epoch 120 and
-  is built when that merges (same trigger as the TEST.435 re-baseline).
-  Prerequisites: GEN.915. Related: TEST.430, TEST.435, GEN.915.
 
 - [ ] **TEST.453 Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug)**
   Found by Aux 2 (about 3:02 PM EDT 2026-10-29 as the lane reported)
