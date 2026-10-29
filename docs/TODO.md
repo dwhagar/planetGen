@@ -13621,6 +13621,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.922 chain, plan
   /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
   (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
+  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
+  lane reported): this item absorbs the neutron star and black hole mass
+  work (the sourced Gaussians in tuning, a progenitor-mass and
+  metallicity black hole law; former GEN.937) and the one white dwarf
+  initial-final relation (former GEN.938). Both are dropped as separate
+  items.
   Prerequisites: GEN.929. Related: GEN.922, GEN.919.
 
 - [ ] **GEN.931 The spiral-arm contrast at the Sun's place is set per stellar population (young arm populations strong, A stars weak), not by the single inter-arm minimum (the A-star lever of GEN.898)**
@@ -13650,6 +13656,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   includes the star class audit items GEN.935 to GEN.943 as well as
   GEN.927 to GEN.931 (GEN.944 is later, 8.4). Bug 1 may order them
   inside the one merge.
+  Research (2026-10-09): How it rides one lock turn (Bug 1, 5:47 PM EDT
+  2026-10-29 as the lane reported): each piece is its own branch and PR;
+  the holder of the GEN.932 turn merges them back to back inside the
+  single turn so no other lane interleaves. Order: GEN.926 and GEN.933
+  lock-free earlier, then GEN.936, GEN.927 to GEN.931, then GEN.935,
+  GEN.939, GEN.940, then GEN.941, GEN.943, GEN.942, then golden and the
+  census retag. TEST.454 includes bins for giants, subgiants and
+  supergiants so GEN.935 is measured against the same curve. Split: Bug
+  1 keeps GEN.926 to GEN.934, GEN.936 and GEN.932; GEN.942 is Aux 2's;
+  GEN.935, 939, 940, 941, 943 await Boss's staffing answer.
 
 - [ ] **GEN.933 One mass-boundary table (brown dwarf/star, planet/brown dwarf, spectral-class mass edges, Chandrasekhar, neutron star/black hole) with sources and tiers, read by the mass function, companions, rogue bodies and the display ladders**
   Found by Bug 1 (5:27 PM EDT 2026-10-29 as the lane reported) answering
@@ -13707,6 +13723,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the GEN.932 epoch with the GEN.922 star mass function chain unless
   stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
   or a fresh star-physics lane). Version 8.1.
+  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
+  lane reported): the post-main-sequence and label work goes to a
+  star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
+  (fresh star-physics lane, Core 5, or Core 3). Must start now: the
+  GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
+  merged back to back inside the one GEN.932 turn.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.936 The 0.08 to 0.1 solar mass main sequence comes from the Baraffe 2015 table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap)**
@@ -13726,46 +13748,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the GEN.932 epoch with the GEN.922 star mass function chain unless
   stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
   or a fresh star-physics lane). Version 8.1.
-  Prerequisites: none. Related: GEN.922, GEN.932.
-
-- [ ] **GEN.937 Neutron star masses from the sourced Gaussians in tuning (two populations) and black hole masses from a progenitor-mass and metallicity law**
-  Audit finding M1. Neutron star masses are uniform 1.1 to 2.2 solar
-  masses (mean 1.65, 27 percent above 1.9) while observed ones average
-  1.4 to 1.5 (slow pulsars 1.49 +/- 0.19, recycled 1.54 +/- 0.23,
-  recalled Ozel and Freire 2016); tuning.STELLAR_NS_MASS_GAUSSIANS holds
-  exactly those two Gaussians and nothing reads them. Black holes are
-  uniform 5 to 20 solar masses whatever the progenitor (a 100 solar mass
-  star never leaves more than 20; the 8 to 12 solar mass peak, the tail
-  to 40 and the 2 to 5 mass gap from gravitational waves are absent).
-  Do: read the Gaussians; derive black hole mass from the progenitor
-  mass and metallicity (the GEN.560/563 black hole formation notes carry
-  the share, this is the missing mass half); a tweaked law is fine if
-  labelled L1 or L2. Recounted with GEN.930 (remnants). From the star
-  class audit
-  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
-  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
-  the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
-  or a fresh star-physics lane). Version 8.1.
-  Prerequisites: none. Related: GEN.922, GEN.932.
-
-- [ ] **GEN.938 One white dwarf initial-final mass relation, read by the star model, the multi-star roster, the disk history and mass_loss**
-  Audit finding M2. The star model, the multi-star roster and
-  remnant_mass.white_dwarf_mass_sol use Kalirai 2008 (0.109 M + 0.394,
-  clamped 0.5 to 1.35); the disk history and
-  mass_loss.progenitor_mass_sol use Weidemann 2000 (0.444 + 0.084 M);
-  they differ by 0.03 at 2 solar masses and 0.125 at 7, so a white
-  dwarf's recovered progenitor is not the one it was drawn from. Do: one
-  relation (Cummings 2018 or Kalirai with a stated tweak) in one place,
-  read everywhere; consider the helium-core white dwarf (under 0.45) the
-  0.5 floor never makes. The generated white dwarf population itself is
-  fine (mean mass 0.68, median 5,650 K). Merges with GEN.930 (remnants,
-  which recounts the copies). From the star class audit
-  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
-  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
-  the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
-  or a fresh star-physics lane). Version 8.1.
+  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
+  lane reported): Bug 1 keeps it (the floor of the same mass curve).
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.939 Wolf-Rayet luminosity and mass follow the star: a helium-star mass-luminosity relation, and a binary-stripped Wolf-Rayet route**
@@ -13783,6 +13767,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the GEN.932 epoch with the GEN.922 star mass function chain unless
   stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
   or a fresh star-physics lane). Version 8.1.
+  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
+  lane reported): the post-main-sequence and label work goes to a
+  star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
+  (fresh star-physics lane, Core 5, or Core 3). Must start now: the
+  GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
+  merged back to back inside the one GEN.932 turn.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.940 Present mass for giants, horizontal-branch, asymptotic and massive stars: a Reimers-type loss for the red giant and asymptotic branches and a wind loss for massive stars**
@@ -13801,6 +13791,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the GEN.932 epoch with the GEN.922 star mass function chain unless
   stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
   or a fresh star-physics lane). Version 8.1.
+  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
+  lane reported): the post-main-sequence and label work goes to a
+  star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
+  (fresh star-physics lane, Core 5, or Core 3). Must start now: the
+  GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
+  merged back to back inside the one GEN.932 turn.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.941 Forced star types draw their star from the model; the legacy letter tables and the dead random branch are removed; the class reference pages read the new ranges**
@@ -13826,6 +13822,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   answer option 1): this item is IN the long-term epoch GEN.932, so star
   subclass names, forced types and life paces are settled once. Owner
   Bug 1.
+  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
+  lane reported): the post-main-sequence and label work goes to a
+  star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
+  (fresh star-physics lane, Core 5, or Core 3). Must start now: the
+  GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
+  merged back to back inside the one GEN.932 turn.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.942 Supported life paces come from the star's actual lifespan; the per-letter lifespan table (tuning.STAR_EVOLUTION) is removed**
@@ -13849,6 +13851,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   answer option 1): this item is IN the long-term epoch GEN.932, so star
   subclass names, forced types and life paces are settled once. Owner
   Bug 1.
+  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
+  lane reported): owner moves to Aux 2 (life paces are its area); in the
+  long-term epoch GEN.932 (Boss 5:42 PM EDT).
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.943 Spectral subclasses from a letter-and-subclass temperature lookup table (Pecaut and Mamajek style), the K/M boundary at about 3,900 K, and a decision on Yerkes class VI (subdwarf)**
@@ -13872,6 +13877,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   answer option 1): this item is IN the long-term epoch GEN.932, so star
   subclass names, forced types and life paces are settled once. Owner
   Bug 1.
+  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
+  lane reported): the post-main-sequence and label work goes to a
+  star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
+  (fresh star-physics lane, Core 5, or Core 3). Must start now: the
+  GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
+  merged back to back inside the one GEN.932 turn.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.944 Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars)**
