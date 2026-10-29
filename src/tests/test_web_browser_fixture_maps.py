@@ -3107,6 +3107,47 @@ def test_galaxy_map_life_filters_show_only_the_systems_with_life_sentient_life_o
     assert "1 world with a civilization" in info and "1 world with sentient life" in info and "1 world with life" in info, info
 
 
+def test_galaxy_map_civilizations_can_be_chosen_by_technology_band(page, map_site):
+    """MAP.344: the Menu has a Civilization technology group with a marker for each technology band, off until chosen; a band shows only the
+    systems whose most advanced species is in it, a system with no species drawn yet is only in the Civilizations marker, and the card
+    names the band."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    _open_menu(page)
+    group = page.locator("#galaxymap3d-kinds")
+    assert "Civilization technology" in group.inner_text()
+    bands = group.locator('button[data-layer^="marker-tech-"]')
+    assert bands.count() == 8
+    assert all(button.get_attribute("aria-pressed") == "false" for button in bands.all())
+    assert [button.inner_text().strip() for button in bands.all()][:3] == ["Primal civilizations", "Agrarian civilizations", "Industrial civilizations"]
+    _poi_layers(page)    # no other reason on
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-black-hole" for e in entries), seconds=2)
+    assert not [e for e in found if e["kind"].startswith("marker-tech-")], "no band is marked until one is chosen"
+    group.locator('button[data-layer="marker-tech-industrial"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-tech-industrial" for e in entries))
+    assert [e["name"] for e in found if e["kind"].startswith("marker-tech-")] == ["Fixture Rest"], found
+    assert "show=marker-tech-industrial" in page.url, page.url
+    group.locator('button[data-layer="marker-tech-gravitic"]').click()
+    found = _markers_until(page, lambda entries: {e["name"] for e in entries if e["kind"].startswith("marker-tech-")} == {"Fixture Rest", "Fixture Dawn"})
+    assert {(e["kind"], e["name"]) for e in found if e["kind"].startswith("marker-tech-")} == {
+        ("marker-tech-industrial", "Fixture Rest"), ("marker-tech-gravitic", "Fixture Dawn")}, found
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-civilization"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-civilization" for e in entries))
+    assert {(e["kind"], e["name"]) for e in found if e["kind"] in ("marker-civilization",) or e["kind"].startswith("marker-tech-")} == {
+        ("marker-tech-industrial", "Fixture Rest"), ("marker-tech-gravitic", "Fixture Dawn"), ("marker-civilization", "Fixture Ember")}, found
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.wait_for_timeout(300)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    dawn = next(s for s in LIFE_FIELD if s["name"] == "Fixture Dawn")
+    spot = _screen_of(page, (dawn["x"], dawn["y"], dawn["z"]))
+    assert spot
+    page.mouse.move(*spot)
+    page.mouse.move(spot[0] + 1, spot[1])
+    page.mouse.click(*spot)
+    info = page.locator("#galaxymap3d-info").inner_text()
+    assert "2 worlds with a civilization, most advanced Gravitic" in info, info
+
+
 def test_the_default_map_marks_a_green_and_a_yellow_world_with_the_reason_listed_and_a_red_one_not(page, map_site):
     """MAP.303 acceptance: with no Menu choice made, the map marks the star of a Green world and of a Yellow one (the Yellow one's
     system is also inhabited, so its mark is the inhabited symbol), each card lists the habitable reason with its best tier, and the

@@ -350,6 +350,10 @@ def _run_population(conn, rescan, on_stage=None):
     drop_species_without_civilization(conn)
     stage("Population: dating civilizations and founding polities")
     refresh_civilizations(conn)
+    from planetgen.db import interests  # here: the db package imports this one
+
+    with conn:
+        interests.refresh_technology(conn)    # MAP.344: the map's civilization rows carry their most advanced species' level
     counts = conn.execute(
         "SELECT COUNT(*) AS species, COALESCE(SUM(spacefaring), 0) AS spacefaring FROM species"
     ).fetchone()
