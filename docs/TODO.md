@@ -1393,26 +1393,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
-- [ ] **MAP.176 Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. fixed-grid groups at 16 px cells drawn as a soft
-  sprite in the dominant family colour with an outline, split by fade
-  (the MAP.153 rule) as the camera zooms in, budget 600, per-kind
-  toggles (MAP.123) and a legend block. Done: the layer, the toggles and
-  the legend, with a browser test on a seeded galaxy. Default: 16 px
-  cells and a 600 budget. Owner: Core 3 (nebula chain; MAP.173 merged as #3609).
-  Note (2026-10-10, nebula density research, PR #1188): add a stress
-  test with 3,000 candidate regions keeping the 600 with the largest
-  volume; the region counts stay above the 600 budget from 8 kpc to 1
-  kpc even after the density cut, so tile size is set by the budget, not
-  by density.
-  Prerequisite: MAP.173. Related: MAP.142, MAP.123, MAP.153.
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
-
 - [ ] **MAP.177 Color by "Nebula cover" on the Galaxy Map**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
@@ -1711,7 +1691,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   read from the nebula layer of the tile. Done: a star behind a nebula
   is tinted by the nebula's family colour, the boundary fades, and the
   density views are unchanged.
-  Prerequisites: MAP.176, MAP.142. Related: MAP.191.
+  Prerequisites: MAP.142. Related: MAP.191.
 
 - [ ] **MAP.216 Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position**
   Split from MAP.192 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -2518,7 +2498,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   section 6; Boss answered 6:22 PM EDT 2026-10-28: density default 1.2,
   one mark per 120 by 120 px, as a user preference; rare heavy holes
   2.2, no landmark exemption). Boss live observation, so a bug. Owner:
-  Core 2. Do, in galaxymarkers.js and refreshMarkers: show a black hole
+  Core 3 (moved from Core 2, 11:49 PM EDT 2026-10-28: Core 3's lock-free item). Do, in galaxymarkers.js and refreshMarkers: show a black hole
   within 3 view distances of the view centre; beyond that only if its
   mass is at least Mmin times (r/3d) squared; rank by mass over distance
   squared from the view centre; cap the count by screen area at the
