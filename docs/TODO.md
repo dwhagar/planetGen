@@ -13467,19 +13467,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.932 epoch (decide with Boss whether the subclass and forced-type
   changes GEN.942 and GEN.943 are in it), the last is later (8.4).
 
-- [ ] **GEN.926 One initial mass function module (physics/imf.py) replaces the six copies of the power-law code, with no change of output**
-  Item 2 of the star mass function chain (GEN.922). One module holds the
-  single-star initial mass function (density, integral, quantile,
-  sampler) over segments read from tuning rows; star_population,
-  system_mass, disk_history, stellar_evolution, hii,
-  black_hole_formation, mathcheck and star.py all call it. Proves the
-  refactor with the golden unchanged, so the curve can change in one
-  place later. Lock-free (golden unchanged). Part of the GEN.922 chain,
-  plan
-  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
-  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
-  Prerequisites: none. Related: GEN.922.
-
 - [ ] **GEN.927 Single-star mass function rows: a bell below 1 solar mass, the field slope from 1 to 8, the sub-stellar tail and the massive end, with stand-in tiers and tweak levels and a design note**
   Item 3 of the star mass function chain (GEN.922). Replace the hand-set
   broken line (1.3 below 0.5, 2.3 above) with sourced rows for the
@@ -13491,7 +13478,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (item GEN.932). Part of the GEN.922 chain, plan
   /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
   (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
-  Prerequisites: GEN.933, TEST.454, GEN.926. Related: GEN.922, GEN.914.
+  Prerequisites: GEN.933. Related: GEN.922, GEN.914.
 
 - [ ] **GEN.928 System primaries follow from the single-star curve plus multiplicity (a top-down solve), with brown dwarf companions and the brown dwarf desert; the star-count table agrees**
   Item 4 of the star mass function chain (GEN.922). For each mass m,
@@ -13609,7 +13596,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   must not move); any boundary that moves is recorded and goes into the
   GEN.932 epoch. Sits between GEN.926 and GEN.927 in the order. Part of
   the GEN.922 chain. Owner: Bug 1. Version 8.1.
-  Prerequisites: GEN.926. Related: GEN.922, GEN.565, GEN.568.
+  Prerequisites: none. Related: GEN.922, GEN.565, GEN.568.
 
 - [ ] **GEN.934 Replace the hand-written mass conversions in about 47 modules with the unit registry helper (do not rename _sol/_solar)**
   Hygiene item from Bug 1's unified mass assessment (5:27 PM EDT
@@ -18955,19 +18942,6 @@ clears each one.
   reproduce. Owner back to Bug 1; it closes when #3713 merges at Bug 1's
   lock turn. Aux 7 does not redo it.
   Prerequisites: none. Related: TEST.411, TEST.450.
-
-- [ ] **TEST.454 The observed star mass-function curve as data, with a per-bin harness that measures the generator against it (segments from 0.01 to 150 solar masses by object type)**
-  Item 1 of the star mass function chain (GEN.922). Build the observed
-  curve as a data file: segments from 0.01 to 150 solar masses and by
-  type (brown dwarf, M, K, G, F, A, B, O, white dwarf, neutron star,
-  black hole, giant), for primaries and for all stars, each with source,
-  tier and tolerance; a harness measures the generator per mass bin and
-  reports the miss. It comes first so that every later step shows it
-  moves the right bins. Lock-free: no generated-output change. Part of
-  the GEN.922 chain, plan
-  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
-  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
-  Prerequisites: none. Related: GEN.922, TEST.430.
 
 - [ ] **TEST.455 A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink**
   Companion of GEN.945, asked by Boss (5:44 PM EDT 2026-10-29). Today
