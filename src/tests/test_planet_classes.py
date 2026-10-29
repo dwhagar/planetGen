@@ -134,7 +134,7 @@ def test_the_function_is_pure_total_and_the_same_from_an_object():
             body_type=rng.choice("tg"), mass_earth=10 ** rng.uniform(-4, 3.6), gravity_g=rng.uniform(0.01, 5),
             surface_temperature_k=rng.uniform(2.7, 2500), atmospheric_pressure_pa=rng.choice([0.0, 10 ** rng.uniform(-3, 8)]),
             ocean_fraction=rng.random(), water_mass_fraction=10 ** rng.uniform(-8, -0.3),
-            hydrosphere=rng.choice(["dry", "vapour", "ice", "ice-covered ocean", "surface ocean", "hycean", None]),
+            hydrosphere=rng.choice(["dry", "vapour", "ice", "ice-covered ocean", "surface ocean", "brine seep", "hycean", None]),
             flux_variation=rng.choice([0.0, rng.random()]))
         for gas in ("o2", "co2", "n2", "ar", "h2", "h2o", "ch4", "h2s", "so2", "co"):
             put_kpa(values, gas, rng.choice([0.0, values["atmospheric_pressure_pa"] / 1000.0 * rng.random() / 6]))
