@@ -3006,7 +3006,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.208 | `scripts/test.py --resume` reuses an earlier pass across builds when none of that test's own dependencies changed | none | done, PR #2124 |
 | TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree | none | done, PR #3613 |
 | TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | none | done, PR #3613 |
-| TEST.211 | A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism | none | open |
+| TEST.211 | A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism | none | done, PR #3625 |
 | TEST.212 | A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition | none | open |
 | TEST.213 | `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` failed in a loaded browser run: the wheel loop opened the system before the disc reached full share (bug) | none | done, PR #2103 |
 | TEST.214 | Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence | none | done, PR #3615 |

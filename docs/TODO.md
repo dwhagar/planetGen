@@ -14749,6 +14749,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
+  Owner: Core 4 (lock-free item while it waits for the generation lock, 11:53 PM EDT 2026-10-28; this replaces any earlier owner line on this item). Separate branch; no generation change.
 
 - [ ] **DB.40 Parity data backup part: the parity file of the DB repair copied into the backup archive**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
@@ -17445,44 +17446,6 @@ clears each one.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.394, GEN.395. Related: GEN.391, TEST.204.
   Design: [docs/design/galaxy/superbubble-density.md](design/galaxy/superbubble-density.md)
-
-- [ ] **TEST.211 A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition/composition-model.md. Generate a galaxy and check, for
-  stars of every kind: the fractions sum to one and stay in range; they
-  follow [Fe/H] and age as the relations say; remnants have their
-  layers; the result is the same at one and at four workers; no star
-  lacks a composition. Done: it passes on a generated galaxy and fails
-  when any rule is broken (a test that breaks each in turn).
-  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
-  for the star composition items together with the other composition
-  design and table items).
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): one shared fixture: a generated galaxy holding every
-  planet, moon and star class, built as a census check on TEST.186's
-  harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
-  over it, not four builds.
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/composition/body-composition-research.md and its five
-  parts in docs/design/composition/body-composition-parts/). Part A's tests: the
-  invariants of its section 3.5 (X + Y + Z = 1, the targets of its
-  section 4) and a distribution test of 1e5 draws against the Bensby and
-  Feltzing quantiles and the Thiabaud box shares (A-V1, A-V2).
-  Boss's gated possibility-table rule (1:38 AM EDT): the weights of the
-  star-composition rows that pass a star's gate add up to 100 percent;
-  the check is TEST.214's registry walk and this sweep adds the
-  star-specific cases.
-  Prerequisites: none. Related: TEST.210, GEN.439.
 
 - [ ] **TEST.212 A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -20533,7 +20496,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: TEST.212, TEST.211, DOC.63, DOC.65. Related: DB.70.
+  Prerequisites: TEST.212, DOC.63, DOC.65. Related: DB.70.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
 
