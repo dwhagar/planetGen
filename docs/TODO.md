@@ -13704,31 +13704,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   standing tests read classes in place of chemistries once GEN.889
   lands.
 
-- [ ] **GEN.875 Design: adaptation traits drawn from a world's own stress (radiation, UV, sulfide, acid, brine, heat or cold, high CO2, low O2, toxins), each moving one named habitability threshold**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 6, fix 8 (design
-  part). Table 6.1 maps each stress to real mechanisms (Deinococcus
-  repair, Mn antioxidants, tardigrade Dsup, melanin shielding,
-  sulfide-binding haemoglobin and the cave molly, acidophiles,
-  halophiles, hypercapnia tolerance), the trait it gives and the
-  threshold it moves (DOSE_THRESH_GY times 1, 10 or 100 for ordinary,
-  tolerant and extremotolerant; H2S limits times 10 to 1,000;
-  CO2_TOX_KPA times 2 to 10; METAZOA_O2_LOW_KPA; WATER_ACTIVITY_CRIT;
-  the temperature band). Design note with the checked table, the grades,
-  the draw (probability grows with the stress, capped, one sub-stream
-  draw per body, up to two or three traits), animal caps against microbe
-  caps, tiers and tweak levels. An adaptation never makes a world
-  habitable to people; it only widens what life there can be. Boss:
-  species adaptations for high radiation, hydrogen sulfide and other
-  poisons. Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds,
-  water and carbon based, stop at animals; sentient life and the life
-  class system wait for 9.5.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): kept; the trait list
-  gains Retinal, Melanin and the acid trait (see GEN.881).
-  Prerequisites: GEN.855, GEN.750.
-
 - [ ] **GEN.876 Adaptation traits built: drawn in the life pass, stored in a text column, listed on the object page (adapted to: radiation, sulfide) and read by the habitability scores**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 6.2, fix 8
@@ -13741,7 +13716,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09): Life class design
   (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
   EDT 2026-10-28, all four design cards option 1): kept.
-  Prerequisites: GEN.875, GEN.872.
+  Research (2026-10-09): Aux 2 (GEN.875 merged as #3583,
+  docs/design/habitability/adaptation-traits.md): nine stresses, three
+  grades with animals capped below microbes, a fixed 18 draws per body
+  on the life sub-stream, at most three traits, tier and tweak for every
+  number. Build-time finding: microbes need their own radiation
+  threshold (phi_cpx currently reuses phi_bio animal 10 Gy/yr); that
+  changes values, so it ships in the same epoch as the build. Builds in
+  the class-switch lock turn.
+  Prerequisites: GEN.872.
 
 - [ ] **GEN.877 Animal oxygen floor by grade: route R1 replaces the human 8 to 50 kPa window, with a floor of about 0.1 to 0.8 kPa for sponge-grade animals rising with body size**
   Life chemistry review (research thread, 2026-10-28,
