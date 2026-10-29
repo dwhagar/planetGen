@@ -18853,19 +18853,6 @@ clears each one.
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
 
-- [ ] **TEST.448 test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count is red on main: blocks show no tint in the new sector view (bug)**
-  Found by Bug 1 (3:07 AM EDT 2026-10-29 as the lane reported).
-  test_habitability_end_to_end_browser.py::test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count
-  is red on main: the blocks show no tint in the new sector view (the
-  patches overlap and the camera is inside the sector), likely from
-  MAP.335 (#3647) or MAP.341 (#3652). Do: bisect, then fix the test or
-  the sector view so the habitable tint shows; keep the test. Not a
-  skip. Done: the test passes on main. Owner: Aux 3 (map browser test
-  fixer, waiting for its lock turn); ask Core 2 if the cause is in the
-  new sector view. Prerequisites: none. Related: MAP.335, MAP.341,
-  TEST.445.
-  Prerequisites: none. Related: MAP.335, MAP.341, TEST.445.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
