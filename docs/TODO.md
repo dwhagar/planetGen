@@ -13906,6 +13906,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (lock queue, epoch). Version 8.1. Owner: Bug 1.
   Prerequisites: none. Related: TEST.432, GEN.229, TEST.430.
 
+- [ ] **GEN.900 Supernova remnants: the reference galaxy gets 260 while 294 are already catalogued (Green 2019) and the design target in tuning.py is 400 to 3000 (bug)**
+  Found by Bug 2 in the phenomena census (TEST.433 first cut, expected
+  totals the phenomenon scatter gives over the Milky Way-shaped
+  reference galaxy, no mass cut), 2026-10-28. Observed: 260 expected in
+  the Galaxy against 294 catalogued (Green 2019, arXiv:1907.02638, read
+  by Bug 2) and a design target of 400 to 3000 in tuning.py. The
+  catalogue is a lower bound (old remnants fade), so the generated count
+  should sit inside the design range. Do: find why the count is under
+  the lower target (the rate, the lifetime window or the young
+  population share in the reference galaxy), fix at the cause, and
+  record any tweak with its level in the stand-in registry. A change
+  that moves the scatter is a generation change (lock queue, epoch).
+  Version 8.1. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.433, GEN.898, GEN.278, TEST.430.
+
+- [ ] **GEN.901 Magnetars: the reference galaxy gets 22 while 26 are known (McGill catalog) and tuning.py (GEN.278) aims at about 100 active (30 to 600) (bug)**
+  Found by Bug 2 in the phenomena census (TEST.433 first cut),
+  2026-10-28. 22 in the Galaxy against 26 known (McGill catalog, Olausen
+  and Kaspi 2014) and the GEN.278 target of about 100 active (range 30
+  to 600). Cause not diagnosed; the young population share in the
+  reference galaxy is the first thing to check (the same age mix that
+  makes A and B stars too rare, GEN.898). Do: diagnose, fix at the
+  cause, record any tweak with its level in the stand-in registry. A
+  change that moves the scatter is a generation change (lock queue,
+  epoch). Version 8.1. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.433, GEN.898, GEN.278, GEN.897.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
