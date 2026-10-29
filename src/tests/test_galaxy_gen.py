@@ -71,6 +71,15 @@ EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 # A plan of a toy galaxy holds it in relative units, density 1 at its reference radius (GEN.404).
 pytestmark = pytest.mark.usefixtures("unit_density_plans")
 
+
+@pytest.fixture(autouse=True)
+def planetless_systems():
+    """These tests are about which sectors a run makes and where, not what is in them. A toy sector holds 100 to 350 systems, and a
+    system with its planets, moons and solved air takes seconds, so a sector took minutes and the file half an hour; with no planets it
+    takes seconds."""
+    with forced_system_config(PLANETS=False):
+        yield
+
 # A stored shape carries no thick disk, bar or halo values: the galaxy seed draws them on load (GEN.532, GEN.533). The
 # toy shape is therefore built with the structure its fixed seed draws, and `_seed_skeleton` stores that seed.
 _SKELETON_SEED = bytes(range(16))
@@ -576,7 +585,7 @@ _DUMMY_MYSQL_ARGV = [
 def test_wedge_mode_generates_exactly_the_one_requested_sector(mysql_config):
     _seed_skeleton(mysql_config, shells=_shells(3, 3))
 
-    _run_cli(["--shell", "2", "--band", "2", "--wedge", "1"] + _mysql_argv(mysql_config))
+    _run_cli(["--shell", "2", "--band", "2", "--wedge", "1"] + _mysql_argv(mysql_config), planets=False)
 
     sectors = _all_sectors(mysql_config)
     assert len(sectors) == 1
@@ -584,7 +593,7 @@ def test_wedge_mode_generates_exactly_the_one_requested_sector(mysql_config):
     assert sectors[0]["center_x_pc"] is not None
 
     # Re-running the identical address must reuse it, not duplicate it.
-    _run_cli(["--shell", "2", "--band", "2", "--wedge", "1"] + _mysql_argv(mysql_config))
+    _run_cli(["--shell", "2", "--band", "2", "--wedge", "1"] + _mysql_argv(mysql_config), planets=False)
     sectors_after_rerun = _all_sectors(mysql_config)
     assert len(sectors_after_rerun) == 1
     assert sectors_after_rerun[0]["id"] == sectors[0]["id"]
