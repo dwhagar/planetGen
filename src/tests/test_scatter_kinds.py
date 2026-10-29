@@ -218,3 +218,33 @@ def test_the_phenomena_shells_record_their_writing_time_apart_from_the_whole(mys
     written = [seconds for kind, seconds in recorder.seen if kind == "phenomena-write"]
     assert whole and len(written) == len(whole)
     assert 0 <= sum(written) <= sum(whole)
+
+
+# --- PERF.202: the one-step verbs are stages of the shared run ----------------------------------------------------------
+
+def _followers(mysql_config, *clears):
+    """The `clear-scatter` stages of the flags, one follower each."""
+    return [run_plan.ClearScatterFollower(_clear_args(mysql_config, flag)) for flag in clears]
+
+
+def test_two_verbs_in_one_run_keep_their_refusals_and_their_order(mysql_config):
+    from planetgen.generation import followed
+    from planetgen.queue import units
+    heavy, light = _first_scatter(mysql_config)
+    args = _clear_args(mysql_config, "--mass")
+    with pytest.raises(units.RunStopped, match="clear-scatter --luminosity"):       # the first verb refuses ...
+        followed.run_followed(args, _followers(mysql_config, "--mass", "--luminosity"), "Two verbs")
+    assert _star_ids(mysql_config, "1 = 1") == heavy | light, "... and the second never ran"
+    followed.run_followed(args, _followers(mysql_config, "--luminosity", "--mass"), "Two verbs")    # in order, both run
+    assert not _star_ids(mysql_config, "1 = 1")
+
+
+def test_the_refusal_of_a_second_verb_fires_after_the_first_verb_has_done_its_work(mysql_config, capsys):
+    from planetgen.generation import followed
+    from planetgen.queue import units
+    args = _scatter_args(mysql_config)
+    args.apply = False                       # no skeleton is stored: the nebula field has nothing to check against
+    with pytest.raises(units.RunStopped, match="has never been built"):
+        followed.run_followed(args, [*_followers(mysql_config, "--luminosity"), run_plan.CleanNebulaFieldFollower(args)],
+                              "Two verbs")
+    assert "The bright-star scatter has nothing stored." in capsys.readouterr().out, "the first verb ran and said so"

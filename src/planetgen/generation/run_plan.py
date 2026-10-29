@@ -440,11 +440,35 @@ def _store_containers(mysql_config, galaxy_seed, edge_pc, outer_shell_index):
     return f"Stored {clusters:,} globular clusters and {len(made) - clusters:,} superbubbles as containers."
 
 
+class SkeletonFollower(followed.Follower):
+    """
+    The galaxy skeleton as a stage of a run (PERF.106, PERF.202): the `plan-skeleton` command builds it in one unit
+    (`plan_skeleton_unit`) and this side logs what the unit says. The skeleton stage is only that unit, so the unit that
+    completes it stores the stage's row.
+
+    Attributes:
+        summary (dict): The build's summary (`plan_skeleton_unit`), once the unit is back.
+    """
+
+    key = "skeleton"
+    label = "Galaxy skeleton"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.summary = None
+
+    def params(self):
+        return skeleton_params(self.args, store.mysql_config_from_args(self.args))
+
+    def on_result(self, unit, result):
+        for line in result["lines"]:
+            log.normal(line)
+        self.summary = result["summary"]
+
+
 def _skeleton_on_queue(args):
     """
-    Builds the skeleton on the new queue (PERF.106): the wrapper selects the `plan-skeleton` command from this run's
-    steps, a unit builds it, and this process logs what the unit says. The skeleton stage is only that unit, so the
-    unit that completes it stores the stage's row.
+    Builds the skeleton on the new queue as a run of the `SkeletonFollower` stage.
 
     Returns:
         dict: The build's summary (`plan_skeleton_unit`).
@@ -452,29 +476,16 @@ def _skeleton_on_queue(args):
     Raises:
         SystemExit: The unit refused its parameters (the reach, or a seed that does not match a galaxy with sectors).
     """
-    mysql_config = store.mysql_config_from_args(args)
-    workers = run_common._worker_count(args)
-    step, listing = wrapper.step_for(args, "skeleton", "Galaxy skeleton", {
-        **skeleton_params(args, mysql_config), "workers": workers})
-    row = stages.hand_over_open_stage()
-    held = {}
-
-    def on_result(_index, _unit, result):
-        for line in result["lines"]:
-            log.normal(line)
-        held["summary"] = result["summary"]
-
+    follower = SkeletonFollower(args)
     try:
-        wrapper.run("Galaxy skeleton", [step], lambda _index, plan: None, on_result, workers_count=workers,
-                    who=getattr(args, "who", None), database=mysql_config.database, argv=getattr(args, "argv", None),
-                    seed=None, listing=listing, rows=None if row is None else {"skeleton": row})
+        followed.run_followed(args, [follower], "Galaxy skeleton")
     except units.RunStopped as exc:
         marker = "ValueError: "
         if marker not in str(exc):
             raise
         log.error(str(exc).split(marker, 1)[1])
         raise SystemExit(1) from exc
-    return held["summary"]
+    return follower.summary
 
 
 def _draw_naming_key(mysql_config, galaxy_seed, new_seed):
@@ -2497,6 +2508,36 @@ def clean_nebula_field_unit(params, report):
         conn.close()
 
 
+class CleanNebulaFieldFollower(followed.Follower):
+    """
+    The clean-up of the stored nebula field as a stage of a run (GEN.205, PERF.122, PERF.202): the `clean-nebula-field`
+    command checks the clouds (the dry run, always done and logged first) and, with `--apply`, deletes the rejected ones
+    (`clean_nebula_field_unit`); this side logs what the unit says.
+
+    Attributes:
+        result (dict): The unit's result: `stored`, `rejected`, `deleted`, and the `lines` it said.
+    """
+
+    key = "nebula-field"
+    label = "Nebula field"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.result = None
+
+    def params(self):
+        return {"apply": bool(self.args.apply)}
+
+    def on_plan(self, plan):
+        self.hold(steps.Step("Cleaning up the nebula field", "nebula-field-clean", 1, args=self.args,
+                             progress=self.progress))
+
+    def on_result(self, unit, result):
+        for line in result["lines"]:
+            log.normal(line)
+        self.result = result
+
+
 def clean_nebula_field(args):
     """
     Brings an existing galaxy's stored field clouds in line with the current keep rates (GEN.205), on the new queue:
@@ -2507,37 +2548,15 @@ def clean_nebula_field(args):
     Returns:
         dict: `stored` and `rejected` (per class, field clouds only) and `deleted` (the count removed).
     """
-    apply = bool(args.apply)
-    mysql_config = store.mysql_config_from_args(args)
-    workers = run_common._worker_count(args)
-    step, listing = wrapper.step_for(args, "nebula-field", "Nebula field", {
-        "apply": apply, "workers": workers, "database": wrapper.database_args(mysql_config)})
-    row = stages.hand_over_open_stage()
-    held = {}
-
-    def on_result(_index, _unit, result):
-        for line in result["lines"]:
-            log.normal(line)
-        held["result"] = result
-
-    with run_common._generation_progress() as progress:
-        log.set_console(progress.console)
-        try:
-            with steps.Step("Cleaning up the nebula field", "nebula-field-clean", 1, args=args, progress=progress):
-                try:
-                    wrapper.run("Nebula field", [step], lambda _index, plan: None, on_result, workers_count=workers,
-                                who=getattr(args, "who", None), database=mysql_config.database,
-                                argv=getattr(args, "argv", None), seed=None, listing=listing,
-                                rows=None if row is None else {"nebula-field": row})
-                except units.RunStopped as exc:
-                    marker = "RuntimeError: "
-                    if marker not in str(exc):
-                        raise
-                    raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
-        finally:
-            log.reset_console()
-    result = held["result"]
-    return {key: result[key] for key in ("stored", "rejected", "deleted")}
+    follower = CleanNebulaFieldFollower(args)
+    try:
+        followed.run_followed(args, [follower], "Nebula field")
+    except units.RunStopped as exc:
+        marker = "RuntimeError: "
+        if marker not in str(exc):
+            raise
+        raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
+    return {key: follower.result[key] for key in ("stored", "rejected", "deleted")}
 
 
 def redraw_nebula_field(args):
@@ -3051,23 +3070,28 @@ def clear_scatter_unit(params, report):
     return {"part": part, "lines": [f"Cleared the {name} scatter."]}
 
 
-def clear_scatter(args):
-    """`planetgen clear-scatter`'s work on the new queue: the `clear-scatter` command, one unit, and its lines logged."""
-    kind = stages.clear_kind(args)
-    key = stages.CLEAR_STAGE[kind].key
-    mysql_config = store.mysql_config_from_args(args)
-    step, listing = wrapper.step_for(args, key, stages.CLEAR_STAGE[kind].label, {
-        "database": wrapper.database_args(mysql_config)})
-    row = stages.hand_over_open_stage()
+class ClearScatterFollower(followed.Follower):
+    """
+    The clearing of one scatter's stored rows as a stage of a run (Boss's F7, PERF.121, PERF.202): the `clear-scatter`
+    command does it in one unit (`clear_scatter_unit`, which refuses when the bright stars are split from the massive
+    ones) and this side logs what the unit says. The stage is the kind's (`stages.CLEAR_STAGE`).
+    """
 
-    def on_result(_index, _unit, result):
+    def __init__(self, args):
+        super().__init__(args)
+        kind = stages.clear_kind(args)
+        self.key, self.label = stages.CLEAR_STAGE[kind].key, stages.CLEAR_STAGE[kind].label
+
+    def on_result(self, unit, result):
         for line in result["lines"]:
             log.normal(line)
 
+
+def clear_scatter(args):
+    """`planetgen clear-scatter`'s work on the new queue: the `clear-scatter` command, one unit, and its lines logged."""
+    follower = ClearScatterFollower(args)
     try:
-        wrapper.run(step.label, [step], lambda _index, plan: None, on_result, workers_count=1,
-                    who=getattr(args, "who", None), database=mysql_config.database, argv=getattr(args, "argv", None),
-                    seed=None, listing=listing, rows=None if row is None else {key: row})
+        followed.run_followed(args, [follower], follower.label)
     except units.RunStopped as exc:
         marker = "RuntimeError: "
         if marker not in str(exc):
