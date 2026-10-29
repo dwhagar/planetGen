@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 291 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 308 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 38 | 0 | 3 | 0 | 0 | 41 |
-| T2 | 55 | 0 | 0 | 0 | 0 | 55 |
-| T3 | 47 | 3 | 2 | 9 | 0 | 61 |
+| T2 | 56 | 0 | 0 | 1 | 0 | 57 |
+| T3 | 48 | 3 | 2 | 10 | 0 | 63 |
 | T4 | 14 | 0 | 0 | 2 | 0 | 16 |
-| T5 | 12 | 4 | 1 | 0 | 0 | 17 |
-| T6 | 28 | 6 | 1 | 8 | 0 | 43 |
-| T7 | 16 | 2 | 0 | 1 | 0 | 19 |
+| T5 | 13 | 4 | 1 | 0 | 0 | 18 |
+| T6 | 28 | 7 | 1 | 10 | 0 | 46 |
+| T7 | 16 | 2 | 0 | 6 | 0 | 24 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
-| T9 | 0 | 0 | 2 | 21 | 15 | 38 |
-| All | 210 | 15 | 9 | 41 | 16 | 291 |
+| T9 | 1 | 0 | 2 | 24 | 15 | 42 |
+| All | 214 | 16 | 9 | 53 | 16 | 308 |
 
 ## How the labels were given
 
@@ -438,3 +438,25 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PM7 | P | T9 | L3 | tuning.GIANT_GAS_SURVIVAL_CUT_AU 5 (beyond it the share falls as the square of the distance) | 3 to 10 | beyond 5 AU | test_planet_mass::test_giants_become_rarer_beyond_the_cut_distance; giants beyond 10 AU around more than a few percent of stars | a growth-time model of the outer cores | design (needed output: giants beyond 10 AU are rare in direct imaging, about 1 percent of stars; the survey values are recalled) |
 | PM8 | T | T5 | L1 | tuning.GIANT_NO_GAS_CORE_MAX_EARTH 20 (the core that finds no gas stops near an ice giant's mass) | 15 to 30 | beyond the snow line | test_planet_mass::test_a_core_that_finds_no_gas_stops_at_an_ice_giants_mass; a measured ice-giant mass function reaching above 30 Earth masses | a model of the late solid accretion of the outer disc | READ-level facts (Uranus 14.5 and Neptune 17.1 Earth masses) with a recalled microlensing occurrence (Suzuki et al. 2016) |
 | PM9 | P | T7 | L0 | tuning.GIANT_RUNAWAY_MIN_MASS_EARTH 30 (a runaway giant is at least this heavy) | 20 to 60 | all hosts | a giant of runaway origin measured below 20 Earth masses | the giant mass function of the cores' own growth | design (the old floor of class J) |
+
+## 6.21 Stand-ins of the life timeline and the biogenic oxygen
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| LT1 | P | T7 | L3 | tuning.LIFE_STEP_MEANS_GYR (0.5, 1.5, 2.5, 3, 60): the mean wait of each of the five hard steps (Boss chose complex cells 2.5, animals 3, civilization 60) | each mean 0.5 to 2 times | any rocky body with a life chemistry | test_life_timeline.test_the_shares_of_the_stages_stay_where_the_tuning_says | a hard-step fit to measured biosignature ages | design (Carter 1983 and Watson 2008 for the form, recalled; the means are chosen so the early steps are shorter than the late ones) |
+| LT2 | P | T9 | L3 | tuning.LIFE_STEP_SCALE 1.0: the one factor on every mean | 0.7 to 1.5 | the same | the same test | the same fit | needed output (measured: at 1.0 animals 41 in 100 and a civilization 2 in 100 over star ages of 3 to 13 Gyr) |
+| LT3 | T | T7 | L3 | tuning.LIFE_ACTIVATION_ENERGY_EV 0.30: the Boltzmann factor on the rate of every step | 0.2 to 0.8 eV (0.65 eV is the cell's chemistry) | worlds from 250 to 330 K | test_life_timeline.test_a_warm_world_goes_faster_and_a_cold_one_slower_inside_the_range | a rate of evolution measured against temperature | design (Gillooly et al. 2001 and Allen and Gillooly 2006 recalled; lowered from 0.65 so a warm world is not three times faster than the reference) |
+| LT4 | P | T6 | L1 | tuning.LIFE_RATE_FACTOR_RANGE (0.25, 2.5) and LIFE_REFERENCE_TEMPERATURE_K 288 | the range ends | the same | test_life_timeline.test_a_warm_world_goes_faster_and_a_cold_one_slower_inside_the_range | the same | design |
+| LT5 | P | T7 | L3 | tuning.LIFE_FIRST_LIGHT_SCALE: retinal 0.4, anoxygenic 0.6, radiotrophic 1.0, oxygenic 1.0 on the second step | each 0.3 to 1.0, keeping the order | chemistries of LIFE_CHEMICALS | test_life_schedule.test_the_first_light_comes_earlier_for_a_simpler_way_of_harvesting_it | ages of the first pigments and reaction centres | design (anoxygenic photosynthesis before about 3.5 Gyr and oxygenic after about 3 Gyr on Earth, recalled) |
+| LT6 | P | T9 | L0 | tuning.LIFE_START_AGE_GYR 0.1 and the pace words (LIFE_PACE_FAST_ABOVE 1.5, LIFE_PACE_SLOW_BELOW 0.67) | none (labels) | all worlds | test_life_timeline.test_the_pace_is_a_word_for_the_factor | none | needed output |
+| LT7 | P | T9 | L3 | tuning.LIFE_CHEMICALS gates: Retinal requires share_o2 < 0.1, Zinc-Bacteriochlorophyll share_o2 < 0.03 | none | the chemistry choice | test_biogenic_oxygen.test_an_oxygenic_chemistry_asks_for_a_sunlit_sea (the oxygenic gate) | GEN.861 (the carbon base, which asks Boss whether the retinal gate stays) | needed output (the non-oxygen research, 2026-10-28, section 7 item 6: the sources support either with oxygen present; the gates only keep the metabolism classes apart) |
+| LT8 | P | T7 | L3 | tuning.SUNLIT_OCEAN: oxygenic chemistries need a surface ocean or a hycean one; an ice-covered ocean is left out | none | oxygenic chemistries | test_biogenic_oxygen.test_an_oxygenic_chemistry_asks_for_a_sunlit_sea | a light-through-ice law | design (a hycean ocean touches the surface under its hydrogen envelope; the light a lid lets through is not modelled) |
+| BO1 | P | T2 | L3 | biogenic_oxygen.EARTH_BURIAL_MOL_YR 1e13: the source S of oxygen at Earth | 0.5e13 to 2e13 | the oxygen balance | test_biogenic_oxygen.test_earth_numbers_balance_at_the_oxygen_of_earths_air | the oxygen cycle of a measured world | RECALLED (Hayes and Waldbauer 2006, about 1e13 mol C a year) |
+| BO2 | P | T3 | L3 | biogenic_oxygen.EARTH_REDUCTANT_MOL_YR 3e12: the reductant flux R at Earth | 1e12 to 5e12 | the oxygen balance | the same | the same | RECALLED (Holland 2002, a few 1e12) |
+| BO3 | P | T9 | L3 | biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen | 3e21 to 1e22 | the delay of the oxygen | the same (0.714 Gyr) | a measured Great Oxidation delay | needed output (the first oxygen followed the first oxygenic photosynthesis by 0.3 to 1 Gyr) |
+| BO4 | P | T6 | L3 | biogenic_oxygen.LIGHT_EXPONENT 0.5 and LIGHT_RANGE (0, 2): production goes as the active light to this power | 0.3 to 1.0 | worlds with a sunlit sea | test_biogenic_oxygen.test_the_sea_makes_nothing_outside_its_liquid_range_and_most_near_the_reference | a measured productivity against light | design (production saturates) |
+| BO5 | T | T2 | L0 | biogenic_oxygen.TEMPERATURE_ACTIVATION_EV 0.32: the Boltzmann factor on production | 0.2 to 0.7 eV | the liquid range | the same | the same | RECALLED (Allen et al. 2005, about half a heterotroph's) |
+| BO6 | P | T6 | L3 | biogenic_oxygen.OCEAN_SPAN_K (258, 275, 315, 343): where the liquid range's factor rises to 1 and falls to 0 | a few K each | worlds with a sunlit sea | the same | a measured temperature range of marine production | design |
+| BO7 | P | T3 | L0 | biogenic_oxygen.EUKARYOTE_MINIMUM_PA 200: the oxygen the air must hold for the wait for complex cells to start | 100 to 2000 Pa | complex cells | test_life_schedule.test_a_chemistry_that_never_makes_oxygen_stops_at_photosynthesis_in_an_air_without_it | a measured oxygen need of early eukaryotes | RECALLED (Mills et al. 2014, about 1 percent of the present level) |
+| BO8 | P | T7 | L3 | biogenic_oxygen.REDOX_DECADE_PER_UNIT 0.25 and REDOX_FACTOR_RANGE (0.2, 5): a mantle one log unit more reduced puts out and stores 10 ** 0.25 times the reductants | 0.1 to 0.5 | rocky bodies | test_biogenic_oxygen.test_a_more_reduced_mantle_puts_out_more_reductants_inside_the_range | a mantle gas model | design |
+| BO9 | P | T5 | L0 | biogenic_oxygen.REDUCED_GASES: the oxygen each reduced gas takes and the oxides it leaves | none (stoichiometry) | air with H2, CO, CH4, NH3, H2S, C2H6 | test_biogenic_oxygen.test_burning_takes_the_oxygen_the_reduced_gases_want_and_leaves_their_oxides | the chemistry of the full air solver | design (the water goes to the ocean, the sulfur of H2S to the sulfate of the sea) |

@@ -27,7 +27,7 @@ fire limit).
 
 The numbers are those of the one world we know (`EARTH_*`, round figures from the literature of the oxygen cycle: Holland 2002; Lenton and
 Watson 2000; Catling and Claire 2005; Bergman et al. 2004, from memory), used as the test point and the scale and not as a preset: a world
-with another light, water, heat, redox and gravity gets another oxygen. Every constant is a stand-in in section 6.12 of
+with another light, water, heat, redox and gravity gets another oxygen. Every constant is a stand-in in section 6.21 of
 `docs/design/research/gap-filling-plan.md` with its tier and tweak level.
 
 What it leaves out: the loss of oxygen to space (a few parts in 1e4 of the inventory a Gyr for a habitable-zone world, far under the

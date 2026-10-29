@@ -93,8 +93,8 @@ def test_a_forced_timeline_has_none_when_the_oxygen_never_comes_or_comes_too_lat
 
 
 def test_the_shares_of_the_stages_stay_where_the_tuning_says():
-    """`tuning.LIFE_STEP_SCALE` is chosen for these shares (oxygenic life, 2 Gyr of delay, star ages of 3 to 13 Gyr): 24 in 100 reach animals and
-    4 in 100 a civilization."""
+    """`tuning.LIFE_STEP_MEANS_GYR` (Boss's choice) give these shares (oxygenic life, 2 Gyr of delay, star ages of 3 to 13 Gyr): 41 in 100 reach animals and
+    2 in 100 a civilization."""
     import random
     chance = random.Random(11)
     animals = civilizations = 0
@@ -104,5 +104,17 @@ def test_the_shares_of_the_stages_stay_where_the_tuning_says():
         ages = timeline.schedule(tuple(-math.log(1.0 - chance.random()) for _ in range(timeline.STEPS)), 1.0, 2.0)
         animals += ages[3] <= age
         civilizations += ages[4] <= age
-    assert 0.18 < animals / runs < 0.30
-    assert 0.02 < civilizations / runs < 0.07
+    assert 0.34 < animals / runs < 0.48
+    assert 0.010 < civilizations / runs < 0.035
+
+
+@pytest.mark.parametrize("pace, factor", [("fast", tuning.LIFE_PACE_FAST_ABOVE + 0.01), ("normal", 1.0),
+                                          ("slow", tuning.LIFE_PACE_SLOW_BELOW - 0.01)])
+def test_every_pace_reaches_complex_cells_inside_the_age_of_the_universe(pace, factor):
+    """GEN.873: on main the 'slow' pace could never pass photosynthesis. A median timeline, with the oxygen coming a Gyr after the first
+    photosynthesis, reaches complex cells and multicellularity inside 13.8 Gyr at every pace."""
+    assert timeline.pace_of(factor) == pace
+    median = (math.log(2.0),) * timeline.STEPS
+    ages = timeline.schedule(median, factor, 1.0)
+    assert ages[timeline.OXYGEN_STEP] < tuning.UNIVERSE_AGE_GY
+    assert ages[timeline.OXYGEN_STEP + 1] < tuning.UNIVERSE_AGE_GY

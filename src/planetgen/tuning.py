@@ -2322,6 +2322,9 @@ STAR_EVOLUTION = {
     }
 }
 
+# Not a world's schedule since GEN.750: a world draws its own five ages (`physics.life_timeline`, `LIFE_STEP_MEANS_GYR`). This table
+# names the three paces (the words `life_facts.pace_label` writes), gives the star-level helpers their lifespan classes
+# (`stellar_object.get_star_evolutionary_profile`, `age_needs`) and is what migration 0156 read to fill the ages of an older database.
 EVOLUTIONARY_TIMELINES = {
     "normal": { # Changed from "norm" to "normal" for consistency
         "star_lifespan": 10.0, # Billion Years
@@ -2454,13 +2457,14 @@ LIFE_SCHEDULE_FIELDS = tuple(f"life_age_{key}_gyr" for key in LIFE_MILESTONES)
 """tuple[str]: The body columns holding a world's milestone schedule (DB.100), one age in Gyr for each `LIFE_MILESTONES`
 milestone in order: `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr`."""
 
-LIFE_STEP_MEANS_GYR = (0.5, 1.5, 5.0, 10.0, 20.0)
+LIFE_STEP_MEANS_GYR = (0.5, 1.5, 2.5, 3.0, 60.0)
 """
 tuple[float]: The mean waiting time of each hard step of `LIFE_MILESTONES`, Gyr (GEN.750; docs/design/habitability/life-timeline-and-oxygen.md,
 reports/best-guess-standins-2026-10-24.md section 14): abiogenesis, oxygenic-type photosynthesis, complex cells, multicellular animals,
 civilisation. Each step takes an exponential waiting time with this mean once the one before it is done (the hard-step model of Carter 1983 and
 Watson 2008; the early means are shorter than the later because the first steps came early on the one world we know, which is a test point and
-not a preset). Stand-in T7, L3.
+not a preset). Boss chose these on 10-28 (9:03 PM EDT) from a Monte Carlo of the timeline: complex cells 2.5, animals 3 and a civilization 60
+Gyr make animals common and a civilization rare. Stand-in T7, L3.
 """
 
 LIFE_FIRST_LIGHT_SCALE = {"oxygenic": 1.0, "anoxygenic": 0.6, "retinal": 0.4, "radiotrophic": 1.0}
@@ -2471,13 +2475,13 @@ reaction centres and the water-splitting cluster, which the geological record pu
 oxygenic after about 3 Gyr on Earth); radiotrophy is left at the reference. Stand-in T7, L3: the ratios are chosen to keep that order.
 """
 
-LIFE_STEP_SCALE = 0.7
+LIFE_STEP_SCALE = 1.0
 """
-float: A factor on every `LIFE_STEP_MEANS_GYR` mean: the one knob that sets how common each stage is (GEN.750). Measured by drawing 40,000 timelines
-(`life_timeline.schedule`) against a star of any age from 3 to 13 Gyr, oxygenic life at the reference temperature and oxygen 2 Gyr after the
-first photosynthesis: at 0.7 complex cells are reached in 62 in 100, animals in 24 in 100 and a civilization in 4 in 100 (oxygen at 0.7 Gyr: 73, 32
-and 6); at 1.0 (the means as the report gives them) 48, 13 and 1.6. Stand-in T9, L3: chosen so that animals are common, a civilization about 1 in 25,
-and Boss can retune it.
+float: A factor on every `LIFE_STEP_MEANS_GYR` mean, the one knob that scales how common every stage is (GEN.750). It is 1.0: the means are the
+ones Boss chose. Measured by drawing 40,000 timelines (`life_timeline.schedule`) against a star of any age from 3 to 13 Gyr, oxygenic life at the
+reference temperature and oxygen 2 Gyr after the first photosynthesis: complex cells are reached in 65 in 100, animals in 41 in 100 and a
+civilization in 2 in 100 (oxygen at 0.7 Gyr: 76, 51 and 2.9). For stars of 1 to 10 Gyr (G) and 1 to 13.8 Gyr (K, M) animals are 21, 33 and 23 in
+100 and a civilization 0.6, 1.5 and 0.7. Stand-in T9, L3: chosen so that animals are common and a civilization rare; Boss can retune it.
 """
 
 LIFE_START_AGE_GYR = 0.1

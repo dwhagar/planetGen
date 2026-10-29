@@ -8,7 +8,7 @@ Before this change a world's stage of life came from a table of paces per chemis
 
 ## 2. The timeline (GEN.750)
 
-Five stages, in the order of `tuning.LIFE_MILESTONES`: abiogenesis, photosynthesis (the first harvesting of light), complex cells, multicellularity, technological civilization. Each is a hard step in the sense of Carter (1983) and Watson (2008): a rare event with an exponential waiting time whose mean (`LIFE_STEP_MEANS_GYR` = 0.5, 1.5, 5, 10, 20 Gyr, times `LIFE_STEP_SCALE`) is often longer than the world is old. The wait for a step starts when the one before it is done. A world has reached every stage whose age is less than the age of its star. No Earth history is copied.
+Five stages, in the order of `tuning.LIFE_MILESTONES`: abiogenesis, photosynthesis (the first harvesting of light), complex cells, multicellularity, technological civilization. Each is a hard step in the sense of Carter (1983) and Watson (2008): a rare event with an exponential waiting time whose mean (`LIFE_STEP_MEANS_GYR` = 0.5, 1.5, 2.5, 3, 60 Gyr, times `LIFE_STEP_SCALE` = 1; Boss chose them, 9:03 PM EDT 10-28) is often longer than the world is old. The wait for a step starts when the one before it is done. A world has reached every stage whose age is less than the age of its star. No Earth history is copied.
 
 Three things shape a world's own clock:
 
@@ -18,7 +18,7 @@ Three things shape a world's own clock:
 
 A forced technological civilization (`INTELLIGENT_LIFE`) is a timeline conditioned on finishing inside the world's age: `forced_waits` draws timelines on a stream of its own until one fits and squeezes the last one to fit when none does. The run's stream moves by one draw whatever happens.
 
-Measured shares (40,000 draws, star age uniform 3 to 13 Gyr, oxygenic life, reference temperature, oxygen 2 Gyr after the first photosynthesis): complex cells 62 in 100, animals 24 in 100, a civilization 4 in 100. The scale (0.7) is the one knob Boss can retune.
+Measured shares (40,000 draws, star age uniform 3 to 13 Gyr, oxygenic life, reference temperature, oxygen 2 Gyr after the first photosynthesis): complex cells 65 in 100, animals 41 in 100, a civilization 2 in 100 (for G, K and M stars of 1 to 10 or 13.8 Gyr: animals 21, 33, 23 and a civilization 0.6, 1.5, 0.7). The scale (1.0) is the one knob Boss can retune.
 
 ## 3. The oxygen (GEN.855)
 

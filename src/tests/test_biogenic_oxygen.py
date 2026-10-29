@@ -111,3 +111,24 @@ def test_an_oxygenic_chemistry_asks_for_a_sunlit_sea():
     for name, data in tuning.LIFE_CHEMICALS.items():
         if data["metabolism"] == "oxygenic":
             assert all(condition in data["requires"] for condition in tuning.SUNLIT_OCEAN), name
+
+
+def test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none(worlds):
+    """GEN.873: the air follows the life's age. A world whose photosynthesis is older than the delay holds the oxygen; one younger holds what
+    its air had before (none made by life)."""
+    past = before = 0
+    for world in worlds:
+        if not (world.life_chemical and evolution.releases_oxygen(world.life_chemical)):
+            continue
+        profile = bo.profile_of(world)
+        age = world.star.age - world.life_age_photosynthesis_gyr
+        if profile.delay_gyr is None:
+            continue
+        o2 = atmosphere.partial_kpa(world, "o2")
+        if age >= profile.delay_gyr:
+            assert o2 > 0.5, (world.name, o2, age, profile.delay_gyr)
+            past += 1
+        else:
+            assert o2 < 0.2, (world.name, o2, age, profile.delay_gyr)
+            before += 1
+    assert past + before >= 1
