@@ -111,6 +111,21 @@ def test_the_list_shows_what_is_near_with_links_and_the_ungenerated_count(client
     assert 'id="nearby-results"' in html
 
 
+def test_a_crowded_sphere_shows_its_early_stop_count_and_a_huge_one_is_a_message(client, mysql_config, monkeypatch):
+    from planetgen.db import near
+    system = _first_system(mysql_config)
+    url = f"/nearby?place=system:{system['pid']}&distance=50"
+    assert "star systems in range" not in client.get(url).get_data(as_text=True)
+    monkeypatch.setattr(near, "COUNT_CAP", 1)
+    html = client.get(url.replace("distance=50", "distance=49")).get_data(as_text=True)  # another URL: the page may be served from the cache
+    assert "1+ star systems in range" in html
+    monkeypatch.setattr(near, "SPHERE_LIMIT", 1)
+    response = client.get(url.replace("distance=50", "distance=48"))
+    assert response.status_code == 200
+    assert "holds more than 1 systems" in response.get_data(as_text=True)
+    assert "shrink the distance" in response.get_data(as_text=True)
+
+
 def test_a_kind_filter_and_a_point_place(client, mysql_config):
     html = client.get("/nearby?place=0,0,0&distance=50&kinds=planet").get_data(as_text=True)
     assert "Within 50 pc of (0.00, 0.00, 0.00) pc" in html

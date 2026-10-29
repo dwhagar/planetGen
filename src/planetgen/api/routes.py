@@ -665,12 +665,18 @@ def near():
     system) or `point` (`x,y,z`, galaxy-frame parsecs); `distance` is in
     parsecs, up to 50. Optional: `kinds` (comma-separated), `limit`
     (default 50, at most 200) and `offset`.
+
+    `nearest=K` (NAV.61) asks for the nearest K rows instead: the search tries 2, 4, 8, 16 and 32 pc and stops at the
+    first sphere that holds K, so it is quick at the dense core as well as at the Sun; `distance` is then optional and
+    caps how far it looks. A sphere that holds more than 100,000 systems is refused with a 400 that says to shrink the
+    distance. The answer carries `systems_in_range` (the systems in the sphere, counted no further than 10,000) and
+    `systems_in_range_capped` (true when there are more).
     """
     args = request.args
     conn = get_db()
     if (args.get("from") is None) == (args.get("point") is None):
         raise ApiError("give exactly one of from (an object reference) or point (x,y,z in parsecs)")
-    if args.get("distance") is None:
+    if args.get("distance") is None and args.get("nearest") is None:
         raise ApiError("distance query parameter is required")
     try:
         if args.get("from") is not None:
@@ -682,9 +688,14 @@ def near():
         else:
             place = near_search.place_from_point(args["point"].split(","))
         kinds = [kind for kind in args["kinds"].split(",") if kind] if args.get("kinds") else None
-        result = near_search.objects_within(
-            conn, place, args["distance"], kinds=kinds,
-            limit=_int_arg(args, "limit", near_search.DEFAULT_LIMIT), offset=_int_arg(args, "offset", 0))
+        if args.get("nearest") is not None:
+            result = near_search.nearest(
+                conn, place, _int_arg(args, "nearest", 1), kinds=kinds,
+                max_distance_pc=args.get("distance", near_search.MAX_DISTANCE_PC))
+        else:
+            result = near_search.objects_within(
+                conn, place, args["distance"], kinds=kinds,
+                limit=_int_arg(args, "limit", near_search.DEFAULT_LIMIT), offset=_int_arg(args, "offset", 0))
     except near_search.NearError as exc:
         raise ApiError(str(exc))
     return jsonify(result)

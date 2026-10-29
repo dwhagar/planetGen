@@ -171,7 +171,8 @@ def nearby():
     return render_page(
         "nearby.html", title=f"Within {distance_raw} pc of {place['name']}", place_name=place["name"],
         place_url=_place_url(place), rows=rows, total=result["total"], counts=counts, pages=pages,
-        not_generated=not_generated, not_generated_total=result["not_generated_total"], **context,
+        not_generated=not_generated, not_generated_total=result["not_generated_total"],
+        systems_capped=result["systems_in_range_capped"], systems_in_range=result["systems_in_range"], **context,
         **{**page, "breadcrumbs": [crumb("What's nearby", "nearby"), crumb(place["name"])]})
 
 

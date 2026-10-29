@@ -345,3 +345,129 @@ def test_api_near_answers_and_refuses(client, galaxy):
                 "/api/near?point=0,0&distance=5", "/api/near?point=0,0,0&distance=5&kinds=ship",
                 "/api/near?point=0,0,0&distance=5&limit=x", "/api/near?from=system:99999999&distance=5"):
         assert client.get(bad).status_code == 400, bad
+
+
+def test_the_early_stop_count_counts_up_to_its_cap(galaxy):
+    """NAV.61: `capped_count` is the sphere's real count below the cap and the cap above it."""
+    from planetgen.db import region
+    conn = _conn(galaxy)
+    try:
+        systems = _systems(conn)
+        center = sector_position_pc(*ADDRESSES[0], EDGE_PC)
+        position = ("p.galaxy_x_pc", "p.galaxy_y_pc", "p.galaxy_z_pc")
+        inside = sum(1 for _n, point in systems.values() if math.dist(center, point) <= 12.0)
+        assert 2 <= inside < len(systems) + 1
+        assert region.capped_count(conn, "star_systems", position, center, 12.0, 10_000) == inside
+        assert region.capped_count(conn, "star_systems", position, center, 12.0, inside) == inside
+        assert region.capped_count(conn, "star_systems", position, center, 12.0, inside - 1) == inside - 1
+        assert region.capped_count(conn, "star_systems", position, (300000.0, 0.0, 0.0), 5.0, 10) == 0
+        with pytest.raises(region.RegionError):
+            region.capped_count(conn, "star_systems", position, center, 12.0, 0)
+    finally:
+        conn.close()
+
+
+def test_a_sphere_over_the_limit_is_refused_with_the_way_out(galaxy, monkeypatch):
+    conn = _conn(galaxy)
+    try:
+        place = near.place_from_point(sector_position_pc(*ADDRESSES[0], EDGE_PC))
+        held = near.objects_within(conn, place, near.MAX_DISTANCE_PC, kinds=["system"], limit=1)["by_kind"]["system"]
+        assert held >= 2
+        monkeypatch.setattr(near, "SPHERE_LIMIT", held)
+        assert near.objects_within(conn, place, near.MAX_DISTANCE_PC, kinds=["system"], limit=1)["total"] == held
+        monkeypatch.setattr(near, "SPHERE_LIMIT", held - 1)
+        with pytest.raises(near.NearError, match=f"holds more than {held - 1:,} systems.*shrink the distance"):
+            near.objects_within(conn, place, near.MAX_DISTANCE_PC, kinds=["system"], limit=1)
+        monkeypatch.setattr(near, "SPHERE_LIMIT", 0)      # even the smallest rung holds a system at a system's own spot
+        here = near.place_from_reference(conn, str(next(iter(_systems(conn)))))
+        with pytest.raises(near.NearError, match="shrink the distance"):
+            near.nearest(conn, here, 1)
+    finally:
+        conn.close()
+
+
+def test_the_count_of_systems_in_range_is_capped_for_display(galaxy, monkeypatch):
+    conn = _conn(galaxy)
+    try:
+        place = near.place_from_point(sector_position_pc(*ADDRESSES[0], EDGE_PC))
+        everything = near.objects_within(conn, place, near.MAX_DISTANCE_PC, kinds=["system"], limit=1)
+        held = everything["by_kind"]["system"]
+        assert everything["systems_in_range"] == held and not everything["systems_in_range_capped"]
+        monkeypatch.setattr(near, "COUNT_CAP", held - 1)
+        capped = near.objects_within(conn, place, near.MAX_DISTANCE_PC, kinds=["system"], limit=1)
+        assert capped["systems_in_range"] == held - 1 and capped["systems_in_range_capped"]
+        assert capped["total"] == held        # the listing itself stays exact
+    finally:
+        conn.close()
+
+
+def test_nearest_stops_at_the_first_radius_that_holds_enough(galaxy, monkeypatch):
+    conn = _conn(galaxy)
+    try:
+        place = near.place_from_point(sector_position_pc(*ADDRESSES[0], EDGE_PC))
+        asked = []
+        real = near.objects_within
+        monkeypatch.setattr(near, "objects_within",
+                            lambda conn, place, distance, **kwargs: asked.append(distance) or real(conn, place, distance, **kwargs))
+        wide = real(conn, place, near.MAX_DISTANCE_PC, kinds=["system"], limit=near.MAX_LIMIT)
+        wanted = 5
+        found = near.nearest(conn, place, wanted, kinds=["system"])
+        assert [row["ref"] for row in found["rows"]] == [row["ref"] for row in wide["rows"][:wanted]]
+        assert found["distance_pc"] == asked[-1] and asked == list(near.LADDER_PC[:len(asked)])
+        assert real(conn, place, asked[-1], kinds=["system"])["total"] >= wanted
+        if len(asked) > 1:
+            assert real(conn, place, asked[-2], kinds=["system"])["total"] < wanted
+
+        asked.clear()
+        everything = near.nearest(conn, place, near.MAX_LIMIT, kinds=["system"])
+        assert asked == list(near.LADDER_PC) + [near.MAX_DISTANCE_PC]
+        assert everything["distance_pc"] == near.MAX_DISTANCE_PC and everything["total"] == wide["total"] < near.MAX_LIMIT
+
+        asked.clear()
+        near.nearest(conn, place, near.MAX_LIMIT, kinds=["system"], max_distance_pc=10.0)
+        assert asked == [2.0, 4.0, 8.0, 10.0]
+    finally:
+        conn.close()
+
+
+@pytest.mark.parametrize("count", [0, -3, near.MAX_LIMIT + 1, "x"])
+def test_a_bad_nearest_count_is_refused(galaxy, count):
+    conn = _conn(galaxy)
+    try:
+        with pytest.raises((near.NearError, ValueError)):
+            near.nearest(conn, near.place_from_point((0, 0, 0)), count)
+    finally:
+        conn.close()
+
+
+def test_api_near_nearest_and_the_dense_core_refusal(client, galaxy, monkeypatch):
+    point = ",".join(f"{v:.3f}" for v in sector_position_pc(*ADDRESSES[0], EDGE_PC))
+    body = client.get(f"/api/near?point={point}&nearest=3&kinds=system").get_json()
+    assert len(body["rows"]) == 3 and body["distance_pc"] in near.LADDER_PC + (near.MAX_DISTANCE_PC,)
+    assert [row["distance_pc"] for row in body["rows"]] == sorted(row["distance_pc"] for row in body["rows"])
+    assert body["systems_in_range"] >= 3 and body["systems_in_range_capped"] is False
+    assert client.get(f"/api/near?point={point}&nearest=3&distance=3").get_json()["distance_pc"] <= 3.0
+    for bad in (f"/api/near?point={point}&nearest=0", f"/api/near?point={point}&nearest=x",
+                f"/api/near?point={point}&nearest=3&distance=99"):
+        assert client.get(bad).status_code == 400, bad
+
+    monkeypatch.setattr(near, "SPHERE_LIMIT", 1)
+    refused = client.get(f"/api/near?point={point}&distance=50")
+    assert refused.status_code == 400 and "shrink the distance" in refused.get_json()["error"]
+
+
+def test_the_command_line_asks_for_the_nearest_few(galaxy, monkeypatch, capsys):
+    import sys
+    from planetgen.cli import query as query_cli
+    from tests.bughunt_support import mysql_argv
+    point = ",".join(f"{v:.3f}" for v in sector_position_pc(*ADDRESSES[0], EDGE_PC))
+
+    def run(*argv):
+        monkeypatch.setattr(sys, "argv", ["query", *mysql_argv(galaxy), "near", point, *argv])
+        query_cli.main()
+        return capsys.readouterr().out
+
+    out = run("--nearest", "3", "--kinds", "system")
+    assert out.count("\n") == 4 and " found within " in out         # three rows and the summary line
+    with pytest.raises(SystemExit, match="--distance"):
+        run()

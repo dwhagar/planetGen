@@ -49,8 +49,12 @@ def process_args():
     )
     near_parser.add_argument('place', help="An object reference (system:<ID>, planet:<ID>, nebula:<ID> ...; a bare "
                                            "three-part ID is a system) or a galaxy-frame point 'x,y,z' in parsecs.")
-    near_parser.add_argument('--distance', type=float, required=True,
-                             help=f"Search distance in parsecs, up to {near.MAX_DISTANCE_PC:g}.")
+    near_parser.add_argument('--distance', type=float,
+                             help=f"Search distance in parsecs, up to {near.MAX_DISTANCE_PC:g}; with --nearest, how far "
+                                  f"to look at most (default {near.MAX_DISTANCE_PC:g}).")
+    near_parser.add_argument('--nearest', type=int,
+                             help=f"The nearest N rows (up to {near.MAX_LIMIT}), found by trying {', '.join(f'{r:g}' for r in near.LADDER_PC)} "
+                                  "pc in turn; quick even at the dense core.")
     near_parser.add_argument('--kinds', help="Only these kinds, comma-separated: " + ", ".join(near.SEARCH_KINDS) + ".")
     near_parser.add_argument('--limit', type=int, default=near.DEFAULT_LIMIT, help="Rows to show (default 50).")
     near_parser.add_argument('--offset', type=int, default=0, help="Rows to skip.")
@@ -133,17 +137,25 @@ def main():
                         raise near.NearError(f"{args.place!r} names nothing")
                     place = near.place_from_reference(conn, resolved)
                 kinds = [kind for kind in args.kinds.split(",") if kind] if args.kinds else None
-                result = near.objects_within(conn, place, args.distance, kinds=kinds,
-                                             limit=args.limit, offset=args.offset)
+                if args.nearest is not None:
+                    result = near.nearest(conn, place, args.nearest, kinds=kinds,
+                                          max_distance_pc=args.distance or near.MAX_DISTANCE_PC)
+                elif args.distance is None:
+                    raise near.NearError("give --distance (parsecs) or --nearest (a number of rows)")
+                else:
+                    result = near.objects_within(conn, place, args.distance, kinds=kinds,
+                                                 limit=args.limit, offset=args.offset)
             except (near.NearError, ids.IdError) as exc:
                 raise SystemExit(f"Error: {exc}")
             result = ids.translate(result, {"rows[].id": "by-kind"}, conn)
             if not result["rows"]:
-                print(f"Nothing within {args.distance:g} pc of {place['name']}.")
+                print(f"Nothing within {result['distance_pc']:g} pc of {place['name']}.")
             for row in result["rows"]:
                 parent = f" -- {row['parent']['name']}" if row["parent"] else ""
                 print(f"[{row['ref']}] {row['name']}{parent} -- {format_distance_pc(row['distance_pc'])}")
-            print(f"{result['total']} found; {result['not_generated_total']} more in range are not generated yet.")
+            capped = f" ({result['systems_in_range']:,}+ systems in range)" if result["systems_in_range_capped"] else ""
+            print(f"{result['total']} found within {result['distance_pc']:g} pc{capped}; "
+                  f"{result['not_generated_total']} more in range are not generated yet.")
 
         elif args.command == 'planets':
             planets = list_planets(
