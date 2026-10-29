@@ -153,6 +153,7 @@ item has no row there.
 | 9.2 | [version-9-2-politics-and-territories.md](plan/releases/version-9-2-politics-and-territories.md) | Politics and territories |
 | 9.3 | [version-9-3-ships-and-stations.md](plan/releases/version-9-3-ships-and-stations.md) | Ships and stations |
 | 9.4 | [version-9-4-galaxy-types.md](plan/releases/version-9-4-galaxy-types.md) | Galaxy types |
+| 9.5 | [version-9-5-life-classes.md](plan/releases/version-9-5-life-classes.md) | Life classes and sentient life |
 | 10.0 | [version-10-0-roles-and-permissions.md](plan/releases/version-10-0-roles-and-permissions.md) | Roles and permissions |
 | later | [version-later-future-features.md](plan/releases/version-later-future-features.md) | Future features (not scheduled) |
 
@@ -13815,6 +13816,49 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tier and tweak level, and a test covers a world with the base removed.
   Prerequisites: GEN.855, GEN.750. Related: GEN.857, GEN.858, GEN.859,
   GEN.860, GEN.725.
+  Research (2026-10-09): Boss, 7:43 PM EDT 2026-10-28, card answer: the
+  retinal gate (share_o2 below 0.1) does not stay; remove it, so the
+  retinal pigment follows the star and the life kind, not an oxygen
+  share gate. Core 1 was told.
+
+- [ ] **GEN.862 The life class system: the habitable index gains a dimension, habitable to what kind of life**
+  Boss (2026-10-28, 7:41 PM EDT): the class system is expanded in 9.5
+  with a life class system, an expansion of the habitable index, because
+  the habitable index then has more dimensions: habitable to what kind
+  of life? Design the life classes (carbon and water based life first,
+  stage-aware: microbial, plants, animals, then sentient), the score
+  each world gets per life class, how the existing habitable index
+  (PHI-6) becomes the near-Earth carbon and water case of it, and where
+  a class is derived from the atmosphere of evolution (GEN.857 to
+  GEN.861). Any life class that is not carbon based is a proposal only
+  until Boss approves it. Done when the design note is checked and Boss
+  has answered its questions.
+  Prerequisites: GEN.855, GEN.750, GEN.858. Related: GEN.857, GEN.861.
+
+- [ ] **GEN.863 Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters**
+  Boss (2026-10-28, 7:41 PM EDT): built from the 9.5 design: the
+  habitable index becomes a set of scores, one per life class, kept in a
+  migration with the units registry entries, returned by the API and
+  shown on the planet page and in the map's world filters. The existing
+  single habitable index stays as the near-Earth carbon and water class.
+  Prerequisites: GEN.862.
+
+- [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
+  Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for
+  9.5: sentient species and their civilizations are generated from the
+  life class a world supports, with the share of worlds that have
+  sentient life kept as it is (Boss, 7:38 PM EDT: no more intelligent
+  worlds than now, but a mix of kinds). Carbon and water based only
+  until Boss approves another chemistry.
+  Prerequisites: GEN.863.
+
+- [ ] **GEN.865 Headline of 9.5: life classes, so every world is rated for the kind of life it could hold, and sentient life draws from them**
+  Boss (2026-10-28, 7:41 PM EDT): the life class system and sentient
+  life. Done when every need has merged and Boss has said the version is
+  ready; the version number is stamped by the release process and never
+  by hand, and no `.major.md` note is written without Boss's word.
+  Headline: 9.5 (life classes and sentient life).
+  Prerequisites: GEN.864, TEST.435.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19433,6 +19477,12 @@ clears each one.
   quarantine a test), and check the habitable layer default is intended
   (Boss asked for markers on). Owner: Bug 1.
   Prerequisites: none. Related: MAP.220, MAP.311, TEST.405, TEST.418.
+
+- [ ] **TEST.435 Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges**
+  Boss (2026-10-28, 7:41 PM EDT): adds the life class and stage shares
+  to the prevalence suite of TEST.430, with targets from the researched
+  norms and the share of sentient worlds held to its present value.
+  Prerequisites: GEN.863, TEST.430.
 
 ## USR: User accounts
 
