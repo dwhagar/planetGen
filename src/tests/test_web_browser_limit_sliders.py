@@ -112,8 +112,8 @@ def test_ticking_follow_again_returns_the_core_to_the_galaxy_wide_limits(page):
     core_floor.fill("30000")
     follow = page.locator(f"#{PLAN}-core input[name=core_follow]")
     assert not follow.is_checked()
-    follow.check()
-    assert _value(core_floor) == 9900.0
+    page.locator(f"#{PLAN}-core sl-checkbox[name=core_follow]").click()      # the box is a UI checkbox: its input sits under the control
+    assert follow.is_checked() and _value(core_floor) == 9900.0
 
 
 def test_a_core_floor_under_the_galaxy_wide_one_is_warned_of(page):
