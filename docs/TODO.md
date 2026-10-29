@@ -338,7 +338,7 @@ with `clamp()`.
   returns an outline edge set, so the highlight here is only the fill
   (as MAP.238) from the region's sectors and bounding box; the
   "coplanar-merged edge set" outline text above no longer applies.
-    Prerequisites: UX.47, MAP.190. Related: MAP.237.
+    Prerequisites: UX.47. Related: MAP.237.
 
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
   Carry into UX.43 or a small follow-up: a check that every file under
@@ -1824,34 +1824,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-
-- [ ] **MAP.190 Several separate regions of created sectors: which one the Galaxy Map opens on**
-  GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
-  (Boss, 2026-10-13 23:16Z): "Multiple regions will have to be handled
-  with an algorithm of some kind, not sure what yet." Done: when created
-  sectors form more than one separate group, the map has a rule for
-  which group it opens on and a way to jump between the groups (a list
-  of regions). Decided (Boss, 2026-10-14 13:27Z): the map opens on the
-  largest group; a user's own home (USR.11) overrides it.
-  Owns the one server-side derivation of the regions of created sectors,
-  exposed as `GET /api/galaxy/regions` (sectors of each region, bounding
-  box, outline edge set) with one contiguity rule (face adjacency; edge
-  or corner contact is not contiguous, the default recorded on UX.48);
-  the Galaxy Map's "which region to open on" and "jump between regions"
-  and UX.48 read it (2026-10-16 review).
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): the two items needed each other. MAP.190 now comes first
-  and needs nothing; MAP.189 frames the largest region it returns (Core
-  2 reads both together).
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
-  and "Drop it", as the coordinator reported it): the region outline
-  edge set is dropped from `GET /api/galaxy/regions` (no named use
-  remains: MAP.237 draws no outline); the endpoint returns each region's
-  sectors and bounding box, with the one face-adjacency contiguity rule.
-  Prerequisites: none. Related: MAP.189, MAP.151 (done, PR #1539).
+  Research (2026-10-09): MAP.190 retired as done (Aux 2 read main at
+  8:39 PM EDT 2026-10-28): the jump list exists (charted-regions list in
+  the Menu, MAP.316/317, GET /galaxy/regions and
+  /api/galaxy/charted-regions, regions largest share first, a click
+  flies to the region). The one missing piece is the open-on rule: the
+  map still opens at the origin (initialCenter [0,0,0] in
+  maps/galaxymap3d.py) and nothing frames the largest group; it belongs
+  here with the region landing (the largest region is regions[0] of the
+  endpoint; a user's home overrides it later, USR.11). Owner: Core 2.
 
 - [ ] **MAP.191 Galaxy Map default view: no density shading, only nebulae shade the stars behind them**
   GitHub issue [#1233](https://github.com/dwhagar/planetGen/issues/1233)
@@ -2932,6 +2913,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   missing key reads as frame; the map codes both and the preferences
   screen is UX.236. Done: browser tests for the box, the ruler, the
   crumbs and both landing modes.
+  Research (2026-10-09): MAP.190 retired as done (Aux 2 read main at
+  8:39 PM EDT 2026-10-28): the jump list exists (charted-regions list in
+  the Menu, MAP.316/317, GET /galaxy/regions and
+  /api/galaxy/charted-regions, regions largest share first, a click
+  flies to the region). The one missing piece is the open-on rule: the
+  map still opens at the origin (initialCenter [0,0,0] in
+  maps/galaxymap3d.py) and nothing frames the largest group; it belongs
+  here with the region landing (the largest region is regions[0] of the
+  endpoint; a user's home overrides it later, USR.11). Owner: Core 2.
   Prerequisites: MAP.333. Related: MAP.257, UX.236, API.36.
 
 - [ ] **MAP.337 Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests**
@@ -19768,7 +19758,7 @@ clears each one.
   "Confirmed drop 'home', we will choose viewing based on where sectors
   are generated."): the galaxy has no home position; this item (a user's
   own home field) is unchanged and is the only home.
-  Prerequisites: MAP.189, MAP.190. Related: MAP.189, MAP.190, USR.8.
+  Prerequisites: MAP.189. Related: MAP.189, MAP.190, USR.8.
 
 - [ ] **USR.12 Permission catalogue and one `can()` check: user, moderator, admin and Owner as data**
   Boss (2026-10-16, 1:43 PM EDT), headline of 10.0 (USR.25): three

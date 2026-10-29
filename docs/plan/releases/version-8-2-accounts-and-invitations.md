@@ -35,7 +35,7 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | UX.179 | Sitemap entries and an Open Graph image for object pages (optional, can wait) |  |  |
 | UX.206 | Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view | UX.179 |  |
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | UX.46 |  |
-| UX.48 | Charted regions as bookmarks that frame and outline the region | UX.47, MAP.190 |  |
+| UX.48 | Charted regions as bookmarks that frame and outline the region | UX.47 |  |
 | UX.45 | Bookmark management | UX.46, UX.47, UX.48 | Parent; per browser until accounts (USR.7) move them. |
 | UX.92 | A Bookmark button for planets, moons and belts | UX.45 |  |
 
@@ -64,7 +64,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | USR.1 | User accounts | USR.2, USR.3, USR.4, USR.5, USR.6, USR.7 | Parent; closes with its subitems. |
 | USR.8 | Every signed-in user can generate a one-off system | USR.26 | Boss 05:16Z. Today /admin/generate/system is admin-only and only admin accounts exist, so no earlier step is needed. Open question: per-user limit (default 30 an hour, admins unlimited). |
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | USR.7, USR.26 | Research suggestion; not requested. |
-| USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | MAP.189, MAP.190 |  |
+| USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | MAP.189 |  |
 
 ### The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28)
 
