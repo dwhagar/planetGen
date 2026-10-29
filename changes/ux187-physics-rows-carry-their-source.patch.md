@@ -1,0 +1,4 @@
+**Headline:** The physics rows on a star, planet or moon page now say where their value comes from.
+
+### Changed
+- **A one-line source under each physics value (UX.187).** The eccentricity and inclination of an orbit, the tidal and interior heat, the Urey ratio and the tectonic regime, thorium and uranium, the spin and tilt, the magnetic moment, the ring edge and optical depth, and the five life ages now carry one sentence under the number that says how it was worked out and which generator item does it (for example the Kepler multi-planet law for an eccentricity, or Peale, Cassen and Reynolds for tidal heat). The API sheet row has the same text as `source`. Only values that are stored on main are covered; a row whose rule is not written down has no line, and the rows of values still being added (the escape and delivery history, the star states) get theirs when their columns land. Nothing generated or stored changes.

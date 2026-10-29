@@ -234,7 +234,8 @@ def sheet_view(sheet):
     nothing is left out unless its absence matters (`describe.sheet.SHOW_WHEN_ABSENT`); a group left empty goes too."""
     absent = set(sheet.get("missing") or ())
     groups = [{"key": group["key"], "label": group["label"],
-               "rows": [{"key": row["key"], "label": row["label"], "html": _value_html(row), "stored": row["stored"]}
+               "rows": [{"key": row["key"], "label": row["label"], "html": _value_html(row), "stored": row["stored"],
+                         "source": row.get("source")}
                         for row in group["rows"] if _listed(row)]}
               for group in sheet["groups"] if group["key"] not in absent]    # UX.203: a section of zeros is one sentence
     if "atmosphere" in absent:
