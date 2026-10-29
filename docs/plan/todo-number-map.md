@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.449 |
+| TEST | TEST.450 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -3244,7 +3244,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.436 | Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges | none | open |
 | TEST.437 | test_climate_draws test_every_class_stores_the_draws_its_temperature_is_made_of fails for 20 classes: the stored surface temperature differs from the draws' formula by 0.03 K (365.639 vs 365.607) (bug) | none | done, PR #3558 |
 | TEST.438 | test_planet_classes test_only_the_known_writers_assign_a_class fails: db/interests.py is a new writer of planet_class and is not in CLASS_WRITERS (bug) | none | done, PR #3562 |
-| TEST.439 | test_web_browser_map_perf.py fails on main: the climb moves stars over the buffer at up 1 and up 4, and teardown raises page errors on indexOf and scale (bug) | none | open |
+| TEST.439 | test_web_browser_map_perf.py fails on main: the climb moves stars over the buffer at up 1 and up 4, and teardown raises page errors on indexOf and scale (bug) | none | done, PR #3674 |
 | TEST.440 | test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale fails on main: the scale text reads 0.25 sectors where 2.5 is expected (bug) | none | done, PR #3571 |
 | TEST.441 | Tests red on main from the albedo-greenhouse, moon-tidal-flux and mass-backfill migrations; the white dwarf models dataset is also missing on a fresh test machine (bug) | none | done, PR #3665 |
 | TEST.442 | Browser map tests red on main: menu_filters_sit_side_by_side (2 tests), test_system_map_selection_drill_and_measure and test_a_star_in_a_sector_far_from_the_core_is_selectable (bug) | none | done, PR #3639 |
@@ -3253,6 +3253,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.445 | Four map browser tests in test_web_browser_fixture_maps.py red on main: point phenomena links, black hole markers toggle and legend, nebula click clears the selection, wide map card keeps the page edge (bug) | none | done, PR #3650 |
 | TEST.446 | Two tests red on main: the generated config.schema.json out of date, and the batch-fill units listing rescore-habitability first (bug) | none | done, PR #3665 |
 | TEST.448 | test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count is red on main: blocks show no tint in the new sector view (bug) | none | done, PR #3672 |
+| TEST.449 | test_sheet_fill "no empty column that applies" is red on main: life_age_complex_cells_gyr is empty (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
