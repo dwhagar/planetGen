@@ -180,7 +180,7 @@ REGISTRY = _commands(
     CommandSpec("reset-galaxy", "Reset the galaxy: wipe every content table of the database, one unit",
                 unit=("planetgen.cli.reset", "reset_galaxy_unit"),
                 expand=("planetgen.cli.reset", "expand_reset_galaxy"), whole=True),
-    CommandSpec("check-math", "Check the math against known answers (TEST.68), one unit",
+    CommandSpec("check-math", "Check the math against known answers, one unit",
                 unit=("planetgen.physics.mathcheck", "check_math_unit"),
                 expand=("planetgen.physics.mathcheck", "expand_check_math"), whole=True),
     CommandSpec("check-datasets", "Check where each dataset stands, fetching nothing: the data check, one unit",

@@ -50,6 +50,16 @@ def test_the_new_rules_read_the_physics_they_state():
     assert sheet.applies("moon", "C", "induced_moment_a_m2") and not sheet.applies("planet", "C", "induced_moment_a_m2")
 
 
+def test_the_ages_after_oxygen_apply_only_to_a_world_that_reached_them():
+    """A world whose life waits for oxygen that never comes stores no age for the stages from complex cells on (TEST.449)."""
+    for key in ("life_age_complex_cells_gyr", "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr"):
+        assert not sheet.applies("planet", "M", key, {"life_microbial": 2, "life_stage": "photosynthesis"})
+        assert not sheet.applies("moon", "C", key, {"life_microbial": 2, "life_stage": None})
+        assert sheet.applies("planet", "M", key, {"life_microbial": 2, "life_stage": "complex_cells"})
+        assert sheet.applies("planet", "M", key)
+    assert sheet.applies("planet", "M", "life_age_photosynthesis_gyr", {"life_microbial": 2, "life_stage": "photosynthesis"})
+
+
 def test_star_and_comet_rules():
     assert sheet.applies("star", "M", "wide_binary_a_crit_km", {"role": "primary"}) and not sheet.applies("star", "M", "wide_binary_a_crit_km", {"role": "single"})
     assert sheet.applies("comet", "comet", "orbital_period_years", {"orbit_type": "elliptical"})

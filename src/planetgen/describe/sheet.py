@@ -20,6 +20,7 @@ Reads only: no generation code and no description text is touched.
 
 import dataclasses
 
+from planetgen import tuning
 from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
@@ -728,6 +729,8 @@ OCEAN_STATES = ("surface ocean", "ice-covered ocean", "hycean")
 _LIFE_DETAIL = ("life_chemical", "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
                 "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
                 "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
+_LIFE_AFTER_OXYGEN = ("life_age_complex_cells_gyr", "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
+_STAGES_AFTER_OXYGEN = tuple(tuning.LIFE_MILESTONES[tuning.LIFE_MILESTONES.index("complex_cells"):])
 _BANDS = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k")
 _ZONES = ("temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
 _DAYLIGHT = ("day_share_equator", "solar_day_hours", "daylight_hours")
@@ -771,6 +774,8 @@ _BODY_RULES = [
      "an ocean's depth, chemistry, pH and water activity exist only where there is a liquid ocean"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
+    (_LIFE_AFTER_OXYGEN, lambda klass, row: row is None or row.get("life_stage") in _STAGES_AFTER_OXYGEN,
+     "complex cells need free oxygen, which a world has only if its air holds it or its photosynthesis builds it; a world that never does has no age for the stages from complex cells on, and its stage stops before them"),
     (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
      "a world with no magnetic field has no magnetopause"),
     (_BANDS, lambda klass, row: _locked(row) is not True,
