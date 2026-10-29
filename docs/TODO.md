@@ -13585,26 +13585,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 9.5 (life classes and sentient life).
   Prerequisites: GEN.864, TEST.435.
 
-- [ ] **GEN.866 A planet draw around an F5V star at an ecosphere orbit never returns when a large tidally forced moon is generated: the interior heat step size collapses (bug)**
-  Found by Bug 2 (as the lane reported, 8:52 PM EDT 2026-10-28), on main
-  at 134d8bb: a bare planet draw around an F5V star at an ecosphere
-  orbit does not return for minutes when a large tidally forced moon is
-  generated. The time sits in physics/interior_heat.py, heat then cool,
-  the adaptive step loop (around lines 310 to 320), where the step size
-  of 1 over the stiffness collapses. The moon: 2.26e23 kg, 2517 km,
-  778,000 km from a 4.67e24 kg planet, eccentricity 0.0074, age 4.09 Gy;
-  the surface temperature differs per call, so it depends on the air
-  solve feeding the heat. A hang here stalls any sector fill that rolls
-  such a system. Repro: python3
-  /mnt/project-files/reports/bug2/gen763-hang-repro.py from the repo
-  root (prints HUNG after 60 s). Fix: bound the step loop (a floor on
-  the step, an implicit step for a stiff case, or a cap on the step
-  count with the converged value); the normal-path values must not
-  change, so no epoch is wanted; if the golden files do change, the item
-  goes to the lock queue. Add a regression test with the moon above and
-  a time bound.
-  Prerequisites: none. Related: GEN.856, GEN.763, PERF.190.
-
 - [ ] **GEN.867 The star lists and the chemistry weights agree, and a carbon and water chemistry is never drawn on a non-water solvent**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 4.2 and 8, fix
@@ -13994,28 +13974,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   oxidants) ride with the Class 4 rows of the classifier. Supersedes
   GEN.874 and GEN.885.
   Prerequisites: GEN.887, GEN.888, GEN.889.
-
-- [ ] **GEN.895 A system draw crashes with ZeroDivisionError in interior_heat._flux_w_m2 (viscosity 0), reached through validation.reconcile_moved_planet for a moon of a moved planet (bug)**
-  Found by Bug 2 in the class census (TEST.430), 2026-10-28: about 2 in
-  600 F5V and K0III systems on main (7dd638ac4) crash; it is system 71
-  of the F5V seed. Repro: python3
-  /mnt/project-files/reports/bug2/interior-heat-zero-division-repro.py
-  from the repo root. Same area as GEN.866 (the interior-heat hang), so
-  the same fix may cover both; a crash fails a whole sector fill. Do:
-  find why the viscosity reaches 0 (a moved planet reconciles its moon
-  with a state the heat step never sees in the normal path), fix it at
-  the cause with a floor or a proper limit, keep the normal-path values
-  unchanged (no epoch if the golden files do not move), and add a
-  regression test with the repro system. Version 8.1. Owner: Aux 2 with
-  GEN.866.
-  Research (2026-10-09): Core 2 (as the lane reported, 2026-10-28) hit
-  the same ZeroDivisionError at interior_heat.py line 249 (_flux_w_m2,
-  the Rayleigh number divided by viscosity 0) once while running browser
-  tests on the sample-run fixture (shell 0 band 0), reached from
-  generate_directed_sector via generate_sectors_unit (the released_j
-  accumulation loop); intermittent, the next three runs were fine. So it
-  also fails the sample-run fixture, not only the census.
-  Prerequisites: none. Related: GEN.866, GEN.856, GEN.763, TEST.430.
 
 - [ ] **GEN.896 Since 4c (epoch 106) hot-zone planets and moons almost never score Yellow: the Yellow share fell to 0 for M2V, G2V and F5V (bug)**
   Found by Bug 2 in the class census (TEST.430), 2026-10-28. Share of
@@ -19693,17 +19651,6 @@ clears each one.
   and carbon based, stop at animals; sentient life and the life class
   system wait for 9.5.
   Prerequisites: TEST.430, GEN.879, GEN.880, GEN.882, GEN.883, GEN.876.
-
-- [ ] **TEST.437 test_climate_draws test_every_class_stores_the_draws_its_temperature_is_made_of fails for 20 classes: the stored surface temperature differs from the draws' formula by 0.03 K (365.639 vs 365.607) (bug)**
-  Found by Aux 4 (as the lane reported, 9:02 PM EDT 2026-10-28) in the
-  wider run after GEN.812: red on the commit before GEN.812 too, so a
-  clean-main red. The stored surface temperature is not the value
-  rebuilt from the stored draws; find which step changes the temperature
-  after the draws are stored (a later pass, a rounding, or the
-  greenhouse solve running twice) and make the draws and the stored
-  value agree, or correct the test if the formula is stale. Owner: Aux 2
-  (knows the climate draws).
-  Prerequisites: none. Related: TEST.434, GEN.812.
 
 - [ ] **TEST.439 test_web_browser_map_perf.py fails on main: the climb moves stars over the buffer at up 1 and up 4, and teardown raises page errors on indexOf and scale (bug)**
   Found by Core 2 (9:02 PM EDT 2026-10-28, as the lane reported) while
