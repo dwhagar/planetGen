@@ -12637,6 +12637,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   needed (no lane holds it; staffing put to the coordinator 5:52 PM
   EDT). Boss's call, not filed as a decision: keep downloading, or pause
   the two datasets until this starts.
+  Research (2026-10-09): Boss decisions (5:58 PM EDT 2026-10-29): a new
+  lane Air 1 ("Air 1: Wire ExoMol and HITRAN greenhouse (2026-10-29)")
+  is approved and owns GEN.850 and GEN.851 (GEN.852 proposed, low
+  priority, after the two); ExoMol and HITRAN keep downloading at setup.
   Prerequisites: none. Related: GEN.715, GEN.717, GEN.718.
 
 - [ ] **GEN.851 Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today)**
@@ -12651,6 +12655,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lookup-table wiring. Owner: none yet; released pool.
   Research (2026-10-09): Data-use audit (10-29): goes with GEN.850 (same
   unowned wiring); see its note.
+  Research (2026-10-09): Owner: Air 1 with GEN.850 (Boss 5:58 PM EDT
+  2026-10-29).
   Prerequisites: none. Related: GEN.715, GEN.717, GEN.718, GEN.850.
 
 - [ ] **GEN.852 Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others)**
@@ -12665,6 +12671,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wiring items.
   Prerequisites: none. Related: GEN.715, GEN.717, GEN.718, GEN.850,
   GEN.851.
+  Research (2026-10-09): Proposed for Air 1 after GEN.850 and GEN.851
+  (low priority; Air 1 may hand it back).
 
 - [ ] **GEN.854 Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug)**
   Boss, 6:59 PM EDT 2026-10-28 (relayed by the coordinator), live
@@ -14018,10 +14026,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.949 Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets**
   Found by the data-use audit (rank 8, 10-29): giant visible colour
   comes from coarse bins; the better tables are held and not read, and
-  no item wires them. Licence first: the Oxford page states no licence
-  ("not yet fully verified"), so a fetch waits for Boss's entry in
-  DATA-LICENSE.md. Do: read the tables into the colour path for giants.
-  Stand-in tier Verified (L0) once read. Owner: none yet. Version 8.4.
+  no item wires them. Boss (5:58 PM EDT 2026-10-29): ignore the licence,
+  go ahead; he will handle DATA-LICENSE.md later (the Oxford page states
+  no licence, "not yet fully verified"). Do: read the tables into the
+  colour path for giants. Stand-in tier Verified (L0) once read. Owner:
+  Air 1 (after GEN.850/851; the same atmosphere opacity data path).
+  Version 8.4.
   Prerequisites: none. Related: GEN.944.
 
 - [ ] **GEN.950 Water share of solids by distance from Lodders 2003 Table 11 and its condensation temperatures, replacing the fixed 170 K snow line (low priority)**
