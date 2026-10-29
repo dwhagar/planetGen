@@ -3567,6 +3567,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // MAP.219: the marker layer (galaxymarkers.js): glyphs over the notable things, a toggle and a legend line per kind.
   var markerKinds = createMarkerKinds();
   var POI_GROUP = "Points of interest";
+  var CLASS_GROUP = "World classes";   // MAP.220: one optional marker for each planet class, all off until chosen
   var INHABITED_MARKER_KIND = INTEREST_KINDS.find(function (kind) { return kind.interest === "inhabited"; });
   var markerLayer = null;
   var markersDirty = true;
@@ -3577,9 +3578,11 @@ function initGalaxyMap3d(canvasEl, data) {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
     });
     stageView.layers.bulkGroup(POI_GROUP);
+    stageView.layers.bulkGroup(CLASS_GROUP);
     markerKinds.kinds().forEach(function (kind) {
       stageView.layers.register({
-        id: kind.id, label: kind.label, modes: ["galaxy"], group: kind.interest ? POI_GROUP : "Markers", forward: !!kind.interest,
+        id: kind.id, label: kind.label, modes: ["galaxy"], forward: !!kind.interest && kind.family !== "class",
+        group: kind.family === "class" ? CLASS_GROUP : kind.interest ? POI_GROUP : "Markers",
         data: { marker: kind.glyph || kind.icon },
         defaultOn: kind.defaultOn, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
         title: "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),

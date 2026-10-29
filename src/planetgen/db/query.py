@@ -4875,7 +4875,7 @@ def galaxy_system_interests_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
     """
     The star systems worth a mark on the map (a habitable world, a gas giant: `interests.REASONS`) whose position lies in the box
     `[lo, hi)` (MAP.305), at most `limit`, those with the most bodies behind their reasons first (ties by id), read from
-    `system_interests` by its position key.
+    `system_interests` by its position key. The class reasons (`interests.CLASS_REASONS`) are not read here, `galaxy_class_interests_in_box` does.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -4893,11 +4893,51 @@ def galaxy_system_interests_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
         FROM system_interests i FORCE INDEX (idx_system_interests_position)
         WHERE i.galaxy_x_pc >= ? AND i.galaxy_x_pc < ? AND i.galaxy_y_pc >= ? AND i.galaxy_y_pc < ?
           AND i.galaxy_z_pc >= ? AND i.galaxy_z_pc < ?
+          AND i.reason NOT LIKE ?
         ORDER BY i.n DESC, i.star_system_id, i.reason
         LIMIT ?
         """,
-        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], max(0, int(limit)) * len(interests.REASONS)),
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], interests.CLASS_PREFIX + "%", max(0, int(limit)) * len(interests.BASE_REASONS)),
     ).fetchall()
+    return _interest_systems(conn, rows, limit)
+
+
+def galaxy_class_interests_in_box(conn, lo, hi, per_class):
+    """
+    The star systems with a planet or moon of each planet class (the `class-` reasons of `interests.REASONS`, MAP.220) whose position lies
+    in the box `[lo, hi)`: for each class at most `per_class` systems, those with the most bodies of it first (ties by id). The base
+    reasons are `galaxy_system_interests_in_box`'s; a system is listed here with only its class reasons.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
+        hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
+        per_class (int): The most systems listed for one class.
+
+    Returns:
+        list[dict]: As `galaxy_system_interests_in_box`, with only `class-` reasons in `reasons`.
+    """
+    if int(per_class) <= 0:
+        return []
+    rows = conn.execute(
+        """
+        SELECT star_system_id, reason, n, best_score, galaxy_x_pc, galaxy_y_pc, galaxy_z_pc FROM (
+            SELECT i.star_system_id, i.reason, i.n, i.best_score, i.galaxy_x_pc, i.galaxy_y_pc, i.galaxy_z_pc,
+                   ROW_NUMBER() OVER (PARTITION BY i.reason ORDER BY i.n DESC, i.star_system_id) AS rk
+            FROM system_interests i FORCE INDEX (idx_system_interests_position)
+            WHERE i.galaxy_x_pc >= ? AND i.galaxy_x_pc < ? AND i.galaxy_y_pc >= ? AND i.galaxy_y_pc < ?
+              AND i.galaxy_z_pc >= ? AND i.galaxy_z_pc < ? AND i.reason LIKE ?
+        ) ranked WHERE rk <= ?
+        ORDER BY n DESC, star_system_id, reason
+        """,
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], interests.CLASS_PREFIX + "%", int(per_class)),
+    ).fetchall()
+    return _interest_systems(conn, rows, None)
+
+
+def _interest_systems(conn, rows, limit):
+    """The `system_interests` `rows` as the systems they belong to (`galaxy_system_interests_in_box`' shape), the `limit` with the most
+    bodies kept (all of them for a `limit` of None), named."""
     systems = {}
     for row in rows:
         system = systems.setdefault(row["star_system_id"], {
@@ -4909,7 +4949,9 @@ def galaxy_system_interests_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
             reason["tier"] = habitability.tier(float(row["best_score"]))
         system["reasons"][row["reason"]] = reason
         system["bodies"] += int(row["n"])
-    chosen = sorted(systems.values(), key=lambda system: (-system["bodies"], system["id"]))[:max(0, int(limit))]
+    chosen = sorted(systems.values(), key=lambda system: (-system["bodies"], system["id"]))
+    if limit is not None:
+        chosen = chosen[:max(0, int(limit))]
     names = {}
     for start in range(0, len(chosen), 500):
         ids = [system["id"] for system in chosen[start:start + 500]]

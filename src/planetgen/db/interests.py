@@ -60,6 +60,29 @@ REASONS = {
 """dict: The interest reasons, in the order the map prefers them (the first a system has names its mark, MAP.321: the best world's
 symbol, an inhabited one before a habitable one before a barren one before a gas giant before a belt)."""
 
+CLASS_PREFIX = "class-"
+"""str: A planet class's reason is this and the class letter ("class-K"): a system with a planet or moon of that class (MAP.220, the
+chosen classes). The visitor chooses which of them the map shows; they come after the reasons above, so a system that has one of those
+keeps that mark."""
+
+
+def class_reason(letter):
+    """The reason id of planet class `letter`."""
+    return CLASS_PREFIX + letter
+
+
+for _letter in sorted(tuning.PLANET_CLASSES):
+    REASONS[class_reason(_letter)] = {
+        "planets": "p.planet_class = ?", "moons": "m.planet_class = ?", "score": None, "params": (_letter,),
+    }
+del _letter
+
+CLASS_REASONS = tuple(reason for reason in REASONS if reason.startswith(CLASS_PREFIX))
+"""tuple: The class reasons, one for each planet class, in letter order."""
+
+BASE_REASONS = tuple(reason for reason in REASONS if not reason.startswith(CLASS_PREFIX))
+"""tuple: The reasons that are not a class: what every node lists whatever the visitor chose."""
+
 
 def reason_ids():
     """The reason ids, in order."""

@@ -6,8 +6,11 @@ a planet or moon rated Yellow or better overall on the PHI-6 score, a gas giant)
 shells and smaller (`interests`), and a re-score keeps the rows right.
 """
 
+import pathlib
+
 import pytest
 
+from planetgen import tuning
 from planetgen.db import interests, query, store
 from planetgen.db import nodes
 from planetgen.galaxy import spherical
@@ -364,6 +367,169 @@ def test_a_v166_galaxy_gets_the_inhabited_reason_from_what_it_holds(mysql_config
         conn.execute("UPDATE alembic_version SET version_num = '0166'")
         conn.execute("DELETE FROM schema_migrations")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (166)")
+        conn.commit()
+    finally:
+        conn.close()
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        got = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        assert got == want
+    finally:
+        conn.close()
+
+
+def _class_counts(conn, system_id):
+    """How many planets and moons of the system there are of each class, from the bodies themselves."""
+    counts = {}
+    for table in ("planets", "moons"):
+        for row in conn.execute(f"SELECT planet_class AS c, COUNT(*) AS n FROM {table} WHERE star_system_id = ? GROUP BY planet_class",
+                                (system_id,)).fetchall():
+            counts[row["c"]] = counts.get(row["c"], 0) + row["n"]
+    return counts
+
+
+def _set_classes(conn, system_id, planet_classes):
+    """Gives the system's planets these classes in order (the planets after them and all the moons are class D)."""
+    ids = [row["id"] for row in conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
+    for index, planet_id in enumerate(ids):
+        conn.execute("UPDATE planets SET planet_class = ? WHERE id = ?", (planet_classes[index] if index < len(planet_classes) else "D", planet_id))
+    conn.execute("UPDATE moons SET planet_class = 'D' WHERE star_system_id = ?", (system_id,))
+    store.recount_habitable_worlds(conn, [system_id])
+
+
+def _second_system(conn, sector_id, letter):
+    """A second system of the sector, beside the first, whose planets are all class `letter` (and its moons D); returns its id."""
+    for seed in range(200, 320):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        cfg.PLANETS = True
+        cfg.MAX_PLANETS = True
+        cfg.BINARY_SYSTEM = False
+        with draw.bound(seed):
+            system = StarSystem(system_config=cfg)
+        system_id = store.insert_star_system(conn, system, cfg, sector_id=sector_id)
+        if conn.execute("SELECT COUNT(*) AS n FROM planets WHERE star_system_id = ?", (system_id,)).fetchone()["n"] >= 2:
+            break
+        conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
+    else:
+        pytest.fail("no system with two planets in 120 seeds")
+    conn.execute("UPDATE star_systems SET galaxy_x_pc = ?, galaxy_y_pc = ?, galaxy_z_pc = ? WHERE id = ?",
+                 (POSITION_PC[0], POSITION_PC[1], POSITION_PC[2] + 0.1, system_id))
+    conn.execute("UPDATE planets SET planet_class = ? WHERE star_system_id = ?", (letter, system_id))
+    conn.execute("UPDATE moons SET planet_class = 'D' WHERE star_system_id = ?", (system_id,))
+    store.recount_habitable_worlds(conn, [system_id])
+    return system_id
+
+
+def test_every_planet_class_is_a_reason_after_the_others_and_the_map_lists_the_same_letters():
+    assert interests.CLASS_REASONS == tuple(interests.class_reason(letter) for letter in sorted(tuning.PLANET_CLASSES))
+    assert tuple(interests.REASONS)[-len(interests.CLASS_REASONS):] == interests.CLASS_REASONS
+    assert interests.BASE_REASONS == (interests.INHABITED, interests.HABITABLE, interests.UNINHABITABLE, interests.GAS_GIANT,
+                                      interests.ASTEROID_FIELD)
+    script = (pathlib.Path(__file__).resolve().parents[1] / "html" / "static" / "galaxymarkers.js").read_text(encoding="utf-8")
+    assert f'PLANET_CLASS_LETTERS = "{"".join(sorted(tuning.PLANET_CLASSES))}".split("")' in script
+    assert f"CLASS_MAX_BLOCK = {nodes.CLASS_ABOVE};" in script, "the map and the nodes agree on the biggest block that lists the classes"
+    assert all(len(reason) <= 24 for reason in interests.REASONS), "a reason fits the reason column"
+
+
+def test_a_system_has_a_row_for_each_class_it_holds_a_planet_or_moon_of(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _set_classes(conn, system_id, ["K", "K", "O"])
+        counts = _class_counts(conn, system_id)
+        rows = _rows(conn, system_id)
+        class_rows = {reason: row for reason, row in rows.items() if reason.startswith(interests.CLASS_PREFIX)}
+        assert {reason[len(interests.CLASS_PREFIX):]: row["n"] for reason, row in class_rows.items()} == \
+            {letter: n for letter, n in counts.items() if letter in tuning.PLANET_CLASSES}
+        assert class_rows["class-K"]["n"] >= 2 and class_rows["class-O"]["n"] >= 1
+        assert all(row["best_score"] is None for row in class_rows.values())
+        # a body that changes class moves the rows
+        planet_id = conn.execute("SELECT MIN(id) AS id FROM planets WHERE star_system_id = ?", (system_id,)).fetchone()["id"]
+        conn.execute("UPDATE planets SET planet_class = 'T' WHERE id = ?", (planet_id,))
+        store.recount_habitable_worlds(conn, [system_id])
+        assert "class-T" in _rows(conn, system_id)
+        assert _rows(conn, system_id)["class-K"]["n"] == class_rows["class-K"]["n"] - 1
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_the_world_query_leaves_the_classes_out_and_the_class_query_cuts_each_class_alone(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _set_classes(conn, system_id, ["K", "O"])
+        lo, hi = _box(POSITION_PC)
+        found = query.galaxy_system_interests_in_box(conn, lo, hi)
+        assert found and not any(reason.startswith(interests.CLASS_PREFIX) for system in found for reason in system["reasons"])
+        by_class = query.galaxy_class_interests_in_box(conn, lo, hi, 5)
+        assert [s["id"] for s in by_class] == [system_id]
+        assert {"class-K", "class-O"} <= set(by_class[0]["reasons"])
+        assert not any(reason in by_class[0]["reasons"] for reason in interests.BASE_REASONS)
+        assert (by_class[0]["x"], by_class[0]["y"], by_class[0]["z"]) == POSITION_PC and by_class[0]["name"]
+        assert query.galaxy_class_interests_in_box(conn, lo, hi, 0) == []
+        far_lo, far_hi = _box((-5000.0, 0.0, 0.0))
+        assert query.galaxy_class_interests_in_box(conn, far_lo, far_hi, 5) == []
+        # each class is cut alone: the most-populated system keeps class K, and class O (only the first system has it) is not touched
+        second = _second_system(conn, sector_id, "K")
+        cut = query.galaxy_class_interests_in_box(conn, lo, hi, 1)
+        by_id = {s["id"]: s for s in cut}
+        assert set(by_id) == {system_id, second}
+        assert "class-K" in by_id[second]["reasons"] and "class-K" not in by_id[system_id]["reasons"]
+        assert "class-O" in by_id[system_id]["reasons"]
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_a_small_node_lists_the_classes_with_the_worlds_and_a_big_node_does_not(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        edge_pc = ly_to_pc(query.DEFAULT_SECTOR_EDGE_LY)
+        position = spherical.sector_position_pc(*ADDRESS, edge_pc)
+        conn.execute("UPDATE star_systems SET galaxy_x_pc = ?, galaxy_y_pc = ?, galaxy_z_pc = ? WHERE id = ?", (*position, system_id))
+        _set_classes(conn, system_id, ["K", "O"])
+        chain = drill_chain_of(*spherical.sector_address_at(position, edge_pc))
+        sector_key = format_drill_key(chain[-1])
+        wide = next(block for block in chain if block.m > nodes.CLASS_ABOVE and block.m <= nodes.COARSE_ABOVE)
+        wide_key = format_drill_key(wide)
+        found = nodes.galaxy_nodes(conn, [sector_key, wide_key])["nodes"]
+        listed = found[sector_key]["interests"]
+        assert [s["id"] for s in listed] == [system_id]
+        assert {interests.HABITABLE, "class-K", "class-O"} <= set(listed[0]["reasons"]), "one entry with the world reasons and the classes"
+        assert not any(reason.startswith(interests.CLASS_PREFIX) for system in found[wide_key]["interests"] for reason in system["reasons"])
+        conn.execute("DELETE FROM system_interests WHERE star_system_id = ? AND reason NOT LIKE ?", (system_id, interests.CLASS_PREFIX + "%"))
+        alone = nodes.galaxy_nodes(conn, [sector_key])["nodes"][sector_key]["interests"]
+        assert [s["id"] for s in alone] == [system_id] and all(r.startswith("class-") for r in alone[0]["reasons"]), \
+            "a system only a class lists is still on the node"
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_a_v171_galaxy_gets_the_class_reasons_from_what_it_holds(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _set_classes(conn, system_id, ["K", "K", "O"])
+        conn.commit()
+        want = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        assert "class-K" in want and "class-O" in want
+    finally:
+        conn.close()
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        conn.execute("DELETE FROM system_interests WHERE reason LIKE ?", (interests.CLASS_PREFIX + "%",))
+        conn.execute("UPDATE alembic_version SET version_num = '0171'")
+        conn.execute("DELETE FROM schema_migrations")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (171)")
         conn.commit()
     finally:
         conn.close()

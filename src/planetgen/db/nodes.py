@@ -11,7 +11,7 @@ to draw it before it opens it into its children:
   `galaxy_block_lights`, MAP.259). Its nebula cover is not in it: the cover changes without a sector changing, so it is
   read live beside the node (`query.galaxy_nebula_cover`, as a stage's is), never from the node cache;
 * `stars`, `generated`, `points`, `clouds` and `interests` (the star systems worth a mark: a habitable world, a gas giant, MAP.305,
-  `query.galaxy_system_interests_in_box`; none for a block bigger than `COARSE_ABOVE`): the brightest objects of each kind inside the block, `NODE_*` of
+  `query.galaxy_system_interests_in_box`; none for a block bigger than `COARSE_ABOVE`; a block of `CLASS_ABOVE` shells or fewer also lists, for each planet class, the systems with a planet or moon of it, `query.galaxy_class_interests_in_box`, MAP.220): the brightest objects of each kind inside the block, `NODE_*` of
   each (a sector lists every object it holds up to a larger budget), in the ranking `db.query` gives every box list
   (`query.galaxy_bright_stars_in_box`, `galaxy_generated_stars_in_box`, `galaxy_point_phenomena_in_box`,
   `galaxy_scattered_points_in_box`, `galaxy_clouds_in_box`: one key for every block, so a child lists every object
@@ -58,6 +58,16 @@ NODE_SECTOR_GENERATED_STARS = 1200
 
 NODE_SECTOR_POINTS = 200
 """int: Most point phenomena a sector node lists."""
+
+NODE_CLASS_SYSTEMS = 8
+"""int: Most star systems a block node lists for each planet class (the `class-` interest reasons, MAP.220)."""
+
+NODE_SECTOR_CLASS_SYSTEMS = 60
+"""int: Most star systems a sector node lists for each planet class."""
+
+CLASS_ABOVE = 3
+"""int: The biggest block (shells) whose node lists the planet class reasons: a bigger block has too many systems for a mark each, and the
+twenty classes would multiply what it carries."""
 
 NODE_PLACED_MAX = 250
 """int: Most generated sectors the `placed` list of a level-3 block lists (it holds at most a few dozen)."""
@@ -246,6 +256,12 @@ def galaxy_nodes(conn, node_keys):
         interest_systems = [] if coarse else piece("interests", lambda: [
             system for system in query.galaxy_system_interests_in_box(conn, lo, hi, limit=points_limit * POOL)
             if inside(_point_address(system, edge_pc))][:points_limit], [])
+        if block.m <= CLASS_ABOVE:
+            class_systems = piece("class-interests", lambda: [
+                system for system in query.galaxy_class_interests_in_box(
+                    conn, lo, hi, NODE_SECTOR_CLASS_SYSTEMS if block.m == 1 else NODE_CLASS_SYSTEMS)
+                if inside(_point_address(system, edge_pc))], [])
+            interest_systems = _with_class_reasons(interest_systems, class_systems)
         clouds = piece("clouds", lambda: query.galaxy_clouds_in_box(
             conn, lo, hi, max_clouds=NODE_CLOUDS, margins=margins), [])
         node = {"aggregate": aggregate, "stars": stars, "generated": generated, "points": points, "clouds": clouds,
@@ -270,6 +286,18 @@ def galaxy_nodes(conn, node_keys):
         if key != format_drill_key(block):
             nodes[key] = nodes[format_drill_key(block)]
     return {"nodes": nodes, "edge_pc": edge_pc, "has_shape": skeleton is not None}
+
+
+def _with_class_reasons(systems, class_systems):
+    """`systems` (a node's `interests`) with the class reasons of `class_systems` added to the system they belong to; a system only a
+    class listed is added as it is."""
+    found = {system["id"]: system for system in systems}
+    for system in class_systems:
+        if system["id"] in found:
+            found[system["id"]]["reasons"].update(system["reasons"])
+        else:
+            found[system["id"]] = system
+    return list(found.values())
 
 
 def populated_node_keys(conn, floor_m):
