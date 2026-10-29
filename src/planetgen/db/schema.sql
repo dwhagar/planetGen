@@ -1496,6 +1496,8 @@
 --   changes, the migration fills it from the planets, moons and colonies already stored.
 -- v172 (MAP.220): `system_interests` also takes one reason for each planet class, `class-A` to `class-V` (a system with a planet or moon of it, `n` how many, no score); no column
 --   changes, the migration fills them from the planets and moons already stored.
+-- v173 (MAP.311): `system_interests` also takes the reasons `civilization` (a world whose timeline reached a technological civilization), `sentient` (a sentient life score of 1 or more) and `life` (any of the
+--   four life scores of 1 or more), no score kept; no column changes, the migration fills them from the planets and moons already stored.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes

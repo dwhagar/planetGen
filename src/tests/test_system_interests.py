@@ -425,8 +425,8 @@ def _second_system(conn, sector_id, letter):
 def test_every_planet_class_is_a_reason_after_the_others_and_the_map_lists_the_same_letters():
     assert interests.CLASS_REASONS == tuple(interests.class_reason(letter) for letter in sorted(tuning.PLANET_CLASSES))
     assert tuple(interests.REASONS)[-len(interests.CLASS_REASONS):] == interests.CLASS_REASONS
-    assert interests.BASE_REASONS == (interests.INHABITED, interests.HABITABLE, interests.UNINHABITABLE, interests.GAS_GIANT,
-                                      interests.ASTEROID_FIELD)
+    assert interests.BASE_REASONS == (interests.INHABITED, interests.CIVILIZATION, interests.SENTIENT, interests.LIFE, interests.HABITABLE,
+                                      interests.UNINHABITABLE, interests.GAS_GIANT, interests.ASTEROID_FIELD)
     script = (pathlib.Path(__file__).resolve().parents[1] / "html" / "static" / "galaxymarkers.js").read_text(encoding="utf-8")
     assert f'PLANET_CLASS_LETTERS = "{"".join(sorted(tuning.PLANET_CLASSES))}".split("")' in script
     assert f"CLASS_MAX_BLOCK = {nodes.CLASS_ABOVE};" in script, "the map and the nodes agree on the biggest block that lists the classes"
@@ -530,6 +530,85 @@ def test_a_v171_galaxy_gets_the_class_reasons_from_what_it_holds(mysql_config):
         conn.execute("UPDATE alembic_version SET version_num = '0171'")
         conn.execute("DELETE FROM schema_migrations")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (171)")
+        conn.commit()
+    finally:
+        conn.close()
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        got = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        assert got == want
+    finally:
+        conn.close()
+
+
+def _clear_life(conn, system_id):
+    for table in ("planets", "moons"):
+        conn.execute(f"UPDATE {table} SET life_microbial = NULL, life_flora = NULL, life_fauna = NULL, life_sentient = NULL,"
+                     " life_stage = NULL WHERE star_system_id = ?", (system_id,))
+    conn.execute("DELETE FROM facilities WHERE star_system_id = ?", (system_id,))
+
+
+def test_life_sentient_life_and_a_civilization_are_reasons_read_from_the_stored_scores_and_stage(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _clear_life(conn, system_id)
+        store.recount_habitable_worlds(conn, [system_id])
+        rows = _rows(conn, system_id)
+        assert not {interests.LIFE, interests.SENTIENT, interests.CIVILIZATION} & set(rows), "no life score, no life reason"
+        first, second = [row["id"] for row in conn.execute(
+            "SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 2", (system_id,)).fetchall()]
+        # a microbial score is life and nothing more; a zero score is none
+        conn.execute("UPDATE planets SET life_microbial = 3, life_sentient = 0 WHERE id = ?", (first,))
+        conn.execute("UPDATE planets SET life_flora = 0, life_fauna = 0 WHERE id = ?", (second,))
+        store.recount_habitable_worlds(conn, [system_id])
+        rows = _rows(conn, system_id)
+        assert rows[interests.LIFE]["n"] == 1 and rows[interests.LIFE]["best_score"] is None
+        assert interests.SENTIENT not in rows and interests.CIVILIZATION not in rows
+        # a sentient score is sentient life and life
+        conn.execute("UPDATE planets SET life_sentient = 2 WHERE id = ?", (second,))
+        store.recount_habitable_worlds(conn, [system_id])
+        rows = _rows(conn, system_id)
+        assert rows[interests.SENTIENT]["n"] == 1 and rows[interests.LIFE]["n"] == 2 and interests.CIVILIZATION not in rows
+        # a civilization is the timeline's stage on a class that can carry life
+        conn.execute("UPDATE planets SET life_stage = 'technological_civilization', planet_class = 'A' WHERE id = ?", (second,))
+        store.recount_habitable_worlds(conn, [system_id])
+        assert interests.CIVILIZATION not in _rows(conn, system_id)
+        conn.execute("UPDATE planets SET planet_class = 'M' WHERE id = ?", (second,))
+        store.recount_habitable_worlds(conn, [system_id])
+        assert _rows(conn, system_id)[interests.CIVILIZATION]["n"] == 1
+        lo, hi = _box(POSITION_PC)
+        found = query.galaxy_system_interests_in_box(conn, lo, hi)
+        assert found[0]["reasons"][interests.CIVILIZATION] == {"n": 1} and found[0]["reasons"][interests.LIFE] == {"n": 2}
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_a_v172_galaxy_gets_the_life_reasons_from_what_it_holds(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _clear_life(conn, system_id)
+        first, second = [row["id"] for row in conn.execute(
+            "SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 2", (system_id,)).fetchall()]
+        conn.execute("UPDATE planets SET life_microbial = 4 WHERE id = ?", (first,))
+        conn.execute("UPDATE planets SET life_sentient = 1, life_stage = 'technological_civilization', planet_class = 'M' WHERE id = ?", (second,))
+        store.recount_habitable_worlds(conn, [system_id])
+        conn.commit()
+        want = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        assert {interests.LIFE, interests.SENTIENT, interests.CIVILIZATION} <= set(want)
+    finally:
+        conn.close()
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        conn.execute("DELETE FROM system_interests WHERE reason IN ('life', 'sentient', 'civilization')")
+        conn.execute("UPDATE alembic_version SET version_num = '0172'")
+        conn.execute("DELETE FROM schema_migrations")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (172)")
         conn.commit()
     finally:
         conn.close()

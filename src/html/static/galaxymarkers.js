@@ -65,6 +65,62 @@ export const GLYPHS = {
   },
 };
 
+// The marks for worlds with life (MAP.311): a leaf for any life, a head and shoulders for a sentient species, a tower for a civilization. Each is
+// a disc ringed in the outline colour with a dark sign on it, so the shape and not only the colour tells them apart.
+function discWith(draw) {
+  return function (ctx, size, color, outline) {
+    const c = size / 2;
+    ctx.beginPath();
+    ctx.arc(c, c, c * 0.92, 0, Math.PI * 2);
+    ctx.fillStyle = outline;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(c, c, c * 0.76, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.fillStyle = "#14161f";
+    ctx.strokeStyle = "#14161f";
+    ctx.lineJoin = "round";
+    draw(ctx, size);
+  };
+}
+
+GLYPHS.life = discWith(function (ctx, size) {
+  // A leaf: two arcs meeting at the tip, with a stalk.
+  const u = size / 24;
+  ctx.beginPath();
+  ctx.moveTo(6.5 * u, 17.5 * u);
+  ctx.quadraticCurveTo(5 * u, 7 * u, 17.5 * u, 6 * u);
+  ctx.quadraticCurveTo(18.5 * u, 16 * u, 6.5 * u, 17.5 * u);
+  ctx.fill();
+  ctx.lineWidth = 1.4 * u;
+  ctx.beginPath();
+  ctx.moveTo(5 * u, 19 * u);
+  ctx.lineTo(11 * u, 13 * u);
+  ctx.stroke();
+});
+
+GLYPHS.sentient = discWith(function (ctx, size) {
+  // A head and shoulders.
+  const u = size / 24;
+  ctx.beginPath();
+  ctx.arc(12 * u, 9.2 * u, 3.1 * u, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(5.8 * u, 18.5 * u);
+  ctx.quadraticCurveTo(12 * u, 7.5 * u, 18.2 * u, 18.5 * u);
+  ctx.closePath();
+  ctx.fill();
+});
+
+GLYPHS.civilization = discWith(function (ctx, size) {
+  // A skyline of three towers.
+  const u = size / 24;
+  ctx.fillRect(5.2 * u, 12 * u, 3.8 * u, 7 * u);
+  ctx.fillRect(10.1 * u, 6.2 * u, 3.8 * u, 12.8 * u);
+  ctx.fillRect(15 * u, 10 * u, 3.8 * u, 9 * u);
+});
+
 // The planet classes the map can mark (MAP.220): `planetgen.tuning.PLANET_CLASSES`' letters; tests/test_system_interests.py holds the
 // two lists to each other. A class's reason is "class-" and its letter, the same id the server's `system_interests` rows use.
 export const PLANET_CLASS_LETTERS = "ABCDEFGHIJKLMNOPQSTV".split("");
@@ -139,6 +195,33 @@ export const INTEREST_REASONS = [
     describe: function (reason) {
       return reason.n + (reason.n === 1 ? " inhabited world" : " inhabited worlds") + (reason.tier == null ? "" : ", best " + TIER_NAMES[reason.tier]);
     },
+  },
+  {
+    id: "civilization",
+    label: "Civilizations",
+    body: "civilization",
+    glyph: "civilization",
+    color: "#f08a4b",
+    defaultOn: false,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " world with a civilization" : " worlds with a civilization"); },
+  },
+  {
+    id: "sentient",
+    label: "Sentient life",
+    body: "world with sentient life",
+    glyph: "sentient",
+    color: "#e0c24b",
+    defaultOn: false,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " world with sentient life" : " worlds with sentient life"); },
+  },
+  {
+    id: "life",
+    label: "Life",
+    body: "world with life",
+    glyph: "life",
+    color: "#7bd16f",
+    defaultOn: false,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " world with life" : " worlds with life"); },
   },
   {
     id: "habitable",
