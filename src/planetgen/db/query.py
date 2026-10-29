@@ -42,7 +42,7 @@ from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
-from planetgen.db import countcache, hostednebula, interests, nebula_blocks, point_columns
+from planetgen.db import compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
@@ -4119,10 +4119,11 @@ def _bright_star_entry(row):
 def scatter_member_tree(conn, table, row_id):
     """
     The stored members of an unbuilt scatter row, as a page lists them (UX.114): `members` (`member_no`, `kind`,
-    `state`, `mass_solar`, `parent_node_no`, `decay_age_yr`, which only a member of a young group has, GEN.327) in member
+    `state`, `mass_solar`, `parent_node_no`, `flags`, `decay_age_yr`, which only a member of a young group has, GEN.327) in member
     order and `nodes` (`node_no`, `parent_node_no`, `kind`
-    (`close`, `wide`, `compact` or `group`), `mass_solar`, `separation_au`, `period_years`, `eccentricity`), both empty
-    for a single object. Reads the two child tables by their primary key, so it is cheap at any galaxy size.
+    (`close`, `wide`, `compact` or `group`), `mass_solar`, `separation_au`, `period_years`, `eccentricity`, `interaction`, `flags`),
+    both empty for a single object, and `compact_pairs` (UX.186: the X-ray binaries and spider pulsars among them,
+    `db.compact_pairs`). Reads the two child tables by their primary key, so it is cheap at any galaxy size.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -4132,19 +4133,20 @@ def scatter_member_tree(conn, table, row_id):
     source = SCATTER_SOURCES[table]
     members = [
         {"member_no": r["member_no"], "kind": r["kind"], "state": r["state"], "mass_solar": r["mass_solar"],
-         "parent_node_no": r["parent_node_no"], "decay_age_yr": r["decay_age_yr"]}
+         "parent_node_no": r["parent_node_no"], "decay_age_yr": r["decay_age_yr"], "flags": r["flags"]}
         for r in conn.execute(
-            "SELECT member_no, kind, state, mass_solar, parent_node_no, decay_age_yr FROM scatter_members"
+            "SELECT member_no, kind, state, mass_solar, parent_node_no, decay_age_yr, flags FROM scatter_members"
             " WHERE source = ? AND source_id = ? ORDER BY member_no", (source, int(row_id))).fetchall()]
     nodes = [
         {"node_no": r["node_no"], "parent_node_no": r["parent_node_no"], "kind": r["kind"],
          "mass_solar": r["mass_solar"], "separation_au": _m_to_au(_km_to_m(r["separation_km"])),
-         "period_years": r["period_years"], "eccentricity": r["eccentricity"]}
+         "period_years": r["period_years"], "eccentricity": r["eccentricity"], "interaction": r["interaction"],
+         "flags": r["flags"]}
         for r in conn.execute(
-            "SELECT node_no, parent_node_no, kind, mass_solar, separation_km, period_years, eccentricity"
+            "SELECT node_no, parent_node_no, kind, mass_solar, separation_km, period_years, eccentricity, interaction, flags"
             " FROM scatter_nodes WHERE source = ? AND source_id = ? ORDER BY node_no",
             (source, int(row_id))).fetchall()]
-    return {"members": members, "nodes": nodes}
+    return {"members": members, "nodes": nodes, "compact_pairs": compact_pairs.compact_pairs(members, nodes)}
 
 
 def _member_fields(row):
