@@ -297,6 +297,27 @@ def sheet_context(sheet):
     return {"sheet": sheet_view(sheet), "glance": glance_view(sheet), "hidden_rows": total - listed, "absences": notes}
 
 
+def region_row(found):
+    """
+    The row that names the charted region an object lies in (UX.231): "in Vang Zarh Region". `found` is an API answer that carries
+    `region` (`{"name", "parent"}`; a sector, a system or `GET /api/objects/<ref>`); `None` when it has none, which is a position in
+    no charted region (a cell with no generated sector has no region), so the row is not drawn. The row's html is escaped text.
+    """
+    region = found.get("region") or {}
+    if not region.get("name"):
+        return None
+    return {"label": "Region", "html": esc(f"in {region['name']}")}
+
+
+def with_region(context, found):
+    """A page's sheet context with the region the object lies in as the last row of its At a glance panel (UX.231), when it lies
+    in a charted one. `found` is `GET /api/objects/<ref>`."""
+    row = region_row(found)
+    if row is None:
+        return context
+    return {**context, "glance": context["glance"] + [{"label": row["label"], "html": trusted_html(row["html"])}]}
+
+
 def _bodies(detail):
     """`[(kind, row)]` for every star, planet, moon, belt and comet of a system's detail, each row with the `kind` it is
     and (a moon's) its planet."""
@@ -421,7 +442,7 @@ def _free_moon_page(db, kind, printed_id, found, free_planet):
         habitability=found if kind in ("planet", "moon") else None,
         object_id=printed_id,
         facts=trusted_html(""),
-        **sheet_context(apiclient.get_object_sheet(db, ref)),
+        **with_region(sheet_context(apiclient.get_object_sheet(db, ref)), found),
         tree=tree_panel(ref, name, apiclient.get_object_children(db, ref, limit=TREE_PAGE)),
         location=location(found["parents"], None),
         owner_url=item_url(free_planet["ref"]),
@@ -470,7 +491,7 @@ def _facility_page(db, printed_id, found):
         kind_label=KIND_LABELS["facility"],
         object_id=printed_id,
         facts=trusted_html(_facility_facts(facility, found)),
-        **sheet_context(apiclient.get_object_sheet(db, ref)),
+        **with_region(sheet_context(apiclient.get_object_sheet(db, ref)), found),
         tree="",
         location=location(found["parents"], None),
         system_url=page_url("system", system_id=system["ref"].partition(":")[2]) if system else None,
@@ -545,7 +566,7 @@ def _container_page(db, kind, printed_id, found):
         kind_label=KIND_LABELS[kind],
         object_id=printed_id,
         facts=trusted_html(_container_facts(container, found, listing)),
-        **sheet_context(apiclient.get_object_sheet(db, ref)),
+        **with_region(sheet_context(apiclient.get_object_sheet(db, ref)), found),
         tree="",
         location=location(found["parents"], None),
         bookmark=bookmark(kind, endpoint(kind, printed_id), name, item_url(ref)),
@@ -618,7 +639,7 @@ def render_item(kind, printed_id):
         object_id=printed_id,
         facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
         example=bodyview.view(kind, row, detail["stars"]) if row is not None else None,
-        **sheet_context(sheet),
+        **with_region(sheet_context(sheet), found),
         **({"planet": planet_sections(name, row, sheet, species, piece)} if kind in ("planet", "moon") else {}),
         tree=tree,
         tree_marks=tree_has_marks(children),

@@ -386,6 +386,9 @@ connectivity to that specific schema rather than the default one.
   galaxy's seed (nothing is stored) and empty before a plan. The Galaxy Map draws them as faint shells. A sector's
   detail (`GET /api/sectors/<id>`) carries `superbubble`: the cavity its centre lies in (`radius_pc`,
   `ambient_density_cm3`, `temperature_k`, `centre_distance_pc`) or `null`.
+  It also carries `region` (UX.231): the charted region its centre lies in, `{name, parent}` ("Vang Zarh Region", "Vang Reach"), or `null` when
+  that cell holds no generated sector or no naming key is in force. A system's detail (`GET /api/systems/<id>`) and an object (`GET /api/objects/<ref>`) carry
+  `region` the same way, for the system's or object's galaxy position.
   It also carries `unresolved` (GEN.281): `null` for a cell filled whole, else what a cell above the cell star
   ceiling leaves unresolved (`ceiling_systems`, `luminosity_cap_sol`, `expected_systems`, `unresolved_systems`,
   `unresolved_mass_solar`), worked out from its address and never stored. It also carries `scatter_tier` (GEN.333): `null`
