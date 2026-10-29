@@ -31,44 +31,34 @@ import math
 import pytest
 
 from planetgen.generation import plausibility
-from planetgen import tuning as prog_c
 
 # Small on purpose -- see module docstring. Large enough to exercise each
-# (class, zone) pair's random draws a few times over; still fast (well
-# under a second for the whole grid, including moons).
-N_PER_PAIR = 15
+# zone's random draws a few times over; still fast (well under a second for
+# the whole grid, including moons).
+N_PER_ZONE = 30
 
 
 @pytest.fixture(scope="module")
 def full_sample():
     """One shared batch of records (planets + moons) for the whole module,
-    covering every valid (class, zone) pair across the full host-star grid."""
-    return plausibility.run_full_sample(n_per_class_zone=N_PER_PAIR, include_moons=True)
+    covering every zone across the full host-star grid."""
+    return plausibility.run_full_sample(n_per_zone=N_PER_ZONE, include_moons=True)
 
 
-def test_valid_class_zone_pairs_is_nonempty():
-    # Sanity check on the derivation itself: if PLANET_CLASSES ever loses
-    # every zone flag for every class, the rest of this module would
-    # silently pass on zero bodies without this.
-    assert plausibility.VALID_CLASS_ZONE_PAIRS
-    for cls, zone in plausibility.VALID_CLASS_ZONE_PAIRS:
-        assert prog_c.PLANET_CLASSES[cls][zone]
+def test_zones_are_nonempty():
+    assert plausibility.ZONE_CHARS
 
 
-@pytest.mark.parametrize("cls", sorted(prog_c.PLANET_CLASSES))
-def test_theoretical_gravity_bounds_are_finite_and_ordered(cls):
-    # Corner-evaluation should never itself blow up or invert, regardless
-    # of whether the class has a valid zone (a class with no valid zone
-    # still has radius/density ranges declared).
-    lo, hi = plausibility.theoretical_gravity_bounds_g(cls)
+@pytest.mark.parametrize("body_type", ["t", "g"])
+def test_theoretical_gravity_bounds_are_finite_and_ordered(body_type):
+    lo, hi = plausibility.theoretical_gravity_bounds_g(body_type)
     assert math.isfinite(lo) and math.isfinite(hi)
     assert 0 < lo <= hi
 
 
-@pytest.mark.parametrize("cls,zone", plausibility.VALID_CLASS_ZONE_PAIRS,
-                          ids=[f"{c}-{z}" for c, z in plausibility.VALID_CLASS_ZONE_PAIRS])
-def test_generated_sample_has_no_hard_invariant_violations(cls, zone):
-    records = plausibility.generate_sample(cls, zone, N_PER_PAIR, include_moons=True)
+@pytest.mark.parametrize("zone", plausibility.ZONE_CHARS)
+def test_generated_sample_has_no_hard_invariant_violations(zone):
+    records = plausibility.generate_sample(zone, N_PER_ZONE, include_moons=True)
     assert records  # generation actually produced bodies (plus possibly moons)
     violations = []
     for record in records:
@@ -104,6 +94,7 @@ def test_format_report_runs_without_error(full_sample):
 def _base_record(**overrides):
     record = {
         "planet_class": "M",
+        "body_type": "t",
         "zone": "e",
         "star_type": "G5V",
         "star_spectral_class": "G",
@@ -132,7 +123,7 @@ def test_check_hard_invariants_flags_bad_gravity(bad_gravity):
 
 
 def test_check_hard_invariants_flags_gravity_outside_theoretical_bounds():
-    lo, hi = plausibility.theoretical_gravity_bounds_g("M")
+    lo, hi = plausibility.theoretical_gravity_bounds_g("t")
     issues = plausibility.check_hard_invariants(_base_record(gravity=hi * 10))
     assert any("outside theoretical range" in issue for issue in issues)
 
@@ -173,8 +164,6 @@ def test_iqr_bounds_flags_a_far_outlier():
     assert lo <= 10.0 and 15.0 <= hi < 1000.0
 
 
-def test_run_full_sample_covers_every_valid_pair():
-    records = plausibility.run_full_sample(n_per_class_zone=2, include_moons=False)
-    seen_classes = {r["planet_class"] for r in records}
-    expected_classes = {cls for cls, _ in plausibility.VALID_CLASS_ZONE_PAIRS}
-    assert seen_classes == expected_classes
+def test_run_full_sample_covers_every_zone():
+    records = plausibility.run_full_sample(n_per_zone=2, include_moons=False)
+    assert {r["zone"] for r in records} == set(plausibility.ZONE_CHARS)

@@ -1,21 +1,17 @@
 """
-Rogue planet classes (GEN.8): every `PLANET_CLASSES` class carries an
-`"r"` zone flag, a rogue planet draws its class from the flagged classes
-that fit its type, radius and mass, and the class is stored (schema v47)
-and shown on the phenomenon page, the sector's Contents and the Sector
-Map.
+Rogue planet classes (GEN.8, GEN.687): a rogue planet's class is derived from its mass, radius and the surface its own heat gives
+it (`rogue.rogue_class`, the same `planet_classes.classify` as any body), and the class is stored (schema v47) and shown on the
+phenomenon page, the sector's Contents and the Sector Map.
 """
 
 
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
-from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation import phenomena_plausibility as pp
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.phenomena.rogue import (RoguePlanet, default_rogue_planet_class, rogue_planet_class_candidates,
-                                            rogue_planet_classes)
+from planetgen.generation.phenomena.rogue import RoguePlanet, rogue_class
 
 from planetgen.web.maps import starmap  # noqa: E402
 from planetgen.web import sector_page, system_pages  # noqa: E402
@@ -27,22 +23,19 @@ class _Config(Config):
     SECRET_KEY = "test"
 
 
-def test_every_class_has_a_rogue_flag_and_no_rogue_class_has_life():
+def test_no_class_depends_on_a_rogue_flag_and_none_has_life():
     for code, data in tuning.PLANET_CLASSES.items():
-        assert isinstance(data.get("r"), bool), code
-        if data["r"]:
-            assert not data.get("life_class"), code
-            assert code not in tuning.HABITABLE_PLANET_CLASSES
-    assert rogue_planet_classes("t") == ["C", "D", "S"]
-    assert rogue_planet_classes("g") == ["I", "J", "T"]
+        assert "r" not in data, code
+        assert not data.get("life_class"), code
 
 
-def test_generated_rogues_get_a_fitting_rogue_class():
+def test_generated_rogues_get_the_class_their_conditions_derive():
     for _ in range(300):
         planet = RoguePlanet(SystemConfig())
-        assert planet.planet_class in rogue_planet_classes(planet.planet_type)
-        assert planet.planet_class in rogue_planet_class_candidates(planet.planet_type, planet.radius_km,
-                                                                    planet.mass_kg)
+        if planet.mass_bin == "brown-dwarf":
+            continue
+        assert tuning.PLANET_CLASSES[planet.planet_class]["type"] == planet.planet_type
+        assert planet.planet_class == rogue_class(planet)
         assert f"class {planet.planet_class}" in render_support.facts_text(render_support.phenomenon_section(planet))
 
 
@@ -50,39 +43,15 @@ def test_brown_dwarfs_have_no_planet_class():
     assert RoguePlanet(SystemConfig(), mass_bin="brown-dwarf").planet_class is None
 
 
-def test_a_rogue_too_big_for_every_class_gets_the_nearest():
-    """A rocky rogue past every rocky class's ceiling gets the nearest:
-    class S, the rocky super-Earth (GEN.38), not class C."""
-    mass = 15 * constants.EARTH_MASS_TO_KG
-    assert rogue_planet_class_candidates("t", 17000.0, mass) == ["S"]
-    assert default_rogue_planet_class("t", 17000.0, mass) == "S"
-    assert default_rogue_planet_class("g", 70000.0, constants.JUPITER_MASS_TO_KG) == "J"
-
-
-def test_rocky_rogues_over_10000_km_are_class_s():
-    """GEN.38: a rocky rogue bigger than Class C's 10,000 km ceiling is a
-    rocky super-Earth (S), and one that fits S's radius and mass ranges
-    may only be S or nothing smaller."""
-    mass = 5 * constants.EARTH_MASS_TO_KG
-    assert rogue_planet_class_candidates("t", 10500.0, mass) == ["S"]
-    big = []
-    for _ in range(600):
-        planet = RoguePlanet(SystemConfig(), mass_bin="sub-neptune")
-        if planet.planet_type == "t" and planet.radius_km > tuning.PLANET_CLASSES["C"]["radius_range"][1]:
-            big.append(planet)
-            assert planet.planet_class == "S"
-    assert big
-
-
-def test_from_dict_without_a_class_gives_the_default():
+def test_from_dict_without_a_class_derives_it_again():
     planet = RoguePlanet(SystemConfig(), mass_bin="terrestrial")
     data = planet.to_dict()
     assert data["planet_class"] == planet.planet_class
     data.pop("planet_class")
-    assert RoguePlanet.from_dict(data, SystemConfig()).planet_class == "C"
+    assert RoguePlanet.from_dict(data, SystemConfig()).planet_class == rogue_class(planet)
 
 
-def test_plausibility_flags_a_non_rogue_class():
+def test_plausibility_flags_a_class_of_the_other_type():
     record = {"phenomenon_type": "rogue-planet", "mass_kg": 1e27, "radius_km": 70000.0, "planet_type": "g",
               "planet_class": "M", "galactic_orbital_speed_kms": 205.7, "galactic_orbital_period_gy": 0.236,
               "galactic_orbital_phase_deg": 180.0, "galactic_min_update_interval_years": 1e-9}

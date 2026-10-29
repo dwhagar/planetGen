@@ -353,20 +353,13 @@ sector regenerate to the new sector. Every page shows those flashed
 lines under its heading (`base.html`), read only when the request
 carries a Flask session cookie.
 
-**Change class and Change star (ADM.6, ADM.7).** In the same menu on
-the system page, every planet and moon also has a Change class item:
-its dialog lists the recommended classes first (from `GET
-/api/systems/<id>/class-options`, ones that fit without moving
-anything) and every other class under "Needs confirming"; the form posts
-`edit_action=class` with `planet_class` (`M`) and, when the "Set it
-anyway" box is ticked, `confirm_class=1`. An unticked box with a class
-that breaks something flashes what it would break and changes nothing
-(ADM.51). A
+**Change star (ADM.7).** In the same menu on
+the system page, a
 single-star system's own row has Change star, a spectral-type field
 (`edit_action=star`, `star_type`) with the same "also delete
 facilities" checkbox, since bodies the new star can't hold are removed.
 Both flash the outcome as above, including what moved and what was
-removed (see `docs/reference/api.md`, "Changing a class or a star").
+removed (see `docs/reference/api.md`, "Changing a star").
 
 **System page facilities.** The system page lists the system's
 facilities (starbases, colonies, outposts; `GET /api/systems/<id>/

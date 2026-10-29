@@ -32,11 +32,12 @@ from planetgen.generation import (
 )
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import constants, habitability, insolation, interior_heat, magnetism, mass_loss, metallicity, pre_main_sequence, rings, wolf_rayet
+from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation import pulsar_planets, remnant_orbits
-from planetgen.generation.planet import Planet
+from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics import bulk_draw, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
@@ -372,6 +373,7 @@ class StarSystem:
         # trim can take the forced belt or habitable world that the attempts above kept. The attempts then run again
         # once, placing under the settled age, before the request is given up as unmet.
         self.set_stability_limits()
+        self._request_unreachable = False
         for _round in range(2):
             for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
                 with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
@@ -425,6 +427,8 @@ class StarSystem:
                 log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
                           f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
                           f"required and found: {belt_satisfied})")
+                if self._request_unreachable:
+                    break
 
             if remnant_orbits.is_post_agb_pair(self.star):
                 remnant_orbits.post_agb_disk(self.primary_star, self._orbit_floor_au(self.star))
@@ -450,7 +454,7 @@ class StarSystem:
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
             class_satisfied = self._forced_class_present()
-            if (habitable_satisfied and belt_satisfied and class_satisfied) or _round:
+            if (habitable_satisfied and belt_satisfied and class_satisfied) or _round or self._request_unreachable:
                 break
         self.unmet_requirements = []
         if not habitable_satisfied:
@@ -548,6 +552,9 @@ class StarSystem:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue
                 interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
+                planetPhysics.apply_class(obj)  # GEN.689: the seasonal swing of the light (P, Q) is known only now
+                for moon in obj.moons:
+                    planetPhysics.apply_class(moon)
                 planetLife.apply_life_data(obj)
                 planetLife.decide_flavor_text(obj)
                 for moon in obj.moons:
@@ -555,6 +562,14 @@ class StarSystem:
                     magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
                     planetLife.apply_life_data(moon)
                     planetLife.decide_flavor_text(moon)
+            # The swing of the light (class Q) is known only now, so a forced class is judged again on the final classes: one the final
+            # pass took away is unmet, one it gave (Q) is met.
+            wanted = f"a planet of class {self.system_config.FORCE_CLASS}"
+            present = self._forced_class_present()
+            if not present and wanted not in self.unmet_requirements:
+                self.unmet_requirements.append(wanted)
+            elif present and wanted in self.unmet_requirements:
+                self.unmet_requirements.remove(wanted)
 
         # The system takes the name the star was generated (or configured)
         # with; every star, planet and moon inside it is named from that --
@@ -1264,8 +1279,7 @@ class StarSystem:
                             # a belt being overwritten here doesn't spuriously
                             # constrain where its own replacement can land.
                             estimated_distance = self._forced_habitable_distance(planets[:i - 1])
-                            planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
-                                            planet_class="M", planned_objects=system_objects)
+                            planet = self.build_planet(star, habitable_zone, estimated_distance, life=True, planned_objects=system_objects)
                             planets[i - 1] = planet
                             i -= 1
                             found_hab = True
@@ -1278,8 +1292,7 @@ class StarSystem:
                             hz = True
 
                     if hz:
-                        planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
-                                        planet_class="M", planned_objects=system_objects)
+                        planet = self.build_planet(star, habitable_zone, estimated_distance, life=True, planned_objects=system_objects)
                         found_hab = True
                         planets.append(planet)
                         if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
@@ -1317,7 +1330,7 @@ class StarSystem:
                 else:
                     planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
                                     planned_objects=system_objects)
-                    if planet.planet_class == "M":
+                    if planet.planet_class in tuning.HABITABLE_PLANET_CLASSES:
                         found_hab = True
                     planets.append(planet)
 
@@ -1773,7 +1786,8 @@ class StarSystem:
             Planet or AsteroidBelt: The generated object for this slot.
 
         Raises:
-            ValueError: If `slot_spec["type"]` is not "planet" or "asteroid_belt".
+            ValueError: If `slot_spec["type"]` is not "planet" or "asteroid_belt", or a planet slot names an unknown class or a class that
+                can carry life while `HABITABLE_WORLD` is False.
         """
         slot_type = slot_spec.get("type", "planet")
 
@@ -1785,68 +1799,73 @@ class StarSystem:
         if slot_type == "planet":
             planet_class = slot_spec.get("planet_class")
             distance = self.calculate_distance_for_class(planet_class, estimated_distance, planets=planets)
-            return Planet(self.system_config, self.star, self.star.habitable_zone, distance,
-                         planet_class=planet_class, moon_count=slot_spec.get("moons"))
+            return self.build_planet(self.star, self.star.habitable_zone, distance, planet_class=planet_class,
+                                     moon_count=slot_spec.get("moons"))
 
         raise ValueError(f"Invalid slot type '{slot_type}'; expected 'planet' or 'asteroid_belt'.")
 
     def calculate_distance_for_class(self, planet_class, estimated_distance, planets=None):
         """
-        Adjusts an orbital distance so that it falls in a zone (hot, cold, or
-        ecosphere) that actually supports a requested `planet_class`.
-
-        The generation loop picks `estimated_distance` before knowing what
-        the slot will contain, so a user-requested class (e.g. "M", which
-        only exists in the ecosphere) may not be valid at that distance. This
-        nudges the distance into a supporting zone, the same way the existing
-        forced-habitable-world logic snaps a planet's distance into the
-        habitable zone, so an explicit `planet_class` request doesn't fail
-        with an "Invalid planet class for this zone" error just because of
-        where its slot happened to land in the orbit sequence.
+        Adjusts an orbital distance for a requested `planet_class` (GEN.688). A class is derived from a finished body's conditions,
+        so no zone is named by it; the one request that has a place is a class that can carry life (`HABITABLE_PLANET_CLASSES`),
+        which only a world in the ecosphere can be, so it is snapped into the ecosphere (the same way the forced habitable world
+        is). Any other class keeps `estimated_distance`, and the body is drawn there (`build_planet`).
 
         Args:
-            planet_class (str or None): The requested planet class, or None
-                                        if the slot doesn't specify one.
-            estimated_distance (float): The orbital distance (in AU) computed
-                                        for this slot by the generation loop.
-            planets (list, optional): Objects already placed earlier in this
-                same loop -- passed through to `_distance_avoiding_belts` so
-                the adjusted distance doesn't land inside an already-placed
-                belt.
+            planet_class (str or None): The requested planet class, or None if the slot doesn't specify one.
+            estimated_distance (float): The orbital distance (in AU) computed for this slot by the generation loop.
+            planets (list, optional): Objects already placed earlier in this same loop -- passed through to
+                `_distance_within_zone_with_margin` so the adjusted distance doesn't land inside an already-placed belt.
 
         Returns:
-            float: `estimated_distance`, or an adjusted distance (in AU) that
-                  falls within a zone supporting `planet_class`.
+            float: `estimated_distance`, or a distance (in AU) in the ecosphere for a class that can carry life.
         """
-        class_data = tuning.PLANET_CLASSES.get(planet_class)
-        if class_data is None:
+        if planet_class not in tuning.HABITABLE_PLANET_CLASSES:
             return estimated_distance
-
         inner, outer = self.star.habitable_zone
-        if estimated_distance < inner:
-            zone = 'h'
-        elif estimated_distance > outer:
-            zone = 'c'
-        else:
-            zone = 'e'
-
-        if class_data.get(zone):
+        if inner < estimated_distance < outer:
             return estimated_distance
+        return self._distance_within_zone_with_margin(inner, outer, planets=planets)
 
-        if class_data.get('e'):
-            return self._distance_within_zone_with_margin(inner, outer, planets=planets)
-        if class_data.get('h'):
-            if planets:
-                return self._distance_avoiding_belts(inner * 0.05, inner * 0.95, planets)
-            return draw.uniform(inner * 0.05, inner * 0.95)
-        if class_data.get('c'):
-            if planets:
-                return self._distance_avoiding_belts(outer * 1.05, outer * 3.0, planets)
-            return outer * draw.uniform(1.05, 3.0)
+    def build_planet(self, star, habitable_zone, distance, planet_class=None, life=False, moon_count=None, planned_objects=None):
+        """
+        A planet at `distance`, drawn again until it is the one a request names (GEN.688): its derived class is `planet_class`, or,
+        for `life`, a class that can carry life (`HABITABLE_PLANET_CLASSES`). Each draw is a whole planet (a new mass, make and
+        air from the stream). With no request this is one `Planet`. The last draw is kept when `REQUEST_MAX_PLANET_ATTEMPTS`
+        draws miss, and the system's own retry (`MAX_SYSTEM_GENERATION_ATTEMPTS`) then judges the request.
 
-        # No zone supports this class; leave the distance as-is and let
-        # physics.planets raise its usual, clearer validation error.
-        return estimated_distance
+        Args:
+            star (Star): The star the planet orbits.
+            habitable_zone (tuple): `(inner_au, outer_au)`.
+            distance (float): Its orbital distance in AU.
+            planet_class (str, optional): The class the finished planet must have.
+            life (bool): The finished planet must have a class that can carry life.
+            moon_count (int, optional): As `Planet`'s; the moons are added to the planet that is kept, not to every draw.
+
+        Returns:
+            Planet: The planet.
+        """
+        if planet_class is not None and planet_class not in tuning.PLANET_CLASSES:
+            raise ValueError(f"Unknown planet class {planet_class!r}; expected one of {''.join(sorted(tuning.PLANET_CLASSES))}.")
+        if planet_class in tuning.HABITABLE_PLANET_CLASSES and self.system_config.HABITABLE_WORLD is False:
+            raise ValueError(f"A slot asks for a class {planet_class} planet, which can carry life, but HABITABLE_WORLD is False.")
+        if planet_class is None and not life:
+            return Planet(self.system_config, star, habitable_zone, distance, moon_count=moon_count, planned_objects=planned_objects)
+        for attempt in range(tuning.REQUEST_MAX_PLANET_ATTEMPTS):
+            # A request for a habitable world is first left to chance; where chance does not give one (a dim star's ecosphere, a heavy
+            # one's) the draws that follow are of an Earth-sized planet, the mass at which a world holds its air and its water.
+            given = {}
+            if life and attempt >= tuning.HABITABLE_REQUEST_FREE_ATTEMPTS:
+                given["mass"] = math.exp(draw.uniform(*(math.log(m) for m in tuning.HABITABLE_REQUEST_MASS_EARTH))) * constants.EARTH_MASS_TO_KG
+            planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects, **given)
+            if planet.planet_class == planet_class or (life and planet.planet_class in tuning.HABITABLE_PLANET_CLASSES):
+                break
+        else:
+            # No draw at this place made what was asked (a white dwarf's ecosphere holds no air): drawing the whole system again
+            # at the same star would miss the same way, so the request is left unmet.
+            self._request_unreachable = True
+        planet.add_moons(moon_count)
+        return planet
 
     def _distance_within_zone_with_margin(self, inner, outer, planets=None):
         """
@@ -1859,8 +1878,8 @@ class StarSystem:
         an explicit slot request via `calculate_distance_for_class`) could
         otherwise get pushed across that boundary later, when
         `validate_system` enforces minimum separation from a neighboring
-        asteroid belt -- which `physics.planets.reconcile_zone_and_class`
-        would then have to reclassify away from the very class this draw
+        asteroid belt -- which `physics.planets.reconcile_zone`
+        would then have to redraw away from the very class this draw
         was placing it as. Reserving this margin up front avoids that in
         the common case; margin is capped at a quarter of the zone's own
         width so a pathologically narrow zone still gets a valid
@@ -2269,16 +2288,8 @@ class StarSystem:
         belts.
         If an adjustment is made to a planet (as opposed to an asteroid belt,
         which carries no class/climate of its own), `_reconcile_moved_planet`
-        re-derives its zone from the corrected distance and, if its
-        already-rolled class is no longer valid there, regenerates the class
-        and everything derived from it -- composition, radius, mass,
-        density, atmosphere, period, gravity, and orbital motion -- along
-        with the same treatment for each of its moons. Before this, a
-        pushed-out planet could keep reporting a class the corrected
-        distance no longer physically supports at all (e.g. an "Earth-like"
-        Class M at a Class-M-invalid distance, sometimes thousands of AU
-        past the actual habitable zone -- see docs/TODO.md's now-resolved
-        "validate_system can strand a planet outside its own zone" entry).
+        re-derives its zone from the corrected distance and makes its climate and class again there, along with the same
+        treatment for each of its moons: the class is derived from the conditions of the corrected position.
 
         Args:
             planets (list, optional): Defaults to `self.planets`. Pass
@@ -2360,48 +2371,10 @@ class StarSystem:
 
     def _reconcile_moved_planet(self, planet):
         """
-        Call right after `validate_system` moves a top-level planet's
-        `distance` to resolve an orbital overlap.
-
-        A class is only a valid description of a body at the distance it
-        actually ends up at -- pushing `distance` out to fix spacing can
-        carry a planet into a zone ('h'/'e'/'c') its already-rolled class
-        was never valid in (e.g. an "Earth-like" Class M shoved out past
-        the habitable zone into the cold zone), which would otherwise
-        report a class the corrected position no longer supports at all.
-        `physics.planets.reconcile_zone_and_class` re-derives the zone from
-        the new `distance` and, only if the existing class no longer fits
-        there, regenerates the class and everything derived from it
-        (radius/mass/density/atmosphere/period/gravity/orbital motion) --
-        physically, this is the same thing real orbital migration does:
-        change the body's actual final conditions, not just its assumed
-        ones.
-
-        Every moon is reconciled the same way: a moon's own zone is always
-        its parent's (see `physics.planets.generate_moons`' `zone_override`),
-        and its climate depends on the parent's distance (its
-        `distance_override`), so a moon whose parent just got reclassified
-        needs the identical treatment even though the moon's own orbit
-        around its parent never changed. A reclassified parent can also
-        come out with a different `mass` than before -- and Kepler's third
-        law makes a moon's own `period` (and the position/orbital speed/
-        rotation-period-if-tidally-locked derived from it) depend on the
-        *parent's* mass, not just the moon's own (unchanged) distance
-        around it, so every moon's period needs refreshing whenever the
-        parent was reclassified, even a moon that didn't need
-        reclassifying itself -- via `generate_orbital_motion_properties`
-        rather than only `update_orbital_position`, since a tidally locked
-        body's day equals its orbit and a period change can flip whether
-        that still holds.
-
-        Returns:
-            bool: True if `planet` itself was reclassified (and so may
-                 have come out with a different `mass` than before --
-                 relevant to `validate_system`'s mutual-Hill-radius
-                 spacing check, which depends on both planets' masses);
-                 False if its existing class remained valid.
+        Call right after `validate_system` moves a top-level planet's `distance` to resolve an orbital overlap: its zone, climate
+        and class (derived from its conditions) follow the corrected position, and so do its moons' (`validation.reconcile_moved_planet`).
         """
-        return validation.reconcile_moved_planet(planet)
+        validation.reconcile_moved_planet(planet)
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(StarSystem, "system")

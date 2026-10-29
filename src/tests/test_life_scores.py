@@ -11,7 +11,7 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability_world as hw
-from planetgen.physics import life_scores
+from planetgen.physics import life_classes, life_scores
 from planetgen.util import draw
 
 MILESTONES = tuning.LIFE_MILESTONES
@@ -97,7 +97,8 @@ def test_generated_bodies_carry_scores_that_agree_with_their_life():
                 seen["scored"] += 1
                 scores = tuple(getattr(body, name) for name in life_scores.FIELDS)
                 assert all(0 <= value <= tuning.LIFE_SCORE_MAX for value in scores)
-                assert scores[2] <= scores[1]
+                # Fauna beside no Flora is the animals of a chemical ecosystem (a class that eats no light, GEN.890)
+                assert scores[2] <= scores[1] or not life_classes.BY_ID[body.life_class_id].light
                 if body.life_class is None:
                     assert scores == (0, 0, 0, 0)
                 else:  # a planet or moon, in any zone, with a chemistry has an evolutionary path (Boss, 2026-10-23)

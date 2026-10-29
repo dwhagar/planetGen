@@ -13,7 +13,7 @@ temperature or no mixture stores `None`.
 The cloud cover is not drawn here: `aerosols.BODY_FIELDS` already stores it (`cloud_cover`, DB.68), and the picture reads that column.
 """
 
-from planetgen.physics import aerosols, air_column, atmosphere_colour, giant_colour
+from planetgen.physics import aerosols, air_column, atmosphere_colour, giant_colour, photometry
 
 BODY_FIELDS = ("atmosphere_colour",)
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and `moons` (DB.96)."""
@@ -49,10 +49,13 @@ def _solid_colour(body):
 
 def colour_of(body):
     """The `(r, g, b)` of a planet or moon's atmosphere colour, or `None` for a body that has none (no air, no star temperature, no mixture)."""
-    if getattr(body, "body_type", "t") == "g":
-        found = giant_colour.body_giant_colour(body)
-        return None if found is None else found.atmosphere.colour.rgb8
-    return _solid_colour(body)
+    try:
+        if getattr(body, "body_type", "t") == "g":
+            found = giant_colour.body_giant_colour(body)
+            return None if found is None else found.atmosphere.colour.rgb8
+        return _solid_colour(body)
+    except photometry.NoVisibleLight:  # a black hole's or a dead remnant's light holds none between 380 and 780 nm: nothing to colour
+        return None
 
 
 def generate(body):

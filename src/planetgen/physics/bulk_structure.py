@@ -556,7 +556,11 @@ def structure(bulk, mass_kg, *, flux_earth=1.0, age_gy=4.5, temperature_k=None, 
     if not prefer_solver:
         if _inside(SMALL_FIT_RANGE, mass_earth=mass_earth, cmf=cmf, water=water_like) and (
                 mass_earth < CLOSED_FORM_RANGES["dry"]["mass_earth"][0] or (water_like > 0.0 and mass_earth < CLOSED_FORM_RANGES["water"]["mass_earth"][0])):
-            return _finish(small_body_radius_earth(mass_earth, cmf, water_like) * R_EARTH / 1000.0, mass_kg, "closed-small")
+            # a body is never less dense than its grains with no pores: the fit, good to a few percent, is held under that radius
+            grains = mixing_density_kg_m3(bulk.metal, bulk.rock, bulk.water, bulk.ice, 0.0)
+            grain_radius_km = (3.0 * mass_kg / (4.0 * math.pi * grains)) ** (1.0 / 3.0) / 1000.0
+            return _finish(min(small_body_radius_earth(mass_earth, cmf, water_like) * R_EARTH / 1000.0, grain_radius_km), mass_kg,
+                           "closed-small")
         if water_like <= 0.0 and _inside(CLOSED_FORM_RANGES["dry"], mass_earth=mass_earth, cmf=cmf, x_fe=x_fe,
                                          core_scale=core_scale):
             return _finish(radius_fit_earth(mass_earth, cmf, x_fe, core_scale) * R_EARTH / 1000.0, mass_kg, "closed-dry")

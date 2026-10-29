@@ -21,18 +21,14 @@ should be a regression-gating test. See the two-tier design below.
 Two-tier "sane range" design
 -----------------------------
 1. Hard physical invariants -- always true, and either analytically derived
-   from the generator's own declared per-class data
-   (`program_constants.PLANET_CLASSES`, `physical_constants.PLANET_DENSITY`,
-   etc), or simple non-negotiable physical facts (a temperature or pressure
-   can't be negative or non-finite). Surface gravity is a multilinear
-   function of (radius, density) for terrestrial classes, or, for gas
-   giants, a function of (radius, core density, atmosphere density,
-   core/atmosphere ratio) that is monotonic (though not multilinear -- see
-   `theoretical_gravity_bounds_g`'s docstring) in each of those variables
-   individually -- either property guarantees a function's extrema over a
-   box occur at the box's corners, so `theoretical_gravity_bounds_g` below
-   evaluates every corner of the class's declared ranges and takes the
-   min/max, rather than hand-picking a number. Any generated value outside
+   from the generator's own declared limits (the lightest planet
+   `tuning.PLANET_MIN_MASS_KG`, the heaviest terrestrial body, the density
+   bounds `bulk_draw.DENSITY_BOUNDS_G_CM3`, etc), or simple non-negotiable
+   physical facts (a temperature or pressure can't be negative or
+   non-finite). Surface gravity is `G M / R^2`, least for the lightest,
+   loosest body and greatest for the heaviest, densest one, so
+   `theoretical_gravity_bounds_g` below evaluates those corners per kind of
+   body rather than hand-picking a number. Any generated value outside
    these bounds is unambiguously a bug (in the generator, or in this
    derivation -- either way worth reporting). These gate the pytest test.
 
@@ -64,14 +60,13 @@ and tests/test_star_matrix.py already exhaustively sanity-checks star
 physical properties across every spectral/Yerkes combination.
 """
 
-import itertools
 import math
 import statistics
 from collections import defaultdict
 
 from planetgen.physics import bulk_draw
 from planetgen.physics import constants as pc
-from planetgen.physics import planets as planetPhysics, relations
+from planetgen.physics import relations
 from planetgen import tuning as prog_c
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
@@ -89,16 +84,8 @@ SPECTRAL_CLASSES = ("O", "B", "A", "F", "G", "K", "M")
 SUBCLASSES = (0, 3, 5, 7, 9)
 HOST_STAR_TYPES = tuple(f"{spec}{sub}V" for spec in SPECTRAL_CLASSES for sub in SUBCLASSES)
 
-# (class, zone) pairs PLANET_CLASSES actually declares valid -- same
-# derivation tests/test_planets.py uses, kept independent here on purpose
-# (importing it from the test module would make this importable-anywhere
-# module depend on the tests package).
-VALID_CLASS_ZONE_PAIRS = [
-    (cls, zone)
-    for cls, data in prog_c.PLANET_CLASSES.items()
-    for zone in ZONE_CHARS
-    if data[zone]
-]
+MAX_SAMPLE_ATTEMPTS = 200
+"""int: How many bodies `generate_sample` draws for one that has the class it was asked for."""
 
 # The physical quantities this tool checks. surface_temperature and
 # atmospheric_pressure are the two the atmospheric-pressure unit bug
@@ -131,98 +118,74 @@ def distance_for_zone(star, zone):
     return (inner + outer) / 2.0
 
 
-def _corners(*ranges):
-    return itertools.product(*ranges)
+GIANT_RADIUS_KM_BOUNDS = (10000.0, 200000.0)
+"""tuple: The smallest and largest radius a giant can have (a Neptune-like body of ten Earth masses; a hot, inflated gas giant), km."""
+GIANT_MASS_EARTH_BOUNDS = (10.0, 13.0 * pc.JUPITER_MASS_TO_KG / pc.EARTH_MASS_TO_KG)
+"""tuple: The lightest and heaviest giant, Earth masses (the core-critical mass; the 13 Jupiter-mass limit)."""
+TERRESTRIAL_MAX_RADIUS_KM = 40000.0
+"""float: The largest radius a terrestrial body has (a 20 Earth-mass water world is about 25,000 km), km."""
 
 
-def theoretical_gravity_bounds_g(cls):
+def theoretical_gravity_bounds_g(body_type):
     """
-    Analytically-derived (min, max) surface gravity in Earth g's for planet
-    class `cls`, computed directly from the generator's own declared radius
-    and density ranges (not hand-authored).
+    Analytically-derived (min, max) surface gravity in Earth g's for a body of `body_type` (`'t'` or `'g'`).
 
-    Derivation: `calculate_surface_gravity` computes
-    `g = G * mass / radius_m^2`, and `mass = volume(radius) * density`, so
-    `g = (4/3) * pi * G * density_kg_m3 * radius_m` -- linear in radius and
-    in density, so its extremes are at the corners of the radius and
-    density ranges. A gas giant takes its radius from its mass instead (GEN.34), and
-    a terrestrial class the mass its composition needs for its radius (GEN.428);
-    see the branches below.
+    Derivation: `g = G * mass / radius^2`. A terrestrial body's least is the lightest planet or moon (`tuning.MOON_MIN_MASS_KG`, the lower) at the
+    lowest density (`bulk_draw.DENSITY_BOUNDS_G_CM3`); its greatest `g = (4/3) * pi * G * density * radius`, linear in radius and
+    density, is the largest radius at the highest density. A giant's radius comes from its mass, heavy elements, starlight and
+    age, so the bounds are the ones no radius law passes: least for the lightest mass at the largest radius, greatest for the
+    heaviest mass at the smallest.
 
     Returns:
         tuple: (min_gravity_g, max_gravity_g).
     """
-    data = prog_c.PLANET_CLASSES[cls]
-    min_r_km, max_r_km = data["radius_range"]
-    radii_m = (_km_to_m(min_r_km), _km_to_m(max_r_km))
-    ptype = data["type"]
-
-    def gravity_g(radius_m, density_kg_m3):
-        g_ms2 = (4 / 3) * math.pi * pc.G * density_kg_m3 * radius_m
-        return g_ms2 / pc.EARTH_GRAVITY
-
-    # Class-specific density range if declared (e.g. a brown-dwarf-like
-    # sub-stellar class -- see program_constants.PLANET_CLASSES), else the
-    # default range shared by every other class of this body type. Must
-    # mirror planetPhysics.py's own per-class density_range lookup exactly,
-    # or this bound would flag legitimate override values as violations.
-    values = []
-    if ptype == "t" and "density_range" in data:
-        min_d, max_d = data["density_range"]  # g/cm^3: a class worked back from a density (class S)
-        densities_kgm3 = (min_d * 1000, max_d * 1000)
-        for radius_m, density_kgm3 in _corners(radii_m, densities_kgm3):
-            values.append(gravity_g(radius_m, density_kgm3))
-    elif ptype == "t":
-        # The class sets the radius and the composition the mass (GEN.428), so the bounds are the densities no composition passes:
-        # the lightest body is ice with the greatest porosity of a small body, the heaviest pure iron at 20 Earth masses
-        # (`bulk_draw.DENSITY_BOUNDS_G_CM3`); g is linear in radius and density, so the extremes are the smallest radius with the
-        # lightest and the largest with the heaviest.
-        min_d, max_d = bulk_draw.DENSITY_BOUNDS_G_CM3
-        values.extend((gravity_g(radii_m[0], min_d * 1000), gravity_g(radii_m[1], max_d * 1000)))
-    else:
-        # A giant's radius comes from its mass, heavy elements, starlight and age (the radius tables of GEN.460, or the anchored
-        # relation of GEN.34 outside them), kept inside the class's radius range, so the bounds are the ones no radius law
-        # passes: g = G*M/R^2 is least for the lightest mass at the largest radius and greatest for the heaviest mass at the
-        # smallest, with the masses of the class's mass range.
-        low_kg, high_kg = planetPhysics.giant_mass_range_kg(cls)
-        values.extend(relations.surface_gravity(mass_kg, _km_to_m(radius_km)) / pc.EARTH_GRAVITY
-                      for mass_kg, radius_km in ((low_kg, max_r_km), (high_kg, min_r_km)))
-
-    return min(values), max(values)
+    if body_type == "g":
+        low_earth, high_earth = GIANT_MASS_EARTH_BOUNDS
+        low_r, high_r = (_km_to_m(r) for r in GIANT_RADIUS_KM_BOUNDS)
+        return (relations.surface_gravity(low_earth * pc.EARTH_MASS_TO_KG, high_r) / pc.EARTH_GRAVITY,
+                relations.surface_gravity(high_earth * pc.EARTH_MASS_TO_KG, low_r) / pc.EARTH_GRAVITY)
+    min_d, max_d = bulk_draw.DENSITY_BOUNDS_G_CM3
+    mass = min(prog_c.PLANET_MIN_MASS_KG, prog_c.MOON_MIN_MASS_KG)
+    radius = (3 * mass / (4 * math.pi * min_d * 1000)) ** (1 / 3)
+    least = relations.surface_gravity(mass, radius) / pc.EARTH_GRAVITY
+    greatest = (4 / 3) * math.pi * pc.G * max_d * 1000 * _km_to_m(TERRESTRIAL_MAX_RADIUS_KM) / pc.EARTH_GRAVITY
+    return least, greatest
 
 
-def generate_sample(cls, zone, n, include_moons=True):
+def generate_sample(zone, n, include_moons=True, wanted_class=None):
     """
-    Generates `n` independent planets of class `cls` in zone `zone`, each
-    orbiting a freshly-generated host star whose spectral type is drawn
-    uniformly from `HOST_STAR_TYPES`.
+    Generates `n` independent planets in zone `zone`, each orbiting a
+    freshly-generated host star whose spectral type is drawn uniformly
+    from `HOST_STAR_TYPES`. With `wanted_class`, each is drawn again (up
+    to `MAX_SAMPLE_ATTEMPTS` times, host star included) until its derived
+    class is that one, and the last draw is kept when none is.
 
     Draws from the global `random` stream, so seeding it first makes a
     sample repeatable (GEN.39: generation no longer reseeds itself from
     `secrets`).
 
     Args:
-        cls (str): Planet class code.
-        zone (str): Zone character ('h', 'e', 'c'); must be valid for `cls`.
+        zone (str): Zone character ('h', 'e', 'c').
         n (int): Number of independent planets to generate.
         include_moons (bool): If True (default), also generates each
             planet's moons (via the normal random chance) and includes
             their metrics in the returned records, tagged `is_moon=True`.
+        wanted_class (str, optional): The class every planet should have.
 
     Returns:
         list[dict]: One record per generated body (planet, plus any moons).
     """
     records = []
     for _ in range(n):
-        star_type = draw.choice(HOST_STAR_TYPES)
-        cfg = SystemConfig()
-        cfg.STAR_TYPE = star_type
-        star = Star(cfg)
-        distance = distance_for_zone(star, zone)
-        planet = Planet(
-            cfg, star, star.habitable_zone, distance,
-            planet_class=cls, moon_count=None if include_moons else 0,
-        )
+        for _attempt in range(MAX_SAMPLE_ATTEMPTS if wanted_class else 1):
+            star_type = draw.choice(HOST_STAR_TYPES)
+            cfg = SystemConfig()
+            cfg.STAR_TYPE = star_type
+            star = Star(cfg)
+            distance = distance_for_zone(star, zone)
+            planet = Planet(cfg, star, star.habitable_zone, distance, moon_count=None if include_moons else 0)
+            if wanted_class is None or planet.planet_class == wanted_class:
+                break
         records.append(_extract_record(planet, star_type, is_moon=False))
         for moon in planet.moons:
             records.append(_extract_record(moon, star_type, is_moon=True))
@@ -236,6 +199,7 @@ def _extract_record(body, star_type, is_moon):
         "star_type": star_type,
         "star_spectral_class": star_type[0],
         "is_moon": is_moon,
+        "body_type": body.body_type,
         "has_atmosphere": body.atmosphere != "None",
         "gravity": body.gravity,
         "surface_temperature": body.surface_temperature,
@@ -262,15 +226,15 @@ def check_hard_invariants(record):
     if not math.isfinite(gravity) or gravity <= 0:
         issues.append(f"gravity={gravity!r} is not a finite, positive value")
     else:
-        lo, hi = theoretical_gravity_bounds_g(record["planet_class"])
+        lo, hi = theoretical_gravity_bounds_g(record["body_type"])
         # 1% margin for floating-point slack in the corner-evaluation above,
         # not a physical fudge factor.
         margin = 0.01
         if not (lo * (1 - margin) <= gravity <= hi * (1 + margin)):
             issues.append(
                 f"gravity={gravity:.4f}g outside theoretical range "
-                f"[{lo:.4f}, {hi:.4f}]g analytically derived for class "
-                f"{record['planet_class']!r}"
+                f"[{lo:.4f}, {hi:.4f}]g analytically derived for a body of type "
+                f"{record['body_type']!r}"
             )
 
     temperature = record["surface_temperature"]
@@ -287,7 +251,7 @@ def check_hard_invariants(record):
             issues.append(f"scale_height={scale_height!r} is not finite/positive despite having an atmosphere")
     else:
         if pressure != 0.0:
-            issues.append(f"atmospheric_pressure={pressure!r} but class {record['planet_class']!r} has no atmosphere")
+            issues.append(f"atmospheric_pressure={pressure!r} but the body has no atmosphere")
 
     return issues
 
@@ -369,18 +333,17 @@ def analyze(records, metrics=STATISTICAL_METRICS, k=3.0):
     return report
 
 
-def run_full_sample(n_per_class_zone=100, include_moons=True):
+def run_full_sample(n_per_zone=100, include_moons=True):
     """
-    Generates `n_per_class_zone` planets for every valid (class, zone) pair
-    `PLANET_CLASSES` declares, across the full `HOST_STAR_TYPES` grid.
+    Generates `n_per_zone` planets for every zone, across the full `HOST_STAR_TYPES` grid.
 
     Returns:
         list[dict]: All generated records (planets and, if `include_moons`,
             their moons).
     """
     records = []
-    for cls, zone in VALID_CLASS_ZONE_PAIRS:
-        records.extend(generate_sample(cls, zone, n_per_class_zone, include_moons=include_moons))
+    for zone in ZONE_CHARS:
+        records.extend(generate_sample(zone, n_per_zone, include_moons=include_moons))
     return records
 
 

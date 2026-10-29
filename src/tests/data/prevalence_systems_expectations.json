@@ -1,5 +1,6 @@
 {
  "anomalies": {
+  "GEN.646": "the class cut-over (GEN.646) derives every class from the finished body and builds a moon from its mass: more bodies end in the classes that can carry life (Q, P, V, K), moons per planet rise, and the life shares follow the new air; the ranges are the pre-cut-over measurement and wait for Bug 2's re-baseline",
   "GEN.750": "an intended change, not a fault: the life timeline is five hard steps with the means Boss chose (epoch 119: 0.5, 1.5, 2.5, 3 and 60 Gyr), so photosynthesis comes later than the old pace tables gave and a civilization needs more time than an F star lives; the ranges wait for the re-baseline",
   "GEN.889": "an intended change, not a fault: each life world stores one of the life classes (epoch 120). Chemical classes under ice reach complex cells more often than the old pace tables allowed, and a world counts as Blue or Green only with a sunlit sea for the Flora its food rung needs, which the cold air of GEN.909 and the frozen oceans of GEN.908 keep rare; the ranges wait for the re-baseline after the class cut-over (GEN.646)"
  },
@@ -60,6 +61,7 @@
      "source": "pre-cut-over 0.687 over 150 systems at 0b4d0ccef"
     },
     "habitable_class": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.5866,
      "min": 0.0134,
@@ -78,6 +80,7 @@
      "source": "pre-cut-over 0.060 over 150 systems at 0b4d0ccef"
     },
     "life_multicellularity": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.05,
      "min": 0.0,
@@ -137,6 +140,7 @@
      "source": "pre-cut-over 0.533 over 150 systems at 0b4d0ccef"
     },
     "blue_green": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.3794,
      "min": 0.01,
@@ -155,6 +159,7 @@
      "source": "pre-cut-over 0.753 over 150 systems at 0b4d0ccef"
     },
     "habitable_class": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.7463,
      "min": 0.1337,
@@ -167,12 +172,14 @@
      "source": "pre-cut-over 0.727 over 150 systems at 0b4d0ccef"
     },
     "life_complex_cells": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.3589,
      "min": 0.01,
      "source": "pre-cut-over 0.133 over 150 systems at 0b4d0ccef"
     },
     "life_multicellularity": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.3378,
      "min": 0.01,
@@ -192,6 +199,7 @@
      "source": "pre-cut-over 0.113 over 150 systems at 0b4d0ccef"
     },
     "moons_per_planet": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 1.8252,
      "min": 0.6645,
@@ -251,6 +259,7 @@
      "source": "pre-cut-over 0.753 over 150 systems at 0b4d0ccef"
     },
     "habitable_class": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.6807,
      "min": 0.0793,
@@ -270,6 +279,7 @@
      "source": "pre-cut-over 0.033 over 150 systems at 0b4d0ccef"
     },
     "life_multicellularity": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.1599,
      "min": 0.0,
@@ -288,6 +298,7 @@
      "source": "pre-cut-over 0.027 over 150 systems at 0b4d0ccef"
     },
     "moons_per_planet": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 1.7927,
      "min": 0.7148,
@@ -347,6 +358,7 @@
      "source": "pre-cut-over 0.747 over 150 systems at 0b4d0ccef"
     },
     "habitable_class": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.2701,
      "min": 0.01,
@@ -383,6 +395,7 @@
      "source": "pre-cut-over 0.020 over 150 systems at 0b4d0ccef"
     },
     "moons_per_planet": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 1.938,
      "min": 0.4462,
@@ -443,6 +456,7 @@
      "source": "pre-cut-over 0.660 over 150 systems at 0b4d0ccef"
     },
     "habitable_class": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.7103,
      "min": 0.103,
@@ -462,6 +476,7 @@
      "source": "pre-cut-over 0.047 over 150 systems at 0b4d0ccef"
     },
     "life_multicellularity": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.2056,
      "min": 0.0,
@@ -551,6 +566,7 @@
      "source": "pre-cut-over 0.887 over 150 systems at 0b4d0ccef"
     },
     "life_complex_cells": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.3692,
      "min": 0.01,

@@ -348,7 +348,7 @@ def hydro_based_mass_loss_g_s(mass_earth, radius_earth, teq_k, distance_au, xuv_
     a, b, c, e, f, g = HYDRO_BASED_SIGMA
     ln_flux, ln_distance, ln_radius = math.log(xuv_flux_erg_cm2_s), math.log(distance_au), math.log(radius_earth)
     sigma = (a + b * ln_flux + c * ln_distance + e * ln_radius) / (f + g * ln_distance)
-    row = HYDRO_BASED_LOW if parameter < math.exp(sigma) else HYDRO_BASED_HIGH
+    row = HYDRO_BASED_LOW if math.log(parameter) < sigma else HYDRO_BASED_HIGH  # in logs: a starved flux makes exp(sigma) overflow
     power = row["zeta"] + row["theta"] * ln_distance
     return (math.exp(row["beta"]) * xuv_flux_erg_cm2_s ** row["alpha1"] * distance_au ** row["alpha2"] * radius_earth ** row["alpha3"]
             * parameter ** power)

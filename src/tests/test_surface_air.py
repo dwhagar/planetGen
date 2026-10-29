@@ -290,3 +290,64 @@ def test_a_system_replays_to_the_same_air():
         return [(b.atmospheric_pressure, b.surface_temperature, atmosphere.gas_partials_pa(b)) for b in _generated([5])]
 
     assert airs() == airs()
+
+
+# --- the two bounds of the fixed point (GEN.646; stand-ins CC7 and CC8) ------------------------------------------------------------
+
+def _earth_like_planet(seed=3):
+    from planetgen.generation.planet import Planet
+    from planetgen.generation.star import Star
+
+    config = SystemConfig()
+    config.STAR_TYPE = "G2V"
+    with draw.bound("surface-air-star"):
+        star = Star(config)
+    inner, outer = star.habitable_zone
+    with draw.bound(seed):
+        return Planet(config, star, star.habitable_zone, 0.5 * (inner + outer), mass=constants.EARTH_MASS_TO_KG, moon_count=0)
+
+
+def test_a_runaway_greenhouse_stops_at_the_ceiling(monkeypatch):
+    import dataclasses
+
+    real = sa.atmosphere_state.greenhouse_warming
+    monkeypatch.setattr(sa.atmosphere_state, "greenhouse_warming",
+                        lambda *args: dataclasses.replace(real(*args), surface_temperature_k=5000.0))
+    planet = _earth_like_planet()
+    assert planet.atmospheric_pressure > 0.0
+    assert planet.surface_temperature == pytest.approx(sa.MAX_SURFACE_TEMPERATURE_K)
+
+
+def test_a_pressure_that_falls_to_a_vacuum_is_airless(monkeypatch):
+    real = sa.mixture_draw.draw_mixture
+    calls = []
+
+    def fails_after_the_first(subject, **kwargs):
+        calls.append(subject)
+        if len(calls) > 1:
+            raise sa.gas_equilibrium.EquilibriumError("no convergence")
+        return real(subject, **kwargs)
+
+    monkeypatch.setattr(sa.mixture_draw, "draw_mixture", fails_after_the_first)
+    with pytest.raises(sa.gas_equilibrium.EquilibriumError):
+        _earth_like_planet()                       # at an Earth-like pressure a failure is a fault, not a vacuum
+    assert len(calls) == 2 + sa.MAX_EQUILIBRIUM_STALLS                # the fixed point stepped back a few times first
+    calls.clear()
+    monkeypatch.setattr(sa, "VACUUM_PRESSURE_PA", 1.0e12)
+    planet = _earth_like_planet()                  # with the vacuum edge above it, the same failure leaves an airless body
+    assert planet.atmospheric_pressure == 0.0
+
+
+def test_a_stalled_equilibrium_is_tried_again_from_the_middle_of_the_way_back(monkeypatch):
+    real = sa.mixture_draw.draw_mixture
+    calls = []
+
+    def fails_once(subject, **kwargs):
+        calls.append(subject)
+        if len(calls) == 2:
+            raise sa.gas_equilibrium.EquilibriumError("no convergence")
+        return real(subject, **kwargs)
+
+    monkeypatch.setattr(sa.mixture_draw, "draw_mixture", fails_once)
+    planet = _earth_like_planet()
+    assert len(calls) > 2 and planet.atmospheric_pressure > 0.0

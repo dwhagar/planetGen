@@ -8,8 +8,8 @@ section 5. Both star-system bodies (`generate_hydrosphere`) and rogue
 planets (`physics.rogue_surface`) use the functions here.
 
 1. **Inventory.** A rocky body's water mass fraction is drawn with its bulk
-   composition (`bulk_draw`, GEN.428) log-uniformly from its class's range
-   (`WATER_MASS_FRACTION`, planetGen's defaults; Earth's oceans are 2.34e-4). The mantle holds part of it: the surface
+   composition (`bulk_draw`, GEN.428) log-uniformly from the range of its origin
+   (`tuning.DRY_WATER_MASS_FRACTION` and the others beside it; Earth's oceans are 2.34e-4). The mantle holds part of it: the surface
    keeps `w / b`, `b` log-uniform 1 to 8, but the mantle never holds more
    than ten Earth oceans (`MANTLE_MAX_WATER_FRACTION`). Gas giants have no
    hydrosphere (every field `None`).
@@ -86,19 +86,6 @@ EARTH_OCEAN_FRACTION = 2.34e-4
 MANTLE_MAX_WATER_FRACTION = 10 * EARTH_OCEAN_FRACTION
 MANTLE_BUFFER_RANGE = (1.0, 8.0)
 EARTH_RELIEF_KM = 10.5
-
-WATER_MASS_FRACTION = {
-    "A": (1e-6, 1e-4), "B": (1e-7, 1e-5), "C": (1e-6, 1e-4), "D": (0.05, 0.5),
-    "E": (1e-6, 1e-4), "F": (3e-5, 2e-4), "G": (1e-5, 1e-4), "H": (1e-6, 1e-5),
-    "K": (3e-5, 1e-3), "L": (3e-5, 5e-4), "M": (1e-4, 5e-4), "N": (1e-7, 1e-5),
-    "O": (1e-2, 0.1), "P": (1e-4, 1e-3), "Q": (1e-5, 1e-3), "S": (1e-6, 1e-4),
-    "V": (1e-5, 1e-3),
-}
-"""dict: A rocky class's water mass fraction range (log-uniform; planetGen's
-defaults): dry for the molten, barren and hot classes, Earth's for M, under
-10 percent ocean for H, an ocean world for O, an icy body (Europa 8
-percent, Ganymede about 45) for D."""
-DEFAULT_WATER_MASS_FRACTION = (1e-5, 1e-3)
 
 BRINE_MAX_WATER_FRACTION = 2e-5
 ACID_SO2_SHARE = 0.01
@@ -222,7 +209,7 @@ def draw_surface_water(body):
     """
     w = body.water_mass_fraction
     if w is None:
-        raise ValueError(f"{body.planet_class!r} has no water mass fraction: its bulk composition is drawn first")
+        raise ValueError("the body has no water mass fraction: its bulk composition is drawn first")
     surface_w = surface_water_fraction(w)
     lost_kg = water_loss_kg(body)
     if lost_kg:  # GEN.639: escape strips the air and the oceans, and volcanism later returns part of the mantle's water

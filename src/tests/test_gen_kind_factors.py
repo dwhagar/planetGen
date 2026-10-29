@@ -20,7 +20,6 @@ from planetgen.generation import nebula_contents, phenomenon_scatter, run_sector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import metallicity
-from planetgen.physics import planets as planetPhysics
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 
@@ -380,54 +379,6 @@ def test_a_close_binary_proxy_takes_its_primarys_metallicity():
     assert proxy._primary in (primary, secondary)      # the heavier of the two
     assert proxy.metallicity_fe_h == proxy._primary.metallicity_fe_h
     assert proxy.metallicity_fe_h in (-1.4, -0.2)
-
-
-# --- The giants ----------------------------------------------------------------------------------------------------------
-
-
-def _giants():
-    return [c for c, data in tuning.PLANET_CLASSES.items() if data["type"] == "g"]
-
-
-def _planet(fe_h, is_moon=False):
-    return SimpleNamespace(star=SimpleNamespace(metallicity_fe_h=fe_h), is_moon=is_moon)
-
-
-def test_the_giant_keep_is_one_for_a_moon_a_star_without_a_metallicity_and_a_metal_rich_star():
-    assert planetPhysics._giant_keep(_planet(-1.6, is_moon=True)) == 1.0
-    assert planetPhysics._giant_keep(_planet(None)) == 1.0
-    assert planetPhysics._giant_keep(_planet(0.2)) == 1.0
-    assert planetPhysics._giant_keep(_planet(metallicity.floor_fe_h())) == 1.0
-    assert planetPhysics._giant_keep(_planet(-1.6)) == pytest.approx(metallicity.giant_occurrence_factor(-1.6))
-
-
-def test_a_weighted_draw_with_a_giant_keep_of_one_is_the_old_draw():
-    classes = [c for c, data in tuning.PLANET_CLASSES.items() if data["c"]]
-    with draw.bound("giant-keep-one"):
-        before = [planetPhysics._choose_weighted_planet_class(classes) for _ in range(200)]
-    with draw.bound("giant-keep-one"):
-        after = [planetPhysics._choose_weighted_planet_class(classes, 1.0) for _ in range(200)]
-    assert before == after
-
-
-def test_a_low_giant_keep_thins_the_giants_in_the_class_draw():
-    classes = [c for c, data in tuning.PLANET_CLASSES.items() if data["c"]]
-    assert set(classes) & set(_giants())
-
-    def share(keep):
-        with draw.bound("giant-keep-share"):
-            picks = [planetPhysics._choose_weighted_planet_class(classes, keep) for _ in range(3000)]
-        return sum(1 for pick in picks if pick in _giants()) / len(picks)
-
-    open_share, thinned = share(1.0), share(0.02)
-    assert open_share > 0.05
-    assert thinned < 0.2 * open_share
-    assert share(0.0) == 0.0
-
-
-def test_a_zone_with_only_giants_still_gets_one():
-    giants = _giants()
-    assert planetPhysics._choose_weighted_planet_class(giants, 0.0) in giants
 
 
 # --- The Type Ia share and the old share (GEN.319) --------------------------------------------------------------------

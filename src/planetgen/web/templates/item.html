@@ -4,33 +4,14 @@
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/poi_key.html" import poi_key_panel with context %}
-{#- The Admin menu of this one body (Regenerate, Change class, Delete), as the system page's per-body menu was (ADM.8, ADM.6). -#}
+{#- The Admin menu of this one body (Regenerate, Delete), as the system page's per-body menu was (ADM.8, ADM.6). -#}
 {%- set groups = [] %}
 {%- if edit %}
 {%- set body_actions = [] %}
-{%- set class_actions = [] %}
-{%- if edit.class_options %}
-{%- set class_fields %}
-    <label>New class <select name="planet_class" required>
-      {%- if edit.class_options.recommended %}
-      <optgroup label="Recommended (fits where it is)">
-        {%- for code in edit.class_options.recommended %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
-      </optgroup>
-      {%- endif %}
-      <optgroup label="Needs confirming (may break it)">
-        {%- for code in edit.class_options.forced %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
-      </optgroup>
-    </select></label>
-    <label class="edit-drop"><input type="checkbox" name="confirm_class" value="1"> Set it anyway, even if the class doesn't suit its size, mass or zone</label>
-{%- endset %}
-{%- set class_actions = [{'key': 'class', 'label': 'Change class', 'title': 'Change ' ~ title ~ "'s class",
-    'note': 'Re-rolls it as the class you pick, where it is: a recommended class fits without moving any other planet. Any other class says what it would break and is only set when you tick “Set it anyway”.',
-    'fields': class_fields, 'button': 'Change ' ~ title ~ "'s class"}] %}
-{%- endif %}
 {%- set _ = add_edit_actions(body_actions, title,
      'Rolls it again at the same orbit.' if kind != 'planet' else 'Rolls it again at the same orbit, with new moons.',
      'Removes it from the system.' if kind != 'planet' else 'Removes it and its moons from the system.',
-     facilities=kind != 'star' and kind != 'comet', regenerate_facilities=(kind == 'planet'), extra=class_actions) %}
+     facilities=kind != 'star' and kind != 'comet', regenerate_facilities=(kind == 'planet')) %}
 {%- set _ = groups.append({'id': 'body', 'target': edit.target, 'actions': body_actions}) %}
 {%- endif %}
 {%- set admin_button %}{% if groups %}{{ admin_menu_button(groups, title) }}{% endif %}{% endset %}

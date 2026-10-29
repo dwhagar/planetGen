@@ -8,7 +8,7 @@ and exists specifically to batch-run it for human-reviewed findings,
 rather than as an automated pass/fail check.
 
 Batch-generates planets (and their moons) in memory -- no database
-round-trip needed -- across every valid (planet class, zone) pair and a
+round-trip needed -- across every zone and a
 broad grid of main-sequence host star spectral types, then reports:
 
   * hard physical-invariant violations (analytically-derived surface
@@ -46,11 +46,11 @@ def process_args():
     parser = argparse.ArgumentParser(description="Physical-plausibility anomaly finder for planetGen.")
     parser.add_argument(
         "--n", type=int, default=150,
-        help="Number of independent planets to generate per (class, zone) pair (default: 150).",
+        help="Number of independent planets to generate per zone (default: 150).",
     )
     parser.add_argument(
         "--classes", nargs="+", default=None, metavar="CLASS",
-        help="Restrict to these planet class codes (default: all classes with at least one valid zone).",
+        help="Draw each sample again until it is one of these derived classes (default: every class as it comes).",
     )
     parser.add_argument(
         "--no-moons", action="store_true",
@@ -71,29 +71,25 @@ def process_args():
 def main():
     args = process_args()
 
-    pairs = plausibility.VALID_CLASS_ZONE_PAIRS
-    if args.classes:
-        wanted = {c.upper() for c in args.classes}
-        unknown = wanted - set(prog_c.PLANET_CLASSES)
-        if unknown:
-            print(f"Unknown planet class(es): {sorted(unknown)}", file=sys.stderr)
-            return 2
-        pairs = [(c, z) for c, z in pairs if c in wanted]
-        if not pairs:
-            print(f"None of {sorted(wanted)} have a valid zone to generate in.", file=sys.stderr)
-            return 2
+    wanted = [c.upper() for c in args.classes] if args.classes else [None]
+    unknown = {c for c in wanted if c is not None} - set(prog_c.PLANET_CLASSES)
+    if unknown:
+        print(f"Unknown planet class(es): {sorted(unknown)}", file=sys.stderr)
+        return 2
 
-    total_bodies_estimate = args.n * len(pairs)
+    zones = plausibility.ZONE_CHARS
     print(
-        f"Generating ~{total_bodies_estimate}+ bodies "
-        f"({args.n} per (class, zone) pair x {len(pairs)} pairs, plus moons"
+        f"Generating ~{args.n * len(zones) * len(wanted)}+ bodies "
+        f"({args.n} per zone x {len(zones)} zones"
+        f"{'' if wanted == [None] else f' x classes {wanted}'}, plus moons"
         f"{'' if not args.no_moons else ' [disabled]'}) ...",
         file=sys.stderr,
     )
 
     records = []
-    for cls, zone in pairs:
-        records.extend(plausibility.generate_sample(cls, zone, args.n, include_moons=not args.no_moons))
+    for wanted_class in wanted:
+        for zone in zones:
+            records.extend(plausibility.generate_sample(zone, args.n, include_moons=not args.no_moons, wanted_class=wanted_class))
 
     report = plausibility.analyze(records, k=args.k)
     print(plausibility.format_report(report, show_outlier_examples=not args.no_examples))

@@ -21,7 +21,7 @@
    "selection_model": "wd-pollution-detection",
    "field": "diw",
    "subject": {
-    "body_class": "C",
+    "body_class": "asteroid",
     "quantities": {
      "host_type": "WD"
     }
@@ -45,7 +45,7 @@
    "selection_model": "wd-pollution-detection",
    "field": "diw",
    "subject": {
-    "body_class": "C",
+    "body_class": "asteroid",
     "quantities": {
      "host_type": "WD"
     }
@@ -69,7 +69,7 @@
    "selection_model": "wd-pollution-detection",
    "field": "diw",
    "subject": {
-    "body_class": "E",
+    "body_class": "terrestrial",
     "quantities": {
      "host_type": "WD"
     }
@@ -93,7 +93,7 @@
    "selection_model": "wd-pollution-detection",
    "field": "diw",
    "subject": {
-    "body_class": "E",
+    "body_class": "terrestrial",
     "quantities": {
      "host_type": "WD"
     }
@@ -116,7 +116,7 @@
     ]
    },
    "subject": {
-    "body_class": "I",
+    "body_class": "giant",
     "quantities": {
      "mass_jupiter": 0.1
     }
@@ -142,7 +142,7 @@
     ]
    },
    "subject": {
-    "body_class": "I",
+    "body_class": "giant",
     "quantities": {
      "mass_jupiter": 1.0
     }
@@ -168,7 +168,7 @@
     ]
    },
    "subject": {
-    "body_class": "I",
+    "body_class": "giant",
     "quantities": {
      "mass_jupiter": 10.0
     }
@@ -195,7 +195,7 @@
     ]
    },
    "subject": {
-    "body_class": "I",
+    "body_class": "giant",
     "quantities": {
      "mass_jupiter": 1.0
     }
@@ -221,7 +221,7 @@
     ]
    },
    "subject": {
-    "body_class": "I",
+    "body_class": "giant",
     "quantities": {
      "mass_jupiter": 1.0
     }
@@ -250,7 +250,7 @@
     ]
    },
    "subject": {
-    "body_class": "I",
+    "body_class": "giant",
     "quantities": {
      "mass_jupiter": 1.0
     }
@@ -278,7 +278,7 @@
     ]
    },
    "subject": {
-    "body_class": "I",
+    "body_class": "giant",
     "quantities": {
      "mass_jupiter": 1.0
     }
@@ -304,7 +304,7 @@
     ]
    },
    "subject": {
-    "body_class": "I",
+    "body_class": "giant",
     "quantities": {
      "mass_jupiter": 1.0
     }
@@ -328,7 +328,7 @@
     "thin_disc_fgk": false
    },
    "subject": {
-    "body_class": "A",
+    "body_class": "terrestrial",
     "quantities": {
      "thin_disc_fgk": false
     }
@@ -352,7 +352,7 @@
     "thin_disc_fgk": false
    },
    "subject": {
-    "body_class": "A",
+    "body_class": "terrestrial",
     "quantities": {
      "thin_disc_fgk": false
     }
@@ -899,7 +899,7 @@
    "selection_model": "mass-radius-sample",
    "role": "target",
    "subject": {
-    "body_class": "M",
+    "body_class": "terrestrial",
     "quantities": {
      "radius_earth": 1.5,
      "host_mass_solar": 1.0,
@@ -940,7 +940,7 @@
    "selection_model": "mass-radius-sample",
    "role": "target",
    "subject": {
-    "body_class": "M",
+    "body_class": "terrestrial",
     "quantities": {
      "radius_earth": 1.5,
      "host_mass_solar": 1.0,

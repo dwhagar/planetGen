@@ -5,9 +5,12 @@ Planet Physical and Orbital Generation
 =======================================
 
 This module determines what a planet or moon physically *is*: its orbital
-zone, class, radius, mass, density, composition, atmosphere, surface
+zone, kind, mass, radius, density, composition, atmosphere, surface
 gravity, and atmospheric conditions, plus the generation of any moons it
-has. It operates on `Planet` instances (from `planet`) passed in as
+has. No class letter is read: the mass comes from the formation law
+(`planet_kind.draw_formation`) or a moon's size law, the composition from the
+star and where the body formed, and the class is derived from the finished
+body (`apply_class`, `planet_classes.classify`). It operates on `Planet` instances (from `planet`) passed in as
 arguments, rather than as methods on the class, so that generation logic is
 kept separate from the `Planet` object's own definition and presentation.
 
@@ -19,7 +22,7 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements, rings
+from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
 from planetgen.physics import aerosols, atmosphere, body_colour, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
@@ -44,34 +47,9 @@ _au_yr_to_kms = units.converter("au_yr", "km_s")
 _TWO_PI_RAD = 2.0 * math.pi
 
 
-def _sample_class_radius(cls, min_radius, max_radius):
-    """
-    Draws a radius in [min_radius, max_radius] using `cls`'s declared
-    `size_mode` (see `tuning.PLANET_CLASSES`), via
-    `random.sample_bounded_bell` -- a bell-curve draw peaking at the
-    class's statistically-most-common size, rather than a flat uniform
-    draw across its whole declared range. `min_radius`/`max_radius` are
-    passed separately from `cls`'s own declared `radius_range` (rather
-    than read directly here) since a moon's actually-available range can
-    be narrower (capped by its parent's Hill sphere/mass) -- `size_mode`'s
-    "how far through the available range" reading is evaluated against
-    whatever range is actually being drawn from for this call.
-    """
-    size_mode = tuning.PLANET_CLASSES[cls].get("size_mode", 0.5)
-    return sample_bounded_bell(min_radius, max_radius, size_mode)
-
-
-def uses_giant_mass_radius(cls):
-    """Whether class `cls` gets its mass and radius from the giant-planet
-    mass-radius relation (GEN.34): every gas-giant class."""
-    return tuning.PLANET_CLASSES[cls]["type"] == "g"
-
-
-def giant_mass_range_kg(cls):
-    """Class `cls`'s giant mass range (`GIANT_CLASS_MASS_RANGE_EARTH`), in kg."""
-    low, high = tuning.GIANT_CLASS_MASS_RANGE_EARTH.get(
-        cls, tuning.GIANT_DEFAULT_MASS_RANGE_EARTH)
-    return low * constants.EARTH_MASS_TO_KG, high * constants.EARTH_MASS_TO_KG
+def uses_giant_mass_radius(planet):
+    """Whether `planet` gets its mass and radius from the giant-planet mass-radius relation (GEN.34): a giant."""
+    return planet.body_type == "g"
 
 
 def _giant_transition_earth():
@@ -121,193 +99,34 @@ def sample_giant_radius_km(mass_kg):
     return giant_radius_km(mass_kg) * factor
 
 
-def _sample_giant_radius_km(cls, mass_kg):
-    """`sample_giant_radius_km(mass_kg)`, kept inside class `cls`'s radius
-    range."""
-    low, high = tuning.PLANET_CLASSES[cls]["radius_range"]
-    return min(high, max(low, sample_giant_radius_km(mass_kg)))
-
-
-def _giant_mass_for_radius_kg(cls, radius_km):
+def _giant_mass_for_radius_kg(radius_km, star_mass_kg):
     """
-    A mass (kg) for a giant of class `cls` whose radius was fixed first (a
-    caller's radius): the Neptunian branch's inverse below the transition
-    radius, else a draw from the class's masses past the transition (the
-    Jovian branch is nearly flat, so radius barely constrains mass there).
-    Always inside the class's mass range.
+    A mass (kg) for a giant whose radius was fixed first (a caller's radius): the Neptunian branch's inverse below the transition
+    radius, never under the core-critical mass, else a draw from the runaway mass function (the Jovian branch is nearly flat, so
+    radius barely constrains mass there), never under the transition mass.
     """
-    low_kg, high_kg = giant_mass_range_kg(cls)
     transition_kg = GIANT_TRANSITION_MASS_EARTH * constants.EARTH_MASS_TO_KG
     radius_earth = radius_km / constants.EARTH_RADIUS_KM
-    if radius_earth < GIANT_TRANSITION_RADIUS_EARTH or high_kg <= transition_kg:
+    if radius_earth < GIANT_TRANSITION_RADIUS_EARTH:
         m0, r0, slope = constants.GIANT_NEPTUNIAN_MASS_RADIUS
         mass_kg = m0 * (radius_earth / r0) ** (1 / slope) * constants.EARTH_MASS_TO_KG
-    else:
-        mass_kg = _sample_giant_mass_kg(max(low_kg, transition_kg), high_kg)
-    return min(high_kg, max(low_kg, mass_kg))
+        return max(mass_kg, tuning.GIANT_CORE_CRITICAL_MASS_EARTH * constants.EARTH_MASS_TO_KG)
+    return max(transition_kg, planet_mass.runaway_mass_kg(star_mass_kg))
 
 
-def get_planet_mass_ranges():
+def apply_class(planet):
     """
-    Calculates and returns a dictionary of valid mass ranges (in kg) for each planet class.
-
-    This function pre-calculates the minimum and maximum possible mass for each
-    planet class based on its radius and density ranges. This is used for
-    validation when generating planets with a given mass. The calculations
-    account for the different compositions of terrestrial planets and gas giants.
-
-    Returns:
-        dict: A dictionary where keys are planet classes (e.g., 'M', 'N') and
-              values are tuples of (min_mass, max_mass) in kilograms.
+    Sets the class of a finished planet or moon from its stored conditions (GEN.689, `planet_classes.classify`), with the description
+    text of that class (the composition text is written from the stored fractions, GEN.430). Called when the body is built (so a
+    request can test it) and again once the system is final (the seasonal swing of its starlight, `flux_variation`, is known only then).
     """
-    mass_ranges = {}
-    for planet_class, data in tuning.PLANET_CLASSES.items():
-        # radius_range is in kilometers (as used everywhere else -- e.g. class
-        # M's 5000-10000 matches Earth's ~6371 km radius); convert to meters
-        # to match the kg/m^3 densities used below.
-        min_radius, max_radius = data["radius_range"]
-        min_radius = _km_to_m(min_radius)
-        max_radius = _km_to_m(max_radius)
-        planet_type = data["type"]
-
-        # Class-specific density range if declared (e.g. a brown-dwarf-like
-        # sub-stellar class, far denser than an ordinary gas giant -- see
-        # tuning.PLANET_CLASSES), else the default range shared
-        # by every other class of this body type.
-        min_density, max_density = data.get("density_range", constants.PLANET_DENSITY[planet_type])  # g/cm^3
-
-        # Convert density from g/cm³ to kg/m³ for mass calculation
-        min_density *= 1000
-        max_density *= 1000
-
-        if uses_giant_mass_radius(planet_class):
-            min_mass, max_mass = giant_mass_range_kg(planet_class)
-        else:  # Terrestrial, or a gas giant with its own density_range
-            min_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_density
-            max_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_density
-
-        mass_ranges[planet_class] = (min_mass, max_mass)
-    return mass_ranges
-
-
-planet_mass_ranges = get_planet_mass_ranges()
-
-
-def _giant_keep(planet):
-    """The factor on the weight of a gas giant class in `planet`'s class draw (GEN.236): the giant-planet occurrence of
-    its star's [Fe/H] against the disk's (`metallicity.giant_occurrence_factor`), 1 for a moon, for a star without a
-    [Fe/H] and at and above `metallicity.floor_fe_h()`."""
-    fe_h = getattr(planet.star, "metallicity_fe_h", None)
-    if planet.is_moon or fe_h is None:
-        return 1.0
-    return metallicity.giant_occurrence_factor(fe_h)
-
-
-def _choose_weighted_planet_class(valid_classes, giant_keep=1.0):
-    """
-    Draws a single planet class from `tuning.PLANET_CLASS_PROBABILITIES`,
-    restricted to `valid_classes`.
-
-    This re-weights the distribution to only the eligible classes and draws
-    once, rather than repeatedly sampling the full distribution and
-    rejecting draws that fall outside `valid_classes`.
-
-    Args:
-        valid_classes (iterable): The planet class codes eligible to be chosen.
-        giant_keep (float): The factor on a gas giant class's weight (GEN.236); the draw count is the same for any
-            value.
-
-    Returns:
-        str: The chosen planet class code.
-    """
-    valid_classes = set(valid_classes)
-    eligible = [c for c in tuning.PLANET_CLASS_PROBABILITIES if c in valid_classes]
-    weights = [tuning.PLANET_CLASS_PROBABILITIES[c] * (giant_keep if tuning.PLANET_CLASSES[c]["type"] == "g" else 1.0)
-               for c in eligible]
-    if not any(weights):    # only giants are eligible: they are the only choice there is
-        weights = [tuning.PLANET_CLASS_PROBABILITIES[c] for c in eligible]
-    chosen = draw.choices(eligible, weights=weights, k=1)[0]
-    log.choice("Planet class", chosen,
-               f"weighted draw among {len(eligible)} eligible classes {eligible} "
-               f"(weights {weights}) out of {len(tuning.PLANET_CLASS_PROBABILITIES)} total")
-    return chosen
-
-
-def _habitable_classes_barred(planet, zone):
-    """
-    Whether a randomly chosen class for `planet` must skip the habitable
-    classes: the system disallows habitable worlds and this is the
-    ecosphere, or its star is younger than `LIFE_MIN_STAR_AGE_GY` (too
-    young for a crust and oceans, let alone life). An explicitly requested
-    class is only held to the first rule (`_validate_no_habitable_world`).
-    """
-    if planet.system_config.HABITABLE_WORLD is False and zone == 'e':
-        return True
-    star_age = getattr(getattr(planet, "star", None), "age", None)
-    return star_age is not None and star_age < tuning.LIFE_MIN_STAR_AGE_GY
-
-
-def _validate_no_habitable_world(planet, zone):
-    """
-    Raises if the system disallows habitable worlds and this planet's
-    class is a habitable one being placed in the ecosphere.
-
-    Args:
-        planet (Planet): The planet being generated.
-        zone (str): The zone ('h', 'c', 'e') the planet would occupy.
-
-    Raises:
-        ValueError: If `planet.system_config.HABITABLE_WORLD` is False,
-                   `zone` is the ecosphere ('e'), and `planet.planet_class`
-                   is a habitable class.
-    """
-    if planet.system_config.HABITABLE_WORLD is False and zone == 'e' and planet.planet_class in tuning.HABITABLE_PLANET_CLASSES:
-        raise ValueError(f"Cannot generate habitable planet class {planet.planet_class} in ecosphere when HABITABLE_WORLD is False.")
-
-
-def _validate_planet_class(planet, zone):
-    """
-    Validates if the planet's class is valid for its zone.
-
-    Args:
-        planet (Planet): The planet being generated.
-        zone (str): The zone ('h', 'c', 'e') of the planet.
-
-    Raises:
-        ValueError: If the planet class is not valid for the given zone.
-    """
-    if planet.planet_class not in tuning.PLANET_CLASSES or not tuning.PLANET_CLASSES[planet.planet_class][zone]:
-        raise ValueError("Invalid planet class for this zone")
-
-
-def _validate_radius(planet):
-    """
-    Validates if the planet's radius is within the allowed range for its class.
-
-    Args:
-        planet (Planet): The planet being generated.
-
-    Raises:
-        ValueError: If the radius is outside the valid range for the planet's class.
-    """
-    min_radius, max_radius = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
-    if not (min_radius <= planet.radius <= max_radius):
-        raise ValueError("Invalid radius for planet class")
-
-
-def _validate_mass(planet):
-    """
-    Validates if the planet's mass is within the allowed range for its class.
-
-    Args:
-        planet (Planet): The planet being generated.
-
-    Raises:
-        ValueError: If the mass is outside the valid range for the planet's class.
-    """
-    min_mass, max_mass = planet_mass_ranges[planet.planet_class]
-    if not (min_mass <= planet.mass <= max_mass):
-        raise ValueError("Invalid mass for planet class")
+    planet.planet_class = planet_classes.classify(planet)
+    data = tuning.PLANET_CLASSES[planet.planet_class]
+    planet.description = data["description"]
+    if planet.is_moon:
+        # Class descriptions are authored generically (e.g. "shields the inner planets"); a moon knows it's a moon.
+        planet.description = re.sub(r'\bplanets\b', 'moons', planet.description)
+        planet.description = re.sub(r'\bplanet\b', 'moon', planet.description)
 
 
 @finite_domain()
@@ -349,169 +168,84 @@ def calculate_orbital_period_years(distance_au, primary_mass_kg):
     return math.sqrt(distance_au ** 3 / primary_mass_sol)
 
 
+def formation_distance_au(planet):
+    """Where the body formed, in AU: its own distance, or its parent's for a moon (`Planet.formation_distance_au`)."""
+    distance = getattr(planet, "formation_distance_au", None)
+    return planet.distance if distance is None else distance
+
+
+def formed_beyond_snow_line(planet):
+    """Whether `planet` formed at or beyond its star's snow line (False for a star with none)."""
+    line = getattr(getattr(planet, "star", None), "snow_line_au", None)
+    return line is not None and formation_distance_au(planet) >= line
+
+
 def generate_planet_properties(planet, zone_override=None):
     """
-    Generates a planet's physical and orbital properties: zone, class,
-    radius, mass, density, composition, and atmosphere.
+    Generates a planet's physical and orbital properties: zone, kind, mass, radius, density, composition, and the interior
+    (GEN.646, no class letter is read).
 
-    This is the core of the planet generation logic. It determines the
-    planet's properties such as class, composition, and atmosphere. The
-    generation can be fully random or guided by inputs already set on
-    `planet` (a specific radius, mass, or planet class). It ensures the
-    generated properties are consistent with each other and the planet's
-    orbital zone.
+    A planet draws its kind and mass from the formation law at its distance (`planet_kind.draw_formation`); a moon's mass is
+    given by its parent (`generate_moons`, the moon size law); a caller may give a mass, a radius or both (kept). A terrestrial
+    body then draws its bulk composition from its star and its origin (`bulk_draw.draw_terrestrial`) and a giant its heavy
+    elements and radius (`giant_draw.draw_giant`). The air, the water and the class follow (`calculate_atmospheric_conditions`,
+    `apply_class`).
 
     Args:
-        planet (Planet): The planet to generate properties for. Any of
-                         `planet.planet_class`/`planet.radius`/`planet.mass`
-                         already set constrain the generation; unset ones
-                         are filled in.
-        zone_override (str, optional): A character ('h', 'c', 'e') to manually
-                                       set the planet's zone, overriding the
+        planet (Planet): The planet to generate properties for. Any of `planet.radius`/`planet.mass` already set are kept; unset
+                         ones are filled in.
+        zone_override (str, optional): A character ('h', 'c', 'e') to manually set the planet's zone, overriding the
                                        calculation based on distance.
     """
     # Determine the planet's zone (hot, ecosphere, or cold)
-    inner_bound, outer_bound = planet.habitable_zone
-    if planet.distance < inner_bound:
-        zone = 'h'
-    elif planet.distance > outer_bound:
-        zone = 'c'
-    else:
-        zone = 'e'
+    zone = zone_for(planet.habitable_zone, planet.distance)
 
     if zone_override and zone_override.lower() in "hce":
         zone = zone_override.lower()
     planet.zone = zone
 
-    # --- Input Validation and Random Generation ---
-    # This section handles the logic for generating planet properties based on
-    # the inputs provided. It can generate a fully random planet, or generate
-    # properties based on a given class, radius, or mass.
-
     radius_given = planet.radius is not None
     mass_given = planet.mass is not None
+    beyond = formed_beyond_snow_line(planet)
+    _check_given_bounds(planet.mass if mass_given else None, planet.radius if radius_given else None)
 
-    if planet.planet_class is None and planet.radius is None and planet.mass is None:
-        # Fully random generation
-        valid_classes = [c for c, data in tuning.PLANET_CLASSES.items() if data[zone]]
-        if _habitable_classes_barred(planet, zone):
-            valid_classes = [c for c in valid_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
-
-        planet.planet_class = _choose_weighted_planet_class(valid_classes, _giant_keep(planet))
-        min_radius, max_radius = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
-        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
-
-    elif planet.planet_class is not None and planet.radius is None and planet.mass is None:
-        # Class given, generate radius
-        _validate_planet_class(planet, zone)
-        _validate_no_habitable_world(planet, zone)
-        min_radius, max_radius = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
-        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
-
-    elif planet.planet_class is None and planet.radius is not None and planet.mass is None:
-        # Radius given, determine possible classes
-        possible_classes = [c for c, data in tuning.PLANET_CLASSES.items()
-                            if data[zone] and data["radius_range"][0] <= planet.radius <= data["radius_range"][1]]
-        if _habitable_classes_barred(planet, zone):
-            possible_classes = [c for c in possible_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
-        if not possible_classes:
-            raise ValueError("No valid planet class for the given radius in this zone")
-        planet.planet_class = draw.choice(possible_classes)
-        _validate_radius(planet)
-
-    elif planet.planet_class is None and planet.radius is None and planet.mass is not None:
-        # Mass given, determine possible classes
-        possible_classes = [c for c, data in tuning.PLANET_CLASSES.items()
-                            if planet_mass_ranges[c][0] <= planet.mass <= planet_mass_ranges[c][1] and data[zone]]
-        if _habitable_classes_barred(planet, zone):
-            possible_classes = [c for c in possible_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
-        if not possible_classes:
-            raise ValueError("No valid planet class for the given mass in this zone")
-        planet.planet_class = draw.choice(possible_classes)
-        _validate_mass(planet)
-        # Everything downstream needs a radius, so draw one for the class,
-        # the same as the class+mass branch below.
-        min_radius, max_radius = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
-        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
-
-    elif planet.planet_class is not None and planet.radius is not None and planet.mass is None:
-        # Class and radius given, validate
-        _validate_planet_class(planet, zone)
-        _validate_no_habitable_world(planet, zone)
-        _validate_radius(planet)
-
-    elif planet.planet_class is not None and planet.radius is None and planet.mass is not None:
-        # Class and mass given, validate and generate radius
-        _validate_planet_class(planet, zone)
-        _validate_no_habitable_world(planet, zone)
-        _validate_mass(planet)
-        min_radius, max_radius = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
-        planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
-
-    elif planet.planet_class is None and planet.radius is not None and planet.mass is not None:
-        # Radius and mass given, determine possible classes
-        possible_classes = []
-        for c, data in tuning.PLANET_CLASSES.items():
-            min_mass, max_mass = planet_mass_ranges[c]
-            min_radius, max_radius = data["radius_range"]
-            if min_mass <= planet.mass <= max_mass and min_radius <= planet.radius <= max_radius and data[zone]:
-                possible_classes.append(c)
-        if _habitable_classes_barred(planet, zone):
-            possible_classes = [c for c in possible_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
-        if not possible_classes:
-            raise ValueError("No valid planet class for the given radius/mass in this zone")
-        planet.planet_class = draw.choice(possible_classes)
-        _validate_radius(planet)
-        _validate_mass(planet)
-
-    else:
-        # All inputs provided, fully validate
-        _validate_planet_class(planet, zone)
-        _validate_no_habitable_world(planet, zone)
-        _validate_radius(planet)
-        _validate_mass(planet)
-
-    class_data = tuning.PLANET_CLASSES[planet.planet_class]
-
-    # Ecosphere-zone classes with a declared "zone_position_mode" (Venus/
-    # Earth/Mars-analog-style classes -- see tuning.PLANET_CLASSES)
-    # get placed at a class-appropriate distance within the zone instead of
-    # wherever the caller's initial estimate happened to land -- the zone
-    # itself doesn't change (still 'e'), only the position within it, so
-    # this runs after `zone`/`planet.zone` are already settled above. Moons
-    # are excluded: `planet.distance` for a moon is its orbit around the
-    # *parent planet*, not an AU-scale position within the star's habitable
-    # zone `planet.habitable_zone` describes, so redrawing it here would
-    # corrupt it, not correct it (see generate_moons/zone_override).
-    if zone == 'e' and not planet.is_moon and "zone_position_mode" in class_data:
-        inner_bound, outer_bound = planet.habitable_zone
-        planet.distance = sample_bounded_bell(inner_bound, outer_bound, class_data["zone_position_mode"])
-
-    planet.description = class_data["description"]
     if planet.is_moon:
-        # Class descriptions are authored generically (e.g. "shields the inner
-        # planets"); a moon knows it's a moon, so correct the wording once here
-        # rather than scrubbing every rendered paragraph for it later.
-        planet.description = re.sub(r'\bplanets\b', 'moons', planet.description)
-        planet.description = re.sub(r'\bplanet\b', 'moon', planet.description)
-    rings.clear(planet)  # a new class draws its ring again (GEN.732)
-    planet.body_type = class_data["type"]
+        kind = "terrestrial"
+        if not mass_given and not radius_given:
+            raise ValueError("A moon is built from a mass or a radius its parent gives (generate_moons).")
+    elif mass_given or radius_given:
+        kind = planet_kind.kind_of_given(planet.mass if mass_given else None, planet.radius if radius_given else None, beyond)
+    else:
+        formation = planet_kind.draw_formation(planet.distance, planet.star.mass, planet.star.snow_line_au,
+                                               _star_fe_h(planet.star), bulk_draw.metal_ratio_to_solar(planet.star))
+        kind = formation.kind
+        planet.mass = max(formation.mass_kg, tuning.PLANET_MIN_MASS_KG)
+        mass_given = True
+        log.choice("Planet kind", kind, f"formation at {planet.distance:.4g} AU gave {planet.mass:.4g} kg "
+                   f"(core {formation.core_kg:.4g} kg, runaway {formation.runaway}, beyond the snow line {formation.beyond_snow_line})")
 
-    if uses_giant_mass_radius(planet.planet_class):
+    if mass_given and radius_given:
+        _check_given_density(planet.mass, planet.radius, kind)
+
+    planet.body_type = "g" if kind == "giant" else "t"
+    rings.clear(planet)  # a new draw draws its ring again (GEN.732)
+
+    if uses_giant_mass_radius(planet):
         apply_giant(planet, radius_given, mass_given)
     else:
-        # The composition comes first and the mass, density and gravity follow
-        # from it (GEN.428, GEN.429; `bulk_draw`).
+        # The composition comes first and the radius, density and gravity follow from it (GEN.428, GEN.429; `bulk_draw`).
         bulk_draw.draw_terrestrial(planet, radius_given, mass_given)
         giant_interior.clear(planet)
 
-    # The air is made later, with the temperature it gives (`calculate_atmospheric_conditions`, GEN.411 and GEN.422): a class says only
-    # whether it has one. Clear what a previous class left behind -- `reconcile_zone_and_class` regenerates a body in place, so a body
-    # moved from an atmosphered class into an airless one would otherwise keep (and save) its old class's densities.
-    planet.atmosphere = atmosphere.PENDING if class_data["air"] else "None"
+    # The air is made later, with the temperature it gives (`calculate_atmospheric_conditions`, GEN.411 and GEN.422): whether the
+    # body holds one is the solver's call. Clear what a previous draw left behind -- `reconcile_zone` regenerates a body
+    # in place -- and the class, which is derived once the body is finished (`apply_class`).
+    planet.atmosphere = None
     planet.atm_density = None
     planet.atm_molar_density = None
     planet.scale_height = None
+    planet.planet_class = None
+    planet.description = None
 
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
     # GEN.459: the potassium, thorium, uranium and aluminium-26 the interior heat and the ground's dose both read (a stored draw of the
@@ -524,30 +258,54 @@ def generate_planet_properties(planet, zone_override=None):
     update_hill_sphere(planet)
 
 
+def _check_given_bounds(mass_kg, radius_km):
+    """The mass and radius a caller gave must be inside `tuning.GIVEN_MASS_KG_BOUNDS` and `tuning.GIVEN_RADIUS_KM_BOUNDS`.
+
+    Raises:
+        ValueError: One is outside its bounds (or not a number).
+    """
+    for name, value, unit, (low, high) in (("mass", mass_kg, "kg", tuning.GIVEN_MASS_KG_BOUNDS),
+                                           ("radius", radius_km, "km", tuning.GIVEN_RADIUS_KM_BOUNDS)):
+        if value is not None and not low <= value <= high:
+            raise ValueError(f"The given {name} ({value:.4g} {unit}) is outside {low:.3g} to {high:.3g} {unit}.")
+
+
+def _check_given_density(mass_kg, radius_km, kind):
+    """A mass and a radius a caller gave together must make a body of a density that kind of body can have.
+
+    Raises:
+        ValueError: The mean density is outside the bounds.
+    """
+    density = mass_kg / ((4 / 3) * math.pi * (radius_km * constants.KM_TO_M_FACTOR) ** 3) / 1000.0
+    low, high = tuning.GIANT_DENSITY_BOUNDS_G_CM3 if kind == "giant" else bulk_draw.DENSITY_BOUNDS_G_CM3
+    if not low <= density <= high:
+        raise ValueError(f"A {kind} body of {mass_kg:.4g} kg and {radius_km:.4g} km has a density of {density:.4g} g/cm3; "
+                         f"a {kind} body has {low:g} to {high:g}.")
+
+
+def _star_fe_h(star):
+    """The star's [Fe/H] for the formation law (0 for a star without one, a remnant)."""
+    fe_h = getattr(star, "metallicity_fe_h", None)
+    return 0.0 if fe_h is None else fe_h
+
+
 def apply_giant(planet, radius_given, mass_given):
     """
-    Sets a gas giant's mass, radius, density and composition: the mass first (`_apply_giant_mass`), then its heavy elements, radius
+    Sets a giant's mass, radius, density and composition: the mass first (`_apply_giant_mass`), then its heavy elements, radius
     and interior (`giant_draw.draw_giant`, GEN.460 and GEN.642), with the anchored mass-radius relation (GEN.34) for a body the
     radius tables do not hold.
     """
     _apply_giant_mass(planet, radius_given, mass_given)
-    giant_draw.draw_giant(planet, radius_given, _sample_giant_radius_km)
+    giant_draw.draw_giant(planet, radius_given, sample_giant_radius_km)
 
 
 def _apply_giant_mass(planet, radius_given, mass_given):
     """
-    Sets a gas giant's mass: with none given, a mass from the class's mass function (at most `GIANT_MAX_STAR_MASS_RATIO` of its
-    star's mass); with only a radius, the anchored relation's mass for it (`_giant_mass_for_radius_kg`); with a mass, that mass.
+    Sets a giant's mass: the formation law's or the caller's, kept; with only a radius, the anchored relation's mass for it
+    (`_giant_mass_for_radius_kg`).
     """
     if not mass_given:
-        if radius_given:
-            planet.mass = _giant_mass_for_radius_kg(planet.planet_class, planet.radius)
-        else:
-            low_kg, high_kg = giant_mass_range_kg(planet.planet_class)
-            star_mass = getattr(getattr(planet, "star", None), "mass", None)
-            if star_mass:
-                high_kg = max(low_kg, min(high_kg, tuning.GIANT_MAX_STAR_MASS_RATIO * star_mass))
-            planet.mass = _sample_giant_mass_kg(low_kg, high_kg)
+        planet.mass = _giant_mass_for_radius_kg(planet.radius, planet.star.mass)
 
 
 def update_hill_sphere(planet):
@@ -592,10 +350,10 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     """
     Makes the air of the planet or moon and the surface temperature it gives (GEN.411, GEN.422; `surface_air`).
 
-    The Bond albedo is drawn from the class range; the heat the interior has carried out (`interior_heat.update_heat`) says how much
+    The Bond albedo is drawn from the range of the body's regime (`climate_draws.albedo_range`); the heat the interior has carried out (`interior_heat.update_heat`) says how much
     of the body's volatiles has reached the surface (`surface_pressure`); the water it holds is the reservoir its air's water vapour
     stands in contact with; and the mixture, the pressure with the freeze-out, the density, the scale height, the greenhouse and the
-    temperature are solved together (`surface_air.solve`). A class with no air, and a body whose air is lost, have the temperature the
+    temperature are solved together (`surface_air.solve`). A body that holds no air, and a body whose air is lost, have the temperature the
     starlight alone gives.
 
     Args:
@@ -614,12 +372,9 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     orbital_radius_km = _au_to_km(distance)
     output_area = 4 * math.pi * orbital_radius_km ** 2
     solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
-    class_data = tuning.PLANET_CLASSES.get(planet.planet_class, {})
-    # Class-specific albedo range if declared (e.g. Class P's icy/glaciated
-    # surface reflects more than the default rocky/Earth-like range), else
-    # the default range used for every other class.
-    albedo_range = class_data.get("albedo_range", (0.12, 0.35))
-    albedo = draw.uniform(*albedo_range)
+    # The range of the body's regime (a frozen or a wet world reflects more than dry rock): it reads only what the body is made of and
+    # the starlight, so it can be drawn before the air it will be solved with.
+    albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit))
     # Floored at the cosmic microwave background: starlight alone can put a
     # body around a very dim star (or far out) below ~2.7 K, but nothing in
     # space is colder than the background it sits in.
@@ -636,11 +391,9 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     planet.surface_temperature = surface_temperature_no_atmosphere
     planet.atmospheric_pressure = 0.0
     climate_draws.record(planet, albedo, 0.0)       # the mixture subject reads the albedo
-    air = None
-    if planet.atmosphere != "None":
-        setting = surface_air.setting_of(planet, albedo=albedo, starlight_w_m2=solar_output_at_orbit, star_distance_au=distance,
-                                         heat=heat, surface_w=surface_w, water_lost=water_lost)
-        air = surface_air.solve(setting, surface_temperature_no_atmosphere)
+    setting = surface_air.setting_of(planet, albedo=albedo, starlight_w_m2=solar_output_at_orbit, star_distance_au=distance,
+                                     heat=heat, surface_w=surface_w, water_lost=water_lost)
+    air = surface_air.solve(setting, surface_temperature_no_atmosphere)
     if air is None or not air.partials_pa:
         planet.atm_density = planet.atm_molar_density = planet.scale_height = None
         atmosphere.store_air(planet, {}, None if giant else _mantle_redox(planet, air, distance, water_lost))
@@ -651,7 +404,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         planet.atm_density = air.state.density_kg_m3
         planet.scale_height = _m_to_km(air.state.scale_height_m)
         climate_draws.record(planet, albedo, air.greenhouse_factor)     # GEN.412: the two numbers the temperature is made of
-        atmosphere.store_air(planet, air.partials_pa, air.mixture.redox_diw)
+        atmosphere.store_air(planet, air.partials_pa, None if giant else _mantle_redox(planet, air, distance, water_lost))
 
     # GEN.88: water, land, ice and the ocean's chemistry.
     hydrosphere.generate_hydrosphere(planet, 0.0 if heat is None else heat.flux_w_m2, surface_w)
@@ -884,114 +637,52 @@ def update_orbital_position(planet, phase_deg=None, arg_periapsis_deg=0.0):
     planet.min_update_interval_years = minimum_update_interval_years(planet.period)
 
 
-def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None, parent=None):
+def reconcile_zone(planet, primary_mass_kg, distance_override=None):
     """
-    Re-derives `planet`'s zone from its *current* orbital distance and, if
-    the class it already has isn't valid there, regenerates its class and
-    every class-derived physical property from scratch for the corrected
-    zone -- rather than silently reporting a stale class (e.g. "a
-    temperate terrestrial world") at a distance that class doesn't
-    physically support.
+    Re-derives `planet`'s zone from its *current* orbital distance and records the mass of the body it orbits.
 
-    Meant to be called only after something external to normal generation
-    -- `StarSystem.validate_system`'s orbital-overlap correction -- has
-    moved `planet.distance` (for an ordinary planet) or its parent's
-    distance (for a moon, via `distance_override`) out from under an
-    already-chosen class. A class is a statement about the conditions at a
-    body's *actual* final position, not an independently-revisable label:
-    once something else changes that position, the class has to be
-    re-derived from it, the same way real orbital migration changes a
-    body's real climate, not just its assumed one.
+    Meant to be called after something external to normal generation -- `StarSystem.validate_system`'s orbital-overlap
+    correction -- has moved `planet.distance` (for an ordinary planet) or its parent's distance (for a moon, via
+    `distance_override`). The mass, radius and composition of the body do not change with where it sits; its climate does, so the
+    caller makes the air again (`calculate_atmospheric_conditions`) and the class follows (`apply_class`).
 
     Args:
-        planet (Planet): The planet or moon to reconcile in place. Must
-                         already have `distance`, `planet_class`, `zone`,
-                         and `habitable_zone` set (i.e. already fully
-                         generated once).
-        primary_mass_kg (float): The mass (kg) of the body this one
-                                 actually orbits -- the star for an
-                                 ordinary planet, the parent planet for a
-                                 moon (same meaning as everywhere else this
-                                 parameter appears).
-        distance_override (float, optional): The distance (AU) to
-                                              determine the zone from and
-                                              feed to
-                                              `calculate_atmospheric_conditions`,
-                                              when it differs from
-                                              `planet.distance` -- a moon's
-                                              own `distance` is its orbit
-                                              around its *parent planet*,
-                                              not an AU-scale position in
-                                              the star's own zone, so a
-                                              moon always passes its
-                                              parent's (corrected)
-                                              `distance` here instead.
-        parent (Planet, optional): A moon's planet. A regenerated moon
-            only gets a class and size a moon of it may have
-            (`choose_moon_class_and_radius`; GEN.25, GEN.36), never a gas
-            giant, a blacklisted class or one too large for its planet.
+        planet (Planet): The planet or moon to reconcile in place. Must already have `distance`, `zone` and `habitable_zone` set.
+        primary_mass_kg (float): The mass (kg) of the body this one actually orbits -- the star for an ordinary planet, the parent
+            planet for a moon.
+        distance_override (float, optional): The distance (AU) to determine the zone from, when it differs from `planet.distance`
+            -- a moon's own `distance` is its orbit around its *parent planet*, so a moon passes its parent's `distance` here.
 
     Returns:
-        bool: True if the class (and everything derived from it) was
-             actually regenerated; False if the existing class remained
-             valid for the (possibly still new) zone, in which case only
-             `planet.zone` itself was refreshed.
+        bool: True if the zone changed.
     """
-    inner_bound, outer_bound = planet.habitable_zone
     distance = distance_override if distance_override is not None else planet.distance
-    if distance < inner_bound:
-        new_zone = 'h'
-    elif distance > outer_bound:
-        new_zone = 'c'
-    else:
-        new_zone = 'e'
-
+    new_zone = zone_for(planet.habitable_zone, distance)
     zone_changed = new_zone != planet.zone
     planet.zone = new_zone
     planet.primary_mass_kg = primary_mass_kg  # what its Hill sphere is measured against (GEN.138)
+    return zone_changed
 
-    if not zone_changed or tuning.PLANET_CLASSES[planet.planet_class][new_zone]:
-        return False
 
-    moon_class = moon_radius = None
-    if parent is not None:
-        moon_class, moon_radius = choose_moon_class_and_radius(parent, new_zone)
-        if moon_class is None:
-            # Unreachable in practice (class D fits any planet, anywhere);
-            # leave the moon for check_lunar_system to report.
-            return False
-
-    planet.planet_class = moon_class
-    planet.radius = moon_radius
-    planet.mass = None
-    # The caller already decided where this body sits (validate_system
-    # pushed it clear of its inner neighbor), so keep that distance:
-    # generate_planet_properties redraws an ecosphere class with a
-    # "zone_position_mode" anywhere in the habitable zone, which could
-    # drop it back inside the neighbor it was just moved past (an
-    # asteroid belt's span, in a giant star's wide habitable zone).
-    distance_before = planet.distance
-    generate_planet_properties(planet, zone_override=new_zone)
-    planet.distance = distance_before
-    # The Hill sphere generate_planet_properties just set is for the
-    # redrawn distance, not this one.
-    update_hill_sphere(planet)
-    planet.period = calculate_orbital_period_years(planet.distance, primary_mass_kg)
-    calculate_surface_gravity(planet)
-    calculate_atmospheric_conditions(planet, distance_override, parent.eccentricity if parent is not None else None)
-    generate_orbital_motion_properties(planet, primary_mass_kg)
-    return True
+def zone_for(habitable_zone, distance_au):
+    """The zone letter ('h' hot, 'e' ecosphere, 'c' cold) of `distance_au` against `habitable_zone` (inner, outer) in AU."""
+    inner_bound, outer_bound = habitable_zone
+    if distance_au < inner_bound:
+        return 'h'
+    if distance_au > outer_bound:
+        return 'c'
+    return 'e'
 
 
 def hosting_population(planet):
     """
-    What the hosting gate (`physics.hosting_gate`) calls `planet`: a class D body (the generator's small bodies, 50 to 500 km
-    in radius) is a `trans-neptunian-cold` or `trans-neptunian-hot` body past `tuning.HOSTING_TRANS_NEPTUNIAN_MIN_SNOW_LINES`
+    What the hosting gate (`physics.hosting_gate`) calls `planet`: a small body (under `tuning.HOSTING_SMALL_BODY_MAX_RADIUS_KM` in
+    radius) is a `trans-neptunian-cold` or `trans-neptunian-hot` body past `tuning.HOSTING_TRANS_NEPTUNIAN_MIN_SNOW_LINES`
     snow lines of its star (cold under `tuning.HOSTING_COLD_MAX_INCLINATION_DEG` of inclination, Stephens and Noll 2006), a
     `belt-small-body` in the cold zone short of that, and an `inner-small-body` in the hot or habitable zone; every other
     planet is a `planet`, which the gate's share table has no rows for (its host-class table decides).
     """
-    if planet.planet_class != "D":
+    if planet.radius >= tuning.HOSTING_SMALL_BODY_MAX_RADIUS_KM:
         return "planet"
     if planet.zone != "c":
         return "inner-small-body"
@@ -1006,7 +697,7 @@ def hosting_host(planet):
     orbits (the planets of this generator are on circular orbits); a gas or ice giant is fluid."""
     return hosting_gate.Host(
         hosting_population(planet), 2.0 * _km_to_m(planet.radius), planet.mass, parent_mass_kg=planet.primary_mass_kg,
-        orbit_radius_m=_au_to_m(planet.distance), fluid=tuning.PLANET_CLASSES[planet.planet_class]["type"] != "t")
+        orbit_radius_m=_au_to_m(planet.distance), fluid=planet.body_type != "t")
 
 
 def satellite_share(planet):
@@ -1066,47 +757,8 @@ def moon_size_limits(parent):
     return parent.radius / (10 ** (1 / 3)), parent.mass / 10
 
 
-def moon_class_options(parent, zone):
-    """
-    Every class a moon of `parent` may have in `zone`, mapped to the
-    largest radius (km) a moon of that class may be (GEN.35, GEN.36):
-    terrestrial, not in `MOON_BLACKLIST`, valid in `zone`, not a habitable
-    class where `_habitable_classes_barred` says so, and able to fit under
-    `moon_size_limits` at all. The ceiling is the class's own top radius,
-    the largest moon radius, or the radius at which the class's densest
-    rock would pass the mass limit, whichever is least. A class only has
-    to fit at its smallest size, not across its whole range: requiring the
-    whole range left a rocky planet only Class D moons.
-    """
-    max_radius_km, max_mass_kg = moon_size_limits(parent)
-    barred = _habitable_classes_barred(parent, zone)
-    options = {}
-    for cls, data in tuning.PLANET_CLASSES.items():
-        if (not data[zone] or data["type"] != 't' or cls in tuning.MOON_BLACKLIST
-                or (barred and cls in tuning.HABITABLE_PLANET_CLASSES)):
-            continue
-        max_density_kg_m3 = _gcm3_to_kgm3(data.get("density_range", constants.PLANET_DENSITY['t'])[1])
-        mass_radius_km = _m_to_km((max_mass_kg / ((4 / 3) * math.pi * max_density_kg_m3)) ** (1 / 3))
-        ceiling_km = min(data["radius_range"][1], max_radius_km, mass_radius_km)
-        if data["radius_range"][0] <= ceiling_km:
-            options[cls] = ceiling_km
-    return options
-
-
-def choose_moon_class_and_radius(parent, zone):
-    """
-    Draws a moon's class (weighted like any planet's, among
-    `moon_class_options`) and a radius that fits under its ceiling.
-
-    Returns:
-        tuple: `(class, radius_km)`, or `(None, None)` when no class fits.
-    """
-    options = moon_class_options(parent, zone)
-    if not options:
-        return None, None
-    moon_class = _choose_weighted_planet_class(options)
-    low = tuning.PLANET_CLASSES[moon_class]["radius_range"][0]
-    return moon_class, _sample_class_radius(moon_class, low, options[moon_class])
+MOON_REJECTION_LIMIT = 5
+"""int: How many moons in a row `generate_moons` may discard for being larger than their parent can hold before it stops."""
 
 
 def generate_moons(planet, moon_count=None):
@@ -1135,11 +787,11 @@ def generate_moons(planet, moon_count=None):
     # `Planet._draw_moons`
     if not hosting_gate.can_host(hosting_host(planet)).allowed:
         return
-    # A gas giant placed in 'e' with HABITABLE_WORLD=False must not roll a
-    # habitable-class moon either: moon_class_options applies the same
-    # _habitable_classes_barred rule as generate_planet_properties.
-    if not moon_class_options(planet, planet.zone):
+    # The lightest moon must fit under the largest the parent can hold (`moon_size_limits`).
+    limit_radius_km, limit_mass_kg = moon_size_limits(planet)
+    if limit_mass_kg <= tuning.MOON_MIN_MASS_KG:
         return
+    parent_is_giant = planet.body_type == "g"
 
     low_orbit, high_orbit = moon_orbit_bounds_km(planet)
     total_orbit_distance = low_orbit
@@ -1151,11 +803,14 @@ def generate_moons(planet, moon_count=None):
     # can't be imported here at module level without a circular import.
     from planetgen.generation.planet import Planet
 
+    rejected = 0
     while total_orbit_distance < high_orbit and total_orbit_distance < _au_to_km(planet.distance):
         if moon_count is not None and len(planet.moons) >= moon_count:
             break
 
-        moon_class, moon_radius = choose_moon_class_and_radius(planet, planet.zone)
+        moon_mass = planet_kind.draw_moon_mass_kg(planet.mass, parent_is_giant, limit_mass_kg)
+        if moon_mass is None:
+            break
 
         # Log-uniform, not linear-uniform: [total_orbit_distance, high_orbit]
         # can span many orders of magnitude (high_orbit reaches out to about
@@ -1179,9 +834,15 @@ def generate_moons(planet, moon_count=None):
         # GEN.714: the origin comes first and the orbit follows from it
         origin = moon_composition.draw_origin(parent_kind).row.name
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
-                          radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
+                          mass=moon_mass, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
                           moon_origin=origin, moon_disk_system=disk_system, host_eccentricity=planet.eccentricity)
+        if new_moon.radius > limit_radius_km:    # denser or lighter than the parent could hold; its slot stays open
+            rejected += 1
+            if rejected >= MOON_REJECTION_LIMIT:
+                break
+            continue
+        rejected = 0
         planet.moons.append(new_moon)
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
 

@@ -20,12 +20,14 @@ continuous row's value lies in [lo, hi]).
 import json
 import os
 
-ROCKY = list("ABCDEFGHKLMNOPQSV") + list("UYZ")   # the planned rocky classes (PLANNED_CLASSES) have the rocky tables' rows too
-AIR = list("ABEFGHKLMNOPQV")
-GIANT = list("IJT")
-HAB = list("EFGHKLMOPQV")
-LAVA = list("ABCS")
+ROCKY = ["terrestrial"]   # a rocky or icy body that is not a giant: the kind (`body_type` "t") the cut-over's classifier reads (GEN.840)
+GIANT = ["giant"]
 BD = ["brown-dwarf"]
+AIR = ROCKY               # a row about a body's air also lists the surface-pressure condition `AIR_WHEN`
+AIR_MIN_BAR = 1e-4        # 10 Pa: below it a body is airless (the classifier's D, S and C rows use the same line)
+AIR_WHEN = [{"quantity": "pressure_bar", "minimum": AIR_MIN_BAR}]
+ICE_GIANT_MAX_EARTH = 35  # the classifier's ice-giant row (`planet_classes.json`, class I) ends here
+BELOW_ICE_GIANT = [{"quantity": "mass_earth", "maximum": ICE_GIANT_MAX_EARTH}]   # a giant of this mass or less has a rock and water core (table b)
 ANY = ["*"]
 
 
@@ -136,7 +138,7 @@ MACHINE = {
                       "3.5 + 2 log10 M, the width 1.0 and the clip are DESIGN (READ, COMPUTED; docs/design/composition/magma-ocean-redox-against-mass.md)",
                dist={"kind": "normal", "mu": "3.5 + 2*clamp(log10(mass_earth), -3, 0)", "sigma": 1.0, "range": [-6, 6]},
                correction="A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2); checked against first-hand anchors by GEN.482; GEN.482b holds the mean at the Earth value above 1 Earth mass and takes the larger of a2 and a1 in `draw_redox`."),
-    "a3": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample of core-formation redox; the scale differs from a1; the width 0.22 is tuned with the detection model (GEN.513)", kind="param", classes=["asteroid", "C", "D"], sets="redox_diw", tunable=True,
+    "a3": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample of core-formation redox; the scale differs from a1; the width 0.22 is tuned with the detection model (GEN.513)", kind="param", classes=["asteroid"], sets="redox_diw", tunable=True,
                dist={"kind": "normal", "mu": -1.25, "sigma": 0.22},
                source="22 polluted white dwarf values: median -1.26, mean -1.25, sample sd 0.45 of the reported medians (Doyle 2020 Table "
                       "1, Doyle 2023 Table 4, via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); "
@@ -157,15 +159,15 @@ MACHINE = {
     "a7": dict(kind="option", group="a", classes=ROCKY, weight="phi((redox_diw - 2.5)/0.5)"),
 
     # ---- b. delivered volatile inventory ----
-    "b1": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY, weight="1 - nd", lets=WATER_LETS,
+    "b1": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY + GIANT, when=BELOW_ICE_GIANT, weight="1 - nd", lets=WATER_LETS,
                correction=WATER_CORRECTION),
-    "b2": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY, weight="nd - hi", lets=WATER_LETS),
-    "b3": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY, weight="hi - ri + (1 - c_b4)*ri", lets=WATER_LETS),
-    "b4": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY + ["I"], weight="c_b4*ri", lets=WATER_LETS),
-    "b5": dict(state="stand-in", replacement="GEN.510", kind="param", classes=ROCKY, when=[drawn("b", "b2", "b3")],
+    "b2": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY + GIANT, when=BELOW_ICE_GIANT, weight="nd - hi", lets=WATER_LETS),
+    "b3": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY + GIANT, when=BELOW_ICE_GIANT, weight="hi - ri + (1 - c_b4)*ri", lets=WATER_LETS),
+    "b4": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY + GIANT, when=BELOW_ICE_GIANT, weight="c_b4*ri", lets=WATER_LETS),
+    "b5": dict(state="stand-in", replacement="GEN.510", kind="param", classes=ROCKY + GIANT, when=BELOW_ICE_GIANT + [drawn("b", "b2", "b3")],
                dist={"kind": "loguniform", "lo": 5e-4, "hi": 5e-3}),
-    "b6": dict(state="stand-in", replacement="GEN.510", kind="binary", classes=["C", "D", "S", "I"], when=[c("zone", equals="r")],
-               weight="0.8 if body_class == 'I' else 0.35",
+    "b6": dict(state="stand-in", replacement="GEN.510", kind="binary", classes=ROCKY + GIANT, when=[c("zone", equals="r"), c("mass_earth", maximum=ICE_GIANT_MAX_EARTH)],
+               weight="0.8 if body_class == 'giant' else 0.35",
                dist={"kind": "loguniform", "lo": 1e-4, "hi": 0.1}),
 
     # ---- c. outgassed regime ----
@@ -206,23 +208,23 @@ MACHINE = {
                source="same as d2"),
     "d6": dict(state="stand-in", replacement="GEN.511", kind="derived", classes=ROCKY + ["asteroid"], table_of="d",
                table={"d1": 0.0, "d2": 1e-5, "d3": 0.01, "d4": 0.1, "d5": None}),
-    "d7": dict(kind="flag", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
+    "d7": dict(kind="flag", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="1 if 2.016*AMU_KG*(v_esc_kms*1000)**2/(2*K_B*(teq_k + min(1500, 750*sqrt(xuv_index)))) >= 30 else 0"),
 
     # ---- e. sub-Neptune and super-Earth envelope ----
-    "e1": dict(state="partly verified", limit="f_env0 and the onset age of the loss are tuned to the radius valley (slope -0.11 and 1.84 Earth radii at 10 d); the loss itself is the hydro-based rate of Kubyshkina et al. 2018 over the star's XUV history (GEN.822); the core-mass width, the envelope width and the host sample are design choices; the mechanism (photoevaporation or core-powered loss) is not chosen (GEN.509, GEN.722)", tunable=True, kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
+    "e1": dict(state="partly verified", limit="f_env0 and the onset age of the loss are tuned to the radius valley (slope -0.11 and 1.84 Earth radii at 10 d); the loss itself is the hydro-based rate of Kubyshkina et al. 2018 over the star's XUV history (GEN.822); the core-mass width, the envelope width and the host sample are design choices; the mechanism (photoevaporation or core-powered loss) is not chosen (GEN.509, GEN.722)", tunable=True, kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="(1 - p('b4'))*f_lost", lets={"f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k)"}),
-    "e2": dict(kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
+    "e2": dict(kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="(1 - p('b4'))*(1 - f_lost)",
                lets={"f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k)"}),
-    "e3": dict(state="partly verified", limit="the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
+    "e3": dict(state="partly verified", limit="the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="p('b4')*(1 - eta)"),
-    "e4": dict(state="partly verified", limit="the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
+    "e4": dict(state="partly verified", limit="the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="p('b4')*eta"),
-    "e5": dict(state="partly verified", limit="bracket edges from about 8 JWST retrievals and one 15-planet fit; no population mean exists (GEN.509)", kind="param", classes=["S", "V", "I", "T"], when=[drawn("e", "e2")],
+    "e5": dict(state="partly verified", limit="bracket edges from about 8 JWST retrievals and one 15-planet fit; no population mean exists (GEN.509)", kind="param", classes=GIANT, when=[drawn("e", "e2")],
                dist={"kind": "loguniform", "lo": 0.01, "hi": 0.6}, bins=[0.01, 0.03, 0.1, 0.3, 0.6],
                values={"mean_molecular_weight": "2.4 + 3.1*log10(value/0.01)/log10(58)"}),
-    "e6": dict(kind="binary", classes=["S", "V", "I", "T"], when=[drawn("e", "e2")], weight="phi((500 - teq_k)/100)"),
+    "e6": dict(kind="binary", classes=GIANT, when=[drawn("e", "e2")], weight="phi((500 - teq_k)/100)"),
 
     # ---- f. giant planets ----
     "f1": dict(kind="option", group="f", classes=GIANT, weight="window(teq_k, None, 200, 100)"),
@@ -281,33 +283,33 @@ MACHINE = {
     "h5": dict(kind="binary", classes=GIANT, when=[c("zone", equals="h")], weight="pdist('f7', 1.0, None)"),
 
     # ---- i. lava worlds ----
-    "i1": dict(kind="option", group="i", classes=LAVA, when=[c("zone", equals="h")], weight="window(tp_k, None, 2033, 60)"),
-    "i2": dict(kind="option", group="i", classes=LAVA, when=[c("zone", equals="h")], weight="window(tp_k, 2033, 2588, 60)"),
-    "i3": dict(kind="option", group="i", classes=LAVA, when=[c("zone", equals="h")], weight="window(tp_k, 2588, 2890, 60)"),
-    "i4": dict(kind="option", group="i", classes=LAVA, when=[c("zone", equals="h")], weight="window(tp_k, 2890, 3168, 60)"),
-    "i5": dict(kind="option", group="i", classes=LAVA, when=[c("zone", equals="h")], weight="window(tp_k, 3168, None, 60)"),
-    "i6": dict(state="partly verified", limit="2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2): the bracket is the 95 percent interval 0.29 to 0.99 of Beta(3, 1) (GEN.511)", kind="binary", classes=LAVA, when=[c("zone", equals="h"), c("mass_earth", minimum=1, maximum=10)],
+    "i1": dict(kind="option", group="i", classes=ROCKY, when=[c("zone", equals="h")], weight="window(tp_k, None, 2033, 60)"),
+    "i2": dict(kind="option", group="i", classes=ROCKY, when=[c("zone", equals="h")], weight="window(tp_k, 2033, 2588, 60)"),
+    "i3": dict(kind="option", group="i", classes=ROCKY, when=[c("zone", equals="h")], weight="window(tp_k, 2588, 2890, 60)"),
+    "i4": dict(kind="option", group="i", classes=ROCKY, when=[c("zone", equals="h")], weight="window(tp_k, 2890, 3168, 60)"),
+    "i5": dict(kind="option", group="i", classes=ROCKY, when=[c("zone", equals="h")], weight="window(tp_k, 3168, None, 60)"),
+    "i6": dict(state="partly verified", limit="2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2): the bracket is the 95 percent interval 0.29 to 0.99 of Beta(3, 1) (GEN.511)", kind="binary", classes=ROCKY, when=[c("zone", equals="h"), c("mass_earth", minimum=1, maximum=10)],
                constants={"c_i6": [0.29, 0.99, "log"]}, weight="c_i6",
                values={"p_eq_bar": "10**(-34.7*exp(-0.00112*tp_k))"}),
 
     # ---- j. frost-equilibrium and evolved atmospheres ----
-    "j1": dict(state="partly verified", limit="the runaway gate is Kopparapu 2013 (READ); the retained fraction is a design residual that must allow 0, since 0 of 2 bare M-dwarf planets (TRAPPIST-1 b, c) cannot be forbidden (GEN.511)", kind="option", group="j", classes=["N", "V", "A", "S"],
+    "j1": dict(state="partly verified", limit="the runaway gate is Kopparapu 2013 (READ); the retained fraction is a design residual that must allow 0, since 0 of 2 bare M-dwarf planets (TRAPPIST-1 b, c) cannot be forbidden (GEN.511)", kind="option", group="j", classes=ROCKY,
                when=[c("redox_diw", minimum=1), c("water_lost", equals=True), c("runaway_ratio", minimum=1.0)],
                weight="c_j1"),
-    "j2": dict(kind="option", group="j", classes=["K", "L", "U"],
+    "j2": dict(kind="option", group="j", classes=ROCKY,
                when=[c("mass_earth", maximum=0.5), drawn("d", "d3"), c("ts_k", minimum=190, maximum=270)], weight=1,
                state="derived",
                correction="Decided (Boss, 2026-10-18, fork 7): the Mars-, Titan- and Pluto-like occurrence is an output of "
                           "the escape and retention physics, not a design flag; the gate carries it and the weight is 1."),
-    "j3": dict(kind="option", group="j", classes=["Y"],
+    "j3": dict(kind="option", group="j", classes=ROCKY,
                when=[c("is_moon", equals=True), c("radius_km", minimum=1500, maximum=4000), c("insolation", maximum=0.02),
                      drawn("d", "d5")],
                weight="window(ts_k, 57, 125, 5)", state="derived",
                correction="Decided (Boss, 2026-10-18, fork 7): an output of the retention physics; the gate carries it."),
-    "j4": dict(kind="option", group="j", classes=["C", "D", "U"], when=[drawn("d", "d4", "d5")],
+    "j4": dict(kind="option", group="j", classes=ROCKY, when=[drawn("d", "d4", "d5")],
                weight="window(ts_k, 30, 67, 5)", state="derived",
                correction="Decided (Boss, 2026-10-18, fork 7): an output of the retention physics; the gate carries it."),
-    "j5": dict(state="stand-in", replacement="GEN.511", kind="option", group="j", classes=["Z"],
+    "j5": dict(state="stand-in", replacement="GEN.511", kind="option", group="j", classes=ROCKY,
                when=[c("host_type", equals="M"), c("age_gy", minimum=1), c("mass_earth", minimum=0.3, maximum=5),
                      c("zone", equals="e")],
                weight="c_j5"),
@@ -347,41 +349,41 @@ MACHINE = {
     "l3": dict(state="stand-in", replacement="GEN.513", kind="option", group="l", classes=GIANT, when=[c("host_type", equals="WD")], weight="c_l3"),
 
     # ---- m. trace gases ----
-    "m1": dict(kind="binary", classes=AIR, when=[c("o2_pal", minimum=1e-3)], weight=1,
+    "m1": dict(kind="binary", classes=AIR, when=AIR_WHEN + [c("o2_pal", minimum=1e-3)], weight=1,
                dist={"kind": "loguniform", "lo": 192, "hi": 279}),
-    "m2": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=AIR, when=[c("o2_pal", maximum=1e-3)], constants={"c_m2": [0.1, 0.6, "log"]},
+    "m2": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=AIR, when=AIR_WHEN + [c("o2_pal", maximum=1e-3)], constants={"c_m2": [0.1, 0.6, "log"]},
                weight="c_m2 if (co2_rich and h2_poor and host_type in ('M', 'K')) else 0"),
-    "m3": dict(state="partly verified", limit="design flag (decision D4): no exoplanet measures N2O, so the bracket is a labelled design range, never tuned (GEN.525)", kind="binary", classes=AIR, constants={"c_m3": [0.05, 0.5, "log"]},
+    "m3": dict(state="partly verified", limit="design flag (decision D4): no exoplanet measures N2O, so the bracket is a labelled design range, never tuned (GEN.525)", kind="binary", classes=AIR, when=AIR_WHEN, constants={"c_m3": [0.05, 0.5, "log"]},
                weight="c_m3 if (life_chemical or sep_reducing) else 0"),
-    "m4": dict(state="partly verified", limit="design flag (decision D4): no exoplanet measures PH3, and the Venus claim is contested, so the bracket is a labelled design range, never tuned (GEN.525)", kind="binary", classes=AIR, constants={"c_m4": [0.0, 0.05, "uniform"]},
+    "m4": dict(state="partly verified", limit="design flag (decision D4): no exoplanet measures PH3, and the Venus claim is contested, so the bracket is a labelled design range, never tuned (GEN.525)", kind="binary", classes=AIR, when=AIR_WHEN, constants={"c_m4": [0.0, 0.05, "uniform"]},
                weight="c_m4 if life_chemical else 0"),
     "m5": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=ROCKY, when=[drawn("c", "c1", "c2", "c3", "c4")],
                constants={"c_m5": [0.1, 0.5, "log"]}, weight="c_m5"),
     "m6": dict(state="stand-in", replacement="GEN.524", kind="binary", classes=ROCKY, when=[drawn("c", "c1", "c2", "c3", "c4")],
                constants={"c_m6": [0.1, 0.5, "log"]}, weight="c_m6"),
-    "m7": dict(kind="binary", classes=GIANT + BD + LAVA, weight="phi((t_layer_k - 962)/33)"),
-    "m8": dict(kind="binary", classes=GIANT + BD + LAVA, weight="phi((t_layer_k - 775)/26)"),
+    "m7": dict(kind="binary", classes=GIANT + BD + ROCKY, weight="phi((t_layer_k - 962)/33)"),
+    "m8": dict(kind="binary", classes=GIANT + BD + ROCKY, weight="phi((t_layer_k - 775)/26)"),
     "m9": dict(kind="derived", classes=AIR + GIANT + BD, when=[c("gas_has_co_h2s", equals=True)],
                values={"log10_k_eq": "-1.477 + 4/t_layer_k", "k_eq": "10**(-1.477 + 4/t_layer_k)"}),
-    "m10": dict(kind="binary", classes=AIR, when=[c("has_solid_ground", equals=True)], weight=1),
-    "m11": dict(state="partly verified", limit="design flag (decision D4): no exoplanet measures NO2, so the bracket is a labelled design range, never tuned (GEN.525)", kind="binary", classes=AIR, constants={"c_m11": [0.0, 0.3, "uniform"]},
+    "m10": dict(kind="binary", classes=AIR, when=AIR_WHEN + [c("has_solid_ground", equals=True)], weight=1),
+    "m11": dict(state="partly verified", limit="design flag (decision D4): no exoplanet measures NO2, so the bracket is a labelled design range, never tuned (GEN.525)", kind="binary", classes=AIR, when=AIR_WHEN, constants={"c_m11": [0.0, 0.3, "uniform"]},
                 weight="c_m11 if (life_chemical or lightning) else 0"),
 
     # ---- n. clouds, hazes and dust ----
-    "n1": dict(kind="windows", classes=GIANT + BD + LAVA,
+    "n1": dict(kind="windows", classes=GIANT + BD + ROCKY,
                windows=[["Al-Ti oxides", 1850, 2000], ["Fe", 1690, 1840], ["forsterite", 1597, 1698],
                         ["enstatite", 1513, 1597], ["Cr", 1416, 1521], ["MnS", 1271, 1343]]),
-    "n2": dict(kind="windows", classes=GIANT + BD + LAVA, windows=[["Na2S", 929, 996], ["KCl/ZnS", 749, 801]]),
+    "n2": dict(kind="windows", classes=GIANT + BD + ROCKY, windows=[["Na2S", 929, 996], ["KCl/ZnS", 749, 801]]),
     "n3": dict(kind="windows", classes=GIANT + BD, windows=[["NH4SH", 189, 223], ["H2S ice", 105, 128]]),
     "n4": dict(kind="windows", classes=ANY, when=[c("h2o_present", equals=True)], windows=[["water cloud or ice", 161, 253]]),
-    "n5": dict(kind="windows", classes=GIANT + ["K", "Y", "D", "comet"],
+    "n5": dict(kind="windows", classes=GIANT + ROCKY + ["comet"],
                windows=[["CO2 ice", 114, 195], ["NH3 ice", 135, 179], ["CH4 ice", 53, 90], ["N2 ice", 31, 62],
                         ["CO ice", 34, 66]]),
-    "n6": dict(state="partly verified", limit="A_H against Teq is measured (Fu 2017, N=34); the crossover Teq is a model output, not a measurement (GEN.519)", kind="binary", classes=GIANT + BD + LAVA, weight="phi((teq_k - 950)/100)"),
+    "n6": dict(state="partly verified", limit="A_H against Teq is measured (Fu 2017, N=34); the crossover Teq is a model output, not a measurement (GEN.519)", kind="binary", classes=GIANT + BD + ROCKY, weight="phi((teq_k - 950)/100)"),
     "n7": dict(state="stand-in", replacement="GEN.519", kind="binary", classes=AIR + GIANT + BD, when=[c("carbon_bearing", equals=True)],
                constants={"y": [0.01, 1.0, "log"]}, weight="(1 - w('n6'))*y"),
-    "n8": dict(kind="binary", classes=AIR, weight="1 if u_star > u_star_threshold else 0"),
-    "n9": dict(kind="binary", classes=AIR, weight="1 if sulfur_flux_earth >= (1 if h2_air else 100) else 0"),
+    "n8": dict(kind="binary", classes=AIR, when=AIR_WHEN, weight="1 if u_star > u_star_threshold else 0"),
+    "n9": dict(kind="binary", classes=AIR, when=AIR_WHEN, weight="1 if sulfur_flux_earth >= (1 if h2_air else 100) else 0"),
 
     # ---- o. ground radioisotopes ----
     "o1": dict(kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=True)], bins=[0.7, 1.4],

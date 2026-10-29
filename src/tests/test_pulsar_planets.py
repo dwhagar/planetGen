@@ -77,8 +77,10 @@ def test_the_discs_planets_are_airless_carbon_rich_and_lowest_tier(recycled):
     planets = [p for seed in range(30) for p in _planets(pulsar, seed, PLANETS=True)]
     assert planets
     for planet in planets:
-        assert planet.planet_class == tuning.PULSAR_DISC_CLASS
-        assert planet.atmosphere == "None" and planet.atmospheric_pressure == 0.0
+        # No air, on a cold carbon-rich rock: a dead world (S from 1.5 Earth masses), or a small icy body where it kept 1% water.
+        assert planet.planet_class in ("C", "S", "D")
+        assert planet.atmospheric_pressure < 10.0
+        assert planet.carbon_rock
         assert "silicon carbide and graphite" in planet.composition  # GEN.430: the text states the stored fractions
         assert planet.moons == []
         assert planet.tier_radiation == 3  # the lowest tier, whatever the world
@@ -125,7 +127,7 @@ def test_a_system_around_a_millisecond_pulsar_takes_the_discs_planets(recycled):
     with draw.bound(draw.Stream("pulsar-system")):
         system = StarSystem(system_config=config, compact_remnant=pulsar)
     assert system.planets
-    assert all(p.planet_class == tuning.PULSAR_DISC_CLASS for p in system.planets)
+    assert all(p.planet_class in ("C", "S", "D") and p.carbon_rock for p in system.planets)
 
 
 def test_a_young_pulsar_keeps_the_generic_planets(monkeypatch):

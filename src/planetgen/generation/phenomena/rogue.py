@@ -23,7 +23,7 @@ import math
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena import hosts
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as planetPhysics, rings, rogue_habitability, small_body_composition, spin
+from planetgen.physics import brown_dwarf as brownDwarf, constants, planet_classes, planets as planetPhysics, relations, rings, rogue_habitability, small_body_composition, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
@@ -77,81 +77,43 @@ def infer_rogue_mass_bin(mass_kg):
     return "jupiter"
 
 
-def rogue_planet_classes(planet_type):
-    """Every `PLANET_CLASSES` class a rogue planet of `planet_type`
-    (`'t'` or `'g'`) may have: those flagged `"r": True` (GEN.8), whose
-    own `"type"` matches."""
-    return [code for code, data in tuning.PLANET_CLASSES.items()
-            if data.get("r") and data["type"] == planet_type]
+ICE_KG_M3 = 917.0
+OCEAN_KG_M3 = 1000.0
+HIGH_PRESSURE_ICE_KG_M3 = 1300.0
+"""float: The densities of the ice shell, the ocean and the high-pressure ice under it (kg/m3) that turn their thicknesses into a water mass."""
 
 
-def rogue_planet_class_candidates(planet_type, radius_km, mass_kg):
+def water_mass_fraction(mass_kg, radius_km, ice_shell_km, ocean_km, hp_ice_km):
+    """A rogue planet's water as a share of its mass, from the thicknesses of the layers its surface conditions hold (km, `None` for
+    none): the shells' volumes at the radius times their densities, over the mass."""
+    if not (ice_shell_km or ocean_km or hp_ice_km):
+        return 0.0
+    outer_m = radius_km * 1000.0
+    kg = 0.0
+    for thickness_km, density in ((ice_shell_km, ICE_KG_M3), (ocean_km, OCEAN_KG_M3), (hp_ice_km, HIGH_PRESSURE_ICE_KG_M3)):
+        if thickness_km:
+            inner_m = max(0.0, outer_m - thickness_km * 1000.0)
+            kg += 4.0 / 3.0 * math.pi * (outer_m ** 3 - inner_m ** 3) * density
+            outer_m = inner_m
+    return min(1.0, kg / mass_kg)
+
+
+def rogue_class(planet):
     """
-    The rogue-eligible classes (`rogue_planet_classes`) a rogue planet
-    fits: its radius inside the class's `radius_range` and its mass inside
-    the class's mass range (`planetPhysics.planet_mass_ranges`). When none
-    fits -- a rogue super-Earth past class C's 10,000 km ceiling, say --
-    the eligible class whose radius range is nearest (in log radius), so
-    every rogue planet still gets a class.
-
-    Args:
-        planet_type (str): `'t'` or `'g'`.
-        radius_km (float): Radius in kilometers.
-        mass_kg (float): Mass in kilograms.
-
-    Returns:
-        list: Class codes, never empty for `'t'` or `'g'`.
+    The class of a rogue planet (GEN.687), derived like any body's (`planet_classes.classify`) from its mass, gravity and the surface
+    its own heat gives it: the temperature, the pressure of the air it holds (`surface_pressure_pa`) and the water its layers hold
+    (`water_mass_fraction`). Starless, it has no flux variation, no ocean to cover its surface and no gas mixture (an air of frozen
+    nitrogen or a hydrogen envelope reads as a plain air, whose shares are not stored); `None` for a brown dwarf, a failed star.
     """
-    eligible = rogue_planet_classes(planet_type)
-    fitting = [
-        code for code in eligible
-        if tuning.PLANET_CLASSES[code]["radius_range"][0] <= radius_km
-        <= tuning.PLANET_CLASSES[code]["radius_range"][1]
-        and planetPhysics.planet_mass_ranges[code][0] <= mass_kg <= planetPhysics.planet_mass_ranges[code][1]
-    ]
-    if fitting or not eligible:
-        return fitting
-
-    def gap(code):
-        low, high = tuning.PLANET_CLASSES[code]["radius_range"]
-        return max(math.log(low / radius_km), math.log(radius_km / high), 0.0)
-    return [min(eligible, key=gap)]
-
-
-def choose_rogue_planet_class(planet_type, radius_km, mass_kg, mass_bin=None):
-    """
-    Draws a rogue planet's class (GEN.8) from `rogue_planet_class_candidates`,
-    weighted by `PLANET_CLASS_PROBABILITIES` like a star's planet. A
-    brown dwarf is a failed star, not a planet, so it gets none.
-
-    Returns:
-        str or None: The class code, or `None` for a brown dwarf.
-    """
-    if mass_bin == "brown-dwarf":
+    if planet.mass_bin == "brown-dwarf":
         return None
-    candidates = rogue_planet_class_candidates(planet_type, radius_km, mass_kg)
-    if not candidates:
-        return None
-    if len(candidates) == 1:
-        # No draw, so a lone candidate leaves the random stream as it was.
-        log.choice("Rogue planet class", candidates[0], "the only rogue class that fits its type, radius and mass")
-        return candidates[0]
-    return planetPhysics._choose_weighted_planet_class(candidates)
-
-
-def default_rogue_planet_class(planet_type, radius_km, mass_kg, mass_bin=None):
-    """
-    `choose_rogue_planet_class` without the draw: the most probable
-    candidate. For rows saved before rogue planets had a class (schema
-    v48) and dicts written before it, so a reload gives the same answer
-    every time.
-    """
-    if mass_bin == "brown-dwarf":
-        return None
-    candidates = rogue_planet_class_candidates(planet_type, radius_km, mass_kg)
-    if not candidates:
-        return None
-    return max(candidates, key=lambda code: tuning.PLANET_CLASS_PROBABILITIES.get(code, 0.0))
+    gravity = relations.surface_gravity(planet.mass_kg, planet.radius_km * 1000.0) / constants.EARTH_GRAVITY
+    return planet_classes.classify({
+        "body_type": planet.planet_type, "mass_kg": planet.mass_kg, "gravity_g": gravity,
+        "surface_temperature_k": planet.surface_temperature_k, "atmospheric_pressure_pa": planet.surface_pressure_pa,
+        "water_mass_fraction": water_mass_fraction(planet.mass_kg, planet.radius_km, planet.ice_shell_thickness_km,
+                                                   planet.ocean_depth_km, getattr(planet, "hp_ice_km", None)),
+    })
 
 
 class RoguePlanet(LazySaladName, PlanetaryObject):
@@ -164,8 +126,8 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
         planet_type (str): `'t'` (terrestrial/icy) or `'g'` (gas giant),
             the same letters `Planet.body_type` uses, chosen by mass
             relative to `tuning.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`.
-        planet_class (str or None): Its `PLANET_CLASSES` letter (GEN.8),
-            drawn from the classes flagged `"r"`; `None` for a brown dwarf.
+        planet_class (str or None): Its class letter (GEN.8, GEN.687), derived from its surface (`rogue_class`);
+            `None` for a brown dwarf.
         mass_kg (float): Mass in kilograms.
         radius_km (float): Radius in kilometers.
         composition (str): A descriptive bulk-composition string.
@@ -271,12 +233,11 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             else:
                 self.composition = "rock, metal, and (at the lower end of its mass range) ice, similar in bulk composition to Earth or Mars"
 
-        self.planet_class = choose_rogue_planet_class(self.planet_type, self.radius_km, self.mass_kg, mass_bin)
-
         self.has_moons = hosts.holds_something("planet-satellites", "rogue-planet")
         self._apply_surface_conditions(rogue_surface_conditions(
             self.mass_kg, self.radius_km, self.planet_type, self.mass_bin, self.has_moons,
             age_gy=brown_dwarf_age_gy if mass_bin == "brown-dwarf" else None))
+        self.planet_class = rogue_class(self)    # from the surface its own heat gave it (GEN.687)
 
         rings.apply_rogue(self)  # GEN.836
         self.set_galactic_motion()
@@ -299,9 +260,6 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
         planet = cls._rebuild(data, system_config)
         if getattr(planet, "mass_bin", None) is None:
             planet.mass_bin = infer_rogue_mass_bin(planet.mass_kg)
-        if "planet_class" not in data:
-            planet.planet_class = default_rogue_planet_class(
-                planet.planet_type, planet.radius_km, planet.mass_kg, planet.mass_bin)
         if "surface_regime" not in data:
             # Written before rogues had surface conditions (schema v48):
             # computed from a generator seeded by the name, so a reload
@@ -309,6 +267,8 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             planet._apply_surface_conditions(rogue_surface_conditions(
                 planet.mass_kg, planet.radius_km, planet.planet_type, planet.mass_bin, planet.has_moons,
                 draw.Stream(planet.name)))
+        if "planet_class" not in data:
+            planet.planet_class = rogue_class(planet)
         return planet
 
     @property

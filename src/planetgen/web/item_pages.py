@@ -15,7 +15,7 @@ The dedicated page of an item (UX.143, UX.170): `/object/<ref>` for any object r
 
 The prose is the description's section for the body (`GET /api/systems/<id>/description`), so the page and the system's
 description never say different things. A reference that names nothing is a plain not-found page. A POST with an
-`edit_action` is the admin Regenerate, Change class or Delete of this body (`web/edit_actions.py`).
+`edit_action` is the admin Regenerate or Delete of this body (`web/edit_actions.py`).
 """
 
 from flask import abort, jsonify, redirect, request
@@ -403,22 +403,14 @@ def dominant_species(db, kind, row):
 
 
 def _admin_context(kind, printed_id, system_id):
-    """What the Admin menu of a body's page needs: `{"label", "class_options"}` for an admin allowed to edit, else
-    `None`. `class_options` is `{"recommended": [...], "forced": [...]}` for a planet or moon (Change class)."""
+    """What the Admin menu of a body's page needs: `{"target"}` for an admin allowed to edit, else `None`."""
     if not edit_actions.can_edit(current_admin()):
         return None
-    context = {"target": f"{kind}:{printed_id}", "class_options": None}
-    if kind in ("planet", "moon"):
-        options = edit_actions.class_options(system_id)
-        if options:
-            recommended = options.get("recommended", {}).get(context["target"], [])
-            context["class_options"] = {"recommended": recommended,
-                                        "forced": [c for c in options.get("all") or [] if c not in recommended]}
-    return context
+    return {"target": f"{kind}:{printed_id}"}
 
 
 def _edit_post(kind, printed_id, system_id):
-    """An admin Regenerate, Change class or Delete POST for this body (`web/edit_actions.py`); after a delete it goes up to
+    """An admin Regenerate or Delete POST for this body (`web/edit_actions.py`); after a delete it goes up to
     the body's system."""
     here = item_url(f"{kind}:{printed_id}")
     return edit_actions.handle_post({(kind, printed_id)}, here,

@@ -31,7 +31,7 @@ def draws(body_class, changes, family, count=60):
 
 
 def test_a_mars_like_body_has_a_thin_carbon_dioxide_nitrogen_air_without_water():
-    found = draws("K", MARS, "mars")
+    found = draws("terrestrial", MARS, "mars")
     assert found
     for result in found:
         x = result.mole_fractions
@@ -41,20 +41,20 @@ def test_a_mars_like_body_has_a_thin_carbon_dioxide_nitrogen_air_without_water()
 
 def test_a_venus_like_body_is_carbon_dioxide_with_a_few_percent_nitrogen():
     changes = dict(water_lost=True, runaway_ratio=1.2, ts_k=735.0, pressure_bar=90.0, mass_earth=0.8, ocean_present=False)
-    found = draws("S", changes, "venus", count=120)
+    found = draws("terrestrial", changes, "venus", count=120)
     assert found
     for result in found:
         assert result.mole_fractions["CO2"] > 0.6 and result.mole_fractions.get("H2O", 0.0) < 0.01
 
 
 def test_an_abiotic_oxygen_world_keeps_oxygen_in_its_air():
-    found = draws("Z", ABIOTIC, "abiotic-oxygen")
+    found = draws("terrestrial", ABIOTIC, "abiotic-oxygen")
     assert found
     assert max(result.mole_fractions.get("O2", 0.0) for result in found) > 0.1
 
 
 def test_a_titan_like_air_is_nitrogen_with_methane_at_the_saturation_and_a_hydrogen_trace():
-    found = draws("Y", TITAN, "titan")
+    found = draws("terrestrial", TITAN, "titan")
     assert found
     for result in found:
         x = result.mole_fractions
@@ -63,7 +63,7 @@ def test_a_titan_like_air_is_nitrogen_with_methane_at_the_saturation_and_a_hydro
 
 
 def test_a_pluto_like_air_follows_raoults_law_over_the_ice():
-    found = draws("D", PLUTO, "frost")
+    found = draws("terrestrial", PLUTO, "frost")
     assert found
     for result in found:
         x = result.mole_fractions
@@ -95,7 +95,7 @@ def test_a_coma_is_water_with_the_drawn_ratios_and_the_class_ordering_of_carbon_
 
 
 def test_a_white_dwarf_planet_without_a_vapour_exosphere_has_no_gas():
-    subject = Subject("A", {**BASE, "host_type": "WD", "ts_k": 400.0, "tp_k": 400.0, "zone": "h"})
+    subject = Subject("terrestrial", {**BASE, "host_type": "WD", "ts_k": 400.0, "tp_k": 400.0, "zone": "h"})
     kinds = set()
     for seed in range(30):
         with draw.bound(seed):
@@ -107,7 +107,7 @@ def test_a_white_dwarf_planet_without_a_vapour_exosphere_has_no_gas():
 
 
 def test_every_evolved_draw_is_reproducible():
-    for body_class, changes in (("K", MARS), ("Y", TITAN), ("D", PLUTO), ("Z", ABIOTIC)):
+    for body_class, changes in (("terrestrial", MARS), ("terrestrial", TITAN), ("terrestrial", PLUTO), ("terrestrial", ABIOTIC)):
         for seed in (3, 4):
             with draw.bound(seed):
                 a = md.draw_mixture(Subject(body_class, {**BASE, **changes}))
@@ -120,11 +120,11 @@ def test_the_trace_gases_follow_the_rows_drawn_after_the_life_stage():
     from planetgen.physics import mixture_trace as mt
     life = dict(o2_pal=1.0, life_chemical=True, sep_reducing=False, lightning=True, co2_rich=False, h2_poor=True,
                 has_solid_ground=True, h2o_present=True, carbon_bearing=True, gas_has_co_h2s=False, t_layer_k=280.0)
-    needed = mt.required_trace_inputs("A")
+    needed = mt.required_trace_inputs("terrestrial")
     assert {"o2_pal", "life_chemical", "lightning", "co2_rich", "h2_poor", "has_solid_ground"} <= set(needed)
     seen = set()
     for seed in range(40):
-        subject = Subject("A", {**BASE, **life})
+        subject = Subject("terrestrial", {**BASE, **life})
         with draw.bound(seed):
             first = md.draw_mixture(subject)
             result = mt.draw_trace_gases(subject, first)

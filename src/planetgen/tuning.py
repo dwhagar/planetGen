@@ -50,16 +50,6 @@ either, is refused before any drawing (`generation.directives.impossible`)."""
 # the star strips it (physics.planets.generate_moons' outer limit).
 MOON_PROGRADE_STABLE_HILL_FRACTION = 0.4895
 
-# Each gas-giant class's mass range in Earth masses (GEN.34): a giant's
-# mass is drawn from it first and its radius follows from the mass-radius
-# relation (physical_constants.GIANT_NEPTUNIAN_MASS_RADIUS). Ice giants
-# (Uranus 14.5, Neptune 17.1); gas giants from 0.1 Jupiter masses to the
-# 13 Jupiter-mass deuterium-burning limit (Saturn 95, Jupiter 318); gas
-# dwarfs from the smallest H/He-envelope planets that fill class T's
-# 15,000 km floor. A class with its own "density_range" (none today) keeps
-# drawing a radius and a density instead.
-GIANT_CLASS_MASS_RANGE_EARTH = {"I": (10.0, 60.0), "J": (30.0, 13 * 317.8), "T": (6.0, 40.0)}
-GIANT_DEFAULT_MASS_RANGE_EARTH = (10.0, 13 * 317.8)
 
 # Giant masses are drawn from dN/dlogM ~ M^-GIANT_MASS_FUNCTION_SLOPE inside
 # their class's range: Cumming et al. (2008, PASP 120:531) measured about
@@ -79,33 +69,118 @@ GIANT_MAX_STAR_MASS_RATIO = 0.01
 # Giant impacts merge the oligarchs of a feeding zone (Chambers 2001, recalled), and `GIANT_IMPACT_SURVIVAL_FRACTION` of
 # them survive as planets, so by mass conservation a planet is on average 1 / that fraction of an isolation mass; the
 # merging spreads the result by `PLANET_ASSEMBLY_SCATTER_DEX` dex (a normal in the logarithm of the mass).
-PLANET_ASSEMBLY_SCATTER_DEX = 0.8
+PLANET_ASSEMBLY_SCATTER_DEX = 0.5
 # A core that reaches this many Earth masses before the gas disc is gone can run away into a gas giant (core accretion:
 # Pollack et al. 1996; Rafikov 2006 give 5 to 20 Earth masses, recalled).
 GIANT_CORE_CRITICAL_MASS_EARTH = 10.0
 # The share of runaway-capable cores that still find gas left in the disc around a star of the disc's metallicity
 # (scaled for [Fe/H] by `metallicity.giant_occurrence_factor`); the rest stay ice giants. Tuned (tier L3) so that a Sun-like
 # star has about 0.12 giants between 0.3 and 10 AU (Fulton et al. 2021: 0.10 to 0.15, recalled) and an M dwarf a quarter of that.
-GIANT_GAS_SURVIVAL_SHARE = 0.12
+GIANT_GAS_SURVIVAL_SHARE = 0.3
 # Beyond this distance the share falls as the square of the ratio: the cores of the outer disc grow slowly, so few reach
 # the critical mass before the gas is gone (direct imaging finds giants beyond 10 AU around about 1 percent of stars).
 GIANT_GAS_SURVIVAL_CUT_AU = 5.0
 # A core that finds no gas stops growing near an ice giant's mass (Uranus and Neptune are 14.5 and 17.1 Earth masses): the
 # late solids beyond the snow line are not all added to it. Earth masses.
 GIANT_NO_GAS_CORE_MAX_EARTH = 20.0
+# The most a solid core inside the snow line reaches without gas, in Earth masses: heavier rock-and-iron cores bind a hydrogen
+# envelope and either run away or are rare (the hot-Neptune desert; super-Earths top out at 10 to 20 Earth masses: Fulton et al.
+# 2017, Owen and Wu 2013, recalled). A planetGen stand-in (tier L3), tuned with the pull of the outer-disc taper below.
+PLANET_INNER_CORE_MAX_EARTH = 12.0
+# How sharply a core is pressed under its cap (`planet_mass.saturate_kg`): the larger, the closer to its own mass until the cap.
+PLANET_CORE_SATURATION_SHARPNESS = 4.0
 # A runaway giant is at least this heavy: below it the envelope has not yet outweighed the core (Earth masses).
 GIANT_RUNAWAY_MIN_MASS_EARTH = 30.0
 # How many times the minimum-mass nebula's solids the mass law assumes (Kepler's inner planets need several times the
 # MMSN: Chiang & Laughlin 2013, recalled). 1 is the nebula as `estimate_num_objects` counts with; tune with GEN.509.
-PLANET_DISC_SOLIDS_ENHANCEMENT = 5.0
+PLANET_DISC_SOLIDS_ENHANCEMENT = 2.0
+# How the solids the planets are built from scale with the star's mass, as a power of the mass in suns. Shallower than the
+# dust mass of the disc (`DISK_MASS_STELLAR_MASS_EXPONENT`, which sets how many objects a disc can hold): the planets of M dwarfs
+# are about as many as those of Sun-like stars (Dressing and Charbonneau 2015; Hsu et al. 2020, recalled), as pebble drift
+# concentrates solids close to a cool star. A planetGen stand-in (tier L3), tuned to that occurrence.
+PLANET_SOLIDS_STELLAR_MASS_EXPONENT = 1.2
 # Inside 1 AU the solids rise faster than the nebula's -1.5 power: the Kepler systems' minimum-mass extrasolar nebula falls as
 # about the -1.6 to -2 power (Chiang & Laughlin 2013, recalled), and solids drifting in feed the inner disc. The surface density
 # is multiplied by (distance / 1 AU) to the minus this power inside 1 AU. Tuned (tier L3) with `PLANET_DISC_SOLIDS_ENHANCEMENT`
 # so that a Sun-like star has about 0.8 planets of 1 to 20 Earth masses inside 0.45 AU and an M dwarf about 1 (Petigura et al.
 # 2018; Dressing & Charbonneau 2015: about 2.5 planets of 0.5 to 4 Earth radii within 50 days; recalled).
 PLANET_INNER_DISC_STEEPENING = 0.75
+# Beyond this distance the cores of the outer disc have not had time to assemble before the gas and the planetesimals are gone:
+# orbits are slow and the disc is thin (Levison et al. 2010 grow Uranus and Neptune in a few Myr only by pebble accretion,
+# recalled), so the assembled solids fall as (this distance / the distance) to `PLANET_OUTER_GROWTH_EXPONENT`. A planetGen
+# stand-in (tier L3) tuned so a Sun-like star has about as many Neptune-mass planets beyond the snow line as the microlensing
+# surveys count (Suzuki et al. 2016: about 0.5 per star, recalled), where the isolation mass alone makes them the commonest planet.
+PLANET_OUTER_GROWTH_AU = 5.0
+PLANET_OUTER_GROWTH_EXPONENT = 1.5
 # A planet's solids are never more than this fraction of its star's mass (a disc holds about 1% of its star).
 PLANET_MAX_STAR_MASS_RATIO = GIANT_MAX_STAR_MASS_RATIO
+
+# The kind of body a caller's mass or radius alone names (GEN.681, `physics/planet_kind.kind_of_given`), when the formation law
+# was not asked: a radius from this many km up is a giant (the smallest radius a Neptune-like envelope body reaches; the old
+# lowest giant class radius). Tier "from needed output", level L1.
+GIANT_MIN_RADIUS_KM = 15000.0
+# The mean density a given mass and radius may imply for a giant, g/cm3: a hot Saturn-mass giant swells to under 0.1, thirteen Jupiter masses
+# at 0.8 of Jupiter's radius is about 40. A terrestrial body's bounds are `bulk_draw.DENSITY_BOUNDS_G_CM3`.
+GIANT_DENSITY_BOUNDS_G_CM3 = (0.05, 60.0)
+# The mass (kg) and radius (km) a caller may give a planet: the lightest body bulk_draw builds (1e12 kg) to the deuterium-burning limit,
+# 13 Jupiter masses (a heavier body is a brown dwarf), and from half a kilometre to the largest inflated giant.
+GIVEN_MASS_KG_BOUNDS = (1.0e12, 2.47e28)
+GIVEN_RADIUS_KM_BOUNDS = (0.5, 200000.0)
+
+# How many planets a request that names a class (a slot's `planet_class`, `FORCE_CLASS`, a forced habitable world) draws at its distance
+# before it keeps the last (GEN.688; `StarSystem.build_planet`).
+REQUEST_MAX_PLANET_ATTEMPTS = 40
+# A request for a habitable world draws this many planets freely, then draws planets of an Earth-like mass (log-uniform between the two bounds,
+# Earth masses) for the rest: a planetGen stand-in (registry row CC10) found by the sweep, where a free draw in the ecosphere of an M5 dwarf
+# gave a life class in none of 30 and an Earth-like mass in 20 of 30.
+HABITABLE_REQUEST_FREE_ATTEMPTS = 8
+HABITABLE_REQUEST_MASS_EARTH = (0.5, 2.0)
+
+# How many times a planet or moon is drawn again when its finished class is one that can carry life and the system bars habitable worlds
+# from its ecosphere (`HABITABLE_WORLD` False); the last draw is kept.
+BARRED_CLASS_MAX_ATTEMPTS = 30
+
+# The lightest planet the formation law may give (GEN.646): the heaviest a heap of ice and rock can be before its own gravity rounds it
+# (`bulk_structure.SMALL_BODY_MASS_KG`, about 540 km radius); the old lowest class radius was 500 km. Lighter bodies are the small bodies
+# (belts, comets), not planets. Tier "from needed output", level L1.
+PLANET_MIN_MASS_KG = 1.0e21
+
+# The moon size law once no class supplies the radius (GEN.646, `physics/planet_kind.draw_moon_mass_kg`). All four values are
+# planetGen stand-ins (tier "educated guess from physics", level L3) until a moon-formation law is wired:
+# moon masses follow dN/dlogM ~ M^-MOON_MASS_FUNCTION_SLOPE between the lightest moon the generator makes and a share of the
+# parent's mass. Regular satellites of the giants are at most a few 1e-4 of the parent (Titan 2.4e-4 of Saturn; Ganymede 7.8e-5
+# of Jupiter), so the giants' cap is 1e-3; a rocky parent can hold a moon of a tenth of its mass (the Moon 0.012, Charon 0.12 of
+# Pluto), which is also the largest `physics/planets.moon_size_limits` allows.
+MOON_MASS_FUNCTION_SLOPE = 0.5
+# The lightest moon generated (about an Enceladus, 250 km across): the generator leaves the swarm of smaller captured rocks to the belts and
+# rings. A planetGen stand-in (tier L3): the old class draw built moons of 500 km and more, 1.1 per planet.
+MOON_MIN_MASS_KG = 1.0e20
+MOON_GIANT_PARENT_MAX_MASS_RATIO = 1.0e-3
+MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO = 0.1
+
+# The water a terrestrial body is born with, by where it formed (GEN.682, GEN.685; `physics/bulk_draw`): log-uniform shares of
+# its whole mass. Inside the snow line the rock is dry (Earth's oceans are 2.3e-4; Mars 2e-4 to 1e-3; Venus and Mercury far
+# less), and `WATER_WORLD_SHARE` of the inner worlds hold an ocean world's 1 to 10 percent (the Marboeuf 2014 icy-body range
+# is the next line). Beyond the snow line the body is ice and rock (Europa 8 percent water, Ganymede about 45, Marboeuf
+# et al. 2014: 5 to 50 percent). Every value is a stand-in (tier "educated guess from physics", level L2) that took the old
+# class ranges and merged them into one table by origin.
+DRY_WATER_MASS_FRACTION = (1.0e-6, 1.0e-3)
+WATER_WORLD_WATER_MASS_FRACTION = (1.0e-2, 0.1)
+WATER_WORLD_SHARE = 0.03
+ICY_WATER_MASS_FRACTION = (0.05, 0.5)
+
+# A terrestrial body's Bond albedo, drawn before its air is solved so it can only read what the body is made of and the starlight
+# it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock keeps the generator's own range (`climate_draws.DEFAULT_ALBEDO_RANGE`); a body with surface water
+# (a water mass fraction of at least `ALBEDO_WET_MIN_WATER_FRACTION`) and an equilibrium temperature under
+# `ALBEDO_FROZEN_BELOW_K` (at the middle albedo) is ice-covered and bright; one above it is ocean and cloud. A Venus-like
+# cloud deck (albedo 0.75 to 0.9) is not reached until the clouds are drawn before the temperature (GEN.414 is drawn after).
+# Stand-ins, tier "educated guess from physics", level L3 (hand-tuned against the old class albedo ranges; the Earth, at 255 K with
+# no air, and the outer edge of the habitable zone, at 223 K, must stay on the ocean side of 230 K or an Earth twin freezes).
+ALBEDO_WET_RANGE = (0.25, 0.40)
+ALBEDO_FROZEN_RANGE = (0.45, 0.70)
+ALBEDO_WET_MIN_WATER_FRACTION = 1.0e-4
+ALBEDO_FROZEN_BELOW_K = 230.0
+ALBEDO_REGIME_REFERENCE = 0.30
 
 # --- Star System Generation Parameters ---
 INITIAL_PLANET_DISTANCE_FACTOR = 0.55
@@ -204,7 +279,7 @@ GIANT_IMPACT_SURVIVAL_FRACTION = 0.4
 # satisfied afterward. Needed because validate_system's own orbital-overlap
 # correction can, in rare cases, push a deliberately-placed guaranteed body
 # (e.g. the forced Class M world) into a zone its class no longer supports --
-# physics.planets.reconcile_zone_and_class correctly reclassifies it away
+# physics.planets.reconcile_zone correctly redraws it away
 # rather than reporting a physically inconsistent class, which can undo the
 # very guarantee that placement was satisfying. Retrying with a fresh
 # placement is simpler and more robust than trying to reshuffle every
@@ -265,8 +340,12 @@ WIDE_BINARY_SEPARATION_CEILING_AU = 1.0e6
 """float: Only where a place's density is zero is the survival limit infinite; no pair is a pair past a few parsecs
 (the Jacobi radius at the halo's density is under 10 pc), and this keeps the log-uniform draw finite."""
 
+HOSTING_SMALL_BODY_MAX_RADIUS_KM = 500.0
+"""float: A body under this radius is a small body to the hosting gate (`planets.hosting_population`, GEN.761); the old smallest-class
+(class D) ceiling. A planet starts at `PLANET_MIN_MASS_KG`, so few bodies are under it."""
+
 HOSTING_TRANS_NEPTUNIAN_MIN_SNOW_LINES = 10.0
-"""float: A class D body in the cold zone farther than this many snow lines from its star is a trans-neptunian body to the
+"""float: A small body in the cold zone farther than this many snow lines from its star is a trans-neptunian body to the
 hosting gate (`planets.hosting_population`, GEN.761); nearer, a belt body. STAND-IN [P]: the Solar System's main belt lies at
 about 1 snow line (2.2 to 3.3 AU against 2.7) and the Kuiper belt starts at Neptune's 30 AU, about 11; bracket 5 to 15."""
 
@@ -1767,422 +1846,112 @@ PLANET_SURVIVAL_HOST_MASS_SOLAR = 0.5
 
 # --- Planet Classification Data ---
 
-# A dictionary defining the properties of different planet classes.
-# Each class has a description, composition, radius range (in meters),
-# habitable zone compatibility, whether it has air ("air": the gases are drawn from the body's own interior, sinks and
-# temperature, and the atmosphere text is written from that mixture, GEN.415), and planet type ('t' for terrestrial, 'g' for gas giant).
-# Zone flags: "h" hot zone, "e" ecosphere, "c" cold zone, and "r" (GEN.8)
-# whether a free-floating rogue planet may have the class -- "r" is the
-# rogue planet's zone. With no star to warm it, a rogue is a dead (C),
-# icy (D), rocky super-Earth (S) or giant (I, J, T) world: every class with life needs starlight
-# (each one's life_chemical is a light-harvesting pigment), and the hot,
-# molten and volcanic classes need a star's heat.
+# The words that describe each class, and its kind ('t' for terrestrial, 'g' for gas giant). A class is derived from a finished body's
+# conditions (`physics/planet_classes.py`, `physics/data/planet_classes.json`); nothing here says what a body of the class
+# looks like for generation: no radius, zone, density, albedo or probability.
 PLANET_CLASSES = {
-    "A": {
-        # Radius ceiling raised to 7500 to absorb a formerly-separate
-        # "demon world" class's size range after its removal, with its
-        # toxic/irradiated flavor folded in here as a variant rather than
-        # kept as a separate class. See CHANGELOG.md for the full removal
-        # rationale.
-        "description": "a small, barren, and volcanic world, occasionally scarred by intense, toxic eruptions",
-        "composition": "igneous silica and basalt",
-        "radius_range": (500, 7500),
-        # Mercury (2,439.7km) sits ~28% through this range.
-        "size_mode": 0.28,
-        "h": True, "e": False, "c": False, "r": False,
-        "air": True,
-        "type": "t",
+    'A': {
+        "description": 'a small, barren, and volcanic world, occasionally scarred by intense, toxic eruptions',
+        "composition": 'igneous silica and basalt',
+        "type": 't',
     },
-    "B": {
-        # "with a thin atmosphere" left off the description -- it used to
-        # collide with the render template's own "with an atmosphere of
-        # {atmosphere}" clause (generation/planet.py's to_paragraph_list),
-        # producing "...world with a thin atmosphere with an atmosphere
-        # of...".
-        # Radius ceiling raised to 7500 to absorb the same formerly-separate
-        # "demon world" class's range as Class A above, and a second,
-        # formerly-separate "stripped core from a gas giant" class (no
-        # atmosphere) folded in as an alternate origin story for the same
-        # small-molten-world physical envelope, rather than kept as a
-        # separate atmosphere-less class -- real Mercury-analog worlds this
-        # close to their star already have only a negligible exosphere, so
-        # B's thin air already covers that "no atmosphere"
-        # identity closely enough. "and sulfur" added to the composition for
-        # the shared volcanic/irradiated theme. See CHANGELOG.md for the
-        # full removal rationale.
-        "description": "a small, molten world, occasionally the stripped core of a former gas giant",
-        "composition": "iron, potassium, silicon, and sulfur",
-        "radius_range": (500, 7500),
-        # Slightly below Class A's own Mercury anchor -- a freshly molten
-        # or newly-stripped world skews a bit smaller.
-        "size_mode": 0.25,
-        "h": True, "e": False, "c": False, "r": False,
-        "air": True,
-        "type": "t",
+    'B': {
+        "description": 'a small, molten world, occasionally the stripped core of a former gas giant',
+        "composition": 'iron, potassium, silicon, and sulfur',
+        "type": 't',
     },
-    "C": {
-        "description": "a dead world",
-        "composition": "anthracite, basalt, and hydrocarbons",
-        "radius_range": (500, 10000),
-        # Real small-body populations (asteroids, KBOs) follow a size-
-        # frequency distribution strongly weighted toward smaller objects,
-        # and this class's own broadest-of-any range skews the same way.
-        "size_mode": 0.20,
-        "h": True, "e": True, "c": True, "r": True,
-        "air": False,
-        "type": "t",
+    'C': {
+        "description": 'a dead world',
+        "composition": 'anthracite, basalt, and hydrocarbons',
+        "type": 't',
     },
-    "D": {
-        "description": "a small icy body",
-        "composition": "frozen hydrocarbons and ice",
-        "radius_range": (50, 500),
-        # Same real small-body size-frequency reasoning as Class C -- Ceres
-        # (469.7km) sits near this range's own ceiling, but the population
-        # as a whole skews toward its smaller end.
-        "size_mode": 0.25,
-        "h": True, "e": True, "c": True, "r": True,
-        "air": False,
-        "type": "t",
+    'D': {
+        "description": 'a small icy body',
+        "composition": 'frozen hydrocarbons and ice',
+        "type": 't',
     },
-    "E": {
-        # "and a thin atmosphere" left off the description -- it collided
-        # with the render template's own "with an atmosphere of
-        # {atmosphere}" clause (see Class B's note above).
-        "description": "a world with a molten core and crust",
-        "composition": "silicon, iron, and magnesium",
-        "radius_range": (5000, 10000),
-        # Earth-scale range shared with F/G/M/N/O/P; no single real analog
-        # for a young, molten-crust world, so anchored near Earth's own
-        # (6,371km, ~27% through this range) like the rest of that group.
-        "size_mode": 0.27,
-        "h": False, "e": True, "c": False, "r": False,
-        # Hottest of the habitable classes (see below), so pushed toward
-        # the inner (hotter) edge of the zone -- see Class K's own
-        # `zone_position_mode` note.
-        "zone_position_mode": 0.15,
-        # "hydrogen compounds" made concrete as a real Hadean/Archean-analog
-        # reducing mix (water vapor, ammonia, methane).
-        "air": True,
-        "type": "t",
-        # Dark volcanic rock and minimal ice keep the albedo low: the youngest, most volcanic of the habitable classes.
-        "albedo_range": (0.10, 0.18),
+    'E': {
+        "description": 'a world with a molten core and crust',
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
     },
-    "F": {
-        "description": "a volcanic world with shallow seas",
-        "composition": "silicon, iron, and magnesium",
-        "radius_range": (5000, 10000),
-        # Earth-scale anchor, see Class E's note.
-        "size_mode": 0.27,
-        "h": False, "e": True, "c": False, "r": False,
-        # Middle of the E->F->G progression positionally too -- see Class
-        # K's own `zone_position_mode` note.
-        "zone_position_mode": 0.30,
-        "air": True,
-        "type": "t",
-        # The middle step of the E->F->G progression: a higher albedo than E.
-        "albedo_range": (0.15, 0.22),
+    'F': {
+        "description": 'a volcanic world with shallow seas',
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
     },
-    "G": {
-        "description": "a rocky, barren world",
-        "composition": "silicon, iron, and magnesium",
-        "radius_range": (5000, 10000),
-        # Earth-scale anchor, see Class E's note.
-        "size_mode": 0.27,
-        "h": False, "e": True, "c": False, "r": False,
-        # Converges near M's own position too -- see Class K's own
-        # `zone_position_mode` note.
-        "zone_position_mode": 0.44,
-        "air": True,
-        "type": "t",
-        # The final step of the E->F->G progression, converging on M's and O's Earth-like range.
-        "albedo_range": (0.20, 0.28),
+    'G': {
+        "description": 'a rocky, barren world',
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
     },
-    "H": {
-        "description": "a desert world with little liquid water",
-        "composition": "silicon, iron, and magnesium",
-        "radius_range": (5000, 10000),
-        # Earth-scale anchor, see Class E's note.
-        "size_mode": 0.27,
-        "h": False, "e": True, "c": False, "r": False,
-        # Hot/dry -> pushed toward the zone's hotter inner half -- see
-        # Class K's own `zone_position_mode` note.
-        "zone_position_mode": 0.33,
-        # "metals" replaced with "mineral dust" -- real deserts loft
-        # particulate, not metal vapor (that's a magma-ocean/ultra-hot-rocky
-        # -exoplanet phenomenon, not a match for a class that still has some
-        # liquid water).
-        "air": True,
-        "type": "t",
-        # Hot and dry: dark exposed rock and minimal ice or cloud cover keep the albedo low.
-        "albedo_range": (0.18, 0.26),
+    'H': {
+        "description": 'a desert world with little liquid water',
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
     },
-    "I": {
-        "description": "an ice giant with a tilted magnetic field",
-        "composition": "rock, ice, methane, and ammonia",
-        "radius_range": (15000, 50000),
-        # Uranus (25,362km) / Neptune (24,622km) sit ~28-30% through this
-        # range.
-        "size_mode": 0.28,
-        # Added "e" (warm-Neptune analog -- real Neptune-mass planets in or
-        # near a star's temperate zone are a common, well-documented
-        # exoplanet category). Deliberately NOT given "h": real close-in,
-        # Neptune-mass planets are rare -- the observed "hot Neptune desert"
-        # -- because a star's X-ray/EUV irradiation photoevaporates a
-        # Neptune-mass H/He envelope down to a bare rocky/metal core well
-        # before it could stay class I; that outcome is already represented
-        # by Class B's "occasionally the stripped core of a former gas
-        # giant" (see Class B's note).
-        "h": False, "e": True, "c": True, "r": True,
-        "air": True,
-        "type": "g",
+    'I': {
+        "description": 'an ice giant with a tilted magnetic field',
+        "composition": 'rock, ice, methane, and ammonia',
+        "type": 'g',
     },
-    "J": {
-        "description": "a gas giant with a turbulent atmosphere and rings",
-        "composition": "hydrogen and helium",
-        "radius_range": (25000, 250000),
-        # Jupiter (69,911km) / Saturn (58,232km) sit ~15-20% through this
-        # range.
-        "size_mode": 0.18,
-        # Added "h" and "e": real Jupiter/Saturn-mass gas giants are
-        # routinely found close to their star ("hot Jupiters", orbital
-        # period < 10 days) and at intermediate distances ("warm Jupiters",
-        # 10-365 days, sometimes within or near the habitable zone) as well
-        # as at Jupiter/Saturn-like wide separations ("cold Jupiters") --
-        # this is a standard three-way real observational classification,
-        # not a stretch. A warm/cold Jupiter placed in zone 'e' can also
-        # generate ordinary terrestrial moons via the existing moon-
-        # generation path, including habitable-class ones -- the
-        # "habitable exomoon around a giant planet" trope.
-        "h": True, "e": True, "c": True, "r": True,
-        "air": True,
-        "type": "g",
+    'J': {
+        "description": 'a gas giant with a turbulent atmosphere and rings',
+        "composition": 'hydrogen and helium',
+        "type": 'g',
     },
-    "K": {
-        # "with a thin atmosphere" dropped -- already collided with the
-        # render template's own "with an atmosphere of {atmosphere}" clause,
-        # and the atmosphere text already says how thin the air is.
-        "description": "an adaptable world",
-        "composition": "silicon, iron, and magnesium",
-        "radius_range": (2500, 7500),
-        # Mars (3,389.5km) sits ~18% through this range.
-        "size_mode": 0.18,
-        "h": False, "e": True, "c": False, "r": False,
-        # How far through the ecosphere zone's own [inner, outer] AU range
-        # this class is generated, via a `random.sample_bounded_bell` draw
-        # centered here instead of the zone's full width being equally
-        # likely (see `physics.planets.generate_planet_properties`'s
-        # "zone_position_mode" handling) -- Mars sits much farther from the
-        # Sun than Earth, so K is pushed toward the outer (colder) edge of
-        # the zone rather than sharing Class M's own ~0.5 (center) position.
-        "zone_position_mode": 0.90,
-        "air": True,
-        "type": "t",
-        # Mars analog: a dusty, cold surface. The range is kept from the class's climate tuning; the temperature itself comes from the solved
-        # air (`physics/surface_air.py`).
-        "albedo_range": (0.36, 0.44),
+    'K': {
+        "description": 'an adaptable world',
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
     },
-    "L": {
-        "description": "a marginally habitable world",
-        "composition": "silicon, iron, and magnesium",
-        "radius_range": (5000, 7500),
-        # No single real analog; skewed toward the lower-mid range --
-        # smaller worlds retain a thinner, more "marginal" atmosphere more
-        # easily, consistent with this class's own tuning (see below).
-        "size_mode": 0.35,
-        "h": False, "e": True, "c": False, "r": False,
-        # Between M and K positionally too, closer to K -- see Class K's
-        # own `zone_position_mode` note.
-        "zone_position_mode": 0.70,
-        "air": True,
-        "type": "t",
-        # Brighter than K (vegetation, more cloud) and darker than M; kept from the class's climate tuning.
-        "albedo_range": (0.24, 0.30),
+    'L': {
+        "description": 'a marginally habitable world',
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
     },
-    "M": {
-        "description": "a temperate terrestrial world",
-        "composition": "silicon, iron, and magnesium",
-        "radius_range": (5000, 10000),
-        # Earth (6,371km) sits ~27% through this range -- exact.
-        "size_mode": 0.27,
-        "h": False, "e": True, "c": False, "r": False,
-        # The reference/baseline position every other ecosphere class's own
-        # `zone_position_mode` is described relative to (see Class K's
-        # note) -- dead center of the zone, same as the exact midpoint this
-        # class was already tuned against before `zone_position_mode`
-        # existed, so this is a no-op for M specifically.
-        "zone_position_mode": 0.50,
-        "air": True,
-        "type": "t",
-        # Earth's own Bond albedo, about 0.3.
-        "albedo_range": (0.29, 0.31),
+    'M': {
+        "description": 'a temperate terrestrial world',
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
     },
-    "N": {
-        # "dense, reducing atmosphere" left off the description -- it
-        # collided with the render template's own "with an atmosphere of
-        # {atmosphere}" clause.
-        "description": "a hot world",
-        "composition": "silicon, iron, and magnesium",
-        "radius_range": (5000, 10000),
-        # Venus (6,051.8km) sits ~21% through this range -- exact.
-        "size_mode": 0.21,
-        "h": False, "e": True, "c": False, "r": False,
-        # See Class K's own `zone_position_mode` note. Venus sits much
-        # closer to the Sun than Earth, so N is pushed toward the inner
-        # (hotter) edge of the ecosphere zone.
-        "zone_position_mode": 0.05,
-        "air": True,
-        "type": "t",
-        # Venus analog: its highly reflective cloud deck (Venus' Bond albedo is about 0.77).
-        "albedo_range": (0.75, 0.90),
-        # No life_chemical (GEN.147): at Venus's 737 K and 9 MPa nothing lives on the
-        # surface, and the class is not on HABITABLE_PLANET_CLASSES.
+    'N': {
+        "description": 'a hot world',
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
     },
-    "O": {
-        "description": "an ocean world with most of its surface covered in liquid water",
-        "composition": "silicon, iron, and magnesium",
-        "radius_range": (5000, 10000),
-        # Earth-scale anchor, see Class E's note.
-        "size_mode": 0.27,
-        "h": False, "e": True, "c": False, "r": False,
-        # Slightly hotter than M positionally too (see below) -- see Class
-        # K's own `zone_position_mode` note.
-        "zone_position_mode": 0.42,
-        # Text now distinct from Class M's identical-before-this "oxygen,
-        # nitrogen, and argon" -- water vapor is a real, tracked constituent
-        # here.
-        "air": True,
-        "type": "t",
-        # Higher than M: more cloud cover over an ocean-dominated surface (the waterworld-climate literature).
-        "albedo_range": (0.28, 0.35),
+    'O': {
+        "description": 'an ocean world with most of its surface covered in liquid water',
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
     },
-    "P": {
-        "description": "a cold, glaciated world",
-        "composition": "silicon, iron, magnesium, and ice",
-        "radius_range": (5000, 10000),
-        # No single real analog; skewed slightly above the Earth anchor --
-        # icy worlds carry proportionally more low-density ice content,
-        # plausibly running a bit larger for a given mass than a pure
-        # rock/iron world would.
-        "size_mode": 0.30,
-        "h": False, "e": True, "c": False, "r": False,
-        # Cold/glaciated -> pushed toward the zone's colder outer edge, same
-        # as K -- see Class K's own `zone_position_mode` note.
-        "zone_position_mode": 0.90,
-        "air": True,
-        "type": "t",
-        # Icy/glaciated surfaces reflect far more sunlight than the default
-        # rocky/Earth-like range (0.12, 0.35) -- real ice/snow Bond albedo is
-        # roughly 0.5-0.9 (e.g. Europa ~0.68, Enceladus ~0.81). Gives P a
-        # genuine cold bias from the unclamped physics instead of relying on
-        # a post-hoc temperature clamp (see physics.planets.calculate_atmospheric_conditions).
-        "albedo_range": (0.5, 0.7),
+    'P': {
+        "description": 'a cold, glaciated world',
+        "composition": 'silicon, iron, magnesium, and ice',
+        "type": 't',
     },
-    "Q": {
-        "description": "a world with an eccentric orbit and extreme temperature variations",
-        "composition": "silicon, iron, and magnesium",
-        "radius_range": (2000, 7500),
-        # No single real analog; moderate lower-mid skew.
-        "size_mode": 0.35,
-        # Was h/e/c all True -- but Q carries a life_chemical (it's a
-        # life-bearing class), and habitable/life-bearing classes are
-        # restricted to the ecosphere zone only (every other
-        # life_chemical-bearing class -- E/F/G/H/K/L/M/N/O/P/V -- is
-        # already e-only; see test_life_bearing_classes_are_ecosphere_only in
-        # test_planets.py). Its "eccentric orbit" flavor still
-        # holds fully confined to zone e -- a highly eccentric orbit *within*
-        # the habitable zone still swings meaningfully between its own
-        # perihelion and aphelion.
-        "h": False, "e": True, "c": False, "r": False,
-        "air": True,
-        "type": "t",
+    'Q': {
+        "description": 'a world with an eccentric orbit and extreme temperature variations',
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
     },
-    "S": {
-        # Rocky super-Earth (GEN.28's first class, built with GEN.38): 1.2-1.8
-        # Earth radii and 2-10 Earth masses, barren, in every zone. V stays
-        # the life-bearing super-Earth. Compressed rock is denser than
-        # Earth's own 5.51 g/cm3, so the density range is set so the class's
-        # masses run 2-10 Earth masses across its radii (1.2 Earth radii at
-        # 6.38 g/cm3 is 2 Earth masses, 1.8 at 9.45 is 10). Rogue-eligible:
-        # without it, rocky rogues past Class C's 10,000 km ceiling had no
-        # class that fit their size (GEN.38).
-        "description": "a barren, rocky Super-Earth, its surface molten when it orbits close to its star",
-        "composition": "silicate rock over a large iron core",
-        "radius_range": (7645, 11468),
-        # Smaller super-Earths are commoner (Fulton et al. 2017's radius
-        # distribution falls from 1.2 toward 1.8 Earth radii).
-        "size_mode": 0.30,
-        "density_range": (6.38, 9.45),
-        "h": True, "e": True, "c": True, "r": True,
-        "air": False,
-        "type": "t",
+    'S': {
+        "description": 'a barren, rocky Super-Earth, its surface molten when it orbits close to its star',
+        "composition": 'silicate rock over a large iron core',
+        "type": 't',
     },
-    "T": {
-        # Radius corrected 250,000-25,000,000km -> 15,000-55,000km -- real
-        # brown-dwarf/giant-planet physics (electron degeneracy pressure
-        # keeps sub-stellar objects within ~15% of Jupiter's own radius,
-        # ~69,911km, regardless of mass) ruled out the old range regardless.
-        # Now spans ice-giant-to-Saturn scale (Neptune 24,622km, Saturn
-        # 58,232km), staying meaningfully below Class J's Jupiter-and-up
-        # range -- a genuine "dwarf" relative to it.
-        "description": "a gas dwarf with a thick atmosphere",
-        "composition": "hydrogen, helium, and hydrocarbons",
-        "radius_range": (15000, 55000),
-        # Neptune (24,622km) sits ~24% through this range.
-        "size_mode": 0.24,
-        "h": False, "e": False, "c": True, "r": True,
-        "air": True,
-        "type": "g",
+    'T': {
+        "description": 'a gas dwarf with a thick atmosphere',
+        "composition": 'hydrogen, helium, and hydrocarbons',
+        "type": 'g',
     },
-    "V": {
-        "description": "a Super-Earth with high gravity",
-        "composition": "iron, iridium, tungsten, and nickel",
-        "radius_range": (10000, 15000),
-        # The real rocky-to-gaseous transition radius (where planets start
-        # retaining a significant H/He envelope) is commonly cited around
-        # 1.5-1.6 Earth radii (~9,500-10,200km) -- right at this range's own
-        # floor, so peaked low to stay on the rocky side of that boundary.
-        "size_mode": 0.25,
-        "h": False, "e": True, "c": False, "r": False,
-        # Hot mainly via its high gravity/thick atmosphere rather than a
-        # real-analog orbital position (unlike N/K), but still one of the
-        # hotter habitable classes -- see Class K's own `zone_position_mode`
-        # note.
-        "zone_position_mode": 0.25,
-        # Resolves the composition fork research flagged (H/He-retained
-        # sub-Neptune-like reading vs. CO2-retained reading) toward the
-        # latter -- "thick atmosphere with high surface temperature and
-        # pressure" needs the heavier, more CO2-leaning composition; trace
-        # hydrogen/helium kept as a minor primordial remnant, not the bulk.
-        "air": True,
-        "type": "t",
-        # The life-bearing super-Earth: a rocky albedo, like G's; its high gravity (from the larger radius_range above) is what lets it keep
-        # a thick air, which the solved air (`physics/surface_air.py`) now finds for itself.
-        "albedo_range": (0.20, 0.30),
+    'V': {
+        "description": 'a Super-Earth with high gravity',
+        "composition": 'iron, iridium, tungsten, and nickel',
+        "type": 't',
     },
 }
 
-# Probabilities for each planet class to be generated. Six classes were
-# removed over time: two small hot-zone rocky variants merged into A/B, two
-# brown-dwarf-like sub-stellar classes cut entirely once their radius ranges
-# were corrected to real physics and turned out to be redundant
-# near-duplicates of each other, Class R (never reachable -- h/e/c were all
-# False) cut entirely rather than left as permanent dead weight, and Class W
-# ("tidally locked world with extreme temperature variations") cut entirely
-# -- its day/night-split identity can't be produced from a single global
-# surface_temperature scalar under this generator's climate model (see
-# docs/TODO.md's now-resolved "Investigate Further" entry) -- (see
-# CHANGELOG.md). Each removed class's weight was folded into the class(es)
-# that absorbed its concept rather than just dropped; R already carried a
-# weight of 0.0000, so nothing needed redistributing, and these weights are
-# just relative (this dict isn't required to sum to 1.0 -- see
-# physics.planets._choose_weighted_planet_class), so dropping W's tiny 0.0001
-# share needed no redistribution either.
-PLANET_CLASS_PROBABILITIES = {
-    'A': 0.1400, 'B': 0.0725, 'C': 0.2365, 'D': 0.0142, 'E': 0.0239, 'F': 0.0335,
-    'G': 0.0432, 'H': 0.0915, 'I': 0.0722, 'J': 0.0531, 'K': 0.0142, 'L': 0.0335,
-    'M': 0.1345, 'N': 0.0239, 'O': 0.0045, 'P': 0.0046, 'Q': 0.0001,
-    'S': 0.0300, 'T': 0.0001, 'V': 0.0045
-}
 
 # --- Life Data ---
 # What lives on a world is a life class (`physics/data/life_classes.json`, GEN.889), drawn from the conditions the world stores.
@@ -2396,11 +2165,6 @@ diffusion argument (Catling et al. 2005; recalled). `full_complexity` is the C a
 Fauna each grade shows (0 to 9). `anoxic_animal_chance` is the share of anoxic worlds with a donor supply of `anoxic_animal_donor_min` or more that
 get animals that have lost aerobic respiration (route R4; contested: Danovaro 2010, Yahalomi 2020). Stand-ins T9, L3 (the floors T2 for A1, T7 above;
 the R4 chance T4); set from the first census, not fixed.
-"""
-
-MOON_BLACKLIST = ['Q', 'S', 'V']
-"""
-list: A list of planet class codes that cannot be generated as moons.
 """
 
 FLAVOR_CHANCE_SYSTEM = 0.05 # The chance flavor text will be added to a system.
@@ -2654,7 +2418,7 @@ PULSAR_DISC_DISTANCE_AU_RANGE = (0.1, 0.6)
 PULSAR_DISC_MASS_EARTH_RANGE = (0.01, 10.0)
 PULSAR_DISC_PERIOD_RATIOS = (4.0 / 3.0, 3.0 / 2.0, 5.0 / 3.0, 2.0)
 PULSAR_DISC_PERIOD_RATIO_SCATTER = 0.01
-PULSAR_DISC_CLASS = "C"
+PULSAR_DISC_MAX_RADIUS_KM = 10000.0  # the largest disc planet, at the mean density of a terrestrial body (the old airless class ceiling)
 
 # The pulsar wind's momentum flux on a body is XI * Edot / (4 pi r^2 c) for a spin-down power Edot and a distance r
 # (the same order of unity the design note takes).
@@ -3442,13 +3206,15 @@ SYSTEM_COMET_CHANCE = 0.3
 # 20,000 systems, four seeds of 5,000, after GEN.631 drew a system's stars as a
 # tree: its pairs are closer, so fewer have room for planets; habitable_world alone
 # remeasured 2026-10-29 over 6,000 systems, four seeds of 1,500, after GEN.855 let
-# the air follow its life: 0.354 where it was 0.402). A sector or galaxy run's
+# the air follow its life: 0.354 where it was 0.402; and 2026-10-29 over 3,000 systems, two seeds of 1,500, after GEN.646 derived the class
+# from the finished body: 0.722, most of it classes Q, P, V and K, which the feature counts as able to carry life while few are habitable
+# by the score). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.354,   # a habitable planet or moon
+    "habitable_world": 0.722,   # a planet or moon of a class that can carry life (see above)
     "asteroid_belt": 0.549,     # an asteroid belt
     "large_star": 0.049,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
     "planets": 0.941,           # at least one planet or belt

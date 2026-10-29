@@ -415,11 +415,12 @@ def _names_in(text):
     return found
 
 
-def test_no_planet_class_carries_an_atmosphere_text_only_whether_it_has_air():
-    """GEN.415: a class names no gas; the air is drawn from the body and the text is written from the stored mixture."""
+def test_no_planet_class_carries_an_atmosphere_text():
+    """GEN.415: a class names no gas and does not say whether it has air; the air is drawn from the body and the text is written from
+    the stored mixture."""
     for letter, class_data in tuning.PLANET_CLASSES.items():
         assert "atmosphere" not in class_data, letter
-        assert isinstance(class_data["air"], bool), letter
+        assert "air" not in class_data, letter
 
 
 def test_every_gas_the_atmosphere_text_names_is_a_row_of_the_table():
