@@ -230,6 +230,33 @@ POINT_FIELD = [
 among the fixture stars."""
 
 
+def _hole_field():
+    """MAP.339: black holes for the near-field rule, all seeded, round the fixture's star field `STAR_FIELD_CENTER_PC` and below it
+    (a view from above looks down on them): thirty light ones within 12 pc of it across a wide and shallow patch, a hundred and fifty light ones from 120 pc to 2.5 kpc
+    out, and three heavy ones far out (5,000, 200,000 and a million solar masses), the lightest at 400 pc."""
+    import random
+
+    rng = random.Random(339)
+    cx, cy, cz = STAR_FIELD_CENTER_PC
+    holes = []
+    for i in range(30):
+        holes.append(_point("black_hole", round(rng.uniform(6.0, 9.0), 2), id=3000 + i, name=f"Near Hole {i}", descriptor="stellar",
+                            x=cx + rng.uniform(-12.0, 12.0), y=cy + rng.uniform(-3.0, 3.0), z=cz - rng.uniform(0.0, 2.0)))
+    for i in range(150):
+        reach = rng.uniform(120.0, 2500.0)
+        angle = rng.uniform(0.0, 2.0 * math.pi)
+        holes.append(_point("black_hole", round(rng.uniform(6.0, 9.0), 2), id=3100 + i, name=f"Far Hole {i}", descriptor="stellar",
+                            x=cx + reach * math.cos(angle) * 0.3, y=cy + reach * math.sin(angle) * 0.3, z=cz - reach))
+    for i, (mass, depth) in enumerate(((5.0e3, 400.0), (2.0e5, 2500.0), (1.0e6, 2900.0))):
+        holes.append(_point("black_hole", mass, id=3300 + i, name=f"Heavy Hole {i}", descriptor="intermediate",
+                            x=cx + 6.0 * (i + 1), y=cy - 4.0 * (i + 1), z=cz - depth))
+    return holes
+
+
+HOLE_FIELD = _hole_field()
+"""list: The black holes of the `holes` site (MAP.339)."""
+
+
 GLOW_EXTRA_SOL = 2.0e6
 """The light, in solar luminosities, a fixture node holds beyond the stars it lists (the glow's, MAP.266)."""
 
@@ -670,7 +697,7 @@ FAR_MADE_PC = [(150000.0 + dx, 20000.0 + dy, 400.0) for dx, dy in ((0.0, 0.0), (
 class FixtureApi:
     """The `apiclient`/`tilecache` reads the map pages make."""
 
-    def __init__(self, halo=False, dense=False, large=False, far=False):
+    def __init__(self, halo=False, dense=False, large=False, far=False, holes=False):
         self.far = far
         self.shape = galaxy_shape()
         self.stars = STAR_FIELD + (HALO_STARS if halo else []) + (DENSE_STARS if dense else [])
@@ -678,7 +705,7 @@ class FixtureApi:
         if large:
             self.stars = self.stars + _large_field()
             self.buckets = _bucketed(self.stars)
-        self.points = POINT_FIELD + (HALO_POINTS if halo else []) + (DENSE_POINTS if dense else [])
+        self.points = POINT_FIELD + (HALO_POINTS if halo else []) + (DENSE_POINTS if dense else []) + (HOLE_FIELD if holes else [])
         self.worlds = WORLD_FIELD + (DENSE_WORLDS if dense else [])
         self._addresses = {}
         self._memo = {}
@@ -991,6 +1018,12 @@ def halo_site(request, tmp_path_factory):
 
 
 @pytest.fixture()
+def holes_site(request, tmp_path_factory):
+    """`map_site` with a hundred and eighty black holes round the star field, near and far, light and heavy (MAP.339)."""
+    yield from _serve("holes", {"holes": True}, request, tmp_path_factory)
+
+
+@pytest.fixture()
 def dense_site(request, tmp_path_factory):
     """`map_site` with a dense region of stars, points and habitable-world systems in the first sector (TEST.368); open it
     at `dense_region_query()`."""
@@ -1004,4 +1037,4 @@ def large_site(request, tmp_path_factory):
     yield from _serve("large", {"large": True}, request, tmp_path_factory)
 
 
-__all__ = ["map_site", "halo_site", "dense_site", "large_site", "LARGE_CENTRE_PC", "dense_region_query", "DENSE_STARS", "DENSE_POINTS", "DENSE_WORLDS", "DENSE_CENTER_PC", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]
+__all__ = ["map_site", "holes_site", "HOLE_FIELD", "halo_site", "dense_site", "large_site", "LARGE_CENTRE_PC", "dense_region_query", "DENSE_STARS", "DENSE_POINTS", "DENSE_WORLDS", "DENSE_CENTER_PC", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]

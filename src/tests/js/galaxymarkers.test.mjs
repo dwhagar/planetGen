@@ -298,3 +298,62 @@ test("a crowd takes the strongest state of its marks: a pulled one gives it its 
   assert.equal(plain.kind.id, "marker-habitable");
   assert.ok(!plain.pulled);
 });
+
+// MAP.339: the near-field rule for black holes.
+const view = (extra) => Object.assign({ centre: [0, 0, 0], distance: 10, width: 1200, height: 600, densityPx: 120 }, extra);
+const massive = (id, mass, x, extra) => ({ type: "black_hole", id, name: "BH " + id, mass_solar: mass, x, y: 0, z: 0, ...extra });
+
+test("a black hole within 3 view distances is a candidate; one beyond needs its mass to pass the rising floor", () => {
+  const rule = M.nearFieldRule(view());
+  assert.equal(rule.accepts(massive(1, 6, 29.9)), true, "inside the reach");
+  assert.equal(rule.accepts(massive(2, 5, 31)), false, "the lightest hole just past it: the floor has begun to rise");
+  assert.equal(rule.accepts(massive(3, 5 * (60 / 30) ** 2 + 0.01, 60)), true, "heavy enough for twice the reach");
+  assert.equal(rule.accepts(massive(4, 5 * (60 / 30) ** 2 - 0.5, 60)), false);
+  assert.equal(rule.accepts(massive(5, 1e6, 3000)), true, "a supermassive hole stays");
+  assert.equal(rule.accepts(massive(6, 1e4, 3000)), false, "an intermediate one needs the square of the distance");
+  assert.equal(rule.accepts({ type: "black_hole", id: 7, x: 100, y: 0, z: 0 }), false, "a hole that gives no mass passes only inside the reach");
+  assert.equal(rule.accepts({ type: "black_hole", id: 8, x: 5, y: 0, z: 0 }), true);
+});
+
+test("the reach and the floor scale with the view distance, so the rule is the same at every zoom", () => {
+  const near = M.nearFieldRule(view({ distance: 10 }));
+  const far = M.nearFieldRule(view({ distance: 1000 }));
+  assert.equal(near.accepts(massive(1, 6, 50)), false);
+  assert.equal(far.accepts(massive(1, 6, 50)), true);
+  assert.equal(M.nearFieldRule(view({ distance: 10 })).accepts(massive(2, 20, 90)), M.nearFieldRule(view({ distance: 1000 })).accepts(massive(2, 20, 9000)));
+});
+
+test("black holes rank by mass over distance squared from the view centre", () => {
+  const rule = M.nearFieldRule(view());
+  assert.ok(rule.rank(massive(1, 6, 2)) > rule.rank(massive(2, 6, 4)), "nearer wins at the same mass");
+  assert.ok(rule.rank(massive(3, 18, 4)) > rule.rank(massive(4, 6, 4)), "heavier wins at the same distance");
+  assert.ok(Number.isFinite(rule.rank(massive(5, 6, 0))), "one at the very centre has a rank");
+});
+
+test("the cap is one mark per density square of the screen, at least one, and the default square is 120 px", () => {
+  assert.equal(M.BLACK_HOLE_DENSITY_PX, 120);
+  assert.equal(M.nearFieldRule(view()).cap, 50);
+  assert.equal(M.nearFieldRule(view({ densityPx: 60 })).cap, 200);
+  assert.equal(M.nearFieldRule(view({ width: 50, height: 50 })).cap, 1);
+  assert.equal(M.nearFieldRule(view({ densityPx: 0 })).cap, 50, "no usable density reads as the default");
+});
+
+test("selectMarkers keeps the accepted black holes the rule ranks first, up to the cap, and leaves other kinds alone", () => {
+  const registry = kinds();
+  const points = [];
+  for (let i = 0; i < 80; i++) points.push(massive(100 + i, 6 + (i % 5), 1 + i * 0.3));    // all within the reach
+  points.push(massive(900, 6, 500), massive(901, 1e6, 3000));
+  const nodes = [{ key: "9.1.0.0", node: { points, test: [{ id: "t1", x: 0, y: 0, z: 0, rank: 1 }] } }];
+  const near = M.nearFieldRule(view());
+  const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes, near });
+  const holes = chosen.filter((entry) => entry.kind.id === "marker-black-hole").map((entry) => entry.item);
+  assert.equal(holes.length, near.cap);
+  assert.ok(holes.some((item) => item.id === 901), "the supermassive hole is among them");
+  assert.ok(!holes.some((item) => item.id === 900), "a light far hole is not");
+  const ranks = holes.map((item) => near.rank(item));
+  assert.deepEqual(ranks, ranks.slice().sort((p, q) => q - p), "in the rule's order");
+  assert.equal(chosen.filter((entry) => entry.kind.id === "marker-test").length, 1);
+  // Without a near-field rule the kind keeps its old ranking.
+  const plain = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes });
+  assert.ok(plain.some((entry) => entry.item.id === 900));
+});

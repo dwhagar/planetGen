@@ -154,6 +154,53 @@ function classGlyph(letter) {
 
 PLANET_CLASS_LETTERS.forEach(function (letter) { GLYPHS["class-" + letter] = classGlyph(letter); });
 
+// MAP.339: black holes are chosen for the view, not for the whole list: every node lists its own, whatever its distance, so the
+// heaviest 240 were mostly far from what the camera looks at (237 of 240 at a 10 pc zoom). The rule, with `d` the distance from the
+// camera to the point it looks at (the view centre) and `r` a hole's distance from that point (both in parsecs, so it is the same at
+// every zoom):
+//   reach   a hole within NEAR_FIELD_REACH view distances (r <= 3 d) is a candidate; one beyond only if its mass is at least
+//           BLACK_HOLE_MIN_MASS * (r / (3 d))^2, so a rare heavy hole stays and a crowd of light ones does not;
+//   rank    mass over r squared (the nearest to what is looked at, the heaviest among those);
+//   cap     as many as fit the screen at one mark per `densityPx` by `densityPx` pixels (a user preference, `map.blackHoleDensity`,
+//           BLACK_HOLE_DENSITY_PX by default, mappreferences.js), a heavy hole following the same rule as a light one.
+export const NEAR_FIELD_REACH = 3;
+// The lightest stellar black hole, in solar masses: the floor of the reach rule.
+export const BLACK_HOLE_MIN_MASS = 5;
+// The side in pixels of the square one black hole mark is allowed on a screen, by default.
+export const BLACK_HOLE_DENSITY_PX = 120;
+
+// A black hole's mass in solar masses, or null when the item does not say (a hole that does not give its mass passes the reach
+// rule only inside the reach).
+export function blackHoleMass(item) {
+  const mass = [item.mass_solar, item.system_mass_solar].find(function (value) { return Number.isFinite(value) && value > 0; });
+  return mass === undefined ? null : mass;
+}
+
+// The rule for a view: `view` is `{centre: [x, y, z], distance, width, height, densityPx}` (the point the camera looks at, its distance
+// from the camera, the canvas size in CSS pixels and the density preference's side). Returns `{accepts(item), rank(item), cap}`
+// for `selectMarkers`' `near`.
+export function nearFieldRule(view) {
+  const reach = NEAR_FIELD_REACH * Math.max(view.distance, 1e-9);
+  const side = view.densityPx > 0 ? view.densityPx : BLACK_HOLE_DENSITY_PX;
+  const distanceOf = function (item) {
+    return Math.hypot(item.x - view.centre[0], item.y - view.centre[1], item.z - view.centre[2]);
+  };
+  return {
+    accepts: function (item) {
+      const r = distanceOf(item);
+      if (r <= reach) return true;
+      const mass = blackHoleMass(item);
+      return mass !== null && mass >= BLACK_HOLE_MIN_MASS * (r / reach) * (r / reach);
+    },
+    rank: function (item) {
+      const mass = blackHoleMass(item) || BLACK_HOLE_MIN_MASS;
+      const r = Math.max(distanceOf(item), 0.01 * view.distance, 1e-9);
+      return mass / (r * r);
+    },
+    cap: Math.max(1, Math.floor((Math.max(view.width, 1) * Math.max(view.height, 1)) / (side * side))),
+  };
+}
+
 // The markers of black holes (not neutron stars or quasars): the nodes' `points` (placed ones and the scattered ones
 // not yet built into a sector), heaviest first. Nodes of every block size list the biggest, so every node counts.
 export const BLACK_HOLE_KIND = {
@@ -163,6 +210,7 @@ export const BLACK_HOLE_KIND = {
   color: "#c58cff",
   maxBlock: Infinity,
   defaultOn: true,
+  nearField: true,    // MAP.339: chosen by `nearFieldRule` (the view's near field, then by mass over distance squared, then by screen area)
   source: function (node) {
     return (node.points || []).filter(function (point) { return point.type === "black_hole"; }).map(function (point) {
       return Object.assign({ key: String(point.id) }, point);
@@ -362,6 +410,8 @@ export function createMarkerKinds() {
 //   pxOf       optional `function (item, kind) -> pixels` for an item with an `extentPc`: its on-screen size;
 //   isPulled   optional `function (kindId) -> boolean`: a kind pulled forward (MAP.306) has first call on the budget and on a
 //              system's symbol, and its entries carry `pulled: true`;
+//   near       optional, a view's `nearFieldRule` (MAP.339): a kind with `nearField` keeps only the items it accepts, ranks them by
+//              its rank and takes at most its cap, before the kinds share the budget;
 //   budget     optional, MARKER_BUDGET.
 // Returns `[{kind, item}]`: per kind, highest rank first, at most the kind's share of the budget (an even share,
 // what a kind does not use going to the others), a node of a block bigger than a kind's `maxBlock` not counted for it,
@@ -394,8 +444,11 @@ export function selectMarkers(options) {
       }
       return true;
     });
-    items.sort(function (p, q) { return kind.rank(q) - kind.rank(p) || (p.key < q.key ? -1 : p.key > q.key ? 1 : 0); });
-    lists.push({ kind: kind, items: items, taken: 0 });
+    const near = kind.nearField ? options.near : null;
+    const wanted = near ? items.filter(near.accepts) : items;
+    const rankOf = near ? near.rank : kind.rank;
+    wanted.sort(function (p, q) { return rankOf(q) - rankOf(p) || (p.key < q.key ? -1 : p.key > q.key ? 1 : 0); });
+    lists.push({ kind: kind, items: near ? wanted.slice(0, near.cap) : wanted, taken: 0 });
   });
   // A kind pulled forward is served first, whole, before the rest share what is left.
   let left = budget;

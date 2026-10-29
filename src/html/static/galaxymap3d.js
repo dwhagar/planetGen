@@ -64,7 +64,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, INTEREST_KINDS, interestLines, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, selectMarkers,
+  BLACK_HOLE_KIND, INTEREST_KINDS, interestLines, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
 const { applyPrefs: applyPoiPrefs, savePrefs: savePoiPrefs } = await import(`./poiprefs.js${VERSION_QUERY}`);
@@ -90,6 +90,7 @@ const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuf
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
 const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
+const { blackHoleDensityPx } = await import(`./mappreferences.js${VERSION_QUERY}`);
 const {
   regionBlobs: nebulaRegionBlobs, regionLook: nebulaRegionLook, cutToBudget: cutNebulaRegions, FAMILIES: NEBULA_FAMILIES,
   FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour,
@@ -4008,7 +4009,14 @@ function initGalaxyMap3d(canvasEl, data) {
     markerMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     markerFrustum.setFromProjectionMatrix(markerMatrix);
     var nodes = neededNodes().keys.map(function (key) { return { key: key, node: getNode(key) }; });
+    // MAP.339: the black holes are the ones near what the camera looks at, as many as the density preference lets the screen hold.
+    var densityStorage = null;
+    try { densityStorage = window.localStorage; } catch (error) { densityStorage = null; }
     var chosen = selectMarkers({
+      near: nearFieldRule({
+        centre: [target.x, target.y, target.z], distance: camera.position.distanceTo(target),
+        width: canvasEl.clientWidth || 1, height: canvasEl.clientHeight || 1, densityPx: blackHoleDensityPx(densityStorage),
+      }),
       kinds: markerKinds.kinds(),
       isOn: function (id) { return stageView.layers.isOn(id); },
       isPulled: function (id) { return stageView.layers.isPulled(id); },
