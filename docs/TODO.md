@@ -18558,27 +18558,6 @@ clears each one.
   is this one.
   Prerequisites: none. Related: MAP.335, MAP.333.
 
-- [ ] **TEST.451 Ten reds Core 5 saw on main at its PERF.172 merge (9:59 AM EDT 2026-10-29): re-run each on current main, close the ones already fixed, file the real ones (bug)**
-  Reported by Core 5 (as the lane reported), not caused by PERF.172: (1)
-  test_step_registry: check-datasets, reset-galaxy and check-math
-  missing from steps.STEP_KINDS; (2) test_db_column_round_trip:
-  life_age_* and disk_* columns never written; (3)
-  test_generation_stats: the unmeasured wording ("not timed yet" vs "not
-  yet measured"); (4) /galaxy/near with x=1e200 returns 500
-  (OverflowError); (5) test_galaxy_gen settle-job test times out; (6)
-  the physics ValueError "spectrum has no light between 380 and 780 nm"
-  in system generation (test_fuzz_system_generation and others). Several
-  may already be fixed by Bug 1 (#3681, #3689, #3690) or sit inside Aux
-  2's epoch 120 (fuzz generation tests). Do: on current main re-run
-  each; close what passes; for each that still fails say whether it is a
-  test fault or a code fault and fix it (the x=1e200 500 is a code
-  fault: refuse out-of-range coordinates with a clear error; the
-  spectrum ValueError is a code fault: find which star draw gives no
-  visible light and why). A fix that changes generated output waits for
-  a lock turn. Version 8.1. Owner: Bug 1. Prerequisites: none. Related:
-  TEST.434, TEST.449, NAV.61.
-  Prerequisites: none. Related: TEST.434, TEST.449.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**

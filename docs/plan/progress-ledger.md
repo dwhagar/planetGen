@@ -1746,3 +1746,4 @@ Baseline: PR #1817.
 | PERF.120 | 8.1 | Queue, caches and performance |
 | PERF.128 | 8.1 | Queue, caches and performance |
 | GEN.896 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.451 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
