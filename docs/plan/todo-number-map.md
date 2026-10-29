@@ -2685,7 +2685,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.230 | The Generate system page options have a valid listbox parent so axe aria-required-parent passes (bug) | none | done, PR #3280 |
 | UX.231 | Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5) | none | open |
 | UX.232 | Search results: the planet link in a result row goes to a bad link while the star system link in the same row works (bug) | none | done, PR #3518 |
-| UX.233 | The Map symbols key on the object pages | none | open |
+| UX.233 | The Map symbols key on the object pages | none | done, PR #3611 |
 | UX.234 | Searching for all M class planets with the search button says it is preparing the results, loops and never shows data (bug) | none | done, PR #3498 |
 | UX.235 | Pages that already have a table of contents also show the automatic contents bar, so the contents appear twice (bug) | none | done, PR #3515 |
 | UX.236 | User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest) | none | open |

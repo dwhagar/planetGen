@@ -1061,24 +1061,11 @@ with `clamp()`.
   from the gated phoneme codec only, never from Milky Way or Solar
   System lists. An object is placed by the block holding its current
   position, never by its ID. Done: the line on sector, system and body
-  pages, hidden when absent, test pinned. Owner: unowned (Aux 6 retired 2026-10-28; lock-free pool). Rules: no
+  pages, hidden when absent, test pinned. Owner: Aux 2 (lock-free item while waiting; Aux 6 retired). Rules: no
   backward-compat shims; every number has a unit or scale (GEN.772);
   tests are scripts/test.py changed --resume.
   Prerequisites: DB.107. Related: GEN.825, DB.107, GEN.826, API.35,
   MAP.314, MAP.315.
-
-- [ ] **UX.233 The Map symbols key on the object pages**
-  The point-of-interest symbols exist since MAP.320 (Core 4, #3415) with
-  a key partial, templates/partials/poi_key.html (include it with
-  context). Do: show the key on the object pages where a marker is
-  shown, collapsed by default (the page rule: collapsible sections start
-  collapsed) and hidden on a page that shows no marker, using the same
-  seven symbols and score colours as the Galaxy Map key. Done: a page
-  test finds the key on a star system page that carries a
-  habitable-world marker and not on a page without markers, and the key
-  lines match the Galaxy Map key. Owner: Aux 2 (lock-free item while waiting; Aux 6 retired) (object pages). Version:
-  8.1.
-  Prerequisites: none. Related: MAP.320, MAP.305.
 
 - [ ] **UX.236 User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest)**
   Boss, 6:19 PM EDT 2026-10-28 (relayed by the coordinator): the zoom
