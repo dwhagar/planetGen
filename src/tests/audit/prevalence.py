@@ -135,7 +135,7 @@ def draw_cell(star_type, zone, count):
     system = StarSystem(system_config=config)
     star = system.primary_star
     zone_edges = star.habitable_zone
-    planets, abandoned = [], 0
+    planets, abandoned, raised = [], 0, []
 
     def _alarm(*_):
         raise _Abandoned()
@@ -149,6 +149,8 @@ def draw_cell(star_type, zone, count):
                 planets.append(Planet(config, star, zone_edges, orbit))
             except _Abandoned:
                 abandoned += 1
+            except Exception as error:  # a crash is a finding, not the end of the census
+                raised.append(f"{type(error).__name__}: {error}")
             finally:
                 signal.alarm(0)
         signal.alarm(DRAW_TIME_LIMIT_S * max(len(planets), 1))
@@ -160,6 +162,8 @@ def draw_cell(star_type, zone, count):
         signal.signal(signal.SIGALRM, previous)
     records = [{"star": star_type, "zone": zone, "kind": "abandoned", "cls": None, "tier": None, "ceiling": None,
                 "habitable": False}] * abandoned
+    records += [{"star": star_type, "zone": zone, "kind": "error", "cls": message[:120], "tier": None, "ceiling": None,
+                 "habitable": False} for message in raised]
     for planet in planets:
         records.append(_body_record(planet, star_type, planet.zone, "planet", life))
         for moon in planet.moons or []:
@@ -271,6 +275,9 @@ def compare(cells, expectations):
                     findings.append(Finding(kind_flag, key, f"{prefix} {name}", observed, low, high,
                                             f"{bounds.get('kind', '?')}: {bounds.get('source', '')}", bounds.get("anomaly", "")))
     for (star, zone, kind), cell in sorted(cells.items()):
+        if kind == "error" and cell["n"]:
+            findings.append(Finding("error", cell_key(star, zone, kind), "draws that raised", float(cell["n"]), 0.0, 0.0,
+                                    "; ".join(sorted(cell["cls"]))[:300], expectations.get("errors", {}).get("anomaly", "")))
         if kind == "abandoned" and cell["n"]:
             findings.append(Finding("hang", cell_key(star, zone, kind), "draws over the time limit", float(cell["n"]), 0.0, 0.0,
                                     f"a planet draw ran past {DRAW_TIME_LIMIT_S} s",
@@ -322,10 +329,10 @@ def format_report(cells, findings, header=""):
     return "\n".join(lines) + "\n"
 
 
-def write_report(text, directory=None):
-    """Writes the report as `class-census-latest.md` in `directory`, `$PLANETGEN_REPORT_DIR` or `.test-reports/`."""
+def write_report(text, directory=None, name=REPORT_NAME):
+    """Writes the report as `name` (the class census's by default) in `directory`, `$PLANETGEN_REPORT_DIR` or `.test-reports/`."""
     directory = pathlib.Path(directory or os.environ.get("PLANETGEN_REPORT_DIR") or ".test-reports")
     directory.mkdir(parents=True, exist_ok=True)
-    path = directory / REPORT_NAME
+    path = directory / name
     path.write_text(text, encoding="utf-8")
     return path

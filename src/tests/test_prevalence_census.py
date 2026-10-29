@@ -74,6 +74,14 @@ def test_a_blue_or_green_share_outside_its_range_is_flagged():
     assert {(f.kind, f.measure) for f in flooded} == {("out-of-range", "tier Blue"), ("out-of-range", "tier Green")}
 
 
+def test_a_draw_that_raised_or_ran_over_the_time_limit_is_flagged():
+    cells = _cells(classes={"C": 10})
+    cells[("G2V", "e", "error")] = _cell({"ZeroDivisionError: x": 1})
+    cells[("G2V", "e", "abandoned")] = _cell({None: 2})
+    findings = census.compare(cells, _spec({"C": (0.0, 1.0)}))
+    assert {f.kind for f in findings} == {"error", "hang"}
+
+
 def test_a_cell_with_no_bodies_is_flagged():
     findings = census.compare({}, _spec({"C": (0.0, 1.0)}))
     assert [f.kind for f in findings] == ["missing"]
