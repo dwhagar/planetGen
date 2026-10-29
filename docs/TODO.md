@@ -13178,37 +13178,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch; tests are `scripts/test.py changed --resume`.
   Prerequisites: GEN.809, GEN.810. Related: GEN.801, GEN.415.
 
-- [ ] **GEN.812 Greenhouse module: a water-vapour profile that dries with height, and pressure broadening checked against Venus and Earth, so an Earth twin at its own fixed point comes out near 288 K (finding 1)**
-  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
-  reports/air-fixed-point-findings-2026-10-24.md finding 1. With the
-  water vapour held at 0.77 of saturation at the answer's own
-  temperature an Earth twin (1 bar N2, 400 ppm CO2, 239 W/m2 absorbed)
-  comes out at 319 K, not 288 K; the module is right only when given the
-  Earth's measured water (292 K). Likely cause: the surface vapour
-  pressure is taken as the column mixing ratio all the way up; real air
-  is drier aloft (Manabe and Wetherald humidity falls with height). Add
-  the vapour profile in the module (not in surface_air). Also dry air at
-  400 ppm CO2 warms from 263 K at 1 bar N2 to 274 K at 3 bar and 340 K
-  at 87 bar: check the pressure broadening against published
-  line-by-line values. Done: the Earth twin lands within 2 K of 288 K
-  with the feedback live, and 106 of 300 forced class M habitable-zone
-  draws above 400 K falls to the share the physics gives. Owner: Aux 4
-  (lane E, the greenhouse module GEN.423 and GEN.703). Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  stand-ins get GEN.725 registry rows with a tier and tweak level; a
-  changed generated value carries `tests.golden_update --reason ...
-  --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`.
-  Prerequisites: GEN.422. Related: GEN.423, GEN.703, GEN.752,
-  GEN.411.
-  Finding (2026-10-09): Aux 8 finding (1:02 AM EDT 2026-10-25, from
-  GEN.814): the greenhouse module's water-vapour feedback is too strong,
-  so cold sealed water worlds sit at the freezing point. The water-world
-  temperature test of GEN.823 cannot pass until this is fixed.
-  Research (2026-10-09): Also (Aux 8, 5:51 PM EDT 2026-10-28 as the lane
-  reported): GEN.823 is wired (#3504) but its temperature test needs
-  GEN.812 to land first; add that test with GEN.812.
-
 - [ ] **GEN.816 A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
   reports/air-fixed-point-findings-2026-10-24.md finding 5. The module
@@ -13859,6 +13828,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by hand, and no `.major.md` note is written without Boss's word.
   Headline: 9.5 (life classes and sentient life).
   Prerequisites: GEN.864, TEST.435.
+
+- [ ] **GEN.866 A planet draw around an F5V star at an ecosphere orbit never returns when a large tidally forced moon is generated: the interior heat step size collapses (bug)**
+  Found by Bug 2 (as the lane reported, 8:52 PM EDT 2026-10-28), on main
+  at 134d8bb: a bare planet draw around an F5V star at an ecosphere
+  orbit does not return for minutes when a large tidally forced moon is
+  generated. The time sits in physics/interior_heat.py, heat then cool,
+  the adaptive step loop (around lines 310 to 320), where the step size
+  of 1 over the stiffness collapses. The moon: 2.26e23 kg, 2517 km,
+  778,000 km from a 4.67e24 kg planet, eccentricity 0.0074, age 4.09 Gy;
+  the surface temperature differs per call, so it depends on the air
+  solve feeding the heat. A hang here stalls any sector fill that rolls
+  such a system. Repro: python3
+  /mnt/project-files/reports/bug2/gen763-hang-repro.py from the repo
+  root (prints HUNG after 60 s). Fix: bound the step loop (a floor on
+  the step, an implicit step for a stiff case, or a cap on the step
+  count with the converged value); the normal-path values must not
+  change, so no epoch is wanted; if the golden files do change, the item
+  goes to the lock queue. Add a regression test with the moon above and
+  a time bound.
+  Prerequisites: none. Related: GEN.856, GEN.763, PERF.190.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.237 |
 | MAP | MAP.343 |
 | NAV | NAV.65 |
-| GEN | GEN.866 |
+| GEN | GEN.867 |
 | PERF | PERF.201 |
 | DB | DB.110 |
 | API | API.37 |
@@ -1561,7 +1561,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.809 | A giant's dipole moment and class come from the metallic-hydrogen shell and the dilute core (G3, step 1) | none | open |
 | GEN.810 | A giant's internal heat reads the interior layers and the helium shell (G3, step 2) | none | open |
 | GEN.811 | The description of a giant says what its interior is (G3, step 3) | none | open |
-| GEN.812 | Greenhouse module: a water-vapour profile that dries with height, and pressure broadening checked against Venus and Earth, so an Earth twin at its own fixed point comes out near 288 K (finding 1) | none | open |
+| GEN.812 | Greenhouse module: a water-vapour profile that dries with height, and pressure broadening checked against Venus and Earth, so an Earth twin at its own fixed point comes out near 288 K (finding 1) | none | done, PR #3551 |
 | GEN.813 | Volatile inventory brackets recalibrated against the totals of the Earth, Venus, Mars and Titan, not only the ratios (finding 2) | none | done, PR #3254 |
 | GEN.814 | A water-rich world (class O, 10 to 50 wt% water) gets a carbon sink: seafloor weathering and the high-pressure ice that seals the mantle (finding 3) | none | done, PR #3286 |
 | GEN.815 | Sulfur sink: a sulfate and sulfide balance replaces the stand-in SULFUR_SURFACE_KEPT (finding 4) | none | done, PR #3373 |
@@ -1615,6 +1615,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.863 | Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters | none | open |
 | GEN.864 | Sentient life per life class: sentient species and civilizations draw from the life class scores of a world | none | open |
 | GEN.865 | Headline of 9.5: life classes, so every world is rated for the kind of life it could hold, and sentient life draws from them | none | open |
+| GEN.866 | A planet draw around an F5V star at an ecosphere orbit never returns when a large tidally forced moon is generated: the interior heat step size collapses (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
