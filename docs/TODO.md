@@ -12454,6 +12454,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   decides; Core 1 applies his pick before the golden rewrite if he
   answers in time, else merges the current values and retunes as a
   follow-up.
+  Research (2026-10-09): Boss, 9:03 PM EDT 2026-10-28, card answer
+  (option 1, Core 1's proposal): step means 0.5, 1.5, 2.5 (complex
+  cells), 3 (animals) and 60 Gyr (civilization), scale 1.0. Core 1
+  applies it in the GEN.855 + GEN.750 change before the golden rewrite;
+  registry row tier T9, tweak L3.
   Prerequisites: none. Related: GEN.649, GEN.740.
 
 - [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
