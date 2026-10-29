@@ -5,7 +5,7 @@ from pathlib import Path
 
 STATIC = Path(__file__).resolve().parents[1] / "html" / "static"
 
-GALACTIC = ("galaxymap3d.js", "galaxystageview.js", "galaxyglow.js", "galaxyglowlayer.js", "galaxyblocks.js",
+GALACTIC = ("galaxymap3d.js", "galaxystageview.js", "galaxyglow.js", "galaxyglowlayer.js", "galaxynebulae.js", "galaxyblocks.js",
             "galaxymarkerlayer.js", "galaxymarkers.js", "galaxysector.js")
 
 

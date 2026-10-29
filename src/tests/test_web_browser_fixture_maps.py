@@ -2545,6 +2545,74 @@ def test_the_glow_fades_out_as_the_stars_resolve_and_never_adds_up(page, dense_s
             raise AssertionError((dist, page.evaluate("() => [document.querySelector('#galaxymap3d-canvas').__mapGlow.strongest(), document.querySelector('#galaxymap3d-canvas').galaxyCamera().dist]")))
 
 
+NEBULAE_STATE = ("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapNebulae; return g && {count: g.count(), "
+                 "drawn: g.drawn(), visible: g.isVisible(), blobs: g.blobs().map(b => ({key: b.key, family: b.family, count: b.count, "
+                 "ring: b.ring, color: b.color}))}; }")
+
+
+def test_nebula_regions_are_soft_groups_in_the_family_colour_and_the_menu_switches_each_family(page, map_site):
+    """MAP.176: the groups of nebulae the drawn nodes list (`nebula_regions`) are soft sprites at the galactic view, each in the
+    colour of its dominant family with a ring when it holds more than one nebula, a layer of the Menu for each family (on until the
+    visitor says otherwise, `hide=nebulae-emission` in the address), with a legend line each and one that says what a ring is."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapNebulae; return g && g.drawn() > 0; }",
+                           timeout=20000)
+    state = page.evaluate(NEBULAE_STATE)
+    assert state["visible"] and state["count"] >= 1, state
+    families = {blob["family"] for blob in state["blobs"]}
+    assert families <= {"emission", "reflection", "diffuse"} and len(families) >= 2, families
+    assert any(blob["ring"] for blob in state["blobs"]), "a group of several nebulae has a ring"
+    by_family = {}
+    for blob in state["blobs"]:
+        by_family.setdefault(blob["family"], set()).add(tuple(blob["color"]))
+    assert all(len(colors) == 1 for colors in by_family.values()) and len({c for v in by_family.values() for c in v}) == len(by_family)
+    legend = page.locator("#galaxymap3d-layer-legend")
+    assert legend.locator('[data-layer="nebulae-emission"]').inner_text() == "Emission nebulae"
+    assert "zoom in to separate" in legend.locator('[data-layer="nebulae-groups"]').inner_text()
+    _open_menu(page)
+    button = page.locator('#galaxymap3d-kinds button[data-layer="nebulae-emission"]')
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    assert page.locator('#galaxymap3d-kinds button[data-layer="nebulae-groups"]').count() == 0
+    button.click()
+    assert "hide=nebulae-emission" in page.url
+    page.wait_for_function("""() => !document.querySelector('#galaxymap3d-canvas').__mapNebulae.blobs().some(b => b.family === 'emission')""")
+    assert legend.locator('[data-layer="nebulae-emission"]').count() == 0
+    assert page.evaluate(NEBULAE_STATE)["drawn"] > 0, "the other families stay"
+    _open_menu(page)
+    button.click()
+    assert "hide=nebulae-emission" not in page.url
+    page.wait_for_function("""() => document.querySelector('#galaxymap3d-canvas').__mapNebulae.blobs().some(b => b.family === 'emission')""")
+
+
+def test_at_most_six_hundred_nebula_regions_are_drawn_out_of_three_thousand_candidates(page, map_site):
+    """MAP.176: given 3,000 groups the layer draws the strongest 600 and no more."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapNebulae; return g && g.drawn() > 0; }",
+                           timeout=20000)
+    drawn = page.evaluate("""() => {
+        const canvas = document.querySelector('#galaxymap3d-canvas');
+        const layer = canvas.__mapNebulae;
+        const here = canvas.galaxyCamera().target;
+        const span = canvas.galaxyCamera().dist;
+        let seed = 7;
+        const random = () => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; };
+        const list = [];
+        for (let i = 0; i < 3000; i++) {
+            list.push({key: 'x' + i, block: layer.blobs()[0].block, ring: i % 2 === 0, color: [0.9, 0.4, 0.5],
+                       x: here[0] + (random() - 0.5) * span, y: here[1] + (random() - 0.5) * span, z: here[2] + (random() - 0.5) * span,
+                       radiusPc: span * (0.03 + random() * 0.05), count: 2 + Math.floor(random() * 90), family: 'emission'});
+        }
+        layer.setBlobs(list, [0, 0, 0]);
+        return list.length;
+    }""")
+    assert drawn == 3000
+    page.wait_for_timeout(500)
+    seen = page.evaluate("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapNebulae; return [g.count(), g.drawn()]; }")
+    assert seen[0] == 3000 and 0 < seen[1] <= 600, seen
+
+
 REGION_SPOTS = "() => document.querySelector('#galaxymap3d-canvas').galaxyRegionSpots()"
 REGION_KEYS = ["9.0.0.0", "9.1.0.0"]
 """The fixture's two charted regions (the 9-blocks holding its sectors), by cell."""

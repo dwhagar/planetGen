@@ -134,6 +134,64 @@ block (all unfilled space: the generated sectors are in the core) is inside it."
 NEBULAE = (NEBULA_CLOUD, NEBULA_OVER_THE_FIELD)
 
 
+def _nebula_group_field():
+    """Sixty emission, reflection and diffuse nebulae spread over about 2 kpc round the star field: what the nodes list as
+    their `nebula_regions` (MAP.176). They are not in `NEBULAE`, so no other test finds a new cloud."""
+    import random
+
+    from planetgen.galaxy.spherical import sector_address_at
+
+    rng = random.Random(176)
+    found = []
+    for i in range(60):
+        family, letter = (("emission", "H"), ("reflection", "R"), ("diffuse", "C"))[i % 3]
+        x = STAR_FIELD_CENTER_PC[0] + rng.uniform(-1000.0, 1000.0)
+        y = STAR_FIELD_CENTER_PC[1] + rng.uniform(-1000.0, 1000.0)
+        z = STAR_FIELD_CENTER_PC[2] + rng.uniform(-40.0, 40.0)
+        found.append({"family": family, "class": letter, "radius_pc": rng.uniform(8.0, 30.0), "x": x, "y": y, "z": z,
+                      "address": sector_address_at((x, y, z), EDGE_PC)})
+    return found
+
+
+NEBULA_GROUP_FIELD = _nebula_group_field()
+"""list: The fixture nebulae that only the nodes' `nebula_regions` list."""
+
+
+def nebula_regions_of(block, field=None, limit=600):
+    """What a real node of `block` lists as `nebula_regions` for `field` (default `NEBULA_GROUP_FIELD`): one group for each
+    child block that holds a nebula centre, largest volume first (`db.nodes.node_nebula_regions`); none for a block whose
+    children are not a nebula level (above 729 or below 9)."""
+    from planetgen.galaxy.drill import DRILL_STEP, drill_chain_of
+    from planetgen.galaxy.nebula_blocks import LEVELS
+
+    if block.m // DRILL_STEP not in LEVELS:
+        return []
+    groups = {}
+    for nebula in NEBULA_GROUP_FIELD if field is None else field:
+        chain = drill_chain_of(*nebula["address"])
+        here = next(i for i, c in enumerate(chain) if c.m == block.m)
+        if tuple(chain[here])[1:] != tuple(block)[1:]:
+            continue
+        groups.setdefault(chain[here + 1], []).append(nebula)
+    listed = []
+    for child, members in groups.items():
+        volumes = [4.0 / 3.0 * math.pi * n["radius_pc"] ** 3 for n in members]
+        total = sum(volumes)
+        centre = [sum(v * n[axis] for v, n in zip(volumes, members)) / total for axis in "xyz"]
+        shares = {}
+        for v, n in zip(volumes, members):
+            shares[n["family"]] = shares.get(n["family"], 0.0) + v / total
+        letters = {}
+        for v, n in zip(volumes, members):
+            letters[n["class"]] = letters.get(n["class"], 0.0) + v
+        listed.append({
+            "key": format_drill_key(child), "count": len(members), "volume_pc3": total, "centre": centre,
+            "radius_pc": max(math.dist(centre, [n[axis] for axis in "xyz"]) + n["radius_pc"] for n in members),
+            "shares": shares, "class": max(letters, key=letters.get)})
+    listed.sort(key=lambda region: (-region["volume_pc3"], region["key"]))
+    return listed[:limit]
+
+
 def nebula_shape_payload(nebula_id, lod):
     """What `GET /api/nebulae/<id>/shape` answers for the fixture nebula."""
     import random
@@ -742,6 +800,9 @@ class FixtureApi:
             nodes[key] = {"aggregate": {"generated": 0, "stats": None, "lights": lights}, "placed": [],
                           "clouds": clouds, "stars": stars, "generated": None, "points": points,
                           "interests": interests_of(worlds, giants, barren, classed, living)}
+            grouped = nebula_regions_of(block)
+            if grouped:
+                nodes[key]["nebula_regions"] = grouped    # MAP.176
             # API.35: a 9-block holding a generated sector is a charted region, named with its family.
             regions = charted_regions()
             if block.m == 9 and tuple(block)[1:] in regions:

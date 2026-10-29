@@ -90,6 +90,10 @@ const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuf
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
 const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
+const {
+  regionBlobs: nebulaRegionBlobs, regionLook: nebulaRegionLook, cutToBudget: cutNebulaRegions, FAMILIES: NEBULA_FAMILIES,
+  FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour,
+} = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode } = await import(`./tilepack.js${VERSION_QUERY}`);
 const {
@@ -877,6 +881,7 @@ function initGalaxyMap3d(canvasEl, data) {
     starMaterial.uniforms.outsideDim.value = hiddenCell ? SECTOR_OUTSIDE_SHARE : 1;
     if (glow) glow.setVisible(glowLayerOn && !hiddenCell);
     if (regionLayer) regionLayer.setVisible(regionsOn && !hiddenCell);
+    if (nebulaLayer) nebulaLayer.setVisible(!hiddenCell);
     if (sectorFrame) sectorFrame.set(hiddenCell);
   }
 
@@ -1882,6 +1887,29 @@ function initGalaxyMap3d(canvasEl, data) {
   // MAP.316: the charted regions, soft spheres at their extents coloured by share charted, drawn by a layer of their own
   // (under the glow's) that fades each as its stars resolve; the list in the Menu and the names come from the same blobs.
   var regionLayer = data.pinned || !data.regionsPath ? null : createGlowLayer(scene, camera, canvasEl, { light: isLightBackground(), look: regionLook, renderOrder: 3 });
+  // MAP.176: the groups of nebulae each drawn node lists (`nebula_regions`), soft sprites in the dominant family's colour with a thin
+  // ring, a layer of their own under the charted regions' that holds itself to REGION_BUDGET and fades each as its node hands it down.
+  var nebulaLayer = data.pinned ? null : createGlowLayer(scene, camera, canvasEl, {
+    light: isLightBackground(), look: nebulaRegionLook, cut: cutNebulaRegions, renderOrder: 3,
+  });
+  var nebulaEntries = [];
+  var nebulaVersion = 0;
+  var nebulaHeld = false;
+  var nebulaFamilyOn = {};
+  NEBULA_FAMILIES.forEach(function (family) { nebulaFamilyOn[family] = true; });
+  function setNebulaRegions() {
+    if (!nebulaLayer) return;
+    nebulaLayer.setBlobs(nebulaRegionBlobs(nebulaEntries, NEBULA_LOOKS, isLightBackground(), function (family) {
+      return nebulaFamilyOn[family] !== false;
+    }), [0, 0, 0]);
+    nebulaVersion += 1;
+    // The legend's line about rings shows only while some group is drawn.
+    var held = nebulaLayer.count() > 0;
+    if (held !== nebulaHeld) {
+      nebulaHeld = held;
+      if (stageView && stageView.layers) stageView.layers.refresh();
+    }
+  }
   var regionBlobList = [];
   var regionsVersion = 0;
   var regionsOn = true;
@@ -2542,11 +2570,14 @@ function initGalaxyMap3d(canvasEl, data) {
     noteLuminosityRange(drawn);
     starSignature = nodesDrawn;
     syncStars(drawn);
+    var drawnNodes = drawn.map(function (key) {
+      return { key: key, block: parseNodeKey(key), node: getNode(key) };
+    });
     if (glow) {
-      glow.setBlobs(blobsOf(drawn.map(function (key) {
-        return { key: key, block: parseNodeKey(key), node: getNode(key) };
-      }), NODE_EDGE_PC), [target.x, target.y, target.z]);
+      glow.setBlobs(blobsOf(drawnNodes, NODE_EDGE_PC), [target.x, target.y, target.z]);
     }
+    nebulaEntries = drawnNodes;
+    setNebulaRegions();
     var cloudKeys = Array.from(clouds.keys()).sort().join(",");
     if (cloudKeys !== cloudSignature) {
       cloudSignature = cloudKeys;
@@ -3696,6 +3727,47 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     canvasEl.__mapGlow = glow;    // the browser tests read what is drawn
   }
+  // MAP.176: the nebula regions are layers of the Menu, one for each family, all on until the visitor says otherwise, with a
+  // legend line each and one line that says what a ring is.
+  if (nebulaLayer) {
+    var NEBULA_GROUP = "Nebulae";
+    var nebulaLooksNow = NEBULA_LOOKS;
+    var nebulaLightNow = isLightBackground();
+    var nebulaSwatch = function (family) {
+      var colour = nebulaFamilyColour(family, nebulaLooksNow, nebulaLightNow);
+      return "rgb(" + colour.map(function (v) { return Math.round(255 * v); }).join(", ") + ")";
+    };
+    stageView.layers.bulkGroup(NEBULA_GROUP);
+    NEBULA_FAMILIES.forEach(function (family) {
+      stageView.layers.register({
+        id: "nebulae-" + family, label: NEBULA_FAMILY_LABELS[family], modes: ["galaxy"], group: NEBULA_GROUP,
+        data: { nebulae: family }, defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
+        title: "Show or hide the groups of " + NEBULA_FAMILY_LABELS[family].toLowerCase() + " on the map",
+        legend: { text: NEBULA_FAMILY_LABELS[family], swatch: nebulaSwatch(family) },
+      });
+    });
+    stageView.layers.register({
+      id: "nebulae-groups", label: "Nebula groups", modes: ["galaxy"], group: NEBULA_GROUP, defaultOn: true, fadedWithSectors: false,
+      available: function () { return false; },
+      legend: function () {
+        var any = NEBULA_FAMILIES.some(function (family) { return nebulaFamilyOn[family] !== false; });
+        return any && nebulaLayer.count() > 0 ? { text: "Ring: nebulae grouped when close together; zoom in to separate", swatchClass: "map-nebula-group-swatch" } : null;
+      },
+    });
+    stageView.readLayersFromLocation();
+    stageView.layers.refresh();
+    NEBULA_FAMILIES.forEach(function (family) { nebulaFamilyOn[family] = stageView.layers.isOn("nebulae-" + family); });
+    setNebulaRegions();
+    stageView.layers.onChange(function (id, on) {
+      if (id.indexOf("nebulae-") !== 0) return;
+      var family = id.slice("nebulae-".length);
+      if (nebulaFamilyOn[family] === undefined) return;
+      nebulaFamilyOn[family] = on;
+      setNebulaRegions();
+      stageView.layers.refresh();
+    });
+    canvasEl.__mapNebulae = nebulaLayer;    // the browser tests read what is drawn
+  }
   // MAP.328: the stars and bodies of a system opened in the sector turn slowly; this switch (a standing preference, as the System
   // Map's) holds them still. The galactic views turn nothing, so it matters only inside a system.
   stageView.layers.register({
@@ -4539,6 +4611,11 @@ function initGalaxyMap3d(canvasEl, data) {
       glow.update(drawnSettled ? function () {
         return weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled);
       } : null, focalPixels(), starSetVersion);
+    }
+    if (nebulaLayer) {
+      nebulaLayer.update(drawnSettled ? function () {
+        return weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled);
+      } : null, focalPixels(), nebulaVersion);
     }
     updateMagnitudeLimit(now);
     updateClouds();
