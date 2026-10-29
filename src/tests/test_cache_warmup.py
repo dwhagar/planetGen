@@ -409,9 +409,40 @@ def test_a_small_galaxy_runs_through_every_phase_and_a_second_run_changes_nothin
     warm_cli.run_warm(_args())
     again = _phase_lines(caplog)
     assert len(again) == 5
-    # The sector page of a sector with a grid address reads its Profile fresh each run (one answer built, objects phase).
-    assert all(": unchanged, nothing built" in line for number, line in enumerate(again) if number != 3), again
-    assert again[3].startswith("Phase 4 of 5, objects: 1 built, "), again
+    # The sector page of a sector with a grid address asks for its Profile, which this galaxy (no plan) refuses with a 404 every
+    # time: no answer is built, so the objects phase is unchanged like the others (MAP.289).
+    assert all(": unchanged, nothing built" in line for line in again), again
+
+
+def _plan_galaxy(config):
+    """The galaxy's plan (its stored shape), which a sector's Profile is read from (`GET /api/galaxy/profile`)."""
+    import math
+    from planetgen import tuning
+    from planetgen.galaxy.density import build_galaxy_shape
+    shape = build_galaxy_shape(disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
+                               bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
+    store.save_galaxy_shape(shape, edge_pc=float(tuning.DEFAULT_SECTOR_EDGE_PC), outer_shell_index=1500,
+                            expected_system_count_at_density_1=600.0, config=config, galaxy_seed=bytes(range(16)))
+
+
+def test_a_planned_galaxy_with_addressed_sectors_warms_their_profiles_once_and_a_second_run_builds_nothing(
+        galaxy, node_levels, monkeypatch, caplog):
+    """MAP.289: the sector page reads its Profile, an answer the warm-up caches like any other, so a second run over the
+    same galaxy finds the objects phase unchanged (the profile counted as an answer built every run before)."""
+    import logging
+    caplog.set_level(logging.INFO)
+    _place_addressed(galaxy.config, "Warm", (5.0, 1.0, 2.0))
+    _place_addressed(galaxy.config, "Warmer", (9.0, -3.0, 4.0))
+    _plan_galaxy(galaxy.config)
+    _all_settings(monkeypatch, node_levels)
+    monkeypatch.setattr(warm_cli, "_site_database", lambda: galaxy.config.database)
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    warm_cli.run_warm(_args("objects"))
+    first = _phase_lines(caplog)
+    assert first and "unchanged" not in first[0], first
+    caplog.clear()
+    warm_cli.run_warm(_args("objects"))
+    assert any(": unchanged, nothing built" in line for line in _phase_lines(caplog)), _phase_lines(caplog)
 
 
 def test_a_change_in_one_sector_rebuilds_only_the_nodes_holding_it_in_the_phases_that_hold_them(
