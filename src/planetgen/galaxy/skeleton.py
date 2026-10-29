@@ -9,8 +9,7 @@ worth precomputing about the whole galaxy: which cells of the spherical
 sector grid (`galaxy/spherical.py`) can hold any content, and how far out
 each shell reaches. A sector's own position, density and outline are
 pure functions of its `(shell, band, wedge)` address, so none of that is
-stored -- `generation.run_galaxy.ensure_sector_generated` recomputes it on
-demand.
+stored -- a run recomputes it on demand.
 
 **The galaxy as nested shells.** Shell `k` is the sphere of cells `4 pc`
 deep around radius `k * 4 pc`. The outline walks the shells outward from the

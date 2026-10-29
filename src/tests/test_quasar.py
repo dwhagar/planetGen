@@ -22,6 +22,7 @@ from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.physics.units import pc_to_ly
 from tests.test_galaxy_gen import EDGE_PC, _seed_skeleton
+from tests.sector_support import make_sector
 
 
 def _core_sector(mysql_config, sector=None):
@@ -134,7 +135,7 @@ def test_only_the_core_sector_rolls_for_a_quasar(mysql_config, monkeypatch):
     for shell in (0, 1, 2):
         for band in range(-1 if shell else 0, 2 if shell else 1):
             for wedge in range(wedge_count(shell, band)):
-                run_galaxy.ensure_sector_generated(shell, band, wedge, config=mysql_config)
+                make_sector(shell, band, wedge, config=mysql_config)
 
     conn = store.get_connection(mysql_config)
     try:

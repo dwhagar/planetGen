@@ -186,7 +186,7 @@ sectors.
 
 **Validation before generation.** Every `planetgen galaxy` mode (an address, a
 span of shells, bands and wedges, a neighborhood, a random start, a course)
-and visit-time generation (`generate.ensure_sector_generated`) ask
+and `regenerate_sector_cell` ask
 `skeleton.GalaxyBounds.contains(shell, band)` first, and that asks only
 whether the cell is inside the grid's reach (GEN.235): the one refusal, with
 the reason (`describe_beyond_reach`). A cell outside the outline but inside

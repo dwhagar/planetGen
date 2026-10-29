@@ -581,13 +581,12 @@ def validate_shared_generation_args(args, parser):
         # sector's own --density from the galaxy skeleton's real
         # position-based relative_density instead (see their own
         # docstrings and `_resolve_batch_density`), the same mechanism
-        # `ensure_sector_generated` already uses for a single lazily-
-        # generated sector, applied uniformly across a whole batch run.
+        # a single-address run uses, applied uniformly across a whole batch run.
         # `getattr` (not `args.command` directly): `_default_generation_args`
         # calls this same validator against a bare, subcommand-less
         # namespace with no `command` attribute at all -- falling through
         # to the flat default there is harmless, since
-        # `ensure_sector_generated` immediately overwrites both fields
+        # `regenerate_sector_cell` immediately overwrites both fields
         # right after with its own already-computed density anyway.
         if getattr(args, 'command', None) not in ('galaxy', 'sectors'):
             args.num_systems = 10
@@ -875,7 +874,7 @@ def validate_sectors_args(args, parser):
         parser.error("--yes only applies to --shell (batch mode), not --shell --band --wedge (single-address mode).")
     if args.wedge is not None and (args.density is not None or args.num_systems is not None):
         parser.error("--density/--num-systems can't be combined with --shell --band --wedge (single-address "
-                     "mode) -- ensure_sector_generated always uses this address's own real predicted "
+                     "mode) -- it always uses this address's own real predicted "
                      "density, the same as when the galaxy map's own live view found it.")
 
     if args.region and args.center_sector is None and args.wedge is None:

@@ -31,6 +31,7 @@ from planetgen.physics.units import ly_to_pc
 from planetgen import tuning
 from tests import first_fill
 from tests.toy_shape import toy_shape
+from tests.sector_support import make_sector
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 THRESHOLD = 2500.0
@@ -419,13 +420,13 @@ def test_the_backfill_has_its_own_bar_whose_eta_counts_down(mysql_config, monkey
 def test_a_single_sector_run_leaves_the_backfill_to_the_end_of_the_run(mysql_config, monkeypatch):
     """PERF.28: `galaxy --wedge` generates its sector without the inline
     backfill (which stalled the sector bar at 0 of 1); the run's `backfill` stage
-    does it afterwards, with its own bar. A map visit still backfills."""
+    does it afterwards, with its own bar."""
     _seed_galaxy(mysql_config)
     calls = []
     monkeypatch.setattr(run_galaxy, "backfill_bright_stars", lambda *args, **kwargs: calls.append(args))
-    assert run_galaxy.ensure_sector_generated(4, 0, 5, config=mysql_config, backfill=False)["created"]
+    assert make_sector(4, 0, 5, config=mysql_config, backfill=False)["created"]
     assert calls == []
-    assert run_galaxy.ensure_sector_generated(4, 0, 6, config=mysql_config)["created"]
+    assert make_sector(4, 0, 6, config=mysql_config)["created"]
     assert len(calls) == 1
 
 

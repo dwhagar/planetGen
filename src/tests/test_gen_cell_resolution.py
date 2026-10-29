@@ -22,6 +22,7 @@ from planetgen.generation.star_population import placed_star_fraction
 from planetgen.physics import constants
 from planetgen.physics.units import ly_to_pc
 from tests.toy_shape import toy_shape
+from tests.sector_support import make_sector
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 SEED = bytes(range(16))
@@ -161,7 +162,7 @@ def test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further(mysql
     address, expected = _crowded_cell()
     cap = 500.0
     _seed_galaxy(mysql_config, ceiling=100.0, cap=cap)
-    result = run_galaxy.ensure_sector_generated(*address, config=mysql_config, backfill=False)
+    result = make_sector(*address, config=mysql_config, backfill=False)
     assert result["created"]
     conn = store.get_connection(mysql_config)
     try:
@@ -193,7 +194,7 @@ def test_a_capped_cell_run_without_the_scatter_makes_the_systems_the_resolution_
     `cell_resolution` says it resolves (a Poisson draw about it), not none."""
     address, _expected = _crowded_cell()
     _seed_galaxy(mysql_config, ceiling=60.0, cap=cap)
-    result = run_galaxy.ensure_sector_generated(*address, config=mysql_config, backfill=False)
+    result = make_sector(*address, config=mysql_config, backfill=False)
     conn = store.get_connection(mysql_config)
     try:
         skeleton = store.get_galaxy_shape(conn)
