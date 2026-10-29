@@ -119,7 +119,7 @@ Per mole of carbon fixed, and the effect on a planet. Gas names use the ten stor
 | 8 | H2, carbonate, chemical gradients | CH4, N2 | Ammonia is destroyed faster than life can use it; the net air effect is small |
 | 9 | as Class 5 | SO2, silica | Silica deposits (surface colour, a solid sink); otherwise as Class 5 |
 
-For each class the ledger row has: gas, amount per unit biomass, a stage multiplier (zero before producers, ramping through the producers stage, steady later) and a sink limit. The sinks and the timing for Class 1 are Core 1's GEN.855 numbers (rows LT1 to LT8 and BO1 to BO9 in the registry); this table does not set them. The byproducts report's table is GEN.857's source for Classes 2 and 3.
+For each class the ledger row has: gas, amount per unit biomass, a stage multiplier (zero before producers, ramping through the producers stage, steady later) and a sink limit. The sinks and the timing for Class 1 are Core 1's GEN.855 numbers (rows LF49 to LF56 and BO1 to BO9 in the registry); this table does not set them. The byproducts report's table is GEN.857's source for Classes 2 and 3.
 
 ### Food, water and breath for the captain
 

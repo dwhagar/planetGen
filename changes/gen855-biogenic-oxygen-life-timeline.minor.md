@@ -6,4 +6,4 @@
 - Oxygenic chemistries no longer need oxygen already in the air; they need a sunlit sea. Migration 0156 no longer reads the removed schedule function; it uses the table directly.
 generation-output: changed
 
-TODO items resolved: GEN.855, GEN.750. Added: stand-in registry rows LT1 to LT8 and BO1 to BO9 (section 6.21 of the gap-filling plan).
+TODO items resolved: GEN.855, GEN.750. Added: stand-in registry rows LF49 to LF56 (section 6.18) and BO1 to BO9 (section 6.21 of the gap-filling plan).
