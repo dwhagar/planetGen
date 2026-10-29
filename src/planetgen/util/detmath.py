@@ -67,14 +67,29 @@ def dist(a, b):
     return _sqrt(total)
 
 
+_ACCUMULATE_FROM = 6
+"""int: The inner length from which `matmul` forms the products at once and adds them with `numpy.add.accumulate`; below it
+the loop over the inner index is cheaper than the larger array."""
+
+_ACCUMULATE_LIMIT = 4_000_000
+"""int: The most products `matmul` forms at once; a larger product goes through the loop."""
+
+
 def matmul(a, b):
     """
     `a @ b` for an array `a` of shape (..., n) and a matrix `b` of shape (n, m), summed over n left to right with
     element-wise operations only (no BLAS, whose blocking and fused multiply-adds differ between libraries).
+
+    A long inner index forms every product at once (each one a single correctly rounded multiplication, as in the loop) and
+    adds them with `numpy.add.accumulate`, which adds in order and never pairwise (`numpy.add.reduce` does), so the bits
+    are those of the loop (`tests/test_detmath.py` compares them on random shapes).
     """
     a = np.asarray(a, dtype=float)
     b = np.asarray(b, dtype=float)
+    inner = b.shape[0]
+    if inner >= _ACCUMULATE_FROM and a.size * b.shape[1] <= _ACCUMULATE_LIMIT:
+        return np.add.accumulate(a[..., :, None] * b, axis=-2)[..., -1, :]
     total = a[..., 0:1] * b[0]
-    for k in range(1, b.shape[0]):
+    for k in range(1, inner):
         total = total + a[..., k:k + 1] * b[k]
     return total

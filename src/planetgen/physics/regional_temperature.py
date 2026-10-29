@@ -25,6 +25,7 @@ The orbits here are circular, so Northern and Southern are equal; the columns st
 the model will gain.
 """
 
+import functools
 import math
 
 import numpy as np
@@ -105,6 +106,12 @@ def _annual_insolation(latitude, tilt):
 
 
 def band_insolation(tilt_deg):
+    """`_band_insolation` as a new dict each time (PERF.201: a tilt seen again is not worked out again)."""
+    return dict(_band_insolation(tilt_deg))
+
+
+@functools.lru_cache(maxsize=256)
+def _band_insolation(tilt_deg):
     """
     `{band: annual-mean insolation over the planet's mean}` for the four bands of `BANDS` (area-weighted over the
     band's latitudes, so a sphere averages 1). The south pole's cap and the north pole's are the same by symmetry of

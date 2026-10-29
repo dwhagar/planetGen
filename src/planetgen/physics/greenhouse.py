@@ -65,19 +65,21 @@ def _exponent(gamma, alpha, n):
     return 4.0 * alpha * (gamma - 1.0) / gamma / n
 
 
+_FRACTIONS = np.linspace(0.0, 1.0, STEPS + 1)
+_SIMPSON_WEIGHTS = np.full(STEPS + 1, 2.0)
+_SIMPSON_WEIGHTS[1::2] = 4.0
+_SIMPSON_WEIGHTS[0] = _SIMPSON_WEIGHTS[-1] = 1.0
+
+
 def _boundary_residual(t, tau0, m):
     """The continuity condition of Robinson and Catling at optical depths `t` (an array; zero at `tau_rc`)."""
     t = np.asarray(t, dtype=float)
     # the integrand falls as exp(-D (s - t)), so past t + REACH / D it adds nothing; integrating the whole of a very thick atmosphere
     # with a fixed number of steps would step over the part that counts
     upper = np.minimum(tau0, t + INTEGRAL_REACH / DIFFUSIVITY)
-    fractions = np.linspace(0.0, 1.0, STEPS + 1)
-    s = t[..., None] + (upper - t)[..., None] * fractions
-    weights = np.full(STEPS + 1, 2.0)
-    weights[1::2] = 4.0
-    weights[0] = weights[-1] = 1.0
+    s = t[..., None] + (upper - t)[..., None] * _FRACTIONS
     integrand = (s / tau0) ** m * np.exp(-DIFFUSIVITY * (s - t[..., None]))
-    integral = (integrand * weights).sum(axis=-1) * (upper - t) / STEPS / 3.0
+    integral = (integrand * _SIMPSON_WEIGHTS).sum(axis=-1) * (upper - t) / STEPS / 3.0
     return ((np.exp(-DIFFUSIVITY * (tau0 - t)) + DIFFUSIVITY * integral) / (t / tau0) ** m
             - (2.0 + DIFFUSIVITY * t) / (1.0 + DIFFUSIVITY * t))
 
