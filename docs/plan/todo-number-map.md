@@ -3243,7 +3243,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.441 | Tests red on main from the albedo-greenhouse, moon-tidal-flux and mass-backfill migrations; the white dwarf models dataset is also missing on a fresh test machine (bug) | none | open |
 | TEST.442 | Browser map tests red on main: menu_filters_sit_side_by_side (2 tests), test_system_map_selection_drill_and_measure and test_a_star_in_a_sector_far_from_the_core_is_selectable (bug) | none | done, PR #3639 |
 | TEST.443 | Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not | none | open |
-| TEST.444 | Browser map tests still red on main after TEST.442: the sector_reach double-click tests and the POI icon key test (bug) | none | open |
+| TEST.444 | Browser map tests still red on main after TEST.442: the sector_reach double-click tests and the POI icon key test (bug) | none | done, PR #3643 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
