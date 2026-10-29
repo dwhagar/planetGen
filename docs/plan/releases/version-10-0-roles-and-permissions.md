@@ -37,7 +37,7 @@ A user or moderator submits an edit as a plan; the queue shows each person their
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| USR.15 | Submit an edit request: a user proposes an edit and the plan engine computes what it would change | USR.12, ADM.58, ADM.59 |  |
+| USR.15 | Submit an edit request: a user proposes an edit and the plan engine computes what it would change | USR.12, ADM.59 |  |
 | USR.16 | Request queue: who sees what | USR.15 |  |
 | USR.17 | Approve, reject or send back a request, by role: moderators decide user requests, admins decide moderator requests | USR.16, ADM.60 |  |
 

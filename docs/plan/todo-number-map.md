@@ -446,7 +446,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout | none | done, PR #2498 |
 | ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | none | done, PR #2498 |
 | ADM.57 | Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan | none | open |
-| ADM.58 | Change plan engine: operations, the effect diff and the plan states, as a library | none | open |
+| ADM.58 | Change plan engine: operations, the effect diff and the plan states, as a library | none | done, PR #3677 |
 | ADM.59 | Change plan store: save, load and list plans, and mark them stale | none | open |
 | ADM.60 | Apply, undo and audit a plan: one job, one activity-log entry per operation | none | open |
 | ADM.61 | Edits survive repair and regeneration: replay the journal after a sector is rebuilt from its seed or from parity | none | open |

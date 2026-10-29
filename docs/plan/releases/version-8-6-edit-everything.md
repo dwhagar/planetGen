@@ -33,8 +33,7 @@ The foundations every editor stands on: the change plan and its store, the unit 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.58 | Change plan engine: operations, the effect diff and the plan states, as a library |  | Builds on planetgen/admin/edits.py |
-| ADM.59 | Change plan store: save, load and list plans, and mark them stale | ADM.58 |  |
+| ADM.59 | Change plan store: save, load and list plans, and mark them stale |  |  |
 | ADM.82 | Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons |  | Shared with 8.9 (API.8) |
 | ADM.60 | Apply, undo and audit a plan: one job, one activity-log entry per operation | ADM.59, ADM.82 | Uses the update guard (OPS.41, OPS.53, OPS.54) |
 | ADM.61 | Edits survive repair and regeneration: replay the journal after a sector is rebuilt from its seed or from parity | ADM.60, DB.17 | Boss dropped GEN.59 (daily merge into a JSON file); this keeps the journal in the database |
@@ -65,7 +64,7 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.66 | Plan approval screen: every operation with its before and after, approve, reject one, or cancel | ADM.60 |  |
-| ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | ADM.58, ADM.66, ADM.82, API.28 |  |
+| ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | ADM.66, ADM.82, API.28 |  |
 | ADM.67 | Plan diagram: the system before and after as the 2D diagram, and the sector with moved stars marked | ADM.52, ADM.66 |  |
 | ADM.68 | Plan history: every plan with who asked, approved, applied and undid it, and an undo button | ADM.66, ADM.60 |  |
 
@@ -73,7 +72,7 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.65 | Locks: keep marks that stay on an object or one of its aspects, shown on the pages and honoured by every plan | ADM.62, ADM.58 |  |
+| ADM.65 | Locks: keep marks that stay on an object or one of its aspects, shown on the pages and honoured by every plan | ADM.62 |  |
 | ADM.69 | Keep-or-regenerate matrix: the one screen component every regen screen uses | ADM.64, ADM.65 |  |
 | ADM.70 | Specification form: "regenerate to this specification" built from the aspect catalogue and the system generator options | ADM.62, ADM.69, API.28 | Reuses the system file of the system command |
 
@@ -112,22 +111,22 @@ Each editor produces a plan: move a system, edit an orbit, adjust the world to a
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | ADM.58, ADM.65, ADM.66, ADM.82 | Merges two asks (one system added by the computer; placement chosen by admin). |
-| ADM.71 | Move a star system or phenomenon within its sector or to another sector, as a plan | ADM.32, ADM.58, ADM.65 |  |
-| ADM.36 | Change an object's trajectory vector | GEN.109, ADM.58, ADM.65, ADM.66 |  |
-| ADM.72 | Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan | ADM.36, ADM.52, ADM.58, ADM.65 |  |
+| ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | ADM.65, ADM.66, ADM.82 | Merges two asks (one system added by the computer; placement chosen by admin). |
+| ADM.71 | Move a star system or phenomenon within its sector or to another sector, as a plan | ADM.32, ADM.65 |  |
+| ADM.36 | Change an object's trajectory vector | GEN.109, ADM.65, ADM.66 |  |
+| ADM.72 | Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan | ADM.36, ADM.52, ADM.65 |  |
 
 ### Density plans
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.74 | Adjust the world to a density change: a plan that adds or removes systems so a region matches its new density | ADM.58, ADM.65, MAP.218 |  |
+| ADM.74 | Adjust the world to a density change: a plan that adds or removes systems so a region matches its new density | ADM.65, MAP.218 |  |
 
 ### The rearranger
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.75 | Rearrange a system around a change to a planet, moon or belt: the plan that fewest changes make valid again | ADM.58, ADM.64, ADM.65 | Boss's own example: change an A to an M planet |
+| ADM.75 | Rearrange a system around a change to a planet, moon or belt: the plan that fewest changes make valid again | ADM.64, ADM.65 | Boss's own example: change an A to an M planet |
 | ADM.76 | Rearrange a system around a change to a star: class, mass, luminosity or companions | ADM.75 |  |
 
 ## Phase 4: Regeneration and editing any field

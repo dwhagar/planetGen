@@ -15410,7 +15410,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   that goes through approval; ADM.71 takes the placement functions from
   here and narrows to the move operation and the drag (2026-10-16
   review).
-  Prerequisites: ADM.58, ADM.65, ADM.66, ADM.82.
+  Prerequisites: ADM.65, ADM.66, ADM.82.
 
 - [ ] **ADM.35 Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view**
   Boss (2026-10-07 11:47Z): "Everything can be edited, regeneration asks
@@ -15444,7 +15444,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   collision validation, the recompute, the unbound report) as a plan
   operation; ADM.72 adds the element form and the moons following on the
   same operation.
-  Prerequisites: ADM.58, ADM.65, ADM.66.
+  Prerequisites: ADM.65, ADM.66.
 
 - [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
   GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
@@ -15457,7 +15457,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   radial distance, then saves the system with random positions on the
   orbits; the same plan can be written as a command line recipe. Owner:
   Foundations lane 2, after the fly-through map.
-  Prerequisites: ADM.58, ADM.66, ADM.82, API.28. Related:
+  Prerequisites: ADM.66, ADM.82, API.28. Related:
   ADM.32, ADM.35, ADM.36, API.18.
   Moved to phase 2, Approval and history, between ADM.66 and ADM.67
   (2026-10-16 review): the drag edit saves through a plan
@@ -15490,39 +15490,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: ADM.32, ADM.35, ADM.36, ADM.52, MAP.119, MAP.120,
   POP.13, ADM.68, ADM.71, ADM.72, ADM.74, ADM.77, ADM.78, ADM.79,
   ADM.80, ADM.81, TEST.175, TEST.176, TEST.177, DOC.54.
-
-- [ ] **ADM.58 Change plan engine: operations, the effect diff and the plan states, as a library**
-  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
-  has complete control; the world adjusts to what the admin wants, after
-  the admin approves the generation plan. A plan is an ordered list of
-  operations (move an object, set an aspect, regenerate with a keep set,
-  add, remove) on stored objects. Build `planetgen/admin/plans.py`: the
-  operation types, validation of each against the stored object (Hill
-  spheres, spacing, bounds), the computed effect diff (every row that
-  would change, with before and after, and every object touched
-  indirectly), the state machine (draft, requested, proposed, approved,
-  applied, undone, stale, rejected, withdrawn: `requested` is a plan
-  someone below the approving role submitted, used by 10.0 and built
-  here so no state is added later; an admin's own plan goes from draft
-  to proposed and the same admin confirms it, with no second approver,
-  Boss 2026-10-16, 1:49 PM EDT; every transition records who and in
-  which role) and the stale check (a plan is stale when any
-  object it touches changed after the plan was proposed). An operation
-  serialises in the versioned envelope the remote upload uses
-  (`StarSystem.to_dict()`, API.13), so a plan and an upload describe a
-  system the same way. Pure Python over loaded objects, no database, so
-  it can be tested on its own. Done: the library with unit tests for
-  every operation kind, the diff and the stale check.
-  Staleness (2026-10-16 review): "changed" means changed by an edit (the
-  journal row or an edit-version stamp per object), not by the nightly
-  orbital update; a pending move or orbit plan re-bases its before
-  values after an update has run and the approval screen shows the
-  drift. Add "orbital update movement" to the tests.
-  Waits for 8.6 (Boss, 2026-10-16, 3:00 PM EDT: a global top blocker
-  that is not started before its version); no lane yet.
-  Prerequisites: none. Related: ADM.57, ADM.6, ADM.7, ADM.8.
-  Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
-  Owner: Core 4 (lock-free item while it waits for the generation lock, 1:15 AM EDT 2026-10-29; library only, no generation change; this replaces any earlier owner line on this item). Separate branch; it builds on planetgen/admin/edits.py.
 
 - [ ] **ADM.59 Change plan store: save, load and list plans, and mark them stale**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
@@ -15631,7 +15598,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   registered predicate, the marks, and a test that the plan engine
   refuses a change to a locked aspect (the regeneration, rearrangement
   and density items each test their own).
-  Prerequisites: ADM.62, ADM.58. Related: ADM.57.
+  Prerequisites: ADM.62. Related: ADM.57.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
 - [ ] **ADM.66 Plan approval screen: every operation with its before and after, approve, reject one, or cancel**
@@ -15716,7 +15683,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Scope after the review (2026-10-16 review): the move operation and the
   drag; the placement functions (emptiest point, the three coordinate
   forms, random outside every Hill sphere) come from ADM.32.
-  Prerequisites: ADM.32, ADM.58, ADM.65. Related: ADM.57, ADM.32.
+  Prerequisites: ADM.32, ADM.65. Related: ADM.57, ADM.32.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
 - [ ] **ADM.72 Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan**
@@ -15730,7 +15697,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   is the same operation in another form. Done: the plan operation, the
   page form, and tests for a planet with moons and for a refused
   crossing orbit.
-  Prerequisites: ADM.36, ADM.52, ADM.58, ADM.65. Related:
+  Prerequisites: ADM.36, ADM.52, ADM.65. Related:
   ADM.57,
   ADM.36, ADM.52.
   Scope after the review (2026-10-16 review): the element form and the
@@ -15748,7 +15715,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   sector. Done: the plan generator, the approval of it through the
   screen of ADM.66, and tests that a raised and a lowered density each
   reach the target within a stated tolerance.
-  Prerequisites: ADM.58, ADM.65, MAP.218. Related: ADM.57.
+  Prerequisites: ADM.65, MAP.218. Related: ADM.57.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
 - [ ] **ADM.75 Rearrange a system around a change to a planet, moon or belt: the plan that fewest changes make valid again**
@@ -15764,7 +15731,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   bodies and never removes them. Done: `rearrange(system, change,
   marks)` returning a plan, tests for the A to M case, a refused case
   that explains why, and a determinism test.
-  Prerequisites: ADM.58, ADM.64, ADM.65. Related: ADM.57, ADM.6.
+  Prerequisites: ADM.64, ADM.65. Related: ADM.57, ADM.6.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
 - [ ] **ADM.76 Rearrange a system around a change to a star: class, mass, luminosity or companions**
@@ -19249,7 +19216,7 @@ clears each one.
   submit flow for the object pages, validation that refuses an operation
   the role may not request, the stored plan with its computed diff, and
   tests for each role.
-  Prerequisites: USR.12, ADM.58, ADM.59. Related: USR.25, ADM.57.
+  Prerequisites: USR.12, ADM.59. Related: USR.25, ADM.57.
   Design: [docs/design/interface/roles-and-requests.md](design/interface/roles-and-requests.md)
 
 - [ ] **USR.16 Request queue: who sees what**
