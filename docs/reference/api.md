@@ -211,9 +211,11 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/uncharted-systems/<bright star id>` — one scattered star (UX.114): the fields of a list item,
   `system_id` (the system built around it, `null` while it is uncharted), `hosted_nebula` (the nebula the star lights, the one
   its sector builds: `name`, `nebula_class`, `nebula_type`, `class_name`, `radius_ly`, `age_myr`; `null` for a star that
-  lights none or is built, GEN.530) and, for a star with company that is not built, `members` (`member_no`, `kind`, `state`, `mass_solar`, `parent_node_no`) and `nodes` (`node_no`,
+  lights none or is built, GEN.530) and, for a star with company that is not built, `members` (`member_no`, `kind`, `state`, `mass_solar`, `parent_node_no`, `flags`) and `nodes` (`node_no`,
   `parent_node_no`, `kind` of `close`, `wide`, `compact` or `group`, `mass_solar`, `separation_au`,
-  `period_years`, `eccentricity`). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
+  `period_years`, `eccentricity`, `interaction`, `flags`) and `compact_pairs` (UX.186: one per accreting neutron star or black hole
+  with a companion or ablating pulsar with its companion: `node_no`, `kind` of `high-mass-xray-binary`, `be-xray-binary`,
+  `low-mass-xray-binary`, `black-widow` or `redback`, `compact` and `companion` (member numbers) and `microquasar`). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `binary_configuration` (`"close"`/`"wide"`/`null`),

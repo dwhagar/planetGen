@@ -72,7 +72,7 @@ def test_the_member_reader_gives_every_member_and_orbit_with_the_separation_in_a
 
 def test_a_single_object_has_no_members_and_a_zero_count(mysql_config):
     row_id, _tree_ = _star(mysql_config, stars=1)
-    assert _read(mysql_config, query.scatter_member_tree, "bright_stars", row_id) == {"members": [], "nodes": []}
+    assert _read(mysql_config, query.scatter_member_tree, "bright_stars", row_id) == {"members": [], "nodes": [], "compact_pairs": []}
     detail = _read(mysql_config, query.uncharted_system_detail, row_id)
     assert detail["member_count"] == 0 and detail["system_mass_solar"] is None and "members" not in detail
 
