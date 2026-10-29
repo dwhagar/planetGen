@@ -3610,6 +3610,46 @@ def test_the_bodies_of_an_open_system_carry_their_own_symbols_by_the_same_layers
     assert not [e for e in found if e["kind"] == "marker-inhabited" and e["name"].endswith(" I")]
 
 
+def test_the_bodies_of_an_open_system_carry_the_life_and_class_symbols_when_those_layers_are_on(page, map_site):
+    """MAP.343: with a system open in place its bodies carry the symbols of the reasons to look (life, sentient life, a civilization)
+    and of the planet classes when the Menu has them on (they are off until chosen), the strongest reason that is on names a body's
+    symbol, and a layer that is off draws none."""
+    _open_system_in_place(page, map_site)
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__bodyMarkersOn()") is True
+    _poi_layers(page)    # no world reason on
+    found = _markers_until(page, lambda entries: not [e for e in entries if e["kind"] != "marker-black-hole"])
+    assert not [e for e in found if e["kind"] != "marker-black-hole"], "the life and class layers are off until chosen"
+    kinds = page.locator("#galaxymap3d-kinds")
+
+    def named(layer):
+        entries = _markers_until(page, lambda found: any(e["kind"] == layer for e in found))
+        return sorted(e["name"] for e in entries if e["kind"] == layer)
+
+    kinds.locator('button[data-layer="marker-life"]').click()
+    life = named("marker-life")
+    assert len(life) == 2 and life[0].endswith(" I") and life[1].endswith(" I a"), life    # the first planet and its first moon
+    kinds.locator('button[data-layer="marker-sentient"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-sentient" for e in entries))
+    sentient = [e["name"] for e in found if e["kind"] == "marker-sentient"]
+    life_left = [e["name"] for e in found if e["kind"] == "marker-life"]
+    assert len(sentient) == 1 and sentient[0].endswith(" I") and sentient[0] not in life_left, (sentient, life_left)
+    kinds.locator('button[data-layer="marker-civilization"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-civilization" for e in entries))
+    civ = [e["name"] for e in found if e["kind"] == "marker-civilization"]
+    assert civ == sentient and not [e for e in found if e["kind"] == "marker-sentient"], (civ, found)
+    kinds.locator('button[data-layer="marker-class-F"]').click()
+    kinds.locator('button[data-layer="marker-class-J"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-class-J" for e in entries))
+    assert [e["name"] for e in found if e["kind"] == "marker-class-J"] and [e["name"] for e in found if e["kind"] == "marker-class-J"][0].endswith(" II")
+    assert not [e for e in found if e["kind"] == "marker-class-F"], "the first planet is a civilization, which is the stronger reason"
+    kinds.locator('button[data-layer="marker-life"]').click()
+    kinds.locator('button[data-layer="marker-sentient"]').click()
+    kinds.locator('button[data-layer="marker-civilization"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-class-F" for e in entries))
+    assert [e["name"] for e in found if e["kind"] == "marker-class-F"][0].endswith(" I")
+    assert not [e for e in found if e["kind"] in ("marker-life", "marker-sentient", "marker-civilization")]
+
+
 def _nearest_that_way(here, others, direction, cone_deg=60.0):
     """The rule of static/systemstep.js worked out independently: the nearest of `others` (name, x, y, z) from `here` in
     the cone about `direction` in the galaxy's frame at `here`, or None."""

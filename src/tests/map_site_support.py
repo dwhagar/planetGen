@@ -508,12 +508,18 @@ def system_scene_payload(system_id):
                       radius_km=6371.0 if index == 1 else 69911.0, mass_kg=6e24, color=colors[n],
                       # MAP.321: the first planet is an inhabited Green world, the second a gas giant
                       habitable=index == 1, inhabited=index == 1, body_type="t" if index == 1 else "g",
-                      phi4=0.82 if index == 1 else None, tier="Green" if index == 1 else None)
+                      phi4=0.82 if index == 1 else None, tier="Green" if index == 1 else None,
+                      # MAP.343: the first planet has life, a sentient species and a civilization, the gas giant none
+                      life_microbial=3 if index == 1 else None, life_flora=2 if index == 1 else None, life_fauna=None,
+                      life_sentient=2 if index == 1 else None, life_stage="technological_civilization" if index == 1 else None)
         n += 1
         for moon_index, moon in enumerate(planet["moons"], start=1):
             moon.update(id=moon_index, kind="moon", name=f"{planet['name']} {'abc'[moon_index - 1]}", planet_class="D",
                         radius_km=1737.0, mass_kg=7e22, color=colors[n], habitable=False, inhabited=False,
-                        body_type="t", phi4=0.1, tier="Red")
+                        body_type="t", phi4=0.1, tier="Red",
+                        # MAP.343: the first moon of the first planet holds microbial life only
+                        life_microbial=1 if (index == 1 and moon_index == 1) else 0, life_flora=None, life_fauna=None, life_sentient=None,
+                        life_stage=None)
             n += 1
     for index, comet in enumerate(scene["comets"], start=1):
         comet.update(id=index, kind="comet", name=f"{name} Comet {index}", radius_km=5.0, color="#b9d6e8", is_active=True)
