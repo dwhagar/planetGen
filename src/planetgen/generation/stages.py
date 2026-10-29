@@ -304,13 +304,31 @@ def write_queued_row(config, key, row, seconds, metrics):
     write_row(config, row["command"], record)
 
 
+def _say_end(record, seconds, reason=None):
+    """
+    The stage's finish line (`seconds` after its start) or, with a `reason`, its failure line, on the command line and in a record file,
+    as the start line is (UX.122). A step of one stage under a web job's banner says neither: the job runner writes both for it.
+    """
+    if _under_banner():
+        return
+    offset, job_total = _numbering()
+    if reason is None:
+        mark = logrecord.stage_record(logrecord.STAGE_FINISH, "stages", offset + record["n"], job_total, seconds=seconds)
+        log.normal(mark.message, extra={"fields": mark.fields})
+    else:
+        mark = logrecord.stage_record(logrecord.STAGE_FAILED, "stages", offset + record["n"], job_total, seconds=seconds,
+                                      reason=reason)
+        log.error(mark.message, extra={"fields": mark.fields})
+
+
 def _close_open():
-    """Records the stage open now, with the time it took."""
+    """Records the stage open now, with the time it took, and says it finished."""
     record = _state["open"]
     _state["open"] = None
     if record is not None:
         _state["ran"] += 1
         record["seconds"] = time.perf_counter() - record["t0"]
+        _say_end(record, record["seconds"])
         _state["job_seconds"] += record["seconds"]
         _state["job_shells"] += _with_rate(record)
         if record["key"] in SCATTER_KEYS:
@@ -527,6 +545,19 @@ def finish(reason=None):
         _announce(index, _state["stages"][index].skip or reason or "not needed")
     _close_open()
     _write_job()
+    _state.update(stages=[], next=0, args=None, command=None, open=None, job_shells=0, job_seconds=0.0,
+                  overall=None, ran=0, scatters=[])
+
+
+def fail(reason):
+    """
+    Ends a run that stopped on an error or a cancel: the stage open now says it failed after the time it took, with `reason` (the same
+    record as a finished stage's, `logrecord.STAGE_FAILED`), no time is stored for it, and the list is dropped. Does nothing when no run
+    is open.
+    """
+    record = _state["open"]
+    if record is not None:
+        _say_end(record, time.perf_counter() - record["t0"], reason=str(reason) or "failed")
     _state.update(stages=[], next=0, args=None, command=None, open=None, job_shells=0, job_seconds=0.0,
                   overall=None, ran=0, scatters=[])
 

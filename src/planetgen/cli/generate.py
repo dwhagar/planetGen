@@ -69,6 +69,7 @@ from planetgen.galaxy.skeleton import DEFAULT_REACH_SHELL
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.generation import star_population
 from planetgen.generation.star_population import bright_star_fraction
+from planetgen.generation import stages
 from planetgen.generation import run_common
 from planetgen.generation import run_galaxy
 from planetgen.generation import run_phenomenon
@@ -2027,6 +2028,7 @@ def main():
     if logged:
         activity_log.event("GEN", "generate.start", user=_run_user(), command=args.command, db=database)
     status = "failed"
+    failure = None      # why the run's open stage failed (UX.122), when it did
     root = _open_run_node(args, database) if logged else None
     previous_term = _exit_on_sigterm() if logged else None
     history = _start_history(args, seed) if logged and not getattr(args, "estimate_only", False) else None
@@ -2035,25 +2037,32 @@ def main():
         _COMMAND_HANDLERS[args.command](args)
         status = "ok"
     except pymysql.err.MySQLError as exc:
-        _fatal(f"database error: {exc}", traceback=True)
+        failure = f"database error: {exc}"
+        _fatal(failure, traceback=True)
     except OSError as exc:
         # e.g. an unwritable --output path.
         where = f" ({exc.filename})" if getattr(exc, "filename", None) else ""
-        _fatal(f"{exc.strerror or exc}{where}", traceback=True)
+        failure = f"{exc.strerror or exc}{where}"
+        _fatal(failure, traceback=True)
     except KeyboardInterrupt:
-        status = "interrupted"
+        status, failure = "interrupted", "interrupted"
         raise
     except SystemExit as exc:
         # SIGTERM inside a work queue (Cancel) exits with 128 + signal.
         if isinstance(exc.code, int) and exc.code >= 128:
-            status = "interrupted"
+            status, failure = "interrupted", "cancelled"
         elif exc.code in (None, 0):
             status = "ok"
+        else:
+            failure = failure or f"exited with status {exc.code}"
         raise
-    except Exception:  # noqa: BLE001 -- Python prints the traceback; at a terminal, hold it on screen first
+    except Exception as exc:  # noqa: BLE001 -- Python prints the traceback; at a terminal, hold it on screen first
+        failure = f"{type(exc).__name__}: {exc}"
         _wait_for_enter()
         raise
     finally:
+        if status != "ok":
+            stages.fail(failure or "failed")
         if previous_term is not None:
             signal.signal(signal.SIGTERM, previous_term)
         if root is not None:

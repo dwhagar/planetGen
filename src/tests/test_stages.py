@@ -7,6 +7,7 @@ job instead of its processes.
 """
 
 import json
+import sys
 import types
 
 import time
@@ -438,7 +439,8 @@ def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
     stages.begin(stages.scatter_stages(_scatter("--phenomena")))
     stages.enter("phenomena")
     stages.finish()
-    assert lines == ["Stage 1 of 1: Scatter the phenomena"]       # no banner here, so this line is the one mention
+    assert lines == ["Stage 1 of 1: Scatter the phenomena",       # no banner here, so these two are the mentions
+                     "Stage 1 of 1 finished after 0 s"]               # UX.122: and the stage says it finished
 
 
 def test_a_step_of_one_stage_under_the_runners_banner_logs_nothing_for_it_but_a_skipped_stage_says_why(monkeypatch):
@@ -473,10 +475,13 @@ def test_every_stage_of_every_command_is_logged_at_most_once(monkeypatch):
             for stage in listed:
                 stages.enter(stage.key)
             stages.finish()
+            ends = [line for line in lines if " finished after " in line]
+            lines = [line for line in lines if line not in ends]
             numbers = [line.split(":")[0] for line in lines]
             assert len(numbers) == len(set(numbers)) and all(line.startswith("Stage ") for line in lines)
             # a one-stage command under the runner's numbering is named by the runner's banner alone
             assert len(lines) == (0 if len(listed) == 1 and env else len(listed))
+            assert len(ends) == len(lines)          # UX.122: and every stage it names also says it finished, once
 
 
 def test_a_total_too_small_for_the_runs_stages_is_ignored(monkeypatch):
@@ -575,6 +580,58 @@ def test_a_stage_announcement_is_one_divider_on_the_console_and_one_record_in_th
         log.set_record_file(None)
         log.configure(log.NORMAL)
     records = [logrecord.parse_file_line(line) for line in path.read_text().splitlines()]
-    assert [(r.event, r.message) for r in records] == [("stage.start", "Stage 1 of 1: Scatter the phenomena")]
+    assert [(r.event, r.message) for r in records] == [("stage.start", "Stage 1 of 1: Scatter the phenomena"),
+                                                       ("stage.finish", "Stage 1 of 1 finished after 0 s")]
     assert records[0].fields == {"event": "stage.start", "stage": 1, "stages": 1}
-    assert capsys.readouterr().out.splitlines() == ["=== Stage 1 of 1: Scatter the phenomena ==="]
+    assert records[1].fields == {"event": "stage.finish", "stage": 1, "stages": 1, "seconds": 0.0}
+    assert capsys.readouterr().out.splitlines() == ["=== Stage 1 of 1: Scatter the phenomena ===",
+                                                    "=== Stage 1 of 1 finished after 0 s ==="]
+
+
+def test_a_stage_that_fails_says_so_in_the_console_and_the_record_file(tmp_path, monkeypatch, capsys):
+    """UX.122: an error ends the open stage with its failure line, as the job runner's banner does for a web job's step."""
+    from planetgen.util import logrecord
+    monkeypatch.delenv(stages.STAGE_OFFSET_ENV, raising=False)
+    monkeypatch.delenv(stages.STAGE_TOTAL_ENV, raising=False)
+    path = tmp_path / "records.log"
+    log.set_record_file(str(path))
+    log.configure(log.NORMAL)
+    try:
+        stages.begin(stages.scatter_stages(_scatter("--phenomena")))
+        stages.enter("phenomena")
+        stages.fail("MySQL went away")
+        stages.fail("again")                                  # nothing is open any more: nothing more is said
+        for handler in log._logger.handlers:
+            handler.flush()
+    finally:
+        log.set_record_file(None)
+        log.configure(log.NORMAL)
+    records = [logrecord.parse_file_line(line) for line in path.read_text().splitlines()]
+    assert [(r.event, r.severity, r.message) for r in records] == [
+        ("stage.start", "info", "Stage 1 of 1: Scatter the phenomena"),
+        ("stage.failed", "error", "Stage 1 of 1 failed after 0 s: MySQL went away")]
+    assert capsys.readouterr().out.splitlines() == ["=== Stage 1 of 1: Scatter the phenomena ===",
+                                                    "=== Stage 1 of 1 failed after 0 s: MySQL went away ==="]
+    assert stages._state["stages"] == [] and stages._state["open"] is None
+
+
+def test_a_command_that_raises_ends_its_open_stage_as_failed(monkeypatch, capsys):
+    """UX.122: `planetgen` closes the run's open stage with the error's name and message."""
+    from planetgen.cli import generate
+
+    def handler(args):
+        stages.begin(stages.scatter_stages(_scatter("--phenomena")))
+        stages.enter("phenomena")
+        raise RuntimeError("the sky fell")
+
+    monkeypatch.setitem(generate._COMMAND_HANDLERS, "check-math", handler)
+    monkeypatch.setattr(sys, "argv", ["planetgen", "check-math"])
+    monkeypatch.setattr(generate, "_wait_for_enter", lambda: None)
+    monkeypatch.delenv(stages.STAGE_OFFSET_ENV, raising=False)
+    monkeypatch.delenv(stages.STAGE_TOTAL_ENV, raising=False)
+    try:
+        with pytest.raises(RuntimeError):
+            generate.main()
+    finally:
+        log.configure(log.NORMAL)
+    assert "=== Stage 1 of 1 failed after 0 s: RuntimeError: the sky fell ===" in capsys.readouterr().out

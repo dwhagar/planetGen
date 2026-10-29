@@ -170,19 +170,19 @@ def reset_database(config, dry_run=False, assume_yes=False):
         counts = _table_estimates(conn, config.database)
         tables = list(counts)
         if not tables:
-            print(f"'{config.database}' has no content tables to wipe (already empty schema).")
+            log.normal(f"'{config.database}' has no content tables to wipe (already empty schema).")
             return False
 
         total_rows = sum(counts.values())
 
         if dry_run:
-            print(f"Would truncate {len(tables)} table(s) in '{config.database}' (about {total_rows:,} row(s) total):")
+            log.normal(f"Would truncate {len(tables)} table(s) in '{config.database}' (about {total_rows:,} row(s) total):")
             for table in sorted(tables):
-                print(f"  {table}: about {counts[table]:,} row(s)")
+                log.normal(f"  {table}: about {counts[table]:,} row(s)")
             return False
 
         if not assume_yes and not _confirm(config.database, config.host, total_rows):
-            print("Cancelled -- no changes made.")
+            log.normal("Cancelled -- no changes made.")
             return False
 
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
@@ -202,10 +202,10 @@ def reset_database(config, dry_run=False, assume_yes=False):
         dataversion.record(config.database, "everything")
         _purge_page_cache(config.database)
 
-        print(f"Wiped {len(tables)} table(s) from '{config.database}'.")
-        print("Ready for a new galaxy -- e.g.:")
-        print("  planetgen plan ...   # rebuild the density skeleton")
-        print("  planetgen galaxy ... # generate sectors into it")
+        log.normal(f"Wiped {len(tables)} table(s) from '{config.database}'.")
+        log.normal("Ready for a new galaxy -- e.g.:")
+        log.normal("  planetgen plan ...   # rebuild the density skeleton")
+        log.normal("  planetgen galaxy ... # generate sectors into it")
         return True
     finally:
         conn.close()
@@ -225,13 +225,13 @@ def main():
                               "changing anything.")
     log.add_debug_arguments(parser)
     args = parser.parse_args()
-    log.apply_debug_arguments(args, parser)
+    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
 
     config = mysql_config_from_args(args)
     try:
         did_reset = reset_database(config, dry_run=args.dry_run, assume_yes=args.yes)
     except (pymysql.MySQLError, SchemaTooNewError) as exc:
-        print(f"error: {exc}", file=sys.stderr)
+        log.error(str(exc))
         sys.exit(1)
 
     if not did_reset and not args.dry_run:
