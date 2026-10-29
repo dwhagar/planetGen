@@ -10,19 +10,11 @@ Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cor
 
 ## Goal
 
-The life class system for carbon and water life moved into 8.1 (Boss, 9:10 PM EDT 2026-10-28: GEN.862 and GEN.863). This version adds sentient life drawn from those classes, the census for it, and the proposals for any chemistry that is not carbon based. The 8.x work stops at animals (Boss, 7:41 PM EDT 2026-10-28: near-Earth, water and carbon based worlds); any chemistry that is not carbon based needs Boss's approval before it is built. The share of worlds with sentient life stays as it is (Boss, 7:38 PM EDT: no more intelligent worlds than now, but a mix of kinds).
+The life class system for carbon and water life moved into 8.1 (Boss, 9:10 PM EDT 2026-10-28: GEN.862 and GEN.863). This version adds sentient life drawn from those classes, the census for it, and nothing else. The 8.x work stops at animals (Boss, 7:41 PM EDT 2026-10-28: near-Earth, water and carbon based worlds); any chemistry that is not carbon based needs Boss's approval before it is built. The share of worlds with sentient life stays as it is (Boss, 7:38 PM EDT: no more intelligent worlds than now, but a mix of kinds).
 
 Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).
 
-## Phase 1: Sentient life and the proposals
-
-### Proposals
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| GEN.874 | PROPOSAL ONLY, needs Boss approval: non-carbon and non-water life (silicon, hydrocarbon, sulfuric acid or ammonia solvents), animals at most | GEN.862 | Proposal only. |
-
-## Phase 2: Sentient life and the census
+## Phase 1: Sentient life and the census
 
 ### Sentient life
 
@@ -36,7 +28,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | TEST.435 | Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges | GEN.863, TEST.430 | Extends the TEST.430 suite. |
 
-## Phase 3: The headline closes
+## Phase 2: The headline closes
 
 ### The headline closes
 
