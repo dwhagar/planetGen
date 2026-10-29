@@ -208,11 +208,24 @@ def delete_member_trees(conn, table, row_ids):
                          (source, *chunk))
 
 
+DELETE_BATCH = 100_000
+"""int: How many member or node rows one `DELETE` of `delete_all_member_trees` removes before it commits and goes on."""
+
+
 def delete_all_member_trees(conn, table):
-    """Removes every member and node of `table`'s rows: the scatter table was emptied."""
+    """
+    Removes every member and node of `table`'s rows: the scatter table was emptied. A scatter leaves millions of them, and one
+    `DELETE` over that many rows was minutes of a single statement (PERF.180): when the other scatter has none, the two tables
+    are truncated, and when it has some, the rows go in batches of `DELETE_BATCH` (the key leads with the source, so each batch
+    is a short range), each committed on its own.
+    """
     source = _source(table)
     for child in ("scatter_members", "scatter_nodes"):
-        conn.execute(f"DELETE FROM {child} WHERE source = ?", (source,))
+        if conn.execute(f"SELECT 1 FROM {child} WHERE source <> ? LIMIT 1", (source,)).fetchone() is None:
+            conn.execute(f"TRUNCATE TABLE {child}")
+            continue
+        while conn.execute(f"DELETE FROM {child} WHERE source = ? LIMIT {DELETE_BATCH}", (source,)).rowcount:
+            conn.commit()
 
 
 def delete_member_trees_where(conn, table, where_sql, args=()):

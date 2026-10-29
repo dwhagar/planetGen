@@ -208,11 +208,54 @@ def test_every_cache_family_is_its_own_registered_command_with_one_unit():
     assert list(commands.KIND_OF_WARM_FAMILY) == list(warmup.FAMILIES)
     for family, kind in commands.KIND_OF_WARM_FAMILY.items():
         assert not commands.spec(kind).inline
-        if family in ("galaxy-nodes", "galaxy-deep-nodes"):
-            continue   # many units, one a chunk of nodes: its own tests below
+        if family in ("galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems", "phenomena"):
+            continue   # many units, one a chunk of nodes or a slice of a listing: their own tests
         expansion = commands.expand_function(kind)({"database": "x", "cap": 4})
         assert expansion.units == [({"database": "x", "cap": 4}, 1.0)], "one unit that warms that family and no other"
     assert commands.spec(commands.END_MAP_REBUILD).summary
+
+
+@pytest.fixture
+def object_site(galaxy, monkeypatch):
+    real = warmup.build_app
+    monkeypatch.setattr(warmup, "build_app", lambda config=None: real(galaxy.config))
+    return galaxy
+
+
+@pytest.mark.parametrize("family, kind", [("sectors", "warm-sectors"), ("systems", "warm-systems"), ("phenomena", "warm-phenomena")])
+def test_an_object_family_is_cut_into_slices_that_warm_every_object_once_and_none_is_longer_than_the_ceiling(
+        object_site, monkeypatch, family, kind):
+    """PERF.180: the sector, system and phenomenon pages were one unit each, minutes on a large galaxy; each is now slices of its
+    listing, `OBJECT_CHUNK` objects (a whole multiple past `units.MAX_UNITS` slices), and the longest the command declares fits the ceiling."""
+    database = object_site.config.database
+    monkeypatch.setattr(warmup, "OBJECT_CHUNK", 1)
+    expansion = commands.expand_function(kind)({"database": database, "cap": None})
+    slices = [args for args, _cost in expansion.units]
+    assert [args["offset"] for args in slices] == list(range(len(slices))) and all(args["count"] in (0, 1) for args in slices)
+    results = [commands.run_alone(kind, args) for args in slices]
+    assert sum(result["warmed"] for result in results) == sum(args["count"] for args in slices)
+    assert sum(result["left_out"] for result in results) == 0
+    spec = commands.spec(kind)
+    assert not spec.whole and 0 < spec.unit_seconds <= 300
+    assert spec.unit_seconds >= warmup.OBJECT_SECONDS * 250      # the declared longest is for the real slice size
+
+
+def test_a_cap_below_the_listing_is_left_out_by_the_first_slice_alone(object_site, monkeypatch):
+    database = object_site.config.database
+    monkeypatch.setattr(warmup, "OBJECT_CHUNK", 1)
+    expansion = commands.expand_function("warm-sectors")({"database": database, "cap": 1})
+    [(first, _cost)] = expansion.units
+    assert (first["offset"], first["count"]) == (0, 1) and first["left_out"] >= 1
+    result = commands.run_alone("warm-sectors", first)
+    assert result["warmed"] == 1 and result["left_out"] == first["left_out"] and "left out by the cap" in result["line"]
+
+
+def test_a_slice_warms_the_objects_at_its_place_in_the_listing(object_site):
+    database = object_site.config.database
+    app = warmup.build_app(object_site.config)
+    everything = warmup.warm_family(database, "systems", app=app)
+    second = warmup.warm_family(database, "systems", app=app, window={"offset": 1, "count": 1, "left_out": 0})
+    assert everything["warmed"] >= 2 and second["warmed"] == 1 and second["left_out"] == 0
 
 
 # --- The Galaxy Map's nodes (PERF.130, MAP.260) --------------------------------------------------
@@ -754,6 +797,10 @@ def script(monkeypatch, redis_server):
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     monkeypatch.setattr(warmup, "warm_galaxy_deep_nodes_unit",
                         lambda args, report: warmup._warm_unit("galaxy-deep-nodes", args))
+    # The object families are slices of a listing the site answers; here, like the node ones, each is one faked unit.
+    for family in ("sectors", "systems", "phenomena"):
+        monkeypatch.setattr(warmup, f"expand_warm_{family}", lambda params: commands.Expansion(
+            [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     # The object index is built on the database itself, not through the site; here it is one more faked family.
     monkeypatch.setattr(warmup, "warm_object_index_unit", lambda args, report: warmup._warm_unit("object-index", args))
     Plan.ran, Plan.failing, Plan.owners = [], {}, []
