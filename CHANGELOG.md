@@ -2,6 +2,21 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2534] - 2026-10-29
+
+**Headline:** A world's life now belongs to one of fifteen classes, from oxygen-making plants to hydrogen eaters under the ice, and how far it gets is set by the energy and oxygen its class has to work with.
+
+### Changed
+- **The life class switch (GEN.867, GEN.889).** Every rocky body with life now stores one class (1a, 1b, 1c, 2, 3a, 3b, 4a, 4b, 4c, 5a, 5b, 6, 7, 8, 9): the class with the most net primary production among those its water, temperature, light and chemistry allow. Classes within a factor of two of each other are tied and an NPP-weighted draw picks between them. Classes 1 to 4 and 6 to 7 are drawn in this release; the acid medium of 5, 8 and 9 and the ammonia water of 8 come with GEN.888 and GEN.894. Only a class that makes free oxygen (Class 1) feeds the oxygen budget. The body keeps its likelihood for every class in `planet_life_class_scores` and `moon_life_class_scores` (schema v175).
+- **What a chemical class eats, as supplies (GEN.887).** `physics/life_supply.py` works out hydrogen from serpentinisation and radiolysis, reduced gas and iron, nitrate and perchlorate, and the haze organics of a methane sea from the columns a body already stores. The subsurface classes read the temperature of their own water (`habitat_temperature_k`: the base of an ice lid, or the aquifer's rise with depth) and not the surface's.
+- **The complexity index and the animal grades (GEN.890, GEN.877, GEN.882 to GEN.884).** A class reaches complex cells, multicellular bodies and animals of grade A1 (sessile), A2 (small mobile) and A3 (large, active) when its index C (net primary production over the Earth's, times the yield of what it breathes, times the temperature rate factor) passes a threshold; an oxygen breather also needs the oxygen of the grade (0.1, 2 and 6 kPa). A civilization needs A3. A few anoxic worlds get animals that have lost aerobic respiration (route R4, GEN.884). Chemosymbiotic animals under the ice (Class 4) come out of the same rule.
+- **A body's life draws from its own stream (GEN.872).** The life rolls of one body no longer move the rolls of the next body, so an edit of one planet leaves the others as they were.
+- **Class words everywhere (GEN.892, GEN.869).** The planet and moon pages, the system sheet, the search page, the system map and the population pass name the class and its stage in the class's own words (`life_class_text`), and the object page shows the class, the best class that could live there, the animal grade and the complexity.
+- **The toxic gases of the table reach the world (GEN.657).** Ammonia, hydrogen fluoride, hydrogen chloride, chlorine, nitrogen dioxide, hydrogen cyanide and ozone now count in the gas filter and the corrosive test, as CO, H2S and SO2 did.
+- **Every constant has a registry row (GEN.893).** `tuning.LIFE_COMPLEXITY`, `tuning.LIFE_NPP`, the supply numbers and the habitat temperature numbers carry tiers and tweak levels in `docs/design/research/stand-in-values.md`.
+
+generation-output: changed
+
 ## [8.0.2533] - 2026-10-29
 
 **Headline:** A new test proves the life model gives the same answer for the same conditions whatever the planet class letter is.

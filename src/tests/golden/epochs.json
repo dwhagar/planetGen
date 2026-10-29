@@ -714,8 +714,7 @@
     },
     {
       "epoch": 120,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2534",
       "reason": "The life class switch (GEN.867, GEN.889): each life world stores one of fifteen classes, drawn by net primary production from the supplies the world delivers; the complexity index and animal grades set how far it gets; a body's life draws from its own stream (GEN.872); the toxic gases reach the equipment rules (GEN.657)",
       "affects": ["fill"]
     }
