@@ -1676,7 +1676,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.923 | Observed star-population targets, with sources, for every mass segment and star-like object type (the table the star mass function must match) | none | dropped, replaced by TEST.454 and GEN.926 to GEN.932 (Bug 1 plan) |
 | GEN.924 | A segmented initial mass function with sourced breakpoints and slopes replaces the single low-mass slope, for the whole mass range down to the brown dwarfs and up to the most massive stars | none | dropped, replaced by GEN.927 and GEN.928 (Bug 1 plan) |
 | GEN.925 | Present-day star populations follow from the initial mass function, the star-formation history, main-sequence lifetimes and remnant masses: white dwarfs, neutron stars and black holes fall out, not tuned | none | dropped, replaced by GEN.929 and GEN.930 (Bug 1 plan) |
-| GEN.926 | One initial mass function module (physics/imf.py) replaces the six copies of the power-law code, with no change of output | none | open |
+| GEN.926 | One initial mass function module (physics/imf.py) replaces the six copies of the power-law code, with no change of output | none | done, PR #3760 |
 | GEN.927 | Single-star mass function rows: a bell below 1 solar mass, the field slope from 1 to 8, the sub-stellar tail and the massive end, with stand-in tiers and tweak levels and a design note | none | open |
 | GEN.928 | System primaries follow from the single-star curve plus multiplicity (a top-down solve), with brown dwarf companions and the brown dwarf desert; the star-count table agrees | none | open |
 | GEN.929 | Systems per stellar mass and the galaxy's star count come from the same construction (the mean system mass of item 4); supersedes GEN.918 | none | open |
@@ -3306,7 +3306,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.451 | Ten reds Core 5 saw on main at its PERF.172 merge (9:59 AM EDT 2026-10-29): re-run each on current main, close the ones already fixed, file the real ones (bug) | none | done, PR #3707 |
 | TEST.452 | A sweep finds the life-capable conditions on every planet class and proves the generator lets life evolve there (a class-blind life test) | none | done, PR #3728 |
 | TEST.453 | Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug) | none | open |
-| TEST.454 | The observed star mass-function curve as data, with a per-bin harness that measures the generator against it (segments from 0.01 to 150 solar masses by object type) | none | open |
+| TEST.454 | The observed star mass-function curve as data, with a per-bin harness that measures the generator against it (segments from 0.01 to 150 solar masses by object type) | none | done, PR #3764 |
 | TEST.455 | A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink | none | open |
 | TEST.456 | A test that the generated [X/Fe] abundances match the Brewer and Fischer 2016 table, not only its trend and scatter (low priority) | none | open |
 | TEST.457 | test_no_todo_codes_shown fails on main: util/settings.py shows the item code PERF.154 to users (bug) | none | done, PR #3761 |
