@@ -167,7 +167,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) |  | Deferred; MAP.147 recommendation step 3. |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors |  |  |
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws |  | Boss 7:15 PM EDT; the superbubble layer is its sibling item. |
-| MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts |  | GEN.372 audit; Boss card. |
 | DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute |  |  |
 | MAP.329 | System Map stepping reaches systems across a sector's edge |  | Core 2 follow-up |
 | UX.231 | Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5) |  |  |
@@ -177,7 +176,7 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) |  |  |
 | MAP.299 | In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug) |  |  |
 | MAP.344 | The civilization marker gains a technology band: filter and mark worlds by the technology level of their species |  |  |
-| MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map | MAP.240 | Boss 7:24 PM EDT; look only. |
+| MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map |  | Boss 7:24 PM EDT; look only. |
 
 
 ### Golden galaxy
@@ -619,6 +618,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.902 | Wolf-Rayet stars: the reference galaxy gets about 590 while Rosslowe and Crowther 2015 estimate 1200 (+300, -100) (bug) |  |  |
 | TEST.434 | Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug) |  |  |
 | TEST.441 | Tests red on main from the albedo-greenhouse, moon-tidal-flux and mass-backfill migrations; the white dwarf models dataset is also missing on a fresh test machine (bug) |  |  |
+| TEST.442 | Browser map tests red on main: menu_filters_sit_side_by_side (2 tests), test_system_map_selection_drill_and_measure and test_a_star_in_a_sector_far_from_the_core_is_selectable (bug) |  |  |
 | PERF.201 | The neighborhood job test (test_api_job_runs, a_neighborhood_job_runs_its_sectors_through_the_wrapper) takes over 150 s because generation physics is slow on main: find the slow step and speed it up with identical values (bug) |  |  |
 | GEN.861 | Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need | GEN.855, GEN.750 |  |
 | GEN.860 | Melanin radiotrophs weighted by radiation dose: the star weight times a dose factor from 0.1 at Earth dose to 1.0 at about 1,000 times Earth dose | GEN.855, GEN.750 |  |

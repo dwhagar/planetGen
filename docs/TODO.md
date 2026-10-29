@@ -1940,32 +1940,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   overlay is on.
   Prerequisites: MAP.240. Related: MAP.234, MAP.235, GEN.254.
 
-- [ ] **MAP.240 Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts**
-  From the GEN.372 precision audit (Core 1,
-  docs/design/architecture/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
-  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
-  stored value. Boss decided by card: fix camera-relative now. Float32
-  attribute buffers in the browser hold absolute coordinates (float32
-  spacing at 262 kpc is far above a parsec), so far from the origin the
-  shapes jitter and snap. Done: the buffers of territory dots,
-  superbubbles, made-sector rings, block prisms, stage views, and the
-  system view's dots and belts are built relative to the camera (or a
-  per-object origin) in double precision on the CPU and the model matrix
-  carries the offset; a browser test reads each attribute range and
-  fails if any value exceeds the safe float32 range (a set bound, in
-  parsecs, stated in the test) at a camera 262 kpc from the origin.
-  Owner: Core 2. Related: the superbubble look (MAP.236) and the key
-  (MAP.234) touch the same buffers.
-  Research (2026-10-09, Progress): Progress (TODO, 2026-10-24 5:58 PM
-  EDT): the star layer is done by MAP.267 (#3114, Aux 10, about 5:57 PM
-  EDT as the lane reported): stars arrive node by node in one buffer
-  without rebuilding the rest, and star positions are exact far from the
-  galaxy centre (relative-to-eye float pairs). Still open here: the
-  other browser buffers (territory dots, superbubbles, rings, prisms,
-  system view). Not built: the glow's density-model fallback (design
-  section 3); TODO files it only if Boss wants it.
-  Prerequisites: none. Related: GEN.372, MAP.236, MAP.234, MAP.146.
-
 - [ ] **MAP.242 The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -19608,6 +19582,21 @@ clears each one.
   into this item: find the draw that gives pressure >= 1.0, fix the test
   or the code.
   Prerequisites: none. Related: TEST.332, TEST.434, TEST.405.
+
+- [ ] **TEST.442 Browser map tests red on main: menu_filters_sit_side_by_side (2 tests), test_system_map_selection_drill_and_measure and test_a_star_in_a_sector_far_from_the_core_is_selectable (bug)**
+  Found by Aux 3 (as the lane reported, 2026-10-28) in the MAP.240 gate
+  (#3605); none come from MAP.240. The two menu_filters_sit_side_by_side
+  tests fail on current main;
+  test_system_map_selection_drill_and_measure and
+  test_a_star_in_a_sector_far_from_the_core_is_selectable fail on the
+  base commit 33bf209ed without the change. Four double-click, wheel and
+  node-path tests are load flakes that pass alone (tracked by TEST.439
+  and TEST.194). Do: run each alone, find the cause (layout change from
+  the habitable-world marker default, selection after the map offset
+  rework, or an old fixture), fix the test or the code, never skip,
+  loosen or quarantine a test. Version 8.1. Owner: Aux 3 (lock-free item
+  while waiting).
+  Prerequisites: none. Related: TEST.439, TEST.434, TEST.194, MAP.240.
 
 ## USR: User accounts
 
