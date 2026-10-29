@@ -13800,6 +13800,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.861). Any life class that is not carbon based is a proposal only
   until Boss approves it. Done when the design note is checked and Boss
   has answered its questions.
+  Research (2026-10-09): Boss, 9:10 PM EDT 2026-10-28: moved from 9.5
+  into 8.1 for carbon life. Build in all carbon based life, with what it
+  eats, drinks, breathes and excretes, and a whole life classification
+  system: each class defined by atmosphere type, temperature, pressure
+  and all the planet properties it needs, and by what it consumes and
+  produces. Each planet then says it supports Class ?? life, and has
+  Class ?? life at the ?? stage (the dominant life's chemistry and
+  stage), which also lets us plot how each class changes the atmosphere.
+  Sentient life stays in 9.5 (GEN.864). A design thread (Design carbon
+  life class system) feeds the sub-items; the design may change GEN.875
+  to GEN.884. Non-carbon classes remain proposals (GEN.874).
   Prerequisites: GEN.855, GEN.750, GEN.858. Related: GEN.857, GEN.861.
 
 - [ ] **GEN.863 Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters**
@@ -13808,6 +13819,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   migration with the units registry entries, returned by the API and
   shown on the planet page and in the map's world filters. The existing
   single habitable index stays as the near-Earth carbon and water class.
+  Research (2026-10-09): Boss, 9:10 PM EDT 2026-10-28: moved from 9.5
+  into 8.1 for carbon life. Stores Class ?? supported per world and
+  Class ?? life at the ?? stage; the object page, API and map filters
+  show them; the atmosphere stage-aware air (GEN.858) reads the class
+  and stage.
   Prerequisites: GEN.862.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
@@ -13819,7 +13835,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until Boss approves another chemistry.
   Prerequisites: GEN.863.
 
-- [ ] **GEN.865 Headline of 9.5: life classes, so every world is rated for the kind of life it could hold, and sentient life draws from them**
+- [ ] **GEN.865 Headline of 9.5: sentient life draws from the life classes, so every sentient world is rated for the kind of life that built it**
   Boss (2026-10-28, 7:41 PM EDT): the life class system and sentient
   life. Done when every need has merged and Boss has said the version is
   ready; the version number is stamped by the release process and never
