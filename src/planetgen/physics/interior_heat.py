@@ -55,7 +55,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, bulk_structure, constants, magnetism, radiogenic, tidal_heating
+from planetgen.physics import atmosphere, bulk_structure, constants, core_heat, giant_heat, magnetism, radiogenic, tidal_heating
 from planetgen.util import draw
 
 BODY_FIELDS = ("mantle_eta0_pa_s", "mantle_activation_kj_mol")
@@ -114,6 +114,7 @@ temperature by under a part in a thousand of the heat)."""
 STEP_LIMIT_GY = 0.05
 """float: The longest time step, Gy."""
 FIRST_STEP_GY = 1.0e-4
+CORE_STRIDE = 4          # the box's steps to one of the core's (GEN.838)
 """float: The first, Gy; steps grow by `STEP_GROWTH` until `STEP_LIMIT_GY` or the cooling rate asks for less."""
 STEP_GROWTH = 1.15
 """float: The factor steps grow by."""
@@ -151,6 +152,7 @@ class Heat:
         released_j (float): The heat the interior has carried out since the body formed: the heat flow integrated over its age
             (the melt the mantle has made, and so the gas it has given off, follows it: `degassing`).
         tidal_w (float): Of `total_w`, the tide's (GEN.737, `tidal_heating`): 0 for a body on a circle or with none stored.
+        core (core_heat.Core or None): The core's own temperature, boundary heat flow, inner core and dynamo (GEN.838), `None` for a body with no metal.
     """
 
     total_w: float
@@ -160,6 +162,7 @@ class Heat:
     flux_w_m2: float
     released_j: float
     tidal_w: float = 0.0
+    core: core_heat.Core | None = None
 
     @property
     def own_w(self):
@@ -315,8 +318,11 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         return _flux_w_m2(kelvin, interior, gravity, thickness_m, lid, surface_k) * area_dry_m2
 
     def cool(source_w):
-        """The temperature and released heat at `age_gy` with `source_w` of constant heat added to the radiogenic."""
+        """The temperature, released heat and core at `age_gy` with `source_w` of constant heat added to the radiogenic."""
         temperature = min(surface_k + energy_j / capacity, cap_k)
+        core = core_heat.Stepper(interior, metal_kg, silicate_kg, core_m, dry_m) if metal_kg > 0.0 else None
+        if core:
+            core.start(temperature)
 
         def rate(radiogenic, conduction):
             return GY_S * (radiogenic + source_w - conduction) / capacity
@@ -326,6 +332,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
             return conduction_w(min(max(kelvin, surface_k), cap_k))
 
         t, step, released_j = 0.0, FIRST_STEP_GY, 0.0
+        core_steps = 0
         # the radiogenic power at the start of a step is that at the end of the one before, and the two middle stages share one time;
         # the flux at the start is the one the last step ended with (PERF.201: the same values, each worked out once)
         radiogenic_start = radiogenic_w(0.0)
@@ -342,40 +349,50 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
             k4 = rate(radiogenic_end, conduction_at(temperature + h * k3))
             # a step can overshoot the cold end as well as the cap: below the surface the viscosity law runs on a negative or tiny exponent
             # and the flux (and so the stiffness) is astronomical, which collapses the step to nothing (GEN.866)
+            before = temperature
             temperature = min(max(temperature + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0, surface_k), cap_k)
+            if core:
+                # the core's own time scale is Gy, so it takes one step over a few of the box's (the midpoint rule over their sum)
+                if not core_steps:
+                    core_from_t, core_from_k, core_h = t, before, 0.0
+                core_steps += 1
+                core_h += h
+                if core_steps == CORE_STRIDE or t + h >= age_gy:
+                    core.advance(core_from_t, core_h, core_from_k, temperature)
+                    core_steps = 0
             flux_end = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)
             released_j += 0.5 * (flux + flux_end) * area_dry_m2 * h * GY_S
             flux = flux_end
             radiogenic_start = radiogenic_end
             t += h
             step = min(step * STEP_GROWTH, STEP_LIMIT_GY)
-        return temperature, released_j
+        return temperature, released_j, core.state(temperature) if core else None
 
     now_w = radiogenic_w(age_gy)
 
-    def result(temperature, released_j, tidal_w, unrun_tidal_w=0.0):
+    def result(temperature, released_j, tidal_w, unrun_tidal_w=0.0, core=None):
         """The `Heat` at `temperature`; `unrun_tidal_w` is a tide the box did not run with, flowing out beside the conduction."""
         total_w = conduction_w(temperature) + unrun_tidal_w
         if temperature >= cap_k:
             total_w = max(total_w, now_w + tidal_w)
-        return Heat(total_w, now_w, total_w - now_w - tidal_w, temperature, total_w / area_m2, released_j, tidal_w)
+        return Heat(total_w, now_w, total_w - now_w - tidal_w, temperature, total_w / area_m2, released_j, tidal_w, core)
 
-    temperature, released_j = cool(0.0)
+    temperature, released_j, core = cool(0.0)
     if forcing is None:
-        return result(temperature, released_j, 0.0)
+        return result(temperature, released_j, 0.0, core=core)
     own_w = conduction_w(temperature)
     solid_w = tidal_heating.solid_power_w(forcing, dry_kg, dry_m)
     if solid_w <= TIDE_NEGLIGIBLE_SHARE * max(own_w, now_w):
-        return result(temperature, released_j, solid_w, unrun_tidal_w=solid_w)
-    warm, warm_released_j = cool(solid_w)
+        return result(temperature, released_j, solid_w, unrun_tidal_w=solid_w, core=core)
+    warm, warm_released_j, warm_core = cool(solid_w)
     if solid_w < own_w or warm < tidal_heating.HEAT_PIPE_TEMPERATURE_K:
-        return result(warm, warm_released_j, solid_w)
+        return result(warm, warm_released_j, solid_w, core=warm_core)
     # melt-limited: the mantle holds the heat-pipe temperature, the melt carries out the tide's heat and the rest
     molten_w = tidal_heating.molten_power_w(forcing, dry_m)
     pipe_k = tidal_heating.HEAT_PIPE_TEMPERATURE_K
     total_w = max(now_w + molten_w, conduction_w(pipe_k))
     released_j = max(warm_released_j, total_w * age_gy * GY_S)
-    return Heat(total_w, now_w, total_w - now_w - molten_w, pipe_k, total_w / area_m2, released_j, molten_w)
+    return Heat(total_w, now_w, total_w - now_w - molten_w, pipe_k, total_w / area_m2, released_j, molten_w, warm_core)
 
 
 def heat_flow(content, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
@@ -434,26 +451,51 @@ def generate_lid(body):
     body.lid_regime = MOBILE if mobile else STAGNANT
 
 
-def update_heat(body):
+def heat_of(body):
     """
-    Runs the thermal history of a rocky body to its star's age now and sets `OUTPUT_FIELDS` (the Urey ratio, the heat flow of its own and the
-    tide's, GEN.737); no draws, so it can be repeated when the star's age is adjusted for its planets. The tide is that of the orbit stored
-    with the body (`tidal_heating.forcing_of`): a rocky body's goes through the box (`heat`, which may melt it), an icy body's (a water mass
-    fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more) heats its ice shell and is `tidal_heating.icy_flux_w_m2`. Returns the `Heat`, or `None`
-    (fields `None`) for a body with no stored content or interior (a gas giant, or a row from before GEN.699).
+    The `Heat` of a rocky body at its star's age now, with the tide of the orbit stored with it (`tidal_heating.forcing_of`): a rocky body's
+    goes through the box (`heat`, which may melt it), an icy body's (a water mass fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more)
+    heats its ice shell and is not in the box. `None` for a body with no stored content or interior (a gas giant, or a row from before GEN.699).
+    No draws.
     """
     content, interior = radiogenic.content_of(body), interior_of(body)
     if content is None or interior is None:
+        return None
+    age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
+    forcing = None if tidal_heating.is_icy(body) else tidal_heating.forcing_of(body)
+    return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), forcing, lid_of(body), surface_of(body))
+
+
+def core_of(body):
+    """The core's own temperature, boundary heat flow, inner core and dynamo (`core_heat.Core`, GEN.838) at its star's age now; `None` for a
+    body with no interior or no metal. No draws."""
+    found = heat_of(body)
+    return None if found is None else found.core
+
+
+def update_heat(body):
+    """
+    Runs the thermal history of a rocky body to its star's age now and sets `OUTPUT_FIELDS` (the Urey ratio, the heat flow of its own and the
+    tide's, GEN.737); no draws, so it can be repeated when the star's age is adjusted for its planets (`heat_of` says which tide goes through
+    the box). Returns the `Heat`, or `None` (fields `None`) for a body with no stored content or interior (a row from before GEN.699). A gas
+    giant has no content: it returns `None`, and its `internal_heat_flux_w_m2` is its own radiated heat with the helium rain its stored
+    layers say it has (`giant_heat.of`, GEN.810).
+    """
+    if radiogenic.content_of(body) is None:
+        giant = giant_heat.of(body)         # GEN.810: a giant's own heat, with the helium rain its stored layers say it has
+        for name in OUTPUT_FIELDS:
+            setattr(body, name, None)
+        if giant is not None:
+            body.internal_heat_flux_w_m2 = giant.flux_w_m2
+        return None
+    found = heat_of(body)
+    if found is None:
         for name in OUTPUT_FIELDS:
             setattr(body, name, None)
         return None
-    age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
-    forcing = tidal_heating.forcing_of(body)
-    icy = tidal_heating.is_icy(body)
-    found = heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), None if icy else forcing,
-                      lid_of(body), surface_of(body))
     body.urey_ratio, body.internal_heat_flux_w_m2 = found.urey_ratio, found.own_flux_w_m2
-    if icy:
+    if tidal_heating.is_icy(body):
+        forcing = tidal_heating.forcing_of(body)
         icy_w_m2 = tidal_heating.icy_flux_w_m2(forcing, body.radius) if forcing else 0.0
         body.tidal_flux_w_m2 = icy_w_m2 if icy_w_m2 > 0.0 else None   # an orbit so round the tide underflows to 0.0 has none (GEN.906)
     else:

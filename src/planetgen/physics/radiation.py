@@ -443,6 +443,20 @@ def generate_dose(body):
         (hazard is not None and hazard > LETHAL_EVENT_LIMIT_PER_GYR) or ozone_sep >= OZONE_SEP_MSV_YR))
 
 
+def update_ground_dose(body):
+    """
+    GEN.839: the ground dose and the surface dose that holds it, made again from the ground the body now stores (the volcanism gate follows
+    the heat at the star's final age); the rest of the dose is kept. Draws the radon diffusion factor again. A body with no stored dose (a
+    giant, or one saved before it) is left as it is.
+    """
+    old = getattr(body, "dose_ground_msv_yr", None)
+    if body.body_type == "g" or old is None:
+        return
+    ground = _ground_dose(body, getattr(body, "atmospheric_pressure", None) or 0.0)
+    body.surface_dose_msv_yr += ground - old
+    body.dose_ground_msv_yr = ground
+
+
 def apply_air_loss(body, retained_fraction):
     """
     Takes a loss event that kept `retained_fraction` of a rocky body's air into its stored ozone and ultraviolet (GEN.668): the

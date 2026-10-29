@@ -220,6 +220,7 @@ def _rebuild(planet):
     """What reads the air, made again after life has changed it: the cloud, haze and dust (on the body's own stream), the ozone and doses (on a
     stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the habitability score and the class (derived from the air as it is now, GEN.980)."""
     from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
+    physics_planets.refresh_at_final_age(planet)    # GEN.839: the ice shell reads the surface temperature, which the new air moved (own stream)
     aerosols.generate_aerosols(planet)
     with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
         radiation.generate_dose(planet)

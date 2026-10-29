@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 496 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 517 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 60 | 0 | 5 | 0 | 0 | 65 |
+| T1 | 61 | 0 | 5 | 0 | 0 | 66 |
 | T2 | 79 | 8 | 0 | 1 | 0 | 88 |
-| T3 | 59 | 14 | 3 | 10 | 0 | 86 |
-| T4 | 25 | 0 | 0 | 4 | 4 | 33 |
-| T5 | 28 | 7 | 1 | 0 | 0 | 36 |
-| T6 | 40 | 18 | 10 | 30 | 0 | 98 |
-| T7 | 24 | 6 | 3 | 7 | 0 | 40 |
+| T3 | 60 | 14 | 4 | 10 | 0 | 88 |
+| T4 | 27 | 0 | 0 | 4 | 4 | 35 |
+| T5 | 32 | 9 | 2 | 0 | 0 | 43 |
+| T6 | 43 | 19 | 11 | 30 | 0 | 103 |
+| T7 | 25 | 6 | 4 | 8 | 0 | 43 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
-| T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 316 | 53 | 24 | 78 | 25 | 496 |
+| T9 | 1 | 0 | 2 | 26 | 19 | 48 |
+| All | 328 | 56 | 28 | 80 | 25 | 517 |
 
 ## How the labels were given
 
@@ -166,6 +166,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SC6 | D | T1 | L0 | the three pre-main-sequence constants fitted to it and the nine brown dwarf radius points of `tuning.BROWN_DWARF_TRACKS` | the isochrone download (`baraffe_isochrones.py`; read by GEN.936 and GEN.948) | Baraffe, Homeier, Allard and Chabrier 2015 (A&A 577, A42) | - | - |
 | SL1 | D | T1 | L0 | the blackbody of the effective temperature with a seeded UV-C share (GEN.443, R17) and the BT-Settl chromaticity offsets | the spectra download (`stellar_spectra.py`, read by `physics/stellar_library.py`, GEN.970; wired by GEN.971) | Castelli and Kurucz 2003 (IAU Symp. 210, A20); Husser et al. 2013 (A&A 553, A6) | - | - |
 | PS12 | D | T1 | L0 | the spectral subclass linear in temperature inside each letter and the K/M boundary at 3,700 K | the table download (`mamajek_sequence.py`; read by `stellar_evolution.spectral_letter_and_subclass`, GEN.943) | Pecaut and Mamajek 2013 (ApJS 208, 9) | - | - |
+| GS1 | D | T1 | L0 | the n = 1 polytrope of a gas giant, the n = 3/2 polytrope of a brown dwarf and the constant-density layers of an ice giant (design note D7) | the hydrogen-helium download (`hhe_eos.py`, read by `physics/giant_structure.py`, GEN.733) | Chabrier and Debras 2021 (ApJ); Chabrier, Mazevet and Soubiran 2019 (ApJ 872, 51) | - | - |
 
 ## 6.7 Stand-ins of the atmosphere mixture draw
 
@@ -798,3 +799,38 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SSR7 | P | T7 | L0 | surface-ground-types:basaltic: plagioclase 0.76, diopside 0.08, enstatite 0.06, basalt powder 0.05, olivine 0.01, the crust of decompression melting | the five proportions | a rocky body that still resurfaces by melting | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts | - | - |
 | SSR8 | P | T7 | L0 | surface-ground-types:felsic: orthoclase 0.40, quartz 0.35, plagioclase 0.20, biotite 0.05, the granitoid crust | the four proportions | a rocky body with a differentiated crust | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts | - | - |
 | SSR9 | P | T7 | L0 | surface-ground-types:oxidised: nanophase hematite 0.50, plagioclase 0.38, diopside 0.04, enstatite 0.03, basalt powder 0.03, olivine 0.02 | the six proportions | a rocky body with an oxidised surface | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts | - | - |
+
+## 6.57 Stand-ins of the structure of a giant
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| GS2 | T | T5 | L0 | giant_structure.StructureSubject.resolved | the layers of the subject | any gas giant, ice giant or brown dwarf | a structure with the dilute core and the gradient the layers of `giant_interior.py` carry | the heavy elements sit in a core and a mixed envelope of the envelope metallicity Z of GEN.460, with a core of what is left (no dilute core, no gradient, no helium rain inside the structure); giant-interiors.md section 2 (Helled and Stevenson 2024; Mankovich and Fortney 2020) say a real giant is more mixed, which moves the central pressure more than the boundary pressures | - | - |
+| GS3 | T | T5 | L1 | hhe_eos.IVL_SLOPE_RANGE | -1.2 to 3.0, fixed | helium shares near 0.275 (0.2 to 0.35) | the tables of Chabrier and Debras 2021 at other Y, or a helium-rain structure | hydrogen and helium mix by the ideal volume law, the specific volume of the Y = 0.275 mixture of the table moved by the volume difference of the two pure tables over the mixture's (`ivl_slope`), the way Chabrier et al. 2019 mix them; the table's own interaction term is kept at 0.275 and the slope is held to the range a physical fluid can have; the helium share is the natal one for the whole body (rain is not in the structure) | - | - |
+| GS4 | T | T5 | L0 | giant_structure.HEAVY_NODES_PA | 1e5 to 1e17 Pa, 220 nodes | the core, the mantle and the heavy elements mixed into the envelope | equations of state of ammonia and methane and of mixtures at the temperature of the adiabat | the density of the heavy elements is a volume sum (the ideal volume law) of the repository's iron (Vinet), silicate and water curves, each at its own fixed temperature, tabulated on 220 nodes in ln P from 1 bar to 1e17 Pa; ammonia and methane ice take the water curve | - | - |
+| GS5 | T | T5 | L0 | hhe_eos.DIATOMIC_ADIABATIC_GRADIENT | 2/7, fixed | the one-bar temperature of an ice giant or a cold gas giant (under 100 K) | a hydrogen-helium table to 30 K, or a molecular-hydrogen equation of state with the ortho-para states | the tables start at 100 K, so an adiabat colder than that is carried up the molecular gas's own adiabat, d ln T / d ln P of a diatomic ideal gas (2/7), to where it reaches 100 K and the entropy there is read; the one-bar temperature the model reports is the inverse of that, good to a few percent | - | - |
+| GS6 | D | T3 | L0 | giant_structure.RADIUS_TOLERANCE | 2e-4 of the radius, fixed | a body whose adiabat stays out of the solid and low-density regions (all giants) | the tables' own newer release | the values of the tables in the solid phase, beyond the first-order quantum correction of the ions and at very low density are unphysical (the archive's README); they are read as they stand and the volume slope is bounded (GS3), and the adiabat is a line of the table's entropy because the table's adiabatic gradient carries numerical noise; the fit stops where the radius is met to 2e-4 | - | - |
+| GS7 | T | T6 | L0 | giant_structure.CENTRE_MASS_FRACTION, CENTRE_RADIUS_FRACTION | 2e-3 and 0.02, fixed | the centre of every giant | an integration to the centre with the core's own equation of state | the integration stops where 0.2 percent of the mass is left inside (or at 2 percent of the radius) and closes the rest as a sphere of the density there; the central pressure is the sphere's, which is within the step of the model's accuracy for the boundary pressures and good to some tens of percent for the centre of a body with a dense core | - | - |
+
+## 6.58 Stand-ins of a giant's internal heat
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| GH2 | T | T5 | L0 | giant_heat.RAIN_HEAT_SHARE | 0.5, 0.3 to 1 | a giant with a helium shell, a gradient or a dilute core | an evolution model with the helium separation (Mankovich and Fortney 2020) | half of the gravitational energy the sinking helium gives up leaves as heat and half warms the interior it falls through (the virial split); the energy is the mass that sank times the potential it fell through, from the mean of the layers that lost helium to the mean of those that gained it, each layer a shell of uniform density | - | - |
+| GH3 | P | T4 | L0 | giant_heat.RAIN_AGE_SHARE | 1.0, 0.3 to 1 | any giant | the time since the one-bar temperature crossed the onset (needs the cooling track) | the heat has come out over the star's whole age, an average that is a lower bound for the power today since the rain began when the body cooled below the separation temperature | - | - |
+| GH4 | T | T6 | L0 | giant_heat.rain_energy_j | none | every giant | a coupled evolution of the structure and the helium | approximations: the helium that moved goes from every layer that lost it to every layer that gained it at their means; the potential is at the half-mass radius of each layer; one pass, no feedback of the rain's heat on the one-bar temperature that decided the rain (the draws keep their order) | - | - |
+
+## 6.59 Stand-ins of the core's thermal history
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CC1 | P | T6 | L2 | core_heat.PRESSURE_FACTOR 1.16 (the compression a uniform shell leaves out) | 1.0 to 1.3 | rocky bodies up to a few Earth masses | a layered structure's pressure at the core-mantle boundary and centre of a super-Earth | the pressures of `bulk_structure.layered_structure` | tuned to the Earth's 136 GPa at the boundary (centre 337 against 364 GPa) | - | - |
+| CC2 | P | T6 | L1 | core_heat.MANTLE_ADIABAT_K_GPA 8 K per GPa from the box's temperature to the base of the mantle | 5 to 10 | rocky bodies | a mantle adiabat from a heavier body's equation of state | an adiabat from the mantle's density and expansivity | design (the Earth's potential 1,600 K to 2,700 K at the boundary; the box's temperature is the mantle's mean) | - | - |
+| CC3 | P | T5 | L2 | core_heat.CORE_ADIABAT_K_GPA 6.74 K per GPa below the top of the core | 5 to 8 | all cores | a core adiabat from a Gruneisen parameter at a super-Earth's pressures | a Gruneisen adiabat | tuned to the Earth's 4,100 K at 136 GPa and 5,400 K at 329 GPa (Alfe 2002, second-hand) | - | - |
+| CC4 | P | T3 | L2 | core_heat.LIQUIDUS_ZERO_K 1811 and LIQUIDUS_ANCHOR (329 GPa, 5,400 K): the liquidus `1811 sqrt(1 + P / A)` of pure iron | the anchor 5,000 to 6,200 K | cores under about 400 GPa | a liquidus of an iron alloy with the light elements and the sulfur of Mercury's core | an alloy liquidus | the Earth's inner core boundary (Alfe 2002, second-hand); no light elements, so a Mercury-like core freezes too early | - | - |
+| CC5 | P | T4 | L0 | core_heat.CORE_CONDUCTIVITY 40 W/(m K) | 30 to 100 | all cores | a conductivity read for the core's alloy at its pressure | a measured conductivity | the literature spans 30 to 100 (Pozzo 2012 and Gomi 2013, second-hand) | - | - |
+| CC6 | P | T5 | L1 | core_heat.LATENT_HEAT_J_KG 2.5e5 and GRAVITATIONAL_ENERGY_J_KG 2.5e5 per kg of inner core that freezes | each 1e5 to 6e5 | cores with an inner core | an energy budget of the Earth's inner core growth | a composition-dependent budget | Labrosse 2003 (second-hand): the latent heat and the light elements' energy are of one order | - | - |
+| CC7 | P | T7 | L3 | core_heat.ACTIVATION_VOLUME_M3_MOL 4.7e-6 over PRESSURE_SCALE_GPA 100: the activation enthalpy of the lowest mantle layer gains `V* P0 ln(1 + P / P0)` | V* 3 to 6 cm3/mol, P0 50 to 200 GPa | rocky bodies | a viscosity of the lowest mantle from a pressure-dependent law | a calibrated lower-mantle viscosity | hand-tuned so the Earth's core ends at 4,080 K with an inner core of 0.4 of its radius and 5.7 TW across the boundary (5 to 15 TW, Lay et al. 2008, second-hand) | - | - |
+| CC8 | P | T7 | L0 | core_heat.INITIAL_EXCESS_K 1,000 K the core starts above the base of the mantle | 500 to 1,500 | all cores | a core formation model with the energy of the sinking iron | a differentiation model | design (the sinking iron's energy goes into the core; Stevenson 1983, second-hand) | - | - |
+| CC9 | P | T9 | L3 | core_heat.MIN_LIQUID_SHELL 0.25: a liquid shell thinner than this share of the core's radius runs no dynamo | 0.15 to 0.35 | all cores | a thin-shell dynamo model | a dynamo criterion from the shell's geometry | needed output: Mars (shell 0.23) has no field at 4.5 Gy and the Earth (0.6) has one | - | - |
+| CC10 | P | T7 | L2 | core_heat.EARTH_CORE_RADIUS_M, EARTH_CORE_DENSITY_KG_M3 and EARTH_DYNAMO_W: the unit of the dipole moment's buoyancy-flux scaling `(R / R_e)^2 (P / P_e)^(1/3) (rho / rho_e)^(1/6)` | the exponents | cores with a running dynamo | a measured field of a body with another core | the full scaling of Christensen 2010 | the Earth's moment 7.8e22 A m2 (the scaling is read second-hand; the unit is the model's own Earth) | - | - |
+| CC11 | P | T6 | L0 | The mantle box is not changed by the core (the core's heat is already its heat capacity); the core is driven by the box's temperature history | none | all bodies | a two-way coupled model whose mantle cools differently | a coupled core and mantle box | design (the stored heat flow and Urey ratio stay as they were) | - | - |
