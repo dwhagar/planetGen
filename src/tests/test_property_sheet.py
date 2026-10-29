@@ -227,7 +227,7 @@ def test_the_sheet_of_a_star_a_planet_and_a_moon_returns_every_property_with_uni
         rows = _rows(body)
         assert body["kind"] == kind
         ordered = [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
-        shown = [key for key in rows if not (kind != "star" and key.startswith("p_"))]
+        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY]   # UX.205: derived, not a spec
         assert ordered == shown, "every spec is a row, grouped in the order of GROUPS"
         assert all(rows[key]["value"][0]["qty"]["kind"] == "pressure" for key in rows if kind != "star" and key.startswith("p_"))
         assert [group["key"] for group in body["groups"]] == [key for key in sheet.GROUPS
@@ -253,6 +253,39 @@ def test_the_air_of_a_planet_is_one_row_per_gas_the_most_abundant_first(client, 
     air = [key for key in rows if key.startswith("p_")]
     assert air == ["p_N2", "p_O2"]
     assert rows["p_N2"]["label"] == "Nitrogen partial pressure" and rows["p_N2"]["value"][0]["qty"]["kind"] == "pressure"
+
+
+def test_a_moon_in_its_planets_shadow_has_a_row_for_the_longest_eclipse(client, mysql_config):
+    """UX.205: the longest eclipse is worked out from the moon's orbit and its planet's radius when the sheet is made, in the rotation
+    group; a moon never in the shadow, and every planet, has no such row."""
+    from planetgen.physics import daylight
+
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        moon = conn.execute("SELECT m.id, m.parent_id FROM moons m JOIN planets p ON p.id = m.parent_id AND m.parent_type = 'planet' "
+                            "WHERE m.star_system_id = ? ORDER BY m.id", (system_id,)).fetchone()
+        conn.execute("UPDATE planets SET radius_km = 71492.0 WHERE id = ?", (moon["parent_id"],))
+        conn.execute("UPDATE moons SET distance_km = 421700.0, period_years = ?, parent_shadow_share = 0.05 WHERE id = ?",
+                     (42.46 / unit_registry.converter("yr", "h")(1.0), moon["id"]))
+        conn.commit()
+    finally:
+        conn.close()
+    ref = f"moon:{pid('moon', moon['id'])}"
+    rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    eclipse = rows[sheet.ECLIPSE_KEY]
+    assert eclipse["stored"] and eclipse["raw"] == pytest.approx(daylight.longest_eclipse_hours(421700.0, 71492.0, 42.46), rel=1e-6)
+    assert eclipse["value"][0]["qty"]["kind"] == "time" and eclipse["label"] == "Longest eclipse in the planet's shadow"
+    body = client.get(f"/api/objects/{ref}/sheet").get_json()
+    assert sheet.ECLIPSE_KEY in [row["key"] for row in next(g for g in body["groups"] if g["key"] == "rotation")["rows"]]
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE moons SET parent_shadow_share = 0 WHERE id = ?", (moon["id"],))
+        conn.commit()
+    finally:
+        conn.close()
+    assert sheet.ECLIPSE_KEY not in _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    assert sheet.ECLIPSE_KEY not in _rows(client.get(f"/api/objects/planet:{pid('planet', moon['parent_id'])}/sheet").get_json())
 
 
 def test_a_property_with_no_stored_value_says_so(client, mysql_config):

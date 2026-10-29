@@ -83,7 +83,7 @@ def tally(config):
                 entry["bodies"] += 1
                 for group in sheet.sheet(conn, kind, row["id"])["groups"]:
                     for item in group["rows"]:
-                        if item["key"].startswith("p_"):    # the gases are one row per gas the air holds
+                        if item["key"].startswith("p_") or item["key"] == sheet.ECLIPSE_KEY:    # one row per gas the air holds; a moon's derived eclipse row
                             continue
                         counts = entry["columns"].setdefault(item["key"], [0, 0, 0])
                         if item["stored"]:

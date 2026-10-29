@@ -142,6 +142,15 @@ def shadow_share_at(orbit_radius_km, parent_radius_km, beta_deg):
     return math.acos(ratio) / math.pi if ratio < 1.0 else 0.0
 
 
+def longest_eclipse_hours(orbit_radius_km, parent_radius_km, orbit_period_hours):
+    """The longest time a moon spends hiding the centre of the star behind its planet in one pass, hours (UX.205): the pass through the
+    middle of the shadow (the star in the moon's orbit plane), which is `theta / pi` of one orbit, `theta` the angular radius of the
+    planet as the moon sees it. Zero when the moon is not outside the planet or has no period."""
+    if not orbit_period_hours or orbit_period_hours <= 0.0:
+        return 0.0
+    return shadow_share_at(orbit_radius_km, parent_radius_km, 0.0) * orbit_period_hours
+
+
 def parent_shadow_share(orbit_radius_km, parent_radius_km, mutual_inclination_deg):
     """The share of a moon's time its planet hides the centre of the star over a circular year (see the module text): the orbit radius
     and the planet's radius in kilometres, and the angle between the moon's orbit normal and the planet's, degrees."""

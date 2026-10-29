@@ -24,7 +24,7 @@ from planetgen import tuning
 from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
-from planetgen.physics import constants, gases, habitability_world, regional_temperature, unit_registry
+from planetgen.physics import constants, daylight, gases, habitability_world, regional_temperature, unit_registry
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -64,9 +64,9 @@ API sheet always returns every row and says which are `absent` and which are `sh
 
 GLANCE = {
     "planet": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
-               "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "distance_km", "period_years"),
+               "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
     "moon": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
-             "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "distance_km", "period_years"),
+             "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
     "star": ("role", "star_type", "yerkes_class", "state", "mass_kg", "luminosity_w", "temperature_k",
              "habitable_zone_inner_km", "habitable_zone_outer_km", "snow_line_km", "flare_n33_per_yr",
              "lethal_event_rate_per_gyr", "heliosphere_radius_km", "system_perimeter_km"),
@@ -175,7 +175,7 @@ _BODY_GROUPS = (
     *_rows("physical", ("radius_km", "Radius", "radius"), ("mass_kg", "Mass"), ("volume_km3", "Volume"),
            ("density_g_cm3", "Density"), ("gravity_g", "Surface gravity")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt"),
-           ("outside_hours", "Hours of daylight a person can be outside"), ("solar_day_hours", "Length of the solar day"),
+           ("outside_hours", "Hours a person can work outside per year (dose limit)"), ("solar_day_hours", "Length of the solar day"),
            ("daylight_hours", "Hours of daylight at the equator"), ("day_share_equator", "Share of the time the star is up, equator"),
            ("day_share_mean", "Share of the time the star is up, whole surface"),
            ("parent_shadow_share", "Share of the time in the planet's shadow"),
@@ -875,6 +875,27 @@ def _zone_value(letter, by_key, specs, table):
     return [f"{name}, ", near, " to ", far, " from its star"]
 
 
+_yr_to_h = unit_registry.converter("yr", "h")
+
+ECLIPSE_KEY = "longest_eclipse_hours"
+"""str: The key of the moon's derived row for the longest eclipse in its planet's shadow (UX.205); it is worked out from the stored
+orbit and the planet's radius when the sheet is made and is not a column."""
+
+
+def _longest_eclipse(conn, kind, object_id):
+    """The longest time a moon is in its planet's shadow in one pass, hours (`daylight.longest_eclipse_hours`), or `None` for a moon that
+    orbits no planet, is never in the shadow or lacks the orbit."""
+    moon = conn.execute("SELECT parent_type, parent_id, distance_km, period_years, parent_shadow_share FROM moons WHERE id = ?",
+                        (object_id,)).fetchone()
+    if moon is None or moon["parent_type"] != "planet" or not moon["parent_shadow_share"]:
+        return None
+    parent = conn.execute("SELECT radius_km FROM planets WHERE id = ?", (moon["parent_id"],)).fetchone()
+    if parent is None or not moon["distance_km"] or not moon["period_years"]:
+        return None
+    hours = daylight.longest_eclipse_hours(moon["distance_km"], parent["radius_km"], _yr_to_h(moon["period_years"]))
+    return hours or None
+
+
 def sheet(conn, kind, object_id):
     """
     The property sheet of one body.
@@ -913,6 +934,11 @@ def sheet(conn, kind, object_id):
         value = _value(spec, GAS_TABLES[kind][0], pascals)
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "raw": pascals, "stored": True,
                                      "absent": not pascals, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
+    eclipse = _longest_eclipse(conn, kind, object_id) if kind == "moon" else None
+    if eclipse:
+        value = [model.qty("time", eclipse, "h")]
+        by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
+                                     "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "show_absent": False})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
     return {"kind": kind, "groups": groups, "missing": missing(kind, stored)}
