@@ -120,19 +120,23 @@ PPM_KPA = 101.325e-6
 """float: One ppm of a gas at 1 atm, as a partial pressure in kPa."""
 
 TOXIC_GASES = (
-    Toxic("CO", 0.005, 0.12, False, "built long-term limit; NIOSH IDLH 1,200 ppm"),
-    Toxic("H2S", 0.001, 100 * PPM_KPA, False, "built long-term limit; NIOSH IDLH 100 ppm (the built acute limit, 0.05, is looser)"),
-    Toxic("SO2", 0.0005, 100 * PPM_KPA, False, "built long-term limit; NIOSH IDLH 100 ppm"),
-    Toxic("NH3", 25 * PPM_KPA, 300 * PPM_KPA, True, "recalled: NIOSH REL 25 ppm, IDLH 300 ppm (check at build time)"),
-    Toxic("HF", 3 * PPM_KPA, 30 * PPM_KPA, True, "recalled: ACGIH ceiling 3 ppm, IDLH 30 ppm"),
-    Toxic("HCl", 5 * PPM_KPA, 45 * PPM_KPA, True, "NIOSH ceiling 5 ppm; IDLH 45 ppm (NIOSH 2025)"),
-    Toxic("Cl2", 1 * PPM_KPA, 10 * PPM_KPA, True, "recalled: NIOSH ceiling 0.5 to 1 ppm, IDLH 10 ppm"),
-    Toxic("NO2", 1 * PPM_KPA, 20 * PPM_KPA, False, "recalled: NIOSH STEL 1 ppm, IDLH 20 ppm"),
-    Toxic("HCN", 4.7 * PPM_KPA, 50 * PPM_KPA, False, "recalled: NIOSH STEL 4.7 ppm, IDLH 50 ppm"),
-    Toxic("O3", 0.1 * PPM_KPA, 5 * PPM_KPA, False, "recalled: OSHA 0.1 ppm, IDLH 5 ppm"),
+    Toxic("CO", 0.005, 0.12, False, "NIOSH Pocket Guide: OSHA PEL 50 ppm (the built long-term limit; NIOSH REL 35 ppm, ceiling 200 ppm), IDLH 1,200 ppm"),
+    Toxic("H2S", 0.001, 100 * PPM_KPA, False, "NIOSH Pocket Guide: REL ceiling 10 ppm (the built long-term limit), IDLH 100 ppm (the built acute limit, 0.05, is looser)"),
+    Toxic("SO2", 0.0005, 100 * PPM_KPA, False, "NIOSH Pocket Guide: OSHA PEL 5 ppm (the built long-term limit; NIOSH REL 2 ppm, ST 5 ppm), IDLH 100 ppm"),
+    Toxic("NH3", 25 * PPM_KPA, 300 * PPM_KPA, True, "NIOSH Pocket Guide: REL TWA 25 ppm (STEL 35 ppm, OSHA PEL 50 ppm), IDLH 300 ppm"),
+    Toxic("HF", 3 * PPM_KPA, 30 * PPM_KPA, True, "NIOSH Pocket Guide: REL and OSHA PEL TWA 3 ppm (REL ceiling 6 ppm over 15 min), IDLH 30 ppm"),
+    Toxic("HCl", 5 * PPM_KPA, 45 * PPM_KPA, True, "NIOSH Pocket Guide: REL and OSHA PEL ceiling 5 ppm; IDLH 45 ppm (NIOSH 2025-110, over the pocket guide's 50 ppm)"),
+    Toxic("Cl2", 1 * PPM_KPA, 10 * PPM_KPA, True, "NIOSH Pocket Guide: OSHA PEL ceiling 1 ppm (the more permissive; NIOSH REL ceiling 0.5 ppm), IDLH 10 ppm"),
+    Toxic("NO2", 1 * PPM_KPA, 13 * PPM_KPA, False, "NIOSH Pocket Guide: REL ST 1 ppm (OSHA PEL ceiling 5 ppm), IDLH 13 ppm (NIOSH 2017-202, over the 1994 value of 20 ppm)"),
+    Toxic("HCN", 4.7 * PPM_KPA, 50 * PPM_KPA, False, "NIOSH Pocket Guide: REL ST 4.7 ppm (OSHA PEL TWA 10 ppm), IDLH 50 ppm"),
+    Toxic("O3", 0.1 * PPM_KPA, 5 * PPM_KPA, False, "NIOSH Pocket Guide: REL ceiling 0.1 ppm (OSHA PEL TWA 0.1 ppm), IDLH 5 ppm"),
 )
-"""tuple: The `Toxic` rows. CO, H2S and SO2 are the species the generator stores today; the others are read once the
-atmosphere stores every gas (GEN.424, GEN.657). A world's gas that is not a row here is read by its own rule."""
+"""tuple: The `Toxic` rows, every one read from the NIOSH Pocket Guide (cdc.gov/niosh/npg, opened for GEN.657) and, for the
+IDLH, from the newest NIOSH IDLH document where it revised the pocket guide's number (HCl, NO2). Where a REL and an OSHA PEL
+differ, the more permissive is the long-term limit (Boss's rule of 2026-10-14), kept as the built limits already were for CO, H2S
+and SO2. ACGIH threshold values are not used: they are not freely published, and the OSHA and NIOSH numbers stand under the
+standing source rules. The generator stores every one of these gases (GEN.424, `planet_gases`); `habitability_world.world_from`
+reads CO, H2S and SO2 today and the rest wait on the generation lock (GEN.657, wiring)."""
 
 TOXIC = {row.gas: row for row in TOXIC_GASES}
 """dict: The `TOXIC_GASES` rows by gas symbol."""
