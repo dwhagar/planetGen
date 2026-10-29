@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.443 |
+| TEST | TEST.444 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -3097,7 +3097,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.298 | test_admin_script_cli.py: four fixture-finalizer errors under load in a gate (bug) | none | open |
 | TEST.299 | test_api_species_tech_filters fails once in a full run: the first species of the tech-descending list has tech 6.55, not the 6.0 the test set (bug) | none | done, PR #2945 |
 | TEST.300 | End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers | none | open |
-| TEST.301 | Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism | none | open |
+| TEST.301 | Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism | none | done, PR #3619 |
 | TEST.302 | benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug) | none | open |
 | TEST.303 | test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug) | none | dropped (Debug mode thread, 2:21 PM EDT 2026-10-24 as the lane reported: its own test MySQL user lacked GRANT OPTION) |
 | TEST.304 | Nine Playwright test files are not marked browser, so they run in the all-core phase | none | done, PR #2945 |
@@ -3239,6 +3239,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.440 | test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale fails on main: the scale text reads 0.25 sectors where 2.5 is expected (bug) | none | done, PR #3571 |
 | TEST.441 | Tests red on main from the albedo-greenhouse, moon-tidal-flux and mass-backfill migrations; the white dwarf models dataset is also missing on a fresh test machine (bug) | none | open |
 | TEST.442 | Browser map tests red on main: menu_filters_sit_side_by_side (2 tests), test_system_map_selection_drill_and_measure and test_a_star_in_a_sector_far_from_the_core_is_selectable (bug) | none | open |
+| TEST.443 | Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
