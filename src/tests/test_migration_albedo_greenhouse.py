@@ -11,7 +11,7 @@ import pytest
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import climate_draws, constants, orbit_elements
+from planetgen.physics import climate_draws, orbit_elements
 from planetgen.util import draw
 from tests import db_schema_support
 
@@ -89,26 +89,7 @@ def test_a_v141_galaxy_gets_the_draws_back_and_keeps_its_temperatures(mysql_conf
     finally:
         conn.close()
     # make it a v141 galaxy again: the columns gone, the rows kept
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        db_schema_support.drop_bulk_composition(conn)  # v144
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN tidal_flux_w_m2, ALGORITHM=COPY")  # v152
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN life_microbial, DROP COLUMN life_flora, DROP COLUMN life_fauna,"
-                         " DROP COLUMN life_sentient, ADD COLUMN phi_bio DOUBLE, ADD COLUMN phi_cpx DOUBLE,"
-                         " ADD COLUMN phi_tech DOUBLE, ALGORITHM=COPY")  # v150 (GEN.649)
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor,"
-                         " DROP COLUMN albedo_basis, ALGORITHM=COPY")
-        conn.execute("UPDATE alembic_version SET version_num = '0141'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (141)")
-        conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 141
-    finally:
-        conn.close()
+    db_schema_support.downgrade_to(mysql_config, 141)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -144,25 +125,7 @@ def test_a_row_with_no_solution_takes_a_seeded_class_draw(mysql_config):
         conn.close()
     if not edited:
         pytest.skip("the system has no planet with air")
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        db_schema_support.drop_bulk_composition(conn)  # v144
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN tidal_flux_w_m2, ALGORITHM=COPY")  # v152
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN life_microbial, DROP COLUMN life_flora, DROP COLUMN life_fauna,"
-                         " DROP COLUMN life_sentient, ADD COLUMN phi_bio DOUBLE, ADD COLUMN phi_cpx DOUBLE,"
-                         " ADD COLUMN phi_tech DOUBLE, ALGORITHM=COPY")  # v150 (GEN.649)
-        for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor,"
-                         " DROP COLUMN albedo_basis, ALGORITHM=COPY")
-        conn.execute("UPDATE alembic_version SET version_num = '0141'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (141)")
-        conn.commit()
-    finally:
-        conn.close()
+    db_schema_support.downgrade_to(mysql_config, 141)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:

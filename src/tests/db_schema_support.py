@@ -18,65 +18,88 @@ from planetgen.db import store
 OLD_SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "old_schemas")
 
 
-BULK_COMPOSITION_COLUMNS = (
-    "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "envelope_mass_fraction", "rock_feo_fraction",
-    "rock_al2o3_fraction", "rock_mg_si_ratio", "envelope_helium_fraction", "envelope_z_fraction", "porosity", "carbon_rock",
-    "composition_origin",
-)
-"""tuple: What migration 0144 (DB.69) added to `planets` and `moons`."""
+def _ddl_parts(conn):
+    """The shape of the connected database as `{table: {"create": text, "columns": {name: line}, "keys": {name: line},
+    "constraints": {name: line}}}` (views as `{"view": text}`), read from `SHOW CREATE TABLE`: both sides of a comparison
+    come from the same server, so a line that has not changed is the same text on both."""
+    found = {}
+    for row in conn.execute("SHOW FULL TABLES").fetchall():
+        values = list(row.values())
+        name, kind = values[0], values[1]
+        if kind == "VIEW":
+            found[name] = {"view": conn.execute(f"SHOW CREATE VIEW `{name}`").fetchone()["Create View"]}
+            continue
+        create = conn.execute(f"SHOW CREATE TABLE `{name}`").fetchone()["Create Table"]
+        parts = {"create": create, "columns": {}, "keys": {}, "constraints": {}}
+        for line in create.splitlines()[1:-1]:
+            line = line.strip().rstrip(",")
+            if line.startswith("`"):
+                parts["columns"][line.split("`")[1]] = line
+            elif line.startswith("CONSTRAINT"):
+                parts["constraints"][line.split("`")[1]] = line
+            elif line.startswith("PRIMARY KEY"):
+                parts["keys"]["PRIMARY"] = line
+            else:
+                parts["keys"][line.split("`")[1]] = line
+        found[name] = parts
+    return found
 
 
-def drop_bulk_composition(conn):
-    """Makes the database older than v135: the bulk composition columns and their check gone."""
-    for table in ("planets", "moons"):
-        columns = ", ".join(f"DROP COLUMN {column}" for column in BULK_COMPOSITION_COLUMNS)
-        conn.execute(f"ALTER TABLE {table} DROP CHECK {table}_chk_8, {columns}, ALGORITHM=COPY")
-
-
-GIANT_INTERIOR_COLUMNS = (
-    "interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa", "helium_depletion", "has_helium_shell",
-)
-"""tuple: What migration 0154 (DB.89) added to `planets` and `moons`."""
-
-
-def drop_giant_interiors(conn):
-    """Makes the database older than v154: the interior columns and their check gone, and the layer tables."""
-    for table in ("planets", "moons"):
-        columns = ", ".join(f"DROP COLUMN {column}" for column in GIANT_INTERIOR_COLUMNS)
-        conn.execute(f"ALTER TABLE {table} DROP CHECK {table}_chk_9, {columns}, ALGORITHM=COPY")
-    conn.execute("DROP TABLE planet_interior_layers")
-    conn.execute("DROP TABLE moon_interior_layers")
-SURFACE_COMPOSITION_COLUMNS = (
-    "ground_type", "ground_grain", "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction",
-    "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction",
-    "ground_oxidised_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
-    "ground_sulfur_fraction",
-)
-"""tuple: What migration 0160 (GEN.441) added to `planets` and `moons`."""
-
-
-def drop_surface_composition(conn):
-    """Makes the database older than v160: the surface composition columns gone."""
-    for table in ("planets", "moons"):
-        columns = ", ".join(f"DROP COLUMN {column}" for column in SURFACE_COMPOSITION_COLUMNS)
-        conn.execute(f"ALTER TABLE {table} {columns}, ALGORITHM=COPY")
-
-
-RING_COLUMNS = ("ring_kind", "ring_origin", "ring_inner_km", "ring_outer_km", "ring_mass_kg", "ring_optical_depth", "ring_ice_fraction")
-"""tuple: What migration 0160 (GEN.732) added to `planets` and `moons`."""
-
-
-def drop_rings(conn):
-    """Makes the database older than v160: the ring columns and their two checks gone."""
-    for table in ("planets", "moons"):
-        columns = ", ".join(f"DROP COLUMN {column}" for column in RING_COLUMNS)
-        conn.execute(f"ALTER TABLE {table} DROP CHECK {table}_chk_10, DROP CHECK {table}_chk_11, {columns}, ALGORITHM=COPY")
-
-
-def drop_atmosphere_colour(conn):
-    """Makes the database older than v162: the `atmosphere_colour` column (DB.96) gone."""
-    for table in ("planets", "moons"):
-        conn.execute(f"ALTER TABLE {table} DROP COLUMN atmosphere_colour, ALGORITHM=COPY")
+def downgrade_to(config, version):
+    """
+    Makes the database `config` names, which holds the current schema, the schema of `version`, with its rows kept (TEST.328):
+    what a migration test starts from. The old schema is the checked-in one (`fixtures/old_schemas/schema_v<version>.sql.gz`)
+    loaded into a scratch database, and every difference is undone in the test's own database (a table, column, key,
+    CHECK or foreign key the old schema lacks is dropped, one it has and the database lacks is added back, a column of
+    another definition is modified), so no test keeps its own list of what each newer migration added. The database is
+    left recorded as `version`, in `alembic_version` and `schema_migrations`. A database with no schema yet is given the current one
+    first, as `store.get_connection` does.
+    """
+    store.get_connection(config).close()
+    with scratch_database(config) as scratch:
+        load_old_schema(scratch, version)
+        conn = store.get_connection(scratch, ensure_schema=False)
+        try:
+            want = _ddl_parts(conn)
+        finally:
+            conn.close()
+    conn = store.get_connection(config, ensure_schema=False)
+    try:
+        have = _ddl_parts(conn)
+        conn.execute("SET FOREIGN_KEY_CHECKS = 0")
+        for name in sorted(set(have) - set(want)):
+            conn.execute(f"DROP {'VIEW' if 'view' in have[name] else 'TABLE'} `{name}`")
+        for name in sorted(set(have) & set(want)):
+            now, old = have[name], want[name]
+            if "view" in now or "view" in old:
+                if now.get("view") != old.get("view"):
+                    conn.execute(f"DROP VIEW `{name}`")
+                    conn.execute(old["view"])
+                continue
+            clauses = []
+            for key, line in now["constraints"].items():
+                if old["constraints"].get(key) != line:
+                    clauses.append(f"DROP FOREIGN KEY `{key}`" if "FOREIGN KEY" in line else f"DROP CHECK `{key}`")
+            for key, line in now["keys"].items():
+                if old["keys"].get(key) != line:
+                    clauses.append("DROP PRIMARY KEY" if key == "PRIMARY" else f"DROP INDEX `{key}`")
+            clauses += [f"DROP COLUMN `{column}`" for column in now["columns"] if column not in old["columns"]]
+            clauses += [f"MODIFY COLUMN {line}" for column, line in old["columns"].items()
+                        if column in now["columns"] and now["columns"][column] != line]
+            clauses += [f"ADD COLUMN {line}" for column, line in old["columns"].items() if column not in now["columns"]]
+            clauses += [f"ADD {line}" for key, line in old["keys"].items() if now["keys"].get(key) != line]
+            clauses += [f"ADD {line}" for key, line in old["constraints"].items() if now["constraints"].get(key) != line]
+            if clauses:
+                conn.execute(f"ALTER TABLE `{name}` {', '.join(clauses)}, ALGORITHM=COPY")
+        for name in sorted(set(want) - set(have)):
+            conn.execute(want[name].get("view") or want[name]["create"])
+        conn.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.execute("UPDATE alembic_version SET version_num = ?", (f"{version:04d}",))
+        conn.execute("DELETE FROM schema_migrations")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (version,))
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def old_schema_versions():

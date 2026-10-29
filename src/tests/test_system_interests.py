@@ -22,6 +22,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
 from tests.test_migration_habitable_worlds import ADDRESS, CENTER_PC
+from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -292,19 +293,7 @@ def test_a_v164_galaxy_gets_its_rows_from_the_planets_moons_and_belts_it_holds(m
     finally:
         conn.close()
     # make it a v164 galaxy again: the table gone, the old one back, the rows kept
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute("DROP TABLE system_interests")
-        conn.execute("CREATE TABLE habitable_systems (star_system_id BIGINT UNSIGNED NOT NULL PRIMARY KEY,"
-                     " habitable_worlds SMALLINT UNSIGNED NOT NULL, galaxy_x_pc DOUBLE NOT NULL, galaxy_y_pc DOUBLE NOT NULL,"
-                     " galaxy_z_pc DOUBLE NOT NULL)")
-        conn.execute("UPDATE alembic_version SET version_num = '0164'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (164)")
-        conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 164
-    finally:
-        conn.close()
+    db_schema_support.downgrade_to(mysql_config, 164)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -332,12 +321,10 @@ def test_a_v165_galaxy_gets_the_two_new_reasons_from_what_it_holds(mysql_config)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("DELETE FROM system_interests WHERE reason IN ('uninhabitable', 'asteroid-field')")
-        conn.execute("UPDATE alembic_version SET version_num = '0165'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (165)")
         conn.commit()
     finally:
         conn.close()
+    db_schema_support.downgrade_to(mysql_config, 165)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -364,12 +351,10 @@ def test_a_v166_galaxy_gets_the_inhabited_reason_from_what_it_holds(mysql_config
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("DELETE FROM system_interests WHERE reason = 'inhabited'")
-        conn.execute("UPDATE alembic_version SET version_num = '0166'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (166)")
         conn.commit()
     finally:
         conn.close()
+    db_schema_support.downgrade_to(mysql_config, 166)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -529,12 +514,10 @@ def test_a_v171_galaxy_gets_the_class_reasons_from_what_it_holds(mysql_config):
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("DELETE FROM system_interests WHERE reason LIKE ?", (interests.CLASS_PREFIX + "%",))
-        conn.execute("UPDATE alembic_version SET version_num = '0171'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (171)")
         conn.commit()
     finally:
         conn.close()
+    db_schema_support.downgrade_to(mysql_config, 171)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -608,12 +591,10 @@ def test_a_v172_galaxy_gets_the_life_reasons_from_what_it_holds(mysql_config):
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("DELETE FROM system_interests WHERE reason IN ('life', 'sentient', 'civilization')")
-        conn.execute("UPDATE alembic_version SET version_num = '0172'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (172)")
         conn.commit()
     finally:
         conn.close()
+    db_schema_support.downgrade_to(mysql_config, 172)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
@@ -687,12 +668,10 @@ def test_a_v173_galaxy_gets_the_technology_level_from_the_species_it_holds(mysql
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("UPDATE system_interests SET best_score = NULL WHERE reason = 'civilization'")
-        conn.execute("UPDATE alembic_version SET version_num = '0173'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (173)")
         conn.commit()
     finally:
         conn.close()
+    db_schema_support.downgrade_to(mysql_config, 173)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:

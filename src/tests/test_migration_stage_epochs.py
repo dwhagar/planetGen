@@ -15,6 +15,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.util import draw
 
 from tests.test_bright_star_scatter import _seed_galaxy, light_steps  # noqa: F401 -- a fixture
+from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -51,16 +52,10 @@ def test_a_v163_galaxy_gets_the_epochs_it_can(mysql_config):
             conn.execute("UPDATE galaxy_shape SET generator_epoch = 70 WHERE id = 1")
             conn.execute("INSERT INTO nebula_field (cell_i, cell_j, cell_k, n, nebula_class, radius_ly, center_x_pc, center_y_pc, center_z_pc)"
                          " VALUES (0, 0, 0, 0, 'M', 5, 1, 2, 3)")
-        # a v163 database: no table, no column
-        conn.execute("DROP TABLE scatter_epochs")
-        conn.execute("ALTER TABLE species DROP COLUMN generator_epoch")
-        conn.execute("UPDATE alembic_version SET version_num = '0163'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (163)")
-        conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 163
     finally:
         conn.close()
+    # a v163 database: no table, no column
+    db_schema_support.downgrade_to(mysql_config, 163)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:

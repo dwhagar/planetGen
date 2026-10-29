@@ -11,6 +11,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.physics import rings
 from planetgen.util import draw
+from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -25,20 +26,7 @@ def _ringed_rogue():
 
 
 def _downgrade(config):
-    conn = store.get_connection(config, ensure_schema=False)
-    try:
-        checks = [next(iter(row.values())) for row in conn.execute(
-            "SELECT CONSTRAINT_NAME FROM information_schema.CHECK_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() "
-            "AND CONSTRAINT_NAME LIKE 'rogue_planets%%' AND CHECK_CLAUSE LIKE '%%ring_%%'").fetchall()]
-        drops = [f"DROP CHECK {name}" for name in checks] + [f"DROP COLUMN {name}" for name in rings.BODY_FIELDS]
-        conn.execute("ALTER TABLE rogue_planets " + ", ".join(drops) + ", ALGORITHM=COPY")
-        conn.execute("UPDATE alembic_version SET version_num = '0170'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (170)")
-        conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 170
-    finally:
-        conn.close()
+    db_schema_support.downgrade_to(config, 170)
 
 
 def test_a_saved_rogue_planet_keeps_its_ring(mysql_config):

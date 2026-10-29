@@ -12,6 +12,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.physics import rogue_habitability
 from planetgen.util import draw
+from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -26,17 +27,7 @@ def _rogue(mass_bin="terrestrial"):
 
 
 def _downgrade(config):
-    conn = store.get_connection(config, ensure_schema=False)
-    try:
-        conn.execute("ALTER TABLE rogue_planets " + ", ".join(
-            f"DROP COLUMN {name}" for name in rogue_habitability.ROGUE_FIELDS) + ", ALGORITHM=COPY")
-        conn.execute("UPDATE alembic_version SET version_num = '0157'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (157)")
-        conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 157
-    finally:
-        conn.close()
+    db_schema_support.downgrade_to(config, 157)
 
 
 def test_a_saved_rogue_planet_keeps_its_score(mysql_config):

@@ -17,6 +17,7 @@ from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
 from tests.test_life_text_consistency import _life_text
+from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -82,18 +83,7 @@ def test_a_saved_world_reads_the_same_without_a_draw_or_a_pace_table(mysql_confi
 
 
 def _downgrade(config):
-    conn = store.get_connection(config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            drops = ", ".join(f"DROP COLUMN {field}" for field in evolution.SCHEDULE_FIELDS)
-            conn.execute(f"ALTER TABLE {table} {drops}, ALGORITHM=COPY")
-        conn.execute("UPDATE alembic_version SET version_num = '0155'")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (155)")
-        conn.commit()
-        assert store._stored_version(conn, "schema_migrations") == 155
-    finally:
-        conn.close()
+    db_schema_support.downgrade_to(config, 155)
 
 
 def test_a_v155_galaxy_gets_the_ages_of_its_stored_pace(mysql_config):
