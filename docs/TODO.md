@@ -13673,6 +13673,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.646, GEN.812.
   Prerequisites: none. Related: GEN.907, GEN.909, GEN.854, GEN.646,
   GEN.812.
+  Owner: Aux 7 (surface labels), 3:47 AM EDT 2026-10-29. Root cause (Core 1, section 6 of /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md): the frozen 'surface ocean' bodies are GEN.762 chloride brines: 13 of 20 (G2V) and 14 of 21 (K5V) ecosphere 'surface ocean' bodies hold under 1e-5 of their mass as water (Earth 2e-4), so the brine melts at 200 to 270 K, often with no air. By design but misleading. Fix: a state or label (brine seep) and not counting it as a sunlit sea (SUNLIT_OCEAN, LIVING_HYDROSPHERES). Core 1 will make the SUNLIT_OCEAN part in its second change only if Aux 2's life.py rewrite (epoch 120) does not already remove it (it does remove it). Changes generated output: lock turn, order with Aux 7's GEN.746-748. (this replaces any earlier owner line)
 
 - [ ] **GEN.909 Temperate liquid-water worlds (273 to 323 K, 10 kPa to 1 MPa, ocean) are rare: 10 in 120 systems at G2V, 6 at K5V, 0 at M2V (bug)**
   Found by Core 1 (about 3:31 AM EDT as the lane reported) while
@@ -13690,6 +13691,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   diagnosis). Prerequisites: none. Related: GEN.907, GEN.908, GEN.854,
   GEN.646.
   Prerequisites: none. Related: GEN.907, GEN.908, GEN.854, GEN.646.
+  Owner: Core 4 (air diagnosis), 3:47 AM EDT 2026-10-29, after its ADM.58 lock-free item, as a lock-free diagnosis on a separate branch. Root cause so far (Core 1, section 6 of /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md): the ecosphere is cold WITH real air: 45 of 70 G2V and 45 of 65 K5V ecosphere bodies are under 273 K (median 267 K on G2V); only 11 and 7 of those are airless. Of 45 G2V bodies of 0.8 Earth masses or more, 30 are frozen and only 8 are temperate with at least 10 kPa. The carbonate-silicate thermostat does not lift CO2 across the outer ecosphere. Suspects: surface_air.solve (CO2 inventory and sink, GEN.411/422, the GEN.812 greenhouse change) or ice-albedo. Find which; the fix changes generated output (lock turn), record any tweak in the stand-in registry. (this replaces any earlier owner line)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
