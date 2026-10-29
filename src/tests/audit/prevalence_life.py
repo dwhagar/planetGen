@@ -10,7 +10,10 @@ life with no animals), `animals` (fauna above 0) or `sentient` (a technological 
 the bands of `tests/data/prevalence_life_expectations.json` (stand-ins, tier T9 and tweak level L3, set from Boss's rule and Core 1's timing
 review), widened by four binomial sigma of the run's own count of life worlds, so a small run never tightens a band.
 
-The class of each life world by the shadow classifier (`physics.life_classes.best`, GEN.886; the class is stored from GEN.889) is counted
+The animal and sentient shares are taken per oxygenic life world (GEN.907, Boss 6:04 AM EDT 10-29): Core 1's timing figures describe worlds
+with oxygenic life, and the default galaxy holds almost none (chlorophyll chemistries are listed for G and K stars and need a sunlit sea),
+so they are measured on `HOST_SYSTEMS` systems made around each of `OXYGENIC_HOSTS`. The share that stops before animals is still taken over
+every life world of the default systems. The class of each life world by the shadow classifier (`physics.life_classes.best`, GEN.886; the class is stored from GEN.889) is counted
 too. Per-class bands are an outcome to measure, not to force (the design's words), so the class shares are in the report and not checked.
 """
 
@@ -29,6 +32,11 @@ EXPECTATIONS_PATH = pathlib.Path(__file__).resolve().parent.parent / "data" / "p
 REPORT_NAME = "life-census-latest.md"
 
 SYSTEMS = 240
+OXYGENIC_HOSTS = ("G2V", "K5V")
+"""tuple: The host stars of the oxygenic population. The default galaxy gives 4 oxygenic worlds in 240 systems (chlorophyll chemistries are
+listed for G and K stars only and need a sunlit sea), so a share per oxygenic world is measured on systems made around these stars."""
+HOST_SYSTEMS = 300
+"""int: Systems drawn around each of `OXYGENIC_HOSTS`."""
 SYSTEM_TIME_LIMIT_S = 60
 SIGMAS = 4.0
 
@@ -38,6 +46,10 @@ RUNGS = ("origin", "producers", "complex", "multicellular", "animals", "sentient
 MEASURES = ("stops_before_animals", "reaches_animals", "reaches_sentient", "sentient_of_animal_worlds")
 """tuple: What the bands bind: the share of life worlds that stop at origin, producers or complex cells, that reach animals (sentient
 worlds included), that reach a sentient civilization, and the share of the worlds that have animals that are also sentient."""
+
+OXYGENIC_MEASURES = ("reaches_animals", "reaches_sentient", "sentient_of_animal_worlds")
+"""tuple: The measures taken per oxygenic life world (GEN.907: Core 1's timing figures describe worlds with oxygenic life). The others are
+taken over every life world, because most life in a generated galaxy stopping before animals is the point of that band."""
 
 
 class _Abandoned(BaseException):
@@ -65,9 +77,9 @@ def class_of(body):
     return best.id if best else None
 
 
-def draw_life(indices):
-    """`{"systems", "worlds", "life", "rungs": {rung: n}, "classes": {class: n}, "abandoned", "errors", "error_count"}` for the systems
-    of `indices` (seeded by their index)."""
+def draw_life(indices, star_type=None):
+    """`{"systems", "worlds", "life", "rungs": {rung: n}, "classes": {class: n}, "oxygenic": {rung: n}, "abandoned", "errors",
+    "error_count"}` for the systems of `indices` (seeded by their index; made around `star_type` when given, with seeds of their own)."""
     from planetgen.generation import evolution
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
@@ -82,10 +94,12 @@ def draw_life(indices):
     previous = signal.signal(signal.SIGALRM, _alarm)
     try:
         for index in indices:
-            draw.set_run_seed(census.seed_for("life-census", index))
+            draw.set_run_seed(census.seed_for("life-census", index) if star_type is None else census.seed_for("life-census", star_type, index))
             signal.alarm(SYSTEM_TIME_LIMIT_S)
             try:
-                system = StarSystem(system_config=SystemConfig())
+                config = SystemConfig()
+                config.STAR_TYPE = star_type
+                system = StarSystem(system_config=config)
                 for planet in system.all_planets:
                     if planet.body_type == "a":
                         continue
@@ -113,37 +127,55 @@ def draw_life(indices):
             "oxygenic": dict(oxygenic), "abandoned": abandoned, "errors": sorted(set(errors)), "error_count": error_count}
 
 
-def run(systems=SYSTEMS, workers=None):
-    """The census on worker processes (the time guard is an alarm), merged."""
-    workers = min(workers or os.cpu_count() or 1, max(systems, 1))
-    chunks = [list(range(start, systems, workers)) for start in range(workers)]
+def _job(job):
+    return draw_life(*job)
+
+
+def run(systems=SYSTEMS, workers=None, host_systems=HOST_SYSTEMS):
+    """The census on worker processes (the time guard is an alarm), merged: `systems` default systems for the shares of every life
+    world, and `host_systems` systems around each of `OXYGENIC_HOSTS` for the shares of the oxygenic ones (`host_oxygenic`)."""
+    workers = min(workers or os.cpu_count() or 1, max(systems, host_systems, 1))
+    jobs = [(list(range(start, systems, workers)), None) for start in range(workers)]
+    jobs += [(list(range(start, host_systems, workers)), host) for host in OXYGENIC_HOSTS for start in range(workers)]
     with multiprocessing.get_context("fork").Pool(workers) as pool:
-        parts = pool.map(draw_life, chunks, chunksize=1)
-    merged = {"systems": 0, "worlds": 0, "life": 0, "rungs": Counter(), "classes": Counter(), "oxygenic": Counter(), "abandoned": 0, "errors": [], "error_count": 0}
-    for part in parts:
-        for key in ("systems", "worlds", "life", "abandoned", "error_count"):
+        parts = pool.map(_job, jobs, chunksize=1)
+    merged = {"systems": 0, "worlds": 0, "life": 0, "rungs": Counter(), "classes": Counter(), "oxygenic": Counter(),
+              "host_systems": 0, "host_oxygenic": Counter(), "abandoned": 0, "errors": [], "error_count": 0}
+    for (_, host), part in zip(jobs, parts):
+        for key in ("abandoned", "error_count"):
             merged[key] += part[key]
-        merged["rungs"].update(part["rungs"])
-        merged["classes"].update(part["classes"])
-        merged["oxygenic"].update(part["oxygenic"])
         merged["errors"] += part["errors"]
-    merged["rungs"], merged["classes"], merged["oxygenic"] = dict(merged["rungs"]), dict(merged["classes"]), dict(merged["oxygenic"])
+        if host is None:
+            for key in ("systems", "worlds", "life"):
+                merged[key] += part[key]
+            merged["rungs"].update(part["rungs"])
+            merged["classes"].update(part["classes"])
+            merged["oxygenic"].update(part["oxygenic"])
+        else:
+            merged["host_systems"] += part["systems"]
+            merged["host_oxygenic"].update(part["oxygenic"])
+    for key in ("rungs", "classes", "oxygenic", "host_oxygenic"):
+        merged[key] = dict(merged[key])
     merged["errors"] = sorted(set(merged["errors"]))
     return merged
 
 
 def summarize(result):
-    """The four measured shares of life worlds (see `MEASURES`), and the worlds they rest on."""
+    """The four measured shares (see `MEASURES`), and the worlds they rest on: the first over every life world of the default
+    systems, the others over the oxygenic life worlds of the systems made around `OXYGENIC_HOSTS` (GEN.907)."""
     life = result["life"]
     rungs = result["rungs"]
-    animal_worlds = rungs.get("animals", 0) + rungs.get("sentient", 0)
+    oxygenic = result.get("host_oxygenic", {})
+    oxygenic_worlds = sum(oxygenic.values())
+    animal_worlds = oxygenic.get("animals", 0) + oxygenic.get("sentient", 0)
     values = {
         "stops_before_animals": sum(rungs.get(name, 0) for name in ("origin", "producers", "complex")) / life if life else 0.0,
-        "reaches_animals": animal_worlds / life if life else 0.0,
-        "reaches_sentient": rungs.get("sentient", 0) / life if life else 0.0,
-        "sentient_of_animal_worlds": rungs.get("sentient", 0) / animal_worlds if animal_worlds else 0.0,
+        "reaches_animals": animal_worlds / oxygenic_worlds if oxygenic_worlds else 0.0,
+        "reaches_sentient": oxygenic.get("sentient", 0) / oxygenic_worlds if oxygenic_worlds else 0.0,
+        "sentient_of_animal_worlds": oxygenic.get("sentient", 0) / animal_worlds if animal_worlds else 0.0,
     }
-    counts = {"stops_before_animals": life, "reaches_animals": life, "reaches_sentient": life, "sentient_of_animal_worlds": animal_worlds}
+    counts = {"stops_before_animals": life, "reaches_animals": oxygenic_worlds, "reaches_sentient": oxygenic_worlds,
+              "sentient_of_animal_worlds": animal_worlds}
     return values, counts
 
 
@@ -166,6 +198,9 @@ def compare(result, expectations):
     if not result["life"]:
         return [census.Finding("missing", "life", "life worlds", 0.0, 1.0, 1.0, "no world had life")]
     values, counts = summarize(result)
+    if result.get("host_systems") and not sum(result.get("host_oxygenic", {}).values()):
+        findings.append(census.Finding("missing", "life", "oxygenic life worlds", 0.0, 1.0, 1.0,
+                                       f"none in {result['host_systems']} systems around {', '.join(OXYGENIC_HOSTS)}"))
     for measure, bounds in expectations["measures"].items():
         if not counts[measure]:
             continue
@@ -205,8 +240,12 @@ def format_report(result, findings, header=""):
     lines += [f"- {measure}: {values[measure]:.4f} (of {counts[measure]})" for measure in MEASURES]
     lines += ["", "Highest rung: " + ", ".join(f"{name} {result['rungs'].get(name, 0)}" for name in RUNGS)]
     oxygenic = result.get("oxygenic", {})
-    lines += ["", f"Oxygenic life worlds (the population Core 1's animal figures describe): {sum(oxygenic.values())} of {result['life']}"
+    lines += ["", f"Oxygenic life worlds of the default systems: {sum(oxygenic.values())} of {result['life']}"
               + (", highest rung: " + ", ".join(f"{name} {oxygenic.get(name, 0)}" for name in RUNGS) if oxygenic else "")]
+    host = result.get("host_oxygenic", {})
+    lines += ["", f"Oxygenic life worlds in {result.get('host_systems', 0)} systems around {', '.join(OXYGENIC_HOSTS)} (the population of "
+              f"reaches_animals, reaches_sentient and sentient_of_animal_worlds): {sum(host.values())}"
+              + (", highest rung: " + ", ".join(f"{name} {host.get(name, 0)}" for name in RUNGS) if host else "")]
     lines += ["", "Shadow life class of the life worlds (an outcome to measure, not checked): "
               + ", ".join(f"{name} {count}" for name, count in sorted(result["classes"].items(), key=lambda item: -item[1]))]
     return "\n".join(lines) + "\n"
