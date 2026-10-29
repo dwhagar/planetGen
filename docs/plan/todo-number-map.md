@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.453 |
+| TEST | TEST.454 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -1407,7 +1407,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only | none | done, PR #3221 |
 | GEN.655 | Survival equipment: one physics/equipment.py returns the list of needs (required or recommended) for the four slots, and replaces habitability.equipment and protection.requirements | none | done, PR #2766 |
 | GEN.656 | Regional temperatures (Polar, Northern, Equatorial, Southern; day side, terminator and night side for locked worlds) and the day and night swing, with the regional sentences of the detail text | none | done, PR #2844 |
-| GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH | none | open |
+| GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH | none | done, PR #3702 |
 | GEN.658 | Dust loading and dust toxicity feed the dust filter and seals level of the equipment needs | none | done, PR #2970 |
 | GEN.659 | The interstellar debris density stand-in of 1e12 per pc^3 is 700 to 1,800 times too low: the measured value is 7e14 to 1.8e15 per pc^3 (bug) | none | done, PR #2801 |
 | GEN.660 | The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug) | none | open |
@@ -1617,30 +1617,30 @@ Parents marked "new parent" had no old number of their own.
 | GEN.864 | Sentient life per life class: sentient species and civilizations draw from the life class scores of a world | none | open |
 | GEN.865 | Headline of 9.5: sentient life draws from the life classes, so every sentient world is rated for the kind of life that built it | none | open |
 | GEN.866 | A planet draw around an F5V star at an ecosphere orbit never returns when a large tidally forced moon is generated: the interior heat step size collapses (bug) | none | done, PR #3578 |
-| GEN.867 | The star lists and the chemistry weights agree, and a carbon and water chemistry is never drawn on a non-water solvent | none | open |
-| GEN.868 | A world has a life chemistry only after abiogenesis has happened: the map icons, search facet and population code read life_stage, not life_chemical | none | open |
-| GEN.869 | Life descriptions and labels say what the chemistry does: Chlorophyll a builds the oxygen, Retinal is a supplement, Zinc-Bacteriochlorophyll is an aerobic acidophile, Melanin is not a pigment, and hosts without a life row are stated | none | open |
+| GEN.867 | The star lists and the chemistry weights agree, and a carbon and water chemistry is never drawn on a non-water solvent | none | done, PR #3702 |
+| GEN.868 | A world has a life chemistry only after abiogenesis has happened: the map icons, search facet and population code read life_stage, not life_chemical | none | done, PR #3702 |
+| GEN.869 | Life descriptions and labels say what the chemistry does: Chlorophyll a builds the oxygen, Retinal is a supplement, Zinc-Bacteriochlorophyll is an aerobic acidophile, Melanin is not a pigment, and hosts without a life row are stated | none | done, PR #3702 |
 | GEN.870 | Every life constant has a stand-in registry row with its tier and tweak level (LIFE_CHEMICALS gates and star weights, STAR_EVOLUTION, timelines, score thresholds, solvent factors, toxicity limits, O2 band, energy flux and shares) | none | done, PR #3581 |
-| GEN.871 | Sub-ice microbial mats are scored as Flora and as edible plant food, and described with coastlines and light they do not have (bug) | none | open |
-| GEN.872 | The life pass draws from a per-body sub-stream, so a life-model change no longer re-rolls the names and flavour text of every later body in the system | none | open |
+| GEN.871 | Sub-ice microbial mats are scored as Flora and as edible plant food, and described with coastlines and light they do not have (bug) | none | done, PR #3702 |
+| GEN.872 | The life pass draws from a per-body sub-stream, so a life-model change no longer re-rolls the names and flavour text of every later body in the system | none | done, PR #3702 |
 | GEN.873 | Standing life chemistry tests: star weights match the star lists, every pace can reach complex cells inside the age of the universe, no life chemistry without a stage, no Flora under ice, no chemistry on a non-water solvent, every life constant is registered, an oxygenic world past photosynthesis has more O2 | none | open |
 | GEN.874 | Non-carbon and non-water life classes (silicon, hydrocarbon, sulfuric acid and ammonia solvents) in the life class system | none | folded into GEN.894 (strange-solvent life classes 5 to 9; Boss 9:11 and 9:20 PM EDT 2026-10-28) |
 | GEN.875 | Design: adaptation traits drawn from a world's own stress (radiation, UV, sulfide, acid, brine, heat or cold, high CO2, low O2, toxins), each moving one named habitability threshold | none | done, PR #3583 |
 | GEN.876 | Adaptation traits built: drawn in the life pass, stored in a text column, listed on the object page (adapted to: radiation, sulfide) and read by the habitability scores | none | open |
-| GEN.877 | Animal oxygen floor by grade: route R1 replaces the human 8 to 50 kPa window, with a floor of about 0.1 to 0.8 kPa for sponge-grade animals rising with body size | none | open |
+| GEN.877 | Animal oxygen floor by grade: route R1 replaces the human 8 to 50 kPa window, with a floor of about 0.1 to 0.8 kPa for sponge-grade animals rising with body size | none | done, PR #3702 |
 | GEN.878 | Chemistry-specific energy: the pigment's absorption band times the star's spectrum is the multiplier on LIGHT_SHARE, instead of one bolometric curve for every metabolism | none | open |
 | GEN.879 | A far-red oxygenic chemistry (chlorophyll d and f) that K and M stars can draw, so the most common stars can have oxygenic life and animals | none | open |
 | GEN.880 | Chemolithoautotroph producers (H2 methanogens and acetogens, sulfur and iron oxidisers, radiolytic H2) replace Melanin as the producer under ice and in aquifers, with an oxidant budget that caps aphotic animals | none | open |
 | GEN.881 | Retinal becomes a photoheterotroph supplement that needs a carbon fixer, and Melanin becomes the radiotolerance adaptation with dose in its draw, not a radiation food | none | open |
-| GEN.882 | Route R2, chemosymbiotic animals: tubeworm, clam, mussel and cave-molly style communities on sulfide, methane or H2 with an oxidant, no light needed | none | open |
-| GEN.883 | Route R3, low-oxygen sessile animals: sponge-grade animals with Fauna capped low, on air above 0.5 percent of today's O2 or a CO2 or iron-rich ocean | none | open |
-| GEN.884 | Route R4, rare anoxic animals: a few percent of anoxic sulfidic worlds get animals that have lost aerobic respiration, Fauna capped low | none | open |
+| GEN.882 | Route R2, chemosymbiotic animals: tubeworm, clam, mussel and cave-molly style communities on sulfide, methane or H2 with an oxidant, no light needed | none | done, PR #3702 |
+| GEN.883 | Route R3, low-oxygen sessile animals: sponge-grade animals with Fauna capped low, on air above 0.5 percent of today's O2 or a CO2 or iron-rich ocean | none | done, PR #3702 |
+| GEN.884 | Route R4, rare anoxic animals: a few percent of anoxic sulfidic worlds get animals that have lost aerobic respiration, Fauna capped low | none | done, PR #3702 |
 | GEN.885 | Route R5, alternate-oxidant airs (nitrate-rich water, nitrous oxide, chlorate and perchlorate brines) for non-oxygen breathers | none | folded into GEN.887 and GEN.889 (classes 4b and 4c are Class 4 rows of the life class system; Boss 9:11 PM EDT 2026-10-28) |
 | GEN.886 | The life class rule file and classifier: physics/data/life_classes.json, physics/life_classes.py, a shadow sweep that scores every body with no stored change, and a generated docs page | none | done, PR #3590 |
-| GEN.887 | Life supply quantities: h2_supply, donor_supply, oxidant_supply, co2_phase and nh3_inventory, with stand-in rows and units registry entries | none | open |
+| GEN.887 | Life supply quantities: h2_supply, donor_supply, oxidant_supply, co2_phase and nh3_inventory, with stand-in rows and units registry entries | none | done, PR #3702 |
 | GEN.888 | The acid medium model: a sulfuric acid cloud layer and acid pools from the temperature profile and the SO2 and water shares, filling the dead solvent() sulfuric branch | none | open |
-| GEN.889 | The class switch: life_class, life_class_variant, life_class_best, the life_class_scores table and migration, life_chemical and the star weights and lists dropped, dominant class by net primary production | none | open |
-| GEN.890 | The complexity index and animal grades per class (sessile, small mobile, large active), and the Fauna rule for chemosymbiotic life (fauna never exceeds its class's producer base) | none | open |
+| GEN.889 | The class switch: life_class, life_class_variant, life_class_best, the life_class_scores table and migration, life_chemical and the star weights and lists dropped, dominant class by net primary production | none | done, PR #3702 |
+| GEN.890 | The complexity index and animal grades per class (sessile, small mobile, large active), and the Fauna rule for chemosymbiotic life (fauna never exceeds its class's producer base) | none | done, PR #3702 |
 | GEN.891 | The class ledger and the class-keyed stage-aware air for Classes 2 to 9 (O2 rows come from GEN.855; the gas rows of GEN.857/GEN.858 carry class numbers from the start) | none | open |
 | GEN.892 | Class text: stage names and descriptions per class, and the eats-drinks-breathes-gives-off lines, replacing the chemistry text | none | done, PR #3595 |
 | GEN.893 | Stand-in registry rows for every class window, supply and complexity threshold, with tier and tweak level | none | done, PR #3593 |
@@ -3267,6 +3267,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.450 | test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel is red on main: 80 wheel ticks at a sector centre no longer reach open=1 (bug) | none | open |
 | TEST.451 | Ten reds Core 5 saw on main at its PERF.172 merge (9:59 AM EDT 2026-10-29): re-run each on current main, close the ones already fixed, file the real ones (bug) | none | done, PR #3707 |
 | TEST.452 | A sweep finds the life-capable conditions on every planet class and proves the generator lets life evolve there (a class-blind life test) | none | open |
+| TEST.453 | Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
