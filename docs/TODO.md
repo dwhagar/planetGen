@@ -13685,6 +13685,53 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.899.
   Prerequisites: none. Related: GEN.897, GEN.898, GEN.899.
 
+- [ ] **GEN.915 Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class**
+  Boss requirement (2:46 PM EDT 2026-10-29): "I want to make sure every
+  possible combination of effects, whatever planet class it is, that can
+  possibly evolve life does so no matter what planet class it is." Do:
+  audit every place the life draw, the chemistry weights, the
+  habitability checks and the class cut-over (GEN.646) look at the class
+  letter, a class list or a body-type list (for example the A and M veto
+  on oxygenic life that GEN.867 lifts), and replace each with a test on
+  the conditions themselves (solvent and temperature window, pressure,
+  energy supply, radiation, age and stability, supply of the needed
+  elements). A class that fails a condition is blocked by the condition,
+  not by its letter. Anything that really is a class property (a gas
+  giant has no surface) must come from the conditions that define the
+  class and be written as such. Record any remaining class-dependent
+  rule in the stand-in registry with its reason. Aux 2 checks this
+  against epoch 120 first and fixes what it finds in that epoch or its
+  second turn. Owner: Aux 2. Version 8.1.
+  Prerequisites: GEN.867. Related: GEN.867, GEN.646, GEN.888, GEN.894,
+  GEN.913, TEST.435.
+  Research (2026-10-09): Aux 2 audit of epoch 120 (PR #3702, 2:50 PM EDT
+  as the lane reported): the life code (physics/life_classes.py,
+  life_supply.py, life_complexity.py, generation/life.py) has no
+  class-letter or star-type veto; the letter only picks flavour text.
+  The class dependence that remains is upstream of life, in draws that
+  run first: physics/bulk_draw.py reads the class for the water mass
+  fraction (hydrosphere.WATER_MASS_FRACTION[class], GEN.685), porosity
+  (class D) and the S mass-radius branch; physics/climate_draws.py reads
+  it for the albedo range; generation/system.py reads class M for the
+  habitable guarantee (GEN.916). GEN.646 (Aux 1, class last) must remove
+  the letter-keyed draws: Aux 1 confirms in the cut-over PR which of
+  these are gone and files or names the rest; water fraction, albedo,
+  porosity and mass-radius draws not keyed on the letter are part of
+  this item if GEN.646 leaves them.
+
+- [ ] **GEN.916 The habitable-world guarantee is judged on the conditions (a world that can hold life), not on the class letter M**
+  Found by Aux 2 (2:50 PM EDT 2026-10-29 as the lane reported), from
+  Boss's requirement of 2:46 PM EDT that life depends only on conditions
+  (GEN.915): generation/system.py (about lines 1320 and 2036) reads
+  class M to place the guaranteed habitable world, so a request can pass
+  or fail on the letter. Do: the guarantee, the retry and the check that
+  it was met all test the conditions that make a world able to hold life
+  (the GEN.911 temperate band from the solved climate, solvent and
+  temperature window, pressure, energy supply), for any class. Fits Core
+  1's second change with GEN.911 (after GEN.646 puts the class last).
+  Owner: Core 1. Version 8.1.
+  Prerequisites: GEN.646. Related: GEN.915, GEN.911, GEN.646.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18593,6 +18640,22 @@ clears each one.
   picture inside MAP.336's PR. The last test of TEST.418 (now retired)
   is this one.
   Prerequisites: none. Related: MAP.335, MAP.333.
+
+- [ ] **TEST.452 A sweep finds the life-capable conditions on every planet class and proves the generator lets life evolve there (a class-blind life test)**
+  Boss requirement (2:46 PM EDT 2026-10-29), companion of GEN.915: life
+  must depend only on conditions, never on the class letter. Do: for
+  each of the 20 class letters, sweep the conditions the class can take
+  (temperature, pressure, solvent, energy supply, radiation, age) with
+  the forced-class sampler, mark the combinations that the life model
+  says can host life, and assert that the generator actually draws life
+  for them at a rate inside the model's own probability (not zero, not
+  class-dependent when the conditions are equal). Also assert that two
+  worlds of different classes with identical conditions get identical
+  life odds. A failure names the class and the condition combination.
+  Owner: Bug 2 (with the census harness of TEST.430 and TEST.435); runs
+  with the targeted gate when life, classes or habitability change.
+  Version 8.1.
+  Prerequisites: GEN.915. Related: TEST.430, TEST.435, GEN.915.
 
 ## USR: User accounts
 
