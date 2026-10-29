@@ -122,7 +122,7 @@
   {{ glance_table(symbols) }}
   {%- if planet.summary %}
   <h3 id="item-summary-heading">Summary</h3>
-  <p class="summary">{% for sentence in planet.summary %}{{ sentence }}{{ " " if not loop.last }}{% endfor %}</p>
+  <p class="summary inline-links">{% for sentence in planet.summary %}{{ sentence }}{{ " " if not loop.last }}{% endfor %}</p>
   {%- endif %}
   {%- if absences %}<p class="absences">{{ absences|join(" ") }}</p>{% endif %}
   {%- if planet.life %}
@@ -136,12 +136,12 @@
   {%- if planet.notes %}<div class="prose">{{ planet.notes }}</div>{% endif %}
   {%- if facilities %}<h3>Facilities</h3>{{ facilities }}{% endif %}
   {%- if system_url %}
-  <p>Part of the <a href="{{ system_url }}">{{ system_name }} system</a>.</p>
+  <p class="inline-links">Part of the <a href="{{ system_url }}">{{ system_name }} system</a>.</p>
   {%- if moon_system_url %}
-  <p>See its moons and their orbits on the <a href="{{ moon_system_url }}">moon system map</a>.</p>
+  <p class="inline-links">See its moons and their orbits on the <a href="{{ moon_system_url }}">moon system map</a>.</p>
   {%- endif %}
   {%- elif owner_url %}
-  <p><a href="{{ owner_url }}">Open the free planet {{ owner_name }}</a>.</p>
+  <p class="inline-links"><a href="{{ owner_url }}">Open the free planet {{ owner_name }}</a>.</p>
   {%- endif %}
 </section>
 {%- if planet.phi6_blocks or planet.phi6 %}
@@ -201,16 +201,16 @@
 <section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
   <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>
   {%- if absences %}<p class="absences">{{ absences|join(" ") }}</p>{% endif %}
-  {%- if species %}<p>Dominant species: <a href="{{ species.url }}">{{ species.name }}</a></p>{% endif %}
+  {%- if species %}<p class="inline-links">Dominant species: <a href="{{ species.url }}">{{ species.name }}</a></p>{% endif %}
   {%- if facilities %}<h3>Facilities</h3>{{ facilities }}{% endif %}
   {% if facts %}<div class="prose">{{ facts }}</div>{% elif not (species or facilities or absences) %}<p><em>Nothing more is stored about this {{ kind_label|lower }}.</em></p>{% endif %}
   {%- if system_url %}
-  <p>Part of the <a href="{{ system_url }}">{{ system_name }} system</a>.</p>
+  <p class="inline-links">Part of the <a href="{{ system_url }}">{{ system_name }} system</a>.</p>
   {%- if moon_system_url %}
-  <p>See its moons and their orbits on the <a href="{{ moon_system_url }}">moon system map</a>.</p>
+  <p class="inline-links">See its moons and their orbits on the <a href="{{ moon_system_url }}">moon system map</a>.</p>
   {%- endif %}
   {%- elif owner_url %}
-  <p><a href="{{ owner_url }}">Open the free planet {{ owner_name }}</a>.</p>
+  <p class="inline-links"><a href="{{ owner_url }}">Open the free planet {{ owner_name }}</a>.</p>
   {%- endif %}
 </section>
 <section class="panel" id="item-properties" aria-labelledby="item-properties-heading">
