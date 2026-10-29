@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2535] - 2026-10-29
+
+**Headline:** A visit to an uncharted sector generates nothing and queues nothing, and the old generate-on-visit entry point is gone.
+
+### Changed
+- **No page or API route generates a sector while it answers.** `ensure_sector_generated`, the "recalculate on visit" entry point nothing in the site or API called any more, is removed so it cannot come back; sectors are made by runs (`planetgen galaxy`, the Generate page, `regenerate_sector_cell` for an API job). Tests check that a visit to an uncharted cell changes no table and starts no run, and that no site or API module calls the functions that save a sector.
+- An admin's visit queuing a one-sector run stays open as PERF.204.
+
 ## [8.0.2534] - 2026-10-29
 
 **Headline:** A world's life now belongs to one of fifteen classes, from oxygen-making plants to hydrogen eaters under the ice, and how far it gets is set by the energy and oxygen its class has to work with.
