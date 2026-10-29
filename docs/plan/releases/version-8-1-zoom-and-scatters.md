@@ -22,7 +22,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
 | PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper |  | Boss, 2026-10-17, 4:12 PM EDT: every start path uses the wrapper. |
 | PERF.149 | A map visit queues the missing sector as a run instead of generating it in the web request, and the Galaxy View is closed while a galaxy generation runs | PERF.119 |  |
 | PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
@@ -32,7 +31,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands |  | Research: ledger size at full galaxy. |
 | PERF.154 | One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5) | PERF.119 |  |
 | PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds |  | Boss, 8:46 PM EDT 2026-10-21 (relayed). |
-| PERF.100 | Work queue step 6: delete the old machinery and the work_* tables (Alembic migration) |  | PERF.86 step 6 |
 
 ### Reproducible galaxies
 
@@ -331,7 +329,7 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | UX.102 |  |
 | DOC.72 | The README lists every external file the program needs, with its URL and how to install it, and a check keeps the list complete |  |  |
 | DOC.73 | INSTALL.md recommends a larger innodb_redo_log_capacity for a machine that runs the full test gate |  |  |
-| DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
+| DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings |  |  |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.264, TEST.164 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder |  | Spherical region query, stage C. Step 8. Quality. |
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | DOC.19, DOC.20, DOC.50, DOC.51 |  |
@@ -611,6 +609,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.905 | Mantle redox and delta-IW are empty on class V ocean worlds (bug) |  |  |
 | TEST.434 | Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug) |  |  |
 | TEST.441 | Tests red on main from the albedo-greenhouse, moon-tidal-flux and mass-backfill migrations; the white dwarf models dataset is also missing on a fresh test machine (bug) |  |  |
+| TEST.446 | Two tests red on main: the generated config.schema.json out of date, and the batch-fill units listing rescore-habitability first (bug) |  |  |
 | GEN.861 | Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need | GEN.855, GEN.750 |  |
 | GEN.860 | Melanin radiotrophs weighted by radiation dose: the star weight times a dose factor from 0.1 at Earth dose to 1.0 at about 1,000 times Earth dose | GEN.855, GEN.750 |  |
 | GEN.859 | Microbial worlds without O2 keep a capped CO2 and CH4 air: the limit on how much CO2 and CH4 anoxic microbial life leaves in the air | GEN.855, GEN.750 |  |

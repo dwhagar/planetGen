@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.446 |
+| TEST | TEST.447 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -2228,7 +2228,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) | none | done, PR #1259 |
 | PERF.84 | Neighbour linking stalls on a large run (bug) | none | done, PR #1274 |
 | PERF.85 | Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug) | none | done, PR #1265 |
-| PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply | none | open |
+| PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply | none | done, PR #3656 |
 | PERF.87 | Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls | none | done, PR #1300 |
 | PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill | none | done, PR #1873 |
 | PERF.89 | Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s) | none | done, PR #1308 |
@@ -2242,7 +2242,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | none | done, PR #1999 |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | none | done, PR #3654 |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | none | done, PR #3030 |
-| PERF.100 | Work queue step 6: delete the old machinery and the work_* tables (Alembic migration) | none | open |
+| PERF.100 | Work queue step 6: delete the old machinery and the work_* tables (Alembic migration) | none | done, PR #3656 |
 | PERF.101 | No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug) | none | done, PR #1620 |
 | PERF.102 | The migration progress display shows no estimated time remaining on either bar (bug) | none | done, PR #1626 |
 | PERF.103 | A per-night cost ceiling on the orbital update: warn with the backlog size and move the rest the next night | none | done, PR #1769 |
@@ -3245,6 +3245,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.443 | Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not | none | open |
 | TEST.444 | Browser map tests still red on main after TEST.442: the sector_reach double-click tests and the POI icon key test (bug) | none | done, PR #3643 |
 | TEST.445 | Four map browser tests in test_web_browser_fixture_maps.py red on main: point phenomena links, black hole markers toggle and legend, nebula click clears the selection, wide map card keeps the page edge (bug) | none | done, PR #3650 |
+| TEST.446 | Two tests red on main: the generated config.schema.json out of date, and the batch-fill units listing rescore-habitability first (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
