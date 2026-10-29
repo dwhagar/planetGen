@@ -249,6 +249,7 @@ def test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale(page, map_site):
         page.keyboard.press(key)
         assert _shot(page, SECTOR_CANVAS) != before, f"{key} didn't turn the Sector Map"
     assert page.locator("#galaxymap3d-scale .starmap-scale-label").inner_text() == scale, "turning doesn't change the scale"
+    _settle(page)    # the last turn and the nodes it asked for have landed: a frame still changing is not the key's doing (TEST.426)
     before = _shot(page, SECTOR_CANVAS)
     page.keyboard.press("a")
     assert _shot(page, SECTOR_CANVAS) == before, "other keys do nothing"
