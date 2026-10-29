@@ -13969,19 +13969,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.867, GEN.868, GEN.870, GEN.871, GEN.855. Related:
   TEST.430.
 
-- [ ] **GEN.874 PROPOSAL ONLY, needs Boss approval: non-carbon and non-water life (silicon, hydrocarbon, sulfuric acid or ammonia solvents), animals at most**
+- [ ] **GEN.874 Non-carbon and non-water life classes (silicon, hydrocarbon, sulfuric acid and ammonia solvents) in the life class system, animals at most and never sentient**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 8, fix 18.
-  Listed so they are not forgotten; nothing here is built until Boss
-  approves a specific chemistry. Silicon backbone (Bains 2004; Petkowski
+  Boss, 9:11 PM EDT 2026-10-28: no approvals needed at all, we are
+  building it and a whole new classification system (stop at animals,
+  never sentient). Design basis: reports/non-carbon-life-climates-2026-10-28.md
+  and the carbon life class design. Silicon backbone (Bains 2004; Petkowski
   2020: weak Si-Si bonds, Si oxidises to solid SiO2; works only in
   cryogenic hydrocarbons, concentrated H2SO4 or HF), liquid hydrocarbon
   solvent (SOLVENT_FACTOR 0.2 is a stand-in; solvent() returns it only
   below 190 K with a saturated methane air), sulfuric acid
   (SOLVENT_FACTOR 0.1; solvent() never returns it), ammonia-water (not
-  in code). If ever approved it also stops at animals, and each
-  chemistry needs a solvent field. Done when Boss has answered which, if
-  any, to build; this item then files the build items.
+  in code). Each non-carbon chemistry needs a solvent field and its own
+  life class (atmosphere, temperature, pressure, consumes and produces)
+  in the GEN.862 system. Done when the classes are generated, scored and
+  shown, with tests.
   Prerequisites: GEN.862.
 
 - [ ] **GEN.875 Design: adaptation traits drawn from a world's own stress (radiation, UV, sulfide, acid, brine, heat or cold, high CO2, low O2, toxins), each moving one named habitability threshold**
@@ -14111,12 +14114,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wait for 9.5.
   Prerequisites: GEN.877.
 
-- [ ] **GEN.885 PROPOSAL ONLY, needs Boss approval as fringe physics: route R5, alternate-oxidant airs (nitrate-rich water, nitrous oxide, chlorate and perchlorate brines) for non-oxygen breathers**
+- [ ] **GEN.885 Route R5, alternate-oxidant airs (nitrate-rich water, nitrous oxide, chlorate and perchlorate brines) for non-oxygen breathers, animals at most**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 7.2 R5, fix 16.
   Microbes only on Earth (perchlorate respiration, Coates and Achenbach
-  2006); no animal known; tier T8, L3. Nothing is built until Boss says
-  so. Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water and
+  2006); no animal known; tier T8, L3. Boss, 9:11 PM EDT 2026-10-28: no
+  approvals needed, build it with the life classes. Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water and
   carbon based, stop at animals; sentient life and the life class system
   wait for 9.5.
   Prerequisites: GEN.877.
