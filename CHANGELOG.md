@@ -2,6 +2,30 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2530] - 2026-10-29
+
+**Headline:** The Galaxy Map is closed while a galaxy generation runs.
+
+### Changed
+- **No map from a half-built galaxy.** While a run is changing the galaxy, the Galaxy Map page says a generation is running instead of drawing the map: it shows the stage the run is at and the banner's sentence, checks again by itself every 30 seconds, and shows the map as soon as the run has ended. An admin gets a link to the Queue page. The page answers 503 and is not kept by browsers or caches.
+
+## [8.0.2529] - 2026-10-29
+
+**Headline:** `planetgen benchmark` times the real runs instead of a sequence of its own.
+
+### Changed
+- **The benchmark is `plan` and then `galaxy`.** The scatters, the backfill, the population and the settle are stages of the galaxy run (PERF.172), so the benchmark no longer runs the scatters before the fill as commands of its own.
+- **The stage timings come from the runs' records.** The report reads each stage's wall time, units and worker seconds from the run records in Redis (the figures the Queue page shows) instead of the stage rows in the control database.
+
+## [8.0.2528] - 2026-10-29
+
+**Headline:** The hot-zone Yellow share that fell to 0 since the solved air is explained, and the class census now expects it.
+
+### Fixed
+- **GEN.896 is not a generator fault, so the census ranges move instead of the generator.** Bisecting the hot-zone draws (G2V, M2V, K5V, F5V) found that before the solved air (epoch 106) 29 of 69 hot-zone G2V planets held 1 to 26 kPa of air whatever their mass (Mercury-sized rocks of 0.003 to 0.15 Earth masses at 450 to 600 K), and that air shielded the ground from the ultraviolet and the dose: Radiation scored Yellow on those, so the overall colour could. Now the same tiny hot rocks keep no air (1 of 70), the unshielded ultraviolet index is 1,000 to 26,000 (Red from 300) or the dose is over 1 Sv a year, Radiation is Red and caps the overall colour at Red. K5V hot planets, whose light is dim in the ultraviolet, still score Yellow at the old rate (24 percent). The eight hot-zone Yellow ranges (A0V, F5V, G2V, M2V, planets and moons) now read 0 to 4 percent with the reason in their source, and the known-anomaly entry for GEN.896 is gone (GEN.896).
+
+TODO items resolved: GEN.896.
+
 ## [8.0.2527] - 2026-10-29
 
 **Headline:** `planetgen galaxy` is one run in the queue, so one estimate covers the whole galaxy.
