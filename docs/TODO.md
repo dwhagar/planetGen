@@ -3252,7 +3252,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10-16 Earth masses come out up to 17,600 km, past class S's
   11,468 km top, and get S as the nearest fit (PR #415); Boss to decide
   whether those sizes make sense or need their own range.
-  Prerequisites: GEN.28, GEN.27, TEST.209, TEST.210.
+  Prerequisites: GEN.28, GEN.27.
   Plan (2026-10-07): Under GEN.90: the refactor is the sweep, so it
   stays with it in phase 2.
   Research (2026-10-09, atmospheres-retention-and-classes.md): known
@@ -6705,7 +6705,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star and atmosphere is made of, from real science, and the colour of
   the air and the radiation that follow). A major version needs Boss's
   word.
-  Prerequisites: GEN.446, TEST.209, TEST.210,
+  Prerequisites: GEN.446, TEST.210,
   TEST.211, TEST.212, DOC.66. Related: GEN.416,
   GEN.417, GEN.418, GEN.419, DOC.63.
 
@@ -17471,84 +17471,6 @@ clears each one.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.394, GEN.395. Related: GEN.391, TEST.204.
   Design: [docs/design/galaxy/superbubble-density.md](design/galaxy/superbubble-density.md)
-
-- [ ] **TEST.209 One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): The proof of "all of the values
-  consistent across the board". Generate planets and moons of every
-  class and check: partial pressures sum to the pressure; molar density,
-  mean molecular weight and scale height follow from them; the
-  temperature equals the formula on the stored albedo and greenhouse
-  multiplier; ozone follows the oxygen and UV; the aerosol depths follow
-  their rules; every gas in a description is in the table and the
-  mixture. Runs in the `changed` gate for the files involved. Done: it
-  passes on a generated galaxy and fails when any one rule is broken (a
-  test that breaks each rule in turn).
-  Prerequisites: DB.67,
-  DB.68, GEN.422, GEN.423, GEN.424. Related: GEN.415, DB.68.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): one shared fixture: a generated galaxy holding every
-  planet, moon and star class, built as a census check on TEST.186's
-  harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
-  over it, not four builds.
-  Boss's gated possibility-table rule (1:38 AM EDT): the atmosphere
-  recipe rows of GEN.411 are covered by the registry sum test TEST.214;
-  this sweep checks the consistency of the drawn recipe with the text,
-  the temperature, the ozone and the aerosols.
-  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
-  EDT 2026-10-28, high priority) takes this with TEST.430 where it
-  overlaps the class census; confirm any other lane's claim with TODO
-  first.
-
-- [ ] **TEST.210 A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree**
-  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
-  stores the composition of a body and that composition drives the mass
-  calculations and density calculations for gravity and such?" Answer
-  (read-only trace,
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
-  main at 8.0.1635): no. `planet.composition` is one fixed text string
-  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
-  fractions exist; the bulk density is a uniform draw per class (500:
-  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
-  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
-  radius and density (528) and the gravity from those; giants take mass
-  and radius from a mass-radius relation (534-557). The chain below
-  makes the composition the cause. Generate planets and moons of every
-  class and check: the fractions sum to one and stay in range; the
-  density equals the model's density for the fractions and mass; the
-  gravity equals G M over the radius squared; the stored values agree
-  with the fractions after the migration; the text names only stored
-  materials. Done: it passes on a generated galaxy and fails when any
-  one rule is broken (a test that breaks each rule in turn).
-  Prerequisites: GEN.441,
-  DB.70, GEN.458, GEN.459, GEN.460, GEN.461, GEN.462, GEN.466.
-  Related: TEST.209.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): one shared fixture: a generated galaxy holding every
-  planet, moon and star class, built as a census check on TEST.186's
-  harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
-  over it, not four builds.
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/composition/body-composition-research.md and its five
-  parts in docs/design/composition/body-composition-parts/). The invariants are
-  master section 11: mass fractions sum to one (rock, metal, ice
-  species, envelope), stored density equals mass over the volume of the
-  stored radius, the round trip composition to radius and back stays
-  inside the stated uncertainty and the radius is monotone in mass and
-  in water fraction, the core mass fraction of a star-matched planet
-  equals the stoichiometric value within the scatter, the heavy-element
-  mass of a giant never exceeds its mass, the radiogenic heat equals the
-  isotope-wise sum, the sealed high-pressure-ice threshold follows the
-  water fraction (about 6e-3), porosity is zero above the compaction
-  pressure, and class D density is below 3000 kg/m3 for a rock fraction
-  below 0.9.
-  Boss's gated possibility-table rule (1:38 AM EDT): the bulk recipe
-  rows of GEN.428 are covered by the registry sum test TEST.214; this
-  sweep checks the drawn fractions, density, mass and gravity.
-  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
-  EDT 2026-10-28, high priority) takes this with TEST.430 where it
-  overlaps the class census; confirm any other lane's claim with TODO
-  first.
 
 - [ ] **TEST.211 A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
