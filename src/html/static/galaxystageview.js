@@ -105,6 +105,9 @@ export const SYSTEM_MIN_ZOOM = 1e-9;
 // the farthest, the whole galaxy in view (the same 2.4 galaxy radii the whole-galaxy fit uses).
 export const GLOBAL_FLOOR_PC = 1e-10;
 export const GALAXY_FAR_RADII = 2.4;
+// MAP.334: the nearest the camera comes outside an opened system, until the scene has the precision for finer (MAP.338): the single-precision
+// positions of the sector and the windows are good to about a thousandth of a parsec a few thousand parsecs out.
+export const FIELD_FLOOR_PC = 1e-3;
 const WHEEL_ZOOM_PER_PX = 0.0025;
 // MAP.225: how close to the thing under the pointer a wheel step in leaves the eye, as a share of the view's distance.
 const ZOOM_CLEARANCE = 0.02;
@@ -788,6 +791,16 @@ export function createStageView(host) {
   // The camera's tilt from straight down, in degrees (0 top-down, 90
   // edge-on, 180 from under the plane), and whether a flight is running.
   // Read by the browser tests.
+  // MAP.334: the range the camera may zoom over on the stage on show, in parsecs ({nearestPc, farthestPc}), and the nearest thing along the
+  // ray through a screen point ({point, kind, distance, radius?}); read by the browser tests.
+  canvasEl.galaxyZoomLimits = function () {
+    const fit = fitNow();
+    if (!view || !(fit > 0)) return null;
+    const limits = zoomLimits();
+    return { nearestPc: limits.nearest * fit, farthestPc: limits.farthest * fit };
+  };
+  canvasEl.galaxyNearestThing = function (x, y) { return nearestThingAlong(x, y); };
+
   canvasEl.galaxyCamera = function () {
     if (!view) return null;
     const back = new THREE.Vector3(0, 0, 1).applyQuaternion(view.quat);
@@ -801,9 +814,16 @@ export function createStageView(host) {
   // size (MAP.78): the distance is the user's zoom times the fit at the
   // view's own turn.
   function reframe() {
-    if (!view || !view.fit || !resolved || !resolved.view || !resolved.view.blocks.length) return;
+    const fit = fitNow();
+    if (fit > 0) view.dist = view.zoom * fit;
+  }
+
+  // The distance at which the stage on show (the system, the sector or the window) fits the view as it is turned: what `view.zoom` is a ratio of.
+  // 0 when there is no stage to fit.
+  function fitNow() {
+    if (!view || !view.fit || !resolved || !resolved.view || !resolved.view.blocks.length) return 0;
     const around = enteredSystem ? enteredSystem.fitPoints : entered ? entered.fitPoints : fitPointsOf(resolved);
-    view.dist = view.zoom * fitDistance(around, view.fit.target, view.quat);
+    return fitDistance(around, view.fit.target, view.quat);
   }
 
   // The block of the stage the camera is inside, if any (MAP.149): its
@@ -2367,10 +2387,24 @@ export function createStageView(host) {
   // angles to the way the camera looks. In the open sector the picker's cells and walls lie behind the stars and
   // are never taken for the point: the way to the point must not end on a mesh behind what is pointed at.
   function anchorUnder(clientX, clientY) {
+    const thing = nearestThingAlong(clientX, clientY);
+    return thing ? thing.point : null;
+  }
+
+  // MAP.334: the nearest thing along the ray through a screen point, which the zoom steps are shares of: {point, kind, distance} with the point
+  // in the world (parsecs), the distance `h` from the eye to it and the kind "star", "body" (a picked body of the open system, with its
+  // `radius`), "pick" (any other thing the picker found), "column" (the galaxy's stars thickening along the ray) or "plane" (nothing drawn
+  // there: the focus plane's point). The same law in every stage: a wheel step covers a share of h and never takes the eye within the clearance
+  // of the thing (`limitedStep`), so there is no wall and no landing on a surface.
+  function nearestThingAlong(clientX, clientY) {
     const rect = canvasEl.getBoundingClientRect();
     if (!view || !rect.width || !rect.height) return null;
+    const eye = camera.position;
+    const thing = function (point, kind, extra) {
+      return Object.assign({ point: point, kind: kind, distance: Math.hypot(point[0] - eye.x, point[1] - eye.y, point[2] - eye.z) }, extra);
+    };
     const star = starUnder(clientX, clientY);
-    if (star) return star;
+    if (star) return thing(star, "star");
     const ray = new THREE.Raycaster();
     ray.setFromCamera(new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1), camera);
     const origin = ray.ray.origin;
@@ -2383,11 +2417,15 @@ export function createStageView(host) {
     // MAP.292: the blocks are picking geometry unless they are drawn (MAP.265), and the first face of one nobody sees
     // (the top of a column of them lies kiloparsecs above the disc the eye is looking at) is no place to zoom toward:
     // the point is the focus plane's under the pointer, which a step in and a step out leave where it was.
-    if (found && found.layer === choiceLayer && !entered && !cellsShown() && onPlane) return onPlane;
+    if (found && found.layer === choiceLayer && !entered && !cellsShown() && onPlane) return thing(onPlane, "plane");
     if (found && found.distance > 0 && !(entered && found.layer === choiceLayer)) {
-      return [origin.x + direction.x * found.distance, origin.y + direction.y * found.distance, origin.z + direction.z * found.distance];
+      const body = enteredSystem && found.entry && found.entry.r > 0 ? found.entry : null;
+      return thing([origin.x + direction.x * found.distance, origin.y + direction.y * found.distance, origin.z + direction.z * found.distance],
+        body ? "body" : "pick", body ? { radius: body.r } : null);
     }
-    return (!onCross && columnAnchor(origin, direction, forward, onPlane)) || onPlane;
+    const column = !onCross && columnAnchor(origin, direction, forward, onPlane);
+    if (column) return thing(column, "column");
+    return onPlane ? thing(onPlane, "plane") : null;
   }
 
   // MAP.247: the first point of the cursor ray where the column of the galaxy's stars passes the threshold
@@ -2411,14 +2449,31 @@ export function createStageView(host) {
   // MAP.292: while the next window's data is on its way (`arriving`, the camera kept where it is) the wheel is not held
   // to the end of the range it carried the view to: the view goes on coming closer meanwhile, so a scroll is not stopped
   // for as long as the data takes, and the next window takes the camera over where it has got to.
-  function wheelPolicy(at) {
+  // MAP.334: the range at which the stage on show hands over to the next (or the one before): the ends of its own zoom, which the wheel
+  // carries the view to and across (`zoomAcross`), not the ends of what the camera may do (`zoomLimits`).
+  function handoverPolicy(at) {
     const policy = zoomPolicyFor(resolved, at);
     return arriving && MC.canZoom(policy) ? MC.zoomPolicy(policy.kind, policy.nearest * ARRIVING_OVERSHOOT, policy.farthest) : policy;
   }
 
+  // MAP.334: where the wheel, plus and minus, the slider and a pinch may take the camera: one absolute range in every stage, from the whole
+  // galaxy in view down to FIELD_FLOOR_PC outside an opened system and GLOBAL_FLOOR_PC (a moon framed) in one, as a ratio to the stage's fit like
+  // a policy. No stage ends it (it ends where the stage hands over, `handoverPolicy`, and the next one takes the camera where it is); only
+  // while the next stage's data is on its way is the view held to the end of the range it was carried to (MAP.292).
+  function zoomLimits(at) {
+    const handover = handoverPolicy(at);
+    if (!MC.canZoom(handover) || arriving) return relaxed(handover);
+    const fit = fitNow();
+    if (!(fit > 0)) return relaxed(handover);
+    // The nearest is the floor, except that outside a system it is never short of the stage's own hand-over (a floor above where a star's
+    // system opens would be a wall); a system has nothing nearer to hand over to.
+    const nearest = enteredSystem ? GLOBAL_FLOOR_PC / fit : Math.min(handover.nearest, FIELD_FLOOR_PC / fit);
+    return MC.zoomPolicy(MC.ZOOM_RANGE, nearest, Math.max(handover.farthest, globalFarPc() / fit));
+  }
+
   function zoomBy(factor) {
     if (!view || animation || !MC.canZoom(zoomPolicyFor(resolved))) return;
-    view.zoom = MC.clampDistance(relaxed(wheelPolicy()), view.zoom * factor, 1);
+    view.zoom = MC.clampDistance(zoomLimits(), view.zoom * factor, 1);
     reframe();
     applyView();
   }
@@ -2481,9 +2536,8 @@ export function createStageView(host) {
       return;
     }
     if (arriving) return;
-    const policy = wheelPolicy();
-    const around = enteredSystem ? enteredSystem.fitPoints : entered ? entered.fitPoints : fitPointsOf(resolved);
-    const fit = fitDistance(around, view.fit.target, view.quat);
+    const policy = handoverPolicy();
+    const fit = fitNow();
     if (!(fit > 0)) {
       zoomGoal = 0;
       return;
@@ -2552,7 +2606,7 @@ export function createStageView(host) {
     // MAP.326: how near the camera may come is judged from the point being zoomed toward (a star under the pointer),
     // not from the view's middle, which can be a sector's width from that star: judged from the middle the wheel
     // stopped short of the star and never reached its system.
-    view.zoom = MC.clampDistance(relaxed(wheelPolicy(anchor)), view.zoom * asked, 1);
+    view.zoom = MC.clampDistance(zoomLimits(anchor), view.zoom * asked, 1);
     reframe();
     const taken = before > 0 ? view.dist / before : 1;
     view.target = MC.targetAboutAnchor(view.target, anchor, taken);
@@ -2969,7 +3023,7 @@ export function createStageView(host) {
     const anchor = anchorUnder(event.clientX, event.clientY);
     if (!anchor) return false;
     const asked = limitedStep(anchor, 0.5);
-    const zoom = MC.clampDistance(relaxed(zoomPolicyFor(resolved)), view.zoom * asked, 1);
+    const zoom = MC.clampDistance(zoomLimits(), view.zoom * asked, 1);
     const taken = view.zoom > 0 ? zoom / view.zoom : 1;
     if (!(taken < 1)) return false;
     const target = MC.targetAboutAnchor(view.target, anchor, taken);

@@ -2,6 +2,29 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2465] - 2026-10-29
+
+**Headline:** The wheel, buttons and pinch zoom over one range in every view, so no stage ends the zoom.
+
+### Changed
+- **One zoom range everywhere (MAP.334).** The wheel, plus and minus, the slider and a pinch can take the camera from the whole galaxy in view down to 0.001 pc outside an opened system and 1e-10 pc (about a moon framed) inside one, whatever window, sector or system is on show. The end of a window's, a sector's or a system's own zoom is now only where it hands over to the next, and the camera goes on past it instead of stopping at a wall. Each wheel step still covers a share of the distance to the nearest thing under the pointer (a star, a body of the open system, the stars thickening along the line of sight, else the point of the focus plane), never closer than a clearance from it.
+
+## [8.0.2464] - 2026-10-29
+
+**Headline:** A standing class census draws planets and moons per star type and zone and flags a class share, a habitability colour or a life ceiling that leaves its stored range.
+
+### Added
+- **The class census (TEST.430, with TEST.315's class shares).** `src/tests/audit/prevalence.py` draws seeded planets and moons around M2V, K5V, G2V, F5V, A0V and giant stars in the hot, ecosphere and cold zones, and `src/tests/data/prevalence_expectations.json` holds a min and max for every class share, every Blue, Green, Yellow and Red share and every life ceiling share, each marked observed, researched norm or stand-in (here the prevalence before 4c, commit `0b4d0cc`, 200 draws per cell). It flags a share out of range, a class missing where expected, a class present where barred, and a draw over the time limit; a known fault carries its item (GEN.855 for the oxygen loss since 4c, GEN.829 for class T never drawn, GEN.866 for the interior-heat hang) and the report lists it apart. `python -m tests.audit.prevalence_baseline` re-baselines the file. Documented in `docs/reference/testing.md`.
+
+TODO items resolved: none (TEST.430 stays open for its later parts). Added: none.
+
+## [8.0.2463] - 2026-10-29
+
+**Headline:** An admin can generate a whole block from the Galaxy Map: the block's info card has "Generate this block", which starts the same job as `planetgen sectors --block` on the Generate page.
+
+### Changed
+- **Generate a block from the map (UX.127).** The info card of a block (3, 9, 27, 81 or 243 sectors a side) shows "Generate this block" to a signed-in admin. It asks first when the block is large or its size is not known, then posts the Generate page's new Block mode (`block_key`, `m.shell.band.wedge`) and lands on the job's progress. While another job is running the button is disabled and the card says which job and links to it. The Generate page itself takes the same Block mode as a post.
+
 ## [8.0.2462] - 2026-10-29
 
 **Headline:** The Galaxy Map can mark the star systems that hold a world with life, with sentient life or with a civilization, each an optional marker beside the habitable worlds.
