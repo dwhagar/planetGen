@@ -11,6 +11,7 @@ import pytest
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
 from planetgen.generation import run_plan
+from planetgen.util import log
 from tests.test_bright_star_scatter import (  # noqa: F401
     EDGE_PC, EXTENTS, E_VALUE, SHAPE, THRESHOLD, SCATTER_KINDS, _clear_args, _scatter_args, light_steps)
 
@@ -20,6 +21,14 @@ def _run(mysql_config, *flags):
     args = _scatter_args(mysql_config, *flags)
     run_plan.run_scatter(args)
     return args
+
+
+@pytest.fixture(autouse=True)
+def _the_console_log_writes_to_stdout():
+    """TEST.276: the logger is the process's. A test that ran `main()` with `--quiet`, `--silent` or `--output -`, or the web
+    app (no console handler), leaves it silent or writing to stderr for the next test on the same worker, so a run's lines
+    never reached `capsys.out` and "has nothing stored" was read as ''. This module reads the console, so it sets it."""
+    log.configure(log.NORMAL)
 
 
 def _clear(mysql_config, *flags):
