@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2472] - 2026-10-29
+
+**Headline:** The prevalence suite now also draws whole systems per star type and checks planet occurrence against the rates surveys measured.
+
+### Added
+- **The system census (TEST.431) and planet occurrence against observation (TEST.395).** `src/tests/audit/prevalence_systems.py` draws 100 seeded systems of each census star type and checks planets, belts and comets per system, moons per planet, the share with no planet, the share that are pairs, the share with a habitable-class or Blue or Green world, and the share where life reaches each milestone, against `src/tests/data/prevalence_systems_expectations.json` (the prevalence before 4c, commit `0b4d0cc`, each range a marked stand-in). `src/tests/audit/prevalence_occurrence.py` reads the same systems and checks giants, hot Jupiters, cold giants, 1 to 20 Earth-mass planets inside 0.5 AU, Earth-mass planets in the ecosphere and the super-Earth to Neptune ratio against observed rates. Known faults carry their item (GEN.855 the lost complex life, GEN.828 and GEN.829 the giant and sub-Neptune gaps against observation) and print in the reports instead of failing.
+- **A crash or a hang in a draw is a finding.** The class census also counts a draw that raised and one over its time limit (it found GEN.866 and GEN.895, both fixed), and tags hot-zone planets that lost their Yellow share since 4c (GEN.896).
+
+TODO items resolved: TEST.431. TEST.395 is built on the system draw's host mix; its repeat on galaxy-placed stars and the final classes after the cut-over stays open. Added: none.
+
 ## [8.0.2471] - 2026-10-29
 
 **Headline:** The design for adaptation traits says how life on a hard world gets tougher against that world's own radiation, sulfide, acid, brine, heat, carbon dioxide and low oxygen.
