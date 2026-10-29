@@ -81,18 +81,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.875 | Design: adaptation traits drawn from a world's own stress (radiation, UV, sulfide, acid, brine, heat or cold, high CO2, low O2, toxins), each moving one named habitability threshold | GEN.855, GEN.750 | Life chemistry review. |
-| GEN.876 | Adaptation traits built: drawn in the life pass, stored in a text column, listed on the object page (adapted to: radiation, sulfide) and read by the habitability scores | GEN.875, GEN.872 | Life chemistry review. |
-| GEN.877 | Animal oxygen floor by grade: route R1 replaces the human 8 to 50 kPa window, with a floor of about 0.1 to 0.8 kPa for sponge-grade animals rising with body size | GEN.855, GEN.867 | Life chemistry review. |
-| GEN.878 | Chemistry-specific energy: the pigment's absorption band times the star's spectrum is the multiplier on LIGHT_SHARE, instead of one bolometric curve for every metabolism | GEN.867 | Life chemistry review. |
-| GEN.879 | A far-red oxygenic chemistry (chlorophyll d and f) that K and M stars can draw, so the most common stars can have oxygenic life and animals | GEN.878, GEN.867 | Life chemistry review. |
-| GEN.880 | Chemolithoautotroph producers (H2 methanogens and acetogens, sulfur and iron oxidisers, radiolytic H2) replace Melanin as the producer under ice and in aquifers, with an oxidant budget that caps aphotic animals | GEN.861, GEN.871, GEN.857 | Life chemistry review. |
-| GEN.881 | Retinal becomes a photoheterotroph supplement that needs a carbon fixer, and Melanin becomes the radiotolerance adaptation with dose in its draw, not a radiation food | GEN.861, GEN.876 | Life chemistry review. |
-| GEN.882 | Route R2, chemosymbiotic animals: tubeworm, clam, mussel and cave-molly style communities on sulfide, methane or H2 with an oxidant, no light needed | GEN.880, GEN.877 | Life chemistry review. |
-| GEN.883 | Route R3, low-oxygen sessile animals: sponge-grade animals with Fauna capped low, on air above 0.5 percent of today's O2 or a CO2 or iron-rich ocean | GEN.877 | Life chemistry review. |
-| GEN.884 | Route R4, rare anoxic animals: a few percent of anoxic sulfidic worlds get animals that have lost aerobic respiration, Fauna capped low | GEN.877 | Life chemistry review. |
 | GEN.885 | PROPOSAL ONLY, needs Boss approval as fringe physics: route R5, alternate-oxidant airs (nitrate-rich water, nitrous oxide, chlorate and perchlorate brines) for non-oxygen breathers | GEN.877 | Life chemistry review. |
-| TEST.436 | Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges | TEST.430, GEN.879, GEN.880, GEN.882, GEN.883, GEN.876 | Life chemistry review. |
 
 ## Phase 2: Settlements and nation-states
 
