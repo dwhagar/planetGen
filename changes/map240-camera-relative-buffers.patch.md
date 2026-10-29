@@ -1,4 +1,0 @@
-**Headline:** The Galaxy Map's block prisms, outlines, sector frame, territory dots, superbubbles, made-sector rings and course line no longer jitter far from the galaxy's centre.
-
-### Changed
-- **Exact shapes far out (MAP.240).** These layers were float32 buffers of absolute places, which at 262 kpc are 0.016 pc apart at best, so the shapes jittered and snapped when seen close. Each is now built as offsets from an origin of its own, worked out in double precision, and carried as the object's position (the new `static/camerarelative.js`): a block part, an outline, the sector frame and each bubble at its middle, dots and rings in 1 kpc cubes, a course in pieces of at most 4 kpc. The system view was already built in its own units inside a group at the system. The page has a test hook that reports each layer's farthest buffer value, and a browser test holds them within 10 kpc of their origins with a polity, a bubble and made sectors 100 to 250 kpc out.
