@@ -417,6 +417,21 @@ prints the report without the test. Giant molecular clouds, planetary nebulae an
 cluster count already have tests of their own (`test_nebula_rates.py`, `test_cluster_count_law.py`); the rest of TEST.433 (open
 clusters, rogue planets, interstellar comets, nebula classes) follows in a later cut.
 
+Part F, the body sweeps (`src/tests/audit/sweep.py`): one shared set of generated bodies that the consistency sweeps read. It builds a
+planet of every class and zone pair the class table allows round an M2V, a G2V and an F5V host, with the moons each drew, and adds the
+planets and moons of 24 seeded generated systems (the history the class-by-class builds skip); the draws are seeded from the host, so a
+repeat gives the same bodies. A rule is a `Rule`: `check(entry)` lists the violations, `breaker(entry)` returns a copy of the body with
+exactly that quantity broken, and `prove_rules_can_fail` checks the sweep reports every broken copy, so a rule that cannot fail does not
+pass. The first sweep is the atmosphere and temperature (TEST.209, `tests/audit/sweep_atmosphere.py`, `tests/test_sweep_atmosphere.py`):
+11 rules (the partial pressures add up; the mean molar mass, the air density and the scale height follow from them; the temperature is the
+Stefan-Boltzmann value on the stored albedo, greenhouse quantity and the starlight at the orbit; the ozone follows the oxygen and the star;
+the aerosol depths follow their rules; every gas in the text is in the table). The second is the bulk composition (TEST.210,
+`tests/audit/sweep_bulk.py`, `tests/test_sweep_bulk.py`): 8 rules (the five shares make one; the details are shares and the envelope
+details exist exactly where there is an envelope; the density and gravity follow from the mass and radius; the radius is the structure
+model's, to a millionth for a planet and 4 percent for a moon, with bodies that have an envelope left out; the body is at least as dense
+as its materials at zero pressure; the phrase names exactly the materials the shares hold). About a minute each on 4 cores. A sweep
+that ever fails on a real fault is filed as a bug and tagged in the test with its item until it is fixed.
+
 
 ## Setting up a cloud session
 
