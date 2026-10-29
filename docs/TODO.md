@@ -2795,19 +2795,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxyprisms.neighbourBlock.
   Prerequisites: none. Related: MAP.121, MAP.141.
 
-- [ ] **MAP.334 Zoom redesign Z1: one global zoom policy, with pace and clearance taken from the distance to the nearest thing; zoom floor 1e-10 pc (1e-12 pc after Z5)**
-  Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
-  (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
-  vertical log ruler with named stops, 4.1 a region lands framed on the
-  charted part, 5.1 moon in view first). Design:
-  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
-  (section 6 plan, section 9 decisions). Owner: Core 2. Replace the
-  per-stage zoom limits with one policy that sets pace and near
-  clearance from the camera distance to the nearest drawn thing. Done: a
-  browser test zooms from the galaxy to the floor with a steady pace and
-  no clipping.
-  Prerequisites: MAP.333. Related: MAP.257.
-
 - [ ] **MAP.335 Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source**
   Size L. Boss answered the research cards at 6:19 PM EDT 2026-10-28
   (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1

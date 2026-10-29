@@ -72,8 +72,7 @@ Boss: the zoom chain is a seminal feature of 8.2. Z0 (MAP.333, the quick fixes) 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.334 | Zoom redesign Z1: one global zoom policy, with pace and clearance taken from the distance to the nearest thing; zoom floor 1e-10 pc (1e-12 pc after Z5) |  |  |
-| MAP.335 | Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source | MAP.334 |  |
+| MAP.335 | Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source |  |  |
 | MAP.336 | Zoom redesign Z3: one goTo(target) for every fly with the verb Go to, a find-a-place box, a vertical log ruler with named clickable stops, crumbs as Go to, and Up one level |  |  |
 | MAP.337 | Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests | MAP.335, MAP.336 |  |
 | MAP.338 | Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers | MAP.335 |  |
