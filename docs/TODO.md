@@ -18835,14 +18835,6 @@ clears each one.
   system wait for 9.5.
   Prerequisites: TEST.430, GEN.879, GEN.880, GEN.882, GEN.883, GEN.876.
 
-- [ ] **TEST.439 test_web_browser_map_perf.py fails on main: the climb moves stars over the buffer at up 1 and up 4, and teardown raises page errors on indexOf and scale (bug)**
-  Found by Core 2 (9:02 PM EDT 2026-10-28, as the lane reported) while
-  merging MAP.333 (#3556); it fails on main without Z0. Find which
-  change broke the climb (the buffer is camera-relative since MAP.240,
-  or the node JSON systems field of MAP.122) and the two page errors,
-  fix the code, or the test if its expectation is stale. Owner: Bug 1.
-  Prerequisites: none. Related: TEST.434, MAP.240.
-
 - [ ] **TEST.443 Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not**
   The remainder of TEST.301 (its sweep part merged as #3619 with Bug 2:
   every planet and moon has a class of its own kind, classify is total
@@ -18854,6 +18846,19 @@ clears each one.
   edits a field not used by the rules and finds the class unchanged;
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
+
+- [ ] **TEST.449 test_sheet_fill "no empty column that applies" is red on main: life_age_complex_cells_gyr is empty (bug)**
+  Found by Aux 7 (about 4:15 AM EDT 2026-10-29 as the lane reported),
+  identical on main without its change: the sheet-fill test finds the
+  column life_age_complex_cells_gyr empty where the rules say it
+  applies. Either the column has no filler since the life timeline
+  (GEN.750, epoch 119) or the applies rule is wrong. Do: find which;
+  fill the column or fix the rule (a generation change goes in a lock
+  turn; a rule or test change does not), then rerun test_sheet_fill.
+  Version 8.1. Owner: Bug 1 (diagnose; hand to Core 1 if the filler
+  belongs to the life timeline). Prerequisites: none. Related: GEN.750,
+  GEN.855.
+  Prerequisites: none. Related: GEN.750, GEN.855.
 
 ## USR: User accounts
 

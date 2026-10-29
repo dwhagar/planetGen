@@ -594,7 +594,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.420 | Runner self-tests and the limit-slider follow-again browser test are red on main (bug) |  | found by Aux 10 |
 | GEN.845 | Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764) |  |  |
 | GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) |  |  |
-| TEST.439 | test_web_browser_map_perf.py fails on main: the climb moves stars over the buffer at up 1 and up 4, and teardown raises page errors on indexOf and scale (bug) |  |  |
 | GEN.896 | Since 4c (epoch 106) hot-zone planets and moons almost never score Yellow: the Yellow share fell to 0 for M2V, G2V and F5V (bug) |  |  |
 | GEN.897 | K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug) |  |  |
 | GEN.898 | A and B stars are far too rare at the reference position: A is 0.11% of stars against 0.6% to 1.1% observed, B 0.01% against 0.04% (bug) |  |  |
@@ -633,6 +632,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.883 | Route R3, low-oxygen sessile animals: sponge-grade animals with Fauna capped low, on air above 0.5 percent of today's O2 or a CO2 or iron-rich ocean | GEN.877 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
 | GEN.884 | Route R4, rare anoxic animals: a few percent of anoxic sulfidic worlds get animals that have lost aerobic respiration, Fauna capped low | GEN.877 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
 | TEST.436 | Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges | TEST.430, GEN.879, GEN.880, GEN.882, GEN.883, GEN.876 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
+| TEST.449 | test_sheet_fill "no empty column that applies" is red on main: life_age_complex_cells_gyr is empty (bug) |  |  |
 | GEN.887 | Life supply quantities: h2_supply, donor_supply, oxidant_supply, co2_phase and nh3_inventory, with stand-in rows and units registry entries | GEN.862 | Life class system (order final, Boss 9:20 PM EDT). |
 | GEN.888 | The acid medium model: a sulfuric acid cloud layer and acid pools from the temperature profile and the SO2 and water shares, filling the dead solvent() sulfuric branch | GEN.887 | Life class system (order final, Boss 9:20 PM EDT). |
 | GEN.889 | The class switch: life_class, life_class_variant, life_class_best, the life_class_scores table and migration, life_chemical and the star weights and lists dropped, dominant class by net primary production | GEN.872 | Life class system (order final, Boss 9:20 PM EDT). |
