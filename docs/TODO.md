@@ -13372,42 +13372,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2.
   Prerequisites: none. Related: GEN.646, GEN.854, GEN.872.
 
-- [ ] **GEN.914 G dwarfs are 3.1% of stars against 4.1% to 5.0% observed: the mass function from 0.5 to 1 solar mass (Kroupa slope 2.3) gives too few stars of 0.86 to 1.1 solar masses (bug)**
-  Found by Bug 1 (as the lane reported, about 1:09 PM EDT 2026-10-29)
-  while fixing GEN.897 (K/M edge 3700 to 3900 K, A/F edge 7500 to 7200
-  K, rows SC1). With the K share fixed (19.4% to 10.8%), G dwarfs are
-  still 3.1% of stars against 4.1% to 5.0% observed. The Kroupa mass
-  function between 0.5 and 1 solar mass (slope 2.3) gives too few stars
-  of 0.86 to 1.1 solar masses. Do: check the mass function and the
-  mass-to-class map in that range against the sources used for GEN.897,
-  find whether the G share is low from the slope, the mass limits of
-  class G, or the age mix; fix or document with the stand-in registry
-  tier and tweak level; a generation change: lock turn, can ride Bug 1's
-  star-statistics change (GEN.897+898+899) if found in time. Version
-  8.1. Owner: Bug 1. Prerequisites: none. Related: GEN.897, GEN.898,
-  GEN.899.
-  Research (2026-10-09): Boss decided the star-count question (3:02 PM
-  EDT 2026-10-29, option 1 'following physics as much as possible', see
-  GEN.918): the star count follows the model's own history. GEN.914 is
-  decided with it: check the G share after the root fix, and if still
-  low, nudge the Kroupa slope inside its source uncertainty (alpha1 1.3
-  +/- 0.5) in the same epoch, recorded as a stand-in row (L1). Owner
-  stays Bug 1.
-  Research (2026-10-09): REVISED (Bug 1, 3:09 PM EDT 2026-10-29 as the
-  lane reported): the star-count root fix is not needed (see GEN.918);
-  Bug 1 re-measures the G share on the Milky Way-like reference galaxy
-  and tells TODO before touching the Kroupa slope.
-  Research (2026-10-09): BOSS DECIDED (3:19 PM EDT 2026-10-29, card
-  answer option 1 'please'): nudge the Kroupa low-mass slope alpha1 from
-  1.3 to 1.1, inside the published range 1.3 +/- 0.5, recorded as an L1
-  stand-in row. Measured by Bug 1 over 40,000 draws at 1.1: G 3.60%
-  (range 3.5 to 6.5), K 12.5% (10 to 14), M 73.1% (67 to 78, closer to
-  RECONS 74.9%), F 2.05%, A 0.16%, white dwarfs 8.1% (4.5 to 7, out;
-  filed as GEN.919). Its own epoch (moves every galaxy's star counts,
-  plan stage), lock turn after Bug 1's #3713, or in the same turn if
-  ready. Owner: Bug 1.
-  Prerequisites: none. Related: GEN.897, GEN.898, GEN.899.
-
 - [ ] **GEN.915 Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class**
   Boss requirement (2:46 PM EDT 2026-10-29): "I want to make sure every
   possible combination of effects, whatever planet class it is, that can
@@ -13550,24 +13514,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   estimate because companions of massive stars are not counted by the
   census; Bug 1 notes it, does not tune it. Owner: Bug 1.
 
-- [ ] **GEN.919 White dwarfs are 8.1% of stars against 4.5% to 7% expected once the low-mass slope is 1.1; their share follows the old-population age spread, not the slope (bug)**
-  Found by Bug 1 (3:15 PM EDT 2026-10-29 as the lane reported) while
-  measuring GEN.914 over 40,000 draws on #3713's code: at the Kroupa
-  low-mass slope alpha1 1.3 white dwarfs are 7.1% (inside the range, at
-  the edge), at the Boss-chosen 1.1 they are 8.1% (outside 4.5% to 7%).
-  Steepening the high slope instead (2.3 to 2.0) raises them to 10%,
-  which is worse. Their share follows the old-population age spread (how
-  many stars are old enough to have left the main sequence), not the
-  slope. Do: find what sets the age spread of the old populations (thick
-  disk, halo, bulge ages and their weights) against the observed white
-  dwarf fraction of the stellar census, fix it from observed physics
-  with a recorded stand-in row if a tweak is needed, and keep the other
-  shares (G 3.6%, K 12.5%, M 73.1%) in range. A generation change that
-  moves star counts: its own epoch with --affects plan and later stages,
-  lock turn after GEN.914 (or in the same epoch if ready). Owner: Bug 1.
-  Version 8.1.
-  Prerequisites: none. Related: GEN.914, GEN.897, GEN.898, GEN.899.
-
 - [ ] **GEN.920 Giants around F, G and K stars are too rare after the class cut-over: 0.03 cold and 0.07 in all per star against 0.05 to 0.25 and 0.08 to 0.35 observed; retune the mass-law gas share (bug)**
   Found by Aux 1 (as the lane reported, about 5:04 PM EDT 2026-10-29) in
   the occurrence census after the class cut-over (GEN.646, epoch 121):
@@ -13594,6 +13540,77 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   then fix or record it as intended in the tolerances. Owner: Bug 1.
   Version 8.1.
   Prerequisites: none. Related: GEN.915, GEN.829.
+
+- [ ] **GEN.922 The star mass function is built right: initial mass function and present-day populations match the observed curve segment by segment, for every mass range and every star-like object type (parent, replaces the one-number GEN.914 tweak)**
+  BOSS ORDER (5:24 PM EDT 2026-10-29): 'build a robust fix for the star
+  generation problem so we match the curve segments for all mass levels
+  and star-like-object-types across the mass range. No quick fixes,
+  patches, let's really fix it. We're getting ready to move away from
+  generation issues and locking in a long term epoch, so I want this as
+  correct as possible.' Replaces GEN.914 (nudge alpha1 1.3 to 1.1) and
+  absorbs GEN.919 (white dwarf share). Background: Bug 1 measured (3:15
+  and 3:53 PM EDT as the lane reported) that the single low-mass slope
+  moves G, K, M, white dwarfs, massive stars (neutron stars, black
+  holes) and the system count all at once, so no single-number change is
+  right. Done: for every mass segment and object type (brown dwarfs, M,
+  K, G, F, A, B, O, white dwarfs, neutron stars, black holes, and the
+  pulsar and magnetar tails) the generated shares of stars, of systems
+  and of the stellar mass match the observed present-day mass function
+  inside stated bands, derived from one coherent chain (a segmented
+  initial mass function with sourced breakpoints and slopes, the
+  star-formation history, main-sequence lifetimes and remnant masses,
+  then multiplicity) rather than tuned shares; every tweak is a recorded
+  stand-in row with tier and tweak scale; one epoch, with the census
+  harnesses (TEST.430 class census, the phenomena census, the star
+  census) re-baselined and green. Children, filed from Bug 1's plan: the
+  observed targets table with sources, the segmented initial mass
+  function, the present-day populations, the tests and the epoch. Owner:
+  Bug 1 (plan in progress). A generation change that moves every
+  galaxy's star counts: its own epoch with --affects plan and later
+  stages, lock turn after Core 1's epoch 122 (and after Bug 1's #3713).
+  Version 8.1.
+  Prerequisites: none. Related: GEN.914, GEN.919, GEN.918, GEN.897,
+  GEN.898, GEN.899, TEST.430.
+
+- [ ] **GEN.923 Observed star-population targets, with sources, for every mass segment and star-like object type (the table the star mass function must match)**
+  Child of GEN.922. Build the table of observed present-day shares and
+  number densities by segment and type: brown dwarfs, M, K, G, F, A, B,
+  O dwarfs, giants, white dwarfs, neutron stars, black holes, and the
+  stellar mass share per segment, from the 10 pc and 20 pc censuses
+  (RECONS, Gaia), the Gaia 100 pc and 150 pc samples, the local
+  luminosity function and the initial mass function literature (Kroupa
+  2001, Chabrier 2003, Salpeter), with the uncertainty of each number,
+  the verified or unverified tier of each source (verified wins; two
+  verified in doubt = newest; two in question = widest range) and the
+  multiplicity statistics per segment. Output is a data file under
+  src/planetgen/physics/data with the sources and a report; papers Boss
+  cannot access are taken second-hand per
+  reports/secondhand-citations-2026-10-24.md. Owner: Bug 1. Version 8.1.
+  Prerequisites: none. Related: GEN.922.
+
+- [ ] **GEN.924 A segmented initial mass function with sourced breakpoints and slopes replaces the single low-mass slope, for the whole mass range down to the brown dwarfs and up to the most massive stars**
+  Child of GEN.922. Replace the Kroupa single low-mass slope with a
+  segmented initial mass function (breakpoints and slopes from the
+  sourced table, including the sub-stellar tail and the massive end),
+  keeping the normalisation tied to the local stellar density and the
+  system count (a galaxy of the same stellar mass must hold the observed
+  number of systems per cubic parsec at the Sun, 0.0984) so the mean
+  system mass is set by the curve and not by a fudge factor; record each
+  breakpoint and slope as a stand-in with its tier and tweak scale.
+  Owner: Bug 1. Prerequisites: the targets table. Version 8.1.
+  Prerequisites: GEN.923. Related: GEN.922.
+
+- [ ] **GEN.925 Present-day star populations follow from the initial mass function, the star-formation history, main-sequence lifetimes and remnant masses: white dwarfs, neutron stars and black holes fall out, not tuned**
+  Child of GEN.922. Derive the present-day mix from the initial mass
+  function (the segmented one), the disk, bulge and halo star-formation
+  histories (GEN.469 chain), lifetimes by mass and metallicity, and
+  remnant masses: white dwarfs (target 4.5 to 7 percent now 8.1 at slope
+  1.1), neutron stars (about 1e9 in the Galaxy) and black holes then
+  follow without separate shares; the census reference galaxy is the
+  Milky Way-like shape (GEN.918). Closes GEN.919 and the neutron star
+  and black hole density notes (GEN.560/563 chain). Owner: Bug 1.
+  Prerequisites: the segmented initial mass function. Version 8.1.
+  Prerequisites: GEN.924. Related: GEN.922, GEN.919, GEN.918.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
