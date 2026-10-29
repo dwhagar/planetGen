@@ -1687,3 +1687,4 @@ Baseline: PR #1817.
 | TEST.209 | 8.1 | Consistency |
 | TEST.210 | 8.1 | Consistency |
 | TEST.214 | 8.1 | Composition proofs |
+| UX.231 | 8.1 | Fly-through map |

@@ -900,7 +900,7 @@ with `clamp()`.
   and lists them in reports/. Done: the test passes on main with the
   empty applicable columns excused by filed item numbers (a list in the
   test, each entry an item id that is open), and the Enuakyadas IV page
-  has no "not stored" row. Owner: unowned (Aux 6 retired 2026-10-28; lock-free pool) (property sheet). Related:
+  has no "not stored" row. Owner: Aux 2 (lock-free item while waiting; Aux 6 retired) (property sheet). Related:
   UX.188, UX.198, UX.199, UX.203, UX.205, TEST.358, GEN.767, GEN.768.
   Prerequisites: none. Related: UX.188, UX.198, UX.199, UX.203, UX.205,
   TEST.358, GEN.767, GEN.768.
@@ -1041,31 +1041,6 @@ with `clamp()`.
   --affects <stage>` and the next epoch; tests are `scripts/test.py
   changed --resume`.
   Prerequisites: UX.226. Related: UX.225.
-
-- [ ] **UX.231 Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
-  9-block cell (about 780 sectors) with at least one generated sector,
-  named from the block path by a new codec kind region (Word Region; the
-  27 Regions of one 81-block share the family word) and drawn as the
-  bounding sphere of its generated sectors, never smaller than the 12 pc
-  standard-fill sphere (about 109 sectors) about the cell's anchor; it
-  exists, and shows on the galactic map, as soon as any sector in the
-  cell is generated (anything above 0 percent), ranked by share charted
-  (generated sectors over the sectors its outline can hold, a standard
-  fill is about 14 percent); ungenerated space gets no region and no
-  sector line may join two unrelated places. Boss, 1:13 AM EDT
-  2026-10-25: the chain is in 8.1, regions are what the galactic-level
-  map shows so a user can always drill down to inhabited space. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
-  from the gated phoneme codec only, never from Milky Way or Solar
-  System lists. An object is placed by the block holding its current
-  position, never by its ID. Done: the line on sector, system and body
-  pages, hidden when absent, test pinned. Owner: Aux 2 (lock-free item while waiting; Aux 6 retired). Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
-  Prerequisites: DB.107. Related: GEN.825, DB.107, GEN.826, API.35,
-  MAP.314, MAP.315.
 
 - [ ] **UX.236 User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest)**
   Boss, 6:19 PM EDT 2026-10-28 (relayed by the coordinator): the zoom
