@@ -1420,7 +1420,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zoom budget and picking, shipping the black-hole kind), markers for
   habitable worlds and chosen classes (child b) and the station and
   vessel icons (child c, in 9.3).
-  Prerequisites: MAP.220, MAP.221.
+  Prerequisites: MAP.221.
 
 - [ ] **MAP.140 Double-click on a selected object goes there and opens its information**
   Boss (GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714), 2026-10-09 00:26Z): "Double clicking on a
@@ -2050,39 +2050,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   holds it and every later fill reads it; each change is logged; and a
   test shows that two overlapping regions combine in a stated order.
   Prerequisites: ADM.94, GEN.302, MAP.212. Related: MAP.119.
-
-- [ ] **MAP.220 Markers for habitable worlds and chosen classes, optional per kind**
-  Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Add the kinds that issue #1234
-  asks for: habitable worlds (by the habitability index, GEN.84) and
-  chosen object classes, each optional through its toggle and shown at
-  the zooms the budget allows. Done: both kinds in the registry of child
-  a, and a browser test that finds one of each on a seeded sector.
-  Prerequisites: none. Related: MAP.132.
-  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
-  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
-  right now to build it, I want the habitability system finished before
-  8.1 is ready'; this overrides the 8.1-only pause for it and any
-  earlier owner line. Owner: Habitability lane C (map). The
-  habitable-world half of MAP.132, which stays in 9.3 for black holes,
-  nebulae and vessels.
-  Decided (Boss, 6:02 PM EDT 2026-10-23): 'habitable' means the PHI-6
-  overall score is Blue or Green; the one rule is GEN.643 (a single
-  is_habitable predicate, this item reads it when it lands; until then
-  use the stored overall score and the same test). Tying the PHI-6 into
-  the planet classes is GEN.644 (Habitability lane D, proposal first).
-  Research (2026-10-09, Update): Habitability lane C (7:17 AM EDT
-  2026-10-24, as the lane reported): the habitable worlds half merged as
-  #2943 (schema v148, migration 0148, no epoch, no marker row). The
-  Galaxy Map has an opt-in 'Habitable worlds' marker kind (Menu toggle
-  or show=marker-habitable): a glyph over each system with a Blue or
-  Green world, hover shows the count, click shows the system card. New
-  side table habitable_systems (star_systems has a FULLTEXT key so no
-  column); tiles carry a new `worlds` section; the count uses the stored
-  phi4 floor, which equals habitability.is_habitable. NOT done, and this
-  item stays open for it: the 'chosen classes' markers (a kind registry
-  entry plus a class filter), which wait on GEN.645 to GEN.648. The lane
-  retired; the item needs a new owner when GEN.645 to GEN.648 land.
 
 - [ ] **MAP.221 Station and vessel icons on the Galaxy Map**
   Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -5589,7 +5556,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.741, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.741, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -19461,6 +19428,21 @@ clears each one.
   runs from one command, a seeded run repeats, and a deliberately broken
   input trips each flag.
   Prerequisites: none. Related: TEST.430, TEST.239, TEST.204.
+
+- [ ] **TEST.434 Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug)**
+  Found by Aux 2 after merging MAP.220 (#3547, about 8:37 PM EDT
+  2026-10-28 as the lane reported); all fail on clean main, not from
+  MAP.220. (1)
+  tests/test_poi_icons_browser.py::test_the_galaxy_map_keys_all_seven_and_draws_the_habitable_world_marker_with_its_symbol
+  clicks the habitable layer, which is now on by default, so the click
+  turns it off. (2) test_no_todo_codes_shown fails twice on strings in
+  generate.py, hitran_cia, ir_ktables, repair, sheet and settings. (3)
+  Seven node-JS test files fail: galaxymap, galaxynodecut,
+  orbitpositions, sectorscene, starlight, systemscale and tilepack. Do:
+  find each cause, fix it in the test or the code (never skip, loosen or
+  quarantine a test), and check the habitable layer default is intended
+  (Boss asked for markers on). Owner: Bug 1.
+  Prerequisites: none. Related: MAP.220, MAP.311, TEST.405, TEST.418.
 
 ## USR: User accounts
 
