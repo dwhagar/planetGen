@@ -13955,6 +13955,46 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.855, GEN.853, GEN.854, TEST.430,
   GEN.646.
 
+- [ ] **GEN.897 K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug)**
+  Found by Bug 2 in the star census (TEST.432, first draw of 40,000
+  stars at the default galaxy reference position), 2026-10-28. Norms:
+  the RECONS 10 pc census (Henry, data 2018-04-12, 378 stars) and
+  Mamajek star densities. K dwarfs 19.4% (observed 11.6% RECONS to 12.9%
+  Mamajek); M 68.0% (observed 69% to 75%); G 3.1% (observed 4.1% to
+  5.0%). Likely cause: constants.TEMP_RANGES puts K down to 3700 K
+  (rounded to 100 K), so stars of 0.4 to 0.55 solar mass (M0 to M2 in
+  the surveys, 3550 to 3850 K) come out as K8 and K9. Do: check the
+  class boundaries against the survey spectral-type to temperature table
+  (Pecaut and Mamajek), fix the range or the lookup at the cause, and
+  record any tweak with its level in the stand-in registry. Version 8.1.
+  Owner: Bug 1.
+  Prerequisites: none. Related: TEST.432, TEST.430, GEN.896.
+
+- [ ] **GEN.898 A and B stars are far too rare at the reference position: A is 0.11% of stars against 0.6% to 1.1% observed, B 0.01% against 0.04% (bug)**
+  Found by Bug 2 in the star census (TEST.432), 2026-10-28. At the
+  default galaxy reference position the population mix is 87% old, 12%
+  intermediate and 0.1% young, so almost no A or B stars exist there.
+  Bug 2 judges the mix, not the IMF, to be the cause. Observed: Mamajek
+  0.6% (A) and RECONS 1.1% (A); B 0.04%. Do: check the age mix by
+  position against the researched star formation history of the disc
+  (and the generator rules: no fixed Milky Way content, so the fix is in
+  the model, not a hard-coded neighbourhood), fix the mix or the young
+  fraction, and re-run the census. If the fix is a tweak, record it in
+  the stand-in registry. Version 8.1. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.432, TEST.430, GEN.896.
+
+- [ ] **GEN.899 An M2V primary has a companion star in 15.8% of systems; the star-count table says 27% and Duchene and Kraus 2013 give 26% +/- 3% (bug)**
+  Found by Bug 2 in the star census (TEST.432, 2,500 systems per primary
+  type), 2026-10-28. G, K and F match their tables. Likely cause:
+  _drawn_plan (system.py) removes brown dwarf members from the drawn
+  tree without replacing them, which costs M dwarfs about 11 points. Do:
+  confirm the cause, then either redraw the companion as a star or keep
+  the multiplicity draw on stellar members only (so the brown dwarf rule
+  cannot lower the stellar companion share), and keep the brown dwarf
+  share as it is. A change that moves the draws is a generation change
+  (lock queue, epoch). Version 8.1. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.432, GEN.229, TEST.430.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
