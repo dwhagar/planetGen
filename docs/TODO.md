@@ -19512,6 +19512,12 @@ clears each one.
   nebula, black hole, neutron star and cluster tests. Done: the part
   runs from one command, a seeded run repeats, and a deliberately broken
   input trips each flag.
+  Research (2026-10-09): Bug 2 (PR 3607, 2026-10-28): first cut merged.
+  Done: black hole, neutron star, magnetar, planetary nebula, supernova
+  remnant and Wolf-Rayet totals. Giant molecular clouds and globular
+  clusters already have tests (test_nebula_rates.py,
+  test_cluster_count_law.py). Still to do: open clusters, rogue planets,
+  interstellar comets and nebula classes. Stays open.
   Prerequisites: none. Related: TEST.430, TEST.239, TEST.204.
 
 - [ ] **TEST.434 Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug)**
