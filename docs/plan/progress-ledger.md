@@ -1710,3 +1710,4 @@ Baseline: PR #1817.
 | PERF.98 | 8.1 | Queue, caches and performance |
 | PERF.86 | 8.1 | Queue, caches and performance |
 | PERF.100 | 8.1 | Queue, caches and performance |
+| MAP.344 | 8.1 | Fly-through map |

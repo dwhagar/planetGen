@@ -2425,13 +2425,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.344 The civilization marker gains a technology band: filter and mark worlds by the technology level of their species**
-  Left out of MAP.311 (needs species tech_level, which is not stored on
-  the map side): store or derive the technology band per civilization
-  world and let the civilization reason in the interests filter choose a
-  band. Boss: sentient and civilised worlds are the rarest kind of life.
-  Prerequisites: MAP.343. Related: MAP.311.
-
 - [ ] **MAP.345 Map and search filters: a world filter for 'supports Class N' and 'has Class N' with a minimum score, from the life_class_scores index**
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
   2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L10 part 2. The sector colouring by habitable
@@ -19995,6 +19988,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: Aux 4 (lock-free item while it waits for the generation lock, 2:42 AM EDT 2026-10-29; PERF.86 is done (PERF.98 #3654, PERF.100 #3656) so the prerequisite is met; this replaces any earlier owner line on this item). Separate branch; docs only. Aux 2 holds the queue code knowledge: ask it for anything unclear, it does not fold this into PERF.119.
 
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
   Step 10 (design note 11 item 10). `database-schema.md` (the two new
