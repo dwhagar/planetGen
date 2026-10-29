@@ -810,6 +810,53 @@ def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
     assert _crumbs(page) == ["Galaxy"] and _query(page) == ""
 
 
+def _as_admin(page, base):
+    """Signs the page in as the fixture's admin: any session cookie does (`FixtureApi.auth_me`)."""
+    from planetgen.api.authz import SESSION_COOKIE_NAME
+    page.context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": "fixture", "url": base}])
+
+
+def test_the_block_menu_offers_generate_to_an_admin_and_starts_the_blocks_job(page, map_site):
+    """UX.127: the info card of a block carries "Generate this block" for an admin, which posts the Generate page's block mode
+    with the block's key (the job `planetgen sectors --block` runs) and lands on the page that shows its progress; a visitor
+    who is not signed in has no such button."""
+    _open_window(page, map_site, 243, 0, 0, 0)
+    assert page.locator("#galaxymap3d-info .starmap-generate").count() == 0, "a visitor is offered no Generate"
+    _as_admin(page, map_site)
+    _open_window(page, map_site, 243, 0, 0, 0)
+    page.wait_for_selector("#galaxymap3d-info .starmap-generate-block")
+    posted = []
+
+    def start(route):
+        posted.append(route.request.post_data)
+        route.fulfill(status=200, content_type="text/html", body="<!doctype html><title>Generate</title><p>Job started</p>")
+
+    page.route("**/admin/generate", start)
+    page.once("dialog", lambda dialog: dialog.accept())    # a block this size can run for hours: it asks first
+    button = page.locator("#galaxymap3d-info .starmap-generate-block button", has_text="Generate this block")
+    assert button.is_enabled()
+    button.click()
+    page.wait_for_function("() => document.body.textContent.includes('Job started')")
+    (body,) = posted
+    fields = dict(pair.split("=", 1) for pair in body.split("&"))
+    assert fields["action"] == "galaxy" and fields["mode"] == "block" and fields["block_key"] == "243.0.0.0", fields
+    assert fields["whole_block"] == "1" and fields["csrf_token"], fields
+
+
+def test_the_block_generate_is_disabled_with_its_reason_while_a_job_runs(page, map_site, monkeypatch):
+    """UX.127: while another run holds the Generate page, the block's button is disabled and says which job and links to it."""
+    from planetgen.web import jobs
+    monkeypatch.setattr(jobs, "active_job", lambda root=None: {"title": "Generate sectors around Fixture Prime"})
+    _as_admin(page, map_site)
+    _open_window(page, map_site, 243, 0, 0, 0)
+    page.wait_for_selector("#galaxymap3d-info .starmap-generate-block")
+    button = page.locator("#galaxymap3d-info .starmap-generate-block button", has_text="Generate this block")
+    assert button.is_disabled() and button.get_attribute("title") == "Another job is running"
+    hint = page.locator("#galaxymap3d-info .starmap-generate-block .hint")
+    assert "Generate sectors around Fixture Prime is still running" in hint.inner_text()
+    assert hint.locator("a").get_attribute("href").endswith("/admin/generate#current-job")
+
+
 OPEN_PRIME = f"?sector={PRIME_CODE}&open=1"
 """The fixture's Fixture Prime (shell 1, band 0, wedge 1) opened in place."""
 

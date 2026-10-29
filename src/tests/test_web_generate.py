@@ -396,6 +396,11 @@ def test_the_add_sectors_choices_build_the_same_command_as_the_old_modes(new, ol
     ({"mode": "span", "span_shells": "10:20", "span_bands": "-2:2"}, ["--shells=10:20", "--bands=-2:2"]),
     ({"mode": "span", "span_shells": "7", "span_bands": "0", "span_wedges": "4:9", "span_limit": "3"},
      ["--shells=7", "--bands=0", "--wedges=4:9", "--limit", "3"]),
+    # UX.127: a block of the Galaxy Map's ladder
+    ({"mode": "block", "block_key": "9.40.2.5"}, ["--block", "9.40.2.5"]),
+    ({"mode": "block", "block_key": " 3.40.7.0 ", "whole_block": "1"}, ["--block", "3.40.7.0", "--yes"]),
+    ({"mode": "block", "block_key": "27.3.0.0", "block_limit": "50", "whole_block": "1"},
+     ["--block", "27.3.0.0", "--limit", "50"]),
 ])
 def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     resp = _post(client, action="galaxy", estimate_ok="1", **form)
@@ -412,7 +417,10 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     ({"mode": "random", "radius_pc": "nan"}, "Radius (pc) must be a finite number."),
     ({"mode": "bogus"}, "Choose what to generate."),
     ({"mode": "ring", "ring": "3"}, "Choose what to generate."),
-    ({"mode": "block", "block": "3.40.7.0"}, "Choose what to generate."),
+    ({"mode": "block"}, "Block is required."),
+    ({"mode": "block", "block_key": "5.0.0.0"}, "Block:"),
+    ({"mode": "block", "block_key": "nonsense"}, "Block:"),
+    ({"mode": "block", "block_key": "3.40.7.0", "block_limit": "0"}, "Limit must be at least 1."),
     ({"mode": "random", "radius_pc": "200.5"}, "Radius (pc) must be at most 200."),
     ({"mode": "random", "max_shell": "9" * 25}, "Highest shell must be at most 83037."),
     ({"mode": "shell", "shell_index": "83038"}, "Shell must be at most 83037."),
@@ -1465,6 +1473,20 @@ def test_map_generate_target_only_for_a_usable_admin():
         assert target["url"] == "/admin/generate"
         assert target["csrfField"] == csrf.FIELD_NAME
         assert target["csrfToken"]
+        assert target["busy"] is None and target["jobUrl"] == "/admin/generate#current-job"
+
+
+def test_map_generate_target_names_the_running_job(monkeypatch):
+    """UX.127: the map's block Generate waits for a running job, so the target carries its title (and `None` when the jobs
+    folder can't be read)."""
+    from planetgen.web import helpers
+
+    app = create_app(_FakeConfig)
+    with app.test_request_context("/galaxy"):
+        monkeypatch.setattr(jobs, "active_job", lambda root=None: {"title": "Add sectors"})
+        assert helpers.generate_target({"username": "a"})["busy"] == "Add sectors"
+        monkeypatch.setattr(jobs, "active_job", lambda root=None: (_ for _ in ()).throw(OSError("no jobs folder")))
+        assert helpers.generate_target({"username": "a"})["busy"] is None
 
 
 # --- The data check first (GEN.590) ---------------------------------------------------

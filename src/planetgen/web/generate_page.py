@@ -69,7 +69,7 @@ from planetgen.generation import luminosity_floor, plan_outline, prevalence, sta
 from planetgen import tuning
 from planetgen.db import dataversion, store
 from planetgen.util import generator_epoch, log, stagemark
-from planetgen.galaxy import bring_to_epoch, dials, mass_chain, objectref
+from planetgen.galaxy import bring_to_epoch, dials, drill, mass_chain, objectref
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
@@ -545,7 +545,37 @@ def galaxy_argv(form, edge_pc=None):
         elif form.get("whole_shell"):
             argv.append("--yes")
         return argv, description
+    if mode == "block":
+        return block_argv(form)
     raise FormError("Choose what to generate.")
+
+
+def block_argv(form):
+    """
+    `planetgen sectors --block` arguments for a block of the Galaxy Map's ladder (UX.127, GEN.310): `block_key`
+    (`m.shell.band.wedge` of a stage level, as the map's stage links write it), then `--limit` (`block_limit`) or, for a
+    whole-block run the admin has confirmed (`whole_block`), `--yes`.
+
+    Returns:
+        tuple: `(argv, description)`.
+
+    Raises:
+        FormError: A key that names no block of a stage level, or a limit out of range.
+    """
+    text = (form.get("block_key") or "").strip()
+    if not text:
+        raise FormError("Block is required.")
+    try:
+        key = drill.format_drill_key(drill.parse_stage_key(text))
+    except ValueError as exc:
+        raise FormError(f"Block: {exc}") from None
+    argv = ["--block", key]
+    limit = _number(form, "block_limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
+    if limit is not None:
+        argv += ["--limit", str(limit)]
+    elif form.get("whole_block"):
+        argv.append("--yes")
+    return argv, f"in block {key}"
 
 
 def course_argv(form):
