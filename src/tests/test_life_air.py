@@ -202,3 +202,12 @@ def test_a_methane_under_a_pascal_is_not_worth_redoing_the_air(world, monkeypatc
     _force_flux(monkeypatch, 1.0e12)
     assert not life_air.apply_gases(world, _class(2), False)
     assert atmosphere.gas_partials_pa(world) == before
+
+
+def test_a_world_scored_again_after_life_changed_its_air_keeps_its_flux_swing(world):
+    """The swing the insolation gave a body is an input of its score; `habitability_world.generate` keeps it (the rebuild after the gases
+    cleared it and left the body unscored by the swing, which the rescoring command then disagreed with)."""
+    from planetgen.physics import habitability_world
+    world.flux_variation = 0.37
+    habitability_world.generate(world, 0.0)
+    assert world.flux_variation == 0.37
