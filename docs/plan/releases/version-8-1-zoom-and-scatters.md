@@ -604,7 +604,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.903 | Atmosphere possibility table e: rows e1 and e2 (bare rock, retained H/He envelope) are never reached for class I because group b has only row b4 for class I (low priority) (bug) |  |  |
 | GEN.904 | Daylight columns stay stale or empty after an orbit move: re-run daylight after generate_spin in the reconcile (bug) |  |  |
 | GEN.906 | Icy-moon tide is stored as 0.0 where it should be NULL (bug) |  |  |
-| GEN.907 | Life census: only 0.08% of life worlds reach animals against the 15 to 35% band, because almost all life worlds are Melanin or Retinal and few ordinary worlds are oxygenic (bug) |  |  |
 | GEN.911 | Habitable-world requests and the habitable zone: the zone mostly holds frozen worlds, so decide where habitable requests aim (inner half of the zone or a temperate band from the solved climate) |  |  |
 | GEN.908 | Worlds labelled surface ocean are mostly frozen: at least half have a mean surface temperature below 273 K (bug) |  |  |
 | GEN.905 | Mantle redox and delta-IW are empty on class V ocean worlds (bug) |  |  |
@@ -632,7 +631,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.883 | Route R3, low-oxygen sessile animals: sponge-grade animals with Fauna capped low, on air above 0.5 percent of today's O2 or a CO2 or iron-rich ocean | GEN.877 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
 | GEN.884 | Route R4, rare anoxic animals: a few percent of anoxic sulfidic worlds get animals that have lost aerobic respiration, Fauna capped low | GEN.877 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
 | TEST.436 | Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges | TEST.430, GEN.879, GEN.880, GEN.882, GEN.883, GEN.876 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
-| TEST.449 | test_sheet_fill "no empty column that applies" is red on main: life_age_complex_cells_gyr is empty (bug) |  |  |
 | GEN.887 | Life supply quantities: h2_supply, donor_supply, oxidant_supply, co2_phase and nh3_inventory, with stand-in rows and units registry entries | GEN.862 | Life class system (order final, Boss 9:20 PM EDT). |
 | GEN.888 | The acid medium model: a sulfuric acid cloud layer and acid pools from the temperature profile and the SO2 and water shares, filling the dead solvent() sulfuric branch | GEN.887 | Life class system (order final, Boss 9:20 PM EDT). |
 | GEN.889 | The class switch: life_class, life_class_variant, life_class_best, the life_class_scores table and migration, life_chemical and the star weights and lists dropped, dominant class by net primary production | GEN.872 | Life class system (order final, Boss 9:20 PM EDT). |
@@ -645,7 +643,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.863 | Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters | GEN.862, GEN.889, UX.237, API.37, MAP.345 | A migration; moved to 8.1 by Boss, 9:10 PM EDT 2026-10-28. |
 | TEST.435 | Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges | GEN.863, TEST.430 | Extends the TEST.430 suite; moved to 8.1 (Boss 9:20 PM EDT); sentient the rarest rung, animals to civilizations at least 20 to 1. |
 | GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) |  |  |
-| TEST.429 | Four test groups are red on clean main: three test_api_job_runs tests, and test_web_seo for web.galaxy_system_nearest (bug) |  |  |
 | TEST.428 | test_benchmark_suite (real run) and the test_work_units batch fills are red on main (bug) |  |  |
 | GEN.852 | Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others) |  |  |
 | GEN.851 | Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today) |  |  |
