@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2474] - 2026-10-29
+
+**Headline:** The generator can now score every rocky world for each of the fifteen kinds of life in the life class design, in shadow, without changing anything a player sees.
+
+### Added
+- **Life class classifier (GEN.886).** `planetgen.physics.life_classes` reads one rule file (`physics/data/life_classes.json`, every number with a source tier and a tweak level) and scores a finished planet or moon for Classes 1a, 1b, 1c, 2, 3a, 3b, 4a, 4b, 4c, 5a, 5b, 6, 7, 8 and 9: gates, temperature windows, a solvent term, the habitability index's chemistry, energy and dose terms, and a supply factor. Class 1a on an Earth-like world gives the same score as today's biosphere index. Supplies that are not stored yet use a stated placeholder, and the acid and ammonia classes name the quantity they wait for (GEN.887, GEN.888). Nothing is stored and no draw is made.
+- **Shadow sweep `src/tests/life_class_shadow_cli.py`.** Generates systems in memory and writes a report of how many worlds support each class, what each waited for, the best class of each world by host star, and where Class 1a differs from the old index.
+- **Generated page `docs/design/habitability/life-class-rules.md`** (from `scripts/build_life_class_rules.py`): the rules of every class with the reason and the tier of each number.
+
 ## [8.0.2473] - 2026-10-29
 
 **Headline:** The prevalence suite now checks the stars the generator makes against the local star census and the multiplicity surveys.
