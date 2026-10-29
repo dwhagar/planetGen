@@ -8,10 +8,9 @@ import copy
 import pytest
 
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.physics import constants, giant_draw, planets
-from planetgen.util import draw
+from tests import class_support
 
 # (mass in Earth masses, radius km, distance AU, measured 1 bar K, tolerance): the four giants round a Sun of 4.5 Gy.
 GIANTS = ((317.8, 69911.0, 5.2, 166.0, 0.10), (14.5, 25362.0, 19.2, 76.0, 0.12), (17.1, 24622.0, 30.07, 72.0, 0.10))
@@ -28,8 +27,8 @@ def _star():
 
 def _stored_temperature_k(mass_earth, radius_km, distance_au):
     config, star = _star()
-    draw.set_run_seed(1)
-    planet = Planet(config, star, star.habitable_zone, distance_au, planet_class="J", zone_override="c", moon_count=0)
+    planet = class_support.draw_planet(star, distance_au, 1, config, mass=mass_earth * constants.EARTH_MASS_TO_KG, zone_override="c",
+                                       moon_count=0)
     planet.mass = mass_earth * constants.EARTH_MASS_TO_KG
     planet.radius = radius_km
     planet.distance = distance_au
