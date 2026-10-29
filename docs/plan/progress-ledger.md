@@ -1698,3 +1698,4 @@ Baseline: PR #1817.
 | PERF.201 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.266 | 8.1 | Fly-through map |
 | MAP.339 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.340 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

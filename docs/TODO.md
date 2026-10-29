@@ -2439,20 +2439,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.340 Black hole crowd badges: crowded black hole marks merge into one mark with a count badge and a click list (bug)**
-  Found by the research thread (report
-  /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
-  section 6; Boss answered 6:22 PM EDT 2026-10-28: density default 1.2,
-  one mark per 120 by 120 px, as a user preference; rare heavy holes
-  2.2, no landmark exemption). Boss live observation, so a bug. Owner:
-  Core 2. Extend the MAP.305 crowd merge (mergeMarks) to the black hole
-  kind: holes within the merge distance draw as one mark with a count
-  badge; a click lists them with a Zoom in on them button. Done: a
-  browser test finds one merged black hole mark with its list in a crowd
-  and the split on zoom in.
-  Prerequisites: none. Related: MAP.305, MAP.339.
-  Owner: Core 3 (lock-free item while it waits for the generation lock, 12:16 AM EDT 2026-10-29; MAP.339 merged as #3636; same file mappreferences.js and the black hole markers; Core 2 is in galaxystageview.js, so tell it before each PR; this replaces any earlier owner line on this item). Separate branch.
-
 - [ ] **MAP.341 Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug)**
   Found by the research thread (report
   /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
@@ -2464,6 +2450,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   marker outside the opened sector the same way. Done: a browser test
   opens a sector and finds the outside markers dimmed.
   Prerequisites: none. Related: MAP.327.
+  Owner: Core 3 (lock-free item while it waits for the generation lock, 12:45 AM EDT 2026-10-29; MAP.340 merged as #3640; the marker code is Core 3's; Core 2 owns the opened-sector view, so tell it before the PR; this replaces any earlier owner line on this item). Separate branch.
 
 - [ ] **MAP.342 Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority)**
   Found by the research thread (report
