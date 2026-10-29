@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2530] - 2026-10-29
+
+**Headline:** The Galaxy Map is closed while a galaxy generation runs.
+
+### Changed
+- **No map from a half-built galaxy.** While a run is changing the galaxy, the Galaxy Map page says a generation is running instead of drawing the map: it shows the stage the run is at and the banner's sentence, checks again by itself every 30 seconds, and shows the map as soon as the run has ended. An admin gets a link to the Queue page. The page answers 503 and is not kept by browsers or caches.
+
 ## [8.0.2529] - 2026-10-29
 
 **Headline:** `planetgen benchmark` times the real runs instead of a sequence of its own.
