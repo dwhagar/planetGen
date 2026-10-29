@@ -202,7 +202,7 @@ def test_the_runner_starts_a_log_for_the_build_and_hands_its_path_to_pytest(tmp_
     monkeypatch.setattr(runner, "PROGRESS_DIR", str(tmp_path / "progress"))
     monkeypatch.setattr(runner, "clear_test_redis", lambda: "")  # the test Redis is in use by the tests beside this one (TEST.152)
     seen = []
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: seen.append(environment) or (0, {"passed": 1}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: seen.append(environment) or (0, {"passed": 1}))
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     old = tmp_path / "progress"
@@ -298,7 +298,7 @@ def test_a_resume_with_nothing_to_resume_says_why(tmp_path, monkeypatch):
 def test_main_resumes_with_a_skip_list_and_says_so_on_its_last_line(tmp_path, monkeypatch, capsys):
     runner = _runner(tmp_path, monkeypatch)
     commands = []
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: commands.append(command) or (0, {"passed": 4}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: commands.append(command) or (0, {"passed": 4}))
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
     assert runner.main(["quick"]) == 0
     [log] = [name for name in os.listdir(tmp_path / "progress") if name.endswith(".jsonl")]
@@ -315,7 +315,7 @@ def test_main_resumes_with_a_skip_list_and_says_so_on_its_last_line(tmp_path, mo
 
 def test_main_runs_nothing_when_the_build_has_no_log_to_resume(tmp_path, monkeypatch, capsys):
     runner = _runner(tmp_path, monkeypatch)
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: pytest.fail("nothing may run"))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: pytest.fail("nothing may run"))
     assert runner.main(["quick", "--resume"]) == 2
     out = capsys.readouterr().out
     assert "cannot resume build" in out and "Nothing was run" in out

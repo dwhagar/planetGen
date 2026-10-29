@@ -217,7 +217,7 @@ def test_a_resume_in_another_environment_runs_every_test_and_says_why(tmp_path, 
 def test_main_says_how_many_tests_were_reused_and_from_which_run(tmp_path, monkeypatch, capsys):
     runner = _runner(tmp_path, monkeypatch)
     commands = []
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: commands.append(command) or (0, {"passed": 3}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: commands.append(command) or (0, {"passed": 3}))
     monkeypatch.setattr(runner.datetime, "datetime", type("D", (datetime.datetime,), {
         "now": classmethod(lambda cls, tz=None: NOW)}))
     _earlier_run_of_another_build(runner, str(tmp_path / "progress"))
