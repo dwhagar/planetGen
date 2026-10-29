@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.238 |
-| MAP | MAP.347 |
+| MAP | MAP.350 |
 | NAV | NAV.65 |
 | GEN | GEN.953 |
 | PERF | PERF.209 |
@@ -2049,6 +2049,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.344 | The civilization marker gains a technology band: filter and mark worlds by the technology level of their species | none | done, PR #3659 |
 | MAP.345 | Map and search filters: a world filter for 'supports Class N' and 'has Class N' with a minimum score, from the life_class_scores index | none | open |
 | MAP.346 | Map browser tests fail on main since MAP.240 (#3605): the wheel moves the target off its line of sight, the window does not fill the page, the info popup does not scroll (bug) | none | done, PR #3639 |
+| MAP.347 | Galaxy Map info popup redesign: it is hard to read and scrolls off the screen even on a maximized 1080p display (bug) | none | open |
+| MAP.348 | Galaxy Map hover preview: pointing at a place shows a small preview before the click | none | open |
+| MAP.349 | Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place)  | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |

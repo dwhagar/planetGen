@@ -2301,6 +2301,57 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   if any step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none. Related: MAP.311.
 
+- [ ] **MAP.347 Galaxy Map info popup redesign: it is hard to read and scrolls off the screen even on a maximized 1080p display (bug)**
+  Boss, 7:22 PM EDT 2026-10-29 (relayed by the coordinator): "we HAVE to
+  redesign the info popup, it is not working at all, it's difficult to
+  read, it scrolls off the screen even on my large 1080p display
+  maximized because the galactic map is so short but if it isn't so
+  short then we lose needed UX." A live observation, so a bug, and a
+  real redesign rather than a patch: the layout, how much shows at once,
+  where it sits, and how it scrolls. The map area is short because the
+  surrounding page chrome takes the height, and making the map taller
+  would lose needed UX, so the popup must work in the space the map has:
+  for example a compact summary that fits without scrolling, with a
+  clearly marked way to expand, a placement that does not cover the
+  thing selected, and a size that follows the map window (MAP.295).
+  Earlier fixes are patches on the same box: MAP.332 (card cut off at
+  the bottom), MAP.315 (region and parent line), MAP.296 (nearest
+  systems list). Do: measure the popup at 1080p maximized and at phone
+  width for a star, a system, a region, a nebula and a black hole;
+  design the card so its first view (name, kind, the Go to buttons, the
+  three most useful values) fits in a quarter of the map height without
+  scrolling; the rest is reached by an Expand control or a side panel
+  that scrolls on its own, never the whole card; a browser test per kind
+  at 1080p and at phone width checks that the first view is fully
+  visible and the card never leaves the viewport. Owner: Core 2 (owns
+  the map code; after MAP.336, TEST.450 and MAP.329). Version 8.1.
+  Prerequisites: none. Related: MAP.332, MAP.315, MAP.295, MAP.296,
+  MAP.336.
+
+- [ ] **MAP.348 Galaxy Map hover preview: pointing at a place shows a small preview before the click**
+  Left unbuilt by MAP.336 (zoom redesign Z3, #3778, as Core 2 reported
+  7:11 PM EDT 2026-10-29) and approved by Boss (7:22 PM EDT): hovering a
+  star, system, region or nebula on the Galaxy Map shows a small preview
+  (name, kind and the two or three most useful values) without a click,
+  so the info popup is only needed for detail. It must not cover the
+  object, must never take the click, and works with the redesigned info
+  popup (the first view of that card and this preview use one layout).
+  Done: a browser test hovers one of each kind and finds the preview,
+  and a touch screen (no hover) shows nothing extra. Owner: Core 2
+  (after the info popup redesign). Version 8.1.
+  Prerequisites: none. Related: MAP.336.
+
+- [ ] **MAP.349 Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place) **
+  Left unbuilt by MAP.336 (zoom redesign Z3, #3778, as Core 2 reported
+  7:11 PM EDT 2026-10-29) and approved by Boss (7:22 PM EDT): every line
+  in the Galaxy Map panels and the info popup that names a container or
+  a place (the region, its parent family, each listed system or sector)
+  has its own Go to button, using the same Go to as the find box, the
+  crumbs and the results list. Done: a browser test clicks the Go to on
+  a region line, a parent line and a listed place and the camera lands
+  on each. Owner: Core 2 (with the info popup redesign). Version 8.1.
+  Prerequisites: none. Related: MAP.336.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
