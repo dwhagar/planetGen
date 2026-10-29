@@ -11604,31 +11604,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   takes the next free generator epoch. Owner: Core 4 (proposed).
   Prerequisites: none. Related: GEN.271.
 
-- [ ] **GEN.711 Register the planet mass law stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each**
-  Found by the class lane while merging GEN.650 (#2947), as the lane
-  reported at 7:26 AM EDT 2026-10-24; design note
-  docs/design/composition/planet-mass-law.md and sweep report
-  reports/planet-mass-law-sweep-2026-10-24.md. The stand-ins in
-  physics/planet_mass.py are PLANET_DISC_SOLIDS_ENHANCEMENT (5),
-  PLANET_ASSEMBLY_SCATTER_DEX (0.8) and GIANT_GAS_SURVIVAL_SHARE (0.5).
-  The sweep shows giants at 8.4 percent of planets against 13.7 percent
-  today, and none close in until the migrant draw. Do: add each to the
-  stand-in registry of docs/design/research/gap-filling-plan.md with
-  fill id, kind (D, B, T, P), evidence label, assumptions, knobs,
-  validity range and falsifier test, and tune them with GEN.509 and
-  GEN.510 when GEN.646 wires the rule in. Done: every constant above has
-  a registry row. Owner: the class lane (it knows the values).
-  Prerequisites: none. Related: GEN.650, GEN.646, GEN.509, GEN.510,
-  GEN.675.
-  Research (2026-10-09, Tier and tweak level): Update 3:41 PM EDT
-  2026-10-24 (Boss, via the coordinator): every registry row now also
-  records a source tier (Verified down to Educated guess based on needed
-  output) and a tweak level; see GEN.725. Record both here when
-  registering.
-  Research (2026-10-09, Order): Order rule: merges before or with
-  GEN.681 (class cut-over); see the note on GEN.681. Owner stays the
-  class lane.
-
 - [ ] **GEN.716 add_star_hosted_nebulae lights a nebula from stars[0], which for a pre-placed row with a stored tree is the structural primary and not the row star, so the built nebula can differ from the predicted one (bug)**
   Found by Bug Hunt (10:41 AM EDT 2026-10-24 as the lane reported, while
   fixing TEST.338). After GEN.631 a system built around a scattered star
