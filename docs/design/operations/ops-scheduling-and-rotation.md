@@ -417,7 +417,7 @@ data directory on a local disk.
 | Lock | Held by | Purpose | If it cannot be taken |
 |---|---|---|---|
 | `locks/maintenance.lock` | `planetgen.cli.maintenance`, `update.sh`, merge now (ADM.20) | no two of: daily run, update, merge now | maintenance: exit 75 and log "skipped"; update: wait up to 30 min, then stop with a message; merge now: show "the daily run holds the lock" and do nothing |
-| `jobs/active` (existing) | Generate page and API | one Generate job | maintenance checks `jobs.active_job()` and exits 75; `start_job` refuses while the maintenance lock is held (try-lock, release) |
+| the job lock, `planetgen:job:active` in Redis (was `jobs/active`) | Generate page and API | one Generate job | maintenance checks `jobs.active_job()` and exits 75; `start_job` refuses while the maintenance lock is held (try-lock, release) |
 
 No concrete corruption case was found for maintenance beside a Generate
 job (orbit update rewrites positions in lockstep; the merge clears pending

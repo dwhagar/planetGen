@@ -27,7 +27,7 @@ def _sun(**over):
 
 
 def _earth(**over):
-    values = dict(planet_class="M", mass=EARTH_MASS_KG, radius=EARTH_RADIUS_KM, distance=1.0, bond_albedo=0.306, is_moon=False,
+    values = dict(body_type="t", mass=EARTH_MASS_KG, radius=EARTH_RADIUS_KM, distance=1.0, bond_albedo=0.306, is_moon=False,
                   star=_sun(), core_mass_earth=None)
     values.update(over)
     return SimpleNamespace(**values)
@@ -50,8 +50,8 @@ def test_the_earth_gives_the_quantities_the_world_gives():
 
 def test_the_subject_holds_exactly_what_the_class_reads():
     subject = ms.subject_of_body(_earth(), ts_k=288.0, pressure_bar=1.0, ocean_present=True, long_lived_geology=True)
-    assert subject.body_class == "M"
-    assert set(subject.quantities) == set(mixture_draw.required_inputs("M"))
+    assert subject.body_class == "terrestrial"
+    assert set(subject.quantities) == set(mixture_draw.required_inputs("terrestrial"))
 
 
 def test_the_zone_follows_the_habitable_zone():
@@ -115,7 +115,7 @@ def test_a_star_with_no_age_takes_the_reference_age():
 
 
 def test_a_giant_gets_its_layer_temperatures_and_the_photosphere_pressure():
-    jupiter = _earth(planet_class="J", mass=317.8 * EARTH_MASS_KG, radius=71492.0, distance=5.2)
+    jupiter = _earth(body_type="g", mass=317.8 * EARTH_MASS_KG, radius=71492.0, distance=5.2)
     q = ms.quantities_of_body(jupiter, ts_k=165.0, pressure_bar=1.0)
     assert q["mass_jupiter"] == pytest.approx(1.0, rel=0.01)
     assert q["photosphere_bar"] == ms.PHOTOSPHERE_BAR
@@ -130,18 +130,19 @@ def host():
     return Star(config)
 
 
-def _real(host, planet_class, zone):
+def _real(host, mass_earth, zone):
     inner, outer = host.habitable_zone
     distance = {"h": 0.5 * inner, "e": 0.5 * (inner + outer), "c": 2.0 * outer}[zone]
-    return Planet(SystemConfig(), host, host.habitable_zone, distance, planet_class=planet_class)
+    return Planet(SystemConfig(), host, host.habitable_zone, distance, mass=mass_earth * constants.EARTH_MASS_TO_KG)
 
 
-@pytest.mark.parametrize("planet_class,zone", [("M", "e"), ("J", "c"), ("I", "c")])
-def test_a_generated_body_gives_a_subject_the_draw_accepts(host, planet_class, zone):
-    planet = _real(host, planet_class, zone)
+# An Earth-mass rocky planet in the ecosphere, a gas giant and an ice giant in the cold zone.
+@pytest.mark.parametrize("mass_earth,zone", [(1.0, "e"), (300.0, "c"), (17.0, "c")])
+def test_a_generated_body_gives_a_subject_the_draw_accepts(host, mass_earth, zone):
+    planet = _real(host, mass_earth, zone)
     subject = ms.subject_of_body(planet, ts_k=planet.surface_temperature, pressure_bar=max(planet.atmospheric_pressure, 1.0) / 1e5,
                                  long_lived_geology=True)
-    assert set(subject.quantities) == set(mixture_draw.required_inputs(planet_class))
+    assert set(subject.quantities) == set(mixture_draw.required_inputs(subject.body_class))
     with draw.bound(draw.Stream("mixture-subject")):
         result = mixture_draw.draw_mixture(subject)
     assert result.mole_fractions and sum(result.mole_fractions.values()) == pytest.approx(1.0)

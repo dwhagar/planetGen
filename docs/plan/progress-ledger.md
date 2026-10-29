@@ -1762,3 +1762,47 @@ Baseline: PR #1817.
 | GEN.889 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.890 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | PERF.149 | 8.1 | Queue, caches and performance |
+| PERF.154 | 8.1 | Queue, caches and performance |
+| UX.213 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.194 | 8.1 | The headline closes |
+| TEST.452 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.192 | 8.1 | The headline closes |
+| TEST.276 | 8.1 | Bugs and flaky tests |
+| GEN.479 | 8.1 | Mixture and stored values |
+| GEN.646 | 8.1 | Consistency |
+| GEN.840 | 8.1 | Consistency |
+| GEN.903 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.861 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.860 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.919 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.914 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.925 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.924 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.923 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.236 | 8.1 | Fly-through map |
+| MAP.289 | 8.1 | Fly-through map |
+| GEN.938 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.937 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.755 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.286 | 8.1 | Fly-through map |
+| MAP.300 | 8.1 | Fly-through map |
+| MAP.299 | 8.1 | Fly-through map |
+| UX.205 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.301 | 8.1 | Fly-through map |
+| TEST.457 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.926 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.454 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.179 | 8.1 | The headline closes |
+| PERF.178 | 8.1 | The headline closes |
+| TEST.458 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.180 | 8.1 | The headline closes |
+| UX.186 | 8.1 | Habitability system |
+| MAP.336 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| GEN.906 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.859 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.858 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.857 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.891 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.843 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.933 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.460 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

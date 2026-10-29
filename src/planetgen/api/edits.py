@@ -31,7 +31,7 @@ from planetgen.generation.config import SystemConfig
 from .authz import audit, require_admin
 from .common import ApiError, request_json
 from .limiter import limiter
-from .schemas import ChangeClass, ChangeStar, DropFacilities, parse_body
+from .schemas import ChangeStar, DropFacilities, parse_body
 from .routes import WRITE_RATE_LIMIT, accepted, run_queued, _resolve_requested_write_db_config, _write_conn
 
 bp = Blueprint("edits", __name__, url_prefix="/api")
@@ -168,73 +168,6 @@ def _load_system_of(conn, kind, body_id):
     if row is None:
         raise ApiError(f"no such {kind}: {body_id}", status_code=404)
     return row["star_system_id"], store.load_star_system(conn, row["star_system_id"])
-
-
-@bp.route("/systems/<uid:system_id>/class-options")
-@require_admin()
-def system_class_options(system_id):
-    """`GET /api/systems/<id>/class-options` -- for each planet and moon
-    (`"planet:<id>"`, `"moon:<id>"`), the classes it could take without
-    moving anything (`recommended`, most common first), plus every class
-    code (`all`) for a forced change."""
-    conn = _write_conn()
-    try:
-        try:
-            system = store.load_star_system(conn, system_id)
-        except ValueError:
-            raise ApiError(f"no such system: {system_id}", status_code=404)
-        options = adminEdits.class_options(system)
-    finally:
-        conn.close()
-    return jsonify({"recommended": options, "all": sorted(tuning.PLANET_CLASSES)})
-
-
-def _change_class(kind, body_id):
-    change = parse_body(ChangeClass, _optional_body())
-    planet_class, force = change.planet_class, change.force
-    return _queued_edit(f"{kind}.class", f"{kind}:{body_id}", change_class_job,
-                        _resolve_requested_write_db_config(), kind, body_id, planet_class, force,
-                        detail_prefix=f"{planet_class} force={force}: ")
-
-
-def change_class_job(config, kind, body_id, planet_class, force):
-    """Changes one planet's or moon's class; returns the edit's result."""
-    conn = store.open_write(config)
-    try:
-        with conn:
-            system_id, system = _load_system_of(conn, kind, body_id)
-            target, owner = adminEdits.find_body(system, kind, body_id)
-            try:
-                result = adminEdits.change_class(system, target, owner, planet_class, force=force)
-            except ValueError as exc:
-                raise ApiError(str(exc), status_code=409)
-            editStore.save_system_edits(conn, system_id, system)
-    finally:
-        conn.close()
-    return _result_dict(result, star_system_id=system_id)
-
-
-@bp.route("/planets/<uid:body_id>/class", methods=["POST"])
-@limiter.limit(WRITE_RATE_LIMIT)
-@require_admin(fresh=True)
-def change_planet_class(body_id):
-    """`POST /api/planets/<id>/class` `{"class": "M", "force": false}` --
-    changes a planet's class (ADM.6), re-generating its surface
-    conditions as that class and keeping its orbit, mass and name
-    (ADM.27). A class its mass doesn't fit is refused (409) and nothing
-    changes. Without `force` only a recommended class is accepted (409
-    otherwise); with it any class its mass fits. The rest of the
-    system is re-spaced to fit, never trimmed; what still doesn't validate
-    comes back in `warnings`, and the change is saved either way."""
-    return _change_class("planet", body_id)
-
-
-@bp.route("/moons/<uid:body_id>/class", methods=["POST"])
-@limiter.limit(WRITE_RATE_LIMIT)
-@require_admin(fresh=True)
-def change_moon_class(body_id):
-    """`POST /api/moons/<id>/class` -- as for a planet, for a moon."""
-    return _change_class("moon", body_id)
 
 
 def _removed_rows(system_before_ids, system):

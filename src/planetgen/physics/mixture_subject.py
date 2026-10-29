@@ -145,21 +145,37 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
+KIND_OF_BODY_TYPE = {"t": "terrestrial", "g": "giant"}
+"""dict: The recipe tables' kind of body (`atmosphere_recipes.BODY_KINDS`) by a planet's or moon's stored body type."""
+
+
+def kind_of_body(body):
+    """The recipe tables' kind of body of a planet or moon: `terrestrial` or `giant`, by its stored body type.
+
+    Raises:
+        MixtureError: The body has no body type of `t` or `g`.
+    """
+    try:
+        return KIND_OF_BODY_TYPE[getattr(body, "body_type", None)]
+    except KeyError:
+        raise MixtureError(f"the body type {getattr(body, 'body_type', None)!r} is neither 't' nor 'g', so the recipe kind cannot be built") from None
+
+
 def subject_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_lived_geology=False, water_lost=False,
                     star_distance_au=None):
     """
-    The `Subject` of `body` for `mixture_draw.draw_mixture`: its class and exactly `mixture_draw.required_inputs(class)`. The arguments
+    The `Subject` of `body` for `mixture_draw.draw_mixture`: its kind and exactly `mixture_draw.required_inputs(kind)`. The arguments
     are those of `quantities_of_body`.
 
     Raises:
         MixtureError: A quantity the class's rows read cannot be built for this body (named).
     """
-    body_class = body.planet_class
+    kind = kind_of_body(body)
     built = quantities_of_body(body, ts_k=ts_k, pressure_bar=pressure_bar, ocean_present=ocean_present,
                                long_lived_geology=long_lived_geology, water_lost=water_lost, star_distance_au=star_distance_au)
-    needed = mixture_draw.required_inputs(body_class)
+    needed = mixture_draw.required_inputs(kind)
     missing = [name for name in needed if name not in built]
     if missing:
-        raise MixtureError(f"the mixture draw of class {body_class!r} reads {', '.join(missing)}, which cannot be built for this body"
+        raise MixtureError(f"the mixture draw of a {kind} reads {', '.join(missing)}, which cannot be built for this body"
                            f" (no star, no distance from the star, no Bond albedo or no stored interior)")
-    return Subject(body_class, {name: built[name] for name in needed})
+    return Subject(kind, {name: built[name] for name in needed})

@@ -2,8 +2,7 @@
 
 """
 The admin Delete and Regenerate buttons (TODO ADM.8) on the sector,
-system and phenomenon pages, and the system page's Change class (ADM.6)
-and Change star (ADM.7) forms.
+system and phenomenon pages, and the system page's Change star (ADM.7) form.
 
 Each button is a `<details>` disclosure (the confirm step, no script
 needed) holding a small POST form back to the page it is on, carrying
@@ -28,7 +27,7 @@ from .helpers import current_admin, db_name, page_url
 FLASH_OK = "edit"
 FLASH_ERROR = "edit-error"
 
-ACTIONS = ("regenerate", "delete", "class", "star")
+ACTIONS = ("regenerate", "delete", "star")
 """tuple: The `edit_action` values the pages accept."""
 
 _BODY_PATHS = {"planet": "/planets", "moon": "/moons", "belt": "/belts"}
@@ -56,21 +55,9 @@ def _api_message(exc):
     message = re.sub(r"^planetGen API error \(\d+\): ", "", str(exc))
     if getattr(exc, "status_code", None) in (401, 403):
         return "Not allowed. Change the admin username and password the installer set first."
-    if message.endswith("Confirm to set it anyway"):
-        return message + ": tick “Set it anyway” and change the class again."
     if "drop_facilities" in message:
         return message.split(";")[0] + ". Tick “also delete its facilities” to go ahead."
     return message
-
-
-def class_options(system_id):
-    """`{"recommended": {"planet:<id>": [classes]}, "all": [classes]}` for
-    the Change class menus, or None when the API won't say."""
-    try:
-        return apiclient.admin_edit(request.headers.get("Cookie"), db_name(), "GET",
-                                    f"/systems/{system_id}/class-options")
-    except apiclient.ApiError:
-        return None
 
 
 def _call(kind, target_id, action, drop_facilities):
@@ -78,10 +65,6 @@ def _call(kind, target_id, action, drop_facilities):
     cookie_header = request.headers.get("Cookie")
     body = {"drop_facilities": True} if drop_facilities else None
     db = db_name()
-    if action == "class":
-        return apiclient.admin_edit(cookie_header, db, "POST", f"{_BODY_PATHS[kind]}/{target_id}/class",
-                                    {"class": request.form.get("planet_class") or "",
-                                     "force": request.form.get("confirm_class") == "1"})
     if action == "star":
         return apiclient.admin_edit(cookie_header, db, "POST", f"/systems/{target_id}/star",
                                     {"star_type": request.form.get("star_type") or "",
@@ -123,8 +106,6 @@ def _flash_result(kind, action, result):
     flash(summary, FLASH_OK)
     if result.get("moved"):
         flash(f"Moved to keep the orbits stable: {', '.join(result['moved'])}.", FLASH_OK)
-    if result.get("reclassified"):
-        flash(f"Reclassified after moving: {', '.join(result['reclassified'])}.", FLASH_OK)
     if result.get("removed"):
         flash(f"Removed, with no stable orbit left: {', '.join(result['removed'])}.", FLASH_OK)
     for warning in result.get("warnings") or []:
@@ -153,7 +134,7 @@ def handle_post(allowed, here, after_delete=None):
     kind, _sep, raw_id = (request.form.get("edit_target") or "").partition(":")
     target_id = raw_id.strip().upper() or None  # an ID as printed (a body's is its number until API.23 stage 2)
     if action not in ACTIONS or (kind, target_id) not in allowed \
-            or (action == "class" and kind not in ("planet", "moon")) or (action == "star" and kind != "system"):
+            or (action == "star" and kind != "system"):
         flash("That isn't something on this page.", FLASH_ERROR)
         return redirect(here, code=303)
     try:

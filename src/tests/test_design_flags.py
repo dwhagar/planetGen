@@ -32,10 +32,10 @@ def test_the_registry_lists_the_three_life_linked_gases():
 def test_a_flagged_row_is_off_without_a_flag_and_on_within_its_bracket_with_each_flag(row):
     item = df.flag(row)
     low, high, _ = RECIPES.entry(row).constants[item.constant]
-    off = Subject("A", {q: False for q in item.enabled_by})
+    off = Subject("terrestrial", {q: False for q in item.enabled_by})
     assert RECIPES.raw_weight(RECIPES.entry(row), off, gated=False) == 0.0
     for q in item.enabled_by:
-        on = Subject("A", {k: k == q for k in item.enabled_by})
+        on = Subject("terrestrial", {k: k == q for k in item.enabled_by})
         weight = RECIPES.raw_weight(RECIPES.entry(row), on, gated=False)
         assert low <= weight <= high, "the bracket midpoint lies inside the labelled bracket"
 

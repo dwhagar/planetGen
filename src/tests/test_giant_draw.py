@@ -19,19 +19,19 @@ def _star(**extra):
     return SimpleNamespace(**fields)
 
 
-def _giant(planet_class, mass_kg, distance=5.2, **extra):
-    fields = dict(planet_class=planet_class, radius=None, mass=mass_kg, star=_star(), is_moon=False, distance=distance)
+def _giant(mass_kg, distance=5.2, **extra):
+    fields = dict(radius=None, mass=mass_kg, star=_star(), is_moon=False, distance=distance)
     fields.update(extra)
     return SimpleNamespace(**fields)
 
 
-def _fallback(planet_class, mass_kg):
+def _fallback(mass_kg):
     return 70000.0
 
 
 def test_a_jupiter_mass_giant_takes_its_radius_from_the_tables():
     draw.set_run_seed(1)
-    body = _giant("J", JUPITER_MASS_KG)
+    body = _giant(JUPITER_MASS_KG)
     giant_draw.draw_giant(body, False, _fallback)
     assert body.radius != 70000.0
     assert 0.8 < body.radius / constants.JUPITER_RADIUS_KM < 1.2
@@ -40,7 +40,7 @@ def test_a_jupiter_mass_giant_takes_its_radius_from_the_tables():
 
 def test_a_hot_giant_is_inflated_and_a_cold_one_is_not():
     draw.set_run_seed(2)
-    hot, cold = _giant("J", JUPITER_MASS_KG, distance=0.03), _giant("J", JUPITER_MASS_KG, distance=5.2)
+    hot, cold = _giant(JUPITER_MASS_KG, distance=0.03), _giant(JUPITER_MASS_KG, distance=5.2)
     giant_draw.draw_giant(hot, False, _fallback)
     giant_draw.draw_giant(cold, False, _fallback)
     assert hot.radius > 1.1 * cold.radius
@@ -48,7 +48,7 @@ def test_a_hot_giant_is_inflated_and_a_cold_one_is_not():
 
 def test_an_ice_giant_is_outside_the_tables_and_uses_the_fallback_relation():
     draw.set_run_seed(3)
-    body = _giant("I", 17.0 * constants.EARTH_MASS_TO_KG, distance=19.0)
+    body = _giant(17.0 * constants.EARTH_MASS_TO_KG, distance=19.0)
     giant_draw.draw_giant(body, False, _fallback)
     assert body.radius == 70000.0
     bulk = bc.bulk_fractions(body)
@@ -57,29 +57,29 @@ def test_an_ice_giant_is_outside_the_tables_and_uses_the_fallback_relation():
 
 def test_a_given_radius_is_kept():
     draw.set_run_seed(4)
-    body = _giant("J", JUPITER_MASS_KG, radius=65000.0)
+    body = _giant(JUPITER_MASS_KG, radius=65000.0)
     giant_draw.draw_giant(body, True, _fallback)
     assert body.radius == 65000.0
 
 
 def test_the_composition_adds_up_and_holds_the_heavy_element_law():
-    for seed, planet_class, masses in ((5, "J", (0.3, 1.0, 5.0)), (6, "T", (10.0, 30.0)), (7, "I", (15.0, 50.0))):
+    for seed, masses in ((5, (0.3, 1.0, 5.0)), (6, (10.0, 30.0)), (7, (15.0, 50.0))):
         draw.set_run_seed(seed)
         for mass in masses:
-            kg = mass * (JUPITER_MASS_KG if planet_class == "J" else constants.EARTH_MASS_TO_KG)
-            body = _giant(planet_class, kg)
+            kg = mass * (JUPITER_MASS_KG if seed == 5 else constants.EARTH_MASS_TO_KG)
+            body = _giant(kg)
             giant_draw.draw_giant(body, False, _fallback)
             bulk = bc.bulk_fractions(body)
             assert sum(bulk.shares().values()) == pytest.approx(1.0, abs=1e-9)
-            assert 0.2 < bulk.envelope_helium < 0.35 and 0.0 <= bulk.envelope_z < 0.5
-            if planet_class == "J":
+            assert 0.0 <= bulk.envelope_z < 0.5 and 0.2 < bulk.envelope_helium / (1.0 - bulk.envelope_z) < 0.35
+            if giant_draw.regime_of(body.mass / constants.EARTH_MASS_TO_KG) == giant_draw.GAS:
                 heavy = (1.0 - bulk.envelope + bulk.envelope * bulk.envelope_z) * body.mass / constants.EARTH_MASS_TO_KG
                 assert heavy >= giant_radius.MIN_HEAVY_FRACTION * body.mass / constants.EARTH_MASS_TO_KG - 1e-9
 
 
 def test_ices_come_only_from_beyond_the_snow_line():
     draw.set_run_seed(8)
-    inside, outside = _giant("J", JUPITER_MASS_KG, distance=1.0), _giant("J", JUPITER_MASS_KG, distance=6.0)
+    inside, outside = _giant(JUPITER_MASS_KG, distance=1.0), _giant(JUPITER_MASS_KG, distance=6.0)
     giant_draw.draw_giant(inside, False, _fallback)
     giant_draw.draw_giant(outside, False, _fallback)
     assert bc.bulk_fractions(inside).water == 0.0 and bc.bulk_fractions(outside).water > 0.0
@@ -87,7 +87,7 @@ def test_ices_come_only_from_beyond_the_snow_line():
 
 def test_a_giant_moon_has_no_star_distance_and_takes_the_fallback():
     draw.set_run_seed(9)
-    body = _giant("J", JUPITER_MASS_KG, is_moon=True)
+    body = _giant(JUPITER_MASS_KG, is_moon=True)
     giant_draw.draw_giant(body, False, _fallback)
     assert body.radius == 70000.0 and bc.bulk_fractions(body) is not None
 
@@ -96,7 +96,7 @@ def test_the_same_seed_makes_the_same_giant():
     results = []
     for _ in range(2):
         draw.set_run_seed(77)
-        body = _giant("J", 2.0 * JUPITER_MASS_KG)
+        body = _giant(2.0 * JUPITER_MASS_KG)
         giant_draw.draw_giant(body, False, _fallback)
         results.append((body.radius, body.metal_mass_fraction, body.envelope_mass_fraction))
     assert results[0] == results[1]

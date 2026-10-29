@@ -383,8 +383,9 @@ def body_atmosphere_colour(body):
     The `AtmosphereColour` of a planet or moon from what it stores: its air (`air_column.column_of`), its star's temperature and its
     ozone column, over a ground of `STAND_IN_GROUND_ALBEDO` and with no aerosol (haze, dust and cloud are not stored yet: DB.68).
 
-    Returns `None` for an airless body, a body with no star, and a gas or ice giant (a giant needs its cloud deck, which is not stored yet,
-    to have a colour worth showing).
+    Returns `None` for an airless body, a body with no star, a gas or ice giant (a giant needs its cloud deck, which is not stored yet,
+    to have a colour worth showing), and an air so thick that the two-stream model returns no light at the zenith (a steam world of
+    hundreds of kilobars: the sky it sees is the glow of its own heat, which this model does not hold).
     """
     if getattr(body, "body_type", "t") == "g":
         return None
@@ -394,5 +395,8 @@ def body_atmosphere_colour(body):
     column = air_column.column_of(body)
     if column is None:
         return None
-    return atmosphere_colour(column, temperature_k=temperature, ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
-                             ground_albedo=STAND_IN_GROUND_ALBEDO)
+    try:
+        return atmosphere_colour(column, temperature_k=temperature, ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
+                                 ground_albedo=STAND_IN_GROUND_ALBEDO)
+    except ValueError:
+        return None

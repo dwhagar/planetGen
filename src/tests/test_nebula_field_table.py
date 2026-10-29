@@ -235,3 +235,29 @@ def test_the_nebula_field_is_cleared_and_drawn_on_its_own(mysql_config):
     assert not _table(mysql_config)
     run_plan.run_scatter(_scatter_args(mysql_config, "--nebula-field"))
     assert _table(mysql_config)
+
+
+def test_a_nebula_field_unit_of_several_slabs_draws_what_a_unit_per_slab_draws(mysql_config):
+    """PERF.192: a coarser unit (a galaxy of more than the unit cap of slabs) is the same slabs drawn one after the other."""
+    import json
+
+    from planetgen.queue import commands, wrapper
+    from tests.test_bright_star_scatter import _scatter_args
+    _seed_galaxy(mysql_config)
+    run_plan.run_scatter(_scatter_args(mysql_config, "--nebula-field"))
+    expansion = run_plan.expand_draw_nebula_field({"database": wrapper.database_args(mysql_config)})
+    single = [json.loads(json.dumps(args)) for args, _cost in expansion.units]
+    assert len(single) >= 3 and all(args["count"] == 1 for args in single)
+    start = single[0]["i"]
+    wanted = lambda rows: sorted(tuple(sorted((k, v) for k, v in dict(row).items() if k != "id")) for row in rows)  # noqa: E731
+    expected = wanted(_table(mysql_config, f"cell_i BETWEEN {start} AND {start + 2}"))
+    assert expected
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM nebula_field")
+        conn.commit()
+    finally:
+        conn.close()
+    result = commands.run_alone("draw-nebula-field", {**single[0], "i": start, "count": 3})
+    assert result["count"] == 3 and [drawn["slab"] for drawn in result["drawn"]] == [start, start + 1, start + 2]
+    assert wanted(_table(mysql_config)) == expected

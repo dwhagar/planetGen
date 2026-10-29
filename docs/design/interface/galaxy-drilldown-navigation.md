@@ -463,7 +463,7 @@ Once the view is one layer of sectors:
   (`/api/systems/<id>/scene`, `galaxysystem.js`), draws its stars, planets,
   moons, belts and comets at the star's place in the sector (compressed
   scale, or true scale from the info panel), and flies the camera to fit
-  it. Its bodies are picked like any other object and "Fly to" takes the
+  it. Its bodies are picked like any other object and "Go to" takes the
   camera down to one and follows it. URL `&system=<id>` after `open=1`
   (and `&object=<ref>` for the body picked); Up closes the system (back to
   the sector), Back and Forward step through. The wheel carries the zoom

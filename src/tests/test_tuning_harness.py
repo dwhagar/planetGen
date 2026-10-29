@@ -239,7 +239,7 @@ def test_a_comparison_needs_two_values_and_flags_an_extrapolation():
     with pytest.raises(TargetError, match="at least 2"):
         th.compare(t, [1.0])
     inside = th.compare(t, [1.0, 1.1], quantities={"host_type": "WD"})
-    outside = th.compare(t, [1.0, 1.1], quantities=Subject("E", {"host_type": "G"}))
+    outside = th.compare(t, [1.0, 1.1], quantities=Subject("terrestrial", {"host_type": "G"}))
     assert inside.extrapolated == () and outside.extrapolated == ("host_type",)
     missing = th.compare(t, [1.0, 1.1], quantities={})
     assert missing.extrapolated == ("host_type",)
@@ -319,7 +319,7 @@ def wd_sampler(row_id, subject, recipes=None, model=None):
     return wd_pollution.observed_sampler(th.recipe_sampler(row_id, subject, recipes), model or bounded_model())
 
 
-@pytest.mark.parametrize("target_id, body_class", [("a3-mean", "C"), ("a3-sd", "C"), ("a4-mean", "E"), ("a4-sd", "E")])
+@pytest.mark.parametrize("target_id, body_class", [("a3-mean", "asteroid"), ("a3-sd", "asteroid"), ("a4-mean", "terrestrial"), ("a4-sd", "terrestrial")])
 def test_the_tunable_redox_rows_drawn_at_many_seeds_match_their_published_statistics(target_id, body_class):
     t = th.TARGETS.get(target_id)
     assert t.selection_model == "wd-pollution-detection" and t.field == "diw"
@@ -335,7 +335,7 @@ def test_a_knob_retuned_away_from_the_target_fails_the_comparison():
     entry["dist"]["mu"] = -0.7
     recipes = Recipes(document, register=False)
     t = th.TARGETS.get("a4-mean")
-    subject = Subject("E", {"host_type": "WD"})
+    subject = Subject("terrestrial", {"host_type": "WD"})
     result = th.simulate_and_compare(t, wd_sampler("a4", subject, recipes), n=2000)
     assert not result.passed and result.z > 2
 

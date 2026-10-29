@@ -368,7 +368,9 @@ bar. The Generate page shows both lines too.
 
 Only one run's workers use the machine at a time: a run started while
 another is generating (from the command line or the Generate page) says
-it's waiting and starts when the other finishes. Redis keeps the run
+it's waiting and starts when the other finishes (PERF.154: it takes a place in the one waiting list in Redis, up to
+`queue.max_waiting` entries, 8 by default, shared with the Generate page's waiting jobs; a run past that is refused
+with the list named, and one that has waited `queue.wait_minutes` fails naming the run it waited for). Redis keeps the run
 and its units (the run record, `planetgen/queue/runrecord.py`); the
 Queue page reads them from there. A run stopped with Ctrl-C, or Cancel
 on the Generate page, stops its workers mid-sector (each sector is saved

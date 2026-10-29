@@ -457,8 +457,7 @@ PAGE_AND_API_GET_RULES = [rule for rule in GET_RULES if rule.endpoint != "static
 DYNAMIC_GET_RULES = [rule for rule in GET_RULES if rule.arguments]
 ID_CONVERTERS = ("IntegerConverter", "UidConverter")
 INT_ID_GET_RULES = [rule for rule in DYNAMIC_GET_RULES
-                    if {type(c).__name__ for c in rule._converters.values()} & set(ID_CONVERTERS)
-                    and rule.endpoint != "edits.system_class_options"]  # admin-only: a 401 first
+                    if {type(c).__name__ for c in rule._converters.values()} & set(ID_CONVERTERS)]
 DIGIT_ALIAS_GET_RULES = [rule for rule in INT_ID_GET_RULES
                          if "IntegerConverter" in {type(c).__name__ for c in rule._converters.values()}]
 UNSAFE_RULES = sorted((rule for rule in _URL_MAP_APP.url_map.iter_rules() if rule.methods & csrf.UNSAFE_METHODS),
@@ -469,7 +468,7 @@ ADMIN_PAGE_RULES = [rule for rule in GET_RULES
                     if rule.rule in ("/account", "/admin") or rule.rule.startswith("/admin/")]
 ADMIN_API_GET_RULES = [rule for rule in GET_RULES
                        if rule.endpoint.startswith("admin.")
-                       or rule.endpoint in ("auth.me", "auth.list_api_keys", "edits.system_class_options")]
+                       or rule.endpoint in ("auth.me", "auth.list_api_keys")]
 
 
 def test_route_tables_are_complete():

@@ -8,7 +8,7 @@ import threading
 
 import pytest
 
-from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
+from planetgen.queue import commands, redisqueue, runline, runrecord, units, wrapper
 from planetgen.util.settings import get_settings
 
 
@@ -190,6 +190,39 @@ def test_a_second_run_waits_in_line_for_the_first_and_then_runs(monkeypatch, con
         timer.join()
     assert runrecord.read_run(conn, run_id)["state"] == "done" and len(results) == 2
     assert waits[0] == (first, 1) and waits[-1] == (None, None)
+
+
+def test_a_runs_results_do_not_depend_on_the_place_it_started_from(monkeypatch, conn):
+    """PERF.154: the waiting list only decides when a run starts. The same steps give the same units, the same results and
+    the same stages whether the machine was free, or the run was next in line, or third (the generated sectors
+    are a function of the seed and the cut of the work, never of the place in the line)."""
+    _handlers(monkeypatch, test=_square)
+    monkeypatch.setattr(wrapper, "report_wait", lambda holder, position: None)
+
+    def run_from(ahead):
+        """A run that finds the machine held and `ahead` other runs in front of it."""
+        holder = runrecord.start_run(conn, "Holder", [runrecord.Stage("test", "T", units=1)]) if ahead is not None else None
+        tickets = [runline.join(conn, runline.RUN, f"Ahead {number}") for number in range(ahead or 0)]
+        timers = [threading.Timer(1.0 + 0.4 * number, runline.leave, (conn, ticket)) for number, ticket in enumerate(tickets)]
+        if holder:
+            timers.append(threading.Timer(1.2 + 0.4 * len(tickets), runrecord.finish_run, (conn, holder, "done")))
+        for timer in timers:
+            timer.start()
+        try:
+            results = {}
+            run_id = wrapper.run("Same", [_step(4)], lambda index, plan: None,
+                                 lambda index, unit, result: results.__setitem__(unit, result))
+        finally:
+            for timer in timers:
+                timer.join()
+        run = runrecord.read_run(conn, run_id)
+        return results, [(stage["key"], stage["units"], stage["cost"]) for stage in run["stages"]]
+
+    free = run_from(None)
+    next_in_line = run_from(0)
+    third_in_line = run_from(2)
+    assert free[0] == {unit: {"value": unit ** 2} for unit in range(4)}
+    assert next_in_line == free and third_in_line == free
 
 
 def test_a_run_gives_up_after_the_wait_bound_and_names_the_run_it_waited_for(monkeypatch, conn):
@@ -726,9 +759,35 @@ def test_the_nebula_field_is_a_unit_per_slab_and_the_clean_up_one_unit(mysql_con
     assert len(expansion.units) == slabs and expansion.plan["slabs"] == slabs
     unit = json.loads(json.dumps(expansion.units[slabs // 2][0]))
     result = commands.run_alone("draw-nebula-field", unit)
-    assert result["slab"] == unit["i"] and set(result) >= {"written", "counts", "shells", "slab"}
+    assert result["slab"] == unit["i"] and result["count"] == 1 and set(result) >= {"written", "slab", "count", "drawn"}
+    assert [drawn["slab"] for drawn in result["drawn"]] == [unit["i"]] and set(result["drawn"][0]) >= {"counts", "shells"}
     check = commands.run_alone("clean-nebula-field", {**params, "apply": False}, lambda done, estimate: None)
     assert check["deleted"] == 0 and check["lines"][0].startswith("Nebula field cleanup (dry run)")
+
+
+def test_a_galaxy_of_more_than_the_unit_cap_of_slabs_makes_bigger_nebula_field_units(mysql_config, monkeypatch):
+    """PERF.192: one unit per 50 pc slab made a stage `enqueue_units` refused once a galaxy had more than 4000 slabs; the cut
+    now makes a unit a run of consecutive slabs, the same cut at any worker count, every slab in exactly one unit."""
+    import json
+
+    from planetgen import tuning
+    from planetgen.galaxy import nebula_field
+    from planetgen.generation import run_plan
+    from planetgen.queue import units
+    from tests.test_nebula_field_table import _seed_galaxy
+    cut = run_plan.nebula_slab_cut(-1500, 1500)
+    assert len(cut) == 3001 and all(count == 1 for _start, count in cut), "a galaxy under the cap keeps a unit per slab"
+    cut = run_plan.nebula_slab_cut(-10_000, 10_000)
+    assert len(cut) <= units.MAX_UNITS and cut == run_plan.nebula_slab_cut(-10_000, 10_000)
+    assert [slab for start, count in cut for slab in range(start, start + count)] == list(range(-10_000, 10_001))
+    assert max(count for _start, count in cut) > 1
+    _seed_galaxy(mysql_config)
+    edge = tuning.NEBULA_FIELD_CELL_PC
+    monkeypatch.setattr(nebula_field, "field_extent_pc", lambda edge_pc, extents: (5000 * edge, 100.0))
+    expansion = run_plan.expand_draw_nebula_field({"database": wrapper.database_args(mysql_config)})
+    assert expansion.plan["slabs"] == 10_001 and len(expansion.units) <= units.MAX_UNITS
+    assert sum(cost for _args, cost in expansion.units) == expansion.plan["slabs"]
+    json.dumps(expansion.units)
 
 
 def test_the_shells_are_cut_into_the_same_units_whatever_the_worker_count():

@@ -3,8 +3,7 @@ Regression tests for the Track A physics fixes to the planet model (see planets.
 
   1. Gas-giant density: once a core/envelope blend, now set by the giant
      mass-radius relation (GEN.34).
-  2. Class P gets its own ("cold, glaciated") albedo range so it's no
-     longer statistically indistinguishable from Class M.
+  2. A body redrawn in place keeps no trace of its old air or class.
 
 The greenhouse factor and the pressure of an air are not tested here: since GEN.411 and GEN.422 they are the solution of the fixed point
 of `surface_air` (tests/test_surface_air.py), not class ranges.
@@ -13,7 +12,6 @@ Run with: pytest src/tests/test_planet_physics_fixes.py
 """
 import copy
 import math
-import statistics
 
 import pytest
 
@@ -25,6 +23,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.generation.star import Star
+from tests import class_support
 
 N_SAMPLE = 300
 
@@ -44,25 +43,24 @@ def host_star():
 # Fix 1: gas-giant density (giant mass-radius relation, GEN.34)
 # ---------------------------------------------------------------------------
 
-GAS_GIANT_CLASS = next(c for c, d in prog_c.PLANET_CLASSES.items() if d["type"] == "g")
-GAS_GIANT_ZONE = next(z for z in "hec" if prog_c.PLANET_CLASSES[GAS_GIANT_CLASS][z])
+GIANT_ZONE = "c"
 
 
-def test_gas_giant_density_is_its_mass_over_its_volume(host_star):
-    """A giant's mass comes from its class's mass range, its radius stays in its class's radius range (the interior
-    tables of GEN.460 set it, and a hot young giant swells well past the median mass-radius relation, so no tight band
-    around that median holds), and its density is whatever the two make (no separately drawn density)."""
+@pytest.mark.parametrize("mass_earth", [25.0, 100.0, 318.0, 1500.0])
+def test_giant_density_is_its_mass_over_its_volume(host_star, mass_earth):
+    """A giant of a given mass has a radius the interior tables of GEN.460 set (a hot young giant swells well past the median
+    mass-radius relation, so no tight band around that median holds), and its density is whatever the two make (no separately
+    drawn density)."""
     cfg = SystemConfig()
-    distance = plausibility.distance_for_zone(host_star, GAS_GIANT_ZONE)
-    low_kg, high_kg = planets.giant_mass_range_kg(GAS_GIANT_CLASS)
-    for _ in range(50):
-        planet = Planet(cfg, host_star, host_star.habitable_zone, distance,
-                        planet_class=GAS_GIANT_CLASS, zone_override=GAS_GIANT_ZONE, moon_count=0)
-        assert low_kg <= planet.mass <= high_kg
+    distance = plausibility.distance_for_zone(host_star, GIANT_ZONE)
+    mass_kg = mass_earth * pc.EARTH_MASS_TO_KG
+    for seed in range(3):
+        planet = class_support.draw_planet(host_star, distance, seed, cfg, mass=mass_kg, zone_override=GIANT_ZONE, moon_count=0)
+        assert planet.body_type == "g"
+        assert planet.mass == pytest.approx(mass_kg, rel=1e-9)
         volume_m3 = (4 / 3) * math.pi * (planet.radius * 1000) ** 3
         assert planet.density == pytest.approx(planet.mass / volume_m3 / 1000, rel=1e-9)
-        low_r, high_r = prog_c.PLANET_CLASSES[GAS_GIANT_CLASS]["radius_range"]
-        assert low_r <= planet.radius <= high_r
+        assert planet.radius >= prog_c.GIANT_MIN_RADIUS_KM
 
 
 def test_giant_with_a_given_mass_keeps_it(host_star):
@@ -70,7 +68,7 @@ def test_giant_with_a_given_mass_keeps_it(host_star):
     cfg = SystemConfig()
     mass_kg = 300 * pc.EARTH_MASS_TO_KG
     planet = Planet(cfg, host_star, host_star.habitable_zone, plausibility.distance_for_zone(host_star, "c"),
-                    planet_class="J", mass=mass_kg, zone_override="c", moon_count=0)
+                    mass=mass_kg, zone_override="c", moon_count=0)
     assert planet.mass == pytest.approx(mass_kg, rel=1e-9)
 
 
@@ -110,81 +108,53 @@ def test_small_rogue_gas_giants_are_smaller_than_large_ones():
     assert small / pc.EARTH_RADIUS_KM == pytest.approx(3.9, rel=0.15)
 
 
-def test_gas_giant_sampled_gravity_is_within_theoretical_bounds():
-    """Statistical check across a real generation sample: every gas giant's
-    density is finite and positive and its gravity sits inside
-    plausibility.theoretical_gravity_bounds_g, which mirrors the relation."""
-    records = plausibility.generate_sample(GAS_GIANT_CLASS, GAS_GIANT_ZONE, N_SAMPLE, include_moons=False)
-    lo, hi = plausibility.theoretical_gravity_bounds_g(GAS_GIANT_CLASS)
+def test_sampled_gravity_is_within_theoretical_bounds():
+    """Statistical check across a real generation sample: every body's density is finite and positive and its gravity sits inside
+    plausibility.theoretical_gravity_bounds_g for its type, which mirrors the relation."""
+    records = plausibility.generate_sample("c", 40, include_moons=False)
     for record in records:
+        lo, hi = plausibility.theoretical_gravity_bounds_g(record["body_type"])
         assert math.isfinite(record["density"]) and record["density"] > 0
         assert lo * (1 - 1e-6) <= record["gravity"] <= hi * (1 + 1e-6)
 
 
 # ---------------------------------------------------------------------------
-# Class P is colder than Class M (albedo differentiation)
+# A body drawn again in place and the cosmic-background temperature floor
 # ---------------------------------------------------------------------------
 
-def test_class_p_has_own_albedo_range_distinct_from_default():
-    assert "albedo_range" in prog_c.PLANET_CLASSES["P"]
-    assert prog_c.PLANET_CLASSES["P"]["albedo_range"] != (0.12, 0.35)
-    # P's albedo_range must still stand out from M's own tuned range (M was
-    # given one too, see PLANET_CLASSES["M"]) -- the two shouldn't collapse
-    # back into being indistinguishable just because both are now overridden.
-    assert prog_c.PLANET_CLASSES["P"]["albedo_range"] != prog_c.PLANET_CLASSES["M"]["albedo_range"]
-
-
-def test_class_p_is_colder_than_class_m():
-    """Medians, not means: since GEN.411 a world on the edge of its liquid range can land on a hot, steam-thick branch of the fixed point
-    (the air is bistable there), and a few of those at 900 K say nothing about the typical body of the class."""
-    m_records = plausibility.generate_sample("M", "e", CLIMATE_SAMPLE, include_moons=False)
-    p_records = plausibility.generate_sample("P", "e", CLIMATE_SAMPLE, include_moons=False)
-
-    m_median_temp = statistics.median(r["surface_temperature"] for r in m_records)
-    p_median_temp = statistics.median(r["surface_temperature"] for r in p_records)
-
-    assert p_median_temp < m_median_temp, (
-        f"Class P median temp {p_median_temp:.2f}K should be colder than Class M median temp {m_median_temp:.2f}K"
-    )
-
-
-# ---------------------------------------------------------------------------
-# Airless reclassification and the cosmic-background temperature floor
-# ---------------------------------------------------------------------------
-
-def test_reclassifying_into_an_airless_class_clears_the_old_atmosphere(host_star):
+def test_drawing_a_body_again_clears_the_old_atmosphere_and_class(host_star):
     """
-    `reconcile_zone_and_class` regenerates a body in place, so a body that
-    started in an atmosphered class and lands in an airless one (Class C)
-    used to keep its old atm_density/atm_molar_density/scale_height.
+    `reconcile_zone` regenerates a body in place, so a body that held an air must not keep its old atm_density/atm_molar_density/
+    scale_height or its class while the new body is built.
     """
-    cfg = SystemConfig()
     distance = plausibility.distance_for_zone(host_star, "e")
-    planet = Planet(cfg, host_star, host_star.habitable_zone, distance,
-                    planet_class="M", zone_override="e", moon_count=0)
-    assert planet.atm_density is not None and planet.scale_height is not None
+    planet = class_support.planets_where(host_star, distance, lambda p: p.atm_density is not None, 1, moon_count=0)[0]
+    assert planet.scale_height is not None and planet.planet_class is not None
 
-    planet.planet_class = "C"
     planet.radius = None
     planet.mass = None
     planets.generate_planet_properties(planet, zone_override="e")
-    planets.calculate_surface_gravity(planet)
-    planets.calculate_atmospheric_conditions(planet)
 
-    assert planet.atmosphere == "None"
+    assert planet.atmosphere is None
     assert planet.atm_density is None
     assert planet.atm_molar_density is None
     assert planet.scale_height is None
-    assert planet.atmospheric_pressure == 0.0
+    assert planet.planet_class is None
+
+    planets.calculate_surface_gravity(planet)
+    planets.calculate_atmospheric_conditions(planet)
+    planets.apply_class(planet)
+    assert planet.planet_class in prog_c.PLANET_CLASSES
+    assert (planet.atmosphere == "None") == (planet.atmospheric_pressure == 0.0)
 
 
-@pytest.mark.parametrize("planet_class", ["C", "I"])
-def test_surface_temperature_never_drops_below_the_cosmic_background(host_star, planet_class):
+@pytest.mark.parametrize("mass_earth", [0.05, 20.0])
+def test_surface_temperature_never_drops_below_the_cosmic_background(host_star, mass_earth):
     cfg = SystemConfig()
     zone = "c"
     distance = plausibility.distance_for_zone(host_star, zone)
-    planet = Planet(cfg, host_star, host_star.habitable_zone, distance,
-                    planet_class=planet_class, zone_override=zone, moon_count=0)
+    planet = class_support.draw_planet(host_star, distance, 0, cfg, mass=mass_earth * pc.EARTH_MASS_TO_KG,
+                                       zone_override=zone, moon_count=0)
 
     dim_star = copy.copy(host_star)
     dim_star.luminosity = host_star.luminosity * 1e-12
@@ -193,24 +163,20 @@ def test_surface_temperature_never_drops_below_the_cosmic_background(host_star, 
     assert planet.surface_temperature == pc.COSMIC_BACKGROUND_TEMPERATURE_K
 
 
-def test_reclassifying_a_moved_planet_keeps_its_distance(host_star):
+def test_redrawing_a_moved_planet_keeps_its_distance(host_star):
     """
-    `validate_system` pushes a planet clear of its inner neighbor, then
-    `reconcile_zone_and_class` reclassifies it for its new zone. Ecosphere
-    classes with a "zone_position_mode" used to redraw the distance
-    anywhere in the habitable zone at that point, which could drop the
-    planet back inside the neighbor it had just been moved past (seen as
-    an asteroid belt overlapping the next planet in giant-star systems).
+    `validate_system` pushes a planet clear of its inner neighbor, then `reconcile_zone` redraws it for its new zone. The distance must
+    stay where the planet was moved to, or the planet could drop back inside the neighbor it had just been moved past (seen as an
+    asteroid belt overlapping the next planet in giant-star systems).
     """
     cfg = SystemConfig()
     inner, outer = host_star.habitable_zone
-    for _ in range(30):
-        planet = Planet(cfg, host_star, host_star.habitable_zone,
-                        plausibility.distance_for_zone(host_star, "h"),
-                        planet_class="A", zone_override="h", moon_count=0)
+    for seed in range(8):
+        planet = class_support.draw_planet(host_star, plausibility.distance_for_zone(host_star, "h"), seed, cfg,
+                                           zone_override="h", moon_count=0)
         moved_to = inner + 0.95 * (outer - inner)
         planet.distance = moved_to
 
-        assert planets.reconcile_zone_and_class(planet, host_star.mass)
+        assert planets.reconcile_zone(planet, host_star.mass)
         assert planet.zone == "e"
         assert planet.distance == moved_to

@@ -11,7 +11,7 @@ from planetgen.galaxy import system_mass as galaxy_system_mass
 from planetgen.generation import companion_classes, place_terms, system_mass
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import remnant_progenitors
+from planetgen.physics import imf, remnant_progenitors
 from planetgen.util import draw
 from tests.toy_shape import toy_shape
 
@@ -88,14 +88,14 @@ def test_the_black_hole_inputs_lie_inside_the_published_ranges():
     Olejak et al. 2020: 11.7 bulge, 14.2 disk) and the number in a galaxy of 5e10 solar masses of stars (Olejak et al.:
     1.3e8; the older estimates they list: 1e8 to 1e9)."""
     low, high = tuning.CORE_COLLAPSE_MASS_RANGE_SOL
-    collapse = system_mass.imf_integral(0.0, low, high)
+    collapse = imf.integral(0.0, low, high)
     holes = remnant_progenitors.number("black-hole")
     assert holes / collapse == pytest.approx(remnant_progenitors.reference_failed_share(), rel=1e-4)
     assert 0.0 <= holes / collapse <= 0.45
     assert 9.0 <= sum(tuning.BLACK_HOLE_MASS_RANGE_SOLAR) / 2.0 <= 14.2
-    per_solar_mass_formed = holes / system_mass.imf_integral(1.0, tuning.IMF_BREAKS_SOL[0], high)
+    per_solar_mass_formed = holes / imf.integral(1.0, tuning.IMF_BREAKS_SOL[0], high)
     widest = remnant_progenitors.number("black-hole", 0.0, tuning.BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE[1])
-    assert 1.0e8 <= 5.0e10 * widest / system_mass.imf_integral(1.0, tuning.IMF_BREAKS_SOL[0], high) <= 1.0e9
+    assert 1.0e8 <= 5.0e10 * widest / imf.integral(1.0, tuning.IMF_BREAKS_SOL[0], high) <= 1.0e9
     assert 2.0e7 <= 5.0e10 * per_solar_mass_formed < 1.0e8, "the gap: the middle draw's count is under the published range"
 
 

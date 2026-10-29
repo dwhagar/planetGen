@@ -22,7 +22,7 @@ import re
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import activity, formation, metallicity, ms_lifetime, pre_main_sequence, spin
+from planetgen.physics import activity, formation, imf, metallicity, ms_lifetime, pre_main_sequence, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -655,7 +655,7 @@ class Star(StellarObject):
         age_law = getattr(self.system_config, "AGE_LAW", None)
         state = None
         if initial_mass_sol is not None:
-            initial_mass_sol = max(initial_mass_sol, tuning.IMF_BREAKS_SOL[0])
+            initial_mass_sol = max(initial_mass_sol, imf.lowest_mass_sol())
             age = age_gy if age_gy is not None else sample_star_age_gy(age_bias)
             if fe_h is None:
                 fe_h = birth_fe_h(draw, population, fe_h_peaks, self.galactic_center_dist_ly)
@@ -666,8 +666,8 @@ class Star(StellarObject):
             # collapsed already at the pair's age. Lighten it until it is
             # alive rather than redraw it at another age: the pair shares
             # one age (GEN.53).
-            while state is None and initial_mass_sol > tuning.IMF_BREAKS_SOL[0]:
-                initial_mass_sol = max(initial_mass_sol * 0.8, tuning.IMF_BREAKS_SOL[0])
+            while state is None and initial_mass_sol > imf.lowest_mass_sol():
+                initial_mass_sol = max(initial_mass_sol * 0.8, imf.lowest_mass_sol())
                 state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
                                     galactic_center_dist_ly=self.galactic_center_dist_ly)
         if state is None:

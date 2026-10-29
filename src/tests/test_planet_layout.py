@@ -90,3 +90,33 @@ def test_the_civilization_paragraph_exists_only_when_there_is_something_to_say()
     assert planet_layout.civilization_sentences(None, None) == []
     both = planet_layout.civilization_sentences({"inhabited": True}, {"name": "Velarix <b>", "url": "/species/3"})
     assert len(both) == 2 and 'href="/species/3"' in both[0] and "Velarix &lt;b&gt;" in both[0]
+
+
+EARTH_DAY = {**VALUES, "day_share_mean": "50.1 %", "day_share_equator": "50.2 %", "solar_day_hours": "24 h", "daylight_hours": "12 h"}
+
+
+def test_the_summary_gives_the_time_the_star_is_up_in_one_sentence():
+    """UX.205: the equator's share, the hours of daylight in the solar day and the share over the whole surface."""
+    text = planet_summary.summary_sentences("Kepler b", ROW, EARTH_DAY)
+    assert ("Its star is up 50.2 % of the time at the equator, 12 h of daylight in each solar day of 24 h, and 50.1 % "
+            "averaged over the whole surface.") in text
+
+
+def test_a_tidally_locked_world_says_it_has_a_day_side_a_terminator_and_a_night_side():
+    locked = {**VALUES, "day_share_mean": "50 %"}      # a mean share but no solar day: it turns once an orbit
+    text = " ".join(planet_summary.summary_sentences("Kepler b", ROW, locked))
+    assert "keeps one face to its star" in text and "day side" in text and "terminator" in text and "night side" in text
+    assert "solar day" not in text
+
+
+def test_a_moon_in_its_planets_shadow_gets_the_extra_night_and_the_longest_eclipse():
+    values = {**EARTH_DAY, "parent_shadow_share": "4.6 %", "longest_eclipse_hours": "2.3 h"}
+    text = " ".join(planet_summary.summary_sentences("Io", ROW, values, {"parent_shadow_share": 0.046}))
+    assert "Its planet's shadow adds a night: it is in the shadow 4.6 % of the time, the longest eclipse lasting 2.3 h." in text
+    assert "shadow" not in " ".join(planet_summary.summary_sentences("Io", ROW, values, {"parent_shadow_share": 0.0}))
+
+
+def test_a_body_with_no_day_and_night_says_nothing_of_them():
+    """A star, or a free body with no rotation stored, has no shares: nothing is said."""
+    text = " ".join(planet_summary.summary_sentences("Bare", ROW, VALUES))
+    assert "star is up" not in text and "one face" not in text and "shadow" not in text

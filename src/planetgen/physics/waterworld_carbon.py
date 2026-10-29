@@ -345,6 +345,8 @@ def seafloor_rate_over_modern(pco2_bar, surface_temperature_k, heat_flux_w_m2, l
     """
     modern_pore = pore_temperature_k(TS_MODERN_K)
     pore = pore_temperature_k(surface_temperature_k)
+    if pore <= 0.0:  # a surface this cold (a far, starved body) has no pore water to react: the extrapolated gradient has run out
+        return 0.0
     return ((max(pco2_bar, MIN_PCO2_BAR) / CO2_MODERN_BAR) ** (law.ph_exponent / PH_PER_PCO2_EXPONENT)
             * math.exp(law.activation_j_mol / constants.R * (1.0 / modern_pore - 1.0 / pore))
             * (max(heat_flux_w_m2, 0.0) / HEAT_FLUX_EARTH_W_M2) ** law.spreading_exponent)

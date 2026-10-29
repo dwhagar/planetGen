@@ -8,9 +8,7 @@ Three kinds of function live here:
 
 - **Checks** (`check_planet`, `check_lunar_system`, `check_star_system`)
   read a body or system and return a list of `Problem`s; they never change
-  anything. A freshly generated system almost never has any (a moon
-  that `reconcile_moved_planet` reclassifies can rarely come out too
-  large or too close to its neighbor).
+  anything. A freshly generated system almost never has any.
 - **Spacing** (`space_orbits`, `reconcile_moved_planet`,
   `trim_to_orbit_ceiling`, `cross_star_clearance`, and the distance
   helpers they use) is the orbit-spacing pass generation has always run.
@@ -18,9 +16,9 @@ Three kinds of function live here:
   `_validate_cross_star_clearance` (`generation/system.py`) now call these, with
   the same results.
 - **Stabilizing** (`stabilize_lunar_system`, `stabilize_star_system`) is
-  for a system someone edited after generation (an admin's class or star
-  override, ADM.6 and ADM.7): it re-spaces moons and orbits outward until
-  the checks pass, and reports what moved, what was reclassified, what
+  for a system someone edited after generation (an admin's star
+  override, ADM.7): it re-spaces moons and orbits outward until
+  the checks pass, and reports what moved, what changed class, what
   was removed and what is still wrong.
 """
 
@@ -28,7 +26,7 @@ import math
 from collections import namedtuple
 
 from planetgen.generation import life as planetLife
-from planetgen.physics import constants, orbit_elements, planets as planetPhysics, rings
+from planetgen.physics import constants, orbit_elements, planet_classes, planets as planetPhysics, rings
 from planetgen import tuning
 from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
 from planetgen.physics import unit_registry as units
@@ -47,8 +45,8 @@ about, `message` says what is wrong, in plain words."""
 
 StabilizeReport = namedtuple("StabilizeReport", ["moved", "reclassified", "removed", "problems"])
 """What `stabilize_star_system` did: the names of the bodies it `moved`,
-`reclassified` (their class changed because they moved into another
-zone) and `removed`, and the `Problem`s still left (empty when the system
+`reclassified` (their class, derived from their conditions, changed because they moved into another
+zone or a different light) and `removed`, and the `Problem`s still left (empty when the system
 is stable)."""
 
 
@@ -100,17 +98,6 @@ def reach_au(obj):
 def exceeds_orbit_ceiling(obj, ceiling_au):
     """True if `obj` reaches past `ceiling_au` (`reach_au`)."""
     return reach_au(obj) > ceiling_au
-
-
-def zone_for(habitable_zone, distance_au):
-    """'h', 'e' or 'c' for a distance against a `(inner, outer)` habitable
-    zone, the same rule `planetPhysics.generate_planet_properties` uses."""
-    inner, outer = habitable_zone
-    if distance_au < inner:
-        return 'h'
-    if distance_au > outer:
-        return 'c'
-    return 'e'
 
 
 def orbit_ceiling_au(star):
@@ -231,111 +218,43 @@ def min_distance_after_au(body, last):
 # Spacing pass (generation's own)
 # ---------------------------------------------------------------------
 
-def reconcile_moved_planet(planet, keep_class=False):
+def reconcile_moved_planet(planet):
     """
-    Call right after `space_orbits` moves a top-level planet's
-    `distance` to resolve an orbital overlap.
+    Call right after `space_orbits` moves a top-level planet's `distance` to resolve an orbital overlap.
 
-    A class is only a valid description of a body at the distance it
-    actually ends up at -- pushing `distance` out to fix spacing can
-    carry a planet into a zone ('h'/'e'/'c') its already-rolled class
-    was never valid in (e.g. an "Earth-like" Class M shoved out past
-    the habitable zone into the cold zone), which would otherwise
-    report a class the corrected position no longer supports at all.
-    `planetPhysics.reconcile_zone_and_class` re-derives the zone from
-    the new `distance` and, only if the existing class no longer fits
-    there, regenerates the class and everything derived from it
-    (radius/mass/density/atmosphere/period/gravity/orbital motion) --
-    physically, this is the same thing real orbital migration does:
-    change the body's actual final conditions, not just its assumed
-    ones.
+    The body keeps its mass, radius and composition (where it sits does not change what it is made of), but its climate is the
+    one of its actual final position: its zone is re-derived from the new `distance` (`planetPhysics.reconcile_zone`), its air,
+    water and temperature are made again there (`calculate_atmospheric_conditions`) and its class follows (`apply_class`, derived from
+    those conditions), the same thing real orbital migration does to a body's conditions. Its Hill sphere, period, position and
+    spin follow the distance too.
 
-    Every moon is reconciled the same way: a moon's own zone is always
-    its parent's (see `planetPhysics.generate_moons`' `zone_override`),
-    and its climate depends on the parent's distance (its
-    `distance_override`), so a moon whose parent just got reclassified
-    needs the identical treatment even though the moon's own orbit
-    around its parent never changed. A reclassified parent can also
-    come out with a different `mass` than before -- and Kepler's third
-    law makes a moon's own `period` (and the position/orbital speed/
-    rotation-period-if-tidally-locked derived from it) depend on the
-    *parent's* mass, not just the moon's own (unchanged) distance
-    around it, so every moon's period needs refreshing whenever the
-    parent was reclassified, even a moon that didn't need
-    reclassifying itself -- via `generate_orbital_motion_properties`
-    rather than only `update_orbital_position`, since a tidally locked
-    body's day equals its orbit and a period change can flip whether that
-    still holds (a moved planet gets `generate_spin` for the same reason).
+    Every moon is reconciled the same way: a moon's own zone is always its parent's (see `planetPhysics.generate_moons`'
+    `zone_override`), and its climate depends on the parent's distance (its `distance_override`), so a moon whose planet moved
+    needs the identical treatment even though the moon's own orbit around its planet never changed.
 
     Args:
         planet (Planet): The planet that moved.
-        keep_class (bool): Never reclassify it (an admin's forced class,
-            ADM.6): only its zone, Hill sphere, climate and orbit follow
-            the new distance. Its moons are still reconciled.
-
-    Returns:
-        bool: True if `planet` itself was reclassified (and so may
-             have come out with a different `mass` than before --
-             relevant to `space_orbits`' mutual-Hill-radius
-             spacing check, which depends on both planets' masses);
-             False if its existing class remained valid.
     """
-    if keep_class:
-        planet.zone = zone_for(planet.habitable_zone, planet.distance)
-        reclassified = False
-    else:
-        reclassified = planetPhysics.reconcile_zone_and_class(planet, planet.star.mass)
-    if not reclassified:
-        # The Hill sphere grows with distance, so a moved planet's own
-        # clearance (and the next body's spacing) must follow it.
-        planetPhysics.update_hill_sphere(planet)
-        planetPhysics.calculate_atmospheric_conditions(planet)
-        planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
-        planetPhysics.update_orbital_position(planet)
-        planetPhysics.generate_spin(planet, planet.star.mass)
+    planetPhysics.reconcile_zone(planet, planet.star.mass)
+    # The Hill sphere grows with distance, so a moved planet's own clearance (and the next body's spacing) must follow it.
+    planetPhysics.update_hill_sphere(planet)
+    planetPhysics.calculate_atmospheric_conditions(planet)
+    planetPhysics.apply_class(planet)
+    planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
+    planetPhysics.update_orbital_position(planet)
+    planetPhysics.generate_spin(planet, planet.star.mass)
 
-    if reclassified:
-        # A new class brings a new radius and mass, and so a new range
-        # of stable moon orbits.
-        planetPhysics.drop_unstable_moons(planet)
-        rings.apply(planet)  # GEN.732: a new class, a new ring
-
-    any_moon_reclassified = False
     for moon in planet.moons:
-        moon_reclassified = planetPhysics.reconcile_zone_and_class(
-            moon, planet.mass, distance_override=planet.distance, parent=planet
-        )
-        any_moon_reclassified = any_moon_reclassified or moon_reclassified
-        if not moon_reclassified:
-            planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
-            if reclassified:
-                moon.period = planetPhysics.calculate_orbital_period_years(moon.distance, planet.mass)
-                planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
-            else:
-                # GEN.704: the moon's star distance changed, so the dose, UV and score
-                # `generate_spin` ends with are re-run as a moved planet's are.
-                planetPhysics.generate_spin(moon, planet.mass)
+        planetPhysics.reconcile_zone(moon, planet.mass, distance_override=planet.distance)
+        planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
+        planetPhysics.apply_class(moon)
+        # GEN.704: the moon's star distance changed, so the dose, UV and score `generate_spin` ends with are re-run as a moved planet's are.
+        planetPhysics.generate_spin(moon, planet.mass)
 
-    if any_moon_reclassified:
-        # A regenerated moon comes out a new size, and so with a new Hill
-        # sphere: re-space the moons outward from it, and lose any that
-        # no longer fit, as a reclassified planet does.
-        stabilize_lunar_system(planet)
-        planetPhysics.drop_unstable_moons(planet)
-
-    # v20: planet.reflex_offset_x/y/z (this planet's own wobble from
-    # its moons -- see Planet.reflex_offset_x's docstring) depends on
-    # planet.mass and every moon's own mass/position, any of which the
-    # reconciliation above may just have changed (a reclassified
-    # planet gets a new mass; a reclassified moon gets a new mass; a
-    # moon whose period got refreshed above gets a new position via
-    # generate_orbital_motion_properties). Recomputed unconditionally
-    # here rather than only in the specific branches that changed
-    # something, the same "cheap, always recompute from current state"
-    # treatment store.advance_orbital_phases gives this same value.
-    refresh_planet_reflex(planet, force=reclassified)
-
-    return reclassified
+    # v20: planet.reflex_offset_x/y/z (this planet's own wobble from its moons -- see Planet.reflex_offset_x's docstring) depends on
+    # every moon's own mass/position, any of which the reconciliation above may just have moved. Recomputed unconditionally here,
+    # the same "cheap, always recompute from current state" treatment store.advance_orbital_phases gives this same value.
+    refresh_planet_reflex(planet)
 
 
 def refresh_planet_reflex(planet, force=False):
@@ -356,7 +275,7 @@ def _shift_belt(belt, amount):
     belt.lower_limit += amount
 
 
-def space_orbits(planets, pinned=()):
+def space_orbits(planets):
     """
     Validates and adjusts the distances of `planets` (one star's ordered
     planets and asteroid belts) so no two orbits are too close, pushing
@@ -374,20 +293,16 @@ def space_orbits(planets, pinned=()):
     `MIN_ASTEROID_BELT_SEPARATION` between two belts.
 
     A moved planet is reconciled to its new distance
-    (`reconcile_moved_planet`): if its class is no longer valid in its
-    new zone, the class and everything derived from it are regenerated,
-    along with its moons -- unless it is `pinned`.
+    (`reconcile_moved_planet`): its climate and class are made again at the
+    new position, along with its moons'.
 
     Args:
         planets (list): One star's `Planet`/`AsteroidBelt` list, in
             orbital order. Changed in place.
-        pinned (iterable): Bodies (by identity) whose class must not
-            change when they move: an admin's forced class (ADM.6).
 
     Returns:
         list: The bodies that moved.
     """
-    pinned_ids = {id(body) for body in pinned}
     moved = []
     if len(planets) < 2:
         return moved
@@ -425,34 +340,13 @@ def space_orbits(planets, pinned=()):
             elif _below(distance_to_last, last_planet.min_orbit_distance):
                 _shift_belt(planet, last_planet.min_orbit_distance + additional_correction)
         else:
-            keep_class = id(planet) in pinned_ids
             if last_planet.body_type == 'a':
-                # Same bounded retry as the planet-planet case below: a
-                # reclassification changes the mass the Hill sphere
-                # depends on.
-                for _ in range(3):
-                    min_distance = min_distance_past_belt_au(planet, last_planet)
-                    if not _below(planet.distance, min_distance):
-                        break
-                    planet.distance = min_distance
-                    if not reconcile_moved_planet(planet, keep_class):
-                        break
+                min_distance = min_distance_past_belt_au(planet, last_planet)
             else:
-                # Bounded, not a single shot: reclassifying `planet`
-                # (inside `reconcile_moved_planet`) can change its own
-                # `mass`, which the mutual Hill radius depends on --
-                # re-deriving the requirement against the *new* mass
-                # can call for a further push, so retry until a push
-                # doesn't trigger another reclassification (in
-                # practice at most 2 iterations; the cap is just a
-                # guard against a pathological cycle).
-                for _ in range(3):
-                    min_distance = mutual_min_distance_au(planet, last_planet)
-                    if not _below(planet.distance, min_distance):
-                        break
-                    planet.distance = min_distance
-                    if not reconcile_moved_planet(planet, keep_class):
-                        break
+                min_distance = mutual_min_distance_au(planet, last_planet)
+            if _below(planet.distance, min_distance):
+                planet.distance = min_distance
+                reconcile_moved_planet(planet)
         if planet.distance != before:
             moved.append(planet)
     return moved
@@ -579,17 +473,11 @@ def cross_star_clearance(system):
 # Checks
 # ---------------------------------------------------------------------
 
-def class_allowed_in_zone(planet_class, zone):
-    """Whether `planet_class` is a known class valid in `zone`."""
-    data = tuning.PLANET_CLASSES.get(planet_class)
-    return data is not None and bool(data[zone])
-
-
 def check_planet(body, parent=None):
     """
-    Checks one planet or moon on its own: its class is known and valid in
-    its zone, its zone matches where it orbits (a moon's is its parent's),
-    and its radius is inside its class's range.
+    Checks one planet or moon on its own: its class is the one its conditions give (GEN.689: every body has exactly one,
+    derived by `planet_classes.classify`, so a stored class that is not that one is a stale or edited row), its zone matches where
+    it orbits (a moon's is its parent's), and it has a mass and a radius.
 
     Args:
         body (Planet): The planet or moon.
@@ -600,19 +488,17 @@ def check_planet(body, parent=None):
     """
     problems = []
     name = _label(body)
-    data = tuning.PLANET_CLASSES.get(body.planet_class)
-    if data is None:
+    if body.planet_class not in planet_classes.LETTERS:
         return [Problem(name, f"class {body.planet_class!r} is not a known planet class")]
+    derived = planet_classes.classify(body)
+    if derived != body.planet_class:
+        problems.append(Problem(name, f"its class is {body.planet_class} but its conditions give class {derived}"))
     distance = parent.distance if parent is not None else body.distance
-    zone = zone_for(body.habitable_zone, distance)
+    zone = planetPhysics.zone_for(body.habitable_zone, distance)
     if body.zone != zone:
         problems.append(Problem(name, f"its zone is {body.zone!r} but it orbits in zone {zone!r}"))
-    if not data[zone]:
-        problems.append(Problem(name, f"class {body.planet_class} can't exist in zone {zone!r}"))
-    low, high = data["radius_range"]
-    if body.radius is None or not low <= body.radius <= high:
-        problems.append(Problem(name, f"its radius ({body.radius} km) is outside class {body.planet_class}'s "
-                                      f"{low:g}-{high:g} km"))
+    if body.radius is None or not body.radius > 0:
+        problems.append(Problem(name, f"its radius ({body.radius} km) is not positive"))
     if body.mass is None or not body.mass > 0:
         problems.append(Problem(name, "it has no mass"))
     return problems
@@ -802,7 +688,7 @@ def refresh_star_reflex(system):
         star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z = calculate_reflex_offset(star.mass, children(planets))
 
 
-def stabilize_star_system(system, pinned=(), allow_removal=False):
+def stabilize_star_system(system, allow_removal=False):
     """
     Brings an edited star system back to a stable layout, from the inside
     out: every lunar system first (`stabilize_lunar_system`), then each
@@ -819,8 +705,6 @@ def stabilize_star_system(system, pinned=(), allow_removal=False):
 
     Args:
         system (StarSystem): Changed in place.
-        pinned (iterable): Bodies whose class must not change (an
-            admin's forced class).
         allow_removal (bool): Drop what can't fit instead of reporting it.
 
     Returns:
@@ -839,7 +723,7 @@ def stabilize_star_system(system, pinned=(), allow_removal=False):
         for body in planets:
             if body.body_type != 'a':
                 stabilize_lunar_system(body)
-        space_orbits(planets, pinned=pinned)
+        space_orbits(planets)
         if allow_removal:
             removed.extend(trim_to_orbit_ceiling(planets, orbit_ceiling_au(star)))
     if allow_removal:

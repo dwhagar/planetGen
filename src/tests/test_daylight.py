@@ -138,3 +138,13 @@ def test_every_generated_planet_and_moon_stores_shares_that_make_sense():
                 else:
                     assert body.parent_shadow_share is None
     assert seen > 6 and moons > 0
+
+
+def test_the_longest_eclipse_is_the_planets_angular_radius_over_pi_of_an_orbit():
+    """UX.205: the pass through the middle of the shadow: Io (421,700 km from Jupiter, 71,492 km radius, 42.46 h orbit) is
+    eclipsed for about 2.3 hours at the longest; a moon not outside its planet, or with no period, has none."""
+    hours = daylight.longest_eclipse_hours(421700.0, 71492.0, 42.46)
+    assert hours == pytest.approx(math.asin(71492.0 / 421700.0) / math.pi * 42.46, rel=1e-9)
+    assert 2.2 < hours < 2.4
+    assert daylight.longest_eclipse_hours(60000.0, 71492.0, 42.46) == 0.0
+    assert daylight.longest_eclipse_hours(421700.0, 71492.0, 0.0) == 0.0

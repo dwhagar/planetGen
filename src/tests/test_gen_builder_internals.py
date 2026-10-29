@@ -3,7 +3,7 @@ System builder internals (TODO TEST.32).
 
 Direct tests of the `StarSystem` placement helpers that the validate
 module (`planetgen/generation/validation.py`, ADM.5) wraps or sits beside:
-`generate_slot_object`, `calculate_distance_for_class`,
+`generate_slot_object`, `calculate_distance_for_class`, `build_planet`,
 `_forced_habitable_distance`, `_trim_to_orbit_ceiling`,
 `_reconcile_moved_planet`, `_clear_circumbinary_floor`, and the
 `from_dict` newer-schema error. Systems are built planet-less so each
@@ -13,7 +13,7 @@ import pytest
 
 from planetgen.generation import system as systemData
 from planetgen import tuning
-from planetgen.physics import planets as planetPhysics
+from planetgen.physics import constants, planet_classes, planets as planetPhysics
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
@@ -22,6 +22,7 @@ from planetgen.generation.system import StarSystem
 from tests.fuzz_support import deterministic_entropy
 
 DRAWS = 40
+GIANT_EARTH, EARTH = 300.0, 1.0   # masses (Earth masses) that give a gas giant and an Earth-sized rocky planet
 
 
 @pytest.fixture(autouse=True)
@@ -55,9 +56,10 @@ def close_binary():
     return system
 
 
-def planet_at(system, distance_au, planet_class, moon_count=0):
+def planet_at(system, distance_au, mass_earth, moon_count=0):
+    """A planet of the given mass; its class is derived from what it comes out as (GEN.646)."""
     return Planet(system.system_config, system.star, system.star.habitable_zone, distance_au,
-                  planet_class=planet_class, moon_count=moon_count)
+                  mass=mass_earth * constants.EARTH_MASS_TO_KG, moon_count=moon_count)
 
 
 def belt(system, lower, upper):
@@ -82,9 +84,9 @@ def test_slot_asteroid_belt_spans_from_the_estimated_distance(system):
 
 def test_slot_planet_honours_class_and_moon_count(system):
     cold = system.star.habitable_zone[1] * 4
-    obj = system.generate_slot_object(system.star, {"type": "planet", "planet_class": "J", "moons": 2}, cold)
+    obj = system.generate_slot_object(system.star, {"type": "planet", "planet_class": "I", "moons": 2}, cold)
     assert isinstance(obj, Planet)
-    assert obj.planet_class == "J" and obj.distance == cold
+    assert obj.planet_class == "I" and obj.distance == cold
     assert len(obj.moons) <= 2
 
 
@@ -93,11 +95,11 @@ def test_slot_type_defaults_to_planet(system):
     assert isinstance(obj, Planet) and obj.body_type in ('t', 'g')
 
 
-def test_slot_planet_class_is_moved_into_a_zone_that_supports_it(system):
-    """An ecosphere-only class asked for in a cold-zone slot is placed in
-    the habitable zone instead of failing."""
-    obj = system.generate_slot_object(system.star, {"type": "planet", "planet_class": "M"}, system.star.habitable_zone[1] * 5)
-    assert obj.planet_class == "M" and obj.zone == 'e'
+def test_a_slot_for_a_class_that_can_carry_life_is_placed_in_the_ecosphere(system):
+    """A class that can carry life asked for in a cold-zone slot is placed in the habitable zone instead of failing."""
+    letter = sorted(tuning.HABITABLE_PLANET_CLASSES)[0]
+    distance = system.calculate_distance_for_class(letter, system.star.habitable_zone[1] * 5)
+    assert zone_of(system, distance) == 'e'
 
 
 @pytest.mark.parametrize("slot_type", ["comet", "", "Planet", None])
@@ -108,55 +110,27 @@ def test_slot_with_an_unknown_type_raises(system, slot_type):
 
 # --- calculate_distance_for_class -----------------------------------------
 
-@pytest.mark.parametrize("planet_class", [None, "Z", "not-a-class"])
-def test_distance_unchanged_for_no_or_unknown_class(system, planet_class):
+@pytest.mark.parametrize("planet_class", [None, "Z", "not-a-class", "J", "A", "T"])
+def test_distance_unchanged_for_no_class_or_a_class_no_zone_belongs_to(system, planet_class):
+    """A class is derived from a finished body, so only a class that can carry life has a place (GEN.688)."""
     assert system.calculate_distance_for_class(planet_class, 7.25) == 7.25
 
 
-@pytest.mark.parametrize("planet_class, zone", [("J", 'h'), ("J", 'e'), ("J", 'c'), ("M", 'e'), ("A", 'h'), ("T", 'c')])
-def test_distance_unchanged_when_the_class_already_fits(system, planet_class, zone):
+def test_distance_unchanged_when_the_life_class_already_fits(system):
     inner, outer = system.star.habitable_zone
-    distance = {'h': inner * 0.5, 'e': (inner + outer) / 2, 'c': outer * 2}[zone]
-    assert system.calculate_distance_for_class(planet_class, distance) == distance
+    distance = (inner + outer) / 2
+    for letter in tuning.HABITABLE_PLANET_CLASSES:
+        assert system.calculate_distance_for_class(letter, distance) == distance
 
 
-def test_ecosphere_class_is_moved_inside_the_zone_with_margin(system):
+def test_a_life_class_is_moved_inside_the_zone_with_margin(system):
     inner, outer = system.star.habitable_zone
     margin = min(tuning.MIN_ASTEROID_BELT_SEPARATION, (outer - inner) / 4)
+    letter = sorted(tuning.HABITABLE_PLANET_CLASSES)[0]
     for estimated in (inner * 0.1, outer * 10):
         for _ in range(DRAWS):
-            distance = system.calculate_distance_for_class("M", estimated)
+            distance = system.calculate_distance_for_class(letter, estimated)
             assert inner + margin <= distance <= outer - margin
-
-
-def test_hot_only_class_is_moved_into_the_hot_zone(system):
-    inner, _ = system.star.habitable_zone
-    for _ in range(DRAWS):
-        distance = system.calculate_distance_for_class("A", system.star.habitable_zone[1] * 3)
-        assert inner * 0.05 <= distance <= inner * 0.95
-
-
-def test_cold_only_class_is_moved_into_the_cold_zone(system):
-    _, outer = system.star.habitable_zone
-    for _ in range(DRAWS):
-        distance = system.calculate_distance_for_class("T", system.star.habitable_zone[0] * 0.2)
-        assert outer * 1.05 <= distance <= outer * 3.0
-
-
-@pytest.mark.parametrize("planet_class, estimated_factor", [("A", 4.0), ("T", 0.2)])
-def test_moved_distance_avoids_an_already_placed_belt(system, planet_class, estimated_factor):
-    inner, outer = system.star.habitable_zone
-    if planet_class == "A":
-        lo, hi = inner * 0.05, inner * 0.95
-    else:
-        lo, hi = outer * 1.05, outer * 3.0
-    # A belt covering the middle 80% of the target range.
-    span = hi - lo
-    placed = [belt(system, lo + span * 0.1, hi - span * 0.1)]
-    for _ in range(DRAWS):
-        distance = system.calculate_distance_for_class(planet_class, inner * estimated_factor, planets=placed)
-        assert lo <= distance <= hi
-        assert not (placed[0].lower_limit < distance < placed[0].upper_limit)
 
 
 def test_ecosphere_draw_avoids_a_belt_in_the_zone(system):
@@ -164,13 +138,13 @@ def test_ecosphere_draw_avoids_a_belt_in_the_zone(system):
     mid = (inner + outer) / 2
     placed = [belt(system, mid - 0.1, mid + 0.1)]
     for _ in range(DRAWS):
-        distance = system.calculate_distance_for_class("M", outer * 5, planets=placed)
+        distance = system.calculate_distance_for_class(sorted(tuning.HABITABLE_PLANET_CLASSES)[0], outer * 5, planets=placed)
         assert inner <= distance <= outer
         assert not (mid - 0.1 < distance < mid + 0.1)
 
 
 def test_distance_returned_is_a_float(system):
-    assert isinstance(system.calculate_distance_for_class("M", 100.0), float)
+    assert isinstance(system.calculate_distance_for_class(sorted(tuning.HABITABLE_PLANET_CLASSES)[0], 100.0), float)
 
 
 # --- _forced_habitable_distance -------------------------------------------
@@ -217,14 +191,14 @@ def test_trim_on_an_empty_list_is_a_no_op(system):
 
 
 def test_trim_removes_trailing_bodies_past_the_ceiling(system):
-    planets = [planet_at(system, 6.0, "J"), planet_at(system, 30.0, "J"), planet_at(system, 60.0, "J")]
+    planets = [planet_at(system, 6.0, GIANT_EARTH), planet_at(system, 30.0, GIANT_EARTH), planet_at(system, 60.0, GIANT_EARTH)]
     keep = planets[0]
     system._trim_to_orbit_ceiling(planets, 10.0)
     assert planets == [keep]
 
 
 def test_trim_counts_a_planets_hill_sphere_not_just_its_center(system):
-    planet = planet_at(system, 9.99, "J")
+    planet = planet_at(system, 9.99, GIANT_EARTH)
     assert planet.distance < 10.0 < planet.distance + planet.min_orbit_distance
     planets = [planet]
     system._trim_to_orbit_ceiling(planets, 10.0)
@@ -241,14 +215,14 @@ def test_trim_uses_a_belts_upper_limit(system):
 def test_trim_only_works_from_the_outside_in(system):
     """An interior body past the ceiling stays when the outermost one is
     inside it: trimming stops at the first body that fits."""
-    far, near = planet_at(system, 50.0, "J"), planet_at(system, 3.0, "J")
+    far, near = planet_at(system, 50.0, GIANT_EARTH), planet_at(system, 3.0, GIANT_EARTH)
     planets = [far, near]
     system._trim_to_orbit_ceiling(planets, 10.0)
     assert planets == [far, near]
 
 
 def test_trim_keeps_everything_under_a_generous_ceiling(system):
-    planets = [planet_at(system, 6.0, "J"), belt(system, 20.0, 25.0)]
+    planets = [planet_at(system, 6.0, GIANT_EARTH), belt(system, 20.0, 25.0)]
     before = list(planets)
     system._trim_to_orbit_ceiling(planets, 1e6)
     assert planets == before
@@ -256,27 +230,29 @@ def test_trim_keeps_everything_under_a_generous_ceiling(system):
 
 # --- _reconcile_moved_planet ----------------------------------------------
 
-def test_reconcile_keeps_a_class_that_still_fits(system):
-    planet = planet_at(system, system.star.habitable_zone[1] * 3, "J")
+def test_reconcile_keeps_a_giant_in_the_cold_zone_after_a_move(system):
+    planet = planet_at(system, system.star.habitable_zone[1] * 3, GIANT_EARTH)
     planet.distance *= 2
-    assert system._reconcile_moved_planet(planet) is False
-    assert planet.planet_class == "J" and planet.zone == 'c'
+    system._reconcile_moved_planet(planet)
+    assert planet.body_type == "g" and planet.zone == 'c'
+    assert planet.planet_class == planet_classes.classify(planet)
 
 
-def test_reconcile_reclassifies_a_planet_pushed_out_of_its_zone(system):
+def test_reconcile_derives_the_class_again_for_a_planet_pushed_out_of_its_zone(system):
     inner, outer = system.star.habitable_zone
-    planet = planet_at(system, (inner + outer) / 2, "M")
+    planet = planet_at(system, (inner + outer) / 2, EARTH)
+    mass, radius = planet.mass, planet.radius
     planet.distance = outer * 4
-    assert system._reconcile_moved_planet(planet) is True
+    system._reconcile_moved_planet(planet)
     assert planet.zone == 'c'
-    assert planet.planet_class != "M"
-    assert tuning.PLANET_CLASSES[planet.planet_class]['c']
     assert planet.distance == outer * 4  # the move itself is kept
+    assert (planet.mass, planet.radius) == (mass, radius)  # where it sits does not change what it is made of
+    assert planet.planet_class == planet_classes.classify(planet)
 
 
 def test_reconcile_refreshes_the_period_for_the_new_distance(system):
     inner, outer = system.star.habitable_zone
-    planet = planet_at(system, (inner + outer) / 2, "M")
+    planet = planet_at(system, (inner + outer) / 2, EARTH)
     old_period = planet.period
     planet.distance = outer * 4
     system._reconcile_moved_planet(planet)
@@ -285,24 +261,25 @@ def test_reconcile_refreshes_the_period_for_the_new_distance(system):
 
 def test_reconcile_carries_moons_into_the_parents_new_zone(system):
     _, outer = system.star.habitable_zone
-    planet = planet_at(system, system.star.habitable_zone[0] * 0.5, "J", moon_count=3)
+    planet = planet_at(system, system.star.habitable_zone[0] * 0.5, GIANT_EARTH, moon_count=3)
     planet.distance = outer * 4
     system._reconcile_moved_planet(planet)
+    assert planet.moons
     for moon in planet.moons:
         assert moon.zone == planet.zone == 'c'
-        assert tuning.PLANET_CLASSES[moon.planet_class]['c']
+        assert moon.planet_class == planet_classes.classify(moon)
 
 
 def test_reconcile_reruns_spin_dose_and_score_for_each_moon_of_a_moved_planet(system, monkeypatch):
     """GEN.704: a moon keeps its class when its parent only moves within a zone, but its dose, UV and score were drawn
     at the old distance, so `generate_spin` (which ends with them) runs again for each moon."""
-    planet = planet_at(system, system.star.habitable_zone[1] * 3, "J", moon_count=3)
+    planet = planet_at(system, system.star.habitable_zone[1] * 3, GIANT_EARTH, moon_count=3)
     assert planet.moons
     reran = []
     real = planetPhysics.generate_spin
     monkeypatch.setattr(planetPhysics, "generate_spin", lambda body, mass: (reran.append(body), real(body, mass))[1])
     planet.distance *= 2
-    assert system._reconcile_moved_planet(planet) is False
+    system._reconcile_moved_planet(planet)
     assert all(any(body is moon for body in reran) for moon in planet.moons)
 
 
@@ -316,7 +293,7 @@ def test_clear_floor_on_an_empty_list_is_a_no_op(close_binary):
 
 def test_clear_floor_leaves_a_single_star_alone(system):
     assert system._orbit_floor_au(system.star) == 0.0
-    planet = planet_at(system, 0.05, "J")
+    planet = planet_at(system, 0.05, GIANT_EARTH)
     system._clear_circumbinary_floor([planet])
     assert planet.distance == 0.05
 
@@ -324,8 +301,8 @@ def test_clear_floor_leaves_a_single_star_alone(system):
 def test_clear_floor_pushes_an_inner_planet_out_to_the_limit(close_binary):
     floor = close_binary._orbit_floor_au(close_binary.star)
     assert floor > 0
-    planet = planet_at(close_binary, floor / 2, "J")
-    outer_planet = planet_at(close_binary, floor * 50, "J")
+    planet = planet_at(close_binary, floor / 2, GIANT_EARTH)
+    outer_planet = planet_at(close_binary, floor * 50, GIANT_EARTH)
     close_binary._clear_circumbinary_floor([planet, outer_planet])
     assert planet.distance == pytest.approx(floor)
     assert outer_planet.distance == floor * 50  # only the innermost body moves
@@ -343,7 +320,7 @@ def test_clear_floor_shifts_a_belt_keeping_its_width(close_binary):
 
 def test_clear_floor_leaves_a_body_already_outside_it(close_binary):
     floor = close_binary._orbit_floor_au(close_binary.star)
-    planet = planet_at(close_binary, floor * 3, "J")
+    planet = planet_at(close_binary, floor * 3, GIANT_EARTH)
     outer_belt = belt(close_binary, floor * 2, floor * 3)
     close_binary._clear_circumbinary_floor([planet])
     close_binary._clear_circumbinary_floor([outer_belt])
@@ -354,10 +331,10 @@ def test_clear_floor_leaves_a_body_already_outside_it(close_binary):
 def test_clear_floor_reconciles_a_moved_planet_to_its_new_zone(close_binary, monkeypatch):
     inner, outer = close_binary.star.habitable_zone
     monkeypatch.setattr(close_binary, "_orbit_floor_au", lambda star: outer * 3)
-    planet = planet_at(close_binary, (inner + outer) / 2, "M")
+    planet = planet_at(close_binary, (inner + outer) / 2, EARTH)
     close_binary._clear_circumbinary_floor([planet])
     assert planet.distance == outer * 3
-    assert planet.zone == 'c' and planet.planet_class != "M"
+    assert planet.zone == 'c' and planet.planet_class == planet_classes.classify(planet)
 
 
 # --- from_dict ------------------------------------------------------------
@@ -414,3 +391,27 @@ def test_a_habitable_world_with_no_viable_chemistry_gets_no_timeline(monkeypatch
     planetLife.apply_life_data(planet)
     assert planet.life_class is None
     assert not planet.has_timeline and planet.evolutionary_pace is None
+
+
+# --- build_planet: a request for a habitable world (GEN.688) ------------------------------------------
+
+def test_a_habitable_request_turns_to_earth_like_masses_after_its_free_draws(system, monkeypatch):
+    built = []
+
+    class Recorder:
+        planet_class = "C"
+        moons = []
+
+        def __init__(self, config, star, zone, distance, **kwargs):
+            built.append(kwargs.get("mass"))
+
+        def add_moons(self, count):
+            pass
+
+    monkeypatch.setattr(systemData, "Planet", Recorder)
+    system.build_planet(system.star, system.star.habitable_zone, 1.0, life=True)
+    assert len(built) == tuning.REQUEST_MAX_PLANET_ATTEMPTS
+    assert built[:tuning.HABITABLE_REQUEST_FREE_ATTEMPTS] == [None] * tuning.HABITABLE_REQUEST_FREE_ATTEMPTS
+    low, high = (m * constants.EARTH_MASS_TO_KG for m in tuning.HABITABLE_REQUEST_MASS_EARTH)
+    assert all(low <= mass <= high for mass in built[tuning.HABITABLE_REQUEST_FREE_ATTEMPTS:])
+    assert system._request_unreachable                   # no draw gave a life class, so the system is not drawn again

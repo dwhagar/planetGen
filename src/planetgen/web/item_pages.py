@@ -15,7 +15,7 @@ The dedicated page of an item (UX.143, UX.170): `/object/<ref>` for any object r
 
 The prose is the description's section for the body (`GET /api/systems/<id>/description`), so the page and the system's
 description never say different things. A reference that names nothing is a plain not-found page. A POST with an
-`edit_action` is the admin Regenerate, Change class or Delete of this body (`web/edit_actions.py`).
+`edit_action` is the admin Regenerate or Delete of this body (`web/edit_actions.py`).
 """
 
 from flask import abort, jsonify, redirect, request
@@ -234,7 +234,8 @@ def sheet_view(sheet):
     nothing is left out unless its absence matters (`describe.sheet.SHOW_WHEN_ABSENT`); a group left empty goes too."""
     absent = set(sheet.get("missing") or ())
     groups = [{"key": group["key"], "label": group["label"],
-               "rows": [{"key": row["key"], "label": row["label"], "html": _value_html(row), "stored": row["stored"]}
+               "rows": [{"key": row["key"], "label": row["label"], "html": _value_html(row), "stored": row["stored"],
+                         "source": row.get("source")}
                         for row in group["rows"] if _listed(row)]}
               for group in sheet["groups"] if group["key"] not in absent]    # UX.203: a section of zeros is one sentence
     if "atmosphere" in absent:
@@ -262,6 +263,7 @@ def planet_sections(name, row, sheet, species, piece):
     """
     parts = planet_layout.split_blocks(piece["blocks"] if piece else [])
     values = {r["key"]: _value_html(r) for g in sheet["groups"] for r in g["rows"] if r.get("stored", True)}
+    raw = {r["key"]: r.get("raw") for g in sheet["groups"] for r in g["rows"] if r.get("stored", True)}
     groups = {group["key"]: group for group in sheet_view(sheet)}
 
     def without(key, drop):
@@ -272,7 +274,7 @@ def planet_sections(name, row, sheet, species, piece):
     composition = without("composition", lambda key: key in planet_layout.MASS_SHARED_KEYS)
     phi6 = without("habitability", lambda key: False)
     return {
-        "summary": [trusted_html(sentence) for sentence in planet_summary.summary_sentences(name, row or {}, values)],
+        "summary": [trusted_html(sentence) for sentence in planet_summary.summary_sentences(name, row or {}, values, raw)],
         "life": trusted_html(blocks_html(parts["life"], _ref_link)),
         "civilization": [trusted_html(sentence) for sentence in planet_layout.civilization_sentences(row, species)],
         "notes": trusted_html(blocks_html(parts["rest"], _ref_link)),
@@ -403,22 +405,14 @@ def dominant_species(db, kind, row):
 
 
 def _admin_context(kind, printed_id, system_id):
-    """What the Admin menu of a body's page needs: `{"label", "class_options"}` for an admin allowed to edit, else
-    `None`. `class_options` is `{"recommended": [...], "forced": [...]}` for a planet or moon (Change class)."""
+    """What the Admin menu of a body's page needs: `{"target"}` for an admin allowed to edit, else `None`."""
     if not edit_actions.can_edit(current_admin()):
         return None
-    context = {"target": f"{kind}:{printed_id}", "class_options": None}
-    if kind in ("planet", "moon"):
-        options = edit_actions.class_options(system_id)
-        if options:
-            recommended = options.get("recommended", {}).get(context["target"], [])
-            context["class_options"] = {"recommended": recommended,
-                                        "forced": [c for c in options.get("all") or [] if c not in recommended]}
-    return context
+    return {"target": f"{kind}:{printed_id}"}
 
 
 def _edit_post(kind, printed_id, system_id):
-    """An admin Regenerate, Change class or Delete POST for this body (`web/edit_actions.py`); after a delete it goes up to
+    """An admin Regenerate or Delete POST for this body (`web/edit_actions.py`); after a delete it goes up to
     the body's system."""
     here = item_url(f"{kind}:{printed_id}")
     return edit_actions.handle_post({(kind, printed_id)}, here,

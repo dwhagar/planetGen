@@ -9,7 +9,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.generation.planet import Planet
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, mixture, mixture_subject
+from planetgen.physics import atmosphere, constants, mixture, mixture_subject
 from tests.fuzz_support import deterministic_entropy
 
 
@@ -18,7 +18,7 @@ def _giant(distance_au, seed):
     config.STAR_TYPE = "G2V"
     with deterministic_entropy(seed):
         star = Star(config)
-        return Planet(config, star, star.habitable_zone, distance_au, planet_class="J", moon_count=0)
+        return Planet(config, star, star.habitable_zone, distance_au, mass=constants.JUPITER_MASS_TO_KG, moon_count=0)
 
 
 def test_the_oxygen_the_ozone_reads_is_the_mixture_accessors():

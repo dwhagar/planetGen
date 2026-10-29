@@ -454,7 +454,8 @@ def update_heat(body):
                       lid_of(body), surface_of(body))
     body.urey_ratio, body.internal_heat_flux_w_m2 = found.urey_ratio, found.own_flux_w_m2
     if icy:
-        body.tidal_flux_w_m2 = tidal_heating.icy_flux_w_m2(forcing, body.radius) if forcing else None
+        icy_w_m2 = tidal_heating.icy_flux_w_m2(forcing, body.radius) if forcing else 0.0
+        body.tidal_flux_w_m2 = icy_w_m2 if icy_w_m2 > 0.0 else None   # an orbit so round the tide underflows to 0.0 has none (GEN.906)
     else:
         body.tidal_flux_w_m2 = found.tidal_w / (4.0 * math.pi * (body.radius * 1000.0) ** 2) if found.tidal_w > 0.0 else None
     return found

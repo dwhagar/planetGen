@@ -42,7 +42,7 @@ from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
-from planetgen.db import countcache, hostednebula, interests, nebula_blocks, point_columns
+from planetgen.db import compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
@@ -2089,7 +2089,7 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
             labels), `name`, `descriptor`, `radius_ly` (0 for the
             point-like types), `class` (see `_PHENOMENON_CLASS_COLUMNS`), `gravity_g` (rogue planets only: the
             surface gravity in g, UX.99), `mass_solar` (a black hole, neutron star or quasar's mass, MAP.208;
-            else `None`), `x`/`y`/`z` (`center_x/y/z_pc`), `galactic_radius_pc`.
+            else `None`), `x`/`y`/`z` (`center_x/y/z_pc`), `galactic_radius_pc`, and for a supernova remnant `age_years` (MAP.286).
     """
     where_bbox = ""
     bbox_params = ()
@@ -2117,7 +2117,8 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
                    {_PHENOMENON_CLASS_COLUMNS.get(table, "NULL")} AS class_code,
                    center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
                    {"mass_kg, radius_km" if table == "rogue_planets" else "NULL AS mass_kg, NULL AS radius_km"},
-                   {_PHENOMENON_MASS_COLUMNS.get(table, "NULL")} AS mass_solar
+                   {_PHENOMENON_MASS_COLUMNS.get(table, "NULL")} AS mass_solar,
+                   {"age_years" if table == "supernova_remnants" else "NULL"} AS age_years
             FROM {table}
             WHERE center_x_pc IS NOT NULL
             {where_bbox}
@@ -2134,6 +2135,8 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
             })
             if table == "rogue_planets":
                 rows[-1]["gravity_g"] = rogue_planet_gravity_g(row["mass_kg"], row["radius_km"])
+            elif table == "supernova_remnants":
+                rows[-1]["age_years"] = row["age_years"]
     return rows
 
 
@@ -3203,7 +3206,8 @@ def phenomena_near_sector(conn, sector_id):
         list[dict]: One entry per candidate phenomenon, nearest first:
             `id`, `type` (one of `_PHENOMENON_TABLES`' type labels),
             `name`, `descriptor`, `class` (letter class or `None`),
-            `radius_ly`, `mass_solar` (black holes, neutron stars and quasars), `distance_ly` (sector center to phenomenon
+            `radius_ly`, `mass_solar` (black holes, neutron stars and quasars), `age_years` (a supernova remnant's, MAP.286; else
+            `None`), `distance_ly` (sector center to phenomenon
             center), and `offset_x_ly`/`offset_y_ly`/`offset_z_ly` (the
             phenomenon's center relative to the sector's own center, in
             light-years -- the same frame `starmap.py` already places
@@ -3256,7 +3260,7 @@ def phenomena_near_sector(conn, sector_id):
             "id": phenomenon["id"], "type": phenomenon["type"], "name": phenomenon["name"],
             "descriptor": phenomenon["descriptor"], "radius_ly": phenomenon["radius_ly"],
             "class": phenomenon["class"], "gravity_g": phenomenon.get("gravity_g"),
-            "mass_solar": phenomenon.get("mass_solar"),
+            "mass_solar": phenomenon.get("mass_solar"), "age_years": phenomenon.get("age_years"),
             "distance_ly": pc_to_ly(distance_pc),
             "offset_x_ly": pc_to_ly(dx), "offset_y_ly": pc_to_ly(dy), "offset_z_ly": pc_to_ly(dz),
             "octant": octant,
@@ -4115,10 +4119,11 @@ def _bright_star_entry(row):
 def scatter_member_tree(conn, table, row_id):
     """
     The stored members of an unbuilt scatter row, as a page lists them (UX.114): `members` (`member_no`, `kind`,
-    `state`, `mass_solar`, `parent_node_no`, `decay_age_yr`, which only a member of a young group has, GEN.327) in member
+    `state`, `mass_solar`, `parent_node_no`, `flags`, `decay_age_yr`, which only a member of a young group has, GEN.327) in member
     order and `nodes` (`node_no`, `parent_node_no`, `kind`
-    (`close`, `wide`, `compact` or `group`), `mass_solar`, `separation_au`, `period_years`, `eccentricity`), both empty
-    for a single object. Reads the two child tables by their primary key, so it is cheap at any galaxy size.
+    (`close`, `wide`, `compact` or `group`), `mass_solar`, `separation_au`, `period_years`, `eccentricity`, `interaction`, `flags`),
+    both empty for a single object, and `compact_pairs` (UX.186: the X-ray binaries and spider pulsars among them,
+    `db.compact_pairs`). Reads the two child tables by their primary key, so it is cheap at any galaxy size.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -4128,19 +4133,20 @@ def scatter_member_tree(conn, table, row_id):
     source = SCATTER_SOURCES[table]
     members = [
         {"member_no": r["member_no"], "kind": r["kind"], "state": r["state"], "mass_solar": r["mass_solar"],
-         "parent_node_no": r["parent_node_no"], "decay_age_yr": r["decay_age_yr"]}
+         "parent_node_no": r["parent_node_no"], "decay_age_yr": r["decay_age_yr"], "flags": r["flags"]}
         for r in conn.execute(
-            "SELECT member_no, kind, state, mass_solar, parent_node_no, decay_age_yr FROM scatter_members"
+            "SELECT member_no, kind, state, mass_solar, parent_node_no, decay_age_yr, flags FROM scatter_members"
             " WHERE source = ? AND source_id = ? ORDER BY member_no", (source, int(row_id))).fetchall()]
     nodes = [
         {"node_no": r["node_no"], "parent_node_no": r["parent_node_no"], "kind": r["kind"],
          "mass_solar": r["mass_solar"], "separation_au": _m_to_au(_km_to_m(r["separation_km"])),
-         "period_years": r["period_years"], "eccentricity": r["eccentricity"]}
+         "period_years": r["period_years"], "eccentricity": r["eccentricity"], "interaction": r["interaction"],
+         "flags": r["flags"]}
         for r in conn.execute(
-            "SELECT node_no, parent_node_no, kind, mass_solar, separation_km, period_years, eccentricity"
+            "SELECT node_no, parent_node_no, kind, mass_solar, separation_km, period_years, eccentricity, interaction, flags"
             " FROM scatter_nodes WHERE source = ? AND source_id = ? ORDER BY node_no",
             (source, int(row_id))).fetchall()]
-    return {"members": members, "nodes": nodes}
+    return {"members": members, "nodes": nodes, "compact_pairs": compact_pairs.compact_pairs(members, nodes)}
 
 
 def _member_fields(row):

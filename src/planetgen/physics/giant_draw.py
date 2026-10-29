@@ -5,16 +5,17 @@ A giant's heavy elements, radius and interior, drawn together (GEN.460, GEN.642;
 giant-heavy-element-law.md)
 =================================================================================================================
 
-Called from `planets.generate_planet_properties` once a giant's mass is settled (`planets._apply_giant_mass`). The order is
+Called from `planets.generate_planet_properties` once a giant's mass is settled (`planets._apply_giant_mass`). A giant has one of two
+regimes by its mass (`regime_of`): an ice giant (at most `ICE_GIANT_MAX_EARTH`, a core that found no gas) or a gas giant. The order is
 fixed and is part of the generator epoch:
 
-1. **The envelope's metallicity**: a multiple of the star's own Z, log-uniform over the class's range (`ENVELOPE_Z`).
-2. **The heavy-element mass M_Z.** A class J giant takes Chachan et al. 2025's law with its scatter
-   (`giant_radius.heavy_mass_earth`); an ice giant or a gas dwarf, whose mass is mostly or partly heavy elements and lies
-   below that law's 20 Earth masses, takes a share of its mass from `HEAVY_FRACTION`.
+1. **The envelope's metallicity**: a multiple of the star's own Z, log-uniform over the regime's range (`ENVELOPE_Z`).
+2. **The heavy-element mass M_Z.** A gas giant takes Chachan et al. 2025's law with its scatter
+   (`giant_radius.heavy_mass_earth`); an ice giant, whose mass is mostly heavy elements and lies below that law's 20 Earth masses,
+   takes a share of its mass from `HEAVY_FRACTION`.
 3. **The radius**, unless the caller gave one: where the Fortney, Marley and Barnes 2007 tables hold the body (`giant_radius.in_range`
    and `covers`), their radius for the mass, core, starlight and age plus the Sestovic et al. 2018 inflation; elsewhere the old
-   anchored mass-radius relation, which the caller passes as `fallback_radius_km` (a class T, a class I, a giant under 17 Earth
+   anchored mass-radius relation, which the caller passes as `fallback_radius_km` (an ice giant, a giant under 17 Earth
    masses, a moon, a body whose heavy elements outweigh what the tables hold).
 4. **The interior** (`giant_interior.draw_interior`): the layers, whose whole-body totals are the body's bulk composition.
 
@@ -35,20 +36,24 @@ SOURCES = {
     "sestovic2018": "Sestovic, Demory and Queloz 2018, A&A 612:A74 (hot-giant inflation)",
 }
 
-HEAVY_FRACTION = {"I": (0.75, 0.95), "T": (0.10, 0.50)}
-"""dict: A class's heavy-element share of its mass, uniform, for the classes below the heavy-element law's 20 Earth masses
-(Chachan et al. 2025 give M_Z = M below 14.7); the complement of the stand-in envelope shares that stood here before. Ice
-giants are 5 to 25 percent hydrogen and helium (Uranus and Neptune about 10 to 20 percent, Helled and Fortney 2020, READ as a
-range, not a fit). Class J takes the law."""
+ICE, GAS = "ice", "gas"
+"""str: The two regimes of a giant (`regime_of`)."""
+ICE_GIANT_MAX_EARTH = tuning.GIANT_NO_GAS_CORE_MAX_EARTH
+"""float: The heaviest ice giant, Earth masses: a core that found no gas stops growing here (`planet_mass`); heavier is a gas giant."""
 
-ENVELOPE_Z = {"I": (5.0, 30.0), "J": (1.0, 8.0), "T": (1.0, 12.0)}
-"""dict: The envelope's heavy-element mass fraction as a multiple of the star's Z, log-uniform; a stand-in range (Jupiter's
+HEAVY_FRACTION = (0.75, 0.95)
+"""tuple: An ice giant's heavy-element share of its mass, uniform, below the heavy-element law's 20 Earth masses
+(Chachan et al. 2025 give M_Z = M below 14.7). Ice giants are 5 to 25 percent hydrogen and helium (Uranus and Neptune about 10 to 20
+percent, Helled and Fortney 2020, READ as a range, not a fit). A gas giant takes the law."""
+
+ENVELOPE_Z = {ICE: (5.0, 30.0), GAS: (1.0, 8.0)}
+"""dict: The envelope's heavy-element mass fraction as a multiple of the star's Z, log-uniform, by regime; a stand-in range (Jupiter's
 atmosphere is 3 to 4 times solar, Saturn's about 10, Uranus and Neptune 20 to 100 in carbon) until a source gives the law."""
 
 MAX_ENVELOPE_Z = 0.5
 """float: The most heavy elements an envelope holds, as a fraction of its mass."""
 
-WATER_SHARE_OF_HEAVY = {"I": (0.30, 0.60), "J": (0.10, 0.30), "T": (0.20, 0.40)}
+WATER_SHARE_OF_HEAVY = {ICE: (0.30, 0.60), GAS: (0.10, 0.30)}
 """dict: For a giant born beyond the snow line, the water's share of its heavy elements, uniform; a stand-in range. Ammonia and
 methane follow at `AMMONIA_OVER_WATER` and `METHANE_OVER_WATER` of the water."""
 AMMONIA_OVER_WATER = 0.10
@@ -56,7 +61,7 @@ METHANE_OVER_WATER = 0.15
 
 BOND_ALBEDO = 0.503
 """float: Jupiter's Bond albedo (Li et al. 2018, Nature Communications 9:3709, the newer of two measurements; Hanel et al. 1981 had
-0.343), taken for every giant until the albedo is drawn by class."""
+0.343), taken for every giant's effective temperature."""
 
 INTERNAL_TEMPERATURE_K = 100.0
 """float: The temperature of Jupiter's own heat (Li et al. 2018: 100 K), scaled by `(M / Jupiter)^0.5` in `effective_temperature_k`,
@@ -88,10 +93,15 @@ def effective_temperature_k(flux_w_m2, mass_earth):
     return (starlight_k ** 4 + own_k ** 4) ** 0.25
 
 
-def _heavy_mass_earth(planet_class, mass_earth):
-    if planet_class == "J":
+def regime_of(mass_earth):
+    """`ICE` for a giant of at most `ICE_GIANT_MAX_EARTH` Earth masses, else `GAS`."""
+    return ICE if mass_earth <= ICE_GIANT_MAX_EARTH else GAS
+
+
+def _heavy_mass_earth(regime, mass_earth):
+    if regime == GAS:
         return giant_radius.heavy_mass_earth(mass_earth)
-    low, high = HEAVY_FRACTION[planet_class]
+    low, high = HEAVY_FRACTION
     return draw.uniform(low, high) * mass_earth
 
 
@@ -100,16 +110,14 @@ def _radius_km(planet, mass_earth, heavy_earth, envelope_z, flux_w_m2, fallback_
         core_earth = giant_radius.table_core_mass_earth(mass_earth, heavy_earth, envelope_z)
         if giant_radius.covers(mass_earth, core_earth):
             flux_earth = flux_w_m2 / giant_radius.flux_w_m2(1.0)
-            low, high = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
-            radius_km = giant_radius.radius_km(mass_earth, core_earth, flux_earth, planet.star.age)
-            return min(high, max(low, radius_km))
-    return fallback_radius_km(planet.planet_class, planet.mass)
+            return giant_radius.radius_km(mass_earth, core_earth, flux_earth, planet.star.age)
+    return fallback_radius_km(planet.mass)
 
 
-def _ice_shares(planet):
+def _ice_shares(planet, regime):
     if planet.is_moon or planet.distance < planet.star.snow_line_au:
         return {}
-    low, high = WATER_SHARE_OF_HEAVY[planet.planet_class]
+    low, high = WATER_SHARE_OF_HEAVY[regime]
     water = draw.uniform(low, high)
     return {"water_liquid": water, "nh3_ice": water * AMMONIA_OVER_WATER, "ch4_ice": water * METHANE_OVER_WATER}
 
@@ -119,10 +127,10 @@ def draw_giant(planet, radius_given, fallback_radius_km):
     Draws a giant's heavy elements, radius (unless given) and interior, and stores its bulk composition and density.
 
     Args:
-        planet (Planet): A giant class (`planets.uses_giant_mass_radius`) with its mass set (kg), its class and `star`.
+        planet (Planet): A giant (`body_type` "g") with its mass set (kg) and `star`.
         radius_given (bool): The caller gave the radius (km); it is kept.
-        fallback_radius_km (callable): `(planet_class, mass_kg) -> km`, the anchored mass-radius relation (with its scatter,
-            kept inside the class's range) for a body the tables do not hold.
+        fallback_radius_km (callable): `(mass_kg) -> km`, the anchored mass-radius relation (with its scatter) for a body the
+            tables do not hold.
 
     Sets:
         `radius` (unless given), `density` (g/cm3), the attributes of `bulk_composition.BODY_FIELDS` and the interior's
@@ -130,9 +138,10 @@ def draw_giant(planet, radius_given, fallback_radius_km):
     """
     mass_earth = planet.mass / constants.EARTH_MASS_TO_KG
     ratios = bulk_draw.host_ratios(planet.star)
-    z_low, z_high = ENVELOPE_Z[planet.planet_class]
+    regime = regime_of(mass_earth)
+    z_low, z_high = ENVELOPE_Z[regime]
     envelope_z = min(MAX_ENVELOPE_Z, ratios.z * log_uniform(z_low, z_high))
-    heavy_earth = _heavy_mass_earth(planet.planet_class, mass_earth)
+    heavy_earth = _heavy_mass_earth(regime, mass_earth)
     flux_w_m2 = starlight_w_m2(planet)
     if not radius_given:
         planet.radius = _radius_km(planet, mass_earth, heavy_earth, envelope_z, flux_w_m2, fallback_radius_km)
@@ -145,7 +154,7 @@ def draw_giant(planet, radius_given, fallback_radius_km):
     subject = giant_interior.GiantSubject(
         mass_earth=mass_earth, radius_km=planet.radius, heavy_mass_earth=heavy_earth, envelope_z=envelope_z,
         helium_share=ratios.y_envelope, temperature_1bar_k=temperature_k, iron_share_of_refractory=part.metal,
-        ice_shares=_ice_shares(planet))
+        ice_shares=_ice_shares(planet, regime))
     interior = giant_interior.draw_interior(subject)
     shares = interior.whole_body_shares()
     bulk = bulk_composition.BulkFractions(

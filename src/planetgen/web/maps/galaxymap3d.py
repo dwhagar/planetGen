@@ -353,14 +353,14 @@ SECTOR_MAP_HELP = """<h3>Moving</h3>
 """The sector page's map (MAP.68): the help dialog (UX.50)."""
 
 ADDRESS_BLOCK = """<form class="galaxy-address" id="galaxymap3d-address" role="search" hidden>
-  <label for="galaxymap3d-address-input">Go to</label>
+  <label for="galaxymap3d-address-input">Find a place</label>
   <input type="text" id="galaxymap3d-address-input" name="address" autocomplete="off" spellcheck="false"
-         placeholder="Designation, shell/band/wedge, x, y, z pc, or a name">
-  <button type="submit" class="starmap-btn">Go</button>
+         placeholder="A name, x y z in pc, a sector designation or an object ID (press / to type here)">
+  <button type="submit" class="starmap-btn">Go to</button>
 </form>
-<div class="galaxy-address-matches" id="galaxymap3d-matches" hidden></div>
+<div class="galaxy-address-matches galaxy-find-results" id="galaxymap3d-matches" hidden></div>
 """
-"""The Go-to form (the stage view's address bar)."""
+"""The find-a-place form (the stage view's address bar, MAP.336): the box and the list of what the line can be."""
 
 CRUMBS_BLOCK = """<nav class="crumbs galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
 """
@@ -406,7 +406,7 @@ HISTORY_BUTTONS = """  <button type="button" class="starmap-btn" data-action="ba
   </details>
   <button type="button" class="starmap-btn" data-action="forward" data-icon="forward" disabled>Forward</button>
   <button type="button" class="starmap-btn" data-action="up" data-icon="up" disabled
-          title="One step back out (Esc)">Up</button>
+          title="Up one level: out to what contains this (Esc)">Up one level</button>
   <button type="button" class="starmap-btn" data-action="reset" data-icon="reset"
           title="Back to the whole galaxy (Home)">Whole galaxy</button>
 """

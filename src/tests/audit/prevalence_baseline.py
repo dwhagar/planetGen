@@ -46,11 +46,9 @@ def _range(share, n_ref, n_run, must_appear=True):
 
 
 def zone_barred(zone, kind):
-    """The classes the class table (`tuning.PLANET_CLASSES`, flags h, e, c) bars from a zone: a class that cannot orbit there."""
-    from planetgen import tuning
-
-    flag = zone
-    return sorted(letter for letter, spec in tuning.PLANET_CLASSES.items() if not spec.get(flag, False))
+    """The classes barred from a zone: none since the class cut-over (GEN.646), which derives a body's class from its conditions, so
+    any class may come out anywhere the conditions give it."""
+    return []
 
 
 GAS_DWARF_RANGE = {
@@ -66,36 +64,36 @@ GAS_DWARF_NOTE = ("class T (gas dwarf) is never drawn: no 2 to 20 Earth-mass sub
                   "pre-cut-over spine drew it almost never either")
 
 
-def build(records, commit, label, count):
+def build(records, commit, label, count, origin="pre-cut-over"):
     cells = census.tally(records)
     out = {"reference": {"commit": commit, "label": label, "draws_per_cell": count,
                          "seeds": "crc32 of 'cell:<star>:<zone>' and 'orbit:<star>:<zone>' (tests.audit.prevalence.seed_for)",
-                         "kind": "stand-in: pre-cut-over prevalence, no observed class rates exist",
+                         "kind": f"stand-in: {origin} prevalence, no observed class rates exist",
                          "pad": PAD, "sigmas": SIGMAS},
            "anomalies": {}, "hangs": {"anomaly": ""}, "errors": {"anomaly": ""}, "cells": {}}
     for (star, zone, kind), cell in sorted(cells.items()):
         if not cell["n"] or kind not in ("planet", "moon"):
             continue
         spec = {"n_ref": cell["n"], "classes": {}, "tiers": {}, "barred": zone_barred(zone, kind),
-                "source": f"pre-cut-over measured at {commit[:9]}"}
+                "source": f"{origin} measured at {commit[:9]}"}
         for letter, count_ in sorted(cell["cls"].items()):
             if letter in spec["barred"]:
                 continue
             low, high = _range(count_ / cell["n"], cell["n"], cell["n"], must_appear=False)
             spec["classes"][letter] = {"min": low, "max": high, "kind": "stand-in",
-                                       "source": f"pre-cut-over share {count_ / cell['n']:.3f} at {commit[:9]}"}
+                                       "source": f"{origin} share {count_ / cell['n']:.3f} at {commit[:9]}"}
         scored = sum(cell["tier"].values())
         for tier in census.TIERS:
             share = cell["tier"][tier] / scored if scored else 0.0
             low, high = _range(share, scored, scored)
             spec["tiers"][tier] = {"min": low, "max": high, "kind": "stand-in",
-                                   "source": f"pre-cut-over share {share:.3f} of {scored} scored bodies at {commit[:9]}"}
+                                   "source": f"{origin} share {share:.3f} of {scored} scored bodies at {commit[:9]}"}
         spec["ceilings"] = {}
         for ceiling in census.CEILINGS:
             share = cell["ceiling"][ceiling] / scored if scored else 0.0
             low, high = _range(share, scored, scored)
             spec["ceilings"][ceiling] = {"min": low, "max": high, "kind": "stand-in",
-                                         "source": f"pre-cut-over share {share:.3f} of {scored} scored bodies at {commit[:9]}"}
+                                         "source": f"{origin} share {share:.3f} of {scored} scored bodies at {commit[:9]}"}
         out["cells"][census.cell_key(star, zone, kind)] = spec
     for key, spec in out["cells"].items():
         if key.endswith("/cold/planet"):
@@ -139,6 +137,7 @@ def main(argv=None):
     build_p.add_argument("--tag-current")
     build_p.add_argument("--anomaly")
     build_p.add_argument("--anomaly-note", default="")
+    build_p.add_argument("--origin", default="pre-cut-over", help="what the records are, in the source text of every range")
     build_p.add_argument("--hang-anomaly", default="", help="the item that explains a draw over the time limit")
     build_p.add_argument("--error-anomaly", default="", help="the item that explains a draw that raised")
     args = parser.parse_args(argv)
@@ -150,7 +149,7 @@ def main(argv=None):
         return 0
     with open(args.records, encoding="utf-8") as handle:
         records = json.load(handle)
-    expectations = build(records, args.commit, args.label, args.count)
+    expectations = build(records, args.commit, args.label, args.count, args.origin)
     expectations["hangs"]["anomaly"] = args.hang_anomaly
     expectations["errors"]["anomaly"] = args.error_anomaly
     if args.tag_current:

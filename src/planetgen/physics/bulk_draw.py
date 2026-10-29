@@ -5,9 +5,10 @@ Drawing a planet's or moon's bulk composition and solving its mass from it (GEN.
 the contracts of docs/design/composition-spine-contracts.md)
 ==========================================================================================================================
 
-Route 2 of the composition model: the composition comes first and the mass, density and gravity follow from it
-(`physics/bulk_structure.py`, GEN.429). The class still decides the radius (as it always did); the composition decides how
-much mass that radius holds.
+Route 2 of the composition model: the composition comes first and the radius, density and gravity follow from it
+(`physics/bulk_structure.py`, GEN.429). The mass comes from the formation law (`planet_mass`, GEN.650) or from a moon's size law
+(`planet_kind.draw_moon_mass_kg`); a caller that gives a radius instead gets the mass that radius holds. No class letter is read: the
+body's origin (`origin_of`: formed beyond its star's snow line or not) and its star say what it is made of.
 
 1. **The star sets the dry ratios.** The host star's own abundances (`stellar_composition.key_draws` and
    `stellar_abundances`, the same star key its [Fe/H] stream uses) give the number ratios Fe/Mg, Si/Mg, Al/Mg, Ca/Mg, Ni/Mg
@@ -16,15 +17,16 @@ much mass that radius holds.
    draw, and an iron-rich or iron-poor star moves it, which is the observed trend (Dorn et al. 2015; Santos et al. 2015).
 2. **What is drawn** is only what the star cannot say, in this order: the kind of rock (`ROCK_KIND_TABLE`, a gated possibility
    table: silicate, or silicon carbide and graphite for a star with C/O of 0.8 or more, Bond et al. 2010; Unterborn et al.
-   2014), the water share (log-uniform over its class's range in `hydrosphere.WATER_MASS_FRACTION`, as the hydrosphere drew it
-   before), for an icy class the other ices (`comet_population`'s volatiles against the water), the mantle's FeO, the core's
-   light elements, a small body's porosity, a carbon body's graphite, and then the iron branch of a rocky planet (`IRON_BRANCH_TABLE`: its
+   2014), the water share (log-uniform over the range of its origin, `tuning.DRY_WATER_MASS_FRACTION`, `WATER_WORLD_*` and
+   `ICY_WATER_MASS_FRACTION`), for an icy body the other ices (`comet_population`'s volatiles against the water), the mantle's FeO, the core's
+   light elements, a small icy body's porosity, a carbon body's graphite, and then the iron branch of a rocky planet (`IRON_BRANCH_TABLE`: its
    iron follows the star's with a scatter, or is enriched, GEN.512). Every range is in `RANGES` with where it comes from.
-3. **Mass from radius.** The class radius is fixed and the mass that the composition needs for it is found by bisection on
-   `bulk_structure.structure`; a body too dense to reach its radius below 20 Earth masses is set to the radius of 20.
-   A small body (below `SMALL_BODY_MASS_KG`) is a heap with a porosity and its mass is its volume times the mixing density.
-4. **Class S and a body given both a mass and a radius** go the other way (`origin` is `inverse`): the mass and the radius
-   (for class S, the radius and a density from the class's range) say the core mass fraction, as the observer's route does.
+3. **Radius from mass.** The mass is fixed and `bulk_structure.structure` gives the radius the composition holds it at. A caller that
+   gave a radius gets the mass that the composition needs for it, found by bisection; a body too dense to reach its radius below 20
+   Earth masses is set to the radius of 20. A small body (below `SMALL_BODY_MASS_KG`) is a heap with a porosity and its mass is its
+   volume times the mixing density.
+4. **A body given both a mass and a radius** goes the other way (`origin` is `inverse`): the mass and the radius say the core mass
+   fraction, as the observer's route does.
 
 The draw order is the order above; it is part of the generator epoch.
 """
@@ -45,12 +47,11 @@ from planetgen.util.random import log_uniform
 SOURCES = {
     "bond2010": "Bond, O'Brien and Lauretta 2010, ApJ 715, 1050 (planets of stars with C/O above 0.8 are carbon-rich)",
     "unterborn2014": "Unterborn, Dismukes and Panero 2014, ApJ 793, 124 (carbon-rich interiors: silicon carbide, graphite)",
-    "class": "planetGen class definition (tuning.PLANET_CLASSES): the class is named for a carbon-based surface",
 }
 
 RANGES = {
     "enriched_cmf": (0.5, 0.8),
-    "rock_feo": {"default": (0.02, 0.18), "B": (0.0, 0.01)},
+    "rock_feo": (0.02, 0.18),
     "core_light_elements": (0.03, 0.12),
     "graphite_over_rock": (0.05, 0.40),
     "porosity": (0.0, 0.30),
@@ -61,13 +62,14 @@ RANGES = {
 - `enriched_cmf`: the core mass fraction of the dry part of an iron-enriched planet (`IRON_BRANCH_TABLE`), uniform, floored at
   the star-matched value; its top is the cap of the observed iron-rich rocky planets (about 0.8, Plotnykov and Valencia 2020).
 - `rock_feo`: FeO as a mass fraction of the rock, uniform. Earth's bulk silicate has 0.081, the Moon about 0.10, Mars 0.18
-  (Khan and Connolly 2008), Mercury under 0.01 (Nittler et al. 2011): class B takes the Mercury-like range.
+  (Khan and Connolly 2008); Mercury, under 0.01 (Nittler et al. 2011), is outside it: the Mercury-like range belonged to class B,
+  a class the generator no longer draws, and no condition of the body says it is reduced (a stand-in, tier "from needed output").
 - `core_light_elements`: light elements (S, Si, O, C, H) as a mass fraction of the metal, uniform; Earth's core has 0.05 to
   0.10 (Hirose et al. 2021).
 - `graphite_over_rock`: a carbon body's graphite against its silicon carbide and oxide rock, uniform; a stand-in range until the
   carbon mantle's equation of state (GEN.428's open item) says what the interiors hold.
 - `porosity`: the void share of a small icy body, uniform; a stand-in until viscous compaction (lane K) replaces it.
-- `other_ice_comet_class`: whose volatile proportions an icy class takes for its ices other than water.
+- `other_ice_comet_class`: whose volatile proportions an icy body takes for its ices other than water.
 """
 
 IRON_SCATTER_DEX = 0.05
@@ -169,33 +171,31 @@ def host_ratios(star):
 ROCK_KIND_TABLE = pt.REGISTRY.register(pt.Table(
     "bulk-rock-kind", 1,
     [
-        pt.Row("silicate", tuple(tuning.PLANET_CLASSES.keys() - {"C"}), 1.0, SOURCES["bond2010"],
+        pt.Row("silicate", (pt.ANY_CLASS,), 1.0, SOURCES["bond2010"],
                conditions=(pt.Condition("c_over_o", maximum=CARBON_OVER_OXYGEN - 1e-12),),
                notes="a star under C/O 0.8 makes silicate rock"),
         pt.Row("carbide-graphite", (pt.ANY_CLASS,), 1.0, SOURCES["unterborn2014"],
                conditions=(pt.Condition("c_over_o", minimum=CARBON_OVER_OXYGEN),),
                notes="a star at C/O 0.8 or more makes silicon carbide and graphite"),
-        pt.Row("carbide-graphite-by-class", ("C",), 1.0, SOURCES["class"], state=pt.PARTLY_VERIFIED,
-               conditions=(pt.Condition("c_over_o", maximum=CARBON_OVER_OXYGEN - 1e-12),),
-               limit="a class definition, not a measured population: a carbon surface needs no carbon-rich star here",
-               notes="class C is carbon rock whatever its star"),
     ],
-    description="Whether a rocky body's rock is silicate or silicon carbide and graphite, by the host star's C/O and the class."))
-"""Table: The kind of rock, gated on the host's C/O (`c_over_o`) and the class; exactly one row passes."""
+    description="Whether a rocky body's rock is silicate or silicon carbide and graphite, by the host star's C/O."))
+"""Table: The kind of rock, gated on the host's C/O (`c_over_o`); exactly one row passes."""
 
 
-IRON_BRANCH_CLASSES = tuple(sorted(set(tuning.PLANET_CLASSES) - {"D", "S", "C"}))
-"""tuple: The classes with an iron branch: a rocky planet, not an icy, small or carbon body."""
+ROCKY, ICY = "rocky", "icy"
+"""str: The two origins a body's makeup is drawn for (`origin_of`)."""
+IRON_BRANCH_ORIGINS = (ROCKY,)
+"""tuple: The origins with an iron branch: a rocky planet, not an icy one (a moon inherits its star's, below)."""
 
 IRON_BRANCH_TABLE = pt.REGISTRY.register(pt.Table(
     "bulk-iron-branch", 1,
     [
-        pt.Row("star-matched", IRON_BRANCH_CLASSES, 1.0 - IRON_ENRICHED_WEIGHT,
+        pt.Row("star-matched", IRON_BRANCH_ORIGINS, 1.0 - IRON_ENRICHED_WEIGHT,
                "Plotnykov, Valencia, Ross et al. 2026 (arXiv:2511.17717) and Brinkman et al. 2024 (arXiv:2409.08361): planet iron follows the host's, 1:1",
                state=pt.PARTLY_VERIFIED, tunable=True,
                limit="the slope of planet against star iron is 0.94 (+1.02/-1.07) and 1.3 to 5.6 by fit: consistent with 1:1, not measured; the scatter is an upper limit",
                notes="Fe/Mg of the planet = the star's times 10 to a normal of IRON_SCATTER_DEX; the slope stays 1"),
-        pt.Row("iron-enriched", IRON_BRANCH_CLASSES, IRON_ENRICHED_WEIGHT,
+        pt.Row("iron-enriched", IRON_BRANCH_ORIGINS, IRON_ENRICHED_WEIGHT,
                "Plotnykov, Valencia, Ross et al. 2026 (arXiv:2511.17717): 1 of 21 planets 2 sigma more iron-rich than its star; Schulze 2021: 1 of 11",
                state=pt.PARTLY_VERIFIED, tunable=True,
                limit="an upper limit: 0 of 20 distinct (Brinkman 2024) to 5 of 22 (Adibekyan 2021, heterogeneous); mass-radius scatter alone makes about 15 percent of mock samples show one",
@@ -208,11 +208,12 @@ IRON_BRANCH_TABLE = pt.REGISTRY.register(pt.Table(
 def iron_branch_ratios(body, ratios, feo, light, carbon_rock, graphite):
     """
     The host ratios as the planet inherits them: the star's Fe/Mg with the scatter of a star-matched planet, or an Fe/Mg that makes the
-    core mass fraction a draw from `RANGES["enriched_cmf"]`. A moon, and a class outside `IRON_BRANCH_CLASSES`, inherit the star's.
+    core mass fraction a draw from `RANGES["enriched_cmf"]`. A moon, and a body of an origin outside `IRON_BRANCH_ORIGINS`, inherit the star's.
     """
-    if body.is_moon or body.planet_class not in IRON_BRANCH_CLASSES:
+    origin = origin_of(body)
+    if body.is_moon or origin not in IRON_BRANCH_ORIGINS:
         return ratios
-    branch = IRON_BRANCH_TABLE.draw(body.planet_class, {}).name
+    branch = IRON_BRANCH_TABLE.draw(origin, {}).name
     return branch_ratios(ratios, branch, IRON_SCATTER_DEX, feo, light, carbon_rock, graphite)
 
 
@@ -286,21 +287,33 @@ def dry_partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_r
                         rock_mg_si=1.0 / ratios.si)
 
 
+def origin_of(body):
+    """
+    `ICY` for a body that formed beyond its star's snow line, else `ROCKY`. A moon takes its parent's (the distance it formed at is
+    `body.formation_distance_au`, the parent's for a moon); a body with no snow line to compare, or no distance, is rocky.
+    """
+    line = getattr(getattr(body, "star", None), "snow_line_au", None)
+    distance = getattr(body, "formation_distance_au", None)
+    if distance is None:
+        distance = getattr(body, "distance", None)
+    return ICY if line is not None and distance is not None and distance >= line else ROCKY
+
+
 def _subject(body, ratios):
-    return pt.Subject(body.planet_class, {"c_over_o": ratios.c_over_o})
-
-
-def _feo_range(planet_class):
-    ranges = RANGES["rock_feo"]
-    return ranges.get(planet_class, ranges["default"])
+    return pt.Subject(origin_of(body), {"c_over_o": ratios.c_over_o})
 
 
 def _water_and_ice(body):
-    """Water as a share of the whole body from the class's range, and the other ices beside it for an icy class."""
-    low, high = hydrosphere.WATER_MASS_FRACTION.get(body.planet_class, hydrosphere.DEFAULT_WATER_MASS_FRACTION)
+    """Water as a share of the whole body from the range of its origin, and the other ices beside it for an icy body."""
+    if origin_of(body) == ICY:
+        low, high = tuning.ICY_WATER_MASS_FRACTION
+    elif draw.random() < tuning.WATER_WORLD_SHARE:
+        low, high = tuning.WATER_WORLD_WATER_MASS_FRACTION
+    else:
+        low, high = tuning.DRY_WATER_MASS_FRACTION
     water = log_uniform(low, high)
     ice = 0.0
-    if body.planet_class == "D":
+    if origin_of(body) == ICY:
         volatiles = comet_population.draw_volatiles(RANGES["other_ice_comet_class"])
         ice = water * sum(volatiles.percent.values()) / 100.0
         scale = min(1.0, 0.95 / (water + ice))
@@ -309,7 +322,19 @@ def _water_and_ice(body):
 
 
 def _porosity(body):
-    return draw.uniform(*RANGES["porosity"]) if body.planet_class == "D" else None
+    return draw.uniform(*RANGES["porosity"]) if origin_of(body) == ICY and _heap_mass(body) else None
+
+
+SMALL_BODY_RADIUS_KM = 540.0
+"""float: About the radius of a heap of `bulk_structure.SMALL_BODY_MASS_KG` of ice and rock, for a body given a radius and no mass."""
+
+
+def _heap_mass(body):
+    """Whether `body` is a heap of grains (lighter than `SMALL_BODY_MASS_KG`, or of a radius a heap that light has), so its porosity matters."""
+    mass = getattr(body, "mass", None)
+    if mass is not None:
+        return mass < bulk_structure.SMALL_BODY_MASS_KG
+    return body.radius is not None and body.radius < SMALL_BODY_RADIUS_KM
 
 
 def mass_from_radius(bulk, radius_km, x_fe):
@@ -351,19 +376,19 @@ def draw_terrestrial(body, radius_given, mass_given):
         The attributes of `bulk_composition.BODY_FIELDS`, `mass`, `radius` and `density` (g/cm3).
     """
     ratios = host_ratios(body.star)
-    kind = ROCK_KIND_TABLE.draw(body.planet_class, {"c_over_o": ratios.c_over_o}).name
+    kind = ROCK_KIND_TABLE.draw(origin_of(body), {"c_over_o": ratios.c_over_o}).name
     carbon_rock = kind != "silicate"
-    inverse = body.planet_class == "S" or (radius_given and mass_given)
+    inverse = radius_given and mass_given
     origin = None if inverse else getattr(body, "moon_origin", None)
-    # A moon that holds its origin (GEN.466) takes its water, ice, rock and metal from it, not from its class's range
+    # A moon that holds its origin (GEN.466) takes its water, ice, rock and metal from it, not from the range of its parent's origin
     water, ice = (0.0, 0.0) if origin else _water_and_ice(body)
-    feo = draw.uniform(*_feo_range(body.planet_class))
+    feo = draw.uniform(*RANGES["rock_feo"])
     light = draw.uniform(*RANGES["core_light_elements"])
     porosity = None if origin else _porosity(body)
     graphite = draw.uniform(*RANGES["graphite_over_rock"]) if carbon_rock else 0.0
 
     if inverse:
-        _draw_inverse(body, ratios, water, ice, feo, light, carbon_rock, graphite, mass_given)
+        _draw_inverse(body, ratios, water, ice, feo, light, carbon_rock, graphite)
         return
 
     ratios = iron_branch_ratios(body, ratios, feo, light, carbon_rock, graphite)
@@ -392,7 +417,19 @@ def _draw_moon(body, origin, part, mass_given):
         metal=makeup.metal, rock=makeup.rock, water=makeup.water, ice=makeup.ice, envelope=0.0, rock_feo=part.rock_feo,
         rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=makeup.porosity, carbon_rock=False, origin="drawn")
     if mass_given:
-        _settle(body, bulk, mass_given)
+        # GEN.442: below the taper's end the radius follows from the mass by the same brittle law that gives the mass from the radius
+        low, high = compaction.ROCK_FRACTION_RANGE
+        try:
+            if body.mass >= compaction.TAPER_END_KG:
+                raise compaction.OutOfRange("the structure solver decides")
+            radius_km = compaction.compacted_radius_km(body.mass, min(max(makeup.rock + makeup.metal, low), high))
+        except compaction.OutOfRange:    # heavier than the taper's end (or lighter than its table): the solver
+            _settle(body, dataclasses.replace(bulk, porosity=None), mass_given)
+            return
+        body.radius = radius_km
+        volume_m3 = 4.0 / 3.0 * math.pi * (radius_km * 1000.0) ** 3
+        grain = bulk_structure.mixing_density_kg_m3(bulk.metal, bulk.rock, bulk.water, bulk.ice, 0.0)   # what the stored shares hold with no pores
+        _store(body, dataclasses.replace(bulk, porosity=max(0.0, 1.0 - body.mass / volume_m3 / grain)))
         return
     try:
         mass_kg = moon_composition.mass_from_radius_kg(makeup, body.radius)
@@ -427,12 +464,8 @@ def _store(body, bulk):
     body.density = body.mass / volume_m3 / 1000.0
 
 
-def _draw_inverse(body, ratios, water, ice, feo, light, carbon_rock, graphite, mass_given):
-    """Class S and a body given both a mass and a radius: the core mass fraction from the mass and the radius."""
-    if body.planet_class == "S" and not mass_given:
-        low, high = tuning.PLANET_CLASSES["S"]["density_range"]
-        density = draw.uniform(low, high)
-        body.mass = 4.0 / 3.0 * math.pi * (body.radius * 1000.0) ** 3 * density * 1000.0
+def _draw_inverse(body, ratios, water, ice, feo, light, carbon_rock, graphite):
+    """A body given both a mass and a radius: the core mass fraction from the mass and the radius."""
     part = dry_partition(ratios, feo, light, carbon_rock, graphite)
     x_fe = bulk_structure.x_fe_from_feo_mass_fraction(part.rock_feo) if part.rock_feo else 0.0
     mass_earth = body.mass / constants.EARTH_MASS_TO_KG

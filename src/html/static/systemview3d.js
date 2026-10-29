@@ -561,7 +561,7 @@ export function createSystemView(options) {
       nav: navActions(document.getElementById("sysmap-root"), entry.ref),
       links: nearbyLinks(document.getElementById("sysmap-root"), entry.ref),
       buttons: [
-        { label: "Fly to", onClick: function () { flyTo(entry.ref); } },
+        { label: "Go to", onClick: function () { flyTo(entry.ref); } },
         { label: "Follow", onClick: function () { follow.ref = entry.ref; flyTo(entry.ref); } },
       ],
     };

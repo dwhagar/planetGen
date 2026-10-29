@@ -111,29 +111,29 @@ def test_the_loss_is_deterministic_and_follows_the_stars_own_activity():
             < runaway_history.loss_kg(loud, 0.1, *EARTH))
 
 
-def _planet(star_type, planet_class, seed):
+def _planet(star_type, mass_earth, seed):
     cfg = SystemConfig()
     cfg.STAR_TYPE = star_type
     with draw.bound(1):
         star = Star(cfg)
     with draw.bound(seed):
         planet = Planet(cfg, star, star.habitable_zone, plausibility.distance_for_zone(star, "e"),
-                        planet_class=planet_class, zone_override="e", moon_count=0)
+                        mass=mass_earth * constants.EARTH_MASS_TO_KG, zone_override="e", moon_count=0)
     return star, planet
 
 
 def test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost(monkeypatch):
     lost_any = False
     for seed in range(6):
-        _, sunlike = _planet("G2V", "M", seed)
+        _, sunlike = _planet("G2V", 1.0, seed)
         with monkeypatch.context() as patch:
             patch.setattr(hydrosphere.runaway_history, "loss_kg", lambda *args: 0.0)
-            _, sunlike_untouched = _planet("G2V", "M", seed)
+            _, sunlike_untouched = _planet("G2V", 1.0, seed)
         assert sunlike.ocean_fraction == sunlike_untouched.ocean_fraction  # the Sun-like zone loses nothing
-        _, cool = _planet("M3V", "M", seed)
+        _, cool = _planet("M3V", 1.0, seed)
         with monkeypatch.context() as patch:
             patch.setattr(hydrosphere.runaway_history, "loss_kg", lambda *args: 0.0)
-            _, untouched = _planet("M3V", "M", seed)
+            _, untouched = _planet("M3V", 1.0, seed)
         assert cool.water_mass_fraction == untouched.water_mass_fraction  # the bulk water of the composition stays
         assert cool.ocean_fraction <= untouched.ocean_fraction  # the escape takes surface water, never makes it
         lost_any = lost_any or cool.ocean_fraction < untouched.ocean_fraction

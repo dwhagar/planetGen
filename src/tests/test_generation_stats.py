@@ -439,3 +439,16 @@ def test_the_fingerprint_changes_when_a_speed_or_a_size_is_stored(control_config
     stats._dirty_sizes.add("fingerprint_db")
     stats.flush()
     assert fingerprint() != after_bucket
+
+
+def test_the_estimate_of_the_logged_neighbourhood_run_is_small_and_its_time_is_a_range_that_holds_the_real_time():
+    """PERF.178: Boss's run job-20261024-031001-f81d estimated 33 GB and 2 min 33 s for 105 sectors (about 3,800 systems) and the
+    neighbourhood took 4 min 28 s. The size is per system (the galaxy-wide scatter tables are left out), and with no speed measured on
+    the server the time reads as the range it lies within, which holds the 4 min 28 s the run took."""
+    sectors = [(1.0, 3800.0 / 105.0)] * 105
+    result = estimate(sectors, GenerationStats(), "planetgen", workers=9)
+    assert not result.measured and result.systems == pytest.approx(3800.0)
+    assert result.bytes < 1e9, f"{format_bytes(result.bytes)} for 3,800 systems"
+    low, high = result.seconds * generationStats.UNMEASURED_LOW_FACTOR, result.seconds * generationStats.UNMEASURED_HIGH_FACTOR
+    assert low < 268.0 < high
+    assert "not timed yet on this server" in result.summary() and " to " in result.time_text()

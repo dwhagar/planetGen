@@ -1,11 +1,10 @@
 """
 Moon-generation regression tests.
 
-Generates moons across a spread of host planet classes (terrestrial and gas
-giant, since planetPhysics.generate_moons doesn't restrict what *type* of
-planet can host moons -- only what type of planet can *be* one: type 't',
-not in MOON_BLACKLIST, and small enough relative to the host) and checks the
-result against the invariants generate_moons is meant to guarantee.
+Generates moons across a spread of host planets (terrestrial and gas giant, of the masses a caller gives, since
+planetPhysics.generate_moons doesn't restrict what *type* of planet can host moons) and checks the result against the invariants
+generate_moons is meant to guarantee: each moon's mass is drawn from the moon size law (GEN.646) between the lightest moon and
+its parent's ceiling, and the moon is small enough for its host to hold.
 
 Run with: pytest tests/test_moons.py
 """
@@ -17,11 +16,13 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
+from planetgen.physics import constants, planet_kind
 
-# A spread of host classes: small/large terrestrial and gas giants, in
-# whichever zone each actually supports (see PLANET_CLASSES h/e/c flags).
-HOST_CLASSES_AND_ZONES = [
-    ("M", "e"), ("D", "h"), ("C", "c"), ("J", "c"), ("T", "c"), ("I", "c"), ("A", "h"),
+EARTH = constants.EARTH_MASS_TO_KG
+
+# A spread of hosts: light and heavy terrestrial bodies and ice and gas giants, each in a zone: (mass in Earth masses, zone).
+HOSTS_AND_ZONES = [
+    (1.0, "e"), (0.2, "h"), (0.05, "c"), (300.0, "c"), (25.0, "c"), (3.0, "h"),
 ]
 
 
@@ -41,24 +42,24 @@ def distance_for_zone(star, zone):
     return (inner + outer) / 2.0
 
 
-def make_host_planet(host_star, cls, zone, moon_count=None):
+def make_host_planet(host_star, mass_earth, zone, moon_count=None):
     cfg = SystemConfig()
     distance = distance_for_zone(host_star, zone)
     return Planet(
         cfg, host_star, host_star.habitable_zone, distance,
-        planet_class=cls, moon_count=moon_count,
+        mass=mass_earth * EARTH, moon_count=moon_count,
     )
 
 
 def assert_moons_are_valid(host):
     for i, moon in enumerate(host.moons):
         assert moon.is_moon
-        assert moon.planet_class not in prog_c.MOON_BLACKLIST
+        assert moon.planet_class in prog_c.PLANET_CLASSES
         assert prog_c.PLANET_CLASSES[moon.planet_class]["type"] == 't'
-        assert prog_c.PLANET_CLASSES[moon.planet_class][host.zone]
-        min_r, max_r = prog_c.PLANET_CLASSES[moon.planet_class]["radius_range"]
-        assert min_r <= moon.radius <= max_r
+        assert moon.zone == host.zone
         assert math.isfinite(moon.mass) and moon.mass > 0
+        ceiling = planet_kind.moon_mass_ceiling_kg(host.mass, host.body_type == "g")
+        assert prog_c.MOON_MIN_MASS_KG * 0.999 <= moon.mass <= ceiling * 1.001
         assert moon.mass <= host.mass / 10 * 1.001
         assert moon.radius <= host.radius / (10 ** (1 / 3)) * 1.001
         if i > 0:
@@ -66,11 +67,11 @@ def assert_moons_are_valid(host):
             assert moon.distance >= prev.distance, "moons must be generated in increasing orbital distance"
 
 
-@pytest.mark.parametrize("cls,zone", HOST_CLASSES_AND_ZONES, ids=[f"{c}-{z}" for c, z in HOST_CLASSES_AND_ZONES])
+@pytest.mark.parametrize("mass_earth,zone", HOSTS_AND_ZONES, ids=[f"{m}-{z}" for m, z in HOSTS_AND_ZONES])
 @pytest.mark.parametrize("moon_count", [None, 0, 1, 3, 50])
-def test_moon_generation_never_errors_and_respects_requested_count(host_star, cls, zone, moon_count):
+def test_moon_generation_never_errors_and_respects_requested_count(host_star, mass_earth, zone, moon_count):
     for _ in range(3):
-        host = make_host_planet(host_star, cls, zone, moon_count=moon_count)
+        host = make_host_planet(host_star, mass_earth, zone, moon_count=moon_count)
         if moon_count is not None:
             assert len(host.moons) <= moon_count, "generate_moons must never exceed the requested count"
         if moon_count == 0:
@@ -88,7 +89,7 @@ def test_system_config_moons_flag(host_star, moons_flag):
     for _ in range(20):
         planet = Planet(
             cfg, host_star, host_star.habitable_zone, distance,
-            planet_class="J",
+            mass=300 * EARTH,
         )
         if moons_flag is False:
             assert planet.moons == []
@@ -113,23 +114,22 @@ def test_tiny_host_planet_gets_no_room_for_moons_without_error(host_star):
     for _ in range(10):
         planet = Planet(
             cfg, host_star, host_star.habitable_zone, distance,
-            planet_class="D", moon_count=5,
+            mass=prog_c.PLANET_MIN_MASS_KG, moon_count=5,
         )
         assert_moons_are_valid(planet)
 
 
 def test_moons_cannot_themselves_have_moons(host_star):
-    host = make_host_planet(host_star, "J", "c", moon_count=3)
+    host = make_host_planet(host_star, 300.0, "c", moon_count=3)
     for moon in host.moons:
         assert moon.moons == []
 
 
 def test_a_moons_hill_sphere_is_about_its_planet_not_the_star(host_star):
     """GEN.138: the Moon's Hill sphere about the Earth is about 61,500 km, not the 888 km the Sun's mass gave."""
-    from planetgen.physics import constants
     from planetgen.physics.planets import update_hill_sphere
 
-    host = make_host_planet(host_star, "J", "c", moon_count=3)
+    host = make_host_planet(host_star, 300.0, "c", moon_count=3)
     assert host.moons
     for moon in host.moons:
         assert moon.primary_mass_kg == host.mass

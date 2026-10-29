@@ -35,6 +35,11 @@ from planetgen.util.format import (
 )
 
 
+DEFER_MOONS = "defer"
+"""str: A `moon_count` that builds the planet bare; the caller adds its moons later with `Planet.add_moons` (a request that draws
+the planet again until it is the one wanted does not generate moons for the ones it throws away)."""
+
+
 class Planet(PlanetaryObject):
     """
     A class representing a single planet or moon and all of its properties.
@@ -274,9 +279,9 @@ class Planet(PlanetaryObject):
     """
 
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
-                 radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
+                 radius=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None,
-                 planned_objects=None, host_eccentricity=0.0):
+                 planned_objects=None, host_eccentricity=0.0, formation_distance_au=None):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -295,7 +300,6 @@ class Planet(PlanetaryObject):
                               of the habitable zone in AU.
             distance (float): The planet's distance from its star in AU.
             radius (float, optional): The radius of the planet in kilometers.
-            planet_class (str, optional): The class of the planet (e.g., 'M', 'N').
             mass (float, optional): The mass of the planet in kilograms.
             zone_override (str, optional): A single character ('h', 'c', 'e') to
                                            override the planet's calculated zone.
@@ -307,6 +311,7 @@ class Planet(PlanetaryObject):
                                         if `is_moon` is True. If None, moon
                                         generation falls back to
                                         `system_config.MOONS`/random chance.
+                                        `DEFER_MOONS` builds none yet (`add_moons`).
             primary_mass_kg (float, optional): The mass (in kg) of the body
                                                this one actually orbits, for
                                                Kepler's third law. Defaults to
@@ -316,6 +321,9 @@ class Planet(PlanetaryObject):
                                                the star (`generate_moons`
                                                passes the parent planet's own
                                                `mass` here).
+            formation_distance_au (float, optional): Where the planet formed, AU, when that is not where it orbits (a pulsar's disc planet
+                                         formed in the volatile-poor debris of a disrupted star, so inside any snow line); it sets
+                                         whether the planet is ice-rich or dry (`bulk_draw.origin_of`). Defaults to the distance.
             moon_origin (str, optional): For a moon, how it came to orbit its parent (`moon_composition.ORIGINS`), drawn by
                                          `generate_moons`: the orbit's inclination follows from it (GEN.714). A moon built
                                          without one keeps the old regular orbit.
@@ -353,8 +361,11 @@ class Planet(PlanetaryObject):
         self.atmosphere = None
         self.composition = None
         self.radius = radius
-        self.planet_class = planet_class
+        self.planet_class = None    # derived from the finished body (`planetPhysics.apply_class`)
         self.distance = distance
+        # Where the body formed, in AU (a moon's is its planet's), which decides whether its water is ice (`bulk_draw.origin_of`).
+        self.formation_distance_au = (formation_distance_au if formation_distance_au is not None
+                                      else distance_override if distance_override is not None else distance)
         self.body_type = None
         self.scale_height = None
         self.hill_radius = None
@@ -404,26 +415,44 @@ class Planet(PlanetaryObject):
         # sphere (set inside generate_planet_properties) uses it (GEN.138).
         primary_mass_kg = primary_mass_kg if primary_mass_kg is not None else star.mass
         self.primary_mass_kg = primary_mass_kg
-        # Calculate physical/orbital properties (no life data yet).
-        planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
-        self.period = planetPhysics.calculate_orbital_period_years(self.distance, primary_mass_kg)
-        planetPhysics.calculate_surface_gravity(self)
-        # GEN.727: the eccentricity first, since the light a planet gets goes by its orbit's mean flux
-        planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
-        planetPhysics.calculate_atmospheric_conditions(self, distance_override)
+        # Calculate physical/orbital properties (no life data yet). A system that bars habitable worlds from its ecosphere
+        # (`HABITABLE_WORLD` False) draws the body again where the finished body's class would be one that can carry life.
+        given_mass, given_radius = self.mass, self.radius
+        for _attempt in range(tuning.BARRED_CLASS_MAX_ATTEMPTS):
+            self.mass, self.radius = given_mass, given_radius
+            planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
+            self.period = planetPhysics.calculate_orbital_period_years(self.distance, primary_mass_kg)
+            planetPhysics.calculate_surface_gravity(self)
+            # GEN.727: the eccentricity first, since the light a planet gets goes by its orbit's mean flux
+            planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
+            planetPhysics.calculate_atmospheric_conditions(self, distance_override)
+            planetPhysics.apply_class(self)
+            if not (system_config.HABITABLE_WORLD is False and self.zone == 'e'
+                    and self.planet_class in tuning.HABITABLE_PLANET_CLASSES):
+                break
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
 
-        if not self.is_moon:
-            if moon_count is not None:
-                planetPhysics.generate_moons(self, moon_count=moon_count)
-            elif self.system_config.MOONS is not False and (
-                    self.system_config.MOONS is True
-                    or self._draw_moons()):
-                planetPhysics.generate_moons(self)
-            # GEN.767: the day and night shares, the moons' with their parent's shadow (no draws)
-            daylight.generate(self)
-            for moon in self.moons:
-                daylight.generate(moon, self)
+        if moon_count != DEFER_MOONS:
+            self.add_moons(moon_count)
+
+    def add_moons(self, moon_count=None):
+        """
+        Generates this planet's moons: an exact `moon_count` (0 for none) or, with `None`, whatever `system_config.MOONS` and the
+        satellite draw allow. Called by `__init__`, and by a request that drew the planet bare (`DEFER_MOONS`) and keeps it.
+        Never for a moon.
+        """
+        if self.is_moon:
+            return
+        if moon_count is not None:
+            planetPhysics.generate_moons(self, moon_count=moon_count)
+        elif self.system_config.MOONS is not False and (
+                self.system_config.MOONS is True
+                or self._draw_moons()):
+            planetPhysics.generate_moons(self)
+        # GEN.767: the day and night shares, the moons' with their parent's shadow (no draws)
+        daylight.generate(self)
+        for moon in self.moons:
+            daylight.generate(moon, self)
 
     @property
     def giant_kind(self):

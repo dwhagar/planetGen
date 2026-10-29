@@ -26,7 +26,7 @@ runs, stops the step and every process it started, and marks the job
 cancelled. (A file rather than RQ's stop command: that kills the worker's
 work horse and would leave the step and its processes running.) SIGTERM
 does the same (a server shutting down, on POSIX).
-When it is done it removes the jobs directory's `active` lock, if the lock is still
+When it is done it frees the job lock in Redis (`jobs.release_lock`), if the lock is still
 this job's, so the next job can start.
 
 How long each step took is kept by its label in the jobs directory (`STEP_TIMES_NAME`), for the next job's estimates.
@@ -45,9 +45,6 @@ import tempfile
 import time
 
 from planetgen.util import logrecord, memwatch
-
-LOCK_NAME = "active"
-"""str: The jobs directory's lock file, holding the running job's id."""
 
 CANCEL_NAME = "cancel"
 """str: The file in a job's directory that asks it to stop (must match
@@ -159,14 +156,13 @@ def _drop_queue(job_id):
         pass
 
 
-def _release_lock(jobs_dir, job_id):
-    lock = os.path.join(jobs_dir, LOCK_NAME)
+def _release_lock(job_id):
+    """Frees the job lock if it names this job (best effort; the next job clears a stale one)."""
     try:
-        with open(lock, "r", encoding="utf-8") as f:
-            holder = f.read().strip()
-        if holder == job_id:
-            os.remove(lock)
-    except OSError:
+        from planetgen.web import jobs
+
+        jobs.release_lock(job_id)
+    except Exception:  # noqa: BLE001 -- a lock left behind is cleared by the next job
         pass
 
 
@@ -518,7 +514,7 @@ def run(job_dir):
         # is over, queue included (a test or the next job saw the queue
         # a moment after).
         _drop_queue(job["id"])
-        _release_lock(jobs_dir, job["id"])
+        _release_lock(job["id"])
         _start_waiting_job(jobs_dir, job_dir)
     return 0 if state["status"] == "succeeded" else 1
 

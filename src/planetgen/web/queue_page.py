@@ -18,7 +18,7 @@ from flask import Response, abort, current_app, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table, time_text
-from planetgen.queue import progress_rate, runrecord, warmphases
+from planetgen.queue import progress_rate, runline, runrecord, warmphases
 from planetgen.admin import activity_log
 from planetgen.util import log, logrecord
 from planetgen.util.format import counted
@@ -435,40 +435,40 @@ def admin_queue_confirm(action):
 
 
 def _start_retry(admin, plan, retry_of):
-    """Starts `plan` (`_retry_plan`) as a Generate page job. Returns `(message, error)`."""
+    """Starts `plan` (`_retry_plan`) as a Generate page job; behind a running job it waits in the list and starts by
+    itself (PERF.154). Returns `(message, error)`."""
     database = db_name()
     if plan["database"] and plan["database"] != database:
         return None, (f"That run wrote {plan['database']}, but this site shows {database}. "
                       f"Run it again from the command line instead.")
     env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
     try:
-        job_id = jobs.start_job(plan["kind"], plan["title"], plan["steps"], env=env, admin=admin.get("username"),
+        submitted = jobs.submit(plan["kind"], plan["title"], plan["steps"], env=env, admin=admin.get("username"),
                                 database=database)
-    except jobs.JobBusy as exc:
-        running = exc.job["title"] if exc.job else "Another job"
-        return None, f"{running} is still running. Wait for it to finish, or cancel it first."
+    except runline.LineFull as exc:
+        return None, str(exc)
     except OSError as exc:
         log.exception(f"Could not start {plan['title']}: {exc}")
         return None, f"The job could not be started: {exc}"
-    activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=plan["kind"], db=database,
-                      title=plan["title"], **({"retry_of": retry_of} if retry_of else {"started_from": "queue page"}))
+    if submitted.job_id is None:
+        activity_log.event("GEN", "job.queue", user=admin.get("username"), kind=plan["kind"], db=database,
+                           title=plan["title"], **({"retry_of": retry_of} if retry_of else {"started_from": "queue page"}))
+        return f"{submitted.running} is running, so {plan['title']} waits its turn (place {submitted.position}) and starts by itself.", None
+    activity_log.event("GEN", "job.start", user=admin.get("username"), job=submitted.job_id, kind=plan["kind"], db=database,
+                       title=plan["title"], **({"retry_of": retry_of} if retry_of else {"started_from": "queue page"}))
     return f"Started {plan['title']}.", None
 
 
 def _start_fill(admin, cookie_header, action):
     """
     Starts the `planetgen` command behind a start button (`FILL_COMMANDS`, ADM.129) as a Generate page job on this
-    site's database, as a retry does (`_start_retry`). Refused while everything is stopped or another run is live.
-    Returns `(message, error)`.
+    site's database, as a retry does (`_start_retry`). Refused while everything is stopped; behind a live run it waits its
+    turn in the list (PERF.154). Returns `(message, error)`.
     """
     label = ACTION_TEXT[action][0]
     body = apiclient.admin_work(cookie_header, limit=1, offset=0)
     if (body.get("stopped") or {}).get("stopped"):
         return None, "Everything is stopped. Press Resume first; nothing starts until then."
-    status = body.get("status") or {}
-    if status.get("holder") and not status.get("stale"):
-        return None, (f"{status.get('holder_title') or 'Another run'} is still running. Wait for it to finish, or "
-                      f"cancel it first.")
     command = FILL_COMMANDS[action]
     plan = {"kind": command, "title": label, "database": db_name(),
             "steps": [{"label": f"planetgen {command}",

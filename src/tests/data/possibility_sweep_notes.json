@@ -19,17 +19,13 @@
  "all_zero_allowed": {
   "atmosphere-d": {
    "classes": [
-    "I",
-    "T"
+    "giant"
    ],
    "note": "row d7 is the only row for these classes and is a gate-only flag (primary H/He kept or not): 0 means it is not kept"
   },
   "atmosphere-j": {
    "classes": [
-    "C",
-    "D",
-    "U",
-    "Y"
+    "terrestrial"
    ],
    "note": "the frost-equilibrium rows (j3, j4) are temperature windows: outside the window no such atmosphere is drawn"
   },

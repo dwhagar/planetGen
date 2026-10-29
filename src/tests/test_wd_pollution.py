@@ -282,7 +282,7 @@ def _a4_recipes(sigma):
 def _compare(target_id, sigma, model, n=3000):
     from planetgen.generation import tuning_harness as th
     from planetgen.generation.possibility_table import Subject
-    subject = Subject("E", {"host_type": "WD"})
+    subject = Subject("terrestrial", {"host_type": "WD"})
     sampler = wd.observed_sampler(th.recipe_sampler("a4", subject, _a4_recipes(sigma)), model)
     return th.simulate_and_compare(th.TARGETS.get(target_id), sampler, n=n, quantities=subject)
 

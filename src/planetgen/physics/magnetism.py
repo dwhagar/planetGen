@@ -302,14 +302,16 @@ def wind_pressure_pa(star, distance_au):
 
 
 def magnetopause_rp(body, star_distance_au):
-    """Rule 5's standoff, planet radii, or `None` with no field."""
+    """Rule 5's standoff in radii of `body` (GEN.843: Earth's 9.75 Earth radii scaled to the field and the wind, then divided by the
+    body's own radius), or `None` with no field."""
     moment = getattr(body, "magnetic_moment_a_m2", None)
     if not moment:
         return None
     share = body_dipole_share(body)
     pressure = wind_pressure_pa(body.star, star_distance_au)
-    return (EARTH_STANDOFF_RP * (moment * share / EARTH_MOMENT_A_M2) ** (1 / 3)
-            * (pressure / EARTH_WIND_PA) ** (-1 / 6))
+    standoff_earth_radii = (EARTH_STANDOFF_RP * (moment * share / EARTH_MOMENT_A_M2) ** (1 / 3)
+                            * (pressure / EARTH_WIND_PA) ** (-1 / 6))
+    return standoff_earth_radii * constants.EARTH_RADIUS_KM / body.radius
 
 
 def update_exposure(body, star_distance_au):

@@ -26,4 +26,18 @@
   </table></div>
 </section>
 {%- endif %}
+{%- if view.pairs %}
+<section class="panel" aria-labelledby="pairs-heading">
+  <h2 id="pairs-heading">Compact binaries</h2>
+  <p class="muted">A neutron star or black hole that accretes from a companion (an X-ray binary, a microquasar when it launches jets), or a pulsar that ablates one (a black widow or a redback).</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Orbit</th><th scope="col">Kind</th><th scope="col">Compact object</th><th scope="col">Companion</th><th scope="col">Microquasar</th></tr></thead>
+    <tbody>
+      {%- for orbit, kind, compact, companion, microquasar in view.pairs %}
+      <tr><td>{{ orbit }}</td><td>{{ kind }}</td><td>{{ compact }}</td><td>{{ companion }}</td><td>{{ microquasar }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
 {%- endif %}

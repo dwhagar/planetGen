@@ -9,8 +9,7 @@ The planets of a white dwarf and the disk of a planetary nebula's central pair (
   (`physics.mass_loss.engulfment_radius_au`), and the ones left are moved out by what the star lost
   (`physics.mass_loss.expansion_factor`, 1.85 for a star of one solar mass that leaves 0.54). A belt's edges move with
   it. A planet is reconciled with its new distance as one moved by the spacing check is
-  (`validation.reconcile_moved_planet`): its zone, climate and orbit follow, and its class is redrawn if it no longer
-  fits.
+  (`validation.reconcile_moved_planet`): its zone, climate and orbit follow, and its class is derived again from the new conditions.
 * **A planetary nebula's close pair** (`is_post_agb_pair`, `post_agb_disk`). A close pair whose white dwarf is still as
   hot as a planetary nebula's central star (`tuning.PLANETARY_NEBULA_CENTRAL_MIN_TEMPERATURE_K`) is a post-common-envelope
   pair inside its ejecta: it gets a circumbinary disk descriptor (`disk_kind` "post-agb", on the primary, as the pair's

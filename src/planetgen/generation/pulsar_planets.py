@@ -10,7 +10,7 @@ known systems (`tuning.PULSAR_PLANET_ORIGIN_WEIGHTS`, low confidence):
 
 * **disc** (25%): the carbon-rich fallback disc of a disrupted white dwarf, as PSR B1257+12's. One to three planets
   between 0.1 and 0.6 AU, masses log-uniform from 0.01 to 10 Earth masses, each period near a low-order ratio to the
-  one inside it. They are of the carbon-rich airless class (`tuning.PULSAR_DISC_CLASS`) and have no moons. The pulsar
+  one inside it. They are carbon-rich (the disc's C/O, `bulk_draw.REMNANT_DISC_RATIOS`) and have no moons. The pulsar
   wind (`magnetism.pulsar_wind_pressure_pa`) crushes their magnetosphere to the surface, and the radiation rating
   (`habitability_world.compact_host_name`) always puts them in the lowest tier.
 * **captured-giant** (25%): a giant taken in a globular cluster (PSR B1620-26 b), 1 to 4 Jupiter masses at 20 to
@@ -54,11 +54,11 @@ def draw_origin(system_config):
 
 
 def disc_mass_range_earth():
-    """`(low, high)` Earth masses of a disc planet: the design range, cut at the largest body the airless class holds
-    (its top radius at the mean of its density range)."""
+    """`(low, high)` Earth masses of a disc planet: the design range, cut at the largest disc body (a sphere of `tuning.PULSAR_DISC_MAX_RADIUS_KM`
+    at the mean of its density range)."""
     low, high = tuning.PULSAR_DISC_MASS_EARTH_RANGE
     low_density, high_density = constants.PLANET_DENSITY["t"]
-    max_radius_km = tuning.PLANET_CLASSES[tuning.PULSAR_DISC_CLASS]["radius_range"][1]
+    max_radius_km = tuning.PULSAR_DISC_MAX_RADIUS_KM
     ceiling = _mass_earth(max_radius_km, (low_density + high_density) / 2.0)
     return low, max(low, min(high, ceiling))
 
@@ -116,16 +116,16 @@ def generate(system_config, star, habitable_zone, orbit_ceiling_au):
         count = draw.randint(*tuning.PULSAR_DISC_PLANET_COUNT)
     low, high = disc_mass_range_earth()
     low_density, high_density = constants.PLANET_DENSITY["t"]
-    min_radius_km, max_radius_km = tuning.PLANET_CLASSES[tuning.PULSAR_DISC_CLASS]["radius_range"]
+    max_radius_km = tuning.PULSAR_DISC_MAX_RADIUS_KM
     planets = []
     for distance in _disc_distances_au(count) if count > 0 else []:
         if distance > orbit_ceiling_au:
             break
         mass_earth = math.exp(draw.uniform(math.log(low), math.log(high)))
-        radius_km = min(max_radius_km, max(min_radius_km, _radius_km(mass_earth, (low_density + high_density) / 2.0)))
+        radius_km = min(max_radius_km, _radius_km(mass_earth, (low_density + high_density) / 2.0))
         planets.append(Planet(system_config, star, habitable_zone, distance, radius=radius_km,
-                              mass=mass_earth * constants.EARTH_MASS_TO_KG,
-                              planet_class=tuning.PULSAR_DISC_CLASS, moon_count=0))
+                              mass=mass_earth * constants.EARTH_MASS_TO_KG, moon_count=0,
+                              formation_distance_au=0.0))
     log.choice("Pulsar planets", f"{len(planets)} disc planets",
                f"origin disc, {count} drawn, masses {low:.3g} to {high:.3g} Earth masses")
     return planets

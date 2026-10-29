@@ -301,14 +301,14 @@ def _job_roots():
 
 
 def _stop_jobs():
-    """Drops the Generate page's waiting job and tells its running one to stop (the cancel file); the processes
+    """Drops the Generate page's waiting jobs and tells its running one to stop (the cancel file); the processes
     themselves are ended by `kill_processes`. Returns `(jobs stopped, folders)`."""
     from planetgen.web import jobs
 
     stopped, roots = 0, _job_roots()
     for root in roots:
         with contextlib.suppress(Exception):
-            jobs.discard_queued(root)
+            jobs.discard_all_queued(root)
         with contextlib.suppress(Exception):
             active = jobs.active_job(root)
             if active:
@@ -322,9 +322,9 @@ def _stop_jobs():
 def _free_job_locks(roots):
     from planetgen.web import jobs
 
-    for root in roots:
+    if roots:
         with contextlib.suppress(OSError):
-            os.remove(os.path.join(root, jobs.LOCK_NAME))
+            jobs.free_lock()
 
 
 def stop_all(who=None, connection=None, kill=True, hold=True):

@@ -79,9 +79,14 @@ def test_ocean_classes_follow_the_rules():
     assert hy.ocean_class(soda, 0.0, 1e-3, 0.5) == "neutral"
 
 
+# The water mass fraction range a test body of each kind of world draws from (log-uniform): an Earth-like world, a dry rock, a snowball,
+# an ocean world and an icy moon.
+TEST_WATER_MASS_FRACTION = {"M": (1e-4, 5e-4), "C": (1e-6, 1e-4), "P": (1e-4, 1e-3), "O": (1e-2, 0.1), "D": (0.05, 0.5)}
+
+
 def _body(planet_class, temperature, pressure_pa, mass_earth=1.0, radius_km=6371.0, **extra):
     fields = dict(body_type="t", planet_class=planet_class, mass=mass_earth * EARTH, radius=radius_km,
-                  water_mass_fraction=log_uniform(*hy.WATER_MASS_FRACTION[planet_class]),
+                  water_mass_fraction=log_uniform(*TEST_WATER_MASS_FRACTION[planet_class]),
                   gravity=mass_earth / (radius_km / 6371.0) ** 2, surface_temperature=temperature,
                   atmospheric_pressure=pressure_pa, is_moon=False, mantle_redox="intermediate",
                   p_co2_kpa=0.04, p_so2_kpa=0.0, p_h2_kpa=0.0)

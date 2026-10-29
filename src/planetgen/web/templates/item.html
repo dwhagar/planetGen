@@ -4,33 +4,14 @@
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/poi_key.html" import poi_key_panel with context %}
-{#- The Admin menu of this one body (Regenerate, Change class, Delete), as the system page's per-body menu was (ADM.8, ADM.6). -#}
+{#- The Admin menu of this one body (Regenerate, Delete), as the system page's per-body menu was (ADM.8, ADM.6). -#}
 {%- set groups = [] %}
 {%- if edit %}
 {%- set body_actions = [] %}
-{%- set class_actions = [] %}
-{%- if edit.class_options %}
-{%- set class_fields %}
-    <label>New class <select name="planet_class" required>
-      {%- if edit.class_options.recommended %}
-      <optgroup label="Recommended (fits where it is)">
-        {%- for code in edit.class_options.recommended %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
-      </optgroup>
-      {%- endif %}
-      <optgroup label="Needs confirming (may break it)">
-        {%- for code in edit.class_options.forced %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
-      </optgroup>
-    </select></label>
-    <label class="edit-drop"><input type="checkbox" name="confirm_class" value="1"> Set it anyway, even if the class doesn't suit its size, mass or zone</label>
-{%- endset %}
-{%- set class_actions = [{'key': 'class', 'label': 'Change class', 'title': 'Change ' ~ title ~ "'s class",
-    'note': 'Re-rolls it as the class you pick, where it is: a recommended class fits without moving any other planet. Any other class says what it would break and is only set when you tick “Set it anyway”.',
-    'fields': class_fields, 'button': 'Change ' ~ title ~ "'s class"}] %}
-{%- endif %}
 {%- set _ = add_edit_actions(body_actions, title,
      'Rolls it again at the same orbit.' if kind != 'planet' else 'Rolls it again at the same orbit, with new moons.',
      'Removes it from the system.' if kind != 'planet' else 'Removes it and its moons from the system.',
-     facilities=kind != 'star' and kind != 'comet', regenerate_facilities=(kind == 'planet'), extra=class_actions) %}
+     facilities=kind != 'star' and kind != 'comet', regenerate_facilities=(kind == 'planet')) %}
 {%- set _ = groups.append({'id': 'body', 'target': edit.target, 'actions': body_actions}) %}
 {%- endif %}
 {%- set admin_button %}{% if groups %}{{ admin_menu_button(groups, title) }}{% endif %}{% endset %}
@@ -61,7 +42,7 @@
     <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
       <tbody>
         {%- for row in rows %}
-        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}</td></tr>
+        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}{% if row.source %}<small class="sheet-source">{{ row.source }}</small>{% endif %}</td></tr>
         {%- endfor %}
       </tbody>
     </table></div>
@@ -190,6 +171,7 @@
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
   {%- for group in planet.sheet %}{{ group_details(group) }}{% endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
+  <p class="sheet-help"><a class="help-link" href="{{ page_url('property_help_page') }}">Where these values come from</a></p>
 </section>
 {%- else %}
 {%- if glance or symbols or location.chain or location.inside %}
@@ -217,6 +199,9 @@
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
   {%- for group in sheet %}{{ group_details(group) }}{% endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
+  {%- if kind in ("star", "planet", "moon") %}
+  <p class="sheet-help"><a class="help-link" href="{{ page_url('property_help_page') }}">Where these values come from</a></p>
+  {%- endif %}
 </section>
 {%- endif %}
 {%- if tree %}

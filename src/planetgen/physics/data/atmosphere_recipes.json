@@ -243,26 +243,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [],
    "sets": "redox_diw",
@@ -293,20 +274,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "V"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -347,9 +315,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "asteroid",
-    "C",
-    "D"
+    "asteroid"
    ],
    "conditions": [],
    "sets": "redox_diw",
@@ -382,26 +348,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -438,26 +385,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [],
    "group": "a",
@@ -484,26 +412,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [],
    "group": "a",
@@ -528,26 +437,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [],
    "group": "a",
@@ -574,28 +464,15 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial",
+    "giant"
    ],
-   "conditions": [],
+   "conditions": [
+    {
+     "quantity": "mass_earth",
+     "maximum": 35
+    }
+   ],
    "group": "b",
    "weight": "1 - nd",
    "lets": {
@@ -628,28 +505,15 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial",
+    "giant"
    ],
-   "conditions": [],
+   "conditions": [
+    {
+     "quantity": "mass_earth",
+     "maximum": 35
+    }
+   ],
    "group": "b",
    "weight": "nd - hi",
    "lets": {
@@ -682,28 +546,15 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial",
+    "giant"
    ],
-   "conditions": [],
+   "conditions": [
+    {
+     "quantity": "mass_earth",
+     "maximum": 35
+    }
+   ],
    "group": "b",
    "weight": "hi - ri + (1 - c_b4)*ri",
    "lets": {
@@ -736,29 +587,15 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z",
-    "I"
+    "terrestrial",
+    "giant"
    ],
-   "conditions": [],
+   "conditions": [
+    {
+     "quantity": "mass_earth",
+     "maximum": 35
+    }
+   ],
    "group": "b",
    "weight": "c_b4*ri",
    "lets": {
@@ -794,28 +631,14 @@
     "GEN.510"
    ],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial",
+    "giant"
    ],
    "conditions": [
+    {
+     "quantity": "mass_earth",
+     "maximum": 35
+    },
     {
      "quantity": "drawn.b",
      "one_of": [
@@ -851,18 +674,20 @@
     "GEN.510"
    ],
    "classes": [
-    "C",
-    "D",
-    "S",
-    "I"
+    "terrestrial",
+    "giant"
    ],
    "conditions": [
     {
      "quantity": "zone",
      "equals": "r"
+    },
+    {
+     "quantity": "mass_earth",
+     "maximum": 35
     }
    ],
-   "weight": "0.8 if body_class == 'I' else 0.35",
+   "weight": "0.8 if body_class == 'giant' else 0.35",
    "dist": {
     "kind": "loguniform",
     "lo": 0.0001,
@@ -888,26 +713,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -937,26 +743,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -990,26 +777,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -1040,26 +808,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -1089,26 +838,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -1151,26 +881,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [],
    "group": "c-after",
@@ -1195,26 +906,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z",
+    "terrestrial",
     "asteroid"
    ],
    "conditions": [],
@@ -1245,26 +937,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z",
+    "terrestrial",
     "asteroid"
    ],
    "conditions": [],
@@ -1295,26 +968,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z",
+    "terrestrial",
     "asteroid"
    ],
    "conditions": [],
@@ -1345,26 +999,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z",
+    "terrestrial",
     "asteroid"
    ],
    "conditions": [],
@@ -1395,26 +1030,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z",
+    "terrestrial",
     "asteroid"
    ],
    "conditions": [],
@@ -1448,26 +1064,7 @@
     "GEN.511"
    ],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z",
+    "terrestrial",
     "asteroid"
    ],
    "conditions": [],
@@ -1499,10 +1096,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "S",
-    "V",
-    "I",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -1533,10 +1127,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "S",
-    "V",
-    "I",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -1572,10 +1163,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "S",
-    "V",
-    "I",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -1611,10 +1199,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "S",
-    "V",
-    "I",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -1647,10 +1232,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "S",
-    "V",
-    "I",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -1684,10 +1266,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "S",
-    "V",
-    "I",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -1730,10 +1309,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "S",
-    "V",
-    "I",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -1764,9 +1340,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T"
+    "giant"
    ],
    "conditions": [],
    "group": "f",
@@ -1793,9 +1367,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T"
+    "giant"
    ],
    "conditions": [],
    "group": "f",
@@ -1822,9 +1394,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T",
+    "giant",
     "brown-dwarf"
    ],
    "conditions": [],
@@ -1852,9 +1422,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -1885,9 +1453,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T"
+    "giant"
    ],
    "conditions": [],
    "sets": "metallicity",
@@ -1923,9 +1489,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T"
+    "giant"
    ],
    "conditions": [],
    "of": "f5",
@@ -1960,9 +1524,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T",
+    "giant",
     "brown-dwarf"
    ],
    "conditions": [],
@@ -2022,9 +1584,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T",
+    "giant",
     "brown-dwarf"
    ],
    "conditions": [],
@@ -2202,9 +1762,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -2237,9 +1795,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -2276,9 +1832,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -2314,9 +1868,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -2359,9 +1911,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -2390,10 +1940,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "S"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -2423,10 +1970,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "S"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -2456,10 +2000,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "S"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -2489,10 +2030,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "S"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -2522,10 +2060,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "S"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -2558,10 +2093,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "S"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -2608,10 +2140,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "N",
-    "V",
-    "A",
-    "S"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -2650,9 +2179,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "K",
-    "L",
-    "U"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -2692,7 +2219,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "Y"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -2735,9 +2262,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "C",
-    "D",
-    "U"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -2775,7 +2300,7 @@
     "GEN.511"
    ],
    "classes": [
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -3119,26 +2644,7 @@
     "GEN.513"
    ],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -3176,26 +2682,7 @@
     "GEN.513"
    ],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -3232,9 +2719,7 @@
     "GEN.513"
    ],
    "classes": [
-    "I",
-    "J",
-    "T"
+    "giant"
    ],
    "conditions": [
     {
@@ -3265,22 +2750,13 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "V"
+    "terrestrial"
    ],
    "conditions": [
+    {
+     "quantity": "pressure_bar",
+     "minimum": 0.0001
+    },
     {
      "quantity": "o2_pal",
      "minimum": 0.001
@@ -3317,22 +2793,13 @@
     "GEN.524"
    ],
    "classes": [
-    "A",
-    "B",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "V"
+    "terrestrial"
    ],
    "conditions": [
+    {
+     "quantity": "pressure_bar",
+     "minimum": 0.0001
+    },
     {
      "quantity": "o2_pal",
      "maximum": 0.001
@@ -3368,22 +2835,14 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "V"
+    "terrestrial"
    ],
-   "conditions": [],
+   "conditions": [
+    {
+     "quantity": "pressure_bar",
+     "minimum": 0.0001
+    }
+   ],
    "constants": {
     "c_m3": [
      0.05,
@@ -3414,22 +2873,14 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "V"
+    "terrestrial"
    ],
-   "conditions": [],
+   "conditions": [
+    {
+     "quantity": "pressure_bar",
+     "minimum": 0.0001
+    }
+   ],
    "constants": {
     "c_m4": [
      0.0,
@@ -3462,26 +2913,7 @@
     "GEN.524"
    ],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -3526,26 +2958,7 @@
     "GEN.524"
    ],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -3587,14 +3000,9 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T",
+    "giant",
     "brown-dwarf",
-    "A",
-    "B",
-    "C",
-    "S"
+    "terrestrial"
    ],
    "conditions": [],
    "weight": "phi((t_layer_k - 962)/33)"
@@ -3616,14 +3024,9 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T",
+    "giant",
     "brown-dwarf",
-    "A",
-    "B",
-    "C",
-    "S"
+    "terrestrial"
    ],
    "conditions": [],
    "weight": "phi((t_layer_k - 775)/26)"
@@ -3647,23 +3050,8 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "V",
-    "I",
-    "J",
-    "T",
+    "terrestrial",
+    "giant",
     "brown-dwarf"
    ],
    "conditions": [
@@ -3696,22 +3084,13 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "V"
+    "terrestrial"
    ],
    "conditions": [
+    {
+     "quantity": "pressure_bar",
+     "minimum": 0.0001
+    },
     {
      "quantity": "has_solid_ground",
      "equals": true
@@ -3740,22 +3119,14 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "V"
+    "terrestrial"
    ],
-   "conditions": [],
+   "conditions": [
+    {
+     "quantity": "pressure_bar",
+     "minimum": 0.0001
+    }
+   ],
    "constants": {
     "c_m11": [
      0.0,
@@ -3785,14 +3156,9 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T",
+    "giant",
     "brown-dwarf",
-    "A",
-    "B",
-    "C",
-    "S"
+    "terrestrial"
    ],
    "conditions": [],
    "windows": [
@@ -3848,14 +3214,9 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T",
+    "giant",
     "brown-dwarf",
-    "A",
-    "B",
-    "C",
-    "S"
+    "terrestrial"
    ],
    "conditions": [],
    "windows": [
@@ -3891,9 +3252,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T",
+    "giant",
     "brown-dwarf"
    ],
    "conditions": [],
@@ -3965,12 +3324,8 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T",
-    "K",
-    "Y",
-    "D",
+    "giant",
+    "terrestrial",
     "comet"
    ],
    "conditions": [],
@@ -4024,14 +3379,9 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "I",
-    "J",
-    "T",
+    "giant",
     "brown-dwarf",
-    "A",
-    "B",
-    "C",
-    "S"
+    "terrestrial"
    ],
    "conditions": [],
    "weight": "phi((teq_k - 950)/100)"
@@ -4059,23 +3409,8 @@
     "GEN.519"
    ],
    "classes": [
-    "A",
-    "B",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "V",
-    "I",
-    "J",
-    "T",
+    "terrestrial",
+    "giant",
     "brown-dwarf"
    ],
    "conditions": [
@@ -4113,22 +3448,14 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "V"
+    "terrestrial"
    ],
-   "conditions": [],
+   "conditions": [
+    {
+     "quantity": "pressure_bar",
+     "minimum": 0.0001
+    }
+   ],
    "weight": "1 if u_star > u_star_threshold else 0"
   },
   {
@@ -4151,22 +3478,14 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "V"
+    "terrestrial"
    ],
-   "conditions": [],
+   "conditions": [
+    {
+     "quantity": "pressure_bar",
+     "minimum": 0.0001
+    }
+   ],
    "weight": "1 if sulfur_flux_earth >= (1 if h2_air else 100) else 0"
   },
   {
@@ -4188,26 +3507,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -4248,26 +3548,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {
@@ -4311,26 +3592,7 @@
     "GEN.514"
    ],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [],
    "dist": {
@@ -4361,26 +3623,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [],
    "dist": {
@@ -4409,26 +3652,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [],
    "values": {
@@ -4456,26 +3680,7 @@
    "replacement": "",
    "items": [],
    "classes": [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "S",
-    "V",
-    "U",
-    "Y",
-    "Z"
+    "terrestrial"
    ],
    "conditions": [
     {

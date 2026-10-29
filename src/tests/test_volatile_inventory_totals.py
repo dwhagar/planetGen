@@ -54,7 +54,7 @@ SNOW_RATIO = {"Venus": 0.72 / 2.69, "Earth": 1.0 / 2.69, "Mars": 1.52 / 2.69}   
 def _ppm(snow_ratio, count=240):
     carbon, nitrogen = [], []
     for seed in range(count):
-        subject = Subject("A", {**EARTH, "snow_ratio": snow_ratio})
+        subject = Subject("terrestrial", {**EARTH, "snow_ratio": snow_ratio})
         with draw.bound(seed):
             recipe = RECIPES.draw_all(subject, categories=md.ROCKY_CATEGORIES)
             inventory = md.rocky_inventory(subject, recipe, {})

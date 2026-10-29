@@ -61,7 +61,7 @@ def test_the_vapour_obeys_the_equilibria_of_its_own_species():
 
 
 def test_the_mole_fractions_name_gas_table_species_and_sum_to_one_for_a_lava_world():
-    subject = Subject("A", HOT)
+    subject = Subject("terrestrial", HOT)
     seen = set()
     for seed in range(30):
         with draw.bound(seed):
@@ -75,7 +75,7 @@ def test_the_mole_fractions_name_gas_table_species_and_sum_to_one_for_a_lava_wor
 
 
 def test_the_volatile_bearing_branch_adds_carbon_dioxide_and_monoxide_at_the_surface_pressure():
-    subject = Subject("A", {**HOT, "pressure_bar": 10.0})
+    subject = Subject("terrestrial", {**HOT, "pressure_bar": 10.0})
     bearing = []
     for seed in range(60):
         with draw.bound(seed):
@@ -88,7 +88,7 @@ def test_the_volatile_bearing_branch_adds_carbon_dioxide_and_monoxide_at_the_sur
 
 
 def test_a_white_dwarf_planet_with_a_vapour_exosphere_is_a_lava_mixture_over_the_debris_redox():
-    subject = Subject("A", {**HOT, "host_type": "WD", "ts_k": 2000.0, "tp_k": 2000.0})
+    subject = Subject("terrestrial", {**HOT, "host_type": "WD", "ts_k": 2000.0, "tp_k": 2000.0})
     families = {}
     for seed in range(40):
         with draw.bound(seed):
@@ -102,7 +102,7 @@ def test_a_white_dwarf_planet_with_a_vapour_exosphere_is_a_lava_mixture_over_the
 def test_a_surface_that_is_not_molten_is_refused():
     with draw.bound(1):
         with pytest.raises(ml.MixtureError):
-            ml.vapour_mixture(Subject("A", {**HOT, "tp_k": 900.0}), md.RECIPES.draw_all(Subject("A", HOT), categories=md.CATEGORIES))
+            ml.vapour_mixture(Subject("terrestrial", {**HOT, "tp_k": 900.0}), md.RECIPES.draw_all(Subject("terrestrial", HOT), categories=md.CATEGORIES))
 
 
 def test_a_stored_melt_composition_replaces_the_drawn_one():
@@ -120,7 +120,7 @@ def test_the_alkali_oxides_and_monoxide_of_the_vapour_are_in_the_gas_table(tempe
     pressures = vapour(temperature, 0.0)
     for name in ("K2", "KO", "K2O", "Na2O"):
         assert pressures[name] > 0.0, name
-    subject = Subject("A", {**HOT, "ts_k": temperature, "tp_k": temperature})
+    subject = Subject("terrestrial", {**HOT, "ts_k": temperature, "tp_k": temperature})
     with draw.bound(draw.Stream("gen751")):
         recipe = md.RECIPES.draw_all(subject, categories=md.CATEGORIES)
         result = ml.vapour_mixture(subject, recipe, temperature_name="tp_k")

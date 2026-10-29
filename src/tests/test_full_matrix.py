@@ -2,7 +2,7 @@
 Full star x planet x system combinatorial matrix.
 
 test_star_matrix.py exhaustively covers every star type alone (no planets).
-test_planets.py exhaustively covers every (planet class, zone) pair, but only
+test_planets.py covers the planet draw by zone, but only
 ever against a single G2V host. Neither combines the two, so a planet's
 physics (surface temperature, atmospheric pressure, gravity clamps) has never
 actually been exercised against the full range of host luminosities/masses --
@@ -10,8 +10,7 @@ from the dimmest subdwarf to the brightest hypergiant -- only against one
 Sun-like star. This module closes that gap with two complementary sweeps:
 
 1. Every (spectral class x Yerkes class) host, at a representative subclass,
-   crossed with every (planet class, zone) pair `PLANET_CLASSES` declares
-   valid -- built as standalone `Planet` objects (bypassing `StarSystem`'s
+   crossed with each zone (the planet's class is derived from what it comes out as, GEN.646) -- built as standalone `Planet` objects (bypassing `StarSystem`'s
    orbit loop) so each cell of the matrix is under direct, explicit control
    of exactly which star type hosts exactly which class in exactly which
    zone, with no ambiguity from the loop's own zone-snapping/placement logic.
@@ -54,21 +53,8 @@ ALL_HOST_STAR_TYPES = [
 
 ZONE_CHARS = "hec"
 
-# (class, zone) pairs PLANET_CLASSES actually declares valid -- same
-# computation as test_planets.py's VALID_CLASS_ZONE_PAIRS.
-VALID_CLASS_ZONE_PAIRS = [
-    (cls, zone)
-    for cls, data in prog_c.PLANET_CLASSES.items()
-    for zone in ZONE_CHARS
-    if data[zone]
-]
-
-FULL_MATRIX = [
-    (star_type, cls, zone)
-    for star_type in ALL_HOST_STAR_TYPES
-    for cls, zone in VALID_CLASS_ZONE_PAIRS
-]
-FULL_MATRIX_IDS = [f"{s}-{c}-{z}" for s, c, z in FULL_MATRIX]
+FULL_MATRIX = [(star_type, zone) for star_type in ALL_HOST_STAR_TYPES for zone in ZONE_CHARS]
+FULL_MATRIX_IDS = [f"{s}-{z}" for s, z in FULL_MATRIX]
 
 
 def make_host_star(star_type):
@@ -86,17 +72,14 @@ def distance_for_zone(star, zone):
     return (inner + outer) / 2.0
 
 
-def make_planet(host_star, cls, zone):
+def make_planet(host_star, zone):
     distance = distance_for_zone(host_star, zone)
     cfg = SystemConfig()
-    return Planet(
-        cfg, host_star, host_star.habitable_zone, distance,
-        planet_class=cls,
-    )
+    return Planet(cfg, host_star, host_star.habitable_zone, distance)
 
 
-@pytest.mark.parametrize("star_type,cls,zone", FULL_MATRIX, ids=FULL_MATRIX_IDS)
-def test_planet_physical_properties_stay_sane_for_every_host_star_type(star_type, cls, zone):
+@pytest.mark.parametrize("star_type,zone", FULL_MATRIX, ids=FULL_MATRIX_IDS)
+def test_planet_physical_properties_stay_sane_for_every_host_star_type(star_type, zone):
     """
     Every scalar physical property a planet computes must stay finite and
     positive (or, for atmosphere-related fields on an airless class, exactly
@@ -105,7 +88,8 @@ def test_planet_physical_properties_stay_sane_for_every_host_star_type(star_type
     hypergiant two million times as luminous.
     """
     host = make_host_star(star_type)
-    planet = make_planet(host, cls, zone)
+    planet = make_planet(host, zone)
+    cls = planet.planet_class
 
     for attr in ("mass", "density", "gravity", "surface_temperature", "volume",
                  "period", "hill_radius", "min_orbit_distance"):
@@ -113,10 +97,10 @@ def test_planet_physical_properties_stay_sane_for_every_host_star_type(star_type
         assert math.isfinite(value), f"{star_type}/{cls}-{zone}: {attr}={value} is not finite"
         assert value > 0, f"{star_type}/{cls}-{zone}: {attr}={value} should be positive"
 
-    class_data = prog_c.PLANET_CLASSES[cls]
-    if not class_data["air"] or planet.atmospheric_pressure == 0.0:
-        # an airless class, or a body whose host stripped its air (GEN.411: the class no longer sets the
-        # pressure, the air is solved from what the body outgassed, kept and lost)
+    assert cls in prog_c.PLANET_CLASSES
+    if planet.atmospheric_pressure == 0.0:
+        # an airless body, or one whose host stripped its air (GEN.411: the air is solved from what the body
+        # outgassed, kept and lost)
         assert planet.atmosphere == "None"
         assert planet.atmospheric_pressure == 0.0
     else:
@@ -169,7 +153,9 @@ def test_full_system_generates_with_belt_and_habitable_world_across_every_star_t
 
     assert render_support.text(system).strip()
     assert system.belt_count >= 1, f"{star_type}: no asteroid belt generated"
-    assert system.habitable_class_count >= 1, f"{star_type}: no habitable world generated"
+    # GEN.646: no class is drawn to fit, so a star whose ecosphere cannot hold a world answers the request "unmet" and says so
+    assert system.habitable_class_count >= 1 or system.habitable_request == "unmet", \
+        f"{star_type}: HABITABLE_WORLD=True produced no habitable world and did not say so"
 
     for star in system.stars:
         if star.lifespan == float('inf'):

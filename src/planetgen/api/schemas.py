@@ -419,20 +419,6 @@ class DropFacilities(Body):
     drop_facilities: StrictBool = False
 
 
-class ChangeClass(Body):
-    """`POST /api/{planets,moons,belts}/<id>/class`."""
-
-    planet_class: StrictStr = Field(alias="class")
-    force: StrictBool = False
-
-    @field_validator("planet_class")
-    @classmethod
-    def _known(cls, value):
-        if value not in tuning.PLANET_CLASSES:
-            raise ValueError(f"'class' must be one of {', '.join(sorted(tuning.PLANET_CLASSES))}")
-        return value
-
-
 class ChangeStar(Body):
     """`POST /api/systems/<id>/star`."""
 

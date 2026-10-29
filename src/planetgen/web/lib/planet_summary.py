@@ -50,6 +50,33 @@ def _surface_sentence(row, values):
     return sentence[0].upper() + sentence[1:] + "."
 
 
+def _day_sentence(values):
+    """UX.205: how much of the time the star is up, from the stored shares. A world that turns once an orbit has a mean share and no
+    solar day: it says so (day side, terminator, night side). A moon in its planet's shadow adds that night and the longest eclipse."""
+    if not values.get("day_share_mean"):
+        return None
+    parts = []
+    if values.get("day_share_equator"):
+        parts.append(f"its star is up {values['day_share_equator']} of the time at the equator")
+        if values.get("daylight_hours") and values.get("solar_day_hours"):
+            parts.append(f"{values['daylight_hours']} of daylight in each solar day of {values['solar_day_hours']}")
+        parts.append(f"{values['day_share_mean']} averaged over the whole surface")
+        sentence = parts[0] + ", " + (parts[1] + ", and " if len(parts) > 2 else "") + parts[-1]
+        return sentence[0].upper() + sentence[1:] + "."
+    return ("It keeps one face to its star: the day side is always in daylight, the terminator ring sits on the line between day and "
+            "night, and the night side is always dark.")
+
+
+def _shadow_sentence(values, raw):
+    """UX.205: a moon's extra night in its planet's shadow, with the longest eclipse."""
+    if not (raw.get("parent_shadow_share") or 0) > 0 or not values.get("parent_shadow_share"):
+        return None
+    sentence = f"Its planet's shadow adds a night: it is in the shadow {values['parent_shadow_share']} of the time"
+    if values.get("longest_eclipse_hours"):
+        sentence += f", the longest eclipse lasting {values['longest_eclipse_hours']}"
+    return sentence + "."
+
+
 def _rating_sentence(row):
     if row.get("phi4") is None:
         return None
@@ -83,8 +110,10 @@ def _life_sentence(row):
     return f"Its life scores are {shown}."
 
 
-def summary_sentences(name, row, values):
-    """The sentences of the page's summary paragraph, as HTML, in the order they are read."""
-    sentences = [_class_sentence(name, row, values), _surface_sentence(row, values), _rating_sentence(row),
+def summary_sentences(name, row, values, raw=None):
+    """The sentences of the page's summary paragraph, as HTML, in the order they are read. `raw` is the stored numbers of the sheet's
+    rows (a sheet key to its number)."""
+    sentences = [_class_sentence(name, row, values), _surface_sentence(row, values), _day_sentence(values),
+                 _shadow_sentence(values, raw or {}), _rating_sentence(row),
                  _equipment_sentence(row), _life_sentence(row)]
     return [sentence for sentence in sentences if sentence]

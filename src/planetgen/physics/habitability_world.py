@@ -470,10 +470,14 @@ def _clear(body):
 def generate(body, internal_flux_w_m2):
     """Sets `BODY_FIELDS` on a planet or moon. Call last, once its air,
     water and dose are set and `magnetism.update_exposure` has given its
-    distance from its star; `internal_flux_w_m2` is its own heat flow, and the tide of its orbit (`tidal_flux_w_m2`, GEN.737) is added to it."""
+    distance from its star; `internal_flux_w_m2` is its own heat flow, and the tide of its orbit (`tidal_flux_w_m2`, GEN.737) is added to it.
+    The flux swing (`flux_variation`) is an input the body keeps, as the dose refresh keeps it: a body scored again after life changed its air
+    keeps the swing the insolation gave it, and is scored with it."""
+    swing = getattr(body, "flux_variation", None)
     _clear(body)
     if body.body_type == "g":
         return
+    body.flux_variation = swing
     values = values_from_body(body)
     if values["surface_temperature_k"] is None:
         return

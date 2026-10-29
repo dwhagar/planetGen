@@ -6,6 +6,7 @@ around one point and the orbits that bind them (`db.query.scatter_member_tree`).
 the fill places them when it builds the row's system, and the page says so.
 """
 
+from planetgen.db.compact_pairs import KINDS as PAIR_KINDS
 from planetgen.web.lib.fmt import format_distance_au, format_mass_solar, format_number, format_period_years
 
 _KIND_LABELS = {
@@ -42,12 +43,25 @@ def _orbit_label(row, members, age_gy):
     return f"{label}, {format_period_years(left)} left" if left > 0 else f"{label}, past its decay age"
 
 
+def _pair_rows(tree):
+    """The compact binaries of a tree as page rows (UX.186): the node, the kind of pair, the compact object, its companion and
+    whether it is a microquasar. A spider's flag is the pair's kind, so it has none."""
+    labels = {row["member_no"]: _member_label(row) for row in tree.get("members") or []}
+    rows = []
+    for pair in tree.get("compact_pairs") or []:
+        microquasar = "\u2013" if pair["kind"] in ("black-widow", "redback") else "Yes" if pair["microquasar"] else "No"
+        rows.append([str(pair["node_no"] + 1), PAIR_KINDS[pair["kind"]],
+                     f"{pair['compact'] + 1}: {labels[pair['compact']]}",
+                     f"{pair['companion'] + 1}: {labels[pair['companion']]}", microquasar])
+    return rows
+
+
 def members_view(tree):
     """
     The page rows for a `scatter_member_tree` (or a detail that carries one): `members` (number, kind, mass) and
     `orbits` (number, what it joins, separation, period, eccentricity), as lists of strings. Both are empty for a
     single object. A young group (GEN.327) is listed with the life it has left, from the detail's `age_gy`; its period is
-    the crossing time and it has no eccentricity.
+    the crossing time and it has no eccentricity. `pairs` lists the X-ray binaries and spider pulsars (UX.186).
     """
     members = [[str(row["member_no"] + 1), _member_label(row), format_mass_solar(row["mass_solar"])]
                for row in tree.get("members") or []]
@@ -56,4 +70,4 @@ def members_view(tree):
                format_distance_au(row["separation_au"]), format_period_years(row["period_years"]),
                "\u2013" if row["kind"] == "group" else format_number(row["eccentricity"], ".2f")]
               for row in tree.get("nodes") or []]
-    return {"members": members, "orbits": orbits}
+    return {"members": members, "orbits": orbits, "pairs": _pair_rows(tree)}

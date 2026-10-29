@@ -23,7 +23,7 @@ def drawn(**groups):
 
 
 def test_the_family_follows_the_groups_the_recipe_drew():
-    cold = Subject("A", {"ts_k": 300.0, "tp_k": 300.0})
+    cold = Subject("terrestrial", {"ts_k": 300.0, "tp_k": 300.0})
     assert md.family_of(drawn(g="g2", f="f3"), cold) == "brown-dwarf"
     assert md.family_of(drawn(f="f4", h="h2"), cold) == "hot-jupiter"
     assert md.family_of(drawn(f="f1"), cold) == "giant"
@@ -35,7 +35,7 @@ def test_the_family_follows_the_groups_the_recipe_drew():
 
 
 def test_the_family_of_the_evolved_cold_coma_and_molten_rows():
-    cold, hot = Subject("A", {"ts_k": 300.0, "tp_k": 300.0}), Subject("A", {"ts_k": 2000.0, "tp_k": 2000.0})
+    cold, hot = Subject("terrestrial", {"ts_k": 300.0, "tp_k": 300.0}), Subject("terrestrial", {"ts_k": 2000.0, "tp_k": 2000.0})
     for row, family in (("j1", "venus"), ("j2", "mars"), ("j3", "titan"), ("j4", "frost"), ("j5", "abiotic-oxygen")):
         assert md.family_of(drawn(a="a6", j=row), cold) == family
     assert md.family_of(drawn(k="k1"), cold) == "coma"
@@ -54,30 +54,30 @@ def test_every_gas_the_solver_can_make_of_the_budget_elements_is_in_the_gas_tabl
 
 
 def test_the_required_inputs_are_stored_quantities_and_what_the_chemistry_reads():
-    needed = md.required_inputs("M")
+    needed = md.required_inputs("terrestrial")
     assert {"ts_k", "pressure_bar", "mass_earth", "age_gy", "snow_ratio", "ocean_present", "long_lived_geology"} <= set(needed)
-    assert "radius_km" not in needed
+    assert "mass_jupiter" not in needed and "t_layer_k" not in needed
     assert "redox_diw" not in needed and "o2_pal" not in needed          # drawn by the tables; the life stage comes after the mixture
     assert all(name in INPUTS for name in needed)
-    giants = md.required_inputs("J")
+    giants = md.required_inputs("giant")
     assert {"t_layer_k", "radius_km", "mass_jupiter", "photosphere_bar"} <= set(giants)
 
 
 def test_a_subject_without_a_quantity_a_row_reads_is_refused_by_name():
-    subject = Subject("A", {k: v for k, v in EARTH.items() if k != "snow_ratio"})
+    subject = Subject("terrestrial", {k: v for k, v in EARTH.items() if k != "snow_ratio"})
     with draw.bound(0), pytest.raises(MixtureError, match="snow_ratio"):
         md.draw_mixture(subject)
 
 
 @pytest.mark.parametrize("body_class, changes, family", [
-    ("A", {}, "rocky"),
-    ("M", {"ts_k": 600.0, "pressure_bar": 30.0}, "rocky"),
-    ("J", {"t_layer_k": 120.0, "teq_k": 120.0}, "giant"),
-    ("J", {"t_layer_k": 1400.0, "teq_k": 1400.0, "tday_k": 1500.0, "zone": "h", "insolation": 800.0}, "hot-jupiter"),
+    ("terrestrial", {}, "rocky"),
+    ("terrestrial", {"ts_k": 600.0, "pressure_bar": 30.0}, "rocky"),
+    ("giant", {"t_layer_k": 120.0, "teq_k": 120.0}, "giant"),
+    ("giant", {"t_layer_k": 1400.0, "teq_k": 1400.0, "tday_k": 1500.0, "zone": "h", "insolation": 800.0}, "hot-jupiter"),
     ("brown-dwarf", {"mass_jupiter": 30.0, "mass_earth": 9500.0, "teff_k": 900.0, "t_layer_k": 900.0, "radius_km": 70000.0}, "brown-dwarf"),
 ])
 def test_a_body_gets_a_mixture_of_gas_table_gases_and_the_draw_it_followed(body_class, changes, family):
-    subject = Subject(body_class, {**EARTH, **JUPITER, **changes} if body_class != "A" and body_class != "M" else {**EARTH, **changes})
+    subject = Subject(body_class, {**EARTH, **JUPITER, **changes} if body_class != "terrestrial" else {**EARTH, **changes})
     with draw.bound(3):
         result = md.draw_mixture(subject)
     assert result.family == family
@@ -90,9 +90,9 @@ def test_a_body_gets_a_mixture_of_gas_table_gases_and_the_draw_it_followed(body_
 
 def test_the_retention_row_and_the_mixture_come_from_one_draw():
     with draw.bound(8):
-        first = md.draw_mixture(Subject("A", EARTH))
+        first = md.draw_mixture(Subject("terrestrial", EARTH))
     with draw.bound(8):
-        second = md.draw_mixture(Subject("A", EARTH))
+        second = md.draw_mixture(Subject("terrestrial", EARTH))
     assert first.mole_fractions == second.mole_fractions
     assert first.recipe.groups["d"].name == second.recipe.groups["d"].name
 
@@ -103,18 +103,18 @@ def test_a_sweep_from_a_cold_giant_to_an_ultra_hot_one_never_refuses():
             changes = {"t_layer_k": temperature, "tday_k": temperature, "teq_k": temperature, "teff_k": temperature,
                        "zone": "h" if temperature > 1300 else "c", "insolation": (temperature / 255.0) ** 4}
             with draw.bound(seed):
-                result = md.draw_mixture(Subject("J", {**JUPITER, **changes}))
+                result = md.draw_mixture(Subject("giant", {**JUPITER, **changes}))
             assert sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12)
             assert result.mole_fractions["H2"] + result.mole_fractions.get("H", 0.0) > 0.5
 
 
-def test_a_random_body_of_any_rocky_class_gets_a_mixture_from_the_inputs_the_function_names():
+def test_a_random_terrestrial_body_gets_a_mixture_from_the_inputs_the_function_names():
     import random
     rng = random.Random(7)
     base = dict(EARTH)
     families = set()
     for index in range(150):
-        body_class = rng.choice("ABCDEFGHKLMNOPQSVUYZ")
+        body_class = "terrestrial"
         mass, temperature = 10 ** rng.uniform(-3, 1.3), 10 ** rng.uniform(1.4, 3.5)
         quantities = dict(base, mass_earth=mass, ts_k=temperature, tp_k=temperature * rng.uniform(1.0, 1.3),
                           pressure_bar=10 ** rng.uniform(-6, 2), age_gy=rng.uniform(0.1, 10), long_lived_geology=rng.random() < 0.5,

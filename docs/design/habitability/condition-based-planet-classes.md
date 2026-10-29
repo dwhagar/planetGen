@@ -1,6 +1,6 @@
 # Condition-based planet and moon classes (GEN.645 to GEN.648)
 
-Status: partly built. The classifier, its rule file, the shadow sweep and the class pages are built (2026-10-23, the class lane); generation still draws a class first until the cut-over (GEN.646, GEN.647), which waits on the composition lanes. Lane D's draft with the 13 places that read the class today is `/mnt/project-files/design-drafts/condition-based-classes-2026-10-23.md`.
+Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body is made from its mass, where it formed and its star; its class letter is derived from what it comes out as, at the end of its build and again once its star's flux variation is known. Nothing draws a class first. Lane D's draft with the 13 places that read the class before the cut-over is `/mnt/project-files/design-drafts/condition-based-classes-2026-10-23.md`.
 
 ## Decisions (Boss, 2026-10-23, times EDT)
 
@@ -43,11 +43,11 @@ The rows are in the order of the file (giants, then D S C A N Q V L K P B E F G 
 
 **K, L, Q, S and V** looked like letters to retire (zone-drawn guesses that PHI-6 now measures). Each instead became a condition that keeps its old meaning: K the cold thin-air desert, L the thin oxygen-bearing marginal world, Q the world whose starlight swings by a quarter or more (an eccentric orbit), S the airless super-Earth (size), V the high-gravity world. Free letters (the reserve): R, U, W, X, Y, Z.
 
-**Known weak spots.** The mass of an ice giant (10 to 60 Earth masses) overlaps a gas giant's (30 and up) in the old draw, so the mass cut at 35 misplaces about a quarter of the drawn ice giants until the envelope share of GEN.428 is stored; the gas dwarf T mostly merges into I; and a drawn Q cannot be reproduced because it was a draw with no stored cause, so the orbit now decides it. The shadow sweep (below) measures all three.
+**Known weak spots.** The mass of an ice giant (10 to 60 Earth masses) overlaps a gas giant's (30 and up), so the mass cut at 35 misplaces some ice giants until the envelope share of GEN.428 is stored (Aux 17, GEN.822); the gas dwarf T stays rare and mostly merges into I until then; class Q follows from the orbit's eccentricity alone; and a dense steam air (the solver of GEN.411 puts the water of an ice-rich world into the air; GEN.830 and GEN.837 of Aux 8 address it) makes class N a large share of the warm planets until they land. The class sweep (below) measures them.
 
-## The shadow sweep
+## The class sweep
 
-`python src/tests/class_shadow_cli.py` generates systems (or `--per-class N` planets of every class and zone) in memory, classifies every planet and moon, and prints the share that keeps its drawn letter, the confusion table and the share of each letter before and after. First fit (2026-10-23): 98.3 percent of 32,487 bodies from 2,000 natural systems and 96.6 percent of 14,199 forced bodies keep their letter; M keeps 98 to 99 percent; the core classes H, P, O, C, D and N keep 95 to 100 percent. The report is `/mnt/project-files/reports/class-shadow-sweep-2026-10-23.md`.
+`python src/tests/class_sweep_cli.py` generates systems in memory, prints the share of every letter among planets and among moons, the mass bins of the planets, and how many bodies change letter when `classify` is run again on their stored conditions (none should). The thresholds of `planet_classes.json` and the mass law (`planet-mass-law.md`) are tuned against it and against Aux 16's check (`/mnt/project-files/reports/planet-class-distribution-check-2026-10-25.md`). The cut-over's own report is `/mnt/project-files/reports/class-cutover-sweep-2026-10-28.md`. Before the cut-over this section described a shadow sweep that compared `classify` with the drawn letter (98.3 percent of 32,487 bodies kept their letter, 2026-10-23); with no drawn letter there is nothing to compare, and the sweep now reports the distribution instead.
 
 ## What is built and what is next
 

@@ -5,7 +5,7 @@ The condition-based planet and moon classes (GEN.645, GEN.647; C1, C2 and C5 of 
 * the rule file is well formed: every letter once, the free letters kept apart, the last row of each kind takes the rest;
 * every row has a body that gets that letter and nothing else (a test per rule), and the order of the rows decides;
 * the function is pure and total: any stored conditions give one letter, the same every time, from an object or a mapping;
-* the shadow sweep keeps most of today's drawn letters (the rules stay as close to today's classes as they can);
+* the class sweep finds every stored letter is the derived one;
 * no module but the generator's current writers assigns a body's class (C5: the list shrinks at the cut-over, GEN.646).
 """
 
@@ -180,36 +180,25 @@ def test_rules_read_in_plain_words():
     assert pc.rule_words(pc.describe("M")) == []
 
 
-def test_the_shadow_sweep_keeps_most_drawn_letters():
+def test_the_class_sweep_finds_every_stored_letter_is_the_derived_one():
     import sys
     sys.path.insert(0, os.path.dirname(__file__))
-    import class_shadow_cli
+    import class_sweep_cli
 
-    bodies = class_shadow_cli.sample_bodies(25, seed=3, habitable_share=0.4)
-    # A moon draws its composition from its origin (GEN.466) and its letter first, so its derived letter differs wherever the
-    # origin gave an icy body a rocky class (a captured or outer disk moon): moons agree until the cut-over (GEN.646) only in part.
-    # The planets still take their composition from their class and must keep their letters.
-    planets = [entry for entry in bodies if not entry[0].is_moon]
-    pairs = class_shadow_cli.compare(planets)
-    total = sum(pairs.values())
-    same = sum(n for (drawn, derived), n in pairs.items() if drawn == derived)
-    # The old floor of 0.9 measured the class-first air; since GEN.411 the class sets the mass and the bulk composition but not the air,
-    # so about 1 planet in 6 derives another letter (158 of 191 kept). 0.75 is about three standard errors under that; the class
-    # cut-over (GEN.646) tightens it.
-    assert total > 100 and same / total > 0.75
-    moons = class_shadow_cli.compare([entry for entry in bodies if entry[0].is_moon])
-    assert sum(moons.values()) > 100
-    pairs = class_shadow_cli.compare(bodies)
-    report = class_shadow_cli.format_report(pairs, 25, 3)
-    assert "keep their letter" in report and "Confusion table" in report
+    bodies = class_sweep_cli.sample_bodies(12, seed=3, habitable_share=0.4)
+    assert sum(not is_moon for _, is_moon in bodies) > 20 and any(is_moon for _, is_moon in bodies)
+    # GEN.646: the letter is derived from the stored conditions once the system is final, so classifying again changes nothing.
+    assert class_sweep_cli.changed_letters(bodies) == []
+    report = class_sweep_cli.format_report(bodies, 12, 3)
+    assert "Share of each letter" in report and "Planets by mass" in report
 
 
 # C5: only the generator's own writers assign a class.
 CLASS_WRITERS = {
-    "admin/edits.py", "generation/phenomena/rogue.py", "generation/planet.py", "physics/planets.py",
+    "generation/phenomena/rogue.py", "generation/planet.py", "physics/planets.py",
 }
-"""set: The modules that assign `.planet_class` today. Cut-over (GEN.646 to GEN.647) shrinks it to `physics/planet_classes.py`'s
-caller; a new writer fails this test."""
+"""set: The modules that assign `.planet_class`: a planet or moon is classified by `physics/planets.apply_class` (and cleared there and
+in `Planet.__init__` while it is built), a rogue by `rogue.rogue_class`. A new writer fails this test."""
 
 
 def test_only_the_known_writers_assign_a_class():

@@ -717,6 +717,18 @@
       "first_release": "8.0.2534",
       "reason": "The life class switch (GEN.867, GEN.889): each life world stores one of fifteen classes, drawn by net primary production from the supplies the world delivers; the complexity index and animal grades set how far it gets; a body's life draws from its own stream (GEN.872); the toxic gases reach the equipment rules (GEN.657)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 121,
+      "first_release": "8.0.2543",
+      "reason": "GEN.646, GEN.840, GEN.479, GEN.829: a planet, moon, rogue or pulsar body's class is derived from its stored conditions after it is built (mass first), not drawn; moons are drawn by mass; the air solve and the habitable request steer by the derived class",
+      "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 122,
+      "first_release": "8.0.2564",
+      "reason": "Class gas ledger: methane and hydrogen drawdown of the built life classes at their stage, the haze, dose and colour redone from the air life leaves (GEN.891, GEN.857, GEN.858, GEN.859); an icy body whose tide underflows stores none (GEN.906); the magnetopause in radii of the body (GEN.843)",
+      "affects": ["fill", "population"]
     }
   ]
 }

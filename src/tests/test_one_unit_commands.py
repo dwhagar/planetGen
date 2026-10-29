@@ -108,3 +108,30 @@ def test_an_unknown_dataset_is_refused_before_a_run_starts(monkeypatch):
     monkeypatch.setattr(catalogue, "ALL", (_dataset(b"abc", "known"),))
     with pytest.raises(SystemExit, match="unknown dataset nope"):
         datasets_cli.main(["status", "nope"])
+
+
+def test_the_wipe_line_gives_real_counts_for_the_tables_cleared_and_the_rows_removed(mysql_config, redis_server, caplog):
+    """UX.164: the line was "Wiped 75 tables (about 1 row)", the database's stale statistic; it now says how many tables were wiped,
+    how many held rows, and how many rows were removed, counted before the wipe."""
+    _place_sector(mysql_config, "One", (5.0, 5.0, 5.0))
+    conn = reset_cli.get_connection(mysql_config)
+    try:
+        held = {table: conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"]
+                for table in reset_cli._table_estimates(conn, mysql_config.database)}
+    finally:
+        conn.close()
+    wiped = reset_cli.wipe(mysql_config)
+    assert sorted(wiped.tables) == sorted(held)
+    assert wiped.with_rows == sum(1 for n in held.values() if n) and wiped.exact_rows == sum(held.values()) and wiped.estimated_rows == 0
+    text = wiped.text(mysql_config.database)
+    assert text == (f"Wiped {len(held)} tables from '{mysql_config.database}' ({wiped.with_rows} tables held rows, "
+                    f"{sum(held.values()):,} rows removed).")
+    again = reset_cli.wipe(mysql_config)       # and a database already empty says so, not "about 1 row"
+    assert again.exact_rows == 0 and again.text(mysql_config.database) == f"Wiped {len(held)} tables from '{mysql_config.database}' (all were already empty)."
+
+
+def test_a_large_table_keeps_the_statistic_and_the_line_says_so():
+    wiped = reset_cli.Wiped(["sectors", "systems"], 2, 120, 9_000_000)
+    assert wiped.text("galaxy") == ("Wiped 2 tables from 'galaxy' (2 tables held rows, 120 rows counted and about 9,000,000 more by the "
+                                    "database's statistics in its large tables removed).")
+    assert reset_cli.Wiped(["a"], 1, 1, 0).text("g") == "Wiped 1 table from 'g' (1 table held rows, 1 row removed)."

@@ -46,7 +46,7 @@ Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` hea
 - **6** (PERF.99): `GET /api/admin/work` and `GET /api/admin/work/<id>` return the runs in Redis (`items` are runs with their stage, units and time left, not job tree roots; `<id>` is a run id and answers the run with its stages and log), `POST /api/admin/work/<id>/control` takes `cancel` or `clear` (`pause` and `resume` of a node are gone), `POST /api/admin/work/<id>/delete` and `clear-finished` delete runs, `GET /api/admin/work/<id>/log` is new, and `POST /api/admin/work/lease/clear` is gone (clear the run instead).
 - **5** (DB.51): `GET /api/systems/<uid>/sections` is gone: the description is a document built from stored data, not a table of paragraphs.
 - **4** (ADM.50): `GET /api/admin/galaxy-settings` and `GET /api/admin/galaxy-settings/<name>` are gone with the galaxy settings files.
-- **3** (API.23, stage 2): stars, planets, moons, asteroid belts, comets and facilities are named by their object ID too, in the same way: `id`, `star_id`, `planet_id`, `moon_id`, `belt_id`, `comet_id`, `host_id` and `homeworld_planet_id` fields, `<kind>:<ID>` references (including the keys of `class-options` and the `around`/`parent` fields of a system scene), the `ref` of every section and link of `/api/systems/<id>/description`, and the URLs (`/api/planets/<id>`, `/api/moons/<id>/class`, `/api/facilities/<id>`, ...). A facility's `host_id` (on `POST /api/facilities` and `GET /api/facilities/orbit`) is the host's ID: a sector's for `host_type` `space`. A row number is refused.
+- **3** (API.23, stage 2): stars, planets, moons, asteroid belts, comets and facilities are named by their object ID too, in the same way: `id`, `star_id`, `planet_id`, `moon_id`, `belt_id`, `comet_id`, `host_id` and `homeworld_planet_id` fields, `<kind>:<ID>` references (including the `around`/`parent` fields of a system scene), the `ref` of every section and link of `/api/systems/<id>/description`, and the URLs (`/api/planets/<id>`, `/api/moons/<id>`, `/api/facilities/<id>`, ...). A facility's `host_id` (on `POST /api/facilities` and `GET /api/facilities/orbit`) is the host's ID: a sector's for `host_type` `space`. A row number is refused.
 - **2** (API.23, stage 1): sectors, systems and phenomena are named by their object ID, printed as `0008000000-4000000-000`, and not by their database row number. IDs appear in every `id`, `sector_id` and `ref` field of those answers, in the URLs (`/api/systems/<id>`, `/api/sectors/<id>`, `/api/phenomena/<type>/<id>`, `/api/nebulae/<id>/...`) and in `from`/`to`/`course` references such as `system:0008000000-4000000-000`. A row number is refused (404). A sector's ID is the hex designation of its grid address (shell, band and wedge bit-packed, e.g. `FE81000A2B`), or `(1 << 40) + id` when it was made by hand with no grid address.
 - **1**: the first numbered version.
 
@@ -138,7 +138,7 @@ connectivity to that specific schema rather than the default one.
   `descriptor`, `radius_ly` (always 0 for a black hole/neutron star/rogue
   planet/interstellar comet/quasar — point-like at this scale), `distance_ly`,
   `offset_x_ly`/`offset_y_ly`/`offset_z_ly`, its center
-  relative to this sector's own, and `home` (`true` when generated as
+  relative to this sector's own, `age_years` (a supernova remnant's age, MAP.286; `null` for every other type), and `home` (`true` when generated as
   part of this sector, `false` for a neighbor's cloud) — `queryDb.phenomena_near_sector`, empty
   for an unplaced sector; see `schema.sql`'s "v18"/"v21"/"v28" header
   notes),
@@ -211,9 +211,11 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/uncharted-systems/<bright star id>` — one scattered star (UX.114): the fields of a list item,
   `system_id` (the system built around it, `null` while it is uncharted), `hosted_nebula` (the nebula the star lights, the one
   its sector builds: `name`, `nebula_class`, `nebula_type`, `class_name`, `radius_ly`, `age_myr`; `null` for a star that
-  lights none or is built, GEN.530) and, for a star with company that is not built, `members` (`member_no`, `kind`, `state`, `mass_solar`, `parent_node_no`) and `nodes` (`node_no`,
+  lights none or is built, GEN.530) and, for a star with company that is not built, `members` (`member_no`, `kind`, `state`, `mass_solar`, `parent_node_no`, `flags`) and `nodes` (`node_no`,
   `parent_node_no`, `kind` of `close`, `wide`, `compact` or `group`, `mass_solar`, `separation_au`,
-  `period_years`, `eccentricity`). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
+  `period_years`, `eccentricity`, `interaction`, `flags`) and `compact_pairs` (UX.186: one per accreting neutron star or black hole
+  with a companion or ablating pulsar with its companion: `node_no`, `kind` of `high-mass-xray-binary`, `be-xray-binary`,
+  `low-mass-xray-binary`, `black-widow` or `redback`, `compact` and `companion` (member numbers) and `microquasar`). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `binary_configuration` (`"close"`/`"wide"`/`null`),
@@ -321,7 +323,7 @@ connectivity to that specific schema rather than the default one.
   `composition`, `atmosphere`, `climate`, `water`, `magnetism`, `radiation`,
   `habitability`, `life`, the star's `zones`, `stellar`, `galactic`, `disk`, and
   a phenomenon's `gas`, `compact`, `activity`), each `{key, label, rows}`. A
-  row is `{key, label, value, text, raw, stored, absent, show_absent}` (`raw`: the stored number, `null` for text and for a column with no value) (`absent`: the value is none, 0, false or empty; `show_absent`: a page lists it even then, UX.188, because its absence matters, such as no air or no magnetic field): `value` is the Document's inline
+  row is `{key, label, value, text, raw, stored, absent, source, show_absent}` (`source`: a one-line source for a physics row, how its value is worked out and the item that does it, `describe/sheet_sources.py`, UX.187; `null` for a row with none written) (`raw`: the stored number, `null` for text and for a column with no value) (`absent`: the value is none, 0, false or empty; `show_absent`: a page lists it even then, UX.188, because its absence matters, such as no air or no magnetic field): `value` is the Document's inline
   list (a quantity is `{"qty": {"kind", "si"}}`, shown in the reader's units),
   `text` the same as plain text, and `stored` false, with the text "not
   stored", for a property the row holds no value for. Every stored column of
@@ -809,10 +811,10 @@ connectivity to that specific schema rather than the default one.
 - `DELETE /api/sectors/<id>/contents` — remove a sector with everything
   in it; `POST /api/sectors/<id>/regenerate` — remove it and generate its
   galaxy slot again.
-- `GET /api/systems/<id>/class-options`, `POST /api/planets/<id>/class`,
-  `/api/moons/<id>/class` — change a planet's or moon's class; `POST
-  /api/systems/<id>/star` — change a single-star system's star (see
-  "Changing a class or a star" below).
+- `POST /api/systems/<id>/star` — change a single-star system's star (see
+  "Changing a star" below). A body's class is derived from its conditions
+  (GEN.646), so there is no class change; edits of the inputs belong to
+  the 8.6 edit chain.
 
 ### Admin stats (admin auth required)
 
@@ -1507,37 +1509,16 @@ credentials are current and writes an audit-log row.
   sector off the galaxy grid or before `planetgen plan`, both before
   anything is queued or deleted.
 
-### Changing a class or a star
+### Changing a star
 
 Also `src/planetgen/api/edits.py`, with the same admin, audit and answer
 shape as above.
 
-- **Class (ADM.6).** `GET /api/systems/<id>/class-options` answers
-  `{"recommended": {"planet:<id>" or "moon:<id>": [classes]}, "all":
-  [classes]}`: for each planet and moon, the classes it could take where
-  it is without moving any other planet (valid in its zone, a class its
-  mass fits and, for a planet, big enough to hold its moons; for a moon,
-  a class its planet can hold), most common first, its own class left
-  out (a planet's own moons may still be re-spaced for its new size).
-  `POST /api/planets/<id>/class` (or `/api/moons/<id>/class`)
-  `{"class": "M", "force": false}` re-generates the body's surface
-  conditions as that class (radius, density, composition, atmosphere,
-  temperature, pressure and life), keeping its orbit, name, row,
-  moons and (unless confirmed out of range, below) mass. A class that doesn't suit the body (its mass outside the
-  class's range, the class not forming in the body's zone, a planet too
-  small for its moons, a moon too big for its planet's) or that isn't
-  recommended is refused with `409` unless `"force": true` confirms it;
-  the message says what it would break, ending "Confirm to set it
-  anyway", and nothing changes. Confirmed, the class is set even so; a
-  mass outside the class's range goes to the nearest end of it. The body
-  keeps the class it was given; the rest of the system is re-spaced
-  around it, nothing is removed, and what still doesn't validate comes
-  back in `warnings`.
 - **Star (ADM.7).** `POST /api/systems/<id>/star` `{"star_type": "K2V"}`
   replaces a single star with a new one of that spectral type (class
   letter, subclass digit, Yerkes class; case doesn't matter), keeping
   its name, row and place in the galaxy. Planets, moons and belts keep
-  their classes; their orbits scale with the square root of the change
+  their conditions; their orbits scale with the square root of the change
   in luminosity (so each keeps its place against the habitable zone),
   the innermost is moved clear of a larger star's surface, and then
   everything is re-spaced for the new mass. Bodies left past the new
@@ -1708,7 +1689,7 @@ for the job first, so they normally still answer in the same response
 (`201` or `200` as before); only a slow one answers `202`. These are
 `POST /api/systems`, `PATCH /api/systems/<id>` with `regenerate`,
 `POST /api/{planets,moons,belts}/<id>/regenerate`, `POST
-/api/phenomena/<type>/<id>/regenerate`, `POST /api/{planets,moons}/<id>/class`,
+/api/phenomena/<type>/<id>/regenerate`,
 and `POST /api/systems/<id>/star` (`201` when it finishes in time). Deletes and plain renames stay in the
 request. A refusal comes back with its own status (404, 409, 400); `503`
 means no Redis server answered.
@@ -1716,7 +1697,7 @@ means no Redis server answered.
 - `GET /api/jobs/<id>` (admin) — `{"id", "state", "result", "error",
   "error_status", "made_url", "waiting"}`; `error_status` is the HTTP status of a
   refusal; `waiting` is, for a running job that waits in line for the generation run in front of it
-  (PERF.153: `queue.wait_minutes`, 60 by default, then it fails naming that run), `{"run", "position", "text"}`
+  (PERF.153, PERF.154: the one waiting list holds up to `queue.max_waiting` entries, 8 by default, and refuses one more with the list named; `queue.wait_minutes`, 60 by default, then it fails naming that run), `{"run", "position", "text"}`
   (`text` reads "Waiting at position 1 for run ..."), else `null`; `made_url` is, for a finished job that generated sectors
   (a neighborhood or a regenerate), the Galaxy Map fitted to them and
   highlighting them, else `null`.

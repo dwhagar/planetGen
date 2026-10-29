@@ -46,7 +46,7 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 from planetgen.galaxy import core_gas as coreGas, galactic_orbit
-from planetgen.physics import formation
+from planetgen.physics import formation, imf
 from planetgen.physics import orbits
 from planetgen.physics import relations
 from planetgen.physics import surface_composition
@@ -57,7 +57,7 @@ from planetgen.galaxy import density as galaxyDensity, sector as spaceSector, sp
 from planetgen.physics import constants as pc, kepler, main_sequence, stellar_evolution
 from planetgen import tuning
 from planetgen.util import log
-from planetgen.physics import interior_heat, planets, radiogenic
+from planetgen.physics import interior_heat, planet_kind, planets, radiogenic
 from planetgen.util import detmath
 
 SEED = 20261001
@@ -257,7 +257,7 @@ def _seeded_global_random(seed):
     """
     Binds a draw stream seeded with `seed` for samplers that draw from the
     unit's stream (`sampling.sample_bounded_bell`,
-    `planets._choose_weighted_planet_class`). The debug log's per-draw tracing and DEBUG
+    `planet_kind.draw_moon_mass_kg`). The debug log's per-draw tracing and DEBUG
     lines are switched off meanwhile, so a check run never floods the log
     with thousands of rolls.
     """
@@ -911,7 +911,7 @@ def _kroupa_cdf(m):
 
 def _imf_p_value():
     rng = draw.Stream(SEED + 1)
-    draws = [stellar_evolution.sample_imf_mass_sol(rng=rng) for _ in range(4000)]
+    draws = [imf.sample(rng=rng) for _ in range(4000)]
     edges = [0.08, 0.15, 0.3, 0.5, 0.8, 1.5, 3.0, 8.0, 150.0]
     shares = [_kroupa_cdf(b) - _kroupa_cdf(a) for a, b in zip(edges, edges[1:])]
     return chi_square_p_value(_bin_counts(draws, edges), shares)
@@ -973,20 +973,28 @@ def _bounded_bell_p_value():
     return chi_square_p_value(_bin_counts(draws, edges), shares)
 
 
-def _planet_class_p_value():
-    """Unrestricted planet class draws follow `PLANET_CLASS_PROBABILITIES`."""
-    table = tuning.PLANET_CLASS_PROBABILITIES
-    classes = sorted(table, key=lambda c: -table[c])
+def _moon_mass_p_value():
+    """Moon masses follow the moon size law, dN/dlogM ~ M^-`tuning.MOON_MASS_FUNCTION_SLOPE` between its lightest moon and the parent's
+    ceiling (`planet_kind.draw_moon_mass_kg`)."""
+    parent_kg = pc.EARTH_MASS_TO_KG
+    low = tuning.MOON_MIN_MASS_KG
+    high = planet_kind.moon_mass_ceiling_kg(parent_kg, False)
+    slope = tuning.MOON_MASS_FUNCTION_SLOPE
     with _seeded_global_random(SEED + 7):
-        draws = [planets._choose_weighted_planet_class(classes) for _ in range(5000)]
-    counts = [draws.count(c) for c in classes]
-    return chi_square_p_value(counts, [table[c] for c in classes])
+        draws = [planet_kind.draw_moon_mass_kg(parent_kg, False) for _ in range(5000)]
+    edges = [low * (high / low) ** (i / 10) for i in range(11)]
+
+    def cdf(mass):
+        return (low ** -slope - mass ** -slope) / (low ** -slope - high ** -slope)
+    shares = [cdf(b) - cdf(a) for a, b in zip(edges, edges[1:])]
+    edges[-1] *= 1.0000001
+    return chi_square_p_value(_bin_counts(draws, edges), shares)
 
 
 def _distribution_checks():
     chi = f"chi-square goodness of fit, p >= {CHI_SQUARE_P_MIN:g}"
     return [
-        Check("imf_matches_kroupa", "distribution", "stellar_evolution.sample_imf_mass_sol",
+        Check("imf_matches_kroupa", "distribution", "imf.sample",
               _imf_p_value, CHI_SQUARE_P_MIN, 0.0,
               f"Kroupa 2001, MNRAS 322:231 (alpha 1.3 below 0.5 M_sun, 2.3 above); {chi}", mode="min",
               unit="p"),
@@ -1008,9 +1016,9 @@ def _distribution_checks():
         Check("bounded_bell_shape", "distribution", "sampling.sample_bounded_bell(0, 1, 0.27)",
               _bounded_bell_p_value, CHI_SQUARE_P_MIN, 0.0,
               f"normal(0.27, 0.09) truncated to [0, 1]; {chi}", mode="min", unit="p"),
-        Check("planet_class_shares", "distribution", "planets._choose_weighted_planet_class",
-              _planet_class_p_value, CHI_SQUARE_P_MIN, 0.0,
-              f"tuning.PLANET_CLASS_PROBABILITIES; {chi}", mode="min", unit="p"),
+        Check("moon_mass_law", "distribution", "planet_kind.draw_moon_mass_kg",
+              _moon_mass_p_value, CHI_SQUARE_P_MIN, 0.0,
+              f"tuning.MOON_MASS_FUNCTION_SLOPE between the lightest moon and a tenth of the parent; {chi}", mode="min", unit="p"),
     ]
 
 

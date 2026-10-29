@@ -5,8 +5,8 @@ The atmosphere possibility tables (GEN.478, docs/design/composition/atmosphere-c
 ========================================================================================================================
 
 The recipes of every atmosphere, cloud, trace gas, ground radioisotope and host-star UV regime as gated rows in the format of
-the possibility table (`generation/possibility_table.py`, GEN.472): 16 tables a to p and 104 rows, each with the classes and
-conditions of its gate, a weight that may depend on the mass, temperature, pressure, redox, insolation, the host star and the
+the possibility table (`generation/possibility_table.py`, GEN.472): 16 tables a to p and 104 rows, each with the kinds of body
+and conditions of its gate, a weight that may depend on the mass, temperature, pressure, redox, insolation, the host star and the
 formation distance over the snow line, the source of the weight with its verification label, and a source state. The words
 are part 09 of the research; the machine columns are `scripts/atmosphere_recipes_data.py`; the file is
 `physics/data/atmosphere_recipes.json`, built by `scripts/build_atmosphere_recipes.py` and checked in.
@@ -14,6 +14,14 @@ are part 09 of the research; the machine columns are `scripts/atmosphere_recipes
 This item holds the tables and the draw of their rows and changes nothing the generator stores: no generator draws from them
 yet (GEN.411, GEN.413, GEN.414, GEN.451, GEN.454 to GEN.456 do), so it takes no generator epoch of its own and rides the one
 bump of the 8.4 stored-value chain (Boss, 6:08 PM EDT 2026-10-18, fork 1).
+
+Kinds of body (GEN.840)
+-----------------------
+
+A row's gate names the kinds of body it supports (`BODY_KINDS`: terrestrial, giant, brown-dwarf, asteroid, comet) and the stored
+conditions that must also hold; it never names a class letter. The class is derived from the finished body (`planet_classes.classify`),
+so a rule such as "a world with an air" is the condition `pressure_bar >= 1e-4` and "a hot rocky world" is its zone and its dayside
+temperature. A planet or moon is a `terrestrial` or a `giant` by its stored body type.
 
 Rows and kinds
 --------------
@@ -51,7 +59,7 @@ the core centre of the data, and p4 depends on the stellar mass.
 
 Use:
 
-    RECIPES.draw_group("d", Subject("E", {...}))            # a GroupDraw: the row, its probability, all probabilities
+    RECIPES.draw_group("d", Subject("terrestrial", {...}))            # a GroupDraw: the row, its probability, all probabilities
     RECIPES.draw_value("a1", subject)                       # a continuous quantity
     RECIPES.bins("f7", subject)                             # [(low, high, probability)]
     RECIPES.draw_all(subject)                               # every table in the draw order
@@ -79,11 +87,9 @@ DRAW_ORDER = tuple("abdcefghijklmnop")
 """tuple: The order the tables are drawn in (part 09 section 1): the host star first (not a table), then a, b, d, c, e to l,
 then m, n, o and p, which read earlier draws."""
 
-OBJECT_CLASSES = ("asteroid", "comet", "brown-dwarf")
-"""tuple: The classes besides the planet letters a row's gate may name."""
-
-PLANNED_CLASSES = ("R", "U", "W", "X", "Y", "Z")
-"""tuple: The letters part 09 gates on that are planned and not yet in `tuning.PLANET_CLASSES` (docs/design/habitability/atmospheres-retention-and-classes.md)."""
+BODY_KINDS = ("terrestrial", "giant", "brown-dwarf", "asteroid", "comet")
+"""tuple: The kinds of body a row's gate may name (GEN.840). A planet or moon is `terrestrial` or `giant` by its stored body type
+(`body_type` "t" or "g"), the class letter being derived from the finished body and so never a gate; the rest are the object kinds."""
 
 KINDS = ("option", "binary", "param", "bins", "derived", "flag", "windows", "choice")
 
@@ -349,7 +355,7 @@ class Entry:
         replacement (str): For a stand-in, the builder item (GEN.509 to GEN.525, GEN.595) that replaces it.
         research (tuple): For an open row, its research ids (R1 to R15).
         items (tuple): The TODO items that replace it (GEN.480 to GEN.494 for an open row).
-        classes (tuple): The class gate.
+        classes (tuple): The kinds of body the row supports (`BODY_KINDS`), or `("*",)`.
         conditions (tuple): `Condition`s.
         weight (Expression or None): The weight (option, binary, flag).
         lets (dict): Named intermediate expressions, evaluated in order before the weight.
@@ -504,10 +510,10 @@ class Recipes:
         if raw["state"] == pt.OPEN_STATE:
             if not raw.get("items") or any(item not in self.research.values() for item in raw["items"]):
                 raise DataError(f"row {row_id} is open and names no research item of the part (R1 to R15)")
-        known = set(tuning.PLANET_CLASSES) | set(PLANNED_CLASSES) | set(OBJECT_CLASSES) | {pt.ANY_CLASS}
+        known = set(BODY_KINDS) | {pt.ANY_CLASS}
         unknown = sorted(set(raw["classes"]) - known)
         if unknown:
-            raise DataError(f"row {row_id}: unknown classes {', '.join(unknown)}")
+            raise DataError(f"row {row_id}: unknown kinds {', '.join(unknown)}")
         conditions = []
         for item in raw.get("conditions", []):
             extra = set(item) - {"quantity", "minimum", "maximum", "equals", "one_of"}

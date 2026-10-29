@@ -406,6 +406,16 @@ run: where two sources differ the widest range stands, and the sampling slack of
 is added when it is compared. A known fault carries its item as in the other parts. The report is `star-census-latest.md`; about 15
 seconds on 4 cores. `python -m tests.audit.prevalence_stars` prints it without the test.
 
+The star mass function census (TEST.454, `src/tests/audit/mass_curve.py`, `src/tests/test_mass_function_curve.py`; item 1 of the star mass
+function chain, GEN.922) measures the same population bin by bin in mass against the published disk curves held as data in
+`src/tests/data/mass_function_curve.json` (Chabrier 2003's log-normal fits for single stars and for systems, Kroupa 2001's broken power law,
+all recalled, tier T2, until a lane reads the papers). It draws 60,000 systems at the reference solar position and counts two samples below
+0.8 solar masses, where every star born is still alive: the primaries (held to the system function) and every star of the systems' member
+trees (held to the single-star functions), and reports the generator's primaries above 0.8 solar masses by phase (main sequence, subgiant,
+giant, supergiant, white dwarf) and the white dwarfs' mean mass (a norm). A bin's range is the lowest and highest share the sample's curves
+give it, widened by the sample's relative tolerance and by four binomial sigma of the run. A bin a later item of the chain fixes carries
+that item's number. The report is `mass-curve-latest.md`; about 20 seconds on 4 cores. `python -m tests.audit.mass_curve` prints it.
+
 Part D, the phenomena census (TEST.433, `src/tests/audit/prevalence_phenomena.py`, `src/tests/test_prevalence_phenomena_census.py`),
 first cut: the galaxy-wide totals of the classes the phenomenon scatter places (stellar-mass and intermediate-mass black holes, neutron
 stars, magnetars, planetary nebulae, supernova remnants, and Wolf-Rayet stars), against `src/tests/data/prevalence_phenomena_expectations.json`. A total is the
@@ -477,11 +487,11 @@ scanned (AST) for every read of the class letter or the class tables, and each o
 the index does not read); an unlisted read fails, a listed place that no longer reads it is reported stale. Both checks are proved able to
 fail by breaking the life model, the index and a planted module. The report is `class-blind-life-latest.md` (with the life-capable bodies of
 each letter). The draws that run before the life model and key on the letter (water fraction, albedo range, porosity, mass-radius branch)
-change the conditions and not the way they are judged; they are GEN.915 and GEN.646. The second layer (epoch 120) is on the generator: 174 planets, one
-for each class letter and zone round an M2V, a G2V and an F5V star (3 each), go through the life step (`generation.life.apply_life_data`) on a copy; a
+change the conditions and not the way they are judged; they are GEN.915 and GEN.646. The second layer (epoch 120) is on the generator: every planet and moon of the shared sweep (M2V, G2V, F5V; the class is derived from the
+conditions since epoch 121, so it cannot be forced on a bare `Planet`) goes through the life step (`generation.life.apply_life_data`) on a copy; a
 planet the life model supports must be given life and one it does not support must not, the class drawn must be a supported one, and the same
 conditions put under every other class letter must give the same class, stage and schedule on the same stream. A failure names the letter and the
-class. The report `class-blind-life-draws-latest.md` lists, for each letter, the planets, the supported ones and the ones given life.
+class. The report `class-blind-life-draws-latest.md` lists, for each derived letter, the planets, the supported ones and the ones given life.
 
 ## Setting up a cloud session
 

@@ -2,6 +2,237 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2565] - 2026-10-29
+
+**Headline:** A new Properties page in the Help menu explains where every value on a planet, moon or star page comes from.
+
+### Changed
+- **Properties help page (UX.187).** The Help menu has a Properties page that lists each value shown on a planet, moon or star page with its unit and the step of the generation that fixes it. A planet, moon or star page links to it from "Where these values come from".
+
+## [8.0.2564] - 2026-10-29
+
+**Headline:** Worlds with life now hold the gases their kind of life makes at their stage: methane and hydrogen drawdown for the hydrogen, donor and anoxygenic classes, a methane haze that follows it, and no methane once the oxygen has risen.
+
+### Changed
+- **The class gas ledger (GEN.891, GEN.857, GEN.858, GEN.859).** `physics/data/life_ledger.json` holds one row per life class and `physics/life_air.py` applies it after the oxygen. A built class (1, 2, 3, 6 and 8) that has producers by the star's age puts methane into an air with no free oxygen: its flux (the carbon the oxygenic class buries, or the donor and hydrogen supplies of the other classes over Earth's) times the 30,000 year life of methane, at most 3.5 percent of the air's molecules, with the carbon taken from the air's own carbon dioxide (a tenth of the carbon stays). The hydrogen eaters draw hydrogen down to 1e-4 of the molecules. An oxygenic class makes no methane once its oxygen has risen. The haze, ultraviolet shield, colour and habitability score are redone from the air life leaves. Classes 4, 5, 7 and 9 are `pending` rows and change nothing yet. Every number has a tier and tweak level (row LF60). The haze's cooling of the ground and the hydrosphere of a world the new air moves across freezing are not modelled.
+- **Icy-moon tide (GEN.906).** An icy body on an orbit so round that its tide underflows to 0.0 now stores no tide (NULL), as a rocky body does, instead of 0.0.
+- **Magnetopause in planet radii (GEN.843).** `magnetopause_rp` was stored in Earth radii but labelled planet radii, so any body not Earth-sized read wrong by the ratio of radii. It now divides the standoff by the body's own radius.
+
+generation-output: changed
+
+TODO items resolved: GEN.891, GEN.857, GEN.858, GEN.859, GEN.906, GEN.843. Added: stand-in registry row LF60.
+
+## [8.0.2563] - 2026-10-29
+
+**Headline:** The physics rows on a star, planet or moon page now say where their value comes from.
+
+### Changed
+- **A one-line source under each physics value (UX.187).** The eccentricity and inclination of an orbit, the tidal and interior heat, the Urey ratio and the tectonic regime, thorium and uranium, the spin and tilt, the magnetic moment, the ring edge and optical depth, and the five life ages now carry one sentence under the number that says how it was worked out and which generator item does it (for example the Kepler multi-planet law for an eccentricity, or Peale, Cassen and Reynolds for tidal heat). The API sheet row has the same text as `source`. Only values that are stored on main are covered; a row whose rule is not written down has no line, and the rows of values still being added (the escape and delivery history, the star states) get theirs when their columns land. Nothing generated or stored changes.
+
+## [8.0.2562] - 2026-10-29
+
+**Headline:** One "Go to" for every move on the Galaxy Map, a find-a-place box that takes names, coordinates, sector designations, object IDs, regions and recent places, and a log ruler with named, clickable scales.
+
+### Changed
+- **One verb, "Go to" (MAP.336).** Every animated move on the Galaxy Map is now called Go to: the buttons that said "Fly to" and "Zoom in on them", the sector wall icons and the double click all go through one function. Zoom is only the wheel, the plus and minus buttons, the slider, the pinch and the keys.
+- **Find a place.** The address box is now a find-a-place box (press `/` anywhere on the page to reach it). As you type it lists what the line can be: coordinates (`x y z` in parsecs), a sector designation or shell/band/wedge, an object ID (its system opens, and a planet or moon is picked), charted regions by name, names the server finds, and places you went to before (an empty box lists them, and the way to the whole galaxy). Enter or a click goes there.
+- **A log ruler.** The zoom slider became a vertical log ruler: the whole galaxy at the top, a moon at the bottom, a named stop for each scale (galaxy, arm and halo, region, sector, neighbourhood, planetary system, planet, moon), each a Go to for that scale about the middle of the map, and a readout of the distance and the nearest thing. A card on the right now stands to the left of the ruler.
+- **Crumbs and Up.** Each crumb is a Go to for what it names, and the Up button is "Up one level".
+- **Where Go to a region lands.** A region is framed on its charted part by default. A browser setting, `map.regionLanding` (`densest`), lands on the cluster of the region's heaviest sectors instead; the setting's own page is UX.236.
+
+## [8.0.2561] - 2026-10-29
+
+**Headline:** The masses where one kind of object gives way to another are one table, each with its source and how sure it is.
+
+### Changed
+
+- **One table of mass boundaries (GEN.933).** The edge of a brown dwarf and a star (0.08 solar masses), the planet and brown dwarf edge (13 Jupiter masses), the heaviest brown dwarf (80), the core collapse edge (8 solar masses), the white dwarf progenitor floor (0.8), Chandrasekhar's limit and the spectral class mass edges were typed in several modules each. They are now `physics/mass_boundaries.py`, with a source and a tier for every row, and the mass function, companions, rogue bodies, plausibility bounds and the disk history read them there. Nothing generated changes. The table records one disagreement it does not settle: 80 Jupiter masses is 0.0764 solar masses, so a stretch under the star floor of 0.08 is empty; GEN.936 closes it.
+
+## [8.0.2560] - 2026-10-29
+
+**Headline:** A scattered star or phenomenon with a neutron star or black hole in a close pair now says what kind of pair it is.
+
+### Changed
+- **Compact binaries on the pages and in the API (UX.186).** The page of an uncharted star or phenomenon that holds an X-ray binary or a spider pulsar gains a Compact binaries panel: the kind (high-mass X-ray binary, Be/X-ray binary, low-mass X-ray binary, black widow or redback), the compact object, its companion, and whether the accretor is a microquasar. The same list is in the API as `compact_pairs`, and the stored `flags` of members and the `interaction` and `flags` of orbits are now returned too. The X-ray luminosity is not shown yet: it needs each member's radius, which a stored tree does not keep (GEN.952).
+
+## [8.0.2559] - 2026-10-29
+
+**Headline:** The cache warm-up of sector, system and phenomenon pages is cut into short units, and emptying a scatter no longer runs one statement over millions of rows.
+
+### Changed
+- **PERF.180: the three object families of the cache warm-up are slices of their listing.** `warm-sectors`, `warm-systems` and `warm-phenomena` were one unit each, minutes on a large galaxy once the cap is raised; each is now units of 250 objects (a whole multiple of that past 4,000 units), declared at 75 s against the 300 s unit ceiling. The stage leaves one line in the activity log for all its units.
+- **Emptying the bright-star or phenomenon scatter removes its member and node rows in a way that cannot run for minutes in one statement.** The two tables are truncated when the other scatter has none, else the rows go in batches of 100,000 that each commit. No stored value changes; the timing on a large galaxy still has to be measured.
+
+## [8.0.2558] - 2026-10-29
+
+**Headline:** Reset view now works after the minus button has been pressed past the end of the sector's range, where it used to do nothing.
+
+### Fixed
+
+- **Reset view, Fly to and Centre end a zoom-distance goal still being chased (TEST.458).** Plus and minus (and the slider and a pinch) ask for a camera distance and keep chasing it, across stages if need be, for a few seconds. Pressing minus repeatedly in an opened sector left that goal alive at the end of the sector's range; Reset view flew the camera back to the opening view and the chase then took it straight out again, so the button seemed to do nothing. A move the person asks for now ends the goal first. The scale-line browser test also took its opening zoom from a frame of the page's flight in; it now waits for the flight to land, a new test holds the Reset view case, and the MAP.301 browser test now holds that the camera comes into the dense region and rests in it rather than one resting point, which moved with the frames the approach took. No stored value or generated output changes.
+
+## [8.0.2557] - 2026-10-29
+
+**Headline:** The line after a reset now says how many tables were wiped and how many rows they held, counted, instead of "about 1 row".
+
+### Fixed
+- **UX.164: the wipe line gave the database's stale statistic ("Wiped 75 tables (about 1 row)").** `planetgen reset` and the Generate page's reset now count each table before wiping it (a table the statistics put under 200,000 rows is counted exactly in a moment) and say, for example, "Wiped 75 tables from 'galaxy' (12 tables held rows, 4,512 rows removed)", or "all were already empty" for an empty database. The few very large tables keep the statistic, as counting them row by row would take minutes, and the line says so ("... and about 9,000,000 more by the database's statistics in its large tables"). No stored value changes.
+
+## [8.0.2556] - 2026-10-29
+
+**Headline:** The plan estimate for a neighbourhood run is pinned by a test against the run that showed it wrong.
+
+### Fixed
+- **PERF.178: the plan estimate said 33 GB and 2 min 33 s for a run that took 4 min 28 s.** The pieces were already in: the galaxy-wide scatter tables are left out of the size per system (a few hundred megabytes for the 3,800 systems of that run, not 33 GB), the line no longer says "Refused ... Going ahead" (#2831), and a time worked out from the default speed reads as the range it lies within with "not timed yet on this server". A new test runs the logged case through the estimate and checks all three: the size is small, the range holds the 4 min 28 s the run took, and the summary says the time is not timed yet. No stored value changes.
+
+## [8.0.2555] - 2026-10-29
+
+**Headline:** The progress bars in a job log are guarded by a test that they are never cut off at the log's width.
+
+### Fixed
+- **PERF.179: progress bars cut off in the job log ("elapsed 0:0... remaining 0:00:...").** The cut was rich assuming 80 columns for output that is not a terminal; the bars are drawn 160 wide there (already in place). New tests render the bars to a log the way a job does and fail if the elapsed or remaining time is cut, if the line passes the log width for the longest realistic step name, count and run time, or if a terminal or a `COLUMNS` setting stops being left to rich. No stored value changes.
+
+## [8.0.2554] - 2026-10-29
+
+**Headline:** The star mass function now has a test that measures the generator's stars bin by bin in mass against the published curves.
+
+### Added
+
+- **A star mass function census (TEST.454).** The Galactic disk curves (Chabrier 2003's log-normal fits for single stars and for systems, Kroupa 2001's broken power law) are held as data, and a census draws 60,000 systems at the reference solar position and compares the primaries (with the system function) and every star of every system (with the single-star functions) in six mass bins from 0.08 to 0.8 solar masses. It also reports the primaries above 0.8 solar masses by phase and the white dwarfs' mean mass. It already shows two bins of the primaries off the system function (0.08 to 0.12 solar masses has 24% against 13 to 20%, 0.6 to 0.8 has 6.9% against 7.7 to 12%), tagged GEN.928; the later items of the chain are measured against it.
+
+## [8.0.2553] - 2026-10-29
+
+**Headline:** The waiting-list setting's help text no longer shows an internal item code.
+
+### Fixed
+- **The `queue.max_waiting` help text named an internal item code.** It is reworded, so no item code reaches the settings page, the config reference or the example file (TEST.457).
+
+## [8.0.2552] - 2026-10-29
+
+**Headline:** The stellar mass function now lives in one module, so the next change to it is made in one place.
+
+### Changed
+
+- **One initial mass function module (GEN.926).** The mass function was written out in six places (the draw and the count in the stellar evolution module, the moments in the system mass module, the stars per solar mass in the H II module, the mass a population returns in the disk history, the mass grid in the star population module). It is now `physics/imf.py`: the draw of a star's mass, the number or mass of stars in a range, the density and the segments a table is built on. Nothing generated changes (the golden output is the same); the old names are gone.
+
+## [8.0.2551] - 2026-10-29
+
+**Headline:** Scrolling the wheel toward a dense crowd of stars now brings the camera into the crowd and stops there instead of flying through it to a star behind.
+
+### Fixed
+
+- **Wheel zoom heads for the most populated layer in front of the zoom direction (MAP.301).** The wheel zooms toward the thing under the pointer, and when that was a lone star behind a crowd (a cluster, a dense region) the camera passed through the crowd without stopping. The pick now also looks along the ray under the pointer for the densest layer of drawn stars in front of that thing (a bounded search over log-spaced depth slices, a narrow cone around the ray, at least twelve stars) and, where it finds one, the approach slows and ends in that layer; the next scroll carries on past it. A pointer over empty space, a lone star, a body, or a crowd smaller than twelve stars is unaffected. No stored value or generated output changes.
+
+## [8.0.2550] - 2026-10-29
+
+**Headline:** Planet and moon pages now say how much of the time the star is up, and a moon shows the extra night in its planet's shadow.
+
+### Added
+- **UX.205: the day and night time shares on planet and moon pages.** The summary gains a sentence from the stored shares: the share of the time the star is up at the equator, the hours of daylight in each solar day, and the share over the whole surface. A world that turns once an orbit says it keeps one face to its star (a day side always lit, a terminator ring, a night side always dark). A moon in its planet's shadow adds the share of its time in that shadow and the length of the longest eclipse, which is also a new row of its rotation group (worked out from its orbit and the planet's radius, not stored). The At a glance panel lists the hours of daylight and the equator's share of daylight. An object with no rotation shows none of this.
+
+### Changed
+- **The row "Hours of daylight a person can be outside" is now "Hours a person can work outside per year (dose limit)",** which is what the stored number is. No stored value changes.
+
+## [8.0.2549] - 2026-10-29
+
+**Headline:** In a dense area no map name overlaps or crowds another, and where names must be cut the brighter or heavier thing keeps its name.
+
+### Fixed
+- **Names stood closer than their buffer, and sometimes over each other (MAP.299).** Three causes in the label engine: the screen grid only compared names in the same cell, so two names a few pixels apart across a grid line were never compared; a name's width was measured in one font whatever its kind, though a sector's name is semibold and a nebula's italic; and a name was placed at a fractional position and drawn at a rounded one. Names are now whole pixels wide enough for their own font, the grid reaches each name's buffer, and a browser test of the fixture's densest region finds none closer than the buffer at three zooms.
+- **The buffer is a setting.** `map.labelBuffer` (pixels, 0 to 40, default 4) in the browser's preferences, read at each placement.
+- **Where names of one kind compete for room the brighter or heavier keeps the better place.** A star by its brightness, an object or body by its mass, a nebula by its volume; the budget still chooses which things get a name and the order between kinds is unchanged.
+
+## [8.0.2548] - 2026-10-29
+
+**Headline:** The wheel now zooms in far enough on a dense cluster to single out one star from its neighbours.
+
+### Fixed
+- **MAP.300: the mouse wheel stalled short of a star in a dense cluster.** With no sector open, the wheel only knew the stars of an open sector, so a pointer on a drawn star zoomed toward the focus plane or the column behind it and the eye stopped well short of the star. The wheel now takes any star the map draws from its nodes' lists as the thing under the pointer, so the camera comes in on it to the least distance the map allows (a thousandth of a parsec) and two stars under a tenth of a parsec apart are each the star under the pointer on their own spots. No stored value changes.
+
+## [8.0.2547] - 2026-10-29
+
+**Headline:** The class-blind life test and the prevalence tests are settled after the class cut-over (epoch 121): fixed faults lose their tags and the open ones are named.
+
+### Changed
+
+- **The class-blind life test samples the sweep (TEST.452).** A class letter can no longer be forced on a bare planet (it is derived from the conditions), so the generator's life step is run on the 388 planets and moons of the shared sweep and, as before, on copies put under every other class letter. It passes on epoch 121.
+- **Tags settled after the cut-over (TEST.301, TEST.395, TEST.431).** The stored class equals the conditions' class on all 919 bodies, so that tag is gone and the rule is enforced. Thirteen other tags that no longer trip (mass function, hot Jupiters on M dwarfs, habitable classes, moons per planet) are removed. A request for a habitable world still goes unmet in 11 of 12 systems and is now named under GEN.909, GEN.853, GEN.854 and GEN.916. Tests and data only.
+
+## [8.0.2546] - 2026-10-29
+
+**Headline:** A supernova remnant on the Sector Map is now drawn from its age: young ones a thin bright rim, old ones a thick faint shell.
+
+### Changed
+- **Remnant shells by age (MAP.286).** The sector scene now carries each supernova remnant's age, and the shell is painted from it: a 50-year-old remnant is a thin, bright, hot-coloured rim around a hollow centre, and a 100,000-year-old one a thick, faint, cooler shell with the hollow filling in, with every age between interpolated on a log scale. The remnant's card shows its age, and the sector API's `phenomena` entries gain `age_years` (null for other types). The look is a stand-in that follows the body-rendering design table; the filament texture and colour by emission class are still to come. Nothing generated or stored changes.
+
+## [8.0.2545] - 2026-10-29
+
+**Headline:** The warm-up no longer reports an answer built on every run for a sector page whose Profile the API refuses.
+
+### Fixed
+
+- **The warm-up's "answers built" counts only answers that were built (MAP.289).** The sector page of a sector with a grid address asks the API for its Profile; where the API refuses (a database with no planned galaxy answers 404) the question was counted as an answer built, and asked again on every run, so a warm run over an unchanged galaxy always read "1 built" in its objects phase instead of "unchanged, nothing built". An answer the API refuses is now counted as neither built nor cached. A galaxy with a plan already cached its Profile and is unaffected; a test now holds that for several sectors. No stored value or generated output changes.
+
+## [8.0.2544] - 2026-10-29
+
+**Headline:** Superbubbles on the Galaxy Map now have a crisp rim and a fainter fill instead of three crossing rings.
+
+### Changed
+- **Clearer bounds and more transparency for superbubbles (MAP.236).** A bubble was three faint great circles (opacity 0.14), so its bound read as two crossing ellipses and the inside had no edge. It is now its sphere: a faint even fill (0.06 on the dark map, 0.07 on the light) and a crisp rim about two pixels wide where the sphere meets the line of sight, so the silhouette is the bound, in a lighter blue on the dark map and a darker one on the light. A camera inside a bubble, as the Sun is, sees the shell round it with no doubled layer. The look is in the new `static/superbubble.js`; no stored value changes.
+
+## [8.0.2543] - 2026-10-29
+
+**Headline:** A planet's or moon's class is no longer drawn: every body is made from its mass, where it formed and its star, and the class letter is worked out from what it comes out as.
+
+### Changed
+generation-output: changed
+
+- **The class cut-over (GEN.646, GEN.681, GEN.682, GEN.684, GEN.685, GEN.687, GEN.688, GEN.689, GEN.690, GEN.840, and the mass-function half of GEN.829).** A planet's mass comes from the mass law (`physics/planet_mass.py`), its kind (rocky or giant) and origin (inside or beyond the snow line) from its formation (`physics/planet_kind.py`), its radius from its structure, its water from where it formed, its air from the air solver, and its class from `classify` at the end of its build and again once its star's flux variation is known. The class tables (`PLANET_CLASS_PROBABILITIES`, the zone gates, the radius, albedo and size-mode ranges, the moon blacklist) and every draw keyed by a class letter are deleted. A moon is a rocky body whose mass follows `dN/dlogM ~ M^-0.5` up to a share of its parent's mass. A rogue planet, a pulsar's disc planet and a forced habitable world are made by the same law and classed by the same classifier. A request that names a class (a slot's `planet_class`, `FORCE_CLASS`, a habitable world) draws whole planets at the place until one is that class (`StarSystem.build_planet`), and a request no draw can meet (a white dwarf's ecosphere holds no air) is left unmet instead of redrawing the system. A caller who gives a mass or radius outside 1e12 to 2.5e28 kg and 0.5 to 200,000 km, or a density outside what a planet can have, now gets a `ValueError`.
+- **Two bounds of the air solver, both stand-ins (registry rows CC7 and CC8).** The surface a greenhouse can reach stops at 2000 K, and a pressure that falls under 1 Pa is taken as an exosphere (airless); both were found by the first sweeps of the cut-over, where the iteration reached 3700 K and 1e-10 bar and the gas equilibrium did not converge. A sky colour is shown as none where an air of hundreds of kilobars leaves no light at the zenith.
+- **What changes for a reader of a system.** Every planet and moon is a different draw (new masses, makes and airs), so every generated system changes. The class sweep (`tests/class_sweep_cli.py`, report `class-cutover-sweep-2026-10-28.md`) lists the shares. Class T stays rare until the envelope law of the gas dwarfs (GEN.822, Aux 17), and class N is a large share of the warm planets until Aux 8's sinks and hydrogen cap (GEN.830, GEN.837) merge.
+- **Life reads conditions, not the letter.** Water share, porosity, albedo and the air no longer read a class letter (a body has class None until its conditions are final). Still keyed by the letter and filed apart: the dominant surface material (`surface_composition`), the stream label of the aerosols, the redraw of a life class in the ecosphere when `HABITABLE_WORLD` is False and the request steering by class (GEN.915, GEN.916).
+- **Prevalence.** The usual `habitable_world` share is 0.722 (it counts the classes that can carry life, mostly Q, P, V and K, while few worlds are habitable by the score; GEN.911 reworks the aim). The class census is re-baselined at this code and no longer bars a class from a zone; the system census shifts are tagged GEN.646.
+
+## [8.0.2542] - 2026-10-29
+
+**Headline:** The clear-scatter test no longer fails when an earlier test left the logger silent.
+
+### Changed
+- **The test that reads the console sets the console first.** `test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing` read `capsys.out` but the logger belongs to the test process: a test that ran `main()` with `--quiet`, `--silent` or `--output -` (or the web app, which has no console handler) left it silent or writing to stderr, so under a parallel gate the message came back as an empty string. The module now sets the logger to write to stdout before each test. Tests only; the product is unchanged.
+
+## [8.0.2541] - 2026-10-29
+
+**Headline:** A galaxy with more than 4,000 nebula field slabs no longer fails the nebula field stage; its units cover several slabs each.
+
+### Changed
+- **The nebula field stage cuts like the other fixed-size stages.** It queued one unit per 50 pc slab, so a galaxy wide enough for more than 4,000 slabs failed with "a stage queues at most 4000 units". Beyond that size a unit now draws a run of consecutive slabs (`units.coarsen`), the same cut at any worker count and the same clouds; below it nothing changes. The log still has a line per slab.
+
+## [8.0.2540] - 2026-10-29
+
+**Headline:** Anything that has to wait for the machine now waits in one list, up to eight entries (a setting), and the job strip shows the order.
+
+### Changed
+- **One waiting list in Redis (PERF.154).** A generation run, an API job (a one-sector regenerate, a neighbourhood) or a Generate page job that finds the machine or the running job busy takes a place in one ordered list (`planetgen/queue/runline.py`) instead of failing with "busy" or taking the single `next.json` slot. The list holds `queue.max_waiting` entries (8 by default, on the admin settings page); one more is refused with the list named. Jobs and runs each start in the order they arrived. A script that posts to the Generate page behind a running job gets `202 {"queued": true, "position": ...}` instead of a 409.
+- **The job strip shows the list.** Every waiting job and run is listed in the order it arrived with its place; a waiting job has Discard (and Start now when the job before it failed); a waiting run shows its place for the machine.
+- **The Generate page's job lock moved to Redis** (`planetgen:job:active`), and a waiting job's recipe is a private file `queued-<ticket>.json` in the jobs folder (it holds the database environment, which stays out of Redis). The `active` and `next.json` files, `queue/runwait.py` and the file-lock clean-up marker are gone. The Queue page's fill buttons no longer refuse while a run is live; they wait their turn.
+- No generated value changes: the list only decides when a run starts, never how its work is cut.
+
+## [8.0.2539] - 2026-10-29
+
+**Headline:** The class-blind life test now also runs the generator's life step and checks it gives life exactly where the life model says it can live, whatever the class letter is.
+
+### Changed
+
+- **The generator's life draw is checked per class letter (TEST.452).** 174 planets, one set for each class letter and zone round three host stars, go through the real life step on a copy. A planet the model supports gets life, one it does not support gets none, and the same conditions under every other class letter give the same life class, stage and schedule. All of it holds on epoch 120. The life census report also lists the highest rung reached by each stored life class. Tests and notes only.
+
+## [8.0.2538] - 2026-10-29
+
+**Headline:** The prevalence tests are settled after the life class switch (epoch 120): old tags that no longer apply are gone and the shifts it caused are named.
+
+### Changed
+
+- **Prevalence tags after epoch 120 (TEST.430, TEST.431, TEST.395, TEST.435).** Thirteen class-census tags for the missing oxygen (GEN.855) no longer trip and are removed, the shifts of the life ceiling that the new stored life classes cause are tagged GEN.889, the rare Blue and Green worlds are tagged GEN.909, the missing civilizations on M dwarfs are tagged GEN.750, and the giants tag that epoch 120 fixed is gone. No range was widened. The life census report lists the highest rung of each stored life class. Tests and notes only.
+
 ## [8.0.2537] - 2026-10-29
 
 **Headline:** The phenomena stage says how many phenomena it expects to place, in total and per unit, not a bare weight.

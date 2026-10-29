@@ -142,8 +142,8 @@ export function createSectorFrame(options) {
       element.type = "button";
       element.className = "map-wall-icon";
       element.dataset.dir = wall.dir;
-      element.title = "Fly to " + name + ", " + labels.words;
-      element.setAttribute("aria-label", "Fly to " + name + ", " + labels.words);
+      element.title = "Go to " + name + ", " + labels.words;
+      element.setAttribute("aria-label", "Go to " + name + ", " + labels.words);
       const arrow = document.createElement("span");
       arrow.className = "map-wall-arrow";
       arrow.textContent = labels.arrow;

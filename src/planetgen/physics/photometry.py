@@ -71,6 +71,10 @@ _XYZ_TO_LINEAR_SRGB = (
 """tuple: The D65 matrix from XYZ to linear sRGB (IEC 61966-2-1)."""
 
 
+class NoVisibleLight(ValueError):
+    """A spectrum holds no light between 380 and 780 nm (a black hole's or a cold remnant's), so it has no colour."""
+
+
 @dataclass(frozen=True)
 class Colour:
     """
@@ -158,7 +162,7 @@ def spectrum_to_xyz(spectrum, wavelengths_nm: Optional[Sequence[float]] = None):
         totals.append(math.fsum(pieces))
     x, y, z = totals
     if not y > 0:
-        raise ValueError("the spectrum has no light between 380 and 780 nm")
+        raise NoVisibleLight("the spectrum has no light between 380 and 780 nm")
     return x / y, 1.0, z / y
 
 

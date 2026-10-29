@@ -15,16 +15,14 @@ Two checks, both on the shared body sweep (`tests.audit.sweep`):
   text, say); one that is not listed is a place where the letter can change the life, and fails the test. A listed reference that is gone is
   reported as stale.
 
-The second layer (`draw_problems`) is on the generator itself, with the class store of epoch 120 (GEN.889): a planet is drawn with each
-class letter in each zone round each host star (the forced-class sampler, `forced_planets`), and the life step of the generator
-(`generation.life.apply_life_data`) is run on a copy of it. A body the life model supports (a class scores above 0) must be given life, one
+The second layer (`draw_problems`) is on the generator itself, with the class store of epoch 120 (GEN.889): every planet and moon of the sweep that has not been through the life step (`fresh_planets`)
+has the life step of the generator (`generation.life.apply_life_data`) run on a copy of it. A body the life model supports (a class scores above 0) must be given life, one
 that no class supports must not, and the class that lives there must be one the model supports. Then the same conditions are put under every
 other class letter and the life step is run again on the same stream: the class, the stage and the schedule must be identical. The odds are
 those of the model (a supported world always gets life), so a rate that is not the model's, or that depends on the letter, fails and names the
 letter and the conditions.
 
-What the sweep cannot see: draws that run before the life model and key on the letter (the water mass fraction, the albedo range, the
-porosity and mass-radius branches; GEN.915, GEN.646). They change the conditions, not the way the conditions are judged, so they belong to
+What the sweep cannot see: draws that run before the life model and key on the letter (since the cut-over of epoch 121: the surface composition and the label of the aerosol stream; GEN.915). They change the conditions, not the way the conditions are judged, so they belong to
 the cut-over; the census counts of capable bodies per class (`capable_by_class`) show what they leave reachable.
 """
 
@@ -153,39 +151,18 @@ def stale_references(found, notes):
     return sorted(place for place in notes["allowed_references"] if place not in found)
 
 
-SAMPLE_SEEDS = 3
-"""int: Planets drawn for each class letter, zone and host star."""
-
 LIFE_STREAM_SEED = 4242
 """int: The run seed the life step is given before each run, so two runs on the same conditions use the same stream."""
 
 
-def forced_planets(host_types=("M2V", "G2V", "F5V"), seeds=SAMPLE_SEEDS):
-    """`[(label, planet), ...]`: a planet of each class letter in each zone its class allows round each host star, `seeds` of each, the
-    life step not yet run on any (a fresh `Planet`). Seeded from the host and the seed, so a repeat gives the same planets."""
-    from planetgen import tuning
-    from planetgen.generation.config import SystemConfig
-    from planetgen.generation.planet import Planet
-    from planetgen.generation.star import Star
-    from planetgen.util import draw
-    from tests.audit.sweep import seed_for
+def fresh_planets():
+    """`[(label, planet), ...]`: the planets and moons of the shared sweep (`tests.audit.sweep.entries`: `PLANETS_PER_ZONE` planets in each zone
+    round each host star and their moons), none of which has been through the life step (a bare `Planet` has none; `StarSystem` runs it). Since
+    the class cut-over (GEN.646, epoch 121) the class letter is derived from the conditions and cannot be forced on a `Planet`, so the sampler
+    takes the bodies as the generator builds them and the other letters are put on copies by `draw_problems`."""
+    from tests.audit import sweep
 
-    out = []
-    for host in host_types:
-        draw.set_run_seed(seed_for("class-blind-life", host))
-        config = SystemConfig()
-        config.STAR_TYPE = host
-        star = Star(config)
-        inner, outer = star.habitable_zone
-        for letter, spec in tuning.PLANET_CLASSES.items():
-            for zone in "hec":
-                if not spec[zone]:
-                    continue
-                distance = {"h": inner * 0.5, "c": outer * 2.0}.get(zone, (inner + outer) / 2.0)
-                for seed in range(seeds):
-                    draw.set_run_seed(seed_for("class-blind-life", host, letter, zone, seed))
-                    out.append((f"{host}/{letter}{zone}/{seed}", Planet(SystemConfig(), star, star.habitable_zone, distance, planet_class=letter)))
-    return out
+    return [(entry.label, entry.body) for entry in sweep.entries()]
 
 
 def _supported(planet):
@@ -212,7 +189,7 @@ def life_outcome(planet, letter=None):
 
 
 def draw_problems(planet, other_letters=None):
-    """The problems of one forced-class planet: a supported world without life, life on an unsupported one, a class that lives where the model
+    """The problems of one planet: a supported world without life, life on an unsupported one, a class that lives where the model
     does not support it, and any difference in the outcome when the same conditions carry another class letter (`other_letters`, default all)."""
     if getattr(planet, "body_type", None) != "t":
         return []

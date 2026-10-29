@@ -22,7 +22,7 @@ from planetgen.physics import atmosphere as atmosphere_physics
 from planetgen.physics import gases
 
 from tests.fuzz_support import deterministic_entropy
-from tests.test_planets import VALID_CLASS_ZONE_PAIRS, host_star, make_planet  # noqa: F401 -- the shared G2V host and the class builder
+from tests.test_planets import ZONE_SEED_IDS, ZONE_SEEDS, host_star, make_planet  # noqa: F401 -- the shared G2V host and the planet builder
 
 
 def _bodies(seeds):
@@ -64,16 +64,17 @@ def test_the_table_has_every_gas_the_phrase_names_and_its_shares_make_one():
     assert seen >= 15       # about a quarter of the bodies of 80 systems hold air since GEN.411 solves it from the body (it was 21 before)
 
 
-@pytest.mark.parametrize("cls,zone", VALID_CLASS_ZONE_PAIRS, ids=[f"{c}-{z}" for c, z in VALID_CLASS_ZONE_PAIRS])
-def test_every_class_says_only_the_gases_it_holds_above_the_stated_share(host_star, cls, zone):
-    """GEN.415: for a planet of every class and zone the text lists the stored gases from `MAJOR_FRACTION` (the four largest) and the
+@pytest.mark.parametrize("zone,seed", ZONE_SEEDS, ids=ZONE_SEED_IDS)
+def test_every_planet_says_only_the_gases_it_holds_above_the_stated_share(host_star, zone, seed):
+    """GEN.415: for a planet of every zone the text lists the stored gases from `MAJOR_FRACTION` (the four largest) and the
     traces from `TRACE_FRACTION` (the two largest), names each as the gas table does, and no other; the composition table of the
     page holds the same gases and adds up to the surface pressure."""
-    for _ in range(3):
-        planet = make_planet(host_star, cls, zone)
+    for extra in range(3):
+        planet = make_planet(host_star, zone, seed * 3 + extra)
+        cls = planet.planet_class
         text = planet.atmosphere
         assert text != atmosphere_physics.PENDING
-        if not tuning.PLANET_CLASSES[cls]["air"] or planet.atmospheric_pressure == 0.0:
+        if planet.atmospheric_pressure == 0.0:
             assert text == "None"
             continue
         air = atmosphere_physics.gas_partials_pa(planet)

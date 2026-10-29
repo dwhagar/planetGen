@@ -61,7 +61,7 @@ def test_the_giant_core_width_comes_from_the_population_and_not_from_one_planet(
 
 def test_a_log_scale_a_threshold_and_a_subject_are_read_from_the_target():
     log_sd = th.TARGETS.get("f5-width")
-    assert log_sd.scale == "log10" and log_sd.subject == {"body_class": "I", "quantities": {"mass_jupiter": 1.0}}
+    assert log_sd.scale == "log10" and log_sd.subject == {"body_class": "giant", "quantities": {"mass_jupiter": 1.0}}
     assert th.compare(log_sd, [1.0, 10.0, 100.0, 10.0]).simulated == pytest.approx(0.8165, abs=1e-3), "sample sd of 0, 1, 2, 1"
     below = th.TARGETS.get("f7-low")
     assert below.below and below.threshold == 0.35
@@ -71,7 +71,7 @@ def test_a_log_scale_a_threshold_and_a_subject_are_read_from_the_target():
     assert not above.below and th.compare(above, [0.5, 0.9, 1.2, 0.3]).simulated == 0.5
     with pytest.raises(th.TargetError, match="no logarithm"):
         th.compare(log_sd, [1.0, -2.0])
-    assert th.subject_of(log_sd).body_class == "I" and th.subject_of(th.TARGETS.get("a4-mean")) is not None
+    assert th.subject_of(log_sd).body_class == "giant" and th.subject_of(th.TARGETS.get("a4-mean")) is not None
 
 
 def test_the_table_refuses_a_malformed_scale_threshold_or_subject():
@@ -103,7 +103,7 @@ def test_the_thorium_scale_of_non_thin_disc_hosts_is_the_thick_disc_offset_on_th
 
 def test_the_thorium_to_uranium_ratio_grows_with_the_planets_age_and_follows_the_published_formula():
     from planetgen.generation.possibility_table import Subject
-    dist = lambda age, f: RECIPES._dist_of(RECIPES.entry("o4"), Subject("A", {"age_gy": age, "th_u_f": f}))   # noqa: E731
+    dist = lambda age, f: RECIPES._dist_of(RECIPES.entry("o4"), Subject("terrestrial", {"age_gy": age, "th_u_f": f}))   # noqa: E731
     low, high = dist(4.5, 1.16254)["lo"], dist(4.5, 1.71724)["hi"]
     # the report's table (PR 1.751, mass Th/U at 4.5 Gyr) is 3.19 for T = 3 Gyr and 4.72 for T = 13 Gyr; the bounds use PR 1.667 and 2.0
     assert low == pytest.approx(3.19 * 1.667 / 1.751, rel=0.005) and high == pytest.approx(4.72 * 2.0 / 1.751, rel=0.005)
@@ -125,7 +125,7 @@ def test_the_shoreline_is_the_published_logistic():
     from planetgen.generation.possibility_table import Subject
 
     def bare(insolation, v_esc_kms=11.186, luminosity=1.0):
-        s = Subject("A", {"insolation": insolation, "v_esc_kms": v_esc_kms, "luminosity_solar": luminosity})
+        s = Subject("terrestrial", {"insolation": insolation, "v_esc_kms": v_esc_kms, "luminosity_solar": luminosity})
         return dict(RECIPES.probabilities("d", s)).get("d1", 0.0)
     # log10 f0 = 2.62 at the Earth's escape velocity and a solar luminosity (Berta-Thompson 2025): half the planets keep an atmosphere
     assert bare(10 ** 2.62) == pytest.approx(0.5, abs=1e-6)
@@ -150,7 +150,7 @@ def test_titanium_oxide_is_seen_above_a_drawn_temperature_between_the_last_non_d
     from planetgen.util import draw
 
     def share(teq_k, n=400):
-        s = Subject("J", {"teq_k": teq_k, "zone": "h", "tday_k": 2500.0, "drawn.h": "h3"})
+        s = Subject("giant", {"teq_k": teq_k, "zone": "h", "tday_k": 2500.0, "drawn.h": "h3"})
         k = 0
         for i in range(n):
             with draw.bound(draw.Stream(f"h4-test:{teq_k}:{i}")):
@@ -193,7 +193,7 @@ def test_the_species_with_a_population_follow_it_and_the_single_comet_species_st
 def test_the_saturation_time_runs_through_the_three_published_tracks_and_the_percentile_is_drawn_uniform():
     from planetgen.generation.possibility_table import Subject
 
-    s = Subject("E", {"drawn.p": "p5"})
+    s = Subject("terrestrial", {"drawn.p": "p5"})
     t_sat = lambda u: RECIPES.derive("p6", s, value=u)["t_sat_myr"]  # noqa: E731
     assert (t_sat(0.1), t_sat(0.5), t_sat(0.9)) == pytest.approx((5.7, 23.0, 226.0)), "Tu 2015: the 10th, 50th and 90th percentile tracks"
     assert t_sat(0.02) < 5.7 < 23.0 < t_sat(0.98), "a monotonic run through the tail percentiles"
@@ -205,7 +205,7 @@ def test_the_m_dwarf_saturation_time_passes_through_the_three_measured_masses():
     from planetgen.generation.possibility_table import Subject
 
     def tau(mass):
-        return RECIPES.derive("p4", Subject("E", {"host_type": "M", "host_mass_solar": mass, "age_gy": 1.0}))["tau_sat_gy"]
+        return RECIPES.derive("p4", Subject("terrestrial", {"host_type": "M", "host_mass_solar": mass, "age_gy": 1.0}))["tau_sat_gy"]
     assert (tau(0.55), tau(0.25), tau(0.15)) == pytest.approx((0.162, 0.6, 2.3)), "Jackson 2012 and Medina 2022"
     assert tau(0.55) < tau(0.4) < tau(0.25) < tau(0.2) < tau(0.15), "later saturation end for lower masses"
 

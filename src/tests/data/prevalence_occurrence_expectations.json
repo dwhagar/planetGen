@@ -1,8 +1,6 @@
 {
  "anomalies": {
-  "GEN.828": "hot Jupiters per M dwarf are about 0.07 to 0.12 against under 0.002 observed",
-  "GEN.829": "planets of 10 to 50 Earth masses outnumber those of 2 to 10: the mass function is inverted against observation",
-  "GEN.872": "a draw-stream shift, not a fault of the giants: the census draws each star type from one stream and life now takes a different number of values from it (epoch 119), so later systems differ (KGF giants 0.31 before, 0.37 after, over 300 systems); a sub-stream for life (GEN.872) keeps the rest of a system's draws where they were"
+  "GEN.646": "the mass-first giants of the cut-over are rarer around FGK stars than observed (0.03 and 0.07 per star against 0.05 to 0.25 and 0.08 to 0.35): the gas-survival share of the mass law (GEN.711 stand-in) was tuned before the cut-over and is not retuned here; filed for a retune"
  },
  "errors": {
   "anomaly": ""
@@ -29,6 +27,7 @@
   "KGF": {
    "measures": {
     "cold_giants": {
+     "anomaly": "GEN.646",
      "kind": "observed",
      "max": 0.25,
      "min": 0.05,
@@ -41,6 +40,7 @@
      "source": "Earth-mass planets in the ecosphere (eta-Earth) 0.2 to 0.6 per Sun-like star (Bryson et al. 2021, Petigura et al. 2018), widened for 300 stars"
     },
     "giants": {
+     "anomaly": "GEN.646",
      "kind": "observed",
      "max": 0.35,
      "min": 0.08,
@@ -53,14 +53,12 @@
      "source": "hot Jupiters about 0.005 to 0.01 per FGK star (Wright et al. 2012; Fressin et al. 2013: 0.0043), widened for 300 stars"
     },
     "inner_planets": {
-     "anomaly": "GEN.829",
      "kind": "observed",
      "max": 1.6,
      "min": 0.4,
      "source": "1 to 20 Earth-mass planets inside 0.5 AU about 0.5 to 1 per FGK star (Fressin et al. 2013, Zhu et al. 2018, Petigura et al. 2018)"
     },
     "super_earths_per_neptune": {
-     "anomaly": "GEN.829",
      "kind": "observed",
      "max": 12.0,
      "min": 1.0,
@@ -71,14 +69,12 @@
   "M": {
    "measures": {
     "giants": {
-     "anomaly": "GEN.828",
      "kind": "observed",
      "max": 0.12,
      "min": 0.0,
      "source": "giants about 0.03 to 0.06 per M dwarf (Johnson et al. 2010, Bonfils et al. 2013), widened for 100 stars"
     },
     "hot_jupiters": {
-     "anomaly": "GEN.828",
      "kind": "observed",
      "max": 0.01,
      "min": 0.0,

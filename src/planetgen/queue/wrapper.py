@@ -30,7 +30,7 @@ import time
 import redis
 
 from planetgen.datasets import fetch
-from planetgen.queue import commands, progress_file, redisqueue, runrecord, runwait, stagetimes, units, workers
+from planetgen.queue import commands, progress_file, redisqueue, runline, runrecord, stagetimes, units, workers
 from planetgen.util import log
 from planetgen.util.settings import get_settings
 
@@ -365,7 +365,7 @@ def waiting_text(holder, position):
 
 def report_wait(holder, position):
     """
-    `runwait.start_when_free`'s `on_wait`: shows that this run waits, where its bar is read (the Generate page's
+    `runline.start_when_free`'s `on_wait`: shows that this run waits, where its bar is read (the Generate page's
     progress file) and where its job is (the API job's `meta`, which `api_jobs.status` reports as `waiting`), and
     says so in the log. `holder` `None` clears it.
     """
@@ -416,8 +416,10 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
 
     Raises:
         redisqueue.Unavailable: No Redis server answers.
-        runrecord.Busy: Another run of that kind is running. A `GENERATION` run waits in line for it first, up to
-            `queue.wait_minutes` (PERF.153), and fails with the run named when the wait is over.
+        runline.LineFull: The waiting list holds `queue.max_waiting` entries already; the message names them.
+        runrecord.Busy: Another run of that kind is running. A `GENERATION` run joins the waiting list (PERF.154) and
+            waits for it up to `queue.wait_minutes`, then fails with the run named; a `MAINTENANCE` or `CHECK` run does
+            not wait.
         units.RunStopped: A unit failed or the run was cancelled.
     """
     url = url or redisqueue.redis_url()
@@ -441,7 +443,9 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug,
         job=os.environ.get(JOB_ENV) or None, galaxy_seed=galaxy_seed, build=build, finishes=finishes)
     if kind == runrecord.GENERATION:
-        run_id = runwait.start_when_free(conn, start, get_settings().queue.wait_minutes * 60, on_wait=report_wait)
+        run_id = runline.start_when_free(conn, start, get_settings().queue.wait_minutes * 60, on_wait=report_wait,
+                                         title=title, who=who, database=database,
+                                         admitted=bool(os.environ.get(JOB_ENV)))
     else:
         run_id = start()
     ensure = lambda: workers.ensure_workers(queue_of(kind), conn, url, count=workers_count)  # noqa: E731

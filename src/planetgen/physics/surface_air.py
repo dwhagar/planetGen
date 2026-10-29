@@ -37,7 +37,7 @@ import math
 from dataclasses import dataclass, field
 
 from planetgen.physics import (
-    atmosphere, atmosphere_state, clathrate_brine, constants, gases, greenhouse, hydrosphere, interior_heat, mixture_draw, mixture_rocky,
+    atmosphere, atmosphere_state, clathrate_brine, constants, gas_equilibrium, gases, greenhouse, hydrosphere, interior_heat, mixture_draw, mixture_rocky,
     mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, waterworld_carbon,
 )
 from planetgen import tuning
@@ -81,6 +81,20 @@ TOLERANCE_K = 0.1
 AIRLESS_PRESSURE_BAR = 1.0e-12
 """float: The pressure the subject of an airless body's redox is built at (the mixture subject wants a positive one; the redox rows do not
 read it)."""
+
+MAX_EQUILIBRIUM_STALLS = 3
+"""int: How many times the fixed point may step back after the gas equilibrium fails to converge (see `solve`)."""
+
+VACUUM_PRESSURE_PA = 1.0
+"""float: Below this pressure (Pa) the volcanic gas equilibrium does not converge (it is a solver of a dense gas, and a fixed point that
+falls this far has no air to equilibrate); a body whose pressure falls here keeps only an exosphere, which is taken as airless. A
+planetGen stand-in (tier T5, L0): the exosphere of Mercury or the Moon is 1e-10 Pa and under."""
+
+MAX_SURFACE_TEMPERATURE_K = 2000.0
+"""float: The hottest surface the fixed point may reach. A steam or carbon dioxide greenhouse that runs away stops where the surface is
+molten rock radiating through its own windows (a radiative limit near 1500 to 1800 K, recalled from the magma-ocean literature, not
+read), and the equilibrium of the gas does not converge far above it. A planetGen stand-in (tier T5, L1): the iteration of an
+unbounded greenhouse reached 3700 K at 3700 bar for a hot, heavy body."""
 
 MIN_ABSORBED_FLUX_W_M2 = 1.0e-30
 """float: A body in the dark absorbs no light, and the greenhouse closure wants a positive flux; its temperature is the background's."""
@@ -501,6 +515,7 @@ def solve(setting, start_temperature_k):
     previous_residual = (0.0, 0.0)
     history = [[], []]
     flips, last_ocean, cycling = 0, False, False
+    stalls = 0
     for step in range(1, MAX_STEPS + 1):
         pressure = math.exp(ln_pressure)
         if cycling:
@@ -516,8 +531,22 @@ def solve(setting, start_temperature_k):
         subject = setting.subject_of(temperature, pressure / 1.0e5, ocean, geology)
         shares = _shares(setting, efficiencies, cycle, (lifetimes, setting.age_gy * GY_S, oxidised_share), ocean, weathers, temperature,
                          water_world)
-        with _draw_stream(seed):
-            mixture = mixture_draw.draw_mixture(subject, recipe_subject=recipe_subject, supply=shares)
+        try:
+            with _draw_stream(seed):
+                mixture = mixture_draw.draw_mixture(subject, recipe_subject=recipe_subject, supply=shares)
+        except gas_equilibrium.EquilibriumError:
+            if last is None:
+                raise
+            if pressure <= VACUUM_PRESSURE_PA:
+                return _airless(setting, last[0], step, design, ocean)
+            # The equilibrium of the gas can stall at a pressure and temperature the fixed point only passed through: step back to the
+            # middle of the way to the last good air and try there, a few times, before calling it a fault.
+            stalls += 1
+            if stalls > MAX_EQUILIBRIUM_STALLS:
+                raise
+            ln_pressure = 0.5 * (ln_pressure + math.log(last[2]))
+            temperature = 0.5 * (temperature + last[3])
+            continue
         if step == FREEZE_AFTER:
             recipe_subject = subject
         family = mixture.family
@@ -560,7 +589,7 @@ def solve(setting, start_temperature_k):
             return _airless(setting, mixture, step, design, ocean)
 
         warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, setting.absorbed_flux_w_m2)
-        new_temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, warming.surface_temperature_k)
+        new_temperature = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, warming.surface_temperature_k), MAX_SURFACE_TEMPERATURE_K)
         change_p = abs(math.log(new_pressure) - ln_pressure)
         change_t = abs(new_temperature - temperature)
         last = (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean)

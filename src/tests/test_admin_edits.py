@@ -410,155 +410,7 @@ def _with_planet(system):
     return any(p.body_type != 'a' for p in system.planets)
 
 
-def _with_reclassable_planet(system):
-    """A planet first, and another class that fits its mass (ADM.27): a
-    rare mass can fit only its own class."""
-    if not _with_planet(system):
-        return False
-    planet = _first_planet(system)
-    return any(c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass)
-               for c in tuning.PLANET_CLASSES)
-
-
-def test_class_options_lists_recommended_classes(admin, mysql_config):
-    _sector_id, system_id = _saved_system(mysql_config, _with_planet)
-    system = _load(mysql_config, system_id)
-    response = admin.get(f"/api/systems/{pid('system', system_id)}/class-options")
-    assert response.status_code == 200
-    body = response.get_json()
-    planet = _first_planet(system)
-    recommended = body["recommended"][f"planet:{pid('planet', planet.db_id)}"]
-    assert planet.planet_class not in recommended
-    assert set(recommended) <= set(body["all"])
-
-
-def test_recommended_class_change_saves_and_validates(admin, mysql_config):
-    def has_option(system):
-        return any(adminEdits.recommended_classes(system, p, system.planets)
-                   for p in system.planets if p.body_type != 'a')
-    _sector_id, system_id = _saved_system(mysql_config, has_option)
-    system = _load(mysql_config, system_id)
-    planet = next(p for p in system.planets
-                  if p.body_type != 'a' and adminEdits.recommended_classes(system, p, system.planets))
-    new_class = adminEdits.recommended_classes(system, planet, system.planets)[0]
-    response = admin.post(f"/api/planets/{pid('planet', planet.db_id)}/class", json={"class": new_class})
-    assert response.status_code == 200, response.get_json()
-    row = _rows(mysql_config, "SELECT name, planet_class FROM planets WHERE id = ?", (planet.db_id,))[0]
-    assert row["planet_class"] == new_class
-    assert row["name"] == planet.name
-
-
-def test_unrecommended_class_needs_force(admin, mysql_config):
-    _sector_id, system_id = _saved_system(mysql_config, _with_planet)
-    system = _load(mysql_config, system_id)
-    planet = _first_planet(system)
-    recommended = adminEdits.recommended_classes(system, planet, system.planets)
-    other = next((c for c in sorted(tuning.PLANET_CLASSES)
-                  if c not in recommended and c != planet.planet_class
-                  and adminEdits.class_fits_mass(c, planet.mass)), None)
-    if other is None:
-        pytest.skip("every class this planet's mass fits is recommended")
-    assert admin.post(f"/api/planets/{pid('planet', planet.db_id)}/class", json={"class": other}).status_code == 409
-    assert admin.post(f"/api/planets/{pid('planet', planet.db_id)}/class", json={"class": "?"}).status_code == 400
-    response = admin.post(f"/api/planets/{pid('planet', planet.db_id)}/class", json={"class": other, "force": True})
-    assert response.status_code == 200, response.get_json()
-    assert _rows(mysql_config, "SELECT planet_class FROM planets WHERE id = ?",
-                 (planet.db_id,))[0]["planet_class"] == other
-
-
-def _unsaved_system_with_planet():
-    for _ in range(200):
-        cfg = SystemConfig()
-        cfg.STAR_TYPE = "G2V"
-        cfg.PLANETS = True
-        cfg.MOONS = True
-        cfg.BINARY_SYSTEM = False
-        system = StarSystem(cfg)
-        if any(p.body_type == 't' for p in system.planets):
-            return system
-    pytest.skip("no rocky planet generated")
-
-
-def test_class_change_regenerates_surface_conditions_keeping_orbit_mass_and_name():
-    """ADM.27: the body is re-generated as the new class -- composition,
-    atmosphere, temperature, pressure, life -- at its orbit, mass and name."""
-    # A fixed seed, and a rocky planet that has another class its mass
-    # fits: the test no longer depends on what ran before it (TEST.97).
-    draw.set_run_seed(97)
-    for _ in range(50):
-        system = _unsaved_system_with_planet()
-        planet = next(p for p in system.planets if p.body_type == 't')
-        new_class = next((c for c in sorted(tuning.PLANET_CLASSES)
-                          if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass)), None)
-        if new_class is not None:
-            break
-    assert new_class is not None, "no rocky planet with a second class its mass fits in 50 systems"
-    name, mass, distance = planet.name, planet.mass, planet.distance
-    adminEdits.change_class(system, planet, system.planets, new_class, force=True)
-    data = tuning.PLANET_CLASSES[new_class]
-    assert planet.planet_class == new_class
-    assert planet.name == name
-    assert planet.mass == pytest.approx(mass, rel=1e-9)
-    assert planet.distance == pytest.approx(distance, rel=1e-6)
-    assert planet.composition == composition_text.text(planet)  # GEN.430
-    # GEN.85, GEN.411: the new class's air is solved from the body (the class no longer says whether it has
-    # one), and the text is written from it: no text exactly when no pressure.
-    assert (planet.atmosphere == "None") == (planet.atmospheric_pressure == 0.0)
-    low, high = data["radius_range"]
-    assert low <= planet.radius <= high
-    volume_m3 = 4 / 3 * 3.141592653589793 * (planet.radius * 1000) ** 3
-    assert planet.density == pytest.approx(mass / volume_m3 / 1000, rel=1e-6)
-    assert planet.surface_temperature is not None
-
-
-def test_class_change_the_mass_cant_fit_asks_to_confirm_and_changes_nothing():
-    """ADM.51: a gas giant class for a rocky world is refused without a
-    confirmation, with what it would break, and the body is left as it was."""
-    system = _unsaved_system_with_planet()
-    planet = next(p for p in system.planets if p.body_type == 't')
-    assert not adminEdits.class_fits_mass("J", planet.mass)
-    before = dict(vars(planet))
-    with pytest.raises(ValueError, match="Earth masses; class J needs.*Confirm to set it anyway"):
-        adminEdits.change_class(system, planet, system.planets, "J")
-    assert "J" not in adminEdits.recommended_classes(system, planet, system.planets)
-    after = vars(planet)
-    assert {k: v for k, v in after.items() if not isinstance(v, list)} == \
-        {k: v for k, v in before.items() if not isinstance(v, list)}
-
-
-def test_class_change_the_mass_cant_fit_is_done_when_confirmed():
-    """ADM.51: confirmed, the class is set and the mass goes to the nearest end of its range."""
-    system = _unsaved_system_with_planet()
-    planet = next(p for p in system.planets if p.body_type == 't')
-    low, _high = adminEdits.planetPhysics.planet_mass_ranges["J"]
-    assert planet.mass < low
-    assert any("mass" in note for note in adminEdits.class_conflicts(planet, system.planets, "J"))
-    result = adminEdits.change_class(system, planet, system.planets, "J", force=True)
-    assert planet.planet_class == "J"
-    assert planet.mass == pytest.approx(low, rel=1e-6)
-    assert "Its mass is now" in result.summary
-
-
-def _with_planet_too_light_for_a_giant(system):
-    return any(p.body_type != 'a' and not adminEdits.class_fits_mass("J", p.mass) for p in system.planets)
-
-
-def test_the_api_asks_to_confirm_a_class_that_breaks_the_body_then_does_it(admin, mysql_config):
-    _sector_id, system_id = _saved_system(mysql_config, _with_planet_too_light_for_a_giant)
-    planet = next(p for p in _load(mysql_config, system_id).planets
-                  if p.body_type != 'a' and not adminEdits.class_fits_mass("J", p.mass))
-    path = f"/api/planets/{pid('planet', planet.db_id)}/class"
-    assert not adminEdits.class_fits_mass("J", planet.mass)
-    refused = admin.post(path, json={"class": "J"})
-    assert refused.status_code == 409 and "Confirm to set it anyway" in refused.get_json()["error"]
-    assert _rows(mysql_config, "SELECT planet_class FROM planets WHERE id = ?",
-                 (planet.db_id,))[0]["planet_class"] == planet.planet_class
-    assert admin.post(path, json={"class": "J", "force": True}).status_code == 200
-    assert _rows(mysql_config, "SELECT planet_class FROM planets WHERE id = ?",
-                 (planet.db_id,))[0]["planet_class"] == "J"
-
-
-def test_change_star_keeps_classes_and_saves_the_type(admin, mysql_config):
+def test_change_star_derives_the_classes_again_and_saves_the_type(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_planet)
     before = _load(mysql_config, system_id)
     response = admin.post(f"/api/systems/{pid('system', system_id)}/star", json={"star_type": "K2V", "drop_facilities": True})
@@ -568,10 +420,9 @@ def test_change_star_keeps_classes_and_saves_the_type(admin, mysql_config):
     after = _load(mysql_config, system_id)
     assert after.star.type.split()[0] == "K2V"
     assert after.star.name == before.star.name
-    kept = {p.db_id: p.planet_class for p in after.planets if p.body_type != 'a'}
-    for planet in before.planets:
-        if planet.body_type != 'a' and planet.db_id in kept:
-            assert kept[planet.db_id] == planet.planet_class
+    for planet in after.planets:  # GEN.646: the class follows the new light (made again by the edit), so it is not pinned to the old one
+        if planet.body_type != 'a':
+            assert planet.planet_class in tuning.PLANET_CLASSES
     assert not validation.check_star_system(after) or body["warnings"]
 
 
@@ -595,29 +446,14 @@ def test_change_star_refuses_a_binary(mysql_config):
         adminEdits.change_star(system, "K2V")
 
 
-def test_system_page_changes_a_class(web_app, mysql_config):
-    _sector_id, system_id = _saved_system(mysql_config, _with_reclassable_planet)
+def test_there_is_no_class_change_on_a_body_page(web_app, mysql_config):
+    """GEN.646: a body's class is derived from its conditions, so the Admin menu has no Change class."""
+    _sector_id, system_id = _saved_system(mysql_config, _with_planet)
     planet = _first_planet(_load(mysql_config, system_id))
     client = _web_admin(web_app, mysql_config)
-    planet_url = f"/object/planet:{pid('planet', planet.db_id)}"   # UX.173: Change class is on the body's own page
-    assert "Change class" in client.get(planet_url).get_data(as_text=True)
-    assert "Change star" in client.get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
-    other = next(c for c in sorted(tuning.PLANET_CLASSES)
-                 if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass))
-    response = _edit(web_app, client, planet_url, "class", f"planet:{pid('planet', planet.db_id)}", planet_class=other)
-    assert response.status_code == 303
-    page = client.get(response.headers["Location"]).get_data(as_text=True)
-    assert planet.planet_class != other
-    if f"to class {other}" not in page:  # not a recommended class: it asks, and nothing changed (ADM.51)
-        assert "tick “Set it anyway”" in page
-        response = _edit(web_app, client, planet_url, "class",
-                         f"planet:{pid('planet', planet.db_id)}", planet_class=other, confirm_class="1")
-        assert response.status_code == 303
-        page = client.get(response.headers["Location"]).get_data(as_text=True)
-    assert f"to class {other}" in page
-    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "class", f"system:{system_id}", planet_class="J")
-    page = client.get(response.headers["Location"]).get_data(as_text=True)
-    assert "something on this page" in page
+    page = client.get(f"/object/planet:{pid('planet', planet.db_id)}").get_data(as_text=True)
+    assert "Change class" not in page
+    assert "Regenerate" in page
 
 
 def test_system_page_changes_the_star(web_app, mysql_config):

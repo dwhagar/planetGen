@@ -18,11 +18,11 @@ JUPITER = dict(mass_earth=318.0, mass_jupiter=1.0, radius_km=69911.0, teq_k=120.
                core_radius_earth=3.0, snow_ratio=3.0, xuv_index=0.04, v_esc_kms=59.0, grain_um=1.0, photosphere_bar=0.1)
 
 
-def giant(body_class="J", **changes):
+def giant(body_class="giant", **changes):
     return Subject(body_class, {**JUPITER, **changes})
 
 
-def mixture(seed, body_class="J", **changes):
+def mixture(seed, body_class="giant", **changes):
     subject = giant(body_class, **changes)
     with draw.bound(seed):
         recipe = RECIPES.draw_all(subject, categories="abdcefghijkl")
@@ -224,7 +224,7 @@ def test_the_host_metallicity_enriches_every_metal():
 
 
 def test_a_giant_without_a_radius_is_refused_by_name():
-    subject = Subject("J", {k: v for k, v in JUPITER.items() if k != "radius_km"})
+    subject = Subject("giant", {k: v for k, v in JUPITER.items() if k != "radius_km"})
     with draw.bound(0):
         recipe = RECIPES.draw_all(subject, categories="abdcefghijkl")
         with pytest.raises(MixtureError, match="radius_km"):

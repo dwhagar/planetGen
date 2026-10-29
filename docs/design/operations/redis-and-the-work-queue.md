@@ -44,7 +44,7 @@ Not built, although earlier notes describe them: the Redis progress record (`pla
 
 ### 1.2 How a generation run flows
 
-1. **Admin presses Generate.** `web/jobs.py` `start_job` makes a directory under the jobs directory, takes the `active` file lock, writes `job.json`, queues `web.job_runner.run(<dir>)` on a queue of its own and starts one detached burst worker for it.
+1. **Admin presses Generate.** `web/jobs.py` `start_job` makes a directory under the jobs directory, takes the job lock (the hash `planetgen:job:active` in Redis, PERF.154), writes `job.json`, queues `web.job_runner.run(<dir>)` on a queue of its own and starts one detached burst worker for it.
 2. **The job runner** (inside that RQ job) runs each step as a subprocess, `planetgen plan` or `planetgen galaxy ...`, writes `state.json`, appends to `output.log`, watches for a `cancel` file, and hangs a "web-job" node and one "step" node in the MySQL job tree.
 3. **The step's `planetgen` process** is the supervisor. Its `WorkQueue` opens a MySQL node, takes the `work_lease` row (one run's pool on the machine at a time; heartbeat every 5 s, stale after 30 s), starts a per-run RQ queue and up to `worker_count()` burst workers, and then feeds tasks to them: at most `2 * workers` are in Redis at once, the rest wait in a Python list ([S] `submit`, lines 1498 to 1535).
 4. **Each finished task** comes back to the supervisor by polling RQ every 50 ms (`fetch_many`), is recorded in `work_tasks`, and runs its `on_done` callback in the supervisor, which updates the progress bars and ETA. The scatter and sector fills also push per-layer progress through the Redis `Channel`.

@@ -222,3 +222,16 @@ def test_air_that_returns_no_light_either_is_black_on_the_stars_chromaticity():
     sky = ac._sky_colour(star, zero, zero)
     assert sky.rgb8 == (0, 0, 0) and sky.hex == "#000000"
     assert (sky.x, sky.y) == pytest.approx(photometry.chromaticity(ac._xyz(star)))
+
+
+def test_an_air_that_leaves_no_light_at_the_zenith_has_no_colour_to_show(monkeypatch):
+    """A steam world of 200 kilobars (GEN.646 makes them) can take all the light: the model then raises, and a body shows no colour."""
+    import types
+
+    def dark(*args, **kwargs):
+        raise ValueError("the spectrum has no light between 380 and 780 nm")
+
+    monkeypatch.setattr(ac, "atmosphere_colour", dark)
+    monkeypatch.setattr(air_column, "column_of", lambda body: _earth())
+    body = types.SimpleNamespace(body_type="t", star=types.SimpleNamespace(temperature=SUN_K), ozone_column_du=0.0)
+    assert ac.body_atmosphere_colour(body) is None

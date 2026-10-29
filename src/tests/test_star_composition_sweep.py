@@ -42,7 +42,7 @@ from tests.audit import representation as rep
 
 SECTOR_REGIONS = ("thin-disk-arm", "bulge", "halo", "globular-cluster", "satellite")
 """tuple: The audit regions whose seeded sectors the sweep fills."""
-SYSTEMS_PER_SECTOR = 8
+SYSTEMS_PER_SECTOR = 32
 LADDER_MASSES = (0.04, 0.06, 0.09, 0.3, 0.8, 1.0, 1.5, 2.0, 2.5, 5.0, 9.0, 15.0, 25.0, 40.0, 80.0)
 LADDER_AGES = (0.0002, 0.005, 0.05, 0.5, 2.0, 5.0, 9.0, 11.0, 13.0)
 LADDER_LIFETIME_SHARES = (0.3, 0.95, 1.0, 1.03, 1.06, 1.1, 1.2, 1.4, 2.0)
