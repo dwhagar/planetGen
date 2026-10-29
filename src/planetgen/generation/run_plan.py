@@ -6,7 +6,7 @@ Run Plan
 
 The `plan` command: the galaxy's density skeleton (`galaxy_shape`/
 `galaxy_shell`, the outline with one row per shell) that
-`ensure_sector_generated` consults to decide, cheaply and exactly,
+a run consults to decide, cheaply and exactly,
 whether an address is worth generating, and the galaxy-wide bright-star
 scatter and its per-sector bands.
 """
@@ -274,7 +274,7 @@ def plan_skeleton_unit(params, report):
     `galaxy.skeleton.build_shell_extents`). Together they are the bounds every generation path checks first. The edge
     is always the standard `program_constants.DEFAULT_SECTOR_EDGE_PC`.
 
-    No sector content or individual addresses are stored -- that stays lazy (`ensure_sector_generated`). Re-running
+    No sector content or individual addresses are stored -- that stays lazy (a run makes it). Re-running
     replaces the whole skeleton; a full Milky-Way-scale build takes a few milliseconds.
 
     Args:

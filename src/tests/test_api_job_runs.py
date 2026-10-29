@@ -9,6 +9,7 @@ from planetgen.generation import run_galaxy, run_sector
 from planetgen.queue import api_jobs, commands, redisqueue, runrecord
 from tests import first_fill
 from tests.test_galaxy_gen import _all_sectors, _seed_skeleton, _shells
+from tests.sector_support import make_sector
 
 pytestmark = [pytest.mark.db, pytest.mark.usefixtures("unit_density_plans")]
 
@@ -38,7 +39,7 @@ def _titles(conn):
 
 def _a_galaxy_sector(mysql_config):
     _seed_skeleton(mysql_config, shells=_shells(2, 1))
-    first = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config, backfill=False, settle=False)
+    first = make_sector(0, 0, 0, config=mysql_config, backfill=False, settle=False)
     assert first["created"]
     return first["sector_id"]
 

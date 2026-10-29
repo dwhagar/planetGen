@@ -10,9 +10,9 @@ the sector's own cell. Modes: `--shell` (a shell, or with `--band` one band
 of it, or with `--wedge` too one sector), `--shells/--bands/--wedges` (a
 span), `--block` (a block of the Galaxy Map's ladder), `--center-sector`/`--radius-pc` (local neighborhood), `--course`,
 or none (random start).
-`ensure_sector_generated` and `generate_sector_neighborhood` are the
-same per-sector logic for the web, run when a visitor reaches a sector,
-against the skeleton `run_plan` builds.
+The sector logic is for runs only: no page or API route generates a sector while it answers (PERF.149), so a visit to an
+uncharted cell shows its profile and generates nothing. `regenerate_sector_cell` makes one sector as a run, and an admin's
+visit queuing a one-sector run is PERF.204.
 """
 
 import argparse
@@ -72,9 +72,8 @@ class _BatchDensity:
     sector's own `--density` from its sector profile (`galaxy.profile`, the
     skeleton's real position-based `relative_density`), for `galaxy` mode's
     batch/local-neighborhood/random-start generation -- the same mechanism
-    `ensure_sector_generated` uses for a single lazily-generated sector,
-    applied across a whole run instead of every sector sharing one flat CLI
-    value.
+    a single-address run uses, applied across a whole run instead of every
+    sector sharing one flat CLI value.
 
     The reach check (`galaxy.skeleton.GalaxyBounds.contains`) always
     applies and is the only refusal (GEN.235): a cell the grid has no
@@ -1055,8 +1054,8 @@ def _default_generation_args(config=None):
     """
     Builds a minimal `argparse.Namespace`, shaped exactly like the
     `sector` subcommand's own parsed output, for a caller with no actual
-    command line to parse -- `ensure_sector_generated` in particular,
-    which runs at sector-visit time.
+    command line to parse -- `regenerate_sector_cell` in particular,
+    which runs for an API job.
 
     Built by feeding an empty argument list through
     `add_shared_generation_options`/`validate_shared_generation_args`
@@ -1258,11 +1257,11 @@ def queue_settle(config, sector_ids):
 
 def _cell_to_generate(address, config, link=True):
     """
-    What generating the sector of grid cell `address` takes (`ensure_sector_generated`, `regenerate_sector_cell`): the
+    What generating the sector of grid cell `address` takes (`regenerate_sector_cell`): the
     answer already when there is nothing to generate, else the arguments, the center and the sector edge to generate with.
 
     Returns:
-        tuple: `(early, args, position_pc, qualifies, edge_pc)`. `early` is the dict `ensure_sector_generated` returns
+        tuple: `(early, args, position_pc, qualifies, edge_pc)`. `early` is the answer
             for a cell that already holds a sector or lies past the grid's reach, else `None` (and the rest is set).
 
     Raises:
@@ -1345,76 +1344,6 @@ def regenerate_sector_cell(address, config):
     _backfill_on_queue(args, started_at, center_pc=position_pc)
     _refresh_block_totals(config, address)
     return {"sector_id": saved["sector_id"], "sector_name": saved["name"]}
-
-
-def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, backfill=True,
-                            settle=True, link=True):
-    """
-    The galaxy map's "recalculate on visit" entry point: returns the
-    sector already generated at this address if one exists; otherwise
-    checks the address is a cell of the grid's reach (`GalaxyBounds.contains`,
-    the only refusal, GEN.235) and generates and saves it on the spot from
-    its sector profile (`galaxy.profile`), using the profile's density (its
-    position's `relative_density`) as the `--density` multiplier. A sparse
-    address generates too (GEN.76): its draw may come out with no systems,
-    and the sector is still saved and marked generated, in the disk or out
-    in the halo.
-
-    A concurrent visit to the same never-generated address is handled by
-    `sectors`'s `UNIQUE (shell_index, band_index, wedge_index)`: the
-    losing `INSERT` raises `pymysql.err.IntegrityError`, caught here and
-    turned into "return what the other call just created".
-
-    A new sector's bright-star backfill runs here too, unless `backfill`
-    is false: `planetgen galaxy --shell --band --wedge` leaves it to the end of the run
-    (the `backfill` stage), where it has its own progress bar (PERF.28).
-
-    A new sector's paths (and its neighbours') are saved by a queued job
-    unless `settle` is false (GEN.126): the caller that settles at the end
-    of its own run, or after its own edit, passes false. Likewise the sector is
-    linked to its neighbours (containment, nearest systems) as it is saved
-    unless `link` is false (PERF.45): the run that links its sectors at its
-    end passes false.
-
-    Returns:
-        dict: `created` (bool), `qualifies` (bool: inside the galaxy's
-              stored outline, where the disk and bulge expect a system; a halo
-              sector is generated too; `True` for a sector that already existed), `in_reach` (bool: a cell of the grid's
-              reach; `False` means nothing was generated), `sector_id` (int or `None`), `sector_name`
-              (str or `None`, only when `created`), and `summary`
-              (`sector_generation_summary_lines`, only when `created`).
-
-    Raises:
-        ValueError: If `wedge_index` is out of range for the band.
-        RuntimeError: If the galaxy's skeleton has never been built --
-                     run `planetgen plan` first.
-    """
-    address = (shell_index, band_index, wedge_index)
-    early, args, position_pc, qualifies, edge_pc = _cell_to_generate(address, config, link)
-    if early is not None:
-        return early
-
-    try:
-        sector_id, sector_name, sector = generate_and_save_sector_at(
-            args, address, position_pc, edge_pc,
-        )
-    except pymysql.err.IntegrityError:
-        conn = store.get_connection(config)
-        try:
-            existing_id = store.get_sector_id_at(conn, *address)
-        finally:
-            conn.close()
-        if existing_id is None:
-            raise
-        return {"created": False, "qualifies": True, "in_reach": True, "sector_id": existing_id, "sector_name": None}
-
-    if backfill:
-        backfill_bright_stars(config, position_pc)  # GEN.30: around the requested sector
-    _refresh_block_totals(config, address)
-    if settle:
-        queue_settle(config, [sector_id])
-    return {"created": True, "qualifies": qualifies, "in_reach": True, "sector_id": sector_id, "sector_name": sector_name,
-            "summary": run_sector.sector_generation_summary_lines(sector, args)}
 
 
 SECTOR_UNITS_MAX = 4000
@@ -2420,8 +2349,7 @@ def _plan_random_start(args, edge_pc, progress):
 def _plan_single_sector(args, edge_pc, progress):
     """
     Single-address mode: generates exactly the one sector at `(--shell I,
-    --band J, --wedge K)` via the same `ensure_sector_generated` the
-    galaxy map's "recalculate on visit" path uses -- the direct route from
+    --band J, --wedge K)` -- the direct route from
     an address copied out of the interactive 3D Galaxy Map. With
     `--radius-pc`, then generates that sector's neighborhood
     (the Sector Map's "Generate neighborhood"), as the stage after it.
@@ -2458,7 +2386,7 @@ def _plan_single_sector(args, edge_pc, progress):
         conn.close()
     sector_args = single = None
     if existing_id is None:
-        # As `ensure_sector_generated` does it: density-driven.
+        # Density-driven, from the address's own profile.
         single = _default_generation_args(config=mysql_config)
         single.density = single.num_systems = None
         single.link_later = True            # the run links its sectors at its end

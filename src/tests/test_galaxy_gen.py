@@ -59,6 +59,7 @@ from planetgen.physics.units import ly_to_pc, mpc_to_pc
 from tests.toy_shape import toy_shape
 from tests import worker_patches
 from tests.bughunt_support import forced_system_config
+from tests.sector_support import make_sector
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 
@@ -66,7 +67,7 @@ EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 # uses, deep enough in its own bulge at the core that every cell there
 # qualifies under any reasonable threshold, with a real, findable edge
 # a few dozen shells out (not real Milky-Way scale, which would make
-# these tests slow for no benefit -- ensure_sector_generated's own logic
+# these tests slow for no benefit -- the generation logic
 # doesn't care about scale).
 # A plan of a toy galaxy holds it in relative units, density 1 at its reference radius (GEN.404).
 pytestmark = pytest.mark.usefixtures("unit_density_plans")
@@ -142,7 +143,7 @@ def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_shell_index=999, e
     """
     Directly writes a `galaxy_shape`/`galaxy_shell` skeleton, without
     running `planetgen plan`'s own scan -- these tests exercise
-    `ensure_sector_generated`'s own logic against a skeleton it can
+    the generation logic against a skeleton it can
     already read, not `build_shell_extents`' search (covered separately in
     `test_galaxy_skeleton.py`).
 
@@ -571,7 +572,7 @@ def test_a_block_is_refused_until_the_ladder_is_rebuilt():
 # --shell I --band J --wedge K -- single-address mode, the direct path from a
 # designation/address copied out of the interactive 3D Galaxy Map
 # (planetgen/web/maps/galaxymap3d.py) into this script. Thin wrapper around
-# ensure_sector_generated (already covered in isolation below) plus its
+# the sector made at one address (covered in isolation below) plus its
 # own argparse validation (pinned in test_gen_cli_errors.py, which needs no
 # real database at all).
 # ---------------------------------------------------------------------------
@@ -617,28 +618,27 @@ def test_wedge_mode_rejects_an_address_when_there_is_no_outline(mysql_config):
 
 
 # ---------------------------------------------------------------------------
-# ensure_sector_generated -- the visit-triggered lazy-generation entry point
-# built on top of the 'planetgen plan' skeleton (galaxy_shape/galaxy_shell),
+# make_sector (tests/sector_support.py) -- the sector of one address, built on top of the 'planetgen plan' skeleton (galaxy_shape/galaxy_shell),
 # rather than an explicit --shell/--center-sector batch.
 # ---------------------------------------------------------------------------
 
-def test_ensure_sector_generated_raises_without_a_skeleton(mysql_config):
+def test_a_sector_made_raises_without_a_skeleton(mysql_config):
     with pytest.raises(RuntimeError):
-        run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config)
+        make_sector(0, 0, 0, config=mysql_config)
 
 
-def test_ensure_sector_generated_creates_then_reuses_the_same_sector(mysql_config):
+def test_a_sector_made_creates_then_reuses_the_same_sector(mysql_config):
     # The core sits deep in this toy shape's own bulge -- it clears even a
     # demanding threshold.
     _seed_skeleton(mysql_config, shells=_shells(2, 1))
 
-    first = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config)
+    first = make_sector(0, 0, 0, config=mysql_config)
     assert first["created"] is True, first
     assert first["qualifies"] is True, first
     assert first["sector_id"] is not None, first
     assert first["sector_name"], first
 
-    second = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config)
+    second = make_sector(0, 0, 0, config=mysql_config)
     assert second["created"] is False, second
     assert second["qualifies"] is True
     assert second["sector_id"] == first["sector_id"], (first, second)
@@ -652,7 +652,7 @@ def test_a_sector_generated_on_a_visit_is_in_the_block_totals(mysql_config):
     from planetgen.db import block_stats
     columns = "m, shell_index, band_index, wedge_index, sector_count, systems, expected_systems, stars, habitable_worlds"
     _seed_skeleton(mysql_config, shells=_shells(2, 1))
-    assert run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config)["created"] is True
+    assert make_sector(0, 0, 0, config=mysql_config)["created"] is True
     conn = _db.get_connection(mysql_config)
     try:
         kept = [tuple(r.values()) for r in conn.execute(f"SELECT {columns} FROM galaxy_block_stats ORDER BY 1, 2, 3, 4").fetchall()]
@@ -663,19 +663,19 @@ def test_a_sector_generated_on_a_visit_is_in_the_block_totals(mysql_config):
     assert kept and kept == rebuilt, (kept, rebuilt)
 
 
-def test_ensure_sector_generated_refuses_only_beyond_the_reach(mysql_config):
+def test_a_sector_made_refuses_only_beyond_the_reach(mysql_config):
     # GEN.235: the reach is the only refusal. A shell past it has no address, and neither has a band past what
     # its shell holds; the skeleton's reach is exact, so this is a certain "no", no density check needed.
     _seed_skeleton(mysql_config, shells=_shells(2, 1), reach_shell_index=100)
 
     no_content = {"created": False, "qualifies": False, "in_reach": False, "sector_id": None, "sector_name": None}
-    assert run_galaxy.ensure_sector_generated(5000, 0, 0, config=mysql_config) == no_content
-    assert run_galaxy.ensure_sector_generated(101, 0, 0, config=mysql_config) == no_content
-    assert run_galaxy.ensure_sector_generated(2, 9, 0, config=mysql_config) == no_content
+    assert make_sector(5000, 0, 0, config=mysql_config) == no_content
+    assert make_sector(101, 0, 0, config=mysql_config) == no_content
+    assert make_sector(2, 9, 0, config=mysql_config) == no_content
     assert _all_sectors(mysql_config) == []
 
 
-def test_ensure_sector_generated_saves_a_halo_sector_from_its_profile_even_when_empty(mysql_config, monkeypatch):
+def test_a_sector_made_saves_a_halo_sector_from_its_profile_even_when_empty(mysql_config, monkeypatch):
     """GEN.235: a cell the outline does not hold but the reach does is generated from its profile when asked, and
     saved and marked generated though its draw comes out empty; the second ask returns the same sector."""
     _seed_skeleton(mysql_config, shells=_shells(2, 1), reach_shell_index=300)
@@ -688,7 +688,7 @@ def test_ensure_sector_generated_saves_a_halo_sector_from_its_profile_even_when_
         return real(args, *rest, **kwargs)
 
     monkeypatch.setattr(run_galaxy, "generate_and_save_sector_at", spy)
-    first = run_galaxy.ensure_sector_generated(*address, config=mysql_config, backfill=False, settle=False)
+    first = make_sector(*address, config=mysql_config, backfill=False, settle=False)
     assert first["created"] is True and first["qualifies"] is False and first["in_reach"] is True, first
     assert first["sector_id"] is not None
     conn = _db.get_connection(mysql_config)
@@ -701,11 +701,11 @@ def test_ensure_sector_generated_saves_a_halo_sector_from_its_profile_even_when_
     assert densities == [expected.density]
     assert {_address(row) for row in _all_sectors(mysql_config)} == {address}
 
-    again = run_galaxy.ensure_sector_generated(*address, config=mysql_config, backfill=False, settle=False)
+    again = make_sector(*address, config=mysql_config, backfill=False, settle=False)
     assert again["created"] is False and again["sector_id"] == first["sector_id"]
 
 
-def test_ensure_sector_generated_generates_sparse_wedges_within_a_stored_band(mysql_config):
+def test_a_sector_made_generates_sparse_wedges_within_a_stored_band(mysql_config):
     """
     GEN.76: inside the galaxy's stored outline every address generates,
     however sparse. The predicted density only sets the draw's expected
@@ -732,11 +732,11 @@ def test_ensure_sector_generated_generates_sparse_wedges_within_a_stored_band(my
     # old rule skipped it.
     _seed_skeleton(mysql_config, e_value=1.0 / threshold_rho, shells=_shells(shell_index, 5))
 
-    dense_result = run_galaxy.ensure_sector_generated(shell_index, 0, densest_wedge, config=mysql_config)
+    dense_result = make_sector(shell_index, 0, densest_wedge, config=mysql_config)
     assert dense_result["qualifies"] is True
     assert dense_result["created"] is True
 
-    sparse_result = run_galaxy.ensure_sector_generated(shell_index, 0, sparsest_wedge, config=mysql_config)
+    sparse_result = make_sector(shell_index, 0, sparsest_wedge, config=mysql_config)
     assert sparse_result["qualifies"] is True
     assert sparse_result["created"] is True
     assert sparse_result["sector_id"] is not None
@@ -752,7 +752,7 @@ def test_ensure_sector_generated_generates_sparse_wedges_within_a_stored_band(my
     assert levels.get((shell_index, 0, densest_wedge)) == 0
 
 
-def test_ensure_sector_generated_generates_a_near_empty_density_sector(mysql_config):
+def test_a_sector_made_generates_a_near_empty_density_sector(mysql_config):
     """
     GEN.76: a sector far out in the disk, where the density predicts
     almost nothing, still runs its draw, is saved, and is marked
@@ -764,7 +764,7 @@ def test_ensure_sector_generated_generates_a_near_empty_density_sector(mysql_con
     )
     _seed_skeleton(mysql_config, shells=_shells(999, 0))
 
-    result = run_galaxy.ensure_sector_generated(*address, config=mysql_config)
+    result = make_sector(*address, config=mysql_config)
     assert result["created"] is True and result["qualifies"] is True
 
     conn = _db.get_connection(mysql_config)
@@ -795,7 +795,7 @@ def test_a_neighborhood_from_a_sparse_centre_at_the_edge_fills_every_sector_in_r
     assert generated == in_range
 
 
-def test_ensure_sector_generated_passes_relative_density_as_the_density_multiplier(mysql_config, monkeypatch):
+def test_a_sector_made_passes_relative_density_as_the_density_multiplier(mysql_config, monkeypatch):
     """
     A qualifying sector's actual system count should be driven by its own
     `relative_density` (from the stored skeleton), not a uniform default
@@ -818,7 +818,7 @@ def test_ensure_sector_generated_passes_relative_density_as_the_density_multipli
     position = sector_position_pc(0, 0, 0, EDGE_PC)
     expected_density = relative_density(position, _SKELETON_SHAPE)
 
-    result = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config)
+    result = make_sector(0, 0, 0, config=mysql_config)
     assert result["created"] is True
     assert captured["density"] == pytest.approx(expected_density)
     assert captured["num_systems"] is None
@@ -829,8 +829,7 @@ def test_band_batch_uses_skeleton_density_when_neither_flag_given(mysql_config, 
     'planetgen galaxy --shell N --band J' with neither --density nor
     --num-systems should drive each sector's own system count from the galaxy
     skeleton's real position-based relative_density (_BatchDensity), the same
-    way ensure_sector_generated already does for a single lazily-generated
-    sector -- not silently fall back to a flat count shared by the whole
+    way a sector made at one address does -- not silently fall back to a flat count shared by the whole
     band (validate_shared_generation_args's old behavior for every
     subcommand, still correct for the position-less 'sector' subcommand,
     which keeps defaulting to 10 -- galaxy mode alone leaves both None so
@@ -871,58 +870,8 @@ def test_band_batch_explicit_num_systems_still_overrides_skeleton_density(mysql_
     assert all(density is None and num_systems == 4 for density, num_systems in captured)
 
 
-def test_ensure_sector_generated_recovers_from_a_concurrent_insert_race(mysql_config, monkeypatch):
-    """
-    Simulates the race `sectors`'s `UNIQUE (shell_index, band_index, wedge_index)`
-    constraint exists to catch: another caller's
-    `INSERT` lands between this call's own "not yet generated" check and
-    its own `INSERT`. Forces `generate_and_save_sector_at` to raise
-    `pymysql.err.IntegrityError` (what a real UNIQUE-constraint violation
-    raises) after a sector already exists at the address, and confirms
-    `ensure_sector_generated` recovers by returning that sector rather
-    than propagating the error.
-    """
-    _seed_skeleton(mysql_config, shells=_shells(2, 1))
-
-    # A sector row at a different address, standing in for "the
-    # concurrent winner's row" the mocked recovery re-check below returns
-    # regardless of which address it's actually asked about. Written
-    # directly (TEST.86): generating it filled hundreds of random systems
-    # the race under test never looks at.
-    from planetgen.galaxy.sector import SpaceSector
-    conn = _db.get_connection(mysql_config)
-    try:
-        with conn:
-            winner = {"sector_id": _db.insert_sector(conn, SpaceSector(name="Winner"), galaxy_position={
-                "center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 3.0, "galactic_radius_pc": 3.74,
-                "shell_index": 1, "band_index": 0, "wedge_index": 1})}
-    finally:
-        conn.close()
-
-    calls = {"n": 0}
-
-    def _fake_get_sector_id_at(conn, shell_index, band_index, wedge_index):
-        calls["n"] += 1
-        if calls["n"] == 1:
-            return None  # ensure_sector_generated's own initial "not yet generated" check
-        return winner["sector_id"]  # its post-IntegrityError recovery re-check
-
-    monkeypatch.setattr(store, "get_sector_id_at", _fake_get_sector_id_at)
-
-    def _fake_generate_and_save_sector_at(*_args, **_kwargs):
-        raise pymysql.err.IntegrityError(1062, "Duplicate entry for key 'uq_sectors_address'")
-
-    monkeypatch.setattr(run_galaxy, "generate_and_save_sector_at", _fake_generate_and_save_sector_at)
-
-    result = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config)
-    assert result == {
-        "created": False, "qualifies": True, "in_reach": True,
-        "sector_id": winner["sector_id"], "sector_name": None,
-    }
-
-
 def test_sectors_table_rejects_duplicate_address(mysql_config):
-    """The schema-level guarantee ensure_sector_generated's own race
+    """The schema-level guarantee make_sector's own race
     recovery depends on: two sectors can never share a (shell_index,
     band_index, wedge_index) address."""
     conn = _db.get_connection(mysql_config)
@@ -1792,21 +1741,6 @@ def test_random_start_and_its_neighborhood_stay_inside_a_real_plan(mysql_config)
     assert sectors
     for row in sectors:
         assert bounds.qualifies(row["shell_index"], row["band_index"]), _address(row)
-
-
-def test_ensure_sector_generated_queues_a_settle_job_for_a_new_sector_only_when_asked(mysql_config, monkeypatch):
-    """GEN.126: a sector made on the spot has its paths saved by a queued job; a caller that
-    settles for itself passes `settle=False`, and an existing sector queues nothing."""
-    from planetgen.queue import api_jobs
-    _seed_skeleton(mysql_config, shells=_shells(2, 1))
-    queued = []
-    monkeypatch.setattr(run_galaxy, "queue_settle", lambda config, ids: queued.append(list(ids)))
-    first = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config, backfill=False)
-    assert queued == [[first["sector_id"]]]
-    run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config, backfill=False)  # exists: nothing new
-    run_galaxy.ensure_sector_generated(1, 0, 1, config=mysql_config, backfill=False, settle=False)
-    assert queued == [[first["sector_id"]]]
-    assert api_jobs.settle_sectors  # the job the queue runs
 
 
 def test_wedge_mode_reports_the_sector_it_made_with_its_stats(mysql_config, capsys):

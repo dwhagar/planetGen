@@ -17,6 +17,7 @@ from planetgen.util import generator_epoch
 
 from tests.test_bright_star_scatter import _seed_galaxy
 from tests.test_migration_stage_epochs import _make_species, _system
+from tests.sector_support import make_sector
 
 
 def _history(monkeypatch, *affects):
@@ -196,7 +197,7 @@ def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_conf
     from planetgen.generation import run_galaxy
     from tests.test_galaxy_gen import _all_sectors, _seed_skeleton, _shells
     _seed_skeleton(mysql_config, shells=_shells(2, 1))
-    first = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config, backfill=False, settle=False)
+    first = make_sector(0, 0, 0, config=mysql_config, backfill=False, settle=False)
     assert first["created"]
     conn = store.get_connection(mysql_config)
     try:

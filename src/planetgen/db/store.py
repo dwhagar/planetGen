@@ -7875,8 +7875,7 @@ def _sector_cell(row, edge_ly):
 def get_sector_id_at(conn, shell_index, band_index, wedge_index):
     """
     Looks up the `sectors.id` already generated at one grid address, if
-    any -- used by `generate.ensure_sector_generated` to check (and, on an
-    `INSERT` race, re-check) one address at a time.
+    any -- used to check one address at a time.
 
     Returns:
         int or None: The existing `sectors.id`, or `None`.

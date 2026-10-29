@@ -80,7 +80,7 @@ flowchart LR
 
 | Path | What it holds |
 |---|---|
-| [`planetgen`](../../../src/planetgen/cli/generate.py) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `galaxy` also runs that pass as one of its stages; `sector` and `phenomenon` only generate (PERF.124). Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
+| [`planetgen`](../../../src/planetgen/cli/generate.py) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `galaxy` also runs that pass as one of its stages; `sector` and `phenomenon` only generate (PERF.124). Also the library functions other code calls: `generate_sector`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
 | [`install.sh`](../../../install.sh) | One-shot installer for Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd, nginx in front): Python libraries, NLTK corpus, `planetgen.cli.migrate`, the optional population pass prompt, Apache modules or the gunicorn daemon, permissions, tile cache and jobs directories, debug log. |
 | [`update.sh`](../../../update.sh) | `git reset --hard` to the branch tip, then the same checks as `install.sh`, changing only what is missing, but never the population pass (run `planetgen population` by hand). Safe to run on a schedule. |
 | `setup.py`, `pyproject.toml` | The Python package (`planetgen`, from `src/`) and its dependency floors and extras (`api`, `test`, `browser`). |
@@ -169,7 +169,7 @@ Building the objects a run creates, and the commands that run it. Generation cod
 | [`run_common.py`](../../../src/planetgen/generation/run_common.py) | What every generation command shares: the console progress bar, the `--strict` refuse-or-warn rule, the run's counts, the work queue a run hands its sectors to, and the statistics and estimate a bulk run checks first. |
 | [`run_galaxy.py`](../../../src/planetgen/generation/run_galaxy.py) | The `galaxy` command: many sectors placed as one galaxy, each at its shell/band/wedge address in the spherical grid, with its systems inside the sector's own cell. |
 | [`run_phenomenon.py`](../../../src/planetgen/generation/run_phenomenon.py) | The `phenomenon` command: one exotic stellar phenomenon (a black hole, neutron star, nebula, supernova remnant, rogue planet, interstellar comet or asteroid field), on demand. |
-| [`run_plan.py`](../../../src/planetgen/generation/run_plan.py) | The `plan` command: the galaxy's density skeleton (`galaxy_shape`, `galaxy_shell`) that `ensure_sector_generated` consults, and the galaxy-wide star and phenomenon scatters with their per-sector bands. |
+| [`run_plan.py`](../../../src/planetgen/generation/run_plan.py) | The `plan` command: the galaxy's density skeleton (`galaxy_shape`, `galaxy_shell`) that a run consults, and the galaxy-wide star and phenomenon scatters with their per-sector bands. |
 | [`run_population.py`](../../../src/planetgen/generation/run_population.py) | The `population` command: species, civilizations and territories from what is already stored (`planetgen.population.model`), and the same pass as a stage of a `galaxy` run. |
 | [`run_sector.py`](../../../src/planetgen/generation/run_sector.py) | The `sector` command and the sector build both it and `galaxy` use (`generate_sector`): one `SpaceSector` of systems, phenomena, star-hosted nebulae, fast stars and, at the center, the nucleus. |
 | [`run_system.py`](../../../src/planetgen/generation/run_system.py) | The `system` command: one star system, built from `SystemConfig` (the tri-state `+name`/`-name` options and `--system-file`). |
@@ -690,7 +690,6 @@ flowchart TD
     Bounds --> Mode["mode: random start, one sector, shell,<br/>span, course, neighborhood"]
     Mode --> At["generate_and_save_sector_at<br/>(per address, on the queue)"]
     OnDemand["API: generate-neighborhood<br/>generate_sector_neighborhood"] --> At
-    Lazy["ensure_sector_generated"] --> At
     At --> Fill["_fill_context<br/>bright_stars.FillContext"]
     BS --> Fill
     Fill --> GenSec["generate_directed_sector<br/>generate_sector: SpaceSector in a SectorCell"]

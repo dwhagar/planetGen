@@ -199,8 +199,8 @@ same-shell neighbors — the cylinder-era `galaxy/geometry.py`, removed in TEST.
 the galaxy-wide density "skeleton" (`galaxy_shape`/`galaxy_layer`,
 built by `planetgen plan` — see `planetgen/galaxy/density.py`/
 `galaxySkeleton.py`) plus a `UNIQUE (shell_index, shell_slot_index)`
-constraint on `sectors`, turning a concurrent lazy-generation race
-(`generate.ensure_sector_generated`) into a recoverable `IntegrityError`
+constraint on `sectors`, turning a concurrent generation race
+(two runs reaching one address) into a recoverable `IntegrityError`
 instead of a silent duplicate row; v9 added orbital motion —
 `orbital_inclination_deg`/`orbital_ascending_node_deg`/
 `orbital_phase_deg`/`rotation_period_hours` on `planets`/`moons`, plus the
@@ -1047,7 +1047,7 @@ stored (v32 dropped the old `sector_vertices` table). A
 (`uq_sectors_address`) guarantees at most one sector per galaxy address —
 NULL-together rows (never placed in a galaxy) don't collide with each
 other or with a placed sector, ordinary SQL `NULL` semantics for `UNIQUE`.
-This is what turns a lazy-generation race (`generate.ensure_sector_generated`)
+This is what turns a generation race (two runs reaching one address)
 into a clear `IntegrityError` its caller recovers from, instead of a silent
 duplicate row at the same address.
 
@@ -1112,8 +1112,7 @@ bands `-high_band_index .. high_band_index` (both polar caps when
 `high_band_index` is the shell's top band), every wedge. Like the cylinder's
 outline it comes from an exact upper bound, so a sector inside it isn't
 guaranteed to qualify, but one outside it is guaranteed not to; the exact
-per-sector answer is made when the address is visited
-(`generate.ensure_sector_generated`). The outline is symmetric about the
+per-sector answer is made from the address (`regenerate_sector_cell`, a run); a visit generates nothing (PERF.149). The outline is symmetric about the
 plane. A shell with no row has no content at all.
 
 | Column | Type | Null | Notes |
