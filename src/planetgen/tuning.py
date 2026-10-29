@@ -84,13 +84,26 @@ PLANET_ASSEMBLY_SCATTER_DEX = 0.8
 # Pollack et al. 1996; Rafikov 2006 give 5 to 20 Earth masses, recalled).
 GIANT_CORE_CRITICAL_MASS_EARTH = 10.0
 # The share of runaway-capable cores that still find gas left in the disc around a star of the disc's metallicity
-# (scaled for [Fe/H] by `metallicity.giant_occurrence_factor`); the rest stay ice giants.
-GIANT_GAS_SURVIVAL_SHARE = 0.5
+# (scaled for [Fe/H] by `metallicity.giant_occurrence_factor`); the rest stay ice giants. Tuned (tier L3) so that a Sun-like
+# star has about 0.12 giants between 0.3 and 10 AU (Fulton et al. 2021: 0.10 to 0.15, recalled) and an M dwarf a quarter of that.
+GIANT_GAS_SURVIVAL_SHARE = 0.12
+# Beyond this distance the share falls as the square of the ratio: the cores of the outer disc grow slowly, so few reach
+# the critical mass before the gas is gone (direct imaging finds giants beyond 10 AU around about 1 percent of stars).
+GIANT_GAS_SURVIVAL_CUT_AU = 5.0
+# A core that finds no gas stops growing near an ice giant's mass (Uranus and Neptune are 14.5 and 17.1 Earth masses): the
+# late solids beyond the snow line are not all added to it. Earth masses.
+GIANT_NO_GAS_CORE_MAX_EARTH = 20.0
 # A runaway giant is at least this heavy: below it the envelope has not yet outweighed the core (Earth masses).
 GIANT_RUNAWAY_MIN_MASS_EARTH = 30.0
 # How many times the minimum-mass nebula's solids the mass law assumes (Kepler's inner planets need several times the
 # MMSN: Chiang & Laughlin 2013, recalled). 1 is the nebula as `estimate_num_objects` counts with; tune with GEN.509.
 PLANET_DISC_SOLIDS_ENHANCEMENT = 5.0
+# Inside 1 AU the solids rise faster than the nebula's -1.5 power: the Kepler systems' minimum-mass extrasolar nebula falls as
+# about the -1.6 to -2 power (Chiang & Laughlin 2013, recalled), and solids drifting in feed the inner disc. The surface density
+# is multiplied by (distance / 1 AU) to the minus this power inside 1 AU. Tuned (tier L3) with `PLANET_DISC_SOLIDS_ENHANCEMENT`
+# so that a Sun-like star has about 0.8 planets of 1 to 20 Earth masses inside 0.45 AU and an M dwarf about 1 (Petigura et al.
+# 2018; Dressing & Charbonneau 2015: about 2.5 planets of 0.5 to 4 Earth radii within 50 days; recalled).
+PLANET_INNER_DISC_STEEPENING = 0.75
 # A planet's solids are never more than this fraction of its star's mass (a disc holds about 1% of its star).
 PLANET_MAX_STAR_MASS_RATIO = GIANT_MAX_STAR_MASS_RATIO
 

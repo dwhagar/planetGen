@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 282 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 291 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 38 | 0 | 3 | 0 | 0 | 41 |
 | T2 | 55 | 0 | 0 | 0 | 0 | 55 |
-| T3 | 46 | 3 | 2 | 6 | 0 | 57 |
-| T4 | 13 | 0 | 0 | 2 | 0 | 15 |
-| T5 | 12 | 3 | 1 | 0 | 0 | 16 |
+| T3 | 47 | 3 | 2 | 9 | 0 | 61 |
+| T4 | 14 | 0 | 0 | 2 | 0 | 16 |
+| T5 | 12 | 4 | 1 | 0 | 0 | 17 |
 | T6 | 28 | 6 | 1 | 8 | 0 | 43 |
-| T7 | 14 | 2 | 0 | 1 | 0 | 17 |
+| T7 | 16 | 2 | 0 | 1 | 0 | 19 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
-| T9 | 0 | 0 | 2 | 20 | 15 | 37 |
-| All | 206 | 14 | 9 | 37 | 16 | 282 |
+| T9 | 0 | 0 | 2 | 21 | 15 | 38 |
+| All | 210 | 15 | 9 | 41 | 16 | 291 |
 
 ## How the labels were given
 
@@ -424,3 +424,17 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | LF46 | P | T9 | L3 | life class complexity thresholds (GEN.890, not built yet): complex cells 1e-4, sessile animals 1e-3, small mobile animals 1e-2, large active animals 1e-1, on the complexity index C of life-classes.md 7.3; oxidant yield factor 1 aerobic, 0.11 anaerobic | each threshold a factor of 10 either way | every class that reaches the rung | the first census (TEST.430) shows a rung reached far more or less often than the prevalence targets | the census-fitted values | design (life-classes.md 7.3), set from the first census; the aerobic to anaerobic yield ratio is read (Gale and Wandel, in the review) |
 | LF47 | P | T9 | L4 | life_classes.json non_water_chemistry hydrogen_inventory_floor 1.0 (Earth units), with habitability_world.NON_AQUEOUS_PHOSPHATE_UMOL_L | 0.25 to 1.0 | the chemistry term of a class that does not drink water | a measured hydrogen budget of a non-water biosphere | the stored hydrogen supply (GEN.887) | the index's chemistry term needs hydrogen in Earth units and a non-water world has none stored; the floor lets the other terms speak |
 | LF48 | D | T1 | L0 | life_classes.json reference_star_k 5772 and reference_band_nm 400 to 700 | none | the energy of a light class against Class 1a on the Sun | none | none needed | the Sun's effective temperature and the visible band; Class 1a on the Sun is the index's PHI_bio |
+
+## 6.20 Stand-ins of the planet mass law
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| PM1 | P | T3 | L3 | tuning.PLANET_DISC_SOLIDS_ENHANCEMENT 5 (the solids of the disc against the minimum-mass nebula) | 3 to 10, with PM2 | hosts of 0.1 to 3 solar masses | test_planet_mass::test_a_sun_like_star_has_about_a_tenth_of_a_giant_between_a_third_and_ten_au; a measured inner-planet occurrence outside 0.5 to 0.9 per Sun-like star inside 0.45 AU | a disc-evolution model of the solids (pebble flux) from GEN.509 | RECALLED (Chiang and Laughlin 2013: the extrasolar nebula needs several times the minimum-mass solar nebula; Petigura et al. 2018 and Zhu et al. 2018: 0.5 to 0.9 planets of 1 to 4 Earth radii per Sun-like star); hand-tuned against a sweep of 400 systems |
+| PM2 | P | T3 | L3 | tuning.PLANET_INNER_DISC_STEEPENING 0.75 (the solids rise faster than the nebula's -1.5 power inside 1 AU) | 0.5 to 1.0 | inside 1 AU | test_planet_mass::test_the_inner_disc_is_steeper_than_the_nebula_inside_one_au; an M dwarf occurrence of 1 to 20 Earth-mass planets inside 0.45 AU outside 1 to 2.5 | a pebble-drift model of the inner disc | RECALLED (Chiang and Laughlin 2013: minimum-mass extrasolar nebula about the -1.6 to -2 power; Dressing and Charbonneau 2015: about 2.5 planets of 0.5 to 4 Earth radii per M dwarf within 50 days); hand-tuned |
+| PM3 | P | T7 | L0 | tuning.PLANET_ASSEMBLY_SCATTER_DEX 0.8 (log-normal spread of a planet's mass about the isolation mass times the assembly factor) | 0.4 to 1.0 | all hosts | the spread of the mass-radius sample (test_mass_radius sweep) outside 0.4 to 1.0 dex | N-body assembly runs (Chambers 2001, Kokubo and Ida) | design (no published width read; the sweep of reports/planet-mass-law-sweep-2026-10-24.md) |
+| PM4 | T | T4 | L0 | tuning.GIANT_IMPACT_SURVIVAL_FRACTION 0.4 (the share of oligarchs that survive as planets, so a planet is 2.5 isolation masses) | 0.3 to 0.5 | all hosts | the planet count per star (estimate_num_objects) against the count of Kepler multis | a published N-body survival fraction | RECALLED (Chambers 2001); mass conservation |
+| PM5 | T | T3 | L0 | tuning.GIANT_CORE_CRITICAL_MASS_EARTH 10 (the core that can run away into a gas giant) | 5 to 20 | beyond the snow line | a measured critical core outside 5 to 20 Earth masses | a core-accretion model with the opacity of the envelope | RECALLED (Pollack et al. 1996; Rafikov 2006: 5 to 20 Earth masses) |
+| PM6 | P | T3 | L3 | tuning.GIANT_GAS_SURVIVAL_SHARE 0.12 (the share of runaway-capable cores that find gas left, at solar metallicity) | 0.05 to 0.2 | beyond the snow line, within the cut distance | test_planet_mass::test_a_sun_like_star_has_about_a_tenth_of_a_giant_between_a_third_and_ten_au; a giant occurrence outside 0.10 to 0.15 per Sun-like star in 0.3 to 10 AU | a disc-lifetime model (GEN.510) | RECALLED (Fulton et al. 2021: 0.10 to 0.15 giants per Sun-like star in 0.3 to 10 AU; Johnson et al. 2010 and Bonfils et al. 2013 for M dwarfs); hand-tuned |
+| PM7 | P | T9 | L3 | tuning.GIANT_GAS_SURVIVAL_CUT_AU 5 (beyond it the share falls as the square of the distance) | 3 to 10 | beyond 5 AU | test_planet_mass::test_giants_become_rarer_beyond_the_cut_distance; giants beyond 10 AU around more than a few percent of stars | a growth-time model of the outer cores | design (needed output: giants beyond 10 AU are rare in direct imaging, about 1 percent of stars; the survey values are recalled) |
+| PM8 | T | T5 | L1 | tuning.GIANT_NO_GAS_CORE_MAX_EARTH 20 (the core that finds no gas stops near an ice giant's mass) | 15 to 30 | beyond the snow line | test_planet_mass::test_a_core_that_finds_no_gas_stops_at_an_ice_giants_mass; a measured ice-giant mass function reaching above 30 Earth masses | a model of the late solid accretion of the outer disc | READ-level facts (Uranus 14.5 and Neptune 17.1 Earth masses) with a recalled microlensing occurrence (Suzuki et al. 2016) |
+| PM9 | P | T7 | L0 | tuning.GIANT_RUNAWAY_MIN_MASS_EARTH 30 (a runaway giant is at least this heavy) | 20 to 60 | all hosts | a giant of runaway origin measured below 20 Earth masses | the giant mass function of the cores' own growth | design (the old floor of class J) |
