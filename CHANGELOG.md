@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2552] - 2026-10-29
+
+**Headline:** The stellar mass function now lives in one module, so the next change to it is made in one place.
+
+### Changed
+
+- **One initial mass function module (GEN.926).** The mass function was written out in six places (the draw and the count in the stellar evolution module, the moments in the system mass module, the stars per solar mass in the H II module, the mass a population returns in the disk history, the mass grid in the star population module). It is now `physics/imf.py`: the draw of a star's mass, the number or mass of stars in a range, the density and the segments a table is built on. Nothing generated changes (the golden output is the same); the old names are gone.
+
 ## [8.0.2551] - 2026-10-29
 
 **Headline:** Scrolling the wheel toward a dense crowd of stars now brings the camera into the crowd and stops there instead of flying through it to a star behind.
