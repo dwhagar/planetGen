@@ -37,6 +37,14 @@ class CommandSpec:
     a horse for a unit of this command (`units.warm_unit`, PERF.146): it works out in the worker what every unit
     would otherwise work out for itself. A command with no `unit` is inline.
 
+    The work a stage does that is not a unit (PERF.172) is a hook of its command, run by whichever process starts or
+    ends the stage, and a failure in one fails the run: `prepare(params)` is called once when the stage opens, before
+    it is cut (empties the rows the stage is about to rewrite, say), and `conclude(params, plan, results, seconds)`
+    once when its last unit is done, before the next stage is cut (stores what the stage drew as a whole); it returns a
+    JSON-able dict the process following the run reads (`wrapper.run`'s `on_stage_done`). The unit that completes
+    the stage calls `conclude`; a cut that gives no unit at all is concluded by the process that cut it
+    (`wrapper._conclude_empty_stage`).
+
     The unit-length ceiling (PERF.155, `queue.unit_ceiling_seconds`): `whole` is set for a command whose stage is one
     unit by nature, which the ceiling does not hold; any other queued command is cut into units and declares in
     `unit_seconds` how long its longest unit runs at the default galaxy size, which a test holds to the ceiling. A
@@ -49,6 +57,8 @@ class CommandSpec:
     expand: tuple = None
     finish: tuple = None
     warm: tuple = None
+    prepare: tuple = None
+    conclude: tuple = None
     whole: bool = False
     unit_seconds: float = None
 
@@ -98,6 +108,8 @@ REGISTRY = _commands(
                 unit=("planetgen.generation.run_plan", "scatter_shells_unit"),
                 expand=("planetgen.generation.run_plan", "expand_scatter_mass"),
                 finish=("planetgen.generation.run_plan", "finish_scatter"),
+                prepare=("planetgen.generation.run_plan", "prepare_scatter_pass"),
+                conclude=("planetgen.generation.run_plan", "conclude_scatter_pass"),
                 warm=("planetgen.generation.run_plan", "scatter_shells_warm"),
                 unit_seconds=10),
     CommandSpec("plan-skeleton", "Plan the galaxy's density skeleton: one unit",
@@ -107,12 +119,19 @@ REGISTRY = _commands(
                 unit=("planetgen.generation.run_plan", "scatter_phenomena_unit"),
                 expand=("planetgen.generation.run_plan", "expand_scatter_phenomena"),
                 finish=("planetgen.generation.run_plan", "finish_scatter_phenomena"),
+                prepare=("planetgen.generation.run_plan", "prepare_scatter_phenomena"),
+                conclude=("planetgen.generation.run_plan", "conclude_scatter_phenomena"),
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=6),
+    CommandSpec("finish-phenomena", "End the phenomena scatter: the special phenomena, the indexes and the record, one unit",
+                unit=("planetgen.generation.run_plan", "finish_phenomena_unit"),
+                expand=("planetgen.generation.run_plan", "expand_finish_phenomena"), whole=True),
     CommandSpec("scatter-luminosity", "Scatter the bright stars: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_shells_unit"),
                 expand=("planetgen.generation.run_plan", "expand_scatter_luminosity"),
                 finish=("planetgen.generation.run_plan", "finish_scatter"),
+                prepare=("planetgen.generation.run_plan", "prepare_scatter_pass"),
+                conclude=("planetgen.generation.run_plan", "conclude_scatter_pass"),
                 warm=("planetgen.generation.run_plan", "scatter_shells_warm"),
                 unit_seconds=5),
     CommandSpec("scatter-backfill", "Scatter the massive stars from the neighborhood: one unit per run of sectors",
@@ -126,6 +145,12 @@ REGISTRY = _commands(
                 finish=("planetgen.generation.run_plan", "finish_scatter"),
                 warm=("planetgen.generation.run_plan", "scatter_shells_warm"),
                 unit_seconds=30),
+    CommandSpec("refresh-block-lights", "Make the Galaxy Map's block light totals again: one unit",
+                unit=("planetgen.generation.run_plan", "refresh_block_lights_unit"),
+                expand=("planetgen.generation.run_plan", "expand_refresh_block_lights"), whole=True),
+    CommandSpec("refresh-run-blocks", "Bring the Galaxy Map's block totals up to what a galaxy run stored: one unit",
+                unit=("planetgen.generation.run_galaxy", "refresh_run_blocks_unit"),
+                expand=("planetgen.generation.run_galaxy", "expand_refresh_run_blocks"), whole=True),
     CommandSpec("fill-map-luminosity", "Fill the map luminosity: one unit per run of ids",
                 unit=("planetgen.generation.run_plan", "fill_map_luminosity_unit"),
                 expand=("planetgen.generation.run_plan", "expand_fill_map_luminosity"),
@@ -143,6 +168,8 @@ REGISTRY = _commands(
     CommandSpec("draw-nebula-field", "Draw the nebula field: one unit per slab of cells",
                 unit=("planetgen.generation.run_plan", "draw_nebula_field_unit"),
                 expand=("planetgen.generation.run_plan", "expand_draw_nebula_field"),
+                prepare=("planetgen.generation.run_plan", "prepare_draw_nebula_field"),
+                conclude=("planetgen.generation.run_plan", "conclude_draw_nebula_field"),
                 warm=("planetgen.queue.units", "warm_shape"),
                 unit_seconds=6),
     CommandSpec("generate-start-sector", "Generate the starting sector: one unit per run of sectors",
@@ -268,7 +295,8 @@ KIND_OF_STAGE = {
     "neighborhood": "generate-neighborhood", "clear-mass": "clear-scatter", "clear-luminosity": "clear-scatter",
     "clear-phenomena": "clear-scatter", "clear-nebula-field": "clear-scatter",
     "sectors": "generate-sectors", "link": "link-neighbours", "population": "run-population",
-    "territories": "run-territories", "settle": "settle-sector-paths",
+    "territories": "run-territories", "settle": "settle-sector-paths", "phenomena-index": "finish-phenomena",
+    "block-lights": "refresh-block-lights", "run-blocks": "refresh-run-blocks",
 }
 """dict: The command that does each stage of `generation/stages.py`."""
 
@@ -340,6 +368,26 @@ def finish_function(kind):
     """
     command = REGISTRY[kind]
     return None if command.finish is None else _function(command.finish)
+
+
+def prepare_function(kind):
+    """The function called once when a stage of `kind` opens, before it is cut, or `None` (`CommandSpec.prepare`).
+
+    Raises:
+        KeyError: No such command.
+    """
+    command = REGISTRY[kind]
+    return None if command.prepare is None else _function(command.prepare)
+
+
+def conclude_function(kind):
+    """The function called once when the last unit of a stage of `kind` is done, or `None` (`CommandSpec.conclude`).
+
+    Raises:
+        KeyError: No such command.
+    """
+    command = REGISTRY[kind]
+    return None if command.conclude is None else _function(command.conclude)
 
 
 def expand_function(kind):

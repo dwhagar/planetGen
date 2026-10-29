@@ -218,8 +218,17 @@ def _args(config):
                                  mysql_password=config.password, mysql_database=config.database)
 
 
+def _refresh(config, since):
+    """The unit of the `run-blocks` stage, for the sectors saved since `since`."""
+    from planetgen.generation import run_galaxy
+    from planetgen.queue import wrapper
+
+    return run_galaxy.refresh_run_blocks_unit(
+        {"database": wrapper.database_args(config), "since": since.isoformat(sep=" ")}, lambda done, total: None)
+
+
 def test_a_galaxy_run_brings_its_sectors_into_both_block_tables(mysql_config):
-    """A sector save refreshes neither table; the run does it once at its end (`block_totals_after_run`)."""
+    """A sector save refreshes neither table; the run does it once at its end (`refresh_run_blocks_unit`)."""
     import datetime
 
     from planetgen.generation import run_galaxy
@@ -243,7 +252,7 @@ def test_a_galaxy_run_brings_its_sectors_into_both_block_tables(mysql_config):
     finally:
         conn.close()
     long_ago = datetime.datetime(2000, 1, 1)
-    assert run_galaxy.block_totals_after_run(_args(mysql_config), long_ago) == 1
+    assert _refresh(mysql_config, long_ago)["sectors"] == 1
     conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute("SELECT m, sector_count, luminosity_sol FROM galaxy_block_stats").fetchall()
@@ -252,7 +261,7 @@ def test_a_galaxy_run_brings_its_sectors_into_both_block_tables(mysql_config):
         assert not _stored(conn)            # nothing is left pre-placed in its blocks: the light is in the stats
     finally:
         conn.close()
-    assert run_galaxy.block_totals_after_run(_args(mysql_config), datetime.datetime(2100, 1, 1)) == 0
+    assert _refresh(mysql_config, datetime.datetime(2100, 1, 1)) == {"nebulae": 0, "sectors": 0, "warnings": []}
 
 
 def test_fill_block_totals_makes_both_tables_and_can_be_run_again(lit):

@@ -375,7 +375,8 @@ def test_a_large_components_phenomena_are_a_unit_per_slice_that_add_up_at_any_or
     params = {"database": wrapper.database_args(mysql_config), "min_mass_solar": 8.0, "seed": 77}
     expansion = run_plan.expand_scatter_phenomena(params)
     shape = run_plan._PhenomenaShape.from_json(expansion.plan)
-    assert shape.to_json() == expansion.plan == json.loads(json.dumps(expansion.plan))
+    plan = {key: value for key, value in expansion.plan.items() if key != "filled"}
+    assert shape.to_json() == plan == json.loads(json.dumps(plan))
     assert len(shape.component_parts) > 2
     assert all(shape.tasks[key][0][2] <= 40000.0 * 1.0001 for key in shape.component_parts)
     mine = [(args, cost) for args, cost in expansion.units if args["component_parts"]]

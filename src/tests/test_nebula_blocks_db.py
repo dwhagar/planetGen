@@ -219,6 +219,14 @@ def test_a_plan_makes_the_totals_with_the_field_and_fill_nebula_blocks_makes_the
         conn.close()
 
 
+def _refresh(config):
+    """The unit of the `run-blocks` stage, for a run that saved no sector."""
+    from planetgen.queue import wrapper
+
+    return run_galaxy.refresh_run_blocks_unit({"database": wrapper.database_args(config), "since": "2100-01-01 00:00:00"},
+                                              lambda done, total: None)
+
+
 def test_a_galaxy_run_adds_the_nebulae_it_stored_once_at_its_end(mysql_config):
     _seed_galaxy(mysql_config)
     conn = store.get_connection(mysql_config)
@@ -228,10 +236,10 @@ def test_a_galaxy_run_adds_the_nebulae_it_stored_once_at_its_end(mysql_config):
         _store_nebula(conn, "C", 3.0, (805.0, 195.0, 52.0))
     finally:
         conn.close()
-    assert run_galaxy.nebula_blocks_after_run(_scatter_args(mysql_config)) == 1
+    assert _refresh(mysql_config)["nebulae"] == 1
     conn = store.get_connection(mysql_config)
     try:
         assert sum(r["nebula_count"] for k, r in _table(conn).items() if k[0] == 3) == 1
     finally:
         conn.close()
-    assert run_galaxy.nebula_blocks_after_run(_scatter_args(mysql_config)) == 0
+    assert _refresh(mysql_config)["nebulae"] == 0

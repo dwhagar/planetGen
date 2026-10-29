@@ -1,0 +1,149 @@
+# planetgen/generation/followed.py
+
+"""
+A run followed from the process that started it (PERF.172).
+
+A run is a list of stages the wrapper queues (`queue/wrapper.py`); the process that started it only follows. A
+`Follower` is that process's side of one stage: the parameters the stage's step needs, and what to show and say as the
+stage's plan arrives, its units come back and the stage ends (bars, lines of the log, the summary the caller wants).
+`run_followed` puts any list of followers in one run: `planetgen link` is the run of the link follower, and
+`planetgen galaxy` the run of the followers of every stage it takes, so a galaxy is one run in the queue, with one
+estimate over all of it.
+
+A follower does no work of the stage's: that is the command's (`queue/commands.py`), in a unit or in the command's own
+`prepare` and `conclude`, and runs in a worker. Everything a follower needs is in the step's parameters, which are
+complete before the run starts, and in the stage's plan and results.
+"""
+
+import contextlib
+
+from planetgen.db import store
+from planetgen.generation import run_common, stages
+from planetgen.queue import wrapper
+from planetgen.util import log
+
+
+class Follower:
+    """
+    The side of stage `key` the starting process takes. A subclass names its `key` and `label`, gives `params` (the
+    step's parameters besides `database` and `workers`) and overrides what it shows or counts: `on_plan`, `on_result`,
+    `on_progress` and `on_done`. A bar or a block it opens for the stage is held with `hold`, and ends when the stage
+    does (or when the run stops, and then without recording its speed).
+
+    Attributes:
+        args (argparse.Namespace): The run's arguments.
+        progress (rich.progress.Progress): The run's one display, set when the run starts.
+        workers (int): The workers the run uses.
+    """
+
+    key = None
+    label = ""
+    own_row = True
+    """bool: Whether the unit that completes the stage stores its `generation_stage_runs` row (false for a stage the
+    process that started the run keeps open past its units, and stores for all of it)."""
+
+    def __init__(self, args):
+        self.args = args
+        self.progress = None
+        self.workers = 1
+        self._held = contextlib.ExitStack()
+
+    def params(self):
+        """The step's parameters besides `database` and `workers`: plain JSON, complete before the run starts."""
+        return {}
+
+    def hold(self, context):
+        """Enters a context manager (a bar, a job node) that lasts until the stage ends; returns what it gives."""
+        return self._held.enter_context(context)
+
+    def on_plan(self, plan):
+        """The stage has been cut: `plan` is `{"kind", "units", "cost", "detail"}`."""
+
+    def on_result(self, unit, result):
+        """Unit `unit` is done and came back with `result`."""
+
+    def on_progress(self, unit, done, estimate):
+        """Unit `unit`, still working, has done `done` of `estimate`."""
+
+    def on_done(self, conclusion):
+        """Every unit is done and the command's `conclude` has run; `conclusion` is what it returned (or `None`)."""
+
+    def end(self, conclusion):
+        """The stage ends: `on_done`, then whatever it held is closed."""
+        try:
+            self.on_done(conclusion)
+        finally:
+            self._held.close()
+
+    def abort(self, exc_type, exc, traceback):
+        """The run stops with the stage open: what it held is closed as a failure."""
+        self._held.__exit__(exc_type, exc, traceback)
+
+
+def _enter(follower):
+    """Enters the follower's stage for the run's numbering, as one whose row the queue stores unless it keeps its own."""
+    key = follower.key
+    if not follower.own_row:
+        stages.enter(key)
+    elif stages.open_key() == key:
+        stages.hand_over_open_stage()
+    else:
+        stages.enter(key, queued=True)
+
+
+def run_followed(args, followers, title, seed=None):
+    """
+    Runs the stages of `followers` as one run in the queue and follows it to its end: the steps are the followers'
+    (`wrapper.plan_steps`, each with its parameters), the stage rows are handed to the queue up front
+    (`stages.row_for`), and each stage is entered (`stages.enter`) as its plan arrives.
+
+    Args:
+        args (argparse.Namespace): The run's arguments.
+        followers (list[Follower]): One for each stage, in order.
+        title (str): What the run is called.
+        seed (int, optional): The seed to record with the run.
+
+    Raises:
+        redisqueue.Unavailable: No Redis server answers.
+        runrecord.Busy: Another run is running and this one may not wait.
+        units.RunStopped: A unit failed or the run was cancelled.
+    """
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    database = wrapper.database_args(mysql_config)
+    steps, listing = wrapper.plan_steps(
+        args, [(f.key, f.label, {"database": database, "workers": workers, **f.params()}) for f in followers])
+    rows = {f.key: row for f in followers if f.own_row and (row := stages.row_for(f.key)) is not None}
+    open_ones = []
+
+    def on_plan(index, plan):
+        _enter(followers[index])
+        open_ones.append(followers[index])
+        followers[index].on_plan(plan)
+
+    def on_result(index, unit, result):
+        followers[index].on_result(unit, result)
+
+    def on_progress(index, unit, done, estimate):
+        followers[index].on_progress(unit, done, estimate)
+
+    def on_stage_done(index, conclusion):
+        followers[index].end(conclusion)
+        open_ones.remove(followers[index])
+
+    with run_common._generation_progress() as progress:
+        log.set_console(progress.console)
+        for follower in followers:
+            follower.progress, follower.workers = progress, workers
+        try:
+            wrapper.run(title, steps, on_plan, on_result, on_progress, workers_count=workers,
+                        who=getattr(args, "who", None), database=mysql_config.database,
+                        argv=getattr(args, "argv", None), seed=seed, listing=listing, rows=rows or None,
+                        on_stage_done=on_stage_done)
+        except BaseException as exc:
+            for follower in open_ones:
+                follower.abort(type(exc), exc, exc.__traceback__)
+            raise
+        finally:
+            log.reset_console()
+            run_common._finish_stats(args)

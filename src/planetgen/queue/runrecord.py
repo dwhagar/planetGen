@@ -398,6 +398,18 @@ def read_plan(conn, run_id, index):
     return None if raw is None else json.loads(_s(raw))
 
 
+def set_conclusion(conn, run_id, index, conclusion, now=None):
+    """Stores what the end of stage `index` found (`CommandSpec.conclude`) and marks the stage concluded, for the
+    process following the run (`conclusion`)."""
+    conn.hset(stage_key(run_id, index), mapping={"conclusion": json.dumps(conclusion), "concluded": _now(now)})
+
+
+def conclusion(conn, run_id, index):
+    """What `set_conclusion` stored for stage `index`, or `None` while the stage is not concluded."""
+    raw = conn.hget(stage_key(run_id, index), "conclusion")
+    return None if raw is None else json.loads(_s(raw))
+
+
 def begin_stage(conn, run_id, index, now=None):
     """Marks stage `index` as started now (the clock its ETA counts from)."""
     now = _now(now)
@@ -408,6 +420,11 @@ def begin_stage(conn, run_id, index, now=None):
     declared = json.loads(conn.hget(run_key(run_id), "stages"))
     log(conn, run_id, logrecord.stage_start(index + 1, len(declared), _s(declared[index]["label"])),
         kind=logrecord.STAGE_START, now=now, stage=index, stages=len(declared))
+
+
+def end_stage(conn, run_id, index, now=None):
+    """Marks stage `index` as ended now: the end of a stage that had no unit to end it."""
+    conn.hset(stage_key(run_id, index), mapping={"ended": _now(now)})
 
 
 def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None):

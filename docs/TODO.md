@@ -14020,20 +14020,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   measurement after PERF.165 shows the saving is worth an epoch.
   Prerequisites: none. Related: PERF.163, PERF.165.
 
-- [ ] **PERF.172 The galaxy as one wrapper run: the population pass and the phenomenon work are units of the step list (the D2 slice of PERF.123)**
-  Split from PERF.123 (Core 5's suggestion, relayed 2:50 PM EDT
-  2026-10-23 as the lane's clock reads; the TODO thread agreed) so that
-  PERF.123 closes when its D1 and C slices merge. D2 is the galaxy as
-  one wrapper run; it needs the population and phenomenon work of
-  PERF.124 and PERF.125 to be units first. Do: once PERF.124 and
-  PERF.125 are merged, make `planetgen galaxy` hand the wrapper one step
-  list that runs sectors, link, scatters, backfill, population and
-  settle as units of a single run. Done: `planetgen galaxy` is one
-  wrapper run over the step list, the same seed gives the same galaxy as
-  before at 1 and 4 workers, and the estimate shows the whole list.
-  Owner: Core 5 (proposed, after PERF.125).
-  Prerequisites: PERF.125. Related: PERF.123.
-
 - [ ] **PERF.178 The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug)**
   From the generation-log analysis of Boss's run
   job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
@@ -16008,18 +15994,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: DB.106, GEN.799. Related: ADM.62, ADM.130, ADM.131.
-
-- [ ] **ADM.134 /admin/queue/<run_id>/log answers 302 to a visitor, but the auth sweep expects 403 for a json_only view: test_admin_pages_send_an_admin_on_seeded_credentials_to_account and test_admin_pages_send_anonymous_visitors_to_login fail on clean main (bug)**
-  Blocker I (Aux 1) reported 10:40 PM EDT 2026-10-24 as the lane
-  reported: src/tests/test_api_auth_sweep.py fails in its gate with no
-  web file changed. web.admin_queue_log is marked json_only in
-  queue_page.py:367 yet answers 302 to an anonymous visitor where the
-  sweep expects a plain 403 (it came in with PERF.99 or PERF.186 or
-  later). Decide which is right (a JSON endpoint answers 403, not a
-  login redirect) and fix the view or the sweep, with a test. Done: both
-  sweep tests pass on main. Owner: the Queue page owner (Perf lane, Core
-  5).
-  Prerequisites: none. Related: PERF.99, PERF.186, TEST.384.
 
 ## SEC: Security
 
@@ -18605,6 +18579,27 @@ clears each one.
   picture inside MAP.336's PR. The last test of TEST.418 (now retired)
   is this one.
   Prerequisites: none. Related: MAP.335, MAP.333.
+
+- [ ] **TEST.451 Ten reds Core 5 saw on main at its PERF.172 merge (9:59 AM EDT 2026-10-29): re-run each on current main, close the ones already fixed, file the real ones (bug)**
+  Reported by Core 5 (as the lane reported), not caused by PERF.172: (1)
+  test_step_registry: check-datasets, reset-galaxy and check-math
+  missing from steps.STEP_KINDS; (2) test_db_column_round_trip:
+  life_age_* and disk_* columns never written; (3)
+  test_generation_stats: the unmeasured wording ("not timed yet" vs "not
+  yet measured"); (4) /galaxy/near with x=1e200 returns 500
+  (OverflowError); (5) test_galaxy_gen settle-job test times out; (6)
+  the physics ValueError "spectrum has no light between 380 and 780 nm"
+  in system generation (test_fuzz_system_generation and others). Several
+  may already be fixed by Bug 1 (#3681, #3689, #3690) or sit inside Aux
+  2's epoch 120 (fuzz generation tests). Do: on current main re-run
+  each; close what passes; for each that still fails say whether it is a
+  test fault or a code fault and fix it (the x=1e200 500 is a code
+  fault: refuse out-of-range coordinates with a clear error; the
+  spectrum ValueError is a code fault: find which star draw gives no
+  visible light and why). A fix that changes generated output waits for
+  a lock turn. Version 8.1. Owner: Bug 1. Prerequisites: none. Related:
+  TEST.434, TEST.449, NAV.61.
+  Prerequisites: none. Related: TEST.434, TEST.449.
 
 ## USR: User accounts
 

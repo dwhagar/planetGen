@@ -201,7 +201,7 @@ def test_the_generate_page_builds_the_course_job():
 
 def test_charting_a_course_generates_its_uncharted_sectors(galaxy):
     from planetgen.api import ids
-    from planetgen.generation import run_common, run_galaxy
+    from planetgen.generation import followed, run_common, run_galaxy
 
     west, east = _ends(galaxy)
     conn = store.get_connection(galaxy)
@@ -215,7 +215,8 @@ def test_charting_a_course_generates_its_uncharted_sectors(galaxy):
     args = _galaxy_args(galaxy, ["--course", *refs, "--workers", "1"])
     args.num_systems = 2
     with run_common._generation_progress(disable=True) as progress:
-        run_galaxy.run_addresses(args, EDGE_PC, progress)
+        followers = run_galaxy._plan_addresses(args, EDGE_PC, progress)
+    followed.run_followed(args, followers, "Sectors")
 
     conn = store.get_connection(galaxy)
     try:
@@ -239,7 +240,7 @@ def test_a_course_past_the_confirmation_size_needs_yes(galaxy, monkeypatch):
     monkeypatch.setattr(tuning, "NAV_CHART_CONFIRM_SECTORS", 1)
     args = _galaxy_args(galaxy, ["--course", *refs])
     with run_common._generation_progress(disable=True) as progress, pytest.raises(SystemExit):
-        run_galaxy.run_addresses(args, EDGE_PC, progress)
+        run_galaxy._plan_addresses(args, EDGE_PC, progress)
     conn = store.get_connection(galaxy)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"] == 2   # nothing was generated

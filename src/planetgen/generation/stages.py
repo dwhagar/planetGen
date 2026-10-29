@@ -63,27 +63,41 @@ class Stage:
 
 
 def _random_start(args):
-    return not any(getattr(args, name, None) not in (None, False) for name in SECTOR_MODES)
+    return not any(getattr(args, name, None) is not None and getattr(args, name) is not False for name in SECTOR_MODES)
 
 
 def sectors_stages(args):
     """The stages of one `planetgen sectors` run, in order: the sectors, and nothing else (PERF.123)."""
     if _random_start(args):
         return [Stage("start", "Generate the starting sector"), Stage("neighborhood", "Generate the neighborhood")]
+    if getattr(args, "wedge", None) is not None and getattr(args, "radius_pc", None) is not None and not any(
+            getattr(args, name, None) is not None for name in ("span", "course", "block")):
+        return [Stage("sectors", "Generate the sector"), Stage("neighborhood", "Generate the neighborhood")]
     return [Stage("sectors", "Generate the sectors")]
 
 
+PHENOMENA_STAGES = (Stage("phenomena", "Scatter the phenomena"), Stage("phenomena-index", "Index the phenomena"),
+                    Stage("nebula-draw", "Draw the nebula field"))
+"""tuple[Stage]: The stages of the phenomena scatter (PERF.172): the shells, the special phenomena and the indexes, and the
+nebula field."""
+
+BLOCK_LIGHTS_STAGE = Stage("block-lights", "Make the block light totals")
+"""Stage: The stage that makes the Galaxy Map's block light totals again, the last of a scatter (PERF.172)."""
+
+
 def galaxy_stages(args):
-    """The stages of one `planetgen galaxy` run, in order."""
+    """The stages of one `planetgen galaxy` run, in order: all of them are stages of the one run (PERF.172)."""
     return sectors_stages(args) + [
         Stage("link", "Link the neighbours"),
         Stage("mass", "Scatter the massive stars"),
         Stage("luminosity", "Scatter the bright stars"),
-        Stage("phenomena", "Scatter the phenomena"),
+        *PHENOMENA_STAGES,
+        BLOCK_LIGHTS_STAGE,
         Stage("backfill", "Scatter the massive stars from the neighborhood"),
         Stage("population", "Run the population pass"),
         Stage("territories", "Recompute the territories"),
         Stage("settle", "Save the sector paths"),
+        Stage("run-blocks", "Update the map's block totals"),
     ]
 
 
@@ -111,9 +125,17 @@ def scatter_kind(args):
 
 
 def scatter_stages(args):
-    """The stages of one `planetgen scatter` run: its kind's stage alone (PERF.121)."""
+    """The stages of one `planetgen scatter` run: its kind's stage (PERF.121) and what follows it (PERF.172): the
+    phenomena scatter is its shells, its special phenomena and indexes and the nebula field, and every scatter that
+    changes the stars or phenomena ends with the block light totals made again."""
     kind = scatter_kind(args)
-    return [] if kind is None else [SCATTER_STAGE[kind]]
+    if kind is None:
+        return []
+    if kind == "phenomena":
+        return [*PHENOMENA_STAGES, BLOCK_LIGHTS_STAGE]
+    if kind in ("mass", "luminosity"):
+        return [SCATTER_STAGE[kind], BLOCK_LIGHTS_STAGE]
+    return [SCATTER_STAGE[kind]]
 
 
 CLEAR_KINDS = ("mass", "luminosity", "phenomena", "nebula-field")
@@ -293,6 +315,27 @@ def hand_over_open_stage():
     record["queued"] = True
     return {"command": _state["command"] or "", "n": record["n"], "total": record["total"], "label": record["label"],
             "settings": dict(record["settings"])}
+
+
+def row_for(key):
+    """
+    The row of stage `key` of the run begun now, before the stage is entered (PERF.172): a run that queues every
+    stage up front hands each its row at the start, for the unit that completes it to write (`write_queued_row`).
+    `None` when statistics are off or the run's list has no such stage.
+    """
+    keys = [stage.key for stage in _state["stages"]]
+    if not _recording_on() or key not in keys:
+        return None
+    index = keys.index(key)
+    return {"command": _state["command"] or "", "n": index + 1, "total": len(keys),
+            "label": _state["stages"][index].label, "settings": stage_settings(key, _state["args"])}
+
+
+def write_skipped_row(config, key, row, reason):
+    """The row of a stage that had nothing to do (`row` as `hand_over_open_stage` gives it, `reason` the words for it):
+    stored as skipped, so no estimate counts it as a run of the stage."""
+    write_row(config, row["command"], {"key": key, "n": row["n"], "total": row["total"], "label": row["label"],
+                                       "skipped": reason, "settings": row["settings"], "metrics": {}, "seconds": 0.0})
 
 
 def write_queued_row(config, key, row, seconds, metrics):
@@ -486,13 +529,15 @@ def _under_banner():
     return len(_state["stages"]) == 1 and os.environ.get(STAGE_OFFSET_ENV, "") != ""
 
 
-def _announce(index, skipped=None):
+def _announce(index, skipped=None, queued=False):
     _close_open()
     stage = _state["stages"][index]
     total = len(_state["stages"])
     record = {"key": stage.key, "n": index + 1, "total": total, "label": stage.label, "skipped": skipped,
               "settings": stage_settings(stage.key, _state["args"]) if _state["args"] is not None else {},
               "metrics": {}, "t0": time.perf_counter()}
+    if queued:
+        record["queued"] = True
     if skipped:
         record["seconds"] = 0.0
         _write(record)
@@ -511,11 +556,12 @@ def _announce(index, skipped=None):
     progress_file.set_stage(index + 1, total, stage.label, skipped)
 
 
-def enter(key):
+def enter(key, queued=False):
     """
     Enters the stage `key`, first announcing as skipped every stage before it
     that was not entered. A stage already entered, or a key the run's list
-    does not have (another caller of the same function), does nothing.
+    does not have (another caller of the same function), does nothing. `queued` is for a stage whose row the
+    queue stores (`row_for`): the stage still counts in the run's totals, but this process writes no row for it.
     """
     keys = [stage.key for stage in _state["stages"]]
     if key not in keys or keys.index(key) < _state["next"]:
@@ -523,7 +569,7 @@ def enter(key):
     index = keys.index(key)
     for earlier in range(_state["next"], index):
         _announce(earlier, _state["stages"][earlier].skip or "not needed")
-    _announce(index)
+    _announce(index, queued=queued)
     _state["next"] = index + 1
 
 

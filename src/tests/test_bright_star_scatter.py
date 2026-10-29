@@ -418,7 +418,7 @@ def test_the_backfill_has_its_own_bar_whose_eta_counts_down(mysql_config, monkey
 
 def test_a_single_sector_run_leaves_the_backfill_to_the_end_of_the_run(mysql_config, monkeypatch):
     """PERF.28: `galaxy --wedge` generates its sector without the inline
-    backfill (which stalled the sector bar at 0 of 1); `backfill_after_run`
+    backfill (which stalled the sector bar at 0 of 1); the run's `backfill` stage
     does it afterwards, with its own bar. A map visit still backfills."""
     _seed_galaxy(mysql_config)
     calls = []
@@ -580,7 +580,7 @@ def test_the_backfill_waits_for_the_run_and_fills_down_to_the_step_masses(mysql_
         conn.close()
 
     args.shell, args.band, args.wedge = address
-    summary = run_galaxy.backfill_after_run(args, EDGE_PC, started)
+    summary = run_galaxy._backfill_on_queue(args, started)
     assert summary["sectors"] > 0 and summary["stars"] > 0
     conn = store.get_connection(mysql_config)
     try:
@@ -855,7 +855,7 @@ def test_backfill_runs_from_the_edge_of_every_generated_sector(mysql_config):
     for address in (near, far):
         run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
 
-    run_galaxy.backfill_after_run(args, EDGE_PC, started)
+    run_galaxy._backfill_on_queue(args, started)
     conn = store.get_connection(mysql_config)
     try:
         every = _mass_rows(conn)
@@ -989,21 +989,24 @@ def test_the_scatter_and_the_backfill_log_the_stars_added_to_each_shell_by_type(
 
 
 def test_a_galaxy_run_scatters_the_stars_then_the_phenomena(mysql_config, monkeypatch):
-    """`galaxy` follows the star scatter with the phenomena (GEN.185's last pass), at the limit it was given; it
-    has no option to leave either out (PERF.123)."""
+    """`galaxy` follows the sectors and the link with the star scatter and then the phenomena (GEN.185's last pass), at
+    the limit it was given, all as stages of one run (PERF.172); it has no option to leave either out (PERF.123)."""
     _seed_galaxy(mysql_config)
     monkeypatch.setattr(run_common, "_edge_pc", lambda: EDGE_PC)
-    for name in ("_run_galaxy_mode", "link_after_run", "backfill_after_run", "settle_after_run"):
-        monkeypatch.setattr(run_galaxy, name, lambda *args, **kwargs: None)
-    monkeypatch.setattr(run_galaxy.run_population, "run_population_stage", lambda *args, **kwargs: None)
-    monkeypatch.setattr(run_galaxy.run_common, "_finish_stats", lambda *args, **kwargs: None)
-    calls = []
-    for name in ("scatter_bright_stars", "scatter_phenomena"):
-        monkeypatch.setattr(run_plan, name, lambda args, name=name: calls.append((name, args.phenomenon_min_mass)))
+    monkeypatch.setattr(run_galaxy, "_plan_sectors", lambda args, edge_pc: [
+        run_galaxy.SectorsFollower(args, "start", "Starting sector", edge_pc),
+        run_galaxy.SectorsFollower(args, "neighborhood", "Neighborhood", edge_pc)])
+    runs = []
+    monkeypatch.setattr(run_galaxy.followed, "run_followed", lambda args, followers, title, seed=None: runs.append(followers))
     _parser, parsers = generate_cli.build_parser()
     args = parsers["galaxy"].parse_args([
         "--phenomenon-min-mass", "8", "--mysql-host", mysql_config.host,
         "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
         "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database])
     run_galaxy.run_galaxy(args)
-    assert calls == [("scatter_bright_stars", 8.0), ("scatter_phenomena", 8.0)]
+    [followers] = runs
+    assert [follower.key for follower in followers] == [
+        "start", "neighborhood", "link", "mass", "luminosity", "phenomena", "phenomena-index", "nebula-draw",
+        "block-lights", "backfill", "population", "territories", "settle", "run-blocks"]
+    by_key = {follower.key: follower for follower in followers}
+    assert by_key["mass"].params()["mass_limit_sol"] == 8.0 and by_key["phenomena"].params()["min_mass_solar"] == 8.0

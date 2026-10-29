@@ -123,47 +123,54 @@ def test_a_shell_run_hands_its_stage_the_arguments_that_name_the_sectors_not_the
         mysql_config, monkeypatch, redis_server):
     _plan_wide_galaxy(mysql_config)
     seen = []
-    real = wrapper.step_for
+    real = wrapper.plan_steps
 
-    def spy(args, key, title, params, *rest, **kwargs):
-        seen.append((key, params))
-        return real(args, key, title, params, *rest, **kwargs)
+    def spy(args, parts):
+        seen.extend((key, params) for key, _label, params in parts)
+        return real(args, parts)
 
-    monkeypatch.setattr(wrapper, "step_for", spy)
+    monkeypatch.setattr(wrapper, "plan_steps", spy)
     _main(monkeypatch, mysql_config, "sectors", "--shell", "1", "--band", "0", "--limit", "2", "--num-systems", "1")
     [(key, params)] = seen
     assert key == "sectors" and params["items"] == [] and params["planned"] == "addresses"
     assert len(_all_sectors(mysql_config)) == 2
 
 
-def _start_params(mysql_config, run_seed, index=0, taken=(), *argv):
+def _planned_starts(mysql_config, seed, *argv):
+    """The stages `galaxy`/`sectors` plans for a random start, drawn from the run's seed `seed`."""
     from planetgen.generation import run_common, run_galaxy
-    args = _args("sectors", "--num-systems", "1", *argv)
-    return {"database": wrapper.database_args(mysql_config), "args": run_galaxy._sector_args_json(args),
-            "edge_pc": run_common._edge_pc(), "items": [], "planned": "start", "run_seed": run_seed,
-            "start_index": index, "taken": [list(place) for place in taken]}
+    from planetgen.util import draw
+    args = _args("sectors", "--num-systems", "1", *argv, *mysql_argv(mysql_config))
+    draw.set_run_seed(seed)
+    with run_common._generation_progress(disable=True) as progress:
+        return run_galaxy._plan_random_start(args, run_common._edge_pc(), progress)
 
 
 def test_the_start_stage_picks_its_random_start_from_the_runs_seed(mysql_config):
     from planetgen.generation import run_galaxy
     _plan_wide_galaxy(mysql_config)
     seeds = [1, 2, 3, 4, 5]
-    picks = {seed: run_galaxy.planned_items(_start_params(mysql_config, seed)) for seed in seeds}
+    picks = {}
     for seed in seeds:
-        (items, suffixes) = picks[seed]
-        assert len(items) == 3 and suffixes == [""]
-        assert run_galaxy.planned_items(_start_params(mysql_config, seed)) == picks[seed], "the same seed, the same start"
-    assert len({tuple(items) for items, _suffixes in picks.values()}) > 1, "another seed picks another start"
-    expansion = run_galaxy.expand_generate_sectors(_start_params(mysql_config, 1))
-    assert [unit["items"] for unit, _cost in expansion.units] == [picks[1][0]]
+        start, neighborhood = _planned_starts(mysql_config, seed)
+        assert [start.key, neighborhood.key] == ["start", "neighborhood"]
+        assert len(start.items) == 3 and neighborhood.extra["centers"] == [start.items]
+        picks[seed] = start.items
+        again, _neighborhood = _planned_starts(mysql_config, seed)
+        assert again.items == start.items, "the same seed, the same start"
+    assert len({tuple(items) for items in picks.values()}) > 1, "another seed picks another start"
+    expansion = run_galaxy.expand_generate_sectors(
+        {**_planned_starts(mysql_config, 1)[0].params(), "database": wrapper.database_args(mysql_config)})
+    assert [unit["items"] for unit, _cost in expansion.units] == [picks[1]]
 
 
 def test_each_of_several_neighborhoods_has_its_own_start_and_keeps_away_from_the_ones_before(mysql_config):
-    from planetgen.generation import run_common, run_galaxy
+    from planetgen.generation import run_common
     from planetgen.galaxy.spherical import sector_position_pc
     _plan_wide_galaxy(mysql_config)
     edge_pc = run_common._edge_pc()
-    first, _ = run_galaxy.planned_items(_start_params(mysql_config, 7, 0, (), "--neighborhoods", "2"))
-    place = sector_position_pc(*first, edge_pc)
-    second, _ = run_galaxy.planned_items(_start_params(mysql_config, 7, 1, [place], "--neighborhoods", "2"))
-    assert len(second) == 3 and second != first
+    start, neighborhood = _planned_starts(mysql_config, 7, "--neighborhoods", "2")
+    first, second = start.items[:3], start.items[3:]
+    assert len(second) == 3 and second != first and neighborhood.extra["centers"] == [first, second]
+    here, there = (sector_position_pc(*place, edge_pc) for place in (first, second))
+    assert sum((a - b) ** 2 for a, b in zip(here, there)) ** 0.5 >= 2 * 12.0 - 1e-6   # the default radius, twice
