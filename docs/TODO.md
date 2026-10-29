@@ -13651,23 +13651,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from chemistry text to class text (GEN.892).
   Prerequisites: none. Related: GEN.861.
 
-- [ ] **GEN.870 Every life constant has a stand-in registry row with its tier and tweak level (LIFE_CHEMICALS gates and star weights, STAR_EVOLUTION, timelines, score thresholds, solvent factors, toxicity limits, O2 band, energy flux and shares)**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 2.3, fix 11
-  (Boss's GEN.725 rule). None of the life constants in tuning.py lines
-  2174 to 2411, physics/habitability.py or physics/habitability_world.py
-  has a row in docs/design/research/stand-in-values.md (only LT1 to LT8
-  and BO9 exist, from Core 1's branch). Add the rows listed in section
-  2.3 of the report (proposed tier and tweak per row, to be corrected by
-  whoever knows better), and a test that fails when a life constant has
-  no row. Docs and registry only (no epoch, no lock).
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): extended by GEN.893
-  to every class window, supply and complexity threshold; the rows for
-  today's constants go ahead now (lock-free).
-  Prerequisites: none. Related: GEN.725.
-
 - [ ] **GEN.871 Sub-ice microbial mats are scored as Flora and as edible plant food, and described with coastlines and light they do not have (bug)**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 4.6, fix 5
@@ -13713,7 +13696,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prevalence band per chemistry per star letter, goes into the TEST.430
   chain). Each test must fail on today's main for the defect it names
   and pass after its fix. Size S to M.
-  Prerequisites: GEN.867, GEN.868, GEN.870, GEN.871, GEN.855. Related:
+  Prerequisites: GEN.867, GEN.868, GEN.871, GEN.855. Related:
   TEST.430.
   Research (2026-10-09): Life class design
   (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
