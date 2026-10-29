@@ -3,6 +3,7 @@ The heat flowing out of a rocky body: radiogenic plus primordial, the Urey ratio
 """
 
 import math
+import time
 from types import SimpleNamespace
 
 import pytest
@@ -353,3 +354,21 @@ def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_st
                 if body.star.age >= 8.0:
                     assert body.urey_ratio <= 1.0 + 1e-6
     assert seen > 10
+
+
+@pytest.mark.timeout(60)
+def test_a_hot_surface_never_collapses_the_step_below_it():
+    """GEN.866: a 4.7e24 kg wet planet whose surface is 2304 K (an ecosphere orbit of an F5V star, the greenhouse run away) started at the
+    surface temperature and a step overshot below zero kelvin; the viscosity law on that temperature gave a flux of 1e59 W/m2 and a step of 1e-65 Gy, so
+    the draw never returned. The mantle stays between the surface and the ceiling, and the run takes well under a second."""
+    terms = ((4.06712528459501e-12, 0.5554063946794433), (1.1519457618003578e-12, 0.04951051289713895),
+             (1.9827998614583646e-12, 0.15530969763834757), (3.744530060985561e-12, 0.9845840632953767),
+             (4.075177246711262e-07, 966.7324694002026))
+    rock = radiogenic.Rock(0.7545618533566459, 0.0, 0.2454381466433541, 0.018143235516770093)
+    surface_k = 2303.74544273136
+    started = time.monotonic()
+    found = ih.heat(terms, ih.Interior(382324606739.6106, 218.6088709840769), 4.666239116198571e24, 7011.034245444521,
+                    4.086548725622917, rock, None, ih.STAGNANT, surface_k)
+    assert time.monotonic() - started < 20.0
+    assert surface_k <= found.mantle_temperature_k
+    assert math.isfinite(found.total_w) and math.isfinite(found.released_j) and found.total_w > 0.0
