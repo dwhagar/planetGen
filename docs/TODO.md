@@ -10943,6 +10943,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   12 of 12 unmet (class M drawn first lands on cold airless bodies, 177
   to 270 K around M and K dwarfs); this cut-over is the cure and its
   census should show the habitable requests met. See GEN.854.
+  Research (2026-10-09): Correction (Aux 1, 3:20 AM EDT 2026-10-29 as
+  the lane reported): do not read the cut-over as a sure cure for the
+  unmet habitable requests. Aux 1's branch predates GEN.855; its
+  600-system sweep has only 3 class M planets of 4915 and 209 class N
+  warm planets, and about 7 percent of M5V habitable requests stay unmet
+  because the ecosphere there cannot hold life. Aux 1 rebases onto main
+  when the lock approaches and reports the met and unmet counts as a
+  number; this item and GEN.854 judge the cure on that number.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -12845,6 +12853,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   0.61. The letter-first draw puts class M on airless cold bodies; the
   class-from-conditions cut-over GEN.646 is the intended cure. Life
   prevalence is GEN.907.
+  Research (2026-10-09): Correction (Aux 1, 3:20 AM EDT 2026-10-29 as
+  the lane reported): do not read the cut-over as a sure cure for the
+  unmet habitable requests. Aux 1's branch predates GEN.855; its
+  600-system sweep has only 3 class M planets of 4915 and 209 class N
+  warm planets, and about 7 percent of M5V habitable requests stay unmet
+  because the ecosphere there cannot hold life. Aux 1 rebases onto main
+  when the lock approaches and reports the met and unmet counts as a
+  number; this item and GEN.854 judge the cure on that number.
   Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
 
 - [ ] **GEN.857 Biogenic gases for non-oxygenic worlds: methane and haze from anoxygenic and chemoautotroph communities, donor drawdown, and registry entries for each stand-in**
