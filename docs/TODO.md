@@ -13933,6 +13933,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch). Version 8.1. Owner: Bug 1.
   Prerequisites: none. Related: TEST.433, GEN.898, GEN.278, GEN.897.
 
+- [ ] **GEN.902 Wolf-Rayet stars: the reference galaxy gets about 590 while Rosslowe and Crowther 2015 estimate 1200 (+300, -100) (bug)**
+  Found by Bug 2 in the phenomena census (TEST.433), 2026-10-28. About
+  590 expected in the Galaxy (population model draws times the scatter
+  star counts, about 360 Wolf-Rayet hits, good to about 5%) against 1200
+  (+300, -100) from Rosslowe and Crowther 2015 (arXiv:1412.0699, read by
+  Bug 2). Likely cause, not diagnosed: only the single-star channel
+  makes Wolf-Rayet stars, while much of the real population is
+  binary-stripped. Do: diagnose, add the binary-stripped channel (or
+  retune the rate) at the cause with the researched fraction, record any
+  tweak with its level in the stand-in registry. A change that moves the
+  scatter is a generation change (lock queue, epoch). Version 8.1.
+  Owner: Bug 1.
+  Prerequisites: none. Related: TEST.433, GEN.898, GEN.900, GEN.901.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
