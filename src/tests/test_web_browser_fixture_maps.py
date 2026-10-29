@@ -2397,10 +2397,16 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     _camera(page)
     middle = page.locator(GALAXY_CANVAS).bounding_box()
     page.mouse.move(middle["x"] + middle["width"] / 2, middle["y"] + middle["height"] / 2)
-    page.mouse.wheel(0, -400)
-    page.wait_for_timeout(600)
-    _settle(page)
-    page.wait_for_timeout(1500)
+    # A step in is as far as the nearest thing along the ray allows (MAP.334), so on the wide map the three points still stand within a
+    # few pixels of one another after one: steps in until each is 40 px from the next, which a click can tell apart (TEST.445).
+    for _ in range(8):
+        page.mouse.wheel(0, -400)
+        page.wait_for_timeout(600)
+        _settle(page)
+        page.wait_for_timeout(1500)
+        spots = [_screen_of(page, (point["x"], point["y"], point["z"])) for point in POINT_FIELD]
+        if all(spots) and min(math.dist(a, b) for i, a in enumerate(spots) for b in spots[i + 1:]) >= 40:
+            break
     names = {point["name"]: point for point in POINT_FIELD}
     found = {}
     url = page.url
@@ -3600,6 +3606,7 @@ def test_sector_map_escape_clears_the_selection(page, map_site):
 
 
 @pytest.mark.names_hidden
+@pytest.mark.viewport(1000, 900)  # the contents list (UX.215) takes height from the map in 1000x800, where no spot on it names the nebula
 def test_sector_map_click_on_the_selected_nebula_clears_it(page, map_site):
     """MAP.113: a nebula can be unselected by clicking it again, which is all
     there is to click when it covers the sector."""
@@ -3717,13 +3724,16 @@ def test_the_galaxy_toolbar_says_whole_galaxy_and_the_menu_re_center(page, map_s
 
 @pytest.mark.viewport(1280, 900)
 def test_the_map_card_goes_wide_but_the_title_keeps_the_page_edge(page, map_site):
-    """UX.62: the Galaxy page's title and crumb sit where every other page's do."""
+    """UX.62: the Galaxy page's title and crumb sit where every other page's do. A page with a contents menu (UX.215) is wider and
+    puts its title beside the menu, so the comparison is with a page that has none (TEST.445)."""
     _open_galaxy(page, map_site)
     galaxy = page.evaluate("() => document.querySelector('h1').getBoundingClientRect().left")
     card = page.evaluate("() => document.querySelector('#map').getBoundingClientRect().width")
-    page.goto(f"{map_site}/sector/{SECTOR_ID}", wait_until="load")
-    sector = page.evaluate("() => document.querySelector('h1').getBoundingClientRect().left")
-    assert abs(galaxy - sector) < 1, (galaxy, sector)
+    assert not page.locator("nav.page-toc").count()
+    page.goto(f"{map_site}/", wait_until="load")
+    assert not page.locator("nav.page-toc").count(), "the page compared with has a contents menu"
+    other = page.evaluate("() => document.querySelector('h1').getBoundingClientRect().left")
+    assert abs(galaxy - other) < 1, (galaxy, other)
     assert card > 1100, card
 
 
