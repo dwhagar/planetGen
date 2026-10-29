@@ -18395,38 +18395,6 @@ clears each one.
   remaining parts.
   Prerequisites: MAP.220. Related: UX.100, MAP.143, MAP.220.
 
-- [ ] **TEST.301 Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism**
-  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
-  then D', relayed by the coordinator): 'Let's go with 3, since we're
-  doing compositions, let's leave out the class designation until planet
-  generation is completed, then fill in the classes based on the
-  atmosphere (even no atmosphere) composition / pressure, average
-  surface temperature, terrestrial composition (i.e. a rocky planet
-  composition), gas composition (for gas giants), same for moons. The
-  reason I did classes the way they are now is because I didn't know how
-  to get the compositions correct.' Proposal and options:
-  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
-  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
-  (the habitable rule). Owner: Habitability lane D unless stated. One
-  sweep over a seeded galaxy and the rule table cases: no body without a
-  class, no class that its own conditions contradict, +habitable_world
-  requests, edits that cross a rule, a legacy-letter reference test.
-  Owner: Habitability lane D with Bug Hunt review. Done: it runs in the
-  changed gate and in full --check.
-  Prerequisites: GEN.647, DB.90, GEN.648. Related: GEN.647, TEST.209,
-  TEST.210.
-  Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
-  the TODO thread): the Condition-based planet classes lane builds this
-  item (its design draft:
-  /mnt/project-files/design-drafts/condition-based-classes-2026-10-23.md,
-  notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
-  Habitability lane D keeps GEN.645 and GEN.643. This replaces
-  'Habitability lane D' above for the build.
-  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
-  EDT 2026-10-28, high priority) takes this with TEST.430 where it
-  overlaps the class census; confirm any other lane's claim with TODO
-  first.
-
 - [ ] **TEST.302 benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug)**
   Finding of the Setup script lane (2026-10-23, report
   /mnt/project-files/reports/test-isolation-benchmark-suite-kills-workers-2026-10-23.md),
@@ -19403,6 +19371,18 @@ clears each one.
   loosen or quarantine a test. Version 8.1. Owner: Aux 3 (lock-free item
   while waiting).
   Prerequisites: none. Related: TEST.439, TEST.434, TEST.194, MAP.240.
+
+- [ ] **TEST.443 Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not**
+  The remainder of TEST.301 (its sweep part merged as #3619 with Bug 2:
+  every planet and moon has a class of its own kind, classify is total
+  and pure, the stored class equals the class the conditions give). It
+  needs the edit path of 8.6 (ADM and map editing call classify again,
+  DB.90). Do: a test that edits a body across a rule boundary
+  (temperature, pressure or composition) through the plan engine and
+  finds the new class and PHI-6 colour after approval, and one that
+  edits a field not used by the rules and finds the class unchanged;
+  undo restores the class. Version 8.6. Owner: unowned until 8.6.
+  Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
 
 ## USR: User accounts
 
