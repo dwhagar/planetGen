@@ -3566,8 +3566,7 @@ SYSTEM_COMET_CHANCE = 0.3
 # 20,000 systems, four seeds of 5,000, after GEN.631 drew a system's stars as a
 # tree: its pairs are closer, so fewer have room for planets; habitable_world alone
 # remeasured 2026-10-29 over 6,000 systems, four seeds of 1,500, after GEN.855 let
-# the air follow its life: 0.354 where it was 0.402, since a world needs the
-# oxygen its life made before it counts as habitable). A sector or galaxy run's
+# the air follow its life: 0.354 where it was 0.402). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
