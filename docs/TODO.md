@@ -2818,23 +2818,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxyprisms.neighbourBlock.
   Prerequisites: none. Related: MAP.121, MAP.141.
 
-- [ ] **MAP.333 Zoom redesign Z0: fly-tos are no longer clamped to the zone and do not snap back after a region flight; the slider shows absolute log distance over one global range and works in flights; plus, minus, slider and pinch cross levels like the wheel; the wheel never dead-ends (bug)**
-  Quick client-side fixes first (size S to M). Boss answered the
-  research cards at 6:19 PM EDT 2026-10-28 (1.1 quick fixes then the
-  full rebuild, 2.1 one verb Go to, 3.1 vertical log ruler with named
-  stops, 4.1 a region lands framed on the charted part, 5.1 moon in view
-  first). Design:
-  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
-  (section 6 plan, section 9 decisions). Owner: Core 2. Done: a browser
-  test flies to a region, a sector and a system and finds the camera
-  where the flight put it with no snap back, drags the slider through
-  every level, and wheels at the ends without a dead end.
-  Research (2026-10-09): Stays in 8.1 (Boss 6:28 PM EDT 2026-10-28); the
-  rest of the zoom redesign, MAP.334 to MAP.338, is in 8.2 as a headline
-  feature. 8.1 infinite zoom (MAP.146) is already done and does not need
-  more.
-  Prerequisites: none. Related: MAP.257, MAP.299, MAP.311.
-
 - [ ] **MAP.334 Zoom redesign Z1: one global zoom policy, with pace and clearance taken from the distance to the nearest thing; zoom floor 1e-10 pc (1e-12 pc after Z5)**
   Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
   (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
@@ -12461,6 +12444,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   included and brings Boss a plain-words proposal (animals common on
   suitable worlds, civilisations no more common than before) before the
   GEN.855 + GEN.750 epoch is merged.
+  Research (2026-10-09): Core 1 timing review (as the lane reported,
+  about 9:03 PM EDT 2026-10-28), Monte Carlo with the temperature clock
+  and the 2 Gyr oxygen delay, ages to 10 Gyr (G) or 13.8 Gyr (K, M).
+  Current means 0.5/1.5/5/10/20 with scale 0.7: animals 12/19/13 in 100
+  and civilisation 1.5/3.4/1.7 in 100 (G/K/M). Proposal: means
+  0.5/1.5/2.5/3/60, scale 1.0: animals 21/33/23 and civilisation
+  0.6/1.5/0.7; with the civilisation step at 100: 0.4/1.0/0.5. Boss
+  decides; Core 1 applies his pick before the golden rewrite if he
+  answers in time, else merges the current values and retunes as a
+  follow-up.
   Prerequisites: none. Related: GEN.649, GEN.740.
 
 - [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
@@ -19746,6 +19739,33 @@ clears each one.
   and carbon based, stop at animals; sentient life and the life class
   system wait for 9.5.
   Prerequisites: TEST.430, GEN.879, GEN.880, GEN.882, GEN.883, GEN.876.
+
+- [ ] **TEST.437 test_climate_draws test_every_class_stores_the_draws_its_temperature_is_made_of fails for 20 classes: the stored surface temperature differs from the draws' formula by 0.03 K (365.639 vs 365.607) (bug)**
+  Found by Aux 4 (as the lane reported, 9:02 PM EDT 2026-10-28) in the
+  wider run after GEN.812: red on the commit before GEN.812 too, so a
+  clean-main red. The stored surface temperature is not the value
+  rebuilt from the stored draws; find which step changes the temperature
+  after the draws are stored (a later pass, a rounding, or the
+  greenhouse solve running twice) and make the draws and the stored
+  value agree, or correct the test if the formula is stale. Owner: Aux 4
+  (knows the climate draws).
+  Prerequisites: none. Related: TEST.434, GEN.812.
+
+- [ ] **TEST.438 test_planet_classes test_only_the_known_writers_assign_a_class fails: db/interests.py is a new writer of planet_class and is not in CLASS_WRITERS (bug)**
+  Found by Aux 4 (9:02 PM EDT 2026-10-28). MAP.220 (migration 0172, Aux
+  2, #3547) added db/interests.py, which assigns planet_class; the
+  test's CLASS_WRITERS list needs the file, after checking that the
+  writer is the intended one (a stored user interest, not a generation
+  write). Small, no epoch. Owner: Aux 2.
+  Prerequisites: none. Related: MAP.220.
+
+- [ ] **TEST.439 test_web_browser_map_perf.py fails on main: the climb moves stars over the buffer at up 1 and up 4, and teardown raises page errors on indexOf and scale (bug)**
+  Found by Core 2 (9:02 PM EDT 2026-10-28, as the lane reported) while
+  merging MAP.333 (#3556); it fails on main without Z0. Find which
+  change broke the climb (the buffer is camera-relative since MAP.240,
+  or the node JSON systems field of MAP.122) and the two page errors,
+  fix the code, or the test if its expectation is stale. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.434, MAP.240.
 
 ## USR: User accounts
 
