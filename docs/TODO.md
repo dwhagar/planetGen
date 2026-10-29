@@ -15263,39 +15263,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   refuse with a clear message until then. Where the Done text says "the
   same commands as a local run", it means in phases.
 
-- [ ] **API.4 API compatibility data in the docs**
-  Boss (2026-10-01 19:28Z): "let's make API compatibility data and put
-  that in the docs as another TODO item to add but not do yet." Done:
-  the API has a version of its own, separate from the release number,
-  and the docs carry a compatibility table: each API version, the
-  release that introduced it, the routes and payload formats it
-  changed, and which client versions (`generate.py` remote mode,
-  API.3, and the web pages' `lib/apiclient.py`) can talk to which
-  server versions. The table is updated in the same PR as any API
-  change. Question (decided below): is the API version bumped by hand,
-  or by a
-  release note kind like `changes/<name>.api.md`?
-  Research (2026-10-09, api-design-standards.md): answer the open
-  question: the version is bumped by hand against a CI rule. A committed
-  OpenAPI file for the remote contract (`docs/api/openapi.json`, built
-  from the Pydantic models by `planetgen/api/spec.py`), `python -m
-  planetgen.api.spec --check` in tests, and `oasdiff breaking` and
-  `changelog` between PR base and head (a breaking diff means a higher
-  MAJOR, any other diff a higher MINOR, none unchanged). No
-  `changes/<name>.api.md` note kind. The compatibility contract covers
-  the remote-client routes only. The table is generated from
-  `planetgen/api/version.py` history, and the stamp job fills in the
-  release number.
-  Decided (2026-10-10): Boss (19:12Z): the API version is bumped by
-  hand, with a CI check against the OpenAPI file.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none.
-
 - [ ] **API.5 API version and compatibility checking**
   Boss (2026-10-01 19:28Z): "Another TODO item will be API version /
   compatibility checking so that we make sure the server knows how to

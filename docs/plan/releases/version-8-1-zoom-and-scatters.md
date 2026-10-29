@@ -59,7 +59,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.4 | API compatibility data in the docs |  | Docs and version number. |
 | UX.122 | The command line, the job log files and the downloadable log use the layer |  | Split from UX.102. |
 | TEST.183 | A test that fails when a new output path formats its own lines | UX.122 | Split from UX.102. |
 | UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | UX.122, TEST.183 |  |
