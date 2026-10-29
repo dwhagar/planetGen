@@ -2509,7 +2509,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.240 lane, Aux 6, is retired; Core 2 owns the files and is blocked
   on this for MAP.335). Prerequisites: none. Related: MAP.240, MAP.335,
   TEST.442.
+  Research (2026-10-09): Update (Core 2, 12:25 AM EDT 2026-10-29 as the
+  lane reported): not a map bug and not MAP.240. Aux 3 bisected it: the
+  Galaxy page got an 'On this page' contents column from UX.215-222
+  (pagetoc.js), which pushed the map 169 px right and the page past the
+  1280 window, so the wheel, cross and info popup tests failed. Aux 3
+  fixes it under TEST.442 on branch claude/test442-browser-map-reds (no
+  contents menu on the wide map page, plus test fixes for the other map
+  reds). MAP.346 is covered by TEST.442: retire it when TEST.442 merges.
+  Core 2 holds MAP.335 until then. Owner is now Aux 3 (through
+  TEST.442).
   Prerequisites: none. Related: MAP.240, MAP.335, TEST.442.
+  Owner: Aux 3, through TEST.442 (this replaces any earlier owner line on this item).
 
 ## NAV: Navigation and courses
 
