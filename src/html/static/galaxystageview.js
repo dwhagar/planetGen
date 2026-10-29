@@ -2482,13 +2482,19 @@ export function createStageView(host) {
 
   // MAP.245: the star of the open sector under a screen point (within STAR_ANCHOR_PX of it on the screen), as
   // [x, y, z], or null. The stars are not picked (MAP.101), so this is what lets the wheel know one is there.
+  // MAP.300: with no sector open it is a star the map draws from its nodes' lists (the brightest of those level with the point), so the
+  // wheel comes in on any star of a dense cluster that is drawn, not on the focus plane or the column behind it.
   function starUnder(clientX, clientY) {
-    const stars = sectorStars();
-    if (!stars.length) return null;
+    const sector = sectorStars();
+    const rect = canvasEl.getBoundingClientRect();
     camera.updateMatrixWorld();
-    const found = nearestOnScreen(stars, camera, canvasEl.getBoundingClientRect(), clientX, clientY,
-      { reach: function () { return STAR_ANCHOR_PX; } });
-    return found ? [found.entry.x, found.entry.y, found.entry.z] : null;
+    const reach = { reach: function () { return STAR_ANCHOR_PX; } };
+    const found = sector.length ? nearestOnScreen(sector, camera, rect, clientX, clientY, reach) : null;
+    if (found) return [found.entry.x, found.entry.y, found.entry.z];
+    const drawn = host.drawnStars ? host.drawnStars() : [];
+    if (!drawn.length) return null;
+    const drawnFound = nearestOnScreen(drawn, camera, rect, clientX, clientY, { reach: reach.reach, lastWins: true });
+    return drawnFound ? [drawnFound.entry.x, drawnFound.entry.y, drawnFound.entry.z] : null;
   }
 
   // MAP.150: the world point under a screen point: a star of the open sector there (MAP.245), else the nearest

@@ -3547,6 +3547,10 @@ function initGalaxyMap3d(canvasEl, data) {
           return response.json();
         });
     },
+    // MAP.300: the stars the map draws now, from the nodes' lists (the brightest last): what the wheel can zoom toward when no sector is open.
+    drawnStars: function () {
+      return pickableStars();
+    },
     // MAP.335: the generated sectors near a point (the eye), asked for as the camera comes near them.
     fetchNear: function (query) {
       return fetch((data.nearPath || "/galaxy/near") + query, { headers: { Accept: "application/json" } })
