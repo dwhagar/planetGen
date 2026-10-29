@@ -2090,7 +2090,11 @@ LABELS = "() => document.querySelector('#galaxymap3d-canvas').__mapLabels.shown(
 
 
 def _label_spot(page, label):
-    """The page point at the middle of a placed name."""
+    """The page point at the middle of a placed name. A card open over the map is closed first (MAP.332: a tall card's More takes the pointer)."""
+    close = page.locator("#galaxymap3d-info .map-info-close")
+    if close.count() and close.is_visible():
+        close.click()
+        page.wait_for_timeout(100)
     box = page.locator(GALAXY_CANVAS).bounding_box()
     return box["x"] + label["left"] + label["width"] / 2, box["y"] + label["top"] + label["height"] / 2
 
@@ -2659,9 +2663,14 @@ def test_galaxy_map_habitable_world_markers_are_on_by_default_and_name_the_syste
     `hide=` in the address says so), a legend line while on, and a click on one shows how many worlds it holds; the
     inhabited, habitable and gas giant layers begin on and the uninhabitable and asteroid field ones off."""
     _open_star_field(page, map_site)
+    # MAP.333: the flight lands where it was asked, so frame the black hole (15 pc out) as well.
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})",
+                  [list(STAR_FIELD_CENTER_PC), 16])
+    _settle(page)
     page.wait_for_timeout(1000)
-    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
-    assert {e["kind"] for e in found} == {"marker-black-hole", *POI_DEFAULT_ON}, found
+    wanted = {"marker-black-hole", *POI_DEFAULT_ON}
+    found = _markers_until(page, lambda entries: wanted <= {e["kind"] for e in entries})
+    assert {e["kind"] for e in found} == wanted, found
     assert "show=" not in page.url and "hide=marker" not in page.url
     systems = {s["name"]: s for s in WORLD_FIELD}
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]')
@@ -4424,3 +4433,101 @@ def test_galaxy_map_info_card_sizes_to_its_content_and_keeps_its_buttons_and_reg
     # Sized to its content: when the content fits in the window the card shows it whole with no scroll.
     if got["content"] <= got["view"] - 16:
         assert not got["scrolls"], got
+
+
+# --- MAP.333: zoom Z0: moves are held by the global limits, not the stage's range -------------------------------------
+
+CAMERA_NOW = "() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()"
+STAGE_M = "() => { const s = document.querySelector('#galaxymap3d-canvas').galaxyStage(); return s.win ? s.win.centre.m : null; }"
+
+
+def _slider_to(page, share, seconds=7.0):
+    """Sets the zoom slider as a drag to `share` would (an input event) and waits for the view to come to rest."""
+    page.evaluate("(v) => { const s = document.querySelector('#galaxymap3d-zoom-slider'); s.value = String(Math.round(v * 1000)); "
+                  "s.dispatchEvent(new Event('input', {bubbles: true})); }", share)
+    page.wait_for_timeout(int(seconds * 1000))
+    return page.evaluate(CAMERA_NOW)
+
+
+def _slider_distance(share, far=37202.0, floor=1e-10):
+    """The camera distance (parsecs) the slider's `share` stands for: one log scale from the whole galaxy to the floor."""
+    return math.exp(math.log(far) - share * (math.log(far) - math.log(floor)))
+
+
+def test_a_fly_to_lands_where_it_was_asked_with_no_snap_back_to_the_stage_range(page, map_site):
+    """MAP.333: a region, a sector or a system flown to is reached at the distance asked for, not at the nearest its stage allows,
+    and the camera stays there: from the whole galaxy a region of 3 pc is framed from a few parsecs, not from half the galaxy."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const l = document.querySelector('#galaxymap3d-canvas').__mapRegionList; return l && l.order().length === 2; }", timeout=20000)
+    fly = "([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})"
+    for centre, radius in (([2.83, 2.83, 0.0], 12.0), ([2.83, 2.83, 0.0], 3.0)):
+        page.evaluate(fly, [centre, radius])
+        page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+        _settle(page)
+        landed = page.evaluate(CAMERA_NOW)["dist"]
+        assert landed < 4.0 * radius, (radius, landed)
+        page.wait_for_timeout(1200)
+        assert abs(page.evaluate(CAMERA_NOW)["dist"] - landed) < 1e-6 * landed, "the view snapped back after the flight"
+    # A sector opened in place, and a system gone in to: a tiny sphere in each is framed closely too.
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_selector(".starmap-sr-list button", state="attached")
+    page.locator(".starmap-sr-list button", has_text="Middling Sun").first.evaluate("b => b.click()")
+    _settle(page)
+    _slider_to(page, 0.6)
+    _wait_system(page)
+    target = page.evaluate(CAMERA_NOW)["target"]
+    page.evaluate(fly, [target, 2e-5])
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    landed = page.evaluate(CAMERA_NOW)["dist"]
+    assert landed < 2e-4, landed
+    page.wait_for_timeout(1200)
+    assert abs(page.evaluate(CAMERA_NOW)["dist"] - landed) < 1e-6 * landed
+
+
+def test_the_zoom_slider_is_one_log_scale_and_takes_the_view_through_every_level_and_back(page, map_site):
+    """MAP.333: the slider stands for the camera's distance on one scale from the whole galaxy to a moon, the same wherever the view
+    is, and a drag carries the view across every level (the windows of 81 to 1, the sector, the system) as the wheel does."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...c)", [list(STAR_FIELD_CENTER_PC)])
+    _settle(page)
+    seen = {}
+    for share in (0.05, 0.15, 0.2, 0.25):
+        camera = _slider_to(page, share)
+        asked = _slider_distance(share)
+        assert abs(math.log(camera["dist"] / asked)) < 0.05, (share, asked, camera["dist"])
+        seen[share] = page.evaluate(STAGE_M)
+    assert seen == {0.05: 81, 0.15: 27, 0.2: 3, 0.25: 1}, seen
+    # The slider follows the camera it is not holding: the wheel moves it to where the camera's distance stands on the scale.
+    shown = page.evaluate("() => Number(document.querySelector('#galaxymap3d-zoom-slider').value) / 1000")
+    assert abs(shown - 0.25) < 0.02, shown
+    assert abs(_slider_to(page, 0.0)["dist"] / 37202.0 - 1) < 0.2
+    assert page.evaluate(STAGE_M) is None, "all the way out is the whole galaxy"
+    # Down to a sector and a system opened from a star, and out again.
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_selector(".starmap-sr-list button", state="attached")
+    page.locator(".starmap-sr-list button", has_text="Middling Sun").first.evaluate("b => b.click()")
+    _settle(page)
+    _slider_to(page, 0.6)
+    assert (_galaxy_system(page) or {}).get("id"), "the slider carried the view into the system"
+    camera = _slider_to(page, 1.0)
+    assert camera["dist"] < 1e-9, camera["dist"]
+    _slider_to(page, 0.3)
+    assert not (_galaxy_system(page) or {}).get("id"), "and back out of it"
+    assert _slider_to(page, 0.0)["dist"] > 1e4
+
+
+def test_the_wheel_does_not_stop_at_the_end_of_a_window_whose_sector_was_picked(page, map_site):
+    """MAP.333: scrolling out of the window of sectors carries on to the larger windows however it was reached: the wheel
+    at the end of the range goes to the parent window (it used to let go of a picked sector first and stop there)."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...c)", [list(STAR_FIELD_CENTER_PC)])
+    _settle(page)
+    _slider_to(page, 0.25)
+    assert page.evaluate(STAGE_M) == 1
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    assert _wheel_until(page, 400, lambda: page.evaluate(STAGE_M) != 1, ticks=240), "the wheel stopped at the end of the sector window"

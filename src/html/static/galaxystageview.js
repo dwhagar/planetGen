@@ -101,6 +101,10 @@ export const MAX_ZOOM = 2.5;
 export const GALAXY_MIN_ZOOM = 0.5;
 // An opened system zooms from its fit down to a moon, nine orders closer.
 export const SYSTEM_MIN_ZOOM = 1e-9;
+// MAP.333: the nearest the camera may be asked to come to its target by any move, about a moon framed (Boss, 6:19 PM EDT 2026-10-28), and
+// the farthest, the whole galaxy in view (the same 2.4 galaxy radii the whole-galaxy fit uses).
+export const GLOBAL_FLOOR_PC = 1e-10;
+export const GALAXY_FAR_RADII = 2.4;
 const WHEEL_ZOOM_PER_PX = 0.0025;
 // MAP.225: how close to the thing under the pointer a wheel step in leaves the eye, as a share of the view's distance.
 const ZOOM_CLEARANCE = 0.02;
@@ -215,6 +219,7 @@ export function createStageView(host) {
   function getOutline() {
     if (!outline) {
       outline = S.galaxyOutline(edgePc, host.shape, host.galaxyRadius);
+      galaxyFarPc = 0;
       outline.shapeless = !host.shape;
     }
     return outline;
@@ -1241,6 +1246,7 @@ export function createStageView(host) {
       }
     }
     if (crossFade) stepCross(now);
+    if (zoomGoal) chaseZoomGoal();
     if (!animation) return;
     const a = animation;
     const t = a.duration > 0 ? Math.min(1, (now - a.startedAt) / a.duration) : 1;
@@ -2412,9 +2418,101 @@ export function createStageView(host) {
 
   function zoomBy(factor) {
     if (!view || animation || !MC.canZoom(zoomPolicyFor(resolved))) return;
-    view.zoom = MC.clampDistance(wheelPolicy(), view.zoom * factor, 1);
+    view.zoom = MC.clampDistance(relaxed(wheelPolicy()), view.zoom * factor, 1);
     reframe();
     applyView();
+  }
+
+  // MAP.333: plus and minus ask for a distance, and cross the stages as the wheel does (`zoomToDistance`).
+  function zoomButton(factor) {
+    if (!view || !MC.canZoom(zoomPolicyFor(resolved))) return;
+    zoomToDistance(view.dist * factor);
+  }
+
+  // MAP.333: the policy with its range opened to where the view is: a view an explicit move left beyond its stage's range (a fly-to
+  // that came closer than the stage's nearest) is not pushed back into it, only held from going further out of it.
+  function relaxed(policy) {
+    if (!view || !policy || policy.kind !== MC.ZOOM_RANGE) return policy;
+    return MC.zoomPolicy(policy.kind, Math.min(policy.nearest, view.zoom), Math.max(policy.farthest, view.zoom));
+  }
+
+  // MAP.333: the farthest the camera goes, the whole galaxy in view: the whole-galaxy stage's own camera distance.
+  let galaxyFarPc = 0;
+  function globalFarPc() {
+    if (!galaxyFarPc) {
+      const whole = S.resolveStage(S.galaxyStage(), getOutline(), edgePc);
+      galaxyFarPc = whole && !whole.problem && whole.view && whole.view.blocks.length ? cameraFor(whole).dist : host.galaxyRadius * GALAXY_FAR_RADII;
+    }
+    return galaxyFarPc;
+  }
+
+  // MAP.333: the controls that ask for a camera distance (the slider, plus and minus, a pinch) take it as a goal, whole decades at a time if
+  // need be: within the stage's range the zoom is set; beyond it the zoom goes to the end of the range and then crosses to the next stage as
+  // a wheel tick at the end does, again and again (each frame, while the next stage's data is on its way) until the distance is reached.
+  let zoomGoal = 0;
+  let zoomGoalInward = true;
+  let zoomStalledAt = 0;
+  const ZOOM_GOAL_PATIENCE_MS = 3000;
+  function zoomToDistance(dist) {
+    if (!view || !(dist > 0)) return;
+    finishSoftFlight();
+    zoomStalledAt = 0;
+    zoomGoal = Math.max(GLOBAL_FLOOR_PC, Math.min(globalFarPc(), dist));
+    zoomGoalInward = zoomGoal < view.dist;
+    chaseZoomGoal();
+  }
+
+  // A camera-only flight (a fly to a point, a centring) is finished at once where it was going, so the controls take the view from there.
+  function finishSoftFlight() {
+    if (!animation || !animation.soft) return;
+    const flight = animation;
+    animation = null;
+    flight.frame(1);
+    flight.done();
+  }
+
+  function chaseZoomGoal() {
+    if (!zoomGoal || !view || !view.fit || animation) return;
+    // Reached; or passed, which a crossing can do (the next stage's own view sits at another distance: a system's, once a sector's star is
+    // gone in to): the goal is one way, so the chase never turns back on it.
+    if (Math.abs(Math.log(zoomGoal / view.dist)) < 1e-3 || (zoomGoalInward ? view.dist < zoomGoal : view.dist > zoomGoal)) {
+      zoomGoal = 0;
+      zoomStalledAt = 0;
+      return;
+    }
+    if (arriving) return;
+    const policy = wheelPolicy();
+    const around = enteredSystem ? enteredSystem.fitPoints : entered ? entered.fitPoints : fitPointsOf(resolved);
+    const fit = fitDistance(around, view.fit.target, view.quat);
+    if (!(fit > 0)) {
+      zoomGoal = 0;
+      return;
+    }
+    const want = zoomGoal / fit;
+    const inward = zoomGoalInward;
+    if (!MC.canZoom(policy) || (want >= policy.nearest && want <= policy.farthest)) {
+      view.zoom = want;
+      reframe();
+      applyView();
+      zoomGoal = 0;
+      return;
+    }
+    const end = inward ? policy.nearest : policy.farthest;
+    if (inward ? view.zoom > end * 1.001 : view.zoom < end * 0.999) {
+      view.zoom = end;
+      reframe();
+      applyView();
+      return;
+    }
+    // At the end of the range and no crossing yet: what the next stage shows may still be on its way (a sector's scene waits for a
+    // moment's dwell), so the goal is kept for a while, as a wheel kept turning would keep it.
+    if (zoomAcross(inward ? -1 : 1, null)) {
+      zoomStalledAt = 0;
+    } else {
+      const now = performance.now();
+      if (!zoomStalledAt) zoomStalledAt = now;
+      else if (now - zoomStalledAt > ZOOM_GOAL_PATIENCE_MS) zoomGoal = 0;
+    }
   }
 
   // MAP.225, MAP.245: the zoom factor a step toward `anchor` may take: no more than half the way to it (`MC.limitApproach`),
@@ -2454,7 +2552,7 @@ export function createStageView(host) {
     // MAP.326: how near the camera may come is judged from the point being zoomed toward (a star under the pointer),
     // not from the view's middle, which can be a sector's width from that star: judged from the middle the wheel
     // stopped short of the star and never reached its system.
-    view.zoom = MC.clampDistance(wheelPolicy(anchor), view.zoom * asked, 1);
+    view.zoom = MC.clampDistance(relaxed(wheelPolicy(anchor)), view.zoom * asked, 1);
     reframe();
     const taken = before > 0 ? view.dist / before : 1;
     view.target = MC.targetAboutAnchor(view.target, anchor, taken);
@@ -2463,20 +2561,19 @@ export function createStageView(host) {
 
   // MAP.200: the zoom as a share of the policy's log range, 0 at the
   // farthest the view goes and 1 at the nearest.
+  // MAP.333: the slider is the camera's distance on one log scale, 0 at the whole galaxy and 1 at the floor, the same wherever the view is.
   function zoomShare() {
-    const policy = zoomPolicyFor(resolved);
-    if (!view || !policy || !(policy.nearest > 0) || policy.farthest <= policy.nearest) return 0;
-    const share = (Math.log(policy.farthest) - Math.log(view.zoom)) / (Math.log(policy.farthest) - Math.log(policy.nearest));
+    if (!view || !(view.dist > 0)) return 0;
+    const far = Math.log(globalFarPc());
+    const share = (far - Math.log(view.dist)) / (far - Math.log(GLOBAL_FLOOR_PC));
     return Math.max(0, Math.min(1, share));
   }
 
   function setZoomShare(share) {
-    const policy = zoomPolicyFor(resolved);
-    if (!view || animation || !MC.canZoom(policy) || !(policy.nearest > 0)) return;
+    if (!view || !MC.canZoom(zoomPolicyFor(resolved))) return;
     const s = Math.max(0, Math.min(1, share));
-    view.zoom = MC.clampDistance(policy, Math.exp(Math.log(policy.farthest) + s * (Math.log(policy.nearest) - Math.log(policy.farthest))), 1);
-    reframe();
-    applyView();
+    const far = Math.log(globalFarPc());
+    zoomToDistance(Math.exp(far - s * (far - Math.log(GLOBAL_FLOOR_PC))));
   }
 
   // Moves the center `dx` across and `dy` up by shares of the map's width.
@@ -2520,7 +2617,11 @@ export function createStageView(host) {
     const under = event && entered && !enteredSystem && isFree(resolved) && view.fit ? anchorUnder(event.clientX, event.clientY) : null;
     const policy = zoomPolicyFor(resolved, under);
     if (deltaPx > 0 && view.zoom >= policy.farthest * 0.999 && (enteredSystem || entered || !isWholeGalaxy(resolved))) {
-      up({ keepCamera: true });
+      // MAP.333: out of a window it is the parent stage that is gone to, not `up` (which first lets go of a sector picked on the window,
+      // a step that changes nothing the wheel can see and left it stopped at the end of the range).
+      const parent = !enteredSystem && !entered ? S.parentStage(stage, getOutline(), edgePc) : null;
+      if (parent) go(parent, { keepCamera: true });
+      else up({ keepCamera: true });
       return true;
     }
     if (deltaPx >= 0) return false;
@@ -2551,11 +2652,28 @@ export function createStageView(host) {
       go(into, { keepCamera: true });
       return true;
     }
-    if (!found || found.entry < 0 || !pickable(found.entry)) return false;
+    if (!found || found.entry < 0 || !pickable(found.entry)) {
+      // MAP.333: no block under the pointer or the middle to go in to: the one holding the view's own middle, so the wheel never
+      // dead-ends at the end of a stage's range.
+      const middle = acrossAtMiddle();
+      if (!middle) return false;
+      showTooltip("", 0, 0);
+      go(middle, { keepCamera: true });
+      return true;
+    }
     touchPending = -1;
     showTooltip("", 0, 0);
     act(found.entry, found.hit ? { x: found.hit.point.x, y: found.hit.point.y, z: found.hit.point.z } : null, { keepCamera: true });
     return true;
+  }
+
+  // MAP.333: the window one size down round the cell that holds the view's middle (a point the camera turns about), or null when that is
+  // outside what the galaxy holds.
+  function acrossAtMiddle() {
+    if (!view || !resolved) return null;
+    const point = view.target;
+    const block = P.cellAt(stage.win ? stage.win.centre.m : P.STAGE_TOP, point[0], point[1], point[2], edgePc);
+    return P.drillBlockHolds(block, P.REACH_OUTLINE) ? S.windowInto(stage, block, { x: point[0], y: point[1], z: point[2] }, edgePc) : null;
   }
 
   // The block of the stage the wheel is zooming toward: the one under the pointer, else the one at the middle.
@@ -2686,7 +2804,9 @@ export function createStageView(host) {
     const around = enteredSystem ? enteredSystem.fitPoints : entered ? entered.fitPoints : fitPointsOf(resolved);
     const fit = fitDistance(around, view.fit.target, view.quat);
     if (!(fit > 0)) return;
-    const zoom = MC.clampDistance(zoomPolicyFor(resolved, point), wanted / fit, 1);
+    // MAP.333: the distance asked for is the one the flight lands at; only the global limits hold it, not the range of the stage the
+    // view is in (the wheel carries on across the stage's end from there).
+    const zoom = Math.max(GLOBAL_FLOOR_PC, Math.min(globalFarPc(), wanted)) / fit;
     const to = { target: point, dist: zoom * fit, quat: view.quat.clone() };
     const kept = view;
     followBody = null;
@@ -2694,13 +2814,16 @@ export function createStageView(host) {
       view = Object.assign({}, kept, { target: point.slice(), dist: to.dist, quat: to.quat.clone(), zoom: zoom });
       applyView();
     });
+    animation.soft = true;
   }
 
   // MAP.319: flies the camera to look at a bounding sphere, `target` = {center: [x, y, z] pc, radius pc}, from where it
   // fills the view (the region, system, moon system or nebula it bounds), keeping the viewing direction.
   function flyToFit(target) {
     if (!target || !target.center) return;
-    flyToPoint(target.center, FIT.fitDistance(target.radius, camera.fov, aspectNow(), { minRadius: FIT.MIN_VIEW_RADIUS_PC }));
+    // MAP.333: inside an opened system a sphere as small as a moon system is framed as closely as it asks; elsewhere the map's minimum view
+    // radius holds a framing back from a point-sized sphere.
+    flyToPoint(target.center, FIT.fitDistance(target.radius, camera.fov, aspectNow(), { minRadius: enteredSystem ? GLOBAL_FLOOR_PC : FIT.MIN_VIEW_RADIUS_PC }));
   }
 
   // Flies the camera to an object of the sector scene (a star, a phenomenon): a double click on it, its Go to
@@ -2721,6 +2844,7 @@ export function createStageView(host) {
       view = Object.assign({}, kept, { target: goal.slice(), dist: kept.dist, quat: kept.quat.clone() });
       applyView();
     });
+    animation.soft = true;
   }
 
   // For the browser tests: the stage on screen.
@@ -2845,7 +2969,7 @@ export function createStageView(host) {
     const anchor = anchorUnder(event.clientX, event.clientY);
     if (!anchor) return false;
     const asked = limitedStep(anchor, 0.5);
-    const zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * asked, 1);
+    const zoom = MC.clampDistance(relaxed(zoomPolicyFor(resolved)), view.zoom * asked, 1);
     const taken = view.zoom > 0 ? zoom / view.zoom : 1;
     if (!(taken < 1)) return false;
     const target = MC.targetAboutAnchor(view.target, anchor, taken);
@@ -2857,6 +2981,7 @@ export function createStageView(host) {
       view = Object.assign({}, kept, { target: target.slice(), dist: to.dist, quat: to.quat.clone(), zoom: zoom });
       applyView();
     });
+    animation.soft = true;
     return true;
   }
 
@@ -2895,12 +3020,10 @@ export function createStageView(host) {
     onDrag: function (dx, dy, pan) { if (view && !animation) drag(dx, dy, pan); },
     pinch: {
       canStart: function () { return MC.canZoom(zoomPolicyFor(resolved)) && !!view; },
-      start: function () { pinchZoom = view.zoom; },
+      start: function () { pinchZoom = view.dist; },
       move: function (ratio) {
-        if (!view || animation) return;
-        view.zoom = MC.clampDistance(zoomPolicyFor(resolved), pinchZoom * ratio, 1);
-        reframe();
-        applyView();
+        if (!view) return;
+        zoomToDistance(pinchZoom * ratio);
       },
     },
     onClick: clickAt,
@@ -3082,7 +3205,9 @@ export function createStageView(host) {
     if (!(full > 0)) return;
     view.quat = quat;
     view.target = camera.target.slice();
-    view.zoom = MC.clampDistance(zoomPolicyFor(r), camera.dist / full, 1);
+    // MAP.333: a camera put here (a flight's landing, an address) is held only by the global limits, not by the range of the stage
+    // it lands in: the view is not pushed back out after a flight that came closer than the stage's nearest.
+    view.zoom = Math.max(GLOBAL_FLOOR_PC, Math.min(globalFarPc(), camera.dist)) / full;
     view.dist = view.zoom * full;
   }
 
@@ -3663,8 +3788,8 @@ export function createStageView(host) {
     // one by key.
     // The world point under a screen point (MAP.150); read by the tests.
     anchorUnder: anchorUnder,
-    zoomIn: function () { zoomBy(1 / BUTTON_ZOOM); },
-    zoomOut: function () { zoomBy(BUTTON_ZOOM); },
+    zoomIn: function () { zoomButton(1 / BUTTON_ZOOM); },
+    zoomOut: function () { zoomButton(BUTTON_ZOOM); },
     // MAP.200: the on-map controls. The zoom as a share (0 farthest, 1
     // nearest) along the policy's range, on a log scale; a step of the
     // center in the screen's plane (`dx`, `dy` in shares of the map's
@@ -3675,7 +3800,7 @@ export function createStageView(host) {
     moveCentre: moveCentre,
     resetCentre: resetCentre,
     centre: function () { return view ? view.target.slice() : null; },
-    controlsEnabled: function () { return !!(view && !animation && MC.canZoom(zoomPolicyFor(resolved)) && isFree(resolved)); },
+    controlsEnabled: function () { return !!(view && MC.canZoom(zoomPolicyFor(resolved)) && isFree(resolved)); },
     kinds: sectorStage.kinds,
     kindHidden: sectorStage.kindHidden,
     setKindHidden: setKindHidden,
