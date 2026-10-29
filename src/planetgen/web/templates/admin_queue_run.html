@@ -49,7 +49,7 @@
   <h2 id="log-heading">Log</h2>
   {%- if events %}
   <p class="hint">The last {{ events|length }} lines; the download has them all.</p>
-  <pre class="job-log" tabindex="0" aria-label="The last lines of the run's log">{% for event in events %}{{ utc_time(event.time) }} {{ event.level|upper }} {{ event.message }}
+  <pre class="job-log" tabindex="0" aria-label="The last lines of the run's log">{% for event in events %}{{ event.line }}
 {% endfor %}</pre>
   {%- else %}
   <p class="hint">Nothing has been logged for this run.</p>

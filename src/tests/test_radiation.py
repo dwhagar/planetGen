@@ -258,6 +258,20 @@ def _rocky_world_with_air():
     raise AssertionError("no seed gave a rocky world with air")
 
 
+def test_a_real_world_gets_a_finite_ground_dose_that_follows_the_rock_of_its_ground():
+    """GEN.847: `generate_dose` hands `ground_dose_msv_yr` the (K, Th, U) ppm of the stored ground, so a world made of felsic rock
+    has more ground dose than the same world made of ultramafic rock, and neither fails."""
+    body = _rocky_world_with_air()
+    doses = {}
+    for ground in ("ultramafic", "felsic"):
+        for name in surface_composition.GROUND_FRACTION_TYPES:
+            setattr(body, f"ground_{name}_fraction", 1.0 if name == ground else 0.0)
+        with deterministic_entropy(1):
+            rad.generate_dose(body)
+        doses[ground] = body.dose_ground_msv_yr
+    assert 0.0 < doses["ultramafic"] < doses["felsic"] < float("inf")
+
+
 def test_a_planet_that_loses_half_its_air_keeps_half_its_ozone_and_its_ultraviolet_rises(monkeypatch):
     """GEN.668: a loss event scales the stored ozone column by the share of the air kept, and the UV index follows."""
     body = _rocky_world_with_air()

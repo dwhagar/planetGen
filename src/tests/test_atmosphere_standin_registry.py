@@ -24,7 +24,7 @@ STANDINS = (
     "mixture_subject.DAYSIDE_OVER_EQUILIBRIUM",
     "surface_pressure.PROCESSING_ENERGY_J_PER_KG", "surface_pressure.DEGAS_EFFICIENCY_H", "surface_pressure.DEGAS_EFFICIENCY",
     "surface_pressure.WEATHERING_ALPHA", "surface_pressure.WEATHERING_T_E_K", "surface_pressure.OUTGASSING_EXPONENT",
-    "surface_air.LONG_LIVED_FLUX_FRACTION", "surface_air.RELATIVE_HUMIDITY", "surface_air.SULFUR_SURFACE_KEPT",
+    "surface_air.LONG_LIVED_FLUX_FRACTION", "surface_air.RELATIVE_HUMIDITY",
     "surface_pressure.HEAT_FLUX_EARTH_W_M2",
     "impact_history.LATE_ACCRETED_PERCENT_EARTH", "impact_history.LATE_ACCRETED_MASS_EXPONENT", "impact_history.LATE_ACCRETED_LN_SIGMA",
     "impact_history.VENEER_VOLATILES", "impact_history.VENEER_VOLATILE_SCALE", "impact_history.V_INF_OVER_V_ORBIT",
@@ -40,6 +40,7 @@ STANDINS = (
     "thermosphere.COLLISION_CROSS_SECTION_M2", "thermosphere.BATES_LENGTH_SCALE_HEIGHTS", "thermosphere.KINETIC_DIAMETER_PM",
     "thermosphere.DEFAULT_KINETIC_DIAMETER_PM", "thermosphere.ENERGY_LIMITED_EFFICIENCY", "thermosphere.HYDRO_BASED_LOW",
     "thermosphere.HYDRO_BASED_HIGH", "thermosphere.MAX_EXOBASE_RADII",
+    "envelope_escape.ONSET_GY", "envelope_escape.BARE_BELOW", "envelope_escape.MAX_ENVELOPE", "envelope_escape.TEQ_OVER_INSOLATION_FOURTH",
 )
 
 

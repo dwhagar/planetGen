@@ -25,12 +25,6 @@ from planetgen.physics import gases, saturation
 SPECIES = ("o2", "co2", "co", "n2", "ar", "h2", "h2o", "ch4", "h2s", "so2")
 """tuple: The stored species, in column order (`p_<species>_kpa`)."""
 
-SPECIES_NAMES = {
-    "o2": "oxygen", "co2": "carbon dioxide", "co": "carbon monoxide", "n2": "nitrogen",
-    "ar": "argon", "h2": "hydrogen", "h2o": "water vapor", "ch4": "methane",
-    "h2s": "hydrogen sulfide", "so2": "sulfur dioxide",
-}
-
 GAS_FIELD = "gas_partials_pa"
 """str: The body attribute holding the air: gas-table formula to partial pressure in Pa, only the gases above zero. Stored in
 the child tables `planet_gases` and `moon_gases` (DB.71), not in columns."""
@@ -44,8 +38,14 @@ REDOX_OXIDIZED_DELTA_IW = 2.5
 THIN_KPA = 1.0
 DENSE_KPA = 500.0
 MAJOR_FRACTION = 0.01
+"""float: The share of the air from which a gas is named as one of the mix (`describe`; at most four)."""
 TRACE_FRACTION = 1e-4
+"""float: The share from which a smaller gas is named as a trace (at most two)."""
 HUMID_H2O_FRACTION = 0.02
+
+PENDING = "an air not yet drawn"
+"""str: What a body whose class has air says until its air is made (`calculate_atmospheric_conditions` replaces it by `describe` of the
+solved mixture, GEN.415): a class names no gas, only whether it has air."""
 
 
 def redox_class(delta_iw):
@@ -65,11 +65,14 @@ def vapour_pressure_kpa(gas, temperature_k):
 
 
 def gas_name(formula):
-    """The name of a gas of the table in words: the ten stored species by `SPECIES_NAMES`, the rest as the gas table names them."""
-    return _NAME_OF_FORMULA.get(formula) or gases.gas(formula).name
+    """The name of a gas of the table in words, as the gas table spells it (`gases.gas(formula).name`, American: "water vapor"): the
+    one source of every gas name in the text the generator writes (GEN.415)."""
+    return gases.gas(formula).name
 
 
-_NAME_OF_FORMULA = {gases.stored(gas).formula: name for gas, name in SPECIES_NAMES.items()}
+def species_name(species):
+    """The name of one of the ten stored species (`SPECIES`, lower case: `"h2o"`) in words, as `gas_name` gives it."""
+    return gases.stored(species).name
 
 
 def describe(partials_pa):

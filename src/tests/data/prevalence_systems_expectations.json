@@ -1,0 +1,602 @@
+{
+ "anomalies": {
+  "GEN.855": "since 4c (epoch 106) the solved air has no free oxygen and nothing makes biogenic O2, so no world reaches complex cells, multicellular life or a technological civilization, and fewer count as habitable class or Blue or Green"
+ },
+ "errors": {
+  "anomaly": ""
+ },
+ "hangs": {
+  "anomaly": ""
+ },
+ "reference": {
+  "commit": "0b4d0ccefe867a9937c9e5e630db1f9d0a8fed1d",
+  "kind": "stand-in: the prevalence before the change measured",
+  "label": "before 4c (GEN.411/422, epoch 106)",
+  "pad_mean": 0.15,
+  "pad_share": 0.05,
+  "seeds": "crc32 of 'system:<star>' (tests.audit.prevalence.seed_for)",
+  "sigmas": 4.0,
+  "systems_per_type": 100
+ },
+ "types": {
+  "A0V": {
+   "measures": {
+    "belts": {
+     "kind": "stand-in",
+     "max": 0.6731,
+     "min": 0.0736,
+     "source": "pre-cut-over 0.373 over 150 systems at 0b4d0ccef"
+    },
+    "belts_count": {
+     "kind": "stand-in",
+     "max": 0.9018,
+     "min": 0.0449,
+     "source": "pre-cut-over 0.473 over 150 systems at 0b4d0ccef"
+    },
+    "binary": {
+     "kind": "stand-in",
+     "max": 0.9379,
+     "min": 0.3421,
+     "source": "pre-cut-over 0.640 over 150 systems at 0b4d0ccef"
+    },
+    "blue_green": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.2326,
+     "min": 0.01,
+     "source": "pre-cut-over 0.060 over 150 systems at 0b4d0ccef"
+    },
+    "comets": {
+     "kind": "stand-in",
+     "max": 0.6189,
+     "min": 0.0345,
+     "source": "pre-cut-over 0.327 over 150 systems at 0b4d0ccef"
+    },
+    "comets_count": {
+     "kind": "stand-in",
+     "max": 1.3639,
+     "min": 0.0094,
+     "source": "pre-cut-over 0.687 over 150 systems at 0b4d0ccef"
+    },
+    "habitable_class": {
+     "kind": "stand-in",
+     "max": 0.5866,
+     "min": 0.0134,
+     "source": "pre-cut-over 0.300 over 150 systems at 0b4d0ccef"
+    },
+    "life_abiogenesis": {
+     "kind": "stand-in",
+     "max": 0.8474,
+     "min": 0.2326,
+     "source": "pre-cut-over 0.540 over 150 systems at 0b4d0ccef"
+    },
+    "life_complex_cells": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.2326,
+     "min": 0.01,
+     "source": "pre-cut-over 0.060 over 150 systems at 0b4d0ccef"
+    },
+    "life_multicellularity": {
+     "kind": "stand-in",
+     "max": 0.05,
+     "min": 0.0,
+     "source": "pre-cut-over 0.000 over 150 systems at 0b4d0ccef"
+    },
+    "life_photosynthesis": {
+     "kind": "stand-in",
+     "max": 0.5866,
+     "min": 0.0134,
+     "source": "pre-cut-over 0.300 over 150 systems at 0b4d0ccef"
+    },
+    "life_technological_civilization": {
+     "kind": "stand-in",
+     "max": 0.05,
+     "min": 0.0,
+     "source": "pre-cut-over 0.000 over 150 systems at 0b4d0ccef"
+    },
+    "moons_per_planet": {
+     "kind": "stand-in",
+     "max": 2.1331,
+     "min": 0.7472,
+     "source": "pre-cut-over 1.440 over 150 systems at 0b4d0ccef"
+    },
+    "planets": {
+     "kind": "stand-in",
+     "max": 9.0804,
+     "min": 2.2796,
+     "source": "pre-cut-over 5.680 over 150 systems at 0b4d0ccef"
+    },
+    "zero_planets": {
+     "kind": "stand-in",
+     "max": 0.4473,
+     "min": 0.01,
+     "source": "pre-cut-over 0.193 over 150 systems at 0b4d0ccef"
+    }
+   },
+   "n_ref": 150
+  },
+  "F5V": {
+   "measures": {
+    "belts": {
+     "kind": "stand-in",
+     "max": 0.7534,
+     "min": 0.1399,
+     "source": "pre-cut-over 0.447 over 150 systems at 0b4d0ccef"
+    },
+    "belts_count": {
+     "kind": "stand-in",
+     "max": 1.1146,
+     "min": 0.1121,
+     "source": "pre-cut-over 0.613 over 150 systems at 0b4d0ccef"
+    },
+    "binary": {
+     "kind": "stand-in",
+     "max": 0.841,
+     "min": 0.2257,
+     "source": "pre-cut-over 0.533 over 150 systems at 0b4d0ccef"
+    },
+    "blue_green": {
+     "kind": "stand-in",
+     "max": 0.3794,
+     "min": 0.01,
+     "source": "pre-cut-over 0.147 over 150 systems at 0b4d0ccef"
+    },
+    "comets": {
+     "kind": "stand-in",
+     "max": 0.6109,
+     "min": 0.0291,
+     "source": "pre-cut-over 0.320 over 150 systems at 0b4d0ccef"
+    },
+    "comets_count": {
+     "kind": "stand-in",
+     "max": 1.5243,
+     "min": 0.0,
+     "source": "pre-cut-over 0.753 over 150 systems at 0b4d0ccef"
+    },
+    "habitable_class": {
+     "kind": "stand-in",
+     "max": 0.7463,
+     "min": 0.1337,
+     "source": "pre-cut-over 0.440 over 150 systems at 0b4d0ccef"
+    },
+    "life_abiogenesis": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.4465,
+     "source": "pre-cut-over 0.727 over 150 systems at 0b4d0ccef"
+    },
+    "life_complex_cells": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.3589,
+     "min": 0.01,
+     "source": "pre-cut-over 0.133 over 150 systems at 0b4d0ccef"
+    },
+    "life_multicellularity": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.3378,
+     "min": 0.01,
+     "source": "pre-cut-over 0.120 over 150 systems at 0b4d0ccef"
+    },
+    "life_photosynthesis": {
+     "kind": "stand-in",
+     "max": 0.788,
+     "min": 0.172,
+     "source": "pre-cut-over 0.480 over 150 systems at 0b4d0ccef"
+    },
+    "life_technological_civilization": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.327,
+     "min": 0.01,
+     "source": "pre-cut-over 0.113 over 150 systems at 0b4d0ccef"
+    },
+    "moons_per_planet": {
+     "kind": "stand-in",
+     "max": 1.8252,
+     "min": 0.6645,
+     "source": "pre-cut-over 1.245 over 150 systems at 0b4d0ccef"
+    },
+    "planets": {
+     "kind": "stand-in",
+     "max": 10.3514,
+     "min": 3.3153,
+     "source": "pre-cut-over 6.833 over 150 systems at 0b4d0ccef"
+    },
+    "zero_planets": {
+     "kind": "stand-in",
+     "max": 0.3589,
+     "min": 0.01,
+     "source": "pre-cut-over 0.133 over 150 systems at 0b4d0ccef"
+    }
+   },
+   "n_ref": 150
+  },
+  "G2V": {
+   "measures": {
+    "belts": {
+     "kind": "stand-in",
+     "max": 0.8082,
+     "min": 0.1918,
+     "source": "pre-cut-over 0.500 over 150 systems at 0b4d0ccef"
+    },
+    "belts_count": {
+     "kind": "stand-in",
+     "max": 1.2654,
+     "min": 0.1613,
+     "source": "pre-cut-over 0.713 over 150 systems at 0b4d0ccef"
+    },
+    "binary": {
+     "kind": "stand-in",
+     "max": 0.7674,
+     "min": 0.1526,
+     "source": "pre-cut-over 0.460 over 150 systems at 0b4d0ccef"
+    },
+    "blue_green": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.282,
+     "min": 0.01,
+     "source": "pre-cut-over 0.087 over 150 systems at 0b4d0ccef"
+    },
+    "comets": {
+     "kind": "stand-in",
+     "max": 0.6655,
+     "min": 0.0678,
+     "source": "pre-cut-over 0.367 over 150 systems at 0b4d0ccef"
+    },
+    "comets_count": {
+     "kind": "stand-in",
+     "max": 1.4369,
+     "min": 0.0698,
+     "source": "pre-cut-over 0.753 over 150 systems at 0b4d0ccef"
+    },
+    "habitable_class": {
+     "kind": "stand-in",
+     "max": 0.6807,
+     "min": 0.0793,
+     "source": "pre-cut-over 0.380 over 150 systems at 0b4d0ccef"
+    },
+    "life_abiogenesis": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.5161,
+     "source": "pre-cut-over 0.780 over 150 systems at 0b4d0ccef"
+    },
+    "life_complex_cells": {
+     "kind": "stand-in",
+     "max": 0.176,
+     "min": 0.0,
+     "source": "pre-cut-over 0.033 over 150 systems at 0b4d0ccef"
+    },
+    "life_multicellularity": {
+     "kind": "stand-in",
+     "max": 0.1599,
+     "min": 0.0,
+     "source": "pre-cut-over 0.027 over 150 systems at 0b4d0ccef"
+    },
+    "life_photosynthesis": {
+     "kind": "stand-in",
+     "max": 0.8082,
+     "min": 0.1918,
+     "source": "pre-cut-over 0.500 over 150 systems at 0b4d0ccef"
+    },
+    "life_technological_civilization": {
+     "kind": "stand-in",
+     "max": 0.1599,
+     "min": 0.0,
+     "source": "pre-cut-over 0.027 over 150 systems at 0b4d0ccef"
+    },
+    "moons_per_planet": {
+     "kind": "stand-in",
+     "max": 1.7927,
+     "min": 0.7148,
+     "source": "pre-cut-over 1.254 over 150 systems at 0b4d0ccef"
+    },
+    "planets": {
+     "kind": "stand-in",
+     "max": 12.0415,
+     "min": 4.0918,
+     "source": "pre-cut-over 8.067 over 150 systems at 0b4d0ccef"
+    },
+    "zero_planets": {
+     "kind": "stand-in",
+     "max": 0.2326,
+     "min": 0.01,
+     "source": "pre-cut-over 0.060 over 150 systems at 0b4d0ccef"
+    }
+   },
+   "n_ref": 150
+  },
+  "K0III": {
+   "measures": {
+    "belts": {
+     "kind": "stand-in",
+     "max": 0.5017,
+     "min": 0.01,
+     "source": "pre-cut-over 0.233 over 150 systems at 0b4d0ccef"
+    },
+    "belts_count": {
+     "kind": "stand-in",
+     "max": 0.5558,
+     "min": 0.0,
+     "source": "pre-cut-over 0.260 over 150 systems at 0b4d0ccef"
+    },
+    "binary": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.4983,
+     "source": "pre-cut-over 0.767 over 150 systems at 0b4d0ccef"
+    },
+    "blue_green": {
+     "kind": "stand-in",
+     "max": 0.1226,
+     "min": 0.0,
+     "source": "pre-cut-over 0.013 over 150 systems at 0b4d0ccef"
+    },
+    "comets": {
+     "kind": "stand-in",
+     "max": 0.6881,
+     "min": 0.0852,
+     "source": "pre-cut-over 0.387 over 150 systems at 0b4d0ccef"
+    },
+    "comets_count": {
+     "kind": "stand-in",
+     "max": 1.43,
+     "min": 0.0634,
+     "source": "pre-cut-over 0.747 over 150 systems at 0b4d0ccef"
+    },
+    "habitable_class": {
+     "kind": "stand-in",
+     "max": 0.2701,
+     "min": 0.01,
+     "source": "pre-cut-over 0.080 over 150 systems at 0b4d0ccef"
+    },
+    "life_abiogenesis": {
+     "kind": "stand-in",
+     "max": 0.4839,
+     "min": 0.01,
+     "source": "pre-cut-over 0.220 over 150 systems at 0b4d0ccef"
+    },
+    "life_complex_cells": {
+     "kind": "stand-in",
+     "max": 0.1423,
+     "min": 0.0,
+     "source": "pre-cut-over 0.020 over 150 systems at 0b4d0ccef"
+    },
+    "life_multicellularity": {
+     "kind": "stand-in",
+     "max": 0.1423,
+     "min": 0.0,
+     "source": "pre-cut-over 0.020 over 150 systems at 0b4d0ccef"
+    },
+    "life_photosynthesis": {
+     "kind": "stand-in",
+     "max": 0.3378,
+     "min": 0.01,
+     "source": "pre-cut-over 0.120 over 150 systems at 0b4d0ccef"
+    },
+    "life_technological_civilization": {
+     "kind": "stand-in",
+     "max": 0.1423,
+     "min": 0.0,
+     "source": "pre-cut-over 0.020 over 150 systems at 0b4d0ccef"
+    },
+    "moons_per_planet": {
+     "kind": "stand-in",
+     "max": 1.938,
+     "min": 0.4462,
+     "source": "pre-cut-over 1.192 over 150 systems at 0b4d0ccef"
+    },
+    "planets": {
+     "kind": "stand-in",
+     "max": 4.3484,
+     "min": 0.3716,
+     "source": "pre-cut-over 2.360 over 150 systems at 0b4d0ccef"
+    },
+    "zero_planets": {
+     "kind": "stand-in",
+     "max": 0.7321,
+     "min": 0.1213,
+     "source": "pre-cut-over 0.427 over 150 systems at 0b4d0ccef"
+    }
+   },
+   "n_ref": 150
+  },
+  "K5V": {
+   "measures": {
+    "belts": {
+     "kind": "stand-in",
+     "max": 0.788,
+     "min": 0.172,
+     "source": "pre-cut-over 0.480 over 150 systems at 0b4d0ccef"
+    },
+    "belts_count": {
+     "kind": "stand-in",
+     "max": 1.1897,
+     "min": 0.1303,
+     "source": "pre-cut-over 0.660 over 150 systems at 0b4d0ccef"
+    },
+    "binary": {
+     "kind": "stand-in",
+     "max": 0.6807,
+     "min": 0.0793,
+     "source": "pre-cut-over 0.380 over 150 systems at 0b4d0ccef"
+    },
+    "blue_green": {
+     "kind": "stand-in",
+     "max": 0.2455,
+     "min": 0.01,
+     "source": "pre-cut-over 0.067 over 150 systems at 0b4d0ccef"
+    },
+    "comets": {
+     "kind": "stand-in",
+     "max": 0.6109,
+     "min": 0.0291,
+     "source": "pre-cut-over 0.320 over 150 systems at 0b4d0ccef"
+    },
+    "comets_count": {
+     "kind": "stand-in",
+     "max": 1.3165,
+     "min": 0.0035,
+     "source": "pre-cut-over 0.660 over 150 systems at 0b4d0ccef"
+    },
+    "habitable_class": {
+     "kind": "stand-in",
+     "max": 0.7103,
+     "min": 0.103,
+     "source": "pre-cut-over 0.407 over 150 systems at 0b4d0ccef"
+    },
+    "life_abiogenesis": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.5342,
+     "source": "pre-cut-over 0.793 over 150 systems at 0b4d0ccef"
+    },
+    "life_complex_cells": {
+     "kind": "stand-in",
+     "max": 0.2056,
+     "min": 0.0,
+     "source": "pre-cut-over 0.047 over 150 systems at 0b4d0ccef"
+    },
+    "life_multicellularity": {
+     "kind": "stand-in",
+     "max": 0.2056,
+     "min": 0.0,
+     "source": "pre-cut-over 0.047 over 150 systems at 0b4d0ccef"
+    },
+    "life_photosynthesis": {
+     "kind": "stand-in",
+     "max": 0.8345,
+     "min": 0.2188,
+     "source": "pre-cut-over 0.527 over 150 systems at 0b4d0ccef"
+    },
+    "life_technological_civilization": {
+     "kind": "stand-in",
+     "max": 0.2056,
+     "min": 0.0,
+     "source": "pre-cut-over 0.047 over 150 systems at 0b4d0ccef"
+    },
+    "moons_per_planet": {
+     "kind": "stand-in",
+     "max": 1.785,
+     "min": 0.732,
+     "source": "pre-cut-over 1.258 over 150 systems at 0b4d0ccef"
+    },
+    "planets": {
+     "kind": "stand-in",
+     "max": 12.0351,
+     "min": 4.0582,
+     "source": "pre-cut-over 8.047 over 150 systems at 0b4d0ccef"
+    },
+    "zero_planets": {
+     "kind": "stand-in",
+     "max": 0.2579,
+     "min": 0.01,
+     "source": "pre-cut-over 0.073 over 150 systems at 0b4d0ccef"
+    }
+   },
+   "n_ref": 150
+  },
+  "M2V": {
+   "measures": {
+    "belts": {
+     "kind": "stand-in",
+     "max": 0.9148,
+     "min": 0.3119,
+     "source": "pre-cut-over 0.613 over 150 systems at 0b4d0ccef"
+    },
+    "belts_count": {
+     "kind": "stand-in",
+     "max": 1.5812,
+     "min": 0.3121,
+     "source": "pre-cut-over 0.947 over 150 systems at 0b4d0ccef"
+    },
+    "binary": {
+     "kind": "stand-in",
+     "max": 0.4284,
+     "min": 0.01,
+     "source": "pre-cut-over 0.180 over 150 systems at 0b4d0ccef"
+    },
+    "blue_green": {
+     "kind": "stand-in",
+     "max": 0.176,
+     "min": 0.0,
+     "source": "pre-cut-over 0.033 over 150 systems at 0b4d0ccef"
+    },
+    "comets": {
+     "kind": "stand-in",
+     "max": 0.6502,
+     "min": 0.0565,
+     "source": "pre-cut-over 0.353 over 150 systems at 0b4d0ccef"
+    },
+    "comets_count": {
+     "kind": "stand-in",
+     "max": 1.3422,
+     "min": 0.0444,
+     "source": "pre-cut-over 0.693 over 150 systems at 0b4d0ccef"
+    },
+    "habitable_class": {
+     "kind": "stand-in",
+     "max": 0.7321,
+     "min": 0.1213,
+     "source": "pre-cut-over 0.427 over 150 systems at 0b4d0ccef"
+    },
+    "life_abiogenesis": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.673,
+     "source": "pre-cut-over 0.887 over 150 systems at 0b4d0ccef"
+    },
+    "life_complex_cells": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.3692,
+     "min": 0.01,
+     "source": "pre-cut-over 0.140 over 150 systems at 0b4d0ccef"
+    },
+    "life_multicellularity": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.3692,
+     "min": 0.01,
+     "source": "pre-cut-over 0.140 over 150 systems at 0b4d0ccef"
+    },
+    "life_photosynthesis": {
+     "kind": "stand-in",
+     "max": 0.9762,
+     "min": 0.3971,
+     "source": "pre-cut-over 0.687 over 150 systems at 0b4d0ccef"
+    },
+    "life_technological_civilization": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.3692,
+     "min": 0.01,
+     "source": "pre-cut-over 0.140 over 150 systems at 0b4d0ccef"
+    },
+    "moons_per_planet": {
+     "kind": "stand-in",
+     "max": 1.44,
+     "min": 0.5525,
+     "source": "pre-cut-over 0.996 over 150 systems at 0b4d0ccef"
+    },
+    "planets": {
+     "kind": "stand-in",
+     "max": 12.6226,
+     "min": 5.2974,
+     "source": "pre-cut-over 8.960 over 150 systems at 0b4d0ccef"
+    },
+    "zero_planets": {
+     "kind": "stand-in",
+     "max": 0.1599,
+     "min": 0.0,
+     "source": "pre-cut-over 0.027 over 150 systems at 0b4d0ccef"
+    }
+   },
+   "n_ref": 150
+  }
+ }
+}

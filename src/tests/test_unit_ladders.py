@@ -109,7 +109,7 @@ def _astropy_factor(symbol):
     """How many SI base units one `symbol` is, by astropy; None when it has no unit of that name."""
     u = pytest.importorskip("astropy.units")
     from astropy import constants as const
-    named = {"km": u.km, "AU": u.au, "mpc": u.mpc, "cpc": 0.01 * u.pc, "ly": u.lyr, "pc": u.pc, "kpc": u.kpc,
+    named = {"%": u.percent, "ppm": 1e-6 * u.dimensionless_unscaled, "mm": u.mm, "cm": u.cm, "m": u.m, "in": u.imperial.inch, "km": u.km, "AU": u.au, "mpc": u.mpc, "cpc": 0.01 * u.pc, "ly": u.lyr, "pc": u.pc, "kpc": u.kpc,
              "Mpc": u.Mpc, "Gpc": u.Gpc, "km/h": u.km / u.hr, "km/s": u.km / u.s, "Mm/s": u.Mm / u.s,
              "c": const.c, "µs": u.us, "ms": u.ms, "s": u.s, "minutes": u.min, "hours": u.hr, "days": u.day,
              "years": u.year, "kyr": u.kyr, "Myr": u.Myr, "Gyr": u.Gyr,
@@ -298,7 +298,14 @@ def test_the_browser_copy_gives_the_same_text_as_python():
 
 
 @pytest.mark.parametrize("ladder, value, auto, metric, customary", [
-    (ladders.LENGTH, 100.0, "0.1 km", "0.1 km", "328 ft"),
+    (ladders.FRACTION, 0.0004, "400 ppm", "400 ppm", "400 ppm"),
+    (ladders.FRACTION, 0.0123, "1.23 %", "1.23 %", "1.23 %"),
+    (ladders.FRACTION, 0.5, "50 %", "50 %", "50 %"),
+    (ladders.FRACTION, 0.0099, "9,900 ppm", "9,900 ppm", "9,900 ppm"),
+    (ladders.LENGTH, 100.0, "100 m", "100 m", "328 ft"),
+    (ladders.LENGTH, 1.09, "1.09 m", "1.09 m", "3.58 ft"),
+    (ladders.LENGTH, 0.0109, "1.09 cm", "1.09 cm", "0.429 in"),
+    (ladders.LENGTH, 2.4e-4, "0.24 mm", "0.24 mm", "0.00945 in"),
     (ladders.LENGTH, 384.4e6, "384,400 km", "384,400 km", "238,855 mi"),
     (ladders.LENGTH, 1.496e11, "1 AU", "150 Gm", "1 AU"),
     (ladders.LENGTH, 9.46073e15, "30.7 cpc (1 ly)", "9.46 Pm", "30.7 cpc (1 ly)"),
@@ -336,12 +343,12 @@ def test_unitladders_js_is_up_to_date():
 
 
 def test_a_value_under_a_thousandth_of_its_unit_is_scientific_not_a_row_of_zeros():
-    assert format_quantity(ladders.LENGTH, 0.4) == "4.00 × 10⁻⁴ km"
-    assert format_quantity(ladders.LENGTH, 0.5) == "5.00 × 10⁻⁴ km"
-    assert format_quantity(ladders.LENGTH, 1.0) == "0.001 km"
+    assert format_quantity(ladders.LENGTH, 4e-7) == "4.00 × 10⁻⁴ mm"
+    assert format_quantity(ladders.LENGTH, 5e-7) == "5.00 × 10⁻⁴ mm"
+    assert format_quantity(ladders.LENGTH, 1e-6) == "0.001 mm"
     assert format_quantity(ladders.TIME, 2.5e-13) == "2.50 × 10⁻⁷ µs"
     assert format_quantity(ladders.LENGTH, 0) == "0 km"
-    assert format_quantity(ladders.LENGTH, 1e-300).endswith("× 10⁻³⁰³ km")
+    assert format_quantity(ladders.LENGTH, 1e-300).endswith("× 10⁻²⁹⁷ mm")
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")

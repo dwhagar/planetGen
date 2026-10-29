@@ -94,7 +94,8 @@
       </div>
       {%- endfor %}
       <div class="search-fields" data-place-shared="sector address position">
-        {{ field("center_radius_pc", "Radius around it (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of the sector or position named above. Not used for a random spot, which has its own radius.") }}
+        {{ ui_checkbox("center_region", "This region: fill the standard 12 pc sphere about the anchor of the region it is in, so the whole region is charted and named (the radius below is not used)", checked=(form and form.get("center_region"))) }}
+        {{ field("center_radius_pc", "Radius around it (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of the sector or position named above. Not used for a random spot, which has its own radius, nor with This region.") }}
       </div>
     </fieldset>
     <fieldset class="generate-mode" data-what-panel="grid">
@@ -224,6 +225,24 @@
         {{ field("down_to", "Go down to (solar luminosities)", value="", min=1, placeholder="100") }}
       </div>
     </fieldset>
+    {%- elif task.key == "bring-to-epoch" %}
+    {%- if epoch.error %}
+    <p class="hint" role="alert">{{ epoch.error }}</p>
+    {%- else %}
+    <p>The generator is at epoch {{ epoch.current }}. A sector, a scatter and the plan each remember the epoch they were
+    made under, and each epoch says which of these it changed. This generates again only the sectors an epoch since
+    then altered, in address order, and makes older species again. A sector an admin edited is left alone and listed.
+    Run it again to pick up where an interrupted run stopped.</p>
+    {%- if epoch.nothing %}
+    <p>{{ epoch.lines[0] }}</p>
+    {%- else %}
+    <ul class="epoch-lines">
+      {%- for line in epoch.lines %}
+      <li>{{ line }}</li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+    {%- endif %}
     {%- elif task.key == "check" %}
     <p>Looks for damage in <code>{{ database }}</code>: the schema version, table health, rows whose parent is gone,
     ids that would clash, impossible values, sector counts and version keys. It changes nothing, and the job ends
@@ -236,7 +255,7 @@
       {{ confirm_field("reset-confirm") }}
     </div>
     {%- endif %}
-    {%- if task.key not in ("check", "wipe") %}
+    {%- if task.key not in ("check", "wipe", "bring-to-epoch") %}
     <div class="search-fields">
       {{ disregard_data("disregard-data") }}
     </div>

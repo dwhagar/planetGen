@@ -119,6 +119,10 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/logrecord.sh
+source "$SCRIPT_DIR/scripts/logrecord.sh"
+
 CANCEL_RUNNING=()
 RESET_JOBS=0
 KILL_ALL=0
@@ -127,17 +131,16 @@ for arg in "$@"; do
         --cancel-running) CANCEL_RUNNING=(--cancel-running) ;;
         --reset-jobs) RESET_JOBS=1 ;;
         --kill-all) KILL_ALL=1; CANCEL_RUNNING=(--cancel-running) ;;
-        *) echo "error: unknown argument '$arg' (the options are --cancel-running, --reset-jobs and --kill-all)." >&2; exit 2 ;;
+        *) log_error "unknown argument '$arg' (the options are --cancel-running, --reset-jobs and --kill-all)."; exit 2 ;;
     esac
 done
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HTML_DIR="$SCRIPT_DIR/src/html"
 NLTK_DATA_DIR="${PLANETGEN_NLTK_DATA_DIR:-/usr/local/share/nltk_data}"
 
 if [[ $EUID -ne 0 ]]; then
-    echo "error: must be run as root, e.g.:" >&2
-    echo "  sudo $0" >&2
+    log_error "must be run as root, e.g.:"
+    log_error "  sudo $0"
     exit 1
 fi
 
@@ -150,7 +153,7 @@ cd "$SCRIPT_DIR"
 export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="$SCRIPT_DIR"
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "error: $SCRIPT_DIR is not a git checkout -- can't pull an update here." >&2
+    log_error "$SCRIPT_DIR is not a git checkout -- can't pull an update here."
     exit 1
 fi
 
@@ -159,7 +162,7 @@ source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
 PYTHON="${PYTHON:-$(default_python)}"
 if [[ -z "$PYTHON" ]]; then
-    echo "error: no python3/python found on PATH." >&2
+    log_error "no python3/python found on PATH."
     exit 1
 fi
 
@@ -172,20 +175,20 @@ trap finish_update_guard EXIT
 ensure_update_guard
 
 UPDATE_STEP="step 1/9, pulling the latest changes"
-echo "== 1/9: Pulling the latest changes =="
+log_stage 1 9 "Pulling the latest changes"
 
 # Mode changes are not local edits: set-permissions.sh makes scripts and
 # *.py files executable, which git (with core.fileMode on) would list.
 # The state/ folder (the maintenance switch, the update lock) is the update's own, never a local edit (OPS.76).
 dirty="$(git -c core.fileMode=false status --porcelain -- . ':(exclude)state')"
 if [[ -n "$dirty" ]]; then
-    echo "warning: uncommitted local changes in $SCRIPT_DIR -- these will be overwritten:" >&2
-    echo "$dirty" >&2
+    log_warning "uncommitted local changes in $SCRIPT_DIR -- these will be overwritten:"
+    log_warning "$dirty"
 fi
 
 branch="$(git rev-parse --abbrev-ref HEAD)"
 if [[ "$branch" == "HEAD" ]]; then
-    echo "error: repository is in a detached HEAD state -- check out a branch first." >&2
+    log_error "repository is in a detached HEAD state -- check out a branch first."
     exit 1
 fi
 
@@ -200,9 +203,9 @@ git reset --hard "origin/$branch"
 after="$(git rev-parse HEAD)"
 
 if [[ "$before" == "$after" ]]; then
-    echo "Already up to date ($before)."
+    log_info "Already up to date ($before)."
 else
-    echo "Updated $before..$after:"
+    log_info "Updated $before..$after:"
     git log --oneline "$before..$after"
 fi
 ensure_update_guard
@@ -218,31 +221,31 @@ warn_if_no_swap
 
 echo
 UPDATE_STEP="step 2/9, checking the Python libraries"
-echo "== 2/9: Checking the Python libraries =="
+log_stage 2 9 "Checking the Python libraries"
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
 use_site_python
 ensure_update_guard required
 
 echo
 UPDATE_STEP="step 3/9, checking the NLTK words corpus and the downloaded data"
-echo "== 3/9: Checking the NLTK 'words' corpus and the downloaded data sets =="
+log_stage 3 9 "Checking the NLTK 'words' corpus and the downloaded data sets"
 ensure_nltk_words "$NLTK_DATA_DIR"
 ensure_datasets
 
 echo
 UPDATE_STEP="step 4/9, checking the generator's math"
-echo "== 4/9: Checking the generator's math =="
+log_stage 4 9 "Checking the generator's math"
 check_math
 
 echo
 UPDATE_STEP="step 5/9, migrating the database"
-echo "== 5/9: Migrating the configured MySQL database to the current schema =="
+log_stage 5 9 "Migrating the configured MySQL database to the current schema"
 migrate_or_reset_db
 record_version_key
 
 echo
 UPDATE_STEP="step 6/9, checking Apache's modules"
-echo "== 6/9: Checking Apache's modules (macOS: the gunicorn daemon) =="
+log_stage 6 9 "Checking Apache's modules (macOS: the gunicorn daemon)"
 APACHE_NEEDS_RESTART=0
 if is_macos; then
     ensure_gunicorn_daemon
@@ -252,25 +255,25 @@ fi
 
 echo
 UPDATE_STEP="step 7/9, setting ownership and permissions"
-echo "== 7/9: Setting ownership/permissions: the checkout belongs to Apache's user =="
+log_stage 7 9 "Setting ownership/permissions: the checkout belongs to Apache's user"
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"
 
 echo
 UPDATE_STEP="step 8/9, checking the cache, jobs and log locations"
-echo "== 8/9: Checking the cache, jobs and debug log locations =="
+log_stage 8 9 "Checking the cache, jobs and debug log locations"
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
 # The logs never stop an update (OPS.5): setup-debug-log.sh warns, with
 # the commands that fix it, for anything it can't set up itself.
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh" \
-    || echo "warning: the log setup didn't finish (see above); the update carries on." >&2
+    || log_warning "the log setup didn't finish (see above); the update carries on."
 
 echo
 UPDATE_STEP="step 9/9, checking that the web app imports"
-echo "== 9/9: Checking that the web app imports =="
+log_stage 9 9 "Checking that the web app imports"
 check_app_imports
 
 echo
-echo "Checking the Redis server (config.json's redis.url):"
+log_info "Checking the Redis server (config.json's redis.url):"
 ensure_redis
 check_redis_settings
 
@@ -280,31 +283,31 @@ warm_galaxy_map
 echo
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
-    echo "warning: the math check failed (step 4): charted data may be wrong until it is fixed." >&2
+    log_warning "the math check failed (step 4): charted data may be wrong until it is fixed."
 fi
 if [[ "$DATASETS_MISSING" == 1 ]]; then
-    echo "warning: some data sets could not be downloaded (step 3): bulk generation refuses to start until they are." >&2
+    log_warning "some data sets could not be downloaded (step 3): bulk generation refuses to start until they are."
 fi
-echo "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
-echo "  planetgen population && planetgen territories"
+log_info "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
+log_info "  planetgen population && planetgen territories"
 if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
-    echo "Done. Nothing new was pulled."
+    log_notice "Done. Nothing new was pulled."
 else
     UPDATE_STEP="reloading what serves the site and checking that it answers /api/health"
     reload_status=0
     reload_web_if_running || reload_status=$?
     if (( reload_status == 0 )); then
         if (( APACHE_NEEDS_RESTART )); then
-            echo "Done. mod_wsgi was just installed, so Apache was restarted to load it."
+            log_notice "Done. mod_wsgi was just installed, so Apache was restarted to load it."
         else
-            echo "Done. The site is running the new code."
+            log_notice "Done. The site is running the new code."
         fi
     elif (( reload_status == 1 )); then
-        echo "Done, but the site was not reloaded cleanly (see the warning above); the old code may still be serving." >&2
+        log_error "Done, but the site was not reloaded cleanly (see the warning above); the old code may still be serving."
         print_reload_commands >&2
         exit 1
     else
-        echo "Done. Nothing that serves the site is running, so nothing was reloaded. When it is, run:"
+        log_notice "Done. Nothing that serves the site is running, so nothing was reloaded. When it is, run:"
         print_reload_commands
     fi
 fi

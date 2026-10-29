@@ -8,11 +8,14 @@
 // A kind is
 //   id          the layer id in the map's layer registry (maplayers.js), also what the URL lists ("marker-black-hole");
 //   label       the Menu button's text and the legend line;
-//   glyph       the shape drawn (a key of GLYPHS);
-//   color       the glyph's color (CSS), also the legend swatch;
+//   glyph       the shape drawn (a key of GLYPHS), or
+//   icon        the point-of-interest symbol drawn (an id of poiicons.js, MAP.320, its file under static/poi/), a kind has
+//               one of the two; the symbol takes the colour of its token (`item.tier`, the habitability score's tier,
+//               picks one for the habitable and the inhabited world);
+//   color       the glyph's color (CSS), also the legend swatch; an icon kind has none, its token colours it;
 //   maxBlock    the largest block size (shells) whose node lists this kind completely (a node of a bigger block does not
 //               list it, so the kind is not drawn from it; default: every node does);
-//   defaultOn   shown until the visitor says otherwise (default true);
+//   defaultOn   shown until the visitor says otherwise (default true; the inhabited, habitable and gas giant reasons are on, MAP.303);
 //   source      `function (node) -> [item]`: the kind's items in one node. An item has `key` (unique within the
 //               kind), `x`, `y`, `z` (galaxy frame, parsecs) and anything the kind needs to describe it;
 //   rank        `function (item) -> number`: higher is kept first when the budget cuts the list;
@@ -22,6 +25,9 @@
 //
 // What shows is chosen by `selectMarkers`: only kinds that are on, only items in view, and no more than the
 // budget (MARKER_BUDGET) in all, the kinds sharing it evenly and handing on what one cannot use.
+
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { poiIcon, tokenOf, TIER_NAMES } = await import(`./poiicons.js${VERSION_QUERY}`);
 
 // The most markers drawn at once (MAP.116's rule for the stars: a crowded view must stay readable). Each kind gets
 // an even share of it; a kind that has less hands the rest on.
@@ -34,7 +40,8 @@ export const MIN_EXTENT_PX = 2;
 export const MARKER_PX = 18;
 
 // The shapes a kind draws, each a function `(ctx, size, color, outline)` that draws into a canvas context `size`
-// pixels square: the one place a shape is defined, so a symbol library (UX.101) can replace it by name.
+// pixels square. The black hole is the one drawn here; the other kinds are point-of-interest symbols (`icon`, MAP.320),
+// vector files, not code.
 export const GLYPHS = {
   // A black hole: a dark disc in a ring.
   "black-hole": function (ctx, size, color, outline) {
@@ -56,44 +63,96 @@ export const GLYPHS = {
     ctx.strokeStyle = color;
     ctx.stroke();
   },
-  // Overall habitability (UX.101): a solid circle inside an upright triangle inside a ring.
-  "habitable": function (ctx, size, color, outline) {
+};
+
+// The marks for worlds with life (MAP.311): a leaf for any life, a head and shoulders for a sentient species, a tower for a civilization. Each is
+// a disc ringed in the outline colour with a dark sign on it, so the shape and not only the colour tells them apart.
+function discWith(draw) {
+  return function (ctx, size, color, outline) {
     const c = size / 2;
-    const ring = c * 0.88;
-    ctx.lineJoin = "round";
-    const triangle = function () {
-      ctx.beginPath();
-      for (let i = 0; i < 3; i++) {
-        const angle = -Math.PI / 2 + (i * 2 * Math.PI) / 3;
-        const x = c + ring * 0.78 * Math.cos(angle);
-        const y = c + ring * 0.78 * Math.sin(angle) + size * 0.04;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-    };
-    [[outline, 0.2], [color, 0.09]].forEach(function (pass) {
-      ctx.strokeStyle = pass[0];
-      ctx.lineWidth = size * pass[1];
-      ctx.beginPath();
-      ctx.arc(c, c, ring, 0, Math.PI * 2);
-      ctx.stroke();
-      triangle();
-      ctx.stroke();
-    });
     ctx.beginPath();
-    ctx.arc(c, c + size * 0.08, size * 0.15, 0, Math.PI * 2);
+    ctx.arc(c, c, c * 0.92, 0, Math.PI * 2);
     ctx.fillStyle = outline;
     ctx.fill();
-    ctx.lineWidth = size * 0.04;
-    ctx.strokeStyle = outline;
-    ctx.stroke();
     ctx.beginPath();
-    ctx.arc(c, c + size * 0.08, size * 0.11, 0, Math.PI * 2);
+    ctx.arc(c, c, c * 0.76, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
-  },
-};
+    ctx.fillStyle = "#14161f";
+    ctx.strokeStyle = "#14161f";
+    ctx.lineJoin = "round";
+    draw(ctx, size);
+  };
+}
+
+GLYPHS.life = discWith(function (ctx, size) {
+  // A leaf: two arcs meeting at the tip, with a stalk.
+  const u = size / 24;
+  ctx.beginPath();
+  ctx.moveTo(6.5 * u, 17.5 * u);
+  ctx.quadraticCurveTo(5 * u, 7 * u, 17.5 * u, 6 * u);
+  ctx.quadraticCurveTo(18.5 * u, 16 * u, 6.5 * u, 17.5 * u);
+  ctx.fill();
+  ctx.lineWidth = 1.4 * u;
+  ctx.beginPath();
+  ctx.moveTo(5 * u, 19 * u);
+  ctx.lineTo(11 * u, 13 * u);
+  ctx.stroke();
+});
+
+GLYPHS.sentient = discWith(function (ctx, size) {
+  // A head and shoulders.
+  const u = size / 24;
+  ctx.beginPath();
+  ctx.arc(12 * u, 9.2 * u, 3.1 * u, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(5.8 * u, 18.5 * u);
+  ctx.quadraticCurveTo(12 * u, 7.5 * u, 18.2 * u, 18.5 * u);
+  ctx.closePath();
+  ctx.fill();
+});
+
+GLYPHS.civilization = discWith(function (ctx, size) {
+  // A skyline of three towers.
+  const u = size / 24;
+  ctx.fillRect(5.2 * u, 12 * u, 3.8 * u, 7 * u);
+  ctx.fillRect(10.1 * u, 6.2 * u, 3.8 * u, 12.8 * u);
+  ctx.fillRect(15 * u, 10 * u, 3.8 * u, 9 * u);
+});
+
+// The planet classes the map can mark (MAP.220): `planetgen.tuning.PLANET_CLASSES`' letters; tests/test_system_interests.py holds the
+// two lists to each other. A class's reason is "class-" and its letter, the same id the server's `system_interests` rows use.
+export const PLANET_CLASS_LETTERS = "ABCDEFGHIJKLMNOPQSTV".split("");
+
+// The biggest block (shells) whose node lists the class reasons (`planetgen.db.nodes.CLASS_ABOVE`): a bigger block has too many systems.
+export const CLASS_MAX_BLOCK = 3;
+
+// The colour of every class glyph (the letter tells them apart) and of the letter on it.
+const CLASS_COLOR = "#e3a63b";
+const CLASS_LETTER_COLOR = "#14161f";
+
+// A class's glyph: a disc ringed in the outline colour with the class letter on it.
+function classGlyph(letter) {
+  return function (ctx, size, color, outline) {
+    const c = size / 2;
+    ctx.beginPath();
+    ctx.arc(c, c, c * 0.92, 0, Math.PI * 2);
+    ctx.fillStyle = outline;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(c, c, c * 0.76, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.fillStyle = CLASS_LETTER_COLOR;
+    ctx.font = "bold " + Math.round(size * 0.64) + "px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(letter, c, c + size * 0.04);
+  };
+}
+
+PLANET_CLASS_LETTERS.forEach(function (letter) { GLYPHS["class-" + letter] = classGlyph(letter); });
 
 // The markers of black holes (not neutron stars or quasars): the nodes' `points` (placed ones and the scattered ones
 // not yet built into a sector), heaviest first. Nodes of every block size list the biggest, so every node counts.
@@ -113,23 +172,160 @@ export const BLACK_HOLE_KIND = {
   describe: function (item) { return (item.name ? item.name + ", " : "") + "Black Hole" + (item.descriptor ? " (" + item.descriptor + ")" : ""); },
 };
 
-// The star systems with a habitable world (MAP.220): an overall PHI-6 Blue or Green planet or moon. The nodes' `worlds`
-// list them for blocks of 81 shells and smaller (the server leaves it out of bigger ones), most worlds first.
-export const HABITABLE_KIND = {
-  id: "marker-habitable",
-  label: "Habitable worlds",
-  glyph: "habitable",
-  color: "#4fd18b",
-  maxBlock: 81,
-  defaultOn: false,
-  source: function (node) {
-    return (node.worlds || []).map(function (system) { return Object.assign({ key: String(system.id) }, system); });
+// The reasons a star system is worth a mark (MAP.305, MAP.303): the client side of `planetgen.db.interests.REASONS`. A
+// system with at least one reason is listed by the nodes' `interests` (blocks of 81 shells and smaller; the server leaves them
+// out of bigger ones), each with its `reasons` ({id: {n, score, tier}}). A reason is
+//   id         what the server and the layer call it ("habitable", "gas-giant");
+//   label      the Menu button's text and the legend line, also the infobox's name for the reason;
+//   icon       the symbol the system's mark takes when this is its first reason (poiicons.js);
+//   defaultOn  shown until the visitor says otherwise;
+//   body       what one body of this reason is called (a world on the map's system level, MAP.321: "habitable world");
+//   describe   `function (reason) -> string`: the infobox line for a system's `{n, score, tier}` of it.
+// The reasons are in the order the map prefers them (MAP.321: the best world's symbol, an inhabited one before a habitable one before a barren one before a
+// gas giant before a belt): a system with several is drawn once, with the first of them that is on (selectMarkers), and its infobox
+// lists them all. A reason is added here (and in the server's registry) and the Menu, the
+// legend, the budget and the infobox take it up with no other change.
+export const INTEREST_REASONS = [
+  {
+    id: "inhabited",
+    label: "Inhabited worlds",
+    body: "inhabited world",
+    icon: "inhabited-world",
+    defaultOn: true,
+    describe: function (reason) {
+      return reason.n + (reason.n === 1 ? " inhabited world" : " inhabited worlds") + (reason.tier == null ? "" : ", best " + TIER_NAMES[reason.tier]);
+    },
   },
-  rank: function (item) { return item.worlds || 0; },
-  describe: function (item) {
-    return (item.name ? item.name + ", " : "") + item.worlds + (item.worlds === 1 ? " habitable world" : " habitable worlds");
+  {
+    id: "civilization",
+    label: "Civilizations",
+    body: "civilization",
+    glyph: "civilization",
+    color: "#f08a4b",
+    defaultOn: false,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " world with a civilization" : " worlds with a civilization"); },
   },
-};
+  {
+    id: "sentient",
+    label: "Sentient life",
+    body: "world with sentient life",
+    glyph: "sentient",
+    color: "#e0c24b",
+    defaultOn: false,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " world with sentient life" : " worlds with sentient life"); },
+  },
+  {
+    id: "life",
+    label: "Life",
+    body: "world with life",
+    glyph: "life",
+    color: "#7bd16f",
+    defaultOn: false,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " world with life" : " worlds with life"); },
+  },
+  {
+    id: "habitable",
+    label: "Habitable worlds",
+    body: "habitable world",
+    icon: "habitable-world",
+    defaultOn: true,
+    describe: function (reason) {
+      return reason.n + (reason.n === 1 ? " habitable world" : " habitable worlds") + (reason.tier == null ? "" : ", best " + TIER_NAMES[reason.tier]);
+    },
+  },
+  {
+    id: "uninhabitable",
+    label: "Uninhabitable worlds",
+    body: "uninhabitable world",
+    icon: "uninhabitable-world",
+    defaultOn: false,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " uninhabitable world" : " uninhabitable worlds"); },
+  },
+  {
+    id: "gas-giant",
+    label: "Gas giants",
+    body: "gas giant",
+    icon: "gas-giant",
+    defaultOn: true,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " gas giant" : " gas giants"); },
+  },
+  {
+    id: "asteroid-field",
+    label: "Asteroid fields",
+    body: "asteroid belt",
+    icon: "asteroid-field",
+    defaultOn: false,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " asteroid belt" : " asteroid belts"); },
+  },
+].concat(PLANET_CLASS_LETTERS.map(function (letter) {
+  return {
+    id: "class-" + letter,
+    label: "Class " + letter + " worlds",
+    body: "class " + letter + " world",
+    glyph: "class-" + letter,
+    color: CLASS_COLOR,
+    maxBlock: CLASS_MAX_BLOCK,
+    family: "class",
+    defaultOn: false,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " class " + letter + " world" : " class " + letter + " worlds"); },
+  };
+}));
+
+// A node's system as an item of one reason: `key`, the system's `id`, `name` and place, how many bodies (`n`), the best
+// score's tier as an index (0 Blue to 3 Red, `tier`; absent for a reason with no score) and every reason the system has
+// (`reasons`, for the infobox).
+function interestItems(node, reason) {
+  return (node.interests || []).filter(function (system) { return system.reasons && system.reasons[reason.id]; }).map(function (system) {
+    const mine = system.reasons[reason.id];
+    const item = Object.assign({ key: String(system.id), interest: reason.id }, system, { n: mine.n });
+    if (mine.tier != null) item.tier = TIER_NAMES.indexOf(mine.tier);
+    if (mine.score != null) item.score = mine.score;
+    return item;
+  });
+}
+
+// The marker kind of an interest reason: its id is "marker-" and the reason's, the Menu layer and the address's `show=`.
+export function interestKind(reason) {
+  const kind = {
+    id: "marker-" + reason.id,
+    label: reason.label,
+    maxBlock: reason.maxBlock || 81,
+    defaultOn: reason.defaultOn,
+    interest: reason.id,
+    family: reason.family || null,
+    bodyName: reason.body,
+    source: function (node) { return interestItems(node, reason); },
+    rank: function (item) { return item.n || 0; },
+    describe: function (item) { return (item.name ? item.name + ", " : "") + reason.describe(item); },
+  };
+  if (reason.glyph) {
+    kind.glyph = reason.glyph;
+    kind.color = reason.color;
+  } else {
+    kind.icon = reason.icon;
+  }
+  return kind;
+}
+
+export const INTEREST_KINDS = INTEREST_REASONS.map(interestKind);
+
+// The star systems with a habitable world (MAP.220, MAP.303): an overall PHI-6 Yellow or better planet or moon.
+export const HABITABLE_KIND = INTEREST_KINDS.find(function (kind) { return kind.interest === "habitable"; });
+
+// The star systems with a gas giant (MAP.305).
+export const GAS_GIANT_KIND = INTEREST_KINDS.find(function (kind) { return kind.interest === "gas-giant"; });
+
+// The infobox lines of a system's reasons, in the registry's order: `[{id, label, text}]`.
+export function interestLines(system) {
+  const lines = [];
+  INTEREST_REASONS.forEach(function (reason) {
+    const mine = system && system.reasons && system.reasons[reason.id];
+    if (!mine) return;
+    const shaped = { n: mine.n, score: mine.score, tier: mine.tier == null ? null : TIER_NAMES.indexOf(mine.tier) };
+    lines.push({ id: reason.id, label: reason.label, text: reason.describe(shaped) });
+  });
+  return lines;
+}
 
 // The block size (shells) of a node key "m.shell.band.wedge".
 export function blockOfKey(key) {
@@ -142,7 +338,9 @@ export function createMarkerKinds() {
   const kinds = [];
 
   function register(kind) {
-    if (!kind || !kind.id || !kind.label || !GLYPHS[kind.glyph]) throw new Error("a marker kind needs an id, a label and a known glyph");
+    if (!kind || !kind.id || !kind.label || !(GLYPHS[kind.glyph] || (!kind.glyph && poiIcon(kind.icon)))) {
+      throw new Error("a marker kind needs an id, a label and a known glyph or icon");
+    }
     if (kinds.some(function (known) { return known.id === kind.id; })) throw new Error("marker kind " + kind.id + " is already registered");
     kinds.push(Object.assign({ maxBlock: Infinity, defaultOn: true, extentPc: null, rank: function () { return 0; },
       describe: function (item) { return item.name || kind.label; } }, kind));
@@ -162,15 +360,23 @@ export function createMarkerKinds() {
 //   nodes      `[{key, node}]`, the nodes of the view that are loaded;
 //   inView     optional `function (item) -> boolean`: false leaves an item out (off screen, behind the camera);
 //   pxOf       optional `function (item, kind) -> pixels` for an item with an `extentPc`: its on-screen size;
+//   isPulled   optional `function (kindId) -> boolean`: a kind pulled forward (MAP.306) has first call on the budget and on a
+//              system's symbol, and its entries carry `pulled: true`;
 //   budget     optional, MARKER_BUDGET.
 // Returns `[{kind, item}]`: per kind, highest rank first, at most the kind's share of the budget (an even share,
 // what a kind does not use going to the others), a node of a block bigger than a kind's `maxBlock` not counted for it,
-// an item listed by several nodes once.
+// an item listed by several nodes once, and a system with several interest reasons once (under the first reason that is on).
 export function selectMarkers(options) {
   const budget = options.budget == null ? MARKER_BUDGET : options.budget;
   const inView = options.inView || function () { return true; };
   const lists = [];
-  options.kinds.forEach(function (kind) {
+  // A system with several interest reasons is drawn once, by the first reason that is on (MAP.305), a reason pulled forward before
+  // the others.
+  const claimed = new Set();
+  const isPulled = options.isPulled || function () { return false; };
+  const ordered = options.kinds.filter(function (kind) { return isPulled(kind.id); })
+    .concat(options.kinds.filter(function (kind) { return !isPulled(kind.id); }));
+  ordered.forEach(function (kind) {
     if (!options.isOn(kind.id)) return;
     const seen = new Map();
     options.nodes.forEach(function (entry) {
@@ -182,14 +388,24 @@ export function selectMarkers(options) {
     const items = Array.from(seen.values()).filter(function (item) {
       if (!inView(item)) return false;
       if (kind.extentPc && options.pxOf && !(options.pxOf(item, kind) >= MIN_EXTENT_PX)) return false;
+      if (kind.interest) {
+        if (claimed.has(item.id)) return false;
+        claimed.add(item.id);
+      }
       return true;
     });
     items.sort(function (p, q) { return kind.rank(q) - kind.rank(p) || (p.key < q.key ? -1 : p.key > q.key ? 1 : 0); });
     lists.push({ kind: kind, items: items, taken: 0 });
   });
-  // Even shares, then the leftovers handed round, until the budget is spent or every list is.
+  // A kind pulled forward is served first, whole, before the rest share what is left.
   let left = budget;
-  let open = lists.filter(function (list) { return list.items.length > 0; });
+  lists.forEach(function (list) {
+    if (!isPulled(list.kind.id)) return;
+    list.taken = Math.min(list.items.length, left);
+    left -= list.taken;
+  });
+  // Even shares, then the leftovers handed round, until the budget is spent or every list is.
+  let open = lists.filter(function (list) { return !isPulled(list.kind.id) && list.items.length > 0; });
   while (left > 0 && open.length) {
     const share = Math.max(1, Math.floor(left / open.length));
     open.forEach(function (list) {
@@ -201,12 +417,99 @@ export function selectMarkers(options) {
   }
   const chosen = [];
   lists.forEach(function (list) {
-    list.items.slice(0, list.taken).forEach(function (item) { chosen.push({ kind: list.kind, item: item }); });
+    const pulled = isPulled(list.kind.id);
+    list.items.slice(0, list.taken).forEach(function (item) {
+      const entry = { kind: list.kind, item: item };
+      if (pulled) entry.pulled = true;
+      chosen.push(entry);
+    });
   });
   return chosen;
 }
 
-// The legend line of a kind for the layer registry (maplayers.js): its swatch is the glyph's color.
+// The legend line of a kind for the layer registry (maplayers.js): the kind's symbol where it has one (`icon`, drawn
+// by the registry in the colour of `token`), else a swatch of the glyph's color.
 export function legendOf(kind) {
+  if (kind.icon) return { text: kind.label, icon: kind.icon, token: tokenOf(kind.icon, null) };
   return { text: kind.label, swatch: kind.color, swatchClass: "map-marker-swatch" };
+}
+
+// The CSS custom property that colours `item` of `kind`: the symbol's own token, or the habitability tier's for a
+// symbol the score colours. `null` for a glyph kind (its `color` is a color, not a token).
+export function tokenOfItem(kind, item) {
+  return kind.icon ? tokenOf(kind.icon, item && item.tier != null ? item.tier : null) : null;
+}
+
+// Marks closer together on the screen than this, in CSS pixels between their centres, are drawn as one (MAP.305): the symbols are
+// MARKER_PX across, so these would lie over each other.
+export const MERGE_PX = 22;
+
+// Merges the crowded star-level interest marks of `chosen` (`selectMarkers`' `[{kind, item}]`, with any other entries after them) into one
+// mark each. `screenOf(item)` is the item's place on the screen in CSS pixels, `{x, y}`, or null for one that has none. Only a system's
+// own interest mark merges (a kind with `interest`, no `bodyRef` or `regionKey`); a black hole, a body's symbol or a region's token stays
+// as it is. The marks are taken pulled-forward ones first (MAP.306), then in the registry's order of reasons, most bodies first, each one gathering the unmerged marks within
+// `radiusPx` of it, so the same crowd always merges the same way and a mark's symbol is its crowd's best reason (an inhabited world
+// before a habitable one before the rest). A crowd of two or more becomes one entry whose item is
+//   `{key, id, x, y, z (the middle of its systems), n (their bodies), count (their number), tier (the best), members (their items),
+//     merged: true, interest}`
+// and whose kind is the best member's with the hover text of a crowd. Zooming in spreads the marks and the crowd splits.
+export function mergeMarks(chosen, screenOf, radiusPx) {
+  const radius = radiusPx === undefined ? MERGE_PX : radiusPx;
+  const order = INTEREST_REASONS.map(function (reason) { return reason.id; });
+  const placed = [];
+  const rest = [];
+  chosen.forEach(function (entry) {
+    const item = entry.item;
+    const spot = entry.kind.interest && !item.bodyRef && !item.regionKey && !item.follow ? screenOf(item) : null;
+    if (spot) placed.push({ entry: entry, spot: spot });
+    else rest.push(entry);
+  });
+  placed.sort(function (p, q) {
+    return (q.entry.pulled ? 1 : 0) - (p.entry.pulled ? 1 : 0)
+      || order.indexOf(p.entry.kind.interest) - order.indexOf(q.entry.kind.interest) || (q.entry.item.n || 0) - (p.entry.item.n || 0)
+      || (p.entry.item.key < q.entry.item.key ? -1 : p.entry.item.key > q.entry.item.key ? 1 : 0);
+  });
+  const taken = new Set();
+  const out = [];
+  placed.forEach(function (seed) {
+    if (taken.has(seed)) return;
+    taken.add(seed);
+    const crowd = [seed];
+    placed.forEach(function (other) {
+      if (taken.has(other)) return;
+      if (Math.hypot(other.spot.x - seed.spot.x, other.spot.y - seed.spot.y) <= radius) {
+        taken.add(other);
+        crowd.push(other);
+      }
+    });
+    out.push(crowd.length === 1 ? seed.entry : mergedEntry(crowd.map(function (member) { return member.entry; })));
+  });
+  return out.concat(rest);
+}
+
+// The one entry a crowd of marks is drawn as; `entries` are in the order of preference, the first one the best.
+function mergedEntry(entries) {
+  const best = entries[0];
+  const total = function (key) { return entries.reduce(function (sum, entry) { return sum + (entry.item[key] || 0); }, 0); };
+  const item = {
+    key: "merge:" + best.item.key, id: "merge:" + best.item.id, name: null,
+    x: total("x") / entries.length, y: total("y") / entries.length, z: total("z") / entries.length,
+    n: total("n"), count: entries.length, interest: best.kind.interest, merged: true,
+    members: entries.map(function (entry) { return entry.item; }),
+  };
+  if (best.item.tier != null) item.tier = best.item.tier;
+  const merged = { kind: crowdKind(best.kind), item: item };
+  if (entries.some(function (entry) { return entry.pulled; })) merged.pulled = true;    // a crowd takes the strongest state of its members
+  return merged;
+}
+
+// The kind of a crowd's mark: its best reason's kind with the hover text of a crowd ("12 points of interest").
+const crowdKinds = new Map();
+function crowdKind(kind) {
+  if (!crowdKinds.has(kind.id)) {
+    crowdKinds.set(kind.id, Object.assign({}, kind, {
+      describe: function (item) { return item.count + " points of interest"; },
+    }));
+  }
+  return crowdKinds.get(kind.id);
 }

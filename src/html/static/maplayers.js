@@ -18,13 +18,19 @@
 //   defaultOn        shown until the visitor says otherwise (default true);
 //   urlKey           the URL parameter that lists the layers of this key turned OFF ("hide"); layers that
 //                    begin off need urlKeyOn, the parameter that lists the ones turned ON ("show");
-//   legend           null, a string, `{text, swatch, swatchClass}`, or `function (on) -> the same | null`
-//                    (`swatch` is a CSS color, `swatchClass` a CSS class that draws the mark);
+//   legend           null, a string, `{text, swatch, swatchClass}` or `{text, icon, token}`, or `function (on) -> the
+//                    same | null` (`swatch` is a CSS color, `swatchClass` a CSS class that draws the mark; `icon` is a
+//                    point-of-interest symbol of poiicons.js and `token` the CSS custom property that colours it, MAP.320);
 //   pickerLayer      null, or the picker layer's declaration (mappick.js `addLayer`'s argument), added to a
 //                    map's picker while the layer is on;
 //   fadedWithSectors true when the blocker fade (MAP.149, nearfield.js) hides the layer with the sectors; a
 //                    course layer says false (MAP.121's note);
-//   draw             optional `function (scene, on)`, called by `draw(scene)` for every layer of the mode.
+//   draw             optional `function (scene, on)`, called by `draw(scene)` for every layer of the mode;
+//   forward          true when the layer can also be pulled forward (MAP.306): a third state beside shown and hidden, which
+//                    the layer's own code reads through `isPulled(id)` (it is drawn on top and named first). The Menu
+//                    gives such a layer a second button; pulling a layer forward shows it, hiding it lets it go;
+//   bulk             (a group) `registry.bulkGroup(group)` gives a Menu group one row of buttons that set every layer of it
+//                    to shown, pulled forward or hidden at once.
 //
 // The registry holds what is on and off by layer id, including ids not registered yet (a URL names a kind
 // before any sector opens it), and writes the lists back to a URL's parameters. Plain DOM calls only, never
@@ -34,11 +40,15 @@
 
 export const MODES = ["galaxy", "sector", "system"];
 
+const VERSION_QUERY = new URL(import.meta.url).search;
+const SVG_NS = "http://www.w3.org/2000/svg";
+
 function entryOf(legend, on) {
   const value = typeof legend === "function" ? legend(on) : legend;
   if (!value) return null;
-  if (typeof value === "string") return { text: value, swatch: null, swatchClass: null };
-  return { text: value.text, swatch: value.swatch || null, swatchClass: value.swatchClass || null };
+  if (typeof value === "string") return { text: value, swatch: null, swatchClass: null, icon: null, token: null };
+  return { text: value.text, swatch: value.swatch || null, swatchClass: value.swatchClass || null,
+    icon: value.icon || null, token: value.token || null };
 }
 
 function listOf(value) {
@@ -57,6 +67,8 @@ export function createLayerRegistry(mode, options) {
   const state = new Map(); // id -> true (on) or false (off), only where it differs from the default
   const listeners = [];
   const origin = new Map(); // id -> the parameter that named it, for ids not registered (yet)
+  const pulled = new Set(); // ids pulled forward (MAP.306); `front` in the URL lists them
+  const bulkGroups = new Set(); // Menu groups with a row that sets all their layers at once
   const views = new Map(); // container -> its refresh, one menu or legend per container
 
   function find(id) {
@@ -82,6 +94,48 @@ export function createLayerRegistry(mode, options) {
     if (state.has(id)) return state.get(id);
     const layer = find(id);
     return layer ? defaultOf(layer) : true;
+  }
+
+  // True while the layer is on and has been pulled forward (a layer that is hidden is not pulled).
+  function isPulled(id) {
+    const layer = find(id);
+    return pulled.has(id) && isOn(id) && !!(layer && layer.forward);
+  }
+
+  // Pulls a layer forward or lets it go; pulling one forward shows it.
+  function setPulled(id, on) {
+    const layer = find(id);
+    if (on && !(layer && layer.forward)) return false;
+    const before = isPulled(id);
+    if (on) {
+      pulled.add(id);
+      setOn(id, true);
+    } else {
+      pulled.delete(id);
+    }
+    if (before !== isPulled(id)) changed(id);
+    return isPulled(id);
+  }
+
+  // The state of a forward-capable layer as a word: "hidden", "shown" or "forward".
+  function stateOf(id) {
+    return !isOn(id) ? "hidden" : isPulled(id) ? "forward" : "shown";
+  }
+
+  // Sets every forward-capable layer of the mode in `group` to "hidden", "shown" or "forward" at once.
+  function setGroup(group, word) {
+    forMode().filter(function (layer) { return layer.group === group; }).forEach(function (layer) {
+      if (word === "hidden") {
+        pulled.delete(layer.id);
+        setOn(layer.id, false);
+      } else if (word === "forward" && layer.forward) {
+        setPulled(layer.id, true);
+      } else {
+        pulled.delete(layer.id);
+        setOn(layer.id, true);
+        changed(layer.id);
+      }
+    });
   }
 
   function register(spec) {
@@ -112,6 +166,7 @@ export function createLayerRegistry(mode, options) {
     on = !!on;
     const layer = find(id);
     const before = isOn(id);
+    if (!on) pulled.delete(id);    // hiding a layer lets it go from the front
     if (layer && on === defaultOf(layer)) state.delete(id);
     else state.set(id, on);
     if (before !== isOn(id)) changed(id);
@@ -137,6 +192,9 @@ export function createLayerRegistry(mode, options) {
       if (layer.urlKeyOn) keysOn.add(layer.urlKeyOn);
     });
     const before = new Map(state);
+    const pulledBefore = new Set(pulled);
+    pulled.clear();
+    listOf(params.get("front")).forEach(function (id) { pulled.add(id); });
     keysOff.forEach(function (key) { listOf(params.get(key)).forEach(function (id) { origin.set(id, { on: false, key: key }); }); });
     keysOn.forEach(function (key) { listOf(params.get(key)).forEach(function (id) { origin.set(id, { on: true, key: key }); }); });
     Array.from(state.keys()).forEach(function (id) {
@@ -152,6 +210,8 @@ export function createLayerRegistry(mode, options) {
     }
     const ids = new Set(Array.from(before.keys()).concat(Array.from(state.keys())));
     ids.forEach(function (id) { if (before.get(id) !== state.get(id)) changed(id); });
+    pulledBefore.forEach(function (id) { if (!pulled.has(id) && before.get(id) === state.get(id)) changed(id); });
+    pulled.forEach(function (id) { if (!pulledBefore.has(id) && before.get(id) === state.get(id)) changed(id); });
   }
 
   // Sets or removes the layers' parameters on `params` (a URLSearchParams) and returns it.
@@ -170,6 +230,9 @@ export function createLayerRegistry(mode, options) {
       if (ids.length) params.set(key, ids.join(","));
       else params.delete(key);
     });
+    const front = Array.from(pulled).filter(function (id) { const layer = find(id); return !layer || (layer.forward && isOn(id)); });
+    if (front.length) params.set("front", front.join(","));
+    else params.delete("front");
     return params;
   }
 
@@ -179,7 +242,10 @@ export function createLayerRegistry(mode, options) {
     forMode().forEach(function (layer) {
       if (!isOn(layer.id)) return;
       const entry = entryOf(layer.legend, true);
-      if (entry) lines.push({ id: layer.id, text: entry.text, swatch: entry.swatch, swatchClass: entry.swatchClass });
+      if (entry) {
+        lines.push({ id: layer.id, text: entry.text, swatch: entry.swatch, swatchClass: entry.swatchClass,
+          icon: entry.icon, token: entry.token });
+      }
     });
     return lines;
   }
@@ -213,10 +279,12 @@ export function createLayerRegistry(mode, options) {
   function renderMenu(container) {
     const doc = container.ownerDocument || document;
     const buttons = new Map();
+    const forwards = new Map();
     let signature = null;
     function build(list) {
       container.textContent = "";
       buttons.clear();
+      forwards.clear();
       let group;
       list.forEach(function (layer) {
         if (layer.group !== group) {
@@ -226,6 +294,23 @@ export function createLayerRegistry(mode, options) {
             heading.className = "galaxy-kinds-heading";
             heading.textContent = group;
             container.appendChild(heading);
+            if (bulkGroups.has(group)) {
+              // MAP.306: one row of buttons that sets every layer of the group at once.
+              const row = doc.createElement("span");
+              row.className = "galaxy-kinds-bulk";
+              [["shown", "All shown"], ["forward", "All forward"], ["hidden", "All hidden"]].forEach(function (pair) {
+                const all = doc.createElement("button");
+                all.type = "button";
+                all.className = "starmap-btn";
+                all.dataset.bulk = pair[0];
+                all.dataset.group = group;
+                all.textContent = pair[1];
+                const name = group;
+                all.addEventListener("click", function () { setGroup(name, pair[0]); });
+                row.appendChild(all);
+              });
+              container.appendChild(row);
+            }
           }
         }
         const button = doc.createElement("button");
@@ -237,6 +322,18 @@ export function createLayerRegistry(mode, options) {
         button.addEventListener("click", function () { toggle(layer.id); });
         buttons.set(layer.id, button);
         container.appendChild(button);
+        if (layer.forward) {
+          // MAP.306: the second button of a row, pulled forward or not (it shows the layer too).
+          const front = doc.createElement("button");
+          front.type = "button";
+          front.className = "starmap-btn starmap-toggle map-forward-toggle";
+          front.dataset.forward = layer.id;
+          front.textContent = "Forward";
+          front.setAttribute("aria-label", "Pull " + layer.label.toLowerCase() + " forward");
+          front.addEventListener("click", function () { setPulled(layer.id, !isPulled(layer.id)); });
+          forwards.set(layer.id, front);
+          container.appendChild(front);
+        }
       });
     }
     function refresh() {
@@ -251,6 +348,11 @@ export function createLayerRegistry(mode, options) {
         button.setAttribute("aria-pressed", String(isOn(id)));
         const title = layer && (typeof layer.title === "function" ? layer.title() : layer.title);
         if (title) button.title = title;
+      });
+      forwards.forEach(function (button, id) {
+        button.setAttribute("aria-pressed", String(isPulled(id)));
+        button.disabled = !isOn(id);
+        button.title = "Draw it on top of the other marks, name it first and keep its names when others are cut";
       });
     }
     refresh();
@@ -268,7 +370,19 @@ export function createLayerRegistry(mode, options) {
         const row = doc.createElement("span");
         row.className = "map-layer-legend-line";
         row.dataset.layer = line.id;
-        if (line.swatch || line.swatchClass) {
+        if (line.icon) {
+          // MAP.320: the kind's own symbol (static/poi/<icon>.svg) in its token's colour; the words beside it name it.
+          const symbol = doc.createElementNS(SVG_NS, "svg");
+          symbol.setAttribute("class", "poi-icon map-layer-legend-icon poi-" + line.icon);
+          symbol.setAttribute("aria-hidden", "true");
+          symbol.setAttribute("focusable", "false");
+          symbol.dataset.poi = line.icon;
+          if (line.token) symbol.style.color = "var(" + line.token + ")";
+          const use = doc.createElementNS(SVG_NS, "use");
+          use.setAttribute("href", new URL("poi/" + line.icon + ".svg" + VERSION_QUERY + "#poi", import.meta.url).href);
+          symbol.appendChild(use);
+          row.appendChild(symbol);
+        } else if (line.swatch || line.swatchClass) {
           const swatch = doc.createElement("span");
           swatch.className = "map-layer-legend-swatch" + (line.swatchClass ? " " + line.swatchClass : "");
           swatch.setAttribute("aria-hidden", "true");
@@ -294,6 +408,11 @@ export function createLayerRegistry(mode, options) {
     isOn: isOn,
     setOn: setOn,
     toggle: toggle,
+    isPulled: isPulled,
+    setPulled: setPulled,
+    stateOf: stateOf,
+    setGroup: setGroup,
+    bulkGroup: function (group) { bulkGroups.add(group); },
     onChange: function (listener) { listeners.push(listener); },
     // Asks every menu and legend drawn from this registry to bring itself up to date (an `available` or a
     // `title` changed without a layer being switched).

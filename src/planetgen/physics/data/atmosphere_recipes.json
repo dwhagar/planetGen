@@ -111,8 +111,8 @@
    "fallback": "e1",
    "constants": {
     "f_env0": [
-     0.035,
-     0.08,
+     0.05,
+     0.2,
      "log"
     ],
     "eta": [
@@ -1519,17 +1519,17 @@
    "kind": "option",
    "option": "Bare rock (envelope stripped)",
    "gate_text": "S, V, I, T, R[P]; M 1 to 30; not d1-only",
-   "weight_text": "(1-p[b4]) min(1, f_lost/f_env0); f_lost = eps pi R^3 E_cum S / (G M^2), eps 0.1 (0.05 to 0.2), E_cum=3.1e16 J/m2 at S=1 over 4.5 Gyr; f_env0=c[0.005,0.10]",
-   "source": "energy-limited form: Lopez and Fortney 2013 (READ); eps range (2ND-HAND); E_cum and f_env0 from the project doc ([C])",
+   "weight_text": "(1-p[b4]) (share lost); share lost = 1 - envelope left / f_env0 M, the envelope left from the hydro-based loss rate of Kubyshkina et al. 2018 integrated over the star's XUV history from the onset age (GEN.822); f_env0=c[0.05,0.2]",
+   "source": "hydro-based rate: Kubyshkina et al. 2018 (READ); XUV history: Johnstone-type decay of `activity` (DESIGN); onset age and f_env0 tuned to the radius valley (GEN.509, GEN.822)",
    "status": "DERIVED",
    "research": [],
    "notes": "envelope fraction 0.5 to 10 % of mass",
    "labels": [
     "READ",
-    "2ND-HAND"
+    "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "f_env0 and the loss efficiency are tuned to the radius valley (slope -0.11 and 1.84 Earth radii at 10 d) along a degenerate ridge eta = 10 f_env0; the core-mass width, the envelope width and the host sample are design choices; the mechanism (photoevaporation or core-powered loss) is not chosen (GEN.509)",
+   "limit": "f_env0 and the onset age of the loss are tuned to the radius valley (slope -0.11 and 1.84 Earth radii at 10 d); the loss itself is the hydro-based rate of Kubyshkina et al. 2018 over the star's XUV history (GEN.822); the core-mass width, the envelope width and the host sample are design choices; the mechanism (photoevaporation or core-powered loss) is not chosen (GEN.509, GEN.722)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -1547,9 +1547,9 @@
    ],
    "tunable": true,
    "group": "e",
-   "weight": "(1 - p('b4'))*min(1, f_lost/f_env0)",
+   "weight": "(1 - p('b4'))*f_lost",
    "lets": {
-    "f_lost": "10*f_env0*(15/v_esc_kms)**2*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"
+    "f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k)"
    }
   },
   {
@@ -1558,17 +1558,17 @@
    "kind": "option",
    "option": "H/He envelope retained",
    "gate_text": "same",
-   "weight_text": "(1-p[b4]) (1 - min(1, f_lost/f_env0))",
+   "weight_text": "(1-p[b4]) (1 - share lost)",
    "source": "same",
    "status": "DERIVED",
    "research": [],
    "notes": "goes to e5, e6",
    "labels": [
     "READ",
-    "2ND-HAND"
+    "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "part of the weight source is 2ND-HAND (its edge widths or constants are design choices)",
+   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -1585,9 +1585,9 @@
     }
    ],
    "group": "e",
-   "weight": "(1 - p('b4'))*(1 - min(1, f_lost/f_env0))",
+   "weight": "(1 - p('b4'))*(1 - f_lost)",
    "lets": {
-    "f_lost": "10*f_env0*(15/v_esc_kms)**2*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"
+    "f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k)"
    }
   },
   {
@@ -2214,7 +2214,7 @@
    ],
    "group": "h",
    "lets": {
-    "edge": "loglog(photosphere_bar, 0.001, 725, 0.01, 829, 0.1, 966, 1, 1156, 10, 1437)"
+    "edge": "loglog(photosphere_bar, 0.001, 726, 0.01, 830, 0.1, 966, 1, 1157, 10, 1439)"
    },
    "weight": "window(tday_k, None, edge, 100)"
   },
@@ -2249,8 +2249,8 @@
    ],
    "group": "h",
    "lets": {
-    "low_edge": "loglog(photosphere_bar, 0.001, 725, 0.01, 829, 0.1, 966, 1, 1156, 10, 1437)",
-    "high_edge": "loglog(photosphere_bar, 0.001, 2340, 0.01, 2553, 0.1, 2806, 1, 3111, 10, 3490)"
+    "low_edge": "loglog(photosphere_bar, 0.001, 726, 0.01, 830, 0.1, 966, 1, 1157, 10, 1439)",
+    "high_edge": "loglog(photosphere_bar, 0.001, 2331, 0.01, 2542, 0.1, 2793, 1, 3096, 10, 3471)"
    },
    "weight": "window(tday_k, low_edge, high_edge, 100)"
   },
@@ -2288,7 +2288,7 @@
    ],
    "group": "h",
    "lets": {
-    "edge": "loglog(photosphere_bar, 0.001, 2340, 0.01, 2553, 0.1, 2806, 1, 3111, 10, 3490)"
+    "edge": "loglog(photosphere_bar, 0.001, 2331, 0.01, 2542, 0.1, 2793, 1, 3096, 10, 3471)"
    },
    "weight": "window(tday_k, edge, None, 100)"
   },

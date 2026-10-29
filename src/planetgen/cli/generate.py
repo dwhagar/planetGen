@@ -40,6 +40,7 @@ import argparse
 import getpass
 import json
 import math
+import os
 import secrets
 import signal
 import sys
@@ -51,12 +52,12 @@ from planetgen.cli import benchmark
 from planetgen.cli import checkdb as checkdb_cli, queue as queue_cli, warm as warm_cli
 
 from planetgen.queue import commands as queueCommands, work as workQueue
-from planetgen.db import fingerprint, store
+from planetgen.db import check as dbCheck, fingerprint, parity, repair as dbRepair, store, table_rebuild
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.admin import activity_log
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, luminosity_floor, prevalence
-from planetgen.galaxy import drill, seed as galaxySeed, spherical, version_check, version_key
+from planetgen.galaxy import bring_to_epoch as bringToEpoch, drill, seed as galaxySeed, spherical, version_check, version_key
 from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -695,6 +696,11 @@ def add_sectors_arguments(parser):
                                  "within --radius-pc of the given, already galaxy-placed sector's own "
                                  "stored center.")
 
+    parser.add_argument('--region', action='store_true',
+                        help="With --center-sector or --shell --band --wedge (GEN.826): move the center to the anchor sector of "
+                             "the region (9-block) that holds it and fill the standard sphere of that anchor "
+                             f"({program_constants.DEFAULT_GENERATE_RADIUS_PC:g} pc, about 109 sectors), so the finished fill charts and names the whole "
+                             "region. Replaces --radius-pc.")
     parser.add_argument('--band', type=int, metavar='J',
                         help="With --shell: only this band of the shell (signed; 0 is the equatorial band, "
                              "positive is north, and the two end bands are the polar caps).")
@@ -871,8 +877,13 @@ def validate_sectors_args(args, parser):
                      "mode) -- ensure_sector_generated always uses this address's own real predicted "
                      "density, the same as when the galaxy map's own live view found it.")
 
-    if args.center_sector is not None and args.radius_pc is None:
-        parser.error("--center-sector requires --radius-pc.")
+    if args.region and args.center_sector is None and args.wedge is None:
+        parser.error("--region requires --center-sector or --shell --band --wedge.")
+    if args.region and args.radius_pc is not None:
+        parser.error(f"--region fills the standard {program_constants.DEFAULT_GENERATE_RADIUS_PC:g} pc sphere of the anchor; it can't be combined with "
+                     "--radius-pc.")
+    if args.center_sector is not None and args.radius_pc is None and not args.region:
+        parser.error("--center-sector requires --radius-pc (or --region).")
     if args.radius_pc is not None and args.shell is not None and args.wedge is None:
         parser.error("--radius-pc only applies to --center-sector, --shell --band --wedge, or random-start mode "
                      "(neither --shell nor --center-sector), not --shell alone.")
@@ -931,6 +942,7 @@ def _validate_course(args, parser):
         ("--shell", args.shell), ("--band", args.band), ("--wedge", args.wedge),
         ("--center-sector", args.center_sector), ("--radius-pc", args.radius_pc),
         ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
+        ("--region", args.region or None),
         ("--shells", args.shells), ("--bands", args.bands), ("--wedges", args.wedges), ("--limit", args.limit),
     ) if value is not None]
     if others:
@@ -945,6 +957,7 @@ def _validate_block(args, parser):
         ("--band", args.band), ("--wedge", args.wedge), ("--radius-pc", args.radius_pc),
         ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
         ("--shells", args.shells), ("--bands", args.bands), ("--wedges", args.wedges),
+        ("--region", args.region or None),
     ) if value is not None]
     if others:
         parser.error(f"--block can't be combined with {', '.join(others)}.")
@@ -965,6 +978,7 @@ def _validate_span(args, parser):
         ("--shell", args.shell), ("--band", args.band), ("--wedge", args.wedge),
         ("--center-sector", args.center_sector), ("--radius-pc", args.radius_pc),
         ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
+        ("--region", args.region or None),
     ) if value is not None]
     if others:
         parser.error(f"--shells/--bands/--wedges can't be combined with {', '.join(others)}.")
@@ -1345,6 +1359,133 @@ def add_territories_arguments(parser):
     add_logging_arguments(parser)
 
 
+def add_bring_to_epoch_arguments(parser):
+    """
+    Adds the `bring-to-epoch` subcommand's options: `--dry-run`, and the MySQL connection and logging args.
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
+    parser.add_argument('--dry-run', action='store_true',
+                        help="Say what would be generated again, which sectors would be left alone and why, and "
+                             "change nothing.")
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
+def run_bring_to_epoch(args):
+    """`planetgen bring-to-epoch` (GEN.764): brings the stored galaxy to the running generator epoch in part
+    (`planetgen.galaxy.bring_to_epoch`); exits 1 when the run refused or a sector failed."""
+    config = store.mysql_config_from_args(args)
+    result = bringToEpoch.run(config, store.control_mysql_config(config), dry_run=args.dry_run)
+    if result["refused"] or result["failed"]:
+        sys.exit(1)
+
+
+def add_refresh_parity_arguments(parser):
+    """
+    Adds the `refresh-parity` subcommand's options: `--compact`, `--limit`, and the MySQL connection and logging args.
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
+    parser.add_argument('--compact', action='store_true',
+                        help="Afterwards rewrite the parity file with only the latest record of each group.")
+    parser.add_argument('--limit', type=int, default=None, metavar='N',
+                        help="Make at most N sectors current (the rest at the next run).")
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
+def run_refresh_parity(args):
+    """`planetgen refresh-parity` (DB.46): makes the parity file of the sector storage current for the whole database
+    (`planetgen.db.parity.refresh`), and with `--compact` rewrites it without its dead space. Exits 1 when a sector could
+    not be protected (a damaged member of its group)."""
+    config = store.mysql_config_from_args(args)
+    conn = store.get_connection(config)
+    try:
+        counts = parity.refresh(conn, limit=args.limit)
+    finally:
+        conn.close()
+    log.normal("Parity: " + (", ".join(f"{count:,} {result}" for result, count in sorted(counts.items())) or "nothing to do") + ".")
+    if args.compact:
+        kept, dropped = parity.compact()
+        log.normal(f"Parity: compacted to {kept:,} group record(s)" + (f", {dropped:,} unreadable dropped." if dropped else "."))
+    if counts.get(parity.UNPROTECTABLE) or counts.get("failed"):
+        sys.exit(1)
+
+
+def add_repair_db_arguments(parser):
+    """
+    Adds the `repair-db` subcommand's options: `--shell` and `--sector` (as `check-db`), `--dry-run`, and the MySQL
+    connection and logging args.
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
+    parser.add_argument("--shell", type=int, action="append", metavar="SHELL",
+                        help="Look only at this shell's sectors (repeatable).")
+    parser.add_argument("--sector", type=int, nargs=3, action="append", metavar=("SHELL", "BAND", "WEDGE"),
+                        help="Look only at the sector at this address (repeatable).")
+    parser.add_argument('--dry-run', action='store_true',
+                        help="Say which damaged sectors the parity file could rebuild and write nothing.")
+    parser.add_argument('--salvage', metavar='TABLE', default=None,
+                        help="Step 1 of rebuilding a table whose clustered index has an unreadable page (run with the server "
+                             "started with innodb_force_recovery = 1 and the website and generation stopped): dump its readable "
+                             "rows to --dump-dir, then drop the table and make it again empty.")
+    parser.add_argument('--reload', metavar='TABLE', default=None,
+                        help="Step 2 (after a normal restart): insert the dumped rows of TABLE back, then repair the sectors "
+                             "that lost rows from the parity file.")
+    parser.add_argument('--restore-sectors', action='store_true',
+                        help="With --reload sectors: also put back the sector rows the parity file holds and the table lacks.")
+    parser.add_argument('--dump-dir', metavar='DIR', default=None,
+                        help="Where --salvage writes and --reload reads the dump (default: a 'salvage' folder in the parity folder).")
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
+def run_repair_db(args):
+    """`planetgen repair-db` (DB.47, DB.48): rebuilds the sectors that no longer hash to their stored checksum from the parity file
+    (`planetgen.db.repair`), and makes the parity file again from the database if it is the damaged part. Exits 1 when a damaged
+    sector is left (or, with `--dry-run`, when there is any damage) and 2 when there is no parity file. `--salvage TABLE` and
+    `--reload TABLE` are the two steps of rebuilding a table with an unreadable clustered-index page
+    (`planetgen.db.table_rebuild`); a reload ends with the repair above."""
+    if args.salvage and args.reload:
+        _fatal("--salvage and --reload are two steps with a restart between them; give one")
+    config = store.mysql_config_from_args(args)
+    scope = dbCheck.Scope(tuple(args.shell or ()), tuple(tuple(a) for a in args.sector or ()))
+    directory = args.dump_dir or os.path.join(os.path.dirname(parity.parity_path()), "salvage")
+    conn = store.get_connection(config)
+    try:
+        try:
+            if args.salvage:
+                table_rebuild.salvage(conn, args.salvage, directory)
+                return
+            if args.reload:
+                table_rebuild.reload(conn, args.reload, directory)
+                if args.restore_sectors and args.reload == "sectors":
+                    table_rebuild.restore_sectors(conn)
+            report = dbRepair.repair(conn, scope, dry_run=args.dry_run)
+            if any(result.outcome == dbRepair.UNREADABLE for result in report.results):
+                tables = table_rebuild.probe_unreadable(conn)
+                log.normal("Repair: unreadable table(s): " + (", ".join(tables) or "none found now") + ". To rebuild one, stop the "
+                           "website and generation, restart the server with innodb_force_recovery = 1, run `planetgen repair-db "
+                           "--salvage TABLE`, restart it normally, then `planetgen repair-db --reload TABLE`.")
+        except table_rebuild.RebuildRefused as exc:
+            log.error(str(exc))
+            sys.exit(1)
+        except FileNotFoundError as exc:
+            log.error(str(exc))
+            sys.exit(2)
+    finally:
+        conn.close()
+    verb = "would be repaired" if args.dry_run else "repaired"
+    log.normal(f"Repair: {report.count(dbRepair.REPAIRED) + report.count(dbRepair.RESEALED) + report.count(dbRepair.WOULD_REPAIR):,}"
+               f" sector(s) {verb}, {report.count(dbRepair.UNREPAIRABLE) + report.count(dbRepair.UNREADABLE):,} left damaged.")
+    if not report.clean:
+        sys.exit(1)
+
+
 def build_parser():
     """
     Builds the top-level parser and every subcommand's own subparser.
@@ -1540,6 +1681,35 @@ def build_parser():
         description="Territories Pass",
         help="Work out which polity owns which system from the polities stored.")
     add_territories_arguments(territories_parser)
+    bring_to_epoch_parser = subparsers.add_parser(
+        'bring-to-epoch',
+        description="Brings the stored galaxy to the running generator epoch without a full regeneration: every "
+                    "galaxy-placed sector made under an older epoch whose change altered what a sector holds is "
+                    "generated again under the current code (its object IDs follow the galaxy's seed), the species "
+                    "of an older population epoch are made again, and a sector with admin edits is left alone and "
+                    "listed. A change of the galaxy's plan, or a scatter drawn under an older epoch, is refused with "
+                    "the reason. An interrupted run is resumed by running it again.",
+        help="Bring a stored galaxy to the running generator epoch.")
+    add_bring_to_epoch_arguments(bring_to_epoch_parser)
+    refresh_parity_parser = subparsers.add_parser(
+        'refresh-parity',
+        description="Makes the parity file that can rebuild a damaged sector (settings: parity) current for the whole "
+                    "database: every sector that was marked or never sealed, every sealed sector the file does not hold, "
+                    "and every member of the file whose sector is gone. Saves, edits and deletions keep it current "
+                    "themselves once parity.enabled is on; this builds it for a galaxy that was made before, or catches "
+                    "up after a crash.",
+        help="Make the sector parity file current.")
+    add_refresh_parity_arguments(refresh_parity_parser)
+
+    repair_db_parser = subparsers.add_parser(
+        'repair-db',
+        description="Rebuilds the sectors whose rows no longer hash to their stored checksum from the parity file "
+                    "(settings: parity; built by refresh-parity). A sector the parity cannot mend (its group has more "
+                    "damage than parity blocks, or the record is behind the database too) is listed, with the reason. "
+                    "The columns the orbit update rewrites are left as they are on every row that still exists. A parity "
+                    "file that is itself damaged is made again from the database.",
+        help="Rebuild damaged sectors from the parity file.")
+    add_repair_db_arguments(repair_db_parser)
 
     benchmark_parser = subparsers.add_parser(
         'benchmark',
@@ -1611,6 +1781,9 @@ def build_parser():
         'phenomenon': phenomenon_parser,
         'population': population_parser,
         'territories': territories_parser,
+        'bring-to-epoch': bring_to_epoch_parser,
+        'refresh-parity': refresh_parity_parser,
+        'repair-db': repair_db_parser,
         'check-math': check_math_parser,
         'versions': versions_parser,
         'fingerprint': fingerprint_parser,
@@ -1724,7 +1897,8 @@ def run_command_unit(args):
     log.normal(json.dumps(result, sort_keys=True))
 
 
-READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark", "commands", "command-run", "warm", "queue")
+READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark", "commands", "command-run", "warm", "queue",
+                      "refresh-parity")
 """tuple: Subcommands that write nothing generated (`warm` only builds caches), so they aren't logged as runs
 (no activity log lines, job tree node or run history)."""
 
@@ -1770,6 +1944,9 @@ _COMMAND_HANDLERS = {
     'phenomenon': run_phenomenon.run_phenomenon,
     'population': run_population.run_population,
     'territories': run_population.run_territories,
+    'bring-to-epoch': run_bring_to_epoch,
+    'refresh-parity': run_refresh_parity,
+    'repair-db': run_repair_db,
 }
 
 
@@ -1777,7 +1954,8 @@ DATA_CHANGES = {"plan": ("everything",), "scatter": ("everything",), "clear-scat
                 "fill-map-luminosity": ("everything",),
                 "rescore-habitability": ("everything",), "fill-nebula-blocks": ("everything",), "fill-block-totals": ("everything",),
                 "clean-nebula-field": ("everything",),
-                "population": ("population",), "territories": ("population",)}
+                "population": ("population",), "territories": ("population",),
+                "bring-to-epoch": ("generated", "population"), "refresh-parity": (), "repair-db": ()}
 """dict: The kinds of data change (`planetgen.db.dataversion.CHANGES`) a command makes when it is not just
 generation; any other writing command is `generated`."""
 
@@ -1813,7 +1991,8 @@ def main():
                       areas=args.debug_areas)
     except OSError as exc:
         _fatal(f"cannot open --debug file {args.debug!r}: {exc.strerror or exc}", logger_ready=False)
-    logged = not getattr(args, "output", None) and args.command not in READ_ONLY_COMMANDS
+    logged = (not getattr(args, "output", None) and args.command not in READ_ONLY_COMMANDS
+              and not (args.command == "bring-to-epoch" and args.dry_run))
     with log.untraced():    # the seed read must not put SQL lines in front of the run line
         run_line = version_key.run_line(_run_line_seed(args) if logged else None, " ".join(_run_argv(sys.argv[1:])))
     log.normal(run_line)

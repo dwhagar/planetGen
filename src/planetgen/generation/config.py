@@ -247,6 +247,13 @@ class SystemConfig:
         evenly. A galaxy sector sets it with `POPULATION`. Not saved with the config: the star keeps its age.
         """
 
+        self.GALAXY_SHAPE = None
+        """
+        galaxy.density.GalaxyShape or None: The galaxy a body is made in, which gives the disc's star formation history the thorium to
+        uranium ratio of its rock follows (GEN.759, `physics.rprocess_enrichment`). A galaxy sector sets it with `POPULATION`; None takes
+        the default shape (`galaxy.shape_draw.default_shape`), as any work with no stored shape does. Not saved with the config.
+        """
+
         self.FE_H_PEAKS = None
         """
         tuple or None: `((weight, mean, sigma), ...)`, the [Fe/H] a random primary star of a cluster or satellite is

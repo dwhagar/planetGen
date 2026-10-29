@@ -664,3 +664,63 @@ console.log(JSON.stringify({sector: B.COLOR_MODES.habitable.value(sector.stats, 
     assert out["sector"] == pytest.approx(math.log10(8))
     assert out["block"] == pytest.approx(math.log10(8))
     assert out["ranges"]["count"] == 2
+
+
+def test_a_neighbour_shares_the_wall_it_is_stepped_through():
+    """MAP.121: stepping north, south, east, west, out or in lands on a cell of the same size whose wall is the one
+    the step crossed, and there is nothing to step to past a pole, below the core, or round a whole ring."""
+    blocks = [(b.m, b.shell, b.band, b.wedge) for b in _sample_blocks()] + [
+        (1, 40, 0, 3), (1, 7, 2, 0), (1, 1, 0, 0), (1, 100, -3, 5)]
+    got = _run(f"""
+const blocks = {json.dumps(blocks)};
+const out = blocks.map(([m, shell, band, wedge]) => {{
+  const here = {{m, shell, band, wedge}};
+  const row = {{block: [m, shell, band, wedge], valid: P.isBlock(here), bounds: P.drillBlockBounds(here, {EDGE_PC}), steps: {{}}}};
+  for (const d of P.NEIGHBOUR_DIRECTIONS) {{
+    const to = P.neighbourBlock(here, d, {EDGE_PC});
+    row.steps[d] = to && {{block: [to.m, to.shell, to.band, to.wedge], valid: P.isBlock(to),
+      bounds: P.drillBlockBounds(to, {EDGE_PC})}};
+  }}
+  return row;
+}});
+console.log(JSON.stringify(out));
+""")
+    wall = 1e-6
+    steps_taken = 0
+    for row in got:
+        if not row["valid"]:
+            continue    # a shell past the end of the grid for its size (the sample reaches for shell 1 at every size)
+        r0, r1, c0, c1, t0, t1 = (row["bounds"][k] for k in ("r0", "r1", "c0", "c1", "t0", "t1"))
+        for direction, to in row["steps"].items():
+            if to is None:
+                if row["block"][0] == 1:
+                    continue    # a sector's neighbour may be a cell the hand-cut shells do not have
+                if direction == "north":
+                    assert c0 == pytest.approx(0.0, abs=wall), row["block"]
+                elif direction == "south":
+                    assert c1 == pytest.approx(math.pi, abs=wall), row["block"]
+                elif direction == "in":
+                    assert r0 == pytest.approx(0.0, abs=wall) or row["block"][0] == 1, row["block"]
+                elif direction in ("east", "west"):
+                    assert t1 - t0 == pytest.approx(2 * math.pi, abs=wall) or row["block"][0] == 1, row["block"]
+                continue
+            steps_taken += 1
+            assert to["valid"] and to["block"][0] == row["block"][0], (row["block"], direction)
+            n_r0, n_r1, n_c0, n_c1, n_t0, n_t1 = (to["bounds"][k] for k in ("r0", "r1", "c0", "c1", "t0", "t1"))
+            if row["block"][0] == 1:
+                continue
+            if direction == "north":
+                assert n_c1 == pytest.approx(c0, abs=wall), (row["block"], to["block"])
+            elif direction == "south":
+                assert n_c0 == pytest.approx(c1, abs=wall), (row["block"], to["block"])
+            elif direction == "out":
+                assert n_r0 == pytest.approx(r1, abs=wall), (row["block"], to["block"])
+            elif direction == "in":
+                assert n_r1 == pytest.approx(r0, abs=wall), (row["block"], to["block"])
+            elif direction == "east":
+                assert (n_t0 - t1) % (2 * math.pi) == pytest.approx(0.0, abs=wall) or \
+                    (n_t0 - t1) % (2 * math.pi) == pytest.approx(2 * math.pi, abs=wall), (row["block"], to["block"])
+            elif direction == "west":
+                assert (t0 - n_t1) % (2 * math.pi) == pytest.approx(0.0, abs=wall) or \
+                    (t0 - n_t1) % (2 * math.pi) == pytest.approx(2 * math.pi, abs=wall), (row["block"], to["block"])
+    assert steps_taken > 100

@@ -114,8 +114,10 @@ def warm():
 def run_detail(run_id):
     """
     `GET /api/admin/work/<id>` -- one run with its stages and the last events of its log:
-    `{"run": `runview.detail`, "events": [{"id", "t", "level", "kind", "message"}], "log": bool}`. `log` is whether the
-    log can be downloaded (`/log`).
+    `{"run": `runview.detail`, "events": [{"id", "t", "level", "kind", "message"}], "log": bool}`; an event also holds the
+    `stage` (from 0), `stages`, `unit` and `seconds` it was logged with, when it has them, which is what
+    `runrecord.event_record` makes a log record of, so a page draws the same line the download holds (UX.123). `log` is
+    whether the log can be downloaded (`/log`).
     """
     run_id = _run_id(run_id)
     connection = _connection()
@@ -125,7 +127,8 @@ def run_detail(run_id):
     events = runrecord.read_events(connection, run_id, count=100_000)[-EVENTS_SHOWN:]
     return jsonify({"run": runview.detail(run, time.time()), "log": True,
                     "events": [{"id": entry_id, "t": float(fields.get("t", 0)), "level": fields.get("level", "info"),
-                                "kind": fields.get("kind", "log"), "message": fields.get("message", "")}
+                                "kind": fields.get("kind", "log"), "message": fields.get("message", ""),
+                                **{name: fields[name] for name in runrecord.EVENT_FIELD_NAMES if name in fields}}
                                for entry_id, fields in events]})
 
 

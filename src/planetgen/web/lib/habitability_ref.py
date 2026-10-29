@@ -94,7 +94,7 @@ def _gas_rows(gases):
     """One row per gas a filter handles: Blue under the long-term limit, Yellow up to ten times the short-term one."""
     rows = []
     for gas, _kpa, band in gases:
-        name = atmosphere.SPECIES_NAMES[gas.lower()].capitalize()
+        name = atmosphere.species_name(gas.lower()).capitalize()
         rows.append((f"{name} (a filter takes it out)", _under(band[4], "kPa"), "", _up_to(band[6], "kPa")))
     return rows
 
@@ -271,6 +271,14 @@ MAP_ROWS = (
                                  "show=marker-habitable) every star system with at least one habitable world gets a "
                                  "marker. Hovering names the system and how many habitable worlds it has; a click "
                                  "opens its summary."),
+    ("Marker: Life", "The Menu's Points of interest group also has three markers for worlds with life: Life (any of the four "
+                     "life scores is 1 or more), Sentient life and Civilizations. They are off until you turn them on "
+                     "(show=marker-life, marker-sentient, marker-civilization in the address); a system with several is "
+                     "marked once, by the strongest."),
+    ("Marker: World classes", "The Menu's World classes group has a marker for each planet class, all off until you turn "
+                              "one on (kept in the address as show=marker-class-K for class K). A system with a world of "
+                              "the class gets a disc with the class letter, once the map is close enough to have its "
+                              "sector; hovering names the system and how many worlds of the class it holds."),
 )
 """tuple: `(control, what it does)` for the habitable-world views of the Galaxy Map (MAP.143, MAP.220)."""
 

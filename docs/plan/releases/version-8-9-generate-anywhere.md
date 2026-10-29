@@ -23,7 +23,7 @@ The reservation, staging and download pieces and the recipe format.
 | API.10 | Reservations: claimed sectors and id blocks per run |  | Reserved id blocks build on DB.3's id-block fix (PR #347). |
 | API.29 | Upload spool and unit states: received batches on disk, units assembled at seal, finalize as a queue job | API.10 | Split from API.11. |
 | API.11 | Staging tables | API.29 | Galaxy schema migration (staging); after NAV.10 in the writer queue. |
-| API.5 | API version and compatibility checking | API.4 |  |
+| API.5 | API version and compatibility checking |  |  |
 | API.12 | The download: seed, skeleton and name state | API.5 | Downloads the naming key, not name registries. Downloads the seed (what a seed means is GEN.39) and the name state (rules from GEN.46, done in PR #370). |
 
 ### Recipes
@@ -92,7 +92,7 @@ Target 8.9 (moved from 9.0; Boss, 2:00 PM EDT): the control database and parity 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive | DB.46 | Boss 1:59 PM EDT; Core 1 owns DB.9. |
+| DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive |  | Boss 1:59 PM EDT; Core 1 owns DB.9. |
 | DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | DB.40, DB.8 | Boss 2:00 PM EDT; Core 1. |
 
 ## Phase 5: Repair from backups, the repair page and proof
@@ -105,7 +105,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | DB.41, DB.9, DB.17 | Boss 2:00 PM EDT. |
+| DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | DB.41, DB.17 | Boss 2:00 PM EDT. |
 | ADM.90 | Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job | DB.42, ADM.89, DB.41 | Boss 2:00 PM EDT. |
 | OPS.55 | Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting | OPS.16, ADM.88, DB.40 | Boss 2:06 PM EDT. |
 | TEST.180 | Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back | ADM.89, DB.42, ADM.90, OPS.55 | Boss 2:00 PM EDT. |

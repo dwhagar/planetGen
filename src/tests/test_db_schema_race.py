@@ -103,9 +103,13 @@ def test_first_control_connections_at_once(mysql_config):
     assert _holder_ids(control.database) - before == set(), "the test left a connection of its own open"
 
 
-def test_a_first_connection_waits_for_the_schema_lock(mysql_config):
+def test_a_first_connection_waits_for_the_schema_lock(mysql_config, monkeypatch):
     """Whether threads above collide depends on timing; this checks the
-    lock itself: a first connection waits while another holds it."""
+    lock itself: a first connection waits while another holds it. The
+    database here is already current (PERF.174 then skips the schema
+    statements), so the check is told it is not, as it is on a first
+    connection to a new or older database."""
+    monkeypatch.setattr(store, "_schema_is_current", lambda conn: False)
     holder = store.get_connection(mysql_config, ensure_schema=False)
     finished = threading.Event()
     try:

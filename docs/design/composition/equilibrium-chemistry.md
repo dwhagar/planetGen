@@ -10,15 +10,15 @@ The thermodynamics are the NASA Glenn polynomials of `species_thermo` (99 specie
 
 ## 2. Test against an independent computation
 
-The research record (`tunable-gaps-sources/group4-giants-bd-clouds.md` section 2.4) holds a table from another minimiser (easyCHEM's polynomials, scipy). This module agrees within 0.1 percent for the methane-carbon monoxide line and within 0.6 percent for the water and hydrogen lines:
+The research record (`tunable-gaps-sources/group4-giants-bd-clouds.md` section 2.4) holds a table from another minimiser (easyCHEM's polynomials, scipy). This module agrees within 0.1 percent for the methane-carbon monoxide line and within 0.1 percent for the water and hydrogen lines (the recipe rows' anchor points were refreshed from it in GEN.723; they had been computed with the first module and sat up to 19 K from it):
 
 | P (bar) | CH4 = CO (K), Z = 1 | water 90 percent (K) | water 50 percent (K) | H2 half atomic (K) |
 |---|---|---|---|---|
-| 0.001 | 725 | 2340 (2331) | 2571 (2567) | 2575 (2574) |
-| 0.01 | 829 | 2553 (2542) | 2848 (2843) | 2885 (2884) |
-| 0.1 | 966 (966) | 2806 (2792) | 3188 (3182) | 3279 (3278) |
-| 1 | 1156 (1156) | 3111 (3095) | 3618 (3609) | 3795 (3794) |
-| 10 | 1437 (1438) | 3490 | 4177 | 4500 |
+| 0.001 | 726 | 2331 (2331) | 2567 (2567) | 2575 (2574) |
+| 0.01 | 830 | 2542 (2542) | 2843 (2843) | 2885 (2884) |
+| 0.1 | 966 (966) | 2793 (2792) | 3182 (3182) | 3279 (3278) |
+| 1 | 1157 (1156) | 3096 (3095) | 3610 (3609) | 3795 (3794) |
+| 10 | 1439 (1438) | 3471 | 4165 | 4501 |
 
 (The record's value is in brackets.) At ten times solar metals the methane line falls by 40 to 270 K (892 K at 0.1 bar, 1052 K at 1 bar), as the record found. The tests pin these.
 

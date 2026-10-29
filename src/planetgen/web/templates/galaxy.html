@@ -3,6 +3,7 @@
     summary_rows (no quadrant) or sector_table (the data table's view). -#}
 {% extends "base.html" %}
 {% from "partials/datatable.html" import datatable with context %}
+{% from "partials/poi_key.html" import poi_key with context %}
 {#- The map uses most of a wide window, past the usual 72rem column. -#}
 {% block main_class %} app-main-wide{% endblock %}
 {% block head %}
@@ -18,6 +19,10 @@
 {% endblock %}
 {% block content %}
 {{ map_html }}
+<details class="panel" id="galaxy-map-symbols">
+  <summary>Map symbols</summary>
+  {{ poi_key() }}
+</details>
 <section class="panel" id="galaxy-table" aria-labelledby="galaxy-table-heading">
   {%- if quadrant %}
   <div class="panel-header">

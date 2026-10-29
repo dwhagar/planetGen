@@ -16,6 +16,7 @@ import pytest
 from planetgen.db import store
 from planetgen.web import item_pages
 from tests.publicids import pid
+from tests.test_number_guard import bare_cells
 from tests.test_web_a11y import site_app, site_db  # noqa: F401 -- fixtures
 
 PUBLIC_ID = r"[0-9A-F]{10}-\d{7}-\d{3}"
@@ -66,6 +67,14 @@ def test_every_kind_of_body_in_the_database_has_a_page_with_its_sheet_and_places
             assert 'href="/system/' in page, ref
             walked.add(kind)
     assert {"star", "planet"} <= walked, f"the database held no {set(item_pages.ITEM_PAGE_KINDS) - walked}"
+
+
+def test_no_page_of_a_body_shows_a_number_with_no_unit_scale_or_noun(client, bodies):
+    """GEN.772: the property sheet and the places table of every walked body hold no cell that is a number alone."""
+    for refs in bodies.values():
+        for ref in refs[:6]:
+            page = client.get(f"/object/{ref}").get_data(as_text=True)
+            assert not bare_cells(page), f"{ref}: {bare_cells(page)}"
 
 
 def test_every_row_of_a_stars_tree_opens_the_page_it_names(client, bodies):

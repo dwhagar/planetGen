@@ -1,0 +1,3955 @@
+{
+ "anomalies": {
+  "GEN.812": "an intended physics change, not a fault: the greenhouse water vapour thinning with height and the grey cloud depth (epoch 118) warm the K5V ecosphere moons, so their Yellow share fell and Red rose past the pre-cut-over range; the range waits for the class cut-over to settle before it is re-baselined",
+  "GEN.829": "class T (gas dwarf) is never drawn: no 2 to 20 Earth-mass sub-Neptune population exists (GEN.829); the pre-cut-over spine drew it almost never either",
+  "GEN.855": "since 4c (epoch 106) the solved air has no free oxygen and nothing makes biogenic O2, so habitable-class worlds score Red or Yellow where they scored Green or Blue, and no scored world allows complex life; the microbial ceiling share rises by what the unlimited share loses",
+  "GEN.896": "since 4c (epoch 106) hot-zone planets and moons almost never score Yellow (before: 3 to 21 percent by star type); not the oxygen loss, cause not yet found"
+ },
+ "cells": {
+  "A0V/cold/moon": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.71,
+     "min": 0.3148,
+     "source": "pre-cut-over share 0.512 of 322 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.6852,
+     "min": 0.29,
+     "source": "pre-cut-over share 0.488 of 322 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 322 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.8367,
+     "source": "pre-cut-over share 0.947 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1633,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.053 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 322,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 322 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 322 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 322 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 322 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "A0V/cold/planet": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.449,
+     "min": 0.0069,
+     "source": "pre-cut-over share 0.215 of 144 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.551,
+     "source": "pre-cut-over share 0.785 of 144 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 144 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.8586,
+     "min": 0.3914,
+     "source": "pre-cut-over share 0.625 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1274,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.025 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.3328,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.150 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.3045,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.130 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.2121,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.070 at 0b4d0ccef"
+    },
+    "T": {
+     "anomaly": "GEN.829",
+     "kind": "stand-in",
+     "max": 0.45,
+     "min": 0.02,
+     "source": "GEN.350 keeps class T (the sub-Neptune row); sub-Neptunes are the most common planets observed (Fressin 2013, Petigura 2018, recalled, unverified, tier T2/T3), so class T must appear among cold planets; the pre-cut-over spine drew it almost never"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 144 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 144 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 144 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 144 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "A0V/ecosphere/moon": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.9158,
+     "min": 0.5648,
+     "source": "pre-cut-over share 0.740 of 335 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.3636,
+     "min": 0.0364,
+     "source": "pre-cut-over share 0.200 of 335 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.1729,
+     "min": 0.003,
+     "source": "pre-cut-over share 0.060 of 335 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.9682,
+     "min": 0.6437,
+     "source": "pre-cut-over share 0.806 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1729,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.060 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.0781,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.009 at 0b4d0ccef"
+    },
+    "F": {
+     "kind": "stand-in",
+     "max": 0.0855,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.012 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.0781,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.009 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.1279,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.033 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.1333,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.036 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.0698,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.006 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.1168,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.027 at 0b4d0ccef"
+    },
+    "N": {
+     "kind": "stand-in",
+     "max": 0.0598,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.003 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 335,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 335 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 335 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.8132,
+     "source": "pre-cut-over share 0.931 of 335 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.1868,
+     "min": 0.003,
+     "source": "pre-cut-over share 0.069 of 335 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "A0V/ecosphere/planet": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.7653,
+     "min": 0.2626,
+     "source": "pre-cut-over share 0.514 of 179 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.4748,
+     "min": 0.028,
+     "source": "pre-cut-over share 0.251 of 179 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.4538,
+     "min": 0.0155,
+     "source": "pre-cut-over share 0.235 of 179 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.4996,
+     "min": 0.0604,
+     "source": "pre-cut-over share 0.280 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.1382,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.030 at 0b4d0ccef"
+    },
+    "F": {
+     "kind": "stand-in",
+     "max": 0.1584,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.040 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.2366,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.085 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.2973,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.125 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.2036,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.065 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.1584,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.040 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.1036,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.015 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.1862,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.055 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.3466,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.160 at 0b4d0ccef"
+    },
+    "N": {
+     "kind": "stand-in",
+     "max": 0.1584,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.040 at 0b4d0ccef"
+    },
+    "O": {
+     "kind": "stand-in",
+     "max": 0.1036,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.015 at 0b4d0ccef"
+    },
+    "P": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.1485,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.035 at 0b4d0ccef"
+    },
+    "V": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 179 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.3422,
+     "min": 0.0056,
+     "source": "pre-cut-over share 0.151 of 179 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.8139,
+     "min": 0.3146,
+     "source": "pre-cut-over share 0.564 of 179 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.5158,
+     "min": 0.0541,
+     "source": "pre-cut-over share 0.285 of 179 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "A0V/hot/moon": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.3323,
+     "min": 0.004,
+     "source": "pre-cut-over share 0.161 of 249 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.6677,
+     "source": "pre-cut-over share 0.839 of 249 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 249 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.501,
+     "min": 0.0934,
+     "source": "pre-cut-over share 0.297 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.3106,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.145 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.7412,
+     "min": 0.303,
+     "source": "pre-cut-over share 0.522 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1431,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.036 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 249,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 249 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 249 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.8647,
+     "source": "pre-cut-over share 0.968 of 249 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "anomaly": "GEN.896",
+     "kind": "stand-in",
+     "max": 0.1353,
+     "min": 0.004,
+     "source": "pre-cut-over share 0.032 of 249 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "A0V/hot/planet": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.3152,
+     "min": 0.0055,
+     "source": "pre-cut-over share 0.133 of 181 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.6848,
+     "source": "pre-cut-over share 0.867 of 181 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 181 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.4693,
+     "min": 0.0407,
+     "source": "pre-cut-over share 0.255 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.3117,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.135 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.689,
+     "min": 0.211,
+     "source": "pre-cut-over share 0.450 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.116,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.2523,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.095 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.1679,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.045 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 181 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 181 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.8294,
+     "source": "pre-cut-over share 0.956 of 181 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "anomaly": "GEN.896",
+     "kind": "stand-in",
+     "max": 0.1706,
+     "min": 0.0055,
+     "source": "pre-cut-over share 0.044 of 181 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "F5V/cold/moon": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.8606,
+     "min": 0.5055,
+     "source": "pre-cut-over share 0.683 of 366 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.4945,
+     "min": 0.1394,
+     "source": "pre-cut-over share 0.317 of 366 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 366 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.8296,
+     "source": "pre-cut-over share 0.940 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1704,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.060 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 366,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 366 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 366 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 366 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 366 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "F5V/cold/planet": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.958,
+     "min": 0.4489,
+     "source": "pre-cut-over share 0.703 of 145 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.5511,
+     "min": 0.042,
+     "source": "pre-cut-over share 0.297 of 145 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 145 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.8676,
+     "min": 0.4024,
+     "source": "pre-cut-over share 0.635 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.116,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.3117,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.135 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.3188,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.140 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.2121,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.070 at 0b4d0ccef"
+    },
+    "T": {
+     "anomaly": "GEN.829",
+     "kind": "stand-in",
+     "max": 0.45,
+     "min": 0.02,
+     "source": "GEN.350 keeps class T (the sub-Neptune row); sub-Neptunes are the most common planets observed (Fressin 2013, Petigura 2018, recalled, unverified, tier T2/T3), so class T must appear among cold planets; the pre-cut-over spine drew it almost never"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 145 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 145 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 145 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 145 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "F5V/ecosphere/moon": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.8625,
+     "min": 0.4835,
+     "source": "pre-cut-over share 0.673 of 315 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.455,
+     "min": 0.091,
+     "source": "pre-cut-over share 0.273 of 315 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.166,
+     "min": 0.0032,
+     "source": "pre-cut-over share 0.054 of 315 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.9887,
+     "min": 0.6684,
+     "source": "pre-cut-over share 0.829 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1608,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.051 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.0611,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.003 at 0b4d0ccef"
+    },
+    "F": {
+     "kind": "stand-in",
+     "max": 0.0717,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.006 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.0717,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.006 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.1026,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.019 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.1276,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.032 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.0957,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.016 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.1391,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.038 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 315,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 315 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.0611,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.003 of 315 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.8041,
+     "source": "pre-cut-over share 0.927 of 315 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.1911,
+     "min": 0.0032,
+     "source": "pre-cut-over share 0.070 of 315 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "F5V/ecosphere/planet": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.7991,
+     "min": 0.2842,
+     "source": "pre-cut-over share 0.542 of 168 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.4938,
+     "min": 0.03,
+     "source": "pre-cut-over share 0.262 of 168 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.4098,
+     "min": 0.006,
+     "source": "pre-cut-over share 0.196 of 168 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.5581,
+     "min": 0.1019,
+     "source": "pre-cut-over share 0.330 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1036,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.015 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.1382,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.030 at 0b4d0ccef"
+    },
+    "F": {
+     "kind": "stand-in",
+     "max": 0.1584,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.040 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.195,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.060 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.2445,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.090 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.2036,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.065 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.2523,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.095 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.1772,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.050 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.3328,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.150 at 0b4d0ccef"
+    },
+    "N": {
+     "kind": "stand-in",
+     "max": 0.0898,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.010 at 0b4d0ccef"
+    },
+    "P": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.1772,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.050 at 0b4d0ccef"
+    },
+    "V": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.1567,
+     "min": 0.006,
+     "source": "pre-cut-over share 0.036 of 168 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.2634,
+     "min": 0.006,
+     "source": "pre-cut-over share 0.095 of 168 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 0.8603,
+     "min": 0.354,
+     "source": "pre-cut-over share 0.607 of 168 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.4938,
+     "min": 0.03,
+     "source": "pre-cut-over share 0.262 of 168 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "F5V/hot/moon": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.4572,
+     "min": 0.0679,
+     "source": "pre-cut-over share 0.263 of 259 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.9321,
+     "min": 0.5428,
+     "source": "pre-cut-over share 0.737 of 259 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 259 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.5201,
+     "min": 0.1131,
+     "source": "pre-cut-over share 0.317 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.2738,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.120 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.752,
+     "min": 0.3214,
+     "source": "pre-cut-over share 0.537 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.124,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.027 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 259,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 259 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 259 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.8923,
+     "source": "pre-cut-over share 0.981 of 259 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "anomaly": "GEN.896",
+     "kind": "stand-in",
+     "max": 0.1077,
+     "min": 0.0039,
+     "source": "pre-cut-over share 0.019 of 259 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "F5V/hot/planet": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.4252,
+     "min": 0.0056,
+     "source": "pre-cut-over share 0.212 of 179 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.5748,
+     "source": "pre-cut-over share 0.788 of 179 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 179 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.4383,
+     "min": 0.0217,
+     "source": "pre-cut-over share 0.230 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.3188,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.140 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.6942,
+     "min": 0.2158,
+     "source": "pre-cut-over share 0.455 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.116,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.2676,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.105 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.1772,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.050 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 179 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 179 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.8504,
+     "source": "pre-cut-over share 0.966 of 179 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "anomaly": "GEN.896",
+     "kind": "stand-in",
+     "max": 0.1496,
+     "min": 0.0056,
+     "source": "pre-cut-over share 0.034 of 179 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "G2V/cold/moon": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.6883,
+     "min": 0.2965,
+     "source": "pre-cut-over share 0.492 of 329 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.7035,
+     "min": 0.3117,
+     "source": "pre-cut-over share 0.508 of 329 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 329 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.8059,
+     "source": "pre-cut-over share 0.927 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1941,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.073 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 329,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 329 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 329 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 329 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 329 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "G2V/cold/planet": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.2907,
+     "min": 0.0078,
+     "source": "pre-cut-over share 0.101 of 129 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.7093,
+     "source": "pre-cut-over share 0.899 of 129 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 129 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.8033,
+     "min": 0.3267,
+     "source": "pre-cut-over share 0.565 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1274,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.025 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.4257,
+     "min": 0.0143,
+     "source": "pre-cut-over share 0.220 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.3117,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.135 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.1862,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.055 at 0b4d0ccef"
+    },
+    "T": {
+     "anomaly": "GEN.829",
+     "kind": "stand-in",
+     "max": 0.45,
+     "min": 0.02,
+     "source": "GEN.350 keeps class T (the sub-Neptune row); sub-Neptunes are the most common planets observed (Fressin 2013, Petigura 2018, recalled, unverified, tier T2/T3), so class T must appear among cold planets; the pre-cut-over spine drew it almost never"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 129 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 129 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 129 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 129 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "G2V/ecosphere/moon": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.8673,
+     "min": 0.4795,
+     "source": "pre-cut-over share 0.673 of 297 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.4391,
+     "min": 0.0727,
+     "source": "pre-cut-over share 0.256 of 297 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.1948,
+     "min": 0.0034,
+     "source": "pre-cut-over share 0.071 of 297 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.9463,
+     "min": 0.5891,
+     "source": "pre-cut-over share 0.768 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1896,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.067 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.0624,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.003 at 0b4d0ccef"
+    },
+    "F": {
+     "kind": "stand-in",
+     "max": 0.0913,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.013 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.0736,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.007 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.1201,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.027 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.1567,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.047 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.0913,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.013 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.145,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.040 at 0b4d0ccef"
+    },
+    "N": {
+     "kind": "stand-in",
+     "max": 0.0736,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.007 at 0b4d0ccef"
+    },
+    "O": {
+     "kind": "stand-in",
+     "max": 0.0624,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.003 at 0b4d0ccef"
+    },
+    "P": {
+     "kind": "stand-in",
+     "max": 0.0624,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.003 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 297,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 297 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 297 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.7601,
+     "source": "pre-cut-over share 0.899 of 297 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.2399,
+     "min": 0.0034,
+     "source": "pre-cut-over share 0.101 of 297 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "G2V/ecosphere/planet": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.7166,
+     "min": 0.1991,
+     "source": "pre-cut-over share 0.458 of 166 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.4988,
+     "min": 0.0313,
+     "source": "pre-cut-over share 0.265 of 166 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.5136,
+     "min": 0.0406,
+     "source": "pre-cut-over share 0.277 of 166 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.5115,
+     "min": 0.0685,
+     "source": "pre-cut-over share 0.290 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.116,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.1036,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.015 at 0b4d0ccef"
+    },
+    "F": {
+     "kind": "stand-in",
+     "max": 0.1679,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.045 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.1772,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.050 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.3117,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.135 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.2445,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.090 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.2285,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.080 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.1485,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.035 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.116,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.3328,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.150 at 0b4d0ccef"
+    },
+    "N": {
+     "kind": "stand-in",
+     "max": 0.1382,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.030 at 0b4d0ccef"
+    },
+    "O": {
+     "kind": "stand-in",
+     "max": 0.116,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "P": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.0898,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.010 at 0b4d0ccef"
+    },
+    "V": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 166 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 166 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 0.7595,
+     "min": 0.2405,
+     "source": "pre-cut-over share 0.500 of 166 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.7595,
+     "min": 0.2405,
+     "source": "pre-cut-over share 0.500 of 166 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "G2V/hot/moon": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.5103,
+     "min": 0.0722,
+     "source": "pre-cut-over share 0.291 of 206 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.9278,
+     "min": 0.4897,
+     "source": "pre-cut-over share 0.709 of 206 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 206 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.5274,
+     "min": 0.0842,
+     "source": "pre-cut-over share 0.306 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.3644,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.175 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.6825,
+     "min": 0.2107,
+     "source": "pre-cut-over share 0.447 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.2152,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.073 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 206,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 206 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 206 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.7848,
+     "source": "pre-cut-over share 0.927 of 206 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "anomaly": "GEN.896",
+     "kind": "stand-in",
+     "max": 0.2152,
+     "min": 0.0049,
+     "source": "pre-cut-over share 0.073 of 206 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "G2V/hot/planet": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.5275,
+     "min": 0.0601,
+     "source": "pre-cut-over share 0.294 of 177 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.9399,
+     "min": 0.4725,
+     "source": "pre-cut-over share 0.706 of 177 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 177 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.4508,
+     "min": 0.0292,
+     "source": "pre-cut-over share 0.240 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.29,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.120 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.6838,
+     "min": 0.2062,
+     "source": "pre-cut-over share 0.445 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1485,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.035 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.2826,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.115 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.1679,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.045 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 177 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 177 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.721,
+     "source": "pre-cut-over share 0.893 of 177 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "anomaly": "GEN.896",
+     "kind": "stand-in",
+     "max": 0.279,
+     "min": 0.0056,
+     "source": "pre-cut-over share 0.107 of 177 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K0III/cold/moon": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.9395,
+     "min": 0.5981,
+     "source": "pre-cut-over share 0.769 of 333 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.4019,
+     "min": 0.0605,
+     "source": "pre-cut-over share 0.231 of 333 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 333 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.8032,
+     "source": "pre-cut-over share 0.925 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1968,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.075 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 333,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 333 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 333 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 333 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 333 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K0III/cold/planet": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.6605,
+     "source": "pre-cut-over share 0.864 of 140 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.3395,
+     "min": 0.0071,
+     "source": "pre-cut-over share 0.136 of 140 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 140 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.8542,
+     "min": 0.3858,
+     "source": "pre-cut-over share 0.620 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.116,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.3398,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.155 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.3258,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.145 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.195,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.060 at 0b4d0ccef"
+    },
+    "T": {
+     "anomaly": "GEN.829",
+     "kind": "stand-in",
+     "max": 0.45,
+     "min": 0.02,
+     "source": "GEN.350 keeps class T (the sub-Neptune row); sub-Neptunes are the most common planets observed (Fressin 2013, Petigura 2018, recalled, unverified, tier T2/T3), so class T must appear among cold planets; the pre-cut-over spine drew it almost never"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 140 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 140 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 140 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 140 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K0III/ecosphere/moon": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.8977,
+     "min": 0.5234,
+     "source": "pre-cut-over share 0.711 of 304 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.4227,
+     "min": 0.0642,
+     "source": "pre-cut-over share 0.243 of 304 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.1541,
+     "min": 0.0033,
+     "source": "pre-cut-over share 0.046 of 304 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.9791,
+     "min": 0.6459,
+     "source": "pre-cut-over share 0.812 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1541,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.046 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.0977,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.016 at 0b4d0ccef"
+    },
+    "F": {
+     "kind": "stand-in",
+     "max": 0.0901,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.013 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.0901,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.013 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.1246,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.030 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.1484,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.043 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.0619,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.003 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.1049,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "N": {
+     "kind": "stand-in",
+     "max": 0.0619,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.003 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 304,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 304 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 304 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.7837,
+     "source": "pre-cut-over share 0.914 of 304 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.2163,
+     "min": 0.0033,
+     "source": "pre-cut-over share 0.086 of 304 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K0III/ecosphere/planet": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.7678,
+     "min": 0.2501,
+     "source": "pre-cut-over share 0.509 of 167 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.4433,
+     "min": 0.006,
+     "source": "pre-cut-over share 0.222 of 167 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.5037,
+     "min": 0.0352,
+     "source": "pre-cut-over share 0.269 of 167 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.4632,
+     "min": 0.0368,
+     "source": "pre-cut-over share 0.250 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1274,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.025 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.0898,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.010 at 0b4d0ccef"
+    },
+    "F": {
+     "kind": "stand-in",
+     "max": 0.1584,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.040 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.2036,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.065 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.2676,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.105 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.26,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.100 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.2036,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.065 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.1382,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.030 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.1485,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.035 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.367,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.175 at 0b4d0ccef"
+    },
+    "N": {
+     "kind": "stand-in",
+     "max": 0.1382,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.030 at 0b4d0ccef"
+    },
+    "O": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.2036,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.065 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.1696,
+     "min": 0.006,
+     "source": "pre-cut-over share 0.042 of 167 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.2928,
+     "min": 0.006,
+     "source": "pre-cut-over share 0.114 of 167 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 0.7855,
+     "min": 0.2684,
+     "source": "pre-cut-over share 0.527 of 167 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.5611,
+     "min": 0.0736,
+     "source": "pre-cut-over share 0.317 of 167 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K0III/hot/moon": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.4422,
+     "min": 0.0597,
+     "source": "pre-cut-over share 0.251 of 263 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.9403,
+     "min": 0.5578,
+     "source": "pre-cut-over share 0.749 of 263 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 263 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.5003,
+     "min": 0.1005,
+     "source": "pre-cut-over share 0.300 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.3123,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.148 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.6856,
+     "min": 0.2574,
+     "source": "pre-cut-over share 0.471 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.2144,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.080 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 263,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 263 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 263 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.7683,
+     "source": "pre-cut-over share 0.909 of 263 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.2317,
+     "min": 0.0038,
+     "source": "pre-cut-over share 0.091 of 263 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K0III/hot/planet": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.5298,
+     "min": 0.068,
+     "source": "pre-cut-over share 0.299 of 184 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.932,
+     "min": 0.4702,
+     "source": "pre-cut-over share 0.701 of 184 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 184 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.4876,
+     "min": 0.0524,
+     "source": "pre-cut-over share 0.270 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.2973,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.125 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.668,
+     "min": 0.192,
+     "source": "pre-cut-over share 0.430 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.0898,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.010 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.2285,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.080 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.2366,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.085 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 184 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 184 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.6812,
+     "source": "pre-cut-over share 0.864 of 184 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.3188,
+     "min": 0.0054,
+     "source": "pre-cut-over share 0.136 of 184 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K5V/cold/moon": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.4977,
+     "min": 0.1151,
+     "source": "pre-cut-over share 0.306 of 297 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.8849,
+     "min": 0.5023,
+     "source": "pre-cut-over share 0.694 of 297 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 297 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.7948,
+     "source": "pre-cut-over share 0.923 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.2052,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.077 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 297,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 297 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 297 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 297 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 297 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K5V/cold/planet": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 136 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 136 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 136 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.7938,
+     "min": 0.3162,
+     "source": "pre-cut-over share 0.555 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1772,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.050 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.3737,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.180 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.3188,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.140 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.2204,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.075 at 0b4d0ccef"
+    },
+    "T": {
+     "anomaly": "GEN.829",
+     "kind": "stand-in",
+     "max": 0.45,
+     "min": 0.02,
+     "source": "GEN.350 keeps class T (the sub-Neptune row); sub-Neptunes are the most common planets observed (Fressin 2013, Petigura 2018, recalled, unverified, tier T2/T3), so class T must appear among cold planets; the pre-cut-over spine drew it almost never"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 136 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 136 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 136 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 136 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K5V/ecosphere/moon": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.7781,
+     "min": 0.3516,
+     "source": "pre-cut-over share 0.565 of 262 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.5832,
+     "min": 0.1649,
+     "source": "pre-cut-over share 0.374 of 262 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.1848,
+     "min": 0.0038,
+     "source": "pre-cut-over share 0.061 of 262 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.9947,
+     "min": 0.6465,
+     "source": "pre-cut-over share 0.821 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1589,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.046 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.0654,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.004 at 0b4d0ccef"
+    },
+    "F": {
+     "kind": "stand-in",
+     "max": 0.0781,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.008 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.0886,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.011 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.1152,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.023 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.1451,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.038 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.0654,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.004 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.1451,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.038 at 0b4d0ccef"
+    },
+    "N": {
+     "kind": "stand-in",
+     "max": 0.0781,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.008 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 262,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 262 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.0654,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.004 of 262 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "anomaly": "GEN.812",
+     "kind": "stand-in",
+     "max": 0.6994,
+     "min": 0.2701,
+     "source": "pre-cut-over share 0.485 of 262 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "anomaly": "GEN.812",
+     "kind": "stand-in",
+     "max": 0.7261,
+     "min": 0.2968,
+     "source": "pre-cut-over share 0.511 of 262 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K5V/ecosphere/planet": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.5665,
+     "min": 0.0806,
+     "source": "pre-cut-over share 0.324 of 170 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.6589,
+     "min": 0.1528,
+     "source": "pre-cut-over share 0.406 of 170 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.5033,
+     "min": 0.0378,
+     "source": "pre-cut-over share 0.271 of 170 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.5115,
+     "min": 0.0685,
+     "source": "pre-cut-over share 0.290 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.116,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.1382,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.030 at 0b4d0ccef"
+    },
+    "F": {
+     "kind": "stand-in",
+     "max": 0.1382,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.030 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.1679,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.045 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.2973,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.125 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.2523,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.095 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.1862,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.055 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.116,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.1382,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.030 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.3603,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.170 at 0b4d0ccef"
+    },
+    "N": {
+     "kind": "stand-in",
+     "max": 0.1274,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.025 at 0b4d0ccef"
+    },
+    "O": {
+     "kind": "stand-in",
+     "max": 0.0898,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.010 at 0b4d0ccef"
+    },
+    "P": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.1485,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.035 at 0b4d0ccef"
+    },
+    "V": {
+     "kind": "stand-in",
+     "max": 0.1036,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.015 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 170 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.2217,
+     "min": 0.0059,
+     "source": "pre-cut-over share 0.071 of 170 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 0.5596,
+     "min": 0.0757,
+     "source": "pre-cut-over share 0.318 of 170 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.8632,
+     "min": 0.3603,
+     "source": "pre-cut-over share 0.612 of 170 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K5V/hot/moon": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.6336,
+     "min": 0.1664,
+     "source": "pre-cut-over share 0.400 of 205 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.8336,
+     "min": 0.3664,
+     "source": "pre-cut-over share 0.600 of 205 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 205 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.4892,
+     "min": 0.0571,
+     "source": "pre-cut-over share 0.273 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.326,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.146 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.7689,
+     "min": 0.2946,
+     "source": "pre-cut-over share 0.532 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1739,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.049 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 205,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 205 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 205 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 0.9732,
+     "min": 0.5585,
+     "source": "pre-cut-over share 0.766 of 205 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.4415,
+     "min": 0.0268,
+     "source": "pre-cut-over share 0.234 of 205 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "K5V/hot/planet": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.5502,
+     "min": 0.0796,
+     "source": "pre-cut-over share 0.315 of 181 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.9204,
+     "min": 0.4498,
+     "source": "pre-cut-over share 0.685 of 181 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 181 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.4693,
+     "min": 0.0407,
+     "source": "pre-cut-over share 0.255 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.2973,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.125 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.6942,
+     "min": 0.2158,
+     "source": "pre-cut-over share 0.455 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1584,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.040 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.2523,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.095 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.1382,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.030 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 181 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 181 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.5788,
+     "source": "pre-cut-over share 0.790 of 181 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.4212,
+     "min": 0.0055,
+     "source": "pre-cut-over share 0.210 of 181 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "M2V/cold/moon": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.6616,
+     "min": 0.2667,
+     "source": "pre-cut-over share 0.464 of 321 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.7333,
+     "min": 0.3384,
+     "source": "pre-cut-over share 0.536 of 321 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 321 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.7613,
+     "source": "pre-cut-over share 0.897 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.2387,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.103 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 321,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 321 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 321 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 321 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 321 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "M2V/cold/planet": {
+   "barred": [
+    "A",
+    "B",
+    "E",
+    "F",
+    "G",
+    "H",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 134 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 134 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 134 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.7745,
+     "min": 0.2955,
+     "source": "pre-cut-over share 0.535 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1772,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.050 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.3803,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.185 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.3188,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.140 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.2366,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.085 at 0b4d0ccef"
+    },
+    "T": {
+     "anomaly": "GEN.829",
+     "kind": "stand-in",
+     "max": 0.45,
+     "min": 0.02,
+     "source": "GEN.350 keeps class T (the sub-Neptune row); sub-Neptunes are the most common planets observed (Fressin 2013, Petigura 2018, recalled, unverified, tier T2/T3), so class T must appear among cold planets; the pre-cut-over spine drew it almost never"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 134 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 134 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.96,
+     "source": "pre-cut-over share 1.000 of 134 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 134 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "M2V/ecosphere/moon": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.6613,
+     "min": 0.1985,
+     "source": "pre-cut-over share 0.430 of 214 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.7565,
+     "min": 0.2902,
+     "source": "pre-cut-over share 0.523 of 214 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.1683,
+     "min": 0.0047,
+     "source": "pre-cut-over share 0.047 of 214 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.6347,
+     "source": "pre-cut-over share 0.822 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1319,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.028 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.071,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.0995,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.014 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.1507,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.037 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.1597,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.042 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.0866,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.009 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.1415,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.033 at 0b4d0ccef"
+    },
+    "N": {
+     "kind": "stand-in",
+     "max": 0.071,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "P": {
+     "kind": "stand-in",
+     "max": 0.071,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 214,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 214 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.0866,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.009 of 214 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.7912,
+     "source": "pre-cut-over share 0.930 of 214 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.1931,
+     "min": 0.0047,
+     "source": "pre-cut-over share 0.061 of 214 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "M2V/ecosphere/planet": {
+   "barred": [
+    "A",
+    "B",
+    "T"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.3854,
+     "min": 0.0061,
+     "source": "pre-cut-over share 0.177 of 164 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.8317,
+     "min": 0.3147,
+     "source": "pre-cut-over share 0.573 of 164 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.4813,
+     "min": 0.0187,
+     "source": "pre-cut-over share 0.250 of 164 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "C": {
+     "kind": "stand-in",
+     "max": 0.4876,
+     "min": 0.0524,
+     "source": "pre-cut-over share 0.270 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.1036,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.015 at 0b4d0ccef"
+    },
+    "E": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "F": {
+     "kind": "stand-in",
+     "max": 0.1584,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.040 at 0b4d0ccef"
+    },
+    "G": {
+     "kind": "stand-in",
+     "max": 0.1485,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.035 at 0b4d0ccef"
+    },
+    "H": {
+     "kind": "stand-in",
+     "max": 0.3188,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.140 at 0b4d0ccef"
+    },
+    "I": {
+     "kind": "stand-in",
+     "max": 0.2752,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.110 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.2121,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.070 at 0b4d0ccef"
+    },
+    "K": {
+     "kind": "stand-in",
+     "max": 0.116,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "L": {
+     "kind": "stand-in",
+     "max": 0.1584,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.040 at 0b4d0ccef"
+    },
+    "M": {
+     "kind": "stand-in",
+     "max": 0.3398,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.155 at 0b4d0ccef"
+    },
+    "N": {
+     "kind": "stand-in",
+     "max": 0.1274,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.025 at 0b4d0ccef"
+    },
+    "O": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "P": {
+     "kind": "stand-in",
+     "max": 0.0732,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.005 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.1862,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.055 at 0b4d0ccef"
+    },
+    "V": {
+     "kind": "stand-in",
+     "max": 0.0898,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.010 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.0805,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.006 of 164 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.1175,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.018 of 164 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.8086,
+     "min": 0.289,
+     "source": "pre-cut-over share 0.549 of 164 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "anomaly": "GEN.855",
+     "kind": "stand-in",
+     "max": 0.6853,
+     "min": 0.1683,
+     "source": "pre-cut-over share 0.427 of 164 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "M2V/hot/moon": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.6286,
+     "min": 0.0318,
+     "source": "pre-cut-over share 0.330 of 106 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.9682,
+     "min": 0.3714,
+     "source": "pre-cut-over share 0.670 of 106 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 106 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.6286,
+     "min": 0.0318,
+     "source": "pre-cut-over share 0.330 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.3876,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.151 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.786,
+     "min": 0.1574,
+     "source": "pre-cut-over share 0.472 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.2037,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.047 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 106,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 106 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 106 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.6419,
+     "source": "pre-cut-over share 0.868 of 106 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "anomaly": "GEN.896",
+     "kind": "stand-in",
+     "max": 0.3581,
+     "min": 0.0094,
+     "source": "pre-cut-over share 0.132 of 106 scored bodies at 0b4d0ccef"
+    }
+   }
+  },
+  "M2V/hot/planet": {
+   "barred": [
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "T",
+    "V"
+   ],
+   "ceilings": {
+    "microbial": {
+     "kind": "stand-in",
+     "max": 0.6132,
+     "min": 0.1271,
+     "source": "pre-cut-over share 0.370 of 181 scored bodies at 0b4d0ccef"
+    },
+    "none": {
+     "kind": "stand-in",
+     "max": 0.8729,
+     "min": 0.3868,
+     "source": "pre-cut-over share 0.630 of 181 scored bodies at 0b4d0ccef"
+    },
+    "unlimited": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 181 scored bodies at 0b4d0ccef"
+    }
+   },
+   "classes": {
+    "A": {
+     "kind": "stand-in",
+     "max": 0.4693,
+     "min": 0.0407,
+     "source": "pre-cut-over share 0.255 at 0b4d0ccef"
+    },
+    "B": {
+     "kind": "stand-in",
+     "max": 0.2826,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.115 at 0b4d0ccef"
+    },
+    "C": {
+     "kind": "stand-in",
+     "max": 0.6994,
+     "min": 0.2206,
+     "source": "pre-cut-over share 0.460 at 0b4d0ccef"
+    },
+    "D": {
+     "kind": "stand-in",
+     "max": 0.116,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.020 at 0b4d0ccef"
+    },
+    "J": {
+     "kind": "stand-in",
+     "max": 0.2523,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.095 at 0b4d0ccef"
+    },
+    "S": {
+     "kind": "stand-in",
+     "max": 0.1862,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.055 at 0b4d0ccef"
+    }
+   },
+   "n_ref": 200,
+   "source": "pre-cut-over measured at 0b4d0ccef",
+   "tiers": {
+    "Blue": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 181 scored bodies at 0b4d0ccef"
+    },
+    "Green": {
+     "kind": "stand-in",
+     "max": 0.04,
+     "min": 0.0,
+     "source": "pre-cut-over share 0.000 of 181 scored bodies at 0b4d0ccef"
+    },
+    "Red": {
+     "kind": "stand-in",
+     "max": 1.0,
+     "min": 0.7434,
+     "source": "pre-cut-over share 0.906 of 181 scored bodies at 0b4d0ccef"
+    },
+    "Yellow": {
+     "anomaly": "GEN.896",
+     "kind": "stand-in",
+     "max": 0.2566,
+     "min": 0.0055,
+     "source": "pre-cut-over share 0.094 of 181 scored bodies at 0b4d0ccef"
+    }
+   }
+  }
+ },
+ "errors": {
+  "anomaly": ""
+ },
+ "hangs": {
+  "anomaly": ""
+ },
+ "reference": {
+  "commit": "0b4d0ccefe867a9937c9e5e630db1f9d0a8fed1d",
+  "draws_per_cell": 200,
+  "kind": "stand-in: pre-cut-over prevalence, no observed class rates exist",
+  "label": "before 4c (GEN.411/422, epoch 106): the class-first spine with a pre-solved air",
+  "pad": 0.04,
+  "seeds": "crc32 of 'cell:<star>:<zone>' and 'orbit:<star>:<zone>' (tests.audit.prevalence.seed_for)",
+  "sigmas": 4.0
+ }
+}

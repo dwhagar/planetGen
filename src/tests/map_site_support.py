@@ -15,6 +15,7 @@ Map's sector holds stars across the luminosity range, a binary, a
 nebula, a neutron star and two rogue planets.
 """
 
+import contextlib
 import math
 import threading
 
@@ -176,12 +177,96 @@ GLOW_EXTRA_SOL = 2.0e6
 
 
 WORLD_FIELD = [
-    {"id": 9001, "name": "Fixture Eden", "worlds": 2,
+    {"id": 9001, "name": "Fixture Eden", "worlds": 2, "score": 0.82,
      "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
-    {"id": 9002, "name": "Fixture Rest", "worlds": 1,
+    {"id": 9002, "name": "Fixture Rest", "worlds": 1, "score": 0.55,
      "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
 ]
-"""The Galaxy Map's fixture systems with a habitable world (a tile's `worlds`, MAP.220), among the fixture stars."""
+"""The Galaxy Map's fixture systems with a habitable world (the `habitable` reason of a node's `interests`, MAP.220, MAP.303), among
+the fixture stars: `worlds` of them, the best rated `score` (Fixture Eden Green, Fixture Rest Yellow)."""
+
+GIANT_FIELD = [
+    {"id": 9003, "name": "Fixture Jove", "giants": 3,
+     "x": STAR_FIELD_CENTER_PC[0] + 1.0, "y": 8.0, "z": 1.0},
+    {"id": 9001, "name": "Fixture Eden", "giants": 1,
+     "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
+]
+"""The Galaxy Map's fixture systems with a gas giant (the `gas-giant` reason, MAP.305): Fixture Jove only, and Fixture Eden, which
+also holds the habitable worlds, so a system with two reasons is among them."""
+
+
+BARREN_FIELD = [
+    {"id": 9004, "name": "Fixture Rock", "reason": "uninhabitable", "n": 2, "x": STAR_FIELD_CENTER_PC[0] - 2.0, "y": 5.0, "z": -1.0},
+    {"id": 9001, "name": "Fixture Eden", "reason": "uninhabitable", "n": 1, "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
+    {"id": 9002, "name": "Fixture Rest", "reason": "inhabited", "n": 1, "score": 0.55, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
+    {"id": 9005, "name": "Fixture Belt", "reason": "asteroid-field", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 9.0, "y": -2.0, "z": 4.0},
+]
+"""The fixture systems with the other reasons (MAP.321): Fixture Rock holds barren worlds only, Fixture Eden a barren one besides its
+habitable ones and its gas giant (so three reasons name it, the habitable one first), Fixture Rest an inhabited world (the inhabited
+one names it before the habitable one does), Fixture Belt a belt."""
+
+
+CLASS_FIELD = [
+    {"id": 9001, "name": "Fixture Eden", "letter": "K", "n": 2, "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
+    {"id": 9001, "name": "Fixture Eden", "letter": "O", "n": 1, "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
+    {"id": 9002, "name": "Fixture Rest", "letter": "K", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
+    {"id": 9004, "name": "Fixture Rock", "letter": "G", "n": 2, "x": STAR_FIELD_CENTER_PC[0] - 2.0, "y": 5.0, "z": -1.0},
+    {"id": 9003, "name": "Fixture Jove", "letter": "J", "n": 3, "x": STAR_FIELD_CENTER_PC[0] + 1.0, "y": 8.0, "z": 1.0},
+]
+"""The fixture systems with a planet or moon of a class (the `class-` reasons, MAP.220), listed only by the nodes of 3 shells or fewer as the
+server does: Fixture Eden holds two class K worlds and a class O one, Fixture Rest a class K one, Fixture Rock two class G, Fixture Jove
+three class J (gas giants)."""
+
+
+LIFE_FIELD = [
+    {"id": 9001, "name": "Fixture Eden", "reason": "life", "n": 2, "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
+    {"id": 9002, "name": "Fixture Rest", "reason": "life", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
+    {"id": 9002, "name": "Fixture Rest", "reason": "sentient", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
+    {"id": 9002, "name": "Fixture Rest", "reason": "civilization", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
+    {"id": 9004, "name": "Fixture Rock", "reason": "life", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 2.0, "y": 5.0, "z": -1.0},
+    {"id": 9003, "name": "Fixture Jove", "reason": "life", "n": 1, "x": STAR_FIELD_CENTER_PC[0] + 1.0, "y": 8.0, "z": 1.0},
+    {"id": 9003, "name": "Fixture Jove", "reason": "sentient", "n": 1, "x": STAR_FIELD_CENTER_PC[0] + 1.0, "y": 8.0, "z": 1.0},
+]
+"""The fixture systems with a world with life (the `life`, `sentient` and `civilization` reasons, MAP.311): life in Fixture Eden, Fixture Rest,
+Fixture Rock and Fixture Jove, sentient life in Fixture Rest and Fixture Jove, a civilization in Fixture Rest only."""
+
+
+def interests_of(worlds, giants, barren=(), classes=(), life=()):
+    """A node's `interests` for fixture `worlds` (`WORLD_FIELD` shape) and `giants` (`GIANT_FIELD` shape), as the server lists them:
+    one entry per system with a `reasons` dict."""
+    from planetgen.physics import habitability
+
+    systems = {}
+    for world in worlds:
+        entry = systems.setdefault(world["id"], {"id": world["id"], "name": world["name"], "x": world["x"], "y": world["y"],
+                                                 "z": world["z"], "reasons": {}})
+        score = world.get("score", 0.8)
+        entry["reasons"]["habitable"] = {"n": world["worlds"], "score": score, "tier": habitability.tier(score)}
+    for giant in giants:
+        entry = systems.setdefault(giant["id"], {"id": giant["id"], "name": giant["name"], "x": giant["x"], "y": giant["y"],
+                                                 "z": giant["z"], "reasons": {}})
+        entry["reasons"]["gas-giant"] = {"n": giant["giants"]}
+    for other in barren:
+        entry = systems.setdefault(other["id"], {"id": other["id"], "name": other["name"], "x": other["x"], "y": other["y"],
+                                                 "z": other["z"], "reasons": {}})
+        entry["reasons"][other["reason"]] = {"n": other["n"]}
+        if other["reason"] == "uninhabitable":
+            entry["reasons"][other["reason"]].update(score=0.1, tier="Red")
+        if other["reason"] == "inhabited":
+            entry["reasons"][other["reason"]].update(score=other["score"], tier=habitability.tier(other["score"]))
+    for world in classes:
+        entry = systems.setdefault(world["id"], {"id": world["id"], "name": world["name"], "x": world["x"], "y": world["y"],
+                                                 "z": world["z"], "reasons": {}})
+        entry["reasons"]["class-" + world["letter"]] = {"n": world["n"]}
+    for other in life:
+        entry = systems.setdefault(other["id"], {"id": other["id"], "name": other["name"], "x": other["x"], "y": other["y"],
+                                                 "z": other["z"], "reasons": {}})
+        entry["reasons"][other["reason"]] = {"n": other["n"]}
+    for other in life:
+        entry = systems.setdefault(other["id"], {"id": other["id"], "name": other["name"], "x": other["x"], "y": other["y"],
+                                                 "z": other["z"], "reasons": {}})
+        entry["reasons"][other["reason"]] = {"n": other["n"]}
+    return list(systems.values())
 
 
 HALO_CENTER_PC = (4000.0, 1500.0, 9500.0)
@@ -317,19 +402,50 @@ def sector_detail(sector_id=SECTOR_ID):
     }
 
 
+REGION_NAMES = {(0, 0, 0): "Fixture Beez Region", (1, 0, 0): "Fixture Zarh Region"}
+"""The name of each charted 9-block of the fixture (API.35), by its `(shell, band, wedge)`: the two the fixture's four sectors
+fall in, both of the one 81-block family `REGION_FAMILY`."""
+REGION_FAMILY = "Fixture Reach"
+REGION_RADIUS_PC = 12.0
+"""What the node of a charted 9-block carries beside its name (`extent`, MAP.319): a sphere of `REGION_RADIUS_PC` pc about its
+first generated sector."""
+REGION_OUTLINE_SECTORS = 780
+"""How many sectors the outline of a 9-block holds, about (the share charted, `charted`, MAP.314)."""
+
+
+REGION_INHABITED = {"9.0.0.0": {"systems": 2, "worlds": 3, "score": 1.2, "tier": "Blue"}}
+"""What the fixture's charted-regions list says of the inhabited worlds in a region (MAP.321 c), by the region's cell key."""
+
+
+def charted_regions():
+    """The fixture's charted regions, `{(shell, band, wedge): {"key", "name", "parent", "centre", "radius", "sectors", "percent"}}`
+    in the shape the node list of MAP.314 has (`region_stats.node_regions`): one per 9-block that holds a fixture sector."""
+    from planetgen.db import region_stats
+    from planetgen.galaxy.drill import format_drill_key
+
+    found = {}
+    for sector in SECTORS:
+        cell = region_stats.region_cell(sector[1:4])
+        entry = found.setdefault(tuple(cell)[1:], {
+            "key": format_drill_key(cell), "name": REGION_NAMES[tuple(cell)[1:]], "parent": REGION_FAMILY,
+            "centre": list(_sector_center_pc(*sector[1:4])), "radius": REGION_RADIUS_PC, "sectors": 0, "percent": 0.0})
+        entry["sectors"] += 1
+        entry["percent"] = round(100.0 * entry["sectors"] / REGION_OUTLINE_SECTORS, 3)
+    return found
+
 UNCHARTED_CELL = (1, 0, 0)
 """A cell of the core no sector was generated in, where the fixture's scatters left a bright star, a black
 hole and a nebula (MAP.162)."""
 
 SECTOR_STATS = {
-    SECTOR_ID: (900, 1200, 4.5, 3000.0, 14),
-    8: (40, 60, 0.5, 900.0, 3),
-    9: (0, 0, None, 0.0, 0),
-    10: (6, 8, 11.0, 4.0, 1),
+    SECTOR_ID: (900, 1200, 4.5, 3000.0, 14, 2.4e33),
+    8: (40, 60, 0.5, 900.0, 3, 1.2e32),
+    9: (0, 0, None, 0.0, 0, 0.0),
+    10: (6, 8, 11.0, 4.0, 1, 3.0e31),
 }
 """Each fixture sector's stored systems, stars, mean star age (Gy), summed
-luminosity (DB.14) and habitable worlds (MAP.143): a dense average one, a young
-bright one, one with no stars and a sparse old one."""
+luminosity (DB.14), habitable worlds (MAP.143) and total mass in kilograms (DB.108, MAP.322): a dense average one, a young
+bright one, one with no stars and a sparse old one. The masses order the sectors Prime, High, Second, Shell Nine."""
 
 
 def galaxy_stage(at=None):
@@ -361,7 +477,8 @@ def _stats(ids):
     stars = sum(r[1] for r in rows)
     return {"systems": sum(r[0] for r in rows), "expected_systems": 0.0, "stars": stars,
             "mean_age_gy": sum(r[2] * r[1] for r in rows if r[1]) / stars if stars else None,
-            "luminosity_sol": sum(r[3] for r in rows), "habitable_worlds": sum(r[4] for r in rows)}
+            "luminosity_sol": sum(r[3] for r in rows), "habitable_worlds": sum(r[4] for r in rows),
+            "mass_kg": sum(r[5] for r in rows)}
 
 
 def _children(counts):
@@ -389,11 +506,20 @@ def system_scene_payload(system_id):
     for index, planet in enumerate(scene["planets"], start=1):
         planet.update(id=index, kind="planet", name=f"{name} {'I' * index}", planet_class="F" if index == 1 else "J",
                       radius_km=6371.0 if index == 1 else 69911.0, mass_kg=6e24, color=colors[n],
-                      habitable=False, inhabited=False)
+                      # MAP.321: the first planet is an inhabited Green world, the second a gas giant
+                      habitable=index == 1, inhabited=index == 1, body_type="t" if index == 1 else "g",
+                      phi4=0.82 if index == 1 else None, tier="Green" if index == 1 else None,
+                      # MAP.343: the first planet has life, a sentient species and a civilization, the gas giant none
+                      life_microbial=3 if index == 1 else None, life_flora=2 if index == 1 else None, life_fauna=None,
+                      life_sentient=2 if index == 1 else None, life_stage="technological_civilization" if index == 1 else None)
         n += 1
         for moon_index, moon in enumerate(planet["moons"], start=1):
             moon.update(id=moon_index, kind="moon", name=f"{planet['name']} {'abc'[moon_index - 1]}", planet_class="D",
-                        radius_km=1737.0, mass_kg=7e22, color=colors[n], habitable=False, inhabited=False)
+                        radius_km=1737.0, mass_kg=7e22, color=colors[n], habitable=False, inhabited=False,
+                        body_type="t", phi4=0.1, tier="Red",
+                        # MAP.343: the first moon of the first planet holds microbial life only
+                        life_microbial=1 if (index == 1 and moon_index == 1) else 0, life_flora=None, life_fauna=None, life_sentient=None,
+                        life_stage=None)
             n += 1
     for index, comet in enumerate(scene["comets"], start=1):
         comet.update(id=index, kind="comet", name=f"{name} Comet {index}", radius_km=5.0, color="#b9d6e8", is_active=True)
@@ -406,12 +532,82 @@ def system_scene_payload(system_id):
     return scene
 
 
+LARGE_DISC_STARS = 30000
+LARGE_CLUSTERS = 40
+LARGE_CLUSTER_STARS = 300
+LARGE_CORE_STARS = 4000
+LARGE_CORE_SCALE_PC = 25.0
+LARGE_CENTRE_PC = STAR_FIELD_CENTER_PC
+"""MAP.249: the large synthetic galaxy's size. `LARGE_DISC_STARS` stars spread over an exponential disc (scale 2800 pc,
+350 pc thick), `LARGE_CLUSTERS` clusters of `LARGE_CLUSTER_STARS` among them and one core cluster of `LARGE_CORE_STARS`
+(scale `LARGE_CORE_SCALE_PC`) at `LARGE_CENTRE_PC`, where the benchmark dives: every level of the dive there lists the
+node's full budget of stars (`nodes.NODE_STARS`, `NODE_SECTOR_STARS`), as a real galaxy's does."""
+
+
+def _large_field():
+    """MAP.249: the stars of a large synthetic galaxy (seeded), with their sector addresses and drill-down indexes (see
+    `LARGE_*`). Luminosities run 1e-4 to 1e5 L_sun with the faint end far commoner, as in a real population."""
+    import random
+
+    from planetgen.galaxy.spherical import sector_address_at
+
+    rng = random.Random(249)
+    centres = []
+    for _ in range(LARGE_CLUSTERS):
+        radius = min(12000.0, rng.expovariate(1.0 / 2800.0))
+        angle = rng.uniform(0.0, 2.0 * math.pi)
+        centres.append((radius * math.cos(angle), radius * math.sin(angle), rng.uniform(-300.0, 300.0), rng.uniform(6.0, 40.0)))
+    stars = []
+    count = LARGE_DISC_STARS + LARGE_CLUSTERS * LARGE_CLUSTER_STARS + LARGE_CORE_STARS
+    for i in range(count):
+        if i < LARGE_DISC_STARS:
+            radius = min(14000.0, rng.expovariate(1.0 / 2800.0))
+            angle = rng.uniform(0.0, 2.0 * math.pi)
+            x, y, z = radius * math.cos(angle), radius * math.sin(angle), rng.choice((-1, 1)) * rng.expovariate(1.0 / 350.0)
+        else:
+            if i < count - LARGE_CORE_STARS:
+                cx, cy, cz, scale = centres[(i - LARGE_DISC_STARS) // LARGE_CLUSTER_STARS]
+            else:
+                (cx, cy, cz), scale = LARGE_CENTRE_PC, LARGE_CORE_SCALE_PC
+            x, y, z = cx + rng.gauss(0.0, scale), cy + rng.gauss(0.0, scale), cz + rng.gauss(0.0, scale / 3.0)
+        lum = 10 ** (-4.0 + 9.0 * rng.random() ** 2.5)
+        shell, band, wedge = sector_address_at((x, y, z), EDGE_PC)
+        stars.append({
+            "id": 100000 + i, "name": None, "x": x, "y": y, "z": z,
+            "luminosity_sol": float("%.4g" % lum), "temperature_k": round(2600.0 + 30000.0 * (math.log10(lum) + 4.0) / 9.0 * rng.uniform(0.6, 1.0)),
+            "radius_sol": float("%.3g" % (lum ** 0.35)), "star_type": "fixture",
+            "shell_index": shell, "band_index": band, "wedge_index": wedge, "system_id": SYSTEMS[i % len(SYSTEMS)][0],
+        })
+    return stars
+
+
+def _bucketed(stars):
+    """The stars of every drill-down block, brightest first: `{DrillBlock: [star, ...]}` (a node's stars are the first
+    `NODE_STARS` of its block's)."""
+    from planetgen.db.nodes import ancestor_at
+    from planetgen.galaxy.drill import DRILL_LEVELS
+
+    memo = {}
+    buckets = {}
+    for star in stars:
+        address = (star["shell_index"], star["band_index"], star["wedge_index"])
+        for m in DRILL_LEVELS:
+            buckets.setdefault(ancestor_at(address, m, memo), []).append(star)
+    for bucket in buckets.values():
+        bucket.sort(key=lambda star: -star["luminosity_sol"])
+    return buckets
+
+
 class FixtureApi:
     """The `apiclient`/`tilecache` reads the map pages make."""
 
-    def __init__(self, halo=False, dense=False):
+    def __init__(self, halo=False, dense=False, large=False):
         self.shape = galaxy_shape()
         self.stars = STAR_FIELD + (HALO_STARS if halo else []) + (DENSE_STARS if dense else [])
+        self.buckets = None
+        if large:
+            self.stars = self.stars + _large_field()
+            self.buckets = _bucketed(self.stars)
         self.points = POINT_FIELD + (HALO_POINTS if halo else []) + (DENSE_POINTS if dense else [])
         self.worlds = WORLD_FIELD + (DENSE_WORLDS if dense else [])
         self._addresses = {}
@@ -439,11 +635,29 @@ class FixtureApi:
         return {"items": [], "total": 0, "limit": limit, "offset": offset}
 
     def auth_me(self, cookie_header):
-        return None
+        """Nobody is signed in, unless the browser sends a session cookie (UX.127's admin Generate buttons)."""
+        return {"username": "fixture-admin", "must_change_credentials": False} if cookie_header else None
 
     def get_galaxy_nebula_cover(self, db, at=None, g=None):
         """No fixture cell lies inside a nebula, and the real API is not asked for a database that does not exist."""
         return {"at": at, "child_m": 1, "cells": []}
+
+    def get_galaxy_charted_regions(self, db):
+        """`GET /api/galaxy/charted-regions` over `SECTORS`: one region per 9-block that holds a fixture sector (`charted_regions`),
+        its share charted the sectors it holds over what its outline holds, by share charted (MAP.316)."""
+        from planetgen.db import region_stats
+        from planetgen.galaxy.drill import parse_node_key
+
+        out = []
+        for region in charted_regions().values():
+            cell = parse_node_key(region["key"])
+            capacity = region_stats.capacity_of(cell)
+            out.append({"key": region["key"], "m": cell.m, "shell": cell.shell, "band": cell.band, "wedge": cell.wedge,
+                        "centre": region["centre"], "radius": region["radius"], "sector_count": region["sectors"],
+                        "capacity": capacity, "share": region["sectors"] / capacity, "clumps": 1,
+                        "name": region["name"], "parent": region["parent"],
+                        **({"inhabited": REGION_INHABITED[region["key"]]} if region["key"] in REGION_INHABITED else {})})
+        return {"regions": sorted(out, key=lambda r: (-r["share"], r["key"])), "edge_pc": EDGE_PC}
 
     def get_galaxy_changes(self, db, since=None):
         return {"stamp": "00000000000000f1", "state": "s", "full": since is None, "nodes": []}
@@ -457,7 +671,7 @@ class FixtureApi:
         return found
 
     def get_galaxy_nodes(self, db, node_keys):
-        from planetgen.db.nodes import address_in_block
+        from planetgen.db.nodes import NODE_SECTOR_STARS, NODE_STARS, address_in_block
         from planetgen.galaxy.drill import parse_node_key
         from planetgen.galaxy.nodecut import block_box
 
@@ -465,9 +679,22 @@ class FixtureApi:
         for key in node_keys:
             block = parse_node_key(key)
             lo, hi = block_box(block, EDGE_PC)
-            stars = [star for star in self.stars if address_in_block(self._address(star), block, self._memo)]
+            if self.buckets is None:
+                stars = [star for star in self.stars if address_in_block(self._address(star), block, self._memo)]
+                lit = stars
+            else:
+                lit = self.buckets.get(DrillBlock(*block), [])
+                stars = lit[:NODE_SECTOR_STARS if block.m == 1 else NODE_STARS]
             points = [point for point in self.points if address_in_block(self._address(point), block, self._memo)]
             worlds = [system for system in self.worlds
+                      if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
+            giants = [system for system in GIANT_FIELD
+                      if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
+            barren = [system for system in BARREN_FIELD
+                      if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
+            classed = [system for system in CLASS_FIELD
+                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 3 else []
+            living = [system for system in LIFE_FIELD
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
             # Like the real node: every cloud whose sphere reaches into the block's box.
             clouds = []
@@ -476,14 +703,34 @@ class FixtureApi:
                 if math.dist(nearest, [cloud[axis] for axis in "xyz"]) <= cloud["radius_pc"]:
                     clouds.append(cloud)
             # The light of the unlisted stars (MAP.266's glow): GLOW_EXTRA_SOL on top of the listed stars', centred on them.
-            lights = {"stars": len(stars), "star_luminosity_sol": sum(star["luminosity_sol"] for star in stars)}
-            if stars:
+            lights = {"stars": len(lit), "star_luminosity_sol": sum(star["luminosity_sol"] for star in lit)}
+            if lit:
                 lights["star_luminosity_sol"] += GLOW_EXTRA_SOL
-                weight = sum(star["luminosity_sol"] for star in stars)
-                lights["star_centre"] = [sum(star["luminosity_sol"] * star[axis] for star in stars) / weight for axis in "xyz"]
+                weight = sum(star["luminosity_sol"] for star in lit)
+                lights["star_centre"] = [sum(star["luminosity_sol"] * star[axis] for star in lit) / weight for axis in "xyz"]
                 lights["star_temperature_k"] = 5200
             nodes[key] = {"aggregate": {"generated": 0, "stats": None, "lights": lights}, "placed": [],
-                          "clouds": clouds, "stars": stars, "generated": None, "points": points, "worlds": worlds}
+                          "clouds": clouds, "stars": stars, "generated": None, "points": points,
+                          "interests": interests_of(worlds, giants, barren, classed, living)}
+            # API.35: a 9-block holding a generated sector is a charted region, named with its family.
+            regions = charted_regions()
+            if block.m == 9 and tuple(block)[1:] in regions:
+                region = regions[tuple(block)[1:]]
+                nodes[key].update(name=region["name"], parent=region["parent"])
+                nodes[key]["extent"] = {"centre": region["centre"], "radius": region["radius"]}
+                nodes[key]["charted"] = {"sectors": region["sectors"], "percent": region["percent"]}
+            elif block.m in (27, 81, 243):
+                # MAP.314: the charted regions inside a node of these sizes, most sectors first.
+                from planetgen.galaxy.drill import drill_parent, parse_node_key
+                inside = []
+                for region in regions.values():
+                    ancestor = parse_node_key(region["key"])
+                    while ancestor.m < block.m:
+                        ancestor = drill_parent(ancestor)
+                    if ancestor == block:
+                        inside.append(region)
+                if inside:
+                    nodes[key]["regions"] = sorted(inside, key=lambda r: (-r["sectors"], r["key"]))
         return {"nodes": nodes, "edge_pc": EDGE_PC, "has_shape": True}
 
     def get_galaxy_stage(self, db, at=None):
@@ -569,7 +816,7 @@ class FixtureApi:
 _APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
               "get_galaxy_changes", "get_galaxy_nebula_cover", "get_nebula_shape", "get_system_scene",
-              "get_uncharted_sector", "get_system")
+              "get_uncharted_sector", "get_system", "get_galaxy_charted_regions")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_nodes", "get_galaxy_stage", "get_galaxy_window")
 
 
@@ -581,48 +828,83 @@ class _SiteConfig(Config):
     RATELIMIT_DEFAULT = API_LIMIT_OFF   # fixtures and pages call the API from one address (TEST.385)
 
 
-def _serve(api, tmp_path_factory):
-    """Serves the map pages over `api` (a `FixtureApi`) on a local server; yields its base URL."""
-    patch = pytest.MonkeyPatch()
-    try:
-        for name in _APICLIENT:
-            patch.setattr(apiclient, name, getattr(api, name))
-        for name in _TILECACHE:
-            patch.setattr(tilecache, name, getattr(api, name))
-        patch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
-        patch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path_factory.mktemp("tiles")))
-        patch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
-        app = create_app(_SiteConfig)
+class _Served:
+    """A local server for the map pages over one `FixtureApi`, and what routes the process's API calls to it."""
+
+    def __init__(self, api, tmp_path_factory):
+        self.api = api
+        self.tiles = tmp_path_factory.mktemp("tiles")
+        with self.routed():
+            app = create_app(_SiteConfig)
         app.testing = True
-        server = make_quiet_server("127.0.0.1", 0, app, threaded=True)
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
-        thread.start()
+        self.server = make_quiet_server("127.0.0.1", 0, app, threaded=True)
+        self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
+        self.thread.start()
+        self.url = f"http://127.0.0.1:{self.server.server_port}"
+
+    @contextlib.contextmanager
+    def routed(self):
+        """The API client and the tile cache answer from this site's `FixtureApi` while the block runs."""
+        patch = pytest.MonkeyPatch()
         try:
-            yield f"http://127.0.0.1:{server.server_port}"
+            for name in _APICLIENT:
+                patch.setattr(apiclient, name, getattr(self.api, name))
+            for name in _TILECACHE:
+                patch.setattr(tilecache, name, getattr(self.api, name))
+            patch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
+            patch.setenv("PLANETGEN_TILE_CACHE_DIR", str(self.tiles))
+            patch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
+            yield
         finally:
-            server.shutdown()
-            thread.join(timeout=10)
-    finally:
-        patch.undo()
+            patch.undo()
+
+    def stop(self):
+        self.server.shutdown()
+        self.thread.join(timeout=10)
 
 
-@pytest.fixture(scope="module")
-def map_site(tmp_path_factory):
+_SERVED = {}
+"""dict: The running sites by name, each started at the first test that needs it and stopped when pytest ends."""
+
+
+def _serve(name, api_arguments, request, tmp_path_factory):
+    """
+    Serves the map pages over a `FixtureApi(**api_arguments)` on a local server, started once; yields its base URL with
+    the process's API calls routed to it for the test (TEST.394). The sites patch the same functions, so a site that
+    stayed routed after its test would answer the next test's pages from its own worlds.
+    """
+    served = _SERVED.get(name)
+    if served is None:
+        served = _SERVED[name] = _Served(FixtureApi(**api_arguments), tmp_path_factory)
+        request.config.add_cleanup(served.stop)
+    with served.routed():
+        yield served.url
+
+
+@pytest.fixture()
+def map_site(request, tmp_path_factory):
     """The base URL of a local server for the map pages, on fixture data."""
-    yield from _serve(FixtureApi(), tmp_path_factory)
+    yield from _serve("map", {}, request, tmp_path_factory)
 
 
-@pytest.fixture(scope="module")
-def halo_site(tmp_path_factory):
+@pytest.fixture()
+def halo_site(request, tmp_path_factory):
     """`map_site` with a loose group of stars and a black hole beyond the galaxy's outline (MAP.243)."""
-    yield from _serve(FixtureApi(halo=True), tmp_path_factory)
+    yield from _serve("halo", {"halo": True}, request, tmp_path_factory)
 
 
-@pytest.fixture(scope="module")
-def dense_site(tmp_path_factory):
+@pytest.fixture()
+def dense_site(request, tmp_path_factory):
     """`map_site` with a dense region of stars, points and habitable-world systems in the first sector (TEST.368); open it
     at `dense_region_query()`."""
-    yield from _serve(FixtureApi(dense=True), tmp_path_factory)
+    yield from _serve("dense", {"dense": True}, request, tmp_path_factory)
 
 
-__all__ = ["map_site", "halo_site", "dense_site", "dense_region_query", "DENSE_STARS", "DENSE_POINTS", "DENSE_WORLDS", "DENSE_CENTER_PC", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]
+@pytest.fixture()
+def large_site(request, tmp_path_factory):
+    """`map_site` with a large synthetic galaxy of tens of thousands of stars (MAP.249): the nodes carry their real
+    budgets, brightest stars first; the benchmark dives into `LARGE_CENTRE_PC`."""
+    yield from _serve("large", {"large": True}, request, tmp_path_factory)
+
+
+__all__ = ["map_site", "halo_site", "dense_site", "large_site", "LARGE_CENTRE_PC", "dense_region_query", "DENSE_STARS", "DENSE_POINTS", "DENSE_WORLDS", "DENSE_CENTER_PC", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]

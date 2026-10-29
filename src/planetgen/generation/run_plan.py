@@ -22,7 +22,7 @@ import time
 import types
 
 from planetgen.queue import commands, progress_rate, units, work as workQueue, wrapper
-from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, store
+from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, storage_checksum, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import generator_battery as generatorBattery
@@ -571,6 +571,8 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
             for population, count in light.items():
                 counts[population] += count
         store.record_bright_star_scatter(conn, min_luminosity_sol, seed, mass_limit)
+        store.record_scatter_epoch(conn, [p for p in ("mass", "luminosity") if p in passes],
+                                   getattr(args, "generation_run_id", None))
         conn.commit()
     finally:
         conn.close()
@@ -1446,6 +1448,7 @@ def add_bright_star_band(args):
             log.normal(f"Topped up {len(topped):,} backfilled sectors with {stars:,} bright stars.")
         # The first scatter's seed stays: it names the galaxy's scatter.
         store.record_bright_star_scatter(conn, target, first_seed)
+        store.record_scatter_epoch(conn, "band", getattr(args, "generation_run_id", None))
         conn.commit()
     finally:
         conn.close()
@@ -2009,6 +2012,7 @@ def build_nebula_field(args, conn, skeleton, extents, progress):
 
         wrapper.run("Nebula field", [step], on_plan, on_result, workers_count=workers, who=getattr(args, "who", None),
                     database=mysql_config.database, argv=getattr(args, "argv", None), seed=None, listing=[step])
+    store.record_scatter_epoch(conn, "nebula-field", getattr(args, "generation_run_id", None))
     linked = store.link_nebula_field_stored(conn)
     log.normal(f"Nebula field: {written[0]:,} clouds of classes M and N"
                + (f", {linked:,} already stored." if linked else "."))
@@ -2254,7 +2258,8 @@ def fill_block_totals(args):
     Makes the totals of the Galaxy Map's blocks again, in the two tables the map's nodes read: what the generated
     sectors hold (MAP.258, `db.block_stats.rebuild`, which nothing but a sector's deletion kept up to date before) and
     the light of the pre-placed stars and scattered phenomena (MAP.259, `db.block_lights.rebuild`, a unit of shells at a
-    time).
+    time). The sectors' masses are made again with the first (DB.108); a sector holding a body with no stored mass is
+    listed in the log, left out of the sums and never guessed.
 
     Returns:
         int: The block rows written, both tables together.
@@ -2262,7 +2267,9 @@ def fill_block_totals(args):
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         log.normal("Making the block totals...")
-        stats = block_stats.rebuild(conn)
+        stats = block_stats.rebuild(conn, on_skipped=lambda addresses: log.normal(
+            f"{len(addresses):,} sectors hold a body with no stored mass and are left out of the mass sums: "
+            + ", ".join("-".join(str(part) for part in address) for address in addresses)))
         conn.commit()
         lights = block_lights.rebuild(conn, on_progress=lambda done, total: log.debug(f"units {done}/{total}"))
     finally:
@@ -2347,6 +2354,7 @@ def clean_nebula_field_unit(params, report):
             sector_ids.update(store.sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
         for start in range(0, len(doomed), 500):
             ids = [nebula_id for nebula_id, _c, _r in doomed[start:start + 500]]
+            storage_checksum.mark_rows(conn, "nebulae", ids)
             conn.execute(f"DELETE FROM nebulae WHERE id IN ({','.join('?' * len(ids))})", ids)
             conn.commit()
             report(min(start + 500, len(doomed)), len(doomed))
@@ -2554,6 +2562,7 @@ def scatter_phenomena(args):
         if special_counts:
             log.normal("Special phenomena: " + ", ".join(f"{count:,} {kind}" for kind, count in sorted(special_counts.items())) + ".")
         store.record_phenomenon_scatter(conn, seed, min_mass_solar)
+        store.record_scatter_epoch(conn, "phenomena", getattr(args, "generation_run_id", None))
         store.record_phenomenon_scatter_classes(
             conn, {phenomenon_scatter.split_label(label): count for label, count in counts.items()})
         conn.commit()
@@ -2741,6 +2750,8 @@ def clear_scatter_unit(params, report):
     conn = store.get_connection(_mysql_config_of(params))
     try:
         if not store.scatter_stored(conn, part):
+            store.forget_scatter_epoch(conn, ("luminosity", "band") if part == "luminosity" else part)   # drawn, and empty
+            conn.commit()
             return {"part": part, "lines": [f"The {name} scatter has nothing stored."]}
         if part == "mass" and store.scatter_stored(conn, "luminosity"):
             raise RuntimeError("The bright stars are split from the massive stars at the mass limit -- run "

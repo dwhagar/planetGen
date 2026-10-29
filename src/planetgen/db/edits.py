@@ -15,7 +15,7 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import kind_tables, object_rows, store
+from planetgen.db import kind_tables, object_rows, storage_checksum, store
 from planetgen.physics import insolation, unit_registry as units
 
 _au_to_km = units.converter("au", "km")
@@ -152,6 +152,7 @@ def save_star(conn, star):
         " WHERE id = ?",
         (*_star_values(star), star.db_id),
     )
+    storage_checksum.mark_star(conn, star.db_id)
     conn.execute("UPDATE star_systems ss JOIN stars s ON s.star_system_id = ss.id SET ss.next_update_due = NULL,"
                  " ss.modified_at = ss.modified_at WHERE s.id = ?", (star.db_id,))
 
@@ -203,6 +204,9 @@ def save_system_edits(conn, system_id, system, stars=()):
     store.refresh_system_dose(conn, system_id)   # ADM.132: also works every scored body's habitability, Suitability and life scores out again from the rows just written
     store.assign_uids(conn, system_ids=[system_id])   # bodies added by the edit get their IDs (GEN.174)
     store.touch_star_system(conn, system_id)
+    owner = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()
+    if owner is not None:
+        store.refresh_edited_sectors(conn, [owner["sector_id"]])    # DB.83: the sector's figures and the blocks above follow the edit
 
 
 def _save_comet_orbit(conn, comet):
@@ -296,6 +300,7 @@ def replace_phenomenon_content(conn, phenomenon_type, phenomenon_id, phenomenon)
     conn.execute("DELETE FROM system_name_registry WHERE first_object_table = ? AND first_object_id = ?",
                  (table, temp_id))
     conn.execute(f"UPDATE {table} SET modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?", (phenomenon_id,))
+    storage_checksum.mark_sector(conn, row.get("sector_id"))
 
 
 def delete_phenomenon(conn, phenomenon_type, phenomenon_id):
@@ -345,6 +350,7 @@ def delete_sector_with_contents(conn, sector_id):
                        " FROM sectors WHERE id = ?", (sector_id,)).fetchone()
     if row is None:
         return None
+    conn.parity_touch("id = ?", (sector_id,))        # DB.46: once this commits, the parity file lets the sector go
     systems = conn.execute("DELETE FROM star_systems WHERE sector_id = ?", (sector_id,)).rowcount
     phenomena = 0
     for table in PHENOMENON_TABLES.values():

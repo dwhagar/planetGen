@@ -13,6 +13,10 @@ stars, the belts or comets of a star), the rendered example (star, planet and mo
 summary tree of the body's children. A planet or moon also shows its PHI-6 symbols and habitability chips under the title,
 and an admin has that body's Admin menu in the action bar (Regenerate, Change class, Delete; the page takes the POST).
 
+## The region (not built, UX.231)
+
+The at-a-glance block will say "in Vang Zarh Region" for a sector or object whose position lies in a charted region (a 9-block with a `region_stats` row, `../galaxy/named-regions.md`), and nothing when it lies in none. Until UX.231 the pages say nothing of regions.
+
 ## The property sheet
 
 `describe/sheet.py` is the one registry of what a page shows about a body: per kind (`star`, `planet`, `moon`, `belt`,

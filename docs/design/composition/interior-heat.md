@@ -18,12 +18,12 @@ One-box parameterised convection for a stagnant lid: Thiriet et al. 2019 as used
 |---|---|---|---|
 | rho, cm, cc, km, alpha, kappa | 3500 kg/m3, 1142 and 840 J/kg/K, 4 W/m/K, 2.5e-5 /K, 1e-6 m2/s | Guimond 2022 Table 2 (from Thiriet 2019) | READ |
 | Ra_crit, a_rh, beta | 450, 2.44, 1/3 | Table 2 (Thiriet 2019; Solomatov 1995) | READ |
-| surface temperature | 273 K | Table 2 | READ |
+| surface temperature | 273 K in the paper; here the body's own when its climate is known, else 273 K | Table 2 | READ, body's own: GEN.735 |
 | eta0 | uniform 2.6e10 to 5.3e13 Pa s | Section 2.2.3 (wet olivine less a decade to dry enstatite) | READ |
 | Ea | uniform 200 to 300 kJ/mol | Section 2.2.3 (Karato and Wu 1993; Zhang et al. 2017) | READ |
 | core radius | `R_dry CMF^0.5`; dry radius from `radius_fit_earth` or `small_body_radius_earth` | Zeng and Jacobsen 2017 via the paper; part B fits | READ |
 | start | `Ts + E / C`, `E` = binding energy of the differentiated body (two uniform shells) | COMPUTED | COMPUTED |
-| ceiling | 3500 K (a magma ocean radiates the rest away) | the liquidus of a deep magma ocean | STAND-IN |
+| ceiling | the liquidus at the middle of the mantle, `a_l (p + p_l)^c_l` with 310.317, 29.102 GPa, 0.5337 (3,100 K for the Earth, 1,900 K for a Moon-sized body); a magma ocean radiates the rest away | Manske et al. 2025 (arXiv:2506.18718) Table 1, Eq. 7 | READ |
 
 The two draws (`eta0`, `Ea`) are the paper's own uncertainty about other planets' mantles; the stream is two `uniform` calls. Everything else follows from the stored mass, radius, composition and the star's age.
 
@@ -33,12 +33,46 @@ Differences from the paper, all labelled here: one temperature instead of two; t
 
 | Case | Result |
 |---|---|
-| Earth twin, 4.568 Gy, paper's rheology range | 27 to 37 TW, Urey ratio 0.57 to 0.76, mantle 1400 to 2800 K, cooling 30 to 70 K per Gy |
+| Earth twin, 4.568 Gy, paper's rheology range | 27 to 36 TW, Urey ratio 0.59 to 0.76, mantle 1400 to 2800 K, cooling 30 to 70 K per Gy |
 | 0.1, 1 and 5 Earth masses at 4.5 Gy | Urey ratio 0.5 to 0.85 (the paper has about 0.65) |
-| Earth twin at 0.1 Gy | 4 to 33 times the heat of 4.5 Gy, Urey ratio 0.1 to 0.2 (0.6 for the stiffest rheology, which stays near the ceiling) |
+| Earth twin at 0.1 Gy | 3 to 30 times the heat of 4.5 Gy, Urey ratio 0.1 to 0.25 (1.0 for the stiffest rheology, which stays near the ceiling) |
 | Differentiation energy of the Earth | 1.9e31 J on top of 2.2e32 J of accretion |
 
-The Earth's own measured heat flow is 42 to 47 TW with a Urey ratio of 0.47 to 0.52 (Nimmo et al. 2020; READ via part E 2.8e). A mobile lid (plate tectonics) loses heat more freely than a stagnant one, so an Earth twin on this model is under it; it is inside the geoneutrino total, 38.2 +13.6 -12.7 TW (Agostini et al. 2019). Whether a body has a mobile lid is drawn after the hydrosphere (`magnetism.mobile_lid_chance`), so a tectonic-mode switch of the heat loss is a separate item.
+The Earth's own measured heat flow is 42 to 47 TW with a Urey ratio of 0.47 to 0.52 (Nimmo et al. 2020; READ via part E 2.8e). This one box reaches neither with either lid (it holds the 21 TW of radiogenic heat and the cooling of one temperature); the totals are inside the geoneutrino range, 38.2 +13.6 -12.7 TW (Agostini et al. 2019).
+
+### 3.1 The lid (GEN.721)
+
+A body has a **tectonic regime**, `lid_regime`: `mobile` (plate tectonics) or `stagnant` (one rigid plate). It is drawn once, after the hydrosphere, at the chance the magnetic field's rule gave (`magnetism.mobile_lid_chance`: a liquid surface ocean and a mass of 0.5 to 5 Earth masses at 0.6, heavier at 0.3, any other body stagnant), and stored. Three things read it: the dynamo's lifetime (a stagnant lid's is 0.4 as long), the ground dose (a mobile lid reprocesses basalt into felsic crust) and the heat flux law here. Before GEN.721 the field and the ground dose each drew their own coin on the same chance, so one body could be mobile for its dynamo and stagnant for its dose.
+
+The law. A stagnant lid loses heat across `dT = a_rh R Tm^2 / Ea`, the boundary layer's viscous temperature scale (section 1). A mobile lid carries the whole drop from the mantle to the surface, `dT = Tm - Ts`, with the same Rayleigh number and the viscosity at `Tm`, and a mobile exponent `beta = 1/3` (boundary-layer theory; Gurnis 1989 for a viscous lid with weak zones, READ in O'Neill 2020, arXiv:2006.05654 section 1; Moresi and Solomatov 1998 find 0.224 to 0.293 for a yielding lid and O'Neill's own runs 0.26 for an evolving mobile lid, 0.12 for a stagnant one). At one mantle temperature the mobile lid loses about ten times the heat, so the mantle cools to a lower temperature, the heat it was born with is spent sooner, and the radiogenic share is larger:
+
+| Earth twin at 4.568 Gy, the paper's four rheology corners | stagnant lid | mobile lid |
+|---|---|---|
+| Heat out | 27 to 36 TW | 25 to 32 TW |
+| Urey ratio | 0.59 to 0.76 | 0.66 to 0.83 |
+| Mantle temperature (middle rheology) | about 1,950 K | about 1,430 K (the Earth's potential temperature is near 1,600 K) |
+
+At the middle rheology and 0.1 Gy the mobile lid gives 1,007 TW against 701 TW; by 0.5 Gy the stagnant lid gives more. The ordering at 0.1 Gy depends on the rheology (at the low-viscosity corner the stagnant lid gives more).
+
+The hydrosphere is made before the regime exists (the regime needs the hydrosphere), so it reads the heat of a stagnant lid; a surface ocean has no ice lid for that heat to thicken or thin, and the stored `internal_heat_flux_w_m2` is the regime's own, recomputed after the draw.
+
+### 3.2 Small and large bodies, and a Urey ratio above 1 (GEN.763)
+
+The Urey ratio is the radiogenic heat over the heat that leaves the surface (Stamenkovic et al. 2012, arXiv:1210.3838 section 3.1: "the ratio of internal heat production to surface heat flux"; they cite about 0.3 from geochemistry and close to one from the geophysical view for the Earth). Here it is an output, `radiogenic_w / total_w`. It passes 1 only while the mantle is warming (it makes more than it loses), and it is exactly 1 while the mantle sits at its ceiling.
+
+Bulk silicate Earth composition, the middle rheology, a stagnant lid:
+
+| Mass (Earth) | 0.1 Gy | 0.5 Gy | 1 Gy | 2 Gy | 4.5 Gy | 10 Gy |
+|---|---|---|---|---|---|---|
+| 0.0004 | 0.60 | 0.72 | 0.76 | 0.76 | 0.77 | 0.80 |
+| 0.01 | 0.97 | 0.85 | 0.79 | 0.74 | 0.73 | 0.77 |
+| 0.1 | 0.78 | 0.76 | 0.74 | 0.71 | 0.71 | 0.74 |
+| 1 | 0.20 | 0.43 | 0.56 | 0.64 | 0.67 | 0.72 |
+| 10 | 0.05 | 0.27 | 0.44 | 0.56 | 0.63 | 0.68 |
+
+A small body made little heat to start with and has little left to give, so its radiogenic share is the larger; a large body keeps the heat of its assembly for longer, so it is the smaller. At 4.5 Gy, over both lids and the four rheology corners plus the middle, the ratio runs 0.49 (10 Earth masses, stagnant) to 1.0 (a stiff mantle held at its ceiling); at the middle rheology a mobile lid gives the larger ratio. The generated bodies of 24 sampled systems give medians of 0.78 (under 1e-4 Earth masses), 0.78, 0.76, 0.71, 0.67, 0.59 and 0.49 (2 to 5 Earth masses) in the mass bands 1e-4, 1e-3, 1e-2, 0.1, 0.5 and 2, from 0.28 to 1.0 in all but one case. The one above 1.0 is a physical warming: a moon of 0.0008 Earth masses around a 3.0 Gy star gives 1.25 with its mantle at 1,839 K and still warming, the radiogenic 24.6 GW against 19.7 GW out. A tidal body held at the heat-pipe temperature or the mantle ceiling sits at exactly 1.0.
+
+The 3.0 and 4.8 that were seen for 0.0004 to 0.0007 Earth-mass moons were not the physics. The heat was stored when the body was made, at the star's provisional age; the star's age is raised afterwards (`Star.adjust_age_for_planets`), and the same body at its final age gives 0.71 to 0.76. The life pass in `StarSystem.__init__` now runs `interior_heat.update_heat` on every planet and moon once the age is final (no draws). What the other readers of the heat took before that (the hydrosphere's ice shell, the surface composition's volcanism gate) still reads the provisional age; they draw, so they cannot be redone without moving the stream.
 
 ## 4. Where it is used
 
@@ -46,6 +80,8 @@ The Earth's own measured heat flow is 42 to 47 TW with a Urey ratio of 0.47 to 0
 
 ## 5. Stand-ins for the gap plan registry
 
-* Ceiling temperature 3500 K (`tuning.INTERIOR_INITIAL_TEMPERATURE_CAP_K`): the liquidus of a deep magma ocean; replace with a pressure-dependent liquidus when the mantle's melting is modelled.
-* The surface held at 273 K for the boundary layer, as the paper does; replace with the body's surface temperature once heat flow and climate are coupled (a mild effect).
-* Stagnant lid only; a mobile-lid cooling law waits on the regime.
+* The separate core temperature, the two-box model of Thiriet et al. 2019 (a core cooling through a lower boundary layer, the core heat flow a dynamo needs, GEN.736): not built, the paper behind it (Physics of the Earth and Planetary Interiors 286) was not readable; Guimond et al. 2022 let the core follow the mantle, as here.
+* The mantle's ceiling is the liquidus at the middle of the mantle (a uniform density and gravity); the solidus and a melt fraction are not modelled.
+* The surface is the body's own surface temperature when its climate is known (`update_heat`), 273 K for a body without one (a mild effect, read only by a mobile lid's drop and by the birth temperature); a mantle colder than `Ea / R T` = 600 does not convect and loses no heat (no conduction), so a cold small body warms with its radiogenic heat until convection starts.
+* The mobile lid's exponent (1/3) and critical Rayleigh number (450, the stagnant lid's) are unsourced for this model; replace them with a calibrated mobile-lid law (Korenaga, Driscoll and Bercovici) when one is read.
+* The regime is a coin on a mass and ocean rule (GEN.177), not a function of the thermal history; whether a body has plate tectonics is unsettled (the survey H2).

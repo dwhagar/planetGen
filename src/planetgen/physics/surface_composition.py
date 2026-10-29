@@ -215,7 +215,7 @@ class SurfaceInputs:
         internal_heat_flux_w_m2 (float): The body's own heat flow.
         tidal_heat_flux_w_m2 (float): The tidal heat flow (0 for none).
         age_gy (float): The body's age.
-        mobile_lid_chance (float): The chance of plate tectonics (`magnetism.mobile_lid_chance`).
+        mobile_lid (bool): Whether the body has plate tectonics (its stored `lid_regime`, GEN.721).
     """
 
     planet_class: str
@@ -236,7 +236,7 @@ class SurfaceInputs:
     internal_heat_flux_w_m2: float = 0.0
     tidal_heat_flux_w_m2: float = 0.0
     age_gy: float = 4.5
-    mobile_lid_chance: float = 0.0
+    mobile_lid: bool = False
 
 
 @dataclass(frozen=True)
@@ -333,8 +333,7 @@ def _grain(inputs):
 def _modifiers(inputs, covered_kind):
     """The modifier shares of the land, drawn in a fixed order: `{ground type: share of the land}`."""
     shares = {}
-    lid = inputs.mobile_lid_chance > 0.0 and draw.random() < inputs.mobile_lid_chance
-    if lid:
+    if inputs.mobile_lid:
         shares["felsic"] = draw.uniform(*RANGES["felsic_share"])
     water_ever = covered_kind is not None or inputs.hydrosphere in LIQUID_STATES
     if water_ever:
@@ -510,11 +509,10 @@ def mix_of(body):
 
 def inputs_of(body):
     """The `SurfaceInputs` of a planet or moon that has its air, water and heat flow (called after the hydrosphere)."""
-    from planetgen.physics import magnetism, planets
+    from planetgen.physics import interior_heat, magnetism, planets
 
     pressure = getattr(body, "atmospheric_pressure", None) or 0.0
     partials = mixture.partial_pressures_pa(body)
-    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
     return SurfaceInputs(
         planet_class=body.planet_class, surface_temperature_k=body.surface_temperature or 0.0, pressure_pa=pressure,
         o2_partial_pa=partials.get("O2", 0.0), partial_pressures_pa=partials,
@@ -527,7 +525,7 @@ def inputs_of(body):
         ocean_fraction=getattr(body, "ocean_fraction", None) or 0.0, ocean_class=getattr(body, "ocean_class", None),
         internal_heat_flux_w_m2=planets.internal_heat_flux_w_m2(body),
         age_gy=getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY,
-        mobile_lid_chance=magnetism.mobile_lid_chance(body, mass_earth))
+        mobile_lid=interior_heat.lid_of(body) == magnetism.LID_MOBILE)
 
 
 def _volatile_shares(body):

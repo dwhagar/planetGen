@@ -9,10 +9,11 @@ import math
 import numpy as np
 import pytest
 
-from planetgen.physics import gases
+from planetgen.physics import gases, mixture
 from planetgen.physics import infrared_opacity as ir
 
-EARTH = {"N2": 78084.0, "O2": 20946.0, "Ar": 934.0, "CO2": 41.0, "H2O": 400.0}
+EARTH = {"N2": 78084.0, "O2": 20946.0, "Ar": 934.0, "CO2": 41.0, "H2O": 1300.0}
+"""dict: Earth's air with the vapour pressure of its surface (0.77 of saturation at 288 K, 1.3 kPa)."""
 VENUS = {"CO2": 0.965 * 92.0e5, "N2": 0.035 * 92.0e5}
 MARS = {"CO2": 600.0 * 0.953, "N2": 600.0 * 0.027, "Ar": 600.0 * 0.016}
 TITAN = {"N2": 1.47e5 * 0.95, "CH4": 1.47e5 * 0.05}
@@ -95,9 +96,10 @@ def test_the_water_continuum_closes_the_window_of_a_humid_air_and_grows_faster_t
     window = int(np.argmin(np.abs(ir.CENTRES_CM1 - 1000.0)))
 
     def depth(fraction, temperature):
-        fractions = {"H2O": fraction, "N2": 1.0 - fraction}
-        height = ir.constants.R * temperature / (gases.gas("N2").molar_mass * 9.81)
-        return float(ir._water_continuum_depth(fractions, temperature, 1.0e5, height)[window])
+        partials = {"H2O": fraction * 1.0e5, "N2": (1.0 - fraction) * 1.0e5}
+        molar_mass = mixture.mean_molar_mass_kg_mol(partials)
+        vapour = ir.vapour_profile(partials, temperature)
+        return float(ir._water_continuum_depth(vapour, molar_mass, 9.81)[window])
 
     assert depth(2.0e-3, 288.0) / depth(1.0e-3, 288.0) > 2.5      # the self continuum goes as the vapour squared; the foreign continuum as the vapour, which dilutes the rise
     assert depth(4.0e-3, 270.0) > depth(4.0e-3, 310.0)       # the same vapour absorbs more when colder (the self temperature exponent)
@@ -141,7 +143,7 @@ def test_earth_venus_mars_and_titan_land_on_their_equivalent_depths():
 
 def test_the_parts_and_the_gases_explain_the_whole():
     opacity = ir.optical_depth(EARTH, 288.0, 9.81)
-    assert set(opacity.by_part) == {"bands", "far_wing", "water_continuum", "collision_induced"}
+    assert set(opacity.by_part) == {"bands", "far_wing", "water_continuum", "collision_induced", "clouds"}
     assert opacity.tau0 <= sum(opacity.by_part.values()) + 1e-9           # overlap only ever lowers the sum
     assert opacity.tau0 >= max(opacity.by_part.values()) - 1e-12
     assert set(opacity.by_gas) == {"H2O", "CO2"}
@@ -185,3 +187,55 @@ def test_bad_input_is_refused():
         ir.optical_depth(EARTH, 0.0, 9.81)
     with pytest.raises(ValueError):
         ir.optical_depth(EARTH, 288.0, -1.0)
+
+
+def test_the_vapour_thins_with_height_and_holds_about_the_measured_column_for_the_earth():
+    """Manabe and Wetherald's humidity falls linearly with pressure; the Earth's column of vapour is about 25 kg/m2 (precipitable water)."""
+    vapour = ir.vapour_profile(EARTH, 288.0)
+    assert vapour.surface_fraction == pytest.approx(1300.0 / sum(EARTH.values()))
+    assert (np.diff(vapour.fraction) <= 1e-15).all() and vapour.fraction[-1] < 1e-3 * vapour.surface_fraction
+    molar_mass = mixture.mean_molar_mass_kg_mol(EARTH)
+    column = float(np.sum(vapour.fraction * vapour.pressure_pa * vapour.log_step)) * gases.gas("H2O").molar_mass / molar_mass / 9.81
+    assert 15.0 < column < 35.0
+    well_mixed = vapour.surface_fraction * sum(EARTH.values()) * gases.gas("H2O").molar_mass / molar_mass / 9.81
+    assert well_mixed > 2.0 * column                 # a well-mixed column of the surface's vapour would hold three times the water
+
+
+def test_a_vapour_over_a_surface_above_the_critical_temperature_stands_as_it_is_until_the_cold_condenses_it():
+    mix = {"CO2": 9.0e6, "H2O": 270.0}
+    vapour = ir.vapour_profile(mix, 735.0)
+    assert vapour.cloud_cover == 0.0
+    assert vapour.fraction[0] == pytest.approx(vapour.surface_fraction)
+    assert vapour.fraction[0] >= vapour.fraction[-1]
+
+
+def test_an_air_with_no_vapour_has_no_profile_no_continuum_and_no_cloud():
+    opacity = ir.optical_depth({"N2": 1.0e5, "CO2": 40.0}, 288.0, 9.81)
+    assert ir.vapour_profile({"N2": 1.0e5}, 288.0) is None
+    assert opacity.by_part["water_continuum"] == 0.0 and opacity.by_part["clouds"] == 0.0
+
+
+def test_the_cloud_scales_with_the_surface_humidity_and_adds_its_depth_to_the_rest():
+    saturation_pa = ir.saturation.pressure_pa("H2O", 288.0)
+    earth = ir.optical_depth(dict(EARTH, H2O=0.77 * saturation_pa), 288.0, 9.81)
+    half = ir.optical_depth(dict(EARTH, H2O=0.385 * saturation_pa), 288.0, 9.81)
+    assert earth.by_part["clouds"] == pytest.approx(ir.CLOUD_LONGWAVE_TAU0)
+    assert half.by_part["clouds"] == pytest.approx(ir.CLOUD_LONGWAVE_TAU0 / 2.0)
+    assert earth.tau0 > earth.by_part["clouds"] > 0.0
+
+
+def test_the_layered_continuum_converges_with_the_number_of_layers(monkeypatch):
+    partials = dict(EARTH)
+    window = int(np.argmin(np.abs(ir.CENTRES_CM1 - 1000.0)))
+    molar_mass = mixture.mean_molar_mass_kg_mol(partials)
+    coarse = float(ir._water_continuum_depth(ir.vapour_profile(partials, 288.0), molar_mass, 9.81)[window])
+    monkeypatch.setattr(ir, "VAPOUR_LAYERS", 2 * ir.VAPOUR_LAYERS)
+    fine = float(ir._water_continuum_depth(ir.vapour_profile(partials, 288.0), molar_mass, 9.81)[window])
+    assert coarse == pytest.approx(fine, rel=5e-3)
+
+
+def test_a_vapour_over_a_surface_so_cold_that_its_saturation_pressure_underflows_is_all_condensate_and_gives_a_profile():
+    vapour = ir.vapour_profile({"N2": 1.0e5, "H2O": 1.0e-3}, 5.0)
+    assert ir.saturation.pressure_pa("H2O", 5.0) == 0.0
+    assert np.isfinite(vapour.fraction).all() and vapour.fraction.max() <= vapour.surface_fraction
+    assert math.isfinite(ir.optical_depth({"N2": 1.0e5, "H2O": 1.0e-3}, 5.0, 9.81).tau0)

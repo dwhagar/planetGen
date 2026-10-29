@@ -49,7 +49,7 @@ def test_a_ratings_block_names_each_tier_with_a_colour_class():
     assert '<span class="tier tier-green">Green</span>' in out
     assert '<span class="tier tier-blue">Blue</span>' in out and '<span class="tier tier-red">Red</span>' in out
     assert "Required: a mask with a scrubber." in out
-    assert "<td>0.82</td>" not in out and "<td>1.00</td>" in out and "<td>0.10</td>" in out
+    assert "<td>0.82 of 1</td>" not in out and "<td>1.00 of 1</td>" in out and "<td>0.10 of 1</td>" in out
 
 
 def test_a_composition_block_lists_shares_or_a_summary():

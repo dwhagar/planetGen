@@ -10,7 +10,9 @@ Inline text is a list whose items are a string or one of:
 - `{"qty": {"kind", "value", "unit", ...}}`: a quantity, never formatted here. `kind` is
   a ladder family (`planetgen.util.ladders`) or one of `OTHER_KINDS`; `value` is the number in `unit`, a key of the unit
   registry (`planetgen.physics.unit_registry`) or one of `PLAIN_UNITS` (the unit the value was held in, not converted). Extra
-  keys: `sol` (the ratio to Sol), `companions` (whether the text shows the units beside the main one).
+  keys: `sol` (the ratio to Sol), `companions` (whether the text shows the units beside the main one),
+  `note` (a `ratio`'s unit, scale or noun, written after the number: "times Earth's DNA-damaging dose"; a ratio is never
+  written without one).
 - `{"ref": "planet:31", "name": "40 Eridani II"}`: a link to another object.
 - `{"strong": "Pressure: Red"}`: emphasis, written per format by the renderer.
 - `{"chem": "H2O"}`: a chemical formula (UX.149), written per format by `planetgen.util.chem`.
@@ -32,7 +34,7 @@ OTHER_KINDS = ("radius", "luminosity", "dose", "flux", "ratio", "angle", "densit
 KINDS = LADDER_KINDS + OTHER_KINDS
 
 DISPLAY_UNITS = {
-    "length": "m", "speed": "m_s", "time": "s", "temperature": "K", "pressure": "Pa", "gravity": "m_s2", "mass": "kg",
+    "length": "m", "speed": "m_s", "time": "s", "temperature": "K", "temperature difference": "dK", "fraction": "frac", "pressure": "Pa", "gravity": "m_s2", "mass": "kg",
     "power": "W", "flux": "W_m2", "number density": "m-3", "magnetic field": "T", "radius": "m", "luminosity": "W",
     "angle": "deg", "density": "kg_m3", "dose": "Sv/yr", "ratio": "ratio", "count": "count",
 }
@@ -45,7 +47,7 @@ PLAIN_UNITS = ("ratio", "count", "Sv/yr")
 SECTION_KINDS = ("system", "star", "black-hole", "neutron-star", "pair", "planet", "moon", "belt", "comet", "nebula",
                  "quasar", "rogue-planet", "interstellar-comet", "asteroid-field", "supernova-remnant")
 BLOCK_TYPES = ("facts", "ratings", "composition", "prose")
-PROSE_ROLES = ("overview", "summary", "description", "depth", "life", "timeline", "flavour")
+PROSE_ROLES = ("overview", "summary", "description", "depth", "interior", "life", "timeline", "flavour")
 
 
 def qty(kind, value, unit=None, **extra):
@@ -53,6 +55,8 @@ def qty(kind, value, unit=None, **extra):
     unit when omitted)."""
     if kind not in KINDS:
         raise ValueError(f"unknown quantity kind {kind!r}")
+    if kind == "ratio" and not extra.get("note"):
+        raise ValueError("a ratio is never written as a bare number: pass `note`, what it is or its scale")
     unit = unit or DISPLAY_UNITS[kind]
     if unit not in PLAIN_UNITS:
         unit_registry.unit(unit)
@@ -199,6 +203,33 @@ def split_by_body(document):
     return pieces
 
 
+def score_text(score):
+    """A PHI-6 score as the pages write it: "0.82 of 1", never the bare 0.82 (GEN.772)."""
+    return f"{score:.2f} of 1"
+
+
+BARE_NUMBER = re.compile(r"[-+−]?[\d,]*\.?\d+(?:e[-+]?\d+| ?× ?10(?:[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+|<sup>[-−\d]+</sup>))?")
+"""re.Pattern: A number alone, as the pages write it ("0.71", "1,200", "1.74 × 10⁶"); a fact whose value matches it has no
+unit, scale or noun."""
+
+
+def is_bare_number(text):
+    """Whether `text` is a number alone, with no unit, scale or noun beside it."""
+    return BARE_NUMBER.fullmatch(text.strip()) is not None
+
+
+def _check_no_bare_number(block):
+    """Raises ValueError for a fact row whose value reads as a number alone (GEN.772: never a number without units or
+    context). A count with a noun for its label is `count`, a quantity has its unit, a ratio its note."""
+    from planetgen.describe.quantity import inline_text
+
+    for row in block["rows"]:
+        text = inline_text(row["value"])
+        if text and is_bare_number(text) and not all(
+                isinstance(item, dict) and item.get("qty", {}).get("kind") == "count" for item in row["value"]):
+            raise ValueError(f"the fact {row['label']!r} reads {text!r}, a number with no unit, scale or noun")
+
+
 def check(node):
     """Raises ValueError unless `node` (a Document) has the documented shape: known section kinds, block
     types and quantity kinds, finite-or-None quantities, JSON-safe values."""
@@ -212,6 +243,8 @@ def check(node):
                 raise ValueError(f"unknown block type {block['type']!r}")
             if block["type"] == "prose" and block["role"] not in PROSE_ROLES:
                 raise ValueError(f"unknown prose role {block['role']!r}")
+            if block["type"] == "facts":
+                _check_no_bare_number(block)
     for item in walk_inline(node):
         if isinstance(item, dict) and "qty" in item and item["qty"]["kind"] not in KINDS:
             raise ValueError(f"unknown quantity kind {item['qty']['kind']!r}")

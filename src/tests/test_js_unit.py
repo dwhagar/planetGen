@@ -70,6 +70,7 @@ def fixtures():
     view = {"stamp": "0123456789abcdef", "tiles": {}, "edge_pc": EDGE_PC, "has_shape": True}
     return {
         "starLight": star_light(),
+        "starLook": star_look(),
         "sectorMap": sector_map(),
         "edgePc": EDGE_PC,
         "galaxyRadius": GALAXY_RADIUS_PC,
@@ -212,6 +213,21 @@ def star_light():
         boost = star_light_boost(luminosity)
         size, glow = _boost_light(10.0, 0.5, boost)
         rows.append({"luminositySol": luminosity, "boost": boost, "sizePx": size, "glow": glow})
+    return rows
+
+
+def star_look():
+    """MAP.241's look of a star (`starmap._star_light`: the halo's size and strength, the core's size and opacity) over a grid of
+    luminosities and radii, for `starLight` in static/starlight.js to match."""
+    from planetgen.web.maps.starmap import SOLAR_LUMINOSITY, _star_light
+
+    rows = []
+    for exponent in range(-50, 61, 10):
+        for radius in (0.1, 1.0, 30.0):
+            luminosity = 10 ** (exponent / 10)
+            light = _star_light(luminosity * SOLAR_LUMINOSITY, radius * 696000.0, 5778.0)
+            rows.append({"luminositySol": luminosity, "radiusSol": radius, "corePx": light["corePx"], "sizePx": light["sizePx"],
+                         "glow": light["glow"], "bright": light["bright"]})
     return rows
 
 

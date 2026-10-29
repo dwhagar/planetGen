@@ -24,8 +24,11 @@ The draws (`draw_content`), in a fixed order so none moves another:
    `abundance:{key}`), taken against the solar-scale star and truncated at plus or minus 0.5 dex (R15; verified for the range, partly
    verified for Th away from solar [Fe/H], which is inferred through Eu). A body with no host composition (a rogue planet, a star
    with no stored [Fe/H]) draws the offset from a normal of 0.22 dex truncated at 0.5 dex (R15, the 1 to 99 percent range of the
-   Hypatia catalogue in Nimmo et al. 2020; a stand-in for the unknown host). Uranium takes the thorium offset and an extra
-   N(0, 0.05) dex (Dauphas 2005 via Wang 2020, partly verified; a placeholder until a source gives the Th/U scatter).
+   Hypatia catalogue in Nimmo et al. 2020; a stand-in for the unknown host). Uranium is then worked out from the
+   thorium by the r-process (GEN.759, `rprocess_enrichment`): the star's Th/U at its birth is the production ratio of the r-process
+   (one draw from 1.667 to 2.0, Frebel 2007) times the factor `F` the decay of the galaxy's earlier ejecta gives (the disc's star formation
+   history, GEN.469, and the host's age; a body with no host takes the typical star of the galaxy), and the ratio today is that
+   decayed to the Solar System's age. The old uranium scatter of 0.05 dex is gone.
 2. **Potassium** is not fitted to the star (it is volatile; Th and U are refractory lithophiles, condensation temperatures in part E
    2.8b): `d_K`, log-uniform 0.03 to 1 of the CI K/U of 67407, times the body's uranium (R15; a placeholder tied to the large K
    differences of Solar System bodies, Nimmo et al. 2020, until the K depletion survey of the research list is read).
@@ -50,7 +53,7 @@ import statistics
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import bulk_composition, elements
+from planetgen.physics import bulk_composition, elements, rprocess_enrichment
 from planetgen.physics import stellar_abundances as sa
 from planetgen.physics import stellar_composition as sc
 from planetgen.util import draw
@@ -309,14 +312,44 @@ def star_offset_dex(star):
     return host_offset_dex(float(fe_h), float(age), key)
 
 
-def draw_content(offset_dex=None, rng=draw, refractory_enrichment=1.0):
+def th_u_ratio_now(production_ratio, factor):
+    """The mass ratio of thorium to uranium in rock of the Solar System's age (the element ratios `BULK_SILICATE_EARTH` is given in) for a
+    host whose gas had the r-process `production_ratio` (thorium-232 to uranium-238 by number) and the enrichment `factor` `F`:
+    `m(Th-232)/m(U-238) * PR * F * exp[(l238 - l232) t]`, over the share of uranium's mass that is 238 today."""
+    thorium, uranium = elements.isotope("Th-232"), elements.isotope("U-238")
+    decay = math.exp((uranium.decay_constant - thorium.decay_constant) * REFERENCE_AGE_GY * GY_S)
+    share_238 = uranium.abundance * uranium.mass_u / math.fsum(elements.isotope(name).abundance * elements.isotope(name).mass_u
+                                                               for name in PARENTS["U"])
+    return thorium.mass_u / uranium.mass_u * production_ratio * factor * decay / share_238
+
+
+def default_th_u_factor():
+    """`F` of the typical star of the galaxy a stand-alone command or a test takes (`galaxy.shape_draw.default_shape`)."""
+    from planetgen.galaxy import shape_draw
+    return rprocess_enrichment.typical_th_u_factor(shape_draw.default_shape(None))
+
+
+def star_th_u_factor(body):
+    """`F` for the host of `body`: its age in the disc of its galaxy (`system_config.GALAXY_SHAPE`, set by the sector that made it; the default
+    galaxy's when there is none), or `None` when the host has no age (the typical star of the default galaxy)."""
+    from planetgen.galaxy import shape_draw
+    age = getattr(getattr(body, "star", None), "age", None)
+    if age is None:
+        return None
+    shape = getattr(getattr(body, "system_config", None), "GALAXY_SHAPE", None) or shape_draw.default_shape(None)
+    return rprocess_enrichment.th_u_factor_of_shape(shape, round(float(age), 6))
+
+
+def draw_content(offset_dex=None, rng=draw, refractory_enrichment=1.0, th_u_factor=None):
     """
-    A body's `Content`. Every draw is made whatever the branch, in this order: the host-less offset, the uranium extra, the
+    A body's `Content`. Every draw is made whatever the branch, in this order: the host-less offset, the r-process production ratio, the
     potassium depletion and the aluminium-26 factor, so the stream after it is the same for every body.
 
     Args:
         offset_dex (float or None): The host star's Th/U offset (`star_offset_dex`); `None` takes the host-less draw.
         rng: The draw source (`planetgen.util.draw` by default).
+        th_u_factor (float or None): The enrichment `F` of the host's birth gas (`rprocess_enrichment`, at least 1); `None` takes that of
+            the typical star of the default galaxy (a stand-alone call with no galaxy).
         refractory_enrichment (float): How many times the Earth's share the body's refractory elements (Al, Th, U) are in its
             silicate; the body's Al2O3 over the bulk silicate Earth's (part E 2.8b: Th and U scale with it; `rock_of`), 1 for a body with none.
 
@@ -324,13 +357,16 @@ def draw_content(offset_dex=None, rng=draw, refractory_enrichment=1.0):
         Content: At formation, in the bulk silicate.
     """
     host_less = truncated_offset_dex(rng.random())
-    uranium_extra = rng.gauss(0.0, tuning.RADIOGENIC_URANIUM_EXTRA_SIGMA_DEX)
+    low, high = rprocess_enrichment.PRODUCTION_RATIO_RANGE
+    production_ratio = rng.uniform(low, high)
     k_depletion = math.exp(rng.uniform(math.log(tuning.RADIOGENIC_K_DEPLETION_RANGE[0]), math.log(tuning.RADIOGENIC_K_DEPLETION_RANGE[1])))
     al26_factor = math.exp(rng.uniform(math.log(tuning.RADIOGENIC_AL26_FACTOR_RANGE[0]), math.log(tuning.RADIOGENIC_AL26_FACTOR_RANGE[1])))
     offset = host_less if offset_dex is None else offset_dex
-    _bulk_k, bulk_th, bulk_u = BULK_SILICATE_EARTH
+    _bulk_k, bulk_th, _bulk_u = BULK_SILICATE_EARTH
     th_now = bulk_th * 10.0 ** offset * refractory_enrichment
-    u_now = bulk_u * 10.0 ** (offset + uranium_extra) * refractory_enrichment
+    if th_u_factor is None:
+        th_u_factor = default_th_u_factor()
+    u_now = th_now / th_u_ratio_now(production_ratio, th_u_factor)
     k_now = k_depletion * CI_CHONDRITE_K_OVER_U * u_now
     return Content(
         k0_ppm=k_now * formation_mix("K")[1], th0_ppm=th_now * formation_mix("Th")[1], u0_ppm=u_now * formation_mix("U")[1],
@@ -344,7 +380,7 @@ def generate_content(body, refractory_enrichment=1.0):
         for name in BODY_FIELDS:
             setattr(body, name, None)
         return
-    content = draw_content(star_offset_dex(body.star), refractory_enrichment=refractory_enrichment)
+    content = draw_content(star_offset_dex(body.star), refractory_enrichment=refractory_enrichment, th_u_factor=star_th_u_factor(body))
     body.c_k0_ppm, body.c_th0_ppm, body.c_u0_ppm = content.k0_ppm, content.th0_ppm, content.u0_ppm
     body.al26_ratio = content.al26_ratio
 

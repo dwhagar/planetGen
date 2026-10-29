@@ -7,6 +7,7 @@ database and count how many come out with each feature, so the shares
 are checked with a tolerance a few standard errors wide.
 """
 
+import functools
 import random
 import zlib
 
@@ -21,6 +22,8 @@ from planetgen.generation.system import StarSystem
 from planetgen.population.model import has_civilization
 
 SYSTEMS = 2000
+BASELINE_SEED = 11
+"""int: The seed of the draw with no prevalence change, which the checks that compare against the usual share share."""
 
 
 def _features(system):
@@ -36,6 +39,14 @@ def _features(system):
 
 
 def _shares(settings, seed, count=SYSTEMS):
+    """The share of `count` drawn systems with each feature; a draw already made in this process (the same settings, seed and count) is
+    reused, since drawing a system is most of this module's time (TEST.392)."""
+    return _drawn(tuple(sorted(settings.items())), seed, count)
+
+
+@functools.lru_cache(maxsize=None)
+def _drawn(settings, seed, count):
+    settings = dict(settings)
     draw.set_run_seed(seed)
     totals = {}
     for _ in range(count):
@@ -53,7 +64,7 @@ def _tolerance(share, count=SYSTEMS):
 def test_measured_base_shares_still_hold():
     """tuning.PREVALENCE_BASE_SHARES are what generation gives today; a
     change that moves one needs it remeasured."""
-    shares = _shares({}, seed=11)
+    shares = _shares({}, seed=BASELINE_SEED)
     for feature, base in tuning.PREVALENCE_BASE_SHARES.items():
         assert shares[feature] == pytest.approx(base, abs=_tolerance(base)), feature
     # ADM.16: the Generate page shows these too.
@@ -99,12 +110,12 @@ def test_a_drawn_feature_moves_by_the_percentage(feature, base, percent):
     share = _shares({feature: percent}, seed=7)[feature]
     assert chance - _tolerance(chance) <= share <= two + _tolerance(two)
     if percent == 100:
-        assert share > chance - _tolerance(chance) and share > _shares({}, seed=7)[feature]
+        assert share > chance - _tolerance(chance) and share > _shares({}, seed=BASELINE_SEED)[feature]
 
 
 def test_no_binaries_at_minus_100_and_more_at_plus_50():
     assert _shares({"binary_system": -100}, seed=3, count=500)["binary_system"] == 0
-    assert _shares({"binary_system": 50}, seed=3, count=1000)["binary_system"] > _shares({}, seed=3, count=1000)["binary_system"] + 0.05
+    assert _shares({"binary_system": 50}, seed=3, count=1000)["binary_system"] > _shares({}, seed=BASELINE_SEED)["binary_system"] + 0.05
 
 
 def test_moons_and_max_planets_scale_their_draws():

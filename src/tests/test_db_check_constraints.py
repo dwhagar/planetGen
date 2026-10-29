@@ -34,6 +34,8 @@ _ONE_OR_ZERO = re.compile(r"^`?(\w+)`?\s*=\s*1\)?\s+or\s+\(`?\w+`?\s*=\s*0$", re
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 
 _EMPTY_TABLE_ROWS = {
+    # GEN.764: the seeded galaxy runs no scatter, so no kind has recorded its epoch.
+    "scatter_epochs": "INSERT INTO scatter_epochs (kind, generator_epoch) VALUES ('mass', 1)",
     # Only a planet with life gets these, and whether the seeded galaxy has one depends on its draws (TEST.263).
     "planet_reflection_spectrum": (
         "INSERT INTO planet_reflection_spectrum (planet_id, spectrum_type, position, value)"

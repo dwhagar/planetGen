@@ -10,7 +10,7 @@ Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cor
 
 ## Goal
 
-User accounts, with sign-up by an email invitation that only an admin can send (USR.1): roles, SMTP settings, invitations, password emails and owner transfer first, then what a signed-in user gets: bookmarks in the account, API keys, the one-off system page and a home field.
+Two headlines: the continuous zoom (the Galaxy Map rebuilt so one camera drives every scene, MAP.334 to MAP.338, Boss 6:28 PM EDT 2026-10-28) and user accounts. User accounts, with sign-up by an email invitation that only an admin can send (USR.1): roles, SMTP settings, invitations, password emails and owner transfer first, then what a signed-in user gets: bookmarks in the account, API keys, the one-off system page and a home field.
 
 ## Phase 1: Accounts, invitations and bookmarks
 
@@ -35,7 +35,7 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | UX.179 | Sitemap entries and an Open Graph image for object pages (optional, can wait) |  |  |
 | UX.206 | Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view | UX.179 |  |
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | UX.46 |  |
-| UX.48 | Charted regions as bookmarks that frame and outline the region | UX.47, MAP.190 |  |
+| UX.48 | Charted regions as bookmarks that frame and outline the region | UX.47 |  |
 | UX.45 | Bookmark management | UX.46, UX.47, UX.48 | Parent; per browser until accounts (USR.7) move them. |
 | UX.92 | A Bookmark button for planets, moons and belts | UX.45 |  |
 
@@ -64,7 +64,19 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | USR.1 | User accounts | USR.2, USR.3, USR.4, USR.5, USR.6, USR.7 | Parent; closes with its subitems. |
 | USR.8 | Every signed-in user can generate a one-off system | USR.26 | Boss 05:16Z. Today /admin/generate/system is admin-only and only admin accounts exist, so no earlier step is needed. Open question: per-user limit (default 30 an hour, admins unlimited). |
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | USR.7, USR.26 | Research suggestion; not requested. |
-| USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | MAP.189, MAP.190 |  |
+| USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | MAP.189 |  |
+
+### The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28)
+
+Boss: the zoom chain is a seminal feature of 8.2. Z0 (MAP.333, the quick fixes) is built in 8.1 and closes MAP.257; the rebuild below follows it. Owner: Core 2 for the map items, Core 5 for the preferences screen. Design: /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md.
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| MAP.335 | Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source |  |  |
+| MAP.336 | Zoom redesign Z3: one goTo(target) for every fly with the verb Go to, a find-a-place box, a vertical log ruler with named clickable stops, crumbs as Go to, and Up one level |  |  |
+| MAP.337 | Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests | MAP.335, MAP.336 |  |
+| MAP.338 | Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers | MAP.335 |  |
+| UX.236 | User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest) |  |  |
 
 ### Halo mass research
 
@@ -87,11 +99,10 @@ Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser win
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.226 | Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1) | UX.214 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain UX.225, Boss 10:35 PM EDT. |
+| UX.226 | Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain UX.225, Boss 10:35 PM EDT. |
 | UX.227 | The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2) | UX.226 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain UX.225, Boss 10:35 PM EDT. |
 | UX.228 | The object lists and Nearby filter and sort by the same physical values (G4, step 3) | UX.226 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain UX.225, Boss 10:35 PM EDT. |
-| UX.232 | Search results: the planet link in a result row goes to a bad link while the star system link in the same row works (bug) |  |  |
-| UX.225 | Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4) | UX.214, UX.226, UX.227, UX.228 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
+| UX.225 | Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4) | UX.226, UX.227, UX.228 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
 
 ### Generation records
 

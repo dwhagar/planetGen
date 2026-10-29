@@ -22,7 +22,7 @@ from tests.publicids import pid
 pytestmark = pytest.mark.db
 
 BOOKKEEPING_TABLES = {
-    "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "habitable_systems", "nebula_field", "galaxy_components", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "galaxy_block_lights", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
+    "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "system_interests", "nebula_field", "galaxy_components", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "galaxy_block_lights", "region_stats", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots", "scatter_members", "scatter_nodes",
     "orbit_nodes", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state",
@@ -83,8 +83,6 @@ NULL_IN_THIS_GALAXY = {
     **{("moons", column): CHANCE for column in ("envelope_helium_fraction", "envelope_z_fraction")},
     # Only a world with no liquid at its surface can hold an aquifer, and whether any of this small galaxy's does is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("aquifer_depth_km", "aquifer_thickness_km")},
-    # Only an icy moon with a frozen surface has a tide; a planet has none.
-    ("planets", "tidal_flux_w_m2"): "a planet has no tide",
     # Facilities on stars, moons and asteroid fields, and the field's galaxy position.
     **{("facilities", column): "facility hosts used" for column in
        ("star_id", "moon_id", "asteroid_field_id", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc",
@@ -143,6 +141,11 @@ NULL_IN_THIS_GALAXY = {
     # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
     **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
     ("moons", "rogue_planet_id"): "only a moon of a free planet (test_parent_link)",
+    # GEN.764: the seeded galaxy runs no scatter, and its population pass finds no civilization.
+    **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
+       ("kind", "generator_epoch", "run_id", "recorded_at")},
+    ("species", "generator_epoch"): "no species in this galaxy (GEN.764)",
+    ("planets", "parent_shadow_share"): "only a moon is in its planet's shadow (GEN.767)",
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't
@@ -173,6 +176,10 @@ NEVER_READ = {
        for column in ("density_multiplier_used", "override_id")},
     ("sectors", "leaf_digest"): "read by the fingerprint tree (GEN.305)",
     ("sectors", "run_id"): "read in a query by the version check, not by a loader (DB.16)",
+    # GEN.764: the stage epochs are read by `galaxy/epoch_record.py` and `bring_to_epoch`, not by a page's loader.
+    **{("scatter_epochs", column): "read by galaxy/epoch_record (GEN.764)" for column in
+       ("kind", "generator_epoch", "run_id", "recorded_at")},
+    ("species", "generator_epoch"): "read by galaxy/epoch_record (GEN.764)",
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",

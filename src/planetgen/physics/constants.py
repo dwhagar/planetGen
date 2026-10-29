@@ -43,6 +43,7 @@ G = 6.6743e-11  # Gravitational constant in m^3/kg/s^2
 SPEED_OF_LIGHT_M_S = 299_792_458  # Speed of light in a vacuum, m/s, exact (the SI definition; LIGHTYEAR_M uses the same c) -- used for Schwarzschild radius (phenomena.compact_remnant.BlackHole)
 CELSIUS_ZERO_K = 273.15  # 0 °C in K (format.format_temperature_k)
 STANDARD_ATMOSPHERE_PA = 101_325.0  # 1 atm, exact, Pa (format.format_pressure_pa)
+INCH_M = 0.0254  # The international inch, m (exact; the Customary unit preference)
 FOOT_M = 0.3048  # The international foot, m (exact; the Customary unit preference)
 MILE_M = 1_609.344  # The international mile, m (exact)
 POUND_KG = 0.45359237  # The avoirdupois pound, kg (exact)

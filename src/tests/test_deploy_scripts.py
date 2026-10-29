@@ -241,7 +241,8 @@ def test_the_log_setup_never_stops_an_install_or_update():
     for script in ("install.sh", "update.sh"):
         with open(os.path.join(REPO_DIR, script), encoding="utf-8") as f:
             text = f.read()
-        assert 'setup-debug-log.sh" \\\n    || echo "warning:' in text, script
+        warns = 'log_warning "' if script == "update.sh" else 'echo "warning:'      # update.sh speaks through the logging layer (UX.123)
+        assert f'setup-debug-log.sh" \\\n    || {warns}' in text, script
     # Only running it without root, or with no Python at all, is an error.
     assert _code_lines("setup-debug-log.sh").count("exit 1") == 2
 
@@ -609,9 +610,11 @@ def test_an_unknown_apache_identity_is_an_error_not_a_silent_exit(name):
 
 # --- reload_web_if_running (OPS.8, OPS.29) -----------------------------------
 
-def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=True, health=True, reply=""):
+def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=True, health=True, reply="", curl=None, site=None):
     """Runs the helper with fake `systemctl`, `apache2ctl` and `curl` that log their calls; returns
-    `(process, calls)`. `fail` names the systemctl verbs that fail."""
+    `(process, calls)`. `fail` names the systemctl verbs that fail. `curl` is the body of the fake `curl` (it sees the
+    address as its last argument) when the test needs different answers for different addresses; `site` is what a fake
+    python prints for `site_health_target` (the site's own address and its two --resolve values)."""
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     log = tmp_path / "calls"
@@ -624,10 +627,16 @@ def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=Tr
     fake("systemctl", 'if [[ "$1" == is-active ]]; then case " %s " in *" $3 "*) exit 0;; esac; exit 3; fi\n'
          'case " %s " in *" $1 "*) exit 1;; esac\nexit 0\n' % (" ".join(active), " ".join(fail)))
     fake("apache2ctl", "exit %d\n" % (0 if configtest else 1))
-    fake("curl", "printf '%%s\\n%%s' '%s' %d\n" % (reply, 200 if health else 503))
+    fake("curl", curl or "printf '%%s\\n%%s' '%s' %d\n" % (reply, 200 if health else 503))
+    if site is not None:
+        fake_python = bin_dir / "fakepython"
+        fake_python.write_text(f"#!/bin/bash\necho '{site}'\n")
+        fake_python.chmod(0o755)
     script = (f'source "{REPO_DIR}/scripts/deploy-common.sh"; APACHE_NEEDS_RESTART={restart}; '
               'reload_web_if_running')
     env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1")
+    if site is not None:
+        env["PYTHON"] = str(bin_dir / "fakepython")
     proc = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True)
     calls = log.read_text().splitlines() if log.exists() else []
     return proc, calls
@@ -691,6 +700,46 @@ def test_a_failed_health_check_names_the_check_the_answer_and_the_maintenance_st
     assert proc.returncode == 1
     assert "health check of Apache failed" in proc.stderr and "HTTP 503" in proc.stderr
     assert "http://127.0.0.1/api/health" in proc.stderr and "The site is in maintenance mode" in proc.stderr
+
+
+SITE = "https://starmap.example/api/health starmap.example:80:127.0.0.1 starmap.example:443:127.0.0.1"
+OTHER_VHOST = ("for last; do :; done\ncase \"$last\" in\n"
+               "  http://127.0.0.1/*) printf '<html>403</html>\\n403';;\n"
+               "  https://starmap.example/*) printf '{\"status\":\"ok\"}\\n%s' \"$SITE_CODE\";;\nesac\n")
+
+
+def test_a_bare_loopback_address_that_belongs_to_another_virtual_host_is_checked_through_the_sites_own_name(tmp_path):
+    """OPS.77: Apache refused http://127.0.0.1/api/health with its own 403 (another virtual host answers the bare
+    address) while the site's name answered; the check asks the site's name, pointed at this machine."""
+    os.environ["SITE_CODE"] = "200"
+    try:
+        proc, calls = _run_reload(tmp_path, curl=OTHER_VHOST, site=SITE)
+    finally:
+        del os.environ["SITE_CODE"]
+    assert proc.returncode == 0, proc.stderr
+    assert "answered HTTP 403" in proc.stdout and "the site answers at https://starmap.example/api/health" in proc.stdout
+    site_calls = [c for c in calls if c.startswith("curl") and "starmap.example/api/health" in c]
+    assert site_calls and "--resolve starmap.example:443:127.0.0.1" in site_calls[0] and "--resolve starmap.example:80:127.0.0.1" in site_calls[0]
+
+
+def test_a_failed_check_names_both_addresses_when_neither_answers(tmp_path):
+    os.environ["SITE_CODE"] = "503"
+    try:
+        proc, _calls = _run_reload(tmp_path, curl=OTHER_VHOST, site=SITE)
+    finally:
+        del os.environ["SITE_CODE"]
+    assert proc.returncode == 1
+    assert "http://127.0.0.1/api/health answered HTTP 403" in proc.stderr
+    assert "own address https://starmap.example/api/health answered HTTP 503" in proc.stderr
+
+
+def test_the_sites_own_name_is_not_taken_for_an_answer_unless_it_is_a_2xx(tmp_path):
+    os.environ["SITE_CODE"] = "301"
+    try:
+        proc, _calls = _run_reload(tmp_path, curl=OTHER_VHOST, site=SITE)
+    finally:
+        del os.environ["SITE_CODE"]
+    assert proc.returncode == 1 and "answered HTTP 301" in proc.stderr
 
 
 def test_the_dirty_tree_warning_leaves_out_the_state_folder_the_update_owns():

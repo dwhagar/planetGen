@@ -189,3 +189,51 @@ def test_the_xuv_flux_comes_from_the_stored_value_else_from_the_star_and_is_zero
     assert ts.xuv_flux_earth(sun) == pytest.approx(1.0, rel=0.5)
     far = Subject({"host_mass_solar": 1.0, "age_gy": 4.6, "luminosity_solar": 1.0, "insolation": 0.25})
     assert ts.xuv_flux_earth(far) == pytest.approx(ts.xuv_flux_earth(sun) * 0.25, rel=1e-6)
+
+
+# --- GEN.841: the exobase search is bounded and the caches change no value ---------------------------------------------------
+
+@pytest.mark.parametrize("args, expected", [
+    ((6.371e6, 9.81, 4.65e-26, 1100.0, 200.0), (6792504.786904568, 132120832223323.83, 37844.14551331694)),
+    ((3.4e6, 3.7, 7.3e-26, 400.0, 150.0), (3681795.8243822805, 208540182732463.34, 23976.19458507194)),
+    ((7e7, 25.0, 3.3e-27, 3000.0, 100.0), (76238023.20909084, 8395996362979.754, 595521.9349601399)),
+    ((1e6, 0.5, 7.3e-26, 5000.0, 30.0), (1002836.95, 21407076186867.75, 233567.62765516146)),   # reaches MAX_EXOBASE_RADII, the longest search
+])
+def test_the_exobase_search_gives_the_values_it_gave_before_it_was_bounded(args, expected):
+    assert ts.exobase(*args) == pytest.approx(expected, rel=1e-12)
+
+
+@pytest.mark.parametrize("bad", [float("nan"), float("inf"), 0.0, -3.0])
+@pytest.mark.parametrize("slot", range(5))
+def test_an_exobase_of_a_non_finite_or_non_positive_input_is_an_error_and_not_a_search_that_never_ends(slot, bad):
+    """A NaN temperature made every comparison false and the height NaN, so the search ran for ever (GEN.841)."""
+    args = [6.371e6, 9.81, 4.65e-26, 1100.0, 200.0]
+    args[slot] = bad
+    with pytest.raises(ValueError, match="finite positive"):
+        ts.exobase(*args)
+
+
+def test_the_exobase_search_stops_at_its_step_bound_and_returns_the_height_it_reached(monkeypatch):
+    monkeypatch.setattr(ts, "MAX_EXOBASE_STEPS", 3)
+    radius, density, scale = ts.exobase(6.371e6, 9.81, 4.65e-26, 1100.0, 200.0)
+    assert 6.371e6 < radius < 6.371e6 * 1.01     # three steps of 0.25 scale heights up from the surface, and not the 6.79e6 m it closes at
+    assert math.isfinite(density) and density > 0.0 and math.isfinite(scale) and scale > 0.0
+
+
+def test_no_air_in_the_swept_range_comes_near_the_step_bound(monkeypatch):
+    """The corners of the sweep that has the longest searches give the same exobase with a tenth of the bound as with the bound."""
+    corners = [(6.4e6, 3.0, 4.65e-26, 5000.0, 100.0), (7e7, 0.5, 7.3e-26, 5000.0, 100.0), (1e6, 30.0, 2.7e-26, 5000.0, 100.0),
+               (3e7, 0.5, 7.3e-26, 5000.0, 100.0), (6.4e6, 0.5, 7.3e-26, 1000.0, 30.0)]
+    full = [ts.exobase(*c) for c in corners]
+    monkeypatch.setattr(ts, "MAX_EXOBASE_STEPS", ts.MAX_EXOBASE_STEPS // 10)
+    assert [ts.exobase(*c) for c in corners] == full
+
+
+def test_the_cached_diffusion_parameter_and_the_precomputed_mean_change_no_value():
+    uncached = ts.binary_diffusion_parameter.__wrapped__
+    for a, b, t in [("H2", "N2", 150.0), ("He", "CO2", 400.0), ("H2O", "Ar", 250.0), ("CH4", "SO2", 300.0)]:
+        assert ts.binary_diffusion_parameter(a, b, t) == uncached(a, b, t)
+        assert ts.binary_diffusion_parameter(a, b, t) == ts.binary_diffusion_parameter(a, b, t)
+    air = {"N2": 0.8, "H2": 0.15, "CO2": 0.05}
+    mean = ts.mean_mass_kg(air)
+    assert ts.diffusion_limited_flux("H2", air, 9.81, 200.0, mean) == ts.diffusion_limited_flux("H2", air, 9.81, 200.0)

@@ -211,6 +211,7 @@ _kind("speed", _SPEED, "m_s", Bounds(low=0.0, high=float(constants.SPEED_OF_LIGH
 _kind("acceleration", _ACCELERATION, "m_s2")
 _kind("temperature", dimension(temperature=1), "K", NON_NEGATIVE)
 _kind("delta_temperature", dimension(temperature=1), "dK")
+_kind("fraction", dimension(), "frac", NON_NEGATIVE)
 _kind("angle", dimension(angle=1), "rad")
 _kind("angular_rate", dimension(time=-1, angle=1), "rad_s")
 _kind("angular_momentum", dimension(length=2, mass=1, time=-1), "kg_m2_s")
@@ -220,6 +221,7 @@ _kind("force", dimension(length=1, mass=1, time=-2), "N")
 _kind("mass_flow", dimension(mass=1, time=-1), "kg_s", NON_NEGATIVE)
 _kind("pressure", _PRESSURE, "Pa", NON_NEGATIVE)
 _kind("density", dimension(length=-3, mass=1), "kg_m3", NON_NEGATIVE)
+_kind("column_mass", dimension(length=-2, mass=1), "kg_m2", NON_NEGATIVE)
 _kind("area", dimension(length=2), "m2", NON_NEGATIVE)
 _kind("volume", dimension(length=3), "m3", NON_NEGATIVE)
 _kind("number_density", dimension(length=-3), "m-3", NON_NEGATIVE)
@@ -240,6 +242,8 @@ def _lengths():
             ("au", "AU", "astronomical units", constants.AU_M),
             ("ly", "ly", "light-years", constants.LIGHTYEAR_M),
             ("ld", "ld", "light-days", constants.SPEED_OF_LIGHT_M_S * _DAY_S),
+            ("cm", "cm", "centimeters", 1e-2),
+            ("in", "in", "inches", constants.INCH_M),
             ("ft", "ft", "feet", constants.FOOT_M),
             ("mi", "mi", "miles", constants.MILE_M),
             ("Rsun", "R☉", "solar radii", constants.SOLAR_RADIUS_M),
@@ -366,6 +370,8 @@ def _fields():
     _unit("L", "volume", "L", "liters", 1e-3, singular="liter")
     _unit("kg_m3", "density", "kg/m³", "kilograms per cubic meter", 1.0, parts=(("kg", 1), ("m", -3)))
     _unit("g_cm3", "density", "g/cm³", "grams per cubic centimeter", 1e3)
+    _unit("kg_m2", "column_mass", "kg/m²", "kilograms per square meter", 1.0, parts=(("kg", 1), ("m", -2)))
+    _unit("g_cm2", "column_mass", "g/cm²", "grams per square centimeter", 10.0)
     _unit("Msun_pc3", "density", "M☉/pc³", "solar masses per cubic parsec",
           constants.SOLAR_MASS_TO_KG / constants.PARSEC_M ** 3, parts=(("Msun", 1), ("pc", -3)))
     _unit("m-3", "number_density", "particles/m³", "particles per cubic meter", 1.0)
@@ -378,8 +384,17 @@ def _fields():
           parts=(("km", 3), ("s", -2)))
 
 
+def _fractions():
+    """A share of a whole (GEN.770): the base is the plain fraction 0 to 1; the page writes it as a percent from 1 percent
+    and as parts per million below."""
+    _unit("frac", "fraction", "(fraction)", "fractions of the whole", 1.0)
+    _unit("pct", "fraction", "%", "percent", 1e-2)
+    _unit("ppm", "fraction", "ppm", "parts per million", 1e-6)
+
+
 _lengths()
 _masses()
+_fractions()
 _times()
 _kinematics()
 _thermal()

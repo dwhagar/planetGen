@@ -396,6 +396,11 @@ def test_the_add_sectors_choices_build_the_same_command_as_the_old_modes(new, ol
     ({"mode": "span", "span_shells": "10:20", "span_bands": "-2:2"}, ["--shells=10:20", "--bands=-2:2"]),
     ({"mode": "span", "span_shells": "7", "span_bands": "0", "span_wedges": "4:9", "span_limit": "3"},
      ["--shells=7", "--bands=0", "--wedges=4:9", "--limit", "3"]),
+    # UX.127: a block of the Galaxy Map's ladder
+    ({"mode": "block", "block_key": "9.40.2.5"}, ["--block", "9.40.2.5"]),
+    ({"mode": "block", "block_key": " 3.40.7.0 ", "whole_block": "1"}, ["--block", "3.40.7.0", "--yes"]),
+    ({"mode": "block", "block_key": "27.3.0.0", "block_limit": "50", "whole_block": "1"},
+     ["--block", "27.3.0.0", "--limit", "50"]),
 ])
 def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     resp = _post(client, action="galaxy", estimate_ok="1", **form)
@@ -412,7 +417,10 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     ({"mode": "random", "radius_pc": "nan"}, "Radius (pc) must be a finite number."),
     ({"mode": "bogus"}, "Choose what to generate."),
     ({"mode": "ring", "ring": "3"}, "Choose what to generate."),
-    ({"mode": "block", "block": "3.40.7.0"}, "Choose what to generate."),
+    ({"mode": "block"}, "Block is required."),
+    ({"mode": "block", "block_key": "5.0.0.0"}, "Block:"),
+    ({"mode": "block", "block_key": "nonsense"}, "Block:"),
+    ({"mode": "block", "block_key": "3.40.7.0", "block_limit": "0"}, "Limit must be at least 1."),
     ({"mode": "random", "radius_pc": "200.5"}, "Radius (pc) must be at most 200."),
     ({"mode": "random", "max_shell": "9" * 25}, "Highest shell must be at most 83037."),
     ({"mode": "shell", "shell_index": "83038"}, "Shell must be at most 83037."),
@@ -648,7 +656,8 @@ def test_the_start_screen_has_a_card_per_task_and_no_folds(site, client):
     assert 'id="current-job"' not in html
     cards = re.findall(r'href="(/admin/generate/[^"]*)"><strong>', html)
     assert cards == ["/admin/generate/task/add-sectors", "/admin/generate/task/new-galaxy",
-                     "/admin/generate/task/plan-only", "/admin/generate/task/scatters", "/admin/generate/system", "/admin/generate/task/check",
+                     "/admin/generate/task/plan-only", "/admin/generate/task/scatters", "/admin/generate/task/bring-to-epoch", "/admin/generate/system",
+                     "/admin/generate/task/check",
                      "/admin/generate/task/wipe"]
     assert "generatefolds.js" not in html and "generatecustomize.js" not in html and "data-fold" not in html
 
@@ -1464,6 +1473,20 @@ def test_map_generate_target_only_for_a_usable_admin():
         assert target["url"] == "/admin/generate"
         assert target["csrfField"] == csrf.FIELD_NAME
         assert target["csrfToken"]
+        assert target["busy"] is None and target["jobUrl"] == "/admin/generate#current-job"
+
+
+def test_map_generate_target_names_the_running_job(monkeypatch):
+    """UX.127: the map's block Generate waits for a running job, so the target carries its title (and `None` when the jobs
+    folder can't be read)."""
+    from planetgen.web import helpers
+
+    app = create_app(_FakeConfig)
+    with app.test_request_context("/galaxy"):
+        monkeypatch.setattr(jobs, "active_job", lambda root=None: {"title": "Add sectors"})
+        assert helpers.generate_target({"username": "a"})["busy"] == "Add sectors"
+        monkeypatch.setattr(jobs, "active_job", lambda root=None: (_ for _ in ()).throw(OSError("no jobs folder")))
+        assert helpers.generate_target({"username": "a"})["busy"] is None
 
 
 # --- The data check first (GEN.590) ---------------------------------------------------
@@ -1946,3 +1969,46 @@ def test_every_box_on_the_generate_pages_is_the_one_form_field(site, client):
                 assert kind in native_ok, tag
         forms = "".join(re.findall(r'<form[^>]*class="search-form".*?</form>', html, re.S))
         assert len(re.findall(r"<noscript>", forms)) == len(re.findall(r"<sl-(?:input|select|checkbox)\b", live))
+
+
+def _epoch_found(**over):
+    found = {"error": None, "current": 113, "nothing": False, "refuse": [],
+             "lines": ["Bringing the galaxy to epoch 113; stages behind: fill.",
+                       "sector 3.1.4: made under epoch 110, to be generated again.",
+                       "1 sector(s) to redo, 0 left alone."]}
+    found.update(over)
+    return found
+
+
+def test_bring_to_epoch_page_shows_what_a_run_would_do_before_review(site, client, monkeypatch):
+    monkeypatch.setattr(generate_page, "epoch_status", lambda database: _epoch_found())
+    monkeypatch.setattr(generate_flow, "epoch_status", lambda database: _epoch_found())
+    html = _task_html(client, "bring-to-epoch")
+    assert "epoch 113" in html and "sector 3.1.4: made under epoch 110, to be generated again." in html
+    assert 'name="action" value="bring_to_epoch"' in html
+    assert "disregard" not in html
+
+
+def test_bring_to_epoch_page_says_when_the_galaxy_cannot_be_read(site, client, monkeypatch):
+    monkeypatch.setattr(generate_flow, "epoch_status", lambda database: {"error": "The galaxy could not be read: down"})
+    assert "The galaxy could not be read: down" in _task_html(client, "bring-to-epoch")
+
+
+def test_bring_to_epoch_job_runs_the_command(site, client, no_spawn, monkeypatch):
+    monkeypatch.setattr(generate_page, "epoch_status", lambda database: _epoch_found())
+    assert _post(client, action="bring_to_epoch").status_code == 303
+    (job,) = no_spawn
+    assert job["kind"] == "bring_to_epoch"
+    assert _argv(job["steps"][-1]) == ["bring-to-epoch"]
+
+
+@pytest.mark.parametrize("found, said", [
+    (_epoch_found(refuse=["The plan was made under epoch 3: a full regeneration is needed."]), "a full regeneration is needed"),
+    (_epoch_found(nothing=True, lines=["The galaxy is at epoch 113: nothing to bring up."]), "nothing to bring up"),
+    ({"error": "The galaxy could not be read: down"}, "could not be read"),
+])
+def test_bring_to_epoch_does_not_start_when_it_has_nothing_it_can_do(site, client, no_spawn, monkeypatch, found, said):
+    monkeypatch.setattr(generate_page, "epoch_status", lambda database: found)
+    resp = _post(client, action="bring_to_epoch")
+    assert resp.status_code == 400 and said in resp.get_data(as_text=True)
+    assert no_spawn == []

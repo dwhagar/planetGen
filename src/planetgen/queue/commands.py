@@ -235,6 +235,9 @@ REGISTRY = _commands(
     CommandSpec("check-version-keys", "Check that every sector has a well formed version key",
                 unit=("planetgen.db.check", "check_version_keys_unit"),
                 expand=("planetgen.db.check", "expand_check"), whole=True),
+    CommandSpec("check-storage", "Check that every sealed sector still hashes to its storage checksum",
+                unit=("planetgen.db.check", "check_storage_unit"), expand=("planetgen.db.check", "expand_check"),
+                whole=True),
     CommandSpec("check-systems", "Check every star system against the validation rules (slow)",
                 unit=("planetgen.db.check", "check_systems_unit"),
                 expand=("planetgen.db.check", "expand_check_systems"), whole=True),
@@ -266,14 +269,14 @@ KIND_OF_WARM_FAMILY = {family: f"warm-{family}" for family in
 """dict: The command that warms each cache family (`web/warmup.FAMILIES`), the steps of `planetgen warm`."""
 
 KIND_OF_CHECK = {name: f"check-{name}" for name in (
-    "revision", "tables", "tables-extended", "orphans", "ids", "values", "counts", "version-keys", "systems",
+    "revision", "tables", "tables-extended", "orphans", "ids", "values", "counts", "version-keys", "storage", "systems",
     "object-index")}
 """dict: The command that does each database check (`db/check.CHECKS`), the steps of `planetgen check-db`, in order."""
 
-DEFAULT_CHECKS = ("revision", "tables", "orphans", "ids", "values", "counts", "version-keys")
+DEFAULT_CHECKS = ("revision", "tables", "orphans", "ids", "values", "counts", "version-keys", "storage")
 """tuple: The checks `planetgen check-db` runs when none is named: every check but the two slow ones."""
 
-DEEP_CHECKS = ("revision", "tables-extended", "orphans", "ids", "values", "counts", "version-keys", "systems")
+DEEP_CHECKS = ("revision", "tables-extended", "orphans", "ids", "values", "counts", "version-keys", "storage", "systems")
 """tuple: The list of the slow checks: the default one with the thorough table check and the star systems."""
 
 END_MAP_REBUILD = "end-map-rebuild-maintenance"
@@ -410,7 +413,7 @@ def _check_steps(args):
         if name not in asked:
             continue
         params = {"database": args.database}
-        if name in ("values", "counts", "version-keys", "systems"):
+        if name in ("values", "counts", "version-keys", "storage", "systems"):
             params.update(scope)
         if name == "systems":
             params["wide_binaries"] = bool(args.wide_binaries)

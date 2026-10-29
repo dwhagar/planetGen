@@ -325,9 +325,15 @@ class ResponseCache:
     def put(self, db, target, body, token):
         """Stores `body` for `target` in `db` -- skipped when it's too
         big, when `db`'s stamp couldn't be checked, when data changed (or the cache was cleared) since
-        `begin` was called, or when the versions can't be read."""
+        `begin` was called, or when the versions can't be read.
+
+        Returns:
+            bool: Whether the answer went to Redis, where every process reads it. `False` for any skip and when only
+                this process's copy was kept (Redis out of room or not answering): a page job then hands the answer to
+                its visitors itself (`pagejobs.deliver`).
+        """
         if len(body) > self._max_bytes * MAX_BODY_FRACTION or token is None:
-            return
+            return False
         generation, incarnation, count, began = token
         now = self._clock()
         cost = max(now - began, 0.0)
@@ -337,29 +343,30 @@ class ResponseCache:
                     self._entries[(db, target)] = Entry("", {}, body, now, cost)
                     while len(self._entries) > self._max_entries:
                         self._entries.popitem()
-            return
+            return False
         tags = pagetags.read_tags(_path_of(target), body)
         try:
             now_id, found = dataversion.versions(db, [dataversion.COUNT_FIELD, *tags])
         except dataversion.Unavailable:
-            return
+            return False
         if now_id != incarnation or found.pop(dataversion.COUNT_FIELD) != count:
-            return  # data changed while the answer was fetched: it may be older than the data
+            return False  # data changed while the answer was fetched: it may be older than the data
         entry = Entry(now_id, found, body, now, cost)
         with self._lock:
             self._refreshing.pop((db, target), None)
             if generation != self._generation or db not in self._stamps:
-                return
+                return False
             self._entries[(db, target)] = entry
             while len(self._entries) > self._max_entries:
                 self._entries.popitem()
         try:
             if not self._redis_has_room():
-                return
+                return False
             key = shared_key(db, target)
             pipe = self._redis().pipeline(transaction=False)
             pipe.hset(key, mapping={"i": now_id, "v": json.dumps(found, sort_keys=True), "b": body, "c": cost})
             pipe.expire(key, self._shared_seconds)
             pipe.execute()
         except (redis.RedisError, OSError):
-            pass
+            return False
+        return True

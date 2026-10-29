@@ -19,7 +19,7 @@ import math
 from collections import namedtuple
 
 from planetgen.generation import validation
-from planetgen.physics import constants, magnetism, planets as planetPhysics
+from planetgen.physics import constants, daylight, magnetism, planets as planetPhysics
 from planetgen import tuning
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.names.bodies import moon_letters
@@ -125,6 +125,7 @@ def make_moon(planet, distance_au, moon_class):
                   radius=radius, planet_class=moon_class, zone_override=planet.zone,
                   distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)
     magnetism.generate_induced_field(moon, planet)
+    daylight.generate(moon, planet)
     return moon
 
 
@@ -289,8 +290,11 @@ needs nothing moved, before keeping the last one."""
 
 class _StandIn:
     """A planet-shaped stand-in for spacing arithmetic: `distance` (AU),
-    `mass` (kg), `star`, `hill_radius` (km) and `min_orbit_distance` (AU)."""
+    `mass` (kg), `star`, `hill_radius` (km), `min_orbit_distance` (AU) and
+    `eccentricity` (0: the spacing rules read the orbit's shape, and a
+    stand-in's is a circle)."""
     body_type = 't'
+    eccentricity = 0.0
 
     def __init__(self, distance, mass, star, hill_radius_au):
         self.distance = distance
@@ -385,7 +389,7 @@ def _apply_class(body, owner, planet_class):
     primary_mass = owner.mass if body.is_moon else body.star.mass
     body.period = planetPhysics.calculate_orbital_period_years(body.distance, primary_mass)
     planetPhysics.calculate_surface_gravity(body)
-    planetPhysics.calculate_atmospheric_conditions(body, parent_distance)
+    planetPhysics.calculate_atmospheric_conditions(body, parent_distance, owner.eccentricity if body.is_moon else None)
     planetPhysics.generate_orbital_motion_properties(body, primary_mass)
     body.primary_mass_kg = primary_mass
     planetPhysics.update_hill_sphere(body)

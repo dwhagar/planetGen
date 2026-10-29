@@ -53,7 +53,7 @@ import sqlalchemy
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
 
-from planetgen.db import alembic_runner, models, store
+from planetgen.db import alembic_runner, models, storage_checksum, store
 from planetgen.generation import steps, validation
 
 MAX_ROWS_SHOWN = 10
@@ -448,6 +448,31 @@ def check_version_keys(ctx):
                     [f"sector id {row['id']}: {row['k']!r}" for row in bad])]
 
 
+def check_storage(ctx):
+    """
+    A sector whose `parity_dirty` flag is clear still hashes to its stored checksum (DB.45, DB.8): the rows are as they were when
+    the parity record was made. A mismatch is damage. A sector whose flag is set, or that was never sealed, is not checked (a writer
+    changed it since, or nothing has sealed it yet): it is one warning with the count, because nothing protects it until the
+    parity update seals it.
+    """
+    scope_sql, params = ctx.scope.where("s.id")
+    rows = ctx.rows("SELECT s.id AS id, s.parity_dirty AS dirty, s.storage_checksum AS sum FROM sectors s"
+                    f" WHERE 1 = 1{scope_sql} ORDER BY s.id", params)
+    unprotected, damaged = [], []
+    for row in rows:
+        if row["dirty"] or row["sum"] is None:
+            unprotected.append(row["id"])
+        elif storage_checksum.check_sector(ctx.conn, row["id"]) == storage_checksum.DAMAGED:
+            damaged.append(f"sector id {row['id']}")
+    problems = []
+    if damaged:
+        problems.append(Problem(f"{len(damaged)} sector(s) no longer hash to their stored checksum.", damaged))
+    if unprotected:
+        problems.append(Problem(f"{len(unprotected)} sector(s) have no current storage checksum (a write since, or never "
+                                "sealed; not damage).", [], warning=True))
+    return problems
+
+
 DEEP_STATS_KIND = "db-check"
 """str: The `generation_stats` kind the per-system pass records its speed under (a unit is a system)."""
 
@@ -554,6 +579,7 @@ CHECKS = (
     Check("values", "values", check_values, scoped=True),
     Check("counts", "counts", check_counts, scoped=True),
     Check("version-keys", "version keys", check_version_keys, scoped=True),
+    Check("storage", "storage checksums", check_storage, scoped=True),
     Check("systems", "systems", check_systems, scoped=True, wide_binaries=True),
     Check("object-index", "object index", check_object_index),
 )
@@ -637,6 +663,11 @@ def check_counts_unit(args, report):
 def check_version_keys_unit(args, report):
     """The unit of `check-version-keys`: every sector in scope has a well formed version key."""
     return _unit("version-keys", args, report)
+
+
+def check_storage_unit(args, report):
+    """The unit of `check-storage`: every sealed sector in scope still hashes to its storage checksum (DB.45)."""
+    return _unit("storage", args, report)
 
 
 def check_systems_unit(args, report):

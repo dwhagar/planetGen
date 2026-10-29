@@ -25,7 +25,7 @@ The one-bar temperature that decides helium rain is the effective temperature (s
 import math
 
 from planetgen import tuning
-from planetgen.physics import bulk_composition, bulk_draw, climate_draws, constants, giant_interior, giant_radius
+from planetgen.physics import bulk_composition, bulk_draw, climate_draws, composition_text, constants, giant_interior, giant_radius
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -153,5 +153,6 @@ def draw_giant(planet, radius_given, fallback_radius_km):
         envelope_helium=shares["envelope_helium"], envelope_z=shares["envelope_z"], origin="drawn")
     for attribute, value in bulk.to_attributes().items():
         setattr(planet, attribute, value)
+    planet.composition = composition_text.text(planet)  # GEN.430: the text states the stored fractions
     for attribute, value in giant_interior.body_values(interior).items():
         setattr(planet, attribute, value)

@@ -58,7 +58,7 @@ def test_tilt_distributions():
     rayleigh = [spin.rayleigh_tilt_deg() for _ in range(4000)]
     assert statistics.fmean(rayleigh) == pytest.approx(
         spin.STELLAR_TILT_SIGMA_DEG * math.sqrt(math.pi / 2), rel=0.05)
-    impact = [spin.impact_tilt_deg() for _ in range(2000)]
+    impact = [spin.accretion_spin(5.972e24, 6371.0)[1] for _ in range(2000)]
     assert all(0.0 <= t <= 180.0 for t in impact)
     assert sum(t > 90.0 for t in impact) > 0  # some retrograde spinners
     yorp = [spin.yorp_tilt_deg() for _ in range(2000)]

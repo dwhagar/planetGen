@@ -370,9 +370,11 @@ test("the whole galaxy turns and zooms in to half its fit, never out past it", a
   const wheel = (deltaY, deltaMode) => m.view.onWheel(new FakeEvent("wheel", { deltaY, deltaMode: deltaMode || 0 }));
   assert.equal(wheel(100), true, "the wheel zooms");
   assert.ok(Math.abs(lastCamera(m).dist - fit.dist) < 1e-9 * fit.dist, "no further out than the fit");
-  // Up to the limit; one more tick there takes the block under the pointer (MAP.152), tested below.
+  // Up to the stage's hand-over; one more tick there takes the block under the pointer (MAP.152), tested below. No wall stops the tick that
+  // reaches it (MAP.334): it may carry the camera a tick's share past (a tick of this wheel is 0.78 of the distance).
   for (let n = 0; n < 100 && lastCamera(m).dist > fit.dist * SV.GALAXY_MIN_ZOOM * (1 + 1e-6); n++) wheel(-3, 1);
-  assert.ok(Math.abs(lastCamera(m).dist - fit.dist * SV.GALAXY_MIN_ZOOM) < 1e-6 * fit.dist, "twice as close at most");
+  const reached = lastCamera(m).dist / fit.dist;
+  assert.ok(reached <= SV.GALAXY_MIN_ZOOM * (1 + 1e-6) && reached > SV.GALAXY_MIN_ZOOM * 0.75, "twice as close, by a tick at most more");
   m.view.onPointerDown(new FakeEvent("pointerdown", { clientX: 400, clientY: 300, pointerId: 1, button: 0, pointerType: "mouse" }));
   m.view.onPointerMove(new FakeEvent("pointermove", { clientX: 480, clientY: 260, pointerId: 1, pointerType: "mouse" }));
   m.view.onPointerUp(new FakeEvent("pointerup", { clientX: 480, clientY: 260, pointerId: 1, button: 0, pointerType: "mouse" }));
@@ -631,10 +633,12 @@ test("the wheel zooms a free stage, within 1/8 to 2.5 times its fit", async () =
   assert.equal(wheel(100), true);
   assert.ok(lastCamera(m).dist > fit, "scrolling down zooms out");
   // Up to each limit; one more tick there carries the zoom to the next stage (MAP.152, tested below).
+  // MAP.334: no wall stops the tick that reaches a hand-over: it may carry the camera a tick's share past (a tick of 200 is 1.65 times the
+  // distance, one of -3 lines 0.78 of it).
   for (let n = 0; n < 50 && lastCamera(m).dist < fit * SV.MAX_ZOOM * (1 - 1e-6); n++) wheel(200);
-  assert.ok(Math.abs(lastCamera(m).dist - fit * SV.MAX_ZOOM) < 1e-6 * fit);
+  assert.ok(lastCamera(m).dist >= fit * SV.MAX_ZOOM * (1 - 1e-6) && lastCamera(m).dist < fit * SV.MAX_ZOOM * 1.7);
   for (let n = 0; n < 100 && lastCamera(m).dist > fit * SV.MIN_ZOOM * (1 + 1e-6); n++) wheel(-3, 1);
-  assert.ok(Math.abs(lastCamera(m).dist - fit * SV.MIN_ZOOM) < 1e-6 * fit);
+  assert.ok(lastCamera(m).dist <= fit * SV.MIN_ZOOM * (1 + 1e-6) && lastCamera(m).dist > fit * SV.MIN_ZOOM * 0.75);
 });
 
 test("the wheel past the end of a window's zoom goes on into the block under the pointer, with no stop and no flight (MAP.152, MAP.263)", async () => {

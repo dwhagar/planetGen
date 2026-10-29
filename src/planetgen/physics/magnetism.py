@@ -18,7 +18,8 @@ section 3.5 (design defaults):
    ocean to lubricate the plates: a body of 0.5 to 5 Earth masses with one has
    a 0.6 chance of a mobile lid, a heavier one 0.3 (the literature is
    unsettled about super-Earths, so the odds fall rather than rise), and any
-   other rocky planet is stagnant (`mobile_lid_chance`).
+   other rocky planet is stagnant (`mobile_lid_chance`). The regime is drawn once, with the body's interior
+   (`interior_heat.generate_lid`, GEN.721), and stored as `lid_regime`; the dynamo, the heat and the ground dose read it.
 2. **Rotation.** Slow rotation makes the field multipolar: `Ro_l = 0.09 (P /
    24 h)^1.23` and `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)`. A tidally
    locked M-dwarf planet keeps about 0.15 of its moment in the dipole.
@@ -78,6 +79,8 @@ EARTH_DENSITY = 5.51
 MIN_DYNAMO_MASS_EARTH = 0.05
 MIN_CORE_FRACTION = 0.15
 DYNAMO_LIFETIME_GY = 4.0
+LID_MOBILE = "mobile"
+"""str: What a body's stored `lid_regime` is when it has plate tectonics (`interior_heat.generate_lid`, GEN.721)."""
 STAGNANT_LID_LIFETIME_FACTOR = 0.4
 MOBILE_LID_MIN_MASS_EARTH = 0.5
 MOBILE_LID_MAX_MASS_EARTH = 5.0
@@ -176,7 +179,7 @@ def _rocky_moment(body, mass_earth, age_gy):
     core = core_mass_fraction(mass_earth, getattr(body, "density", None) or EARTH_DENSITY)
     lifetime = DYNAMO_LIFETIME_GY * math.sqrt(mass_earth) * draw.uniform(0.5, 1.5)
     strength = _log_normal(0.4)
-    mobile_lid = draw.random() < mobile_lid_chance(body, mass_earth)
+    mobile_lid = getattr(body, "lid_regime", None) == LID_MOBILE
     if mass_earth < MIN_DYNAMO_MASS_EARTH or core < MIN_CORE_FRACTION:
         return 0.0
     if mass_earth < 0.1 and core > 0.4:

@@ -129,11 +129,23 @@ _UNSET = object()
 
 def generate_target(admin):
     """Where the map pages' Generate buttons post (`static/
-    generatebuttons.js`), for an admin who can use the Generate page;
-    `None` for everyone else."""
+    generatebuttons.js`), for an admin who can use the Generate page, and the title of the job running now (`busy`,
+    `None` when none runs) with the page that follows it (`jobUrl`); `None` for everyone else."""
     if admin is None or admin.get("must_change_credentials"):
         return None
-    return {"url": url_for("web.generate"), "csrfField": csrf.FIELD_NAME, "csrfToken": csrf.csrf_token()}
+    return {"url": url_for("web.generate"), "csrfField": csrf.FIELD_NAME, "csrfToken": csrf.csrf_token(),
+            "busy": _running_job_title(), "jobUrl": url_for("web.generate", _anchor="current-job")}
+
+
+def _running_job_title():
+    """The title of the job running now (UX.127: the map's block Generate waits for it), or `None` when none runs or the
+    jobs folder can't be read."""
+    from . import jobs
+    try:
+        job = jobs.active_job()
+    except OSError:
+        return None
+    return str(job.get("title") or "Another job") if job else None
 
 
 def current_admin():

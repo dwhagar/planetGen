@@ -6,6 +6,7 @@ Document's sections in order, each as a heading, its blocks and its child sectio
 (`text`, `markdown`) says how a heading, a table, a composition and a rating look.
 """
 
+from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 
 MAX_DEPTH = 6
@@ -23,8 +24,8 @@ def rating_lines(block, fmt):
     """`(headline, rows)` of a ratings block: the overall line, then `(domain, rating, score, notes)` per row."""
     overall = block["overall"]
     gear = inline_text(block["gear"], fmt)
-    headline = f"{overall['name']} habitability is {overall['score']:.2f} ({overall['tier']}).{' ' + gear if gear else ''}"
-    rows = [(row["domain"], row["tier"], f"{row['score']:.2f}", inline_text(row["text"], fmt)) for row in block["rows"]]
+    headline = f"{overall['name']} habitability is {model.score_text(overall['score'])} ({overall['tier']}).{' ' + gear if gear else ''}"
+    rows = [(row["domain"], row["tier"], model.score_text(row["score"]), inline_text(row["text"], fmt)) for row in block["rows"]]
     return headline, rows
 
 

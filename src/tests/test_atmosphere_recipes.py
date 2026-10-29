@@ -18,6 +18,7 @@ import pytest
 
 from planetgen.generation import possibility_table as pt
 from planetgen.generation.possibility_table import Subject
+from planetgen.physics import envelope_escape
 from planetgen.physics import atmosphere_recipes as ar
 from planetgen.physics.atmosphere_recipes import INPUTS, RECIPES, Recipes
 from planetgen.physics.elements import DataError
@@ -262,11 +263,15 @@ def test_the_hydrogen_flag_of_d7_uses_the_jeans_parameter_of_the_part():
 
 
 def test_example_e_the_envelope_the_water_world_and_the_hycean_share_the_water_rich_probability():
-    s = Subject("V", dict(mass_earth=5.0, core_radius_earth=5 ** 0.27, insolation=100.0, snow_ratio=1.5,
-                          v_esc_kms=11.186 * (5 / 5 ** 0.27) ** 0.5, **{"const:e:f_env0": 0.05, "const:e:eta": 0.224, "const:b:c_b4": 0.1454}))
+    s = Subject("V", dict(mass_earth=5.0, core_radius_earth=5 ** 0.27, insolation=20.0, snow_ratio=1.5, host_mass_solar=1.0, luminosity_solar=1.0,
+                          age_gy=5.0, teq_k=255.0 * 20.0 ** 0.25, **{"const:e:f_env0": 0.05, "const:e:eta": 0.224, "const:b:c_b4": 0.1454}))
     assert RECIPES.probability_of("b4", s) == pytest.approx(0.1454 * _delivery_law(1.5, 5.0)[3], abs=1e-9)
     p = dict(RECIPES.probabilities("e", s))
-    assert p == pytest.approx({"e1": 0.742, "e2": 0.115, "e3": 0.111, "e4": 0.032}, abs=1e-3)
+    lost = envelope_escape.lost_fraction(5.0, 0.05, 20.0, 1.0, 1.0, 5.0, 255.0 * 20.0 ** 0.25)
+    assert 0.2 < lost < 0.9, "a 5 Earth-mass planet at 20 times the Earth's insolation has lost part of its envelope"
+    assert p["e1"] / (p["e1"] + p["e2"]) == pytest.approx(lost, abs=1e-9)
+    assert p["e3"] == pytest.approx(0.111, abs=1e-3) and p["e4"] == pytest.approx(0.032, abs=1e-3)
+    assert sum(p.values()) == pytest.approx(1.0)
     bins = RECIPES.bins("e5", Subject("V", {"mass_earth": 5.0}))
     assert [round(b[2], 3) for b in bins] == [0.268, 0.294, 0.268, 0.169]
     z = [0.02, 0.0548, 0.173, 0.424]
@@ -304,7 +309,7 @@ def test_the_giants_carbon_to_oxygen_correction_the_tail_is_explicit_and_not_a_l
     with draw.bound(3):
         shares = [RECIPES.draw_group("e", full("V", mass_earth=5.0, core_radius_earth=1.5, snow_ratio=0.5)).constants[("e", "f_env0")]
                   for _ in range(5)]
-    assert all(0.035 <= v <= 0.08 for v in shares)
+    assert all(0.05 <= v <= 0.2 for v in shares)
 
 
 def test_example_g_h_and_i_the_brown_dwarf_the_hot_jupiter_and_the_lava_windows():
@@ -312,7 +317,7 @@ def test_example_g_h_and_i_the_brown_dwarf_the_hot_jupiter_and_the_lava_windows(
     assert main(RECIPES.probabilities("g", g)) == pytest.approx({"g3": 0.9801, "g4": 0.0199}, abs=1e-3)
     assert RECIPES.probability("g6", g) == pytest.approx(0.994, abs=1e-3)
     assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 2500.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
-        {"h2": 0.9989, "h3": 0.0011}, abs=1e-4)
+        {"h2": 0.9983, "h3": 0.0017}, abs=1e-4)
     assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 900.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
         {"h1": 0.7454, "h2": 0.2546}, abs=1e-4), "the methane line at 0.1 bar is 966 K, not 1500 K"
     s = Subject("J", {"tday_k": 2150.0, "zone": "h", "teq_k": 2350.0, "drawn.h": "h2"})
@@ -430,7 +435,7 @@ def test_a_group_draw_follows_its_probabilities_and_stores_the_design_constants_
         for _ in range(3000):
             picked = RECIPES.draw_group("e", s)
             counts[picked.name] = counts.get(picked.name, 0) + 1
-            assert 0.035 <= picked.constants[("e", "f_env0")] <= 0.08 and 0.1 <= picked.constants[("e", "eta")] <= 0.5
+            assert 0.05 <= picked.constants[("e", "f_env0")] <= 0.2 and 0.1 <= picked.constants[("e", "eta")] <= 0.5
     assert counts.get("e1", 0) > 0 and counts.get("e2", 0) > 0 and set(counts) <= {"e1", "e2", "e3", "e4"}
     given = full("V", mass_earth=5.0, core_radius_earth=1.54, insolation=100.0, snow_ratio=1.5)
     with draw.bound(1):

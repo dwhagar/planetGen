@@ -1,13 +1,22 @@
 // UX.196: the contents list of a page, built from its headings. Every h2 and h3 of <main> becomes a link in a
 // "On this page" navigation after the page title (and its sub-head), nested by level. A heading with no id gets one.
 // A link to a heading inside a collapsed section opens that section (opensection.js). Pages with fewer than three
-// headings, and headings in dialogs or hidden regions, get no list.
+// headings, and headings in dialogs or hidden regions, get no list. A page that already has a contents list of its own gets no
+// second one (UX.235): a nav in <main>, or any element flagged `data-own-toc`, with three or more links to headings or sections on
+// the same page (the Settings page's group list is one); a menu of links to other pages is not.
 (function () {
   const main = document.getElementById("main");
   if (!main) return;
   const heads = [...main.querySelectorAll("h2, h3")].filter(
     h => !h.closest("sl-dialog, dialog, [hidden], .page-toc") && (!h.checkVisibility || h.checkVisibility()));
   if (heads.length < 3) return;
+  const hasOwnContents = [...main.querySelectorAll("nav, [data-own-toc]")].some(el => {
+    if (el.closest(".page-toc")) return false;
+    const inPage = [...el.querySelectorAll("a[href^='#']")].filter(a => a.getAttribute("href").length > 1
+      && document.getElementById(a.getAttribute("href").slice(1)));
+    return inPage.length >= 3;
+  });
+  if (hasOwnContents) return;
 
   const used = new Set([...document.querySelectorAll("[id]")].map(el => el.id));
   function idOf(h) {
@@ -49,4 +58,5 @@
 
   const anchor = main.querySelector(".page-subhead") || main.querySelector("h1");
   if (anchor) anchor.after(nav);
+  main.classList.add("has-page-toc");
 })();

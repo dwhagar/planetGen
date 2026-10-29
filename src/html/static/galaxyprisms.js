@@ -776,6 +776,34 @@ export function cellAt(m, x, y, z, edgePc) {
   return { m: m, shell: shell, band: band, wedge: wedge };
 }
 
+// The ways to step from a cell to the one beside it (MAP.121), in the galaxy's own frame: north is toward +z (a
+// smaller colatitude), east is the way the longitude grows (counterclockwise from +X seen from the north), out is
+// away from the core.
+export var NEIGHBOUR_DIRECTIONS = ["north", "south", "east", "west", "out", "in"];
+
+// The cell of `block`'s own size beside it in `direction`: the cell holding the point half a cell's extent past
+// the wall, straight out from the block's centre in that direction. Rows and shells differ in how many wedges they
+// hold, so a step north then south need not land on the cell it left; it always lands on a cell that shares the
+// wall. Null where there is nothing there to step to: past a pole, below the core, the cell itself (a cap or a
+// whole ring has no east or west) or a cell the grid does not have.
+export function neighbourBlock(block, direction, edgePc) {
+  var b = drillBlockBounds(block, edgePc);
+  var r = (b.r0 + b.r1) / 2;
+  var colat = (b.c0 + b.c1) / 2;
+  var lon = (b.t0 + b.t1) / 2;
+  if (direction === "north") colat = b.c0 - (b.c1 - b.c0) / 2;
+  else if (direction === "south") colat = b.c1 + (b.c1 - b.c0) / 2;
+  else if (direction === "east") lon = b.t1 + (b.t1 - b.t0) / 2;
+  else if (direction === "west") lon = b.t0 - (b.t1 - b.t0) / 2;
+  else if (direction === "out") r = b.r1 + (b.r1 - b.r0) / 2;
+  else if (direction === "in") r = b.r0 - (b.r1 - b.r0) / 2;
+  else return null;
+  if (!(colat > 0 && colat < Math.PI && r > 0)) return null;
+  var plane = r * Math.sin(colat);
+  var found = cellAt(block.m, plane * Math.cos(lon), plane * Math.sin(lon), r * Math.cos(colat), edgePc);
+  return isBlock(found) && !sameBlock(found, block) ? found : null;
+}
+
 // --- The data window ---------------------------------------------------------
 //
 // planetgen/galaxy/window.py (MAP.151) for the page: `g` cells across around

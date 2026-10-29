@@ -21,9 +21,12 @@ come from `sectors` and `sector_stats` and only change when a sector is saved or
   the shared top-level rows;
 * `rebuild` computes every row in one pass over the generated sectors (`planetgen fill-block-totals`,
   the migration, and a run on an empty table).
+
+The mass of each sector (`sector_stats.total_mass_kg`, DB.108, `db/sector_mass.py`) is put right first by each of the three, from the
+bodies stored, so the sums above it read current figures.
 """
 
-from planetgen.db import query
+from planetgen.db import query, region_stats, sector_mass
 from planetgen.galaxy.drill import DRILL_LEVELS, drill_chain_of
 
 LEVELS = DRILL_LEVELS[:-1]
@@ -33,7 +36,7 @@ FULL_REBUILD_ABOVE = 2000
 """int: A refresh that touches more distinct blocks than this is a `rebuild`."""
 
 COLUMNS = ("m", "shell_index", "band_index", "wedge_index", "sector_count", "systems", "expected_systems", "stars",
-           "age_sum", "luminosity_sol", "habitable_worlds")
+           "age_sum", "luminosity_sol", "habitable_worlds", "mass_sum_kg")
 """tuple: The table's columns in the order `rows` writes them."""
 
 INSERT = (f"INSERT INTO galaxy_block_stats ({', '.join(COLUMNS)}) VALUES ({', '.join('?' for _ in COLUMNS)})")
@@ -46,9 +49,9 @@ def chain_blocks(address):
 
 
 def _row(block, sums):
-    sectors, systems, expected, stars, age_sum, luminosity, habitable = sums
+    sectors, systems, expected, stars, age_sum, luminosity, habitable, mass = sums
     return (block.m, block.shell, block.band, block.wedge, int(sectors), int(systems), float(expected), int(stars),
-            float(age_sum), float(luminosity), int(habitable))
+            float(age_sum), float(luminosity), int(habitable), float(mass))
 
 
 def clear(conn):
@@ -75,13 +78,18 @@ def refresh_chain(conn, address):
     """Recomputes the blocks above one sector, `(shell, band, wedge)`; nothing for a sector off the grid."""
     if address is None or any(value is None for value in address):
         return 0
-    return refresh_blocks(conn, chain_blocks(tuple(int(value) for value in address)))
+    sector_mass.refresh_sectors(conn, [address])    # DB.108: the sector's mass first, the blocks add it up
+    written = refresh_blocks(conn, chain_blocks(tuple(int(value) for value in address)))
+    region_stats.refresh_chain(conn, tuple(int(value) for value in address))    # DB.107: the region follows its sectors
+    return written
 
 
 def refresh_sectors(conn, addresses, on_progress=None):
     """Recomputes the blocks above each sector in `addresses`, every block once. A set touching more than
     `FULL_REBUILD_ABOVE` blocks, or a table with no rows, is a `rebuild`. Returns the rows written."""
     blocks = {block for address in addresses for block in chain_blocks(tuple(address))}
+    if len(blocks) <= FULL_REBUILD_ABOVE:
+        sector_mass.refresh_sectors(conn, addresses)    # DB.108: a rebuild makes every sector's mass itself
     has_rows = conn.execute("SELECT 1 FROM galaxy_block_stats LIMIT 1").fetchone() is not None
     if len(blocks) > FULL_REBUILD_ABOVE or (blocks and not has_rows):
         return rebuild(conn, on_progress)
@@ -90,15 +98,16 @@ def refresh_sectors(conn, addresses, on_progress=None):
         written += refresh_blocks(conn, [block])
         if on_progress is not None:
             on_progress(done, len(blocks))
+    region_stats.refresh_sectors(conn, [tuple(address) for address in addresses])
     return written
 
 
-def accumulate(cells, address, systems, expected, stars, mean_age, luminosity, habitable=0):
+def accumulate(cells, address, systems, expected, stars, mean_age, luminosity, habitable=0, mass=0.0):
     """Adds one generated sector's figures to the sums of each block above it in `cells`
-    (`{DrillBlock: [sectors, systems, expected, stars, age sum, luminosity, habitable worlds]}`), the way
+    (`{DrillBlock: [sectors, systems, expected, stars, age sum, luminosity, habitable worlds, mass in kg]}`), the way
     `query._add_stage_sums` does."""
     for block in chain_blocks(address):
-        sums = cells.setdefault(block, [0, 0.0, 0.0, 0.0, 0.0, 0.0, 0])
+        sums = cells.setdefault(block, [0, 0.0, 0.0, 0.0, 0.0, 0.0, 0, 0.0])
         sums[0] += 1
         sums[1] += systems or 0
         sums[2] += expected or 0.0
@@ -106,6 +115,7 @@ def accumulate(cells, address, systems, expected, stars, mean_age, luminosity, h
         sums[4] += (mean_age or 0.0) * (stars or 0)
         sums[5] += luminosity or 0.0
         sums[6] += habitable or 0
+        sums[7] += mass or 0.0
 
 
 def cell_rows(cells):
@@ -113,29 +123,35 @@ def cell_rows(cells):
     return [_row(block, sums) for block, sums in sorted(cells.items(), key=lambda item: tuple(item[0]))]
 
 
-def rebuild(conn, on_progress=None):
+def rebuild(conn, on_progress=None, on_skipped=None):
     """
     Computes every row from `sectors` and `sector_stats` in one pass, a shell at a time, and replaces the table's
-    rows with them in one transaction (readers see the old rows until the commit). Returns the rows written.
+    rows with them in one transaction (readers see the old rows until the commit). The sectors' masses are made again first
+    (`sector_mass.fill_all`); `on_skipped(addresses)` is called with the sectors that hold a body with no stored mass, which
+    are left out of the sums (DB.108). Returns the rows written.
     """
+    skipped = sector_mass.fill_all(conn)
+    if skipped and on_skipped is not None:
+        on_skipped(skipped)
     shells = [row["shell_index"] for row in conn.execute(
         "SELECT DISTINCT shell_index FROM sectors WHERE shell_index IS NOT NULL ORDER BY shell_index").fetchall()]
     cells = {}
     for done, shell in enumerate(shells, start=1):
         rows = conn.execute(
             "SELECT s.shell_index, s.band_index, s.wedge_index, st.actual_systems, st.expected_systems,"
-            " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds FROM (SELECT * FROM sectors WHERE"
+            " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds, st.total_mass_kg FROM (SELECT * FROM sectors WHERE"
             " shell_index = ?) s LEFT JOIN sector_stats st ON st.shell_index = s.shell_index"
             " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index", (shell,)).fetchall()
         for r in rows:
             accumulate(cells, (r["shell_index"], r["band_index"], r["wedge_index"]), r["actual_systems"],
                        r["expected_systems"], r["actual_stars"], r["mean_age_gy"], r["total_luminosity_sol"],
-                       r["habitable_worlds"])
+                       r["habitable_worlds"], r["total_mass_kg"])
         if on_progress is not None:
             on_progress(done, len(shells))
     clear(conn)
     rows = cell_rows(cells)
     for start in range(0, len(rows), 1000):
         conn.executemany(INSERT, rows[start:start + 1000])
+    region_stats.rebuild(conn)    # DB.107: the regions are the 9-blocks just stored
     return len(rows)
 

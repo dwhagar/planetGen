@@ -496,6 +496,13 @@ tritanomaly at 7.5 [C]. Hue alone cannot carry the class; add a cue that survive
   (MAP.101). Star picks offer Bookmark and Waypoint (Boss); waypoints are the
   ones [course-routing.md](../orbits/course-routing.md) section 4a describes.
 
+**As built (MAP.122, 2026-10-29).** The Galaxy | Stars control and `select=stars` were dropped: stars are
+pickable in the one mode (MAP.304). What shipped is the reach (10 px mouse, 22 px touch, by the last pointer's
+type), the short list of the nearest stars within reach under the panel of a crowded pick, and a ☆ on the star's
+panel that saves its system (a star in unmade space has none). A charted star's system id rides in the packed
+node's JSON as `systems`, beside `names`, because the columns carry only the charted flag. The Waypoint button is
+NAV.49's.
+
 ### 5.2 Picking 70,000 to 1,000,000 points
 
 Node 22, one thread, Xeon 2.8 GHz; a browser is of the same order. The

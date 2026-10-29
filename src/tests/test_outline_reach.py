@@ -108,6 +108,7 @@ def test_a_random_start_lands_in_a_sector_that_expects_a_system(monkeypatch):
         resolve=lambda args, address, position: types.SimpleNamespace(
             density=galaxyDensity.relative_density(position, shape), num_systems=None))
     monkeypatch.setattr(run_galaxy.store, "get_sector_id_at", lambda conn, *address: None)
+    monkeypatch.setattr(run_galaxy.region_stats, "region_row", lambda conn, cell: None)
     args = types.SimpleNamespace(neighborhoods=1, neighborhood_gamma=0.0, max_shell=None, avoid_filled_space=False,
                                  min_start_density=None, density=None, num_systems=None)
     for _ in range(1000):
@@ -125,4 +126,5 @@ def test_a_start_with_a_density_given_is_not_held_to_the_threshold(monkeypatch):
         skeleton=types.SimpleNamespace(expected_system_count_at_density_1=built.e_value),
         resolve=lambda given, address, position: given)
     monkeypatch.setattr(run_galaxy.store, "get_sector_id_at", lambda conn, *address: None)
+    monkeypatch.setattr(run_galaxy.region_stats, "region_row", lambda conn, cell: None)
     assert run_galaxy._pick_random_start(args, built.edge_pc, batch, None, 10.0, [])[2] is args

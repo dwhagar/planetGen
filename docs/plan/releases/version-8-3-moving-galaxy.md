@@ -23,7 +23,7 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | TEST.201 | `block_stats` totals do not depend on the order of the rows: a test |  | GEN.372 audit. |
 | TEST.200 | The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` |  | GEN.372 audit; Boss card. |
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` |  | GEN.372 audit. |
-| MAP.307 | Stations and facilities become points of interest: interest reasons for the map mark and its menu filter | MAP.305, MAP.306 |  |
+| MAP.307 | Stations and facilities become points of interest: interest reasons for the map mark and its menu filter |  |  |
 
 ### Nightly maintenance
 
@@ -129,4 +129,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.799 | Resource scan: compute the grade, mass and score of every resource for belts, fields, giants and icy bodies from their stored composition, as its own command and galaxy stage | DB.106, GEN.798 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
-| MAP.312 | Resource locations become points of interest: interest reasons for valuable asteroid belts and fields, icy bodies and giants, each with its own row in the map menu filter | GEN.799, MAP.305, MAP.306 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
+| MAP.312 | Resource locations become points of interest: interest reasons for valuable asteroid belts and fields, icy bodies and giants, each with its own row in the map menu filter | GEN.799 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |

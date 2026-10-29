@@ -576,6 +576,22 @@ def machine_facts(admin, workers):
             "buffer_pool_bytes": benchmark._buffer_pool_bytes(admin)}
 
 
+def _drop_scratch(admin, args, runs, scratch, control, suffix):
+    """Drops the scratch databases once every repeat ran and none of its steps failed or stopped, unless `--keep` asks
+    to leave them (PERF.175); otherwise says how to carry on (`--resume`) or what to drop."""
+    if not finished(runs, args.repeats):
+        print(f"A step did not finish: the scratch databases are kept; carry on with --resume {suffix} "
+              f"(drop planetgen_suite_{suffix}_r0 and {control} when done).", flush=True)
+    elif args.keep:
+        print(f"--keep: the scratch databases are kept (drop planetgen_suite_{suffix}_r0 and {control} when done).",
+              flush=True)
+    else:
+        with admin.cursor() as cur:
+            for database in scratch:
+                cur.execute(f"DROP DATABASE IF EXISTS `{database}`")
+            cur.execute(f"DROP DATABASE IF EXISTS `{control}`")
+
+
 def run_suite(args):
     """`planetgen benchmark --suite`: runs, prints and (with `--output`) saves the report."""
     if args.repeats < 1:
@@ -621,14 +637,7 @@ def run_suite(args):
             if startup is None:
                 startup = benchmark._startup_seconds(config, database, pipeline.env)
     finally:
-        if not finished(runs, args.repeats):
-            print(f"A step did not finish: the scratch databases are kept; carry on with --resume {suffix} "
-                  f"(drop planetgen_suite_{suffix}_r0 and {control} when done).", flush=True)
-        else:
-            with admin.cursor() as cur:
-                for database in scratch:
-                    cur.execute(f"DROP DATABASE IF EXISTS `{database}`")
-                cur.execute(f"DROP DATABASE IF EXISTS `{control}`")
+        _drop_scratch(admin, args, runs, scratch, control, suffix)
         admin.close()
     result = {
         "suite_version": SUITE_VERSION, "size": args.size, "mass_solar": args.mass or SIZES[args.size]["mass_solar"],

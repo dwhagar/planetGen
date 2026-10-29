@@ -63,8 +63,8 @@ takes more), the Henry law's 273.15 to 323.15 K with the nearest end standing in
 ## Where the degassed sulfur goes (GEN.815)
 
 The supply law brings sulfur to the surface; the sulfur sink decides how much of it the air keeps (`physics/sulfur_balance.py`). It
-replaces the stand-in `SULFUR_SURFACE_KEPT` (1e-5 to 1e-2 of the sulfur stays in the air with an ocean), under which a wet world could
-hold hundreds of bar of S2. Two solid sinks take sulfur out of the gas: sulfate (SO2 and SO3 with calcium as CaSO4) and sulfide (H2S, S2
+replaced the stand-in `SULFUR_SURFACE_KEPT` (1e-5 to 1e-2 of the sulfur stayed in the air with an ocean; removed when `surface_air` called this
+module), under which a wet world could hold hundreds of bar of S2. Two solid sinks take sulfur out of the gas: sulfate (SO2 and SO3 with calcium as CaSO4) and sulfide (H2S, S2
 and COS with iron as FeS and FeS2). Which one a mole goes to is the redox of the gas it arrived in: `oxidised_share_of` reads the share of
 the sulfur that is bonded to oxygen from the equilibrium gas of the outgassing stage.
 
@@ -122,6 +122,38 @@ network, and sulfate competes for the same calcium (`sulfur_balance`); the surfa
 pressure threshold, not a solidus calculation; the seafloor law is one pore-space rate law and not the inverse model of Krissansen-Totton and
 Catling (no Michaelis-Menten variant, no pelagic fraction); the class O inventory brackets (GEN.481) reach a CO2 to H2O mass ratio of 0.2,
 above the 1e-1 top of Kite and Ford's carbon. Eleven stand-ins, registry rows AM52 to AM62.
+
+### The sinks in the air solve (GEN.830, GEN.823, GEN.837)
+
+`surface_air._shares` takes the carbon that the surface holds at each step's temperature from the sink that `sink_kind` picks for the body
+(`water_world_of`: sealed when the ocean's column `g m / area` reaches the drawn seal pressure): the continental balance as before for a
+body with land, `seafloor_pco2_bar` for an unsealed ocean world, and `ocean_pco2` for a sealed one, whose supply is also the carbon
+degassed by `SEAL_TIME_GY` (`interior_heat.released_by`) and not by the age of the star. Before this, an ocean world had no sink for the
+carbon at all, and a class O planet in zone e came out of the solve at 9e9 Pa.
+
+*The hydrogen cap (GEN.837).* The delivered water of recipes b2 and b3 is 0.1 to 0.2 percent of a planet's mass, and the body's own water
+(`bulk_water_fraction`, 0.01 to 0.03 percent for a class M) is 3 to 50 times less: the draw gave a dry planet an ocean's worth of steam
+(55 to 870 bar at 620 to 843 K). The supply of hydrogen is now limited to `tuning.MANTLE_OUTGAS_SHARE` (0.3, the DESIGN stand-in of GEN.639,
+the share of a mantle's water that volcanism brings up) of the water the mantle holds (`Setting.mantle_water_kg`: the bulk water less the
+surface's); the hydrogen of CH4, NH3 and H2S is limited with it, since they are made of the same atoms. The recipe rows themselves (b2, b3) are
+Aux 17's re-fit against the bodies' bulk water.
+
+Measured on 12 planets of each class at zone e (G2V host, the same seeds before and after):
+
+| class | hot (above 500 K) before | after | median temperature before | after |
+|---|---|---|---|---|
+| M | 3 | 1 | 286 K | 271 K |
+| N | 2 | 0 | 237 K | 224 K |
+| O | 11 | 3 | 1557 K | 283 K |
+| P | 3 | 0 | 267 K | 234 K |
+
+What is left: four hot worlds of 48 (three class O at 4,300 to 33,000 bar, one class M at 578 bar). They are sealed or carbon-rich worlds whose greenhouse
+takes the surface past the critical point of water (647 K, as Venus, whose 92 bar of carbon dioxide holds 735 K on 157 W/m2): the ocean can
+no longer stand as a liquid, and the sinks that need one switch off. All the surface water is then the air, a steam envelope that is the inventory of the planet and
+not a runaway of the solve: the weight of the air, `g m / area`, is the mass of the air, and `test_planets` bounds it by the planet's own water plus
+the volatile share of a CI chondrite (9 percent of the mass) and not by a flat pressure. The greenhouse module's water feedback is too strong
+(GEN.812, Aux 4) and a sealed world's CO2 to H2O bracket is above Kite and Ford's (GEN.824); when either moves, these four move toward cool
+ocean worlds. The class of such a world is a matter of GEN.646 (class from conditions), which sees a steam envelope.
 
 ## Rocky outgassing
 
@@ -190,8 +222,8 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
   window is no longer normalised to 1 (frost was drawn at 181 K); `c_j1` and `c_j5` now mean what their brackets say (the share of
   eligible worlds that are Venus-like and that keep abiotic oxygen). (3) A body with an ocean and a long-lived geology kept only a
   share of the outgassed carbon and sulfur (`INVENTORY["weathering_sink"]`, 1e-5 to 1e-2): GEN.411 removed that bracket, and the sinks are
-  now the carbonate-silicate balance (GEN.726, `surface_pressure`) and the ocean's uptake of sulfur (`mixture_sinks`, GEN.757, and
-  `surface_air.SULFUR_SURFACE_KEPT`), which `surface_air` passes to the draw as `supply`, a callable from the inventory to the share of each
+  now the carbonate-silicate balance (GEN.726, `surface_pressure`), the sulfate and sulfide sinks of the crust (`sulfur_balance`, GEN.815, wired
+  in `surface_air._shares`) and the ocean's uptake of sulfur (`mixture_sinks`, GEN.757), which `surface_air` passes to the draw as `supply`, a callable from the inventory to the share of each
   element degassed (see `surface-pressure-supply-law.md` section 6).
 - Gaps that stay, each with its reason (GEN.674 items 3, 5 and 6; the filed finding numbers are in the item): rows `j3` and `j4` are
   gated on the retention rows `d4` and `d5`, and the shoreline (a fit to hot rocky exoplanets, extrapolated to an escape speed of 1.2

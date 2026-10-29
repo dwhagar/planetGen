@@ -133,9 +133,10 @@ def test_scene_stars_carry_a_point_of_light_sized_by_luminosity():
         assert star["light"]["corePx"] <= 5
         assert star["light"]["sizePx"] <= 40
         assert star["light"]["sizePx"] >= 2 * star["light"]["corePx"] + 2
-    # (A Sun's halo is a little wider since MAP.87 drew the faint end
-    # brighter.)
-    assert big["light"]["sizePx"] > 1.6 * small["light"]["sizePx"]
+    # MAP.241: a bright star is not bigger, it glows harder (the faint end's halo is a little wider since MAP.87 drew it
+    # brighter, so the two sizes are within a narrow band).
+    assert abs(big["light"]["sizePx"] - small["light"]["sizePx"]) < 3
+    assert big["light"]["glow"] > 1.5 * small["light"]["glow"]
     assert big["light"]["corePx"] > small["light"]["corePx"]
     # The halo's light (strength over its area).
     assert big["light"]["glow"] * big["light"]["sizePx"] ** 2 > 2 * small["light"]["glow"] * small["light"]["sizePx"] ** 2
@@ -464,8 +465,8 @@ def _unboosted(luminosity_solar, radius_solar=1.0):
     share = starmap._log_share(luminosity_solar, starmap._LIGHT_LOG_LUMINOSITY)
     core = starmap._lerp(starmap._LIGHT_CORE_PX, starmap._log_share(radius_solar, starmap._LIGHT_LOG_RADIUS))
     return {
-        "sizePx": round(max(starmap._lerp(starmap._LIGHT_SIZE_PX, share * share), 2 * core + 2), 2),
-        "glow": round(starmap._lerp(starmap._LIGHT_GLOW, share), 3),
+        "sizePx": round(max(starmap._lerp(starmap._LIGHT_SIZE_PX, share), 2 * core + 2), 2),
+        "glow": round(starmap._lerp(starmap._LIGHT_GLOW, share ** starmap._LIGHT_GLOW_POWER), 3),
         "bright": round(starmap._lerp(starmap._LIGHT_BRIGHT, share), 3),
     }
 
@@ -498,13 +499,15 @@ def test_a_brighter_star_is_never_drawn_fainter():
 
     def galaxy_light(lum):
         share = starmap._log_share(lum, (-4.0, 6.0))
-        size, glow = starmap._boost_light(6 + 24 * share * share, 0.2 + 0.4 * share, starmap.star_light_boost(lum))
+        size, glow = starmap._boost_light(starmap._lerp(starmap._LIGHT_SIZE_PX, share), starmap._lerp(starmap._LIGHT_GLOW, share ** starmap._LIGHT_GLOW_POWER),
+                                          starmap.star_light_boost(lum))
         return glow * size * size
 
     luminosities = [10 ** (e / 50) for e in range(-250, 301)]
     sector = [_light_for(lum, radius_solar=0.1) for lum in luminosities]
     sector_light = [light["glow"] * light["sizePx"] ** 2 for light in sector]
-    assert all(b >= a * 0.995 for a, b in zip(sector_light, sector_light[1:]))
+    # (The scene's numbers are rounded to 0.01 px and 0.001, which can read as a drop of half a percent at the faint end.)
+    assert all(b >= a * 0.99 for a, b in zip(sector_light, sector_light[1:]))
     galaxy = [galaxy_light(lum) for lum in luminosities]
     assert all(b >= a for a, b in zip(galaxy, galaxy[1:]))
 
@@ -676,7 +679,7 @@ def test_a_heavier_phenomenon_is_brighter_and_a_scene_cap_stops_it_out_shining_i
     from planetgen.web.maps.starmap import _PHENOMENON_LIGHTS, _mass_light
     base = _PHENOMENON_LIGHTS["neutronStar"]
     light = lambda mass, cap=None: _mass_light(base, "neutron_star", mass, cap)
-    assert light(1.4)["sizePx"] < light(10.0)["sizePx"] < light(1.0e6)["sizePx"]
+    assert light(1.4)["glow"] < light(10.0)["glow"] < light(1.0e6)["glow"]
     capped = light(1.0e6, 2.0)
     assert _size_keys(capped) == _size_keys(_star_light_of_mass(2.0 ** (1 / 4.0)))
 

@@ -114,7 +114,7 @@ def test_planet_physical_properties_stay_sane_for_every_host_star_type(star_type
         assert value > 0, f"{star_type}/{cls}-{zone}: {attr}={value} should be positive"
 
     class_data = prog_c.PLANET_CLASSES[cls]
-    if class_data["atmosphere"] is None or planet.atmospheric_pressure == 0.0:
+    if not class_data["air"] or planet.atmospheric_pressure == 0.0:
         # an airless class, or a body whose host stripped its air (GEN.411: the class no longer sets the
         # pressure, the air is solved from what the body outgassed, kept and lost)
         assert planet.atmosphere == "None"

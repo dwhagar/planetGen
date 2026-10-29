@@ -94,6 +94,8 @@ from planetgen.db.query import (
     system_detail as query_system_detail,
 )
 from planetgen.db import near as near_search
+from planetgen.db import region_stats
+from planetgen.names import naming_key
 from planetgen.db import cloudcontents, containers as containersDb, nodes, objectlist
 from planetgen.db import stats as dbStats
 from planetgen.db import scatter_systems, store
@@ -1189,6 +1191,20 @@ def galaxy_nebula_cover_route():
         raise ApiError(str(exc))
 
 
+@bp.route("/galaxy/charted-regions")
+def galaxy_charted_regions_route():
+    """
+    `{"regions": [...], "edge_pc"}` -- every charted region (a 9-block holding a generated sector, `region_stats`), by share
+    charted, each with its node key, the centre and radius of its extent in parsecs, its sector count and capacity, its
+    `share` (0 to 1) and, with a naming key in force, its `name` and `parent`, and its `population` once head counts are stored
+    (absent before, MAP.318) -- see `db.region_stats.charted_regions`.
+    Read by the Galaxy Map (MAP.316) for the regions it draws at galactic scale and its charted-regions list.
+    """
+    conn = get_db()
+    edge_pc = galaxy_edge_pc(conn)
+    return jsonify({"regions": region_stats.charted_regions(conn, naming_key.active_key(), edge_pc), "edge_pc": edge_pc})
+
+
 @bp.route("/galaxy/stamp")
 def galaxy_stamp_route():
     """
@@ -1653,6 +1669,14 @@ def search():
     `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/
     `moon_`) for a size range, in km -- either bound may be omitted.
 
+    UX.214: the score filters, each repeatable and named for a planet (`habitability`, `domain`, `life_level`, `living`)
+    or with `moon_` in front for a moon -- `habitability=blue|green|yellow|red` (the PHI-6 colour), `domain=<domain>:<colour>`
+    (`suitability:green`, `water:red`; the domains are pressure, temperature, air, water, radiation and suitability),
+    `life_level=<microbial|flora|fauna|sentient>:<1|5>` (that life score 1 or more, or 5 or more, of 9) and
+    `living=alive|lifeless|food|civilization`. `planet_sort`/`moon_sort` order that panel by `phi4`, `suitability`, a domain
+    name, `microbial`, `flora`, `fauna` or `sentient`: worst first, or `-` in front for best first (an unscored body
+    comes last either way).
+
     Each result panel is paged independently: `limit` is the rows per
     panel (default `SEARCH_RESULT_LIMIT`, clamped to `MAX_PAGE_LIMIT`,
     validated like every other `limit`), and `sectors_offset`/
@@ -1688,7 +1712,8 @@ def search():
     only = None
     if args.get("panels"):
         only = {panel for panel in args["panels"].split(",") if panel in SEARCH_RESULT_PANELS}  # "none": no panel
-    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only))
+    sorts = {entity: args.get(f"{entity}_sort") for entity in ("planet", "moon") if args.get(f"{entity}_sort")}
+    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only, sorts=sorts))
 
 
 # ---------------------------------------------------------------------
@@ -1778,7 +1803,7 @@ def update_sector(sector_id):
             # real, unchanged sector as "not found".
             if conn.execute("SELECT id FROM sectors WHERE id = ?", (sector_id,)).fetchone() is None:
                 raise ApiError(f"no such sector: {sector_id}", status_code=404)
-            conn.execute(f"UPDATE sectors SET {', '.join(set_clauses)} WHERE id = ?", tuple(params))
+            conn.execute(f"UPDATE sectors SET {', '.join(set_clauses)}, parity_dirty = 1 WHERE id = ?", tuple(params))
     finally:
         conn.close()
 
@@ -2328,6 +2353,7 @@ def delete_system(system_id):
             deleted = conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,)).rowcount > 0
             if deleted:
                 store.touch_sector(conn, row["sector_id"])
+                store.refresh_edited_sectors(conn, [row["sector_id"]])    # DB.83: the sector's figures and the blocks above
     finally:
         conn.close()
 

@@ -199,6 +199,7 @@ def galaxy():
     map_html = render_galaxy_map3d_panel(
         db, galaxy_shape, edge_pc, initial_view,
         fetch_path=url_for("web.galaxy_nodes"),
+        regions_path=url_for("web.galaxy_regions"),
         stage_path=url_for("web.galaxy_stage"),
         window_path=url_for("web.galaxy_window"),
         locate_path=url_for("web.galaxy_locate"),
@@ -323,6 +324,25 @@ def galaxy_nodes():
     app = current_app._get_current_object()
     response.call_on_close(lambda: _prefetch_around(app, db_name_asked, node_keys))
     return response
+
+
+@bp.route("/galaxy/regions")
+@page_limit("galaxy_tiles")
+def galaxy_regions():
+    """
+    The charted regions for the map's script (MAP.316): `{"regions": [...], "edge_pc"}` from the API's `charted-regions`
+    (every region with its node key, extent, share charted and name, by share charted). Read on every request, never
+    cached here: it is the list the map's regions and the Menu's list are made from and changes with the sectors. An API
+    failure is a 502 as `{"error": ...}` JSON.
+    """
+    try:
+        return jsonify(apiclient.get_galaxy_charted_regions(db_name()))
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching the charted regions: {exc}")
+        return _json_error("The charted regions could not be loaded. Please try again shortly.", 502)
+
+
+galaxy_regions.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 def _prefetch_around(app, db, node_keys):

@@ -25,7 +25,7 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.physics import constants, gases, habitability_world, regional_temperature, unit_registry
 from planetgen.population import facility_ratings
-from planetgen.util.format import format_number
+from planetgen.util.format import format_number, scientific_text
 
 TABLES = {"star": "stars", "planet": "planets", "moon": "moons", "belt": "asteroid_belts", "comet": "comets",
           "nebula": "nebulae", "asteroid_field": "asteroid_fields", "black_hole": "black_holes",
@@ -94,7 +94,7 @@ NOT_STORED = "not stored"
 
 REGISTRY_QUANTITIES = {
     "length": "length", "mass": "mass", "duration": "time", "temperature": "temperature", "pressure": "pressure",
-    "speed": "speed", "power": "power", "acceleration": "gravity", "flux": "flux", "ratio": "ratio",
+    "speed": "speed", "delta_temperature": "temperature difference", "fraction": "fraction", "power": "power", "acceleration": "gravity", "flux": "flux", "ratio": "ratio",
 }
 """dict: A unit registry kind, to the Document quantity kind that shows it with its ladder. Any other kind is written
 as a number and the unit's symbol."""
@@ -166,7 +166,7 @@ _STAR = (
 _BODY_GROUPS = (
     *_rows("identity", ("planet_class", "Class", TEXT), ("zone", "Zone", TEXT)),
     *_rows("orbit", ("distance_km", "Distance from its star"), ("period_years", "Orbital period"),
-           ("orbital_speed_kms", "Orbital speed"), ("orbital_inclination_deg", "Inclination"),
+           ("orbital_speed_kms", "Orbital speed"), ("eccentricity", "Eccentricity"), ("orbital_inclination_deg", "Inclination"),
            ("orbital_ascending_node_deg", "Longitude of the ascending node"), ("hill_radius_km", "Hill radius"),
            ("min_orbit_distance_km", "Closest stable orbit for a moon"), ("dynamical_state", "Dynamical state", TEXT),
            ("habitable_zone_inner_km", "Habitable zone, inner edge"),
@@ -174,7 +174,11 @@ _BODY_GROUPS = (
     *_rows("physical", ("radius_km", "Radius", "radius"), ("mass_kg", "Mass"), ("volume_km3", "Volume"),
            ("density_g_cm3", "Density"), ("gravity_g", "Surface gravity")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt"),
-           ("outside_hours", "Hours of daylight a person can be outside")),
+           ("outside_hours", "Hours of daylight a person can be outside"), ("solar_day_hours", "Length of the solar day"),
+           ("daylight_hours", "Hours of daylight at the equator"), ("day_share_equator", "Share of the time the star is up, equator"),
+           ("day_share_mean", "Share of the time the star is up, whole surface"),
+           ("parent_shadow_share", "Share of the time in the planet's shadow"),
+           ("polar_circle_deg", "Latitude of the polar circle")),
     *_rows("composition", ("mantle_redox", "Mantle oxidation", TEXT), ("mantle_delta_iw", "Mantle oxidation, log below iron-wüstite"),
            ("phosphorus", "Phosphorus supply", TEXT), ("born_beyond_snow_line", "Formed beyond the snow line", FLAG),
            ("metal_mass_fraction", "Metal (iron) mass fraction"), ("rock_mass_fraction", "Rock mass fraction"),
@@ -191,10 +195,10 @@ _BODY_GROUPS = (
     *_rows("climate", ("bond_albedo", "Bond albedo"), ("greenhouse_factor", "Greenhouse factor"),
            ("surface_temperature_k", "Mean surface temperature"), ("temp_polar_k", "Polar temperature"),
            ("temp_north_k", "Northern temperature"), ("temp_equator_k", "Equatorial temperature"),
-           ("temp_south_k", "Southern temperature"), ("temp_swing_k", "Day and night swing"),
+           ("temp_south_k", "Southern temperature"), ("temp_swing_k", "Day and night swing (hottest to coldest, at the equator)"),
            ("temp_day_side_k", "Day side temperature"), ("temp_terminator_k", "Terminator temperature"),
            ("temp_night_side_k", "Night side temperature"), ("energy_flux_w_m2", "Stellar energy received"),
-           ("flux_variation", "Seasonal variation of that energy")),
+           ("flux_variation", "Seasonal variation of that energy, peak to peak")),
     *_rows("water", ("hydrosphere", "Hydrosphere", TEXT), ("water_mass_fraction", "Water share of the mass"),
            ("ocean_fraction", "Surface under ocean"), ("land_fraction", "Surface above sea level"),
            ("ocean_depth_km", "Ocean depth"), ("ice_shell_km", "Ice shell thickness"),
@@ -207,7 +211,7 @@ _BODY_GROUPS = (
            ("induced_moment_a_m2", "Induced magnetic moment"), ("magnetopause_rp", "Magnetopause distance")),
     *_rows("radiation", ("surface_dose_msv_yr", "Surface dose"), ("dose_gcr_msv_yr", "Dose from cosmic rays"),
            ("dose_sep_msv_yr", "Dose from stellar particles"), ("dose_ground_msv_yr", "Dose from the ground"),
-           ("dose_helio_mult", "Heliosphere shielding factor"), ("xuv_flux_earth", "X-ray and ultraviolet flux"),
+           ("dose_helio_mult", "Cosmic-ray boost from a squeezed heliosphere"), ("xuv_flux_earth", "X-ray and ultraviolet flux"),
            ("xuv_exposure_index", "X-ray and ultraviolet exposure index"),
            ("flare_irradiation_index", "Flare irradiation index"), ("uv_surface_index", "Surface ultraviolet index"),
            ("shelter_column_g_cm2", "Shelter column")),
@@ -227,12 +231,12 @@ _BODY_GROUPS = (
            ("l_solv", "Solvent suitability"), ("l_chem", "Chemistry suitability"), ("l_ener", "Energy suitability"),
            ("l_rad", "Radiation tolerance")),
     *_rows("radiogenic", ("c_k0_ppm", "Potassium at formation"), ("c_th0_ppm", "Thorium at formation"),
-           ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminium-26 ratio"), ("urey_ratio", "Urey ratio"),
+           ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminium-26 at formation"), ("urey_ratio", "Share of the interior heat that is radiogenic (Urey ratio)"),
            ("internal_heat_flux_w_m2", "Heat flowing out of the interior"), ("mantle_eta0_pa_s", "Mantle viscosity prefactor"),
-           ("mantle_activation_kj_mol", "Mantle viscosity activation energy")),
+           ("mantle_activation_kj_mol", "Mantle viscosity activation energy"), ("lid_regime", "Tectonic regime", TEXT)),
     *_rows("composition", ("interior_kind", "Kind of interior", TEXT), ("core_mass_earth", "Compact core mass"),
            ("dilute_core_mass_earth", "Dilute core mass"), ("metallization_pressure_gpa", "Pressure where hydrogen turns metallic"),
-           ("helium_depletion", "Helium left in the molecular envelope"), ("has_helium_shell", "Helium-rich shell", FLAG)),
+           ("helium_depletion", "Helium left in the molecular envelope, against its natal share"), ("has_helium_shell", "Helium-rich shell", FLAG)),
     *_rows("composition", ("ring_kind", "Kind of ring system", TEXT), ("ring_origin", "Where the ring came from", TEXT),
            ("ring_inner_km", "Ring inner edge"), ("ring_outer_km", "Ring outer edge"), ("ring_mass_kg", "Ring mass"),
            ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share")),
@@ -332,6 +336,9 @@ _ROGUE_PLANET = (
            ("l_solv", "Solvent suitability"), ("l_chem", "Chemistry suitability"), ("l_ener", "Energy suitability"),
            ("l_rad", "Radiation tolerance")),
     *_rows("radiation", ("shelter_column_g_cm2", "Shelter column")),
+    *_rows("composition", ("ring_kind", "Kind of ring system", TEXT), ("ring_origin", "Where the ring came from", TEXT),
+           ("ring_inner_km", "Ring inner edge"), ("ring_outer_km", "Ring outer edge"), ("ring_mass_kg", "Ring mass"),
+           ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
@@ -444,7 +451,14 @@ _BODY_NOT_SHOWN = {
     "flavor_text_count": "how many flavour lines exist; bookkeeping",
     "flavor_key": "which flavour line the text uses; bookkeeping",
     "aerosol_draw": "the random draw behind the haze and dust depths; bookkeeping",
+    "atmosphere_colour": "shown as the Atmosphere Colour swatch by the description builder, a colour rather than a number",
     "albedo_basis": "how the albedo and greenhouse draws were obtained (recorded, inverted or class draw); bookkeeping",
+    **_excuse(("ground_type", "ground_grain", "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction",
+               "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction",
+               "ground_oxidised_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
+               "ground_sulfur_fraction"),
+              "the stored mix of ground types (GEN.441); it feeds the ground dose and the surface rendering, and the page does "
+              "not list it as a row yet"),
     **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
@@ -545,21 +559,63 @@ def specs_for(kind):
 
 _SYMBOLS = {
     "A*m2": " A·m²", "R_planet": " planet radii", "xuv-earth": "× Earth's", "1/yr": " a year", "1/Gy": " per billion years",
-    "mSv/yr": " mSv/yr", "g/cm2": " g/cm²", "kg/mol": " kg/mol", "DU": " DU", "ppm": " ppm", "dex": " dex", "rad": " rad",
+    "mSv/yr": " mSv/yr", "kg/mol": " kg/mol", "DU": " DU", "ppm": " ppm", "dex": " dex", "rad": " rad",
 }
 """dict: How a unit the ladders do not cover is written after its number (with its own space, or none)."""
 
 
+BARE_UNITS = ("ratio", "unit-vector", "index", "count", "id", "key", "seed", "row-defined", "flag")
+"""tuple: Column units that say nothing about what a number is: a sheet row declared in one of them is a bug (GEN.771),
+so `_plain_number` refuses it."""
+
+
 def _plain_number(value, unit):
-    """A number the ladders do not cover, as text with its unit's symbol."""
-    if unit in ("ratio", "unit-vector", "index", "count", "id", "key", "seed", "row-defined", "flag"):
-        return format_number(value, ".4g")
+    """A number the ladders do not cover, as text with its unit's symbol, or the scale or noun a plain number's unit
+    declares in `column_units.LOCAL_UNITS` (`prefix`, `suffix`; GEN.770)."""
+    local = column_units.LOCAL_UNITS.get(unit)
+    if local is not None and (local.prefix or local.suffix):
+        number = scientific_text(value) if value and abs(value) < 1e-3 else format_number(value, ".4g")
+        return f"{local.prefix}{number}{local.suffix}"
+    if unit in BARE_UNITS:
+        raise ValueError(f"a column of unit {unit!r} would print a bare number; declare it in a unit that says what it is "
+                         f"(a share, a score of n, a scale or a noun) in db/column_units.py")
     if unit in _SYMBOLS:
         symbol = _SYMBOLS[unit]
     else:
         symbol = unit_registry.UNITS[unit].symbol if unit in unit_registry.UNITS else unit
         symbol = symbol if symbol == "°" else f" {symbol}"
     return f"{format_number(value, '.4g')}{symbol}"
+
+
+NO_RANGE = "no day and night range stored for this place"
+"""str: What a temperature row says when the body holds no swing for that place (GEN.796)."""
+
+
+def _plus_minus(swing):
+    """The swing as a clear range: the half of it either side, and the whole of it from the coldest hour to the hottest
+    (GEN.795). A difference in kelvin, so it is written as one and never converted as a temperature."""
+    return ["\u00b1", model.qty("temperature difference", swing / 2.0, "dK", companions=False), ", ",
+            model.qty("temperature difference", swing, "dK", companions=False),
+            " in all from the coldest hour to the hottest"]
+
+
+def _range_value(spec, table, stored, row):
+    """`_value`, with the day and night range of a temperature row (GEN.795, GEN.796): the swing as plus or minus, and
+    for a place the swing belongs to the coldest and the hottest temperature with the stored one exactly between them;
+    for the other places, that no range is stored. `row` holds the stored columns of the body."""
+    value = _value(spec, table, stored)
+    if stored is None or table not in ("planets", "moons"):
+        return value
+    column = spec.stored_column()
+    if column == "temp_swing_k":
+        return _plus_minus(stored)
+    if column not in regional_temperature.TEMPERATURE_FIELDS:
+        return value
+    span = regional_temperature.daily_range(stored, row["temp_swing_k"]) if column in regional_temperature.RANGE_FIELDS else None
+    if span is None:
+        return value + [f" ({NO_RANGE})"]
+    return value + [", from ", model.qty("temperature", span[0], "K", companions=False), " to ",
+                    model.qty("temperature", span[1], "K", companions=False), " over a day"]
 
 
 def _solar_ratio(kind, si):
@@ -732,6 +788,30 @@ def _gas_rows(conn, kind, object_id):
              row["partial_pa"]) for row in held]
 
 
+ZONE_NAMES = {"h": "Hot Zone", "e": "Ecosphere / Habitable Zone", "c": "Cold Zone"}
+"""dict: What a body's stored zone letter (`h`, `e`, `c`) is called on a page (UX.217)."""
+
+
+def _zone_value(letter, by_key, specs, table):
+    """The zone row of a planet or moon as an inline list (UX.217): the zone's name and the range of orbit distances it
+    covers, from the star's habitable zone edges the body row stores: the Hot Zone lies inside the inner edge, the
+    Ecosphere / Habitable Zone between the two, the Cold Zone beyond the outer edge."""
+    name = ZONE_NAMES.get(str(letter).lower())
+    if name is None:
+        return None
+    edge = {spec.key: spec for spec in specs}
+    inner, outer = by_key.get("habitable_zone_inner_km"), by_key.get("habitable_zone_outer_km")
+    if inner is None or outer is None:
+        return [name]
+    near, far = (_value(edge["habitable_zone_inner_km"], table, inner)[0], _value(edge["habitable_zone_outer_km"], table, outer)[0])
+    letter = str(letter).lower()
+    if letter == "h":
+        return [f"{name}, closer than ", near]
+    if letter == "c":
+        return [f"{name}, farther than ", far]
+    return [f"{name}, ", near, " to ", far, " from its star"]
+
+
 def sheet(conn, kind, object_id):
     """
     The property sheet of one body.
@@ -743,7 +823,7 @@ def sheet(conn, kind, object_id):
 
     Returns:
         dict: `kind`, `groups`: the non-empty groups in `GROUPS` order, each `{"key", "label", "rows"}`; a row is
-            `{"key", "label", "value" (the inline list), "text" (it as plain text), "stored" (whether the column held a
+            `{"key", "label", "value" (the inline list), "text" (it as plain text), "raw" (the stored number, `None` for text), "stored" (whether the column held a
             value), "absent" (none or 0), "show_absent" (a page lists it even then)}`.
 
     Raises:
@@ -758,14 +838,17 @@ def sheet(conn, kind, object_id):
     by_group = {key: [] for key in GROUPS}
     for spec in specs:
         stored = row[spec.stored_column()]
-        value = _value(spec, table, stored)
+        value = _range_value(spec, table, stored, row)
         absent = stored is None or stored == 0 or stored == ""
+        if spec.key == "zone" and kind in ("planet", "moon") and stored:
+            value = _zone_value(stored, {s.key: row[s.stored_column()] for s in specs}, specs, table) or value
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value,
-                                     "text": inline_text(value), "stored": stored is not None, "absent": absent,
+                                     "text": inline_text(value), "raw": stored if isinstance(stored, (int, float)) else None,
+                                     "stored": stored is not None, "absent": absent,
                                      "show_absent": spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     for spec, pascals in _gas_rows(conn, kind, object_id) if kind in GAS_TABLES else ():
         value = _value(spec, GAS_TABLES[kind][0], pascals)
-        by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "stored": True,
+        by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "raw": pascals, "stored": True,
                                      "absent": not pascals, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}

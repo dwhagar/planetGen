@@ -25,8 +25,8 @@ Image = pytest.importorskip("PIL.Image")
 
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
-    DENSE_CENTER_PC, DENSE_POINTS, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
-    SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD,
+    DENSE_CENTER_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
+    BARREN_FIELD, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site,
     halo_site,
     map_site,
@@ -37,10 +37,15 @@ PRIME_CODE = provisional_sector_designation(1, 0, 1)
 UNCHARTED_CODE = provisional_sector_designation(*UNCHARTED_CELL)
 """The designation of the fixture's uncharted cell."""
 
-VIEWPORT = {"width": 800, "height": 600}
+VIEWPORT = {"width": 1000, "height": 800}
 """dict: The default window. Reading a software-WebGL canvas back costs time in proportion to its pixels (2.5 s
 at 1280x900, 1.1 s at 800x600, TEST.139), and most of these tests take several screenshots; a test that needs
-a wide or tall window says so with `@pytest.mark.viewport(width, height)`."""
+a wide or tall window says so with `@pytest.mark.viewport(width, height)`. It is 1000 wide and 800 high because the
+page's header takes the top 230 px or more and a map in a 600 px window ran off its bottom (TEST.394)."""
+HIDE_NAMES = "label-system,label-star,label-object"
+"""str: The address's hide list that takes the names off the map. A name takes the click or the hover that lands on it
+(MAP.298: the map picks a name before the star under it), so a test that points at a star or a marker and is not about
+the names is marked `names_hidden` and opens its maps with them hidden (`_open`); `_raw_query` leaves that token out."""
 GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]
 SECTOR_CANVAS = "#galaxymap3d-canvas"
 GALAXY_CANVAS = "#galaxymap3d-canvas"
@@ -72,6 +77,7 @@ def page(gl_browser, request):
     context = gl_browser.new_context(viewport=viewport, device_scale_factor=1, reduced_motion="reduce",
                                      color_scheme="dark")
     page = context.new_page()
+    page.names_hidden = request.node.get_closest_marker("names_hidden") is not None
     errors = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))
     try:
@@ -85,6 +91,8 @@ DOUBLE_CLICK_GAP_MS = 400
 
 
 def _open(page, url, ready):
+    if getattr(page, "names_hidden", False) and "hide=" not in url:
+        url += ("&" if "?" in url else "?") + "hide=" + HIDE_NAMES
     response = page.goto(url, wait_until="load")
     assert response.status == 200, f"{url} answered {response.status}"
     page.wait_for_selector(ready, state="attached")
@@ -191,6 +199,7 @@ def test_sector_map_click_picks_a_star(page, map_site):
     assert _selection_displays(page) == []
 
 
+@pytest.mark.names_hidden
 def test_sector_map_hover_names_what_is_under_the_pointer(page, map_site):
     """MAP.65: the Sector Map shows a tooltip for what is under the pointer
     (it had none before the shared picking layer), and a picked system's
@@ -231,6 +240,7 @@ def test_sector_map_drag_turns_and_picks_nothing(page, map_site):
 
 def test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale(page, map_site):
     _open_sector(page, map_site)
+    _settle(page)    # the opening flight (MAP.333) lands after the page is ready: the scale reads 10 pc before it and 1 pc after
     canvas = page.locator(SECTOR_CANVAS)
     scale = page.locator("#galaxymap3d-scale .starmap-scale-label").inner_text()
     canvas.focus()
@@ -323,6 +333,20 @@ def _open_menu(page):
         page.locator("#galaxymap3d-menu > summary").click()
 
 
+POI_LAYERS = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
+POI_DEFAULT_ON = ("marker-inhabited", "marker-habitable", "marker-gas-giant")
+"""The Menu's point-of-interest layers, and the ones that are on until the visitor says otherwise (MAP.303)."""
+
+
+def _poi_layers(page, *on):
+    """Opens the Menu and sets the point-of-interest layers so that exactly `on` are on."""
+    _open_menu(page)
+    for layer in POI_LAYERS:
+        button = page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]')
+        if (button.get_attribute("aria-pressed") == "true") != (layer in on):
+            button.click()
+
+
 def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, map_site):
     """MAP.79: a toggle per kind of object in the Menu; a hidden kind is gone
     from the map, can't be hovered or picked, and its choice is in the URL."""
@@ -340,6 +364,7 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
     stars.click()
     assert stars.get_attribute("aria-pressed") == "false"
     assert "hide=star" in page.url
+    page.locator("#galaxymap3d-menu > summary").click()   # the open Menu covers the spot of the star
     page.mouse.click(_x, _y)
     assert _info_title(page) != name, "a hidden star can't be picked"
     assert _shot(page, SECTOR_CANVAS) != before, "hiding the stars changes the map"
@@ -435,7 +460,8 @@ def _crumbs(page):
 
 def _raw_query(page):
     """The address's query without the camera it carries once the view is still (MAP.228)."""
-    return "&".join(part for part in urlparse(page.url).query.split("&") if part and not part.startswith("cam="))
+    return "&".join(part for part in urlparse(page.url).query.split("&")
+                    if part and not part.startswith("cam=") and part != "hide=" + HIDE_NAMES)
 
 
 def _stage(page):
@@ -467,6 +493,15 @@ def _open_window(page, base, m, shell, band, wedge, g=9):
     _settle(page)
 
 
+def _open_star_field(page, base):
+    """The window round the fixture's star field, then close in on the field, as far in as its systems stand apart on the screen (marks
+    closer than `MERGE_PX` are drawn as one, MAP.305)."""
+    _open_window(page, base, 27, 27, 0, 0, g=3)
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})",
+                  [list(STAR_FIELD_CENTER_PC), 7])
+    _settle(page)
+
+
 def _settle(page):
     """Waits out a stage's flight: until the scale bar (its width follows
     the camera) holds still, a few seconds at most on a busy machine."""
@@ -486,7 +521,20 @@ def _settle(page):
         page.wait_for_timeout(150)
 
 
-def _open_galaxy(page, base, query=""):
+# Added to every document the page loads from here on (the map reloads itself when it opens a sector from the address).
+NO_WALL_ICONS = """{
+    // A constructed sheet: the page's content security policy refuses a style element of ours.
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(".map-wall-icons { display: none !important; }");
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+}"""
+
+
+def _open_galaxy(page, base, query="", wall_icons=False):
+    """Opens the Galaxy Map; the icons on the walls of an opened sector (MAP.327) are left out unless `wall_icons`, as
+    they sit over the points the tests look for."""
+    if not wall_icons:
+        page.add_init_script(NO_WALL_ICONS)
     _open(page, f"{base}/galaxy{query}", GALAXY_CANVAS)
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     _settle(page)
@@ -614,7 +662,12 @@ def _take(page, found):
 
 
 def _screen_of(page, point):
-    """Where a point of the scene (parsecs) falls on the page now, or None."""
+    """Where a point of the scene (parsecs) falls on the page now, or None. A card open over the map is closed first (MAP.332: a card
+    too tall for the room above the zoom controls now stands beside them, over more of the map, and its More takes the pointer)."""
+    close = page.locator("#galaxymap3d-info .map-info-close")
+    if close.count() and close.is_visible():
+        close.click()
+        page.wait_for_timeout(100)
     spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
     return (spot["x"], spot["y"]) if spot else None
 
@@ -758,10 +811,58 @@ def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
     assert _crumbs(page) == ["Galaxy"] and _query(page) == ""
 
 
+def _as_admin(page, base):
+    """Signs the page in as the fixture's admin: any session cookie does (`FixtureApi.auth_me`)."""
+    from planetgen.api.authz import SESSION_COOKIE_NAME
+    page.context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": "fixture", "url": base}])
+
+
+def test_the_block_menu_offers_generate_to_an_admin_and_starts_the_blocks_job(page, map_site):
+    """UX.127: the info card of a block carries "Generate this block" for an admin, which posts the Generate page's block mode
+    with the block's key (the job `planetgen sectors --block` runs) and lands on the page that shows its progress; a visitor
+    who is not signed in has no such button."""
+    _open_window(page, map_site, 243, 0, 0, 0)
+    assert page.locator("#galaxymap3d-info .starmap-generate").count() == 0, "a visitor is offered no Generate"
+    _as_admin(page, map_site)
+    _open_window(page, map_site, 243, 0, 0, 0)
+    page.wait_for_selector("#galaxymap3d-info .starmap-generate-block")
+    posted = []
+
+    def start(route):
+        posted.append(route.request.post_data)
+        route.fulfill(status=200, content_type="text/html", body="<!doctype html><title>Generate</title><p>Job started</p>")
+
+    page.route("**/admin/generate", start)
+    page.once("dialog", lambda dialog: dialog.accept())    # a block this size can run for hours: it asks first
+    button = page.locator("#galaxymap3d-info .starmap-generate-block button", has_text="Generate this block")
+    assert button.is_enabled()
+    button.click()
+    page.wait_for_function("() => document.body.textContent.includes('Job started')")
+    (body,) = posted
+    fields = dict(pair.split("=", 1) for pair in body.split("&"))
+    assert fields["action"] == "galaxy" and fields["mode"] == "block" and fields["block_key"] == "243.0.0.0", fields
+    assert fields["whole_block"] == "1" and fields["csrf_token"], fields
+
+
+def test_the_block_generate_is_disabled_with_its_reason_while_a_job_runs(page, map_site, monkeypatch):
+    """UX.127: while another run holds the Generate page, the block's button is disabled and says which job and links to it."""
+    from planetgen.web import jobs
+    monkeypatch.setattr(jobs, "active_job", lambda root=None: {"title": "Generate sectors around Fixture Prime"})
+    _as_admin(page, map_site)
+    _open_window(page, map_site, 243, 0, 0, 0)
+    page.wait_for_selector("#galaxymap3d-info .starmap-generate-block")
+    button = page.locator("#galaxymap3d-info .starmap-generate-block button", has_text="Generate this block")
+    assert button.is_disabled() and button.get_attribute("title") == "Another job is running"
+    hint = page.locator("#galaxymap3d-info .starmap-generate-block .hint")
+    assert "Generate sectors around Fixture Prime is still running" in hint.inner_text()
+    assert hint.locator("a").get_attribute("href").endswith("/admin/generate#current-job")
+
+
 OPEN_PRIME = f"?sector={PRIME_CODE}&open=1"
 """The fixture's Fixture Prime (shell 1, band 0, wedge 1) opened in place."""
 
 
+@pytest.mark.names_hidden
 def test_galaxy_map_opens_a_sector_in_place(page, map_site):
     """MAP.66: a generated sector opens in the Galaxy Map itself, drawn by
     the Sector Map's scene: a star can be hovered and picked there (its
@@ -803,6 +904,53 @@ def test_galaxy_map_opens_a_sector_in_place(page, map_site):
     _settle(page)
     assert _query(page) == OPEN_PRIME[1:]
     assert any(_bright_spots(page, GALAXY_CANVAS)), "the reloaded sector draws its stars"
+
+
+FAR_CODE = provisional_sector_designation(40, 0, 0)
+"""A cell far outside every generated sector's 9-block."""
+
+
+def _window_size(page):
+    win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
+    return win["centre"]["m"] if win else None
+
+
+@pytest.mark.names_hidden
+def test_galaxy_map_infobox_names_the_region_and_flies_to_it(page, map_site):
+    """MAP.315: a pick inside a charted region says "Region: <name> (in <family>)", each name a button that flies the
+    camera to that block (the region's 9-block, then its 81-block family), and a pick in no charted region has no such
+    line."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    info = page.locator("#galaxymap3d-info")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    assert info.locator("h3").inner_text() == "Fixture Prime"
+    line = info.locator(".map-info-region")
+    line.wait_for(state="visible", timeout=20000)
+    assert line.inner_text() == "Region: Fixture Beez Region (in Fixture Reach)"
+    # The family first: its 81-block, then the region itself from the same card, framed by its extent (MAP.319).
+    info.locator(".map-info-region-link", has_text="Fixture Reach").click()
+    _settle(page)
+    assert _window_size(page) == 81, _query(page)
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    info.locator(".map-info-region-link", has_text="Fixture Beez Region").click()
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    from planetgen.galaxy.spherical import sector_position_pc
+    from tests.map_site_support import REGION_RADIUS_PC
+    after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    centre = sector_position_pc(*SECTORS[0][1:4], 4.0)
+    assert max(abs(a - b) for a, b in zip(after["target"], centre)) < 0.05, (after["target"], centre)
+    size = page.evaluate("() => { const c = document.querySelector('#galaxymap3d-canvas'); return [c.clientWidth, c.clientHeight]; }")
+    tan = math.tan(math.radians(page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFov()")) / 2)
+    half = math.atan(min(tan, tan * size[0] / size[1]))
+    assert math.asin(min(1.0, REGION_RADIUS_PC / after["dist"])) <= half + 1e-6, (after["dist"], REGION_RADIUS_PC)
+    assert after["dist"] == pytest.approx(REGION_RADIUS_PC / math.sin(half) * 1.08, rel=0.05) or after["dist"] > REGION_RADIUS_PC / math.sin(half)
+    assert page.evaluate(LINES)["chartedLines"] == 0, "no sector box is drawn once the flight to the region is over"
+    # Where nothing is charted the block has no name on the wire and the card has no line.
+    _open_galaxy(page, map_site, f"?sector={FAR_CODE}&open=1")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_timeout(1500)
+    assert not info.locator(".map-info-region").is_visible()
 
 
 OPEN_UNCHARTED = f"?sector={UNCHARTED_CODE}&open=1"
@@ -884,6 +1032,7 @@ def _camera(page):
     return page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
 
 
+@pytest.mark.names_hidden
 def test_c_recenters_the_view_on_the_selection_and_the_mouse_turns_about_it(page, map_site):
     """MAP.138: C (or Menu's Center on selection) moves the center the view
     turns and zooms about to the selected star, keeping the angle and zoom;
@@ -1804,6 +1953,7 @@ def _panel_state(page):
     return page.evaluate("() => document.querySelector('#galaxymap3d-info').dataset.state")
 
 
+@pytest.mark.names_hidden
 def test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box(page, dense_site):
     """MAP.297, MAP.304: on the dense fixture region a click on a drawn star selects it (its panel shows in the map
     window), a click on nothing selects nothing and puts the panel away, and no sector box is outlined or shaded,
@@ -1825,13 +1975,93 @@ def test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box(page,
     assert lines["hovered"]["lines"] == 0 and lines["hovered"]["shade"] == 0, lines
 
     # Nothing under the pointer: nothing is selected and the panel goes.
-    gap = next((x, y) for x in range(40, 700, 53) for y in range(60, 520, 47)
-               if all(abs(x - o["x"]) + abs(y - o["y"]) > 40 for o in stars))
     box = page.locator(GALAXY_CANVAS).bounding_box()
-    page.mouse.click(box["x"] + gap[0], box["y"] + gap[1])
+    gaps = [(x, y) for x in range(40, 700, 53) for y in range(60, 520, 47)
+            if all(abs(x - o["x"]) + abs(y - o["y"]) > 40 for o in stars)]
+    # A spot the map itself is under: its panels (the selection's, the Menu) cover part of it.
+    bare = page.evaluate("""(spots) => spots.filter(([x, y]) => {
+        const found = document.elementFromPoint(x, y);
+        return found && found.id === 'galaxymap3d-canvas';
+    })""", [[box["x"] + x, box["y"] + y] for x, y in gaps])
+    assert bare, "no spot of the map is free of its panels"
+    page.mouse.click(*bare[0])
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info').dataset.state !== 'selected'")
     lines = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyLines()")
     assert lines["hovered"]["lines"] == 0, lines
+
+
+def _visible_stars(page):
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars().length > 20", timeout=20000)
+    return [s for s in page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars()") if s["visible"]]
+
+
+def _free_of_panels(page, spots):
+    """The spots (page coordinates) where the map itself, and none of its panels, is under the point."""
+    return page.evaluate("""(spots) => spots.filter(([x, y]) => {
+        const found = document.elementFromPoint(x, y);
+        return found && found.id === 'galaxymap3d-canvas';
+    })""", spots)
+
+
+def test_a_selected_star_can_be_bookmarked(page, dense_site):
+    """MAP.122: the panel of a picked star has a ☆ that saves its system as a bookmark (kind "system"), and a second press
+    takes it out again."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    stars = _visible_stars(page)
+    chosen = next(s for s in stars if all(abs(s["x"] - o["x"]) + abs(s["y"] - o["y"]) > 30 for o in stars if o is not s))
+    _click_star(page, chosen)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info').dataset.state === 'selected'")
+    star = page.locator("#galaxymap3d-info .map-info-bookmark")
+    assert star.inner_text() == "☆" and star.is_enabled()
+    star.click()
+    saved = _bookmarks(page)
+    assert len(saved) == 1 and saved[0]["kind"] == "system" and saved[0]["value"].startswith("system:"), saved
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info .map-info-bookmark').getAttribute('aria-pressed') === 'true'")
+    page.once("dialog", lambda dialog: dialog.accept())   # taking a bookmark out asks first
+    star.click()
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info .map-info-bookmark').getAttribute('aria-pressed') === 'false'")
+    assert _bookmarks(page) == []
+
+
+def test_a_click_between_close_stars_offers_the_ones_within_reach(page, dense_site):
+    """MAP.122: a click that has several stars inside the pointer's reach (10 px for a mouse) selects the nearest and lists
+    the others under its panel; choosing another from the list shows that star instead."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    stars = _visible_stars(page)
+    # Two stars 3 to 9 px apart, so a click on the first has the second inside the 10 px reach and still picks the first.
+    def apart(a, b):
+        return math.hypot(a["x"] - b["x"], a["y"] - b["y"])
+    pairs = [(a, b) for a in stars for b in stars if a["id"] < b["id"] and 3 < apart(a, b) < 9
+             and not any(c is not a and c is not b and apart(c, a) < apart(a, b) for c in stars)]
+    assert pairs, "the dense region has no two stars a few pixels apart"
+    # A pair that is not under a panel of the map.
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    free = set(map(tuple, _free_of_panels(page, [[box["x"] + a["x"], box["y"] + a["y"]] for a, _b in pairs])))
+    first, second = next((a, b) for a, b in pairs if (box["x"] + a["x"], box["y"] + a["y"]) in free)
+    page.mouse.click(box["x"] + first["x"], box["y"] + first["y"])
+    page.wait_for_selector("#galaxymap3d-info .map-star-choices button", timeout=5000)
+    buttons = page.locator("#galaxymap3d-info .map-star-choices button")
+    assert buttons.count() >= 2
+    pressed = page.locator("#galaxymap3d-info .map-star-choices button[aria-pressed='true']")
+    assert pressed.count() == 1 and pressed.get_attribute("data-star-choice") == str(first["id"])
+    other = page.locator(f"#galaxymap3d-info .map-star-choices button[data-star-choice='{second['id']}']")
+    assert other.count() == 1
+    other.click()
+    page.wait_for_selector(f"#galaxymap3d-info .map-star-choices button[data-star-choice='{second['id']}'][aria-pressed='true']")
+    assert page.locator("#galaxymap3d-info .map-star-choices button[aria-pressed='true']").count() == 1
+
+
+def test_a_lone_star_has_no_choice_list(page, dense_site):
+    """MAP.122: with only one star within reach there is nothing to choose, so its panel carries no list."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    stars = _visible_stars(page)
+    chosen = next(s for s in stars if all(abs(s["x"] - o["x"]) + abs(s["y"] - o["y"]) > 40 for o in stars if o is not s))
+    _click_star(page, chosen)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info').dataset.state === 'selected'")
+    assert page.locator("#galaxymap3d-info .map-star-choices").count() == 0
 
 
 def test_a_double_click_on_a_star_flies_to_it(page, dense_site):
@@ -1853,6 +2083,28 @@ def test_a_double_click_on_a_star_flies_to_it(page, dense_site):
     target = after["target"]
     assert max(abs(target[0] - star["x"]), abs(target[1] - star["y"]), abs(target[2] - star["z"])) < 0.05, (target, star)
     assert after["dist"] <= before["dist"] + 1e-6, (before["dist"], after["dist"])
+
+
+def test_stars_glow_brighter_they_do_not_grow_bigger_and_their_colour_follows_their_temperature(page, dense_site):
+    """MAP.241: two stars of very different luminosity are drawn the same size, within a narrow band, but the bright one
+    glows harder (and its core is as opaque or more), a larger star has a slightly larger core that stays small, and a
+    hotter star is bluer than a cooler one."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    looks = [look for look in page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarLooks()")
+             if not look["phenomenon"] and look["luminosity"] and look["temperature"]]
+    assert len(looks) > 100, len(looks)
+    dim = min(looks, key=lambda look: look["luminosity"])
+    bright = max(looks, key=lambda look: look["luminosity"])
+    assert bright["luminosity"] > 1000 * dim["luminosity"], (dim["luminosity"], bright["luminosity"])
+    assert abs(bright["sizePx"] - dim["sizePx"]) < 3, (dim["sizePx"], bright["sizePx"])
+    assert bright["glow"] > 2 * dim["glow"], (dim["glow"], bright["glow"])
+    assert bright["bright"] >= dim["bright"]
+    assert all(7 <= look["sizePx"] <= 13 and look["corePx"] <= 2.5 for look in looks), "every star stays small"
+    hot = max(looks, key=lambda look: look["temperature"])
+    cool = min(looks, key=lambda look: look["temperature"])
+    assert hot["temperature"] > cool["temperature"] + 1000
+    assert hot["color"][2] - hot["color"][0] > cool["color"][2] - cool["color"][0], (hot["color"], cool["color"])
 
 
 @pytest.mark.parametrize("radius_pc", [4.0, 9.0])
@@ -1886,7 +2138,11 @@ LABELS = "() => document.querySelector('#galaxymap3d-canvas').__mapLabels.shown(
 
 
 def _label_spot(page, label):
-    """The page point at the middle of a placed name."""
+    """The page point at the middle of a placed name. A card open over the map is closed first (MAP.332: a tall card's More takes the pointer)."""
+    close = page.locator("#galaxymap3d-info .map-info-close")
+    if close.count() and close.is_visible():
+        close.click()
+        page.wait_for_timeout(100)
     box = page.locator(GALAXY_CANVAS).bounding_box()
     return box["x"] + label["left"] + label["width"] / 2, box["y"] + label["top"] + label["height"] / 2
 
@@ -2091,6 +2347,8 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     its phenomenon page."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     page.wait_for_timeout(1000)
+    _poi_layers(page)    # a crowd's mark of the points of interest would take the click meant for the pulsar
+    page.locator("#galaxymap3d-menu > summary").click()
     # One step in, so the glow of the bright stars around them (every star of
     # a node comes in together, MAP.152) leaves the dark blue neutron star clear.
     # The wheel zooms toward what is under the pointer (MAP.225): Shift-click the
@@ -2138,7 +2396,7 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
 
 MARKERS = """() => {
     const layer = document.getElementById("galaxymap3d-canvas").__mapMarkers;
-    return layer ? layer.entries().map((e) => ({kind: e.kind.id, name: e.item.name, x: e.x, y: e.y, z: e.z})) : null;
+    return layer ? layer.entries().map((e) => ({kind: e.kind.id, name: e.item.name, regionKey: e.item.regionKey || null, count: e.item.count || null, pulled: !!e.pulled, members: (e.item.members || []).map((m) => m.name), x: e.x, y: e.y, z: e.z})) : null;
 }"""
 
 
@@ -2157,11 +2415,11 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     """MAP.219: the marker layer draws a glyph over each black hole in view, with a Menu toggle that rides in the
     address, a legend line while on, and a click on the glyph shows the black hole's card."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
-    page.wait_for_timeout(1000)
+    _poi_layers(page)    # a crowd of a black hole with a world's mark has no name of its own (MAP.305), which the long runs hit
+    page.locator("#galaxymap3d-menu > summary").click()
     holes = {p["name"]: p for p in POINT_FIELD if p["type"] == "black_hole"}
-    drawn = page.evaluate(MARKERS)
-    assert {e["name"] for e in drawn} >= set(holes), drawn
-    assert {e["kind"] for e in drawn} == {"marker-black-hole"}
+    drawn = _markers_until(page, lambda found: {e["name"] for e in found if e["kind"] == "marker-black-hole"} >= set(holes))
+    assert {e["name"] for e in drawn if e["kind"] == "marker-black-hole"} >= set(holes), drawn
     legend = page.locator("#galaxymap3d-layer-legend")
     assert "Black holes" in legend.inner_text()
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]')
@@ -2176,7 +2434,8 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
         close.click()
     # A click on the glyph names the black hole.
     maw = holes["Fixture Maw"]
-    page.locator("#galaxymap3d-menu > summary").click()
+    if page.evaluate("document.querySelector('#galaxymap3d-menu').open"):   # the Menu's panel would cover the glyph (TEST.394)
+        page.locator("#galaxymap3d-menu > summary").click()
     page.wait_for_timeout(600)
     page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     spot = _screen_of(page, (maw["x"], maw["y"], maw["z"]))
@@ -2190,19 +2449,20 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     # Off: no markers, no legend line, and the address says so.
     _open_menu(page)
     button.click()
-    assert "hide=marker-black-hole" in page.url
-    assert _markers_until(page, lambda found: not found) == []
+    assert "marker-black-hole" in parse_qs(urlparse(page.url).query).get("hide", [""])[0].split(",")
+    assert [e for e in _markers_until(page, lambda found: not any(e["kind"] == "marker-black-hole" for e in found))
+            if e["kind"] == "marker-black-hole"] == []
     assert "Black holes" not in legend.inner_text()
     # A reload keeps it off; on again brings them back.
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     _settle(page)
     page.wait_for_timeout(800)
-    assert page.evaluate(MARKERS) == []
+    assert [e for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole"] == []
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]').click()
     assert {e["name"] for e in _markers_until(page, lambda found: bool(found))} >= set(holes)
-    assert "hide" not in page.url
+    assert "marker-black-hole" not in parse_qs(urlparse(page.url).query).get("hide", [""])[0].split(",")
 
 
 GLOW = "() => { const g = document.querySelector('#galaxymap3d-canvas').__mapGlow; return g && {count: g.count(), drawn: g.drawn(), visible: g.isVisible()}; }"
@@ -2249,25 +2509,231 @@ def test_the_glow_fades_out_as_the_stars_resolve_and_never_adds_up(page, dense_s
             raise AssertionError((dist, page.evaluate("() => [document.querySelector('#galaxymap3d-canvas').__mapGlow.strongest(), document.querySelector('#galaxymap3d-canvas').galaxyCamera().dist]")))
 
 
+REGION_SPOTS = "() => document.querySelector('#galaxymap3d-canvas').galaxyRegionSpots()"
+REGION_KEYS = ["9.0.0.0", "9.1.0.0"]
+"""The fixture's two charted regions (the 9-blocks holding its sectors), by cell."""
+
+
+def _region_pixels(page, spot, half=6):
+    """The picture of the canvas about the region's middle `spot` (canvas pixels), as a flat list of RGB tuples."""
+    image = Image.open(io.BytesIO(_shot(page, GALAXY_CANVAS))).convert("RGB")
+    width, height = image.size
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    scale = width / box["width"]
+    x, y = int(spot["x"] * scale), int(spot["y"] * scale)
+    pixels = image.load()
+    return [pixels[i, j] for i in range(max(0, x - half), min(width, x + half)) for j in range(max(0, y - half), min(height, y + half))]
+
+
+def test_the_charted_regions_are_soft_spheres_at_galactic_scale_colored_by_share_with_no_sector_box(page, map_site):
+    """MAP.316: at the whole-galaxy view every charted region (a 9-block with a generated sector, however little of it) is a soft
+    sphere at its extent, colored by its share charted, drawn by a layer of the Menu; no sector box is drawn with it."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
+    spots = page.evaluate(REGION_SPOTS)
+    assert sorted(spot["key"] for spot in spots) == REGION_KEYS
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapRegions.count()") == 2
+    assert all(spot["alpha"] > 0.15 and spot["radiusPx"] >= 5 for spot in spots), spots
+    by_key = {spot["key"]: spot for spot in spots}
+    assert by_key["9.1.0.0"]["share"] > by_key["9.0.0.0"]["share"] > 0
+    assert by_key["9.1.0.0"]["color"] != by_key["9.0.0.0"]["color"], "the colour follows the share"
+    assert page.evaluate(LINES)["chartedLines"] == 0, "no sector box at galactic scale"
+    # The layer is what is drawn there: the picture about a region changes when the Menu's Charted regions is switched off.
+    visible = next(spot for spot in spots if spot["visible"])
+    with_regions = _region_pixels(page, visible)
+    _open_menu(page)
+    button = page.locator('#galaxymap3d-kinds button[data-layer="regions"]')
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    button.click()
+    assert "hide=regions" in page.url
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapRegions.isVisible() === false")
+    assert _region_pixels(page, visible) != with_regions
+    _open_menu(page)
+    button.click()
+    assert "hide=regions" not in page.url
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapRegions.isVisible() === true")
+
+
+def test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card(page, map_site):
+    """MAP.321 c: at galactic scale a region whose list entry has inhabited worlds carries the inhabited symbol at its middle
+    (the Menu's Inhabited worlds layer, on by default), in the colour of its best world's tier; picking it shows the region's card with
+    the inhabited line, and a region without any has no token."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
+    found = _markers_until(page, lambda entries: any(e["regionKey"] for e in entries))
+    tokens = [e for e in found if e["regionKey"]]
+    assert [(e["kind"], e["regionKey"]) for e in tokens] == [("marker-inhabited", "9.0.0.0")], found
+    assert tokens[0]["name"] == "Fixture Beez Region", tokens
+    spot = next(s for s in page.evaluate(REGION_SPOTS) if s["key"] == "9.0.0.0")
+    assert spot["visible"]
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    where = (box["x"] + spot["x"], box["y"] + spot["y"])
+    assert _on_the_canvas(page, where)
+    page.mouse.move(where[0] + 1, where[1])
+    page.mouse.move(*where)
+    page.wait_for_timeout(300)
+    assert "Fixture Beez Region, 3 inhabited worlds in 2 systems, best Blue" in page.locator("#galaxymap3d-tooltip").inner_text()
+    page.mouse.click(*where)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    info = page.locator("#galaxymap3d-info").inner_text()
+    assert "3 inhabited worlds in 2 systems, best Blue" in info, info
+    # Switching the Inhabited worlds layer off takes the token, and the regions layer off takes it with its sphere.
+    _open_menu(page)
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
+    _markers_until(page, lambda entries: not any(e["regionKey"] for e in entries))
+    assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]]
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
+    _markers_until(page, lambda entries: any(e["regionKey"] for e in entries))
+    page.locator('#galaxymap3d-kinds button[data-layer="regions"]').click()
+    _markers_until(page, lambda entries: not any(e["regionKey"] for e in entries))
+    assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]]
+
+
+def test_the_regions_give_way_to_the_stars_as_the_camera_comes_in(page, map_site):
+    """MAP.316: a region's sphere is strongest from far and fades as the camera comes in (the exact curve is the unit test's),
+    and with a sector opened in place the layer is out of the picture."""
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
+    spot = lambda: next(s for s in page.evaluate(REGION_SPOTS) if s["key"] == "9.0.0.0")
+    far = spot()
+    _open_window(page, map_site, 9, 0, 0, 0, g=3)
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: [2.83, 2.83, 0], radius: 2})")
+    _settle(page)
+    near = spot()
+    assert near["radiusPx"] > 4 * far["radiusPx"], (far, near)
+    assert near["alpha"] < far["alpha"], (far, near)
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapRegions.isVisible() === false", timeout=20000)
+
+
+REGION_FRAME = "() => { const f = document.querySelector('#galaxymap3d-canvas').__mapRegionFrame; return f && {framed: f.state().framed, positions: f.positions()}; }"
+
+
+def test_the_galactic_view_frames_the_region_it_is_in_with_a_fixed_wireframe_and_dims_nothing(page, map_site):
+    """MAP.327: in the galactic view a locked wireframe stands round the charted region the view is in (the pointer moving
+    changes nothing of it), another region is framed once the view is in that, the stars are not dimmed, and opening a
+    sector hands the framing to the sector."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    _open_window(page, map_site, 9, 1, 0, 0, g=3)
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: [28.88, 21.5, 0], radius: 12})")
+    _settle(page)
+    page.wait_for_function("() => { const f = document.querySelector('#galaxymap3d-canvas').__mapRegionFrame; return f && f.state().framed; }", timeout=20000)
+    first = page.evaluate(REGION_FRAME)
+    assert len(first["positions"]) > 0
+    # MAP.331: the legend says what the outline is while it is drawn.
+    page.wait_for_function("() => document.getElementById('galaxymap3d-layer-legend').textContent.includes('Outline:')", timeout=20000)
+    assert "(9 sectors a side)" in page.locator("#galaxymap3d-layer-legend").text_content()
+    assert page.locator("#galaxymap3d-layer-legend .map-frame-swatch").count() == 1
+    assert page.evaluate(SECTOR_VIEW)["outsideDim"] == 1, "nothing is dimmed in the galactic view"
+    page.mouse.move(300, 420)
+    page.mouse.move(520, 480)
+    page.wait_for_timeout(300)
+    assert page.evaluate(REGION_FRAME) == first
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: [2.83, 2.83, 0], radius: 12})")
+    _settle(page)
+    page.wait_for_function("(old) => JSON.stringify(document.querySelector('#galaxymap3d-canvas').__mapRegionFrame.positions()) !== old",
+                           arg=__import__("json").dumps(first["positions"]), timeout=20000)
+    assert page.evaluate(REGION_FRAME)["framed"]
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapRegionFrame.state().framed === false", timeout=20000)
+    assert "Outline:" not in page.locator("#galaxymap3d-layer-legend").text_content(), "no region outline, so no legend line for it"
+    assert page.evaluate(SECTOR_FRAME)["framed"]
+
+
+def test_the_menu_lists_the_charted_regions_by_share_or_name_and_a_click_flies_to_one(page, map_site):
+    """MAP.316: the Menu's Charted regions list is the always-available way to known space: by share charted (most first) or by
+    name, a button each that flies to the region with the camera framing its extent."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const l = document.querySelector('#galaxymap3d-canvas').__mapRegionList; return l && l.order().length === 2; }", timeout=20000)
+    _open_menu(page)
+    details = page.locator("#galaxymap3d-regions")
+    assert details.is_visible()
+    assert "(2)" in details.locator("summary").inner_text()
+    details.locator("summary").click()
+    order = lambda: page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapRegionList.order()")
+    by_share = order()
+    assert [text.split(",")[0] for text in by_share] == ["Fixture Zarh Region", "Fixture Beez Region"], by_share
+    assert all(text.endswith("under 1 percent charted") for text in by_share), by_share
+    details.locator("[data-regions-sort]").select_option("name")
+    assert [text.split(",")[0] for text in order()] == ["Fixture Beez Region", "Fixture Zarh Region"]
+    details.locator("[data-regions-sort]").select_option("share")
+    assert [text.split(",")[0] for text in order()] == ["Fixture Zarh Region", "Fixture Beez Region"]
+    details.locator('button[data-region-key="9.0.0.0"]').click()
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    from tests.map_site_support import REGION_RADIUS_PC
+    after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    centre = next(spot for spot in [{"x": 2.8284271247461903, "y": 2.82842712474619, "z": 0.0}])
+    assert max(abs(after["target"][i] - centre["xyz"[i]]) for i in range(3)) < 0.05, after["target"]
+    assert after["dist"] < 6 * REGION_RADIUS_PC, after["dist"]
+
+
+def test_a_click_on_a_region_shows_its_card_and_a_double_click_flies_to_it(page, map_site):
+    """MAP.316: a region's sphere takes the click (its card: how much is charted, a Fly to region button) and the double click."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
+    _poi_layers(page)    # the inhabited token of the other region lies over this one's middle
+    _open_menu(page)
+    page.locator("#galaxymap3d-menu > summary").click()
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    spot = next(s for s in page.evaluate(REGION_SPOTS) if s["key"] == "9.1.0.0" and s["visible"])
+    where = (box["x"] + spot["x"], box["y"] + spot["y"])
+    assert _on_the_canvas(page, where)
+    page.mouse.move(*where)
+    page.wait_for_timeout(300)
+    assert "Fixture Zarh Region" in page.locator("#galaxymap3d-tooltip").inner_text()
+    page.mouse.click(*where)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Zarh Region"
+    assert "under 1 percent charted" in page.locator("#galaxymap3d-info").inner_text()
+    page.locator("#galaxymap3d-info button", has_text="Fly to region").click()
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    assert math.dist(after["target"], [28.876, 21.498, 0.0]) < 0.1, after["target"]
+
+
 def test_galaxy_map_opens_with_the_glow_off_when_the_address_says_so(page, map_site):
     _open_galaxy(page, map_site, "?hide=glow")
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow !== undefined")
     assert page.evaluate(GLOW)["visible"] is False
 
 
-def test_galaxy_map_habitable_world_markers_are_opt_in_and_name_the_system(page, map_site):
-    """MAP.220: systems with a habitable world get a marker of their own kind, off until the Menu turns it on (and
-    `show=` in the address says so), a legend line while on, and a click on one shows how many worlds it holds."""
-    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+def test_galaxy_map_habitable_world_markers_are_on_by_default_and_name_the_system(page, map_site):
+    """MAP.220, MAP.303: systems with a habitable world get a marker of their own kind, on until the Menu turns it off (and
+    `hide=` in the address says so), a legend line while on, and a click on one shows how many worlds it holds; the
+    inhabited, habitable and gas giant layers begin on and the uninhabitable and asteroid field ones off."""
+    _open_star_field(page, map_site)
+    # MAP.333: the flight lands where it was asked, so frame the black hole (15 pc out) as well.
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})",
+                  [list(STAR_FIELD_CENTER_PC), 16])
+    _settle(page)
     page.wait_for_timeout(1000)
-    assert {e["kind"] for e in page.evaluate(MARKERS)} == {"marker-black-hole"}
+    wanted = {"marker-black-hole", *POI_DEFAULT_ON}
+    found = _markers_until(page, lambda entries: wanted <= {e["kind"] for e in entries})
+    assert {e["kind"] for e in found} == wanted, found
+    assert "show=" not in page.url and "hide=marker" not in page.url
     systems = {s["name"]: s for s in WORLD_FIELD}
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]')
     _open_menu(page)
-    assert button.count() == 1 and button.get_attribute("aria-pressed") == "false"
+    assert button.count() == 1
+    for layer in POI_LAYERS:
+        pressed = page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').get_attribute("aria-pressed")
+        assert pressed == ("true" if layer in POI_DEFAULT_ON else "false"), layer
     button.click()
     page.wait_for_timeout(400)
-    assert "show=marker-habitable" in page.url
+    assert "hide=marker-habitable" in page.url
+    _markers_until(page, lambda entries: not any(e["kind"] == "marker-habitable" for e in entries))
+    assert not [e for e in page.evaluate(MARKERS) if e["kind"] == "marker-habitable"]
+    _poi_layers(page, "marker-habitable")
+    assert "marker-habitable" not in page.url and "hide=marker-inhabited,marker-gas-giant" in page.url, page.url
     drawn = {e["name"] for e in _markers_until(page, lambda found: any(e["kind"] == "marker-habitable" for e in found))
              if e["kind"] == "marker-habitable"}
     assert drawn == set(systems), drawn
@@ -2281,10 +2747,447 @@ def test_galaxy_map_habitable_world_markers_are_opt_in_and_name_the_system(page,
     page.mouse.move(*spot)
     page.mouse.move(spot[0] + 1, spot[1])
     page.wait_for_timeout(200)
-    assert "Fixture Eden, 2 habitable worlds" in page.locator("#galaxymap3d-tooltip").inner_text()
+    assert "Fixture Eden, 2 habitable worlds, best Green" in page.locator("#galaxymap3d-tooltip").inner_text()
     page.mouse.click(*spot)
     assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Eden"
     assert "2" in page.locator("#galaxymap3d-info").inner_text()
+
+
+def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox(page, map_site):
+    """MAP.305: a gas giant is a reason for a mark of its own, which the Menu can turn on alone; a system with a gas giant and a
+    habitable world is drawn once however many reasons are on, a system with neither has no mark, and the infobox of a mark lists
+    every reason its system has."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    giants = {s["name"] for s in GIANT_FIELD}
+    worlds = {s["name"] for s in WORLD_FIELD}
+    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-gas-giant"]')
+    _poi_layers(page, "marker-gas-giant")
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-gas-giant" for e in entries))
+    assert {e["name"] for e in found if e["kind"] == "marker-gas-giant"} == giants
+    assert not [e for e in found if e["kind"] == "marker-habitable"]
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
+    marks = [e["name"] for e in found if e["kind"] in ("marker-habitable", "marker-gas-giant")]
+    assert sorted(marks) == sorted(giants | worlds), marks    # Fixture Eden once, though it has both reasons
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.wait_for_timeout(300)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    eden = next(s for s in WORLD_FIELD if s["name"] == "Fixture Eden")
+    spot = _screen_of(page, (eden["x"], eden["y"], eden["z"]))
+    assert spot
+    page.mouse.move(*spot)
+    page.mouse.move(spot[0] + 1, spot[1])
+    page.mouse.click(*spot)
+    assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Eden"
+    info = page.locator("#galaxymap3d-info").inner_text()
+    assert "2 habitable worlds, best Green" in info and "1 gas giant" in info, info
+
+
+def _fly_to_system(page, system):
+    """Opens the window round the sector a fixture system is in, so the nodes of its own sector are in (the class markers come from
+    nodes of 3 shells or fewer, MAP.220), and waits until the flight ends."""
+    from planetgen.galaxy.spherical import sector_address_at
+
+    shell, band, wedge = sector_address_at((system["x"], system["y"], system["z"]), EDGE_PC)
+    page.evaluate("([cell, g]) => document.querySelector('#galaxymap3d-canvas').galaxyOpenWindow(cell, g)",
+                  [{"m": 1, "shell": shell, "band": band, "wedge": wedge}, 1])
+    _settle(page)
+
+
+def test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time_and_come_in_with_the_sector(page, map_site):
+    """MAP.220: every planet class has a marker of its own in the Menu's World classes group, all off until the visitor picks them;
+    choosing a class marks the systems that hold a world of it once the map is close enough to have their sector (its glyph carries the
+    class letter, its hover text counts them), a system a world reason that is on already marks is marked once, and turning the class
+    off takes its marks away."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    _open_menu(page)
+    group = page.locator("#galaxymap3d-kinds")
+    assert "World classes" in group.inner_text()
+    assert group.locator('button[data-layer^="marker-class-"]').count() == 20
+    assert all(group.locator(f'button[data-layer="marker-class-{letter}"]').get_attribute("aria-pressed") == "false" for letter in "KOGJ")
+    eden = next(s for s in WORLD_FIELD if s["name"] == "Fixture Eden")
+    rock = next(s for s in BARREN_FIELD if s["name"] == "Fixture Rock")
+    _fly_to_system(page, eden)
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
+    assert not [e for e in found if e["kind"].startswith("marker-class-")], "no class is marked until one is chosen"
+    group.locator('button[data-layer="marker-class-K"]').click()
+    group.locator('button[data-layer="marker-class-G"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"].startswith("marker-class-") for e in entries), seconds=8)
+    assert not [e for e in found if e["kind"].startswith("marker-class-")], "Fixture Eden is already marked by its habitable worlds"
+    assert "show=marker-class-G,marker-class-K" in page.url or "show=marker-class-K,marker-class-G" in page.url, page.url
+    _poi_layers(page)    # no world reasons on: a system the classes list is named by its class
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-class-K" for e in entries))
+    assert [e["name"] for e in found if e["kind"] == "marker-class-K"] == ["Fixture Eden"], found
+    assert "Class K worlds" in page.locator("#galaxymap3d-layer-legend").inner_text()
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.wait_for_timeout(300)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    spot = _screen_of(page, (eden["x"], eden["y"], eden["z"]))
+    assert spot
+    page.mouse.move(*spot)
+    page.mouse.move(spot[0] + 1, spot[1])
+    page.wait_for_timeout(200)
+    assert "Fixture Eden, 2 class K worlds" in page.locator("#galaxymap3d-tooltip").inner_text()
+    page.mouse.click(*spot)
+    info = page.locator("#galaxymap3d-info").inner_text()
+    assert "2 class K worlds" in info and "1 class O world" in info, info
+    _fly_to_system(page, rock)
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-class-G" for e in entries))
+    assert [e["name"] for e in found if e["kind"] == "marker-class-G"] == ["Fixture Rock"], found
+    _open_menu(page)
+    group.locator('button[data-layer="marker-class-G"]').click()
+    found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-class-G" for e in entries))
+    assert not [e for e in found if e["kind"] == "marker-class-G"]
+
+
+def test_galaxy_map_life_filters_show_only_the_systems_with_life_sentient_life_or_a_civilization(page, map_site):
+    """MAP.311: the Menu's Points of interest group has an optional marker for worlds with life, with sentient life and with a civilization,
+    each off until turned on; each shows only the systems that have it, a system with several is drawn once by the strongest sign, and
+    the card lists the reasons."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    _open_menu(page)
+    layers = {"life": "marker-life", "sentient": "marker-sentient", "civilization": "marker-civilization"}
+    for layer in layers.values():
+        assert page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').get_attribute("aria-pressed") == "false", layer
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
+    assert not [e for e in found if e["kind"] in layers.values()], "none of them is on until it is chosen"
+    named = {reason: {s["name"] for s in LIFE_FIELD if s["reason"] == reason} for reason in layers}
+    for reason, layer in layers.items():
+        _poi_layers(page)    # no other reason on
+        button = page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]')
+        button.click()
+        found = _markers_until(page, lambda entries: {e["name"] for e in entries if e["kind"] == layer} == named[reason])
+        assert {e["name"] for e in found if e["kind"] == layer} == named[reason], (reason, found)
+        assert {e["name"] for e in found if e["kind"] not in (layer, "marker-black-hole")} == set(), found
+        button.click()
+    _poi_layers(page)
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-life"]').click()
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-sentient"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-sentient" for e in entries) and
+                           len([e for e in entries if e["kind"] in ("marker-life", "marker-sentient")]) == 4)
+    marks = [(e["name"], e["kind"]) for e in found if e["kind"] in ("marker-life", "marker-sentient")]
+    assert sorted(marks) == [("Fixture Eden", "marker-life"), ("Fixture Jove", "marker-sentient"), ("Fixture Rest", "marker-sentient"),
+                             ("Fixture Rock", "marker-life")], marks
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.wait_for_timeout(300)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    rest = next(s for s in LIFE_FIELD if s["name"] == "Fixture Rest")
+    spot = _screen_of(page, (rest["x"], rest["y"], rest["z"]))
+    assert spot
+    page.mouse.move(*spot)
+    page.mouse.move(spot[0] + 1, spot[1])
+    page.mouse.click(*spot)
+    info = page.locator("#galaxymap3d-info").inner_text()
+    assert "1 world with a civilization" in info and "1 world with sentient life" in info and "1 world with life" in info, info
+
+
+def test_the_default_map_marks_a_green_and_a_yellow_world_with_the_reason_listed_and_a_red_one_not(page, map_site):
+    """MAP.303 acceptance: with no Menu choice made, the map marks the star of a Green world and of a Yellow one (the Yellow one's
+    system is also inhabited, so its mark is the inhabited symbol), each card lists the habitable reason with its best tier, and the
+    system whose only world is Red (below the Yellow floor) has no mark."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    found = _markers_until(page, lambda entries: {"Fixture Eden", "Fixture Rest"} <= {e["name"] for e in entries})
+    marks = {e["name"]: e["kind"] for e in found if e["name"]}
+    assert marks["Fixture Eden"] == "marker-habitable" and marks["Fixture Rest"] == "marker-inhabited", marks
+    assert "Fixture Rock" not in marks, "a system with only a Red world has no mark"
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    for name, wanted in (("Fixture Eden", "2 habitable worlds, best Green"), ("Fixture Rest", "1 habitable world, best Yellow")):
+        mark = next(e for e in found if e["name"] == name)
+        spot = _screen_of(page, (mark["x"], mark["y"], mark["z"]))
+        assert spot
+        page.mouse.move(*spot)
+        page.mouse.move(spot[0] + 1, spot[1])
+        page.mouse.click(*spot)
+        assert page.locator("#galaxymap3d-info h3").inner_text() == name
+        assert wanted in page.locator("#galaxymap3d-info").inner_text()
+
+
+def test_the_points_of_interest_menu_group_shows_pulls_forward_or_hides_each_kind_and_remembers_it(page, map_site):
+    """MAP.306: the Menu's Points of interest group has a row for each reason, whose second button pulls it forward (drawn over the
+    other marks, named first); a crowd takes its strongest member's state; hiding a kind takes its marks away; one row sets every
+    kind at once; the address (`front=`, `hide=`) and the browser keep the choice."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    _open_menu(page)
+    kinds = page.locator("#galaxymap3d-kinds")
+    assert "Points of interest" in kinds.inner_text()
+    forward = {layer: kinds.locator(f'button[data-forward="{layer}"]') for layer in POI_LAYERS}
+    assert all(button.count() == 1 for button in forward.values())
+    assert all(forward[layer].get_attribute("aria-pressed") == "false" for layer in POI_LAYERS)
+    assert forward["marker-uninhabitable"].is_disabled(), "a hidden row cannot be pulled forward by its own button"
+    # Pull the gas giants forward: their marks are drawn in front and named first.
+    forward["marker-gas-giant"].click()
+    assert "front=marker-gas-giant" in page.url
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-gas-giant" and e["pulled"] for e in entries))
+    assert {e["name"] for e in found if e["kind"] == "marker-gas-giant" and e["pulled"]} == {"Fixture Jove", "Fixture Eden"}, found
+    assert not [e for e in found if e["kind"] != "marker-gas-giant" and e["pulled"]]
+    page.wait_for_function(f"() => ({LABELS})().some((l) => l.kind === 'world' && l.text === 'Fixture Jove')", timeout=20000)
+    # Hide the habitable worlds: none of their marks is drawn.
+    kinds.locator('button[data-layer="marker-habitable"]').click()
+    found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-habitable" for e in entries))
+    assert not [e for e in found if e["kind"] == "marker-habitable"]
+    assert "hide=marker-habitable" in page.url
+    # A reload keeps the choices, from the address ...
+    url = page.url
+    page.reload()
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+    _settle(page)
+    _open_menu(page)
+    assert page.url == url
+    assert page.locator('#galaxymap3d-kinds button[data-forward="marker-gas-giant"]').get_attribute("aria-pressed") == "true"
+    assert page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').get_attribute("aria-pressed") == "false"
+    # ... and a fresh address, from the browser.
+    _open(page, f"{map_site}/galaxy", GALAXY_CANVAS)
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+    _open_menu(page)
+    assert page.locator('#galaxymap3d-kinds button[data-forward="marker-gas-giant"]').get_attribute("aria-pressed") == "true"
+    assert page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').get_attribute("aria-pressed") == "false"
+    # The one row sets every kind: all hidden, all shown.
+    page.locator('#galaxymap3d-kinds button[data-bulk="hidden"][data-group="Points of interest"]').click()
+    assert all(page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').get_attribute("aria-pressed") == "false" for layer in POI_LAYERS)
+    page.locator('#galaxymap3d-kinds button[data-bulk="shown"][data-group="Points of interest"]').click()
+    assert all(page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').get_attribute("aria-pressed") == "true" for layer in POI_LAYERS)
+    assert all(forward[layer].get_attribute("aria-pressed") == "false" for layer in POI_LAYERS)
+    page.locator('#galaxymap3d-kinds button[data-bulk="forward"][data-group="Points of interest"]').click()
+    assert all(forward[layer].get_attribute("aria-pressed") == "true" for layer in POI_LAYERS)
+
+
+def test_a_crowd_of_marks_takes_the_state_of_its_strongest_kind(page, map_site):
+    """MAP.306: from far out the fixture's points of interest merge into one mark; with the gas giants pulled forward the crowd is a
+    gas giant's symbol, drawn in front, and with none pulled it is the best reason's symbol, not in front."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(1000)
+    crowd = lambda found: next((e for e in found if e["count"]), None)
+    found = _markers_until(page, lambda entries: crowd(entries) is not None)
+    assert crowd(found)["kind"] == "marker-inhabited" and not crowd(found)["pulled"]
+    _open_menu(page)
+    page.locator('#galaxymap3d-kinds button[data-forward="marker-gas-giant"]').click()
+    found = _markers_until(page, lambda entries: crowd(entries) and crowd(entries)["pulled"])
+    assert crowd(found)["kind"] == "marker-gas-giant" and crowd(found)["pulled"], found
+
+
+def test_galaxy_map_marks_each_system_with_its_best_worlds_symbol(page, map_site):
+    """MAP.321: with every world reason on a system has one mark, the symbol of its best world (an inhabited world before a habitable world before a barren
+    one before a gas giant before a belt), and each reason has a button of its own (the barren and belt ones off until asked for)."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    ids = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
+    _open_menu(page)
+    for layer in ids:
+        button = page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]')
+        assert button.count() == 1 and button.get_attribute("aria-pressed") == ("true" if layer in POI_DEFAULT_ON else "false"), layer
+    _poi_layers(page, *ids)
+    found = _markers_until(page, lambda entries: {e["kind"] for e in entries} >= set(ids))
+    marks = {e["name"]: e["kind"] for e in found if e["kind"] in ids}
+    assert sorted(e["name"] for e in found if e["kind"] in ids) == sorted(marks), "no system is marked twice"
+    assert marks == {
+        "Fixture Eden": "marker-habitable", "Fixture Rest": "marker-inhabited", "Fixture Rock": "marker-uninhabitable",
+        "Fixture Jove": "marker-gas-giant", "Fixture Belt": "marker-asteroid-field"}, marks
+    # Turn the habitable reason off: Eden's best remaining world is its barren one, Rest keeps its inhabited one.
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
+    found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-habitable" for e in entries))
+    marks = {e["name"]: e["kind"] for e in found if e["kind"] in ids}
+    assert marks == {
+        "Fixture Eden": "marker-uninhabitable", "Fixture Rest": "marker-inhabited", "Fixture Rock": "marker-uninhabitable",
+        "Fixture Jove": "marker-gas-giant", "Fixture Belt": "marker-asteroid-field"}, marks
+
+
+def test_a_name_is_only_offered_for_a_habitable_world_marker_that_is_drawn_and_a_sparse_view_names_them_all(page, map_site):
+    """MAP.317: the habitable-world markers are the inhabited slice of the label budget: a sparse view names every one it
+    draws that has room (the fixture's two lie close, so the one with more worlds keeps its name), and none while the marker
+    layer is off or the World names switch is."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    systems = {"Fixture Eden"}
+    _poi_layers(page)
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'world')")
+    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]')
+    button.click()
+    _markers_until(page, lambda found: any(e["kind"] == "marker-habitable" for e in found))
+    page.wait_for_function(f"([names]) => {{ const got = new Set(({LABELS})().filter((l) => l.kind === 'world').map((l) => l.text)); return names.every((n) => got.has(n)); }}",
+                           arg=[sorted(systems)], timeout=20000)
+    # The switch for the names takes them away while the markers stay.
+    page.locator('#galaxymap3d-kinds [data-label="world"]').click()
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'world')")
+    assert any(e["kind"] == "marker-habitable" for e in page.evaluate(MARKERS))
+    page.locator('#galaxymap3d-kinds [data-label="world"]').click()
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'world')")
+    # No marker drawn, no name offered.
+    button.click()
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'world')")
+
+
+def test_crowded_marks_merge_into_one_with_a_count_whose_card_lists_every_system_and_zooming_in_splits_it(page, map_site):
+    """MAP.305: from far out the fixture's five points of interest lie too close to tell apart, so they are drawn as fewer marks, a
+    crowd showing its count; a click on a crowd opens a card that lists every system in it with its reasons, and zooming in on it
+    spreads the marks until each system has its own."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(1000)
+    ids = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
+    systems = {"Fixture Eden", "Fixture Rest", "Fixture Rock", "Fixture Jove", "Fixture Belt"}
+    _poi_layers(page, *ids)
+
+    def marks(found):
+        return [e for e in found if e["kind"] in ids]
+
+    def represented(found):
+        return sorted(name for e in marks(found) for name in (e["members"] if e["count"] else [e["name"]]))
+
+    found = _markers_until(page, lambda entries: len(represented(entries)) == 5)
+    assert represented(found) == sorted(systems), found
+    crowds = [e for e in marks(found) if e["count"]]
+    assert crowds and len(marks(found)) < 5, "the close systems are drawn as fewer marks"
+    crowd = max(crowds, key=lambda e: e["count"])
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.wait_for_timeout(300)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    spot = _screen_of(page, (crowd["x"], crowd["y"], crowd["z"]))
+    assert spot
+    page.mouse.move(*spot)
+    page.mouse.move(spot[0] + 1, spot[1])
+    page.wait_for_timeout(200)
+    assert f"{crowd['count']} points of interest" in page.locator("#galaxymap3d-tooltip").inner_text()
+    page.mouse.click(*spot)
+    assert page.locator("#galaxymap3d-info h3").inner_text() == f"{crowd['count']} points of interest"
+    info = page.locator("#galaxymap3d-info").inner_text()
+    assert all(name in info for name in crowd["members"]), info
+    page.locator("#galaxymap3d-info button", has_text="Zoom in on them").click()
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    after = _markers_until(page, lambda entries: not any(e["count"] and e["count"] >= crowd["count"] and e["members"] == crowd["members"] for e in entries))
+    assert represented(after) == sorted(systems)
+    assert not any(e["members"] == crowd["members"] for e in marks(after)), "zooming in splits the crowd"
+
+
+def test_an_inhabited_world_marker_is_offered_a_name_for_as_long_as_it_is_drawn(page, map_site):
+    """MAP.321 d: an inhabited token is a candidate for a name of the inhabited slice (the budget's order of the two is the unit test's):
+    with only the inhabited layer on the fixture's inhabited world is named and the habitable one that lies close is not, with both on
+    both are, and with both off no world name is offered for a token that is not drawn."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    worlds = f"() => ({LABELS})().filter((l) => l.kind === 'world').map((l) => l.text).sort()"
+    _poi_layers(page)
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
+    _markers_until(page, lambda found: any(e["kind"] == "marker-inhabited" for e in found))
+    page.wait_for_function(f"() => ({LABELS})().some((l) => l.kind === 'world' && l.text === 'Fixture Rest')", timeout=20000)
+    assert page.evaluate(worlds) == ["Fixture Rest"]
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
+    page.wait_for_function(f"() => ({LABELS})().some((l) => l.kind === 'world' && l.text === 'Fixture Eden')", timeout=20000)
+    assert page.evaluate(worlds) == ["Fixture Eden", "Fixture Rest"]
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
+    page.wait_for_function(f"() => !({LABELS})().some((l) => l.kind === 'world')", timeout=20000)
+
+
+SECTOR_FRAME = "() => { const f = document.querySelector('#galaxymap3d-canvas').__mapSectorFrame; return f && f.state(); }"
+SECTOR_VIEW = "() => document.querySelector('#galaxymap3d-canvas').galaxySectorView()"
+SECTOR_FRAME_LINES = "() => document.querySelector('#galaxymap3d-canvas').__mapSectorFrame.positions()"
+
+
+def test_the_opened_sector_is_framed_and_dimmed_around_with_a_labelled_icon_on_each_wall_that_flies_to_the_neighbour(page, map_site):
+    """MAP.327: with a sector opened in place the space outside it is dimmed (no glow), a wireframe round its cell stays
+    where the cell is, and each wall facing another sector has one labelled icon at its centre whose click arrives there."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, wall_icons=True)
+    assert page.evaluate(SECTOR_VIEW)["outsideDim"] == 1 and page.evaluate(SECTOR_FRAME)["framed"] is False
+    _open_galaxy(page, map_site, OPEN_PRIME, wall_icons=True)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_function(f"() => {{ const f = ({SECTOR_FRAME})(); return f && f.framed && f.icons.some((i) => i.shown); }}", timeout=20000)
+    _settle(page)
+    view = page.evaluate(SECTOR_VIEW)
+    assert view == {"outsideDim": 0.3, "glowVisible": False, "opened": True}, view
+    state = page.evaluate(SECTOR_FRAME)
+    names = [icon["name"] for icon in state["icons"]]
+    assert names and len(set(names)) == len(names) and all(name.startswith("Sector ") for name in names), names
+    # Each shown icon stands at the centre of its wall, the icon's own button what the page shows there.
+    shown = [icon for icon in state["icons"] if icon["shown"]]
+    assert shown
+    for icon in shown:
+        spot = _screen_of(page, tuple(icon["wall"]))
+        assert spot
+        on = page.evaluate("([x, y]) => { const e = document.elementFromPoint(x, y); const b = e && e.closest('.map-wall-icon'); return b && b.dataset.dir; }", [spot[0], spot[1]])
+        assert on == icon["dir"], (icon["dir"], on)
+    # The frame is fixed: the pointer moving over the map changes nothing of it.
+    before = page.evaluate(SECTOR_FRAME_LINES)
+    page.mouse.move(300, 300)
+    page.mouse.move(420, 360)
+    page.wait_for_timeout(300)
+    assert page.evaluate(SECTOR_FRAME_LINES) == before
+    # A click on an icon arrives at that neighbour: the address names it, the frame is round it.
+    target = shown[0]
+    designation = target["name"].replace("Sector ", "")
+    page.locator(f'.map-wall-icon[data-dir="{target["dir"]}"]').click()
+    page.wait_for_function("([d]) => location.search.includes('sector=' + d)", arg=[designation], timeout=20000)
+    _settle(page)
+    assert page.evaluate(SECTOR_FRAME_LINES) != before or not page.evaluate(SECTOR_VIEW)["opened"]
+
+
+def _sector_in_address(page):
+    return parse_qs(urlparse(page.url).query).get("sector", [None])[0]
+
+
+CENTRE_NOW = """() => { const c = document.querySelector("#galaxymap3d-canvas").galaxyStage().win.centre;
+    return [c.m, c.shell, c.band, c.wedge].join("."); }"""
+
+
+def _sector_centre(page):
+    """The sector the view is on, `m.shell.band.wedge` (m is 1), as the window it sits in names it."""
+    return page.evaluate(CENTRE_NOW)
+
+
+def _wait_off(page, was):
+    page.wait_for_function(f"([was]) => ({CENTRE_NOW})() !== was", arg=[was], timeout=20000)
+    _settle(page)
+    return _sector_centre(page)
+
+
+def test_the_step_buttons_and_keys_go_from_an_opened_sector_to_the_sector_beside_it_and_back(page, map_site):
+    """MAP.121: with a sector opened in place the Menu's step buttons and the keys take the view to the sector across
+    the wall in that direction (the step the Galaxy Map's windows use and MAP.327's wall icons call), in one camera move
+    with the address naming it; a button is off where the wall faces nothing, and a sideways step back lands where it
+    left."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    _settle(page)
+    start = _sector_centre(page)
+    assert start.startswith("1."), start
+    assert _sector_in_address(page) == PRIME_CODE
+
+    def enabled():
+        return page.eval_on_selector_all(
+            "#galaxymap3d-controls [data-action=step]",
+            "els => Object.fromEntries(els.map(e => [e.dataset.step, !e.disabled]))")
+
+    ways = enabled()
+    assert set(ways) == {"north", "south", "east", "west", "in", "out"}
+    assert ways["out"] and any(ways.values()), ways
+
+    # Out, with the Menu's button: the sector across the outer wall, the address naming it.
+    page.click("#galaxymap3d-menu > summary")
+    page.click('#galaxymap3d-controls [data-step="out"]')
+    outer = _wait_off(page, start)
+    assert outer.split(".")[1] == str(int(start.split(".")[1]) + 1), (start, outer)
+    assert _sector_in_address(page) not in (None, PRIME_CODE)
+
+    # In again, with the key: the sector across the inner wall (not always the one it came from: the rings differ in how
+    # many sectors they hold, so a step out and back need not land on the same cell).
+    page.locator(GALAXY_CANVAS).focus()
+    page.keyboard.press("[")
+    here = _wait_off(page, outer)
+    assert here.split(".")[1] == start.split(".")[1], (start, outer, here)
+
+    # Sideways with the arrow keys: a step east then west lands on the same sector.
+    if enabled()["east"]:
+        page.keyboard.press("Alt+Shift+ArrowRight")
+        east = _wait_off(page, here)
+        assert east.split(".")[1] == here.split(".")[1], (here, east)
+        page.keyboard.press("Alt+Shift+ArrowLeft")
+        assert _wait_off(page, east) == here
 
 
 def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
@@ -2490,6 +3393,7 @@ def test_sector_map_escape_clears_the_selection(page, map_site):
     assert page.url.split("?")[0].endswith(f"/sector/{SECTOR_ID}"), page.url
 
 
+@pytest.mark.names_hidden
 def test_sector_map_click_on_the_selected_nebula_clears_it(page, map_site):
     """MAP.113: a nebula can be unselected by clicking it again, which is all
     there is to click when it covers the sector."""
@@ -2666,6 +3570,137 @@ def test_galaxy_map_names_the_bodies_of_an_open_system_down_to_a_planet(page, ma
     page.click("#galaxymap3d-menu > summary")
     page.click('#galaxymap3d-kinds [data-label="body"]')
     page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'body')")
+
+
+def test_the_bodies_of_an_open_system_carry_their_own_symbols_by_the_same_layers(page, map_site):
+    """MAP.321: with a system open in place its planets, moons and belt carry their own symbol (an inhabited Green world, a gas
+    giant, a barren moon, an asteroid belt) in the layers the Menu has on, the symbols ride the bodies, a layer that is off draws
+    none, and leaving the system takes them away."""
+    _open_system_in_place(page, map_site)
+    ids = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__bodyMarkersOn()") is True
+    _poi_layers(page, *ids)
+    found = _markers_until(page, lambda entries: {e["kind"] for e in entries} >= {"marker-inhabited", "marker-gas-giant",
+                                                                                  "marker-uninhabitable", "marker-asteroid-field"})
+    kinds = sorted(e["kind"] for e in found if e["kind"] in ids)
+    assert kinds.count("marker-inhabited") == 1 and kinds.count("marker-gas-giant") == 1, kinds
+    assert kinds.count("marker-asteroid-field") == 1 and kinds.count("marker-uninhabitable") >= 1, kinds
+    assert "marker-habitable" not in kinds, "the Green world is inhabited, so it carries the inhabited symbol alone"
+    inhabited = next(e for e in found if e["kind"] == "marker-inhabited")
+    assert inhabited["name"].endswith(" I"), inhabited
+    # MAP.321 d: the inhabited body's name is offered in the inhabited slice of the label budget, the rest stay in the uninhabited one
+    slices = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapBodyNames().map((l) => [l.text, l.slice.domain, !!l.slice.inhabited])")
+    assert [s for s in slices if s[1] == "inhabited"] == [[inhabited["name"], "inhabited", True]], slices
+    assert any(s[1] == "uninhabited" for s in slices), slices
+    # the symbol rides its body: where the marker is is where the body is
+    refs = _galaxy_system(page)["refs"]
+    assert "planet:1" in refs
+    spot = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySystem().screen('planet:1')")
+    assert spot is not None
+    # a layer that is off draws none of its symbols
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-gas-giant"]').click()
+    found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-gas-giant" for e in entries))
+    assert not [e for e in found if e["kind"] == "marker-gas-giant"]
+    assert any(e["kind"] == "marker-inhabited" for e in found)
+    # leaving the system hands the symbols back to the stars
+    page.click('#galaxymap3d-controls [data-action="up"]')
+    _wait_system(page, present=False)
+    found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-inhabited" and e["name"].endswith(" I") for e in entries))
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__bodyMarkersOn()") is False
+    assert not [e for e in found if e["kind"] == "marker-inhabited" and e["name"].endswith(" I")]
+
+
+def test_the_bodies_of_an_open_system_carry_the_life_and_class_symbols_when_those_layers_are_on(page, map_site):
+    """MAP.343: with a system open in place its bodies carry the symbols of the reasons to look (life, sentient life, a civilization)
+    and of the planet classes when the Menu has them on (they are off until chosen), the strongest reason that is on names a body's
+    symbol, and a layer that is off draws none."""
+    _open_system_in_place(page, map_site)
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__bodyMarkersOn()") is True
+    _poi_layers(page)    # no world reason on
+    found = _markers_until(page, lambda entries: not [e for e in entries if e["kind"] != "marker-black-hole"])
+    assert not [e for e in found if e["kind"] != "marker-black-hole"], "the life and class layers are off until chosen"
+    kinds = page.locator("#galaxymap3d-kinds")
+
+    def named(layer):
+        entries = _markers_until(page, lambda found: any(e["kind"] == layer for e in found))
+        return sorted(e["name"] for e in entries if e["kind"] == layer)
+
+    kinds.locator('button[data-layer="marker-life"]').click()
+    life = named("marker-life")
+    assert len(life) == 2 and life[0].endswith(" I") and life[1].endswith(" I a"), life    # the first planet and its first moon
+    kinds.locator('button[data-layer="marker-sentient"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-sentient" for e in entries))
+    sentient = [e["name"] for e in found if e["kind"] == "marker-sentient"]
+    life_left = [e["name"] for e in found if e["kind"] == "marker-life"]
+    assert len(sentient) == 1 and sentient[0].endswith(" I") and sentient[0] not in life_left, (sentient, life_left)
+    kinds.locator('button[data-layer="marker-civilization"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-civilization" for e in entries))
+    civ = [e["name"] for e in found if e["kind"] == "marker-civilization"]
+    assert civ == sentient and not [e for e in found if e["kind"] == "marker-sentient"], (civ, found)
+    kinds.locator('button[data-layer="marker-class-F"]').click()
+    kinds.locator('button[data-layer="marker-class-J"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-class-J" for e in entries))
+    assert [e["name"] for e in found if e["kind"] == "marker-class-J"] and [e["name"] for e in found if e["kind"] == "marker-class-J"][0].endswith(" II")
+    assert not [e for e in found if e["kind"] == "marker-class-F"], "the first planet is a civilization, which is the stronger reason"
+    kinds.locator('button[data-layer="marker-life"]').click()
+    kinds.locator('button[data-layer="marker-sentient"]').click()
+    kinds.locator('button[data-layer="marker-civilization"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-class-F" for e in entries))
+    assert [e["name"] for e in found if e["kind"] == "marker-class-F"][0].endswith(" I")
+    assert not [e for e in found if e["kind"] in ("marker-life", "marker-sentient", "marker-civilization")]
+
+
+def _nearest_that_way(here, others, direction, cone_deg=60.0):
+    """The rule of static/systemstep.js worked out independently: the nearest of `others` (name, x, y, z) from `here` in
+    the cone about `direction` in the galaxy's frame at `here`, or None."""
+    x, y, z = here
+    plane = math.hypot(x, y)
+    r = math.hypot(plane, z)
+    east = (-y / plane, x / plane, 0.0)
+    south = (z * x / (plane * r), z * y / (plane * r), -plane / r)
+    out = (x / r, y / r, z / r)
+    axis = {"out": out, "in": tuple(-v for v in out), "east": east, "west": tuple(-v for v in east),
+            "south": south, "north": tuple(-v for v in south)}[direction]
+    best = None
+    for name, ox, oy, oz in others:
+        offset = (ox - x, oy - y, oz - z)
+        distance = math.dist(offset, (0.0, 0.0, 0.0))
+        if distance > 0 and sum(a * b for a, b in zip(offset, axis)) / distance >= math.cos(math.radians(cone_deg)):
+            if best is None or distance < best[0]:
+                best = (distance, name)
+    return best[1] if best else None
+
+
+def test_the_step_buttons_and_keys_go_from_an_open_system_to_the_nearest_system_that_way(page, map_site):
+    """MAP.121: with a system opened in place the step buttons and keys take the view to the nearest system of the sector
+    lying that way (north, south, east, west, out, in, in the galaxy's frame at the system), keeping the scale; a button
+    is off where no system lies that way."""
+    _open_system_in_place(page, map_site)
+    centre = _sector_center_pc(*next(s[1:4] for s in SECTORS if s[0] == SECTOR_ID))
+    # The sector scene turns y back to the galaxy's own (flipY), so a system's y runs the other way from its stored one.
+    places = {name: (centre[0] + x / 1000.0, centre[1] - y / 1000.0, centre[2] + z / 1000.0) for _i, name, x, y, z, _s in SYSTEMS}
+    here = places["Middling Sun"]
+    others = [(name, *place) for name, place in places.items() if name != "Middling Sun"]
+    expected = {d: _nearest_that_way(here, others, d) for d in ("north", "south", "east", "west", "in", "out")}
+    assert any(expected.values()), expected
+
+    def enabled():
+        return page.eval_on_selector_all(
+            "#galaxymap3d-controls [data-action=step]",
+            "els => Object.fromEntries(els.map(e => [e.dataset.step, !e.disabled]))")
+
+    assert enabled() == {d: name is not None for d, name in expected.items()}, (enabled(), expected)
+    direction = next(d for d, name in expected.items() if name)
+    was = _galaxy_system(page)["id"]
+    page.click("#galaxymap3d-menu > summary")
+    page.click(f'#galaxymap3d-controls [data-step="{direction}"]')
+    page.wait_for_function("([was]) => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); return !!s && s.id !== was && !s.flying; }",
+                           arg=[was], timeout=20000)
+    _settle(page)
+    state = _galaxy_system(page)
+    assert state["name"] == expected[direction] and state["mode"] == "compressed", (direction, expected, state)
+    assert f"&system={state['id']}" in _query(page)
+    assert _crumbs(page)[-1] == expected[direction], _crumbs(page)
 
 
 def test_a_close_pairs_two_orbits_are_drawn_each_at_its_share(page, map_site):
@@ -3154,6 +4189,7 @@ def _hover_spot(page, point):
     pytest.fail(f"nothing under the pointer at {point}")
 
 
+@pytest.mark.names_hidden
 def test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view(page, halo_site):
     """MAP.243: beyond the galaxy's outline no block is under the pointer; a phenomenon there is picked on the screen
     like one inside a window, its details shown."""
@@ -3167,6 +4203,7 @@ def test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view(page, halo_
     page.wait_for_function("() => { const h = document.querySelector('#galaxymap3d-info h3'); return h && h.textContent.includes('Fixture Outlier'); }")
 
 
+@pytest.mark.names_hidden
 def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(page, halo_site):
     """MAP.243: a star of a loose group beyond the outline is picked (its position and brightness shown), and the
     wheel run toward it hands off to a window round the cell that holds it, where there was no block to open before.
@@ -3202,6 +4239,7 @@ def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(pa
     assert math.dist(camera["target"], point) < 2500.0, (camera["target"], point)
 
 
+@pytest.mark.names_hidden
 @pytest.mark.viewport(1280, 900)
 def test_a_selection_is_shown_once_and_over_the_map(page, map_site):
     """MAP.256: an opened sector (selected on opening) and a system picked in it each show their information in one
@@ -3370,10 +4408,9 @@ def test_galaxy_map_info_popup_scrolls_with_the_wheel_and_hands_the_rest_to_the_
 def _open_habitable_card(page, base, name, width=1280, height=900):
     """The Galaxy Map's card for one fixture system with a habitable world, opened from the marker's button."""
     page.set_viewport_size({"width": width, "height": height})
-    _open_window(page, base, 27, 27, 0, 0, g=3)
+    _open_star_field(page, base)
     page.wait_for_timeout(500)
-    _open_menu(page)
-    page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
+    _poi_layers(page, "marker-habitable")
     _markers_until(page, lambda found: any(e["kind"] == "marker-habitable" for e in found))
     page.locator(".starmap-sr-markers button", has_text=name).evaluate("b => b.click()")
     assert page.locator("#galaxymap3d-info h3").inner_text() == name
@@ -3470,3 +4507,192 @@ def test_galaxy_map_system_nearest_route_answers_json(page, map_site):
     names = [n["name"] for n in body["nearest"]]
     assert names[0] == "Fixture Rest" and len(names) <= 3 and body["nearest"][0]["url"] == "/system/9002", names
     assert page.request.get(map_site + "/galaxy/system/424242/nearest").status == 404
+
+
+def test_galaxy_map_names_the_heaviest_sectors_first_by_their_total_mass(page, map_site):
+    """MAP.322: the sectors offered a name are ranked by the total mass of what they hold (the stored `mass_sum`), the heaviest first, so
+    a crowded region names its heaviest sectors and a sparse one names them all. The fixture's three sectors in this window hold
+    1.2e32, 3e31 and 0 kg; the label engine places them in that order."""
+    _open_window(page, map_site, 1, 9, 1, 4, g=3)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapSectorNames().length === 3")
+    offered = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapSectorNames().map(l => [l.text, l.slice.massKg])")
+    assert dict(offered) == {"Fixture Second": 1.2e32, "Fixture High": 3e31, "Fixture Shell Nine": 0}, offered
+    page.wait_for_function(f"() => ({LABELS})().filter((label) => label.kind === 'sector').length === 3")
+    placed = [label["text"] for label in page.evaluate(LABELS) if label["kind"] == "sector"]
+    assert placed == ["Fixture Second", "Fixture High", "Fixture Shell Nine"], placed
+
+
+BLOCK_LIKE_CARD = """() => {
+    const panel = document.querySelector("#galaxymap3d-canvas").__mapInfo;
+    const region = document.createElement("p");
+    region.className = "map-info-region";
+    region.textContent = "In the Fixture Region";
+    panel.show({title: "Block 10·1·63 (9 sectors a side)",
+        fields: [["Sectors", "469"], ["Charted", "0"], ["Distance from core", "376 pc (1,226 ly)"]],
+        more: [["Shells", "90-98"], ["Row", "1 of 12"], ["Wedge", "63 of 130"]],
+        after: [region],
+        buttons: [{label: "Fly into this block", onClick: function () {}}]});
+}"""
+
+CARD_REACH = """() => {
+    const info = document.querySelector("#galaxymap3d-info");
+    const view = document.querySelector(".galaxymap3d-panel .starmap-viewport").getBoundingClientRect();
+    const box = info.getBoundingClientRect();
+    const button = [...info.querySelectorAll("button")].find((b) => b.textContent.includes("Fly into this block"));
+    const region = info.querySelector(".map-info-region");
+    const content = info.scrollHeight;
+    info.scrollTop = info.scrollHeight;
+    const reach = (el) => { const r = el.getBoundingClientRect(); return r.top >= box.top - 1 && r.bottom <= box.bottom + 1; };
+    return {content: content, height: box.height, view: view.height, scrolls: info.scrollHeight > info.clientHeight + 1,
+            buttonReachable: !!button && reach(button), regionReachable: !!region && reach(region)};
+}"""
+
+
+@pytest.mark.parametrize("width,height", [(1000, 560), (800, 520), (390, 640)])
+def test_galaxy_map_info_card_sizes_to_its_content_and_keeps_its_buttons_and_region_line_reachable_in_a_short_window(page, map_site, width, height):
+    """MAP.332: the card is as tall as what it says, up to the map window's height, and past that it scrolls inside itself; its
+    region line and its buttons are never left below the fold of a short window."""
+    page.set_viewport_size({"width": width, "height": height})
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(500)
+    page.evaluate(BLOCK_LIKE_CARD)
+    page.evaluate("() => { document.querySelector('#galaxymap3d-info .map-info-more').open = true; }")   # the card fits itself again
+    page.wait_for_timeout(300)
+    got = page.evaluate(CARD_REACH)
+    assert got["buttonReachable"] and got["regionReachable"], got
+    # Sized to its content: when the content fits in the window the card shows it whole with no scroll.
+    if got["content"] <= got["view"] - 16:
+        assert not got["scrolls"], got
+
+
+# --- MAP.333: zoom Z0: moves are held by the global limits, not the stage's range -------------------------------------
+
+CAMERA_NOW = "() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()"
+STAGE_M = "() => { const s = document.querySelector('#galaxymap3d-canvas').galaxyStage(); return s.win ? s.win.centre.m : null; }"
+
+
+def _slider_to(page, share, seconds=7.0):
+    """Sets the zoom slider as a drag to `share` would (an input event) and waits for the view to come to rest."""
+    page.evaluate("(v) => { const s = document.querySelector('#galaxymap3d-zoom-slider'); s.value = String(Math.round(v * 1000)); "
+                  "s.dispatchEvent(new Event('input', {bubbles: true})); }", share)
+    page.wait_for_timeout(int(seconds * 1000))
+    return page.evaluate(CAMERA_NOW)
+
+
+def _slider_distance(share, far=37202.0, floor=1e-10):
+    """The camera distance (parsecs) the slider's `share` stands for: one log scale from the whole galaxy to the floor."""
+    return math.exp(math.log(far) - share * (math.log(far) - math.log(floor)))
+
+
+def test_a_fly_to_lands_where_it_was_asked_with_no_snap_back_to_the_stage_range(page, map_site):
+    """MAP.333: a region, a sector or a system flown to is reached at the distance asked for, not at the nearest its stage allows,
+    and the camera stays there: from the whole galaxy a region of 3 pc is framed from a few parsecs, not from half the galaxy."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const l = document.querySelector('#galaxymap3d-canvas').__mapRegionList; return l && l.order().length === 2; }", timeout=20000)
+    fly = "([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})"
+    for centre, radius in (([2.83, 2.83, 0.0], 12.0), ([2.83, 2.83, 0.0], 3.0)):
+        page.evaluate(fly, [centre, radius])
+        page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+        _settle(page)
+        landed = page.evaluate(CAMERA_NOW)["dist"]
+        assert landed < 4.0 * radius, (radius, landed)
+        page.wait_for_timeout(1200)
+        assert abs(page.evaluate(CAMERA_NOW)["dist"] - landed) < 1e-6 * landed, "the view snapped back after the flight"
+    # A sector opened in place, and a system gone in to: a tiny sphere in each is framed closely too.
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_selector(".starmap-sr-list button", state="attached")
+    page.locator(".starmap-sr-list button", has_text="Middling Sun").first.evaluate("b => b.click()")
+    _settle(page)
+    _slider_to(page, 0.6)
+    _wait_system(page)
+    target = page.evaluate(CAMERA_NOW)["target"]
+    page.evaluate(fly, [target, 2e-5])
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    landed = page.evaluate(CAMERA_NOW)["dist"]
+    assert landed < 2e-4, landed
+    page.wait_for_timeout(1200)
+    assert abs(page.evaluate(CAMERA_NOW)["dist"] - landed) < 1e-6 * landed
+
+
+def test_the_zoom_slider_is_one_log_scale_and_takes_the_view_through_every_level_and_back(page, map_site):
+    """MAP.333: the slider stands for the camera's distance on one scale from the whole galaxy to a moon, the same wherever the view
+    is, and a drag carries the view across every level (the windows of 81 to 1, the sector, the system) as the wheel does."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...c)", [list(STAR_FIELD_CENTER_PC)])
+    _settle(page)
+    seen = {}
+    for share in (0.05, 0.15, 0.2, 0.25):
+        camera = _slider_to(page, share)
+        asked = _slider_distance(share)
+        assert abs(math.log(camera["dist"] / asked)) < 0.05, (share, asked, camera["dist"])
+        seen[share] = page.evaluate(STAGE_M)
+    assert seen == {0.05: 81, 0.15: 27, 0.2: 3, 0.25: 1}, seen
+    # The slider follows the camera it is not holding: the wheel moves it to where the camera's distance stands on the scale.
+    shown = page.evaluate("() => Number(document.querySelector('#galaxymap3d-zoom-slider').value) / 1000")
+    assert abs(shown - 0.25) < 0.02, shown
+    assert abs(_slider_to(page, 0.0)["dist"] / 37202.0 - 1) < 0.2
+    assert page.evaluate(STAGE_M) is None, "all the way out is the whole galaxy"
+    # Down to a sector and a system opened from a star, and out again.
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_selector(".starmap-sr-list button", state="attached")
+    page.locator(".starmap-sr-list button", has_text="Middling Sun").first.evaluate("b => b.click()")
+    _settle(page)
+    _slider_to(page, 0.6)
+    assert (_galaxy_system(page) or {}).get("id"), "the slider carried the view into the system"
+    camera = _slider_to(page, 1.0)
+    assert camera["dist"] < 1e-9, camera["dist"]
+    _slider_to(page, 0.3)
+    assert not (_galaxy_system(page) or {}).get("id"), "and back out of it"
+    assert _slider_to(page, 0.0)["dist"] > 1e4
+
+
+def test_the_zoom_range_is_one_absolute_range_in_every_stage_and_the_nearest_thing_sets_the_step(page, map_site):
+    """MAP.334: what the camera may do does not depend on the stage: the farthest is the whole galaxy in view in a window, a sector and a
+    system alike, the nearest 1e-3 pc outside a system (until the scene has the precision for finer) and 1e-10 pc in one; and the wheel
+    reads the nearest thing along the pointer's ray, with the distance to it."""
+    page.set_viewport_size(VIEWPORT)
+    limits_js = "() => document.querySelector('#galaxymap3d-canvas').galaxyZoomLimits()"
+    _open_galaxy(page, map_site)
+    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...c)", [list(STAR_FIELD_CENTER_PC)])
+    _settle(page)
+    seen = {}
+    for share in (0.15, 0.2, 0.25):
+        _slider_to(page, share)
+        limits = page.evaluate(limits_js)
+        seen[page.evaluate(STAGE_M)] = limits
+        assert abs(limits["farthestPc"] / 37202.0 - 1) < 0.01, limits
+        assert limits["nearestPc"] <= 1e-3 * (1 + 1e-6), limits
+    assert set(seen) == {27, 3, 1}, seen
+    # The nearest thing along a ray: at the middle of the map, with the eye's distance to it.
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    thing = page.evaluate("([x, y]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(x, y)",
+                          [box["x"] + box["width"] / 2, box["y"] + box["height"] / 2])
+    eye = page.evaluate(CAMERA_NOW)["eye"]
+    assert thing["kind"] in ("star", "pick", "column", "plane", "body"), thing
+    assert abs(thing["distance"] - math.dist(eye, thing["point"])) < 1e-6 * thing["distance"], thing
+    # In a system the nearest is a moon framed, the farthest still the whole galaxy.
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_selector(".starmap-sr-list button", state="attached")
+    page.locator(".starmap-sr-list button", has_text="Middling Sun").first.evaluate("b => b.click()")
+    _settle(page)
+    _slider_to(page, 0.6)
+    assert (_galaxy_system(page) or {}).get("id"), "the slider carried the view into the system"
+    limits = page.evaluate(limits_js)
+    assert abs(limits["nearestPc"] / 1e-10 - 1) < 0.01 and abs(limits["farthestPc"] / 37202.0 - 1) < 0.01, limits
+
+
+def test_the_wheel_does_not_stop_at_the_end_of_a_window_whose_sector_was_picked(page, map_site):
+    """MAP.333: scrolling out of the window of sectors carries on to the larger windows however it was reached: the wheel
+    at the end of the range goes to the parent window (it used to let go of a picked sector first and stop there)."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...c)", [list(STAR_FIELD_CENTER_PC)])
+    _settle(page)
+    _slider_to(page, 0.25)
+    assert page.evaluate(STAGE_M) == 1
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    assert _wheel_until(page, 400, lambda: page.evaluate(STAGE_M) != 1, ticks=240), "the wheel stopped at the end of the sector window"

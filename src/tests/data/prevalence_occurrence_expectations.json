@@ -1,0 +1,89 @@
+{
+ "anomalies": {
+  "GEN.828": "hot Jupiters per M dwarf are about 0.07 to 0.12 against under 0.002 observed",
+  "GEN.829": "planets of 10 to 50 Earth masses outnumber those of 2 to 10: the mass function is inverted against observation"
+ },
+ "errors": {
+  "anomaly": ""
+ },
+ "hangs": {
+  "anomaly": ""
+ },
+ "reference": {
+  "groups": {
+   "KGF": [
+    "K5V",
+    "G2V",
+    "F5V"
+   ],
+   "M": [
+    "M2V"
+   ]
+  },
+  "kind": "observed rates (recalled by Aux 16, tier T2/T3, unverified)",
+  "seeds": "the system census's: crc32 of 'system:<star>' (tests.audit.prevalence.seed_for)",
+  "systems_per_type": 100
+ },
+ "types": {
+  "KGF": {
+   "measures": {
+    "cold_giants": {
+     "kind": "observed",
+     "max": 0.25,
+     "min": 0.05,
+     "source": "giants at 1 to 10 AU about 0.10 to 0.15 per FGK star (Fulton et al. 2021, 0.3 to 10 AU)"
+    },
+    "earth_mass_in_hz": {
+     "kind": "observed",
+     "max": 0.8,
+     "min": 0.12,
+     "source": "Earth-mass planets in the ecosphere (eta-Earth) 0.2 to 0.6 per Sun-like star (Bryson et al. 2021, Petigura et al. 2018), widened for 300 stars"
+    },
+    "giants": {
+     "kind": "observed",
+     "max": 0.35,
+     "min": 0.08,
+     "source": "giants of 100 Earth masses or more about 0.15 to 0.25 per FGK star (Wright et al. 2012, Fulton et al. 2021)"
+    },
+    "hot_jupiters": {
+     "kind": "observed",
+     "max": 0.02,
+     "min": 0.0,
+     "source": "hot Jupiters about 0.005 to 0.01 per FGK star (Wright et al. 2012; Fressin et al. 2013: 0.0043), widened for 300 stars"
+    },
+    "inner_planets": {
+     "anomaly": "GEN.829",
+     "kind": "observed",
+     "max": 1.6,
+     "min": 0.4,
+     "source": "1 to 20 Earth-mass planets inside 0.5 AU about 0.5 to 1 per FGK star (Fressin et al. 2013, Zhu et al. 2018, Petigura et al. 2018)"
+    },
+    "super_earths_per_neptune": {
+     "anomaly": "GEN.829",
+     "kind": "observed",
+     "max": 12.0,
+     "min": 1.0,
+     "source": "planets of 2 to 10 Earth masses outnumber those of 10 to 50: the mass function falls steadily above about 10 Earth masses (Fressin et al. 2013, Petigura et al. 2018)"
+    }
+   }
+  },
+  "M": {
+   "measures": {
+    "giants": {
+     "anomaly": "GEN.828",
+     "kind": "observed",
+     "max": 0.12,
+     "min": 0.0,
+     "source": "giants about 0.03 to 0.06 per M dwarf (Johnson et al. 2010, Bonfils et al. 2013), widened for 100 stars"
+    },
+    "hot_jupiters": {
+     "anomaly": "GEN.828",
+     "kind": "observed",
+     "max": 0.01,
+     "min": 0.0,
+     "source": "hot Jupiters under 0.002 per M dwarf (Johnson et al. 2010; transit surveys), widened for 100 stars"
+    }
+   }
+  }
+ }
+}

@@ -63,3 +63,96 @@ def test_an_object_page_has_a_contents_list_whose_links_reach_their_headings(bro
         assert page.evaluate("id => document.getElementById(id).closest('details').open", target) is True
     finally:
         context.close()
+
+
+OWN_CONTENTS_JS = """() => {
+    const main = document.getElementById("main");
+    if (!main) return {auto: 0, own: []};
+    const own = [...main.querySelectorAll("nav, [data-own-toc]")].filter(el => !el.closest(".page-toc")).filter(el => {
+        const anchors = [...el.querySelectorAll("a[href^='#']")].filter(a => a.getAttribute("href").length > 1 && document.getElementById(a.getAttribute("href").slice(1)));
+        return anchors.length >= 3;
+    }).map(el => el.getAttribute("aria-label") || el.className || el.localName);
+    return {auto: main.querySelectorAll(".page-toc").length, own: own};
+}"""
+"""A page's own contents lists (UX.235): a nav in <main> (or one flagged `data-own-toc`) with three or more links to
+headings or sections on the same page, next to how many automatic "On this page" bars the page shows."""
+
+PAGETOC_SOURCE = __import__("pathlib").Path(__file__).resolve().parents[1] / "html" / "static" / "pagetoc.js"
+
+
+def _toc_page(browser, body):
+    page = browser.new_page()
+    page.set_content("<main id='main'><h1>Title</h1>" + body + "</main>")
+    page.add_script_tag(path=str(PAGETOC_SOURCE))
+    return page
+
+
+HEADED = "<section><h2 id='a'>A</h2></section><section><h2 id='b'>B</h2></section><section><h2 id='c'>C</h2></section>"
+
+
+def test_the_automatic_contents_bar_skips_a_page_that_has_its_own_contents_list_and_stays_on_one_without(browser):
+    own = _toc_page(browser, "<nav aria-label='Groups'><a href='#a'>A</a> <a href='#b'>B</a> <a href='#c'>C</a></nav>" + HEADED)
+    try:
+        assert own.locator("nav.page-toc").count() == 0
+    finally:
+        own.close()
+    flagged = _toc_page(browser, "<div data-own-toc><a href='#a'>A</a> <a href='#b'>B</a> <a href='#c'>C</a></div>" + HEADED)
+    try:
+        assert flagged.locator("nav.page-toc").count() == 0
+    finally:
+        flagged.close()
+    # a nav that does not point inside the page (a site menu, the neighbours of an object) is not a contents list
+    plain = _toc_page(browser, "<nav aria-label='Neighbours'><a href='/x'>X</a> <a href='/y'>Y</a> <a href='/z'>Z</a></nav>" + HEADED)
+    try:
+        assert plain.locator("nav.page-toc a").count() == 3
+    finally:
+        plain.close()
+    bare = _toc_page(browser, HEADED)
+    try:
+        assert bare.locator("nav.page-toc a").count() == 3
+    finally:
+        bare.close()
+
+
+def test_no_page_shows_two_contents_lists(browser, base_url, page_targets, admin_token):
+    """UX.235: over every page of the site, the automatic bar and a page's own contents list never both show."""
+    context = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
+    page = context.new_page()
+    two = []
+    try:
+        for endpoint, (path, _needs_admin) in sorted(page_targets.items()):
+            if path is None:
+                continue
+            page.goto(base_url + path, wait_until="load")
+            found = page.evaluate(OWN_CONTENTS_JS)
+            if found["auto"] and found["own"]:
+                two.append(f"{endpoint} {path}: automatic bar and {found['own']}")
+        assert not two, "\n".join(two)
+    finally:
+        context.close()
+
+def test_the_contents_menu_stands_at_the_left_of_a_wide_page_and_above_a_narrow_one(browser, base_url, page_targets, admin_token):
+    """UX.215: on a wide window the contents list is a menu down the left side that stays in view as the page scrolls; on a phone it is
+    a list under the title."""
+    path, _needs_admin = page_targets["web.object_page"]
+    for width, beside in ((1280, True), (390, False)):
+        context = browser.new_context(viewport={"width": width, "height": 900}, reduced_motion="reduce")
+        context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
+        page = context.new_page()
+        try:
+            page.goto(base_url + path, wait_until="load")
+            toc = page.locator("nav.page-toc[aria-label='On this page']")
+            toc.wait_for(state="attached")
+            menu = toc.bounding_box()
+            first = page.locator("main .panel").first.bounding_box()
+            if beside:
+                assert menu["x"] + menu["width"] <= first["x"] + 1, (menu, first)
+                page.mouse.wheel(0, 1500)
+                page.wait_for_timeout(300)
+                assert toc.bounding_box()["y"] >= 0 and toc.bounding_box()["y"] < 200, "the menu scrolled out of view"
+            else:
+                assert menu["y"] + menu["height"] <= first["y"] + 1, (menu, first)
+            assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"), "the page scrolls sideways"
+        finally:
+            context.close()

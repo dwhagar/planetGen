@@ -358,6 +358,45 @@ looks gone may only be between phases. Resuming a stopped run from where it
 left off, when the build is the same, is being investigated (see TEST.148 in
 the TODO).
 
+## The prevalence census (TEST.430)
+
+A standing seeded report of how often the generator makes what it makes. Part A, the class census
+(`src/tests/audit/prevalence.py`, `src/tests/test_prevalence_census.py`), draws planets and moons of six star types (M2V, K5V,
+G2V, F5V, A0V and a K0III giant) in three zones (hot, ecosphere, cold) and checks, per cell, the share of each planet and moon
+class, the share of each overall habitability colour (Blue, Green, Yellow, Red) and the share of bodies each life ceiling
+allows (complex life, microbial only, none) against `src/tests/data/prevalence_expectations.json`.
+
+- **Ranges and their kind.** Every range has a `min`, a `max`, a `kind` (`observed` rate, `norm` researched, or `stand-in` with
+  its tier and tweak level per docs/design/research/stand-in-values.md) and a `source`. The class census has no observed class
+  rates, so its ranges are stand-ins taken from the prevalence before the class cut-over: the reference commit, the draws per
+  cell and the seeds are recorded in the file's `reference`.
+- **Four flags.** A share outside its range (`out-of-range`), a class missing where expected (`missing`, a range with a `min`
+  above zero and a share of zero), a class present where the class table bars it (`barred`), and a Blue or Green share outside
+  its range (the colour measures). A planet draw that runs past 45 s is a fifth, `hang`.
+- **Known anomalies.** A range the generator is known to break carries the item that will fix it (`anomaly`), and the test fails
+  only on a flag with no such item. The report lists the known ones apart, and names a tag that no longer trips (stale: remove it).
+- **The report.** `class-census-latest.md`, written to `$PLANETGEN_REPORT_DIR` or `.test-reports/`.
+- **Re-baselining.** `python -m tests.audit.prevalence_baseline measure` draws the records at the code being measured, and
+  `python -m tests.audit.prevalence_baseline build RECORDS --commit SHA --count N [--tag-current RECORDS --anomaly ITEM]` rewrites
+  the file: the ranges are the reference's shares plus or minus four standard errors and 0.04, so they start wide and tighten as
+  the classes settle. Never widen a range to hide a new fault.
+- **When it runs.** It is a `slow` test that reads the generation code, so `scripts/test.py changed` selects it whenever
+  generation changes. About 8 minutes on 4 cores.
+
+Part B, the system census (TEST.431, `src/tests/audit/prevalence_systems.py`, `src/tests/test_prevalence_systems_census.py`), draws
+100 full systems of each census star type and checks what only a whole system decides: planets, belts and comets per system, moons
+per planet, the share with no planet, the share that are pairs, the share with a habitable-class world or a Blue or Green one, and the
+share where life reaches each milestone (abiogenesis to a technological civilization), against
+`src/tests/data/prevalence_systems_expectations.json`. Part E, planet occurrence (TEST.395,
+`src/tests/audit/prevalence_occurrence.py`), reads the same systems and checks giants, hot Jupiters, cold giants, 1 to 20
+Earth-mass planets inside 0.5 AU, Earth-mass planets in the ecosphere and the super-Earth to Neptune ratio per host group against
+observed rates (`src/tests/data/prevalence_occurrence_expectations.json`, kind `observed`, recalled and unverified until the papers
+are read). One live test draws the systems once for both; their reports are `system-census-latest.md` and
+`occurrence-census-latest.md`. A system that raises is the `error` flag, as one over 180 s is `hang`.
+
+Re-baselining B and E: `python -m tests.audit.prevalence_systems measure` and `build`, `python -m tests.audit.prevalence_occurrence`.
+
+
 ## Setting up a cloud session
 
 A fresh container needs `pip install -e ".[test,api,browser]"`, the NLTK
@@ -496,6 +535,11 @@ These skip unless you turn them on:
   ones), so a lane's pull request never carries one and a stale one never fails a lane's gate: the tests skip unless
   `PLANETGEN_GLOBAL_DOCS=1`, which `scripts/test.py <command> --global-docs` sets. The release stamp runs
   `scripts/test.py full --check --global-docs`.
+- `test_golden_seed.py::test_the_pinned_galaxy_is_made_at_one_worker_and_at_four` builds the pinned galaxy at four workers and
+  compares it with the one-worker galaxy (TEST.407). The ordinary run builds the galaxy once, at one worker, and
+  compares it with `galaxy.json`, which is also all that `python -m tests.golden_update` builds; the second build,
+  about as long again, is the end-of-version run's: `scripts/test.py full` (and `full --check`) set
+  `PLANETGEN_VERSION_GATE=1`, or set it by hand to run the comparison alone.
 - `test_sector_generation_perf.py` is a timing benchmark:
   `PLANETGEN_RUN_PERF_BENCHMARK=1 pytest -s src/tests/test_sector_generation_perf.py`.
 

@@ -8,7 +8,7 @@ from the galactic centre: the disc populations follow a mild radial gradient
 that is zero at the Sun's distance, the bulge and the halo have their own mean
 and scatter, and a cluster carries its own value (the caller passes it). The
 first use is the planet-occurrence factor: a protoplanetary disk's solids scale
-as `solids_factor(fe_h)` and giant-planet occurrence as
+as the star's metal mass fraction over the Sun-like reference's (`bulk_draw.metal_ratio_to_solar`, GEN.464) and giant-planet occurrence as
 `giant_planet_factor(fe_h)`. The constants are in `tuning` ("Metallicity").
 
 The planet cull (GEN.236) is the occurrence of planets against the disk's: `planet_occurrence_factor` for planets of
@@ -84,11 +84,6 @@ def sample_fe_h(population, galactic_center_dist_ly, rng=draw, peaks=None):
         return min(max(rng.gauss(mean, sigma), low), high)
     mean, sigma = mean_fe_h("intermediate" if population is None else population, galactic_center_dist_ly)
     return min(max(rng.gauss(mean, sigma), low), high)
-
-
-def solids_factor(fe_h):
-    """How much a disk's solid surface density scales against the Sun's: `10^[Fe/H]`."""
-    return 10.0 ** fe_h
 
 
 def giant_planet_factor(fe_h):

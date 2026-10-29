@@ -1070,7 +1070,7 @@ def test_galaxy_nodes_carry_no_comets_rogue_planets_or_asteroid_fields(client, m
     key = format_drill_key(drill_chain_of(*address)[0])
     node = client.get(f"/api/galaxy/nodes?keys={key}").get_json()["nodes"][key]
     assert set(node) <= {"aggregate", "placed", "planned", "sector_count", "clouds", "stars", "generated", "points",
-                         "worlds", "incomplete"}
+                         "interests", "incomplete"}
     assert {p["type"] for p in node["points"]} <= {"black_hole", "neutron_star", "quasar"}
 
 
@@ -1224,10 +1224,16 @@ def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
     finally:
         conn.close()
     _rebuild_block_stats(mysql_config)
+    conn = _db.get_connection(mysql_config)
+    try:
+        [[sector_mass]] = [[float(r["mass"] or 0.0)] for r in conn.execute(
+            "SELECT SUM(total_mass_kg) AS mass FROM sector_stats").fetchall()]
+    finally:
+        conn.close()
 
     total = {"systems": 6, "expected_systems": pytest.approx(9.5), "stars": 8,
              "mean_age_gy": pytest.approx((6 * 2.0 + 2 * 8.0) / 8), "luminosity_sol": pytest.approx(10.5),
-             "habitable_worlds": 4}
+             "habitable_worlds": 4, "mass_kg": pytest.approx(sector_mass)}
     stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[1])}").get_json()
     [child] = stage["children"]
     assert child["generated"] == 3
@@ -1239,10 +1245,12 @@ def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
 
     stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[4])}").get_json()
     by_address = {(s["shell"], s["band"], s["wedge"]): s["stats"] for s in stage["sectors"]}
+    by_address_mass = {address: pytest.approx(stats["mass_kg"]) for address, stats in by_address.items()}
+    assert all(stats["mass_kg"] >= 0.0 for stats in by_address.values())
     assert by_address[home] == {"systems": 4, "expected_systems": 3.0, "stars": 6, "mean_age_gy": 2.0,
-                                "luminosity_sol": 10.0, "habitable_worlds": 3}
+                                "luminosity_sol": 10.0, "habitable_worlds": 3, "mass_kg": by_address_mass[home]}
     assert by_address[addresses[2]] == {"systems": 0, "expected_systems": 1.5, "stars": 0, "mean_age_gy": None,
-                                        "luminosity_sol": 0.0, "habitable_worlds": 0}
+                                        "luminosity_sol": 0.0, "habitable_worlds": 0, "mass_kg": by_address_mass[addresses[2]]}
 
 
 def test_galaxy_locate_finds_sectors_and_systems_by_name(client, mysql_config):
@@ -1553,6 +1561,7 @@ def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):
     assert set(body["facets"]) == {
         "type", "spectral", "luminosity", "class", "body", "life", "equipment",
         "moon_class", "moon_body", "moon_life", "moon_equipment", "density", "phenomenon", "phenomenon_class",
+        "habitability", "domain", "life_level", "living", "moon_habitability", "moon_domain", "moon_life_level", "moon_living",
     }
     assert body["results"]["stars"] is None  # no filter active yet -- no reason to run
 

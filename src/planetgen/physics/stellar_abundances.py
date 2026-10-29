@@ -367,6 +367,20 @@ def composition(fe_h, offsets):
     return StellarComposition(fe_h, x, y, z, fractions, dict(offsets))
 
 
+_solar_metal_fraction = composition(0.0, {}).z
+"""float: Z0 (`solar_metal_fraction`)."""
+
+
+def solar_metal_fraction():
+    """Z0, the metal mass fraction of a star of [Fe/H] 0 with every [X/Fe] 0 (the proto-solar mix of `PROTO_MASS_FRACTION`)."""
+    return _solar_metal_fraction
+
+
+def metal_ratio_to_solar(metal_mass_fraction):
+    """Z / Z0: how much more (or less) metal by mass a star of metal mass fraction `metal_mass_fraction` has than the Sun-like reference."""
+    return metal_mass_fraction / _solar_metal_fraction
+
+
 def number_ratio(composition_or_offsets, a, b, fe_h=None):
     """The number ratio of element `a` to element `b` (`"Fe"`, `"Si"`): the A21 log eps difference plus the two [X/Fe]. Takes a
     `StellarComposition` or an offsets dict (the ratio is independent of [Fe/H], which cancels)."""

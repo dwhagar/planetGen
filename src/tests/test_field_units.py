@@ -59,7 +59,7 @@ def test_every_declaration_is_a_registry_unit_or_a_plain_word(cls):
 def test_a_unit_in_a_name_is_the_unit_declared(cls):
     for name, unit in cls.FIELD_UNITS.items():
         stated = column_units.unit_matching_suffix(name)
-        if stated is not None:
+        if stated is not None and name not in {column for _table, column in column_units.SUFFIX_EXCEPTIONS}:
             assert unit == stated, f"{cls.__name__}.{name} is declared {unit!r}, its name says {stated!r}"
 
 

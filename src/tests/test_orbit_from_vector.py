@@ -29,12 +29,12 @@ def _angle_close(a, b, tol=1e-6):
     return abs((a - b + math.pi) % TWO_PI - math.pi) < tol
 
 
-def test_a_planets_orbit_from_its_vector_is_the_circle_it_was_generated_on():
+def test_a_planets_orbit_from_its_vector_is_the_ellipse_it_was_generated_on():
     system = _system(lambda s: any(isinstance(p, Planet) for p in s.planets))
     planet = next(p for p in system.planets if isinstance(p, Planet))
     orbit = planet.orbit_from_vector()
     assert orbit["kind"] == "elliptical"
-    assert orbit["eccentricity"] == pytest.approx(0.0, abs=1e-9)
+    assert orbit["eccentricity"] == pytest.approx(planet.eccentricity, abs=1e-9)  # GEN.727: the one it was drawn with
     assert orbit["semi_major_axis"] == pytest.approx(planet.distance, rel=1e-9)
     assert orbit["period"] == pytest.approx(planet.period, rel=1e-9)
     assert orbit["inclination"] == pytest.approx(math.radians(planet.orbital_inclination_deg), abs=1e-9)
@@ -43,7 +43,7 @@ def test_a_planets_orbit_from_its_vector_is_the_circle_it_was_generated_on():
     phase_deg = body_state.argument_of_latitude_deg(
         (planet.position_x, planet.position_y, planet.position_z),
         planet.orbital_inclination_deg, planet.orbital_ascending_node_deg)
-    assert _angle_close(orbit["true_anomaly"], math.radians(phase_deg))
+    assert _angle_close(orbit["arg_periapsis"] + orbit["true_anomaly"], math.radians(phase_deg))
 
 
 def test_a_moons_orbit_from_its_vector_is_about_its_planet():
@@ -60,7 +60,9 @@ def test_the_projected_course_is_the_closed_ellipse_round_the_primary():
     planet = next(p for p in system.planets if isinstance(p, Planet))
     points = planet.projected_orbit_au(64)
     assert len(points) == 64
-    assert all(math.dist(point, (0.0, 0.0, 0.0)) == pytest.approx(planet.distance, rel=1e-9) for point in points)
+    radii = [math.dist(point, (0.0, 0.0, 0.0)) for point in points]
+    assert min(radii) == pytest.approx(planet.distance * (1.0 - planet.eccentricity), rel=1e-9)
+    assert max(radii) <= planet.distance * (1.0 + planet.eccentricity) * (1 + 1e-9)
     # The body is on its course: its position is a point of the ellipse it is on.
     orbit = planet.orbit_from_vector()
     position, _velocity = sv.state_from_elements(
@@ -93,6 +95,8 @@ def test_a_comet_that_does_not_close_has_no_projected_ellipse():
 def test_the_orbit_follows_the_vector_when_it_changes_not_the_stored_elements():
     system = _system(lambda s: any(isinstance(p, Planet) for p in s.planets))
     planet = next(p for p in system.planets if isinstance(p, Planet))
+    planet.eccentricity = 0.0
+    update_orbital_position(planet)  # a circle, whatever it was generated on
     circle = planet.orbit_from_vector()
     # A kick along the motion (a flyby's pull) makes the orbit an ellipse with periapsis where it was.
     planet.set_velocity_kms(*(1.1 * v for v in (planet.velocity_x_kms, planet.velocity_y_kms, planet.velocity_z_kms)))
@@ -101,9 +105,9 @@ def test_the_orbit_follows_the_vector_when_it_changes_not_the_stored_elements():
     assert kicked["periapsis_distance"] == pytest.approx(planet.distance, rel=1e-9)
     assert kicked["semi_major_axis"] > circle["semi_major_axis"]
     assert planet.distance == pytest.approx(circle["semi_major_axis"], rel=1e-12)  # the generated elements are untouched
-    # The orbital update puts the circle back, and the derived orbit with it.
+    # The orbital update puts the generated orbit back, and the derived orbit with it.
     update_orbital_position(planet)
-    assert planet.orbit_from_vector()["eccentricity"] == pytest.approx(0.0, abs=1e-9)
+    assert planet.orbit_from_vector()["eccentricity"] == pytest.approx(planet.eccentricity, abs=1e-9)
 
 
 def test_a_body_with_no_position_has_no_orbit_yet():

@@ -23,7 +23,7 @@ import math
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena import hosts
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as planetPhysics, rogue_habitability, small_body_composition, spin
+from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as planetPhysics, rings, rogue_habitability, small_body_composition, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
@@ -182,6 +182,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
     FIELD_UNITS = {
         "name": "text", "planet_type": "text", "planet_class": "text", "mass_bin": "text", "mass_kg": "kg",
         "radius_km": "km", "composition": "text", "has_internal_heat": "flag", "has_moons": "flag",
+        **rings.UNITS,
         **ROGUE_SURFACE_UNITS, **rogue_habitability.ROGUE_UNITS, **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
@@ -277,6 +278,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             self.mass_kg, self.radius_km, self.planet_type, self.mass_bin, self.has_moons,
             age_gy=brown_dwarf_age_gy if mass_bin == "brown-dwarf" else None))
 
+        rings.apply_rogue(self)  # GEN.836
         self.set_galactic_motion()
         # GEN.104: a planet's day and a Rayleigh tilt from the galactic pole.
         self.rotation_period_hours = spin.planet_day_hours(self.planet_type)

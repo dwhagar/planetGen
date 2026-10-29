@@ -1,5 +1,6 @@
 {%- extends "base.html" %}
 {% from "partials/datatable.html" import datatable with context %}
+{% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
 {% block head %}
 <script type="module" src="{{ static_url('datatable.js') }}"></script>
 {% endblock %}
@@ -51,9 +52,7 @@
   <form method="post" action="{{ url_for('web.change_naming_key') }}" class="search-form">
     {{ csrf_field() }}
     <div class="search-fields">
-      <label class="search-field">New key (8 hex digits)
-        <input type="text" name="key" value="{{ naming.key }}" pattern="[0-9A-Fa-f]{8}" maxlength="8" required>
-      </label>
+      {{ ui_input("key", "New key (8 hex digits)", naming.key, required=True, pattern="[0-9A-Fa-f]{8}", maxlength=8) }}
     </div>
     <div class="search-actions"><button type="submit" class="btn">Change key</button></div>
   </form>

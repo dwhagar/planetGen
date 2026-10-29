@@ -26,7 +26,7 @@ import math
 from planetgen import tuning
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import aerosols, atmosphere, bulk_composition, climate_draws, constants, giant_interior, habitability_world, hydrosphere, interior_heat, magnetism, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
+from planetgen.physics import aerosols, atmosphere, body_colour, bulk_composition, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, magnetism, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen.util import draw
 from planetgen.generation.planetary_object import PlanetaryObject
@@ -124,13 +124,15 @@ class Planet(PlanetaryObject):
         orbital_ascending_node_deg (float): The longitude of the ascending
                                             node, in degrees -- together
                                             with `orbital_inclination_deg`,
-                                            fully orients the (circular)
-                                            orbital plane in 3D.
+                                            fully orients the orbital
+                                            plane in 3D.
+        eccentricity (float): The eccentricity of the orbit it was generated on (GEN.727); `distance` is its semi-major axis.
+                              The light it gets goes by the orbit's mean flux, `1 / sqrt(1 - e^2)` times that of a circle.
         velocity_x_kms, velocity_y_kms, velocity_z_kms (float): This body's
                                    velocity, km/s, relative to its orbital
                                    anchor (the same one `position_x/y/z`
                                    is measured from): the tangent of its
-                                   circular orbit where it is,
+                                   orbit where it is,
                                    `orbital_speed_kms` long. Set with the
                                    position (`planetPhysics.
                                    update_orbital_position`). With the
@@ -148,12 +150,11 @@ class Planet(PlanetaryObject):
                                    the orbital elements above (see
                                    `planetPhysics.update_orbital_position`);
                                    moved by the nightly update.
-        orbital_speed_kms (float): This body's circular orbital speed, in
-                                   km/s -- constant around a circular orbit,
-                                   so (unlike position) unaffected by
-                                   the body moving; only changes if
-                                   `distance`/`period` do
-                                   (see `StarSystem.validate_system`).
+        orbital_speed_kms (float): This body's orbital speed where it was
+                                   put, in km/s (the length of its
+                                   velocity then; constant for a circle,
+                                   and changed if `distance`/`period` are
+                                   (see `StarSystem.validate_system`)).
         min_update_interval_years (float): The shortest `elapsed_years`
                                    worth calling `store.advance_orbital_phases`
                                    for (see
@@ -198,7 +199,7 @@ class Planet(PlanetaryObject):
         "reflection_spectrum_non_visible", "life_stage", "evolutionary_pace",
         "life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS, "flavor_key",
         "flavor_text_count", "habitable_zone", "volume", "period",
-        "orbital_inclination_deg", "orbital_ascending_node_deg",
+        "orbital_inclination_deg", "orbital_ascending_node_deg", "eccentricity",
         "position_x", "position_y", "position_z", "orbital_speed_kms",
         "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
         "min_update_interval_years",
@@ -211,6 +212,8 @@ class Planet(PlanetaryObject):
         *radiogenic.BODY_FIELDS,
         *interior_heat.BODY_FIELDS,
         *interior_heat.OUTPUT_FIELDS,
+        *interior_heat.REGIME_FIELDS,
+        *daylight.FIELDS,
         *bulk_composition.NEW_FIELDS,
         *giant_interior.BODY_FIELDS,
         giant_interior.LAYERS_ATTRIBUTE,
@@ -219,6 +222,7 @@ class Planet(PlanetaryObject):
         *radiation.BODY_FIELDS,
         *habitability_world.BODY_FIELDS,
         *aerosols.BODY_FIELDS,
+        *body_colour.BODY_FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
         "born_beyond_snow_line",
     ]
@@ -244,6 +248,12 @@ class Planet(PlanetaryObject):
     `SpatialPosition3D` (GEN.74), which `set_position_au` moves.
     """
 
+    eccentricity = 0.0
+    host_eccentricity = 0.0
+    """float: The eccentricity of the orbit the body was generated on (GEN.727, `physics.orbit_elements`), beside `distance` and `period`; the
+    orbit it is on now is whatever its state vector says (`orbit_from_vector`). A moon's `host_eccentricity` is its parent's, which the light
+    it gets goes by. A circle by default: a body made without them is on one."""
+
     moon_origin = None
     moon_disk_system = None
     """str or None, DiskSystem or None: A moon's origin (`moon_composition.ORIGINS`) and its parent's circumplanetary disk while the moon is
@@ -261,7 +271,8 @@ class Planet(PlanetaryObject):
 
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
-                 is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None):
+                 is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None,
+                 planned_objects=None, host_eccentricity=0.0):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -304,6 +315,10 @@ class Planet(PlanetaryObject):
             moon_origin (str, optional): For a moon, how it came to orbit its parent (`moon_composition.ORIGINS`), drawn by
                                          `generate_moons`: the orbit's inclination follows from it (GEN.714). A moon built
                                          without one keeps the old regular orbit.
+            planned_objects (int, optional): How many planets and belts the system planned for this star: one means a single planet,
+                                             whose eccentricity follows the broader law (GEN.727); `None` is taken as several.
+            host_eccentricity (float, optional): For a moon, its parent planet's eccentricity (the light a moon gets goes by its
+                                                 parent's orbit).
             moon_disk_system (DiskSystem, optional): For a disk moon, its giant parent's circumplanetary disk
                                                      (`moon_composition.draw_disk_system`), shared by that parent's moons.
         """
@@ -354,6 +369,8 @@ class Planet(PlanetaryObject):
         self.flavor_text_count = 0 # Initialize flavor text count for this planet
         self.orbital_inclination_deg = None
         self.orbital_ascending_node_deg = None
+        self.eccentricity = 0.0
+        self.host_eccentricity = host_eccentricity
         self.position_x = None
         self.position_y = None
         self.position_z = None
@@ -367,7 +384,7 @@ class Planet(PlanetaryObject):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
-        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS:
+        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS:
             setattr(self, field, None)
         setattr(self, atmosphere.GAS_FIELD, {})
 
@@ -385,6 +402,8 @@ class Planet(PlanetaryObject):
         planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
         self.period = planetPhysics.calculate_orbital_period_years(self.distance, primary_mass_kg)
         planetPhysics.calculate_surface_gravity(self)
+        # GEN.727: the eccentricity first, since the light a planet gets goes by its orbit's mean flux
+        planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
 
@@ -395,6 +414,10 @@ class Planet(PlanetaryObject):
                     self.system_config.MOONS is True
                     or self._draw_moons()):
                 planetPhysics.generate_moons(self)
+            # GEN.767: the day and night shares, the moons' with their parent's shadow (no draws)
+            daylight.generate(self)
+            for moon in self.moons:
+                daylight.generate(moon, self)
 
     @property
     def giant_kind(self):

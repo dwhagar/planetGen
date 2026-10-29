@@ -37,8 +37,8 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, constants, elements, hydrosphere,
-                               moon_composition, stellar_abundances, stellar_composition)
+from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, constants, elements,
+                               hydrosphere, moon_composition, stellar_abundances, stellar_composition)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -137,6 +137,16 @@ def star_key(star):
     if distance_ly is None:
         distance_ly = scales.default_galactocentric_ly()
     return stellar_composition.abundance_key(mass=star.mass, age_gy=star.age, distance_ly=distance_ly)
+
+
+def metal_ratio_to_solar(star):
+    """
+    Z / Z0 of `star` (GEN.464): its metal mass fraction over the reference Sun-like mix's, the factor the disc's solids scale with. 1 for a
+    compact remnant, which has no [Fe/H] (its disc is `REMNANT_DISC_RATIOS`, not drawn from a metal fraction).
+    """
+    if getattr(star, "metallicity_fe_h", None) is None:
+        return 1.0
+    return stellar_abundances.metal_ratio_to_solar(_ratios(star.metallicity_fe_h, star.age, star_key(star)).z)
 
 
 REMNANT_DISC_RATIOS = HostRatios(fe=0.8, si=0.9, al=0.07, ca=0.06, ni=0.045, c_over_o=2.0, y_envelope=0.25, z=1.0)
@@ -412,6 +422,7 @@ def _settle(body, bulk, mass_given):
 def _store(body, bulk):
     for attribute, value in bulk.to_attributes().items():
         setattr(body, attribute, value)
+    body.composition = composition_text.text(body)  # GEN.430: the text states the stored fractions
     volume_m3 = 4.0 / 3.0 * math.pi * (body.radius * 1000.0) ** 3
     body.density = body.mass / volume_m3 / 1000.0
 

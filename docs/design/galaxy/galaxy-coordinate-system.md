@@ -199,6 +199,23 @@ neighborhood, the map's planned slots and a span that names no range stay
 inside it (`GalaxyBounds.qualifies`). `planetgen galaxy`
 refuses to run before `planetgen plan`.
 
+**The reach, the outline and the profile (GEN.233, GEN.235).** Three things bound a galaxy and they are not the same.
+The *reach* is every cell the grid can name: shells 0 to `skeleton.DEFAULT_REACH_SHELL` (65,535, 262 kpc at the 4 pc edge,
+which holds the Magellanic Clouds, the Sagittarius remnant, the globular clusters and the satellites out to Leo I),
+checked against what the object ID can address (`spherical.check_reach`, `MAX_ADDRESSABLE_SHELL` 83,037, 332 kpc). The
+*outline* is the part of the reach where the disk, the bulge or a component is expected to put a system in a sector
+(`GalaxyBounds.qualifies`); it reads the disk, the bulge and the clusters and satellites (their bound is added in
+`skeleton.bound_relative_density_at`), and not the stellar halo, so a cell with only halo stars is inside the reach and
+outside the outline. The *profile* is what a cell holds, wherever it is: `galaxy/profile.py`'s
+`sector_profile(address, skeleton)` gives the region that dominates (`nuclear`, `bulge`, `disk`, `halo`, `cluster` or
+`satellite`), the expected systems, the mix of stellar populations with each one's age window, [Fe/H] peaks, velocity
+dispersion and rotation, the gas (including the superbubble the place lies in), the dark matter, the factor per rare kind
+and the neutron stars and black holes ejected from the galaxy that stream through it. It is a pure function of the shape,
+the sector edge, the address and the galaxy's seed, reads no database and draws no random number, so a preview, a scatter
+and a fill agree on it. The outline decides which cells the planner and the random start name; the reach decides which
+cells may be generated; the profile decides what a generated cell holds. See
+[intergalactic-and-halo-contents.md](intergalactic-and-halo-contents.md) section 5.
+
 **Bright stars (schema v43).** `planetgen plan` also places every star at or
 above `BRIGHT_STAR_MIN_LUMINOSITY_SOL` at a fixed point in its sector, in
 `bright_stars`, before any sector is filled (the default is 1,000 L_sun, with
@@ -226,6 +243,12 @@ nearest systems filled in like a generated one.
   containment and the stored nearest systems (`nearest_systems`).
   Which sector holds a moved point is `spherical.sector_address_at`; the
   object keeps its ID wherever it drifts (the ID names the birth sector).
+- **The object ID is 96 bits.** `galaxy/object_uid.py`: a birth sector address of 56 bits (shell 19, band 18, wedge 19), a
+  serial of 28 bits and a body number of 12 bits; 24 hex digits, `BINARY(12)`, the same for every object in every galaxy
+  (GEN.230). The band is stored biased so a negative band packs as a plain integer. The top two bits of the serial say how
+  it was given out (generated, runtime, field or region), so no allocator needs another's state. The 80-bit ID it replaced
+  could not name a polar cell beyond shell 1,303; the 96-bit one names every cell out to shell 83,037. The kind of object
+  is not in the ID (an ejected planet that becomes a rogue planet keeps it).
 - **The cell key follows the position.** Every table that holds a point in
   the galaxy frame (`star_systems`, the phenomenon tables, `facilities`,
   `nebula_field`, `bright_stars`, `phenomenon_scatter`) has `cell_key`, a

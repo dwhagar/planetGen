@@ -34,6 +34,7 @@ from planetgen.physics import (
     atmosphere_colour,
     equipment,
     gases,
+    giant_interior,
     habitability,
     habitability_explain,
     pre_main_sequence,
@@ -43,6 +44,9 @@ from planetgen.physics import (
 )
 from planetgen.physics.quantity import Quantity
 from planetgen.util.format import three_figures_or_tiny
+
+ECCENTRICITY_NOTE = "(0 is a circle, 1 is the escape orbit)"
+"""str: What a bare eccentricity reads beside its number (GEN.772)."""
 
 HELIOSPHERE_COMPRESSION_NOTED = 0.95
 """float: A compressed heliosphere is mentioned when it is under this share of the open-space one."""
@@ -197,7 +201,7 @@ def _black_hole_blocks(hole):
         fact("type", "Type", hole.type),
         fact("mass", "Mass", _mass(hole.mass, solar=True)),
         fact("event_horizon", "Event Horizon Radius", _radius_km(hole.radius)),
-        fact("spin", "Spin Parameter", qty("ratio", hole.spin)),
+        fact("spin", "Spin Parameter", qty("ratio", hole.spin, note="of the maximum (0 is not spinning)")),
         fact("disk", "Accretion Disk", "Active accretion disk detected" if hole.has_accretion_disk else "None detected"),
         fact("orbit", "Galactic Orbit", _galactic_orbit_or_centre(hole)),
         *_wobble_row(hole),
@@ -291,7 +295,7 @@ def _wide_pair_section(pair):
     rows = [
         fact("separation", "Stellar Separation", _au(pair.separation_au), ", ranging from ", _au(pair.periapsis_au),
              " at periapsis to ", _au(pair.apoapsis_au), " at apoapsis"),
-        fact("eccentricity", "Orbital Eccentricity", qty("ratio", pair.eccentricity)),
+        fact("eccentricity", "Orbital Eccentricity", qty("ratio", pair.eccentricity, note=ECCENTRICITY_NOTE)),
         fact("mutual_orbit", "Mutual Orbit", _kms(pair.speed_kms), " (", _years(pair.period_years), " per orbit)"),
         fact("wobble", "Barycenter Offset", offsets[0], ", ", offsets[1], " from the barycenter"),
         fact("primary_limit", "Primary's Planetary Limit", f"{primary.name}'s planetary system is stable out to ",
@@ -387,6 +391,7 @@ def _planet_facts(planet):
         fact("distance", "Distance", _au(planet.distance)),
         fact("period", "Period", _years(planet.period)),
         fact("speed", "Speed", _kms(planet.orbital_speed_kms)),
+        fact("eccentricity", "Eccentricity", qty("ratio", planet.eccentricity, note=ECCENTRICITY_NOTE)),
         fact("radius", "Radius", _radius_km(planet.radius)),
         fact("gravity", "Gravity", _gravity(planet.gravity)),
         fact("mass", "Mass", _mass(planet.mass)),
@@ -453,7 +458,7 @@ def _radiation_block(planet):
         fact("radiation-cosmic", "Cosmic rays", dose(terms.gcr_msv_yr), shield + field),
         fact("radiation-stellar", "Stellar particles", dose(terms.sep_msv_yr), ", from the star's flares, cut by the same air and field"),
         fact("radiation-ground", "Ground", dose(terms.ground_msv_yr), ground),
-        fact("radiation-uv", "Ultraviolet", qty("ratio", terms.uv_index), " times Earth's DNA-damaging dose" + ozone),
+        fact("radiation-uv", "Ultraviolet", qty("ratio", terms.uv_index, note="times Earth's DNA-damaging dose"), ozone),
     ]
     return facts("Radiation", rows)
 
@@ -490,6 +495,9 @@ def _planet_section(planet):
     blocks.append(prose("description", *summary))
     if planet.body_type == "g":
         blocks.append(prose("depth", *_gas_giant_depth_sentences(planet)))
+        interior = giant_interior.interior_of(planet)
+        if interior is not None:
+            blocks.append(prose("interior", *giant_interior.describe_interior(interior)))
     else:
         blocks.append(_atmosphere_composition(planet))
     blocks.append(model.composition("Composition", summary=planet.composition.lower()))
@@ -526,7 +534,7 @@ def _comet_section(comet):
         fact("type", "Type", "Parabolic Comet" if parabolic else "Comet"),
         fact("nucleus", "Nucleus Diameter", _km(comet.nucleus_diameter_km)),
         fact("perihelion", "Perihelion", _au(comet.perihelion_distance_au)),
-        fact("eccentricity", "Eccentricity", qty("ratio", comet.eccentricity)),
+        fact("eccentricity", "Eccentricity", qty("ratio", comet.eccentricity, note=ECCENTRICITY_NOTE)),
     ]
     if not parabolic:
         rows.append(fact("period", "Period", _years(comet.orbital_period_years)))
@@ -606,7 +614,7 @@ def _overview_sentences(system):
     if compressed is not None and compressed < star.heliosphere_radius * HELIOSPHERE_COMPRESSION_NOTED:
         sentences.append(inline(
             "The star's stellar wind creates a bubble, known as the heliosphere, which would extend out to approximately ",
-            _au(star.heliosphere_radius), f" in open space, but the gas of {cloud['name']} around the system presses it in "
+            _au(star.heliosphere_radius), f" in open space, but the gas of {cloud['name'] or 'the cloud'} around the system presses it in "
             "to approximately ", _au(compressed), "."))
     elif wind:
         sentences.append(inline("The star's stellar wind creates a bubble, known as the heliosphere, which extends out "

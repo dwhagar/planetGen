@@ -938,13 +938,26 @@ sector. The pieces:
   below, not a cube of space; its glow comes from the stored
   `galaxy_block_lights` table (`db/block_lights.py`, MAP.259) and its read is
   `db/nodes.py` (MAP.260).
+- **Named regions.** A region is a 9-block of the ladder that holds a generated sector (`galaxy/named_regions.py`: name, anchor,
+  framing sphere, extent); `region_stats` (`db/region_stats.py`, DB.107) stores its sector count, capacity (so the share
+  charted), extent and summed mass, kept by the same hooks as `galaxy_block_stats`. The mass of a sector (`sector_stats.total_mass_kg`, `db/sector_mass.py`,
+  DB.108) is the sum of its bodies; a block and a region add up the sectors'.
 - **The block ladder.** The drill-down's stages (`/galaxy/stage`) and data
   windows (`/galaxy/window`, MAP.151) are blocks of 243, 81, 27, 9 and 3
   shells (`galaxy/drill.py`, `galaxy/window.py`, `docs/design/galaxy/spherical-block-ladder.md`).
   `db.query.galaxy_stage` and `galaxy_window` read each block's totals from the
-  stored `galaxy_block_stats` table (schema 92, kept by `db/block_stats.py` as
-  sectors are saved and deleted) and the sectors of a level-3 block from
-  `sectors` and `sector_stats`.
+  stored `galaxy_block_stats` table (schema 92, kept by `db/block_stats.py`) and
+  the sectors of a level-3 block from `sectors` and `sector_stats`. The totals
+  are sums of each sector's `sector_stats` figures, and three things keep them
+  true (DB.83): a `galaxy` run refreshes the blocks above the sectors it saved
+  once at its end, a sector visited or regenerated and a sector deleted refresh
+  the chain above it, and an edit that changes what a sector holds
+  (`db.edits.save_system_edits`, the system delete) first states the sector's
+  figures again from its rows (`store.refresh_edited_sectors`) and then
+  refreshes the chain. The orbit update does not: a system it refiles into
+  another sector stays counted where it was generated, as `check-db`'s count
+  warning says. `planetgen fill-block-totals` makes the block rows again from
+  the sectors' figures.
 - **Address bar.** A sector designation (such as `C8030005`), `shell/band/wedge`
   or `shell N band N wedge N`, `x, y, z` in parsecs or a name. A name goes to `/galaxy/locate`, which calls
   `db.query.galaxy_locate` through the API.

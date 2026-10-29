@@ -292,6 +292,10 @@ def _body_of(path, target, db, queueing=True):
     cache_stats["hits" if body is not None else "misses"] += 1
     if body is None:
         if queueing and slowpages.pending_allowed():
+            if db is not None:
+                body = slowpages.delivered(db, target)    # a job built it and the cache would not take it (UX.234)
+                if body is not None:
+                    return body
             pending = slowpages.pending_for(db, path, target)
             if pending is not None:
                 raise pending
@@ -299,9 +303,11 @@ def _body_of(path, target, db, queueing=True):
         started = time.perf_counter()
         body = _send("GET", target).body
         seconds = time.perf_counter() - started
-        cache.put(db, target, body, token)
+        stored = cache.put(db, target, body, token)
         if db is not None:
             slowpages.record_duration(db, target, seconds)
+            if not queueing and not stored:
+                slowpages.deliver(db, target, body)
     return body
 
 
@@ -662,6 +668,13 @@ def get_galaxy_nebula_cover(db, at=None, g=None):
     return _request("/galaxy/nebula-cover", {"db": db, "at": at, "g": g})
 
 
+def get_galaxy_charted_regions(db):
+    """Returns `GET /api/galaxy/charted-regions`' payload (`regions`, each charted region with its node key, extent, share
+    charted and name, by share charted; `edge_pc` -- see `db.region_stats.charted_regions`)."""
+    _require_db(db)
+    return _request("/galaxy/charted-regions", {"db": db})
+
+
 def get_territories(db):
     """Returns `GET /api/territories`' payload (`points`: owned systems
     with galaxy-frame parsec positions and their polity's color;
@@ -860,7 +873,7 @@ def get_object_children(db, ref, limit=None, after=None):
     return _request(f"/objects/{ref}/children", {"db": db, "limit": limit, "after": after})
 
 
-def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
+def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
     `db.query.search`'s docstring for the full shape.
@@ -883,6 +896,8 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
             `<panel>_offset`, one page per result panel.
         panels (iterable, optional): Run just these result panels; an empty one runs none, which still answers
             the facets and the name suggestions.
+        sorts (dict, optional): `{"planet", "moon"} -> sort key` (`-` in front for the best first), sent as
+            `planet_sort`/`moon_sort` (UX.214).
     """
     _require_db(db)
     pairs = [("db", db)]
@@ -901,6 +916,9 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
         pairs.append(("limit", limit))
     for panel, offset in (offsets or {}).items():
         pairs.append((f"{panel}_offset", offset))
+    for entity, sort in (sorts or {}).items():
+        if sort:
+            pairs.append((f"{entity}_sort", sort))
     if panels is not None:
         pairs.append(("panels", ",".join(panels) or "none"))
     return _request("/search", pairs)

@@ -1421,6 +1421,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `water_base_pressure_pa` | DOUBLE | nullable | Added in v147 (GEN.461). The pressure at the bottom of the water layer over the covered area, Pa (liquid, ice or both), from the compressed column of `physics/water_layer.py`. NULL for a gas giant, a body with no water layer and a row made before v147, whose `ocean_depth_km`, `ice_shell_km` and `hp_ice_km` are water-equivalent km. From v147 those three are the real, compressed kilometres. |
 | `mantle_eta0_pa_s`, `mantle_activation_kj_mol` | DOUBLE | nullable | Added in v153 (GEN.699). The two draws of a rocky body's mantle rheology, `eta = eta0 exp(Ea / R T)`: the viscosity prefactor in Pa s and the activation energy in kJ/mol (uniform over the ranges of Guimond et al. 2022). NULL for a gas giant and a row made before v152. |
 | `internal_heat_flux_w_m2` | DOUBLE | nullable | Added in v153 (GEN.699). The heat flowing out of the interior, radiogenic plus primordial (the cooling of the mantle, `physics/interior_heat.py`), over the body's surface, W/m2, at the star's age when the body was last generated. NULL for a gas giant and a row made before v152. |
+| `lid_regime` | VARCHAR(10) | nullable | Added in v154 (GEN.721). The tectonic regime of a rocky body: `mobile` (plate tectonics) or `stagnant` (one rigid plate), drawn once after the hydrosphere. NULL for a gas giant and for a row made before v154. |
 | `ocean_class`, `ocean_ph`, `water_activity`, `phosphorus` | VARCHAR(16) (CHECK ice-sealed / chloride brine / acid sulfate / soda / neutral), DOUBLE, DOUBLE, VARCHAR(8) (CHECK high / limited / starved) | nullable | Added in v74 (GEN.88). The ocean's chemistry class by rule (section 5.4), its pH and water activity drawn in the class's range, and its phosphorus supply. NULL without liquid water. |
 | `surface_dose_msv_yr`, `dose_gcr_msv_yr`, `dose_sep_msv_yr`, `dose_ground_msv_yr`, `dose_helio_mult` | DOUBLE | nullable | Added in v75 (GEN.87). The yearly dose at the surface, mSv, and its parts: `surface_dose_msv_yr` = `dose_gcr_msv_yr` x `dose_helio_mult` + `dose_sep_msv_yr` + `dose_ground_msv_yr`. Cosmic rays through the air (a log-log curve through the Moon, Mars and a 100 g/cm2 point, then 164 g/cm2 attenuation) cut to 0.6 at most by a dipole; stellar particles (20 mSv/yr x sqrt(N33 / N33 of the Sun) / d_AU^2, stopped by the air and steered by the dipole); crust gamma and radon (0.48 mSv/yr x abundance x radiogenic heat at the star's age against 4.5 Gyr, plus 0.5 mSv/yr x abundance with air and land). `dose_helio_mult` is 1 to 2.5: 1 in open space, raised while a nebula or remnant presses on the star's heliosphere (`refresh_containment` and an edit update it and the total). NULL for a gas giant. |
 | `uv_surface_index`, `ozone_loss_flag` | DOUBLE, BOOLEAN | nullable | Added in v75 (GEN.87). DNA-weighted surface UV against Earth's 1 (the star's 200 to 300 nm power against the Sun's, floored at 0.1, times its flux, times the ozone shielding (`ozone_column_du` / 300 DU)^-1.6 up to 1,000 when there is none), and whether ozone is lost: the layer exists but the star's `lethal_event_rate_per_gyr` is over 10 (one per 100 Myr) or particles give 100 mSv/yr at the ozone layer. NULL for a gas giant, and `uv_surface_index` NULL without a star temperature. |
@@ -1914,6 +1915,7 @@ row per sector address a backfill reached or a fill generated. See
 | `mean_age_gy` | DOUBLE | nullable | The mean age (Gy) of its stars; NULL with no stars (v55, DB.14). The Galaxy Map's hue comes from it. |
 | `total_luminosity_sol` | DOUBLE | nullable | The summed luminosity (L_sun) of its stars; NULL with no stars (v55, DB.14). The Galaxy Map's brightness comes from it. No color is stored: the page works it out (MAP.128). |
 | `habitable_worlds` | INT | nullable | The planets and moons in its systems that are potentially habitable (overall PHI-6 Blue or Green); NULL before a fill (v135, MAP.143). The Galaxy Map's Habitable worlds color comes from it. |
+| `total_mass_kg` | DOUBLE | nullable | The summed mass (kg) of the bodies in it (v162, DB.108); 0 for a generated sector with none, NULL before a fill or when a body has no stored mass. See "v168 (DB.108)". |
 | `filled_at` | TIMESTAMP(3) | nullable | When the fill saved it. |
 | `updated_at` | TIMESTAMP | NOT NULL | |
 
@@ -1974,6 +1976,10 @@ replays. Writing them never stops a run.
 
 The command line is in `generation_run_arguments` (v63, DB.13), which replaced a JSON text column of `generation_runs`: `run_id` (FK -> `generation_runs.id`, `ON DELETE CASCADE`), `position` (the argument's place, from 0) and `value` (VARCHAR(1024)), primary key `(run_id, position)`. It leaves out the `--mysql-*` and `--debug` options (`generate._run_argv`).
 
+### `scatter_epochs`
+
+Added in v161 (GEN.764). The generator epoch each kind of scatter was drawn under. A scatter is galaxy-wide and its rows carry no epoch of their own, so the draw that finishes a kind writes one row here and a clear of that kind deletes it. `kind` (VARCHAR(16), primary key; CHECK `mass`, `luminosity`, `band`, `phenomena` or `nebula-field`), `generator_epoch` (SMALLINT UNSIGNED, nullable: unknown), `run_id` (FK -> `generation_runs.id`, `ON DELETE SET NULL`, nullable) and `recorded_at` (TIMESTAMP(3)). The sectors (v121), the plan (v131) and the species (v156) carry their own epoch, so every stage of a galaxy says what made it; `store.scatter_epochs(conn)` reads this table. The migration gave a galaxy made earlier the plan's epoch for each kind that has rows. Not read by the fingerprint.
+
 ### `species` / `polities` / `system_owners` / `population_state`
 
 Added in v44, filled only by the population pass
@@ -1981,6 +1987,7 @@ Added in v44, filled only by the population pass
 above and `docs/design/habitability/population-and-politics.md`.
 
 **`species`**: one dominant species per life world.
+`generator_epoch` (v161, GEN.764) is the epoch the population pass made it under.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -2054,15 +2061,17 @@ Added in v82 (PERF.74). How many star systems each sector holds, as of the last 
 | `sector_id` | BIGINT UNSIGNED | PK | FK-like to `sectors.id` (no constraint). |
 | `system_count` | INT UNSIGNED | NOT NULL | The systems it holds. Indexed with `sector_id` (`idx_sector_system_counts_count`). |
 
-### `habitable_systems`
+### `system_interests`
 
-Added in v148 (MAP.220). One row for each star system that holds a habitable world (a planet or moon whose overall PHI-6 score is Blue or Green, `habitability.POTENTIALLY_HABITABLE_MIN_SCORE`), so the Galaxy Map's marker layer finds the systems with one inside a box without reading every planet (`query.galaxy_habitable_systems_in_box`). Derived data: `store.count_system_habitable_worlds` rebuilds a system's row when its sector is filled and whenever its scores are worked out again. A system with none, or with no galaxy position, has no row.
+Added in v165 (MAP.305, MAP.303); replaces `habitable_systems` (v148). One row for each star system and reason it is worth a mark on the Galaxy Map, so the marker layer finds the systems with a reason inside a box without reading every planet (`query.galaxy_system_interests_in_box`). The reasons are the registry in `db/interests.py` (`inhabited` (v167): a planet or moon whose timeline reached a technological civilization or that has a terrestrial colony on it, as `query._with_life_fields` decides it, with the best score; `habitable`: a planet or moon whose overall PHI-6 score is Yellow or better, `habitability.YELLOW_FLOOR`; `uninhabitable` (v166): a scored terrestrial planet or moon under that floor; `gas-giant`: a planet with `body_type = 'g'`; `asteroid-field` (v166): a system with an asteroid belt; `civilization` (v173, MAP.311): a planet or moon whose timeline reached a technological civilization on a class that can carry life; `sentient` (v173): a sentient life score of 1 or more; `life` (v173): any of the four life scores of 1 or more, none of the three keeping a score; `class-A` to `class-V` (v172, MAP.220): a system with a planet or moon of that planet class, `n` how many, no score), in the order the map prefers them: a system's mark takes the symbol of its best world, an inhabited one before a habitable one before a barren one before a gas giant before a belt (MAP.321). Derived data: `store.record_system_interests` rebuilds a system's rows when its sector is filled, whenever its scores are worked out again and when a facility is added, changed or removed (a colony makes its world inhabited). A system with no reason, or with no galaxy position, has no row.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `star_system_id` | BIGINT UNSIGNED | PK | FK to `star_systems.id`, ON DELETE CASCADE. |
-| `habitable_worlds` | SMALLINT UNSIGNED | NOT NULL | The planets and moons of the system that are Blue or Green overall (at most 65535). |
-| `galaxy_x_pc`, `galaxy_y_pc`, `galaxy_z_pc` | DOUBLE | NOT NULL | The system's `galaxy_*_pc`, copied (they never change). Indexed together (`idx_habitable_systems_position`). |
+| `reason` | VARCHAR(24) | PK | The reason's id in `interests.REASONS`. |
+| `n` | SMALLINT UNSIGNED | NOT NULL | The planets and moons of the system the reason counts. |
+| `best_score` | DOUBLE | NULL | The largest habitability score among them; NULL for a reason without a score. |
+| `galaxy_x_pc`, `galaxy_y_pc`, `galaxy_z_pc` | DOUBLE | NOT NULL | The system's `galaxy_*_pc`, copied (they never change). Indexed together (`idx_system_interests_position`). |
 
 ### `object_timing_stats` / `object_timing_samples`
 
@@ -2212,6 +2221,53 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v173 (MAP.311): the life reasons
+
+Migration 0173 adds no column. It fills `system_interests` with the reasons `civilization`, `sentient` and `life` (`interests.CIVILIZATION`, `SENTIENT`, `LIFE`): the count of planets and moons that reached a technological civilization on a class that can carry life, that have a sentient life score of 1 or more, and that have any of the four life scores of 1 or more, from what is already stored; no score is kept. Nothing a generator draws changes, so there is no epoch. The map reads the stored scores as they are: how many worlds qualify moves with the generator.
+
+### v172 (MAP.220): the planet class reasons
+
+Migration 0172 adds no column. It fills `system_interests` with one reason for each planet class, `class-A` to `class-V` (`interests.CLASS_REASONS`): a system has a row for each class it has a planet or moon of, with how many, from what is already stored. Nothing a generator draws changes, so there is no epoch. The nodes list these reasons only for blocks of `nodes.CLASS_ABOVE` (3) shells or fewer, a limited number of systems for each class (`NODE_CLASS_SYSTEMS`, `NODE_SECTOR_CLASS_SYSTEMS`), so a node does not carry twenty classes for every system.
+
+### v171 (GEN.836): the ring system of a rogue planet
+
+Migration 0171 adds the seven ring columns of v160 (`ring_kind`, `ring_origin`, `ring_inner_km`, `ring_outer_km`, `ring_mass_kg`, `ring_optical_depth`, `ring_ice_fraction`) to `rogue_planets`, after `hp_ice_km`; NULL for a planet with no ring, a brown dwarf, and a row made before v171.
+
+### v170 (GEN.767): the day and night shares and the hours of daylight
+
+Migration 0170 adds six nullable DOUBLE columns at the end of `planets` and `moons`, derived by `physics/daylight.py` from the stored rotation, orbit, tilt and spin axis and the star's radius: `day_share_equator` (share of the time the star is up at the equator over a year, NULL for a world that turns once an orbit), `day_share_mean` (the same averaged over the surface), `parent_shadow_share` (a moon only: share of its time in its planet's shadow, which the two day shares already lose), `solar_day_hours` and `daylight_hours` (hours from noon to noon, and of daylight in it at the equator; NULL for a world that turns once an orbit) and `polar_circle_deg` (latitude beyond which the star stays up or down for at least a day). A row made before v170 keeps NULL; nothing is backfilled.
+
+### v169 (GEN.721): `lid_regime`, the tectonic regime kept with the body
+
+Migration 0169 adds `lid_regime` (VARCHAR(10), nullable) at the end of `planets` and `moons`: `mobile` (plate tectonics) or `stagnant` (one rigid plate). It was three separate coin flips on the same chance (`magnetism.mobile_lid_chance`: a liquid surface ocean and a mass of 0.5 to 5 Earth masses at 0.6, heavier at 0.3), one in the magnetic field and one in the ground dose; GEN.721 draws it once, after the hydrosphere, and the dynamo's lifetime, the ground dose's felsic crust and the interior's heat flux law all read it. A row made before v169 has NULL there and keeps the heat flux of a stagnant lid; nothing is backfilled.
+### v168 (DB.108): the mass of each sector, block and region
+
+Migration 0168 adds `sector_stats.total_mass_kg` (DOUBLE, nullable, kg: the summed mass of the sector's stars, planets, moons, asteroid belts and comets, reached through `star_systems.sector_id`, and of its black holes, neutron stars, quasars (their black hole), rogue planets, interstellar comets and asteroid fields; a black hole's, neutron star's and quasar's black hole's mass is stored in solar masses and multiplied by `constants.SOLAR_MASS_TO_KG`; nebulae and supernova remnants are diffuse gas, counted by volume under their own label slice, and are left out; a generated sector with no body holds 0; NULL before the fill or when a body of it has no stored mass), and `galaxy_block_stats.mass_sum_kg` and `region_stats.mass_sum_kg` (DOUBLE, NOT NULL, default 0, kg: the sum of the generated sectors of the block or region; a sector with a NULL mass counts as 0). The sector's sum is made exactly (the masses are added as decimals and rounded once to a double), the region's by `math.fsum`, so the same bodies give the same bits whatever order they were saved in. `db/sector_mass.py` makes the sector figures: `store.record_sector_stats` writes it with the rest of the sector's stats, `block_stats.refresh_chain` and `refresh_sectors` put it right before the blocks above add it up, and `block_stats.rebuild` (migration 0162, `planetgen fill-block-totals`) makes every sector's again and lists the sectors it could not sum (`on_skipped`). The three columns have unit entries in `db/column_units.py`. No generated value changes (the three tables are left out of the fingerprints), so no epoch.
+
+### v167 (MAP.321): the inhabited reason
+
+Migration 0167 adds no column. It fills `system_interests` with the reason `inhabited` (the count of planets and moons that reached a technological civilization on a class that can carry life, or have a terrestrial colony facility, and the best habitability score among them) from what is already stored. Nothing a generator draws changes, so there is no epoch.
+
+### v166 (MAP.321): two more interest reasons
+
+Migration 0166 adds no column. It fills `system_interests` with the reasons `uninhabitable` (a scored terrestrial planet or moon under `habitability.YELLOW_FLOOR`, with the count and the best score) and `asteroid-field` (the count of belts) from the planets, moons and belts already stored. Nothing a generator draws changes, so there is no epoch.
+
+### v165 (MAP.305, MAP.303): `system_interests` replaces `habitable_systems`
+
+Migration 0165 makes `system_interests` (see its section) and fills it from the planets and moons already stored: a `habitable` row for each system with a planet or moon at or above `habitability.YELLOW_FLOOR`, a `gas-giant` row for each system with a planet of `body_type` `g`. It then drops `habitable_systems`. Nothing a generator draws changes, so there is no epoch. The Galaxy Map's nodes list its rows inside each block of 81 shells and smaller (`interests`, see the wire format).
+
+### v164 (GEN.764): the epoch of each scatter and each species
+
+Migration 0164 creates `scatter_epochs` (above) and adds `species.generator_epoch` (SMALLINT UNSIGNED, nullable): the epoch the population pass made the species under. A species made before v164 gets the epoch of the sector its homeworld's system is in.
+
+### v162 (DB.96): the atmosphere colour of a planet or moon
+
+Migration 0162 adds `atmosphere_colour` (INT UNSIGNED, nullable) to `planets` and `moons`: the colour of the body's air as one sRGB integer, `red * 65536 + green * 256 + blue` (unit key `rgb24` in `db/column_units.py`). It is worked out once with the body at the generator epoch (`planetgen.physics.body_colour`): a solid world gets the colour of the light its air scatters to the ground (GEN.418), a gas or ice giant the colour of its air at the reference level (GEN.419), from the air, the star's temperature, the ozone column and the stored haze, dust and cloud. A body with no air, no star temperature or no mixture, and a row made before v161, keeps NULL. The cloud cover is the existing `cloud_cover` (v138). The ground under the sky is the labelled stand-in reflectance until the ground's own is stored.
+
+### v161 (DB.107): `region_stats`, the named regions of the Galaxy Map
+
+Migration 0161 creates `region_stats` and fills it from `sectors`. A region is a 9-block of the block ladder (about 780 sectors, `galaxy/named_regions.py`) that holds at least one generated sector. A row is one such cell, `(shell_index, band_index, wedge_index)` (the level, 9, is implied; PK, all INT), with `sector_count` (its generated sectors) and `capacity` (the sectors its outline holds), so the share charted is `sector_count / capacity` (INT UNSIGNED; a standard fill of 109 sectors is about 14 percent of a cell); `clump_count` (INT UNSIGNED, the face-connected clumps those sectors make); and `extent_x_pc`, `extent_y_pc`, `extent_z_pc`, `extent_radius_pc` (DOUBLE, galaxy frame, parsecs: the bounding sphere of the largest clump, never under the region's framing sphere, which the map frames and draws the region with). A cell with no generated sector has no row, and the region does not exist. `db/region_stats.py` keeps it: `refresh_cells` recomputes a cell from its sectors (and drops the row of a cell with none), and `db/block_stats.py` calls `refresh_chain`, `refresh_sectors` and `rebuild` here whenever it puts right the blocks above a sector, so a save, a deletion and `planetgen fill-block-totals` keep the regions the same whatever order the sectors came or went in. `region_stats.region_of(conn, position_pc)`, `region_row(conn, cell)`, `charted_percent(conn, cell)` and `regions(conn, cells)` read it. No foreign key: a cell is not a row of its own. The version is detected from the table.
+
 ### v160 (GEN.732): the ring system of a planet
 
 Migration 0160 adds `ring_kind` (`dusty`, `narrow` or `broad`), `ring_origin` (`moon_erosion`, `disrupted_moon` or `captured_body`), `ring_inner_km`, `ring_outer_km`, `ring_mass_kg`, `ring_optical_depth` (a mean over the area the ring covers) and `ring_ice_fraction` (DOUBLE, nullable) to `planets` and `moons`, after `has_helium_shell`. One summed ring system per body (`planetgen.physics.rings`, `docs/design/composition/planetary-rings.md`); NULL for a body with no ring, for every moon, and for a row made before v157, which gets its rings when the galaxy is regenerated.
@@ -2235,7 +2291,6 @@ The ten `p_<gas>_kpa` columns of `planets` and `moons` are gone; each gas above 
 ### v154 (DB.89, GEN.642): the interior of a giant
 
 Migration 0154 adds to `planets` and `moons`: `interior_kind` (VARCHAR(16), nullable, CHECK gas_giant / ice_giant / brown_dwarf), `core_mass_earth`, `dilute_core_mass_earth`, `metallization_pressure_gpa`, `helium_depletion` (DOUBLE, nullable) and `has_helium_shell` (BOOLEAN, nullable), each at the end of the table, and creates `planet_interior_layers` and `moon_interior_layers` (the layers, outside in; see above). Nothing is backfilled: an interior needs the draws of the generator epoch, so a row made before the revision keeps NULL and no layer rows, and the regenerated galaxy replaces it. A stopped run can be started again; the version is detected from `planets.has_helium_shell`.
-
 ### v153 (GEN.699): the mantle's rheology and the heat of the interior
 
 Migration 0153 adds `mantle_eta0_pa_s`, `mantle_activation_kj_mol` and `internal_heat_flux_w_m2` (DOUBLE, nullable) at the end of `planets` and `moons`. The first two are the draws of the mantle's viscosity law; the third is the heat that comes out of the interior over the body's surface: the radiogenic heat of the stored concentrations (v141) plus the primordial heat, the cooling of the mantle since the body was made, from a one-box convection model (`physics/interior_heat.py`, design `docs/design/composition/interior-heat.md`). `urey_ratio` keeps its column and is now computed from that history (the radiogenic share of the heat out) instead of drawn between 0.1 and 0.9. A row from before v153 has NULL in the three new columns and keeps the Urey ratio it was drawn with; nothing is backfilled. Generator epoch 72 marks it.
@@ -2261,7 +2316,7 @@ Migration 0149 drops `sectors.wiki_url`, `star_systems.wikijs_url` and `star_sys
 
 ### v148 (MAP.220): the `habitable_systems` table
 
-Migration 0148 makes `habitable_systems` (`star_system_id` PK with a cascading FK, `habitable_worlds` SMALLINT UNSIGNED, the system's `galaxy_x_pc`, `galaxy_y_pc`, `galaxy_z_pc` and a key on the three) and fills it from the planets and moons already stored. It is a table of its own because `star_systems` has a FULLTEXT key, so adding a column there would copy the whole table. The Galaxy Map's nodes list its rows inside each block of 81 shells and smaller (`worlds`, see the wire format).
+Migration 0148 makes `habitable_systems` (`star_system_id` PK with a cascading FK, `habitable_worlds` SMALLINT UNSIGNED, the system's `galaxy_x_pc`, `galaxy_y_pc`, `galaxy_z_pc` and a key on the three) and fills it from the planets and moons already stored. It is a table of its own because `star_systems` has a FULLTEXT key, so adding a column there would copy the whole table. The Galaxy Map's nodes list its rows inside each block of 81 shells and smaller (`worlds` then, `interests` since v165, see the wire format).
 
 ### v147 (MAP.259): `galaxy_block_lights`, the light of the pre-placed objects in each block
 
@@ -2402,6 +2457,8 @@ Migration 0116 adds three tables. `nebula_block_stats` has one row per block `(m
 ### v115 (DB.44): the sector storage checksum and the parity dirty flag
 
 Migration 0115 adds two columns to `sectors`, at the end of the table: `storage_checksum` (BINARY(32), NULL) and `parity_dirty` (TINYINT NOT NULL, default 1). They are the two columns the rest of DB.9 reads: the checksum is the digest of the sector's stored rows once DB.9's code writes one, and the flag says the sector's parity record is not current, so every sector that existed before the revision counts as not yet protected (default 1). Both are added in one statement with `ALGORITHM=COPY`: `sectors` has a FULLTEXT index (`ft_sectors_name`), and InnoDB refuses an instant or in-place change of such a table (error 1846), so the table is rebuilt once (it holds one row per sector). No row is touched and no code reads the columns yet. A column that is already there is skipped, so a stopped run can be started again. The version is detected from `sectors.parity_dirty`.
+
+The columns are read and written by `planetgen/db/storage_checksum.py` (DB.45; no schema change). The checksum is the SHA-256 of a lossless dump of everything a sector holds as the database stores it: its `sectors` row, the star systems, stars, planets, moons, belts, comets, phenomena and facilities filed in it, and their child rows, every column of every row with `id`, foreign keys and `uid` included, floats by their 64 bits, rows in primary key order. Left out are what the daily orbit update rewrites (`VOLATILE_COLUMNS`: positions, velocities, phases, reflex offsets, binary positions, comet anomalies, `location`, the `galaxy_*_pc` of a system, and each row's clocks), the generated `cell_key` columns, `leaf_digest`, `modified_at` and the two columns themselves; the address-keyed rows (`bright_stars`, `phenomenon_scatter`) and the rebuilt tables are not part of any sector. Every writer of a covered column sets `parity_dirty` to 1 in its own transaction without moving `modified_at`: an INSERT of a sector- or system-filed row through `Connection._flag_insert`, the other writers by name (`tests/test_storage_checksum.py` lists them and fails for one it does not know). `seal` stores the checksum worked out from the rows as they read back and clears the flag; the parity writer (DB.46/48) calls it. `planetgen check-db storage` hashes every sector whose flag is clear against its stored checksum: a mismatch is damage, and the sectors with the flag set, or never sealed, are one warning, not damage.
 
 ### v114 (DB.81): the plan stores which shape levers it was told
 

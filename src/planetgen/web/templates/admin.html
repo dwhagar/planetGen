@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/datatable.html" import datatable with context %}
+{% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
 {% block head %}
 <script type="module" src="{{ static_url('datatable.js') }}"></script>
 {% endblock %}
@@ -33,9 +34,7 @@
   <form method="post" action="{{ url_for('web.admin') }}" class="search-form">
     {{ csrf_field() }}
     <div class="search-fields">
-      <label class="search-field">Expected finish (shown to visitors)
-        <input type="text" name="eta" maxlength="200" value="{{ maintenance.eta }}" placeholder="optional, e.g. about two hours" autocomplete="off">
-      </label>
+      {{ ui_input("eta", "Expected finish (shown to visitors)", maintenance.eta, maxlength=200, placeholder="optional, e.g. about two hours", autocomplete="off") }}
     </div>
     <div class="search-actions">
       <button type="submit" name="action" value="maintenance_on" class="btn">{{ "Update the message" if maintenance.enabled else "Turn maintenance mode on" }}</button>
@@ -78,22 +77,18 @@
     {{ csrf_field() }}
     <input type="hidden" name="action" value="create_key">
     <div class="search-fields">
-      <label class="search-field">Label
-        <input type="text" name="label" placeholder="e.g. galaxy-gen script" required maxlength="200">
-      </label>
-      <label class="search-field">Days until it expires
-        <input type="number" name="expires_days" min="1" max="3650" step="any" placeholder="never">
-      </label>
+      {{ ui_input("label", "Label", "", required=True, maxlength=200, placeholder="e.g. galaxy-gen script") }}
+      {{ ui_input("expires_days", "Days until it expires", "", type="number", min=1, max=3650, step="any", placeholder="never") }}
     </div>
     <fieldset class="generate-mode">
       <legend>What the key may do</legend>
       <p class="hint">Admin does everything a signed-in admin can except manage the account. Upload and generate
       each include read. Pick the least a script needs.</p>
       <div class="search-fields">
-        <label class="search-field generate-check"><span><input type="checkbox" name="scope" value="read"> Read</span></label>
-        <label class="search-field generate-check"><span><input type="checkbox" name="scope" value="generate"> Generate</span></label>
-        <label class="search-field generate-check"><span><input type="checkbox" name="scope" value="upload"> Upload</span></label>
-        <label class="search-field generate-check"><span><input type="checkbox" name="scope" value="admin" checked> Admin</span></label>
+        {{ ui_checkbox("scope", "Read", value="read", id="key-scope-read") }}
+        {{ ui_checkbox("scope", "Generate", value="generate", id="key-scope-generate") }}
+        {{ ui_checkbox("scope", "Upload", value="upload", id="key-scope-upload") }}
+        {{ ui_checkbox("scope", "Admin", value="admin", checked=True, id="key-scope-admin") }}
       </div>
     </fieldset>
     <div class="search-actions">

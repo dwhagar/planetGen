@@ -114,6 +114,19 @@ def test_budget_runs_only_the_budget_tests_on_one_worker_and_switches_them_on(mo
     assert seen[0]["PLANETGEN_BUDGET"] == "1"
 
 
+def test_only_the_end_of_version_run_switches_on_the_version_gate(monkeypatch):
+    seen = []
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: seen.append(environment) or (0, {"passed": 1}))
+    monkeypatch.setattr(runner, "save_run", lambda *args: None)
+    monkeypatch.setattr(runner, "load_runs", lambda: {})
+    monkeypatch.delenv("PLANETGEN_VERSION_GATE", raising=False)
+    assert runner.main(["full"]) == 0
+    assert seen and all(environment["PLANETGEN_VERSION_GATE"] == "1" for environment in seen)
+    seen.clear()
+    assert runner.main(["quick"]) == 0
+    assert seen and all("PLANETGEN_VERSION_GATE" not in environment for environment in seen)
+
+
 def test_an_area_run_adds_the_browser_phase_only_for_the_web_area():
     assert [p[0] for p in runner.build_phases("area", ["db", "api"], 4, 2)] == ["non-browser", "real-queue"]
     web = runner.build_phases("area", ["web", "api"], 4, 2)

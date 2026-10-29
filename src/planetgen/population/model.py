@@ -31,6 +31,7 @@ import pymysql
 from planetgen import tuning
 from planetgen.population import tech
 from planetgen.util import draw
+from planetgen.util import generator_epoch
 from planetgen.util import log
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.wordsalad import generate_phoneme_salad_name
@@ -437,13 +438,14 @@ def scan_life_worlds(conn):
                 name = _unique_species_name(conn, taken)
             taken.add(name)
             inserts.append((name, planet_id, row["star_system_id"], row["life_chemical"], timeline.life_stage,
-                            traits["build"], traits["climate"], traits["size"], age, era, int(spacefaring)))
+                            traits["build"], traits["climate"], traits["size"], age, era, int(spacefaring),
+                            generator_epoch.generator_epoch()))
         with conn:
             if inserts:
                 conn.executemany(
                     "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_chemical, life_stage, "
-                    "build, climate, size, civilization_age_years, era, spacefaring) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", inserts,
+                    "build, climate, size, civilization_age_years, era, spacefaring, generator_epoch) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", inserts,
                 )
             _set_watermark(conn, high)
         added += len(inserts)

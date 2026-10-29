@@ -537,6 +537,10 @@ def read_events(conn, run_id, after="0", count=500):
     return [(_s(entry_id), {_s(k): _s(v) for k, v in fields.items()}) for entry_id, fields in rows]
 
 
+EVENT_FIELD_NAMES = ("stage", "stages", "unit", "seconds")
+"""tuple: The fields of an event, beside its time, level, kind and message, that `event_record` carries into the record."""
+
+
 def event_record(fields):
     """
     The logging layer's record (`logrecord.Record`) of an event `read_events` gave (UX.122): its time, its level as the

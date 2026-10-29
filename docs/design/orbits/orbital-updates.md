@@ -250,13 +250,13 @@ document's cascade:
 
 | Body | Rule |
 |---|---|
-| Tidally locked (system age past the locking time) | rotation period equals orbital period; tilt 0, or a 3:2 resonance when e > 0.1 |
+| Tidally locked (the tide, `tidal_spin`, has brought the birth spin all the way down in the system's age) | rotation period equals orbital period; tilt 0, or a 3:2 or 2:1 resonance when e lies in its window (0.2 to 0.41, 0.34 to 0.49; GEN.731) |
 | Cool main-sequence stars (up to 1.3 M_sun) | gyrochronology: period from age and colour, with 10% log-normal scatter |
 | Hot stars | equatorial speed log-normal around 180 km/s, capped at 85% of breakup |
 | Small bodies over 200 m | period log-normal, never below the 2.2-hour spin barrier |
 | Black holes | spin a* from Beta(1.4, 3.6), or about 0.69 for merger remnants |
 | Stellar tilt | Rayleigh, sigma 15 degrees |
-| Planet tilt | impact-modified distribution |
+| Planet tilt | isotropic, from the giant impacts that built a rocky planet (Kokubo and Genda 2010) |
 | Asteroid tilt | near 10 or 170 degrees (YORP; two Gaussians, sigma 8 degrees, equal probability) |
 
 The axis is the orbit normal tilted by the obliquity at a random
@@ -282,11 +282,10 @@ stores `spin_axis_x/y/z` (a unit vector) and `axial_tilt_deg`, with
 2 pi over the period. Planets, moons and comets measure the axis in their
 orbit's frame, tilted from the orbit normal; stars, black holes, neutron
 stars, rogue planets and interstellar comets measure it from the galactic
-pole. Planets now lock to their star by the same despinning time as
-moons to their planet; a locked body turns once per orbit, upright. The
-generator's orbits are circular, so the 3:2 resonance for e > 0.1 waits
-for eccentric planet orbits. Rocky planets take the impact-modified tilt,
-gas giants and moons a Rayleigh one with sigma 15 degrees. A black hole's
+pole. Planets lock to their star by the same despinning as
+moons to their planet (GEN.731: a birth spin worn down by the tide, with the body's own Love number and quality factor); a locked body turns once per
+orbit, upright, and an eccentric one is caught in a 3:2 or 2:1 resonance. Rocky planets take the isotropic tilt of the impacts that built
+them, gas giants and moons a Rayleigh one with sigma 15 degrees. A black hole's
 period is its horizon's (`2 pi / Omega_H`); a neutron star's is its
 `spin_period_ms`. Merger remnants (a* near 0.69) wait for binary black
 hole mergers, which the generator does not make yet.

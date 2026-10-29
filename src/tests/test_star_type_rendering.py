@@ -63,8 +63,11 @@ def test_star_light_shows_luminosity_as_a_point_with_a_halo():
     sun = _light(1.0, 1.0)
     giant = _light(100.0, 15.0, 4500.0)
     supergiant = _light(1e5, 500.0, 3600.0)
+    # MAP.241: a star glows brighter, it is not bigger: the sizes stay in a narrow band and the glow carries the luminosity.
     sizes = [star["sizePx"] for star in (white_dwarf, sun, giant, supergiant)]
-    assert sizes == sorted(sizes) and len(set(sizes)) == 4
+    assert max(sizes) - min(sizes) < 3
+    glows = [star["glow"] for star in (white_dwarf, sun, giant, supergiant)]
+    assert glows == sorted(glows) and len(set(glows)) == 4
     assert supergiant["sizePx"] >= 3 * supergiant["corePx"]
     # The faint end is drawn brighter (MAP.87): the base halo widened by
     # the boost's fourth root.

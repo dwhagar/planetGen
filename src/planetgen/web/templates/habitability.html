@@ -1,6 +1,7 @@
 {#- What the habitability ratings mean (/help/habitability, web/class_pages.py, UX.90, UX.180); the ids are what the
     symbols, life scores and chips link to (UX.181). -#}
 {% extends "base.html" %}
+{% from "partials/poi_key.html" import poi_key with context %}
 {% block content %}
 <section class="panel" id="equipment" aria-labelledby="equipment-heading">
   <div class="panel-header"><h2 id="equipment-heading">Survival equipment</h2></div>
@@ -50,6 +51,14 @@
     <dt>{{ control }}</dt><dd>{{ what }}</dd>
     {%- endfor %}
   </dl>
+</section>
+
+<section class="panel" id="map-symbols" aria-labelledby="map-symbols-heading">
+  <div class="panel-header"><h2 id="map-symbols-heading">Map symbols</h2></div>
+  <p>The marks the maps draw for points of interest, each with its own shape so that colour is never the only sign.
+  A habitable or inhabited world takes the colour of its overall habitability score; an uninhabitable world is brown or
+  grey, never red.</p>
+  {{ poi_key("map-symbols-heading") }}
 </section>
 
 <section class="panel" aria-labelledby="temperature-heading">

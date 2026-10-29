@@ -12,8 +12,7 @@ from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole
 from planetgen.generation.system import StarSystem
-from planetgen.physics import body_state, constants as pc
-from planetgen.physics.orbits import orbital_position_au
+from planetgen.physics import constants as pc, kepler
 from planetgen.physics.position import MAX_UPDATE_INTERVAL_S, THRESHOLDS_M, update_interval_s
 
 DAY_YEARS = 86400.0 / pc.SECONDS_PER_YEAR
@@ -24,17 +23,12 @@ def state_of(row):
     return (row["position_x_km"], row["position_y_km"], row["position_z_km"])
 
 
-def phase_of(row):
-    """Where along its orbit plane a stored position is (GEN.289: there is no stored phase)."""
-    return body_state.argument_of_latitude_deg(state_of(row), row["orbital_inclination_deg"],
-                                               row["orbital_ascending_node_deg"])
-
-
-def circular_position_after(old, years):
-    """Where a body on the circular orbit its old state was generated on is `years` later, km."""
-    phase = (phase_of(old) + 360.0 * years / old["period_years"]) % 360.0
-    return orbital_position_au(old["distance_km"], old["orbital_inclination_deg"], old["orbital_ascending_node_deg"],
-                               phase)
+def position_after(old, years):
+    """Where a body on the orbit its old state was generated on is `years` later, km: the stored state stepped on its
+    conic (`kepler.universal_step`) with the pull its stored distance and period give."""
+    mu = (2.0 * math.pi / (old["period_years"] * pc.SECONDS_PER_YEAR)) ** 2 * old["distance_km"] ** 3
+    velocity = tuple(old[f"velocity_{a}_kms"] for a in "xyz")
+    return kepler.universal_step(state_of(old), velocity, mu, years * pc.SECONDS_PER_YEAR)[0]
 
 
 def test_the_interval_is_the_threshold_over_the_speed_capped():
@@ -132,11 +126,11 @@ def test_only_due_planets_and_moons_move_and_count(mysql_config):
                 assert row["epoch_unix"] == pytest.approx(tick.start_unix)
                 continue
             years = since_epoch_s / pc.SECONDS_PER_YEAR
-            assert state_of(row) == pytest.approx(circular_position_after(old, years), rel=1e-9,
+            assert state_of(row) == pytest.approx(position_after(old, years), rel=1e-9,
                                                   abs=1e-9 * old["distance_km"])
             assert row["epoch_unix"] == pytest.approx(year.end_unix)
             assert row["next_update_due"] == pytest.approx(
-                year.end_unix + update_interval_s(store_speed_ms(old), "system"), rel=1e-12)
+                year.end_unix + update_interval_s(store_speed_ms(row), "system"), rel=1e-12)
         for row in conn.execute("SELECT * FROM moons").fetchall():
             old = moons_before[row["id"]]
             if not due(old, "planetary"):
@@ -145,14 +139,14 @@ def test_only_due_planets_and_moons_move_and_count(mysql_config):
                 continue
             assert row["epoch_unix"] == pytest.approx(year.end_unix)
             assert row["next_update_due"] == pytest.approx(
-                year.end_unix + update_interval_s(store_speed_ms(old), "planetary"), rel=1e-12)
+                year.end_unix + update_interval_s(store_speed_ms(row), "planetary"), rel=1e-12)
     finally:
         conn.close()
 
 
 def store_speed_ms(row):
-    """A planet's or moon's circular speed, m/s, from its stored orbit."""
-    return row["distance_km"] * 1000.0 * 2 * math.pi / (row["period_years"] * pc.SECONDS_PER_YEAR)
+    """A planet's or moon's speed, m/s, from its stored velocity (on an ellipse it changes along the orbit)."""
+    return 1000.0 * math.sqrt(sum(row[f"velocity_{a}_kms"] ** 2 for a in "xyz"))
 
 
 def test_a_planet_that_was_not_due_catches_up_from_its_own_epoch(mysql_config):
@@ -175,7 +169,7 @@ def test_a_planet_that_was_not_due_catches_up_from_its_own_epoch(mysql_config):
         store.advance_orbital_phases(conn, second)
         row = conn.execute("SELECT * FROM planets WHERE id = ?", (planet["id"],)).fetchone()
         years = (second.end_unix - first.start_unix) / pc.SECONDS_PER_YEAR
-        assert state_of(row) == pytest.approx(circular_position_after(planet, years), rel=1e-9,
+        assert state_of(row) == pytest.approx(position_after(planet, years), rel=1e-9,
                                               abs=1e-9 * planet["distance_km"])
         assert row["epoch_unix"] == pytest.approx(second.end_unix)
     finally:

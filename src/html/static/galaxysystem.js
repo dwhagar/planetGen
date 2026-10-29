@@ -34,6 +34,7 @@ const { relativeAt } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { fadeGroup } = await import(`./groupfade.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
+const Spin = await import(`./spin.js${VERSION_QUERY}`);
 
 const KM_PER_PC = convert(1, "pc", "km");
 const AU_KM = convert(1, "au", "km");
@@ -58,7 +59,7 @@ export function cubeAround(center, half) {
 // heliopause, in km (at least MIN_EXTENT_KM).
 export function realExtentKm(scene) {
   let far = MIN_EXTENT_KM;
-  scene.planets.forEach(function (p) { far = Math.max(far, p.orbit.distance_km * 1.3); });
+  scene.planets.forEach(function (p) { far = Math.max(far, p.orbit.distance_km * (1 + (p.orbit.eccentricity || 0)) * 1.3); });
   scene.belts.forEach(function (b) { far = Math.max(far, b.outer_km * 1.1); });
   scene.stars.forEach(function (s) { if (s.orbit) far = Math.max(far, s.orbit.distance_km * 1.5); });
   return far;
@@ -104,11 +105,16 @@ export function createSystemStage(host) {
     state.world = state.built.entries.map(function (e) {
       return { ref: e.ref, key: e.ref, name: e.name, kind: e.kind, body: e.body, local: e, x: 0, y: 0, z: 0, r: 0 };
     });
+    // MAP.321: a belt is not a pickable body, but its symbol on the Galaxy Map needs to know where it is.
+    state.beltWorld = state.built.beltAnchors.map(function (a) {
+      return { ref: a.ref, key: a.ref, name: a.name, kind: a.kind, body: a.body, local: a, x: 0, y: 0, z: 0, r: 0 };
+    });
+    state.markerList = state.world.concat(state.beltWorld);
     syncWorld(state);
   }
 
   function syncWorld(state) {
-    state.world.forEach(function (w) {
+    state.markerList.forEach(function (w) {
       w.x = state.center[0] + state.unitPc * w.local.x;
       w.y = state.center[1] + state.unitPc * w.local.y;
       w.z = state.center[2] + state.unitPc * w.local.z;
@@ -310,6 +316,8 @@ export function createSystemStage(host) {
     if (!open) return;
     open.clock.tick(nowMs);
     open.built.update(open.clock.years());
+    // MAP.328: the stars and bodies of the system in the sector turn on their axes, by the one law of spin.js.
+    open.built.spin(Spin.tick(nowMs));
     open.built.paintTick();
     syncWorld(open);
     [[selectionRing, open.selected], [hoverRing, open.hovered]].forEach(function (pair) {
@@ -324,6 +332,16 @@ export function createSystemStage(host) {
     close: close,
     update: update,
     setMode: setMode,
+    // MAP.328: the Spin switch's standing preference (spin.js) the map's Menu shows and sets.
+    spinSwitch: { on: Spin.switchedOn, set: Spin.setSwitch },
+    // For the browser tests: each body of the open system as it turns (spin.js's angle, rate and axis, the mesh's rotation).
+    spins: function () {
+      return open ? open.built.entries.map(function (e) {
+        return { ref: e.ref, name: e.name, spinH: e.body.look ? e.body.look.spinH || 0 : 0, angle: Spin.angleAt(e.body.look, Spin.seconds()),
+          rate: Spin.rateOf(e.body.look), axis: Spin.axisOf(e.body.look), at: Spin.seconds(),
+          quaternion: open.built.objects[e.ref].quaternion.toArray() };
+      }) : [];
+    },
     deselect: deselect,
     isOpen: function () { return live(); },
     // MAP.152: the system whose scene is up for the camera coming near it, and how much of it shows.
@@ -333,12 +351,16 @@ export function createSystemStage(host) {
     fade: function () { return open ? open.fade : 0; },
     // The real radius (pc) of the system that is up, once its scene is known.
     radiusPc: function () { return open ? open.radiusPc : null; },
+    // MAP.321: where the open system sits in the map's world (parsecs), or null.
+    centre: function () { return live() ? open.center.slice() : null; },
     systemId: function () { return live() ? open.id : null; },
     name: function () { return live() ? open.name : null; },
     mode: function () { return open ? open.mode : MODE_COMPRESSED; },
     // The open system's body with this ref ("planet:12"), or null.
     entry: function (ref) { return live() ? open.world.find(function (w) { return w.ref === ref; }) || null : null; },
     entries: function () { return live() ? open.world : []; },
+    // MAP.321: the bodies that carry a symbol on the Galaxy Map: the pickable ones and the belts, kept where they are.
+    markerBodies: function () { return live() ? open.markerList : []; },
     select: function (ref) {
       const entry = live() && open.world.find(function (w) { return w.ref === ref; });
       if (entry) open.layer.select(entry);

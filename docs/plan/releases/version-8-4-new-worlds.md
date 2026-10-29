@@ -25,7 +25,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.33 | One class per PR, each with its tests |  | Moved to phase 2 under GEN.90, after the habitability score. One class per PR (R and S first). Built on fixed physics so new classes aren't tuned to wrong masses, moons or zones. |
 | GEN.355 | Atmosphere retention module with its test table | GEN.33 | Split from GEN.91. |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | GEN.33 | Under GEN.90. Same reconcile/zone code as phase 0's physics fixes. |
-| GEN.350 | Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T | GEN.33, GEN.355 | Split from GEN.28. |
+| GEN.350 | Class R, sub-Neptune, with the envelope-survival rule and the Hycean flag (class T stays: it is the sub-Neptune row of the classifier) | GEN.33, GEN.355 | Split from GEN.28. |
 | GEN.351 | Class U, icy world | GEN.33 | Split from GEN.28. |
 | GEN.352 | Classes W and X, subsurface ocean bodies | GEN.33 | Split from GEN.28. |
 | GEN.353 | Class Y, Titan-like world | GEN.355 | Split from GEN.28. |
@@ -41,8 +41,8 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.358 | GEN.94's rules and the four exotic-environment additions reach planet formation | GEN.357 | Split from GEN.95. |
-| GEN.95 | Nebula conditions applied when planets and surfaces are generated | GEN.357, GEN.358 |  |
+| GEN.358 | GEN.94's rules and the four exotic-environment additions reach planet formation |  | Split from GEN.95. |
+| GEN.95 | Nebula conditions applied when planets and surfaces are generated | GEN.358 |  |
 | GEN.93 | Nebula conditions in planet generation | GEN.95 | Parent. |
 | GEN.775 | Replace the planet-minus-star Fe/Mg scatter and super-Mercury tail (registry row BC8) with a larger sample of rocky planets with precise masses and stellar Fe/Mg |  |  |
 | GEN.776 | Replace the rogue-planet volatile loss at ejection (registry row BC11) with a measured atmosphere or free-floating-planet volatile survey |  | Aux 14, GEN.734: replacing item of a registry row; pool, after 8.1. |

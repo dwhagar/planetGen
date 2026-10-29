@@ -17,6 +17,7 @@
     an item opens its dialog on top of the page (static/dialogmenus.js);
     the page's own POST handler does the rest. -#}
 
+{% from "partials/ui_fields.html" import ui_checkbox with context %}
 {%- macro admin_menu_button(groups, label='this page') -%}
 {%- set menu_id = 'admin-menu' -%}
 <div class="admin-bar">
@@ -70,7 +71,7 @@
     {{ action.fields }}
     {%- endif %}
     {%- if action.drop_label %}
-    <label class="edit-drop"><input type="checkbox" name="drop_facilities" value="1"> {{ action.drop_label }}</label>
+    {{ ui_checkbox("drop_facilities", action.drop_label) }}
     {%- endif %}
   </form>
   <sl-button slot="footer" data-dialog-close>Cancel</sl-button>

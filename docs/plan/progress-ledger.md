@@ -1532,3 +1532,145 @@ Baseline: PR #1817.
 | MAP.324 | 8.1 | Fly-through map |
 | OPS.76 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | OPS.75 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.357 | 8.1 | Nebula and young stars |
+| TEST.407 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.673 | 8.1 | Mixture and stored values |
+| GEN.667 | 8.1 | Atmosphere colour |
+| GEN.815 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.825 | 8.1 | Fly-through map |
+| GEN.827 | 8.1 | Fly-through map |
+| GEN.430 | 8.1 | Bulk composition |
+| DB.107 | 8.1 | Fly-through map |
+| TEST.401 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.797 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.394 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.383 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.126 | 8.1 | Admin control suite |
+| UX.49 | 8.1 | Admin control suite |
+| DB.96 | 9.0 | The headline |
+| MAP.317 | 8.1 | Fly-through map |
+| API.35 | 8.1 | Fly-through map |
+| DOC.82 | 8.1 | Fly-through map |
+| GEN.727 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.731 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.737 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.315 | 8.1 | Fly-through map |
+| GEN.841 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.410 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.319 | 8.1 | Fly-through map |
+| GEN.749 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.241 | 8.1 | Fly-through map |
+| MAP.214 | 8.1 | Fly-through map |
+| MAP.237 | 8.1 | Fly-through map |
+| DB.45 | 8.1 | Reproducible galaxies |
+| MAP.320 | 8.1 | Fly-through map |
+| MAP.209 | 8.1 | Fly-through map |
+| MAP.210 | 8.1 | Fly-through map |
+| MAP.249 | 8.1 | Fly-through map |
+| UX.212 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.419 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.121 | 8.1 | Fly-through map |
+| MAP.314 | 8.1 | Fly-through map |
+| GEN.832 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.397 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.415 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.445 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.764 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.637 | 8.1 | The headline closes |
+| GEN.844 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.316 | 8.1 | Fly-through map |
+| MAP.327 | 8.1 | Fly-through map |
+| PERF.175 | 8.1 | The headline closes |
+| PERF.174 | 8.1 | The headline closes |
+| PERF.193 | 8.1 | The headline closes |
+| DB.46 | 8.1 | Reproducible galaxies |
+| MAP.330 | 8.1 | Fly-through map |
+| DB.47 | 8.1 | Reproducible galaxies |
+| DB.48 | 8.1 | Reproducible galaxies |
+| DB.9 | 8.1 | Reproducible galaxies |
+| DB.108 | 8.1 | Fly-through map |
+| TEST.416 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.421 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.847 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.415 | 8.1 | Consistency |
+| GEN.423 | 8.1 | Radiation chain for habitability (GEN.445) |
+| DB.67 | 8.1 | Mixture and stored values |
+| DB.83 | 8.1 | Reproducible galaxies |
+| GEN.773 | 8.1 | Bulk composition |
+| GEN.772 | 8.1 | Bulk composition |
+| GEN.771 | 8.1 | Bulk composition |
+| GEN.770 | 8.1 | Bulk composition |
+| GEN.769 | 8.1 | Bulk composition |
+| GEN.831 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.321 | 8.1 | Fly-through map |
+| MAP.318 | 8.1 | Fly-through map |
+| TEST.423 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.796 | 8.1 | Bulk composition |
+| GEN.795 | 8.1 | Bulk composition |
+| GEN.826 | 8.1 | Fly-through map |
+| MAP.305 | 8.1 | Fly-through map |
+| MAP.303 | 8.1 | Fly-through map |
+| GEN.464 | 8.1 | Star composition |
+| GEN.723 | 8.1 | Mixture and stored values |
+| GEN.742 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.234 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.413 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.424 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.306 | 8.1 | Fly-through map |
+| GEN.823 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.830 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.837 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.399 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.715 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.718 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.717 | 8.1 | Radiation chain for habitability (GEN.445) |
+| MAP.322 | 8.1 | Fly-through map |
+| UX.235 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.721 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.735 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.767 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.763 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.759 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.214 | 8.1 | Consistency |
+| UX.232 | 8.2 | Search by physical values |
+| GEN.836 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.425 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.77 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.392 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.332 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.368 | 8.1 | Fly-through map |
+| MAP.331 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.48 | 8.1 | Docs |
+| GEN.822 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.123 | 8.1 | Admin and API housekeeping |
+| API.4 | 8.1 | Admin and API housekeeping |
+| MAP.220 | 8.1 | Habitability system |
+| MAP.190 | 8.1 | Fly-through map |
+| GEN.812 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.122 | 8.1 | Fly-through map |
+| MAP.333 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.311 | 8.1 | Fly-through map |
+| TEST.438 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.874 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.885 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.127 | 8.1 | Queue, caches and performance |
+| GEN.231 | 8.1 | Queue, caches and performance |
+| TEST.315 | 8.1 | Consistency |
+| MAP.334 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| TEST.440 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.328 | 8.1 | Fly-through map |
+| UX.215 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.216 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.217 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.218 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.219 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.220 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.221 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.222 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.343 | 8.1 | Fly-through map |
+| TEST.437 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.866 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.895 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.870 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.875 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.431 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

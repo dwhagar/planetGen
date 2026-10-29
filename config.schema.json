@@ -213,7 +213,8 @@
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many finished jobs stay in the job list."
+          "x-summary": "How many finished jobs stay in the job list.",
+          "x-unit": "jobs"
         },
         "python": {
           "default": "",
@@ -339,7 +340,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "The port the database server listens on."
+          "x-summary": "The port the database server listens on.",
+          "x-unit": "port number"
         },
         "statement_timeout_seconds": {
           "default": 10,
@@ -625,7 +627,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "The most answers kept in memory."
+          "x-summary": "The most answers kept in memory.",
+          "x-unit": "answers"
         },
         "max_mb": {
           "default": 64,
@@ -730,6 +733,92 @@
       "title": "PageCache",
       "type": "object"
     },
+    "Parity": {
+      "properties": {
+        "dir": {
+          "default": "",
+          "description": "Where the parity file is kept; empty means /var/lib/planetGen/parity. Keep it off the disk the database is on if you can: a parity file on the same failing disk protects nothing.",
+          "title": "Dir",
+          "type": "string",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": false,
+          "x-env": "PLANETGEN_PARITY_DIR",
+          "x-group": "paths",
+          "x-label": "Repair file folder",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "Where the sector repair file is kept; empty uses /var/lib/planetGen/parity."
+        },
+        "enabled": {
+          "default": false,
+          "description": "Keep a parity file beside the database that can rebuild a damaged sector (DB.46): every saved or edited sector updates the parity of its group, which costs a few milliseconds a save and about 7 percent of the sectors' size in disk space. Off, saves write no parity and `planetgen refresh-parity` builds it later.",
+          "title": "Enabled",
+          "type": "boolean",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-env": "PLANETGEN_PARITY",
+          "x-group": "housekeeping",
+          "x-label": "Sector repair file",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": true,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "Keep a parity file that can rebuild a damaged sector; saves get a little slower."
+        },
+        "group_size": {
+          "default": 32,
+          "description": "Sectors in one parity group (G). Any `parity_blocks` damaged sectors of a group are rebuilt from the rest, which are read to do it: a bigger group costs less disk and more reading. A change applies to the groups made afterwards.",
+          "maximum": 248,
+          "minimum": 1,
+          "title": "Group Size",
+          "type": "integer",
+          "x-advanced": true,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "housekeeping",
+          "x-label": "Sectors per repair group",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": true,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How many sectors share one set of parity blocks.",
+          "x-unit": "sectors"
+        },
+        "parity_blocks": {
+          "default": 2,
+          "description": "Parity blocks per group (m): how many damaged sectors of one group can be rebuilt. A change applies to the groups made afterwards.",
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Parity Blocks",
+          "type": "integer",
+          "x-advanced": true,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "housekeeping",
+          "x-label": "Repair blocks per group",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": true,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How many damaged sectors of one group the repair file can rebuild.",
+          "x-unit": "blocks"
+        }
+      },
+      "title": "Parity",
+      "type": "object"
+    },
     "PasswordHash": {
       "properties": {
         "memory_kib": {
@@ -771,7 +860,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many threads one admin password check uses."
+          "x-summary": "How many threads one admin password check uses.",
+          "x-unit": "threads"
         },
         "time_cost": {
           "default": 2,
@@ -791,7 +881,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many passes one admin password check makes over its memory."
+          "x-summary": "How many passes one admin password check makes over its memory.",
+          "x-unit": "passes"
         }
       },
       "title": "PasswordHash",
@@ -817,7 +908,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many reverse proxies to trust for the visitor's address (0 means none)."
+          "x-summary": "How many reverse proxies to trust for the visitor's address (0 means none).",
+          "x-unit": "proxies"
         },
         "x_host": {
           "default": 0,
@@ -837,7 +929,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many reverse proxies to trust for the host name (0 means none)."
+          "x-summary": "How many reverse proxies to trust for the host name (0 means none).",
+          "x-unit": "proxies"
         },
         "x_proto": {
           "default": 0,
@@ -857,7 +950,8 @@
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many reverse proxies to trust for http or https (0 means none)."
+          "x-summary": "How many reverse proxies to trust for http or https (0 means none).",
+          "x-unit": "proxies"
         }
       },
       "title": "ProxyFix",
@@ -1823,7 +1917,8 @@
       "x-restart": false,
       "x-secret": false,
       "x-slider": null,
-      "x-summary": "Which format version this settings file is in; the program keeps it up to date."
+      "x-summary": "Which format version this settings file is in; the program keeps it up to date.",
+      "x-unit": "format version"
     },
     "control_database": {
       "default": "planetgen_control",
@@ -2023,6 +2118,15 @@
         "stamp_seconds": 15.0,
         "stored_counts": true,
         "warm_max_objects": 5000
+      }
+    },
+    "parity": {
+      "$ref": "#/$defs/Parity",
+      "default": {
+        "dir": "",
+        "enabled": false,
+        "group_size": 32,
+        "parity_blocks": 2
       }
     },
     "password_hash": {

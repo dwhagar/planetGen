@@ -1,0 +1,96 @@
+{
+  "about": "The history of the API version (API.4). One row per version, oldest first; the newest row's version is planetgen.api.version.API_VERSION. A PR that raises API_VERSION adds its row here with \"first_release\": null and \"pending\": true and a line \"api-version: changed\" in its note; the stamp names the release. docs/reference/api-compatibility.md is built from this file by scripts/build_api_compatibility.py.",
+  "versions": [
+    {
+      "version": 1,
+      "first_release": "8.0.866",
+      "items": ["API.22"],
+      "summary": "The first numbered version: every /api answer carries it in the X-PlanetGen-API-Version header and /api/health reports it.",
+      "changes": []
+    },
+    {
+      "version": 2,
+      "first_release": "8.0.912",
+      "items": ["API.23"],
+      "summary": "Sectors, systems and phenomena are named by their object ID, not by their database row number.",
+      "changes": [
+        "id, sector_id and ref fields of sector, system and phenomenon answers carry the printed object ID (0008000000-4000000-000)",
+        "URLs /api/systems/<id>, /api/sectors/<id>, /api/phenomena/<type>/<id>, /api/nebulae/<id>/...",
+        "from, to and course references such as system:0008000000-4000000-000",
+        "a row number in any of these is refused (404)"
+      ]
+    },
+    {
+      "version": 3,
+      "first_release": "8.0.912",
+      "items": ["API.23"],
+      "summary": "Stars, planets, moons, asteroid belts, comets and facilities are named by their object ID too.",
+      "changes": [
+        "fields id, star_id, planet_id, moon_id, belt_id, comet_id, host_id and homeworld_planet_id; <kind>:<ID> references",
+        "URLs /api/planets/<id>, /api/moons/<id>/class, /api/facilities/<id>",
+        "POST /api/facilities and GET /api/facilities/orbit take the host's ID as host_id"
+      ]
+    },
+    {
+      "version": 4,
+      "first_release": "8.0.1589",
+      "items": ["ADM.50"],
+      "summary": "The galaxy settings files are gone.",
+      "changes": [
+        "GET /api/admin/galaxy-settings removed",
+        "GET /api/admin/galaxy-settings/<name> removed"
+      ]
+    },
+    {
+      "version": 5,
+      "first_release": "8.0.1783",
+      "items": ["DB.51"],
+      "summary": "A system's description is a document built from stored data, not a table of paragraphs.",
+      "changes": [
+        "GET /api/systems/<uid>/sections removed"
+      ]
+    },
+    {
+      "version": 6,
+      "first_release": "8.0.2215",
+      "items": ["PERF.99"],
+      "summary": "The work queue endpoints answer runs held in Redis, not job trees.",
+      "changes": [
+        "GET /api/admin/work and GET /api/admin/work/<id> return runs with their stage, units and time left; <id> is a run id",
+        "POST /api/admin/work/<id>/control takes cancel or clear (pause and resume of a node are gone)",
+        "POST /api/admin/work/<id>/delete and clear-finished delete runs",
+        "GET /api/admin/work/<id>/log is new",
+        "POST /api/admin/work/lease/clear removed"
+      ]
+    },
+    {
+      "version": 7,
+      "first_release": "8.0.2225",
+      "items": ["API.26", "API.31"],
+      "summary": "Every sector address is shell, band and wedge, where it was ring, layer and slot.",
+      "changes": [
+        "request parameters shell, band and wedge; answers shell_index, band_index and wedge_index (were ring, layer, slot; ring_index, layer_index, ring_slot_index)",
+        "no route that takes the old names is kept"
+      ]
+    },
+    {
+      "version": 8,
+      "first_release": "8.0.2236",
+      "items": ["MAP.262"],
+      "summary": "The Galaxy Map reads its data by sector-block node; the cube tiles are gone.",
+      "changes": [
+        "GET /api/galaxy/tiles removed; GET /api/galaxy/nodes is the map's data",
+        "GET /api/galaxy/changes answers nodes, no longer tiles"
+      ]
+    },
+    {
+      "version": 9,
+      "first_release": "8.0.2271",
+      "items": ["MAP.287"],
+      "summary": "A star, planet or moon of a system scene carries a look record, not a colour.",
+      "changes": [
+        "GET /api/systems/<id>/scene: stars, planets and moons have look (the body look record, which holds the color and what the painters need) and no color; a comet keeps color"
+      ]
+    }
+  ]
+}

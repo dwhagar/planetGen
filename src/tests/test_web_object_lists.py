@@ -123,3 +123,12 @@ def test_a_slow_table_read_answers_202_with_the_job_and_where_to_poll_it(site, m
     assert body["status_url"] == "/api/page-jobs/0123456789abcdef"
     client.get("/table/list-planet", headers={"X-Slow-Retry": "1"})
     assert seen == [False, True]
+
+
+def test_planet_and_moon_lists_link_to_the_score_filters(site):
+    """UX.214: the lists that carry habitability point at the search page, best habitability first."""
+    client, _seen = site
+    for kind in ("planet", "moon"):
+        html = client.get(f"/lists/{kind}").get_data(as_text=True)
+        assert f"type={kind}" in html and f"{kind}s_sort=phi4" in html and f"{kind}s_order=desc" in html
+    assert "list-filter-link" not in client.get("/lists/star").get_data(as_text=True)

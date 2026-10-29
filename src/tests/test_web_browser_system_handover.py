@@ -128,3 +128,44 @@ def test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system(page, bas
             break
     assert "sector=" not in page.url, page.url
     assert page.evaluate("() => window.__same_page === true")
+
+
+def test_the_stars_and_bodies_of_a_system_opened_in_the_sector_turn_on_their_axes_and_the_menu_switch_holds_them_still(page, base_url, site_app, sample_params):
+    """MAP.328: a system opened in the sector of the Galaxy Map draws its stars and bodies as spheres, and they turn about their
+    stored axes by spin.js's law (the same spin time for every body, none faster than one turn in 20 s); a body with no stored
+    period stays where it is; the Menu's Spin switch holds them still; the galaxy view itself turns nothing."""
+    systems = _kinds(site_app.test_client())
+    system_id = systems.get("moons") or systems.get("single") or next(iter(systems.values()))
+    reach = _Scene(page, base_url, site_app, sample_params)
+    page.emulate_media(reduced_motion="no-preference")
+    page.goto(f"{base_url}/galaxy?sector={reach.code}&open=1&system={system_id}", wait_until="load")
+    page.wait_for_selector(CANVAS, state="attached")
+    _ready(page)
+    page.wait_for_function(f"() => {{ const s = {CANVAS_JS}.galaxySystem(); return s && s.spins().length > 0; }}", timeout=30000)
+    sample = f"""async (wait) => {{
+        const read = () => {CANVAS_JS}.galaxySystem().spins();
+        const first = read();
+        await new Promise((resolve) => setTimeout(resolve, wait));
+        return {{first: first, second: read()}};
+    }}"""
+    got = page.evaluate(sample, 900)
+    turning = [a for a in got["first"] if a["rate"] > 0]
+    assert len(turning) >= 2, "bodies with a stored period are drawn"
+    elapsed = {a["ref"]: b["at"] - a["at"] for a, b in zip(got["first"], got["second"])}
+    assert all(0.3 < e < 3.0 for e in elapsed.values()), elapsed
+    for a, b in zip(got["first"], got["second"]):
+        dot = abs(sum(x * y for x, y in zip(a["quaternion"], b["quaternion"])))
+        turned = 2 * math.acos(min(1.0, dot))
+        assert turned == pytest.approx(a["rate"] * (b["at"] - a["at"]), abs=2e-3), (a["ref"], turned, a["rate"])
+        assert 2 * math.pi / 600 - 1e-9 <= a["rate"] <= 2 * math.pi / 20 + 1e-9 or a["rate"] == 0
+    # The Menu's Spin switch holds every body still, and on again sets them turning.
+    page.locator("#galaxymap3d-menu > summary").click()
+    button = page.locator('#galaxymap3d-kinds button[data-layer="spin"]')
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    button.click()
+    held = page.evaluate(sample, 600)
+    assert held["first"][0]["at"] == held["second"][0]["at"], "spin time stopped"
+    assert [s["quaternion"] for s in held["first"]] == [s["quaternion"] for s in held["second"]]
+    button.click()
+    again = page.evaluate(sample, 600)
+    assert again["second"][0]["at"] > again["first"][0]["at"]

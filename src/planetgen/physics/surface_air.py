@@ -10,8 +10,9 @@ condensable gases and the carbonate-silicate cycle, and the pressure depends on 
 GEN.422 fixes, repeating until the pressure and the temperature stop moving:
 
 1. *Mixture.* The mixture draw (`mixture_draw.draw_mixture`) at the temperature and pressure of the step, over the element budget the
-   interior has degassed (`surface_pressure.degassed_inventory`) less what the sinks take: an ocean takes sulfur, and the carbonate
-   cycle takes the carbon that weathering locks up at the temperature (`surface_pressure.carbonate_pco2_bar`).
+   interior has degassed (`surface_pressure.degassed_inventory`) less what the sinks take: the sulfate and sulfide sinks of the crust take sulfur (`sulfur_balance`, which the ocean then dissolves
+   some of, `mixture_sinks`), and the carbonate cycle takes the carbon that weathering locks up at the temperature
+   (`surface_pressure.carbonate_pco2_bar`).
 2. *Pressure.* The moles of gas are an air mass, `P = g M_air / (4 pi R^2)`, and the gas that stays is what the light-gas escape
    (`mixture_escape`) leaves.
 3. *Freeze-out.* What a gas holds above its saturation pressure at the surface temperature is condensate (an ocean, a cap): the
@@ -36,9 +37,10 @@ import math
 from dataclasses import dataclass, field
 
 from planetgen.physics import (
-    atmosphere, atmosphere_state, clathrate_brine, constants, gases, greenhouse, hydrosphere, mixture_draw, mixture_rocky, mixture_sinks,
-    mixture_subject, radiogenic, saturation, surface_pressure,
+    atmosphere, atmosphere_state, clathrate_brine, constants, gases, greenhouse, hydrosphere, interior_heat, mixture_draw, mixture_rocky,
+    mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, waterworld_carbon,
 )
+from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import bracket
@@ -101,13 +103,12 @@ REFERENCE_PRESSURE_BAR = 1.0
 """float: The pressure of the reference level of a body with no surface: the 1 bar level that the radius and the temperature of a giant
 refer to (Jupiter's equatorial radius is the 1 bar one). A convention, not a stand-in."""
 
-SULFUR_SURFACE_KEPT = (1e-5, 1e-2, "log")
-"""tuple: The share of the degassed sulfur that stays in the air of a body with an ocean. The rest is taken by what the ocean and the
-crust do with sulfur that the physical solubility (`mixture_sinks`, Henry's law) does not count: sulfite and sulfate in solution,
-gypsum, pyrite. The Earth's surface holds about 1 percent of its degassed sulfur in the air and ocean as a gas-exchangeable
-reservoir at most, so the bracket (the old weathering sink of the rocky inventory, kept for sulfur alone; the carbon has the carbonate
-balance) runs from there down. Stand-in (tier: marginal educated guess from physics, tweak level L1) until a sulfate and sulfide
-balance (the sulfur analogue of GEN.726) replaces it."""
+GY_S = 3.15576e16
+"""float: One billion Julian years, s."""
+
+UNKNOWN_OXIDISED_SHARE = 0.5
+"""float: The share of the sulfur taken to be oxidised at the first step, before there is a gas to read it from (`sulfur_balance.oxidised_share_of`
+reads the previous step's gas from the second step on). A starting guess of the fixed point, not a stand-in: it changes only the first step."""
 
 LONG_LIVED_FLUX_FRACTION = 0.5
 """float: A body whose interior still carries this share of the heat flow of the Earth twin out of its surface is geologically alive
@@ -141,6 +142,12 @@ class Setting:
         water_kg (float): The water at the surface (ocean, ice, the part of the mantle's that the surface holds), the reservoir the water
             vapour of the air stands in contact with.
         absorbed_flux_w_m2 (float): The starlight the surface absorbs, averaged over the sphere (`greenhouse.absorbed_flux_w_m2`).
+        age_gy (float): The body's age (its star's, else the reference age of a starless body), Gy: the span the degassed sulfur arrived over.
+        released_at_seal_j (float): The heat the interior had carried out by `waterworld_carbon.SEAL_TIME_GY` (or the body's age, if younger):
+            what has degassed into the closed system of a world whose ocean seals the seafloor.
+        mantle_water_kg (float): The water the mantle holds (the bulk water less the surface's); volcanoes bring up at most
+            `tuning.MANTLE_OUTGAS_SHARE` of it, and the air draw takes no more hydrogen than that (GEN.837); infinity for a setting that
+            does not say.
         bulk_water_fraction (float): The water mass fraction of the whole body (an icy body, from `hydrosphere.ICY_MIN_WATER_FRACTION`,
             holds guest gases in the cages of its ice skin).
         subject_of (callable): `(ts_k, pressure_bar, ocean_present, long_lived_geology) -> Subject` of the mixture draw.
@@ -155,7 +162,10 @@ class Setting:
     ocean_cover: float
     water_kg: float
     absorbed_flux_w_m2: float
+    released_at_seal_j: float
     subject_of: object
+    mantle_water_kg: float = math.inf
+    age_gy: float = tuning.ROGUE_EARTH_REFERENCE_AGE_GY
     bulk_water_fraction: float = 0.0
     giant: bool = False
 
@@ -184,7 +194,7 @@ class Air:
         steps (int): The steps taken.
         converged (bool): The pressure and the temperature settled to `TOLERANCE_LN_P` and `TOLERANCE_K`.
         ocean_present (bool): The last step's ocean flag.
-        constants (dict): The design constants drawn (the efficiencies, the cycle's draws, the sulfur kept, the skin of ice).
+        constants (dict): The design constants drawn (the efficiencies, the cycle's draws, the sulfur lifetimes, the skin of ice).
     """
 
     mixture: object
@@ -378,20 +388,66 @@ def long_lived_geology(heat_flux_w_m2):
     return heat_flux_w_m2 >= LONG_LIVED_FLUX_FRACTION * surface_pressure.HEAT_FLUX_EARTH_W_M2
 
 
-def _shares(setting, efficiencies, cycle, sulfur_kept, ocean, weathers, temperature_k):
-    """The `supply` callable of one step: the share of each delivered element that the surface holds at `temperature_k`."""
-    base = surface_pressure.degassed_share(setting.released_j, setting.mantle_kg)
+@dataclass(frozen=True)
+class WaterWorld:
+    """
+    The carbon sink of a body with an ocean (`waterworld_carbon`): which of the three sinks it has and the draws they take.
+
+    Attributes:
+        sealed (bool): The seafloor pressure of the ocean reaches the seal pressure (the mantle no longer feeds the air).
+        draws (waterworld_carbon.WaterWorldDraws): The seal pressure and the leached crust thickness.
+        law (waterworld_carbon.SeafloorLaw): The seafloor weathering law.
+    """
+
+    sealed: bool
+    draws: object
+    law: object
+
+
+def water_world_of(setting, design):
+    """The `WaterWorld` of a body (its draws recorded in `design`): sealed when the pressure of its ocean's column on the seafloor reaches
+    the drawn seal pressure."""
+    draws = waterworld_carbon.draw_waterworld(design)
+    law = waterworld_carbon.draw_seafloor_law(design)
+    column = setting.water_kg / setting.area_m2 if setting.ocean_cover > 0.0 else 0.0
+    sealed = waterworld_carbon.is_sealed(waterworld_carbon.seafloor_pressure_pa(column, setting.gravity_m_s2), draws.seal_pa)
+    return WaterWorld(sealed=sealed, draws=draws, law=law)
+
+
+def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k, water_world):
+    """The `supply` callable of one step: the share of each delivered element that the surface holds at `temperature_k`. `sulfur` is
+    `(lifetimes, age_s, oxidised_share)` for the sulfate and sulfide balance (`sulfur_balance`)."""
+    released = setting.released_at_seal_j if water_world.sealed else setting.released_j
+    base = surface_pressure.degassed_share(released, setting.mantle_kg)
     moles_per_100_g = setting.mantle_kg / 0.1
+    mantle_hydrogen_mol = 2.0 * tuning.MANTLE_OUTGAS_SHARE * setting.mantle_water_kg / gases.gas("H2O").molar_mass
+    crust_kg_m2 = sulfur_balance.crust_column_kg_m2(setting.released_j, setting.radius_m)
 
     def shares(inventory):
         shares_ = {element: base * efficiency for element, efficiency in efficiencies.items()}
-        if ocean:
-            shares_["S"] = shares_.get("S", 0.0) * sulfur_kept
+        degassed_sulfur = inventory.get("S", 0.0) * shares_.get("S", 0.0) * moles_per_100_g
+        if degassed_sulfur > 0.0:
+            lifetimes, age_s, oxidised_share = sulfur
+            kept = sulfur_balance.balance(degassed_sulfur / setting.area_m2, age_s=age_s, ocean_present=ocean, oxidised_share=oxidised_share,
+                                          crust_kg_m2=crust_kg_m2, lifetimes=lifetimes)
+            shares_["S"] *= kept.air_mol_m2 * setting.area_m2 / degassed_sulfur
+        degassed_hydrogen = inventory.get("H", 0.0) * shares_.get("H", 0.0) * moles_per_100_g
+        if degassed_hydrogen > mantle_hydrogen_mol:  # GEN.837: volcanoes bring up no more hydrogen than MANTLE_OUTGAS_SHARE of the mantle's water holds
+            shares_["H"] *= mantle_hydrogen_mol / degassed_hydrogen
         carbon = inventory.get("C", 0.0) * shares_.get("C", 0.0) * moles_per_100_g
         if weathers and carbon > 0.0:
             supply_bar = carbon * gases.gas("CO2").molar_mass * setting.gravity_m_s2 / setting.area_m2 / 1.0e5
-            kept_bar = surface_pressure.carbonate_pco2_bar(supply_bar, setting.heat_flux_w_m2, 1.0 - setting.ocean_cover,
-                                                           lambda p_bar: temperature_k, *cycle)
+            kind = waterworld_carbon.sink_kind(water_world.sealed, 1.0 - setting.ocean_cover)
+            if kind == waterworld_carbon.CONTINENTAL_WEATHERING:
+                kept_bar = surface_pressure.carbonate_pco2_bar(supply_bar, setting.heat_flux_w_m2, 1.0 - setting.ocean_cover,
+                                                               lambda p_bar: temperature_k, *cycle)
+            elif kind == waterworld_carbon.SEAFLOOR_WEATHERING:
+                kept_bar = waterworld_carbon.seafloor_pco2_bar(supply_bar, setting.heat_flux_w_m2, lambda p_bar: temperature_k,
+                                                               water_world.law, cycle[2])
+            else:
+                sodium, calcium = waterworld_carbon.leached_cations_mol_m2(water_world.draws.altered_km)
+                kept_bar = waterworld_carbon.ocean_pco2(carbon / setting.area_m2, temperature_k, setting.water_kg / setting.area_m2,
+                                                        setting.gravity_m_s2, sodium_mol_m2=sodium, calcium_mol_m2=calcium).pco2_bar
             shares_["C"] *= min(1.0, kept_bar / supply_bar)
         return shares_
 
@@ -428,7 +484,9 @@ def solve(setting, start_temperature_k):
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = surface_pressure.draw_cycle(design)
-    sulfur_kept = bracket(design, "sulfur_surface_kept", SULFUR_SURFACE_KEPT)
+    lifetimes = sulfur_balance.draw_lifetimes(design)
+    oxidised_share = UNKNOWN_OXIDISED_SHARE
+    water_world = water_world_of(setting, design)
     skin_m = bracket(design, "hydrate_skin_m", (*clathrate_brine.HYDRATE_SKIN_RANGE_M, "log"))
     seed = draw.getrandbits(64)
     geology = long_lived_geology(setting.heat_flux_w_m2)
@@ -456,12 +514,15 @@ def solve(setting, start_temperature_k):
             ocean = ocean or cycling
         weathers = _weathers(setting, reservoir_left, temperature)
         subject = setting.subject_of(temperature, pressure / 1.0e5, ocean, geology)
-        shares = _shares(setting, efficiencies, cycle, sulfur_kept, ocean, weathers, temperature)
+        shares = _shares(setting, efficiencies, cycle, (lifetimes, setting.age_gy * GY_S, oxidised_share), ocean, weathers, temperature,
+                         water_world)
         with _draw_stream(seed):
             mixture = mixture_draw.draw_mixture(subject, recipe_subject=recipe_subject, supply=shares)
         if step == FREEZE_AFTER:
             recipe_subject = subject
         family = mixture.family
+        if mixture.mole_fractions:
+            oxidised_share = sulfur_balance.oxidised_share_of(mixture.mole_fractions)
         if family in ("airless", "coma") or not mixture.mole_fractions:
             return _airless(setting, mixture, step, design, ocean)
 
@@ -559,6 +620,7 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
     gravity = body.gravity * constants.EARTH_GRAVITY
     rock = radiogenic.rock_of(body)
     flux = 0.0 if heat is None else heat.flux_w_m2
+    age_gy = getattr(getattr(body, "star", None), "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
 
     def subject_of(ts_k, pressure_bar, ocean_present, long_lived_geology):
         return mixture_subject.subject_of_body(body, ts_k=ts_k, pressure_bar=pressure_bar, ocean_present=ocean_present,
@@ -570,4 +632,7 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         released_j=0.0 if heat is None else heat.released_j, heat_flux_w_m2=flux,
         ocean_cover=0.0 if giant else hydrosphere.ocean_cover(body, surface_w), water_kg=0.0 if giant else surface_w * body.mass,
         absorbed_flux_w_m2=max(greenhouse.absorbed_flux_w_m2(starlight_w_m2, albedo), MIN_ABSORBED_FLUX_W_M2),
-        subject_of=subject_of, bulk_water_fraction=0.0 if giant else (body.water_mass_fraction or 0.0), giant=giant)
+        released_at_seal_j=interior_heat.released_by(body, min(age_gy, waterworld_carbon.SEAL_TIME_GY)),
+        mantle_water_kg=0.0 if giant else max(0.0, (body.water_mass_fraction or 0.0) * body.mass - surface_w * body.mass),
+        subject_of=subject_of, age_gy=age_gy,
+        bulk_water_fraction=0.0 if giant else (body.water_mass_fraction or 0.0), giant=giant)

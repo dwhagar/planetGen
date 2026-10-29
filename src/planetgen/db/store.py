@@ -69,17 +69,17 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, point_columns, scatter_systems
+from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
-from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, bulk_composition, giant_interior, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, bulk_composition, daylight, giant_interior, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
-from planetgen.generation import multistar, steps, stored_trees
+from planetgen.generation import cloud as cloudContext, multistar, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -102,7 +102,7 @@ from planetgen.names.uniqueness import (
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.planet import Planet
 from planetgen.physics.position import MAX_UPDATE_INTERVAL_S, THRESHOLDS_M, update_interval_s
-from planetgen.physics import rogue_habitability
+from planetgen.physics import rings, rogue_habitability
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet, interstellar_comet_designation
 from planetgen.galaxy.sector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
@@ -652,6 +652,9 @@ against (PERF.12): replaying `schema.sql` on every checkout cost about
 122 statements per connection, twice per filled sector."""
 
 _id_blocks = {}
+_FLAGGING_TABLES = frozenset(storage_checksum.CONTENT_TABLES) - {"sectors"}
+"""frozenset: The tables an INSERT into marks a sector's `parity_dirty` (`Connection._flag_insert`, DB.45)."""
+
 _id_blocks_off = set()
 _id_lock = threading.Lock()
 _fk_ranks = {}
@@ -954,6 +957,14 @@ class Connection:
         current `batched()` scope (a read flushes the held-back INSERTs, so each is read once)."""
         self.orbit_epoch_unix = None
         """int or None: the orbit epoch a binary's tree is stored at, read once inside a `batched()` scope (GEN.311)."""
+        self._after_commit = []
+        """list: Callables run once the transaction has committed (`after_commit`); dropped by a rollback."""
+        self._parity_touched = set()
+        """set: The sector ids this transaction marked `parity_dirty`, for the parity file to catch up after the commit
+        (`parity_touch`); empty when `parity.enabled` is off."""
+        self._flagged = set()
+        """set: The `(kind, id)` of sectors and systems this transaction has already marked `parity_dirty` for an INSERT
+        (DB.45), and the systems it inserted itself (their sector was marked by the INSERT); cleared at commit and rollback."""
 
     def _run(self, sql, params):
         cur = self._conn.cursor()
@@ -1009,6 +1020,7 @@ class Connection:
                 if uid is not None:
                     shape = shape._replace(columns=[*shape.columns, "uid"], values=shape.values[:-1] + ", ?)")
                     params = (*params, uid)
+            self._flag_insert(shape, params, new_id)
             if self._batch is not None and (new_id is not None or shape.table in BATCH_CHILD_TABLES):
                 level = self._batch_level(shape.table)
                 self._batch.setdefault((shape.table, tuple(shape.columns), shape.values, level), []).append(
@@ -1021,6 +1033,26 @@ class Connection:
             return self._run(sql, params)
         self.flush()
         return self._run(sql, params)
+
+    def _flag_insert(self, shape, params, new_id):
+        """DB.45: an INSERT of a row a sector's storage checksum covers marks that sector's `parity_dirty` (once per sector
+        or system per transaction). A row filed by `sector_id` marks that sector; one filed by `star_system_id` marks the
+        system's sector, unless this transaction inserted the system (its own INSERT marked the sector)."""
+        table = shape.table
+        if table not in _FLAGGING_TABLES:
+            return
+        columns = shape.columns
+        if table == "star_systems" and new_id is not None:
+            self._flagged.add(("fresh", new_id))
+        for kind, column in (("sector", "sector_id"), ("system", "star_system_id")):
+            if column in columns and params[columns.index(column)] is not None:
+                key = (kind, params[columns.index(column)])
+                if key in self._flagged or (kind == "system" and ("fresh", key[1]) in self._flagged):
+                    continue
+                self._flagged.add(key)
+                self._run(storage_checksum.MARK_SECTOR_SQL if kind == "sector" else storage_checksum.MARK_SYSTEM_SQL, (key[1],))
+                self.parity_touch("id = ?" if kind == "sector" else "id = (SELECT sector_id FROM star_systems WHERE id = ?)",
+                                  (key[1],))
 
     def batched(self):
         """
@@ -1201,12 +1233,40 @@ class Connection:
             except pymysql.err.MySQLError:  # a lost session has no setting left to restore
                 pass
 
+    def after_commit(self, callback):
+        """Runs `callback()` once this transaction has committed (never when it rolls back). A callback that raises is
+        logged and the others still run: the transaction is already durable."""
+        self._after_commit.append(callback)
+
+    def parity_touch(self, where, params=()):
+        """
+        Notes the sectors `WHERE where` (with `params`) selects as changed by this transaction, so that once it commits the
+        parity file is brought up to date for them (`parity.protect_sectors`). Does nothing unless `parity.enabled` is on.
+        """
+        if not parity.enabled():
+            return
+        found = {row["id"] for row in self._run(f"SELECT id FROM sectors WHERE {where}", tuple(params)).fetchall()}
+        if found and not self._parity_touched:
+            self._after_commit.append(self._protect_touched)
+        self._parity_touched |= found
+
+    def _protect_touched(self):
+        touched, self._parity_touched = self._parity_touched, set()
+        parity.protect_sectors(self._config, touched)
+
     def commit(self):
         self.flush()
         self._conn.commit()
+        self._flagged.clear()
         self._release_txn_locks()
         if log.debug_log_active():
             log.trace("SQL commit", area="sql")
+        callbacks, self._after_commit = self._after_commit, []
+        for callback in callbacks:
+            try:
+                callback()
+            except Exception as exc:  # noqa: BLE001 -- the transaction is durable; what follows it must not undo that
+                log.error(f"After-commit step failed: {type(exc).__name__}: {exc}")
 
     def rollback(self):
         if log.debug_log_active():
@@ -1214,6 +1274,9 @@ class Connection:
                       f"held-back row(s) dropped)", area="sql")
         if self._batch:
             self._batch = {}
+        self._flagged.clear()
+        self._after_commit = []
+        self._parity_touched = set()
         try:
             self._conn.rollback()
         finally:
@@ -1339,7 +1402,8 @@ def get_connection(config=None, ensure_schema=True, statement_timeout_s=None):
                   area="sql")
     if ensure_schema and config._key() not in _schema_ensured:
         try:
-            _ensure_schema(conn)
+            if not _schema_is_current(conn):
+                _ensure_schema(conn)
         except BaseException:
             conn.close()
             raise
@@ -1543,6 +1607,18 @@ def _schema_lock(conn, what="schema"):
             conn.execute("SELECT RELEASE_LOCK(?)", (name,))
         except pymysql.err.MySQLError:  # a lost session has already dropped it
             pass
+
+
+def _schema_is_current(conn):
+    """
+    Whether the connected database already holds the schema `SCHEMA_VERSION` names, so `_ensure_schema` has nothing
+    to add (PERF.174): its version row is the code's version. Every change to `schema.sql` comes with a migration and a
+    new version, and a database behind it is refused by `_ensure_schema`, so a database at the current version already
+    has every table and view. A work unit is a new process, and without this each one ran the schema's ten-odd
+    `CREATE TABLE IF NOT EXISTS` and its views again under the schema lock (about 32,000 statements in one four-minute
+    scatter) to find nothing to do.
+    """
+    return _stored_version(conn, "schema_migrations") == SCHEMA_VERSION
 
 
 def _ensure_schema(conn):
@@ -1968,6 +2044,7 @@ def rename_star_system(conn, star_system_id, new_name):
         "UPDATE star_systems SET name = ?, modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?",
         (new_name, star_system_id),
     )
+    storage_checksum.mark_system(conn, star_system_id)
     if row["binary_configuration"] == "wide":
         # A wide pair's stars and its primary's planets carry only the
         # system name's first word (GEN.62).
@@ -1994,6 +2071,7 @@ def rename_star(conn, star_id, new_name):
     if row["role"] == "single":
         return rename_star_system(conn, row["star_system_id"], new_name)
     conn.execute("UPDATE stars SET name = ? WHERE id = ?", (new_name, star_id))
+    storage_checksum.mark_system(conn, row["star_system_id"])
     # Since GEN.62 a wide pair's planets carry one word of their star's
     # name: the primary's the shared first word, the secondary's its own
     # last. Planets named before carry the whole star name.
@@ -2181,7 +2259,7 @@ def reserve_sector_name(conn, candidate_name, sector_id):
             # (`WHERE name = ?` still finds it: the collation ignores case
             # and accents).
             old_name, renamed_to = resolve_greek_roman_collision(row["base_name"], existing_count)[1]
-            conn.execute("UPDATE sectors SET name = ? WHERE name = ? AND id <> ?", (renamed_to, old_name, sector_id))
+            conn.execute("UPDATE sectors SET name = ?, parity_dirty = 1 WHERE name = ? AND id <> ?", (renamed_to, old_name, sector_id))
 
         return new_name, base
 
@@ -2924,7 +3002,7 @@ BODY_FIELDS = (
     object_rows.attr("life_milestone_age_gyr"), object_rows.attr("life_system_age_gyr"),
     *(object_rows.attr(field) for field in tuning.LIFE_SCHEDULE_FIELDS),
     object_rows.attr("flavor_key"), object_rows.attr("flavor_text_count"),
-    object_rows.attr("orbital_inclination_deg"), object_rows.attr("orbital_ascending_node_deg"),
+    object_rows.attr("orbital_inclination_deg"), object_rows.attr("orbital_ascending_node_deg"), object_rows.attr("eccentricity"),
     *(object_rows.scaled(column, f"position_{axis}", _AU_KM) for axis, column in zip("xyz", _POSITION_COLUMNS)),
     object_rows.attr("orbital_speed_kms"),
     *(object_rows.attr(column, f"velocity_{axis}_kms") for axis, column in zip("xyz", _VELOCITY_COLUMNS)),
@@ -2935,13 +3013,15 @@ BODY_FIELDS = (
     object_rows.each(magnetism.BODY_FIELDS),
     object_rows.each(hydrosphere.HYDROSPHERE_FIELDS),
     object_rows.each(radiogenic.BODY_FIELDS),
-    object_rows.each((*interior_heat.BODY_FIELDS, *interior_heat.OUTPUT_FIELDS)),
+    object_rows.each((*interior_heat.BODY_FIELDS, *interior_heat.OUTPUT_FIELDS, *interior_heat.REGIME_FIELDS)),
     object_rows.each(bulk_composition.COLUMN_FIELDS),
     object_rows.each(surface_composition.COLUMN_FIELDS),
+    object_rows.each(daylight.FIELDS),
     object_rows.computed("carbon_rock", lambda body, context: _tristate(body.carbon_rock),
                          lambda row: {"carbon_rock": _tristate_from_db(row["carbon_rock"])}),
     object_rows.each(tuple(name for name in giant_interior.BODY_FIELDS if name != "has_helium_shell")),
     object_rows.each(rings.BODY_FIELDS),
+    object_rows.each(body_colour.BODY_FIELDS),
     object_rows.computed("has_helium_shell", lambda body, context: _tristate(body.has_helium_shell),
                          lambda row: {"has_helium_shell": _tristate_from_db(row["has_helium_shell"])}),
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
@@ -3505,6 +3585,7 @@ def _store_nebula_shape(conn, nebula_id, nebula):
     scalars, balls = nebula_shape.to_columns(nebula.get_shape())
     sets = ", ".join(f"{column} = ?" for column in scalars)
     conn.execute(f"UPDATE nebulae SET {sets} WHERE id = ?", (*scalars.values(), nebula_id))
+    storage_checksum.mark_rows(conn, "nebulae", [nebula_id])
     conn.execute("DELETE FROM nebula_shape_balls WHERE nebula_id = ?", (nebula_id,))
     for ball in balls:
         conn.execute(
@@ -3643,6 +3724,7 @@ ROGUE_PLANET_FIELDS = (
     object_rows.computed("has_moons", lambda planet, context: int(planet.has_moons)),
     object_rows.computed(tuple(ROGUE_SURFACE_FIELDS), lambda planet, context: _rogue_surface_values(planet)),
     object_rows.each(rogue_habitability.ROGUE_FIELDS),
+    object_rows.each(rings.BODY_FIELDS),  # GEN.836
     _FREE_VECTOR_FIELD, _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD,
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
 )
@@ -4447,26 +4529,35 @@ def surrounding_cloud(conn, row):
         row (Mapping): Any row carrying those two columns.
 
     Returns:
-        dict or None: `{"type": "nebula" | "supernova_remnant", "id",
-            "name", "class", "descriptor" (a nebula's type, a remnant's
-            morphology), "density_cm3", "temperature_k"}`, or `None` in
-            open space.
+        dict or None: The cloud dict of `generation.cloud` -- `type`
+            (`"nebula"` or `"supernova_remnant"`), `id`, `name`, `class`,
+            `descriptor` (a nebula's type, a remnant's morphology),
+            `density_cm3`, `temperature_k`, `extinction_av`, `radius_ly`,
+            `age_myr` (a remnant's age in Myr), `center` (galaxy frame,
+            parsecs, `None` when the cloud is not placed) and `host_stars`
+            -- or `None` in open space (GEN.357 added the last five).
     """
     if row["inside_nebula_id"] is not None:
         found = conn.execute("SELECT id, name, nebula_class AS class, nebula_type AS descriptor, density_cm3,"
-                             " temperature_k FROM nebulae WHERE id = ?", (row["inside_nebula_id"],)).fetchone()
-        kind = "nebula"
+                             " temperature_k, extinction_av, radius_ly, age_myr, hosts, center_x_pc, center_y_pc,"
+                             " center_z_pc FROM nebulae WHERE id = ?", (row["inside_nebula_id"],)).fetchone()
+        kind, age_myr = "nebula", None if found is None else found["age_myr"]
+        hosts = None if found is None else found["hosts"]
     elif row["inside_remnant_id"] is not None:
         found = conn.execute("SELECT id, name, remnant_class AS class, morphology AS descriptor, density_cm3,"
-                             " temperature_k FROM supernova_remnants WHERE id = ?",
+                             " temperature_k, extinction_av, radius_ly, age_years, center_x_pc, center_y_pc,"
+                             " center_z_pc FROM supernova_remnants WHERE id = ?",
                              (row["inside_remnant_id"],)).fetchone()
-        kind = "supernova_remnant"
+        kind, hosts = "supernova_remnant", None
+        age_myr = None if found is None or found["age_years"] is None else found["age_years"] / 1.0e6
     else:
         return None
     if found is None:
         return None
-    return {"type": kind, "id": found["id"], "name": found["name"], "class": found["class"],
-            "descriptor": found["descriptor"], "density_cm3": found["density_cm3"], "temperature_k": found["temperature_k"]}
+    center = None if found["center_x_pc"] is None else (found["center_x_pc"], found["center_y_pc"], found["center_z_pc"])
+    return cloudContext.cloud_dict(kind, found["id"], found["name"], found["class"], found["descriptor"],
+                                   found["density_cm3"], found["temperature_k"], found["extinction_av"],
+                                   found["radius_ly"], age_myr, center, hosts)
 
 
 def _sector_half_diagonal_pc(edge_mpc):
@@ -4518,38 +4609,6 @@ def _lazy_nebula_shape(conn, nebula_id):
         return loaded[0]
 
     return shape
-
-
-def innermost_container(point_pc, containers, own_radius_pc=0.0, own=None):
-    """
-    The smallest container in `containers` whose sphere holds `point_pc`
-    -- for a nebula (`own_radius_pc` > 0), only a container larger than it,
-    and never itself (`own`, a `(column, id)` pair). A nebula holds a point
-    only inside its shape (GEN.75, `planetgen.galaxy.nebula_shape`), which
-    its container's `shape` function supplies; its sphere is the quick
-    first test. A container without `shape` (a remnant) is a plain sphere.
-
-    Returns:
-        dict or None: The container, or `None` when the point is in open space.
-    """
-    best = None
-    for container in containers:
-        if own is not None and (container["column"], container["id"]) == own:
-            continue
-        if container["radius_pc"] <= own_radius_pc:
-            continue
-        if detmath.dist(point_pc, container["center"]) > container["radius_pc"]:
-            continue
-        if best is not None and container["radius_pc"] >= best["radius_pc"]:
-            continue
-        shape = container.get("shape")
-        if shape is not None:
-            radius = container["radius_pc"]
-            offset = tuple((point_pc[i] - container["center"][i]) / radius for i in range(3))
-            if not shape().contains(offset):
-                continue
-        best = container
-    return best
 
 
 def refresh_containment(conn, sector_ids, on_progress=None):
@@ -4617,7 +4676,7 @@ def _refresh_containment_batch(conn, sector_ids, counts):
     changes = {}
 
     def apply(table, row, point, own_radius_pc=0.0, own=None):
-        best = innermost_container(point, containers, own_radius_pc, own) if point is not None else None
+        best = containment.innermost_container(point, containers, own_radius_pc, own) if point is not None else None
         new = (best["id"] if best and best["column"] == "inside_nebula_id" else None,
                best["id"] if best and best["column"] == "inside_remnant_id" else None)
         old = (row["inside_nebula_id"], row["inside_remnant_id"])
@@ -4763,7 +4822,8 @@ def refresh_habitability(conn, system_id):
     its stored conditions: `flux_variation` and the `habitability_world.SCORE_FIELDS` (the index, the six domains
     with their tiers and the equipment tier). It is how a body saved before a change to the rules
     (GEN.148's flux swing, GEN.207's six domains, GEN.215's airless Air) gets the numbers a new one would, without
-    regenerating it. A system of one star has no swing (0); a system of two is loaded and its swing worked out as
+    regenerating it. A system of one star has the swing of the planet's own orbit (`orbit_elements.flux_swing`, 0 for
+    a circle); a system of two is loaded and its swing worked out as
     generation does (`insolation.refresh_system`). A planet of a pulsar, neutron star or black hole is rated against
     its host (`compact_host_of_star`). A gas giant, and a body saved before v76 (no `energy_flux_w_m2`), are left alone.
 
@@ -4784,6 +4844,13 @@ def refresh_habitability(conn, system_id):
             swings[("planets", planet.db_id)] = planet.flux_variation
             for moon in planet.moons:
                 swings[("moons", moon.db_id)] = moon.flux_variation
+    else:
+        # a lone star: the swing of the planet's own orbit (GEN.727), which a moon shares with its planet
+        planet_swings = {}
+        for row in conn.execute("SELECT id, eccentricity FROM planets WHERE star_system_id = ?", (system_id,)).fetchall():
+            planet_swings[row["id"]] = swings[("planets", row["id"])] = orbit_elements.flux_swing(row["eccentricity"])
+        for row in conn.execute("SELECT id, planet_id FROM moons WHERE star_system_id = ?", (system_id,)).fetchall():
+            swings[("moons", row["id"])] = planet_swings.get(row["planet_id"], 0.0)
     columns = habitability_world.SCORE_FIELDS + ("flux_variation",)
     updated = 0
     for table in ("planets", "moons"):
@@ -5436,6 +5503,7 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
         facility_attrs.write(conn, cur.lastrowid, plan)
     if columns.get("star_system_id") is not None:
         touch_star_system(conn, columns["star_system_id"])
+        record_system_interests(conn, "ss.id = ?", (columns["star_system_id"],))    # a colony makes its world inhabited (MAP.321)
     return cur.lastrowid
 
 
@@ -5461,6 +5529,7 @@ def update_facility(conn, facility_id, name=None, description=None, attrs=None):
     facility_attrs.write(conn, facility_id, plan)
     if row["star_system_id"] is not None:
         touch_star_system(conn, row["star_system_id"])
+        record_system_interests(conn, "ss.id = ?", (row["star_system_id"],))
     return True
 
 
@@ -5469,9 +5538,11 @@ def delete_facility(conn, facility_id):
     row = conn.execute("SELECT star_system_id FROM facilities WHERE id = ?", (facility_id,)).fetchone()
     if row is None:
         return False
+    storage_checksum.mark_rows(conn, "facilities", [facility_id])
     conn.execute("DELETE FROM facilities WHERE id = ?", (facility_id,))
     if row["star_system_id"] is not None:
         touch_star_system(conn, row["star_system_id"])
+        record_system_interests(conn, "ss.id = ?", (row["star_system_id"],))
     return True
 
 
@@ -5995,6 +6066,7 @@ def clear_bright_stars(conn):
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
     conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
                  " bright_star_mass_limit_sol = NULL")
+    forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
     conn.commit()
 
 
@@ -6081,6 +6153,7 @@ def clear_bright_star_pass(conn, part, limits):
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
     conn.execute(f"UPDATE galaxy_shape SET {forget}")
+    forget_scatter_epoch(conn, ("mass",) if part == "mass" else ("luminosity", "band"))
     conn.commit()
 
 
@@ -6105,6 +6178,40 @@ def scatter_stored(conn, part):
     if part == "nebula-field":
         return conn.execute("SELECT 1 FROM nebula_field LIMIT 1").fetchone() is not None
     raise ValueError(f"part must be 'mass', 'luminosity', 'phenomena' or 'nebula-field', not {part!r}")
+
+
+SCATTER_KINDS = ("mass", "luminosity", "band", "phenomena", "nebula-field")
+"""tuple: The kinds of scatter that have a row in `scatter_epochs` (GEN.764)."""
+
+
+def record_scatter_epoch(conn, kinds, run_id=None):
+    """
+    Records that the scatter of each of `kinds` (`SCATTER_KINDS`) was drawn under the running generator epoch, by the
+    run `run_id` (None when it is not known), replacing what an earlier draw of the kind recorded. Not committed.
+    """
+    kinds = (kinds,) if isinstance(kinds, str) else tuple(kinds)
+    epoch = generatorEpoch.generator_epoch()
+    for kind in kinds:
+        if kind not in SCATTER_KINDS:
+            raise ValueError(f"kind must be one of {', '.join(SCATTER_KINDS)}, not {kind!r}")
+        conn.execute(
+            "INSERT INTO scatter_epochs (kind, generator_epoch, run_id) VALUES (?, ?, ?)"
+            " ON DUPLICATE KEY UPDATE generator_epoch = ?, run_id = ?, recorded_at = CURRENT_TIMESTAMP(3)",
+            (kind, epoch, run_id, epoch, run_id))
+
+
+def forget_scatter_epoch(conn, kinds):
+    """Removes the record of each of `kinds` (a clear of that scatter). Not committed."""
+    kinds = (kinds,) if isinstance(kinds, str) else tuple(kinds)
+    if kinds:
+        conn.execute(f"DELETE FROM scatter_epochs WHERE kind IN ({', '.join('?' * len(kinds))})", kinds)
+
+
+def scatter_epochs(conn):
+    """`{kind: generator epoch or None}` of the scatters recorded, in the order of `SCATTER_KINDS`."""
+    found = {row["kind"]: row["generator_epoch"] for row in conn.execute(
+        "SELECT kind, generator_epoch FROM scatter_epochs").fetchall()}
+    return {kind: found[kind] for kind in SCATTER_KINDS if kind in found}
 
 
 def record_bright_star_scatter(conn, min_luminosity_sol, seed, mass_limit_sol=None):
@@ -6205,6 +6312,7 @@ def clear_phenomenon_scatter(conn):
     scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
     conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
     conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
+    forget_scatter_epoch(conn, "phenomena")
     conn.commit()
 
 
@@ -6216,6 +6324,7 @@ NEBULA_FIELD_COLUMNS = ("cell_i", "cell_j", "cell_k", "n", "nebula_class", "radi
 def clear_nebula_field(conn):
     """Empties `nebula_field` (DB.24): a plan or a redo of the phenomena draws it again from the seed."""
     conn.execute("TRUNCATE TABLE nebula_field")
+    forget_scatter_epoch(conn, "nebula-field")
     conn.commit()
 
 
@@ -6679,36 +6788,28 @@ def sector_habitable_worlds(conn, sector_id):
     return int(planets) + int(moons)
 
 
-def count_system_habitable_worlds(conn, where, params):
+def record_system_interests(conn, where, params):
     """
-    MAP.220: puts the `habitable_systems` rows of the systems matching `where` (SQL on the table aliased `ss`, with `params`)
-    right: one row for each that holds planets or moons that are potentially habitable (see `sector_habitable_worlds`) with
-    how many (at most 65535) and where it is, none for the rest. The Galaxy Map's habitable-world markers read them.
+    MAP.305: puts the `system_interests` rows of the systems matching `where` (SQL on the table aliased `ss`, with `params`) right
+    (`interests.record`): a row for each reason a system has a planet or moon for, none for the rest. The Galaxy Map's marker layer
+    reads them.
     """
-    floor = habitability.POTENTIALLY_HABITABLE_MIN_SCORE
-    conn.execute(
-        "DELETE h FROM habitable_systems h JOIN star_systems ss ON ss.id = h.star_system_id"
-        f" WHERE {where}", tuple(params))
-    conn.execute(
-        "INSERT INTO habitable_systems (star_system_id, habitable_worlds, galaxy_x_pc, galaxy_y_pc, galaxy_z_pc)"
-        " SELECT id, n, x, y, z FROM (SELECT ss.id AS id, ss.galaxy_x_pc AS x, ss.galaxy_y_pc AS y, ss.galaxy_z_pc AS z,"
-        " LEAST(65535, (SELECT COUNT(*) FROM planets p WHERE p.star_system_id = ss.id AND p.phi4 >= ?)"
-        " + (SELECT COUNT(*) FROM moons m WHERE m.star_system_id = ss.id AND m.phi4 >= ?)) AS n"
-        f" FROM star_systems ss WHERE ({where}) AND ss.galaxy_x_pc IS NOT NULL AND ss.galaxy_y_pc IS NOT NULL"
-        " AND ss.galaxy_z_pc IS NOT NULL) c WHERE n > 0", (floor, floor, *params))
+    from planetgen.db import interests
+
+    interests.record(conn, where, params)
 
 
 def recount_habitable_worlds(conn, system_ids):
     """
     MAP.143: puts `sector_stats.habitable_worlds` right again for the sectors of `system_ids` after their scores
-    were worked out again (a re-score, a dose refresh), and (MAP.220) each of those systems' own count. Only a
+    were worked out again (a re-score, a dose refresh), and (MAP.305) each of those systems' interest rows. Only a
     filled sector's row is touched. Returns the `(shell, band, wedge)` of each sector whose count changed, for
     `block_stats.refresh_sectors`.
     """
     system_ids = list(system_ids)
     for start in range(0, len(system_ids), 500):
         chunk = system_ids[start:start + 500]
-        count_system_habitable_worlds(conn, f"ss.id IN ({', '.join('?' * len(chunk))})", chunk)
+        record_system_interests(conn, f"ss.id IN ({', '.join('?' * len(chunk))})", chunk)
     sector_ids = set()
     for system_id in system_ids:
         row = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()
@@ -6731,13 +6832,58 @@ def recount_habitable_worlds(conn, system_ids):
     return changed
 
 
+def _content_figures(conn, sector_id):
+    """What a sector's rows hold, as `sector_stats` states it: `(systems, stars, mean temperature K, mean luminosity in solar
+    units, mean age Gy, summed luminosity in solar units, habitable worlds)`."""
+    systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
+    stars = conn.execute(
+        "SELECT COUNT(*) AS n, AVG(st.temperature_k) AS temperature, AVG(st.luminosity_w) AS luminosity,"
+        " AVG(st.age_gy) AS age, SUM(st.luminosity_w) AS total_luminosity"
+        " FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?", (sector_id,),
+    ).fetchone()
+    luminosity = None if stars["luminosity"] is None else float(stars["luminosity"]) / physical_constants.SOLAR_LUMINOSITY
+    temperature = None if stars["temperature"] is None else float(stars["temperature"])
+    age = None if stars["age"] is None else float(stars["age"])
+    total_luminosity = (None if stars["total_luminosity"] is None
+                        else float(stars["total_luminosity"]) / physical_constants.SOLAR_LUMINOSITY)
+    return (systems, stars["n"], temperature, luminosity, age, total_luminosity, sector_habitable_worlds(conn, sector_id))
+
+
+def refresh_edited_sectors(conn, sector_ids):
+    """
+    A generated sector's rows were edited (DB.83): states what it holds again in its `sector_stats` row (the systems, stars,
+    mean temperature, luminosity and age, summed luminosity and habitable worlds; its expected figures, density and bright-star
+    level are the galaxy's and stay) and brings the totals of the blocks above it up to them (`block_stats.refresh_chain`, which
+    also brings the region's). Call it inside the edit's transaction, last. A sector that is not generated at a grid address
+    (a one-off system's sector, a sector with no stats row) is left alone. Returns the addresses refreshed.
+    """
+    from planetgen.db import block_stats
+
+    done = []
+    for sector_id in sorted({int(i) for i in sector_ids if i is not None}):
+        row = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+        if row is None or row["shell_index"] is None:
+            continue
+        address = (row["shell_index"], row["band_index"], row["wedge_index"])
+        figures = _content_figures(conn, sector_id)
+        found = conn.execute(
+            "UPDATE sector_stats SET actual_systems = ?, actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?,"
+            " mean_age_gy = ?, total_luminosity_sol = ?, habitable_worlds = ?"
+            " WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND bright_level_sol = 0", (*figures, *address))
+        if found.rowcount:
+            block_stats.refresh_chain(conn, address)
+            done.append(address)
+    return done
+
+
 def record_sector_stats(conn, sector_id, address, center_pc):
     """
     Writes a sector's stats once it is generated (PERF.11, GEN.44): its
     expected density from the galaxy model, the systems and stars it got,
     the mean temperature, mean luminosity and age of those stars and
     their summed luminosity (DB.14; the map colors from these), the habitable
-    worlds they hold (MAP.143, `sector_habitable_worlds`), and
+    worlds they hold (MAP.143, `sector_habitable_worlds`), the mass of everything in it
+    (DB.108, `sector_mass.sector_mass_kg`), and
     level 0 (filled), keeping the level it had in
     `level_before_fill_sol`; then folds its actual-to-expected systems
     into `galaxy_shape`'s decaying average. Inside the sector's own save,
@@ -6765,29 +6911,20 @@ def record_sector_stats(conn, sector_id, address, center_pc):
                 skeleton.fill_luminosity_cap_sol, scatter_limits_of(conn, skeleton).mass_limit_at(*address[:2]))
             if found.capped:
                 expected = found.resolved_systems
-    systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
-    stars = conn.execute(
-        "SELECT COUNT(*) AS n, AVG(st.temperature_k) AS temperature, AVG(st.luminosity_w) AS luminosity,"
-        " AVG(st.age_gy) AS age, SUM(st.luminosity_w) AS total_luminosity"
-        " FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?", (sector_id,),
-    ).fetchone()
-    luminosity = None if stars["luminosity"] is None else float(stars["luminosity"]) / physical_constants.SOLAR_LUMINOSITY
-    temperature = None if stars["temperature"] is None else float(stars["temperature"])
-    age = None if stars["age"] is None else float(stars["age"])
-    total_luminosity = (None if stars["total_luminosity"] is None
-                        else float(stars["total_luminosity"]) / physical_constants.SOLAR_LUMINOSITY)
-    count_system_habitable_worlds(conn, "ss.sector_id = ?", (sector_id,))
+    systems, star_count, temperature, luminosity, age, total_luminosity, habitable = _content_figures(conn, sector_id)
+    mass = sector_mass.sector_mass_kg(conn, sector_id)
+    record_system_interests(conn, "ss.sector_id = ?", (sector_id,))
     conn.execute(
         "INSERT INTO sector_stats (shell_index, band_index, wedge_index, bright_level_sol, level_before_fill_sol,"
         " relative_density, expected_systems, actual_systems, actual_stars, mean_temperature_k, mean_luminosity_sol,"
-        " mean_age_gy, total_luminosity_sol, habitable_worlds, filled_at)"
-        " VALUES (?, ?, ?, 0, -1, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3))"
+        " mean_age_gy, total_luminosity_sol, habitable_worlds, total_mass_kg, filled_at)"
+        " VALUES (?, ?, ?, 0, -1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3))"
         " ON DUPLICATE KEY UPDATE level_before_fill_sol = IF(bright_level_sol = 0, level_before_fill_sol,"
         " bright_level_sol), bright_level_sol = 0, relative_density = ?, expected_systems = ?, actual_systems = ?,"
         " actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?, mean_age_gy = ?,"
-        " total_luminosity_sol = ?, habitable_worlds = ?, filled_at = CURRENT_TIMESTAMP(3)",
-        (*address, *(2 * (density, expected, systems, stars["n"], temperature, luminosity, age, total_luminosity,
-                          sector_habitable_worlds(conn, sector_id)))),
+        " total_luminosity_sol = ?, habitable_worlds = ?, total_mass_kg = ?, filled_at = CURRENT_TIMESTAMP(3)",
+        (*address, *(2 * (density, expected, systems, star_count, temperature, luminosity, age, total_luminosity,
+                          habitable, mass))),
     )
     if expected:
         ratio = systems / expected
@@ -6811,7 +6948,7 @@ def forget_sector_fill(conn, address):
     conn.execute(
         "UPDATE sector_stats SET bright_level_sol = COALESCE(level_before_fill_sol, -1), level_before_fill_sol = NULL,"
         " actual_systems = NULL, actual_stars = NULL, mean_temperature_k = NULL, mean_luminosity_sol = NULL,"
-        " mean_age_gy = NULL, total_luminosity_sol = NULL, habitable_worlds = NULL,"
+        " mean_age_gy = NULL, total_luminosity_sol = NULL, habitable_worlds = NULL, total_mass_kg = NULL,"
         " filled_at = NULL WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND bright_level_sol = 0",
         tuple(address),
     )
@@ -7049,6 +7186,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
     if address is not None and None not in address:
         record_sector_stats(conn, sector_id, address, (galaxy_position["center_x_pc"], galaxy_position["center_y_pc"],
                                                        galaxy_position["center_z_pc"]))
+    conn.parity_touch("id = ?", (sector_id,))
     return sector_id
 
 
@@ -7136,7 +7274,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
     # final, collision-free name. See `reserve_sector_name`.
     final_name, _name_base = reserve_sector_name(conn, sector.name, sector_id)
     if final_name != sector.name:
-        conn.execute("UPDATE sectors SET name = ? WHERE id = ?", (final_name, sector_id))
+        conn.execute("UPDATE sectors SET name = ?, parity_dirty = 1 WHERE id = ?", (final_name, sector_id))
     sector.name = final_name
 
     # Every system and uniquely named phenomenon in the sector reserves
@@ -7526,6 +7664,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     row = conn.execute("SELECT name FROM star_systems WHERE id = ?", (star_system_id,)).fetchone()
     if row is None:
         return False
+    storage_checksum.mark_system(conn, star_system_id)
     # Saved standalone first (the registry gives it a temporary name),
     # then its bodies are moved under the kept row and the stand-in row
     # dropped, which also drops its name reservation.
@@ -8229,7 +8368,7 @@ def set_sector_uid(conn, sector_id):
         return
     address = (row["shell_index"], row["band_index"], row["wedge_index"])
     uid = galaxyUid.sector_uid(*address) if None not in address else galaxyUid.unplaced_sector_uid(sector_id)
-    conn.execute("UPDATE sectors SET uid = ?, modified_at = modified_at WHERE id = ?", (uid, sector_id))
+    conn.execute("UPDATE sectors SET uid = ?, parity_dirty = 1, modified_at = modified_at WHERE id = ?", (uid, sector_id))
 
 
 _UID_ISSUED_TABLES = frozenset(("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets",
@@ -9268,10 +9407,9 @@ ROGUE_SURFACE_COLUMNS = (
 `ROGUE_SURFACE_FIELDS` order."""
 
 
-CIRCULAR_VELOCITY_SQL = f"(distance_km * 2 * PI() / (period_years * {_SECONDS_PER_YEAR!r}))"
-"""str: SQL for the speed, km/s, of a planet or moon on its circular orbit
-(`2 pi r / T`); the velocity columns are this times the position's
-derivative with the phase (`orbits.circular_orbital_velocity_au_per_year`)."""
+STATE_SPEED_SQL = "SQRT(velocity_x_kms * velocity_x_kms + velocity_y_kms * velocity_y_kms + velocity_z_kms * velocity_z_kms)"
+"""str: SQL for the speed, km/s, of a planet or moon in its stored state (GEN.727: on an ellipse it changes along the
+orbit, fastest at periapsis, so the next update is due when it has moved its threshold at the speed it has)."""
 
 
 def touch_star_system(conn, star_system_id):
@@ -9290,6 +9428,7 @@ def touch_star_system(conn, star_system_id):
     conn.execute(
         "UPDATE star_systems SET modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?", (star_system_id,),
     )
+    storage_checksum.mark_system(conn, star_system_id)
 
 
 def touch_sector(conn, sector_id):
@@ -9305,7 +9444,7 @@ def touch_sector(conn, sector_id):
     """
     if sector_id is None:
         return
-    conn.execute("UPDATE sectors SET modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?", (sector_id,))
+    conn.execute("UPDATE sectors SET modified_at = CURRENT_TIMESTAMP(3), parity_dirty = 1 WHERE id = ?", (sector_id,))
 
 
 def _schema_version(conn):
@@ -9822,7 +9961,7 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     """
     counts = {}
     for table, scale in (("planets", "system"), ("moons", "planetary")):
-        interval = _update_interval_sql(CIRCULAR_VELOCITY_SQL, scale)
+        interval = _update_interval_sql(STATE_SPEED_SQL, scale)
         _schedule_updates(conn, clock, table, interval, "period_years > 0")
         counts[table] = _advance_body_states(conn, clock, table, scale, budget)
         if budget is not None and budget.limit(table) is not None:

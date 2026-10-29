@@ -63,8 +63,6 @@ def test_the_same_stream_gives_the_same_value():
 
 
 def test_planet_occurrence_factors():
-    assert metallicity.solids_factor(0.0) == 1.0
-    assert metallicity.solids_factor(-1.0) == pytest.approx(0.1)
     assert metallicity.giant_planet_factor(0.0) == 1.0
     assert metallicity.giant_planet_factor(0.3) == 1.0
     assert metallicity.giant_planet_factor(-0.5) == pytest.approx(0.1)
@@ -73,11 +71,10 @@ def test_planet_occurrence_factors():
     assert metallicity.giant_planet_factor(-2.3) == pytest.approx(2.5e-5, rel=0.3)
 
 
-def test_a_disk_has_fewer_solids_at_low_metallicity_and_solar_is_unchanged():
+def test_a_disk_has_fewer_solids_at_low_metal_content_and_solar_is_unchanged():
     mass = constants.SOLAR_MASS_TO_KG
-    assert formation.disk_surface_density_scale(mass) == formation.disk_surface_density_scale(mass, 0.0)
-    assert formation.disk_surface_density_scale(mass, -1.0) == pytest.approx(
-        0.1 * formation.disk_surface_density_scale(mass))
+    assert formation.disk_surface_density_scale(mass) == formation.disk_surface_density_scale(mass, 1.0)
+    assert formation.disk_surface_density_scale(mass, 0.1) == pytest.approx(0.1 * formation.disk_surface_density_scale(mass))
 
 
 def test_a_star_gets_a_metallicity_that_does_not_move_other_draws():

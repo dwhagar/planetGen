@@ -54,28 +54,31 @@
 {% endblock %}
 {% block content %}
 {{ admin_dialogs(groups, page_url('object_page', ref=object_ref)) }}
-{% include "partials/location.html" %}
-{%- if previous or following %}
-<nav class="item-neighbours" aria-label="Neighbouring {{ kind_label|lower }}s">
-  {%- if previous %}<a class="item-previous" rel="prev" href="{{ previous.url }}"><span aria-hidden="true">&larr;</span> {{ previous.name }}</a>{% endif %}
-  {%- if following %}<a class="item-next" rel="next" href="{{ following.url }}">{{ following.name }} <span aria-hidden="true">&rarr;</span></a>{% endif %}
-</nav>
-{%- endif %}
-{%- if example %}
-<section class="panel" id="item-example" aria-labelledby="item-example-heading">
-  <div class="panel-header"><h2 id="item-example-heading">Rendered example</h2></div>
-  <figure class="body-view" hidden>
-    <canvas class="body-view-canvas" width="320" height="320" role="img" aria-label="{{ title }}, drawn from its stored properties" data-look='{{ example.look }}'></canvas>
-    {%- if example.note %}<figcaption>{{ example.note }}.</figcaption>{% endif %}
-  </figure>
-</section>
-{%- endif %}
-{%- set symbols = habitability_symbol_row(habitability, page=page_url('object_page', ref=object_ref)) if habitability else "" %}
-{%- if glance or symbols %}
-<section class="panel" id="item-glance" aria-labelledby="item-glance-heading">
-  <div class="panel-header"><h2 id="item-glance-heading">At a glance</h2></div>
+{#- UX.215 to UX.222: a planet or moon is laid out About (the facts, Summary, Life, Civilization), Habitability (PHI-6),
+    Atmosphere, Composition, then the rest of its properties; every section is a heading the contents menu lists. -#}
+{%- macro rows_table(rows) %}
+    <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+      <tbody>
+        {%- for row in rows %}
+        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}</td></tr>
+        {%- endfor %}
+      </tbody>
+    </table></div>
+{%- endmacro %}
+{%- macro location_row() %}
+      {%- if location.chain or location.inside %}
+      <tr class="glance-location" id="location"><th scope="row">Location</th><td>
+        {%- if location.chain %}<ol class="location-chain">
+          {%- for place in location.chain %}<li>{% if place.url %}<a href="{{ place.url }}">{{ place.label }}</a>{% else %}{{ place.label }}{% endif %}</li>{% endfor %}
+        </ol>{% endif %}
+        {%- if location.inside %}<p class="location-inside">Inside: <a href="{{ location.inside.url }}">{{ location.inside.name }}</a></p>{% endif %}
+      </td></tr>
+      {%- endif %}
+{%- endmacro %}
+{%- macro glance_table(symbols) %}
   <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
     <tbody>
+      {{ location_row() }}
       {%- if symbols %}
       <tr class="glance-habitability"><th scope="row">Habitability</th><td class="item-habitability">{{ symbols }}</td></tr>
       {%- endif %}
@@ -84,6 +87,111 @@
       {%- endfor %}
     </tbody>
   </table></div>
+{%- endmacro %}
+{%- macro group_details(group) %}
+  <details class="sheet-group" id="{{ group.key if group.key in ('habitability', 'life') else 'sheet-' ~ group.key }}">
+    <summary><h3>{{ group.label }}</h3></summary>
+    {{ rows_table(group.rows) }}
+    {%- if group.key == 'habitability' %}
+    <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colours and symbols mean</a></p>
+    {%- endif %}
+  </details>
+{%- endmacro %}
+{%- if previous or following %}
+<nav class="item-neighbours" aria-label="Neighbouring {{ kind_label|lower }}s">
+  {%- if previous %}<a class="item-previous" rel="prev" href="{{ previous.url }}"><span aria-hidden="true">&larr;</span> {{ previous.name }}</a>{% endif %}
+  {%- if following %}<a class="item-next" rel="next" href="{{ following.url }}">{{ following.name }} <span aria-hidden="true">&rarr;</span></a>{% endif %}
+</nav>
+{%- endif %}
+{%- if example %}
+<section class="panel" id="item-example" aria-labelledby="item-example-heading">
+  <div class="panel-header"><h2 id="item-example-heading">Sensor view</h2></div>
+  <figure class="body-view" hidden>
+    <canvas class="body-view-canvas" width="320" height="320" role="img" aria-label="{{ title }}, drawn from its stored properties" data-look='{{ example.look }}'></canvas>
+    <button type="button" class="btn btn-small btn-secondary body-view-spin" data-spin aria-pressed="true" hidden>Spin</button>
+    {%- if example.note %}<figcaption>{{ example.note }}.</figcaption>{% endif %}
+  </figure>
+</section>
+{%- endif %}
+{%- set symbols = habitability_symbol_row(habitability, page=page_url('object_page', ref=object_ref)) if habitability else "" %}
+{%- if planet %}
+<section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
+  <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>
+  <h3 id="item-glance-heading">At a glance</h3>
+  {{ glance_table(symbols) }}
+  {%- if planet.summary %}
+  <h3 id="item-summary-heading">Summary</h3>
+  <p class="summary">{% for sentence in planet.summary %}{{ sentence }}{{ " " if not loop.last }}{% endfor %}</p>
+  {%- endif %}
+  {%- if absences %}<p class="absences">{{ absences|join(" ") }}</p>{% endif %}
+  {%- if planet.life %}
+  <h3 id="life-paragraph-heading">Life</h3>
+  <div class="prose">{{ planet.life }}</div>
+  {%- endif %}
+  {%- if planet.civilization %}
+  <h3 id="civilization-heading">Civilization and politics</h3>
+  <p>{% for sentence in planet.civilization %}{{ sentence }}{{ " " if not loop.last }}{% endfor %}</p>
+  {%- endif %}
+  {%- if planet.notes %}<div class="prose">{{ planet.notes }}</div>{% endif %}
+  {%- if facilities %}<h3>Facilities</h3>{{ facilities }}{% endif %}
+  {%- if system_url %}
+  <p>Part of the <a href="{{ system_url }}">{{ system_name }} system</a>.</p>
+  {%- elif owner_url %}
+  <p><a href="{{ owner_url }}">Open the free planet {{ owner_name }}</a>.</p>
+  {%- endif %}
+</section>
+{%- if planet.phi6_blocks or planet.phi6 %}
+<section class="panel" id="habitability" aria-labelledby="habitability-heading">
+  <div class="panel-header"><h2 id="habitability-heading">Habitability (PHI-6)</h2></div>
+  {{ planet.phi6_blocks }}
+  {%- if planet.phi6 %}{{ rows_table(planet.phi6.rows) }}{% endif %}
+  <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colours and symbols mean</a></p>
+</section>
+{%- endif %}
+{%- if planet.atmosphere or planet.gases %}
+<section class="panel" id="sheet-atmosphere" aria-labelledby="atmosphere-heading">
+  <div class="panel-header"><h2 id="atmosphere-heading">Atmosphere</h2></div>
+  {%- if planet.atmosphere %}{{ rows_table(planet.atmosphere.rows) }}{% endif %}
+  {%- if planet.gases %}
+  <div class="table-scroll" tabindex="0"><table class="doc-composition gas-table">
+    <caption>The air by mole fraction (its share of the molecules, which is also its share of the volume and of the pressure), with each gas's partial pressure</caption>
+    <thead><tr><th scope="col">Gas</th><th scope="col">Mole fraction</th><th scope="col">Partial pressure</th></tr></thead>
+    <tbody>
+      {%- for gas in planet.gases %}
+      <tr><th scope="row">{{ gas.name }}</th><td>{{ gas.fraction }}</td><td>{{ gas.pressure }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
+</section>
+{%- endif %}
+{%- if planet.composition or planet.mass %}
+<section class="panel" id="sheet-composition" aria-labelledby="composition-heading">
+  <div class="panel-header"><h2 id="composition-heading">Composition</h2></div>
+  {%- if planet.mass %}
+  <div class="table-scroll" tabindex="0"><table class="doc-composition mass-table">
+    <caption>The body by mass: the share of its mass held in each part</caption>
+    <thead><tr><th scope="col">Part</th><th scope="col">Share by mass</th></tr></thead>
+    <tbody>
+      {%- for part in planet.mass %}
+      <tr><th scope="row">{{ part.name }}</th><td>{{ part.share }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
+  {%- if planet.composition %}{{ rows_table(planet.composition.rows) }}{% endif %}
+</section>
+{%- endif %}
+<section class="panel" id="item-properties" aria-labelledby="item-properties-heading">
+  <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
+  {%- for group in planet.sheet %}{{ group_details(group) }}{% endfor %}
+  {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
+</section>
+{%- else %}
+{%- if glance or symbols or location.chain or location.inside %}
+<section class="panel" id="item-glance" aria-labelledby="item-glance-heading">
+  <div class="panel-header"><h2 id="item-glance-heading">At a glance</h2></div>
+  {{ glance_table(symbols) }}
 </section>
 {%- endif %}
 <section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
@@ -103,23 +211,10 @@
 </section>
 <section class="panel" id="item-properties" aria-labelledby="item-properties-heading">
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
-  {%- for group in sheet %}
-  <details class="sheet-group" id="{{ group.key if group.key in ('habitability', 'life') else 'sheet-' ~ group.key }}">
-    <summary><h3>{{ group.label }}</h3></summary>
-    <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
-      <tbody>
-        {%- for row in group.rows %}
-        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}</td></tr>
-        {%- endfor %}
-      </tbody>
-    </table></div>
-    {%- if group.key == 'habitability' %}
-    <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colours and symbols mean</a></p>
-    {%- endif %}
-  </details>
-  {%- endfor %}
+  {%- for group in sheet %}{{ group_details(group) }}{% endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
 </section>
+{%- endif %}
 {%- if tree %}
 <section class="panel" id="item-members" aria-labelledby="item-members-heading">
   <div class="panel-header"><h2 id="item-members-heading">Belonging to it</h2></div>

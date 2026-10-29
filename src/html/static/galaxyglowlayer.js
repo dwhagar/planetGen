@@ -22,9 +22,12 @@ function temperatureColor(temperatureK) {
 }
 
 // A glow layer in `scene` for `camera` on `canvasEl`. `options`: `light` (true on a light background, where the glow is
-// drawn dark-on-light by normal blending instead of added), `renderOrder` (default 4: under the stars' 5).
+// drawn dark-on-light by normal blending instead of added), `renderOrder` (default 4: under the stars' 5), `look`
+// (`(blob, camera, focalPx) -> {alpha, radiusPx}`, default `glowLook`: the charted regions, MAP.316, are drawn by the same layer
+// with their own) and a blob's own `color` ([r, g, b], 0 to 1) in place of the color of its temperature.
 export function createGlowLayer(scene, camera, canvasEl, options) {
   const o = options || {};
+  const lookOf = o.look || glowLook;
   const material = new THREE.ShaderMaterial({
     uniforms: { viewport: { value: new THREE.Vector2(800, 600) } },
     vertexShader: [
@@ -104,7 +107,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
     const alphas = new Float32Array(4 * n);
     const indices = new Uint32Array(6 * n);
     list.forEach((blob, i) => {
-      const color = temperatureColor(blob.temperatureK);
+      const color = blob.color || temperatureColor(blob.temperatureK);
       for (let c = 0; c < 4; c++) {
         const v = 4 * i + c;
         positions.set([blob.x - frame[0], blob.y - frame[1], blob.z - frame[2]], 3 * v);
@@ -156,7 +159,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
     const weigh = makeWeigh ? makeWeigh() : null;
     blobs.forEach((blob, i) => {
       const share = weigh ? weigh(blob.block) : 1;
-      const look = glowLook(blob, position, focalPx);
+      const look = lookOf(blob, position, focalPx);
       const alpha = share > 0 ? look.alpha * share : 0;
       if (alpha > 0.002) drawnCount += 1;
       if (alpha > strongestAlpha && onScreen(blob, look.radiusPx)) strongestAlpha = alpha;

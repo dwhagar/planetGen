@@ -14,6 +14,7 @@ both themes. The six symbols of UX.101 are not drawn yet: a rating names its tie
 import html
 import math
 
+from planetgen.describe import model
 from planetgen.describe.quantity import LADDER_BY_KIND, _powers, display_value, quantity_text
 from planetgen.describe.render import share_text
 from planetgen.util import chem
@@ -90,8 +91,8 @@ def _ratings(block, link):
     overall = block["overall"]
     gear = inline_html(block["gear"], link)
     headline = (f'<p class="doc-prose doc-rating-headline">{html.escape(overall["name"])} habitability is '
-                f'{overall["score"]:.2f} ({_tier(overall["tier"])}).{" " + gear if gear else ""}</p>')
-    rows = [(html.escape(row["domain"]), _tier(row["tier"]), f'{row["score"]:.2f}', inline_html(row["text"], link))
+                f'{model.score_text(overall["score"])} ({_tier(overall["tier"])}).{" " + gear if gear else ""}</p>')
+    rows = [(html.escape(row["domain"]), _tier(row["tier"]), model.score_text(row["score"]), inline_html(row["text"], link))
             for row in block["rows"]]
     return headline + _table("doc-ratings", ("Category", "Rating", "Score", "Notes"), rows)
 

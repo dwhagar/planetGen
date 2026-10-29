@@ -95,11 +95,14 @@ def test_a_reduced_mantle_gives_carbon_monoxide_and_an_oxidised_one_carbon_dioxi
 
 
 def test_the_inventory_follows_the_delivered_water_class():
+    # TEST.401: GEN.802 made the rows follow the Bern population in the formation distance, so at the Earth's snow ratio of 0.5 the draw
+    # holds b1, b3 and b4 and b2 (the thin water class) only inside the snow line; the sweep is at a ratio of 0.3 where all of b1 to b3 appear.
     seen = {}
     for seed in range(60):
+        near = subject(ocean_present=False, snow_ratio=0.3)
         with draw.bound(seed):
-            recipe = RECIPES.draw_all(subject(ocean_present=False), categories=md.ROCKY_CATEGORIES)    # a world with an ocean also weathers (GEN.674)
-            inventory = md.rocky_inventory(subject(ocean_present=False), recipe, {})
+            recipe = RECIPES.draw_all(near, categories=md.ROCKY_CATEGORIES)    # a world with an ocean also weathers (GEN.674)
+            inventory = md.rocky_inventory(near, recipe, {})
         seen.setdefault(recipe.groups["b"].name, []).append(inventory)
     assert {"b1", "b2"} <= set(seen)
     dry_h = max(i["H"] for i in seen["b1"])

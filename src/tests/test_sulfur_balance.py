@@ -12,8 +12,8 @@ from planetgen.physics import surface_pressure as sp
 
 AGE_S = 4.5e9 * sb.YEAR_S
 EARTH_RADIUS_M = 6.371e6
-EARTH_RELEASED_J = 4.09e6 * sb.EARTH_MANTLE_KG
-"""float: The heat the Earth twin of the interior model has released: 4.09e6 J per kilogram of its mantle (`surface_pressure`)."""
+EARTH_RELEASED_J = 3.49e6 * sb.EARTH_MANTLE_KG
+"""float: The heat the Earth twin of the interior model has released: 3.49e6 J per kilogram of its mantle (`surface_pressure`)."""
 LIFETIMES = sb.Lifetimes(wet_s=1.0 * sb.DAY_S, dry_s=2.0e6 * sb.YEAR_S)
 
 
@@ -110,7 +110,7 @@ def test_the_lifetime_draws_stay_in_their_brackets_and_are_recorded():
     life = sb.draw_lifetimes(recorded)
     assert sb.WET_LIFETIME_DAYS[0] * sb.DAY_S <= life.wet_s <= sb.WET_LIFETIME_DAYS[1] * sb.DAY_S
     assert sb.DRY_LIFETIME_YEARS[0] * sb.YEAR_S <= life.dry_s <= sb.DRY_LIFETIME_YEARS[1] * sb.YEAR_S
-    assert recorded == {"sulfur_lifetime_wet_days": life.wet_s / sb.DAY_S, "sulfur_lifetime_dry_years": life.dry_s / sb.YEAR_S}
+    assert recorded == pytest.approx({"sulfur_lifetime_wet_days": life.wet_s / sb.DAY_S, "sulfur_lifetime_dry_years": life.dry_s / sb.YEAR_S}, rel=1e-12)
 
 
 def test_the_crust_of_the_earth_twin_binds_the_sulfur_of_a_bulk_silicate_earth_degassing():

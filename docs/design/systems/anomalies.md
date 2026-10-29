@@ -93,7 +93,7 @@ Counts are whole-galaxy; "per sector" is the mean over the 2.1e10 qualifying sec
 | **Quasar / AGN jet** | The existing quasar kind; Fermi bubbles about 50 degrees, about 8 kpc [R] | 1 | n/a | exists at ring 0 |
 | **Microquasar / particle fountain** | SS 433: precessing jets at 0.26 c, 162.3 d period [S]; several dozen known, perhaps 100 to 1,000 [S/R] | 1e2 to 1e3 | 5e-9 to 5e-8 [C] | jet 0.1 to 10s of pc spans sectors |
 | **Protostellar jet / Herbig-Haro** | Up to 150,000 in the Galaxy (estimate) [S] | about 1e5 | 5e-6 [C] | Yes, inside class Q cores (already named in class Q) |
-| **Wolf-Rayet star and bubble** | 642 known, 1,200 +/- 100 expected [S]; ring nebulae 1 to 70 pc across, NGC 6888 7.6 x 5.0 pc [S] | 1,200 | 5.7e-8 [C] | star yes; bubble 2 to 35 pc radius spans sectors |
+| **Wolf-Rayet star and bubble** | 642 known, 1,200 +/- 100 expected [S]; ring nebulae 1 to 70 pc across, NGC 6888 7.6 x 5.0 pc [S] | 1,200 | 5.7e-8 [C] | star yes; bubble 2 to 35 pc radius spans sectors. **Built (GEN.243):** a state of massive stars and nebula class X, not a rate; see [intergalactic-and-halo-contents.md](../galaxy/intergalactic-and-halo-contents.md) section 5.11 and "Wolf-Rayet stars and the ring nebula" in [interstellar-object-rates.md](interstellar-object-rates.md) |
 | **Thorne-Zytkow object** | Neutron star inside a supergiant; predicted 20 to 200 [S]; HV 2112 disputed, none confirmed | 20 to 200 | 1e-9 to 1e-8 | as a star |
 | **Quark / strange star** | Hypothetical, no candidate [R] | unknown | n/a | n/a |
 | **Fast radio burst** | Galactic magnetar SGR 1935+2154 burst in 2020; 0.0036 to 0.8 per magnetar per year [S] | transient | n/a | a flag on a magnetar |
@@ -127,8 +127,11 @@ Derived from mass and distance, nothing stored. Show "Einstein radius against th
 
 ### Wolf-Rayet bubble (Tier 2)
 
-- Needs a W spectral class in the star model (`SPECTRAL_PROBABILITIES_LARGE_STAR` has O to M only). 1,200 galaxy-wide [S], 5.7e-8 per sector [C]; placement in massive clusters and arms, scale height about 50 to 70 pc [R].
-- Bubble: nebula family `emission`, radius 2 to 35 pc (diameter 1 to 70 pc [S]), a thin shell with a hollow interior drawn with the existing `nebula_shape` mesh (shell profile from the appearance table in [nebula-and-asteroid-field-classes.md](nebula-and-asteroid-field-classes.md)); the host rule goes into `NEBULA_HOST_RULES`.
+**Built (GEN.243).** The design is in [intergalactic-and-halo-contents.md](../galaxy/intergalactic-and-halo-contents.md) section 5.11; what the build does:
+
+- **The star is a state, not a scattered kind.** `physics/wolf_rayet.py`: a star of at least 25 solar masses at the Sun's metallicity (the threshold rises as Z^-0.5: 35 at half, 56 at a fifth) is a Wolf-Rayet star for the last 0.3 Myr of its life (never more than half its supergiant window), in the place of the end of the supergiant window in `stellar_evolution.evolve_star`. It has yerkes class `W`, a present mass of 0.4 to 0.6 of the birth mass, a luminosity log-uniform over 1e5 to 1e6 solar, a temperature uniform over its subtype's range (WN 30,000 to 100,000 K, WC 40,000 to 120,000 K, WO 150,000 to 200,000 K), a subtype by the share of the phase gone (WN 60%, WC 30%, WO 10%, WO only from 40 solar masses) and a spectral text such as `WN6 Blue Wolf-Rayet Star`. The bright and mass passes draw the state with the other massive stars, so there is no rate of its own: the count follows from the star formation history (about 1,180 in a Milky Way-like disk against the 1,200 expected), and a population too old for massive stars (halo, clusters, bulge, old satellites) has none. The `SPECTRAL_PROBABILITIES_LARGE_STAR` table is unchanged; it does not draw them.
+- **Companions.** `tuning.WR_COMPANION_CHANCE`: 0.52 of WN stars and 0.90 of WC and WO stars have one (a Wolf-Rayet star's own chance of a companion, `wolf_rayet.companion_chance` read by the system builder; the `wolf-rayet-binary` row of the phenomena catalogue).
+- **The bubble is nebula class X**, "Wolf-Rayet ring nebula": family `emission`, a thin swept-up shell of ionized hydrogen and helium around a hollow interior, radius 6.5 to 114 ly (2 to 35 pc), density 10 to 1,000 per cm3, 8,000 to 12,000 K, drawn with the existing `nebula_shape` mesh. It is `host_only`: only a Wolf-Rayet star lights one, so a nebula drawn with no host is never X (`FREE_CLASS_LETTERS`). The host rule `("W", 0, 9, ("X",), 0.4)` in `NEBULA_HOST_RULES` rolls it from the star (the same roll for a pre-placed star and one made in a fill, `nebula_contents.hosted_seed`) and the host may be at most 10 Myr old (`NEBULA_CLASS_MAX_AGE_MYR["X"]`). The star at its centre is a real system made with the nebula.
 
 ### Superbubble / Local Bubble cavity (Tier 2)
 
@@ -178,7 +181,7 @@ The `phenomenon_scatter` draw is weighted by total stellar density per ring and 
 |---|---|---|---|---|
 | 1 | 1 | Magnetar subtype of neutron star and the age-dependent pulsar fraction | real, about 100 objects, existing table and scatter | a young-population weight for the scatter |
 | 2 | 1 | Einstein radius on compact-object pages | display only, no storage | none |
-| 3 | 2 | Wolf-Rayet class and ring bubble | real, spans sectors through the nebula machinery | W class in the star model |
+| 3 | 2 | Wolf-Rayet class and ring bubble | real, spans sectors through the nebula machinery. **Built (GEN.243)** | W class in the star model (built) |
 | 4 | 2 | Superbubble cavity field | calibrates GEN.47; zero clouds inside | the `nebula_field` pattern |
 | 5 | 2 | Jets as drawn features | cheap draw | GEN.104 spin axis |
 | 6 | 2 | Symbiotic binaries | real binary subtype | GEN.128 to GEN.130 |

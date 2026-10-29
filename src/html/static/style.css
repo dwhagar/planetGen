@@ -20,6 +20,12 @@
   --tier-green: #1f7a3d;
   --tier-yellow: #8a6500;
   --tier-red: #c22b3a;
+  /* MAP.320: the point-of-interest tokens that no habitability score colours. Brown and grey are chosen to differ in
+     lightness (CIE L*) from all four tiers, so they never read as one of them to a viewer who cannot tell the hues
+     apart, and each clears 3:1 against the page (WCAG 1.4.11; src/tests/test_poi_icons.py holds both). */
+  --poi-brown: #5a3d22;
+  --poi-grey: #858ba1;
+  --poi-gas: #0e7c86;
   --shadow: 0 1px 2px rgba(20, 22, 40, 0.06), 0 4px 16px rgba(20, 22, 40, 0.05);
   --radius: 10px;
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -58,6 +64,9 @@
     --tier-green: #5fcf86;
     --tier-yellow: #e8c24a;
     --tier-red: #ff6b7a;
+  --poi-brown: #9c6b3f;
+  --poi-grey: #6f7486;
+  --poi-gas: #4fc3cc;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
   }
 }
@@ -80,6 +89,9 @@
   --tier-green: #5fcf86;
   --tier-yellow: #e8c24a;
   --tier-red: #ff6b7a;
+  --poi-brown: #9c6b3f;
+  --poi-grey: #6f7486;
+  --poi-gas: #4fc3cc;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
@@ -1973,6 +1985,40 @@ a.btn.btn-secondary.btn-active:visited {
   stroke-linejoin: round;
 }
 
+/* MAP.320: a point-of-interest symbol (`poi_icon(id, tier)`, static/poi/<id>.svg), a solid silhouette in the colour of
+   its token; the paint is set here and not in the file, as `.icon`'s is (the Content-Security-Policy refuses inline
+   styles) and inherited into the <use> content. A world the habitability score colours takes `poi-tier-N`. */
+.poi-icon {
+  width: 1.5em;
+  height: 1.5em;
+  vertical-align: -0.4em;
+  flex: none;
+  color: var(--accent);
+  fill: currentColor;
+  stroke: var(--bg-elevated);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  paint-order: stroke;
+}
+.poi-icon.poi-uninhabitable-world { color: var(--poi-brown); }
+.poi-icon.poi-gas-giant { color: var(--poi-gas); }
+.poi-icon.poi-asteroid-field { color: var(--poi-grey); }
+.poi-icon.poi-tier-0 { color: var(--tier-blue); }
+.poi-icon.poi-tier-1 { color: var(--tier-green); }
+.poi-icon.poi-tier-2 { color: var(--tier-yellow); }
+.poi-icon.poi-tier-3 { color: var(--tier-red); }
+
+/* The key to the symbols (templates/partials/poi_key.html): one row per symbol, its name and what it marks. */
+.poi-key {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.35rem 0.75rem;
+  align-items: center;
+  margin: 0;
+}
+.poi-key dt { display: flex; gap: 0.2em; align-items: center; font-weight: 600; }
+.poi-key dd { margin: 0; }
+
 /* UX.101: a PHI-6 symbol (`habitability_symbol(name, tier)`), drawn in the tier-blue .. tier-red color of its
    rating; the rating is also in its words, so the color is never the only sign. */
 .hab-symbol {
@@ -2521,6 +2567,12 @@ code {
   border: 2px solid var(--bg-subtle);
   box-shadow: 0 0 0 1px var(--text-muted);
 }
+/* MAP.331: the outline of the charted region the view is in, as a small wireframe square in the accent colour. */
+.map-layer-legend-swatch.map-frame-swatch {
+  border: 2px solid var(--accent);
+  background: none;
+  border-radius: 0;
+}
 .map-layer-legend-swatch.sysmap-legend-facility {
   width: 0.5rem;
   height: 0.5rem;
@@ -2752,10 +2804,63 @@ code {
   flex: 0 0 100%;
 }
 
+/* MAP.306: the Points of interest group's row that sets every kind at once, and each kind's second button (pull it forward). */
+.galaxy-kinds .galaxy-kinds-bulk {
+  display: flex;
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.galaxy-kinds .map-forward-toggle {
+  margin-left: -0.35rem;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.galaxy-kinds .map-forward-toggle:disabled {
+  opacity: 0.45;
+}
+
 .galaxy-sub > summary {
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+/* MAP.316: the Menu's list of charted regions, a button a line, the longest list scrolling in the Menu. */
+.galaxy-regions-sort {
+  display: block;
+  padding: 0.35rem 0 0.2rem;
+  font-size: 0.85rem;
+}
+
+.galaxy-regions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.galaxy-region-button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 0.85rem;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.45rem;
+  color: var(--accent);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.galaxy-region-button:hover,
+.galaxy-region-button:focus-visible {
+  background: var(--bg-subtle);
 }
 
 .galaxy-menu-actions {
@@ -2828,6 +2933,21 @@ code {
   color: var(--text-muted);
 }
 
+/* MAP.315: the region a pick lies in, each name a button that looks like a link. */
+.map-info-region {
+  margin: 0 0 0.6em;
+}
+
+.map-info-region-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link, inherit);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* What does not fit even at the smallest text scrolls, so the pointer has to reach the popup to scroll it. */
 .starmap-info[data-overlay][data-scroll] {
   pointer-events: auto;
@@ -2866,6 +2986,26 @@ code {
 
 :is(.galaxy-map-main, .starmap-viewport):has(.starmap-navpad) > .starmap-info[data-corner="bottom-right"] {
   bottom: 9.5rem;
+}
+
+/* MAP.332: a card too tall for the room above the controls and the legend takes the map's whole height (static/mappick.js sets
+   `data-tall`), the popup sized to its content up to the window's height and scrolling past it. On the right it stands beside the
+   zoom controls (their width is `--info-pad-clear`); on the left it lies over the legend and the scale, which only read. */
+.starmap-info[data-overlay][data-tall],
+:is(.galaxy-map-main, .starmap-viewport):has(.starmap-navpad) > .starmap-info[data-overlay][data-tall] {
+  top: 0.5rem;
+  bottom: auto;
+  max-height: calc(100% - 1rem);
+}
+
+.starmap-info[data-overlay][data-tall][data-corner$="right"] {
+  right: var(--info-pad-clear, 10rem);
+  width: min(calc(100% - var(--info-pad-clear, 10rem) - 1rem), clamp(13rem, 36%, 24rem));
+}
+
+.starmap-info[data-overlay][data-tall][data-corner$="left"] {
+  left: 0.5rem;
+  right: auto;
 }
 
 .starmap-info .map-info-more {
@@ -5069,6 +5209,39 @@ p.hint a {
 }
 
 
+/* The icons on the walls of the sector opened in place (MAP.327, sectorframe.js): a labelled button at the centre of each
+   wall that faces a neighbouring sector, screen-sized whatever the zoom, over the names; a click flies there. */
+.map-wall-icons {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+}
+.map-wall-icon {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 7px;
+  border: 1px solid var(--accent, #4f5fe8);
+  border-radius: 999px;
+  background: rgba(11, 13, 20, 0.82);
+  color: #eef1fb;
+  font-size: 0.75rem;
+  line-height: 16px;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.map-wall-icon[hidden] { display: none; }
+.map-wall-icon:hover, .map-wall-icon:focus-visible {
+  background: var(--accent, #4f5fe8);
+  color: #fff;
+}
+.map-wall-arrow { font-size: 0.8rem; }
+
 /* The map's names (MAP.268, maplabels.js): laid over the map, never picked, with a halo that reads on both
    themes; a fade in and out that reduced motion drops. */
 .map-labels {
@@ -5287,6 +5460,7 @@ p.hint a {
   height: auto;
   aspect-ratio: 1;
 }
+.body-view-spin[hidden] { display: none; }
 .body-view figcaption {
   color: var(--text-muted);
   font-size: 0.875rem;
@@ -5303,7 +5477,8 @@ p.hint a {
   font-size: 0.95rem;
 }
 
-/* UX.196: the "On this page" contents list (static/pagetoc.js). */
+/* UX.196, UX.215: the "On this page" contents menu (static/pagetoc.js). On a wide window it is a menu down the left side of
+   the page that stays in view; on a narrow one it is a list under the title. */
 .page-toc {
   margin: 0 0 1rem;
   padding: 0.5rem 0.75rem;
@@ -5320,10 +5495,68 @@ p.hint a {
 .page-toc ul {
   margin: 0;
   padding-left: 1.25rem;
-  columns: 14rem auto;
 }
 
 .page-toc li ul {
-  columns: 1;
   font-size: 0.9em;
+}
+
+@media (min-width: 64rem) {
+  .app .app-main.has-page-toc {
+    display: grid;
+    grid-template-columns: 13.5rem minmax(0, 1fr);
+    column-gap: 1.5rem;
+    align-content: start;
+    max-width: 84rem;
+  }
+
+  .app .app-main.has-page-toc > * {
+    grid-column: 2;
+    min-width: 0;
+  }
+
+  .app .app-main.has-page-toc > .page-toc {
+    grid-column: 1;
+    grid-row: 1 / span 60;
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    margin: 0;
+  }
+
+  .page-toc ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .page-toc li ul {
+    padding-left: 0.9rem;
+  }
+
+  .page-toc a {
+    display: block;
+    padding: 0.15rem 0;
+  }
+}
+
+/* UX.215: the Location row of the at-a-glance table: the places above the object, then the cloud it sits inside. */
+.location-chain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.location-chain li + li::before {
+  content: "\203A";
+  margin-right: 0.4rem;
+  color: var(--text-muted);
+}
+
+.location-inside {
+  margin: 0.25rem 0 0;
 }

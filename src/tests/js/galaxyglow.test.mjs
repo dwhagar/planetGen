@@ -77,8 +77,10 @@ test("a glow fades as the stars it stands for resolve and is gone when its block
   assert.ok(middle.alpha < small.alpha && middle.alpha > 0, "it fades in between");
   assert.equal(at(end).alpha, 0);
   assert.equal(at(end * 4).alpha, 0, "and stays gone at the zooms where the haze flooded the map");
+  assert.ok(at(start + 0.8 * (end - start)).alpha < 0.02 * G.GLOW_ALPHA_MAX, "it is nearly gone well before the cap (MAP.330)");
+  assert.ok(G.GLOW_RADIUS_PX[1] <= 140 && end <= 140, "and a halo never reaches a size that covers much of the screen (MAP.330)");
   let last = Infinity;
-  for (let px = start * 0.5; px <= end * 1.2; px += 20) {
+  for (let px = start * 0.5; px <= end * 1.2; px += 10) {
     const alpha = at(px).alpha;
     assert.ok(alpha <= last + 1e-12, "never stronger as the block grows");
     last = alpha;

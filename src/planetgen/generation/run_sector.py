@@ -23,6 +23,7 @@ from planetgen.db import store
 from planetgen.galaxy import scales
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.generation import directives
+from planetgen.generation import cloud as cloudContext
 from planetgen.generation import fill_stages
 from planetgen.generation import multistar, nebula_contents, scatter_companions
 from planetgen.generation import system_pass
@@ -218,8 +219,8 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
 
     for kind, phenomenon_type, factory in SECTOR_PHENOMENON_KINDS:
         if kind == "molecular-cloud" and cloud_field is not None:
-            sector.field_nebulae = nebula_field.clouds_reaching(*cloud_field)
-            sector.cloud_field = cloud_field
+            if sector.cloud_field != cloud_field:
+                cloudContext.begin(sector, cloud_field, nebula_field.clouds_reaching(*cloud_field))
             fill_stages.count(sector, fill_stages.NEBULAE, kind, len(sector.field_nebulae))
             continue
         if scattered and kind in phenomenon_scatter.SCATTERED_KINDS:
@@ -810,6 +811,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
     sector_name = args.sector_name or generate_sector_name()
     sector = SpaceSector(name=sector_name, cell=cell)
     fill_stages.begin(sector)       # every stage below draws from its own stream (GEN.251)
+    if cloud_field is not None:     # GEN.357: the clouds are known before the first system is placed
+        cloudContext.begin(sector, cloud_field, nebula_field.clouds_reaching(*cloud_field))
     scattered = fill is not None and fill.phenomena_scattered
     if fill is not None:
         with fill_stages.stage(sector, fill_stages.PRE_PLACED):

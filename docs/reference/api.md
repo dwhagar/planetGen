@@ -38,7 +38,7 @@ this API instead.
 
 ## API version and object IDs
 
-Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here.
+Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here and a row in [api-compatibility.md](api-compatibility.md) (API.4: each version, the release that first carried it, the routes and payload formats it changed, and which clients speak it), which is built from `docs/reference/api-versions.json`.
 
 - **9** (MAP.287): `GET /api/systems/<id>/scene`: a star, planet and moon no longer has `color`; it has `look`, the body look record (`bodylook.py`), which holds its `color` and everything the painters need. A comet keeps `color`.
 - **8** (MAP.262): `GET /api/galaxy/tiles` is gone: the map's data is read by sector-block node (`GET /api/galaxy/nodes`), and `GET /api/galaxy/changes` no longer has `tiles` (it has `nodes`).
@@ -51,6 +51,10 @@ Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` hea
 - **1**: the first numbered version.
 
 The sector grid changed to shells, bands and wedges on 2026-10-15 (the spherical switch). Every sector address in a request or an answer is now `shell`/`band`/`wedge` (`shell_index`/`band_index`/`wedge_index` in answers) where it was `ring`/`layer`/`slot` (`ring_index`/`layer_index`/`ring_slot_index`), and sector IDs were renumbered from the new designations. Version 6 records it.
+
+## Units of the numbers
+
+Every number the API takes or returns says what it measures. A response field named after a stored column carries its unit as the name's suffix (`radius_km`, `age_gy`, `position_x_mpc`, `period_years`), the same unit the column registry declares (`db/column_units.py`, DB.76). A request body field either has the suffix too (`distance_km`, `phase_deg`, `offset_ly`, `radius_ly`, `edge_ly`, `expires_days`) or a description starting "Unit:" in its schema: a count (`num_orbits`, the worker `count`), an id (`type_id`, `affiliation_polity_id`), an index (`sort_order`), `position` in light-years from the sector's centre, and the facility type field values, whose unit is the one the field itself declares (`unit`). `tests/test_api_field_units.py` fails for a request field that is a number and names no unit.
 
 ## The User-Agent and the version header
 
@@ -266,7 +270,9 @@ connectivity to that specific schema rather than the default one.
   `moon:40`, `belt:5`, `comet:8`), `radius_km`, `look` (a star, planet or moon) or `color` (a comet), `position_km`
   relative to what it orbits, and an `orbit` (`around`, `distance_km`,
   `period_years`, `inclination_deg`, `ascending_node_deg`, `phase_deg`; a
-  comet's holds its Kepler elements under `kepler`).
+  comet's holds its Kepler elements under `kepler`). A planet or moon also carries `habitable`, `inhabited`,
+  `body_type` (`t` terrestrial, `g` gas giant), `phi4` (its overall habitability score, `null` unscored) and `tier`
+  (that score's colour, `Blue` to `Red`, or `null`), which the Galaxy Map draws its symbol from (MAP.321), and the four life scores `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` (0 none to 9 abundant, `null` unscored) with `life_stage` (kept for a class that can carry life only) and `planet_class`, which its symbols for life, sentient life, a civilization and a planet class read (MAP.343).
 - `GET /api/near?from=<ref>&distance=<pc>` (or `point=x,y,z` in galaxy-frame
   parsecs) — everything generated within `distance` parsecs (at most 50) of
   a place (NAV.43, `planetgen.db.near.objects_within`): systems, stars,
@@ -308,7 +314,7 @@ connectivity to that specific schema rather than the default one.
   `composition`, `atmosphere`, `climate`, `water`, `magnetism`, `radiation`,
   `habitability`, `life`, the star's `zones`, `stellar`, `galactic`, `disk`, and
   a phenomenon's `gas`, `compact`, `activity`), each `{key, label, rows}`. A
-  row is `{key, label, value, text, stored, absent, show_absent}` (`absent`: the value is none, 0, false or empty; `show_absent`: a page lists it even then, UX.188, because its absence matters, such as no air or no magnetic field): `value` is the Document's inline
+  row is `{key, label, value, text, raw, stored, absent, show_absent}` (`raw`: the stored number, `null` for text and for a column with no value) (`absent`: the value is none, 0, false or empty; `show_absent`: a page lists it even then, UX.188, because its absence matters, such as no air or no magnetic field): `value` is the Document's inline
   list (a quantity is `{"qty": {"kind", "si"}}`, shown in the reader's units),
   `text` the same as plain text, and `stored` false, with the text "not
   stored", for a property the row holds no value for. Every stored column of
@@ -442,7 +448,10 @@ connectivity to that specific schema rather than the default one.
   light and mean temperature of the pre-placed objects nothing was built from, `galaxy_block_lights`). The lists are
   the brightest objects inside the block, nested down the ladder: a block lists every object of its parent that lies
   inside it. `placed` is only on a level-3 block and a sector. The nebula cover is not in a node (it changes without a
-  sector changing; read `/api/galaxy/nebula-cover`). `400` for a malformed key or too many keys.
+  sector changing; read `/api/galaxy/nebula-cover`). The node of a charted region (a 9-block that holds at least one generated
+  sector, `region_stats`) also has `name` ("Fardoo Beez Region") and `parent` (the name of its 81-block family, "Fardoo Reach"), from the
+  gated phoneme codec under the naming key in force (API.35); no other node has them, and none has them while no key is in force. The same node has `extent` (MAP.319), `{"centre": [x, y, z], "radius"}` in parsecs: the bounding sphere of the region's largest face-connected clump of generated sectors, at least the 12 pc framing sphere, which the map flies to; it needs no key; and `charted` (MAP.314), `{"sectors", "percent"}`, how much of the region is generated. A node of 27, 81 or 243 sectors that holds charted regions has `regions` (MAP.314), a list of `{"key", "name", "parent", "centre", "radius", "sectors", "percent"}` per charted region inside it, most sectors first (names need a key in force); no other node has it. `400` for a malformed key or too many keys.
+- `GET /api/galaxy/charted-regions` (MAP.316) — every charted region (a 9-block that holds at least one generated sector, `region_stats`), by share charted then cell: `{"regions": [{key, m, shell, band, wedge, centre: [x, y, z], radius, sector_count, capacity, share, clumps, name?, parent?, inhabited?}], "edge_pc"}`. `key` is the cell's node key (`9.shell.band.wedge`), `centre` and `radius` the extent in parsecs (as the node's `extent`), `share` the sectors generated over the sectors the cell's outline holds (0 to 1, above 0 for every region), `name` and `parent` as on the node (API.35, only with a naming key in force), `population` (MAP.318: the people counted in the region, `db/population_slot.py`; present only on a region that has a count, so absent on every region until the world population simulation, POP.30, stores head counts), `inhabited` (MAP.321) only on a region with an inhabited world: `{systems, worlds, score?, tier?}`, the systems with an `inhabited` interest in the region, their inhabited worlds, and the best PHI-6 score and its tier when one is scored (read from `system_interests` when asked, so a colony just founded is in it). The Galaxy Map draws its galactic-scale region spheres and its Menu's charted-regions list from it, through the web page's `GET /galaxy/regions`.
 - `GET /api/galaxy/nebula-cover?at=<block key>[&g=<n>]` — the share of each cell of a Galaxy Map stage (`at` alone,
   or none for the galaxy) or data window (`at` the middle cell and `g` the cells across) that lies inside a nebula
   (`queryDb.galaxy_nebula_cover`, MAP.174), for the cells that hold a generated sector and the ones that do not: the
@@ -463,9 +472,10 @@ connectivity to that specific schema rather than the default one.
   `[{"shell", "band", "wedge", "generated", "stats"}]` for each child block
   one size down that holds a generated sector (`stats`:
   `{"systems", "expected_systems", "stars", "mean_age_gy",
-  "luminosity_sol"}`), and, when the children are sectors (`child_m` 1),
+  "luminosity_sol", "mass_kg"}`; `mass_kg` is the total mass of the generated contents, from `sector_stats.total_mass_kg`, which the Galaxy Map ranks sector names by, MAP.322), and, when the children are sectors (`child_m` 1),
   `sectors` lists each generated one: `{"shell", "band", "wedge", "id",
-  "name", "system_count", "stats"}` (otherwise `null`). Above the sector the
+  "name", "system_count", "stats"}` (otherwise `null`). When the children are 9-blocks (`child_m` 9) each child also has `name` and
+  `parent` (the region and its family, as on the node, API.35), and the stage of a charted 9-block has them itself. Above the sector the
   figures are read from `galaxy_block_stats`. A window is a ball: `g` (3, 5, 7,
   9 or 11) cells of the key's size across, every block whose center lies within
   `g * m / 2` sector edges of the center block's center. It answers `{"at",
@@ -589,7 +599,7 @@ connectivity to that specific schema rather than the default one.
   and phenomenon class, the class tag written `<type>:<class>` such as
   `phenomenon_class=nebula:D` — repeat a facet
   name for multiple active values, e.g. `class=M&class=K`), a per-entity
-  name search, and a min/max size range per entity —
+  name search, and a min/max size range per entity (UX.214 also adds the score filters below) —
   `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/`moon_`),
   in km, either bound optional (a size range is a continuous quantity,
   not a discrete facet value, so it's its own pair of query parameters
@@ -616,6 +626,14 @@ connectivity to that specific schema rather than the default one.
   those panels, the others answering `null`; `none` still answers `facets` and `autocomplete`. The Search page asks for each
   panel on its own, so a panel that hits the statement limit (a `504`) times out alone. A name search of one word
   shorter than the database's full-text minimum (usually 3 letters) matches the start of a name.
+  UX.214, score filters (planets by the plain name, moons with `moon_` in front, each repeatable, a body matches when it
+  holds for any ticked value of a facet and all facets must match): `habitability=blue|green|yellow|red` (the overall PHI-6
+  colour: Blue 1 or more, Green 0.75 to under 1, Yellow 0.4 to under 0.75, Red under 0.4); `domain=<domain>:<colour>`
+  (domains `pressure`, `temperature`, `air`, `water`, `radiation`, `suitability`; `suitability:green`); `life_level=<kind>:<1|5>`
+  (kind `microbial`, `flora`, `fauna` or `sentient`, that life score 1 or more or 5 or more, of 9); `living=alive|lifeless|food|civilization`
+  (`food` is flora, fauna or a civilization). Unscored bodies (gas giants, bodies saved before the scores) match none of them.
+  `planet_sort`/`moon_sort` order a panel by `phi4`, `suitability`, a domain name, `microbial`, `flora`, `fauna` or `sentient`:
+  worst first, `-` in front for best first (`-phi4`); an unscored body comes last either way. The facets answer their options with counts.
 - `GET /api/facilities/<id>` — one facility (see "Facilities" below).
 - `GET /api/systems/<id>/facilities` — `{"items": [...]}`, every facility
   on a star, planet, moon or asteroid belt in that system.
@@ -884,7 +902,7 @@ forced credential change. They back the admin stats page
   "stages": [{"key", "label", "state" ("waiting", "running" or "done"),
   "units", "done", "cost", "cost_done", "started", "ended", "seconds",
   "longest_unit"}], "events": the last 300 lines of its log [{"id", "t",
-  "level", "kind", "message"}], "log": true}`; 404 for an unknown run.
+  "level", "kind", "message"} and, where the event has them, "stage" (from 0), "stages", "unit" and "seconds"], "log": true}`; 404 for an unknown run.
   `GET /api/admin/work/<id>/log` answers the whole log as `{"text": ...}`,
   from Redis while the run's record lasts (30 days) and from the file in the
   jobs directory's `runs` folder after (the last 20 are kept).

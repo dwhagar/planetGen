@@ -246,7 +246,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 
 | Option | Setting | Type | Default | Applies | Edited | Environment | What it does |
 |---|---|---|---|---|---|---|---|
-| `config_version` | Settings file version | whole number | 1 | at once | command line only | none | The settings file format version; a file without one is version 1. |
+| `config_version` | Settings file version | whole number (format version) | 1 | at once | command line only | none | The settings file format version; a file without one is version 1. |
 | `site_name` | Site name | text | planetGen | at once | any admin | none | Display name for this deployment, shown in the header, the home page heading, every page title and the footer. |
 | `base_url` | Site address | text | http://localhost/ | at once | the Owner | none | The address this site is reached at, as an absolute http or https address with a trailing slash. Canonical links, link previews, the sitemap and emailed links are built from it, never from the request's Host header. |
 | `api_base_url` | API address | text | http://127.0.0.1/api | after a restart | command line only | `PLANETGEN_API_BASE_URL` | Base URL of the Flask API's /api mount point, used by web/lib/apiclient.py only outside the Flask app. |
@@ -292,7 +292,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `og.card_cache_mb` | Preview picture disk use | number (MB) | 100 | at once | any admin | none | How much disk the drawn preview pictures may use. |
 | `og.card_cache_dir` | Preview picture folder | text | empty | at once | command line only | none | Where drawn preview pictures are cached; empty means the state folder. |
 | `mysql.host` | Database host | text | 127.0.0.1 | after a restart | command line only | `PLANETGEN_MYSQL_HOST` | The MySQL server's host name or address. |
-| `mysql.port` | Database port | whole number | 3306 | after a restart | command line only | `PLANETGEN_MYSQL_PORT` | The server's port. |
+| `mysql.port` | Database port | whole number (port number) | 3306 | after a restart | command line only | `PLANETGEN_MYSQL_PORT` | The server's port. |
 | `mysql.user` | Database user | text | planetgen | after a restart | command line only | `PLANETGEN_MYSQL_USER` | The account every entry point connects with; give it whatever grants the most demanding caller needs. |
 | `mysql.password` | Database password | text | empty | after a restart | command line only | `PLANETGEN_MYSQL_PASSWORD` | That account's password. **Secret.** |
 | `mysql.database` | Galaxy database | text | planetgen | after a restart | command line only | `PLANETGEN_MYSQL_DATABASE` | The galaxy database the pages show and the generators fill. |
@@ -319,11 +319,11 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `admin_cookie_insecure` | Admin login over plain HTTP | true or false | false | after a restart | command line only | `PLANETGEN_ADMIN_COOKIE_INSECURE` | Send the admin session cookie over plain HTTP. Only for local development without TLS; a production deployment must never set it. |
 | `secret_key` | Form signing key | text | empty | after a restart | command line only | `PLANETGEN_SECRET_KEY` | Signs the CSRF tokens on the pages' forms. Empty makes a random one at startup (a form open across a restart then fails once). **Secret.** |
 | `password_hash.memory_kib` | Password hashing memory | whole number (KiB) | 19456 | after a restart | command line only | `PLANETGEN_PASSWORD_HASH_MEMORY_KIB` | Memory one admin password check uses, in KiB (Argon2id). 19456 (19 MiB) with time_cost 2 and parallelism 1 is OWASP's minimum; raise it where the host has the memory to spare. A stored hash made with other numbers is re-hashed at that admin's next sign-in. |
-| `password_hash.time_cost` | Password hashing passes | whole number | 2 | after a restart | command line only | `PLANETGEN_PASSWORD_HASH_TIME_COST` | Passes over that memory for one admin password check (Argon2id). |
-| `password_hash.parallelism` | Password hashing threads | whole number | 1 | after a restart | command line only | `PLANETGEN_PASSWORD_HASH_PARALLELISM` | Threads one admin password check uses (Argon2id). |
-| `proxy_fix.x_for` | Proxies for the visitor's address | whole number | 0 | after a restart | command line only | `PLANETGEN_PROXY_FIX_X_FOR` | Reverse proxies to trust for X-Forwarded-For, the client address (0 = off). |
-| `proxy_fix.x_proto` | Proxies for the scheme | whole number | 0 | after a restart | command line only | `PLANETGEN_PROXY_FIX_X_PROTO` | Reverse proxies to trust for X-Forwarded-Proto, the scheme (0 = off). |
-| `proxy_fix.x_host` | Proxies for the host name | whole number | 0 | after a restart | command line only | `PLANETGEN_PROXY_FIX_X_HOST` | Reverse proxies to trust for X-Forwarded-Host (0 = off). |
+| `password_hash.time_cost` | Password hashing passes | whole number (passes) | 2 | after a restart | command line only | `PLANETGEN_PASSWORD_HASH_TIME_COST` | Passes over that memory for one admin password check (Argon2id). |
+| `password_hash.parallelism` | Password hashing threads | whole number (threads) | 1 | after a restart | command line only | `PLANETGEN_PASSWORD_HASH_PARALLELISM` | Threads one admin password check uses (Argon2id). |
+| `proxy_fix.x_for` | Proxies for the visitor's address | whole number (proxies) | 0 | after a restart | command line only | `PLANETGEN_PROXY_FIX_X_FOR` | Reverse proxies to trust for X-Forwarded-For, the client address (0 = off). |
+| `proxy_fix.x_proto` | Proxies for the scheme | whole number (proxies) | 0 | after a restart | command line only | `PLANETGEN_PROXY_FIX_X_PROTO` | Reverse proxies to trust for X-Forwarded-Proto, the scheme (0 = off). |
+| `proxy_fix.x_host` | Proxies for the host name | whole number (proxies) | 0 | after a restart | command line only | `PLANETGEN_PROXY_FIX_X_HOST` | Reverse proxies to trust for X-Forwarded-Host (0 = off). |
 | `cache.max_mb` | Disk cache size | number (MB) | 1024 | at once | any admin | `PLANETGEN_CACHE_MAX_MB` | How much disk the site's stored caches (today the Galaxy Map's nodes and stages) may use, in all. When it is full the warm-up stops, the nodes it built ahead stay, and the nodes a visit asked for are dropped, the least recently visited first (0 turns the disk caches off). |
 | `cache.warm_on_change` | Rebuild caches after changes | true or false | true | at once | any admin | `PLANETGEN_WARM_ON_CHANGE` | Start the warm-up by itself after anything that changes what the site shows (a generation run, the orbital update, an edit), so the caches are rebuilt without waiting for the next update. It rebuilds only what the change touched. |
 | `cache.warm_settle_seconds` | Wait before rebuilding | number (seconds) | 60 | at once | any admin | none | How long the automatic warm-up waits after the first change before it starts, so a burst of edits is one warm-up and not one for each. |
@@ -333,7 +333,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `tile_cache.prefetch_per_minute` | Nodes prefetched per minute | whole number (nodes) | 600 | at once | any admin | none | Most nodes the background build queues in a minute, all requests together. |
 | `tile_cache.prefetch_max_queued` | Prefetch queue limit | whole number (jobs) | 8 | at once | any admin | none | The background build queues nothing while this many of its jobs (16 nodes each) or other upkeep work already wait. |
 | `page_cache.enabled` | Page answer cache | true or false | true | after a restart | any admin | `PLANETGEN_PAGE_CACHE` | Keep the API's public answers in memory, per WSGI process. |
-| `page_cache.max_entries` | Cached answers | whole number | 2000 | after a restart | any admin | none | Most answers kept. |
+| `page_cache.max_entries` | Cached answers | whole number (answers) | 2000 | after a restart | any admin | none | Most answers kept. |
 | `page_cache.max_mb` | Answer cache memory | number (MB) | 64 | after a restart | any admin | none | Most memory the answers may take. |
 | `page_cache.stamp_seconds` | Change check interval | number (seconds) | 15 | after a restart | any admin | none | How often the galaxy's content stamp is checked. |
 | `page_cache.max_age_seconds` | Answer lifetime in memory | number (seconds) | 300 | after a restart | any admin | none | Nothing is kept longer than this. |
@@ -341,8 +341,12 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `page_cache.warm_max_objects` | Pages built ahead | whole number (objects) | 5000 | at once | any admin | none | Most sector pages, system pages and phenomenon pages the warm-up builds (each, nearest the galaxy centre first); the rest are built on their first visit, and the warm-up says how many it left out. |
 | `page_cache.stored_counts` | Use stored table counts | true or false | true | at once | any admin | `PLANETGEN_COUNT_CACHE` | Table pages show stored totals and filter-menu counts, refreshed in the background, instead of counting whole tables in the request (off: exact counts at any price). |
 | `jobs.dir` | Job files folder | text | empty | at once | command line only | `PLANETGEN_JOBS_DIR` | Where each background job's command lines, status and output are kept; empty means /var/lib/planetGen/jobs. |
-| `jobs.keep` | Finished jobs kept | whole number | 20 | at once | any admin | none | How many finished jobs are kept. |
+| `jobs.keep` | Finished jobs kept | whole number (jobs) | 20 | at once | any admin | none | How many finished jobs are kept. |
 | `jobs.python` | Python for jobs | text | empty | at once | command line only | `PLANETGEN_PYTHON` | The interpreter that runs planetgen and planetgen.cli.reset for the jobs; empty means the web app's own Python. Editing it from the web would be code execution, so it is file-only. |
+| `parity.enabled` | Sector repair file | true or false | false | after a restart | any admin | `PLANETGEN_PARITY` | Keep a parity file beside the database that can rebuild a damaged sector (DB.46): every saved or edited sector updates the parity of its group, which costs a few milliseconds a save and about 7 percent of the sectors' size in disk space. Off, saves write no parity and `planetgen refresh-parity` builds it later. |
+| `parity.dir` | Repair file folder | text | empty | at once | command line only | `PLANETGEN_PARITY_DIR` | Where the parity file is kept; empty means /var/lib/planetGen/parity. Keep it off the disk the database is on if you can: a parity file on the same failing disk protects nothing. |
+| `parity.group_size` | Sectors per repair group | whole number (sectors) | 32 | after a restart | any admin | none | Sectors in one parity group (G). Any `parity_blocks` damaged sectors of a group are rebuilt from the rest, which are read to do it: a bigger group costs less disk and more reading. A change applies to the groups made afterwards. |
+| `parity.parity_blocks` | Repair blocks per group | whole number (blocks) | 2 | after a restart | any admin | none | Parity blocks per group (m): how many damaged sectors of one group can be rebuilt. A change applies to the groups made afterwards. |
 
 <!-- END GENERATED OPTIONS -->
 

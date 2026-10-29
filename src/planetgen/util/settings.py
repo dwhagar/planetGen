@@ -106,7 +106,7 @@ class MySQL(_Section):
                     summary="The address of the database server.")
     port: int = opt(3306, "The server's port.", env="PLANETGEN_MYSQL_PORT", restart=True, editable=False,
                     group="database", ge=1, le=65535, env_empty=True,
-                    label="Database port",
+                    unit="port number", label="Database port",
                     summary="The port the database server listens on.")
     user: str = opt("planetgen", "The account every entry point connects with; give it whatever grants the most "
                     "demanding caller needs.", env="PLANETGEN_MYSQL_USER", restart=True, editable=False,
@@ -212,16 +212,16 @@ class ProxyFix(_Section):
 
     x_for: int = opt(0, "Reverse proxies to trust for X-Forwarded-For, the client address (0 = off).",
                      env="PLANETGEN_PROXY_FIX_X_FOR", restart=True, editable=False, group="proxy", ge=0,
-                     label="Proxies for the visitor's address",
+                     unit="proxies", label="Proxies for the visitor's address",
                      summary="How many reverse proxies to trust for the visitor's address (0 means "
                              "none).")
     x_proto: int = opt(0, "Reverse proxies to trust for X-Forwarded-Proto, the scheme (0 = off).",
                        env="PLANETGEN_PROXY_FIX_X_PROTO", restart=True, editable=False, group="proxy", ge=0,
-                       label="Proxies for the scheme",
+                       unit="proxies", label="Proxies for the scheme",
                        summary="How many reverse proxies to trust for http or https (0 means none).")
     x_host: int = opt(0, "Reverse proxies to trust for X-Forwarded-Host (0 = off).",
                       env="PLANETGEN_PROXY_FIX_X_HOST", restart=True, editable=False, group="proxy", ge=0,
-                      label="Proxies for the host name",
+                      unit="proxies", label="Proxies for the host name",
                       summary="How many reverse proxies to trust for the host name (0 means none).")
 
 
@@ -237,12 +237,12 @@ class PasswordHash(_Section):
     time_cost: int = opt(2, "Passes over that memory for one admin password check (Argon2id).",
                          env="PLANETGEN_PASSWORD_HASH_TIME_COST", restart=True, editable=False, group="security",
                          ge=1,
-                         label="Password hashing passes",
+                         unit="passes", label="Password hashing passes",
                          summary="How many passes one admin password check makes over its memory.")
     parallelism: int = opt(1, "Threads one admin password check uses (Argon2id).",
                            env="PLANETGEN_PASSWORD_HASH_PARALLELISM", restart=True, editable=False,
                            group="security", ge=1,
-                           label="Password hashing threads",
+                           unit="threads", label="Password hashing threads",
                            summary="How many threads one admin password check uses.")
 
 
@@ -314,7 +314,7 @@ class PageCache(_Section):
                         summary="Keep the API's public answers in memory so repeat requests are "
                                 "fast.")
     max_entries: int = opt(2000, "Most answers kept.", restart=True, group="speed", ge=1,
-                           label="Cached answers",
+                           unit="answers", label="Cached answers",
                            summary="The most answers kept in memory.",
                            advanced=True)
     max_mb: float = opt(64, "Most memory the answers may take.", restart=True, unit="MB", group="speed", gt=0,
@@ -363,7 +363,7 @@ class Jobs(_Section):
                    label="Job files folder",
                    summary="Where each background job's command lines, status and output are kept.")
     keep: int = opt(20, "How many finished jobs are kept.", group="housekeeping", ge=1,
-                    label="Finished jobs kept",
+                    unit="jobs", label="Finished jobs kept",
                     summary="How many finished jobs stay in the job list.")
     python: str = opt("", "The interpreter that runs planetgen and planetgen.cli.reset for the jobs; empty means "
                       "the web app's own Python. Editing it from the web would be code execution, so it is file-only.",
@@ -371,6 +371,29 @@ class Jobs(_Section):
                       label="Python for jobs",
                       summary="The interpreter that runs the generation jobs; empty uses the web "
                               "app's own.")
+
+
+class Parity(_Section):
+    enabled: bool = opt(False, "Keep a parity file beside the database that can rebuild a damaged sector (DB.46): every saved "
+                        "or edited sector updates the parity of its group, which costs a few milliseconds a save and about "
+                        "7 percent of the sectors' size in disk space. Off, saves write no parity and `planetgen "
+                        "refresh-parity` builds it later.", env="PLANETGEN_PARITY", restart=True, group="housekeeping",
+                        label="Sector repair file",
+                        summary="Keep a parity file that can rebuild a damaged sector; saves get a little slower.")
+    dir: str = opt("", "Where the parity file is kept; empty means /var/lib/planetGen/parity. Keep it off the disk the "
+                   "database is on if you can: a parity file on the same failing disk protects nothing.",
+                   env="PLANETGEN_PARITY_DIR", editable=False, group="paths",
+                   label="Repair file folder",
+                   summary="Where the sector repair file is kept; empty uses /var/lib/planetGen/parity.")
+    group_size: int = opt(32, "Sectors in one parity group (G). Any `parity_blocks` damaged sectors of a group are rebuilt "
+                          "from the rest, which are read to do it: a bigger group costs less disk and more reading. A "
+                          "change applies to the groups made afterwards.", unit="sectors", restart=True, group="housekeeping",
+                          ge=1, le=248, advanced=True, label="Sectors per repair group",
+                          summary="How many sectors share one set of parity blocks.")
+    parity_blocks: int = opt(2, "Parity blocks per group (m): how many damaged sectors of one group can be rebuilt. A "
+                             "change applies to the groups made afterwards.", unit="blocks", restart=True,
+                             group="housekeeping", ge=1, le=8, advanced=True, label="Repair blocks per group",
+                             summary="How many damaged sectors of one group the repair file can rebuild.")
 
 
 class Queue(_Section):
@@ -715,7 +738,7 @@ class Settings(_Section):
 
     config_version: int = opt(CONFIG_VERSION, "The settings file format version; a file without one is version 1.",
                               editable=False, group="file", ge=1,
-                              label="Settings file version",
+                              unit="format version", label="Settings file version",
                               summary="Which format version this settings file is in; the program "
                                       "keeps it up to date.")
     site_name: str = opt("planetGen", "Display name for this deployment, shown in the header, the home page "
@@ -830,6 +853,7 @@ class Settings(_Section):
     tile_cache: TileCache = TileCache()
     page_cache: PageCache = PageCache()
     jobs: Jobs = Jobs()
+    parity: Parity = Parity()
 
     _loose = field_validator("debug", "admin_cookie_insecure", mode="before")(_loose_bool)
 

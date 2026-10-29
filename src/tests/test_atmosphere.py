@@ -79,6 +79,17 @@ def test_generated_bodies_store_consistent_air():
     assert count > 0
 
 
+def test_every_generated_body_says_its_stored_mixture_and_never_a_class_phrase():
+    """GEN.415: the atmosphere text is `describe` of the stored partial pressures, "None" for an airless body, and the placeholder a
+    class with air starts with never survives generation."""
+    seen = set()
+    for body in _bodies(range(12)):
+        assert body.atmosphere != atmosphere.PENDING, body.name
+        assert body.atmosphere == atmosphere.describe(atmosphere.gas_partials_pa(body)), body.name
+        seen.add(body.atmosphere == "None")
+    assert seen == {True, False}
+
+
 def test_hydrogen_inventory_counts_every_hydrogen_carrier():
     body = types.SimpleNamespace(**air(p_h2o_kpa=1.0, p_ch4_kpa=0.5, p_h2_kpa=0.25, p_h2s_kpa=0.1))
     assert atmosphere.hydrogen_kpa(body) == pytest.approx(1.0 + 1.0 + 0.25 + 0.1)

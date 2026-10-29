@@ -64,6 +64,8 @@ sought. The raw pages are never in the repository.
 | `white_dwarf_models` | Open; cite Bedard et al. 2020 |
 | `white_dwarf_mass_radius.json` | Computed here from physical constants; no third-party data |
 | `ozone_uv` (AD9, GEN.443; MPI-Mainz UV/VIS Spectral Atlas snapshot of 2013-06-24, Zenodo record 6951) | CC BY 4.0; cite Keller-Rudek et al. 2013 (Earth Syst. Sci. Data 5, 365); the cross sections read are those of Daumont et al. 1992, Malicet et al. 1995 and Brion et al. 1998; the archive is downloaded at setup and removed after the four tables are kept |
+| `ir_ktables` (AD10, GEN.715; ExoMolOP R1000 correlated-k tables of H2O (POKAZATEL), CO2 (UCL-4000), CH4 (YT34to10) from exomol.com) | Terms not yet recorded by Boss; cite Chubb et al. 2021 (A&A 646, A21), Polyansky et al. 2018, Yurchenko et al. 2020 and Yurchenko et al. 2014; the three files are downloaded at setup and removed after the 129-band reduction is kept |
+| `ir_cia` (AD11, GEN.715; HITRAN collision-induced absorption files for 11 gas pairs from hitran.org) | Terms not yet recorded by Boss; cite Karman et al. 2019 (Icarus 328, 160); the files are downloaded at setup and removed after the band means are kept |
 
 ## The Chappuis cross sections (`src/planetgen/physics/data/ozone_chappuis.json`, GEN.418)
 
@@ -282,3 +284,5 @@ Numbers and ratios of fact were read from the sources below; nothing else was ta
 ## Atmospheric escape: a thermosphere model (`docs/design/composition/atmospheric-escape-model.md`, `src/planetgen/physics/thermosphere.py`, GEN.738)
 
 Constants and published test values were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All three carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Johnstone et al. 2018 (1806.06897), Kubyshkina et al. 2018 (1810.06920) and Zhang 2024 (2410.04595). The exobase temperatures and altitudes of Johnstone et al. were read from their figures (values only).
+
+The envelope-escape wiring (`docs/design/composition/envelope-escape-wiring.md`, GEN.822) uses the same Kubyshkina et al. 2018 rate and the Petigura et al. 2022 valley numbers already listed under GEN.509; Alexander et al. 2014 (Protostars and Planets VI) is cited from memory for the disc lifetime and nothing was copied from it.

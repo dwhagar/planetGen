@@ -282,7 +282,7 @@ def test_the_scripts_run_the_download_step_at_setup():
     common, update, install = [(root / name).read_text() for name in ("scripts/deploy-common.sh", "update.sh", "install.sh")]
     assert "run_cli datasets fetch" in common
     assert "ensure_datasets" in update and "ensure_datasets" in install
-    assert update.index("ensure_nltk_words") < update.index("ensure_datasets") < update.index("== 4/9")
+    assert update.index("ensure_nltk_words") < update.index("ensure_datasets") < update.index("log_stage 4 9")
 
 
 # ---- datasets that keep compact files derived from a large archive ----

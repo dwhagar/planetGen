@@ -33,10 +33,11 @@ element budget the mixture draw reads.
 
 import math
 
+from planetgen.physics import constants as physical_constants
 from planetgen.physics.mixture_base import bracket
 from planetgen.util import detmath, draw
 
-G = 6.674e-11
+G = physical_constants.G
 """float: Gravitational constant, SI."""
 
 K_BOLTZMANN = 1.380649e-23

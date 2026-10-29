@@ -42,13 +42,14 @@ from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
-from planetgen.db import countcache, hostednebula, nebula_blocks, point_columns
+from planetgen.db import countcache, hostednebula, interests, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics import equipment, habitability, habitability_world, life_scores
+from planetgen.physics import equipment, habitability, habitability_world, life_scores, score_filters
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types
+from planetgen.generation import cloud as cloudContext
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
@@ -1830,7 +1831,8 @@ def containing_cloud(conn, row):
             "name", "class", "descriptor", "density_cm3", "temperature_k"}`,
             or `None` in open space.
     """
-    return surrounding_cloud(conn, row)
+    cloud = surrounding_cloud(conn, row)
+    return None if cloud is None else {key: cloud[key] for key in cloudContext.LISTED_KEYS}
 
 
 def sector_detail(conn, sector_id):
@@ -4869,11 +4871,11 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
                       lambda point: (point["type"], point["id"]))
 
 
-def galaxy_habitable_systems_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
+def galaxy_system_interests_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
     """
-    The star systems with at least one habitable world (an overall PHI-6 Blue or Green) whose position lies in the box
-    `[lo, hi)` (MAP.220), at most `limit`, most worlds first (ties by id), read from `habitable_systems` by its
-    position key.
+    The star systems worth a mark on the map (a habitable world, a gas giant: `interests.REASONS`) whose position lies in the box
+    `[lo, hi)` (MAP.305), at most `limit`, those with the most bodies behind their reasons first (ties by id), read from
+    `system_interests` by its position key. The class reasons (`interests.CLASS_REASONS`) are not read here, `galaxy_class_interests_in_box` does.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -4882,23 +4884,85 @@ def galaxy_habitable_systems_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
         limit (int): See `GALAXY_TILE_MAX_POINTS`.
 
     Returns:
-        list[dict]: `id`, `name`, `worlds` (how many habitable worlds the system holds) and `x`/`y`/`z` (parsecs).
+        list[dict]: `id`, `name`, `x`/`y`/`z` (parsecs) and `reasons`, a dict by reason id of `n` (how many bodies) and, for a
+        reason with a score, `score` (the largest) and `tier` (its PHI-6 colour).
     """
     rows = conn.execute(
         """
-        SELECT h.star_system_id, ss.name, h.habitable_worlds, h.galaxy_x_pc, h.galaxy_y_pc, h.galaxy_z_pc
-        FROM habitable_systems h FORCE INDEX (idx_habitable_systems_position)
-        JOIN star_systems ss ON ss.id = h.star_system_id
-        WHERE h.galaxy_x_pc >= ? AND h.galaxy_x_pc < ? AND h.galaxy_y_pc >= ? AND h.galaxy_y_pc < ?
-          AND h.galaxy_z_pc >= ? AND h.galaxy_z_pc < ?
-        ORDER BY h.habitable_worlds DESC, h.star_system_id
+        SELECT i.star_system_id, i.reason, i.n, i.best_score, i.galaxy_x_pc, i.galaxy_y_pc, i.galaxy_z_pc
+        FROM system_interests i FORCE INDEX (idx_system_interests_position)
+        WHERE i.galaxy_x_pc >= ? AND i.galaxy_x_pc < ? AND i.galaxy_y_pc >= ? AND i.galaxy_y_pc < ?
+          AND i.galaxy_z_pc >= ? AND i.galaxy_z_pc < ?
+          AND i.reason NOT LIKE ?
+        ORDER BY i.n DESC, i.star_system_id, i.reason
         LIMIT ?
         """,
-        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], int(limit)),
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], interests.CLASS_PREFIX + "%", max(0, int(limit)) * len(interests.BASE_REASONS)),
     ).fetchall()
-    return [{"id": row["star_system_id"], "name": row["name"], "worlds": int(row["habitable_worlds"]),
-             "x": round(row["galaxy_x_pc"], 3), "y": round(row["galaxy_y_pc"], 3), "z": round(row["galaxy_z_pc"], 3)}
-            for row in rows]
+    return _interest_systems(conn, rows, limit)
+
+
+def galaxy_class_interests_in_box(conn, lo, hi, per_class):
+    """
+    The star systems with a planet or moon of each planet class (the `class-` reasons of `interests.REASONS`, MAP.220) whose position lies
+    in the box `[lo, hi)`: for each class at most `per_class` systems, those with the most bodies of it first (ties by id). The base
+    reasons are `galaxy_system_interests_in_box`'s; a system is listed here with only its class reasons.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
+        hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
+        per_class (int): The most systems listed for one class.
+
+    Returns:
+        list[dict]: As `galaxy_system_interests_in_box`, with only `class-` reasons in `reasons`.
+    """
+    if int(per_class) <= 0:
+        return []
+    rows = conn.execute(
+        """
+        SELECT star_system_id, reason, n, best_score, galaxy_x_pc, galaxy_y_pc, galaxy_z_pc FROM (
+            SELECT i.star_system_id, i.reason, i.n, i.best_score, i.galaxy_x_pc, i.galaxy_y_pc, i.galaxy_z_pc,
+                   ROW_NUMBER() OVER (PARTITION BY i.reason ORDER BY i.n DESC, i.star_system_id) AS rk
+            FROM system_interests i FORCE INDEX (idx_system_interests_position)
+            WHERE i.galaxy_x_pc >= ? AND i.galaxy_x_pc < ? AND i.galaxy_y_pc >= ? AND i.galaxy_y_pc < ?
+              AND i.galaxy_z_pc >= ? AND i.galaxy_z_pc < ? AND i.reason LIKE ?
+        ) ranked WHERE rk <= ?
+        ORDER BY n DESC, star_system_id, reason
+        """,
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], interests.CLASS_PREFIX + "%", int(per_class)),
+    ).fetchall()
+    return _interest_systems(conn, rows, None)
+
+
+def _interest_systems(conn, rows, limit):
+    """The `system_interests` `rows` as the systems they belong to (`galaxy_system_interests_in_box`' shape), the `limit` with the most
+    bodies kept (all of them for a `limit` of None), named."""
+    systems = {}
+    for row in rows:
+        system = systems.setdefault(row["star_system_id"], {
+            "id": row["star_system_id"], "x": round(row["galaxy_x_pc"], 3), "y": round(row["galaxy_y_pc"], 3),
+            "z": round(row["galaxy_z_pc"], 3), "reasons": {}, "bodies": 0})
+        reason = {"n": int(row["n"])}
+        if row["best_score"] is not None:
+            reason["score"] = round(float(row["best_score"]), 3)
+            reason["tier"] = habitability.tier(float(row["best_score"]))
+        system["reasons"][row["reason"]] = reason
+        system["bodies"] += int(row["n"])
+    chosen = sorted(systems.values(), key=lambda system: (-system["bodies"], system["id"]))
+    if limit is not None:
+        chosen = chosen[:max(0, int(limit))]
+    names = {}
+    for start in range(0, len(chosen), 500):
+        ids = [system["id"] for system in chosen[start:start + 500]]
+        for row in conn.execute(f"SELECT id, name FROM star_systems WHERE id IN ({', '.join('?' * len(ids))})", ids).fetchall():
+            names[row["id"]] = row["name"]
+    out = []
+    for system in chosen:
+        del system["bodies"]
+        system["name"] = names.get(system["id"])
+        out.append(system)
+    return out
 
 
 SCATTERED_POINT_CLASSES = (
@@ -5099,14 +5163,32 @@ def galaxy_stage(conn, at=None):
             _add_stage_sums(counts, DrillBlock(1, r["shell_index"], r["band_index"], r["wedge_index"]), {
                 "n": 1, "systems": r["actual_systems"], "expected": r["expected_systems"], "stars": r["actual_stars"],
                 "age_sum": (r["mean_age_gy"] or 0.0) * (r["actual_stars"] or 0), "luminosity": r["total_luminosity_sol"],
-                "habitable": r["habitable_worlds"],
+                "habitable": r["habitable_worlds"], "mass": r["total_mass_kg"],
             })
         return {"at": format_drill_key(block), "child_m": 1, "children": _stage_children(counts), "sectors": sectors, "edge_pc": edge_pc}
 
     counts = {}
     for r in _block_rows(conn, child_m, [(c.shell, c.band, c.wedge) for c in children]):
         _add_stage_sums(counts, DrillBlock(child_m, int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"])), r)
-    return {"at": format_drill_key(block), "child_m": child_m, "children": _stage_children(counts), "sectors": None, "edge_pc": edge_pc}
+    stage = {"at": format_drill_key(block), "child_m": child_m, "children": _stage_children(counts), "sectors": None, "edge_pc": edge_pc}
+    return _with_region_names(conn, stage, block, edge_pc)
+
+
+def _with_region_names(conn, stage, block, edge_pc):
+    """`stage` with the region names of the wire (API.35): `name` and `parent` on each child that is a charted 9-block (a child
+    is listed only when it holds a generated sector), and on the stage itself when `block` is a charted 9-block. Nothing is added
+    without a naming key in force."""
+    from planetgen.db import region_stats
+
+    key = naming_key.active_key()
+    if key is None:
+        return stage
+    if stage["child_m"] == region_stats.LEVEL:
+        for child in stage["children"]:
+            child.update(region_stats.labels(DrillBlock(region_stats.LEVEL, child["shell"], child["band"], child["wedge"]), key, edge_pc))
+    if block.m == region_stats.LEVEL and region_stats.region_row(conn, block) is not None:
+        stage.update(region_stats.labels(block, key, edge_pc))
+    return stage
 
 
 def _sectors_where(sectors):
@@ -5131,7 +5213,7 @@ def _sectors_where(sectors):
 
 _BLOCK_STATS_COLUMNS = (
     "shell_index, band_index, wedge_index, sector_count AS n, systems, expected_systems AS expected, stars, age_sum,"
-    " luminosity_sol AS luminosity, habitable_worlds AS habitable"
+    " luminosity_sol AS luminosity, habitable_worlds AS habitable, mass_sum_kg AS mass"
 )
 
 
@@ -5152,7 +5234,7 @@ def _block_rows(conn, m, cells=None):
 def galaxy_block_sums(conn, block):
     """
     The sums of the generated sectors inside one block (DB.25): `[sectors, systems, expected systems, stars, stars
-    times mean age, luminosity, habitable worlds]` (`_add_stage_sums`' order), or `None` for a block with no generated sector. A
+    times mean age, luminosity, habitable worlds, mass in kilograms]` (`_add_stage_sums`' order), or `None` for a block with no generated sector. A
     level-3 block adds up its sectors from `sectors` and `sector_stats`; a bigger one adds up the stored rows of its
     children, so a refresh climbs the ladder one level at a time and never reads a block's sectors in one go.
     """
@@ -5283,17 +5365,18 @@ def _sector_sums(row):
     """One sector's sums, in `_add_stage_sums`' order, for its own `stats`."""
     stars = row["actual_stars"] or 0
     return [1, row["actual_systems"] or 0, row["expected_systems"] or 0.0, stars,
-            (row["mean_age_gy"] or 0.0) * stars, row["total_luminosity_sol"] or 0.0, row["habitable_worlds"] or 0]
+            (row["mean_age_gy"] or 0.0) * stars, row["total_luminosity_sol"] or 0.0, row["habitable_worlds"] or 0,
+            row["total_mass_kg"] or 0.0]
 
 
 def _stage_sectors_with_stats(where, extra=""):
     """The placed sectors matching `where` (on `sectors`' own columns),
     each with the `sector_stats` the map colors from (DB.14):
     `actual_systems`, `expected_systems`, `actual_stars`, `mean_age_gy`,
-    `total_luminosity_sol` and `habitable_worlds` (NULL without a row or a fill)."""
+    `total_luminosity_sol`, `habitable_worlds` and `total_mass_kg` (NULL without a row or a fill)."""
     return (
         f"SELECT {extra}s.shell_index, s.band_index, s.wedge_index, st.actual_systems, st.expected_systems,"
-        " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds"
+        " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds, st.total_mass_kg"
         f" FROM (SELECT * FROM sectors WHERE {where}) s LEFT JOIN sector_stats st"
         " ON st.shell_index = s.shell_index AND st.band_index = s.band_index"
         " AND st.wedge_index = s.wedge_index"
@@ -5303,7 +5386,8 @@ def _stage_sectors_with_stats(where, extra=""):
 _STAGE_LOOK_SUMS = (
     "COUNT(*) AS n, SUM(COALESCE(actual_systems, 0)) AS systems, SUM(COALESCE(expected_systems, 0)) AS expected,"
     " SUM(COALESCE(actual_stars, 0)) AS stars, SUM(COALESCE(mean_age_gy, 0) * COALESCE(actual_stars, 0)) AS age_sum,"
-    " SUM(COALESCE(total_luminosity_sol, 0)) AS luminosity, SUM(COALESCE(habitable_worlds, 0)) AS habitable"
+    " SUM(COALESCE(total_luminosity_sol, 0)) AS luminosity, SUM(COALESCE(habitable_worlds, 0)) AS habitable,"
+    " SUM(CAST(COALESCE(total_mass_kg, 0) AS DECIMAL(65, 0))) AS mass"
 )
 """The per-group sums `galaxy_stage` folds into each child's stats."""
 
@@ -5311,8 +5395,8 @@ _STAGE_LOOK_SUMS = (
 def _add_stage_sums(counts, child, row):
     """Adds one group's sums (`_STAGE_LOOK_SUMS`) to `counts[child]`:
     `[sectors, systems, expected systems, stars, stars times mean age,
-    luminosity, habitable worlds]`."""
-    sums = counts.setdefault(child, [0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    luminosity, habitable worlds, mass in kilograms]`."""
+    sums = counts.setdefault(child, [0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     sums[0] += int(row["n"])
     sums[1] += float(row["systems"] or 0.0)
     sums[2] += float(row["expected"] or 0.0)
@@ -5320,6 +5404,7 @@ def _add_stage_sums(counts, child, row):
     sums[4] += float(row["age_sum"] or 0.0)
     sums[5] += float(row["luminosity"] or 0.0)
     sums[6] += float(row["habitable"] or 0.0)
+    sums[7] += float(row["mass"] or 0.0)
 
 
 def _stage_stats(sums):
@@ -5327,9 +5412,10 @@ def _stage_stats(sums):
     its generated sectors hold, the `expected_systems` the density model
     gave them, `mean_age_gy` (the stars' mean age, each sector's mean
     weighted by its star count; `None` without stars),
-    `luminosity_sol` (the sum of their luminosity) and `habitable_worlds`
-    (MAP.143: the Blue or Green planets and moons they hold)."""
-    _n, systems, expected, stars, age_sum, luminosity, habitable = sums
+    `luminosity_sol` (the sum of their luminosity), `habitable_worlds`
+    (MAP.143: the Blue or Green planets and moons they hold) and `mass_kg` (MAP.322: the total mass of what they hold, in
+    kilograms, 0 for a sector with no figure), which the map ranks a region's sector names by."""
+    _n, systems, expected, stars, age_sum, luminosity, habitable, mass = sums
     return {
         "systems": int(systems),
         "expected_systems": round(expected, 3),
@@ -5337,6 +5423,7 @@ def _stage_stats(sums):
         "mean_age_gy": round(age_sum / stars, 4) if stars else None,
         "luminosity_sol": luminosity,
         "habitable_worlds": int(habitable),
+        "mass_kg": float(mass or 0.0),
     }
 
 
@@ -5476,13 +5563,15 @@ def galaxy_node_keys(shell, band, wedge):
     return [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)]
 
 
-TILE_FORMAT = 4
+TILE_FORMAT = 8
 """int: The version of what the Galaxy Map's stored nodes and drill-down stages hold and how they are packed
 (`web/lib/tilecache.trim_node`, `tilepack`, `db.nodes.galaxy_nodes`, `galaxy_stage`). A change that alters those bytes for
 the same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored files are rebuilt once;
 a release that does not alter them leaves every stored node valid (PERF.133). 2: the block ladder's levels above 243
 (MAP.258) moved the rows and wedges of every level, so a stored stage names other blocks. 3: nodes replace the cube tiles
-(MAP.262), whose files are dropped with the generation."""
+(MAP.262), whose files are dropped with the generation. 5: a node of a charted region carries its `name` and `parent`
+(API.35), and so does the stage of a 9-block and each charted 9-block child of a stage. 6: a 9-block's node carries its
+`extent` (MAP.319). 7: a 9-block's node carries `charted` (its sectors and share), and a node of 27, 81 or 243 sectors lists the charted regions inside it, `regions` (MAP.314). 8: the node's `worlds` section is `interests` (MAP.305): the systems worth a mark, each with its `reasons` (a habitable world, a gas giant)."""
 
 GALAXY_CHANGES_MAX_SECTORS = 1000
 """int: Most changed sectors `galaxy_changes` lists nodes for. More than
@@ -5757,6 +5846,7 @@ SEARCH_TAG_FACETS = (
     "type", "spectral", "luminosity",
     "class", "body", "life", "equipment",
     "moon_class", "moon_body", "moon_life", "moon_equipment",
+    *score_filters.FACETS, *(f"moon_{name}" for name in score_filters.FACETS),
     "density",
     "phenomenon", "phenomenon_class",
 )
@@ -6015,6 +6105,43 @@ def _search_facet_equipment(conn):
 
 def _search_facet_moon_equipment(conn):
     return _search_equipment_options(conn, "moons")
+
+
+def _score_options(conn, table, facet):
+    """UX.214: the ticks of one score filter facet (`score_filters.FACETS`) with how many bodies of `table` each holds
+    for; the ones none hold for are left out."""
+    ticks = score_filters.FACETS[facet][1]
+    row = conn.execute(f"SELECT {score_filters.counts_select(facet, 't')} FROM {table} t WHERE t.phi4 IS NOT NULL").fetchone()
+    return [{"value": value, "label": label, "count": int(row[f"t{i}"]), "tooltip": label}
+            for i, (value, label, _sql) in enumerate(ticks) if row[f"t{i}"]]
+
+
+def _score_facet_defs(conn):
+    """The facet definitions of every score filter, for the planet and the moon panel."""
+    return tuple((f"{prefix}{facet}", _score_options(conn, table, facet))
+                 for prefix, table in (("", "planets"), ("moon_", "moons")) for facet in score_filters.FACETS)
+
+
+def _score_clauses(alias, tags, prefix, clauses):
+    """Adds one condition for each score filter facet ticked (`score_filters.condition`; a stray value is dropped, which
+    leaves a facet of only strays matching nothing). `prefix` is `""` for planets and `"moon_"` for moons."""
+    for facet in score_filters.FACETS:
+        selected = tags.get(f"{prefix}{facet}", set())
+        if selected:
+            clauses.append(score_filters.condition(facet, alias, selected) or "1 = 0")
+
+
+def _score_order(alias, sort, default):
+    """The ORDER BY of a body panel. `sort` is a `score_filters.SORT_COLUMNS` key: the worst bodies first, or with `-` in
+    front the best first (a domain colour runs Red to Blue, so the stored tier number the other way). Any other `sort`
+    (`system`, the page's own order) keeps `default`. Bodies with no score come last either way."""
+    key = (sort or "").lstrip("-")
+    column = score_filters.SORT_COLUMNS.get(key)
+    if column is None:
+        return default
+    best_first = (sort or "").startswith("-")
+    descending = best_first == (key in score_filters.HIGH_FIRST)
+    return f"{alias}.{column} IS NULL, {alias}.{column} {'DESC' if descending else 'ASC'}, {default}"
 
 
 def _equipment_clause(alias, tags, clauses, params):
@@ -6291,9 +6418,10 @@ def _with_equipment(row):
 
 
 def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
-                           equipment_tags=()):
+                           equipment_tags=(), tags=None, sort=None):
     clauses, params = [], []
     _equipment_clause("p", equipment_tags, clauses, params)
+    _score_clauses("p", tags or {}, "", clauses)
     if class_tags:
         clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")
         params.extend(sorted(class_tags))
@@ -6316,16 +6444,17 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
                p.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
-        "ss.name, ss.id, p.orbital_index, p.id",
+        _score_order("p", sort, "ss.name, ss.id, p.orbital_index, p.id"),
         params, limit, offset,
     )
     return {"rows": _with_refs(conn, [_with_equipment(dict(r)) for r in rows], "planet"), **page}
 
 
 def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
-                         equipment_tags=()):
+                         equipment_tags=(), tags=None, sort=None):
     clauses, params = [], []
     _equipment_clause("m", equipment_tags, clauses, params)
+    _score_clauses("m", tags or {}, "moon_", clauses)
     if class_tags:
         clauses.append(f"m.planet_class IN ({','.join('?' * len(class_tags))})")
         params.extend(sorted(class_tags))
@@ -6355,7 +6484,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
         LEFT JOIN star_systems ss ON ss.id = m.star_system_id
         WHERE 1=1{where}
         """,
-        "ss.name, ss.id, rp.name, rp.id, p.orbital_index, m.orbital_index, m.id",
+        _score_order("m", sort, "ss.name, ss.id, rp.name, rp.id, p.orbital_index, m.orbital_index, m.id"),
         params, limit, offset,
     )
     return {"rows": _with_refs(conn, [_with_equipment(dict(r)) for r in rows], "moon"), **page}
@@ -6428,6 +6557,7 @@ def _search_facets_cached(conn):
         ("moon_body", _search_facet_moon_body(conn)),
         ("moon_life", _search_facet_moon_life(conn)),
         ("moon_equipment", _search_facet_moon_equipment(conn)),
+        *_score_facet_defs(conn),
         ("density", _search_facet_density(conn)),
         ("phenomenon", _search_facet_phenomenon(conn)),
         ("phenomenon_class", _search_facet_phenomenon_class(conn)),
@@ -6447,7 +6577,7 @@ def _search_facets_cached(conn):
     return value
 
 
-def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None):
+def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None, sorts=None):
     """
     Runs the faceted search behind `GET /api/search`/`html/search.py`:
     the same click-to-filter attribute tags (object type; star spectral/
@@ -6510,8 +6640,10 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
     }
 
     star_has_reason = bool(spectral_tags or luminosity_tags or texts.get("star_q") or star_size)
-    planet_has_reason = bool(class_tags or body_tags or life_tags or equipment_tags or texts.get("planet_q") or planet_size)
-    moon_has_reason = bool(moon_class_tags or moon_body_tags or moon_life_tags or moon_equipment_tags or texts.get("moon_q") or moon_size)
+    planet_score = any(tags.get(name) for name in score_filters.FACETS)
+    moon_score = any(tags.get(f"moon_{name}") for name in score_filters.FACETS)
+    planet_has_reason = bool(class_tags or body_tags or life_tags or equipment_tags or planet_score or texts.get("planet_q") or planet_size)
+    moon_has_reason = bool(moon_class_tags or moon_body_tags or moon_life_tags or moon_equipment_tags or moon_score or texts.get("moon_q") or moon_size)
     belt_has_reason = bool(density_tags)
 
     if type_tags:
@@ -6544,11 +6676,13 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
         results["planets"] = _search_result_planets(
             conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), *_page("planets"),
             size_range=planet_size, equipment_tags=equipment_tags,
+            tags=tags, sort=(sorts or {}).get("planet"),
         )
     if moons_included and "moons" in wanted:
         results["moons"] = _search_result_moons(
             conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), *_page("moons"),
             size_range=moon_size, equipment_tags=moon_equipment_tags,
+            tags=tags, sort=(sorts or {}).get("moon"),
         )
     if belts_included and "belts" in wanted:
         results["belts"] = _search_result_belts(conn, density_tags, *_page("belts"))

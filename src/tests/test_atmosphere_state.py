@@ -8,11 +8,11 @@ import math
 import pytest
 
 from planetgen.physics import atmosphere_state as state
-from planetgen.physics import constants, greenhouse, infrared_opacity
+from planetgen.physics import constants, greenhouse, infrared_opacity, mixture, saturation
 
 EARTH = {"N2": 78084.0, "O2": 20946.0, "Ar": 934.0, "CO2": 41.0, "H2O": 1000.0}
-EARTH_DRY_ISH = {"N2": 78084.0, "O2": 20946.0, "Ar": 934.0, "CO2": 41.0, "H2O": 400.0}
-"""dict: Earth's air with the water vapour of a well-mixed column that holds the measured 25 kg/m2 (400 Pa)."""
+EARTH_SURFACE = {"N2": 78084.0, "O2": 20946.0, "Ar": 934.0, "CO2": 41.0, "H2O": 1300.0}
+"""dict: Earth's air with the vapour pressure of its surface, 0.77 of saturation at 288 K (1.3 kPa); the vapour thins with height."""
 VENUS = {"CO2": 0.965 * 92.0e5, "N2": 0.035 * 92.0e5}
 MARS = {"CO2": 600.0 * 0.953, "N2": 600.0 * 0.027, "Ar": 600.0 * 0.016}
 G_EARTH, G_VENUS, G_MARS = 9.81, 8.87, 3.71
@@ -62,8 +62,8 @@ def test_doubling_carbon_dioxide_warms_earth_by_the_amount_the_forcing_law_gives
     warms an Earth-like state by about 1.1 K in a full radiative-convective model. The grey equivalent depth (Koll's definition,
     which counts a band as black where a real one still radiates from the cold air above) gives the right sign and order but a third to
     a half of that, and a well-mixed water column masks the 15 um band further (GEN.703 limits)."""
-    base = state.greenhouse_warming(EARTH_DRY_ISH, G_EARTH, 240.0)
-    doubled = state.greenhouse_warming(dict(EARTH_DRY_ISH, CO2=2.0 * EARTH_DRY_ISH["CO2"]), G_EARTH, 240.0)
+    base = state.greenhouse_warming(EARTH_SURFACE, G_EARTH, 240.0)
+    doubled = state.greenhouse_warming(dict(EARTH_SURFACE, CO2=2.0 * EARTH_SURFACE["CO2"]), G_EARTH, 240.0)
     rise = doubled.surface_temperature_k - base.surface_temperature_k
     assert 0.2 < rise < 2.5, rise
     # a band that saturates takes less than twice the optical depth from twice the gas
@@ -71,8 +71,8 @@ def test_doubling_carbon_dioxide_warms_earth_by_the_amount_the_forcing_law_gives
 
 
 def test_less_gravity_means_more_column_per_pascal_and_more_opacity():
-    low = state.greenhouse_warming(EARTH_DRY_ISH, G_EARTH / 2.0, 240.0)
-    high = state.greenhouse_warming(EARTH_DRY_ISH, G_EARTH, 240.0)
+    low = state.greenhouse_warming(EARTH_SURFACE, G_EARTH / 2.0, 240.0)
+    high = state.greenhouse_warming(EARTH_SURFACE, G_EARTH, 240.0)
     assert low.optical_depth > high.optical_depth
 
 
@@ -114,7 +114,7 @@ def test_changing_the_mix_moves_the_warming_as_the_formulas_say():
 def test_earth_venus_and_mars_land_where_the_world_does():
     """Not inputs: the band, wing and continuum numbers come from the research (part 03), not from these bodies. The measured
     targets are G 0.625 for Earth, 99.6 for Venus and 0.10 to 0.21 for Mars."""
-    earth = state.greenhouse_warming(EARTH_DRY_ISH, G_EARTH, 240.0)
+    earth = state.greenhouse_warming(EARTH_SURFACE, G_EARTH, 240.0)
     venus = state.greenhouse_warming(VENUS, G_VENUS, 160.0)
     mars = state.greenhouse_warming(MARS, G_MARS, 110.0)
     assert earth.factor == pytest.approx(0.625, rel=0.3)
@@ -124,11 +124,11 @@ def test_earth_venus_and_mars_land_where_the_world_does():
 
 
 def test_heat_capacity_ratio_of_simple_gases():
-    assert state.heat_capacity_ratio({"N2": 1.0e5}, 300.0) == pytest.approx(1.40, abs=0.01)
-    assert state.heat_capacity_ratio({"He": 1.0e5}, 300.0) == pytest.approx(5.0 / 3.0, abs=0.005)
-    assert state.heat_capacity_ratio({"CO2": 1.0e5}, 300.0) == pytest.approx(1.29, abs=0.01)
+    assert mixture.heat_capacity_ratio({"N2": 1.0e5}, 300.0) == pytest.approx(1.40, abs=0.01)
+    assert mixture.heat_capacity_ratio({"He": 1.0e5}, 300.0) == pytest.approx(5.0 / 3.0, abs=0.005)
+    assert mixture.heat_capacity_ratio({"CO2": 1.0e5}, 300.0) == pytest.approx(1.29, abs=0.01)
     # below the fit's range the cold end stands in instead of raising
-    assert math.isfinite(state.heat_capacity_ratio({"CO2": 1.0e5}, 50.0))
+    assert math.isfinite(mixture.heat_capacity_ratio({"CO2": 1.0e5}, 50.0))
 
 
 @pytest.mark.parametrize("mix,flux,gravity", [
@@ -159,3 +159,62 @@ def test_bad_input_is_refused():
         state.air_state(EARTH, 288.0, -1.0)
     with pytest.raises(ValueError):
         state.greenhouse_warming(EARTH, G_EARTH, 0.0)
+
+
+def _at_the_fixed_point_of_its_own_vapour(flux, co2=40.0, n2_pa=1.0e5, gravity=G_EARTH):
+    """The surface temperature of an Earth-like air whose vapour stands at 0.77 of saturation at the temperature it makes (the fixed
+    point the generator solves), the damped iteration of `surface_air`."""
+    vapour_pa = 400.0
+    for _ in range(200):
+        warm = state.greenhouse_warming({"N2": n2_pa - vapour_pa - co2, "CO2": co2, "H2O": vapour_pa}, gravity, flux)
+        updated = 0.77 * saturation.pressure_pa("H2O", warm.surface_temperature_k)
+        if abs(updated - vapour_pa) < 1e-6:
+            break
+        vapour_pa = 0.5 * (vapour_pa + updated)
+    return warm.surface_temperature_k
+
+
+def test_an_earth_twin_at_its_own_fixed_point_lands_within_two_kelvin_of_the_measured_288():
+    """GEN.812: 1 bar N2, 400 ppm CO2, 239 W/m2 absorbed, vapour at 0.77 of saturation at the answer's own temperature (it was 319 K
+    with the vapour well mixed up the whole column)."""
+    assert _at_the_fixed_point_of_its_own_vapour(239.0) == pytest.approx(288.0, abs=2.0)
+
+
+def test_the_water_runaway_starts_between_the_earths_flux_and_the_published_limits():
+    """The Earth keeps its ocean at 239 W/m2 absorbed; the spectrally resolved limit of a saturated air is 282 W/m2 (Goldblatt et al.
+    2013), the inner edge of the habitable zone at 1.1 times the present flux, 262 W/m2 absorbed (Kopparapu et al. 2013). The grey
+    closure steps from the temperate branch to the steam one between them."""
+    temperate = _at_the_fixed_point_of_its_own_vapour(239.0)
+    assert _at_the_fixed_point_of_its_own_vapour(255.0) < 300.0 < _at_the_fixed_point_of_its_own_vapour(285.0)
+    assert temperate < 295.0
+
+
+def _forcing_of_one_percent_carbon_dioxide(n2_bar, monkeypatch):
+    """The outgoing flux the air loses when 1 percent CO2 is added at a surface held at 288 K (Byrne and Goldblatt 2014b's forcing, a
+    clear-sky calculation: the cloud is left out)."""
+    monkeypatch.setattr(infrared_opacity, "CLOUD_LONGWAVE_TAU0", 0.0)
+    vapour_pa = 0.77 * saturation.pressure_pa("H2O", 288.0)
+
+    def flux_for_288(co2_fraction):
+        pressure = n2_bar * 1.0e5
+        mix = {"N2": pressure * (1.0 - co2_fraction) - vapour_pa, "CO2": pressure * co2_fraction, "H2O": vapour_pa}
+        low, high = 100.0, 500.0
+        for _ in range(40):
+            mid = 0.5 * (low + high)
+            if state.greenhouse_warming(mix, G_EARTH, mid).surface_temperature_k < 288.0:
+                low = mid
+            else:
+                high = mid
+        return 0.5 * (low + high)
+
+    return flux_for_288(0.0) - flux_for_288(0.01)
+
+
+def test_the_pressure_broadening_of_carbon_dioxide_follows_the_published_forcing_on_half_one_and_two_bar_of_nitrogen(monkeypatch):
+    """Byrne and Goldblatt 2014b (line-by-line, SMART with HITRAN 2012): 1 percent CO2 forces 15, 26 and 35 W/m2 on 0.5, 1 and 2 bar of
+    N2. The grey module lands within 30 percent of each and rises with the pressure as they do; it is a little weak at the high end
+    (27 against 35 W/m2 at 2 bar), not strong, so the pressure broadening is not what warms a dense N2 air."""
+    forcings = {bar: _forcing_of_one_percent_carbon_dioxide(bar, monkeypatch) for bar in (0.5, 1.0, 2.0)}
+    for bar, published in ((0.5, 15.0), (1.0, 26.0), (2.0, 35.0)):
+        assert forcings[bar] == pytest.approx(published, rel=0.3)
+    assert forcings[0.5] < forcings[1.0] < forcings[2.0]

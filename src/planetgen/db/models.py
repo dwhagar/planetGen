@@ -579,6 +579,7 @@ galaxy_block_stats = sa.Table(
     sa.Column('age_sum', mysql.DOUBLE(), nullable=False),
     sa.Column('luminosity_sol', mysql.DOUBLE(), nullable=False),
     sa.Column('habitable_worlds', mysql.BIGINT(unsigned=True), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('mass_sum_kg', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
     mysql_engine="InnoDB",
 )
 
@@ -777,20 +778,6 @@ generation_runs = sa.Table(
 )
 
 
-habitable_systems = sa.Table(
-    'habitable_systems',
-    metadata,
-    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
-    sa.Column('habitable_worlds', mysql.SMALLINT(unsigned=True), nullable=False),
-    sa.Column('galaxy_x_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('galaxy_y_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('galaxy_z_pc', mysql.DOUBLE(), nullable=False),
-    sa.Index('idx_habitable_systems_position', 'galaxy_x_pc', 'galaxy_y_pc', 'galaxy_z_pc'),
-    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_habitable_systems_system', ondelete='CASCADE'),
-    mysql_engine="InnoDB",
-)
-
-
 id_blocks = sa.Table(
     'id_blocks',
     metadata,
@@ -984,6 +971,7 @@ moons = sa.Table(
     sa.Column('flavor_key', sa.String(32), nullable=True),
     sa.Column('orbital_inclination_deg', mysql.DOUBLE(), nullable=False),
     sa.Column('orbital_ascending_node_deg', mysql.DOUBLE(), nullable=False),
+    sa.Column('eccentricity', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
     sa.Column('position_x_km', mysql.DOUBLE(), nullable=False),
     sa.Column('position_y_km', mysql.DOUBLE(), nullable=False),
     sa.Column('position_z_km', mysql.DOUBLE(), nullable=False),
@@ -1139,6 +1127,14 @@ moons = sa.Table(
     sa.Column('ring_mass_kg', mysql.DOUBLE(), nullable=True),
     sa.Column('ring_optical_depth', mysql.DOUBLE(), nullable=True),
     sa.Column('ring_ice_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('atmosphere_colour', mysql.INTEGER(unsigned=True), nullable=True),
+    sa.Column('lid_regime', sa.String(10), nullable=True),
+    sa.Column('day_share_equator', mysql.DOUBLE(), nullable=True),
+    sa.Column('day_share_mean', mysql.DOUBLE(), nullable=True),
+    sa.Column('parent_shadow_share', mysql.DOUBLE(), nullable=True),
+    sa.Column('solar_day_hours', mysql.DOUBLE(), nullable=True),
+    sa.Column('daylight_hours', mysql.DOUBLE(), nullable=True),
+    sa.Column('polar_circle_deg', mysql.DOUBLE(), nullable=True),
     sa.Index('ft_moons_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_moons_body_type', 'body_type'),
     sa.Index('idx_moons_life_chemical', 'life_chemical'),
@@ -1770,6 +1766,7 @@ planets = sa.Table(
     sa.Column('flavor_key', sa.String(32), nullable=True),
     sa.Column('orbital_inclination_deg', mysql.DOUBLE(), nullable=False),
     sa.Column('orbital_ascending_node_deg', mysql.DOUBLE(), nullable=False),
+    sa.Column('eccentricity', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
     sa.Column('position_x_km', mysql.DOUBLE(), nullable=False),
     sa.Column('position_y_km', mysql.DOUBLE(), nullable=False),
     sa.Column('position_z_km', mysql.DOUBLE(), nullable=False),
@@ -1928,6 +1925,14 @@ planets = sa.Table(
     sa.Column('ring_mass_kg', mysql.DOUBLE(), nullable=True),
     sa.Column('ring_optical_depth', mysql.DOUBLE(), nullable=True),
     sa.Column('ring_ice_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('atmosphere_colour', mysql.INTEGER(unsigned=True), nullable=True),
+    sa.Column('lid_regime', sa.String(10), nullable=True),
+    sa.Column('day_share_equator', mysql.DOUBLE(), nullable=True),
+    sa.Column('day_share_mean', mysql.DOUBLE(), nullable=True),
+    sa.Column('parent_shadow_share', mysql.DOUBLE(), nullable=True),
+    sa.Column('solar_day_hours', mysql.DOUBLE(), nullable=True),
+    sa.Column('daylight_hours', mysql.DOUBLE(), nullable=True),
+    sa.Column('polar_circle_deg', mysql.DOUBLE(), nullable=True),
     sa.Index('ft_planets_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_planets_body_type', 'body_type'),
     sa.Index('idx_planets_life_chemical', 'life_chemical'),
@@ -2051,6 +2056,24 @@ region_density_overrides = sa.Table(
 )
 
 
+region_stats = sa.Table(
+    'region_stats',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('sector_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('capacity', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('clump_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('extent_x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_radius_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('mass_sum_kg', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 request_comments = sa.Table(
     'request_comments',
     metadata,
@@ -2108,6 +2131,13 @@ rogue_planets = sa.Table(
     sa.Column('ocean_depth_km', mysql.DOUBLE(), nullable=True),
     sa.Column('has_liquid_water', mysql.TINYINT(), nullable=True),
     sa.Column('hp_ice_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('ring_kind', sa.String(8), nullable=True),
+    sa.Column('ring_origin', sa.String(16), nullable=True),
+    sa.Column('ring_inner_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('ring_outer_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('ring_mass_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('ring_optical_depth', mysql.DOUBLE(), nullable=True),
+    sa.Column('ring_ice_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('galactic_orbital_period_gy', mysql.DOUBLE(), nullable=False),
     sa.Column('galactic_orbital_phase_deg', mysql.DOUBLE(), nullable=False),
     sa.Column('galactic_min_update_interval_years', mysql.DOUBLE(), nullable=False),
@@ -2190,7 +2220,23 @@ rogue_planets = sa.Table(
     sa.CheckConstraint("(`planet_type` in (_utf8mb4't',_utf8mb4'g'))", name='rogue_planets_chk_1'),
     sa.CheckConstraint('(`has_internal_heat` in (0,1))', name='rogue_planets_chk_2'),
     sa.CheckConstraint('(`has_moons` in (0,1))', name='rogue_planets_chk_3'),
-    sa.CheckConstraint("(`quadrant` in (_utf8mb4'I',_utf8mb4'II',_utf8mb4'III',_utf8mb4'IV',_utf8mb4'V',_utf8mb4'VI',_utf8mb4'VII',_utf8mb4'VIII'))", name='rogue_planets_chk_4'),
+    sa.CheckConstraint("(`ring_kind` in (_utf8mb4'dusty',_utf8mb4'narrow',_utf8mb4'broad'))", name='rogue_planets_chk_4'),
+    sa.CheckConstraint("(`ring_origin` in (_utf8mb4'moon_erosion',_utf8mb4'disrupted_moon',_utf8mb4'captured_body'))", name='rogue_planets_chk_5'),
+    sa.CheckConstraint("(`quadrant` in (_utf8mb4'I',_utf8mb4'II',_utf8mb4'III',_utf8mb4'IV',_utf8mb4'V',_utf8mb4'VI',_utf8mb4'VII',_utf8mb4'VIII'))", name='rogue_planets_chk_6'),
+    mysql_engine="InnoDB",
+)
+
+
+scatter_epochs = sa.Table(
+    'scatter_epochs',
+    metadata,
+    sa.Column('kind', sa.String(16), primary_key=True, nullable=False),
+    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('run_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('recorded_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('fk_scatter_epochs_run', 'run_id'),
+    sa.CheckConstraint("(`kind` in (_utf8mb4'mass',_utf8mb4'luminosity',_utf8mb4'band',_utf8mb4'phenomena',_utf8mb4'nebula-field'))", name='chk_scatter_epochs_kind'),
+    sa.ForeignKeyConstraint(['run_id'], ['generation_runs.id'], name='fk_scatter_epochs_run', ondelete='SET NULL'),
     mysql_engine="InnoDB",
 )
 
@@ -2328,6 +2374,7 @@ sector_stats = sa.Table(
     sa.Column('mean_age_gy', mysql.DOUBLE(), nullable=True),
     sa.Column('total_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('habitable_worlds', mysql.INTEGER(), nullable=True),
+    sa.Column('total_mass_kg', mysql.DOUBLE(), nullable=True),
     sa.Column('filled_at', mysql.TIMESTAMP(fsp=3), nullable=True),
     sa.Column('updated_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
     sa.Index('idx_sector_stats_level', 'bright_level_sol'),
@@ -2425,6 +2472,7 @@ species = sa.Table(
     sa.Column('defense_index', mysql.TINYINT(unsigned=True), nullable=True),
     sa.Column('tech_level', mysql.DECIMAL(), nullable=True),
     sa.Column('tech_source', sa.String(16), nullable=True),
+    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('created_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Index('idx_species_spacefaring', 'spacefaring'),
     sa.Index('idx_species_system', 'star_system_id'),
@@ -2746,6 +2794,22 @@ system_configs = sa.Table(
     sa.CheckConstraint('(`planets` in (0,1))', name='system_configs_chk_7'),
     sa.CheckConstraint("(`age` in (_utf8mb4'young',_utf8mb4'old'))", name='system_configs_chk_8'),
     sa.CheckConstraint('(`intelligent_life` in (0,1))', name='system_configs_chk_9'),
+    mysql_engine="InnoDB",
+)
+
+
+system_interests = sa.Table(
+    'system_interests',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('reason', sa.String(24), primary_key=True, nullable=False),
+    sa.Column('n', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('best_score', mysql.DOUBLE(), nullable=True),
+    sa.Column('galaxy_x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('galaxy_y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('galaxy_z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Index('idx_system_interests_position', 'galaxy_x_pc', 'galaxy_y_pc', 'galaxy_z_pc'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_system_interests_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )
 

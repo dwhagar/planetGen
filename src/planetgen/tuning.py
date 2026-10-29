@@ -1150,10 +1150,16 @@ STELLAR_WOLF_RAYET = {
     "WN-early": {"H": 0.0, "N": 0.01, "C": 0.0005},
     "WN-late": {"H": (0.05, 0.25), "N": 0.01},
     "WN/WC": {"C": 0.05, "N": 0.01},
-    "WC": {"C": (0.20, 0.55)}}
+    "WC": {"C": (0.20, 0.55)},
+    "WO": {"C": (0.30, 0.55), "O": (0.10, 0.40)}}
 """dict: Surface mass fractions by Wolf-Rayet subtype; a pair is a range. WC carbon is the refined 20 to 55 percent (C/He 0.1 to
-0.5 by number), inside the wider 10 to 60 percent of the literature; the rest of each star is helium (and oxygen in WO), the
-split open."""
+0.5 by number), inside the wider 10 to 60 percent of the literature; the rest of each star is helium (and some oxygen in WN and WC,
+the split open). WO is a stand-in (registry row BC24): Crowther 2007 names the oxygen-rich stage without mass fractions, so the carbon and
+oxygen ranges are argued from helium burning (carbon first made, then turned to oxygen by alpha capture; carbon still the larger,
+oxygen well above WC's, the rest helium) and the draw takes both at one position, so the two never sum past 0.95 [I]."""
+WR_WN_EARLY_MAX_SUBCLASS = 5
+"""int: A WN star of this subclass number or lower is an early one (WNE, WN2 to WN5, hydrogen-free); a higher number is a late one
+(WNL, WN6 to WN9, with the hydrogen the late row gives). The usual convention [R]."""
 # White dwarfs: core type by mass (Althaus et al. 2010, arXiv:1007.2659), atmosphere type shares (Xu, Rogers and Blouin 2024,
 # arXiv:2404.15425).
 STELLAR_WD_HELIUM_CORE_MAX_SOL = 0.45
@@ -1750,7 +1756,8 @@ PLANET_SURVIVAL_HOST_MASS_SOLAR = 0.5
 
 # A dictionary defining the properties of different planet classes.
 # Each class has a description, composition, radius range (in meters),
-# habitable zone compatibility, atmosphere type, and planet type ('t' for terrestrial, 'g' for gas giant).
+# habitable zone compatibility, whether it has air ("air": the gases are drawn from the body's own interior, sinks and
+# temperature, and the atmosphere text is written from that mixture, GEN.415), and planet type ('t' for terrestrial, 'g' for gas giant).
 # Zone flags: "h" hot zone, "e" ecosphere, "c" cold zone, and "r" (GEN.8)
 # whether a free-floating rogue planet may have the class -- "r" is the
 # rogue planet's zone. With no star to warm it, a rogue is a dead (C),
@@ -1770,16 +1777,15 @@ PLANET_CLASSES = {
         # Mercury (2,439.7km) sits ~28% through this range.
         "size_mode": 0.28,
         "h": True, "e": False, "c": False, "r": False,
-        "atmosphere": "a mix of sulfur dioxide and carbon dioxide",
+        "air": True,
         "type": "t",
     },
     "B": {
-        # "with a thin atmosphere" moved off the description and onto the
-        # atmosphere field itself ("a thin mix of...") -- the description
-        # used to collide with the render template's own "with an
-        # atmosphere of {atmosphere}" clause (generation/planet.py's
-        # to_paragraph_list), producing "...world with a thin atmosphere
-        # with an atmosphere of...".
+        # "with a thin atmosphere" left off the description -- it used to
+        # collide with the render template's own "with an atmosphere of
+        # {atmosphere}" clause (generation/planet.py's to_paragraph_list),
+        # producing "...world with a thin atmosphere with an atmosphere
+        # of...".
         # Radius ceiling raised to 7500 to absorb the same formerly-separate
         # "demon world" class's range as Class A above, and a second,
         # formerly-separate "stripped core from a gas giant" class (no
@@ -1787,7 +1793,7 @@ PLANET_CLASSES = {
         # small-molten-world physical envelope, rather than kept as a
         # separate atmosphere-less class -- real Mercury-analog worlds this
         # close to their star already have only a negligible exosphere, so
-        # B's existing "thin" atmosphere already covers that "no atmosphere"
+        # B's thin air already covers that "no atmosphere"
         # identity closely enough. "and sulfur" added to the composition for
         # the shared volcanic/irradiated theme. See CHANGELOG.md for the
         # full removal rationale.
@@ -1798,7 +1804,7 @@ PLANET_CLASSES = {
         # or newly-stripped world skews a bit smaller.
         "size_mode": 0.25,
         "h": True, "e": False, "c": False, "r": False,
-        "atmosphere": "a thin mix of helium, sodium, and oxygen",
+        "air": True,
         "type": "t",
     },
     "C": {
@@ -1810,7 +1816,7 @@ PLANET_CLASSES = {
         # and this class's own broadest-of-any range skews the same way.
         "size_mode": 0.20,
         "h": True, "e": True, "c": True, "r": True,
-        "atmosphere": None,
+        "air": False,
         "type": "t",
     },
     "D": {
@@ -1822,14 +1828,13 @@ PLANET_CLASSES = {
         # as a whole skews toward its smaller end.
         "size_mode": 0.25,
         "h": True, "e": True, "c": True, "r": True,
-        "atmosphere": None,
+        "air": False,
         "type": "t",
     },
     "E": {
-        # "and a thin atmosphere" moved off the description and onto the
-        # atmosphere field ("a thin mix of...") -- collided with the render
-        # template's own "with an atmosphere of {atmosphere}" clause
-        # otherwise (see Class B's note above).
+        # "and a thin atmosphere" left off the description -- it collided
+        # with the render template's own "with an atmosphere of
+        # {atmosphere}" clause (see Class B's note above).
         "description": "a world with a molten core and crust",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
@@ -1844,7 +1849,7 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.15,
         # "hydrogen compounds" made concrete as a real Hadean/Archean-analog
         # reducing mix (water vapor, ammonia, methane).
-        "atmosphere": "a thin mix of water vapor, ammonia, and methane",
+        "air": True,
         "type": "t",
         # Dark volcanic rock and minimal ice keep the albedo low: the youngest, most volcanic of the habitable classes.
         "albedo_range": (0.10, 0.18),
@@ -1859,7 +1864,7 @@ PLANET_CLASSES = {
         # Middle of the E->F->G progression positionally too -- see Class
         # K's own `zone_position_mode` note.
         "zone_position_mode": 0.30,
-        "atmosphere": "a mix of carbon dioxide, ammonia, and methane",
+        "air": True,
         "type": "t",
         # The middle step of the E->F->G progression: a higher albedo than E.
         "albedo_range": (0.15, 0.22),
@@ -1874,7 +1879,7 @@ PLANET_CLASSES = {
         # Converges near M's own position too -- see Class K's own
         # `zone_position_mode` note.
         "zone_position_mode": 0.44,
-        "atmosphere": "a mix of carbon dioxide, oxygen, and nitrogen",
+        "air": True,
         "type": "t",
         # The final step of the E->F->G progression, converging on M's and O's Earth-like range.
         "albedo_range": (0.20, 0.28),
@@ -1893,7 +1898,7 @@ PLANET_CLASSES = {
         # particulate, not metal vapor (that's a magma-ocean/ultra-hot-rocky
         # -exoplanet phenomenon, not a match for a class that still has some
         # liquid water).
-        "atmosphere": "a mix of oxygen, nitrogen, argon, and mineral dust",
+        "air": True,
         "type": "t",
         # Hot and dry: dark exposed rock and minimal ice or cloud cover keep the albedo low.
         "albedo_range": (0.18, 0.26),
@@ -1915,7 +1920,7 @@ PLANET_CLASSES = {
         # by Class B's "occasionally the stripped core of a former gas
         # giant" (see Class B's note).
         "h": False, "e": True, "c": True, "r": True,
-        "atmosphere": "a mix of hydrogen and helium",
+        "air": True,
         "type": "g",
     },
     "J": {
@@ -1936,13 +1941,13 @@ PLANET_CLASSES = {
         # generation path, including habitable-class ones -- the
         # "habitable exomoon around a giant planet" trope.
         "h": True, "e": True, "c": True, "r": True,
-        "atmosphere": "a mix of hydrogen and helium",
+        "air": True,
         "type": "g",
     },
     "K": {
         # "with a thin atmosphere" dropped -- already collided with the
         # render template's own "with an atmosphere of {atmosphere}" clause,
-        # and the atmosphere field below already says "a thin mix of...".
+        # and the atmosphere text already says how thin the air is.
         "description": "an adaptable world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (2500, 7500),
@@ -1957,7 +1962,7 @@ PLANET_CLASSES = {
         # Sun than Earth, so K is pushed toward the outer (colder) edge of
         # the zone rather than sharing Class M's own ~0.5 (center) position.
         "zone_position_mode": 0.90,
-        "atmosphere": "a thin mix of carbon dioxide and nitrogen",
+        "air": True,
         "type": "t",
         # Mars analog: a dusty, cold surface. The range is kept from the class's climate tuning; the temperature itself comes from the solved
         # air (`physics/surface_air.py`).
@@ -1975,7 +1980,7 @@ PLANET_CLASSES = {
         # Between M and K positionally too, closer to K -- see Class K's
         # own `zone_position_mode` note.
         "zone_position_mode": 0.70,
-        "atmosphere": "a mix of argon, oxygen, and trace elements",
+        "air": True,
         "type": "t",
         # Brighter than K (vegetation, more cloud) and darker than M; kept from the class's climate tuning.
         "albedo_range": (0.24, 0.30),
@@ -1993,15 +1998,15 @@ PLANET_CLASSES = {
         # class was already tuned against before `zone_position_mode`
         # existed, so this is a no-op for M specifically.
         "zone_position_mode": 0.50,
-        "atmosphere": "a mix of oxygen, nitrogen, and argon",
+        "air": True,
         "type": "t",
         # Earth's own Bond albedo, about 0.3.
         "albedo_range": (0.29, 0.31),
     },
     "N": {
-        # "dense, reducing atmosphere" moved onto the atmosphere field
-        # itself -- collided with the render template's own "with an
-        # atmosphere of {atmosphere}" clause otherwise.
+        # "dense, reducing atmosphere" left off the description -- it
+        # collided with the render template's own "with an atmosphere of
+        # {atmosphere}" clause.
         "description": "a hot world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
@@ -2012,7 +2017,7 @@ PLANET_CLASSES = {
         # closer to the Sun than Earth, so N is pushed toward the inner
         # (hotter) edge of the ecosphere zone.
         "zone_position_mode": 0.05,
-        "atmosphere": "a dense, reducing mix of carbon dioxide and sulfides",
+        "air": True,
         "type": "t",
         # Venus analog: its highly reflective cloud deck (Venus' Bond albedo is about 0.77).
         "albedo_range": (0.75, 0.90),
@@ -2032,7 +2037,7 @@ PLANET_CLASSES = {
         # Text now distinct from Class M's identical-before-this "oxygen,
         # nitrogen, and argon" -- water vapor is a real, tracked constituent
         # here.
-        "atmosphere": "a humid mix of oxygen, nitrogen, and water vapor",
+        "air": True,
         "type": "t",
         # Higher than M: more cloud cover over an ocean-dominated surface (the waterworld-climate literature).
         "albedo_range": (0.28, 0.35),
@@ -2050,7 +2055,7 @@ PLANET_CLASSES = {
         # Cold/glaciated -> pushed toward the zone's colder outer edge, same
         # as K -- see Class K's own `zone_position_mode` note.
         "zone_position_mode": 0.90,
-        "atmosphere": "a mix of oxygen, nitrogen, and argon (thinning with age)",
+        "air": True,
         "type": "t",
         # Icy/glaciated surfaces reflect far more sunlight than the default
         # rocky/Earth-like range (0.12, 0.35) -- real ice/snow Bond albedo is
@@ -2075,7 +2080,7 @@ PLANET_CLASSES = {
         # the habitable zone still swings meaningfully between its own
         # perihelion and aphelion.
         "h": False, "e": True, "c": False, "r": False,
-        "atmosphere": "a variable mix (thin to dense) of nitrogen, oxygen, and argon",
+        "air": True,
         "type": "t",
     },
     "S": {
@@ -2095,7 +2100,7 @@ PLANET_CLASSES = {
         "size_mode": 0.30,
         "density_range": (6.38, 9.45),
         "h": True, "e": True, "c": True, "r": True,
-        "atmosphere": None,
+        "air": False,
         "type": "t",
     },
     "T": {
@@ -2112,7 +2117,7 @@ PLANET_CLASSES = {
         # Neptune (24,622km) sits ~24% through this range.
         "size_mode": 0.24,
         "h": False, "e": False, "c": True, "r": True,
-        "atmosphere": "a mix of hydrogen, helium, and hydrocarbons",
+        "air": True,
         "type": "g",
     },
     "V": {
@@ -2135,7 +2140,7 @@ PLANET_CLASSES = {
         # latter -- "thick atmosphere with high surface temperature and
         # pressure" needs the heavier, more CO2-leaning composition; trace
         # hydrogen/helium kept as a minor primordial remnant, not the bulk.
-        "atmosphere": "a thick mix of carbon dioxide, oxygen, and trace hydrogen and helium",
+        "air": True,
         "type": "t",
         # The life-bearing super-Earth: a rocky albedo, like G's; its high gravity (from the larger radius_range above) is what lets it keep
         # a thick air, which the solved air (`physics/surface_air.py`) now finds for itself.
@@ -3051,6 +3056,52 @@ NEBULA_CLUSTER_HALF_MASS_PC = {"D": 1.0, "E": 2.0}
 """dict: The half-mass radius, parsecs, of the Plummer sphere the ionizing members of a class D or E region are placed in
 (GEN.321; a small O and B cluster, a young massive one; the design note's 1 and 2 pc), clipped to the nebula's radius."""
 
+HABING_FLUX_ERG_CM2_S = 1.6e-3
+"""float: One Habing unit (G0), the far-ultraviolet flux that is the yardstick of external photoevaporation
+(nebula-and-asteroid-field-classes.md, "Photoevaporation and G0"; arXiv 1909.04093)."""
+
+CLOUD_FUV_FRACTION_BY_TEFF_K = {12000.0: 0.16, 20000.0: 0.46, 30000.0: 0.54, 40000.0: 0.45}
+"""dict: Teff, kelvin, to f_FUV, the share of a hot star's light in the 6 to 13.6 eV band, linear between the rows and
+held at the end rows beyond them (the design note's four values, [C]); the FUV flux of a host is `f_FUV L / (4 pi d^2)`."""
+
+CLOUD_G0_TIER_EDGES = (1.0e2, 1.0e3, 1.0e4)
+"""tuple: The G0 at which the radiation tier rises by one (design note, "Rule table": under 1e2 adds nothing; 1e3 is
+where mass loss is significant and 1e4 is where outer discs are destroyed in about 1 Myr [R, Johnstone 1998; Haworth 2018])."""
+
+CLOUD_HOST_MIN_DISTANCE_PC = 0.01
+"""float: A host star is never taken closer than this to a system, parsecs, so the sum over a cluster placed at the
+cloud's centre stays finite for a system near it. A stand-in: the hosts of a seeded cloud have no stored positions yet."""
+
+CLOUD_CLASS_RADIATION_TIER = {
+    "C": 1, "G": 1,
+    "H": 3, "J": 2, "K": 2, "L": 2,
+    "R": 3, "S": 2, "T": 3, "U": 2, "V": 1, "W": 1,
+}
+"""dict: The radiation tier a cloud of the class adds before any host's G0 (design note, "Rule table"): the planetary
+nebulae's ultraviolet and the young remnants' cosmic rays and X-rays. A class not listed adds 0; D, E and X rise by their
+hosts' G0 alone and M, N and F by the heliopause tier, which is the habitability index's. The tier a system gets is
+the larger of this and the G0 tier. Design values [R, design]."""
+
+CLOUD_ENRICHMENT_CLASSES = ("D", "E", "R", "S", "T", "U", "V", "W")
+"""tuple: The classes whose systems draw an 26Al enrichment `k` (design note, "Rule table": a system inside D or E, or in
+a remnant)."""
+
+CLOUD_ENRICHMENT_FIELD_MEDIAN = 0.1
+"""float: The median of `k`, the 26Al/27Al ratio in units of `CLOUD_ENRICHMENT_REFERENCE_RATIO`, for a system without a
+recent nearby source: the galactic mean 6e-6 against the Solar System's 5.25e-5 [C, design note]."""
+
+CLOUD_ENRICHMENT_RICH_MEDIAN = 1.0
+"""float: The median of `k` for a system a massive star or supernova enriched."""
+
+CLOUD_ENRICHMENT_SIGMA_DEX = 0.5
+"""float: The spread of `k`, dex, log-normal (design values)."""
+
+CLOUD_ENRICHMENT_RICH_CHANCE = {"D": 0.15, "E": 0.3, "R": 0.5, "S": 0.5, "U": 0.5}
+"""dict: The chance a system in a cloud of the class has the rich median rather than the field one (design values)."""
+
+CLOUD_ENRICHMENT_REFERENCE_RATIO = 5.0e-5
+"""float: The 26Al/27Al ratio `k = 1` stands for (the solar ratio at CAI formation, 5.25e-5, rounded; design note)."""
+
 PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
 """tuple: The central star a planetary nebula is generated around (GEN.10):
 the exposed hot core of a dying 0.8-8 Msun star, 30,000 K and
@@ -3160,10 +3211,6 @@ whose host star has no stored composition (a rogue planet)."""
 RADIOGENIC_OFFSET_LIMIT_DEX = 0.5
 """float: The truncation of that offset, dex, host-less or from the host star (radiation-model.md R15)."""
 
-RADIOGENIC_URANIUM_EXTRA_SIGMA_DEX = 0.05
-"""float: The scatter of uranium beyond thorium's, dex: a placeholder for the Th/U scatter (Dauphas 2005 via Wang 2020, partly
-verified; radiation-model.md R15)."""
-
 RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
 """tuple: The potassium depletion against uranium as the CI chondrites have it (K/U 67407), drawn log-uniformly. The Earth's 0.177 lies
 inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies (Nimmo et al. 2020), not a measured
@@ -3181,11 +3228,16 @@ enstatite's (Zhang et al. 2017). Their uncertainty on the rheology of other plan
 INTERIOR_ACTIVATION_RANGE_KJ_MOL = (200.0, 300.0)
 """tuple: The viscosity activation energy `Ea`, kJ/mol, drawn uniformly: Guimond et al. 2022 (wet enstatite 200, dry olivine 300)."""
 
-INTERIOR_INITIAL_TEMPERATURE_CAP_K = 3500.0
-"""float: The hottest a mantle is, K: fully molten, a magma ocean radiates away what is above its liquidus within some million years,
-so the assembly energy (`interior_heat.binding_energy_j`) and the 26Al of the first Myr never push it higher. A STAND-IN picked within
-the literature (the liquidus of a deep magma ocean is about 3500 K, the solidus at depth about 2000); a rheology as stiff as the
-slowest cooler of Guimond et al. 2022 stays near it for a gigayear. GEN.699 labels it in the gap plan registry."""
+INTERIOR_LIQUIDUS_COEFFICIENT_K_GPA = 310.317
+"""float: `a_l` of the mantle's liquidus `T_l(p) = a_l (p + p_l)^c_l`, K per GPa^c_l: chondritic material, Manske, Ruedas, Plesa et al. 2025
+(arXiv:2506.18718, Table 1 and Eq. 7, a Simon and Glatzel form fitted to experiments; READ). 1,874 K at the surface and 4,717 K at the
+Earth's core-mantle boundary (135 GPa)."""
+
+INTERIOR_LIQUIDUS_OFFSET_GPA = 29.102
+"""float: `p_l` of the liquidus, GPa (the same table)."""
+
+INTERIOR_LIQUIDUS_EXPONENT = 0.5337
+"""float: `c_l` of the liquidus (the same table)."""
 
 ROGUE_TIDAL_FLUX_RANGE_W_M2 = (1e-4, 1e-2)
 """tuple: Tidal heating, W/m^2, drawn log-uniformly for a rocky rogue
@@ -4477,6 +4529,12 @@ SLOW_PAGE_JOB_SECONDS = 3600
 SLOW_PAGE_FAILED_SECONDS = 30
 """int: How long a failed or cancelled job is shown to the visitors who ask for the same request, before the next
 one queues a new job. A planetGen default."""
+
+SLOW_PAGE_DELIVER_SECONDS = 300
+"""int: How long a finished page job keeps its answer for the visitors waiting on it when the page cache would not take
+it (data changed while it was built, or Redis had no room), so the page that asked is answered instead of queuing the
+same job again (UX.234). It is served only while the page cache has no copy, and only to a page that waited for the job.
+A planetGen default."""
 
 SLOW_PAGE_ESTIMATE_SECONDS = 60
 """int: How long a web process keeps the table row estimates before it asks the API again. A planetGen default."""

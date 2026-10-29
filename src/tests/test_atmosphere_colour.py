@@ -205,3 +205,20 @@ def test_the_words():
     assert ac.colour_word((255, 224, 192)) == "peach"
     assert ac.colour_word((120, 140, 255)) == "blue"
     assert ac.colour_word((255, 20, 20)) == "deep red"
+
+
+@pytest.mark.parametrize("pressure_pa", [1e11, 1e12, 1e14])
+def test_air_that_lets_no_light_down_still_has_a_colour(pressure_pa):
+    """GEN.844: a dense steam world under a hot star had no visible light at the ground and raised; it takes the colour of
+    the light the air sends back out."""
+    column = air_column.from_partials({"H2O": 0.95 * pressure_pa, "H2S": 0.03 * pressure_pa, "CH4": 0.02 * pressure_pa}, 9.8)
+    result = ac.atmosphere_colour(column, temperature_k=6700.0, ground_albedo=ac.STAND_IN_GROUND_ALBEDO)
+    assert len(result.colour.hex) == 7 and result.colour.hex != "#000000"
+
+
+def test_air_that_returns_no_light_either_is_black_on_the_stars_chromaticity():
+    zero = np.zeros_like(ac.WAVELENGTHS_NM)
+    star = ac.star_spectrum(5772.0)
+    sky = ac._sky_colour(star, zero, zero)
+    assert sky.rgb8 == (0, 0, 0) and sky.hex == "#000000"
+    assert (sky.x, sky.y) == pytest.approx(photometry.chromaticity(ac._xyz(star)))

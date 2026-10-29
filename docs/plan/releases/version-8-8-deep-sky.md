@@ -30,7 +30,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc |  | Phase 2. Optional, default not built. |
 | MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone | MAP.176 | Split from MAP.194. |
 | MAP.215 | Nebulae tint the stars seen through them, with soft translucent boundaries | MAP.176, MAP.142 | Split from MAP.191. |
-| MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | MAP.214, MAP.215 |  |
+| MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | MAP.215 |  |
 
 ### Clusters and satellites on the map
 

@@ -6,7 +6,7 @@ Builds the list of every stand-in value (GEN.725) from the stand-in registry of 
     python scripts/build_stand_in_values.py --check    # build in memory and fail if the committed file differs
 
 The registry is the markdown tables of `docs/design/research/gap-filling-plan.md`: the ranked fills of section 5 (5.1 to 5.3), the
-generated dial ranges of 6.3a, the fills of the shared download step in 6.6 and the stand-ins of the atmosphere mixture draw in 6.7.
+generated dial ranges of 6.3a, the fills of the shared download step in 6.6 and the stand-ins of the atmosphere mixture draw in 6.7 and those of the young-group draw in 6.8.
 Every one of those tables carries a Tier column (Boss's nine source tiers, T1 to T9) and a Tweak column (L0 to L4). The list is
 copied from them and never typed by hand, so it cannot drift; `src/tests/test_stand_in_values.py` fails when it does or when a row
 lacks a tier or a tweak.
@@ -56,6 +56,22 @@ SECTIONS = (
     ("6.9", "6.9 Stand-ins of how a rendered body is drawn",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.10", "6.10 Stand-ins of the radius valley",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.11", "6.11 Stand-ins of the young-group draw",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.12", "6.12 Stand-ins of the orbit elements",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
+    ("6.13", "6.13 Stand-ins of the tidal heating",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
+    ("6.14", "6.14 Stand-ins of the spin and its despinning",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
+    ("6.15", "6.15 Stand-ins of the trapped radiation belts",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
+    ("6.16", "6.16 Stand-ins of the interior heat and the r-process uranium",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.17", "6.17 Stand-ins of the water vapour profile and the cloud of the greenhouse",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.18", "6.18 Stand-ins of the life constants",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""

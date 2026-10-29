@@ -1439,6 +1439,15 @@
 -- v157 (GEN.654, DB.92): `planets` and `moons` keep the aquifer a world with no liquid at its surface holds underground, `aquifer_depth_km` (to the top of the water-bearing layer) and `aquifer_thickness_km` (NULL for a world with none, a gas giant and a row made before v157).
 -- v160 (GEN.732): `planets` and `moons` keep the ring system of a body (`ring_kind` dusty, narrow or broad; `ring_origin`; `ring_inner_km` and `ring_outer_km`; `ring_mass_kg`;
 --   `ring_optical_depth`, a mean; `ring_ice_fraction`). NULL for a body with no ring, a moon, and a row made before v160, which gets its rings when the galaxy is regenerated.
+-- v162 (DB.96): `planets` and `moons` keep the colour of the body's air as one integer (`atmosphere_colour`, sRGB as red*65536 + green*256 + blue; NULL for a body with no air, no star
+--   temperature or no mixture, and a row made before v162, which gets it when the galaxy is regenerated). The cloud cover it was worked out with is `cloud_cover` (v138).
+-- v171 (GEN.836): `rogue_planets` keeps the same seven ring columns as `planets` (v160); a moon may hold a ring system too.
+-- v168 (DB.108): the mass of each generated sector and of the blocks and regions above it: `sector_stats.total_mass_kg`, `galaxy_block_stats.mass_sum_kg` and `region_stats.mass_sum_kg`, kilograms. See `db/sector_mass.py`.
+-- v169 (GEN.721): `planets` and `moons` also keep `lid_regime`, 'mobile' (plate tectonics) or 'stagnant' (one rigid plate), drawn once after the
+--   hydrosphere (`physics/interior_heat.py`); the heat flux law, the dynamo lifetime and the ground dose's felsic crust read it. NULL for a gas giant
+--   and a row made before v169, whose heat flux was a stagnant lid's.
+-- v170 (GEN.767): `planets` and `moons` also keep the day and night shares and the hours of daylight (`physics/daylight.py`): `day_share_equator`, `day_share_mean`,
+--   `parent_shadow_share` (a moon in its planet's shadow), `solar_day_hours`, `daylight_hours` and `polar_circle_deg`. NULL for a row made before v170.
 --
 -- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
@@ -1477,6 +1486,18 @@
 --   its partial pressure in Pa); the ten `p_<gas>_kpa` columns are gone. A class's balance gas (helium, sodium, ammonia) is a row like the others, so the pressure is the sum of the rows. The migration
 --   copies each row's ten partial pressures (kPa times 1000) into the child tables.
 -- v159 (GEN.441): `planets` and `moons` gain the surface composition: `ground_type` and `ground_grain` and the areal share of each ground type (`ground_ocean_fraction`, `ground_ice_fraction`, `ground_ultramafic_fraction`, ..., twelve shares that add up to 1), NULL for a giant and for a row saved before v152. The minerals, ices and ocean the shares stand for are rows of the materials table (`physics/surface_composition.py`).
+-- v164 (GEN.764): `scatter_epochs` holds one row per kind of scatter drawn (`mass`, `luminosity`, `band`, `phenomena`, `nebula-field`), the generator epoch and the run that drew it, and the row goes when the
+--   scatter is cleared; `species` gains `generator_epoch`, the epoch the population pass made it under. A sector has its own epoch (v121) and the plan its own (v131), so every stage's results say what made them.
+-- v165 (MAP.305, MAP.303): `system_interests` replaces `habitable_systems`: one row for each reason a star system is worth a mark on the Galaxy Map (a planet or moon rated
+--   Yellow or better overall, a gas giant), with how many bodies give it, the largest score among them and the system's position.
+-- v166 (MAP.321): `system_interests` also takes the reasons `uninhabitable` (a scored terrestrial planet or moon under the Yellow floor) and `asteroid-field` (a system with a belt); no
+--   column changes, the migration fills the two reasons from the planets, moons and belts already stored.
+-- v167 (MAP.321): `system_interests` also takes the reason `inhabited` (a world whose timeline reached a technological civilization, or with a terrestrial colony on it); no column
+--   changes, the migration fills it from the planets, moons and colonies already stored.
+-- v172 (MAP.220): `system_interests` also takes one reason for each planet class, `class-A` to `class-V` (a system with a planet or moon of it, `n` how many, no score); no column
+--   changes, the migration fills them from the planets and moons already stored.
+-- v173 (MAP.311): `system_interests` also takes the reasons `civilization` (a world whose timeline reached a technological civilization), `sentient` (a sentient life score of 1 or more) and `life` (any of the
+--   four life scores of 1 or more), no score kept; no column changes, the migration fills them from the planets and moons already stored.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1816,6 +1837,7 @@ CREATE TABLE IF NOT EXISTS galaxy_block_stats (
     age_sum           DOUBLE NOT NULL,
     luminosity_sol    DOUBLE NOT NULL,
     habitable_worlds  BIGINT UNSIGNED NOT NULL DEFAULT 0,   -- v139 (MAP.143)
+    mass_sum_kg       DOUBLE NOT NULL DEFAULT 0,   -- v168 (DB.108): the summed `sector_stats.total_mass_kg` of its generated sectors
     PRIMARY KEY (m, shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1845,6 +1867,29 @@ CREATE TABLE IF NOT EXISTS galaxy_block_lights (
     point_lpy             DOUBLE NOT NULL,
     point_lpz             DOUBLE NOT NULL,
     PRIMARY KEY (m, shell_index, band_index, wedge_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- region_stats (v161, DB.107): one row per named region of the Galaxy Map (`galaxy/named_regions.py`): a 9-block, `(shell_index,
+-- band_index, wedge_index)` (the level, 9, is implied), that holds at least one generated sector. `sector_count` is how many of
+-- its sectors are generated and `capacity` how many its outline holds (the share charted is `sector_count / capacity`),
+-- `clump_count` how many face-connected clumps those sectors make, and `extent_x_pc`, `extent_y_pc`, `extent_z_pc` and
+-- `extent_radius_pc` the bounding sphere of the largest clump (never smaller than the region's framing sphere), galaxy
+-- frame, parsecs: what the map frames and draws the region with. A cell with no generated sector has no row, and the
+-- region does not exist. Written by `db/region_stats.py`, which `db/block_stats.py` calls whenever it puts right the
+-- blocks above a sector (a save, a deletion, a rebuild); no foreign key, as the cell is not a row of its own.
+CREATE TABLE IF NOT EXISTS region_stats (
+    shell_index       INT NOT NULL,
+    band_index        INT NOT NULL,
+    wedge_index       INT NOT NULL,
+    sector_count      INT UNSIGNED NOT NULL,
+    capacity          INT UNSIGNED NOT NULL,
+    clump_count       INT UNSIGNED NOT NULL,
+    extent_x_pc       DOUBLE NOT NULL,
+    extent_y_pc       DOUBLE NOT NULL,
+    extent_z_pc       DOUBLE NOT NULL,
+    extent_radius_pc  DOUBLE NOT NULL,
+    mass_sum_kg       DOUBLE NOT NULL DEFAULT 0,   -- v168 (DB.108): the summed `sector_stats.total_mass_kg` of its generated sectors
+    PRIMARY KEY (shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Singleton row (same pattern as galaxy_shape above) tracking when
@@ -2224,6 +2269,7 @@ CREATE TABLE IF NOT EXISTS planets (
     -- GEN.289): the body is its state vector below.
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
+    eccentricity                DOUBLE NOT NULL DEFAULT 0,   -- v159 (GEN.727): of the orbit the body was generated on (distance_km is its semi-major axis)
     -- Position/speed (v11, see header comment) -- Cartesian position
     -- relative to this planet's orbital anchor (the star, or the
     -- BinaryStarProxy's combined center for a binary system), made from
@@ -2400,6 +2446,14 @@ CREATE TABLE IF NOT EXISTS planets (
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
+    atmosphere_colour           INT UNSIGNED,  -- v162 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
+    lid_regime                  VARCHAR(10) NULL,  -- v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant
+    day_share_equator           DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit
+    day_share_mean              DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up, averaged over the surface, 0 to 1
+    parent_shadow_share         DOUBLE NULL,  -- v170 (GEN.767): a moon only, the share of its time in its planet's shadow, 0 to 1
+    solar_day_hours             DOUBLE NULL,  -- v170 (GEN.767): hours from one noon to the next, NULL for a world that turns once an orbit
+    daylight_hours              DOUBLE NULL,  -- v170 (GEN.767): hours of daylight in one solar day at the equator, NULL for a world that turns once an orbit
+    polar_circle_deg            DOUBLE NULL,  -- v170 (GEN.767): latitude beyond which the star stays up or down for at least a day, degrees
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2533,6 +2587,7 @@ CREATE TABLE IF NOT EXISTS moons (
     -- GEN.289): the body is its state vector below.
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
+    eccentricity                DOUBLE NOT NULL DEFAULT 0,   -- v159 (GEN.727): of the orbit the body was generated on (distance_km is its semi-major axis)
     -- Position/speed (v11, see header comment) -- Cartesian position
     -- relative to this moon's orbital anchor, its parent planet; made
     -- from distance_km and the orbital-motion columns above the same way
@@ -2700,6 +2755,14 @@ CREATE TABLE IF NOT EXISTS moons (
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
+    atmosphere_colour           INT UNSIGNED,  -- v161 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
+    lid_regime                  VARCHAR(10) NULL,  -- v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant
+    day_share_equator           DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit
+    day_share_mean              DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up, averaged over the surface, 0 to 1
+    parent_shadow_share         DOUBLE NULL,  -- v170 (GEN.767): a moon only, the share of its time in its planet's shadow, 0 to 1
+    solar_day_hours             DOUBLE NULL,  -- v170 (GEN.767): hours from one noon to the next, NULL for a world that turns once an orbit
+    daylight_hours              DOUBLE NULL,  -- v170 (GEN.767): hours of daylight in one solar day at the equator, NULL for a world that turns once an orbit
+    polar_circle_deg            DOUBLE NULL,  -- v170 (GEN.767): latitude beyond which the star stays up or down for at least a day, degrees
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet
@@ -3440,6 +3503,14 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     ocean_depth_km           DOUBLE,
     has_liquid_water         TINYINT(1),
     hp_ice_km                DOUBLE,  -- v74 (GEN.88)
+    -- v171 (GEN.836): the ring system, as on `planets` (v160); NULL for a planet with none.
+    ring_kind                VARCHAR(8) CHECK (ring_kind IN ('dusty', 'narrow', 'broad')),
+    ring_origin              VARCHAR(16) CHECK (ring_origin IN ('moon_erosion', 'disrupted_moon', 'captured_body')),
+    ring_inner_km            DOUBLE,
+    ring_outer_km            DOUBLE,
+    ring_mass_kg             DOUBLE,
+    ring_optical_depth       DOUBLE,
+    ring_ice_fraction        DOUBLE,
     -- v17: always populated (a rogue planet is always standalone).
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
@@ -3931,6 +4002,7 @@ CREATE TABLE IF NOT EXISTS sector_stats (
     mean_age_gy            DOUBLE,
     total_luminosity_sol   DOUBLE,
     habitable_worlds       INT,   -- v139 (MAP.143): planets and moons in the sector's systems that are Blue or Green overall (PHI-6)
+    total_mass_kg          DOUBLE,   -- v168 (DB.108): the mass of the sector's stars, planets, moons, belts, comets and phenomena (not nebulae), NULL when a body has no stored mass
     filled_at              TIMESTAMP(3) NULL,
     updated_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
@@ -4019,6 +4091,19 @@ CREATE TABLE IF NOT EXISTS generation_run_arguments (
     value        VARCHAR(1024) NOT NULL,
     PRIMARY KEY (run_id, position),
     CONSTRAINT fk_generation_run_arguments_run FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- v164 (GEN.764): the generator epoch each kind of scatter was drawn under. A scatter is galaxy-wide, and its rows carry no epoch of their own, so
+-- the draw that finishes a kind writes its row and a clear deletes it; the sectors (v121), the plan (v131) and the species (v164) carry theirs.
+CREATE TABLE IF NOT EXISTS scatter_epochs (
+    kind             VARCHAR(16) NOT NULL PRIMARY KEY,
+    generator_epoch  SMALLINT UNSIGNED NULL,
+    run_id           BIGINT UNSIGNED NULL,
+    recorded_at      TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    CONSTRAINT chk_scatter_epochs_kind CHECK (kind IN ('mass', 'luminosity', 'band', 'phenomena', 'nebula-field')),
+    CONSTRAINT fk_scatter_epochs_run FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -4176,20 +4261,24 @@ CREATE TABLE IF NOT EXISTS sector_system_counts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- habitable_systems (v148, MAP.220): one row per star system with a habitable world (an
--- overall PHI-6 score that is Blue or Green on a planet or moon), with how many and where, so the
--- Galaxy Map's marker layer finds them in a box (`query.galaxy_habitable_systems_in_box`) without
--- reading every planet. Derived data: `store.count_system_habitable_worlds` rebuilds a system's row
--- whenever its scores are worked out; the position is the system's `galaxy_*_pc`, which never changes.
+-- system_interests (v165, MAP.305, MAP.303): one row for each reason a star system is worth a mark on the Galaxy Map
+-- (`planetgen.db.interests.REASONS`: a planet or moon rated Yellow or better overall on the PHI-6 score, a scored barren one, a gas giant, a
+-- belt, and more as they are added), with how many bodies give it (`n`), the largest score among them (`best_score`, NULL for a reason
+-- with no score) and where the system is, so the map's marker layer finds the systems in a box (`query.galaxy_system_interests_in_box`)
+-- without reading every planet. Derived data: `interests.record` rebuilds a system's rows when its sector is filled and whenever its
+-- scores are worked out again; the position is the system's `galaxy_*_pc`, which never changes. It replaces `habitable_systems` (v148).
 -- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS habitable_systems (
-    star_system_id    BIGINT UNSIGNED NOT NULL PRIMARY KEY,
-    habitable_worlds  SMALLINT UNSIGNED NOT NULL,
+CREATE TABLE IF NOT EXISTS system_interests (
+    star_system_id    BIGINT UNSIGNED NOT NULL,
+    reason            VARCHAR(24) NOT NULL,
+    n                 SMALLINT UNSIGNED NOT NULL,
+    best_score        DOUBLE NULL,
     galaxy_x_pc       DOUBLE NOT NULL,
     galaxy_y_pc       DOUBLE NOT NULL,
     galaxy_z_pc       DOUBLE NOT NULL,
-    KEY idx_habitable_systems_position (galaxy_x_pc, galaxy_y_pc, galaxy_z_pc),
-    CONSTRAINT fk_habitable_systems_system
+    PRIMARY KEY (star_system_id, reason),
+    KEY idx_system_interests_position (galaxy_x_pc, galaxy_y_pc, galaxy_z_pc),
+    CONSTRAINT fk_system_interests_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -4511,6 +4600,7 @@ CREATE TABLE IF NOT EXISTS species (
     defense_index            TINYINT UNSIGNED CHECK (defense_index BETWEEN 0 AND 7),
     tech_level               DECIMAL(3,2),
     tech_source              VARCHAR(16) CHECK (tech_source IN ('generated', 'admin')),
+    generator_epoch          SMALLINT UNSIGNED NULL,  -- v164 (GEN.764): the epoch the population pass made this species under
     created_at               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     UNIQUE KEY uq_species_name (name),

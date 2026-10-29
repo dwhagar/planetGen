@@ -12,7 +12,7 @@ One node (all numbers little-endian)::
     "PGT1"                        4 bytes, the format
     meta_length                   u32
     meta                          UTF-8 JSON: the sections that are not stars
-                                  (`clouds`, `points`, `worlds`, `incomplete`), or `{}`
+                                  (`clouds`, `points`, `interests`, `incomplete`, and the `name` and `parent` of a charted region, API.35), or `{}`
     then `stars`, then `generated`, each:
     count                         u32
     if count > 0:
@@ -63,7 +63,7 @@ TEMPERATURE_LOG_RANGE = (2.0, 6.0)
 RADIUS_LOG_RANGE = (-3.0, 4.0)
 
 # The sections that stay JSON.
-_META_SECTIONS = ("clouds", "points", "worlds", "incomplete", "aggregate", "placed")
+_META_SECTIONS = ("clouds", "points", "interests", "incomplete", "aggregate", "placed", "name", "parent", "extent", "charted", "regions")
 _STAR_SECTIONS = ("stars", "generated")
 _U16 = 65535
 _U8 = 255
@@ -150,8 +150,8 @@ def pack_node(node):
         node (dict): `stars` and `generated` (lists of star dicts with
             `id`, `x`, `y`, `z`, `luminosity_sol` and optionally
             `temperature_k`, `radius_sol`, `star_type`, `system_id`, `tier`, `name`) and the
-            JSON sections `clouds`, `points`, `worlds` and `incomplete`; the names of the stars that have one ride in the
-            JSON as `names` ({id: name}).
+            JSON sections `clouds`, `points`, `interests` and `incomplete`; the names of the stars that have one ride in the
+            JSON as `names` ({id: name}), and the system of each star that has one as `systems` ({id: system id}, MAP.122).
 
     Returns:
         bytes: The packed node.
@@ -160,6 +160,10 @@ def pack_node(node):
     names = {str(star["id"]): star["name"] for section in _STAR_SECTIONS for star in node.get(section) or [] if star.get("name")}
     if names:
         meta["names"] = names   # the few stars that have a name, by id (MAP.298): the columns carry no text
+    systems = {str(star["id"]): star["system_id"] for section in _STAR_SECTIONS for star in node.get(section) or []
+               if star.get("system_id") is not None}
+    if systems:
+        meta["systems"] = systems   # the charted stars' systems, by id (MAP.122): the page bookmarks and opens one
     meta_bytes = json.dumps(meta, separators=(",", ":")).encode("utf-8")
     out = [MAGIC, struct.pack("<I", len(meta_bytes)), meta_bytes]
     for section in _STAR_SECTIONS:
@@ -287,7 +291,8 @@ def unpack_node(packed):
     """
     The node dict a packed node stands for (the page's script builds the same
     one): `stars` and `generated` as lists of dicts with `charted` (a bool)
-    where the JSON form had `system_id`, and the JSON sections as stored.
+    where the JSON form had `system_id` (which also comes back on the star, from the node's `systems`, MAP.122), and the
+    JSON sections as stored.
 
     Raises:
         TilePackError: On bytes that are not a whole packed node.
@@ -302,10 +307,13 @@ def unpack_node(packed):
         for section in _STAR_SECTIONS:
             node[section], offset = _unpack_stars(packed, offset)
         names = node.get("names") or {}
+        systems = node.get("systems") or {}
         for section in _STAR_SECTIONS:
             for star in node[section]:
                 if str(star["id"]) in names:
                     star["name"] = names[str(star["id"])]
+                if str(star["id"]) in systems:
+                    star["system_id"] = systems[str(star["id"])]
     except (struct.error, ValueError) as exc:
         raise TilePackError(f"a packed node is damaged: {exc}")
     if offset != len(packed):

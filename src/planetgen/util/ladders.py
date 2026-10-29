@@ -196,12 +196,18 @@ LENGTH = Ladder(
     quantity="length",
     base="m",
     nonfinite="km",
+    zero="km",
     rungs=(
-        # Customary: feet to a mile, miles to the astronomical units.
-        rung("ft", start=0.0, systems=(CUSTOMARY,)),
+        # Customary: inches to a foot, feet to a mile, miles to the astronomical units.
+        rung("in", start=0.0, systems=(CUSTOMARY,)),
+        rung("ft", systems=(CUSTOMARY,)),
         rung("mi", whole_from=1e6, systems=(CUSTOMARY,)),
+        # A thin ice shell reads "1.09 m", not "0.00109 km" (GEN.769): millimeters, centimeters, meters, kilometers.
+        rung("mm", start=0.0, systems=(AUTOMATIC, METRIC)),
+        rung("cm", systems=(AUTOMATIC, METRIC)),
+        rung("m", systems=(AUTOMATIC, METRIC)),
         # Whole kilometers read better than three figures ("384,400 km").
-        rung("km", start=0.0, whole_from=1e6, systems=(AUTOMATIC, METRIC)),
+        rung("km", whole_from=1e6, systems=(AUTOMATIC, METRIC)),
         # Metric only: SI prefixes in place of the astronomical units.
         rung("Gm", systems=(METRIC,)),
         rung("Tm", systems=(METRIC,)),
@@ -286,6 +292,37 @@ TEMPERATURE = Ladder(
         companion("degC", whole=True),
         companion("degF", whole=True, systems=(AUTOMATIC,)),
         companion("K", systems=(CUSTOMARY,)),
+    ),
+)
+
+# A temperature difference (GEN.770 follow-up, Boss 9:13 PM EDT 2026-10-24: the day and night swing of 9.07 K read "-264 °C"):
+# a size, not a place on a scale, so it has no offsets: 9.07 K is 9.07 °C and 16.3 °F.
+TEMPERATURE_DIFFERENCE = Ladder(
+    quantity="temperature difference",
+    base="dK",
+    nonfinite="K",
+    zero="dK",
+    rungs=(
+        rung("dK", start=0.0, systems=(AUTOMATIC, METRIC)),
+        rung("ddegF", start=0.0, systems=(CUSTOMARY,)),
+    ),
+    companions=(
+        companion("ddegC"),
+        companion("ddegF", systems=(AUTOMATIC,)),
+        companion("dK", systems=(CUSTOMARY,)),
+    ),
+)
+
+# A share of a whole (GEN.770): "water share of the mass 400 ppm", "surface under ocean 71 %". A percent from 1 percent,
+# parts per million below it, so a trace reads as 400 ppm and not as 0.0004.
+FRACTION = Ladder(
+    quantity="fraction",
+    base="frac",
+    nonfinite="%",
+    zero="%",
+    rungs=(
+        rung("ppm", start=0.0),
+        rung("pct"),
     ),
 )
 
@@ -421,11 +458,11 @@ MAGNETIC_FIELD = Ladder(
     ),
 )
 
-LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, PRESSURE, GRAVITY, MASS, POWER, FLUX, NUMBER_DENSITY, MAGNETIC_FIELD)
+LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, TEMPERATURE_DIFFERENCE, FRACTION, PRESSURE, GRAVITY, MASS, POWER, FLUX, NUMBER_DENSITY, MAGNETIC_FIELD)
 """Tuple[Ladder, ...]: Every ladder, in the order `unitladders.js` lists them."""
 
 _BY_KIND = dict(zip(
-    ("length", "speed", "duration", "temperature", "pressure", "acceleration", "mass", "power", "flux", "number_density",
+    ("length", "speed", "duration", "temperature", "delta_temperature", "fraction", "pressure", "acceleration", "mass", "power", "flux", "number_density",
      "magnetic_field"), LADDERS))
 _BY_KIND_OF_LADDER = {ladder.quantity: kind for kind, ladder in _BY_KIND.items()}
 LADDER_OF_KIND = {kind: ladder.quantity for kind, ladder in _BY_KIND.items()}

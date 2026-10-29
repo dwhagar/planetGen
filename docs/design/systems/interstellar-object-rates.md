@@ -19,12 +19,16 @@ the `molecular-cloud` rate below and generated as dark-family classes M-Q
 (correction, GEN.47: in a galaxy they now come from the seeded
 `nebula_field` instead, see the design note);
 H II regions and reflection nebulae grow around O, B and A stars
-(`NEBULA_HOST_RULES`); every planetary nebula gets its own hot white dwarf
+(`NEBULA_HOST_RULES`; the stars a nebula needs are made with it, GEN.320 and GEN.321, see "The stars a nebula needs" below); every planetary nebula gets its own hot white dwarf
 system. Diffuse gas (classes A-B) is the background and is not generated.
 See `nebula-and-asteroid-field-classes.md`; its "Corrected facts" section
 lists what the 2026-10-09 research found wrong in the host rules and the
-H II sizes. Anomalies beyond these kinds (magnetars, Wolf-Rayet stars and
-the rest) are in `anomalies.md`.
+H II sizes. Anomalies beyond these kinds (magnetars and the rest) are in
+`anomalies.md`. Wolf-Rayet stars have no rate in this table: they are a state
+of the very massive stars the bright and mass passes already place
+(`physics/wolf_rayet.py`, GEN.243), so their number follows from the star
+formation history and the metallicity, not from a density of their own; see
+"Wolf-Rayet stars and the ring nebula" below.
 
 ## How the code uses these numbers
 
@@ -35,8 +39,12 @@ the rest) are in `anomalies.md`.
   two, `sector_star_count`) and draws each kind's count from a Poisson
   distribution with mean `rate * stars`. This is the "per star" form the
   model below asks for.
-- Every kind is scaled by star count only. The gas-density scaling for
-  supernova remnants (`n_* * rho_gas`) is not applied. Correction (GEN.47,
+- A kind's rate per star is scaled by the place it is rolled in: the sector
+  profile's `kind_factors` ("Rates by place" below, GEN.236). The mean number of
+  a kind in a sector is `rate * stars * factor`; a kind with no entry in
+  `kind_factors` is scaled by star count only. (The research's gas-density
+  scaling for supernova remnants, `n_* * rho_gas`, is the `supernova-remnant`
+  factor.) Correction (GEN.47,
   checked against the code 2026-10-09): molecular clouds in a galaxy are
   now scaled by gas density, `GMC_GAS_DENSITY_EXPONENT` is read by
   `galaxy/nebula_field.py`; `GMC_ARM_FILLING_FACTOR` is still defined and
@@ -250,6 +258,63 @@ Balogh 2010, intracluster supernovae.
   chose 1e-8; the comment says it "counts faint remnants too". No further
   reason is recorded.
 
+
+## Rates by place: the populations and the kind factors (GEN.236)
+
+The per-star rates above are the solar neighbourhood's. Every sector carries a profile (`galaxy/profile.py`, GEN.235; see
+[intergalactic-and-halo-contents.md](../galaxy/intergalactic-and-halo-contents.md) section 5.3) that says which stellar
+populations it holds, and `kind_factors_at` turns those populations and the gas into one factor per kind, each in 0 to 1,
+that multiplies the kind's rate per star. A halo cell, a cluster or an old satellite therefore makes no H II region and no
+core-collapse remnant, and the disk's young, gas-rich places make the most.
+
+The populations (`profile.POPULATIONS`): `young`, `intermediate` and `old` (the thin disk by age, with the young open
+clusters of `tuning.OPEN_CLUSTER_POPULATIONS` counted with the disk), `bulge`, `halo`, `cluster`, `satellite` (with
+`satellite_young` and `satellite_intermediate`), `nuclear_cluster` and `nuclear_disc`. Each has an age window, [Fe/H]
+peaks, a velocity dispersion and a rotation rule.
+
+| Kind | Factor |
+|---|---|
+| `brown-dwarf` | 1 everywhere (every population makes them) |
+| `black-hole` (stellar mass) | the share of the place's massive stars that failed to explode and made their remnant, from the populations' shares, ages and [Fe/H] peaks (`remnant_density.place_factor_from_peaks`, GEN.563): a metal-poor place makes more |
+| `neutron-star` | what the black holes leave of the massive stars that made their remnant, less the galaxy's unbound share (GEN.554): a metal-rich place makes more |
+| `supernova-remnant` | the gas fraction (`nebula_field.gas_factor`, capped at 1), times the share of stars that are not in a cluster; 0 in the halo and in clusters. Not zeroed in a superbubble: the hot cavity is where the explosions went off. The Type Ia share of the remnants is a profile field, `type_ia_share` (GEN.319): 1 where no young population is |
+| `planetary-nebula` | the share of the place's stars that are not young against the solar circle's, capped at 1 (GEN.319): 1 in the disk (within 3%) and in every older place |
+| `molecular-cloud` | the cold gas fraction times the young share against the solar circle's |
+| `nebula` (emission and reflection) | the cold gas fraction; the host star's own age is the young share here |
+| `rogue-planet`, `comet` | the planet occurrence at the place's [Fe/H] against the disk's (`metallicity.planet_occurrence_factor`), averaged over the populations |
+
+A kind not in the table is not scaled by place. The neutron stars and black holes the galaxy lost to a kick
+(`ejecta_field`, GEN.238) are not part of the stars' rate: the fill adds them to the cell's own draw at a density that falls
+as 1 / r^2. The galaxy-wide scatters (`generation/phenomenon_scatter.py`) draw the black holes, neutron stars, planetary
+nebulae and supernova remnants with the same factors, band by band.
+
+## The stars a nebula needs (GEN.320, GEN.321, GEN.241)
+
+A nebula of a class that has stars gets them as real systems, inside its bounds, from seeds that depend on the nebula or the
+star alone, never on the order sectors are filled in (`generation/nebula_contents.py`). Whether a hot star has a nebula, and
+of which class, is rolled on a stream of the star's own (`hosted_seed`), so a star the scatter pre-placed and the same star
+made in a fill agree. A planetary nebula's white dwarf is made with it, and `PLANETARY_NEBULA_COMPANION_CHANCE` of them gain a
+close companion. A Bok globule (P) or a star-forming core (Q) gets its protostars from the cloud's own seed, built by whichever
+sector holds each point. The cluster behind an H II region of class D or E is its ionizing members, the stars of 5.5 solar
+masses and up still alive, placed in a Plummer sphere of half-mass radius 1 pc (D) or 2 pc (E) clipped to the nebula's
+radius; only these are real, and the rest of the cluster stays the sector's background density. A supernova remnant keeps its
+neutron star or black hole through the remnant object itself.
+
+## Wolf-Rayet stars and the ring nebula (GEN.243)
+
+A star of at least `tuning.WR_MIN_INITIAL_MASS_SOL` (25 solar masses at the Sun's metallicity, rising as Z^-0.5, so 35 at half
+and 56 at a fifth of it) spends the last `WR_PHASE_MYR` (0.3 Myr, at most half its supergiant window) of its life as a
+Wolf-Rayet star, in place of the end of the supergiant window of `stellar_evolution.evolve_star`: yerkes class `W`, a present
+mass of 0.4 to 0.6 of the initial mass, a luminosity log-uniform over 1e5 to 1e6 solar, and a subtype by the share of the
+phase gone (WN 60%, WC 30%, WO 10%, the last only from 40 solar masses; `WR_TEMPERATURE_RANGE_K` and `WR_SUBCLASS_RANGE`
+give the temperature and the subclass, so the text reads `WN6 Blue Wolf-Rayet Star`). No Wolf-Rayet star is rolled from a rate:
+the bright and mass passes place the massive stars and draw their state, which gives about 1,180 in a Milky Way-like disk
+against the 1,200 expected, and none in a population older than the phase allows. Their companions follow the subtype
+(`WR_COMPANION_CHANCE`: 0.52 for WN, 0.90 for WC and WO, read by the system builder; the `wolf-rayet-binary` row of the phenomena catalogue). A
+Wolf-Rayet star can light a **class X ring nebula** (family `emission`, radius 6.5 to 114 ly, a thin swept-up shell around a
+hollow interior, `host_only`: only a Wolf-Rayet star makes one, so a nebula drawn with no host is never X); the host
+rule in `NEBULA_HOST_RULES` rolls it from the star, and `NEBULA_CLASS_MAX_AGE_MYR["X"]` caps the host's age at 10 Myr. The
+rest of the design and the numbers are in the intergalactic design note, section 5.11.
 
 ## Retune of 2026-10-09 (Boss: central observed values)
 

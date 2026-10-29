@@ -668,15 +668,16 @@ def test_the_form_offers_types_with_their_fields_affiliation_and_ratings(client,
     fake.owner = {"polity_id": 3, "polity_name": "Velarix Concord", "color": "#3366cc", "distance_ly": 2.0}
     _as_admin(client, fake)
     dialog = _panel(client.get("/system/5").get_data(as_text=True))
-    assert '<option value="4" data-kind="outpost">Research outpost</option>' in dialog
-    assert '<option value="6" data-kind="colony">Farm</option>' in dialog
+    assert '<sl-option value="4" data-kind="outpost">Research outpost</sl-option>' in dialog
+    assert '<sl-option value="6" data-kind="colony">Farm</sl-option>' in dialog
     assert 'data-facility-type-fields="4" hidden' in dialog and 'data-facility-type-fields="6" hidden' in dialog
     assert 'name="field_staff"' in dialog and 'min="1"' in dialog and 'value="12"' in dialog   # the default
-    assert '<option>Survey</option>' in dialog and 'name="field_armed"' in dialog and "Output (TW)" in dialog
-    assert '<option value="polity:3" selected>Velarix Concord (owns this system)</option>' in dialog   # the default
+    assert '<sl-option value="Survey">Survey</sl-option>' in dialog and 'name="field_armed"' in dialog and "Output (TW)" in dialog
+    assert '<sl-option value="polity:3">Velarix Concord (owns this system)</sl-option>' in dialog
+    assert re.search(r'<sl-select name="affiliation"[^>]*value="polity:3"', dialog)   # the default
     for dimension in ("crime", "housing", "resources", "maintenance", "health"):
         assert f'name="rating_{dimension}"' in dialog
-    assert '<option value="red">Red</option>' in dialog
+    assert '<sl-option value="red">Red</sl-option>' in dialog
 
 
 def test_save_sends_the_type_fields_affiliation_and_ratings(app, client, fake):

@@ -25,6 +25,11 @@ always was.
 
 A route that reads one page of an indexed table is not in `PATH_TABLES`, or does not call `allow_pending`.
 
+**A finished job always ends the wait.** The job stores its answer in the page cache, which refuses it when data changed
+while it was built or Redis has no room. The job then keeps the answer itself for `tuning.SLOW_PAGE_DELIVER_SECONDS`
+(`deliver`), and the page that waited reads it (`delivered`) when the cache has no copy, so it is never sent round
+again to queue the same job (UX.234).
+
 **Redis down** (or an update running, which takes no new jobs): the answer is built in the request, as it was before
 this mechanism, and the visitor is told so: `take_notice()` gives the sentence once, for the page to show.
 """
@@ -139,6 +144,18 @@ def record_duration(db, target, seconds):
     """Remembers how long a build of `target` took, for the cost rule (`pagejobs.record_duration`)."""
     from planetgen.queue import pagejobs
     pagejobs.record_duration(db, target, seconds)
+
+
+def deliver(db, target, body):
+    """Keeps the answer of a finished page job for the page that waits (`pagejobs.deliver`)."""
+    from planetgen.queue import pagejobs
+    pagejobs.deliver(db, target, body)
+
+
+def delivered(db, target):
+    """The answer a finished page job kept because the page cache would not take it, or `None`."""
+    from planetgen.queue import pagejobs
+    return pagejobs.delivered(db, target)
 
 
 def cost(db, path, target):

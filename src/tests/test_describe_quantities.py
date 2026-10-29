@@ -54,7 +54,10 @@ def test_a_quantity_item_holds_the_value_in_the_unit_it_was_stored_in():
     assert _qty(build._au(2.5)) == {"kind": "length", "value": 2.5, "unit": "au"}
     assert _qty(build._gy(4.6)) == {"kind": "time", "value": 4.6, "unit": "Gyr"}
     assert _qty(build._radius_km(6371.0)) == {"kind": "radius", "value": 6371.0, "unit": "km"}
-    assert _qty(model.qty("ratio", 0.5)) == {"kind": "ratio", "value": 0.5, "unit": "ratio"}
+    assert _qty(model.qty("ratio", 0.5, note="of the maximum")) == {"kind": "ratio", "value": 0.5, "unit": "ratio",
+                                                                      "note": "of the maximum"}
+    with pytest.raises(ValueError, match="bare number"):
+        model.qty("ratio", 0.5)
     with pytest.raises(ValueError):
         model.qty("length", 1.0, "furlong")
 

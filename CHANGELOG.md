@@ -2,6 +2,1015 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2472] - 2026-10-29
+
+**Headline:** The prevalence suite now also draws whole systems per star type and checks planet occurrence against the rates surveys measured.
+
+### Added
+- **The system census (TEST.431) and planet occurrence against observation (TEST.395).** `src/tests/audit/prevalence_systems.py` draws 100 seeded systems of each census star type and checks planets, belts and comets per system, moons per planet, the share with no planet, the share that are pairs, the share with a habitable-class or Blue or Green world, and the share where life reaches each milestone, against `src/tests/data/prevalence_systems_expectations.json` (the prevalence before 4c, commit `0b4d0cc`, each range a marked stand-in). `src/tests/audit/prevalence_occurrence.py` reads the same systems and checks giants, hot Jupiters, cold giants, 1 to 20 Earth-mass planets inside 0.5 AU, Earth-mass planets in the ecosphere and the super-Earth to Neptune ratio against observed rates. Known faults carry their item (GEN.855 the lost complex life, GEN.828 and GEN.829 the giant and sub-Neptune gaps against observation) and print in the reports instead of failing.
+- **A crash or a hang in a draw is a finding.** The class census also counts a draw that raised and one over its time limit (it found GEN.866 and GEN.895, both fixed), and tags hot-zone planets that lost their Yellow share since 4c (GEN.896).
+
+TODO items resolved: TEST.431. TEST.395 is built on the system draw's host mix; its repeat on galaxy-placed stars and the final classes after the cut-over stays open. Added: none.
+
+## [8.0.2471] - 2026-10-29
+
+**Headline:** The design for adaptation traits says how life on a hard world gets tougher against that world's own radiation, sulfide, acid, brine, heat, carbon dioxide and low oxygen.
+
+### Added
+- **Design note `docs/design/habitability/adaptation-traits.md` (GEN.875).** The checked table of nine stresses with the real mechanisms behind them, the limit each trait moves, three grades with caps for animals below microbes, the draw (a fixed 18 draws per body on its own life sub-stream, at most three traits), where the traits are stored and shown, the tests the build needs, and the tier and tweak level of every number. A trait never changes a human score. It is the design GEN.876 builds and fits the life class system (a world's life is its class, pigment and trait set).
+
+## [8.0.2470] - 2026-10-29
+
+**Headline:** Every number the life draw and the habitability index run on now has a stand-in registry row with its source tier and tweak level.
+
+### Added
+- **Stand-in rows for the life constants (GEN.870).** Section 6.18 of `gap-filling-plan.md` and the generated `stand-in-values.md` list 30 rows (LF1 to LF30): the chemistries' gates and star weights, the stars' lifespans and the evolutionary timelines, the score thresholds, the solvent factors, the toxicity limits, the oxygen band, the energy flux and its shares, each with its tier (T1 to T9), tweak level (L0 to L4), what would replace it and what would falsify it. The tiers and tweaks are the life chemistry review's proposal, for the owner of each area to correct.
+- **A test that fails when a life constant has no row.** `tests/test_life_standin_registry.py` checks that every row names an existing constant and that every constant of `tuning.py` (`LIFE_*`, `STAR_EVOLUTION`, `EVOLUTIONARY_*`, `HABITABILITY_LIFE_*`), `habitability.py` and `habitability_world.py` has a row or is on the short list of names that carry no value, each with its reason.
+
+## [8.0.2469] - 2026-10-29
+
+**Headline:** A planet draw no longer hangs or crashes on a world whose surface is hotter than its interior would be.
+
+### Fixed
+- **A planet draw around an F5V star at an ecosphere orbit never returned (GEN.866).** The thermal history of a wet rocky planet with a 2300 K surface let a step overshoot below zero kelvin; the viscosity law on that temperature gave a flux of 1e59 W/m2 and a step of 1e-65 Gy, so the run never ended. The mantle temperature is now held between the surface temperature and the ceiling after every step, as the rate already was. No value on a normal path changes.
+- **A system draw raised ZeroDivisionError in the interior heat for about 2 in 600 F5V and K0III systems (GEN.895).** The same overshoot gave a mantle viscosity of exactly 0; the same clamp removes it. The census repro now draws 300 F5V systems without the error.
+
+## [8.0.2468] - 2026-10-29
+
+**Headline:** Inside an open system the planets and moons now carry the life, sentient life, civilization and planet class symbols when those Menu layers are on.
+
+### Changed
+
+- **Body-level symbols for the reasons to look (MAP.343).** The Life, Sentient life, Civilizations and World classes markers (off until chosen) used to mark only the star systems. With a system open, each planet and moon now carries the symbol of its strongest reason whose layer is on, as a star's mark does: inhabited, civilization, sentient life, life, habitable, barren, gas giant, then its class. A layer that is off lets the next reason name the body, where before a body whose strongest reason was off showed nothing. The system scene carries the four life scores, the timeline stage and the class for this; nothing else changes.
+
+## [8.0.2467] - 2026-10-29
+
+**Headline:** The planet and moon page is laid out as About, Habitability, Atmosphere and Composition, with a contents menu down the left side.
+
+### Changed
+- The "On this page" list is a menu down the left side of a wide page that stays in view, and a list under the title on a phone (UX.215).
+- A planet's or moon's Location is the first row of its At a glance table, and "Rendered example" is now "Sensor view" (UX.215, UX.216).
+- The zone reads "Ecosphere / Habitable Zone", "Hot Zone" or "Cold Zone" with the range of distances from the star it covers (UX.217).
+- The class letter is a link to what that class is (UX.218).
+- Atmosphere and Composition are headed sections with their tables; the air is a table of mole fractions with each gas's partial pressure, and the body's make-up is a table of mass shares (UX.219).
+- A short summary written from the data replaces the class description sentence; Life and Civilization and politics paragraphs show only when there is something to say (UX.220, UX.221).
+- The sections run About, At a glance, Summary, Life, Civilization, Habitability (PHI-6) with its radiation and survival equipment tables, Atmosphere, Composition, then Properties, each a heading in the contents menu (UX.222).
+
+## [8.0.2466] - 2026-10-29
+
+**Headline:** The Sector Map arrow-key test waits for the opening flight to land before it reads the scale, so it passes again.
+
+### Changed
+
+- **`test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale` failed on main (TEST.440).** Since the zoom redesign Z0 (MAP.333) a sector opens with a fly-in that lands after the page is ready, so the test read the scale (10 pc) before the landing and after the first key (1 pc) and called it a change. It now waits for the scale to hold still first. The map was right; the test was early.
+
+## [8.0.2465] - 2026-10-29
+
+**Headline:** The wheel, buttons and pinch zoom over one range in every view, so no stage ends the zoom.
+
+### Changed
+- **One zoom range everywhere (MAP.334).** The wheel, plus and minus, the slider and a pinch can take the camera from the whole galaxy in view down to 0.001 pc outside an opened system and 1e-10 pc (about a moon framed) inside one, whatever window, sector or system is on show. The end of a window's, a sector's or a system's own zoom is now only where it hands over to the next, and the camera goes on past it instead of stopping at a wall. Each wheel step still covers a share of the distance to the nearest thing under the pointer (a star, a body of the open system, the stars thickening along the line of sight, else the point of the focus plane), never closer than a clearance from it.
+
+## [8.0.2464] - 2026-10-29
+
+**Headline:** A standing class census draws planets and moons per star type and zone and flags a class share, a habitability colour or a life ceiling that leaves its stored range.
+
+### Added
+- **The class census (TEST.430, with TEST.315's class shares).** `src/tests/audit/prevalence.py` draws seeded planets and moons around M2V, K5V, G2V, F5V, A0V and giant stars in the hot, ecosphere and cold zones, and `src/tests/data/prevalence_expectations.json` holds a min and max for every class share, every Blue, Green, Yellow and Red share and every life ceiling share, each marked observed, researched norm or stand-in (here the prevalence before 4c, commit `0b4d0cc`, 200 draws per cell). It flags a share out of range, a class missing where expected, a class present where barred, and a draw over the time limit; a known fault carries its item (GEN.855 for the oxygen loss since 4c, GEN.829 for class T never drawn, GEN.866 for the interior-heat hang) and the report lists it apart. `python -m tests.audit.prevalence_baseline` re-baselines the file. Documented in `docs/reference/testing.md`.
+
+TODO items resolved: none (TEST.430 stays open for its later parts). Added: none.
+
+## [8.0.2463] - 2026-10-29
+
+**Headline:** An admin can generate a whole block from the Galaxy Map: the block's info card has "Generate this block", which starts the same job as `planetgen sectors --block` on the Generate page.
+
+### Changed
+- **Generate a block from the map (UX.127).** The info card of a block (3, 9, 27, 81 or 243 sectors a side) shows "Generate this block" to a signed-in admin. It asks first when the block is large or its size is not known, then posts the Generate page's new Block mode (`block_key`, `m.shell.band.wedge`) and lands on the job's progress. While another job is running the button is disabled and the card says which job and links to it. The Generate page itself takes the same Block mode as a post.
+
+## [8.0.2462] - 2026-10-29
+
+**Headline:** The Galaxy Map can mark the star systems that hold a world with life, with sentient life or with a civilization, each an optional marker beside the habitable worlds.
+
+### Changed
+
+- **Markers for worlds with life (MAP.311).** The Menu's Points of interest group has three new markers, all off until turned on (`show=marker-life`, `show=marker-sentient`, `show=marker-civilization`): Life (a world with any of the four life scores at 1 or more), Sentient life (the sentient score at 1 or more) and Civilizations (a timeline that reached a technological civilization). Each has its own sign (a leaf, a head and shoulders, a row of towers); a system with several is marked once, by the strongest, and its card lists every reason. They use the stored life scores as they are, so the number of worlds that qualify follows the generator. Migration 0173 (schema v173) fills the new rows of `system_interests` from the planets and moons already stored; nothing a generator draws changes. The Sector Map and System Map signs are not part of this change.
+
+## [8.0.2461] - 2026-10-29
+
+**Headline:** The climate draws test measures the starlight the way the generator does, so it passes again.
+
+### Fixed
+- **The test that checks a planet's stored temperature against its stored draws read the light of a circle (TEST.437).** The generator has used the light of an eccentric orbit, `a (1 - e^2)^(1/4)`, since GEN.727, so the test saw a temperature 0.03 K off for every class. The test now uses `orbit_elements.flux_distance_au`.
+
+## [8.0.2460] - 2026-10-29
+
+**Headline:** Flying to a place now lands where it was asked, the zoom slider is one scale from the galaxy to a moon, and the wheel no longer stops at the end of a window.
+
+### Changed
+- **Fly-tos are no longer held to the zone (MAP.333).** A region, label, star or system flown to lands at the distance asked for (a region of 3 pc is framed from a few parsecs, not from half the galaxy's width) and the view stays there instead of snapping back out after the flight. Only the galaxy's width and a floor of 1e-10 pc limit a fly-to.
+- **The zoom slider is one log scale (MAP.333).** The slider stands for the camera's distance on a single scale, the whole galaxy at the top and 1e-10 pc at the bottom, the same wherever the view is, instead of repeating from 63 to 100 percent at every level. Dragging it, the plus and minus buttons and a pinch now carry the view across the levels as the wheel does (the windows, the sector, the system) and are no longer stopped at the end of a zone or disabled during a flight.
+- **The wheel does not dead-end (MAP.333).** At the end of a window's range the wheel now goes to the parent window, or the window round the middle of the view when no block is under the pointer, instead of stopping.
+
+## [8.0.2459] - 2026-10-29
+
+**Headline:** A star picked on the Galaxy Map has a ☆ that bookmarks its system, the pointer reaches 10 px (22 px for a finger), and a crowded click lists the stars within reach.
+
+### Changed
+- **Bookmark a star (MAP.122).** The panel of a picked star carries the ☆ the system and sector panels have: it saves the star's system, and a second press takes it out. A charted star's system now travels with its node (`systems` beside `names`), which also brings back the "View system" link on those stars.
+- **Reach and a choice (MAP.122).** A click or tap picks the nearest star within 10 px of a mouse or 22 px of a finger, and when several stars lie inside that reach the panel lists the nearest few under it; pressing one shows that star instead.
+
+## [8.0.2458] - 2026-10-29
+
+**Headline:** A world with water vapour in its air is no longer too hot: the vapour thins with height, as it does on the Earth, and the greenhouse sums over that profile.
+
+### Changed
+- **The water vapour of the greenhouse thins with height (GEN.812).** `physics/infrared_opacity.py` took the surface's vapour pressure as the mixing ratio all the way up, so an Earth twin whose air held 0.77 of saturation at its own temperature came out at 319 K, not 288 K. It now thins the vapour with height (the humidity falls linearly with pressure, Manabe and Wetherald 1967; the temperature follows the troposphere), sums the water continuum over the layers and counts the H2O bands and far wing for the pressure each layer sits at. The Earth twin lands at 288 K, and the surface temperature of every body with water vapour in its air changes.
+- **A grey cloud depth for the longwave effect of clouds (GEN.812).** The module is a clear-sky greenhouse, but a body's albedo is its all-sky one, so one grey depth (0.35 at the Earth's surface humidity, scaled with the humidity, nil without liquid water) stands for the cloud. It is a stand-in with registry rows GH1 to GH4 in `docs/design/research/stand-in-values.md`.
+- **`heat_capacity_ratio` moved** from `atmosphere_state` to `mixture`, where the vapour profile and the closure both read it.
+
+generation-output: changed
+
+## [8.0.2457] - 2026-10-29
+
+**Headline:** The Galaxy Map can mark the star systems that hold a world of a chosen planet class, one optional marker for each class, off until you turn it on.
+
+### Changed
+
+- **Markers for chosen planet classes (MAP.220).** The Menu has a World classes group with one marker for each of the twenty planet classes, all off until chosen (`show=marker-class-K` in the address for class K). A system with a planet or moon of the class gets a disc with the class letter, hover text counting the worlds ("Fixture Eden, 2 class K worlds") and the class in its card. The marks come from the blocks of 3 shells or fewer, so they appear once the map is close enough to have a system's sector; a system a world reason that is on already marks (inhabited, habitable, gas giant) is still marked once. Migration 0172 (schema v172) fills the new `class-` rows of `system_interests` from the planets and moons already stored; nothing a generator draws changes.
+
+## [8.0.2456] - 2026-10-29
+
+**Headline:** The docs now say which API version each release speaks, what each version changed, and which clients work with it.
+
+### Added
+- **API compatibility data (API.4).** `docs/reference/api-versions.json` holds one row per API version (the release that first carried it, the routes and payload formats it changed, which clients speak it); `scripts/build_api_compatibility.py` builds `docs/reference/api-compatibility.md` from it (`--check` fails when the page is stale). `docs/reference/api.md` links the page.
+- **Release tooling keeps the history honest.** A change that raises `API_VERSION` must add its row to the history file and carry an `api-version: changed` line in its release note (`bump_version.py --check-pr` fails if only some go together); the stamp fills the row's first release.
+
+## [8.0.2455] - 2026-10-29
+
+**Headline:** The Generate page's log, the queue's run log and update.sh now read like the downloaded log: the same timestamps, severities and stage markers.
+
+### Changed
+- **Generate page log (UX.123).** The stage marks in a job's log, on the page and in the download, are now the logging standard's display lines, with the time and its zone (`2026-10-24 14:40:00 EDT INFO     job: === Stage 4 of 12: Scatter the massive stars ===`), as the records file holds them.
+- **Queue run page (UX.123).** Each line of a run's log is drawn with the same display line as the download's record; the run API's events carry the stage, stage count, unit and seconds fields a line is made of.
+- **update.sh (UX.123).** Its own output prints the same timestamp, severity, component and `=== Stage N of 9: ... ===` marker as the other logs, warnings and errors on stderr (`scripts/logrecord.sh`); a test checks the shell lines against the Python ones.
+
+## [8.0.2454] - 2026-10-28
+
+**Headline:** Whether a close-in sub-Neptune keeps or loses its hydrogen envelope now comes from the published mass-loss rate of hot planets and its star's XUV history, and the radius valley still lands where Kepler found it.
+
+### Changed
+- **Envelope loss (GEN.822).** Rows e1 (bare core) and e2 (keeps its envelope) of the atmosphere recipes weigh by the share of the starting envelope lost, integrated with the hydro-based rate of Kubyshkina et al. 2018 (wired from GEN.738) over the star's XUV history while the planet shrinks as its envelope thins. The energy-limited formula and its fitted efficiency are gone. The first ten million years strip every core under 15 Earth masses inside 30 days in this model, so the integration starts at 1 Gyr and the earlier loss is part of the starting envelope; that onset is a tuned stand-in (registry row AM81), stated as such in the design note.
+- **Radius valley.** The survey of GEN.509 uses the same loss; with the onset and a narrower core-mass spread (0.25 in ln, registry row RV2) both published valley numbers (slope -0.11, 1.84 Earth radii at 10 days) land inside 2 sigma for any starting envelope of 0.04 to 0.2, and the recipe bracket for `f_env0` is now 0.05 to 0.2. The old `eta` ridge is gone.
+- **Generated planets.** The mixture draw reads these rows, so which sub-Neptunes and super-Earths of classes S, V, I and T draw a bare core and which keep an envelope changes, and the air that follows with it (epoch 110, stage fill). Tests for the new module and the valley (including the stellar-mass slopes of GEN.722), registry rows AM81 to AM84 and RV1, RV2, RV4, and a design note (`envelope-escape-wiring.md`).
+
+generation-output: changed
+
+## [8.0.2453] - 2026-10-28
+
+**Headline:** The design notes now say what the generator does for the halo, the reach, the sector profile, the rate factors by place and the Wolf-Rayet stars.
+
+### Changed
+- **Galaxy notes (DOC.48).** The disk-density note says the outline reads the disk, the bulge and the components but not the halo, and where the halo still fills a cell; the coordinate-system note separates the reach, the outline and the sector profile and gives the 96-bit object ID layout; the globular-cluster note's status says what the component pass builds and what is still open (GEN.161 to GEN.163).
+- **System notes (DOC.48).** The interstellar-object-rates note lists the populations and the per-kind rate factors by place, how a nebula gets its stars, and the Wolf-Rayet state and class X ring nebula; the anomalies note points its Wolf-Rayet row at the build.
+
+## [8.0.2452] - 2026-10-28
+
+**Headline:** The Galaxy Map's legend now says what the purple wireframe cube outlines.
+
+### Fixed
+- **Legend line for the region outline (MAP.331).** While the wireframe round the charted region the view is in is drawn, the legend lists a line with a small outline square: "Outline: <region name> (9 sectors a side)", or "a charted region" where the region has no name yet. It goes when the outline does (a sector opened, the Charted regions layer off, a view outside any region).
+
+## [8.0.2451] - 2026-10-28
+
+**Headline:** The Galaxy Map's info card no longer cuts off its region line and buttons in a short window.
+
+### Fixed
+- **Info card sizes to its content (MAP.332).** A card that is too tall for the room above the zoom controls and the legend now takes the map's whole height (in a window wide enough: beside the zoom controls on the right, over the legend and scale on the left) instead of shrinking to a short scrolling box that hid its region line and buttons below the More row. Past the window's height it scrolls inside itself, and opening or closing More fits the card again. A narrow window keeps the card clear of the controls and scrolls it.
+
+## [8.0.2450] - 2026-10-28
+
+**Headline:** The planet prevalence checks draw their sample once and share it, and the draw itself is faster.
+
+### Changed
+- **The checks of `test_prevalence.py` share one drawn sample, and drawing a system is faster (TEST.392).** Each check drew its own 2,000 systems; they now draw each seed's sample once and share it, with the same sample size and the same limits. Under the draw, the band insolation is worked out for every latitude at once (it differs from the loop's by at most 9e-16, the last bit, far inside the nine digits the golden fingerprints keep; the golden battery digests still match), and a suit's shield answers repeated limits from a table.
+
+TODO items resolved: TEST.392. Added: none.
+
+## [8.0.2449] - 2026-10-28
+
+**Headline:** The update's final health check no longer calls a good site broken when Apache answers the bare address 127.0.0.1 with another virtual host's 403.
+
+### Fixed
+- **update.sh reported a 403 and a failed update on a working site (OPS.77).** The reload check asked `http://127.0.0.1/api/health`. On a server where Apache gives that bare address to a different virtual host (here one that refuses `/api/health` with its own 403 while the site's own name redirects and answers), the check failed for 20 seconds and ended the update, leaving the site closed. When the bare address does not answer, the check now also asks the site's own address from `base_url` in config.json (`.../api/health`), pointed at this machine and following the redirect to https, and passes on a 2xx answer, saying that the bare address was not the site. If neither answers, the warning names both addresses and their answers. A site whose `base_url` is localhost is checked as before.
+TODO items resolved: OPS.77 (TODO closes it after reading this). Added: none.
+
+## [8.0.2448] - 2026-10-28
+
+**Headline:** A free-floating planet's shielding depth and radiation score now declare their true units, and a Wolf-Rayet star can carry bodies whose air is drawn.
+
+### Fixed
+- **Free planet field units (TEST.425).** The shielding column of a rogue planet was declared in a unit only the database column table knew, and its radiation score was declared in radians because its name ends in `rad`. The unit registry now has a column mass unit (kg/m² and g/cm², 10 kg/m² to the g/cm²), the column table reads it from there, and the radiation score is declared a plain ratio like the other scores. Values and stored columns are unchanged.
+- **Wolf-Rayet hosts in the air recipes (TEST.425).** A Wolf-Rayet star (spectral type starting with W) had no host type in the mixture recipe tables, so drawing the air of a body around one raised an error. It takes the F rows, like the other stars hotter than the tables.
+TODO items resolved: TEST.425 (TODO closes it after reading this). Added: none.
+
+## [8.0.2447] - 2026-10-28
+
+**Headline:** Moons and rogue planets can have rings too.
+
+### Changed
+- **A moon may hold a ring system (GEN.836).** One moon in a hundred draws a ring by the same Roche-limit law as a planet, cold when its
+  parent is beyond the snow line. It shows on the moon's property sheet like a planet's.
+- **A rogue planet draws a ring system with no host star (GEN.836).** A rogue giant always has one, other rogue planets one in a hundred;
+  it keeps its ice when its effective temperature is below 170 K. Edges, mass, optical depth and ice share are on its property sheet.
+  Brown dwarfs have none. Schema v171 adds the columns to `rogue_planets`.
+
+generation-output: changed
+
+## [8.0.2446] - 2026-10-28
+
+**Headline:** The impact history, the thermosphere and the planet-survey modules take G, the Sun's mass and Earth's mass and radius from the shared constants.
+
+### Changed
+- **Typed copies of G, solar mass, Earth mass and Earth radius are gone (GEN.587, a further file group).** Impact history, the
+  thermosphere, the Kepler recovery and the radius-valley survey read `physics/constants.py` instead of their own rounded copies
+  (G 6.674e-11 becomes 6.6743e-11, the Sun 1.989e30 kg becomes 1.98841e30 kg, Earth 5.972e24 kg becomes 5.97217e24 kg). The last
+  digits of the impact-history escape speeds move, so this rides the generator epoch of the moon and rogue ring change.
+
+generation-output: changed
+
+## [8.0.2445] - 2026-10-28
+
+**Headline:** A planet's link in a search result row now opens the planet.
+
+### Changed
+- In the search page, a planet, moon, star or asteroid belt link in a result row opened a "not found" page while the system link beside it worked; every result row now builds the link from the object's own ID, the same way the Nearby page does (UX.232).
+
+## [8.0.2444] - 2026-10-28
+
+**Headline:** The search page and API filter and sort planets and moons by habitability colour, domains, life and food.
+
+### Changed
+- The search page and `/api/search` filter planets and moons by the overall PHI-6 colour, each domain's colour (Suitability among them), how much microbial, plant, animal or sentient life they have, and plainly whether they have life, food or a civilization; each filter shows as a removable chip (UX.214).
+- The planet and moon result tables sort by habitability, Suitability, microbes, flora, fauna and sentient life, worst first or best first, and show each score (UX.214).
+- The planet and moon lists link to that search page (UX.214).
+
+## [8.0.2443] - 2026-10-28
+
+**Headline:** Every planet and moon now knows how much of its time the star is up, how long its day is and how many hours of daylight it has, and a moon loses the time it spends in its planet's shadow.
+
+### Changed
+- **Day and night shares (GEN.767).** Worked out from the rotation, the orbit, the tilt and the star's size, with no draws: the share of the time the star is up at the equator and over the whole surface, the length of the solar day, the hours of daylight at the equator, the polar circle, and for a moon the share of its time in its planet's shadow (both day shares lose it). A world that turns once an orbit has no day, only a day side and a night side. Earth gets 50.15 percent at the equator and 12.04 hours of daylight; Io spends 5.3 percent of its orbit in Jupiter's shadow. The body's page shows them.
+- **Stored (schema 170).** `planets` and `moons` gain `day_share_equator`, `day_share_mean`, `parent_shadow_share`, `solar_day_hours`, `daylight_hours` and `polar_circle_deg` (NULL for a row made before this release).
+- Generator epoch bump (numbered at merge): new stored columns on every generated planet and moon.
+
+generation-output: changed
+TODO items resolved: GEN.767. Added: none.
+
+## [8.0.2442] - 2026-10-28
+
+**Headline:** A rocky body's stored heat flow and Urey ratio are now those at its star's final age, not the provisional younger age they were first made at.
+
+### Changed
+- **The heat is run again once the star's age is settled (GEN.763).** A star's age only rises after its planets and moons are made, but each body stored its heat flow and Urey ratio at the provisional age. Many bodies therefore showed a Urey ratio of exactly 1.0 (the mantle held at its ceiling) and a small moon showed 4.8. The life pass now runs `interior_heat.update_heat` on every planet and moon at the final age (no draws, so nothing else moves). Over 24 sampled systems the medians run from 0.78 (under 1e-4 Earth masses) to 0.49 (2 to 5 Earth masses), and one body ends above 1.0, a small moon whose mantle is still warming.
+- **The design note covers small and large bodies (GEN.763).** Section 3.2 of `docs/design/composition/interior-heat.md` has the sweep from 0.0004 to 10 Earth masses, why a ratio above 1 appears only while a mantle warms, and the bounds a test now holds.
+- Generator epoch bump (numbered at merge): the stored `urey_ratio` and `internal_heat_flux_w_m2` of most rocky bodies change.
+
+generation-output: changed
+TODO items resolved: GEN.763. Added: none.
+
+## [8.0.2441] - 2026-10-28
+
+**Headline:** The thorium to uranium ratio of a rocky body now follows the r-process history of its host's galaxy instead of a fixed scatter, so a younger star's planets are thorium-richer.
+
+### Changed
+- **Uranium from the r-process (GEN.759).** `radiogenic` now reads `rprocess_enrichment` (GEN.663): a body's uranium is its thorium over the ratio the r-process leaves, one production ratio drawn from 1.667 to 2.0 (Frebel 2007) times the enrichment of its host's birth gas in the disc of its galaxy (the host's age and the disc's star formation history). The typical star gives a Th/U of 3.2 to 3.9 in rock of the Solar System's age, around the bulk silicate Earth's 3.83. The old uranium scatter of 0.05 dex (a placeholder) and its constant are deleted. Potassium, a multiple of the uranium, and the heat and ground dose that read them move with it.
+- Generator epoch bump (numbered at merge): every rocky body's uranium, potassium, heat and ground dose can change a little.
+
+generation-output: changed
+TODO items resolved: GEN.759. Added: none.
+
+## [8.0.2440] - 2026-10-28
+
+**Headline:** A rocky world's mantle is no hotter than the melting curve of its own rock allows, and a body measures its interior heat against its own surface temperature.
+
+### Changed
+- **The mantle's ceiling is a liquidus, not a fixed 3,500 K (GEN.735).** A young mantle starts at the temperature its assembly heat gives and is held at the liquidus at the middle of the mantle (`a_l (p + p_l)^c_l` with Manske et al. 2025, arXiv:2506.18718 Table 1: 310.317, 29.102 GPa, 0.5337). That is about 3,100 K for the Earth and 1,900 K for a Moon-sized body, where every body had 3,500 K. A stiff mantle now leaves its ceiling sooner, so an Earth twin at 0.1 Gy gives 3 to 30 times the heat of 4.5 Gy (4 to 33 before).
+- **The body's own surface temperature (GEN.735).** The birth temperature and a mobile lid's drop use the surface temperature of the body once its climate is known, not a fixed 273 K. A mantle too cold to convect (`Ea / R T` over 600) loses no heat and warms with its own radiogenic heat until it does; a cold small body far from its star starts there.
+- **Not built:** the separate core temperature (Thiriet et al. 2019 was not readable). Generator epoch bump (numbered at merge): every rocky body's mantle temperature, heat flux and Urey ratio can change.
+
+generation-output: changed
+TODO items resolved: none (GEN.735 stays open for the separate core). Added: none.
+
+## [8.0.2439] - 2026-10-28
+
+**Headline:** A rocky world now has one tectonic regime, plate tectonics or a single rigid plate, and its interior heat, its magnetic field and its ground radiation all follow it.
+
+### Changed
+- **One regime, kept with the body (GEN.721).** Whether a rocky planet or moon has a mobile lid (plate tectonics) was decided twice by separate coin flips on the same chance, once by its magnetic field and once by its ground dose. It is now drawn once, after the hydrosphere, at the same chance (a liquid surface ocean and 0.5 to 5 Earth masses at 0.6, heavier at 0.3, any other body stagnant), stored as `lid_regime`, and shown on the body's page as "Tectonic regime". The dynamo's lifetime, the ground dose's felsic crust and the heat law all read it.
+- **The heat of a mobile lid.** `interior_heat` has a mobile-lid law next to the stagnant one: the plates carry the whole drop from the mantle to the surface, so at one mantle temperature a mobile lid loses about ten times the heat. An Earth twin ends at a mantle temperature of about 1,430 K with a mobile lid and 1,950 K with a stagnant one (the Earth's potential temperature is near 1,600 K). The mobile exponent (1/3) and critical Rayleigh number are stand-ins, labelled in the design note.
+- **Stored (schema 169).** `planets` and `moons` gain `lid_regime` (NULL for a gas giant and for a row made before this release, which keeps the heat flux of a stagnant lid).
+- Generator epoch bump (numbered at merge): the regime is drawn in the place of two other draws, so the run's later draws move, and every rocky body's dynamo, ground dose and heat flux can change.
+
+generation-output: changed
+TODO items resolved: GEN.721. Added: none.
+
+## [8.0.2438] - 2026-10-28
+
+**Headline:** A page that already has its own contents list no longer shows a second "On this page" bar.
+
+### Changed
+- **One contents list per page (UX.235).** The automatic "On this page" bar now skips a page that already has a contents list of its own (a navigation block with three or more links to sections on the same page, or any element flagged `data-own-toc`). Of the site's pages, only the admin Settings page showed two (its group list and the bar); it keeps its group list. Pages with none keep the bar.
+
+## [8.0.2437] - 2026-10-28
+
+**Headline:** When the Galaxy Map cannot name every sector, it names the heaviest ones first.
+
+### Changed
+- **Heaviest sectors first (MAP.322).** Sector names are offered in the order of the total mass of what each sector holds, heaviest first, so a crowded region names its densest sectors and a sparse one names them all. The sector and block stats the map is served now carry that total as `mass_kg` (from the stored sector and block mass sums).
+
+## [8.0.2436] - 2026-10-28
+
+**Headline:** A greenhouse model on real line data is built (not yet used by the generator): doubling carbon dioxide warms Earth by about a kelvin with its vapour held, and Titan's haze brings it to its measured surface.
+
+### Added
+- **Downloaded infrared line data (GEN.715).** `update.sh` now also fetches the ExoMol correlated-k tables of water vapour, carbon dioxide and methane (about 1.3 GB) and the HITRAN collision-induced absorption of 11 gas pairs (about 0.2 GB), reduces them to 6.5 MB of band tables in the data cache and deletes the downloads. Generation requires them like the other datasets; `--disregard-missing-data` takes the labelled stand-ins instead.
+- **A one-dimensional radiative-convective model (GEN.715, GEN.717, GEN.718).** `physics/radiative_convective.py` (the line opacity is `physics/line_opacity.py`) finds the surface temperature at which an air's adiabat, topped by a radiative stratosphere, sends the absorbed sunlight back to space, band by band and g point by g point, with Manabe and Wetherald's humidity, a water continuum, collision-induced pairs, and an optional share of the sunlight that a haze takes high up.
+
+### Changed
+- **The model is built but not wired.** `radiative_convective.warming` returns the surface temperature, the greenhouse factor G, the tropopause and the whole profile; `atmosphere_state.greenhouse_warming` keeps the grey closure of GEN.703 that the surface-air iteration calls several times per planet, because the new model takes one to several seconds a call. Checked, not tuned: a doubling of carbon dioxide with the vapour held warms 1.0 K (GEN.717), Titan with 60 percent of its sunlight absorbed in its haze sits at 93 K against the measured 94 K (GEN.718), clear-sky Earth at 276 K, Mars at 215 K, Venus at 711 K. Nothing the generator stores changes.
+
+### Fixed
+- **The moist adiabat took the wrong slope across the saturation corner.** A step that started unsaturated and crossed into saturation used the saturated slope for its whole length, so the top of the column came out up to 10 K too warm just below the corner and then fell as the surface warmed.
+
+## [8.0.2435] - 2026-10-28
+
+**Headline:** Ocean worlds hold their carbon dioxide in the ocean or the seafloor, and a dry planet is no longer given an ocean's worth of water vapour, so far fewer planets come out as steam worlds.
+
+### Changed
+- **The carbon of an ocean world goes into a sink (GEN.830, GEN.823).** A body whose ocean covers all its surface used to have no sink for its carbon dioxide, and a class O planet in zone e came out of the air solve at 9e9 Pa. The solve now picks the sink from the ocean: land weathering for a body with land, seafloor weathering for an ocean world, and the ocean's own carbonate chemistry for a world whose ocean floor is under the seal pressure.
+- **The air cannot take more water than the planet has (GEN.837).** The delivered water of the dry-planet recipes was 3 to 50 times the planet's own water, which gave a nearly dry class M planet 55 to 870 bar of steam at 620 to 843 K. Volcanoes now bring up at most 0.3 of the mantle's water (the share already used for water returned after an escape), and the hydrogen of methane, ammonia and hydrogen sulfide is limited with it.
+- Of 12 planets in each of classes M, N, O and P at zone e, the ones hotter than 500 K fall from 3, 2, 11 and 3 to 1, 0, 3 and 0; the median class O temperature falls from 1557 K to 283 K. The rest are sealed or carbon-rich worlds whose greenhouse takes them past the critical point of water; their steam envelope is the planet's own water and `test_planets` now bounds the air by it and not by a flat pressure.
+
+generation-output: changed
+
+## [8.0.2434] - 2026-10-28
+
+**Headline:** The Galaxy Map's Menu has a Points of interest group where each kind can be shown, pulled forward or hidden.
+
+### Added
+- **Points of interest group (MAP.306).** The Menu groups the inhabited, habitable, uninhabitable, gas giant and asteroid field layers under Points of interest. Each row has its on/off button and a Forward button: a kind pulled forward is drawn over the other marks, keeps its place when the map has to choose which marks to draw, and has its names offered first when names are cut. A crowd of marks takes the strongest state of its members. A row of All shown, All forward and All hidden sets every kind at once. The choice rides the address (`front=` lists the kinds pulled forward, with the usual `hide=` and `show=`) and is remembered in the browser for the next map that is opened without a choice in its address.
+
+## [8.0.2433] - 2026-10-28
+
+**Headline:** The property sheet test knows the stored ground-type mix is not a row on the page yet, so it passes again.
+
+### Fixed
+- **Property sheet coverage test (TEST.424, TEST.413).** The planet and moon ground-type columns (the stored mix of ground types, GEN.441) are listed with the reason they are not shown as rows yet, so the check that every column is on the sheet or says why passes. No page or generated value changes.
+TODO items resolved: TEST.424, TEST.413 (TODO closes them after reading this). Added: none.
+
+## [8.0.2432] - 2026-10-28
+
+**Headline:** A search that takes a while to prepare, such as all M class planets, now finishes and shows its results instead of preparing over and over.
+
+### Fixed
+- **A slow search no longer loops on "preparing" (UX.234).** A page that is slow to build is built by a queued job and shown when the job is done. When the page cache would not keep the finished answer (data changed while it was built, as it does during a fill, or Redis had no room for the cache), the page found nothing, queued the same job again and showed "preparing" again, for ever. A finished job now keeps its answer for the page that waited for it (five minutes), and the page shows it.
+- **A search waits for all its answers at once (UX.234).** The Search page needs eight answers (the facets and one per result list). It asked for them one after another, a new "preparing" screen for each. It now starts all eight together and waits for the slowest.
+TODO items resolved: UX.234 (TODO closes it after reading this). Added: none.
+
+## [8.0.2431] - 2026-10-28
+
+**Headline:** White dwarfs now cool along real model sequences, so a white dwarf's temperature, brightness and size depend on its age and hydrogen layer.
+
+### Changed
+- **A white dwarf's temperature, luminosity and radius come from the Bedard et al. 2020 cooling sequences (GEN.742).** A young white dwarf is hotter than before (up to about 110,000 K), a 10 billion year old one of 0.6 solar masses is about 3,000 to 4,000 K, and the radius no longer depends on the mass alone (a thin hydrogen layer cools faster and the core crystallises late). A white dwarf draws one more number, for a hydrogen or a helium atmosphere (80 percent hydrogen, as before). The sequences are the ones setup already downloads. A white dwarf above 1.30 solar masses and one older than the last model are held at the sequence's edge and say so in the star's state. A run that disregards missing data keeps the old power law as its labelled fallback. Design note: `docs/design/systems/white-dwarf-state.md`.
+- **A disc's solids follow the star's metal mass fraction over the Sun-like reference (GEN.464).** They followed 10 to the power [Fe/H], which is 1.7 to 3 times too low for a metal-poor star rich in alpha elements, so such stars' planets now get more solids. Metal-rich stars barely move.
+
+generation-output: changed
+
+## [8.0.2430] - 2026-10-28
+
+**Headline:** The temperature edges between a hot gas giant's atmosphere regimes now agree with the equilibrium solver the rest of the atmosphere chain uses.
+
+### Changed
+- **The edges of the hot-Jupiter recipe rows h1 to h3 are refreshed from the one equilibrium solver (GEN.723).** They were computed with the first equilibrium module, deleted in GEN.672: the water edge sat 9 to 19 K above the solver (0.4 to 0.6 percent) and the methane edge 1 to 2 K below it. A hot gas giant near an edge now takes one regime or the other with a slightly different probability, so a few drawn atmospheres change; the 100 K softness of the edges stays as it was.
+
+generation-output: changed
+
+## [8.0.2429] - 2026-10-28
+
+**Headline:** The Galaxy Map now shows inhabited, habitable and gas giant worlds without asking.
+
+### Changed
+- **Points of interest begin on (MAP.303).** The Menu's Inhabited worlds, Habitable worlds (Yellow or better) and Gas giants layers are on until switched off, so the symbols of those worlds, the crowd marks and the inhabited tokens on the regions show on a fresh map; Uninhabitable worlds and Asteroid fields stay off until asked for. A choice is kept in the address: `hide=` lists the default layers switched off and `show=` the others switched on.
+
+## [8.0.2428] - 2026-10-28
+
+**Headline:** On the Galaxy Map, symbols of interest that lie too close to tell apart are drawn as one with a count.
+
+### Added
+- **Crowded marks merge (MAP.305).** Star-level points of interest (inhabited, habitable, uninhabitable, gas giant, asteroid field) closer than 22 pixels on the screen are drawn as one larger mark that takes the best reason's symbol and shows how many it stands for. Hovering says "N points of interest"; a click opens a card listing every system in the crowd with its reasons (each a button that shows that system and flies to it) and a Zoom in on them button. Zooming in spreads the marks and the crowd splits. A black hole, the symbols on a system's own planets and moons, and a region's inhabited token never merge.
+
+## [8.0.2427] - 2026-10-28
+
+**Headline:** A normal fill now charts one whole named region: a random start begins at the middle of a region nothing is generated in yet, and "this region" fills the region around any place.
+
+### Changed
+- **Random-start fills chart whole regions (GEN.826).** A random start used to be any empty sector. It is now the anchor sector (the middle) of a region, the 9-block cell of about 780 sectors the galaxy map names, that has no generated sector yet, and the usual 12 pc sphere around it is generated, so the finished fill is one charted, named region. Where the middle of the drawn cell lies outside the galaxy's outline, or beyond `--max-shell`, the drawn sector starts the fill as before. Which sectors a fill takes changes with this; what a sector generates does not.
+- **`--region` and the Generate page's "This region" (GEN.826).** `planetgen sectors` and `planetgen galaxy` take `--region` with `--center-sector` or `--shell --band --wedge`: the center moves to the anchor sector of the region holding it and the 12 pc sphere about it is generated (it replaces `--radius-pc`, which it refuses; `--center-sector` without `--radius-pc` is now allowed with it). On the Generate page, "Sectors around a place" has a "This region" box for a named sector, an address or a position; ticked, the radius is not used. No generated value changes, no migration, no epoch.
+TODO items resolved: GEN.826 (TODO closes it after reading this). Added: none.
+
+## [8.0.2426] - 2026-10-28
+
+**Headline:** The day and night swing now reads as a clear range with plus or minus, and the equator's temperature shows its coldest and hottest hour with the stored value exactly in the middle.
+
+### Changed
+- **The swing reads as a range (GEN.795).** "Day and night swing" reads "±4.5 K, 9.07 K in all from the coldest hour to the hottest" on the property sheet, and the climate sentence of a planet's page says the same and gives the equator's low and high.
+- **A regional temperature shows its low and high (GEN.796).** The equator row reads "288 K, from 283 K to 293 K over a day" (the stored temperature is exactly midway, from one function of the value and the swing; a difference is never converted as a temperature). Polar, northern, southern, mean, day side, terminator and night side have no swing of their own stored yet, so their rows say "no day and night range stored for this place" until a producer for each is built.
+
+## [8.0.2425] - 2026-10-28
+
+**Headline:** Changing a planet's class in the admin editor works again for a planet whose spacing is checked against an asteroid belt.
+
+### Changed
+- **Class change spacing check (TEST.423).** The admin editor's spacing stand-in (`admin/edits._StandIn`) had no eccentricity, which the belt-separation rule has read since migration 0163, so the class check of a planet next to an asteroid belt raised an error instead of answering. The stand-in is a circular orbit now (eccentricity 0). `test_admin_edits::test_recommended_class_change_saves_and_validates` passes again.
+
+TODO items resolved: TEST.423. Added: none.
+
+## [8.0.2424] - 2026-10-28
+
+**Headline:** Population is a ranking slot on the server: worlds with people rank by head count, the rest by habitability score, and the charted-regions list can carry a region's population once head counts are stored.
+
+### Changed
+- **Population as a metric slot (MAP.318).** New `db/population_slot.py`: `rank_key` and `rank` put a world with a population (largest first) before every world without one, and rank the worlds without one by habitability score (so the inhabited label slice is the habitable worlds until head counts exist), with ties by name and id; `population_of` treats a missing, zero, negative or NaN value as no population; `region_totals(conn)` is the head count of each region, empty while nothing stores head counts (the world population simulation, POP.30, fills it by summing per 9-block). `GET /api/galaxy/charted-regions` gives a region a `population` only when it has a count, so a list column for it stays hidden until then. Nothing changes on the map today. `docs/reference/api.md` says it.
+
+TODO items resolved: MAP.318. Added: none.
+
+## [8.0.2423] - 2026-10-28
+
+**Headline:** On the Galaxy Map a world with an inhabited symbol is named before a habitable one when names must be chosen.
+
+### Changed
+- **Inhabited worlds first in the label budget (MAP.321).** The inhabited slice of the map's names now takes the inhabited tokens as well as the habitable ones, a name only for a symbol that is drawn, and an inhabited world (a star's token, or a planet or moon inside an open system) is named before a habitable one and its type served first, where it used to be ranked by its world count or by size with the other bodies.
+
+## [8.0.2422] - 2026-10-28
+
+**Headline:** From far out, a charted region with an inhabited world carries the inhabited symbol at its middle.
+
+### Added
+- **Inhabited tokens on the regions (MAP.321).** At galactic scale, with the Menu's Inhabited worlds on and Charted regions showing, each region with an inhabited world carries the inhabited symbol at the middle of its sphere in the colour of its best world's habitability tier. Hovering names the region and what lives in it ("3 inhabited worlds in 2 systems, best Blue"), a click opens the region's card, which gains an Inhabited line. The token gives way as the region's stars resolve, to the systems' own marks.
+- `GET /api/galaxy/charted-regions` gives a region with an inhabited world an `inhabited` entry (`systems`, `worlds`, and the best `score` and `tier` when one is scored).
+
+## [8.0.2421] - 2026-10-28
+
+**Headline:** A Wolf-Rayet star now has a composition record, its subtype choosing which surface mix it takes.
+
+### Changed
+- **Wolf-Rayet stars have a composition (GEN.831).** The star class W had no kind in the stellar composition, so asking for the makeup of a Wolf-Rayet star failed. It now has one: a WN star of subclass 2 to 5 is early (no hydrogen), 6 to 9 late (5 to 25 percent hydrogen), a WC star is 20 to 55 percent carbon, and a WO star, the last and hottest stage, carries carbon 30 to 55 and oxygen 10 to 40 percent by mass. The WO figures are a labelled stand-in (the source names the stage without fractions). No world changes and nothing is regenerated.
+
+## [8.0.2420] - 2026-10-28
+
+**Headline:** Every number on a planet's page now says what it is: a thin ice shell reads "1.09 m", the water share "400 ppm", life scores "3 of 9", and a day and night swing of 9.07 K is no longer shown as -264 °C.
+
+### Changed
+- **Small lengths pick a sensible unit (GEN.769).** The length ladder has millimeters, centimeters and meters (and inches for the Customary preference), so an ice shell of 0.00109 km shows as 1.09 m, 2.4e-7 km as 0.24 mm, and 3,500 km stays in km, in the sheet, the description and the map alike.
+- **Water rows state their unit (GEN.770).** The water share of the mass, the surface under ocean and the surface above sea level read in percent from 1 percent and in ppm below (0.0004 is "400 ppm", 0.71 is "71 %"); water activity reads "0.71 of 1 (life needs about 0.6 or more)" and the ocean pH "8.1 pH (7 is neutral)". The unit registry gains a fraction kind (`frac`, `pct`, `ppm`) and a fraction ladder.
+- **The 47 ratio and index rows of the property sheet state a unit or a scale (GEN.771).** Shares read in percent or ppm, the PHI-6 and suitability scores "n of 1", the life scores "n of 9", and optical depths, the greenhouse factor, the magnesium to silicon ratio, aluminium-26, the flare slope, a comet's eccentricity, a black hole's spin and the birth shell, band and wedge say what they are. "Heliosphere shielding factor" is now "Cosmic-ray boost from a squeezed heliosphere", and the radiation tolerance score, which was declared in radians, is a score of 0 to 1.
+- **A number alone is refused (GEN.772).** The sheet refuses a column declared as a plain ratio or index; a ratio in a description or the API cannot be built without a note saying what it is (an orbit's eccentricity reads "0.017 (0 is a circle, 1 is the escape orbit)"); a facts row that is a number alone fails the Document check; the PHI-6 score of every rating row and headline reads "0.82 of 1". Tests scan the sheet rows, the Documents of generated systems and phenomena, and the page of every kind of body.
+- **A temperature difference is its own quantity (GEN.773).** The day and night swing is a size, not a place on the scale: 9.07 K reads "9.07 K (9.07 °C, 16.3 °F)" with no 273.15 offset, and the row says it is the hottest to the coldest hour at the equator. The column is declared in kelvin of difference (`dK`).
+
+## [8.0.2419] - 2026-10-28
+
+**Headline:** The Galaxy Map's block totals now follow edits: changing a star, a world or a system in a generated sector, or deleting a system, updates that sector's figures and the blocks above it at once.
+
+### Changed
+- **Block totals after an edit (DB.83).** A sector's stored figures (systems, stars, mean temperature, luminosity and age, summed luminosity, habitable worlds) were stated once, when the sector was generated, so an admin edit of a star or a world, or the deletion of a system, left them and the block totals above them (which the map's far zoom levels and the charted share of the regions read) stale until `fill-block-totals`, which only adds up the same stale figures. `db.edits.save_system_edits` and the system delete now call `store.refresh_edited_sectors`, which states the sector's figures again from its rows and refreshes the chain of blocks (and the region) above it, in the edit's own transaction. A sector that is not a generated grid cell is left alone. Sector generation, a visit, a regenerate and a sector delete already refreshed the blocks and are pinned by tests now. `docs/design/architecture/architecture.md` says what keeps the totals true.
+
+TODO items resolved: DB.83. Added: none.
+
+## [8.0.2418] - 2026-10-28
+
+**Headline:** A test now holds every body's stored density, scale height, greenhouse and albedo to its stored air.
+
+### Changed
+- **The stored air follows from the mixture (GEN.423, DB.67).** The molar density, density, scale height and greenhouse multiplier a planet or moon stores were already worked out from its stored gases (GEN.411, GEN.412, GEN.422); a test over generated planets, giants and moons now fails if any of them stops following from the mixture. Nothing about a world changes and nothing is regenerated.
+
+## [8.0.2417] - 2026-10-28
+
+**Headline:** Every gas the planet descriptions name now comes from the gas table, and the atmosphere text is written only from the stored mixture.
+
+### Changed
+- **One name for every gas (GEN.415).** The atmosphere text, the habitability pages, the class rules and the filter rows now take a gas's name from the gas table, so the same gas is never spelled two ways (the class rule pages said "water vapour" where the rest said "water vapor").
+- **A planet class no longer carries a gas phrase.** The twenty classes said "a mix of hydrogen, helium, and hydrocarbons" and the like, words no gas table knew ("sulfides", "mineral dust", "trace elements"); they now say only whether the class has air, and the text of a body's air is written from the gases it really holds (the four largest from 1 percent, the two largest traces from 0.01 percent). A body's description reads exactly as before; nothing is regenerated.
+- A test builds a planet of every class and zone and checks that the text names only gases the body holds above those shares, under the table's names, and that the composition table and the pressure agree with it.
+
+## [8.0.2416] - 2026-10-28
+
+**Headline:** Inside an open system the Galaxy Map's world symbols move from the star onto the planets, moons and belts themselves.
+
+### Added
+- **Body symbols at the system level (MAP.321).** With a system opened in place, each planet and moon carries the symbol of what it is (inhabited, habitable, uninhabitable, gas giant, coloured by habitability where it has a score) and the belt an asteroid-field symbol, by the same Menu layers as the stars' marks; the star no longer repeats its own while they show. The symbols ride the bodies as they orbit, a click selects the body (a belt shows a card of its edges) and the hand-off between star and bodies has a gap, from 6 system radii in to 10 out, so a resting camera does not flicker.
+- `GET /api/systems/<id>/scene` gives a planet or moon `body_type`, `phi4` and `tier`.
+
+## [8.0.2415] - 2026-10-28
+
+**Headline:** Seventeen tests that failed on main (TEST.416, TEST.421, GEN.847) now fit the ground dose and the habitable-world scores as they are; the generator itself was right.
+
+### Fixed
+- **Ground dose tests failed on main (GEN.847, TEST.416).** `radiation.ground_dose_msv_yr` has taken the `(K, Th, U)` ppm of the ground's rock since GEN.441, and the generator passes it exactly that (`radiation._ground_dose`, `rogue_habitability.values`); `tests/test_habitability_explain.py` still passed the old felsic fraction, 0.3, so ten tests (and one in `test_habitability_world`) failed with "float object is not iterable". The tests now pass the upper continental crust's `(K, Th, U)`. A new test in `test_radiation.py` runs a real generated world through `generate_dose` on felsic and on ultramafic ground and checks that the dose is finite and larger on the felsic rock. No generated value changes.
+- **Habitable-count tests could not find a Green world (TEST.421).** `test_migration_habitable_worlds._fill_one_sector` searched 120 seeds for a drawn world that scores Green, which the generator no longer produces in that search; it now stores the scores itself (one planet Green, the rest Red), so the counts, the blocks above and the v135 migration are tested whatever the generator draws. No assertion was loosened.
+TODO items resolved: GEN.847, TEST.416, TEST.421 (TODO closes them after reading this). Added: none.
+
+## [8.0.2414] - 2026-10-28
+
+**Headline:** The map now keeps the total mass of every generated sector, block and named region, so a region can be told apart by how much matter it holds.
+
+### Changed
+- **Stored sector mass (DB.108).** Every generated sector now stores the summed mass of its stars, planets, moons, asteroid belts, comets, black holes, neutron stars, quasars, rogue planets, interstellar comets and asteroid fields, in kilograms (`sector_stats.total_mass_kg`; nebulae and supernova remnants are diffuse gas and are not counted). Each block of the map's block grid and each region stores the sum of its sectors (`galaxy_block_stats.mass_sum_kg`, `region_stats.mass_sum_kg`). The figures are kept up to date whenever a sector is saved or deleted, in any order and to the same bits, by the code that keeps the block totals, and `planetgen fill-block-totals` makes them again. A sector that holds a body with no stored mass (a comet or asteroid body saved before its mass was recorded) is left empty and listed in the log, never guessed, and counts as nothing in the sums above it. Migration 0168 fills every figure for the sectors a database already holds. Nothing shows it yet, and no generated value changes.
+
+## [8.0.2413] - 2026-10-28
+
+**Headline:** The Galaxy Map can mark systems with inhabited worlds, in the colour of their habitability, ahead of every other kind of world.
+
+### Added
+- **Inhabited worlds as a reason for a mark (MAP.321).** The Menu has an Inhabited worlds layer (a world whose timeline reached a technological civilization, or with a colony on it, as the system page decides it), off until asked for. Its symbol is coloured by the best habitability among those worlds and takes the star's mark before a habitable world's, a barren one's, a gas giant's or a belt's; the infobox lists them all.
+- Migration 0167 fills the reason from the planets, moons and colonies already stored (no epoch); adding, changing or removing a facility keeps a system's rows right.
+
+## [8.0.2412] - 2026-10-28
+
+**Headline:** A table whose clustered index has a page the server cannot read can now be rebuilt in two steps with `planetgen repair-db --salvage` and `--reload`, and the rows the page took come back from the parity file.
+
+### Changed
+- **`planetgen repair-db --salvage TABLE` and `--reload TABLE` (DB.48).** With the server started with `innodb_force_recovery = 1` and the website and generation stopped, `--salvage` dumps every readable row of the table to a file (exactly, nothing rounded), then drops the table and makes it again empty. After a normal restart `--reload` inserts the rows back with their ids, checks the count, and runs the sector repair, which rebuilds the sectors that lost rows from the parity file. It refuses, changing nothing, when the table cannot be read and the server is not in force recovery, when a dump is already waiting, or when a normal server counts other rows than were dumped. An interrupted reload is finished by running it again. `--restore-sectors` (with `--reload sectors`) also puts back sector rows the parity file holds and the table lacks. `repair-db` now names the unreadable tables when it lists unreadable sectors. Only the tables a sector's checksum covers can be rebuilt this way.
+- `repair-db` can rebuild a sector whose own `sectors` row is gone (it puts the row back first).
+
+TODO items resolved: DB.48. Added: none.
+
+## [8.0.2411] - 2026-10-28
+
+**Headline:** The Galaxy Map can mark systems with barren worlds and asteroid belts too, each star showing the symbol of its best world.
+
+### Added
+- **Two more reasons for a mark (MAP.321).** The Menu has Uninhabitable worlds (a scored rocky world below the Yellow floor, in brown) and Asteroid fields (a system with a belt, in grey) beside Habitable worlds and Gas giants, each off until asked for. A system with several is drawn once, with the symbol of its best world: a habitable world before a barren one before a gas giant before a belt, and its infobox lists them all.
+- Migration 0166 fills the two reasons from the planets, moons and belts already stored (no epoch).
+
+## [8.0.2410] - 2026-10-28
+
+**Headline:** `planetgen repair-db` rebuilds damaged sectors from the parity file, so a flipped value or a lost row in a sector can be mended instead of regenerating the sector.
+
+### Changed
+- **`planetgen repair-db [--shell N] [--sector SHELL BAND WEDGE] [--dry-run]` (DB.47).** Finds the sectors whose rows no longer hash to the checksum sealed for them and rebuilds them from their group in the parity file (up to two damaged sectors of a group at once with the default settings). The rebuilt block must hash to the stored checksum before anything is written, the rows are updated, inserted or deleted in one transaction, and the sector is checked again before the commit. The columns the orbit update rewrites are left alone on every row that still exists. A sector the parity cannot mend (a record behind the database as well, a sector in no group, more damage than parity blocks) is listed with the reason and left as it is, and the command exits 1; a table the server cannot read is DB.48's case. A parity file that is itself damaged is made again from the database. `--dry-run` writes nothing.
+- A sealed sector that no longer hashes to its checksum is never taken into the parity file (`protect_sector`, so `refresh-parity` and the save hook leave it for `repair-db`): the sweep would otherwise have recorded the damage as the truth.
+
+TODO items resolved: DB.47. Added: none.
+
+## [8.0.2409] - 2026-10-28
+
+**Headline:** The star glow now fades out much sooner, so blurred stars no longer leave huge faint halos over most of the screen.
+
+### Fixed
+- **Star glow halos grew huge when stars were blurred (MAP.330).** The glow of a block of unresolved stars began to fade only when the block was 100 pixels across and was drawn up to 220 pixels in radius, so faint halos covered most of the screen. It now begins to fade at a radius of 30 pixels, on a steeper curve, is nearly gone at four fifths of the way and is zero by 130 pixels, and a halo is never drawn larger than that.
+
+## [8.0.2408] - 2026-10-28
+
+**Headline:** The Galaxy Map can mark the systems that hold a gas giant or a Yellow-or-better world, each with a reason you can read in its infobox.
+
+### Added
+- **System interests (MAP.305, MAP.303).** A new `system_interests` table holds one row per star system and reason (`habitable`: a planet or moon scoring Yellow or better, `gas-giant`: a gas giant planet), with the count of bodies and the best habitability score. Each reason is one entry of the registry in `db/interests.py` and one in the map's `INTEREST_REASONS`, so adding a reason needs no change to the table, the writers, the query or the node. The Galaxy Map has a marker kind for each reason (off until asked for in the layers menu); a system with several reasons is drawn once and its infobox lists them all. The infobox line carries the tier of the best world ("2 habitable worlds, best Green").
+
+### Changed
+- The habitable-world marks now include Yellow worlds, not only Blue and Green ones (the Blue/Green rule for a habitable world, GEN.643, is unchanged).
+- The map's node payload carries `interests` in place of `worlds` (tile format 7).
+- Schema v165: `system_interests` replaces `habitable_systems` (migration 0165 fills it from the stored planets and moons; no epoch, no regeneration).
+
+## [8.0.2407] - 2026-10-28
+
+**Headline:** An optional parity file beside the database can now rebuild a damaged sector: it is kept current as sectors are saved, edited and deleted, and `planetgen refresh-parity` builds it for a galaxy made before.
+
+### Changed
+- **The parity file (DB.46).** With the new setting `parity.enabled` on (off by default; `parity.dir`, `parity.group_size` 32 and `parity.parity_blocks` 2 are the others), a log of Reed-Solomon parity records is kept outside the database for groups of up to 32 sectors of about the same size that sit far apart in sector id, so that two damaged sectors of a group can be rebuilt from the rest (the rebuild is DB.47) at about 7 percent of the sectors' size in disk space. Every save, edit and deletion commits first and then updates the parity (`Connection.after_commit`); a sector whose parity is behind is reported as unprotected by `check-db`, never as damaged, and a record behind the database is made again, not treated as damage. A sector whose group has a damaged member is left alone.
+- **`planetgen refresh-parity [--compact] [--limit N]`** makes the file current for the whole database (marked and never-sealed sectors, sealed sectors the file lacks, members whose sector is gone) and `--compact` drops the dead space an append-only log leaves.
+- `sector_export` writes a sector as bytes (every covered row, ids included, in the checksum's own encoding) and reads them back, so a rebuilt block can be turned into rows with their ids; `storage_checksum.checksum_of` takes rows from either.
+- The design note (`docs/design/operations/db-check-and-parity-repair.md`, 5.10) records what was built and where it differs from the sketch.
+
+TODO items resolved: DB.46. Added: none.
+
+## [8.0.2406] - 2026-10-28
+
+**Headline:** Building the nebula blocks of the Galaxy Map needs about a seventh of the memory.
+
+### Changed
+- **The nebula block totals are arrays, and a level's rows are made as they are written (PERF.193).** `fine_cover` and `roll_up` kept the cubic parsecs of nebula volume in each block in Python dictionaries (several million entries at the finest level, each rolled up through five levels), and `level_rows` then made a dictionary for every block of the level at once. They now keep sorted arrays of the packed block keys and their totals, add a level into the next with one array pass, and `LevelRows.blocks` makes a block's row only when it is read, so the writer holds a batch of rows instead of the level. A test galaxy of 100,000 nebulae (7.7 million block rows) peaked at 6.0 GB before and 0.8 GB after, with the same rows, and took 127 s instead of 232 s. The numbers written are unchanged.
+
+TODO items resolved: PERF.193. Added: none.
+
+## [8.0.2405] - 2026-10-28
+
+**Headline:** `planetgen benchmark --suite --keep` now leaves the scratch databases after a run that succeeded.
+
+### Changed
+- **The benchmark suite honours `--keep` on a successful run (PERF.175, bug).** The flag was accepted, but the suite dropped its scratch databases whenever every step finished, so `--keep` only ever did what a failed run already did. It now keeps them on success too and says which two to drop when done; a run without `--keep` still drops them, and a run with a step that failed or stopped still keeps them for `--resume`.
+
+TODO items resolved: PERF.175. Added: none.
+
+## [8.0.2404] - 2026-10-28
+
+**Headline:** A work unit no longer runs the whole database schema again when it connects.
+
+### Changed
+- **A connection skips the schema statements when the database is already at the current version (PERF.174).** Each queued work unit is a new process, and the first connection of every process ran `schema.sql` (ten-odd `CREATE TABLE IF NOT EXISTS` statements and the views, under the schema lock) to find nothing to do: 861 times, about 130 s of server time, in the 617 s band step of the benchmark suite, and about 32,000 such statements in one four-minute scatter. A connection now reads the stored schema version first and applies the schema only when it is not the code's own. A new database, and one behind the code, are handled as before.
+
+TODO items resolved: PERF.174. Added: none.
+
+## [8.0.2403] - 2026-10-28
+
+**Headline:** The stars, planets and moons of a system you open in the Galaxy Map's sector now turn slowly on their axes, and a Spin switch in the Menu holds them still.
+
+### Changed
+- **Bodies turn in the sector's open system (MAP.328).** Each sphere turns about its stored axis at the one shared rate of the System Map (no faster than one turn in 20 seconds, no slower than one in 10 minutes), a retrograde body the other way. A body with no stored rotation period stays still; no star has one stored yet, so the stars stand still for now.
+- **A Spin switch in the Menu.** The same standing preference as the System Map's Spin switch, and the reduced-motion setting still holds everything still. The galactic views turn nothing.
+
+## [8.0.2402] - 2026-10-28
+
+**Headline:** The Galaxy Map marks every charted region as a soft sphere colored by how much of it is charted, names it, frames the region you are in, and lists them all in the Menu.
+
+### Changed
+- **Regions are what the whole-galaxy view shows (MAP.316).** Every region with at least one generated sector, however little, is a soft sphere at its extent: cool blue for a lone sector, teal, then gold and amber the more of it is charted. The spheres fade as you come in and the region's own stars take over. No sector box is drawn with them. A layer of the Menu ("Charted regions"); `hide=regions` in the address turns it off.
+- **Clicks on a region.** Hovering a sphere names it, a click shows how much of it is charted with a Fly to region button, and a double click flies to it.
+- **A charted-regions list in the Menu.** One button a region ("Fardoo Beez Region, 14 percent charted"), sorted by share charted or by name, the always-available way to reach known space.
+- **A frame round the region you are in (MAP.327).** In the galactic view the same locked wireframe that frames an opened sector stands round the charted region the view is in, with nothing dimmed.
+- **New endpoint.** `GET /api/galaxy/charted-regions` lists the regions with their extents, shares and names.
+
+## [8.0.2401] - 2026-10-28
+
+**Headline:** A world whose air lets no visible light down no longer stops generation; it gets a defined colour.
+
+### Fixed
+- **A dense steam world no longer crashes its sector (GEN.844).** The atmosphere colour of a body whose air is so thick or absorbing that no visible light reaches the ground raised "the spectrum has no light between 380 and 780 nm" and stopped the whole sector build (about 1 in 20 sample sectors). Such a body now takes the colour of the light its air sends back out, and black on the star's chromaticity if it returns none. Every other body's colour is unchanged. The fallback is a modelling choice for the physics lane to confirm.
+
+## [8.0.2400] - 2026-10-28
+
+**Headline:** The Generate page has a task that brings a stored galaxy to the running generator epoch, showing what it would redo before anything runs.
+
+### Changed
+- **"Bring the galaxy to the running generator epoch" on the Generate page (GEN.764, step 4).** The task page reads the galaxy (changing nothing) and says what a run would do: the stages that are behind, the first sectors it would generate again and how many more, the sectors left alone because an admin edited them, and the species to make again. Review shows the one command (`planetgen bring-to-epoch`) and Run starts it as a job like any other, so it appears in the job list with its log and a stopped run is resumed by running the task again. The task refuses to start, and says why, when the plan was made under an epoch that changed the galaxy's shape (a full regeneration is needed), when a scatter is behind (draw it again first), when the admin audit log cannot be read, or when the galaxy is already at the running epoch.
+- `galaxy.bring_to_epoch.status` is the read-only look the page uses; `report_lines` takes a `limit` so the page names a few sectors of each kind and counts the rest.
+
+TODO items resolved: GEN.764 (step 4). Added: none.
+
+## [8.0.2399] - 2026-10-28
+
+**Headline:** The compact-object orbit tests draw a companion again.
+
+### Changed
+- **Compact-orbit tests repaired (GEN.832).** Four tests of the black hole and neutron star orbit laws forced a single star (GEN.719 made that mean no companion at all, so they drew no pairs); they now let the pair be drawn. No generation changes.
+
+## [8.0.2398] - 2026-10-28
+
+**Headline:** The Galaxy Map now names the charted regions as you zoom: the family far out, each region closer in.
+
+### Changed
+- **Region names on the Galaxy Map (MAP.314).** Far out, where the map is cut into big blocks, each charted family is named once with its Reach ("Fardoo Reach"), at the middle of the regions charted in it rather than the middle of the block; closer in, each charted region is named ("Fardoo Beez Region"); closer still, in the small blocks, no region is named and the info card of a pick says which region it is in. Space nothing has been charted in has no name, and the names are the same ones the info card shows. A click on a name flies the camera to its block, and a new "Region names" switch in the Menu's Labels group takes them away (the address keeps it).
+- **The map's data carries what the names need.** A 27-, 81- or 243-block node lists the charted regions inside it (name, family, centre, size, sectors charted), and a region's node says how much of it is charted; the tile format is now 7.
+
+## [8.0.2397] - 2026-10-28
+
+**Headline:** With a system opened on the Galaxy Map, the step buttons and keys take you to the nearest system that lies the way you point.
+
+### Added
+- **Stepping between systems (MAP.121).** With a system opened in place, the Menu's six step buttons (North, South,
+  West, East, Toward core, Away from core) and their keys (Alt+Shift+arrows, `[` and `]`) open the nearest system of the
+  sector that lies that way, keeping the scale you were on. "That way" is a cone of 60 degrees about the direction, read in
+  the galaxy's frame at the system you stand at, since the System Map has no grid to step through; a button is off where
+  no system lies that way. Systems across the sector's edge are not offered yet.
+
+## [8.0.2396] - 2026-10-28
+
+**Headline:** The test that opens a sector by zooming in no longer fails when the camera comes up to a neighbouring sector.
+
+### Fixed
+- **A flaky browser test (TEST.419).** `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` zoomed in on one
+  sector and expected exactly it to open, but the view opens the nearest charted sector the camera comes up to (MAP.152),
+  and the sample database charts sectors side by side at the core, so a run where the view eased a little off the aimed
+  centre opened the neighbour. The test now holds the address and the panel to the sector that opened.
+
+## [8.0.2395] - 2026-10-28
+
+**Headline:** With a sector opened on the Galaxy Map, the step buttons and keys take you to the sector beside it.
+
+### Added
+- **Stepping from an opened sector (MAP.121).** The Menu's six step buttons (North, South, West, East, Toward core, Away
+  from core) and their keys (Alt+Shift+arrows, `[` and `]`) were off while a sector was opened in place. They now open the
+  sector across the wall in that direction, in one camera move with the address naming it, by the same step the wall icons
+  use. A button is still off where the wall faces nothing.
+
+## [8.0.2394] - 2026-10-28
+
+**Headline:** A galaxy now records which epoch each scatter, each sector's contents and each species was made under, so a later run can tell which parts are behind the code.
+
+### Changed
+- **Stage epochs are recorded (GEN.764, step 2).** Migration 0164 adds the `scatter_epochs` table (one row per kind of scatter: mass, luminosity, band, phenomena, nebula-field, with the epoch it was made under) and `species.generator_epoch`. The scatter passes write their row as they finish and the clears forget it; the population pass stamps each species with the running epoch. The plan (`galaxy_shape`) and the sectors already recorded theirs.
+- **An existing galaxy gets the epochs it can.** The migration gives each kind of scatter that has rows the plan's epoch, and each species the epoch of the sector its homeworld's system is in; it prints nothing it cannot know. Both new records are left out of the fingerprint.
+- **`planetgen.galaxy.epoch_record`** reads these records and, for an epoch, says which stages are behind (`behind(conn)`), using the stages each epoch affected (step 1). Nothing redoes a stage yet; that is the `bring-to-epoch` command, next.
+- The golden galaxy is read as written under schema 160 (`tests/golden_seed.py`, `GOLDEN_SCHEMA_VERSION`): a system row records the schema version that wrote it and the fingerprint reads it, so every migration would have moved the golden digests; now only a change of what the generator makes does.
+- `tests/test_scatter_epochs.py` and `tests/test_migration_stage_epochs.py` cover the records, the migration from v155 and the stale-stage report.
+
+TODO items resolved: none (GEN.764 continues). Added: none.
+
+## [8.0.2393] - 2026-10-28
+
+**Headline:** `planetgen bring-to-epoch` brings a stored galaxy to the running generator epoch without a full regeneration: it generates again only the sectors an epoch change altered and leaves edited sectors alone.
+
+### Changed
+- **`planetgen bring-to-epoch [--dry-run]` (GEN.764, step 3).** Reads the epoch each stage of the stored galaxy was made under and the stages the epochs since changed (`affects`). It generates again, in address order, every galaxy-placed sector whose fill is behind (the sector is deleted and made again from its address and the galaxy's seed, then the paths around it are settled), makes the species of an older population epoch again (a species edited by hand is kept) and runs the population pass. It says each sector and species step; `--dry-run` lists them and changes nothing; a sector that fails is reported and the others go on; running it again resumes an interrupted run, since each sector records its epoch when it is saved.
+- **Edited sectors are skipped and listed.** The admin audit log is the record of edits (a sector, system, star, planet, moon, belt, comet, facility or phenomenon edit in it): the sector is left alone with the actions named. An edit of an object since deleted cannot be traced to its sector, and a sector edited before the audit log existed looks unedited.
+- **Refusals say why.** A plan made under an epoch that changed the galaxy's shape needs a full regeneration (the epochs are named); a scatter made under an older epoch has to be drawn again first (`planetgen clear-scatter`, then `planetgen scatter`), because the sectors are filled from it. Neither changes anything.
+- `util.generator_epoch.epochs_changing(stage, recorded)` names the epochs after a recorded one that altered a stage; `galaxy.epoch_record.needs` is its public stale test. The page button and the queue run are the next step.
+
+TODO items resolved: none (GEN.764 continues). Added: none.
+
+## [8.0.2392] - 2026-10-28
+
+**Headline:** The admin statistics and queue tiles now say what they count, and every numeric setting names its unit.
+
+### Changed
+- **Admin tiles and settings units (UX.212).** The Stats page tiles read "12 sectors", "3,456 systems", "2 names" instead of a bare number, and the Queue page's "Workers active" and "Runs live" tiles read "4 workers" and "1 run". The nine numeric settings that had no unit (database port, the three proxy counts, the two password hashing figures, cached answers, finished jobs kept, settings file version) now carry one. Tests pin both: no tile is a bare number, and every numeric setting has a unit.
+
+## [8.0.2391] - 2026-10-28
+
+**Headline:** Opening a sector on the Galaxy Map dims the space around it, frames it with a fixed wireframe, and puts a labelled icon on each wall that leads to the next sector.
+
+### Changed
+- **The rest of the map is dimmed (MAP.327).** With a sector open in place the stars outside it are drawn at 30 percent, with no glow, no names and no comets, rogue planets or black holes, so the sector reads on its own.
+- **A locked frame.** A wireframe round the sector's cell stays where the cell is as the camera moves and the pointer passes.
+- **An icon on each wall that faces another sector.** At the centre of each such wall (outward, inward, north, south, west, east; none where the galaxy ends) a labelled button names the neighbour; a click flies there and opens it. The icons stay the same size at any zoom. The region frame for the galactic view comes with the regions (MAP.316).
+
+## [8.0.2390] - 2026-10-28
+
+**Headline:** The Galaxy Map's node path has a benchmark that fails when a dive, a flight or a climb stalls.
+
+### Added
+- **A benchmark of the Galaxy Map over a large synthetic galaxy (MAP.249).** `large_site` serves 46,000 stars with
+  every node carrying its real star budget; `tests/test_web_browser_map_perf.py` dives from the whole galaxy to a sector,
+  flies across a level and climbs out, measuring each step's settle time, node requests and bytes, stars written to the
+  buffer, frame times and longest task, and fails a step over its limit. The numbers, the limits and a profile of where
+  the main thread's time goes are in `docs/design/interface/galaxy-map-performance.md`.
+
+## [8.0.2389] - 2026-10-28
+
+**Headline:** Every number an API request takes now states its unit in its name or its description, and a test keeps it that way.
+
+### Changed
+- **Units on API request fields (API.33, API part).** The request bodies' number fields that did not name a unit in their name (`position`, `num_orbits`, `type_id`, `sort_order`, `expires_days`, the worker `count`, the facility type fields' `min_value`, `max_value` and values) now carry a description starting "Unit:" in their schema, and the API reference has a section on the units of the numbers. `tests/test_api_field_units.py` fails over the schema of every body for a number with no unit.
+
+## [8.0.2388] - 2026-10-28
+
+**Headline:** The map now has its own symbols for points of interest: habitable, uninhabitable and inhabited worlds, gas giants, asteroid fields, sectors and regions, each its own shape, with a key.
+
+### Changed
+- **Seven point-of-interest symbols (MAP.320).** A habitable world, an uninhabitable world, an inhabited world, a gas giant, an asteroid field, a sector and a region each get their own vector symbol, told apart by shape and not only by colour, each with an accessible name. The habitable and inhabited worlds take the colour of their overall habitability score (Blue, Green, Yellow, Red); an uninhabitable world is brown, never red, and an asteroid field grey; both stand off every habitability colour in lightness and read against the page in the light and the dark theme.
+- **The Galaxy Map's habitable-world marker uses its symbol** instead of the old circle-in-triangle mark, and its legend line shows the symbol. The black hole marker is unchanged.
+- **A key to the symbols** sits under the Galaxy Map and on the habitability page (Map symbols), naming every symbol and what it marks. The other symbols are drawn once the maps carry the data that says which system or world gets which one (the point-of-interest registry, MAP.305).
+
+## [8.0.2387] - 2026-10-28
+
+**Headline:** Every sector can now carry a checksum of what it stores, and every change to a sector says so, so damage to stored data can be told from a normal update.
+
+### Added
+- **Storage checksum and the dirty flag (DB.45).** `planetgen/db/storage_checksum.py` works out a SHA-256 of a sector's stored rows (every column, ids included, floats by their exact bits, in a fixed order), leaving out what the daily orbit update rewrites, so a tick of the simulation never looks like damage. Every writer that changes a covered column (generation, renames, edits, facilities, regenerating a system, deleting a system, the nebula clean-up, the sector page's edits) marks the sector's `parity_dirty` flag in its own transaction without moving its change time, and a test lists every such writer so a new one cannot be added unmarked. `planetgen check-db storage` (also in the default list) reports a sector whose flag is clear but whose rows no longer match its checksum as damage, and the sectors with no current checksum as one warning. Nothing seals a sector yet: that comes with the parity update (DB.46/48), so today every sector is reported as not yet protected.
+
+## [8.0.2386] - 2026-10-28
+
+**Headline:** Stars on the Galaxy Map and the Sector Map now glow brighter instead of growing bigger.
+
+### Changed
+- **One star look for both maps (MAP.241).** Boss: "stars on the starmap should glow brighter but not be bigger". A star's halo now stays in a narrow band of size (8.5 to 11 px before the faint-end boost of MAP.87, which widens a dim star's halo a little) and its core stays small (1.6 to 2.4 px, a little larger for a larger star), where the halo used to run from 6 to 30 px and the core from 1.1 to 4.5 px. Luminosity is carried by the glow: its strength rises from 0.1 to 0.9, slowly for faint stars and steeply for bright ones, so a brighter star is still never drawn fainter than a dimmer one (the halo's light keeps rising with luminosity, as MAP.87 requires), and by the core's opacity. Colour still follows the blackbody temperature. The Galaxy Map and the Sector Map take the numbers from one place each side (`static/starlight.js` `starLight`, and its twin `starmap._star_light`), held to one table by `tests/js/starlight.test.mjs`; the far points (the Galaxy Map zoomed out) are unchanged. Tests: the table in `tests/test_js_unit.py`, the size-band and glow checks in `tests/js/starlight.test.mjs`, `tests/test_starmap.py` and `tests/test_star_type_rendering.py`, and a browser test on the dense fixture that two stars of very different luminosity are drawn the same size with different glow.
+
+## [8.0.2385] - 2026-10-28
+
+**Headline:** A magnetised world now has radiation belts, with a dose for any orbit inside them.
+
+### Added
+- **Trapped radiation belts (GEN.749).** A body with a dipole field holds an inner proton belt and an outer electron belt. Their edges come from its dipole moment, the star's wind (which sets the magnetopause) and its spin: a slow rotator is bounded by the wind, a fast one such as Jupiter by its spin. A body with air starts its belts above the air. The dose rate behind 100 mil of aluminium at any orbit follows from Earth's belts scaled by the field, and is checked against Earth (LEO, navigation orbit, geostationary, the slot between the belts) and Jupiter (the doses at Io, Europa and Ganymede, and the belts ending inside Callisto's orbit). Nothing is stored or drawn, so generated worlds are unchanged.
+- **Stand-in rows RB1 to RB8** in the registry (gap-filling plan 6.15 and the list of every stand-in), each with its source tier and tweak level; the belt intensity and profile are fitted to Earth and Jupiter (tweak level 3) until AP-9, AE-9 and the Juno and Galileo dose records replace them.
+
+### Changed
+- The radiation model's R18 now describes the built belts instead of the omission.
+
+## [8.0.2384] - 2026-10-28
+
+**Headline:** The rendered example on every star, planet and moon page now turns slowly on its axis.
+
+### Added
+- **The object pages' rendered example spins (MAP.328).** On a star, planet or moon page the picture turns about its own axis at the rate the shared spin law gives its stored rotation period (`static/spin.js`, the same law as the System Map and the 3D system view: no faster than one turn in 20 s, no slower than one in 10 minutes, a longer day never faster), the axis leaned by its stored axial tilt so a body tilted past 90 degrees turns backwards, and the light stays where it is so the day and night edge holds still while the surface turns. A body with no stored period stays still and shows no Spin button (nothing is made up). A **Spin** button under the picture (the System Map Menu's standing preference, kept in the browser) holds it still, and a reader's reduced-motion setting does too. The picture is worked out once per page and each frame is one pass of lookups, drawn about 30 times a second and only while the picture is on screen. Belts and comets have no picture yet (no look record), so they have nothing to turn; the black-hole, neutron-star and nebula views are separate renderers and not part of this change. Tests: `tests/js/spin.test.mjs` (the point-on-body geometry), `tests/test_web_browser_bodyview.py` (rate, direction both ways, still body, star, switch, reduced motion).
+
+## [8.0.2383] - 2026-10-28
+
+**Headline:** Flying to a named region on the Galaxy Map frames the whole charted region in the window.
+
+### Added
+- **A charted region's node carries its extent (MAP.319).** The node of a 9-block with a generated sector has `extent`: `{"centre": [x, y, z], "radius"}` in parsecs, the bounding sphere of its largest connected clump of generated sectors and never under the 12 pc framing sphere (stored by GEN.827, now on the wire; no naming key needed). The tile format went from 5 to 6 so the stored nodes get it once.
+- **The region name in the info card flies to the whole region.** Its button now frames the region's extent with `flyToFit` (the sphere fills the smaller side of the window with 8 percent to spare, no sector boxes drawn) instead of opening a window on the block; the family name still opens its 81-block. The region's double click on the galactic map (MAP.316) calls the same flight.
+
+## [8.0.2382] - 2026-10-28
+
+**Headline:** The search for a planet's exobase can no longer run for ever on a bad input, the escape calculation is a little faster with the same results, and the class P versus class M temperature test no longer times out.
+
+### Changed
+- **The exobase search is bounded (GEN.841).** `thermosphere.exobase` stepped upward until the air thinned out or the height reached ten radii, with no other end: a NaN temperature made every comparison false and the loop never stopped. It now stops after 200,000 steps (the longest real search over the bodies swept takes about 15,000), and a NaN, infinite or non-positive input is an error with the inputs in its message. The diffusion parameters and molar masses are cached and the diffusion limit takes the mean mass its caller already has. The shares kept of 120 random airs are identical to the last bit, so no generated value changes.
+- **The class P versus class M temperature test fits its time (TEST.410).** Each rocky planet is a solve of its air (about 2 s), so 300 of each class took over 900 s and timed out. It now compares 40 of each (medians 300 K and 238 K over the first 40 of a sample of 60; 312 K and 245 K over all 60) and takes about 2.5 minutes. No generated value changes.
+
+## [8.0.2381] - 2026-10-28
+
+**Headline:** The Galaxy Map's info card says which named region a pick lies in, and its names fly you there.
+
+### Added
+- **A "Region" line on the Galaxy Map's info card (MAP.315).** Picking a sector, a sector cell, a block of 9 sectors or fewer, a star, a system with habitable worlds, a black hole, neutron star or quasar, or a nebula adds "Region: Fardoo Beez Region (in Fardoo Reach)" under its figures. The region is the 9-sector block the point lies in and the family is the 81-sector block that holds it; each name is a button that flies the camera to that block. A point in a block with nothing generated in it has no name on the wire (API.35), so the line stays out of the card. The name is looked up from the block's node the first time a card needs it (the nodes the view already holds, then the stored ones, then one request), and the card fits itself again when it arrives. `tests/test_web_browser_fixture_maps.py::test_galaxy_map_infobox_names_the_region_and_flies_to_it` pins the line, both flights and the absent case.
+
+## [8.0.2380] - 2026-10-28
+
+**Headline:** The tide of a body's real orbit heats it and wears down its spin: Io-like moons melt and radiate, Mercury-like worlds are caught in a resonance, hot Jupiters lock, and the Moon-like ones stay cold.
+
+### Changed
+- **Tidal heating comes from the orbit's real eccentricity (GEN.737).** A rocky or icy planet or moon is heated by the eccentricity tide
+  of the orbit stored with it (Peale, Cassen and Reynolds 1979), from the eccentricity of GEN.727. The drawn forced eccentricity and the
+  random 1 to 50 times resonance boost of small icy moons are gone, and so is the tide of an icy moon only: planets and rocky bodies have
+  one too.
+- **A rocky body's rheology has two states.** Solid, its Love number comes from its rigidity (the Moon's 0.021) and Q is 100, which gives
+  the Moon 2e8 W. If that heat is at least the body's own and would melt its mantle, the melt erupts and carries the heat out, the mantle
+  holds the melt temperature and the partly molten body is flexed far more: Io comes out at 9e13 W, 2.2 W/m2.
+- **The heat is stored and counted.** The tide goes into the interior heat model (a heat source of the mantle, and the melt state), is
+  stored in `tidal_flux_w_m2` for every rocky and icy planet and moon, and is added to the body's own heat flow in the habitability
+  energy term and the ice-shell thickness. The own heat flow (`internal_heat_flux_w_m2`) and the Urey ratio leave the tide out.
+- **Enceladus makes the tide alone.** Its equilibrium tide is about 0.4 GW; the 16 GW it radiates is an open problem in the literature
+  that the old boost hid.
+- **A planet's day is its birth spin worn down by tides (GEN.731).** A rocky planet is born spinning at the rate and tilt the giant
+  impacts that built it leave (Kokubo and Genda 2010: Gaussian components, a median day of 2 to 3 hours, an isotropic axis), a moon or a
+  giant from its own range, and the tide of what it orbits then slows the spin for the age of the star, with the body's own Love number and
+  quality factor (the same that circularise its orbit). A close body ends locked, one turn per orbit with its axis upright; an eccentric
+  one is caught in a spin-orbit resonance (Mercury's 3:2 at its eccentricity of 0.2; windows from Makarov 2012); a far one keeps its spin.
+  A hot Jupiter locks in about a hundred thousand years; the Moon, in tens of millions. This replaces the flat 8 to 48 hour day of rocky
+  planets, so typical planetary days are now much shorter than the Solar System's (24 hours): the source simulates the last giant
+  impacts only.
+- **Stand-ins recorded.** Rows TH1 to TH10 and SP1 to SP10 in the stand-in registry (GEN.725).
+generation-output: changed
+
+## [8.0.2379] - 2026-10-28
+
+**Headline:** Planets and moons now travel on real ellipses, with seasons from the changing distance to their star.
+
+### Changed
+- **Planets and moons have an eccentricity and a mutual inclination (GEN.727).** A planet's eccentricity is drawn from the
+  Kepler laws (Van Eylen et al. 2019: a half-Gaussian of width 0.083 for a system of several planets, a mixture peaking
+  near 0.26 for a lone one), a regular moon's forced eccentricity from 0.001 to 0.01 (kept for good, as Io's is by its
+  neighbours) and a captured moon's from the thermal law, all cut where the orbit would leave the stable region (periapsis
+  outside the Roche limit, apoapsis inside the Hill sphere). Tidal circularisation over the star's age pulls close planets
+  and captured moons back toward a circle. Inclination is Rayleigh about a
+  plane shared with the others (mutual inclination 1.6 degrees over the square root of two).
+- **The state vector is the ellipse.** Position and velocity come from the orbital elements, the stored distance is the
+  semi-major axis, and the orbit update steps the state on its conic. The new `eccentricity` column (planets and moons,
+  migration 0156) is stored; older rows read as a circle.
+- **Light follows the orbit.** A body's mean flux is the circular value over the square root of one minus e squared, its
+  temperature range gains the swing between periapsis and apoapsis, and a lone star's `flux_variation` is that swing.
+- **Spacing, belts, moon stability and the system map use periapsis and apoapsis.** Orbit reach, the gap past a belt and
+  between planets, and the moon stability check use the ellipse; the system map draws an ellipse for each orbit and the
+  object page has an Eccentricity row.
+- **Stand-ins recorded.** The drawn laws and their source tiers and tweak levels are rows OE1 to OE11 in the stand-in
+  registry (GEN.725).
+generation-output: changed
+
+## [8.0.2378] - 2026-10-28
+
+**Headline:** The named regions now have their own design page and a check that neighbouring regions never share a name.
+
+### Changed
+- **Region names documented and audited (DOC.82).** A new page, `docs/design/galaxy/named-regions.md`, says how a region is named, framed and stored (the measured numbers behind the choices included), and the pages for the block ladder, object pages and the map wire format point to it. The release audits gain a check that no two neighbouring regions share a full name, a first word across two families or an ordinal inside one (`tests/audit/region_names.py`, with its own tests). Nothing visible changes and no generated value changes.
+
+## [8.0.2377] - 2026-10-28
+
+**Headline:** The Galaxy Map's data now carries the name of every charted region, ready for the map to label.
+
+### Added
+- **Region names on the wire (API.35).** The node of a charted region (a 9-block holding at least one generated sector) has `name` ("Fardoo Beez Region") and `parent` (its family, "Fardoo Reach"), and so does the stage that lists such blocks as children and the stage of the region itself. Names come from the gated phoneme codec under the galaxy's naming key, so a new key renames them; uncharted blocks, other block sizes and a galaxy with no key carry none. The format document and API reference say so, and `tests/test_region_wire_names.py` pins the fields.
+
+### Changed
+- **The stored Galaxy Map nodes are rebuilt once** (`TILE_FORMAT` 5) so they pick up the names.
+
+## [8.0.2376] - 2026-10-28
+
+**Headline:** The Galaxy Map's names are shared out between kinds of thing, so a crowded view names some of everything and a sparse view names everything it draws.
+
+### Changed
+- **A share of the names for each kind (MAP.317).** The number of names the map offers is the screen area over the area one name takes. Habitable worlds, uninhabited bodies (rocky or icy worlds, moons, gas giants, comets, black holes, neutron stars, rogue planets), stars, nebulae and regions each get a share (30, 25, 30, 10 and 5 percent; a kind with fewer things than its share hands the rest on), each ranked by its own measure (habitability, mass, size, brightness and mass, volume). Stars are taken a third each by size, brightness and mass. A name is only offered for something the map draws.
+- **Names for habitable worlds.** The habitable-world markers carry the system's name when they are drawn; the Menu's Labels group has a "World names" switch. A click on the name selects the system and flies to it.
+
+## [8.0.2375] - 2026-10-28
+
+**Headline:** Every planet and moon with air now stores the colour of that air, ready for the maps to paint with.
+
+### Changed
+- **The atmosphere colour is data (DB.96, schema v162).** `planets` and `moons` keep `atmosphere_colour`, the colour of the body's air as one sRGB integer, worked out from its air, its star, its ozone and its stored haze, dust and cloud (`physics/body_colour.py`; a gas or ice giant takes the colour of its air at the reference level). A body with no air stores nothing. The cloud cover it used is the `cloud_cover` the body already kept. The ground under the sky is still the labelled stand-in reflectance. Old galaxies keep an empty column until they are regenerated.
+
+generation-output: changed
+
+## [8.0.2374] - 2026-10-28
+
+**Headline:** The Galaxy Map can step to the region beside the one you are viewing, at the same level, without zooming out and back in.
+
+### Changed
+- **Step to a neighbouring region (MAP.121, first part).** When the map shows a window of blocks (not the whole galaxy and not an opened sector), the Menu has six step buttons, North, South, West, East, Toward core and Away from core, and the keys do the same: Alt, Shift and an arrow for north, south, west and east, and [ and ] for toward and away from the core. A step moves the window to the block of the same size beside the current centre in one camera move; the address carries the camera and the trail follows the new centre. A button is off where there is nothing to step to (past a pole, nearer than the core, or where nothing of the galaxy lies), and the help dialog explains them. The sector-level steps arrive with the Sector view's labelled wall icons (MAP.327), and the dimmed neighbours and the System Map's neighbours remain open on MAP.121.
+
+TODO items resolved: none (MAP.121 stays open). Added: none.
+
+## [8.0.2373] - 2026-10-28
+
+**Headline:** The admin pages and the system page's edit dialogs now use the same form fields as the rest of the site.
+
+### Changed
+- **Admin forms on the one form field (UX.126).** The admin hub (maintenance message, new API key with its scopes), the naming key on the stats page, the queue's worker count, the Facility types page (types and their fields), the system page's Place a facility form with its type fields, affiliation and ratings, and the Change star and "also delete facilities" boxes in the edit dialogs are now the site's labelled text boxes, number boxes, drop-downs and tick boxes (Shoelace elements with a plain twin for when scripts are off), in light and dark and at phone width. The Place a facility form keeps filtering hosts by placement and types by kind. Left as they were: the file pickers, the range slider, the multi-line options box, the hidden and submit fields, and the Settings page (ADM.103).
+
+TODO items resolved: UX.126. Added: none.
+
+## [8.0.2372] - 2026-10-28
+
+**Headline:** The map browser tests that failed on main (TEST.394, TEST.383) now fit the map as it is: a window that holds the header and the canvas, names kept off the spot a test points at, and the open Menu closed before a click on the map.
+
+### Fixed
+- **Browser tests of the fixture maps and the sector reach failed on main (TEST.394, TEST.383).** The page header grew, so the canvas sat partly below the 600 px window; the window is now 1000 by 800. Since MAP.298 a click or hover on a name label picks the label's item before the star or marker under it, so the tests that point at a star or a marker and are not about names carry the new `names_hidden` marker (registered in `pytest.ini`) and open their maps with `hide=label-system,label-star,label-object`; the sector-reach tests do the same in their address. The black hole test and the kinds test close the Menu before they click, and the dense-region test picks a spot to click on nothing where `elementFromPoint` is the canvas, as the open Menu and the selection's panel cover part of the map. The wheel anchor test measures the focus plane from the field of view instead of a fixed bound, so a wide canvas does not move it. The three fixture sites (`map_site`, `halo_site`, `dense_site`) patched the same API client functions for the whole module, so the site made last answered every later test's pages (a dense region's worlds in a plain test, a halo in a nebula test, which made the module depend on test order); each test now routes the client to its own site and puts it back (`map_site_support._Served.routed`), and the sites run for the whole session. No assertion was loosened.
+TODO items resolved: TEST.394, TEST.383 (TODO closes them after reading this). Added: none.
+
+## [8.0.2371] - 2026-10-28
+
+**Headline:** The numbers behind young star groups now each say where they came from and how far they were bent.
+
+### Changed
+- **Young-group stand-ins registered (GEN.797).** The share of massive young stars born in a group, the age limit, the decay times, the member counts, the group size, the speed spread and the cap on the remnant's size are now rows of the stand-in list, each with its source tier, tweak level, the test that would catch a wrong value and the result that would replace it. No generated value changes.
+
+## [8.0.2370] - 2026-10-28
+
+**Headline:** The map now keeps a record of each named region: how much of it is generated and the sphere that frames it.
+
+### Changed
+- **Stored regions (DB.107).** A new table, `region_stats`, holds one row for every region (a 9-block of the map's block grid) that has at least one generated sector: how many sectors are generated, how many the region could hold (so the share charted, about 14 percent for a standard fill), how many separate clumps they make, and the centre and radius of the sphere that frames the largest clump. It is kept up to date whenever a sector is saved or deleted, in any order, by the same code that keeps the block totals, and `planetgen fill-block-totals` makes it again. Nothing shows it yet. Migration 0161 fills it for the sectors a database already holds. No generated value changes.
+
+## [8.0.2369] - 2026-10-28
+
+**Headline:** Two atmosphere tests that were red on main now check what the water-delivery law and the escape model deliberately do.
+
+### Changed
+- **Two tests follow the physics that moved (TEST.401).** The delivered-water test looked for the thin water class b2 at the Earth's snow ratio, where the population law of GEN.802 no longer draws it (it draws b1, b3 and b4 there, and b2 inside the snow line), so it now sweeps at a snow ratio of 0.3 where b1 to b3 all appear. The abiotic-oxygen test summed the gases of every draw to one, but the thermosphere escape of GEN.738 strips the air of an M-dwarf Earth in about one draw of 300 (seed 34), so an airless draw must have no gases and at most 15 of the 300 may be airless. Both moves are deliberate changes of the physics, not regressions; no generated value changes.
+
+## [8.0.2368] - 2026-10-28
+
+**Headline:** What a planet or moon is made of is now written from the composition it was actually drawn with, and a giant's page lists its layers.
+
+### Changed
+- **Composition text** (GEN.430): the Composition line of every planet and moon is now written from its stored bulk fractions: each material that makes up at least one percent of its mass is named with a fixed level (mostly, a large share, a moderate share, a small share), largest first, for example "mostly silicate rock, with a large share of iron-rich metal". Carbon-rich worlds name silicon carbide and graphite, and a loosely packed small body says so. The fixed string each class used to carry is no longer shown.
+- **Giant interiors on the page** (GEN.642): a gas giant, ice giant or brown dwarf now lists its layers from the top down, with the state, mass, pressure range and make-up of each. Pressures under 0.1 GPa are given in bars.
+- Generator epoch 111: the composition text of every planet and moon is new.
+
+generation-output: changed
+
+## [8.0.2367] - 2026-10-28
+
+**Headline:** Galaxy regions now have names and a sphere to frame them, built from the map's block grid.
+
+### Changed
+- **Region names, anchors and framing spheres (GEN.825).** Every 9-block of the map's block grid (about 780 sectors, 36 pc across) can be given a name of the form "Fardoo Beez Region": the first word is shared by all the regions inside the same 81-block, the second is the region's own place in it, and the names come from the name generator under the galaxy's naming key (no names from the Milky Way or the Solar System). Each region also has an anchor (the centre of its cell) and a framing sphere of 12 pc, smaller only in the few cells the grid squeezes next to the poles (none under 7.8 pc). Each region's extent, the sphere it is drawn and framed with, is the bounding sphere of the largest connected clump of its generated sectors (GEN.827), never under that 12 pc sphere, so a region made by two fills far apart in one cell is not drawn as one sphere over the gap between them. Nothing shows these yet: the map, the database table and the Generate page follow in the next steps of the chain. No generated value changes.
+
+## [8.0.2366] - 2026-10-28
+
+**Headline:** The sulfur a world keeps in its air is what the sulfate and sulfide sinks of its crust leave, instead of a drawn share.
+
+### Changed
+- **The sulfur balance replaces the stand-in (GEN.815).** `physics/surface_air.py` gives the mixture draw the sulfur that `physics/sulfur_balance.py` leaves in the air: the sulfur the interior degassed, less the sulfate (calcium) and sulfide (iron) the crust it built can bind, at the removal lifetime of rain-out over an ocean or of sulfation of the rock on a dry surface, split by the redox of the gas. Sulfur beyond what the crust holds stays in the air whole. A wet world no longer holds hundreds of bar of sulfur gas, and a dry one keeps almost none unless its inventory outgrows its crust.
+
+### Removed
+- **`SULFUR_SURFACE_KEPT` (1e-5 to 1e-2 of the degassed sulfur kept with an ocean)**, its drawn constant `sulfur_surface_kept` and its registry row (AM80).
+
+generation-output: changed
+
+## [8.0.2365] - 2026-10-28
+
+**Headline:** The pinned-galaxy test builds the galaxy once at one worker, so `golden_update` and the golden test of every generation merge take about half as long; the one-worker-against-four-worker comparison runs in the end-of-version run.
+
+### Changed
+- **`test_golden_seed.py` built the pinned galaxy twice (TEST.407).** It made the galaxy at one worker and again at four in the same test, about 30 and 25 minutes on a lane machine, and a rewrite of the golden files (`golden_update`) did both. It is now two tests: `test_the_pinned_galaxy_is_the_pinned_one` builds the galaxy at one worker and compares it with `galaxy.json` (or writes it, which is all `golden_update` needs), and `test_the_pinned_galaxy_is_made_at_one_worker_and_at_four` builds it at four workers and compares it with the one-worker galaxy, reusing the first build. The second runs only with `PLANETGEN_VERSION_GATE=1`, which `scripts/test.py full` and `full --check` (the end-of-version run) set, as the budget test runs only when asked; it is skipped with that reason in a merge gate and while the golden files are written. Golden files are byte-identical for the same seed. A determinism break between one worker and four is therefore caught at the version gate and not at each generation merge. Documented in `docs/reference/testing.md` under "Opt-in tests".
+TODO items resolved: TEST.407 (TODO closes it after reading this; the build itself is still about as long as one galaxy at one worker). Added: none.
+
+## [8.0.2364] - 2026-10-28
+
+**Headline:** Generation now knows which cloud a new system sits in: a system placed inside one of the galaxy's molecular clouds gets that cloud, its far-ultraviolet radiation tier and its aluminium-26 enrichment while it is made.
+
+### Added
+- **The cloud while a system is made (GEN.357).** The molecular clouds that reach a sector are found before its first system is placed. Each system placed inside one is handed that cloud (its class, size, extinction, age, centre and the stars that light it), the radiation tier its host stars' far-ultraviolet light adds (counted in Habing units, one tier at 100, 1,000 and 10,000), the tier its kind of cloud adds on its own, and an aluminium-26 enrichment factor for the cloud classes that enrich. A system in open space is untouched and draws nothing extra.
+- A loaded system's cloud carries the same extra facts (extinction, radius, age, centre and host stars), read from the stored nebula or remnant.
+
+### Changed
+- The cloud's planet rules (which planets survive the light, the swallowed-giant flag, orbit expansion) are not applied yet; they come with GEN.358. Nothing a system is made of changes, and the pages and the API show the cloud a system is in exactly as before.
+
+TODO items resolved: GEN.357. Added: none.
+
 ## [8.0.2363] - 2026-10-28
 
 **Headline:** The update's reload check no longer fails just because the site is closed for the update.

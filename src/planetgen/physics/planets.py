@@ -19,15 +19,13 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, metallicity, moon_composition, rings
-from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition
+from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements, rings
+from planetgen.physics import aerosols, atmosphere, body_colour, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.physics.orbits import (
-    calculate_hill_sphere, calculate_reflex_offset, circular_orbital_speed_kms, circular_orbital_velocity_au_per_year,
-    minimum_update_interval_years, orbital_position_au,
-)
+from planetgen.physics.orbits import calculate_hill_sphere, calculate_reflex_offset, minimum_update_interval_years
+from planetgen.physics.state_vectors import state_from_elements
 from planetgen.util.checks import finite_domain
 from planetgen.util.random import sample_bounded_bell, sample_power_law
 from planetgen.physics import unit_registry as units
@@ -43,6 +41,7 @@ _yr_to_s = units.converter("yr", "s")
 _gyr_to_yr = units.converter("Gyr", "yr")
 _yr_to_h = units.converter("yr", "h")
 _au_yr_to_kms = units.converter("au_yr", "km_s")
+_TWO_PI_RAD = 2.0 * math.pi
 
 
 def _sample_class_radius(cls, min_radius, max_radius):
@@ -488,7 +487,6 @@ def generate_planet_properties(planet, zone_override=None):
         inner_bound, outer_bound = planet.habitable_zone
         planet.distance = sample_bounded_bell(inner_bound, outer_bound, class_data["zone_position_mode"])
 
-    planet.composition = class_data["composition"]
     planet.description = class_data["description"]
     if planet.is_moon:
         # Class descriptions are authored generically (e.g. "shields the inner
@@ -510,7 +508,7 @@ def generate_planet_properties(planet, zone_override=None):
     # The air is made later, with the temperature it gives (`calculate_atmospheric_conditions`, GEN.411 and GEN.422): a class says only
     # whether it has one. Clear what a previous class left behind -- `reconcile_zone_and_class` regenerates a body in place, so a body
     # moved from an atmosphered class into an airless one would otherwise keep (and save) its old class's densities.
-    planet.atmosphere = "None" if class_data["atmosphere"] is None else class_data["atmosphere"]
+    planet.atmosphere = atmosphere.PENDING if class_data["air"] else "None"
     planet.atm_density = None
     planet.atm_molar_density = None
     planet.scale_height = None
@@ -590,7 +588,7 @@ def calculate_surface_gravity(planet):
     planet.gravity = surface_gravity_g
 
 
-def calculate_atmospheric_conditions(planet, distance_override=None):
+def calculate_atmospheric_conditions(planet, distance_override=None, host_eccentricity=None):
     """
     Makes the air of the planet or moon and the surface temperature it gives (GEN.411, GEN.422; `surface_air`).
 
@@ -605,8 +603,14 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
                          `atmosphere`, `atm_density`, `atm_molar_density`, `scale_height`, gases, hydrosphere and aerosols are set
                          in place.
         distance_override (float, optional): An override for the planet's distance, used for special cases like moons.
+        host_eccentricity (float, optional): For a moon, its parent planet's eccentricity, which the light it gets goes by (GEN.727);
+                                             kept on the moon (`Planet.host_eccentricity`) and left as it was when not given.
     """
+    if host_eccentricity is not None:
+        planet.host_eccentricity = host_eccentricity
     distance = float(distance_override) if distance_override is not None else float(planet.distance)
+    # GEN.727: the light of an eccentric orbit, averaged over it, is that of a circle of radius a (1 - e^2)^(1/4)
+    distance = orbit_elements.flux_distance_au(distance, planet.host_eccentricity if planet.is_moon else planet.eccentricity)
     orbital_radius_km = _au_to_km(distance)
     output_area = 4 * math.pi * orbital_radius_km ** 2
     solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
@@ -651,6 +655,10 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
 
     # GEN.88: water, land, ice and the ocean's chemistry.
     hydrosphere.generate_hydrosphere(planet, 0.0 if heat is None else heat.flux_w_m2, surface_w)
+    # GEN.721: stagnant or mobile lid, which the magnetic field, the heat and the ground below all read (the hydrosphere above
+    # read the heat of a stagnant lid, the regime not being drawn yet; it needs the hydrosphere). The heat is made again with it.
+    interior_heat.generate_lid(planet)
+    interior_heat.update_heat(planet)
     # GEN.441: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature, the air and the water.
     surface_composition.generate_surface(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
@@ -667,52 +675,43 @@ def _mantle_redox(planet, air, distance, water_lost):
 
 def internal_heat_flux_w_m2(planet):
     """A rocky body's own heat flow, W/m^2, at its star's age now: radiogenic plus primordial heat (`interior_heat.update_heat`, GEN.699),
-    stored with the body (its Urey ratio is an output). 0 for a body with no stored content (a giant, or a row from before GEN.699)."""
+    stored with the body (its Urey ratio is an output), and with it the flow of its tide from its orbit (GEN.737, `tidal_flux_w_m2`, not in
+    this figure: the habitability energy term adds the two). 0 for a body with no stored content (a giant, or a row from before GEN.699)."""
     found = interior_heat.update_heat(planet)
-    return found.flux_w_m2 if found is not None else 0.0
+    return found.own_flux_w_m2 if found is not None else 0.0
 
 
-def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_period_hours):
+def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_distance_au=None):
     """
-    Estimates how long tidal forces would take to lock `moon`'s rotation
-    to its orbital period, in seconds, via the standard simplified
-    tidal-despinning formula (Murray & Dermott, "Solar System Dynamics"):
-
-        t_lock = omega0 * a^6 * I * Q / (3 * G * M_primary^2 * k2 * R_moon^5)
-
-    with the uniform-sphere moment of inertia I = (2/5) * m_moon * R^2
-    substituted in, which simplifies to:
-
-        t_lock = (2*Q / (15*k2)) * (omega0 * a^6 * m_moon) / (G * M_primary^2 * R_moon^3)
-
-    `Q`/`k2` are fixed representative values for a rocky/icy body
-    (`constants.MOON_TIDAL_DISSIPATION_Q`/`_LOVE_NUMBER_K2` --
-    see that constant's own comment for real-example verification), not
-    modeled per body.
+    Draws `planet.eccentricity` (GEN.727, `physics.orbit_elements`): a planet's from the law of the system it is in (`planned_objects`
+    is the number of planets and belts planned round its star, one for a single planet; `None` counts as several), cut where its
+    periapsis would fall inside the star's Roche limit; a moon's from how it came to be there (`planet.moon_origin`), cut where its
+    apoapsis would leave its parent's stable Hill sphere (`parent_distance_au` is the parent's distance from the star). The tides of the
+    orbit then take what they can in the age of the star, from a planet's and a captured moon's eccentricity, which nothing renews; a
+    regular moon's is forced (by its neighbours and the resonances among them, as Io's is by Europa and Ganymede) and stays, which is what
+    makes its tide a lasting heat source (GEN.737). Draws the eccentricity before the climate, which goes by the mean light of
+    the orbit; the plane and the angles come with the rest of the motion (`generate_orbital_motion_properties`).
 
     Args:
-        moon (Planet): The moon (`is_moon=True`) -- must already have
-                       `distance` (AU), `mass` (kg), and `radius` (km) set.
-        primary_mass_kg (float): The parent planet's mass, in kg -- the
-                                 actual body raising the tide, not the
-                                 grandparent star `moon.star` points at.
-        initial_rotation_period_hours (float): The moon's assumed
-                                               pre-locking rotation period,
-                                               in hours -- despinning takes
-                                               longer starting from a
-                                               faster spin (more angular
-                                               momentum to shed).
-
-    Returns:
-        float: Estimated locking timescale, in seconds.
+        planet (Planet): The planet or moon; needs `distance`, `mass`, `radius` and `star`.
+        primary_mass_kg (float): The mass (kg) of what it orbits.
+        planned_objects (int, optional): As above.
+        parent_distance_au (float, optional): For a moon, the parent's distance from the star, AU.
     """
-    omega0 = 2 * math.pi / _h_to_s(initial_rotation_period_hours)
-    distance_m = _au_to_m(moon.distance)
-    radius_m = _km_to_m(moon.radius)
-    q_over_k2 = constants.MOON_TIDAL_DISSIPATION_Q / constants.MOON_TIDAL_LOVE_NUMBER_K2
-    numerator = omega0 * (distance_m ** 6) * moon.mass
-    denominator = constants.G * (primary_mass_kg ** 2) * (radius_m ** 3)
-    return (2 * q_over_k2 / 15) * (numerator / denominator)
+    if planet.is_moon:
+        hill_au = None
+        if parent_distance_au is not None and primary_mass_kg and planet.star.mass:
+            hill_au = _km_to_au(_m_to_km(calculate_hill_sphere(_au_to_m(parent_distance_au), primary_mass_kg, planet.star.mass)))
+        e_max = orbit_elements.max_moon_eccentricity(planet.distance, hill_au)
+        birth = orbit_elements.draw_moon_eccentricity(planet.moon_origin, e_max)
+    else:
+        e_max = orbit_elements.max_planet_eccentricity(planet.distance, planet.star, planet)
+        birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max)
+    if planet.is_moon and planet.moon_origin != "captured":
+        planet.eccentricity = birth
+        return
+    time_yr = orbit_elements.circularisation_time_yr(planet, primary_mass_kg, planet.distance)
+    planet.eccentricity = orbit_elements.circularised(birth, _gyr_to_yr(planet.star.age), time_yr)
 
 
 def generate_orbital_motion_properties(planet, primary_mass_kg):
@@ -720,12 +719,14 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     Sets a planet's (or moon's) 3D orbital orientation, position, orbital
     speed, and rotation period.
 
-    Together with `planet.distance` (this generator only ever models
-    circular orbits -- no eccentricity), `orbital_inclination_deg` (the
-    tilt of the orbital plane) and `orbital_ascending_node_deg` (where that
-    plane crosses its primary's reference plane) fully orient the orbit in
-    3D; a phase drawn here is where the body starts around it, and is not
-    kept: the body is its state vector (`position_x/y/z`, `velocity_*_kms`,
+    Together with `planet.distance` (its semi-major axis) and
+    `planet.eccentricity` (`generate_orbit_shape`), `orbital_inclination_deg`
+    (the tilt of the orbital plane) and `orbital_ascending_node_deg` (where
+    that plane crosses its primary's reference plane) fully orient the
+    orbit in 3D, with a periapsis drawn here (uniform round the plane); the
+    mean anomaly drawn here is where the body starts around it (uniform
+    in time, so a body is found nearer apoapsis most often), and neither
+    is kept: the body is its state vector (`position_x/y/z`, `velocity_*_kms`,
     see `update_orbital_position`), which `planetgen.cli.orbits` advances
     over time on `planet.period` with `kepler.universal_step` (GEN.289).
 
@@ -740,20 +741,15 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
 
     `rotation_period_hours` is a separate, purely descriptive "day length"
     stat (this generator doesn't track rotational phase -- nothing consumes
-    "which side currently faces the primary"). A candidate (pre-locking)
-    rotation period is always drawn first from a `body_type`-appropriate
-    range (see `generate_spin`, which also draws the spin axis); for a
-    planet or moon, that candidate is kept only if real tidal physics
-    (`_tidal_locking_timescale_seconds`) says there *hasn't* been enough
-    time (`planet.star.age`, the best available proxy for the system's
-    age -- planets/moons don't carry an independent age of their own) to
-    lock it yet. Otherwise the moon ends up actually locked
-    (`rotation_period_hours` == its own orbital period, converted to
-    hours) -- which real physics makes the norm for large or close-in
-    moons, not a rare special case, but genuinely not universal: a large
-    moon far from a low-mass primary can easily have a locking timescale
-    longer than the system itself, which is exactly why not every moon
-    comes out tidally locked here either.
+    "which side currently faces the primary"). `generate_spin` draws the
+    body's birth spin and wears it down by the tide of what it orbits for the
+    age of its star (`tidal_spin`, GEN.731): the moon ends up locked
+    (`rotation_period_hours` == its own orbital period, converted to hours)
+    or in a spin-orbit resonance when the tide has had time to bring it there,
+    which is the norm for large or close-in moons, not a rare special case,
+    but genuinely not universal: a large moon far from a low-mass primary can
+    easily have a locking time longer than the system itself, which is
+    exactly why not every moon comes out tidally locked here either.
 
     Args:
         planet (Planet): The planet or moon to set these properties on.
@@ -770,81 +766,77 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     if planet.is_moon and getattr(planet, "moon_origin", None) is not None:
         # GEN.714: the orbit follows from how the moon came to be there (a captured one can be retrograde)
         planet.orbital_inclination_deg = moon_composition.draw_inclination_deg(planet.moon_origin)
+    elif planet.is_moon:
+        planet.orbital_inclination_deg = draw.uniform(0, constants.MOON_ORBITAL_INCLINATION_MAX_DEG)
     else:
-        inclination_max = (
-            constants.MOON_ORBITAL_INCLINATION_MAX_DEG if planet.is_moon
-            else constants.PLANET_ORBITAL_INCLINATION_MAX_DEG
-        )
-        planet.orbital_inclination_deg = draw.uniform(0, inclination_max)
+        planet.orbital_inclination_deg = orbit_elements.draw_planet_inclination_deg()  # GEN.727: Rayleigh, as the Kepler multiples are
     planet.orbital_ascending_node_deg = draw.uniform(0, 360)
-    phase_deg = draw.uniform(0, 360)
+    arg_periapsis_deg = orbit_elements.draw_argument_of_periapsis_deg()
+    mean_anomaly_rad = draw.uniform(0, _TWO_PI_RAD)
 
     generate_spin(planet, primary_mass_kg)
-    update_orbital_position(planet, phase_deg)
+    true_anomaly_rad, _ = kepler.true_anomaly_and_distance_elliptical(mean_anomaly_rad, planet.eccentricity, planet.distance)
+    update_orbital_position(planet, arg_periapsis_deg + math.degrees(true_anomaly_rad), arg_periapsis_deg)
 
 
 def generate_spin(planet, primary_mass_kg):
     """
-    Draws a planet's or moon's `rotation_period_hours` and spin axis
-    (GEN.104; `physics.spin.SPIN_FIELDS`). A tidally locked body (its
-    locking time under the system's age, against the body it orbits) turns
-    once per orbit with its axis on the orbit normal; any other gets a
-    `body_type` rotation period and a tilt drawn by `physics.spin`. Called
-    again when a move changes the body's period, since that can flip the
-    lock.
+    Draws a planet's or moon's `rotation_period_hours` and spin axis (GEN.104, GEN.731; `physics.spin.SPIN_FIELDS`). It is born spinning (a
+    rocky planet at the rate and angle the giant impacts that built it leave, `spin.accretion_spin`; a moon at a rate from
+    `spin.planet_day_hours`, as a gas giant) and the tide of what it orbits then wears the spin toward the orbit's rate for the age of its
+    star (`tidal_spin.evolve`, the body's own Love number and quality factor, the orbit's eccentricity from `generate_orbit_shape`). A body
+    the tide has brought all the way down turns once an orbit (locked) or in a spin-orbit resonance such as Mercury's 3:2
+    (`spin.spin_state`), with its axis on the orbit normal; any other keeps its tilt, a rocky planet's from the impacts and a moon's or giant's
+    a Rayleigh one. Called again when a move changes the body's period, since that can change the state.
     """
-    candidate_rotation_period_hours = spin.planet_day_hours(planet.body_type)
-
-    # GEN.104: planets lock to their star by the same rule as moons to
-    # their planet (close-in worlds end up with one face to the star).
-    lock_timescale_s = _tidal_locking_timescale_seconds(
-        planet, primary_mass_kg, candidate_rotation_period_hours
-    )
-    system_age_s = _yr_to_s(_gyr_to_yr(planet.star.age))
-    is_locked = lock_timescale_s < system_age_s
-
-    if is_locked:
-        planet.rotation_period_hours = planet.period * _yr_to_h(1.0)
+    age_s = _yr_to_s(_gyr_to_yr(planet.star.age))
+    semi_major_axis_m = _au_to_m(planet.distance)
+    eccentricity = getattr(planet, "eccentricity", 0.0) or 0.0
+    impact_tilt = None
+    if planet.body_type == "t" and not planet.is_moon:
+        spin_rate, impact_tilt = spin.accretion_spin(planet.mass, planet.radius)
     else:
-        planet.rotation_period_hours = candidate_rotation_period_hours
-
-    # GEN.104: the spin axis, tilted from the orbit normal. Locked bodies
-    # spin upright; rocky planets take the impact-modified tilt, gas giants
-    # and moons a Rayleigh one.
-    if is_locked:
+        spin_rate = 2.0 * math.pi / _h_to_s(spin.planet_day_hours(planet.body_type))
+    spin_rate, ratio = tidal_spin.evolve(planet, primary_mass_kg, semi_major_axis_m, spin_rate, age_s, eccentricity)
+    period_hours = planet.period * _yr_to_h(1.0)
+    if ratio is not None:
+        planet.rotation_period_hours = period_hours / ratio
         tilt = 0.0
-    elif planet.body_type == "t" and not planet.is_moon:
-        tilt = spin.impact_tilt_deg()
     else:
-        tilt = spin.rayleigh_tilt_deg()
+        planet.rotation_period_hours = 2.0 * math.pi / spin_rate / 3600.0
+        tilt = impact_tilt if impact_tilt is not None else spin.rayleigh_tilt_deg()
     spin.set_spin(planet, spin.orbit_normal(planet.orbital_inclination_deg,
                                             planet.orbital_ascending_node_deg), tilt)
     # GEN.86: the field depends on the rotation just set.
     magnetism.generate_field(planet)
     # GEN.87: the surface dose, from the air, water and field above.
     radiation.generate_dose(planet)
+    # DB.96: the atmosphere colour, from the air, the ozone and the aerosols above.
+    body_colour.generate(planet)
     # GEN.89: the habitability score, from all of the above.
     habitability_world.generate(planet, internal_heat_flux_w_m2(planet))
 
 
 
-def update_orbital_position(planet, phase_deg=None):
+def update_orbital_position(planet, phase_deg=None, arg_periapsis_deg=0.0):
     """
     Recomputes `planet.position_x/y/z` (AU, relative to its orbital
     anchor), its velocity, `planet.orbital_speed_kms`, and
-    `planet.min_update_interval_years` from its current `distance`,
-    `period`, and orbital plane (`orbital_inclination_deg`/
-    `orbital_ascending_node_deg`), as a circular orbit
-    (`body_state.circular_state`).
+    `planet.min_update_interval_years` from its current `distance` (the
+    semi-major axis), `eccentricity`, `period`, and orbital plane
+    (`orbital_inclination_deg`/`orbital_ascending_node_deg`), as the
+    ellipse `state_vectors.state_from_elements` makes of them (a circle
+    when the eccentricity is 0).
 
     Called both at initial generation (`generate_orbital_motion_properties`,
-    which passes the phase it rolled) and again by
+    which passes the angles it rolled) and again by
     `StarSystem.validate_system` whenever it corrects a top-level planet's
     `distance` post-hoc to resolve an orbital overlap -- the same
     "recompute anything that depends on distance" treatment `period`
     already gets there (see that method's docstring). There the body keeps
-    where it is along its plane: no phase is passed and the one the current
-    position has is used. Position/speed/`min_update_interval_years` would
+    where it is along its plane and the orbit keeps its periapsis: no
+    angle is passed and the ones the current state has are used.
+    Position/speed/`min_update_interval_years` would
     otherwise silently go stale relative to the corrected `distance`/
     `period` the same way `period` itself used to before that fix.
 
@@ -861,26 +853,34 @@ def update_orbital_position(planet, phase_deg=None):
 
     Args:
         planet (Planet): The planet or moon to update in place. Must
-                         already have `distance`, `period`,
+                         already have `distance`, `eccentricity`, `period`,
                          `orbital_inclination_deg` and
                          `orbital_ascending_node_deg` set, and, without
-                         `phase_deg`, its position.
+                         `phase_deg`, its position and velocity.
         phase_deg (float, optional): Where along its orbit plane the body
-                         is (the argument of latitude); the one its
-                         current position has when not given.
+                         is (the argument of latitude, from the ascending
+                         node, which is the argument of periapsis plus the
+                         true anomaly); the one its current position has
+                         when not given.
+        arg_periapsis_deg (float, optional): The angle from the ascending
+                         node to periapsis (meaningless for a circle);
+                         the one its current state has when `phase_deg` is
+                         not given.
     """
     if phase_deg is None:
+        orbit = planet.orbit_from_vector()
+        arg_periapsis_deg = math.degrees(orbit["arg_periapsis"])
         phase_deg = body_state.argument_of_latitude_deg(
             (planet.position_x, planet.position_y, planet.position_z),
             planet.orbital_inclination_deg, planet.orbital_ascending_node_deg)
-    planet.set_position_au(*orbital_position_au(
-        planet.distance, planet.orbital_inclination_deg, planet.orbital_ascending_node_deg, phase_deg,
-    ))
-    planet.orbital_speed_kms = circular_orbital_speed_kms(planet.distance, planet.period)
+    position, velocity = state_from_elements(
+        (2.0 * math.pi / planet.period) ** 2 * planet.distance ** 3, orbit_elements.periapsis_au(planet.distance, planet.eccentricity), planet.eccentricity,
+        math.radians(planet.orbital_inclination_deg), math.radians(planet.orbital_ascending_node_deg), math.radians(arg_periapsis_deg),
+        math.radians(phase_deg - arg_periapsis_deg))
+    planet.set_position_au(*position)
     to_kms = _au_yr_to_kms(1.0)
-    planet.set_velocity_kms(*(v * to_kms for v in circular_orbital_velocity_au_per_year(
-        planet.distance, planet.orbital_inclination_deg, planet.orbital_ascending_node_deg, phase_deg,
-        planet.period)))
+    planet.set_velocity_kms(*(v * to_kms for v in velocity))
+    planet.orbital_speed_kms = math.sqrt(sum(v * v for v in velocity)) * to_kms
     planet.min_update_interval_years = minimum_update_interval_years(planet.period)
 
 
@@ -978,7 +978,7 @@ def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None, pa
     update_hill_sphere(planet)
     planet.period = calculate_orbital_period_years(planet.distance, primary_mass_kg)
     calculate_surface_gravity(planet)
-    calculate_atmospheric_conditions(planet, distance_override)
+    calculate_atmospheric_conditions(planet, distance_override, parent.eccentricity if parent is not None else None)
     generate_orbital_motion_properties(planet, primary_mass_kg)
     return True
 
@@ -1053,7 +1053,7 @@ def drop_unstable_moons(planet):
     low_km, high_km = moon_orbit_bounds_km(planet)
     max_moon_radius, max_moon_mass = moon_size_limits(planet)
     kept = [moon for moon in planet.moons
-            if low_km <= _au_to_km(moon.distance) <= high_km
+            if low_km <= _au_to_km(moon.distance) and _au_to_km(orbit_elements.apoapsis_au(moon.distance, moon.eccentricity)) <= high_km
             and moon.radius <= max_moon_radius and moon.mass <= max_moon_mass]
     dropped = len(planet.moons) - len(kept)
     planet.moons[:] = kept
@@ -1171,7 +1171,7 @@ def generate_moons(planet, moon_count=None):
         # log-uniformly gives every order of magnitude equal weight instead,
         # which both matches that real spacing pattern better and -- since
         # tidal-locking timescale scales with distance^6
-        # (_tidal_locking_timescale_seconds) -- stops real tidal-locking
+        # (`tidal_spin.locking_time_s`) -- stops real tidal-locking
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
         moon_distance_km = math.exp(draw.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
@@ -1181,7 +1181,7 @@ def generate_moons(planet, moon_count=None):
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
-                          moon_origin=origin, moon_disk_system=disk_system)
+                          moon_origin=origin, moon_disk_system=disk_system, host_eccentricity=planet.eccentricity)
         planet.moons.append(new_moon)
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
 

@@ -13,18 +13,18 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.233 |
-| MAP | MAP.329 |
+| UX | UX.238 |
+| MAP | MAP.346 |
 | NAV | NAV.65 |
-| GEN | GEN.838 |
-| PERF | PERF.200 |
-| DB | DB.109 |
-| API | API.37 |
+| GEN | GEN.900 |
+| PERF | PERF.201 |
+| DB | DB.110 |
+| API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.408 |
+| TEST | TEST.442 |
 | USR | USR.32 |
-| OPS | OPS.77 |
+| OPS | OPS.78 |
 | DOC | DOC.83 |
 | VIEW | VIEW.19 |
 | POP | POP.46 |
@@ -526,7 +526,7 @@ Parents marked "new parent" had no old number of their own.
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
-| API.4 | API compatibility data in the docs | none | open |
+| API.4 | API compatibility data in the docs | none | done, PR #3543 |
 | API.5 | API version and compatibility checking | none | open |
 | API.6 | User-level API keys, owned by the account that created them, that can read but not upload | none | open |
 | API.7 | Investigate and plan upload limits | none | done, PR #1849 |
@@ -557,8 +557,9 @@ Parents marked "new parent" had no old number of their own.
 | API.32 | test_fuzz_web_routes fails on a machine that has a real database named planetgen_control: every galaxy route answers 500 for db=planetgen_control (bug) | none | done, PR #2659 |
 | API.33 | API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug) | none | open |
 | API.34 | API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them | none | open |
-| API.35 | Region names on the wire: a name on charted nodes and the stage and node endpoints, galaxy-map-wire-format.md (regions chain, step 2) | none | open |
+| API.35 | Region names on the wire: a name on charted nodes and the stage and node endpoints, galaxy-map-wire-format.md (regions chain, step 2) | none | done, PR #3396 |
 | API.36 | Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6) | none | open |
+| API.37 | API fields for the life class: life_class, variant, best, best score, per-class scores and the animal grade, with an API version bump | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -567,7 +568,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | none | done, PR #387 |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | done, PR #813 |
 | DB.8 | Check a galaxy database and say whether it is damaged | none | done, PR #893 |
-| DB.9 | Repair a damaged galaxy database from a parity file | none | open |
+| DB.9 | Repair a damaged galaxy database from a parity file | none | done, PR #3460 |
 | DB.10 | Repair reads the newest settings JSON and the pending deltas | none | dropped (Boss, 2026-10-09 20:42Z) |
 | DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | done, PR #751 |
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
@@ -603,10 +604,10 @@ Parents marked "new parent" had no old number of their own.
 | DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | none | open |
 | DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py | none | done, PR #2423 |
 | DB.44 | Migration only: the sector storage checksum and the parity dirty flag | none | done, PR #2420 |
-| DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | none | open |
-| DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | open |
-| DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | none | open |
-| DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | none | open |
+| DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | none | done, PR #3414 |
+| DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | done, PR #3451 |
+| DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | none | done, PR #3456 |
+| DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | none | done, PR #3460 |
 | DB.49 | Migration only: the leaf digest column and the shell-band tree table | none | done, PR #2521 |
 | DB.50 | Migration only: structure columns for life and flavour | none | done, PR #2206 |
 | DB.51 | Generation stores structure, not prose; the readers and the string searches go | none | done, PR #2206 |
@@ -625,7 +626,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.64 | Table for stored constellations (migration only) | none | done, PR #2529 |
 | DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | done, PR #2025 |
 | DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | done, PR #2439 |
-| DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | none | open |
+| DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | none | done, PR #3474 |
 | DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | done, PR #2856 |
 | DB.69 | Planets and moons store the composition fractions | none | done, PR #2751 |
 | DB.70 | Planets, moons and small bodies store the surface and small-body composition shares | none | open |
@@ -641,7 +642,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.80 | `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug) | none | done, PR #2406 |
 | DB.81 | Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn' | none | done, PR #2403 |
 | DB.82 | The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug) | none | done, PR #2390 |
-| DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | open |
+| DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | done, PR #3476 |
 | DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | done, PR #2984 |
 | DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | done, PR #2582 |
 | DB.86 | Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more | none | done, PR #2801 |
@@ -654,7 +655,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.93 | Planets and moons store the equipment levels and regional temperatures and drop equipment_tier; the API serves one equipment object | none | done, PR #2766 |
 | DB.94 | The object index, resolve_object and the search panels read the moons of free planets | none | done, PR #2881 |
 | DB.95 | The sector_objects view includes the moons of free planets | none | dropped (lane B finding, 2:53 AM EDT 2026-10-24: nothing reads the sector_objects view, schema.sql is applied before migrations so a view naming moons.rogue_planet_id would break opening an older database, and DB.94 lists free moons by sector) |
-| DB.96 | Store the atmosphere colour and the cloud cover on planets and moons | none | open |
+| DB.96 | Store the atmosphere colour and the cloud cover on planets and moons | none | done, PR #3393 |
 | DB.97 | Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message | none | done, PR #2905 |
 | DB.98 | Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test | none | done, PR #2931 |
 | DB.99 | Store the ground colour and the ice fraction on planets and moons | none | open |
@@ -665,8 +666,9 @@ Parents marked "new parent" had no old number of their own.
 | DB.104 | Storage for a government's territory: homeworld system, growth state and a territory history, ready for 9.2 to make it dynamic | none | open |
 | DB.105 | Storage for world population and the global trade route list: tables, Object IDs, column units and the migration | none | open |
 | DB.106 | Storage for resource locations: grade, mass estimate and score per resource for belts, fields, giants and icy bodies, with column units and the migration | none | open |
-| DB.107 | Region stats: the region_stats table, its save and delete hook and the charted percent (regions chain, step 1b) | none | open |
-| DB.108 | Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e) | none | open |
+| DB.107 | Region stats: the region_stats table, its save and delete hook and the charted percent (regions chain, step 1b) | none | done, PR #3383 |
+| DB.108 | Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e) | none | done, PR #3465 |
+| DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -714,7 +716,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.45 | Reference docs follow the description layer | none | done, PR #2240 |
 | DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
 | DOC.47 | Rebuild docs/design/architecture/architecture.html from the new architecture.md | none | done, PR #2037 |
-| DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | open |
+| DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | done, PR #3537 |
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | merged into DOC.50 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | none | open |
@@ -748,7 +750,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.79 | The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C | none | done, PR #3262 |
 | DOC.80 | Progress docs rule: nothing after a progress block may run longer than the bar threshold without its own Step | none | done, PR #3125 |
 | DOC.81 | Help page: resource locations, what the scores mean and how to find them on the map | none | open |
-| DOC.82 | Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7) | none | open |
+| DOC.82 | Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7) | none | done, PR #3400 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -979,7 +981,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.228 | Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug) | none | done, PR #1610 |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule | none | open |
 | GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) | none | done, PR #1757 |
-| GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | none | open |
+| GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | none | done, PR #3567 |
 | GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | none | done, PR #1660 |
 | GEN.233 | Grid reach: every cell out to 262 kpc has defined contents, and a plan-time reach setting widens the object ID to 96 bits | none | done, PR #1757 |
 | GEN.234 | A measured stellar halo replaces the flat density floor, with the halo, cluster and satellite populations | none | done, PR #1763 |
@@ -1098,14 +1100,14 @@ Parents marked "new parent" had no old number of their own.
 | GEN.347 | The last-collisions admin view and the test that runs the whole collision path | none | open |
 | GEN.348 | Describer, CLI query lines and class page ranges take Quantity | none | done, PR #2539 |
 | GEN.349 | API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed | none | open |
-| GEN.350 | Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T | none | open |
+| GEN.350 | Class R, sub-Neptune, with the envelope-survival rule and the Hycean flag (class T stays: it is the sub-Neptune row of the classifier) | none | open |
 | GEN.351 | Class U, icy world | none | open |
 | GEN.352 | Classes W and X, subsurface ocean bodies | none | open |
 | GEN.353 | Class Y, Titan-like world | none | open |
 | GEN.354 | Class Z, lifeless temperate world | none | open |
 | GEN.355 | Atmosphere retention module with its test table | none | open |
 | GEN.356 | Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed | none | open |
-| GEN.357 | Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud | none | open |
+| GEN.357 | Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud | none | done, PR #3367 |
 | GEN.358 | GEN.94's rules and the four exotic-environment additions reach planet formation | none | open |
 | GEN.359 | Sector fill links cluster stars to their cluster and names the cluster at its first fill | none | open |
 | GEN.360 | Asteroid fields and belts render from their uid: one seeded generator in a shared asteroidfield.js for dust, rocks and heroes | none | open |
@@ -1163,7 +1165,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | none | done, PR #2812 |
 | GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | none | done, PR #2761 |
 | GEN.414 | Haze, dust and cloud: derived or drawn optical depths for every planet and moon | none | done, PR #2856 |
-| GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | none | open |
+| GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | none | done, PR #3472 |
 | GEN.416 | Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library | none | done, PR #2566 |
 | GEN.417 | Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity | none | done, PR #2724 |
 | GEN.418 | Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce | none | done, PR #2768 |
@@ -1171,14 +1173,14 @@ Parents marked "new parent" had no old number of their own.
 | GEN.420 | The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output | none | done, PR #2791 |
 | GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it | none | open |
 | GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | none | done, PR #3311 |
-| GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture | none | open |
+| GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture | none | done, PR #3474 |
 | GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | none | done, PR #3110 |
 | GEN.425 | Research: verify the mass-radius and equation-of-state sources and say what is missing | none | done, PR #1957 |
 | GEN.426 | The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity | none | done, PR #2063 |
 | GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each | none | done, PR #2580 |
 | GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | none | done, PR #2751 |
 | GEN.429 | Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation | none | done, PR #2751 |
-| GEN.430 | The planet and moon descriptions state the composition from the stored fractions | none | open |
+| GEN.430 | The planet and moon descriptions state the composition from the stored fractions | none | done, PR #3378 |
 | GEN.431 | Research: what is in the atmospheres of every kind of world, and the numbers each compound needs | none | done, PR #1970 |
 | GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs | none | done, PR #1972 |
 | GEN.433 | Research: what stars and stellar remnants are made of, and the numbers each needs | none | done, PR #1972 |
@@ -1193,7 +1195,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line | none | done, PR #2956 |
 | GEN.443 | Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud | none | done, PR #2910 |
 | GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content | none | open |
-| GEN.445 | Habitability, toxicity and the UV index read the derived radiation instead of the proxies | none | open |
+| GEN.445 | Habitability, toxicity and the UV index read the derived radiation instead of the proxies | none | done, PR #FOLDED |
 | GEN.446 | The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface | none | open |
 | GEN.447 | The wide-pair encounter limit uses the relative-velocity dispersion and the mass-weighted perturber mass | none | done, PR #2100, #2101, #2102 |
 | GEN.448 | Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured | none | done, PR #2100, #2101, #2102 |
@@ -1212,7 +1214,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.461 | The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug) | none | done, PR #2993 |
 | GEN.462 | Ground albedo by band: the area-weighted colour of the ground, ice and ocean cover with space weathering, handed to the atmosphere colour once | none | open |
 | GEN.463 | The neutron star's radius is derived from sourced mass-radius relations instead of the fixed range of 10 to 13 km (bug) | none | done, PR #2112 |
-| GEN.464 | The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars | none | open |
+| GEN.464 | The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars | none | done, PR #3493 |
 | GEN.465 | A second extraction pass over the sources the body and atmosphere research could not reach and that are reachable now | none | done, PR #2645 |
 | GEN.466 | Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age | none | done, PR #3282 |
 | GEN.467 | The main-sequence lifetime is derived from sourced stellar relations instead of the fixed 10 Gyr for one solar mass and a power law of -2.5 (bug) | none | done, PR #2112 |
@@ -1385,7 +1387,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.634 | The plan outline takes a whole shell in by its highest band, so the candidate sector count is 3.5 billion where about 1.0 billion expect a system (interval outline) | none | open |
 | GEN.635 | The cluster system has no radial profile yet, and the dwarf end of the globular cluster count uses no occupation draw (the Carlsten fits are not built in GEN.403) | none | open |
 | GEN.636 | StarSystem._orbit_ceiling_au no longer equals validation.orbit_ceiling_au after the planet survival limit, so test_system_methods_still_delegate fails on main (bug) | none | done, PR #2653 |
-| GEN.637 | Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638) | none | open |
+| GEN.637 | Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638) | none | done, sweep report gen637-all-auto-sweep-2026-10-28.md, no code |
 | GEN.638 | Planets and belts can sit past the survival ceiling because the age is raised after they are placed, so test_wide_binary_system_generates_and_stays_within_bounds[G2V] fails in about 0.4 percent of draws (bug) | none | done, PR #2695 |
 | GEN.639 | The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1) | none | done, PR #3020 |
 | GEN.640 | GEN.316 part (c): delete BinaryStarProxy, WideBinaryPair and the writers of the binary_* columns, once circumbinary and S-type planets come from the tree | none | open |
@@ -1415,13 +1417,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.664 | The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044) | none | done, PR #2815 |
 | GEN.665 | Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters | none | done, PR #2815 |
 | GEN.666 | The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug) | none | done, PR #2799 |
-| GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | none | open |
+| GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | none | done, PR #3373 |
 | GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | done, PR #3307 |
 | GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows | none | open |
 | GEN.670 | Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition | none | open |
 | GEN.671 | Where a hardened suit works against the radiation, the needs say "required hardened suit" and "recommended hardened habitat" | none | done, PR #2883 |
 | GEN.672 | Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver | none | done, PR #3061 |
-| GEN.673 | Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on | none | open |
+| GEN.673 | Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on | none | done, PR #3373 |
 | GEN.674 | Atmosphere mixture recipe gaps: no perihelion gate on rows k, a near-zero row normalised to 1, rows j3 and j4 never drawn, no carbonate-silicate CO2 sink, no Pluto-like family, missing lava-vapour gases (bug) | none | done, PR #3072 |
 | GEN.675 | Register the atmosphere mixture stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each | none | done, PR #3037 |
 | GEN.676 | Check the NH3 photolysis activity factor (1.078) against the published Huebner photodissociation table and replace the Boss-supplied value | none | dropped (Boss, 11:53 PM EDT 2026-10-23: the gap cannot be filled, no source is reachable; the factor 1.078 stays as a labelled stand-in) |
@@ -1463,41 +1465,41 @@ Parents marked "new parent" had no old number of their own.
 | GEN.712 | The materials row complex_organics has a density of 1.5 g/cm3 but Choukroun 2020 gives about 2 g/cm3 (bug) | none | done, PR #2995 |
 | GEN.713 | Research the size law and the cut for long-period and interstellar comets (blocks GEN.559) | none | done, report reports/gen713-comet-size-law-2026-10-24.md (Lane K, about 2:30 PM EDT 2026-10-24 as the lane reported) |
 | GEN.714 | Moon inclination is drawn from 0 to 25 degrees, so captured moons (retrograde, high inclination) are unreachable (bug) | none | done, PR #3084 |
-| GEN.715 | Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703 | none | open |
+| GEN.715 | Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703 | none | done, PR #3507 |
 | GEN.716 | add_star_hosted_nebulae lights a nebula from stars[0], which for a pre-placed row with a stored tree is the structural primary and not the row star, so the built nebula can differ from the predicted one (bug) | none | open |
-| GEN.717 | The greenhouse opacity has no water-vapour vertical profile, so the 15 micron CO2 band is not masked by water and a CO2 doubling warms 0.3 to 0.6 K instead of about 1.1 K | none | open |
-| GEN.718 | Cold haze worlds like Titan come out about twice too warm in the spectral greenhouse opacity | none | open |
+| GEN.717 | The greenhouse opacity has no water-vapour vertical profile, so the 15 micron CO2 band is not masked by water and a CO2 doubling warms 0.3 to 0.6 K instead of about 1.1 K | none | done, PR #3507 |
+| GEN.718 | Cold haze worlds like Titan come out about twice too warm in the spectral greenhouse opacity | none | done, PR #3507 |
 | GEN.719 | A white dwarf primary makes draw_member_tree ignore n_stars=1, so a binary_system prevalence of -100 still yields a wide double white dwarf (bug) | none | done, PR #3162 |
 | GEN.720 | star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug) | none | open |
-| GEN.721 | A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model | none | open |
+| GEN.721 | A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model | none | done, PR #3510 |
 | GEN.722 | Radius valley follow-up to GEN.509: the mechanism choice, the stellar-mass slope (e-link) and the width stand-ins | none | open |
-| GEN.723 | Refresh the hot-Jupiter recipe rows h1 to h3: their edge points were computed with the deleted gas-equilibrium module and sit up to 16 K (0.6 percent) above the surviving solver | none | open |
+| GEN.723 | Refresh the hot-Jupiter recipe rows h1 to h3: their edge points were computed with the deleted gas-equilibrium module and sit up to 16 K (0.6 percent) above the surviving solver | none | done, PR #3493 |
 | GEN.724 | Register the GEN.272 stand-ins in the gap plan registry and correct the registry row millisecond-pulsar-companion (5 percent) to the 0.2 percent the code keeps | none | open |
 | GEN.725 | Stand-in values carry a source tier and a tweak level: two new columns in the gap plan registry and one document in docs listing every stand-in, where it came from, its tier and how far it was tuned for outcome | none | done, PR #3163 |
 | GEN.726 | Surface pressure supply law: atmosphere mass from delivered volatiles, degassing, escape and sinks, then pressure from mass and gravity | none | done, PR #3111 |
-| GEN.727 | Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow | none | open |
+| GEN.727 | Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow | none | done, PR #3380 |
 | GEN.728 | Planet count from the observed multiplicity and occurrence distributions by star mass and metallicity | none | open |
 | GEN.729 | Planet spacing from the observed period-ratio and size-uniformity statistics, with stability checked | none | open |
 | GEN.730 | Formation-era dynamics: giant impacts, scattering and instability instead of one survival constant | none | open |
-| GEN.731 | Planet spin: day length from accretion angular momentum, tidal despinning with per-body Q and k2, and spin-orbit resonances | none | open |
+| GEN.731 | Planet spin: day length from accretion angular momentum, tidal despinning with per-body Q and k2, and spin-orbit resonances | none | done, PR #3380 |
 | GEN.732 | Planetary rings: existence, mass, extent and composition from the Roche limit and a disrupted moon or captured body | none | done, PR #3348 |
 | GEN.733 | Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model | none | open |
 | GEN.734 | Open weight tables of the atmosphere and bulk recipes: planet-minus-star Fe/Mg scatter, core light elements, rogue-planet stripping, moon composition against distance | none | done, PR #3208 |
-| GEN.735 | Interior heat beyond the stagnant lid: mobile-lid cooling, a separate core, a pressure-dependent liquidus and coupling to climate | none | open |
+| GEN.735 | Interior heat beyond the stagnant lid: mobile-lid cooling, a separate core, a pressure-dependent liquidus and coupling to climate | none | done, PR #3510 |
 | GEN.736 | Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model | none | open |
-| GEN.737 | Tidal heating from the orbit's real eccentricity for rocky bodies and planets, with the random 1 to 50 boost removed | none | open |
+| GEN.737 | Tidal heating from the orbit's real eccentricity for rocky bodies and planets, with the random 1 to 50 boost removed | none | done, PR #3380 |
 | GEN.738 | Atmospheric escape: a thermosphere model, hydrodynamic escape and time-integrated XUV loss | none | done, PR #3260 |
 | GEN.739 | Impact erosion and late delivery of atmospheres, with history | none | done, PR #3246 |
 | GEN.740 | Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere) | none | open |
 | GEN.741 | Post-main-sequence stellar tracks: subgiant, red giant, horizontal branch, asymptotic giant and supergiant from mass and age instead of random draws | none | open |
-| GEN.742 | White dwarf cooling sequences by mass and atmosphere, including crystallisation and spectral type against temperature | none | open |
+| GEN.742 | White dwarf cooling sequences by mass and atmosphere, including crystallisation and spectral type against temperature | none | done, PR #3493 |
 | GEN.743 | Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs | none | open |
 | GEN.744 | Alpha-enhanced stellar tracks and an age-metallicity relation from the galaxy's own history | none | open |
 | GEN.745 | Stellar spectra by temperature, gravity and activity (model atmospheres) instead of a blackbody with a seeded UV share | none | open |
 | GEN.746 | Cosmic-ray dose below 100 g/cm2 of air from shower simulations instead of a straight stand-in between the Moon and Mars | none | open |
 | GEN.747 | Solar energetic particle events: the full event set and the Weibull parameters | none | open |
 | GEN.748 | Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's | none | open |
-| GEN.749 | Trapped radiation belts and the magnetosphere's shielding beyond a dipole size | none | open |
+| GEN.749 | Trapped radiation belts and the magnetosphere's shielding beyond a dipole size | none | done, PR #3410 |
 | GEN.750 | Evolutionary timeline: a model of the time to each life stage from conditions (Boss ruled: model it from physics) | none | open |
 | GEN.751 | Add the lava-vapour gases Al, K2, KO, K2O and Na2O to the gas table, from the research parts, so the lava-world air has its full species list | none | done, PR #3222 |
 | GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | none | open |
@@ -1507,21 +1509,21 @@ Parents marked "new parent" had no old number of their own.
 | GEN.756 | Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py) | none | done, PR #3129 |
 | GEN.757 | Piece of GEN.411: the ocean water-vapour cap and the sulfur uptake functions (physics/mixture_sinks.py) | none | done, PR #3129 |
 | GEN.758 | Piece of GEN.411: mechanical test fixes for the deleted class ranges | none | done, PR #3311 |
-| GEN.759 | Wire the r-process Th/U enrichment (rprocess_enrichment, GEN.663) into the radiogenic heat module | none | open |
+| GEN.759 | Wire the r-process Th/U enrichment (rprocess_enrichment, GEN.663) into the radiogenic heat module | none | done, PR #3510 |
 | GEN.760 | Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw | none | done, PR #3317 |
 | GEN.761 | Wire the satellite hosting gate (hosting_gate, GEN.579) into the moon draw | none | done, PR #3258 |
 | GEN.762 | Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw | none | done, PR #3128 |
-| GEN.763 | The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug) | none | open |
-| GEN.764 | Bring a galaxy to the current generator epoch without a full regeneration: record the epoch each stored result was made under and redo only what an epoch bump changed | none | open |
+| GEN.763 | The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug) | none | done, PR #3510 |
+| GEN.764 | Bring a galaxy to the current generator epoch without a full regeneration: record the epoch each stored result was made under and redo only what an epoch bump changed | none | done, PR #3439 |
 | GEN.765 | A world with Flora 5, Fauna 5 and Sentient 5 scores Suitability Red with "no food readily available": the food rung ignores the life the scores say is there (bug) | none | done, PR #3203 |
 | GEN.766 | Generated life text states what is detected, in the present tense: no "speculative", "could", "would" or "boasts" (bug) | none | done, PR #3203 |
-| GEN.767 | Day and night time shares for every object that has a day or night, with the extra night when the parent planet blocks the sun | none | open |
+| GEN.767 | Day and night time shares for every object that has a day or night, with the extra night when the parent planet blocks the sun | none | done, PR #3510 |
 | GEN.768 | Hours a person can be outside in a day: daylight hours limited by heat, cold, pressure, air supply and radiation dose, computed and stored per planet and moon | none | open |
-| GEN.769 | Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug) | none | open |
-| GEN.770 | Water rows state their unit: share of the mass, surface under ocean, surface above sea level, water activity, ocean pH (bug) | none | open |
-| GEN.771 | Property sheet: the 40 ratio and 7 index rows state a unit or a scale (shares in percent or ppm, scores as "n of 9", ratios by what they divide) (bug) | none | open |
-| GEN.772 | Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug) | none | open |
-| GEN.773 | A temperature difference is never converted as a temperature: the day and night swing of 9.07 K shows as 9.07 K (or 9.07 C degrees), not -264 C (bug) | none | open |
+| GEN.769 | Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug) | none | done, PR #3478 |
+| GEN.770 | Water rows state their unit: share of the mass, surface under ocean, surface above sea level, water activity, ocean pH (bug) | none | done, PR #3478 |
+| GEN.771 | Property sheet: the 40 ratio and 7 index rows state a unit or a scale (shares in percent or ppm, scores as "n of 9", ratios by what they divide) (bug) | none | done, PR #3478 |
+| GEN.772 | Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug) | none | done, PR #3478 |
+| GEN.773 | A temperature difference is never converted as a temperature: the day and night swing of 9.07 K shows as 9.07 K (or 9.07 C degrees), not -264 C (bug) | none | done, PR #3478 |
 | GEN.774 | Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows | none | open |
 | GEN.775 | Replace the planet-minus-star Fe/Mg scatter and super-Mercury tail (registry row BC8) with a larger sample of rocky planets with precise masses and stellar Fe/Mg | none | open |
 | GEN.776 | Replace the rogue-planet volatile loss at ejection (registry row BC11) with a measured atmosphere or free-floating-planet volatile survey | none | open |
@@ -1543,9 +1545,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.792 | File the GEN.725 registry rows from the second-hand citations report: first-hand sources, second-hand fallbacks and the final open list | none | done, PR #3212 |
 | GEN.793 | Settle two source flags in the registry: CFC-12 forcing coefficient 0.32 (IPCC TAR) against 0.33 (gap plan), and the NH3 1.078 factor against Irwin 2019 | none | done, PR #3212 |
 | GEN.794 | Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 quiet and active NH3 rates, or a computation from the Cheng 2006 cross section and measured solar spectra | none | open |
-| GEN.795 | The day and night temperature swing reads as a range: "±9.07 K" (or "±9.07 C degrees") or the full low to high temperatures, never a bare difference (bug) | none | open |
-| GEN.796 | Each regional temperature (polar, northern, equatorial, southern, mean and the rest) shows its actual range: the low and the high with the stated value at the middle | none | open |
-| GEN.797 | Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level | none | open |
+| GEN.795 | The day and night temperature swing reads as a range: "±9.07 K" (or "±9.07 C degrees") or the full low to high temperatures, never a bare difference (bug) | none | done, PR #3487 |
+| GEN.796 | Each regional temperature (polar, northern, equatorial, southern, mean and the rest) shows its actual range: the low and the high with the stated value at the middle | none | done, PR #3487 |
+| GEN.797 | Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level | none | done, PR #3384 |
 | GEN.798 | Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers) | none | open |
 | GEN.799 | Resource scan: compute the grade, mass and score of every resource for belts, fields, giants and icy bodies from their stored composition, as its own command and galaxy stage | none | open |
 | GEN.800 | Wire the stored magnetosphere and stellar activity outputs into escape, dose and habitability (G2) | none | open |
@@ -1560,32 +1562,94 @@ Parents marked "new parent" had no old number of their own.
 | GEN.809 | A giant's dipole moment and class come from the metallic-hydrogen shell and the dilute core (G3, step 1) | none | open |
 | GEN.810 | A giant's internal heat reads the interior layers and the helium shell (G3, step 2) | none | open |
 | GEN.811 | The description of a giant says what its interior is (G3, step 3) | none | open |
-| GEN.812 | Greenhouse module: a water-vapour profile that dries with height, and pressure broadening checked against Venus and Earth, so an Earth twin at its own fixed point comes out near 288 K (finding 1) | none | open |
+| GEN.812 | Greenhouse module: a water-vapour profile that dries with height, and pressure broadening checked against Venus and Earth, so an Earth twin at its own fixed point comes out near 288 K (finding 1) | none | done, PR #3551 |
 | GEN.813 | Volatile inventory brackets recalibrated against the totals of the Earth, Venus, Mars and Titan, not only the ratios (finding 2) | none | done, PR #3254 |
 | GEN.814 | A water-rich world (class O, 10 to 50 wt% water) gets a carbon sink: seafloor weathering and the high-pressure ice that seals the mantle (finding 3) | none | done, PR #3286 |
-| GEN.815 | Sulfur sink: a sulfate and sulfide balance replaces the stand-in SULFUR_SURFACE_KEPT (finding 4) | none | open |
+| GEN.815 | Sulfur sink: a sulfate and sulfide balance replaces the stand-in SULFUR_SURFACE_KEPT (finding 4) | none | done, PR #3373 |
 | GEN.816 | A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5) | none | open |
 | GEN.817 | Rogue and starless bodies: their air goes through the same fixed point (finding 7) | none | folded into GEN.557 |
 | GEN.818 | Aluminium in the melt model: an Al2O3 activity (with a tier) so a lava draw can make aluminium vapour (GEN.751 follow-up) | none | done, PR #3264 |
 | GEN.819 | Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet | none | open |
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample | none | open |
 | GEN.821 | Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure | none | open |
-| GEN.822 | Wire hydro_based_mass_loss_g_s (GEN.738) into the sub-Neptune envelope rows (radius_valley, runaway_history): escape loss changes the stored radii | none | open |
-| GEN.823 | Wire the water-world carbon sink (GEN.814, waterworld_carbon) into the air solve and show the water-world temperatures sit inside the published range | none | open |
+| GEN.822 | Wire hydro_based_mass_loss_g_s (GEN.738) into the sub-Neptune envelope rows (radius_valley, runaway_history): escape loss changes the stored radii | none | done, PR #3354 |
+| GEN.823 | Wire the water-world carbon sink (GEN.814, waterworld_carbon) into the air solve and show the water-world temperatures sit inside the published range | none | done, PR #3504 |
 | GEN.824 | The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2 | none | open |
-| GEN.825 | Region names: region_name() for the codec kind region, the anchor and sphere geometry of every 9-block, and a measurement of the squeezed blocks (regions chain, step 1) | none | open |
-| GEN.826 | Random-start and Generate "around a place" fill one anchor sphere, so a normal fill charts a whole region (regions chain, step 1c) | none | open |
-| GEN.827 | Region extent: the bounding sphere of a cell's generated sectors (never under the 12 pc fill sphere) and the measurement of two far-apart clumps (regions chain, step 1d) | none | open |
+| GEN.825 | Region names: region_name() for the codec kind region, the anchor and sphere geometry of every 9-block, and a measurement of the squeezed blocks (regions chain, step 1) | none | done, PR #3375 |
+| GEN.826 | Random-start and Generate "around a place" fill one anchor sphere, so a normal fill charts a whole region (regions chain, step 1c) | none | done, PR #3490 |
+| GEN.827 | Region extent: the bounding sphere of a cell's generated sectors (never under the 12 pc fill sphere) and the measurement of two far-apart clumps (regions chain, step 1d) | none | done, PR #3375 |
 | GEN.828 | Giant planet occurrence falls with host mass and rises with metallicity, and hot Jupiters are rare: giants per M dwarf are about 0.48 today against 0.03 to 0.06 observed, hot Jupiters 0.117 per M dwarf and 0.026 per FGK star against under 0.002 and 0.005 to 0.01 | none | open |
 | GEN.829 | A 2 to 20 Earth-mass population exists: sub-Neptunes with a hydrogen envelope, 0.5 to 1 planets per FGK star inside 1 AU against 0.195 today, and the mass function falls steadily above about 10 Earth masses | none | open |
-| GEN.830 | A class O (ocean) planet in zone e reaches a surface pressure of 9.05e9 Pa (about 90,000 bar) with the solved air: unphysical for an air above a liquid ocean (bug) | none | open |
-| GEN.831 | The Wolf-Rayet class W has no kind in stellar_composition, so a W star has no composition record (bug) | none | open |
-| GEN.832 | tests/test_gen_compact_orbit_laws.py fails 4 tests on main: a compact object with a star yields no periods (bug) | none | open |
+| GEN.830 | A class O (ocean) planet in zone e reaches a surface pressure of 9.05e9 Pa (about 90,000 bar) with the solved air: unphysical for an air above a liquid ocean (bug) | none | done, PR #3504 |
+| GEN.831 | The Wolf-Rayet class W has no kind in stellar_composition, so a W star has no composition record (bug) | none | done, PR #3479 |
+| GEN.832 | tests/test_gen_compact_orbit_laws.py fails 4 tests on main: a compact object with a star yields no periods (bug) | none | done, PR #3433 |
 | GEN.833 | Cold icy moons get sparse ice cover because the hydrosphere's toy ocean_fraction feeds the ground draw (bug) | none | open |
 | GEN.834 | Non-water ice species (CO2, CH4, N2 and others) are drawn into the ground but not stored per species | none | open |
 | GEN.835 | The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule | none | open |
-| GEN.836 | Moon ring hooks and rogue planets use the ring fields: has_ring for moon origin in moon_composition, and rogue planets draw rings | none | open |
-| GEN.837 | Forced class M and class P planets in the habitable zone carry far too much steam: about a third of 300 draws sit above 400 K because the wet volatile inventories give hundreds of bar (bug) | none | open |
+| GEN.836 | Moon ring hooks and rogue planets use the ring fields: has_ring for moon origin in moon_composition, and rogue planets draw rings | none | done, PR #3523 |
+| GEN.837 | Forced class M and class P planets in the habitable zone carry far too much steam: about a third of 300 draws sit above 400 K because the wet volatile inventories give hundreds of bar (bug) | none | done, PR #3504 |
+| GEN.838 | A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling | none | open |
+| GEN.839 | The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug) | none | open |
+| GEN.840 | The atmosphere recipe tables still gate each mixture row on class letters: change the gate to kind plus conditions and drop the letter from the mixture subject (the recipe-gate half of GEN.683) | none | open |
+| GEN.841 | thermosphere.exobase can loop for over 20 minutes in the planet atmosphere draw: a planet whose exobase never closes steps through a huge range (bug) | none | done, PR #3405 |
+| GEN.842 | Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left | none | open |
+| GEN.843 | The stored magnetopause_rp is in Earth radii but is labelled planet radii: wrong for Jupiter and every non-Earth-sized world (bug) | none | open |
+| GEN.844 | A random planet's colour crashes generation: 'the spectrum has no light between 380 and 780 nm' (bug) | none | done, PR #3443 |
+| GEN.845 | Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764) | none | open |
+| GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) | none | open |
+| GEN.847 | radiation.ground_dose_msv_yr passes a float rock_ppm to radiogenic.surface_content, which fails with "float object is not iterable" and turns 17 tests red on main (bug) | none | done, PR #3467 |
+| GEN.848 | Store a day and night swing for every temperature the sheet shows (only the equator has one) (bug) | none | open |
+| GEN.849 | Re-fit the delivered-water rows b2/b3 against the bodies bulk water (the rows deliver 0.1 to 0.2 percent of mass against 0.01 to 0.03 percent of body water) | none | open |
+| GEN.850 | Wire radiative_convective.warming into generation behind a lookup table of the model answers, and delete the infrared_opacity.py plateau code | none | open |
+| GEN.851 | Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today) | none | open |
+| GEN.852 | Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others) | none | open |
+| GEN.853 | No generated system reaches a technological civilization any more: tests/test_population.py cannot build one after 200 tries (bug) | none | open |
+| GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) | none | open |
+| GEN.855 | Biogenic oxygen: photosynthesis releases free oxygen into the air as the life timeline passes it, so habitable worlds can reach multicellular life (bug) | none | open |
+| GEN.856 | interior_heat._flux_w_m2 raises ZeroDivisionError and fails the albedo and tidal migration tests on clean main (bug) | none | open |
+| GEN.857 | Biogenic gases for non-oxygenic worlds: methane and haze from anoxygenic and chemoautotroph communities, donor drawdown, and registry entries for each stand-in | none | open |
+| GEN.858 | Stage-aware air: the atmosphere follows the world's life stage from the timeline (pre-life, microbial anoxic, oxygenation, ozone shield and its UV effect on the surface), so every planet carries the air its life type and stage would make | none | open |
+| GEN.859 | Microbial worlds without O2 keep a capped CO2 and CH4 air: the limit on how much CO2 and CH4 anoxic microbial life leaves in the air | none | open |
+| GEN.860 | Melanin radiotrophs weighted by radiation dose: the star weight times a dose factor from 0.1 at Earth dose to 1.0 at about 1,000 times Earth dose | none | open |
+| GEN.861 | Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need | none | open |
+| GEN.862 | Design: the life class system, merged as docs/design/habitability/life-classes.md (nine classes, the stage ladder, the ledger, scoring and storage) | none | open |
+| GEN.863 | Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters | none | open |
+| GEN.864 | Sentient life per life class: sentient species and civilizations draw from the life class scores of a world | none | open |
+| GEN.865 | Headline of 9.5: sentient life draws from the life classes, so every sentient world is rated for the kind of life that built it | none | open |
+| GEN.866 | A planet draw around an F5V star at an ecosphere orbit never returns when a large tidally forced moon is generated: the interior heat step size collapses (bug) | none | done, PR #3578 |
+| GEN.867 | The star lists and the chemistry weights agree, and a carbon and water chemistry is never drawn on a non-water solvent | none | open |
+| GEN.868 | A world has a life chemistry only after abiogenesis has happened: the map icons, search facet and population code read life_stage, not life_chemical | none | open |
+| GEN.869 | Life descriptions and labels say what the chemistry does: Chlorophyll a builds the oxygen, Retinal is a supplement, Zinc-Bacteriochlorophyll is an aerobic acidophile, Melanin is not a pigment, and hosts without a life row are stated | none | open |
+| GEN.870 | Every life constant has a stand-in registry row with its tier and tweak level (LIFE_CHEMICALS gates and star weights, STAR_EVOLUTION, timelines, score thresholds, solvent factors, toxicity limits, O2 band, energy flux and shares) | none | done, PR #3581 |
+| GEN.871 | Sub-ice microbial mats are scored as Flora and as edible plant food, and described with coastlines and light they do not have (bug) | none | open |
+| GEN.872 | The life pass draws from a per-body sub-stream, so a life-model change no longer re-rolls the names and flavour text of every later body in the system | none | open |
+| GEN.873 | Standing life chemistry tests: star weights match the star lists, every pace can reach complex cells inside the age of the universe, no life chemistry without a stage, no Flora under ice, no chemistry on a non-water solvent, every life constant is registered, an oxygenic world past photosynthesis has more O2 | none | open |
+| GEN.874 | Non-carbon and non-water life classes (silicon, hydrocarbon, sulfuric acid and ammonia solvents) in the life class system | none | folded into GEN.894 (strange-solvent life classes 5 to 9; Boss 9:11 and 9:20 PM EDT 2026-10-28) |
+| GEN.875 | Design: adaptation traits drawn from a world's own stress (radiation, UV, sulfide, acid, brine, heat or cold, high CO2, low O2, toxins), each moving one named habitability threshold | none | done, PR #3583 |
+| GEN.876 | Adaptation traits built: drawn in the life pass, stored in a text column, listed on the object page (adapted to: radiation, sulfide) and read by the habitability scores | none | open |
+| GEN.877 | Animal oxygen floor by grade: route R1 replaces the human 8 to 50 kPa window, with a floor of about 0.1 to 0.8 kPa for sponge-grade animals rising with body size | none | open |
+| GEN.878 | Chemistry-specific energy: the pigment's absorption band times the star's spectrum is the multiplier on LIGHT_SHARE, instead of one bolometric curve for every metabolism | none | open |
+| GEN.879 | A far-red oxygenic chemistry (chlorophyll d and f) that K and M stars can draw, so the most common stars can have oxygenic life and animals | none | open |
+| GEN.880 | Chemolithoautotroph producers (H2 methanogens and acetogens, sulfur and iron oxidisers, radiolytic H2) replace Melanin as the producer under ice and in aquifers, with an oxidant budget that caps aphotic animals | none | open |
+| GEN.881 | Retinal becomes a photoheterotroph supplement that needs a carbon fixer, and Melanin becomes the radiotolerance adaptation with dose in its draw, not a radiation food | none | open |
+| GEN.882 | Route R2, chemosymbiotic animals: tubeworm, clam, mussel and cave-molly style communities on sulfide, methane or H2 with an oxidant, no light needed | none | open |
+| GEN.883 | Route R3, low-oxygen sessile animals: sponge-grade animals with Fauna capped low, on air above 0.5 percent of today's O2 or a CO2 or iron-rich ocean | none | open |
+| GEN.884 | Route R4, rare anoxic animals: a few percent of anoxic sulfidic worlds get animals that have lost aerobic respiration, Fauna capped low | none | open |
+| GEN.885 | Route R5, alternate-oxidant airs (nitrate-rich water, nitrous oxide, chlorate and perchlorate brines) for non-oxygen breathers | none | folded into GEN.887 and GEN.889 (classes 4b and 4c are Class 4 rows of the life class system; Boss 9:11 PM EDT 2026-10-28) |
+| GEN.886 | The life class rule file and classifier: physics/data/life_classes.json, physics/life_classes.py, a shadow sweep that scores every body with no stored change, and a generated docs page | none | open |
+| GEN.887 | Life supply quantities: h2_supply, donor_supply, oxidant_supply, co2_phase and nh3_inventory, with stand-in rows and units registry entries | none | open |
+| GEN.888 | The acid medium model: a sulfuric acid cloud layer and acid pools from the temperature profile and the SO2 and water shares, filling the dead solvent() sulfuric branch | none | open |
+| GEN.889 | The class switch: life_class, life_class_variant, life_class_best, the life_class_scores table and migration, life_chemical and the star weights and lists dropped, dominant class by net primary production | none | open |
+| GEN.890 | The complexity index and animal grades per class (sessile, small mobile, large active), and the Fauna rule for chemosymbiotic life (fauna never exceeds its class's producer base) | none | open |
+| GEN.891 | The class ledger and the class-keyed stage-aware air for Classes 2 to 9 (O2 rows come from GEN.855; the gas rows of GEN.857/GEN.858 carry class numbers from the start) | none | open |
+| GEN.892 | Class text: stage names and descriptions per class, and the eats-drinks-breathes-gives-off lines, replacing the chemistry text | none | open |
+| GEN.893 | Stand-in registry rows for every class window, supply and complexity threshold, with tier and tweak level | none | open |
+| GEN.894 | Strange-solvent life classes 5 to 9 (acid-world, dense CO2, cold hydrocarbon sea, ammonia-water, silicon-bearing in acid): windows, supplies, texts, stand-ins and tiers | none | open |
+| GEN.895 | A system draw crashes with ZeroDivisionError in interior_heat._flux_w_m2 (viscosity 0), reached through validation.reconcile_moved_planet for a moon of a moved planet (bug) | none | done, PR #3578 |
+| GEN.896 | Since 4c (epoch 106) hot-zone planets and moons almost never score Yellow: the Yellow share fell to 0 for M2V, G2V and F5V (bug) | none | open |
+| GEN.897 | K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug) | none | open |
+| GEN.898 | A and B stars are far too rare at the reference position: A is 0.11% of stars against 0.6% to 1.1% observed, B 0.01% against 0.04% (bug) | none | open |
+| GEN.899 | An M2V primary has a companion star in 15.8% of systems; the star-count table says 27% and Duchene and Kraus 2013 give 26% +/- 3% (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1714,8 +1778,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | done, PR #457 |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
 | MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus | none | open |
-| MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | none | open |
-| MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | none | open |
+| MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | none | done, PR #3430 |
+| MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | none | done, PR #3553 |
 | MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | done, PR #753 |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | done, PR #696 |
 | MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | done, PR #683 |
@@ -1775,7 +1839,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) | none | done, PR #1288 |
 | MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) | none | done, PR #1289 |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors | none | open |
-| MAP.190 | Several separate regions of created sectors: which one the Galaxy Map opens on | none | open |
+| MAP.190 | Several separate regions of created sectors: which one the Galaxy Map opens on | none | done, PR #3445 |
 | MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | none | open |
 | MAP.192 | See the objects whose positions changed in the last orbital update | none | open |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | none | open |
@@ -1794,18 +1858,18 @@ Parents marked "new parent" had no old number of their own.
 | MAP.206 | Galaxy Map drawing on shells | none | done, PR #1612 |
 | MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | none | open |
 | MAP.208 | Stars and all phenomena on the three maps draw as points of light until near sector level, phenomena as bright as a star of similar mass | none | done, PR #1774 |
-| MAP.209 | Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug) | none | open |
-| MAP.210 | Nothing on the map can be selected, even in sector view (bug) | none | open |
+| MAP.209 | Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug) | none | done, PR #FOLDED |
+| MAP.210 | Nothing on the map can be selected, even in sector view (bug) | none | done, PR #FOLDED |
 | MAP.211 | Hypervelocity stars show no accessible information: show their type, and a button to the phenomenon or the star system (bug) | none | done, PR #1787 |
 | MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | none | open |
 | MAP.213 | Scene, maps and the JavaScript twin for trees: per-node zoom, log-radial overview and positions_at in JavaScript | none | open |
-| MAP.214 | Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space | none | open |
+| MAP.214 | Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space | none | done, PR #3284 |
 | MAP.215 | Nebulae tint the stars seen through them, with soft translucent boundaries | none | open |
 | MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | none | open |
 | MAP.217 | Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule) | none | done, PR #2006 |
 | MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo | none | open |
 | MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind | none | done, PR #2860 |
-| MAP.220 | Markers for habitable worlds and chosen classes, optional per kind | none | open |
+| MAP.220 | Markers for habitable worlds and chosen classes, optional per kind | none | done, PR #3547 |
 | MAP.221 | Station and vessel icons on the Galaxy Map | none | open |
 | MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone | none | open |
 | MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | none | open |
@@ -1822,11 +1886,11 @@ Parents marked "new parent" had no old number of their own.
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws | none | open |
 | MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row | none | open |
 | MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map | none | open |
-| MAP.237 | The Galaxy Map's "Charted only" view is invisible again, and charted regions are shown by colour and opacity, not outlined blocks (bug) | none | open |
+| MAP.237 | The Galaxy Map's "Charted only" view is invisible again, and charted regions are shown by colour and opacity, not outlined blocks (bug) | none | done, PR #FOLDED |
 | MAP.238 | Charted regions shown by colour and opacity, not outlined blocks: drop the outlines everywhere charted space is marked | none | merged into MAP.237 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | MAP.239 | Raise the Galaxy Map tile root to the 262 kpc reach: `TILE_ROOT` in `galaxy/viewport.py` and `galaxymap3d.js` | none | done, PR #2152 |
 | MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts | none | open |
-| MAP.241 | Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug) | none | open |
+| MAP.241 | Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug) | none | done, PR #3412 |
 | MAP.242 | The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body | none | open |
 | MAP.243 | The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug) | none | done, PR #2199 |
 | MAP.244 | The maps and pages use the atmosphere colour where they showed the planet colour | none | done, PR #2805 |
@@ -1834,7 +1898,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.246 | A loose group of stars far above the disc on a fresh galaxy cannot be reached by zoom or navigation and cannot be selected (bug) | none | folded into MAP.243 (Bug Hunt reproduced it on Boss's seed, 2026-10-17, 4:30 PM EDT as the lane reported) |
 | MAP.247 | The wheel zoom's column-density ray fallback: where the cursor ray hits nothing pickable, the point is the first sample where the integrated column density passes a threshold | none | done, PR #2229 |
 | MAP.248 | The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries | none | open |
-| MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) | none | open |
+| MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) | none | done, PR #3420 |
 | MAP.250 | When a map chooses which stars to show, halo and satellite-galaxy stars are the lowest priority and are always cut first, before anything else | none | done, PR #2155 |
 | MAP.251 | When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug) | none | done, PR #2375 |
 | MAP.252 | Viewing only the filled sectors does not dim the phenomena (bug) | none | done, PR #2252 |
@@ -1888,32 +1952,49 @@ Parents marked "new parent" had no old number of their own.
 | MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) | none | open |
 | MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | none | open |
 | MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | none | open |
-| MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | none | open |
+| MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | none | done, PR #3496 |
 | MAP.304 | Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug) | none | done, PR #3284 |
-| MAP.305 | Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug) | none | open |
-| MAP.306 | The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug) | none | open |
+| MAP.305 | Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug) | none | done, PR #3494 |
+| MAP.306 | The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug) | none | done, PR #3501 |
 | MAP.307 | Stations and facilities become points of interest: interest reasons for the map mark and its menu filter | none | open |
 | MAP.308 | A planet with moons has its own system map: the lunar orbits, the planet drawn from its rendered look at the moons' scale, and the atmosphere glow in the viewing space (bug) | none | done, PR #3327 |
 | MAP.309 | Star map filter for trade routes: draw the routes (all, or by polity, length or hop count) as paths on the Galaxy Map | none | open |
 | MAP.310 | Routes away from a selected object: select a system, spaceport or world on the star map and show only the trade routes leaving it | none | open |
-| MAP.311 | Map markers and a menu filter for worlds with life, with sentient life and with a civilization, beside the habitable-world markers | none | open |
+| MAP.311 | Map markers and a menu filter for worlds with life, with sentient life and with a civilization, beside the habitable-world markers | none | done, PR #3562 |
 | MAP.312 | Resource locations become points of interest: interest reasons for valuable asteroid belts and fields, icy bodies and giants, each with its own row in the map menu filter | none | open |
 | MAP.313 | Galaxy Map resource richness layer: a heat map of the resource score by sector, by resource kind, with the richest sectors listed | none | open |
-| MAP.314 | Galaxy Map labels the charted regions by zoom: the family word with Reach at 81 and 243, the Region name at 27 and 9, the corner or infobox below that (regions chain, step 3) | none | open |
-| MAP.315 | The map infobox shows the region and its parent: "Region: Vang Zarh (in Vang Reach)", each a link that flies the camera to the block (regions chain, step 4) | none | open |
-| MAP.316 | Regions are the nodes of the galactic-level map: a soft sphere with its name, coloured by share charted, replacing the sector boxes there, and a sortable charted-regions list (regions chain, step 3a) | none | open |
-| MAP.317 | Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c) | none | open |
-| MAP.318 | Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d) | none | open |
-| MAP.319 | flyToFit: flying to a region, star system, planet system of moons or nebula places the camera so the target fills the window, with no sector boxes drawn (regions chain, step 3b) | none | open |
-| MAP.320 | Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region | none | open |
-| MAP.321 | Point-of-interest markers by level: a star carries its best world marker in the star views, the planet or moon carries its own marker at the system level, and regions show inhabited tokens | none | open |
-| MAP.322 | Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e) | none | open |
+| MAP.314 | Galaxy Map labels the charted regions by zoom: the family word with Reach at 81 and 243, the Region name at 27 and 9, the corner or infobox below that (regions chain, step 3) | none | done, PR #3432 |
+| MAP.315 | The map infobox shows the region and its parent: "Region: Vang Zarh (in Vang Reach)", each a link that flies the camera to the block (regions chain, step 4) | none | done, PR #3403 |
+| MAP.316 | Regions are the nodes of the galactic-level map: a soft sphere with its name, coloured by share charted, replacing the sector boxes there, and a sortable charted-regions list (regions chain, step 3a) | none | done, PR #3445 |
+| MAP.317 | Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c) | none | done, PR #3395 |
+| MAP.318 | Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d) | none | done, PR #3483 |
+| MAP.319 | flyToFit: flying to a region, star system, planet system of moons or nebula places the camera so the target fills the window, with no sector boxes drawn (regions chain, step 3b) | none | done, PR #3406 |
+| MAP.320 | Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region | none | done, PR #3415 |
+| MAP.321 | Point-of-interest markers by level: a star carries its best world marker in the star views, the planet or moon carries its own marker at the system level, and regions show inhabited tokens | none | done, PR #3482 |
+| MAP.322 | Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e) | none | done, PR #3513 |
 | MAP.323 | The legend on the Galaxy Map covers the scale text: stack them so the legend sits above the scale and they never overlap (bug) | none | done, PR #3331 |
 | MAP.324 | The soft glow around stars on the Galaxy Map floods the view: at sector and sector-block zoom it makes big white blobs and haze that hide the stars, the black holes and the selection, so finding anything is nearly impossible (bug) | none | done, PR #3359 |
 | MAP.325 | The Galaxy Map infobox is too dense for a readable font: a block card lists ten rows plus a help paragraph in tiny text, and it sits over the zoom controls (bug) | none | done, PR #3331 |
 | MAP.326 | Zooming in from the Galaxy Map does not carry smoothly into the star system map: on no system could Boss zoom from the galaxy into the system view as one continuous move (bug) | none | done, PR #3345 |
-| MAP.327 | Sector view dims everything outside the sector's bounds and puts a clearly labelled move icon at the centre of each visible wall facing an adjacent sector | none | open |
-| MAP.328 | Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views) | none | open |
+| MAP.327 | Galactic view draws a locked wireframe round the current region with no dimming (the sector part, dimming and wall icons, is done in #3422) | none | done, PR #3445 |
+| MAP.328 | Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views) | none | done, PR #3573 |
+| MAP.329 | System Map stepping reaches systems across a sector's edge | none | open |
+| MAP.330 | Star glow halos grow huge when stars are blurred and cover most of the screen: fade the glow out strongly with halo size and cut it to zero long before that (bug) | none | done, PR #3454 |
+| MAP.331 | The purple wireframe cube on the Galaxy Map has no legend entry or label, so nothing says it outlines the charted region (bug) | none | done, PR #3535 |
+| MAP.332 | The Galaxy Map info card (Block 10 1 63 and similar) is cut off at the bottom, so its region line and buttons are hidden below the More row (bug) | none | done, PR #3533 |
+| MAP.333 | Zoom redesign Z0: fly-tos are no longer clamped to the zone and do not snap back after a region flight; the slider shows absolute log distance over one global range and works in flights; plus, minus, slider and pinch cross levels like the wheel; the wheel never dead-ends (bug) | none | done, PR #3556 |
+| MAP.334 | Zoom redesign Z1: one global zoom policy, with pace and clearance taken from the distance to the nearest thing; zoom floor 1e-10 pc (1e-12 pc after Z5) | none | done, PR #3569 |
+| MAP.335 | Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source | none | open |
+| MAP.336 | Zoom redesign Z3: one goTo(target) for every fly with the verb Go to, a find-a-place box, a vertical log ruler with named clickable stops, crumbs as Go to, and Up one level | none | open |
+| MAP.337 | Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests | none | open |
+| MAP.338 | Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers | none | open |
+| MAP.339 | Black holes: 237 of 240 drawn at a 10 pc zoom are far from the view; show them by a near-field rule (bug) | none | open |
+| MAP.340 | Black hole crowd badges: crowded black hole marks merge into one mark with a count badge and a click list (bug) | none | open |
+| MAP.341 | Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug) | none | open |
+| MAP.342 | Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority) | none | open |
+| MAP.343 | Sector Map and System Map signs for the reasons to look (life, sentient life, civilization) and the chosen-class markers: body-level markers know only inhabited, gas giant, habitable, uninhabitable and belt | none | done, PR #3576 |
+| MAP.344 | The civilization marker gains a technology band: filter and mark worlds by the technology level of their species | none | open |
+| MAP.345 | Map and search filters: a world filter for 'supports Class N' and 'has Class N' with a minimum score, from the life_class_scores index | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2054,6 +2135,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.74 | Delete the uncalled helpers (class_allowed_in_zone, build_sector_configs, shell_chunks, draw_mass, mantle_mass_kg, build_nodes, get_galaxy_phenomena, register_card_renderer, read_config, settings_hash, mass_limit_argv) (G7, step 2) | none | open |
 | OPS.75 | update.sh ends with "the update failed at step 9/9, checking that the web app imports" when the import check passed and the real failure is the health check after the Apache reload; the site stays closed with a wrong reason (bug) | none | done, PR #3363 |
 | OPS.76 | update.sh warns "uncommitted local changes in /var/lib/planetGen -- these will be overwritten: ?? state/" on every update although state/ is expected (bug) | none | done, PR #3363 |
+| OPS.77 | update.sh ends with the site closed because its final /api/health check gets a 403 (a reemergence of OPS.75) (bug) | none | done, PR #3525 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -2227,8 +2309,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.171 | The bright-star scatter keeps its cell and due-time indexes on while its rows go in: drop and rebuild them as PERF.167 did for the phenomenon scatter | none | done, PR #2763 |
 | PERF.172 | The galaxy as one wrapper run: the population pass and the phenomenon work are units of the step list (the D2 slice of PERF.123) | none | open |
 | PERF.173 | A new-galaxy Generate run dies in stage 5 with "Execution not found in Redis": the worker warm outlives the 90 s execution record (bug) | none | done, PR #3034 |
-| PERF.174 | Every work unit's database connection runs the schema check again: skip it when the schema version is current | none | open |
-| PERF.175 | benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug) | none | open |
+| PERF.174 | Every work unit's database connection runs the schema check again: skip it when the schema version is current | none | done, PR #3449 |
+| PERF.175 | benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug) | none | done, PR #3449 |
 | PERF.176 | Storing the galaxy shape takes 52 percent of the plan (20 s of 38.6 s): find why and speed it up | none | done, PR #2877 |
 | PERF.177 | A galaxy run died at the phenomena stage (14 percent) on a Redis out-of-memory (maxmemory 512mb, noeviction), the later stages never ran, and the log is a 70-line double traceback (bug) | none | done, PR #2836 |
 | PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) | none | open |
@@ -2246,13 +2328,14 @@ Parents marked "new parent" had no old number of their own.
 | PERF.190 | Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates | none | open |
 | PERF.191 | The warm-up after an epoch change fails: "a stage queues at most 4000 units, not 4051" (bug) | none | done, PR #3120 |
 | PERF.192 | The nebula field slab stage queues one unit per 50 pc slab with no cap handling, so a large galaxy can exceed the 4000-unit limit (bug) | none | open |
-| PERF.193 | The nebula block totals pass keeps the level-3 cover as Python dicts, about 2 GB on a 12 pc galaxy: hold it as numpy arrays (bug) | none | open |
+| PERF.193 | The nebula block totals pass keeps the level-3 cover as Python dicts, about 2 GB on a 12 pc galaxy: hold it as numpy arrays (bug) | none | done, PR #3449 |
 | PERF.194 | The phenomena stage progress line still says "186M to place": the weight is printed as a number of phenomena instead of work (bug) | none | open |
 | PERF.195 | Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5) | none | open |
 | PERF.196 | Decide: show the object timing records or stop recording them (G5, step 1) | none | open |
 | PERF.197 | Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2) | none | open |
 | PERF.198 | Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6) | none | open |
 | PERF.199 | The words "rough guess" are removed from every ETA, time left and time estimate display (bug) | none | done, PR #3271 |
+| PERF.200 | Galaxy Map node cut bookkeeping: about half the busy time in the profile is string building, geometry recomputation and cache re-insertion | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -2414,7 +2497,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.46 | Wiping the galaxy wipes the bookmarks | none | open |
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | none | open |
 | UX.48 | Charted regions as bookmarks that frame and outline the region | none | open |
-| UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
+| UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | done, PR #3387 |
 | UX.50 | One short hint per map, the rest behind a Help entry | none | done, PR #640 |
 | UX.51 | Cards that repeat the page title | none | done, PR #663 |
 | UX.52 | Sector name repeated on every Contents row | none | done, PR #654 |
@@ -2488,11 +2571,11 @@ Parents marked "new parent" had no old number of their own.
 | UX.120 | The system page and the one-off system page use it: every body's detail from the Document | none | done, PR #2206 |
 | UX.121 | The logging layer and the written standard | none | done, PR #3049 |
 | UX.122 | The command line, the job log files and the downloadable log use the layer | none | open |
-| UX.123 | The Generate page log, the admin log pages and update.sh output use the layer | none | open |
+| UX.123 | The Generate page log, the admin log pages and update.sh output use the layer | none | done, PR #3540 |
 | UX.124 | One form-field look and error slot, piloted on the search, nearby and list-filter fields | none | done, PR #2716 |
 | UX.125 | The Generate page and the one-off system page on the field macro | none | done, PR #3184 |
-| UX.126 | The admin pages and the edit dialogs on the field macro | none | open |
-| UX.127 | The Galaxy Map block menu offers Generate again | none | open |
+| UX.126 | The admin pages and the edit dialogs on the field macro | none | done, PR #3387 |
+| UX.127 | The Galaxy Map block menu offers Generate again | none | done, PR #3567 |
 | UX.128 | Map side panels and other browser call sites take Quantity | none | done, PR #2801 |
 | UX.129 | Saved lists in the browser and in the account: one store with a local and an account backend | none | done, PR #2544 |
 | UX.130 | Console design brief: colours, type, panel shapes and iconography, approved by Boss | none | open |
@@ -2577,17 +2660,17 @@ Parents marked "new parent" had no old number of their own.
 | UX.209 | Object pages order: At a glance, then About, then the Properties list, then the other details (bug) | none | done, PR #3196 |
 | UX.210 | Map infoboxes and labels: the orbit infobox eccentricity and every other number on a map says what it is and its unit (scan) (bug) | none | done, PR #3347 |
 | UX.211 | Pages, lists, search, Nearby and the admin pages: every number carries a unit, a noun or a label (scan) (bug) | none | done, PR #3210 |
-| UX.212 | Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug) | none | open |
+| UX.212 | Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug) | none | done, PR #3423 |
 | UX.213 | Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug) | none | open |
-| UX.214 | Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column | none | open |
-| UX.215 | Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table | none | open |
-| UX.216 | Object pages: the "Rendered example" panel gets an in-universe navigation title | none | open |
-| UX.217 | System and planet pages name the zones: "Ecosphere / Habitable Zone", "Hot Zone", "Cold Zone", each with its range in appropriate units, instead of "Zone E" | none | open |
-| UX.218 | The class letter on pages is a link to the page for that class (Class M and the rest) | none | open |
-| UX.219 | Planet pages: Atmosphere and Composition are each a heading followed by their table; the composition table is the planet's actual composition by mass | none | open |
-| UX.220 | Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores | none | open |
-| UX.221 | Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities | none | open |
-| UX.222 | Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu | none | open |
+| UX.214 | Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column | none | done, PR #3518 |
+| UX.215 | Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table | none | done, PR #3573 |
+| UX.216 | Object pages: the "Rendered example" panel gets an in-universe navigation title | none | done, PR #3573 |
+| UX.217 | System and planet pages name the zones: "Ecosphere / Habitable Zone", "Hot Zone", "Cold Zone", each with its range in appropriate units, instead of "Zone E" | none | done, PR #3573 |
+| UX.218 | The class letter on pages is a link to the page for that class (Class M and the rest) | none | done, PR #3573 |
+| UX.219 | Planet pages: Atmosphere and Composition are each a heading followed by their table; the composition table is the planet's actual composition by mass | none | done, PR #3573 |
+| UX.220 | Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores | none | done, PR #3573 |
+| UX.221 | Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities | none | done, PR #3573 |
+| UX.222 | Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu | none | done, PR #3573 |
 | UX.223 | Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score | none | open |
 | UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) | none | open |
 | UX.225 | Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4) | none | open |
@@ -2597,7 +2680,12 @@ Parents marked "new parent" had no old number of their own.
 | UX.229 | Colour contrast of the habitability life scores and tree-leaf stats passes 4.5 to 1 in both themes (bug) | none | done, PR #3280 |
 | UX.230 | The Generate system page options have a valid listbox parent so axe aria-required-parent passes (bug) | none | done, PR #3280 |
 | UX.231 | Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5) | none | open |
-| UX.232 | Search results: the planet link in a result row goes to a bad link while the star system link in the same row works (bug) | none | open |
+| UX.232 | Search results: the planet link in a result row goes to a bad link while the star system link in the same row works (bug) | none | done, PR #3518 |
+| UX.233 | The Map symbols key on the object pages | none | open |
+| UX.234 | Searching for all M class planets with the search button says it is preparing the results, loops and never shows data (bug) | none | done, PR #3498 |
+| UX.235 | Pages that already have a table of contents also show the automatic contents bar, so the contents appear twice (bug) | none | done, PR #3515 |
+| UX.236 | User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest) | none | open |
+| UX.237 | Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -3018,7 +3106,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.312 | test_datasets_real::test_the_catalogue_reports_nothing_missing fails on main for the new ozone_uv dataset (bug) | none | done, PR #2810 |
 | TEST.313 | test_systems.py test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] is a random flake: about 2 in 12 runs the belt is missing (bug) | none | done, PR #2918 |
 | TEST.314 | Only classify writes the class column, and the class is recomputed when an input is edited | none | open |
-| TEST.315 | TEST.210 reports the class shares and ranges as outputs; TEST.209 adds that the class agrees with the conditions | none | open |
+| TEST.315 | TEST.210 reports the class shares and ranges as outputs; TEST.209 adds that the class agrees with the conditions | none | done, PR #3568 |
 | TEST.316 | test_no_page_shows_a_formula_that_is_not_written_out fails on main: /classes/habitability shows a bare "CO2" (bug) | none | done, PR #2850 |
 | TEST.317 | test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails under heavy load (bug) | none | open |
 | TEST.318 | test_web_generate_size::test_the_line_is_the_estimate_only_output_for_the_same_values fails on untouched main: refused True vs False (bug) | none | done, PR #3271 |
@@ -3071,7 +3159,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.365 | Six phenomenon-page tests in test_class_pages.py fail on clean main (bug) | none | done, PR #3142 |
 | TEST.366 | test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug) | none | dropped (passes 9 of 9 on main since #3125 changed the memory budgets, Bug 1, 7:20 PM EDT 2026-10-24 as the lane reported) |
 | TEST.367 | Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug) | none | done, PR #3291 |
-| TEST.368 | A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug) | none | open |
+| TEST.368 | A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug) | none | done, PR #3171 |
 | TEST.369 | test_age_needs (two tests) and test_eta_estimator fail on clean main (bug) | none | done, PR #3155 |
 | TEST.370 | test_web_pages in_process_transport fails: DatabaseLoginError, there is no planetgen database account on the lane machine (bug) | none | done, PR #3293 |
 | TEST.371 | test_workers::a_worker_that_is_killed fails under load and passes alone (bug) | none | done, PR #3291 |
@@ -3086,7 +3174,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.380 | First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp | none | open |
 | TEST.381 | First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp | none | open |
 | TEST.382 | First live test pass of the world population and the trade routes on a generated galaxy, before the 8.5 stamp | none | open |
-| TEST.383 | test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug) | none | open |
+| TEST.383 | test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug) | none | done, PR #3385 |
 | TEST.384 | Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug) | none | closed, does not reproduce on main (Bug 1, 1:37 AM EDT 2026-10-25) |
 | TEST.385 | Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug) | none | done, PR #3273 |
 | TEST.386 | First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp | none | open |
@@ -3095,22 +3183,56 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.389 | test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug) | none | open |
 | TEST.390 | More tests red on a clean copy of main: runner self-tests (on_child), admin queue log route 403, cache warm-up, test_stages, test_web_fresh_after_cli, test_workers killed worker, phenomenon diagram zoom tests, test_web_browser_tables life scores (bug) | none | done, PR #3293 |
 | TEST.391 | Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug) | none | open |
-| TEST.392 | test_prevalence.py takes 66 minutes: it draws 2000 full systems per check and each check runs 4 to 12 minutes, the longest single block of any changed gate (bug) | none | open |
+| TEST.392 | test_prevalence.py takes 66 minutes: it draws 2000 full systems per check and each check runs 4 to 12 minutes, the longest single block of any changed gate (bug) | none | done, PR #3528 |
 | TEST.393 | Each gate leaves about 50 orphaned planetgen.cli.worker processes that can fill 16 GB of RAM and get mysqld OOM-killed: tests that start detached workers do not reap them (bug) | none | done, PR #3308 |
-| TEST.394 | Six fixture-map browser tests are red on clean main (sector-click flow), and test_web_browser_fixture_maps.py is order-sensitive in one process because dense_site leaks extra worlds into the shared fixture (bug) | none | open |
+| TEST.394 | Six fixture-map browser tests are red on clean main (sector-click flow), and test_web_browser_fixture_maps.py is order-sensitive in one process because dense_site leaks extra worlds into the shared fixture (bug) | none | done, PR #3385 |
 | TEST.395 | A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q | none | open |
 | TEST.396 | test_fuzz_web_routes is red on main: the admin queue log route answers 302 where the test expects 403 (bug) | none | done, PR #3329 |
-| TEST.397 | test_api_auth_sweep is red on main (bug) | none | open |
+| TEST.397 | test_api_auth_sweep is red on main (bug) | none | done, PR #3418 |
 | TEST.398 | The test preflight kills stale planetgen.cli.worker processes, which pick up the units of later runs (bug) | none | open |
-| TEST.399 | test_golden_seed::test_the_pinned_galaxy_is_made_at_one_worker_and_at_four is red on main: the pinned galaxy differs between one worker and four (bug) | none | open |
+| TEST.399 | test_golden_seed::test_the_pinned_galaxy_is_made_at_one_worker_and_at_four is red on main: the pinned galaxy differs between one worker and four (bug) | none | done, PR #3504 |
 | TEST.400 | test_habitability_fill::test_the_command_re_scores_every_system is red on main: Namespace has no attribute 'command' in generate.validate_fill_args (bug) | none | done, PR #3358 |
-| TEST.401 | test_atmosphere_mixture_escape (abiotic oxygen) and test_atmosphere_mixture_rocky (delivered-water class) are red on main (bug) | none | open |
+| TEST.401 | test_atmosphere_mixture_escape (abiotic oxygen) and test_atmosphere_mixture_rocky (delivered-water class) are red on main (bug) | none | done, PR #3381 |
 | TEST.402 | test_db_column_round_trip fails once under load: the stars' disk columns read back NULL (bug) | none | open |
 | TEST.403 | Three scatter tests are far too slow: test_a_galaxy_with_no_scatter_still_rolls_its_own runs over 4.5 minutes, and two others hang for an hour under -n 4 (bug) | none | open |
 | TEST.404 | golden_update's first run wrote galaxy.json with the sector section made before the epoch bump, so test_golden_seed failed until a second run on the same tree (bug) | none | done, PR #3358 |
 | TEST.405 | The system page tests and the migration 0148 habitable_systems test are red on main (bug) | none | open |
 | TEST.406 | Four tests are red on main: test_surface_air stored-partials sum (1e-9 relative) and test_resume_across_builds, test_progress_log (2), test_redis_cleanup fail with an unexpected keyword on_child (bug) | none | open |
-| TEST.407 | golden_update takes about 55 minutes because its pinned-galaxy test builds the galaxy twice (one worker, then four), so it blocks every generation merge (bug) | none | open |
+| TEST.407 | golden_update takes about 55 minutes because its pinned-galaxy test builds the galaxy twice (one worker, then four), so it blocks every generation merge (bug) | none | done, PR #3371 |
+| TEST.408 | test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug) | none | open |
+| TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) | none | open |
+| TEST.410 | test_planet_physics_fixes::test_class_p_is_colder_than_class_m times out at 900 s: it generates 600 planets at about 5 s each since 4c, 14 of 16 seconds in the air solve (bug) | none | done, PR #3405 |
+| TEST.411 | Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug) | none | open |
+| TEST.412 | src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug) | none | open |
+| TEST.413 | test_property_sheet fails on main: the GEN.441 ground_*_fraction columns are not on the property sheet (bug) | none | done, PR #3499 |
+| TEST.414 | test_habitability_end_to_end_browser errors: the database fixture times out at 900 s before any page loads (8 errors) (bug) | none | open |
+| TEST.415 | test_cache_warmup::test_a_big_unit_stops_part_way fails on unmodified main (bug) | none | done, PR #3418 |
+| TEST.416 | test_habitability_explain fails ten tests on main: the tests still call the surface_content API as it was before GEN.441 (bug) | none | done, PR #3467 |
+| TEST.417 | Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug) | none | open |
+| TEST.418 | Seven map browser tests are red on clean main (bug) | none | open |
+| TEST.419 | test_opening_a_sector_is_one_continuous_view_with_a_filled_panel failed once in a full file run and passed on the next two (bug) | none | done, PR #3428 |
+| TEST.420 | Runner self-tests and the limit-slider follow-again browser test are red on main (bug) | none | open |
+| TEST.421 | test_migration_habitable_worlds: the filled-sector test finds no system with a Blue or Green world in 120 seeds, its _fill_one_sector helper no longer draws one (bug) | none | done, PR #3467 |
+| TEST.422 | test_generation_size_estimate (3 tests error in setup) and test_phenomenon_scatter (scatter_lists_each_shells_phenomena_by_kind, a_fill_builds_its_rows_at_their_stored_points) are red on clean main (bug) | none | open |
+| TEST.423 | test_admin_edits::test_recommended_class_change_saves_and_validates fails on clean main: the stand-in body has no eccentricity since migration 0163 (bug) | none | done, PR #3486 |
+| TEST.424 | test_property_sheet::test_every_column_is_on_the_sheet_or_says_why_it_is_not[moon|planet] fails on main: the new ground_* columns have no sheet row or NOT_SHOWN excuse (bug) | none | done, PR #3499 |
+| TEST.425 | test_wolf_rayet and test_field_units[RoguePlanet] are red on main (unit g/cm2 unknown) (bug) | none | done, PR #3525 |
+| TEST.426 | test_galaxy_map_window_follows_the_browser_window_when_it_is_resized fails in long full-file runs and passes alone (bug) | none | open |
+| TEST.427 | Three column registry tests are red on main: aerosol_draw has no unit, tidal_flux_w_m2 is written but listed as NULL, host_eccentricity is not serializable (bug) | none | open |
+| TEST.428 | test_benchmark_suite (real run) and the test_work_units batch fills are red on main (bug) | none | open |
+| TEST.429 | Four test groups are red on clean main: three test_api_job_runs tests, and test_web_seo for web.galaxy_system_nearest (bug) | none | open |
+| TEST.430 | Class census: a standing seeded report of every planet and moon class share and overall colour per star type and zone, with stored expected ranges and anomaly flags | none | open |
+| TEST.431 | System census: full systems per star type with planets, moons, belts and comets per system, the zero-planet share, binary share, habitable-world share, and life stage and civilization shares (prevalence suite part B) | none | done, PR #3585 |
+| TEST.432 | Star census: star type mix, white dwarfs, subgiants, giants, pre-main-sequence stars, brown dwarfs and multiplicity by type against RECONS and Kroupa (prevalence suite part C) | none | open |
+| TEST.433 | Phenomena census: black holes, neutron stars, magnetars, pulsars, Wolf-Rayet stars, planetary nebulae, supernova remnants, nebula classes, asteroid fields, clusters, rogue planets and interstellar comets against researched densities (prevalence suite part D) | none | open |
+| TEST.434 | Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug) | none | open |
+| TEST.435 | Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges | none | open |
+| TEST.436 | Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges | none | open |
+| TEST.437 | test_climate_draws test_every_class_stores_the_draws_its_temperature_is_made_of fails for 20 classes: the stored surface temperature differs from the draws' formula by 0.03 K (365.639 vs 365.607) (bug) | none | done, PR #3558 |
+| TEST.438 | test_planet_classes test_only_the_known_writers_assign_a_class fails: db/interests.py is a new writer of planet_class and is not in CLASS_WRITERS (bug) | none | done, PR #3562 |
+| TEST.439 | test_web_browser_map_perf.py fails on main: the climb moves stars over the buffer at up 1 and up 4, and teardown raises page errors on indexOf and scale (bug) | none | open |
+| TEST.440 | test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale fails on main: the scale text reads 0.25 sectors where 2.5 is expected (bug) | none | done, PR #3571 |
+| TEST.441 | Tests red on main from the albedo-greenhouse, moon-tidal-flux and mass-backfill migrations; the white dwarf models dataset is also missing on a fresh test machine (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

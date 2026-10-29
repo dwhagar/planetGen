@@ -28,7 +28,7 @@ import math
 from collections import namedtuple
 
 from planetgen.generation import life as planetLife
-from planetgen.physics import constants, planets as planetPhysics, rings
+from planetgen.physics import constants, orbit_elements, planets as planetPhysics, rings
 from planetgen import tuning
 from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
 from planetgen.physics import unit_registry as units
@@ -79,12 +79,22 @@ def inner_edge_au(obj):
     return obj.lower_limit if obj.body_type == 'a' else obj.distance
 
 
+def periapsis_au(planet):
+    """The closest a planet or moon comes to what it orbits, in AU (`distance` is its semi-major axis, GEN.727)."""
+    return orbit_elements.periapsis_au(planet.distance, planet.eccentricity)
+
+
+def apoapsis_au(planet):
+    """The farthest a planet or moon goes from what it orbits, in AU."""
+    return orbit_elements.apoapsis_au(planet.distance, planet.eccentricity)
+
+
 def reach_au(obj):
     """How far out a body's influence reaches, in AU: a belt's
-    `upper_limit`, or a planet's orbit plus its own `min_orbit_distance`
+    `upper_limit`, or a planet's apoapsis plus its own `min_orbit_distance`
     (5 Hill radii), so its whole Hill sphere, not just its center, must
     stay inside a star's orbit ceiling."""
-    return obj.upper_limit if obj.body_type == 'a' else obj.distance + obj.min_orbit_distance
+    return obj.upper_limit if obj.body_type == 'a' else apoapsis_au(obj) + obj.min_orbit_distance
 
 
 def exceeds_orbit_ceiling(obj, ceiling_au):
@@ -127,14 +137,16 @@ def min_distance_past_belt_au(planet, belt):
     `MIN_ASTEROID_BELT_SEPARATION`.
 
     The Hill radius scales linearly with distance (`r_H = x * c`, with
-    `c = (m / 3M)^(1/3)`), so this solves `x - 5*c*x >= edge + gap` in
-    closed form: `x >= (edge + gap) / (1 - 5c)`. `5c` is clamped to 0.9
-    so a body heavy enough to make that unsolvable still gets a large
-    but finite distance.
+    `c = (m / 3M)^(1/3)`), and the planet's periapsis `x (1 - e)` is what
+    must clear the belt (GEN.727), so this solves `x (1 - e) - 5*c*x >=
+    edge + gap` in closed form: `x >= (edge + gap) / (1 - e - 5c)`. `5c`
+    is clamped to 0.9, and the divisor to 0.1, so a body heavy or
+    eccentric enough to make that unsolvable still gets a large but
+    finite distance.
     """
     c = _km_to_au(planet.hill_radius) / planet.distance
     k = min(5 * c, 0.9)
-    return (belt.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION) / (1 - k)
+    return (belt.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION) / max(1 - k - (planet.eccentricity or 0.0), 0.1)
 
 
 def mutual_min_distance_au(planet, last_planet):
@@ -164,7 +176,11 @@ def mutual_min_distance_au(planet, last_planet):
     `MUTUAL_HILL_RADII_SEPARATION * ((m_planet + m_last) / (3 *
     M_star)) ** (1/3)`. The stability requirement `x - d >= kappa *
     (x + d) / 2` rearranges to `x >= d * (1 + kappa/2) / (1 -
-    kappa/2)`.
+    kappa/2)`. With eccentric orbits (GEN.727) the gap that must hold the
+    separation is the one between the inner planet's apoapsis and the
+    outer one's periapsis, `x (1 - e2) - d (1 + e1) >= kappa (x + d) / 2`,
+    which gives `x >= d * (1 + e1 + kappa/2) / (1 - e2 - kappa/2)` (the
+    same at e = 0; the divisor is held at 0.1 or more).
 
     `M_star` is `planet.star.mass` rather than the system's `star` --
     for a single star or a P-type (close) binary's merged proxy both
@@ -191,7 +207,9 @@ def mutual_min_distance_au(planet, last_planet):
     # of that so the formula below always returns a large-but-finite,
     # rather than negative or infinite, distance.
     kappa = min(kappa, 1.8)
-    return last_planet.distance * (1 + kappa / 2) / (1 - kappa / 2)
+    inner_e = last_planet.eccentricity or 0.0
+    outer_e = planet.eccentricity or 0.0
+    return last_planet.distance * (1 + inner_e + kappa / 2) / max(1 - outer_e - kappa / 2, 0.1)
 
 
 def min_distance_after_au(body, last):
@@ -203,7 +221,7 @@ def min_distance_after_au(body, last):
     if body.body_type == 'a':
         if last.body_type == 'a':
             return last.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION
-        return last.distance + last.min_orbit_distance
+        return apoapsis_au(last) + last.min_orbit_distance
     if last.body_type == 'a':
         return min_distance_past_belt_au(body, last)
     return mutual_min_distance_au(body, last)
@@ -289,7 +307,7 @@ def reconcile_moved_planet(planet, keep_class=False):
         )
         any_moon_reclassified = any_moon_reclassified or moon_reclassified
         if not moon_reclassified:
-            planetPhysics.calculate_atmospheric_conditions(moon, planet.distance)
+            planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
             if reclassified:
                 moon.period = planetPhysics.calculate_orbital_period_years(moon.distance, planet.mass)
                 planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
@@ -382,7 +400,7 @@ def space_orbits(planets, pinned=()):
         if last_planet.body_type == 'a':
             distance_to_last = planet.distance - last_planet.upper_limit
         else:
-            distance_to_last = planet.distance - last_planet.distance
+            distance_to_last = planet.distance - apoapsis_au(last_planet)
 
         if distance_to_last < 0:
             # abs(distance_to_last) alone is exactly enough to cancel
@@ -630,7 +648,7 @@ def check_lunar_system(planet):
             problems.append(Problem(name, f"it is too large for {_label(planet)} to hold "
                                           f"({moon.radius:.4g} km, at most {largest_km:.4g} km)"))
         distance_km = _au_to_km(moon.distance)
-        if _below(distance_km, low_km) or distance_km > high_km * (1 + RELATIVE_TOLERANCE):
+        if _below(distance_km, low_km) or _au_to_km(apoapsis_au(moon)) > high_km * (1 + RELATIVE_TOLERANCE):
             problems.append(Problem(name, f"its orbit ({distance_km:.4g} km) is outside {_label(planet)}'s stable "
                                           f"range for moons ({low_km:.4g}-{high_km:.4g} km)"))
         if last is not None and _below(moon.distance, last.distance + last.min_orbit_distance):
@@ -727,7 +745,7 @@ def refresh_moon_orbit(moon, planet):
     # The same Hill sphere generation gives a moon (`Planet.__init__`), about its planet.
     moon.primary_mass_kg = planet.mass
     planetPhysics.update_hill_sphere(moon)
-    planetPhysics.calculate_atmospheric_conditions(moon, planet.distance)
+    planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
     planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
 
 

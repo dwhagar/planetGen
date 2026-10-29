@@ -9,7 +9,8 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, clathrate_brine, constants, gases, saturation, surface_air as sa, surface_pressure
+from planetgen.physics import atmosphere, atmosphere_state, clathrate_brine, constants, gases, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen import tuning
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -113,9 +114,12 @@ def test_a_steady_creep_is_extrapolated_to_its_limit_and_a_swing_or_noise_is_not
     assert sa._step(sa.DAMPING, 0.5, [0.7]) == pytest.approx(0.5 * sa.DAMPING)
 
 
+LAND = sa.WaterWorld(sealed=False, draws=None, law=None)
+
+
 def _setting(water=0.3, gravity=1.35):
     return sa.Setting(gravity_m_s2=gravity, radius_m=2.5e6, mantle_kg=1.0e22, released_j=0.0, heat_flux_w_m2=0.0, ocean_cover=0.0,
-                      water_kg=1.0e18, absorbed_flux_w_m2=1.0, subject_of=None, bulk_water_fraction=water)
+                      water_kg=1.0e18, absorbed_flux_w_m2=1.0, released_at_seal_j=0.0, subject_of=None, bulk_water_fraction=water)
 
 
 def test_a_cold_icy_body_holds_its_guest_gases_in_the_ice_and_a_warm_or_dry_one_does_not():
@@ -139,20 +143,95 @@ def test_an_ocean_dissolves_sulfur_dioxide_and_leaves_the_nitrogen():
     assert left["SO2"] + dissolved["SO2"] == pytest.approx(moles["SO2"])
 
 
-def test_an_ocean_keeps_only_a_drawn_share_of_the_sulfur():
+def test_the_sulfur_the_air_keeps_is_what_the_sulfate_and_sulfide_sinks_leave():
     setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=1.0e30, heat_flux_w_m2=0.0614, ocean_cover=0.7,
-                         water_kg=1.4e21, absorbed_flux_w_m2=240.0, subject_of=None)
+                         water_kg=1.4e21, absorbed_flux_w_m2=240.0, released_at_seal_j=2.0e29, subject_of=None)
     draw.set_run_seed(26)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = surface_pressure.draw_cycle(design)
+    lifetimes = sulfur_balance.draw_lifetimes(design)
     inventory = {"C": 0.0, "S": 1.0e-3, "N": 1.0e-4}
-    wet = sa._shares(setting, efficiencies, cycle, 3.0e-4, True, True, 288.0)(inventory)
-    dry = sa._shares(setting, efficiencies, cycle, 3.0e-4, False, False, 288.0)(inventory)
-    assert wet["S"] == pytest.approx(3.0e-4 * dry["S"])
-    assert wet["N"] == dry["N"]  # nitrogen has no sink here
-    low, high, _ = sa.SULFUR_SURFACE_KEPT
-    assert (low, high) == (1e-5, 1e-2)
+    age_s = 4.5 * sa.GY_S
+    wet = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), True, True, 288.0, LAND)(inventory)
+    dry = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), False, False, 288.0, LAND)(inventory)
+    base = surface_pressure.degassed_share(setting.released_j, setting.mantle_kg) * efficiencies["S"]
+    assert 0.0 < wet["S"] < base                        # the sinks take most of it
+    assert wet["S"] == pytest.approx(base * lifetimes.wet_s / age_s, rel=1e-6)   # the steady-state burden of a day or so
+    assert dry["S"] > wet["S"]                          # sulfation of the rock is slower than rain-out
+    assert wet["N"] == dry["N"]                         # nitrogen has no sink here
+
+
+def test_a_crust_too_small_for_the_sulfur_leaves_the_excess_in_the_air():
+    setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=1.0e24, heat_flux_w_m2=0.0614, ocean_cover=0.7,
+                         water_kg=1.4e21, absorbed_flux_w_m2=240.0, released_at_seal_j=2.0e29, subject_of=None)
+    draw.set_run_seed(27)
+    design = {}
+    efficiencies = surface_pressure.draw_efficiencies(design)
+    cycle = surface_pressure.draw_cycle(design)
+    lifetimes = sulfur_balance.draw_lifetimes(design)
+    inventory = {"C": 0.0, "S": 1.0, "N": 0.0}         # an inventory far larger than the crust this heat built
+    shares = sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0, LAND)(inventory)
+    base = surface_pressure.degassed_share(setting.released_j, setting.mantle_kg) * efficiencies["S"]
+    assert shares["S"] > 0.5 * base
+
+
+def _ocean_setting(ocean_cover, water_kg, released_j=1.0e30, released_at_seal_j=2.0e29, **fields):
+    return sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=released_j, heat_flux_w_m2=0.0614,
+                      ocean_cover=ocean_cover, water_kg=water_kg, absorbed_flux_w_m2=240.0, released_at_seal_j=released_at_seal_j,
+                      subject_of=None, **fields)
+
+
+def _carbon_share(setting, water_world, temperature_k=288.0):
+    draw.set_run_seed(26)
+    design = {}
+    efficiencies = surface_pressure.draw_efficiencies(design)
+    cycle = surface_pressure.draw_cycle(design)
+    lifetimes = sulfur_balance.draw_lifetimes(design)
+    return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, temperature_k, water_world)({"C": 1.0e-2})["C"]
+
+
+def test_the_water_world_is_sealed_only_when_its_ocean_floor_reaches_the_seal_pressure():
+    """GEN.830: a shallow ocean (Earth's, 1.4e21 kg) leaves the seafloor at about 0.04 GPa, a body that is a tenth water at several GPa."""
+    shallow = sa.water_world_of(_ocean_setting(0.7, 1.4e21), {})
+    deep = sa.water_world_of(_ocean_setting(1.0, 4.0e23), {})
+    assert not shallow.sealed and deep.sealed
+
+
+def test_a_sealed_ocean_world_degasses_what_the_mantle_released_by_the_seal_time_and_not_after():
+    setting = _ocean_setting(1.0, 4.0e23)
+    draws, law = sa.waterworld_carbon.draw_waterworld({}), sa.waterworld_carbon.draw_seafloor_law({})
+    sealed, open_ = sa.WaterWorld(True, draws, law), sa.WaterWorld(False, draws, law)
+    assert surface_pressure.degassed_share(setting.released_at_seal_j, setting.mantle_kg) < surface_pressure.degassed_share(
+        setting.released_j, setting.mantle_kg)
+    assert 0.0 < _carbon_share(setting, sealed) <= 1.0 and 0.0 < _carbon_share(setting, open_) <= 1.0
+
+
+def test_an_ocean_world_with_no_land_keeps_its_carbon_in_the_ocean_and_the_hotter_ocean_keeps_less():
+    setting = _ocean_setting(1.0, 4.0e23)
+    sealed = sa.WaterWorld(True, sa.waterworld_carbon.draw_waterworld({}), sa.waterworld_carbon.draw_seafloor_law({}))
+    cool, hot = _carbon_share(setting, sealed, 280.0), _carbon_share(setting, sealed, 560.0)
+    assert hot >= cool  # the solubility of carbon dioxide falls with the temperature, so the air holds more of it
+    assert cool < 1.0   # an ocean takes some of it at all
+
+
+def test_volcanoes_bring_up_no_more_hydrogen_than_the_mantle_holds_as_water():
+    """GEN.837: recipes b2 and b3 deliver 0.1 to 0.2 percent of the planet's mass as water, a body of 0.03 percent water has none to give."""
+    draw.set_run_seed(26)
+    design = {}
+    efficiencies = surface_pressure.draw_efficiencies(design)
+    cycle = surface_pressure.draw_cycle(design)
+    lifetimes = sulfur_balance.draw_lifetimes(design)
+    inventory = {"H": 5.0, "C": 0.0, "S": 0.0, "N": 0.0}       # moles per 100 g of the mantle: 0.9 percent of the mantle's mass as water
+    def share(mantle_water_kg):
+        setting = _ocean_setting(0.7, 1.4e21, mantle_water_kg=mantle_water_kg)
+        return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0, LAND)(inventory)["H"]
+    base = surface_pressure.degassed_share(1.0e30, 4.0e24) * efficiencies["H"]
+    assert share(math.inf) == pytest.approx(base)                # no limit stated: the supply is as before
+    assert share(0.0) == 0.0                                      # a dry mantle gives none
+    some = 1.0e19                                                 # kg of water
+    assert share(some) == pytest.approx(2.0 * tuning.MANTLE_OUTGAS_SHARE * some / 0.018015 / (5.0 * 4.0e24 / 0.1), rel=1e-3)
+    assert 0.0 < share(some) < base
 
 
 def _generated(seeds):
@@ -180,6 +259,30 @@ def test_the_stored_partials_add_up_to_the_pressure_and_the_state_follows_from_t
         if body.body_type == "g":
             assert body.atmospheric_pressure == pytest.approx(sa.REFERENCE_PRESSURE_BAR * 1.0e5, rel=1e-9)
     assert bodies > 0
+
+
+def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives():
+    """GEN.423 and DB.67: the molar density, the density, the scale height and the greenhouse multiplier a body stores are the ones
+    its stored partial pressures give at its surface temperature and gravity: the molar mass is `sum x_i M_i`, the density `P M / (R T)`,
+    the scale height `R T / (M g)`, and the multiplier is the warming `atmosphere_state.greenhouse_warming` finds for the stored mixture
+    at the starlight the body absorbs, which is the one its stored temperature `T_e (1 + G)^(1/4)` is made of."""
+    bodies = 0
+    for body in _generated(range(10)):
+        air = atmosphere.gas_partials_pa(body)
+        if not air or body.atmosphere == "None":
+            assert body.greenhouse_factor == 0.0 or body.greenhouse_factor is None
+            continue
+        bodies += 1
+        gravity = body.gravity * constants.EARTH_GRAVITY
+        state = atmosphere_state.air_state(air, body.surface_temperature, gravity)
+        assert body.atm_molar_density == pytest.approx(state.mean_molar_mass_kg_mol, rel=1e-6)
+        assert body.atm_density == pytest.approx(state.density_kg_m3, rel=1e-6)
+        assert body.scale_height == pytest.approx(state.scale_height_m / 1000.0, rel=1e-6)
+        assert body.bond_albedo is not None and 0.0 <= body.bond_albedo < 1.0
+        absorbed = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
+        warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed)
+        assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1e-6, abs=1e-9)
+    assert bodies > 5
 
 
 def test_a_system_replays_to_the_same_air():
