@@ -1,10 +1,10 @@
 """A moon's origin and its giant parent's disk (DB.70).
 
-Schema v169. `planets` and `moons` gain `moon_origin` (how a moon came to orbit its parent: `disk`, `impact`, `captured`, `ring` or `binary`,
+Schema v176. `planets` and `moons` gain `moon_origin` (how a moon came to orbit its parent: `disk`, `impact`, `captured`, `ring` or `binary`,
 `physics/moon_composition.py`) and the circumplanetary disk of a giant planet that its moons formed in: `moon_disk_lifetime_myr`,
 `moon_disk_alpha_over_f`, `moon_disk_f_inf` and `moon_disk_ice_line_km`.
 
-All NULL here: the origin and the disk are draws of the generator epoch, so a row made before v169 has nothing to read back (the regenerated
+All NULL here: the origin and the disk are draws of the generator epoch, so a row made before v176 has nothing to read back (the regenerated
 galaxy replaces it). Each column is skipped when it is already there, so a stopped run can be started again.
 """
 
@@ -12,8 +12,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0169"
-down_revision = "0168"
+revision = "0176"
+down_revision = "0175"
 branch_labels = None
 depends_on = None
 
