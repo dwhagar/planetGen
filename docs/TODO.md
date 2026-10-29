@@ -19272,25 +19272,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
 
-- [ ] **OPS.71 Epoch and migration numbers are allocated by a script during the merge rebase, never renumbered by hand**
-  Efficiency scan suggestion 6, applied by Boss ("ALL", 2:21 PM EDT
-  2026-10-24). Lanes renumbered epochs and migrations at merge about 27
-  times (the execution notes), each after a long gate. TODO now reserves
-  a number when a lane says its change alters drawn values or the
-  schema, and takes it back if unused (process, in force now). Do: a
-  script (scripts/allocate_numbers.py or inside the merge helper) that,
-  during the rebase onto main, takes the next free epoch in
-  src/tests/golden/epochs.json and the next free migration in
-  src/planetgen/db/migrations/versions, renames the migration file and
-  revision ids, updates the old-schema fixture and the epoch reason, and
-  fails loudly when a number was already used. Done: two branches that
-  both took the same epoch and migration both merge in turn with no hand
-  edits, and a test covers the renumbering. Owner: Lane 4.
-  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Bug 1 takes it after TEST.328 (with
-  Core 4 if it is free).
-  Prerequisites: none. Related: OPS.56.
-
 - [ ] **OPS.72 Delete the dead tuning knobs and uncalled helpers the unused-values audit found (G7)**
   Unused stored values audit (the "Find stored values nothing uses"
   thread, report reports/unused-stored-values-audit-2026-10-24.md,
