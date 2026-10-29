@@ -55,7 +55,10 @@ _STAR = {
 }
 """dict: A star's column key -> its source line."""
 
-SOURCES = {"planet": _PLANET, "moon": _BODY, "star": _STAR}
+_MOON = {key: line for key, line in _BODY.items() if not key.startswith("ring_")}
+"""dict: A moon's column key -> its source line (a moon holds no ring system of its own, GEN.732, and its inclination has no line)."""
+
+SOURCES = {"planet": _PLANET, "moon": _MOON, "star": _STAR}
 """dict: Each kind with sources -> `{column key: one-line source}`; a kind or key not here has no source line."""
 
 
