@@ -235,7 +235,7 @@ def test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter(m
     summary = run_plan.scatter_phenomena(_scatter_args(mysql_config, "--workers", "1"))
     shell_lines = [m for m in messages if m.startswith("Phenomena, shell")]
     assert shell_lines and all(": placed " in m for m in shell_lines)
-    assert all(" (unit " in m and " rows expected): placed " in m for m in shell_lines)
+    assert all(" (unit " in m and " phenomena expected): placed " in m for m in shell_lines)
     assert any(m.startswith("Special phenomena: ") for m in messages)
     assert any(m.startswith("Phenomena landed in ") and " runs of shells." in m for m in messages)
     final = next(m for m in messages if m.startswith("Placed "))
@@ -263,9 +263,29 @@ def test_the_phenomena_line_counts_the_rows_to_place_not_the_progress_weight(mys
         conn.close()
     expected = sum(scatter.shell_expected(stored, shell, high, EDGE_PC, E_VALUE, 1.0) for shell, high in EXTENTS)
     line = next(m for m in messages if m.startswith("Phenomena: about "))
-    assert line.startswith(f"Phenomena: about {round(expected):,} to place in {len(EXTENTS):,} shells")
+    assert line.startswith(f"Phenomena: about {round(expected):,} phenomena to place in {len(EXTENTS):,} shells")
     weight = expected + run_plan.brightStars.BAND_WEIGHT_STARS * sum(2 * high + 1 for _shell, high in EXTENTS)
     assert round(weight) != round(expected)
+
+
+def test_the_phenomena_lines_name_phenomena_and_the_units_add_up_to_the_total(mysql_config, monkeypatch):
+    """PERF.194: the units' notes counted the bar's weight as "rows"; each now says the phenomena it is expected to place,
+    and they add up to the stage line's total (to the rounding of each)."""
+    import re
+    from planetgen.util import log
+    _seed_galaxy(mysql_config)
+    messages = []
+    monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
+    line = next(m for m in messages if m.startswith("Phenomena: about "))
+    total = int(re.match(r"Phenomena: about ([\d,]+) phenomena to place", line).group(1).replace(",", ""))
+    notes = {}
+    for message in messages:
+        found = re.search(r"\(unit ([\d,]+) of ([\d,]+), about ([\d,]+) phenomena expected\)", message)
+        if found and message.startswith("Phenomena, "):
+            notes[int(found.group(1).replace(",", ""))] = int(found.group(3).replace(",", ""))
+    assert notes and abs(sum(notes.values()) - total) <= len(notes) + 1
+    assert not any(" rows expected" in m or "to place in" in m and "phenomena to place" not in m for m in messages)
 
 
 def test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it(mysql_config):

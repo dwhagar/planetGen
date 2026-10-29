@@ -1790,6 +1790,11 @@ class _PhenomenaShape:
     reach: bool = False
     shell_total: int = 0
     expected_rows: float = 0.0
+    expected: dict = dataclasses.field(default_factory=dict)
+
+    def expected_of(self, key):
+        """The phenomena a task is expected to place: its rows, not the bar's weight (which adds a cost per band)."""
+        return self.expected[key]
 
     @property
     def far_key(self):
@@ -1808,7 +1813,7 @@ class _PhenomenaShape:
         return {"tasks": [[list(row) for row in self.tasks[key]] for key in order],
                 "weights": [self.weights[key] for key in order], "far": None if self.far is None else list(self.far),
                 "component_parts": [[key, parts] for key, parts in self.component_parts.items()], "reach": self.reach, "shell_total": self.shell_total,
-                "expected_rows": self.expected_rows}
+                "expected_rows": self.expected_rows, "expected": [self.expected[key] for key in order]}
 
     @classmethod
     def from_json(cls, data):
@@ -1817,7 +1822,8 @@ class _PhenomenaShape:
                    weights={key: data["weights"][key] for key in order},
                    far=None if data["far"] is None else tuple(data["far"]),
                    component_parts={key: parts for key, parts in data["component_parts"]},
-                   reach=data["reach"], shell_total=data["shell_total"], expected_rows=data["expected_rows"])
+                   reach=data["reach"], shell_total=data["shell_total"], expected_rows=data["expected_rows"],
+                   expected={key: data["expected"][key] for key in order})
 
 
 def _plan_phenomena(skeleton, extents, galaxy_components, min_mass_solar):
@@ -1839,21 +1845,23 @@ def _plan_phenomena(skeleton, extents, galaxy_components, min_mass_solar):
         beyond_shells = [(shell, -1) for shell in range(outer_shell + 1, first_far)]
         estimates = phenomenon_reach.reach_estimates(
             skeleton.shape, list(extents) + beyond_shells, skeleton.edge_pc, e_value, min_mass_solar)
-    rows = []
+    rows, rows_of_shell = [], {}
     expected_rows = 0.0     # the rows expected, not the bar's weight (that adds a cost per band, GEN.397)
     for shell, high in list(extents) + beyond_shells:
-        weight = 0.0
+        weight = shell_rows = 0.0
         if high >= 0:
             shell_rows = phenomenon_scatter.shell_expected(skeleton.shape, shell, high, skeleton.edge_pc, e_value,
                                                            min_mass_solar)
-            expected_rows += shell_rows
             weight = shell_rows + brightStars.BAND_WEIGHT_STARS * (2 * high + 1)
         if reach_on:
-            expected_rows += estimates[shell][0]
+            shell_rows += estimates[shell][0]
             weight += estimates[shell][0] + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS * estimates[shell][1]
+        expected_rows += shell_rows
+        rows_of_shell[shell] = shell_rows
         rows.append((shell, high, weight))
     tasks = dict(enumerate(static_shell_chunks(rows)))
     weights = {key: sum(row[2] for row in chunk) for key, chunk in tasks.items()}
+    expected = {key: sum(rows_of_shell[row[0]] for row in chunk) for key, chunk in tasks.items()}
     far = None
     if reach_on and first_far <= reach_shell:
         far = (len(tasks), first_far, reach_shell)
@@ -1862,6 +1870,7 @@ def _plan_phenomena(skeleton, extents, galaxy_components, min_mass_solar):
         expected_rows += far_weight
         tasks[far[0]] = [(first_far, reach_shell, far_weight)]
         weights[far[0]] = far_weight + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
+        expected[far[0]] = far_weight
     component_parts = {}
     if galaxy_components:
         cut = componentPass.parts([(component, componentPass.expected_phenomena(component, min_mass_solar))
@@ -1872,8 +1881,9 @@ def _plan_phenomena(skeleton, extents, galaxy_components, min_mass_solar):
             expected_rows += task_weight
             tasks[key] = [(COMPONENT_TASK_SHELL, COMPONENT_TASK_SHELL, task_weight)]
             weights[key] = task_weight + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
+            expected[key] = task_weight
     shell_total = len(extents) + len(beyond_shells) + (0 if far is None else reach_shell - first_far + 1)
-    return _PhenomenaShape(tasks, weights, far, component_parts, reach_on, shell_total, expected_rows)
+    return _PhenomenaShape(tasks, weights, far, component_parts, reach_on, shell_total, expected_rows, expected)
 
 
 def expand_scatter_phenomena(params):
@@ -2659,7 +2669,7 @@ class PhenomenaFollower(followed.Follower):
     def on_plan(self, plan):
         shape = self.shape = _PhenomenaShape.from_json(plan["detail"])
         self.book.tasks = len(shape.tasks)
-        log.normal(f"Phenomena: about {round(shape.expected_rows):,} to place in {shape.shell_total:,} shells "
+        log.normal(f"Phenomena: about {round(shape.expected_rows):,} phenomena to place in {shape.shell_total:,} shells "
                    f"({phenomenon_scatter.cut_summary(self._params['min_mass_solar'])}).")
         if plan["detail"].get("filled"):
             log.normal(f"Leaving out the {plan['detail']['filled']:,} sectors already filled.")
@@ -2675,7 +2685,7 @@ class PhenomenaFollower(followed.Follower):
             book.counts[kind] += count
         if sum(task_counts.values()):
             book.landed += 1
-        note = _unit_note(unit + 1, len(shape.tasks), shape.weights[unit], "rows")
+        note = _unit_note(unit + 1, len(shape.tasks), shape.expected_of(unit), "phenomena")
         if unit in shape.component_parts:
             if sum(task_counts.values()):
                 log.normal(f"Phenomena, components{note}: placed {sum(task_counts.values()):,} phenomena: " + ", ".join(
