@@ -37,6 +37,14 @@ CLASS_MEASURES = {
 """dict: The scatter classes the census totals, and the measure each is stored under (the neutron stars total includes the
 magnetars, which the scatter counts as a class of their own)."""
 
+RATE_MEASURES = (
+    "rogue_terrestrial_per_star", "rogue_terrestrial_per_pc3", "rogue_jupiter_per_star", "brown_dwarfs_per_pc3", "runaway_stars_per_star",
+    "interstellar_debris_per_pc3", "open_clusters")
+"""tuple: The measures of the second cut: the rates per star and densities the sectors' fill draws from (read where the fill reads
+them, `tuning.phenomenon_rate_per_star` and `ROGUE_PLANET_MASS_BINS`, scale included), and the open clusters of the reference galaxy."""
+
+OPEN_CLUSTER_SEED = b"phenomena-census-open-clusters"
+
 SHELLS_PER_JOB = 40
 
 WR_DRAWS = 120000
@@ -141,6 +149,31 @@ def wolf_rayet_total(workers=None, draws=WR_DRAWS, shells=None):
     return total, sum(hits.values())
 
 
+def rate_values():
+    """The rates and densities the fill draws from, as the fill reads them (the rate scale of each kind included), and the open
+    clusters a galaxy of the reference shape draws (alive, 50 solar masses or more, up to 1 Gyr old)."""
+    from planetgen import tuning
+    from planetgen.galaxy import skeleton
+    from planetgen.generation import open_clusters
+    from planetgen.physics.units import ly_to_pc
+    from tests import test_satellites as satellites
+
+    scale = tuning.PHENOMENON_RATE_SCALE
+    reference = tuning.REFERENCE_STELLAR_DENSITY_PC3
+    terrestrial = tuning.ROGUE_PLANET_MASS_BINS["terrestrial"][2] * scale["rogue-planet"]
+    edge_pc = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
+    clusters = open_clusters.generate_open_clusters(OPEN_CLUSTER_SEED, satellites.SHAPE, edge_pc, skeleton.expected_system_count_at_density_1())
+    return {
+        "rogue_terrestrial_per_star": terrestrial,
+        "rogue_terrestrial_per_pc3": terrestrial * reference,
+        "rogue_jupiter_per_star": tuning.ROGUE_PLANET_MASS_BINS["jupiter"][2] * scale["rogue-planet"],
+        "brown_dwarfs_per_pc3": tuning.PHENOMENON_DENSITY_PC3["brown-dwarf"] * scale["brown-dwarf"],
+        "runaway_stars_per_star": tuning.phenomenon_rate_per_star("runaway-star"),
+        "interstellar_debris_per_pc3": tuning.INTERSTELLAR_DEBRIS_DENSITY_PC3,
+        "open_clusters": float(len(clusters)),
+    }
+
+
 def summarize(totals):
     """The measured figures: `{measure: expected objects}` for each class of `CLASS_MEASURES` (the neutron stars include the
     magnetars)."""
@@ -185,10 +218,15 @@ def stale_anomalies(expectations, findings):
             if bounds.get("anomaly") and measure not in broken]
 
 
+def _number(value):
+    """A count in whole numbers, a rate of under 100 in four significant figures."""
+    return f"{value:,.0f}" if abs(value) >= 100 or value == 0 else f"{value:.4g}"
+
+
 def line(finding):
     """A finding in words, in counts (a `Finding.line` prints four decimals, which a total of 1e8 does not need)."""
     known = f" (known: {finding.known})" if finding.known else ""
-    return (f"{finding.kind.upper()} {finding.measure}: {finding.value:,.0f} not in [{finding.low:,.0f}, {finding.high:,.0f}] "
+    return (f"{finding.kind.upper()} {finding.measure}: {_number(finding.value)} not in [{_number(finding.low)}, {_number(finding.high)}] "
             f"[{finding.source}]{known}")
 
 
@@ -204,7 +242,7 @@ def format_report(values, findings, header=""):
         lines += ["", "Known anomalies:", ""]
         lines += [f"- {line(finding)}" for finding in explained]
     lines += ["", "## Expected objects in the reference galaxy", ""]
-    lines += [f"- {measure}: {value:,.0f}" for measure, value in values.items()]
+    lines += [f"- {measure}: {_number(value)}" for measure, value in values.items()]
     return "\n".join(lines) + "\n"
 
 
@@ -216,6 +254,7 @@ def main(argv=None):
     parser.add_argument("--shells", type=int, default=None, help="only the first N shells (a quick look)")
     args = parser.parse_args(argv)
     values = summarize(galaxy_totals(shells=args.shells))
+    values.update(rate_values())
     wolf_rayets, hits = wolf_rayet_total(shells=args.shells)
     values["wolf_rayet_stars"] = wolf_rayets
     sys.stdout.write(format_report(values, compare(values, load_expectations(), {"wolf_rayet_stars": hits})))
