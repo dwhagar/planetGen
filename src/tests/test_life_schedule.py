@@ -1,7 +1,7 @@
 # tests/test_life_schedule.py
 
 """
-DB.100: a world keeps the whole schedule of its pace (the age it reaches each of the five milestones), has a pace only with a
+DB.100: a world keeps the whole schedule it drew (GEN.750: the age it reaches each of the five milestones), has a pace only with a
 life chemistry, and an edit that re-works its life keeps the chemistry and the pace it has while the climate still allows them.
 """
 
@@ -11,6 +11,7 @@ from planetgen import tuning
 from planetgen.generation import evolution
 from planetgen.generation import life as planet_life
 from planetgen.generation import validation
+from planetgen.physics import atmosphere, biogenic_oxygen, life_timeline
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
@@ -47,21 +48,35 @@ def _no_draw(monkeypatch):
         monkeypatch.setattr(draw, name, refuse)
 
 
+def _ages(body):
+    return tuple(getattr(body, field) for field in evolution.SCHEDULE_FIELDS)
+
+
+def _in_order(ages):
+    """Each age that is set is later than the one before it; once one is `None` (the oxygen never came) the rest are."""
+    reached = [age for age in ages if age is not None]
+    assert ages[:len(reached)] == tuple(reached), "an age is missing before a later one"
+    return reached == sorted(reached) and (not reached or reached[0] >= tuning.LIFE_START_AGE_GYR)
+
+
 def test_the_schedule_fields_are_one_age_for_each_milestone():
     assert evolution.SCHEDULE_FIELDS == tuple(f"life_age_{key}_gyr" for key in tuning.LIFE_MILESTONES)
-    for scale in tuning.EVOLUTIONARY_TIMELINES:
-        ages = evolution.schedule(scale)
-        assert len(ages) == len(evolution.SCHEDULE_FIELDS)
-        assert list(ages) == sorted(ages), "a milestone is never reached before an easier one"
+    for factor in (0.3, 1.0, 2.5):
+        for oxygen_delay in (0.0, 2.0, None):
+            ages = life_timeline.schedule(life_timeline.unit_waits(), factor, oxygen_delay)
+            assert len(ages) == len(evolution.SCHEDULE_FIELDS)
+            assert _in_order(ages), "a milestone is never reached before an easier one"
 
 
 def test_a_body_has_a_pace_and_a_schedule_exactly_when_it_has_a_chemistry():
     with_life = without = 0
     for body in _bodies(40, HABITABLE_WORLD=True, MOONS=True):
-        stored = tuple(getattr(body, field) for field in evolution.SCHEDULE_FIELDS)
+        stored = _ages(body)
         if body.life_chemical:
-            assert body.evolutionary_pace is not None, body.name
-            assert stored == evolution.schedule(body.evolutionary_pace), body.name
+            assert body.evolutionary_pace in tuning.EVOLUTIONARY_TIMELINES, body.name
+            assert stored[0] is not None and stored[1] is not None and _in_order(stored), body.name
+            if not evolution.releases_oxygen(body.life_chemical) and atmosphere.partial_kpa(body, "o2") * 1000.0 < biogenic_oxygen.EUKARYOTE_MINIMUM_PA:
+                assert stored[2:] == (None, None, None), f"{body.name}: complex cells without oxygen"
             with_life += 1
         else:
             assert body.evolutionary_pace is None and stored == (None,) * len(stored), body.name
@@ -97,27 +112,22 @@ def test_an_edit_draws_a_chemistry_again_only_when_the_old_one_no_longer_fits(mo
     validation.reapply_life(body)
     assert body.life_chemical == other
     assert body.reflection_spectrum_visible == tuning.LIFE_CHEMICALS[other]["reflection_spectrum_visible"]
-    assert body.evolutionary_pace in evolution.candidate_scales(body.star, planet_life.get_chemical_scales(other))[0]
-    assert tuple(getattr(body, field) for field in evolution.SCHEDULE_FIELDS) == evolution.schedule(body.evolutionary_pace)
+    assert body.evolutionary_pace in tuning.EVOLUTIONARY_TIMELINES
+    assert _in_order(_ages(body))
 
 
-def test_an_edit_draws_a_pace_again_only_when_the_old_one_no_longer_fits():
-    body = _a_world_with_life()
-    allowed = evolution.candidate_scales(body.star, planet_life.get_chemical_scales(body.life_chemical))[0]
-    unfit = next((scale for scale in tuning.EVOLUTIONARY_TIMELINES if scale not in allowed), None)
-    if unfit is None:
-        pytest.skip("this star and chemistry allow every pace")
-    body.evolutionary_pace = unfit
-    validation.reapply_life(body)
-    assert body.evolutionary_pace in allowed
-    assert tuple(getattr(body, field) for field in evolution.SCHEDULE_FIELDS) == evolution.schedule(body.evolutionary_pace)
+def test_a_chemistry_that_never_makes_oxygen_stops_at_photosynthesis_in_an_air_without_it():
+    for body in _bodies(60, HABITABLE_WORLD=True):
+        if body.life_chemical and not evolution.releases_oxygen(body.life_chemical) \
+                and atmosphere.partial_kpa(body, "o2") * 1000.0 < biogenic_oxygen.EUKARYOTE_MINIMUM_PA:
+            assert _ages(body)[2:] == (None, None, None), body.name
+            assert body.life_stage in (None, "abiogenesis", "photosynthesis"), body.name
+            return
+    pytest.skip("no generated world with life that makes no oxygen")
 
 
-def test_the_pace_drawn_is_one_of_the_candidates():
-    seen = 0
-    for body in _bodies(40, HABITABLE_WORLD=True):
-        if body.life_chemical:
-            assert body.evolutionary_pace in evolution.candidate_scales(
-                body.star, planet_life.get_chemical_scales(body.life_chemical))[0]
-            seen += 1
-    assert seen > 3
+def test_the_first_light_comes_earlier_for_a_simpler_way_of_harvesting_it():
+    """The scale of `tuning.LIFE_FIRST_LIGHT_SCALE` keeps the order retinal, anoxygenic, oxygenic."""
+    scale = tuning.LIFE_FIRST_LIGHT_SCALE
+    assert scale["retinal"] < scale["anoxygenic"] < scale["oxygenic"]
+    assert set(scale) == {data["metabolism"] for data in tuning.LIFE_CHEMICALS.values()}

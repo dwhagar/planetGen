@@ -228,6 +228,7 @@ def _draw_schedule(planet):
         waits = life_timeline.forced_waits(planet.star.age, factor, delay, at_start)
     if waits is None:
         waits = life_timeline.unit_waits()
+    waits = (waits[0], waits[1] * tuning.LIFE_FIRST_LIGHT_SCALE.get(evolution.metabolism(planet.life_chemical), 1.0), *waits[2:])
     ages = life_timeline.schedule(waits, factor, delay, at_start)
     log.choice("Evolutionary schedule", ages, f"hard steps at rate factor {factor:.3g}, oxygen "
                f"{'from the start' if at_start else 'after ' + str(delay) + ' Gyr of photosynthesis'}")

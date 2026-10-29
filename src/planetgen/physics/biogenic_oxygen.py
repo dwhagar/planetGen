@@ -4,7 +4,7 @@
 Free oxygen from oxygenic photosynthesis (GEN.855, docs/design/habitability/life-timeline-and-oxygen.md)
 =========================================================================================================
 
-A world whose life splits water for its electrons (`tuning.LIFE_METABOLISMS["oxygenic"]`) fills its air with oxygen; one whose life does
+A world whose life splits water for its electrons (a chemistry of `tuning.LIFE_CHEMICALS` whose `metabolism` is `"oxygenic"`) fills its air with oxygen; one whose life does
 not, does not. The oxygen a world holds is the balance of a source and its sinks, in moles of O2 a year:
 
 * **Source** `S`: the organic carbon its life buries, which leaves the oxygen of the water it was made from behind. It goes with the
@@ -85,7 +85,7 @@ REFERENCE_TEMPERATURE_K = 288.0
 OCEAN_SPAN_K = (258.0, 275.0, 315.0, 343.0)
 """tuple[float]: The temperatures, K, at which the factor for the sea's liquid range rises from 0 to 1 and falls to 0 again (T6, L3)."""
 
-LIVING_HYDROSPHERES = ("surface ocean",)
+LIVING_HYDROSPHERES = ("surface ocean", "hycean")
 """tuple: The states with a sunlit sea for the photosynthesis to stand in."""
 
 MINIMUM_PA = 1.0

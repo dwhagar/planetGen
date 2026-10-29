@@ -3,8 +3,8 @@ evolution.get_evolutionary_state regression tests.
 
 The most advanced milestone a timeline reports is capped by `max_stage` (the habitability index's ceiling,
 `generation.life.stage_ceiling`) and by INTELLIGENT_LIFE=False, never by a class letter (GEN.92, GEN.647): a forced
-INTELLIGENT_LIFE=True at a very old age must still stop at the cap it is given. GEN.666 adds the pace: one draw
-(`draw_scale`) the state is built at.
+INTELLIGENT_LIFE=True at a very old age must still stop at the cap it is given. GEN.750: the state reads the schedule the world drew
+(`physics.life_timeline`) and draws nothing.
 
 Run with: pytest src/tests/test_evolution.py
 """
@@ -12,10 +12,14 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation import evolution
-from planetgen.generation.evolution import MILESTONE_KEYS, draw_scale, get_evolutionary_state
+from planetgen.generation.evolution import MILESTONE_KEYS, get_evolutionary_state
 from planetgen.util import draw
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
+
+
+AGES = (0.1, 0.4, 1.0, 2.0, 3.0)
+"""tuple: A schedule in Gyr, one age for each stage of `MILESTONE_KEYS`."""
 
 
 def _star(intelligent_life=None, age=None):
@@ -34,8 +38,8 @@ def _star(intelligent_life=None, age=None):
 
 
 def _stage(star, max_stage=None):
-    """The milestone `get_evolutionary_state` reports for a star at the pace drawn for it."""
-    return get_evolutionary_state(star, draw_scale(star), max_stage)["stage"]
+    """The milestone `get_evolutionary_state` reports for a star on the schedule `AGES`."""
+    return get_evolutionary_state(star, AGES, max_stage)["stage"]
 
 
 @pytest.mark.parametrize("max_stage,forbidden_milestones", [
@@ -72,44 +76,41 @@ def test_forced_milestone_for_a_capped_timeline_is_its_ceiling_not_no_milestone(
     assert _stage(star, "photosynthesis") == "photosynthesis"
 
 
-# --- GEN.666: one pace -----------------------------------------------------------------------------------------
+# --- GEN.750: the state reads a schedule and draws nothing ---------------------------------------------------------
 
 @pytest.mark.parametrize("age", [0.2, 1.0, 2.0, 3.0, 4.2, 20.0])
 @pytest.mark.parametrize("intelligent_life", [None, True, False])
-def test_the_state_carries_the_pace_it_was_given_and_draws_nothing(age, intelligent_life):
-    """The state is built at the pace `draw_scale` drew; it never draws one of its own."""
+def test_the_state_reads_the_schedule_it_was_given_and_draws_nothing(age, intelligent_life):
     star = _star(intelligent_life=intelligent_life, age=age)
-    for scale in prog_c.EVOLUTIONARY_TIMELINES:
-        with draw.bound(51):
-            state = get_evolutionary_state(star, scale)
-            next_draw = draw.random()
-        with draw.bound(51):
-            assert draw.random() == next_draw  # the state took nothing from the stream
-        assert state["scale"] == scale
-        assert state["system_age_gyr"] == age
-        if state["stage"] is None:
-            assert state["milestone_age_gyr"] is None
-        else:
-            assert state["milestone_age_gyr"] <= age or intelligent_life is True
+    with draw.bound(51):
+        state = get_evolutionary_state(star, AGES)
+        next_draw = draw.random()
+    with draw.bound(51):
+        assert draw.random() == next_draw  # the state took nothing from the stream
+    assert state["system_age_gyr"] == age
+    assert "scale" not in state
+    if state["stage"] is None:
+        assert state["milestone_age_gyr"] is None
+    else:
+        assert state["milestone_age_gyr"] <= age or intelligent_life is True
 
 
-def test_the_pace_follows_the_chemistry_when_the_star_allows_it():
-    """Melanin allows only the standard pace, and a G star supports it, so a melanin world is never "fast"."""
-    star = _star(age=5.0)
-    for seed in range(40):
-        with draw.bound(seed):
-            assert draw_scale(star, ["normal"]) == "normal"
+def test_the_stage_is_the_latest_one_whose_age_is_not_past_the_star():
+    star = _star(age=1.5)
+    state = get_evolutionary_state(star, AGES)
+    assert state["stage"] == "complex_cells" and state["milestone_age_gyr"] == AGES[2]
 
 
-def test_a_star_that_supports_none_of_the_chemistry_scales_decides_alone():
-    star = _star(age=5.0)
-    supported = evolution.get_star_evolutionary_profile(star)["supported_evolutionary_scales"]
-    outside = [scale for scale in prog_c.EVOLUTIONARY_TIMELINES if scale not in supported]
-    if not outside:
-        pytest.skip("this star supports every pace")
-    for seed in range(20):
-        with draw.bound(seed):
-            assert draw_scale(star, outside) in supported
+def test_a_schedule_that_never_reaches_a_stage_stops_before_it():
+    """A world that cannot make the oxygen has no age for complex cells and the stages after (`None`)."""
+    star = _star(age=20.0)
+    assert get_evolutionary_state(star, (0.1, 0.5, None, None, None))["stage"] == "photosynthesis"
+
+
+def test_a_forced_civilization_on_a_world_without_oxygen_is_still_not_before_now():
+    star = _star(intelligent_life=True, age=4.0)
+    state = get_evolutionary_state(star, (0.1, 0.5, None, None, None))
+    assert state["stage"] == "technological_civilization" and state["milestone_age_gyr"] == 4.0
 
 
 @pytest.mark.parametrize("chemical", sorted(prog_c.LIFE_CHEMICALS))

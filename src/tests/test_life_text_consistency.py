@@ -3,7 +3,7 @@ GEN.666: the sentences about a world's life state one pace, one chemistry, one s
 
 A planet page once said "life based on melanin would evolve at a normal pace" and, a paragraph later, "on a speculative
 timeline, life here would evolve at a hyper-accelerated pace ... technological civilization, reached at 80 Myr": the pace
-was drawn twice and written by two writers. The generator now draws it once (`evolution.draw_scale`), and
+was drawn twice and written by two writers. The generator now draws it once (`life.apply_life_data`), and
 `describe.life_facts.resolve` reads every fact into one `LifeFacts` from which every sentence is written. These tests
 fail if two sentences of a generated page disagree, and show that the checker itself catches a disagreement.
 """
@@ -17,7 +17,6 @@ from planetgen import tuning
 from planetgen.describe import build as describe_build, life_facts, model
 from planetgen.describe.quantity import inline_text
 from planetgen.generation import evolution
-from planetgen.generation import life as planet_life
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 
@@ -103,14 +102,13 @@ def test_no_generated_page_contradicts_itself_about_its_life():
     assert seen > 10 and with_timeline > 5
 
 
-def test_the_pace_is_one_the_chemistry_allows_whenever_the_star_supports_one():
+def test_the_pace_is_a_word_for_how_warm_the_world_is():
+    """GEN.750: the pace is the rate factor of the world's temperature (`life_timeline.pace_of`), not a table the star supports."""
     seen = 0
     for body in _generated_bodies(40, HABITABLE_WORLD=True):
-        allowed = planet_life.get_chemical_scales(body.life_chemical)
-        supported = evolution.get_star_evolutionary_profile(body.star)["supported_evolutionary_scales"]
-        if set(allowed) & set(supported):
-            assert body.evolutionary_pace in allowed, (body.name, body.life_chemical, body.evolutionary_pace)
-        assert body.evolutionary_pace in supported
+        if not body.life_chemical:
+            continue
+        assert body.evolutionary_pace in tuning.EVOLUTIONARY_TIMELINES, (body.name, body.evolutionary_pace)
         seen += 1
     assert seen > 5
 

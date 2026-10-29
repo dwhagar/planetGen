@@ -21,6 +21,11 @@ from tests.test_life_text_consistency import _life_text
 pytestmark = pytest.mark.fresh_database
 
 
+def _table_ages(pace):
+    """The ages migration 0156 gives a row of a pace: the table of `tuning.EVOLUTIONARY_TIMELINES`."""
+    return tuple(tuning.EVOLUTIONARY_TIMELINES[pace][key] for key in tuning.LIFE_MILESTONES)
+
+
 def _system():
     for seed in range(80):
         config = SystemConfig()
@@ -115,8 +120,8 @@ def test_a_v155_galaxy_gets_the_ages_of_its_stored_pace(mysql_config):
         columns = ", ".join(evolution.SCHEDULE_FIELDS)
         none, fast, slow = (conn.execute(f"SELECT {columns} FROM planets WHERE id = ?", (i,)).fetchone() for i in ids[:3])
         assert tuple(none[f] for f in evolution.SCHEDULE_FIELDS) == (None,) * 5
-        assert tuple(fast[f] for f in evolution.SCHEDULE_FIELDS) == evolution.schedule("fast")
-        assert tuple(slow[f] for f in evolution.SCHEDULE_FIELDS) == evolution.schedule("slow")
+        assert tuple(fast[f] for f in evolution.SCHEDULE_FIELDS) == _table_ages("fast")
+        assert tuple(slow[f] for f in evolution.SCHEDULE_FIELDS) == _table_ages("slow")
         for table in ("planets", "moons"):
             found = {row["Field"] for row in conn.execute(f"SHOW COLUMNS FROM {table}").fetchall()}
             assert set(evolution.SCHEDULE_FIELDS) <= found
