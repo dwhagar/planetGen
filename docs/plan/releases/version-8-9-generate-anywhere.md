@@ -23,7 +23,7 @@ The reservation, staging and download pieces and the recipe format.
 | API.10 | Reservations: claimed sectors and id blocks per run |  | Reserved id blocks build on DB.3's id-block fix (PR #347). |
 | API.29 | Upload spool and unit states: received batches on disk, units assembled at seal, finalize as a queue job | API.10 | Split from API.11. |
 | API.11 | Staging tables | API.29 | Galaxy schema migration (staging); after NAV.10 in the writer queue. |
-| API.5 | API version and compatibility checking | API.4 |  |
+| API.5 | API version and compatibility checking |  |  |
 | API.12 | The download: seed, skeleton and name state | API.5 | Downloads the naming key, not name registries. Downloads the seed (what a seed means is GEN.39) and the name state (rules from GEN.46, done in PR #370). |
 
 ### Recipes
