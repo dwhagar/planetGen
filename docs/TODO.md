@@ -2425,19 +2425,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.342 Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority)**
-  Found by the research thread (report
-  /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
-  section 6; Boss answered 6:22 PM EDT 2026-10-28: density default 1.2,
-  one mark per 120 by 120 px, as a user preference; rare heavy holes
-  2.2, no landmark exemption). Boss live observation, so a bug. Owner:
-  Core 2. Optional: the node payload for big nodes (over 27 sectors)
-  stops listing every stellar black hole, so the client does not receive
-  holes the near-field rule will drop anyway. Do it only after MAP.339
-  shows it saves real bytes. Owner: Core 2 when dry.
-  Prerequisites: MAP.339. Related: MAP.339, MAP.340.
-  Owner: Core 3 (lock-free item while it waits for the generation lock, 1:55 AM EDT 2026-10-29; MAP.341 merged as #3652; optional: measure first and do it only if it saves real bytes; this replaces any earlier owner line on this item). Separate branch.
-
 - [ ] **MAP.344 The civilization marker gains a technology band: filter and mark worlds by the technology level of their species**
   Left out of MAP.311 (needs species tech_level, which is not stored on
   the map side): store or derive the technology band per civilization
