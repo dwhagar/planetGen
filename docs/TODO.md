@@ -413,7 +413,7 @@ with `clamp()`.
   follow-ups first (PERF.99, PERF.100, DB.29, PERF.120 to PERF.128)
   after PERF.135; this logging standard chain (UX.121 to UX.123,
   TEST.183) comes after them. Core 5 is the proposed owner.
-  Prerequisites: UX.122, UX.123, TEST.183. Related: PERF.66.
+  Prerequisites: UX.122, TEST.183. Related: PERF.66.
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
@@ -463,20 +463,6 @@ with `clamp()`.
   offers them at /log?form=records. Still open: finish and failure lines
   on the command line, the commands that print directly (about 154 print
   calls), the activity log shape decision, per-command tests.
-  Prerequisites: none. Related: UX.102.
-
-- [ ] **UX.123 The Generate page log, the admin log pages and update.sh output use the layer**
-  Split from UX.102 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Move the web displays that show a log
-  (the Generate page, the Queue page, the activity log pages) and
-  `update.sh`'s own output onto the shared renderer and record format.
-  Done: the screen and the downloaded log show the same lines; update.sh
-  prints the same timestamp and marker forms; browser and shell tests.
-  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
-  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
-  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
   Prerequisites: none. Related: UX.102.
 
 - [ ] **UX.127 The Galaxy Map block menu offers Generate again**
@@ -17196,7 +17182,7 @@ clears each one.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
-  Prerequisites: UX.122, UX.123. Related: UX.102.
+  Prerequisites: UX.122. Related: UX.102.
 
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. When a
