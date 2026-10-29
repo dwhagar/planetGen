@@ -18924,15 +18924,6 @@ clears each one.
   priority. Owner: none yet. Version 8.4.
   Prerequisites: none. Related: TEST.455.
 
-- [ ] **TEST.458 test_sector_map_scale_line_follows_the_zoom fails on main (bug)**
-  Found by Aux 4 while merging MAP.301 (#3756, as the lane reported 6:17
-  PM EDT 2026-10-29): the browser test
-  test_sector_map_scale_line_follows_the_zoom is red on clean main. Do:
-  find the cause (a real fault in the scale line or a stale test after
-  the continuous zoom change, MAP.334 onward), fix it at the cause,
-  never skip it. Owner: Aux 4 (its next lock-free item). Version 8.1.
-  Prerequisites: none. Related: MAP.334, MAP.301.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
