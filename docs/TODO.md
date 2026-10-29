@@ -19564,6 +19564,10 @@ clears each one.
   assertion in test_planets (the test is unchanged on main); fold it
   into this item: find the draw that gives pressure >= 1.0, fix the test
   or the code.
+  Research (2026-10-09): Core 3 (as the lane reported, 2026-10-28,
+  MAP.173 gate) also saw the SC2 dataset missing on a fresh lane
+  machine; same fix as the white dwarf models: the test setup fetches
+  every dataset the suite needs.
   Prerequisites: none. Related: TEST.332, TEST.434, TEST.405.
 
 - [ ] **TEST.442 Browser map tests red on main: menu_filters_sit_side_by_side (2 tests), test_system_map_selection_drill_and_measure and test_a_star_in_a_sector_far_from_the_core_is_selectable (bug)**
