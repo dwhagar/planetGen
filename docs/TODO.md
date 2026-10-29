@@ -18770,6 +18770,14 @@ clears each one.
   /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md.
   Bug 2 owns the tests; the band text in life-classes.md is Bug 2's edit
   with Core 1's report as the source.
+  Research (2026-10-09): Update (Bug 2, #3683, about 6:25 AM EDT
+  2026-10-29 as the lane reported): step one merged. The life census
+  takes the animal and sentient shares per oxygenic world, on 300
+  systems around each of G2V and K5V: 63 oxygenic worlds, 11 percent
+  reach animals, 1 sentient; the band holds so the GEN.907 tag is
+  removed; life-classes.md 5.2 is restated per population; no band
+  number changed. Step two (re-take and re-baseline) waits for Aux 2's
+  epoch 120.
   Prerequisites: GEN.863, TEST.430.
 
 - [ ] **TEST.436 Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges**
