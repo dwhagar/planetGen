@@ -764,6 +764,9 @@ with `clamp()`.
   PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
   progress-line work only: no generated-output change and no lock turn;
   if any step turns out to change a stored value, stop and tell TODO.
+  Research (2026-10-09): Lock-free item given to Aux 7 (6:29 PM EDT
+  2026-10-29) after PERF.178/179 merged; taken out of Core 5's chain.
+  Owner: Aux 7.
   Prerequisites: none.
 
 - [ ] **UX.179 Sitemap entries and an Open Graph image for object pages (optional, can wait)**
@@ -14277,54 +14280,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   measurement after PERF.165 shows the saving is worth an epoch.
   Prerequisites: none. Related: PERF.163, PERF.165.
 
-- [ ] **PERF.178 The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug)**
-  From the generation-log analysis of Boss's run
-  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
-  reported; report reports/generation-log-analysis-2026-10-24.md). P2.
-  Do: make the estimate line honest and plain: if it refuses and goes
-  ahead anyway, say so in one clear sentence with the reason, and bring
-  the time estimate closer to the measured one (or say how wide it is).
-  Done: the line reads the same as what happens, with a test on the
-  wording. Owner: Generation-log analysis lane (proposed by the lane).
-  Research (2026-10-09, Update): Update 12:27 AM EDT 2026-10-24 (as the
-  coordinator reported): the wording part (the line no longer says
-  Refused and Going ahead) merged in #2831; the estimate accuracy part
-  remains. Owner: Generation-log analysis lane (not Performance).
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 9 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Research (2026-10-09): Lock-free item given to Aux 7 (6:21 PM EDT
-  2026-10-29) after TEST.453 turned out to be done in #3713; taken out
-  of Core 5's chain. Owner: Aux 7.
-  Prerequisites: none.
-
-- [ ] **PERF.179 Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug)**
-  From the generation-log analysis of Boss's run
-  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
-  reported; report reports/generation-log-analysis-2026-10-24.md). P5.
-  Do: find why the progress line is truncated in the job log (line width
-  or a cut in the log writer) and show the whole line; PERF.147 (the
-  per-task progress bar with an ETA) is related. Done: a test that a
-  progress line is not cut at the log's width. Owner: Generation-log
-  analysis lane (proposed by the lane).
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 8 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Research (2026-10-09): Lock-free item given to Aux 7 (6:21 PM EDT
-  2026-10-29) after TEST.453 turned out to be done in #3713; taken out
-  of Core 5's chain. Owner: Aux 7.
-  Prerequisites: none.
-
 - [ ] **PERF.180 Single-unit stages already past the unit ceiling on big galaxies: clearing the bright stars (211 s on the medium galaxy) and the cache-warm families (one unit each, minutes on a large galaxy)**
   Found by the Performance lane while merging PERF.155 (#2923, the
   unit-length ceiling queue.unit_ceiling_seconds, 300 s), as the lane
@@ -14350,6 +14305,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
   progress-line work only: no generated-output change and no lock turn;
   if any step turns out to change a stored value, stop and tell TODO.
+  Research (2026-10-09): Lock-free item given to Aux 7 (6:29 PM EDT
+  2026-10-29) after PERF.178/179 merged; taken out of Core 5's chain.
+  Owner: Aux 7.
   Prerequisites: none. Related: PERF.155, PERF.167, PERF.171, PERF.123.
 
 - [ ] **PERF.188 The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python**
