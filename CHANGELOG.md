@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2536] - 2026-10-29
+
+**Headline:** The Generate page's neutron star and black hole mass choices say "1 solar mass", "2 solar masses", not a bare 1, 2, 4, 6.
+
+### Changed
+- **The neutron star and black hole limit dropdown** (New galaxy and the scatters task) now lists "1 solar mass", "2 solar masses", "4 solar masses" and "6 solar masses", and its label reads "Or neutron stars and black holes from at least". No other choice on a Generate task page is a bare number; tests (a page test and a browser test) pin it.
+
 ## [8.0.2535] - 2026-10-29
 
 **Headline:** A visit to an uncharted sector generates nothing and queues nothing, and the old generate-on-visit entry point is gone.
