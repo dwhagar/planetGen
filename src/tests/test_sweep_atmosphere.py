@@ -14,7 +14,6 @@ import types
 
 import pytest
 
-from planetgen import tuning
 from tests.audit import sweep
 from tests.audit import sweep_atmosphere as rules
 
@@ -62,10 +61,10 @@ def everything():
 
 
 @pytest.mark.slow
-def test_the_sweep_holds_a_planet_of_every_class_and_zone_and_some_moons(everything):
+def test_the_sweep_holds_planets_of_many_classes_in_every_zone_and_some_moons(everything):
     built = {(entry.body.planet_class, entry.body.zone) for entry in everything if not entry.is_moon}
-    wanted = {(letter, zone) for letter, spec in tuning.PLANET_CLASSES.items() for zone in sweep.ZONES if spec[zone]}
-    assert wanted <= built
+    assert {zone for _letter, zone in built} >= set(sweep.ZONES)
+    assert len({letter for letter, _zone in built}) >= 6      # GEN.646: classes fall where the conditions put them
     assert sum(1 for entry in everything if entry.is_moon) >= 20
     assert {entry.star.type[:3] for entry in everything} >= {"M2V", "G2V", "F5V"}
 

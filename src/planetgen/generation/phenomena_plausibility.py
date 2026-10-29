@@ -46,7 +46,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.plausibility import iqr_bounds
 from planetgen.generation.phenomena.quasar import Quasar
-from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet, rogue_planet_classes
+from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant, sedov_taylor_radius_ly
 from planetgen.util.random import power_law_share
 from planetgen.physics import unit_registry as units
@@ -479,9 +479,9 @@ def check_hard_invariants(record):
             issues.append("planet_type is 'g' but mass is below the gas-giant threshold")
         elif record["planet_type"] == 't' and mass_jupiter >= prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:
             issues.append("planet_type is 't' but mass is at/above the gas-giant threshold")
-        if record["planet_type"] in ('t', 'g') and record["planet_class"] not in rogue_planet_classes(record["planet_type"]):
-            issues.append(f"planet_class={record['planet_class']!r} is not a rogue-eligible (\"r\") class "
-                          f"of type {record['planet_type']!r}")
+        shown = prog_c.PLANET_CLASSES.get(record["planet_class"])
+        if record["planet_class"] is not None and (shown is None or shown["type"] != record["planet_type"]):
+            issues.append(f"planet_class={record['planet_class']!r} is not a class of type {record['planet_type']!r}")
         if not (math.isfinite(record["radius_km"]) and record["radius_km"] > 0):
             issues.append(f"radius_km={record['radius_km']!r} is not a finite, positive value")
 

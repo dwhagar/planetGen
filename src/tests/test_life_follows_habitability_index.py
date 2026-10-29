@@ -12,19 +12,18 @@ from planetgen.describe import build as describe_build, life_facts
 from planetgen.describe.quantity import inline_text
 from planetgen.generation import life as planetLife
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.physics import life_complexity
 from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import deterministic_entropy
-from tests import render_support
+from tests import class_support, render_support
 
 LIFE_WORDS = re.compile(r"life|bacteri|vegetation|flora|fauna|evolution|alga|microb|organism|biosphere|civiliz", re.I)
 COMPLEX_WORDS = re.compile(r"vegetation|macro-algae|moss|ferns|forests|sapient|civilization|invertebrate", re.I)
 
-# Habitable classes that can sit in the ecosphere ("e" zone), the only place a timeline is drawn.
-ECOSPHERE_HABITABLE = [cls for cls in tuning.HABITABLE_PLANET_CLASSES if tuning.PLANET_CLASSES[cls]["e"]]
+# Planets drawn in the ecosphere ("e" zone), the only place a timeline is drawn; whatever class each comes out as (GEN.646).
+ECOSPHERE_SEEDS = range(6)
 
 
 @pytest.fixture(scope="module")
@@ -34,9 +33,9 @@ def host_star():
     return Star(cfg)
 
 
-def _planet(host_star, cls):
+def _planet(host_star, seed=0):
     inner, outer = host_star.habitable_zone
-    return Planet(SystemConfig(), host_star, host_star.habitable_zone, (inner + outer) / 2.0, planet_class=cls)
+    return class_support.draw_planet(host_star, (inner + outer) / 2.0, seed)
 
 
 def _description_and_life_text(planet):
@@ -45,10 +44,10 @@ def _description_and_life_text(planet):
     return render_support.prose_text(describe_build._planet_section(planet))
 
 
-@pytest.mark.parametrize("cls", ECOSPHERE_HABITABLE)
-def test_a_world_no_class_supports_makes_no_claim_of_life(host_star, cls, monkeypatch):
+@pytest.mark.parametrize("seed", ECOSPHERE_SEEDS)
+def test_a_world_no_class_supports_makes_no_claim_of_life(host_star, seed, monkeypatch):
     monkeypatch.setattr(planetLife.life_classes, "score_classes", lambda *args, **kwargs: {})
-    planet = _planet(host_star, cls)
+    planet = _planet(host_star, seed)
     planet.moons = []  # a moon is scored and described on its own
     planetLife.apply_life_data(planet)
     assert planet.life_class is None
@@ -61,12 +60,12 @@ def test_a_world_no_class_supports_makes_no_claim_of_life(host_star, cls, monkey
     assert not LIFE_WORDS.search(sentences), sentences
 
 
-@pytest.mark.parametrize("cls", ECOSPHERE_HABITABLE)
-def test_a_world_whose_class_stays_microbial_stops_its_timeline_before_complex_life(host_star, cls, monkeypatch):
+@pytest.mark.parametrize("seed", ECOSPHERE_SEEDS)
+def test_a_world_whose_class_stays_microbial_stops_its_timeline_before_complex_life(host_star, seed, monkeypatch):
     # the complexity index is set by hand: a class that never passes the complex-cell threshold
     monkeypatch.setattr(planetLife.life_complexity, "assess", lambda *args, **kwargs: life_complexity.Complexity(1e-6, 1.0, 1.0, 0, "photosynthesis"))
-    for _ in range(12):  # the pace and age draws differ; the cap holds on every one
-        planet = _planet(host_star, cls)
+    for attempt in range(4):  # the pace and age draws differ; the cap holds on every one
+        planet = _planet(host_star, 10 * seed + attempt)
         planetLife.apply_life_data(planet)
         assert planet.life_stage in (None, "abiogenesis", "photosynthesis")
         assert not COMPLEX_WORDS.search(planet.description), planet.description
@@ -88,17 +87,20 @@ def test_a_class_description_stands_whatever_the_conditions_allow(host_star, mon
         if not supported:
             monkeypatch.setattr(planetLife.life_classes, "score_classes", lambda *args, **kwargs: {})
         for is_moon in (False, True):
-            planet = _planet(host_star, "L")
+            planet = _planet(host_star)
             planet.is_moon = is_moon
             planetLife.apply_life_data(planet)
-            assert planet.description == tuning.PLANET_CLASSES["L"]["description"]
+            stands = tuning.PLANET_CLASSES[planet.planet_class]["description"]
+            if is_moon:
+                stands = stands.replace("planets", "moons").replace("planet", "moon")
+            assert planet.description == stands
 
 
 def test_a_body_with_no_scores_is_left_to_its_class(host_star):
-    planet = _planet(host_star, "M")
+    planet = _planet(host_star)
     planet.phi_bio = planet.phi_cpx = None
     planetLife.apply_life_data(planet)
-    assert planet.description == tuning.PLANET_CLASSES["M"]["description"]
+    assert planet.description == tuning.PLANET_CLASSES[planet.planet_class]["description"]
 
 
 def test_no_generated_description_contradicts_its_own_habitability_index():

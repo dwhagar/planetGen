@@ -41,9 +41,40 @@ def test_solids_grow_outward_and_jump_at_the_snow_line():
         stream = draw.Stream(1)
         return statistics.median(planet_mass.assembled_core_kg(distance, SUN_KG, SNOW_LINE_AU, 1.0, stream)
                                  for _ in range(400)) / EARTH_KG
-    inner, just_inside, just_outside, far = (assembled(d) for d in (0.3, 2.6, 2.8, 20.0))
+    inner, just_inside, just_outside, far = (assembled(d) for d in (0.3, 2.6, 2.8, 5.0))
     assert inner < just_inside < just_outside < far
     assert just_outside > 3.0 * just_inside   # the ice boost of the snow line
+
+
+def test_the_slow_outer_disc_builds_less_than_the_isolation_mass_alone(monkeypatch):
+    monkeypatch.setattr(tuning, "PLANET_ASSEMBLY_SCATTER_DEX", 0.0)
+    far = 4 * tuning.PLANET_OUTER_GROWTH_AU
+    tapered = planet_mass.assembled_core_kg(far, SUN_KG, SNOW_LINE_AU, 0.0, draw.Stream(3))
+    monkeypatch.setattr(tuning, "PLANET_OUTER_GROWTH_AU", 1.0e6)
+    untapered = planet_mass.assembled_core_kg(far, SUN_KG, SNOW_LINE_AU, 0.0, draw.Stream(3))
+    assert tapered == pytest.approx(untapered * 0.25 ** tuning.PLANET_OUTER_GROWTH_EXPONENT)
+
+
+def test_a_solid_core_is_pressed_softly_under_its_cap():
+    cap = 10.0 * EARTH_KG
+    assert planet_mass.saturate_kg(0.1 * cap, cap) == pytest.approx(0.1 * cap, rel=1e-3)
+    pressed = [planet_mass.saturate_kg(f * cap, cap) for f in (0.5, 1.0, 2.0, 10.0, 1000.0)]
+    assert pressed == sorted(pressed) and len(set(pressed)) == len(pressed)
+    assert all(value < cap for value in pressed)
+
+
+def test_a_core_inside_the_snow_line_stays_under_the_inner_cap():
+    draws = masses(1.0, count=800, fe_h=0.5)
+    assert max(d.core_kg for d in draws) < tuning.PLANET_INNER_CORE_MAX_EARTH * EARTH_KG
+
+
+def test_cooler_stars_keep_more_of_their_solids_than_the_dust_law_gives(monkeypatch):
+    monkeypatch.setattr(tuning, "PLANET_ASSEMBLY_SCATTER_DEX", 0.0)
+    light = 0.3 * SUN_KG
+    got = planet_mass.assembled_core_kg(1.0, light, SNOW_LINE_AU, 1.0, draw.Stream(3))
+    dust_scale = formation.disk_surface_density_scale(light, 1.0) * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
+    dust = formation.isolation_mass_kg(1.0, formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, dust_scale), light)
+    assert got > dust / tuning.GIANT_IMPACT_SURVIVAL_FRACTION
 
 
 def test_metal_rich_discs_build_heavier_planets():
@@ -91,7 +122,7 @@ def test_a_core_that_finds_no_gas_stops_at_an_ice_giants_mass():
     draws = masses(4.0, count=800)
     capped = [d for d in draws if not d.runaway and d.core_kg > 10 * EARTH_KG]
     assert capped
-    assert max(d.core_kg for d in capped) <= tuning.GIANT_NO_GAS_CORE_MAX_EARTH * EARTH_KG * (1 + 1e-9)
+    assert max(d.core_kg for d in capped) < tuning.GIANT_NO_GAS_CORE_MAX_EARTH * EARTH_KG
 
 
 def test_giants_become_rarer_beyond_the_cut_distance():
@@ -115,7 +146,7 @@ def test_a_sun_like_star_has_about_a_tenth_of_a_giant_between_a_third_and_ten_au
 def test_the_inner_disc_is_steeper_than_the_nebula_inside_one_au(monkeypatch):
     monkeypatch.setattr(tuning, "PLANET_ASSEMBLY_SCATTER_DEX", 0.0)
     got = planet_mass.assembled_core_kg(0.1, SUN_KG, SNOW_LINE_AU, 1.0, draw.Stream(3))
-    scale = formation.disk_surface_density_scale(SUN_KG, 1.0) * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
+    scale = tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
     plain = formation.isolation_mass_kg(0.1, formation.mmsn_surface_density_gcm2(0.1, SNOW_LINE_AU, scale), SUN_KG)
     plain /= tuning.GIANT_IMPACT_SURVIVAL_FRACTION
     assert got == pytest.approx(plain * (0.1 ** -tuning.PLANET_INNER_DISC_STEEPENING) ** 1.5)

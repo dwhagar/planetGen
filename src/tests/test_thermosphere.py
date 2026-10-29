@@ -237,3 +237,9 @@ def test_the_cached_diffusion_parameter_and_the_precomputed_mean_change_no_value
     air = {"N2": 0.8, "H2": 0.15, "CO2": 0.05}
     mean = ts.mean_mass_kg(air)
     assert ts.diffusion_limited_flux("H2", air, 9.81, 200.0, mean) == ts.diffusion_limited_flux("H2", air, 9.81, 200.0)
+
+
+def test_a_starved_xuv_flux_loses_next_to_nothing_instead_of_overflowing():
+    """A planet lit by a black hole's faint glow gets an XUV flux near 1e-60: the boil-off test is made in logs, so no exp overflows."""
+    rate = ts.hydro_based_mass_loss_g_s(20.0, 5.0, 300.0, 0.002, 1.0e-60)
+    assert 0.0 <= rate < 1.0

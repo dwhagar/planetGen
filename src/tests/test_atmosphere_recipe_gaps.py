@@ -12,6 +12,10 @@ from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.util import draw
 
 
+DRY_AIR = {"mass_earth": 0.002, "host_type": "G", "age_gy": 4.5, "zone": "c", "redox_diw": 0.0, "water_lost": False, "runaway_ratio": 0.5, "is_moon": False, "radius_km": 6000.0, "insolation": 1.0}
+"""dict: What the gates of the evolved-air rows (table j) read besides the quantities a test sets, for a body that passes none of them."""
+
+
 def test_a_comet_beyond_the_coma_perihelion_has_no_gas_and_a_near_one_has_a_coma():
     far = Subject("comet", {"perihelion_au": 5.0, "family": "x", "age_gy": 4.5, "ts_k": 120.0})
     near = Subject("comet", {"perihelion_au": 1.0, "family": "x", "age_gy": 4.5, "ts_k": 200.0})
@@ -25,7 +29,7 @@ def test_a_comet_beyond_the_coma_perihelion_has_no_gas_and_a_near_one_has_a_coma
 
 def test_a_row_alone_in_a_none_group_is_drawn_as_often_as_its_weight_says():
     # j5 (an abiotic-oxygen world) is the only row of group j open to this subject; its weight is the constant c_j5 in 0.05 to 0.5
-    subject = Subject("Z", {"host_type": "M", "age_gy": 3.0, "mass_earth": 1.0, "zone": "e"})
+    subject = Subject("terrestrial", {**DRY_AIR, "host_type": "M", "age_gy": 3.0, "mass_earth": 1.0, "zone": "e"})
     table = dict(RECIPES.probabilities("j", subject))
     assert set(table) == {"j5", "none"}
     assert table["j5"] + table["none"] == pytest.approx(1.0)
@@ -41,10 +45,10 @@ def _drawn_row(group, subject, seed):
 
 
 def test_a_frost_row_far_from_its_window_is_not_normalised_to_one():
-    warm = Subject("C", {"ts_k": 181.0, "drawn.d": "d5"})
+    warm = Subject("terrestrial", {**DRY_AIR, "ts_k": 181.0, "drawn.d": "d5"})
     table = dict(RECIPES.probabilities("j", warm))
     assert table.get("j4", 0.0) < 1e-6 and table["none"] > 1.0 - 1e-6
-    cold = Subject("C", {"ts_k": 45.0, "drawn.d": "d5"})
+    cold = Subject("terrestrial", {**DRY_AIR, "ts_k": 45.0, "drawn.d": "d5"})
     assert dict(RECIPES.probabilities("j", cold))["j4"] > 0.99
 
 

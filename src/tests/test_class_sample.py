@@ -22,7 +22,7 @@ def test_the_switch_is_off_by_default():
     assert "FORCE_CLASS" not in SystemConfig().to_dict()
 
 
-@pytest.mark.parametrize("letter", ["O", "P", "T", "V", "E", "K", "L", "N", "F", "G", "Q"])
+@pytest.mark.parametrize("letter", ["P", "V", "K", "L", "N", "F", "G", "Q"])
 def test_a_forced_rare_class_is_in_the_system(letter):
     for seed in range(1, 25):
         system = forced_system(letter, seed)
@@ -30,6 +30,16 @@ def test_a_forced_rare_class_is_in_the_system(letter):
             assert any(getattr(planet, "planet_class", None) == letter for planet in system.planets)
             return
     pytest.fail(f"no system with a class {letter} planet in 24 tries")
+
+
+@pytest.mark.parametrize("letter", ["O", "T", "E"])
+def test_a_class_the_conditions_hardly_give_is_met_or_reported_unmet(letter):
+    # GEN.646: the class is derived from the finished body, so an ocean world (O), a gas dwarf (T: until the envelope law GEN.822) or a wet
+    # reducing world (E) is not reachable by a request at most places; the system says so and never claims a class it does not hold.
+    for seed in range(1, 4):
+        system = forced_system(letter, seed)
+        held = any(getattr(planet, "planet_class", None) == letter for planet in system.planets)
+        assert held != bool(system.unmet_requirements)
 
 
 def test_a_class_the_star_cannot_give_is_reported_unmet():
@@ -50,7 +60,7 @@ def test_the_switch_refuses_slots_and_unknown_letters():
 
 
 def test_fill_reaches_the_count_and_is_repeatable():
-    letters = ["O", "T", "P"]
+    letters = ["P", "Q", "N"]
     systems, counts, short = class_sample.fill(per_class=2, seed=5, letters=letters)
     assert not short
     assert all(counts[letter] >= 2 for letter in letters)

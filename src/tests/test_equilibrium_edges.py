@@ -67,10 +67,10 @@ def test_the_hot_jupiter_regime_edges_of_the_recipes_are_the_computed_ones():
     h1 = RECIPES.entry("h1")
     for bar in (0.001, 0.01, 0.1, 1.0, 10.0):
         edge = edges.ch4_co_temperature(bar, SOLAR)
-        probability = dict(RECIPES.probabilities("h", Subject("J", {"zone": "h", "tday_k": edge, "photosphere_bar": bar})))
+        probability = dict(RECIPES.probabilities("h", Subject("giant", {"zone": "h", "tday_k": edge, "photosphere_bar": bar})))
         assert probability["h1"] == pytest.approx(0.5, abs=TABLE_SLACK), (bar, edge)
         edge = edges.h2o_survival_temperature(bar, SOLAR, 0.9)
-        probability = dict(RECIPES.probabilities("h", Subject("J", {"zone": "h", "tday_k": edge, "photosphere_bar": bar})))
+        probability = dict(RECIPES.probabilities("h", Subject("giant", {"zone": "h", "tday_k": edge, "photosphere_bar": bar})))
         assert probability["h3"] == pytest.approx(0.5, abs=TABLE_SLACK), (bar, edge)
     assert h1.state == "partly verified"
 

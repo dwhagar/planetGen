@@ -78,7 +78,7 @@
         }
       ],
       "sentence": "A gas dwarf: a giant under about 10 Earth masses, a deep hydrogen and helium envelope over a small core.",
-      "basis": "design: 10 Earth masses, the lower edge of the ice giants' range (tuning.GIANT_CLASS_MASS_RANGE_EARTH); the sweep finds no better cut"
+      "basis": "design: 10 Earth masses, the lower edge of the ice giants' range; the sweep finds no better cut"
     },
     {
       "letter": "I",

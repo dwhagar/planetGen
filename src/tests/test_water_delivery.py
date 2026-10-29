@@ -20,7 +20,7 @@ ROWS = ("b1", "b2", "b3", "b4")
 
 
 def _subject(mass, snow_ratio, plateau=1.0):
-    return Subject("V", {"mass_earth": mass, "snow_ratio": snow_ratio, "const:b:c_b4": plateau, "core_radius_earth": mass ** 0.27})
+    return Subject("terrestrial", {"mass_earth": mass, "snow_ratio": snow_ratio, "const:b:c_b4": plateau, "core_radius_earth": mass ** 0.27})
 
 
 def _shares(mass, snow_ratio, plateau=1.0):
@@ -40,7 +40,7 @@ def test_the_class_shares_follow_the_population_against_the_formation_distance(b
 
 def test_the_shares_are_a_probability_table_that_is_ordered_in_the_water():
     for x in (0.03, 0.2, 0.6, 1.0, 2.5, 4.0, 9.0):
-        for mass in (0.2, 1.0, 5.0, 30.0, 300.0):
+        for mass in (0.2, 1.0, 5.0, 30.0):
             shares = _shares(mass, x)
             assert sum(shares) == pytest.approx(1.0, abs=2e-5) and min(shares) >= 0.0
     for mass in (1.0, 8.0):
@@ -111,7 +111,7 @@ def test_the_plateau_moves_the_water_rich_planets_it_removes_into_the_high_class
 def test_a_drawn_plateau_stays_inside_its_bracket():
     from planetgen.util import draw
     with draw.bound(7):
-        values = [RECIPES.draw_group("b", Subject("V", {"mass_earth": 8.0, "snow_ratio": 1.5, "core_radius_earth": 1.8})).constants[("b", "c_b4")]
+        values = [RECIPES.draw_group("b", Subject("terrestrial", {"mass_earth": 8.0, "snow_ratio": 1.5, "core_radius_earth": 1.8})).constants[("b", "c_b4")]
                   for _ in range(20)]
     assert all(0.0 <= v <= 1.0 for v in values) and len(set(values)) > 1
 

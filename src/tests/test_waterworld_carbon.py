@@ -264,3 +264,8 @@ def test_the_drawn_brackets_stay_inside_their_ranges_and_are_recorded():
     assert 0.0 <= law.ph_exponent <= 0.5 and 0.0 <= law.spreading_exponent <= 1.0
     assert set(recorded) == {"waterworld_seal_pa", "waterworld_altered_km", "seafloor_activation_kj_mol", "seafloor_ph_exponent",
                              "seafloor_spreading_exponent"}
+
+
+def test_the_seafloor_rate_is_zero_on_a_body_too_cold_for_pore_water():
+    law = wc.SeafloorLaw(activation_j_mol=55000.0, ph_exponent=0.46, spreading_exponent=0.22)
+    assert wc.seafloor_rate_over_modern(5.0, 5.0, 0.001, law) == 0.0

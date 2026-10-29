@@ -9,10 +9,11 @@ oligarchs a feeding zone merges into one planet, and the core-accretion rule tha
 giant. A pure law over the star and the formation distance; it reads no class and writes none.
 
 1. **Solids.** The isolation mass at the formation distance (`formation.isolation_mass_kg`, Lissauer 1993; Kokubo & Ida
-   2000) from the minimum-mass nebula scaled for the star's mass and [Fe/H], boosted beyond its snow line and steeper inside
+   2000) from the minimum-mass nebula scaled for the star's mass (`PLANET_SOLIDS_STELLAR_MASS_EXPONENT`) and [Fe/H], boosted beyond its snow line and steeper inside
    1 AU (`PLANET_INNER_DISC_STEEPENING`).
 2. **Assembly.** Giant impacts merge the oligarchs: a planet is `1 / GIANT_IMPACT_SURVIVAL_FRACTION` isolation masses on
-   average (mass conservation against the survivors' share), spread log-normally by `PLANET_ASSEMBLY_SCATTER_DEX`.
+   average (mass conservation against the survivors' share), spread log-normally by `PLANET_ASSEMBLY_SCATTER_DEX`. Beyond
+   `PLANET_OUTER_GROWTH_AU` the slow outer disc has built less: the mass falls as a power of the distance.
 3. **Runaway.** A core of `GIANT_CORE_CRITICAL_MASS_EARTH` or more, beyond the snow line, that finds gas left (a share
    scaled with the star's [Fe/H]) becomes a gas giant of the observed mass function `dN/dlogM ~ M^-0.31` (Cumming et al.
    2008) between `GIANT_RUNAWAY_MIN_MASS_EARTH` and the lighter of 13 Jupiter masses and `PLANET_MAX_STAR_MASS_RATIO` of
@@ -50,14 +51,24 @@ def assembled_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio=1.0, 
         float: The assembled solid mass, in kilograms.
     """
     source = stream or draw
-    scale = formation.disk_surface_density_scale(star_mass_kg, metal_ratio) * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
+    solar_masses = star_mass_kg / constants.SOLAR_MASS_TO_KG
+    scale = solar_masses ** tuning.PLANET_SOLIDS_STELLAR_MASS_EXPONENT * metal_ratio * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
     density = formation.mmsn_surface_density_gcm2(distance_au, snow_line_au, scale)
     if distance_au < 1.0:
         density *= distance_au ** -tuning.PLANET_INNER_DISC_STEEPENING
     isolation = formation.isolation_mass_kg(distance_au, density, star_mass_kg)
     scatter = 10.0 ** (tuning.PLANET_ASSEMBLY_SCATTER_DEX * source.gauss(0.0, 1.0))
     mass = isolation * scatter / tuning.GIANT_IMPACT_SURVIVAL_FRACTION
+    if distance_au > tuning.PLANET_OUTER_GROWTH_AU:
+        mass *= (tuning.PLANET_OUTER_GROWTH_AU / distance_au) ** tuning.PLANET_OUTER_GROWTH_EXPONENT
     return min(mass, tuning.PLANET_MAX_STAR_MASS_RATIO * star_mass_kg)
+
+
+def saturate_kg(mass_kg, cap_kg):
+    """`mass_kg` pressed softly under `cap_kg`: close to itself well below the cap, never above it, with no pile-up at a hard edge
+    (`mass / (1 + (mass / cap) ** k) ** (1 / k)`, k = `PLANET_CORE_SATURATION_SHARPNESS`)."""
+    sharpness = tuning.PLANET_CORE_SATURATION_SHARPNESS
+    return mass_kg / (1.0 + (mass_kg / cap_kg) ** sharpness) ** (1.0 / sharpness)
 
 
 def runaway_mass_kg(star_mass_kg, stream=None):
@@ -97,5 +108,6 @@ def planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_ratio=1
         share *= min(1.0, (tuning.GIANT_GAS_SURVIVAL_CUT_AU / distance_au) ** 2)
         if source.random() < share:
             return PlanetMass(max(runaway_mass_kg(star_mass_kg, source), core), core, True)
-        core = min(core, tuning.GIANT_NO_GAS_CORE_MAX_EARTH * _EARTH_KG)
+    cap = tuning.GIANT_NO_GAS_CORE_MAX_EARTH if distance_au >= snow_line_au else tuning.PLANET_INNER_CORE_MAX_EARTH
+    core = saturate_kg(core, cap * _EARTH_KG)
     return PlanetMass(core, core, False)

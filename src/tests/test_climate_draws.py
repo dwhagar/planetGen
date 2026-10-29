@@ -64,17 +64,12 @@ def test_nothing_is_colder_than_the_background():
     assert climate_draws.surface_temperature_k(0.3, 5.0, 1e-30) == constants.COSMIC_BACKGROUND_TEMPERATURE_K
 
 
-@pytest.mark.parametrize("planet_class", sorted(tuning.PLANET_CLASSES))
-def test_every_class_stores_the_draws_its_temperature_is_made_of(host_star, planet_class):
-    data = tuning.PLANET_CLASSES[planet_class]
-    zone = next((z for z in ("e", "h", "c") if data.get(z)), None)
-    if zone is None:
-        pytest.skip("a class no zone offers")
+@pytest.mark.parametrize("zone", ["h", "e", "c"])
+def test_every_body_stores_the_draws_its_temperature_is_made_of(host_star, zone):
     for seed in range(5):
         with draw.bound(seed):
             planet = Planet(SystemConfig(), host_star, host_star.habitable_zone,
-                            plausibility.distance_for_zone(host_star, zone),
-                            planet_class=planet_class, zone_override=zone, moon_count=0)
+                            plausibility.distance_for_zone(host_star, zone), zone_override=zone, moon_count=0)
         flux = _flux(planet, host_star)
         assert planet.albedo_basis == climate_draws.BASIS_GENERATED
         assert planet.bond_albedo is not None and 0.0 <= planet.bond_albedo < 1.0
@@ -83,8 +78,8 @@ def test_every_class_stores_the_draws_its_temperature_is_made_of(host_star, plan
             climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), rel=TOLERANCE)
         if planet.atmosphere == "None":
             assert planet.greenhouse_factor == 0.0
-        low, high = climate_draws.class_albedo_range(planet.planet_class, planet.body_type)
-        if planet_class in tuning.PLANET_CLASSES and "albedo_range" in data:
+        if planet.body_type == "t":
+            low, high = climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, flux)
             assert low <= planet.bond_albedo <= high
 
 
@@ -126,29 +121,37 @@ def test_the_inverse_says_when_it_has_no_solution():
     assert "albedo" in climate_draws.from_stored({**base, "scale_height_km": 40.0}, flux)[2]
 
 
-def test_the_class_draw_keeps_the_stored_temperature_and_is_seeded():
-    row = {"planet_class": "G", "body_type": "t", "surface_temperature_k": 288.0}
+def test_the_backfill_draw_keeps_the_stored_temperature_and_is_seeded():
+    row = {"body_type": "t", "water_mass_fraction": 1e-6, "surface_temperature_k": 288.0}
     flux = 1361.0
-    first = climate_draws.class_draw(row, flux, "planets:7")
-    assert first == climate_draws.class_draw(row, flux, "planets:7")
-    assert first != climate_draws.class_draw(row, flux, "planets:8")
+    first = climate_draws.backfill_draw(row, flux, "planets:7")
+    assert first == climate_draws.backfill_draw(row, flux, "planets:7")
+    assert first != climate_draws.backfill_draw(row, flux, "planets:8")
     albedo, factor = first
-    low, high = climate_draws.class_albedo_range("G", "t")
+    low, high = climate_draws.albedo_range("t", 1e-6, flux)
     assert low <= albedo <= high
     assert factor >= 0.0
     assert climate_draws.surface_temperature_k(albedo, factor, flux) == pytest.approx(288.0, rel=1e-9)
 
 
-def test_a_class_draw_never_gives_a_negative_greenhouse():
-    # A cold body far from its star: the class range's low albedo would need G < 0, so the albedo is lifted.
-    row = {"planet_class": "G", "body_type": "t", "surface_temperature_k": 40.0}
+def test_a_backfill_draw_never_gives_a_negative_greenhouse():
+    # A cold body far from its star: the range's low albedo would need G < 0, so the albedo is lifted.
+    row = {"body_type": "t", "water_mass_fraction": 1e-6, "surface_temperature_k": 40.0}
     flux = 0.5
     for seed in range(20):
-        albedo, factor = climate_draws.class_draw(row, flux, f"moons:{seed}")
+        albedo, factor = climate_draws.backfill_draw(row, flux, f"moons:{seed}")
         assert factor >= -1e-9 and math.isfinite(albedo)
         assert climate_draws.surface_temperature_k(albedo, max(factor, 0.0), flux) == pytest.approx(40.0, rel=1e-6)
 
 
-def test_a_giant_with_no_range_takes_the_open_bracket():
-    assert climate_draws.class_albedo_range("no such class", "g") == climate_draws.GIANT_ALBEDO_RANGE
-    assert climate_draws.class_albedo_range("no such class", "t") == climate_draws.DEFAULT_ALBEDO_RANGE
+def test_the_albedo_range_follows_the_water_and_the_cold():
+    sun = 1361.0
+    assert climate_draws.albedo_range("g", 0.3, sun) == climate_draws.DEFAULT_ALBEDO_RANGE
+    assert climate_draws.albedo_range("t", 1e-6, sun) == climate_draws.DEFAULT_ALBEDO_RANGE
+    assert climate_draws.albedo_range("t", 1e-3, 0.0) == climate_draws.DEFAULT_ALBEDO_RANGE
+    assert climate_draws.albedo_range("t", 1e-3, sun) == tuning.ALBEDO_WET_RANGE
+    assert climate_draws.albedo_range("t", 1e-3, 0.3 * 1361.0) == tuning.ALBEDO_FROZEN_RANGE
+
+
+def test_a_giant_backfill_takes_the_open_bracket():
+    assert climate_draws.backfill_albedo_range({"body_type": "g"}, 50.0) == climate_draws.GIANT_ALBEDO_RANGE

@@ -6,8 +6,8 @@ Planet and moon classes as a function of the finished body (GEN.645, GEN.647, do
 
 A class says what a world is. It is an output: `classify` reads the conditions a finished planet or moon stores (its mass
 and gravity, its mean surface temperature, the pressure and mixture of its air, its water, and the variation of its
-starlight) and returns one letter. Generation never draws a class (that is the cut-over, GEN.646); until it lands, the
-drawn letter and this one are compared by the shadow sweep (`src/tests/class_shadow_cli.py`).
+starlight) and returns one letter. Generation never draws a class (GEN.646): it builds the body, then calls `classify` on it, so
+every generated body's stored letter is this one; the class sweep (`src/tests/class_sweep_cli.py`) reports the shares.
 
 The rules are the rows of `physics/data/planet_classes.json`, in order, one list for giants and one for terrestrial
 bodies. The first row whose conditions all hold names the class. The last row of each list has no conditions, so every body

@@ -3,8 +3,8 @@
 """
 The albedo and the greenhouse quantity a body's temperature is made of (GEN.412).
 
-`planets.calculate_atmospheric_conditions` draws a Bond albedo A from the class range and a greenhouse quantity G (the
-CO2-likeness of the air times the class's multiplier), and the surface temperature is exactly what they give:
+`planets.calculate_atmospheric_conditions` draws a Bond albedo A from the range of the body's regime (`albedo_range`, GEN.684) and a greenhouse quantity G (the
+CO2-likeness of the air), and the surface temperature is exactly what they give:
 
     T_e = ((1 - A) S / (4 sigma))^(1/4)         the temperature with no air
     T_s = T_e (1 + G)^(1/4)                      G = (T_s / T_e)^4 - 1
@@ -16,8 +16,8 @@ docs/design/composition/atmosphere-colour.md sections 5 and 8.
 
 A galaxy made before the columns existed keeps its stored scale height, whose barometric law holds the no-air
 temperature, so `from_stored` recovers both draws exactly (`BASIS_INVERSE`) and says when it cannot, and
-`class_draw` then takes a seeded draw from the class range with G worked out from the stored temperature, so the
-stored temperature never moves (`BASIS_CLASS_DRAW`).
+`backfill_draw` then takes a seeded draw from the range of the row's regime with G worked out from the stored temperature, so the
+stored temperature never moves (`BASIS_BACKFILL_DRAW`).
 """
 
 import math
@@ -31,10 +31,10 @@ CLIMATE_FIELDS = ("bond_albedo", "greenhouse_factor", "albedo_basis")
 
 BASIS_GENERATED = 0
 BASIS_INVERSE = 1
-BASIS_CLASS_DRAW = 2
-BASIS_NAMES = {BASIS_GENERATED: "generated", BASIS_INVERSE: "exact inverse", BASIS_CLASS_DRAW: "class draw"}
+BASIS_BACKFILL_DRAW = 2
+BASIS_NAMES = {BASIS_GENERATED: "generated", BASIS_INVERSE: "exact inverse", BASIS_BACKFILL_DRAW: "backfill draw"}
 """dict: `albedo_basis`: the generator recorded the draws (0); worked out exactly from a stored row (1); a seeded draw
-from the class range because the row could not be inverted (2)."""
+from the range of the body's regime because the row could not be inverted (2)."""
 
 DEFAULT_ALBEDO_RANGE = (0.12, 0.35)
 """tuple: The Bond albedo range of a class that declares none (the generator's own default)."""
@@ -136,18 +136,31 @@ def from_stored(row, flux_w_m2):
     return albedo, max(0.0, greenhouse), None
 
 
-def class_albedo_range(planet_class, body_type=None):
-    """The Bond albedo range a class draws from (`DEFAULT_ALBEDO_RANGE` where it declares none; the open giant bracket
-    for a giant with no range)."""
-    declared = tuning.PLANET_CLASSES.get(planet_class, {}).get("albedo_range")
-    if declared:
-        return declared
-    return GIANT_ALBEDO_RANGE if body_type == "g" else DEFAULT_ALBEDO_RANGE
-
-
-def class_draw(row, flux_w_m2, seed):
+def albedo_range(body_type, water_mass_fraction, flux_w_m2):
     """
-    A seeded albedo from the class range for a row `from_stored` could not invert, and the greenhouse quantity the
+    The Bond albedo range a body draws from before its air is solved (GEN.684): `DEFAULT_ALBEDO_RANGE` for a giant, a dry body
+    and a body with no starlight; a body with surface water (`tuning.ALBEDO_WET_MIN_WATER_FRACTION` or more) is ice-covered and
+    bright (`tuning.ALBEDO_FROZEN_RANGE`) where its no-air equilibrium temperature at `tuning.ALBEDO_REGIME_REFERENCE` is under
+    `tuning.ALBEDO_FROZEN_BELOW_K`, else ocean and cloud (`tuning.ALBEDO_WET_RANGE`).
+    """
+    if (body_type == "g" or not water_mass_fraction or water_mass_fraction < tuning.ALBEDO_WET_MIN_WATER_FRACTION
+            or not flux_w_m2 or flux_w_m2 <= 0.0):
+        return DEFAULT_ALBEDO_RANGE
+    if equilibrium_temperature_k(tuning.ALBEDO_REGIME_REFERENCE, flux_w_m2) < tuning.ALBEDO_FROZEN_BELOW_K:
+        return tuning.ALBEDO_FROZEN_RANGE
+    return tuning.ALBEDO_WET_RANGE
+
+
+def backfill_albedo_range(row, flux_w_m2):
+    """The range a stored row's albedo is backfilled from: the open giant bracket for a giant, else `albedo_range`."""
+    if row.get("body_type") == "g":
+        return GIANT_ALBEDO_RANGE
+    return albedo_range(row.get("body_type"), row.get("water_mass_fraction"), flux_w_m2)
+
+
+def backfill_draw(row, flux_w_m2, seed):
+    """
+    A seeded albedo from the range of the row's regime (`backfill_albedo_range`) for a row `from_stored` could not invert, and the greenhouse quantity the
     stored temperature then needs, so the stored temperature does not move. The albedo is held at or above
     `1 - 4 sigma T_s^4 / S` (G is never negative). `seed` keys the draw (the body's table and id).
 
@@ -155,7 +168,7 @@ def class_draw(row, flux_w_m2, seed):
         tuple: `(albedo, greenhouse_factor)`, the factor `None` when there is no starlight.
     """
     stream = draw.Stream(f"albedo-backfill:{seed}")
-    low, high = class_albedo_range(row.get("planet_class"), row.get("body_type"))
+    low, high = backfill_albedo_range(row, flux_w_m2)
     surface_k = row.get("surface_temperature_k") or 0.0
     if flux_w_m2 and flux_w_m2 > 0.0 and surface_k > 0.0:
         low = max(low, 1.0 - 4.0 * constants.STEFAN_BOLTZMANN_CONSTANT * surface_k ** 4 / flux_w_m2)

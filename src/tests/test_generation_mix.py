@@ -6,20 +6,19 @@ system draws fresh random numbers, so every system is its own seed):
 - GEN.34: gas and ice giants have real bulk densities, and super-Jupiters
   occur.
 - GEN.35: rocky planets get more than Class D moons.
-- GEN.36 / GEN.25: a moon regenerated after its planet moves only gets a
-  class a moon of that planet may have, and every system passes the
-  validator with no moon-size problems.
+- GEN.36 / GEN.25: a moon made again after its planet moves is a rocky body
+  its planet can hold, and every system passes the validator with no
+  moon-size problems.
 - GEN.45: the rogue planet split of terrestrial and gas giants.
 """
 import collections
-import math
 import statistics
 
 import pytest
 
 from planetgen.physics import constants as pc
 from planetgen.generation import validation
-from planetgen.physics import planets as planetPhysics
+from planetgen.physics import planet_classes, planets as planetPhysics
 from planetgen import tuning as prog_c
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
@@ -27,7 +26,7 @@ from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 
-N_SYSTEMS = 1000
+N_SYSTEMS = 250   # every body solves its own air (GEN.411), so a system takes seconds; the bands below hold at this size
 
 
 @pytest.fixture(scope="module")
@@ -44,20 +43,20 @@ def _planets(systems):
 
 
 def test_zone_mix_is_spread(systems):
-    """About 30% hot, 12% ecosphere and 58% cold (it was 96% cold; the ecosphere was 6% before GEN.146 widened it to
-    the Kopparapu edges, 0.95 to 1.68 AU for the Sun)."""
+    """About 30% hot, 12% ecosphere and 50 to 55% cold (it was 96% cold; the ecosphere was 6% before GEN.146 widened it to
+    the Kopparapu edges, 0.95 to 1.68 AU for the Sun; the mass law of GEN.646 puts a few more planets close in)."""
     zones = collections.Counter(planet.zone for planet in _planets(systems))
     total = sum(zones.values())
-    assert total > 3000
+    assert total > 3 * N_SYSTEMS
     assert 0.20 < zones['h'] / total < 0.42
     assert 0.06 < zones['e'] / total < 0.20
-    assert 0.50 < zones['c'] / total < 0.75
+    assert 0.40 < zones['c'] / total < 0.75
 
 
 def test_giants_have_real_densities_and_super_jupiters_occur(systems):
     giants = [p for p in _planets(systems) if p.body_type == 'g']
     densities = [p.density for p in giants]
-    assert len(giants) > 500
+    assert len(giants) > N_SYSTEMS // 6
     # Real gas and ice giants run 0.69-1.64 g/cm^3 (Saturn to Neptune);
     # the median was 0.25 before GEN.34.
     assert 0.69 <= statistics.median(densities) <= 1.64
@@ -74,64 +73,44 @@ def test_rocky_planets_get_more_than_class_d_moons(systems):
     assert classes['C'] > 0 and classes['D'] > 0
 
 
-def test_every_moon_fits_its_planet(systems):
+def test_every_moon_is_a_rocky_body_that_fits_its_planet(systems):
     for planet in _planets(systems):
         max_radius, max_mass = planetPhysics.moon_size_limits(planet)
         for moon in planet.moons:
-            data = prog_c.PLANET_CLASSES[moon.planet_class]
-            assert data["type"] == 't' and moon.planet_class not in prog_c.MOON_BLACKLIST
+            assert moon.body_type == 't'
             assert moon.radius <= max_radius * (1 + 1e-9)
             assert moon.mass <= max_mass * (1 + 1e-9)
 
 
 def test_generated_systems_have_no_moon_size_problems(systems):
-    """GEN.25's goal: no moon too large for its planet in 1,000 systems."""
+    """GEN.25's goal: no moon too large for its planet in the sample."""
     problems = [problem for system in systems for problem in validation.check_star_system(system)
                 if "too large" in problem.message]
     assert problems == []
 
 
-def test_moon_class_options_size_rules():
-    """An Earth-sized rocky planet can hold a Class C moon (up to the
-    Moon's scale) as well as Class D, never a gas giant or a blacklisted
-    class, and each ceiling keeps the moon under a tenth of its mass."""
-    cfg = SystemConfig()
-    cfg.STAR_TYPE = "G2V"
-    star = Star(cfg)
-    earth = Planet(cfg, star, star.habitable_zone, 2.0, planet_class="C", radius=6371, moon_count=0)
-    options = planetPhysics.moon_class_options(earth, earth.zone)
-    assert {'C', 'D'} <= set(options)
-    assert all(prog_c.PLANET_CLASSES[c]["type"] == 't' and c not in prog_c.MOON_BLACKLIST for c in options)
-    max_radius, max_mass = planetPhysics.moon_size_limits(earth)
-    densest = pc.PLANET_DENSITY['t'][1] * 1000
-    for ceiling in options.values():
-        assert ceiling <= max_radius
-        assert (4 / 3) * math.pi * (ceiling * 1000) ** 3 * densest <= max_mass * (1 + 1e-9)
-
-
-def test_moved_planet_regenerates_moons_as_moons():
-    """GEN.36/GEN.25: a giant pushed from the ecosphere into the cold zone
-    regenerates its habitable-class moons, and every regenerated moon is a
-    class and size a moon of it may have."""
+def test_moved_planet_makes_its_moons_again_as_moons():
+    """GEN.36/GEN.25: a giant pushed from the ecosphere into the cold zone has its moons made again for the new place, and
+    every one is a rocky body of its planet's zone, of the class its conditions give, that its planet can hold."""
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
     star = Star(cfg)
     inner, outer = star.habitable_zone
-    regenerated = 0
-    for _ in range(60):
-        planet = Planet(cfg, star, star.habitable_zone, (inner + outer) / 2, planet_class="J", zone_override='e')
-        before = [moon.planet_class for moon in planet.moons]
+    giant_kg = 300 * pc.EARTH_MASS_TO_KG
+    moons_seen = 0
+    for _ in range(25):
+        planet = Planet(cfg, star, star.habitable_zone, (inner + outer) / 2, mass=giant_kg, zone_override='e')
         planet.distance = outer * 3
-        validation.reconcile_moved_planet(planet, keep_class=True)
-        regenerated += sum(1 for old in before if not prog_c.PLANET_CLASSES[old]['c'])
+        validation.reconcile_moved_planet(planet)
         max_radius, max_mass = planetPhysics.moon_size_limits(planet)
         for moon in planet.moons:
-            data = prog_c.PLANET_CLASSES[moon.planet_class]
-            assert data['c'] and data["type"] == 't' and moon.planet_class not in prog_c.MOON_BLACKLIST
+            moons_seen += 1
+            assert moon.zone == planet.zone == 'c' and moon.body_type == 't'
+            assert moon.planet_class == planet_classes.classify(moon)
             assert moon.radius <= max_radius * (1 + 1e-9)
             assert moon.mass <= max_mass * (1 + 1e-9)
         assert validation.check_lunar_system(planet) == []
-    assert regenerated > 0
+    assert moons_seen > 0
 
 
 def test_rogue_planet_split_follows_the_mass_function():

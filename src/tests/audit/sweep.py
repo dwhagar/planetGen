@@ -5,9 +5,10 @@ The body sweep (part F of the prevalence suite, TEST.209, TEST.210, TEST.211-sty
 moons that the consistency sweeps read, so the four rule sets (atmosphere and temperature, bulk composition, possibility tables, classes
 from conditions) run over one build and not four.
 
-`entries()` builds, for every class and zone pair the class table allows (`tuning.PLANET_CLASSES` flags h, e, c), one planet round
-each of the sweep's host stars at a distance in the zone, and keeps the moons each planet drew; every body is an `Entry`. The draws are
-seeded from the host type, so a repeat gives the same bodies.
+`entries()` builds, for every zone (h, e, c) and each of the sweep's host stars, `PLANETS_PER_ZONE` planets at a distance in the zone,
+and keeps the moons each planet drew; every body is an `Entry`. The class of a planet is derived from what it comes out as (GEN.646),
+so the sweep draws bodies and lets the classes fall where they do. The draws are seeded from the host type, so a repeat gives the same
+bodies.
 
 A rule is a `Rule`: `check(entry)` returns the list of violations of the entry (empty when it holds, and when the rule does not apply),
 and `breaker(entry)` returns a copy of the entry's body with exactly that rule's quantity broken, or `None` for an entry the rule does
@@ -24,6 +25,9 @@ HOST_TYPES = ("M2V", "G2V", "F5V")
 """tuple: The host stars of the sweep: a red dwarf, a Sun-like star and an F star."""
 
 ZONES = "hec"
+
+PLANETS_PER_ZONE = 14
+"""int: The planets drawn in each zone round each host star."""
 
 
 @dataclass
@@ -57,7 +61,6 @@ def seed_for(*parts):
 @functools.lru_cache(maxsize=None)
 def entries(host_types=HOST_TYPES):
     """Every body of the sweep, planets first and each planet's moons after it."""
-    from planetgen import tuning
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.planet import Planet
     from planetgen.generation.star import Star
@@ -70,15 +73,15 @@ def entries(host_types=HOST_TYPES):
         config.STAR_TYPE = host
         star = Star(config)
         inner, outer = star.habitable_zone
-        for letter, spec in tuning.PLANET_CLASSES.items():
-            for zone in ZONES:
-                if not spec[zone]:
-                    continue
-                distance = {"h": inner * 0.5, "c": outer * 2.0}.get(zone, (inner + outer) / 2.0)
-                planet = Planet(SystemConfig(), star, star.habitable_zone, distance, planet_class=letter)
-                out.append(Entry(planet, None, star, f"{host}/{letter}{zone}"))
-                for index, moon in enumerate(planet.moons):
-                    out.append(Entry(moon, planet, star, f"{host}/{letter}{zone}/moon{index}"))
+        for zone in ZONES:
+            distance = {"h": inner * 0.5, "c": outer * 2.0}.get(zone, (inner + outer) / 2.0)
+            for index in range(PLANETS_PER_ZONE):
+                with draw.bound(f"sweep:{host}:{zone}:{index}"):
+                    planet = Planet(SystemConfig(), star, star.habitable_zone, distance)
+                label = f"{host}/{planet.planet_class}{zone}{index}"
+                out.append(Entry(planet, None, star, label))
+                for moon_index, moon in enumerate(planet.moons):
+                    out.append(Entry(moon, planet, star, f"{label}/moon{moon_index}"))
     return tuple(out)
 
 

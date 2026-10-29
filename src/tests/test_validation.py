@@ -31,9 +31,13 @@ def star():
     return Star(cfg)
 
 
-def planet_at(star, distance_au, planet_class, moon_count=0):
+GIANT_EARTH, EARTH = 300.0, 1.0   # masses (Earth masses) that give a gas giant and an Earth-sized rocky planet
+
+
+def planet_at(star, distance_au, mass_earth, moon_count=0):
+    """A planet of the given mass; its class is derived from what it comes out as (GEN.646)."""
     return Planet(star.system_config, star, star.habitable_zone, distance_au,
-                  planet_class=planet_class, moon_count=moon_count)
+                  mass=mass_earth * constants.EARTH_MASS_TO_KG, moon_count=moon_count)
 
 
 @pytest.mark.parametrize("star_type", ["G2V", "M3V", "K1V", "F5V", "A0V"])
@@ -49,23 +53,23 @@ def test_generated_wide_binaries_validate():
         assert validation.check_star_system(system) == []
 
 
-def test_check_planet_reports_a_class_out_of_its_zone(star):
-    planet = planet_at(star, star.habitable_zone[1] * 3, "J")
+def test_check_planet_reports_a_class_that_its_conditions_do_not_give(star):
+    planet = planet_at(star, star.habitable_zone[1] * 3, GIANT_EARTH)
     assert validation.check_planet(planet) == []
-    planet.planet_class = "M"  # Earth-like, far out in the cold zone
+    planet.planet_class = "C"  # a dead rock, on a gas giant
     messages = [p.message for p in validation.check_planet(planet)]
-    assert any("can't exist in zone 'c'" in m for m in messages)
+    assert any("its class is C but its conditions give class" in m for m in messages)
 
 
 def test_check_planet_reports_a_stale_zone(star):
-    planet = planet_at(star, star.habitable_zone[1] * 3, "J")
+    planet = planet_at(star, star.habitable_zone[1] * 3, GIANT_EARTH)
     planet.zone = "h"
     assert any("its zone is 'h'" in p.message for p in validation.check_planet(planet))
 
 
 def test_check_orbit_spacing_and_space_orbits(star):
-    inner = planet_at(star, 5.0, "J")
-    outer = planet_at(star, 5.01, "J")
+    inner = planet_at(star, 5.0, GIANT_EARTH)
+    outer = planet_at(star, 5.01, GIANT_EARTH)
     planets = [inner, outer]
     assert any("too close" in p.message for p in validation.check_orbit_spacing(planets))
     moved = validation.space_orbits(planets)
@@ -74,20 +78,18 @@ def test_check_orbit_spacing_and_space_orbits(star):
     assert validation.check_orbit_spacing(planets) == []
 
 
-def test_space_orbits_keeps_a_pinned_class(star):
-    inner = planet_at(star, star.habitable_zone[0] * 1.01, "J")
-    # An ecosphere-only class right next to a gas giant: the push carries
-    # it out of the ecosphere.
-    outer = planet_at(star, star.habitable_zone[0] * 1.02, "M")
+def test_a_planet_space_orbits_pushes_out_of_its_zone_has_its_class_derived_again(star):
+    inner = planet_at(star, star.habitable_zone[0] * 1.01, GIANT_EARTH)
+    outer = planet_at(star, star.habitable_zone[0] * 1.02, EARTH)
     outer.distance = star.habitable_zone[1] * 0.999
     inner.distance = star.habitable_zone[1] * 0.99
-    validation.space_orbits([inner, outer], pinned=[outer])
-    assert outer.planet_class == "M"
+    validation.space_orbits([inner, outer])
     assert outer.zone == "c"
+    assert validation.check_planet(outer) == []
 
 
 def test_trim_to_orbit_ceiling_returns_what_it_removed(star):
-    planets = [planet_at(star, 6.0, "J"), planet_at(star, 50.0, "J")]
+    planets = [planet_at(star, 6.0, GIANT_EARTH), planet_at(star, 50.0, GIANT_EARTH)]
     # TEST.82: a planet reaches out by five Hill radii as well, so a heavy
     # giant at 6 AU can reach past 10 AU; the ceiling sits just past
     # whatever the inner one's reach was drawn to be.
@@ -104,7 +106,7 @@ def test_stabilize_lunar_system_respaces_crowded_moons(star):
     # before it (TEST.95).
     draw.set_run_seed(95)
     for _ in range(50):
-        planet = planet_at(star, 5.0, "J", moon_count=3)
+        planet = planet_at(star, 5.0, GIANT_EARTH, moon_count=3)
         if len(planet.moons) >= 2:
             break
     assert len(planet.moons) >= 2
@@ -116,7 +118,7 @@ def test_stabilize_lunar_system_respaces_crowded_moons(star):
 
 
 def test_check_lunar_system_reports_a_moon_outside_the_stable_range(star):
-    planet = planet_at(star, 5.0, "J", moon_count=1)
+    planet = planet_at(star, 5.0, GIANT_EARTH, moon_count=1)
     _low, high = planetPhysics.moon_orbit_bounds_km(planet)
     planet.moons[0].distance = high * 2 / constants.AU_TO_KM
     assert any("outside" in p.message for p in validation.check_lunar_system(planet))
@@ -181,7 +183,7 @@ def test_a_body_past_the_survival_limit_but_inside_the_stable_orbit_validates():
             break
     else:
         pytest.skip("no star with a stable orbit past the survival limit drawn")
-    system.planets[:] = [planet_at(star, survival * 1.5, "J")]
+    system.planets[:] = [planet_at(star, survival * 1.5, GIANT_EARTH)]
     assert not any("beyond" in p.message for p in validation.check_star_system(system))
 
 

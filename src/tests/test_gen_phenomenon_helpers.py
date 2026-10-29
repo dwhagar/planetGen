@@ -207,48 +207,6 @@ def test_infer_rogue_mass_bin_boundaries():
     assert roguePlanetData.infer_rogue_mass_bin(0.0) == "terrestrial"
 
 
-@pytest.mark.parametrize("planet_type", ["t", "g"])
-def test_rogue_planet_classes_are_rogue_flagged_and_typed(planet_type):
-    classes = roguePlanetData.rogue_planet_classes(planet_type)
-    assert classes
-    for code in classes:
-        assert PC.PLANET_CLASSES[code]["r"] and PC.PLANET_CLASSES[code]["type"] == planet_type
-
-
-def test_rogue_planet_classes_for_an_unknown_type_are_empty():
-    assert roguePlanetData.rogue_planet_classes("x") == []
-    assert roguePlanetData.rogue_planet_class_candidates("x", 6000.0, EARTH) == []
-    assert roguePlanetData.choose_rogue_planet_class("x", 6000.0, EARTH) is None
-    assert roguePlanetData.default_rogue_planet_class("x", 6000.0, EARTH) is None
-
-
-def test_rogue_candidates_fit_radius_and_mass():
-    candidates = roguePlanetData.rogue_planet_class_candidates("t", 6000.0, EARTH)
-    assert candidates
-    for code in candidates:
-        low, high = PC.PLANET_CLASSES[code]["radius_range"]
-        assert low <= 6000.0 <= high
-
-
-@pytest.mark.parametrize("radius_km", [1.0, 1e7])
-def test_rogue_candidates_fall_back_to_the_nearest_class(radius_km):
-    candidates = roguePlanetData.rogue_planet_class_candidates("t", radius_km, EARTH)
-    assert len(candidates) == 1 and candidates[0] in roguePlanetData.rogue_planet_classes("t")
-
-
-def test_choose_and_default_rogue_class():
-    assert roguePlanetData.choose_rogue_planet_class("g", 70000.0, 50 * JUPITER, mass_bin="brown-dwarf") is None
-    assert roguePlanetData.default_rogue_planet_class("g", 70000.0, 50 * JUPITER, mass_bin="brown-dwarf") is None
-    candidates = roguePlanetData.rogue_planet_class_candidates("g", 30000.0, 1e26)
-    for _ in range(20):
-        assert roguePlanetData.choose_rogue_planet_class("g", 30000.0, 1e26) in candidates
-    default = roguePlanetData.default_rogue_planet_class("g", 30000.0, 1e26)
-    assert default in candidates
-    assert default == roguePlanetData.default_rogue_planet_class("g", 30000.0, 1e26)
-    best = max(PC.PLANET_CLASS_PROBABILITIES.get(code, 0.0) for code in candidates)
-    assert PC.PLANET_CLASS_PROBABILITIES.get(default, 0.0) == best
-
-
 @pytest.mark.parametrize("mass_bin", ["huge", "Jupiter", ""])
 def test_rogue_planet_rejects_an_unknown_mass_bin(mass_bin):
     with pytest.raises(ValueError, match=rf"mass_bin must be one of .*, got {mass_bin!r}"):

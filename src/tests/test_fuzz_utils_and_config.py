@@ -750,7 +750,7 @@ def test_conversion_constants_are_mutually_consistent():
 
 def test_probability_tables_are_well_formed():
     pg = tuning
-    for name in ("SPECTRAL_PROBABILITIES_LARGE_STAR", "SPECTRAL_PROBABILITIES_NORMAL", "PLANET_CLASS_PROBABILITIES",
+    for name in ("SPECTRAL_PROBABILITIES_LARGE_STAR", "SPECTRAL_PROBABILITIES_NORMAL",
                  "PHENOMENON_DENSITY_PC3", "PHENOMENON_RATE_SCALE"):
         weights = getattr(pg, name)
         assert weights and all(w >= 0 for w in weights.values()), name
@@ -763,7 +763,6 @@ def test_probability_tables_are_well_formed():
 def test_lookup_tables_reference_each_other_consistently():
     pg = tuning
     pc = physical_constants
-    assert set(pg.PLANET_CLASS_PROBABILITIES) <= set(pg.PLANET_CLASSES)
     for letter, spec in pg.PLANET_CLASSES.items():
         assert spec["type"] in pc.PLANET_DENSITY, (letter, spec["type"])
     spectral = set(pc.TEMP_RANGES)

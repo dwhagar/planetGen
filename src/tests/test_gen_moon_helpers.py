@@ -3,9 +3,8 @@ Moon stability helpers (TODO TEST.33).
 
 Direct tests of `planets.moon_orbit_bounds_km`,
 `planets.drop_unstable_moons` and `planets.update_hill_sphere`,
-and of the "No valid planet class ..." / "Invalid planet class for this
-zone" errors `generate_planet_properties` raises when a requested radius,
-mass or class fits nothing. Behavior checks only; reference values live in
+and of the ValueErrors `generate_planet_properties` raises when a requested
+radius or mass is out of bounds or implies an impossible density. Behavior checks only; reference values live in
 the physics reference gate.
 """
 import math
@@ -22,6 +21,7 @@ from planetgen.generation.star import Star
 from tests.fuzz_support import deterministic_entropy
 
 CUBE_ROOT_10 = 10 ** (1 / 3)
+GAS_GIANT_KG = 300 * constants.EARTH_MASS_TO_KG
 
 
 @pytest.fixture(autouse=True)
@@ -88,7 +88,7 @@ def test_a_tiny_hill_sphere_leaves_no_room():
 
 
 def test_real_gas_giant_bounds_are_ordered_and_hold_its_moons(star):
-    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), planet_class="J", moon_count=6)
+    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), mass=GAS_GIANT_KG, moon_count=6)
     low, high = planets.moon_orbit_bounds_km(planet)
     assert isinstance(low, float) and isinstance(high, float)
     assert planet.radius < low < high
@@ -156,14 +156,14 @@ def test_drop_everything_when_there_is_no_room():
 
 
 def test_drop_is_idempotent_on_a_freshly_generated_planet(star):
-    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), planet_class="J", moon_count=6)
+    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), mass=GAS_GIANT_KG, moon_count=6)
     count = len(planet.moons)
     assert planets.drop_unstable_moons(planet) == 0
     assert len(planet.moons) == count
 
 
 def test_shrinking_the_hill_sphere_drops_the_outer_moons_first(star):
-    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), planet_class="J", moon_count=6)
+    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), mass=GAS_GIANT_KG, moon_count=6)
     distances = sorted(moon.distance for moon in planet.moons)
     assert len(distances) >= 2
     planet.distance /= 50  # drag it far inward: its Hill sphere shrinks 50x
@@ -206,7 +206,7 @@ def test_hill_radius_scales_with_the_cube_root_of_mass_ratio():
 
 
 def test_update_hill_sphere_tracks_a_moved_planet(star):
-    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), planet_class="J", moon_count=0)
+    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), mass=GAS_GIANT_KG, moon_count=0)
     before = planet.hill_radius
     planet.distance *= 2
     assert planet.hill_radius == before  # stale until refreshed
@@ -220,61 +220,31 @@ def test_update_hill_sphere_at_zero_distance_is_zero():
     assert planet.hill_radius == 0 and planet.min_orbit_distance == 0
 
 
-# --- "no valid planet class" errors ---------------------------------------
+# --- errors for a radius or mass that cannot be a planet -----------------
 
 @pytest.mark.parametrize("kwargs, message", [
-    ({"radius": 1e9}, "No valid planet class for the given radius in this zone"),
-    ({"radius": 1.0}, "No valid planet class for the given radius in this zone"),
-    ({"mass": 1.0}, "No valid planet class for the given mass in this zone"),
-    ({"mass": 1e40}, "No valid planet class for the given mass in this zone"),
-    ({"radius": 6000.0, "mass": 1e30}, "No valid planet class for the given radius/mass in this zone"),
-    ({"radius": 200000.0, "mass": 1e22}, "No valid planet class for the given radius/mass in this zone"),
+    ({"radius": 1e9}, "The given radius"),
+    ({"radius": 0.1}, "The given radius"),
+    ({"mass": 1.0}, "The given mass"),
+    ({"mass": 1e40}, "The given mass"),
+    ({"radius": 6000.0, "mass": 2e28}, "density"),
+    ({"radius": 200000.0, "mass": 1e22}, "density"),
 ])
-def test_no_valid_class_for_given_radius_or_mass(star, kwargs, message):
+def test_a_radius_or_mass_that_cannot_be_a_planet_raises(star, kwargs, message):
     with pytest.raises(ValueError, match=message):
         Planet(star.system_config, star, star.habitable_zone, cold_distance(star), **kwargs)
 
 
-def test_no_valid_class_when_only_habitable_classes_fit_and_they_are_barred(star):
-    """12,000 km in the ecosphere fits only class V, which is habitable;
-    with HABITABLE_WORLD=False nothing is left."""
-    star.system_config.HABITABLE_WORLD = False
-    inner, outer = star.habitable_zone
-    with pytest.raises(ValueError, match="No valid planet class for the given radius in this zone"):
-        Planet(star.system_config, star, star.habitable_zone, (inner + outer) / 2, radius=12000.0)
+def test_a_radius_alone_is_kept_and_gets_a_class_derived_from_the_body(star):
+    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), radius=60000.0)
+    assert planet.radius == 60000.0
+    assert planet.body_type == "g"
 
 
-def test_radius_that_fits_a_class_elsewhere_but_not_in_this_zone(star):
-    """52,000 km fits classes J and T; T is cold-zone only, so in the hot
-    zone only J is left -- but 12,000 km (class V, ecosphere only) fits
-    nothing hot at all."""
-    hot = star.habitable_zone[0] * 0.5
-    assert Planet(star.system_config, star, star.habitable_zone, hot, radius=52000.0).planet_class == "J"
-    with pytest.raises(ValueError, match="No valid planet class for the given radius in this zone"):
-        Planet(star.system_config, star, star.habitable_zone, hot, radius=12000.0)
-
-
-@pytest.mark.parametrize("planet_class", ["Z", "M", "E"])
-def test_invalid_class_for_the_zone(star, planet_class):
-    """Unknown class 'Z', and ecosphere-only classes in the cold zone."""
-    with pytest.raises(ValueError, match="Invalid planet class for this zone"):
-        Planet(star.system_config, star, star.habitable_zone, cold_distance(star), planet_class=planet_class)
-
-
-def test_class_and_radius_mismatch_raises(star):
-    with pytest.raises(ValueError, match="Invalid radius for planet class"):
-        Planet(star.system_config, star, star.habitable_zone, cold_distance(star), planet_class="J", radius=1000.0)
-
-
-def test_class_and_mass_mismatch_raises(star):
-    with pytest.raises(ValueError, match="Invalid mass for planet class"):
-        Planet(star.system_config, star, star.habitable_zone, cold_distance(star), planet_class="J", mass=1.0)
-
-
-def test_mass_only_planet_gets_a_class_and_a_radius_in_range(star):
-    mass = 1e27  # only class J's mass range reaches this
-    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), mass=mass)
-    low, high = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
-    assert planet.planet_class == "J"
-    assert low <= planet.radius <= high
+def test_mass_only_planet_gets_a_class_and_a_radius(star):
+    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), mass=1e27)
+    assert planet.mass == 1e27
+    assert planet.body_type == "g"
+    assert planet.planet_class in tuning.PLANET_CLASSES
     assert math.isfinite(planet.hill_radius) and planet.hill_radius > 0
+    assert 10000.0 <= planet.radius <= 200000.0

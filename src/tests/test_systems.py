@@ -36,6 +36,9 @@ STAR_TYPES = [
     "K1III", "F0IB", "M2VII", "K5IV", "A0II", "M3IA+", "M50", "K8VI",
 ]
 
+# A star whose ecosphere no planet can hold an air in (a white dwarf's lies at about 0.02 AU; a flaring red dwarf's, now and then) is
+# answered `unmet` for a habitable world (GEN.688) rather than by a world that is not what its conditions say.
+
 TRISTATE_ATTRS = [
     "HABITABLE_WORLD", "ASTEROID_BELT", "COMETS", "LARGE_STAR", "MOONS",
     "MAX_PLANETS", "INTELLIGENT_LIFE", "BINARY_SYSTEM", "PLANETS",
@@ -383,7 +386,8 @@ def test_each_tristate_flag_forced(star_type, value, attr):
         assert_positions_and_speeds_are_consistent(system)
 
         if attr == "HABITABLE_WORLD" and value is True:
-            assert system.habitable_class_count >= 1, f"{star_type}: HABITABLE_WORLD=True produced no habitable world"
+            assert system.habitable_class_count >= 1 or system.habitable_request == "unmet", \
+                f"{star_type}: HABITABLE_WORLD=True produced no habitable world and did not say so"
         if attr == "ASTEROID_BELT" and value is True:
             assert system.belt_count >= 1, f"{star_type}: ASTEROID_BELT=True produced no belt"
         if attr == "COMETS" and value is True:
@@ -458,11 +462,11 @@ def test_asteroid_belt_and_habitable_world_forced_together_both_succeed(star_typ
         system = StarSystem(system_config=make_config(star_type, ASTEROID_BELT=True, HABITABLE_WORLD=True))
         if system.belt_count == 0:
             failures_belt += 1
-        if system.habitable_class_count == 0:
+        if system.habitable_class_count == 0 and system.habitable_request != "unmet":
             failures_hab += 1
         assert_no_belt_overlap_all_pairs(system)
     assert failures_belt == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a belt in {failures_belt}/{trials} trials"
-    assert failures_hab == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a habitable world in {failures_hab}/{trials} trials"
+    assert failures_hab == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a habitable world, or to say so, in {failures_hab}/{trials} trials"
 
 
 def test_wide_binary_asteroid_belts_forced_do_not_overlap_across_stars():
@@ -502,7 +506,7 @@ def test_intelligent_life_implies_habitable_world_ends_true():
         cfg = make_config("G2V", INTELLIGENT_LIFE=value)
         assert cfg.HABITABLE_WORLD is True
         system = StarSystem(system_config=cfg)
-        assert system.habitable_class_count >= 1
+        assert system.habitable_class_count >= 1 or system.habitable_request == "unmet"  # GEN.646: unmet says so
 
 
 def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):

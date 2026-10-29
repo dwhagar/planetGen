@@ -55,7 +55,7 @@ def probs(group, body_class, **quantities):
     return main(RECIPES.probabilities(group, Subject(body_class, quantities)))
 
 
-def full(body_class="E", **overrides):
+def full(body_class="terrestrial", **overrides):
     """A subject that carries every stored quantity a gate or weight reads, set to something plain."""
     q = {name: (False if name in BOOLEANS else 1.0) for name in INPUTS}
     q.update(zone="e", host_type="G", family="stony", redox_diw=0.5, mass_earth=1.0, mass_jupiter=0.003, radius_km=6371.0,
@@ -153,30 +153,30 @@ def test_the_data_file_is_what_the_builder_writes():
 # --- the worked examples of part 09, reproduced from the rows ---------------------------------------------------------
 
 def test_example_a_the_redox_classes_at_one_drawn_value():
-    p = probs("a", "E", redox_diw=0.5)
+    p = probs("a", "terrestrial", redox_diw=0.5)
     assert p["a5"] == pytest.approx(0.159, abs=5e-4) and p["a6"] == pytest.approx(0.841, abs=5e-4)
     assert p.get("a7", 0) == pytest.approx(0.0, abs=5e-4)
     # M = 0.05: the magma-ocean mean is -1.13
     assert RECIPES.entry("a1").spec["dist"]["mu"].startswith("clamp")
-    d = RECIPES._dist_of(RECIPES.entry("a1"), Subject("E", {"mass_earth": 0.05}))
+    d = RECIPES._dist_of(RECIPES.entry("a1"), Subject("terrestrial", {"mass_earth": 0.05}))
     assert d["mu"] == pytest.approx(-1.1263, abs=1e-3)
-    d = RECIPES._dist_of(RECIPES.entry("a1"), Subject("E", {"mass_earth": 1.0}))
+    d = RECIPES._dist_of(RECIPES.entry("a1"), Subject("terrestrial", {"mass_earth": 1.0}))
     assert d["mu"] == pytest.approx(0.5)
-    later = RECIPES._dist_of(RECIPES.entry("a2"), Subject("E", {"mass_earth": 1.0}))
+    later = RECIPES._dist_of(RECIPES.entry("a2"), Subject("terrestrial", {"mass_earth": 1.0}))
     assert later["mu"] == pytest.approx(3.5) and later["sigma"] == 1.0
 
 
 def test_the_magma_ocean_redox_follows_the_first_hand_ranges_and_rises_above_one_earth_mass_gen_482b():
     """Hirschmann 2022 section 6.3 and Deng 2020: Moon about -2, Mars about -0.6, Earth about +0.3 to +0.5, width 0.5 to 0.9."""
     def a1(mass):
-        return RECIPES._dist_of(RECIPES.entry("a1"), Subject("E", {"mass_earth": mass}))
+        return RECIPES._dist_of(RECIPES.entry("a1"), Subject("terrestrial", {"mass_earth": mass}))
 
     assert a1(0.0123)["mu"] == pytest.approx(-1.89, abs=0.01) and a1(0.107)["mu"] == pytest.approx(-0.71, abs=0.01)
     assert a1(0.1)["sigma"] == pytest.approx(0.5) and a1(1.0)["sigma"] == pytest.approx(0.9) and a1(0.01)["sigma"] == pytest.approx(0.5)
     assert a1(5.4)["mu"] == pytest.approx(0.5 + math.log10(5.4), abs=1e-3), "1.0 per dex above one Earth mass"
     assert a1(30.0)["mu"] == pytest.approx(a1(5.4)["mu"], abs=1e-3), "held where the base pressure passes the 140 GPa of Deng 2020"
     assert a1(30.0)["sigma"] == pytest.approx(0.9)
-    later = RECIPES._dist_of(RECIPES.entry("a2"), Subject("E", {"mass_earth": 30.0}))
+    later = RECIPES._dist_of(RECIPES.entry("a2"), Subject("terrestrial", {"mass_earth": 30.0}))
     assert later["mu"] == pytest.approx(3.5), "no source for the later mantle of a super-Earth: the Earth value is held"
 
 
@@ -197,37 +197,37 @@ def _delivery_law(x, mass):
 
 
 def test_example_b_the_delivery_split_by_the_formation_distance_over_the_snow_line_and_the_mass():
-    for x, mass in ((0.447, 1.0), (0.75, 5.0), (1.5, 5.0), (0.1, 0.3), (6.0, 100.0)):
-        p = probs("b", "E", snow_ratio=x, mass_earth=mass, **{"const:b:c_b4": 1.0})
+    for x, mass in ((0.447, 1.0), (0.75, 5.0), (1.5, 5.0), (0.1, 0.3), (6.0, 20.0)):
+        p = probs("b", "terrestrial", snow_ratio=x, mass_earth=mass, **{"const:b:c_b4": 1.0})
         assert [p.get(row, 0.0) for row in ("b1", "b2", "b3", "b4")] == pytest.approx(list(_delivery_law(x, mass)), abs=2e-6), (x, mass)
         assert sum(p.values()) == pytest.approx(1.0, abs=2e-5)           # `probs` drops the shares under 1e-5
     # no gate at the snow line any more: 60 percent of the planets that formed at three quarters of it are water-rich (the population)
-    assert probs("b", "E", snow_ratio=0.75, mass_earth=5.0, **{"const:b:c_b4": 1.0})["b4"] == pytest.approx(0.564, abs=2e-3)
+    assert probs("b", "terrestrial", snow_ratio=0.75, mass_earth=5.0, **{"const:b:c_b4": 1.0})["b4"] == pytest.approx(0.564, abs=2e-3)
     # the plateau moves the water-rich planets it removes into the 'high' class
-    full_law = probs("b", "E", snow_ratio=0.75, mass_earth=5.0, **{"const:b:c_b4": 1.0})
-    half = probs("b", "E", snow_ratio=0.75, mass_earth=5.0, **{"const:b:c_b4": 0.5})
+    full_law = probs("b", "terrestrial", snow_ratio=0.75, mass_earth=5.0, **{"const:b:c_b4": 1.0})
+    half = probs("b", "terrestrial", snow_ratio=0.75, mass_earth=5.0, **{"const:b:c_b4": 0.5})
     assert half["b4"] == pytest.approx(0.5 * full_law["b4"]) and half["b3"] == pytest.approx(full_law["b3"] + 0.5 * full_law["b4"])
     assert half["b1"] == pytest.approx(full_law["b1"]) and half["b2"] == pytest.approx(full_law["b2"])
 
 
 def test_example_c_the_outgassed_regime_under_the_redox_class_and_the_joint_probability():
-    s = full("E", redox_diw=0.5, ts_k=1000.0, pressure_bar=100.0, **{"drawn.a": "a5"})
+    s = full("terrestrial", redox_diw=0.5, ts_k=1000.0, pressure_bar=100.0, **{"drawn.a": "a5"})
     p = dict(RECIPES.probabilities("c", s))
     assert p == pytest.approx({"c1": 0.463, "c2": 0.537}, abs=1e-3)
-    s3 = full("E", ts_k=1000.0, **{"drawn.a": "a6"})
+    s3 = full("terrestrial", ts_k=1000.0, **{"drawn.a": "a6"})
     assert dict(RECIPES.probabilities("c", s3)) == {"c3": 1.0}
-    after = full("E", ts_k=400.0, ocean_present=True, **{"drawn.c": "c3"})
+    after = full("terrestrial", ts_k=400.0, ocean_present=True, **{"drawn.c": "c3"})
     assert dict(RECIPES.probabilities("c-after", after)) == {"c5": 1.0}
-    steam = full("E", ts_k=700.0, **{"drawn.c": "c3"})
+    steam = full("terrestrial", ts_k=700.0, **{"drawn.c": "c3"})
     assert dict(RECIPES.probabilities("c-after", steam)) == {"c6": 1.0}
-    dry = full("E", ts_k=400.0, ocean_present=False, **{"drawn.c": "c3"})
+    dry = full("terrestrial", ts_k=400.0, ocean_present=False, **{"drawn.c": "c3"})
     with draw.bound(1):
         assert RECIPES.draw_group("c-after", dry).name == "c6"          # no row passes the weights: the fallback wins
 
 
 def test_example_d_the_shoreline_is_the_published_logistic_and_the_regimes_share_its_probability():
     def at(flux, v=11.186, lum=1.0):
-        return dict(RECIPES.probabilities("d", Subject("E", dict(insolation=flux, v_esc_kms=v, luminosity_solar=lum))))
+        return dict(RECIPES.probabilities("d", Subject("terrestrial", dict(insolation=flux, v_esc_kms=v, luminosity_solar=lum))))
     # at the shoreline flux of this escape speed and luminosity (log10 f0 = 2.62) half the planets keep an atmosphere
     shore = 10 ** 2.62
     assert at(shore)["d1"] == pytest.approx(0.5, abs=1e-9)
@@ -245,8 +245,8 @@ def test_example_d_the_shoreline_is_the_published_logistic_and_the_regimes_share
     # the slope in the escape speed is 5.9 and in the luminosity 1.17 (Berta-Thompson 2025)
     assert at(shore * 2 ** 5.9, v=11.186 * 2)["d1"] == pytest.approx(0.5, abs=1e-9)
     assert at(shore * 10 ** 1.17, lum=10.0)["d1"] == pytest.approx(0.5, abs=1e-9)
-    assert RECIPES.derive("d6", Subject("E", {"drawn.d": "d3"})) == {"p_max_bar": 0.01}
-    assert RECIPES.derive("d6", Subject("E", {"drawn.d": "d5"})) == {"p_max_bar": None}
+    assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d3"})) == {"p_max_bar": 0.01}
+    assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d5"})) == {"p_max_bar": None}
 
 
 def test_the_retired_k_window_is_gone_and_the_shoreline_is_marked_as_corrected():
@@ -258,12 +258,12 @@ def test_the_retired_k_window_is_gone_and_the_shoreline_is_marked_as_corrected()
 
 def test_the_hydrogen_flag_of_d7_uses_the_jeans_parameter_of_the_part():
     gate = dict(mass_earth=5.0, teq_k=300.0, xuv_index=1.5)
-    assert RECIPES.flag("d7", Subject("V", dict(gate, v_esc_kms=25.0)))
-    assert not RECIPES.flag("d7", Subject("V", dict(gate, v_esc_kms=5.0)))
+    assert RECIPES.flag("d7", Subject("giant", dict(gate, v_esc_kms=25.0)))
+    assert not RECIPES.flag("d7", Subject("giant", dict(gate, v_esc_kms=5.0)))
 
 
 def test_example_e_the_envelope_the_water_world_and_the_hycean_share_the_water_rich_probability():
-    s = Subject("V", dict(mass_earth=5.0, core_radius_earth=5 ** 0.27, insolation=20.0, snow_ratio=1.5, host_mass_solar=1.0, luminosity_solar=1.0,
+    s = Subject("giant", dict(mass_earth=5.0, core_radius_earth=5 ** 0.27, insolation=20.0, snow_ratio=1.5, host_mass_solar=1.0, luminosity_solar=1.0,
                           age_gy=5.0, teq_k=255.0 * 20.0 ** 0.25, **{"const:e:f_env0": 0.05, "const:e:eta": 0.224, "const:b:c_b4": 0.1454}))
     assert RECIPES.probability_of("b4", s) == pytest.approx(0.1454 * _delivery_law(1.5, 5.0)[3], abs=1e-9)
     p = dict(RECIPES.probabilities("e", s))
@@ -272,16 +272,16 @@ def test_example_e_the_envelope_the_water_world_and_the_hycean_share_the_water_r
     assert p["e1"] / (p["e1"] + p["e2"]) == pytest.approx(lost, abs=1e-9)
     assert p["e3"] == pytest.approx(0.111, abs=1e-3) and p["e4"] == pytest.approx(0.032, abs=1e-3)
     assert sum(p.values()) == pytest.approx(1.0)
-    bins = RECIPES.bins("e5", Subject("V", {"mass_earth": 5.0}))
+    bins = RECIPES.bins("e5", Subject("giant", {"mass_earth": 5.0}))
     assert [round(b[2], 3) for b in bins] == [0.268, 0.294, 0.268, 0.169]
     z = [0.02, 0.0548, 0.173, 0.424]
-    mu = [RECIPES.derive("e5", Subject("V", {"mass_earth": 5.0, "drawn.e": "e2"}), value=v)["mean_molecular_weight"] for v in z]
+    mu = [RECIPES.derive("e5", Subject("giant", {"mass_earth": 5.0, "drawn.e": "e2"}), value=v)["mean_molecular_weight"] for v in z]
     assert mu[0] == pytest.approx(2.4 + 3.1 * math.log10(2) / math.log10(58))
-    assert RECIPES.probability("e6", Subject("V", {"mass_earth": 5.0, "teq_k": 500.0, "drawn.e": "e2"})) == pytest.approx(0.5)
+    assert RECIPES.probability("e6", Subject("giant", {"mass_earth": 5.0, "teq_k": 500.0, "drawn.e": "e2"})) == pytest.approx(0.5)
 
 
 def test_example_f_the_giant_regimes_the_metallicity_bins_and_the_carbon_to_oxygen_bins():
-    s = Subject("J", dict(mass_jupiter=0.3, teq_k=950.0, zone="h"))
+    s = Subject("giant", dict(mass_jupiter=0.3, teq_k=950.0, zone="h"))
     p = main(RECIPES.probabilities("f", s))
     assert p == pytest.approx({"f2": 0.0062, "f3": 0.9936, "f4": 0.0002}, abs=1e-4)
     assert [round(b[2], 3) for b in RECIPES.bins("f6", s)] == [0.0, 0.013, 0.369, 0.566, 0.052]
@@ -291,7 +291,7 @@ def test_example_f_the_giant_regimes_the_metallicity_bins_and_the_carbon_to_oxyg
 
 
 def test_the_giants_carbon_to_oxygen_correction_the_tail_is_explicit_and_not_a_log_normal_spill():
-    s = Subject("J", dict(mass_jupiter=0.3, teq_k=950.0, zone="h"))
+    s = Subject("giant", dict(mass_jupiter=0.3, teq_k=950.0, zone="h"))
     tail = math.sqrt(0.043 * 0.087)
     above = RECIPES.probability_in("f7", s, 0.8, None)
     assert above == pytest.approx(tail, abs=1e-9)                  # the core stops at 0.8, so only the tail is above it
@@ -307,7 +307,7 @@ def test_the_giants_carbon_to_oxygen_correction_the_tail_is_explicit_and_not_a_l
     assert d["core"]["mu"] == pytest.approx(math.log10(0.57))
     # the tail share draws inside the data's bracket
     with draw.bound(3):
-        shares = [RECIPES.draw_group("e", full("V", mass_earth=5.0, core_radius_earth=1.5, snow_ratio=0.5)).constants[("e", "f_env0")]
+        shares = [RECIPES.draw_group("e", full("giant", mass_earth=5.0, core_radius_earth=1.5, snow_ratio=0.5)).constants[("e", "f_env0")]
                   for _ in range(5)]
     assert all(0.05 <= v <= 0.2 for v in shares)
 
@@ -316,17 +316,17 @@ def test_example_g_h_and_i_the_brown_dwarf_the_hot_jupiter_and_the_lava_windows(
     g = Subject("brown-dwarf", {"teff_k": 848.4})
     assert main(RECIPES.probabilities("g", g)) == pytest.approx({"g3": 0.9801, "g4": 0.0199}, abs=1e-3)
     assert RECIPES.probability("g6", g) == pytest.approx(0.994, abs=1e-3)
-    assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 2500.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
+    assert main(RECIPES.probabilities("h", Subject("giant", {"tday_k": 2500.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
         {"h2": 0.9983, "h3": 0.0017}, abs=1e-4)
-    assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 900.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
+    assert main(RECIPES.probabilities("h", Subject("giant", {"tday_k": 900.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
         {"h1": 0.7454, "h2": 0.2546}, abs=1e-4), "the methane line at 0.1 bar is 966 K, not 1500 K"
-    s = Subject("J", {"tday_k": 2150.0, "zone": "h", "teq_k": 2350.0, "drawn.h": "h2"})
+    s = Subject("giant", {"tday_k": 2150.0, "zone": "h", "teq_k": 2350.0, "drawn.h": "h2"})
     assert RECIPES.probability("h4", s) == 0.0, "TiO is not seen at 2350 K and below"
-    assert RECIPES.probability("h4", Subject("J", dict(s.quantities, teq_k=2641.0))) == 1.0, "and is seen at 2641 K"
-    lava = lambda t: dict(RECIPES.probabilities("i", Subject("A", {"tp_k": t, "zone": "h"})))  # noqa: E731
+    assert RECIPES.probability("h4", Subject("giant", dict(s.quantities, teq_k=2641.0))) == 1.0, "and is seen at 2641 K"
+    lava = lambda t: dict(RECIPES.probabilities("i", Subject("terrestrial", {"tp_k": t, "zone": "h"})))  # noqa: E731
     assert main(lava(2060.0)) == pytest.approx({"i1": 0.326, "i2": 0.674}, abs=1e-3)
     assert main(lava(2500.0)) == pytest.approx({"i2": 0.929, "i3": 0.071}, abs=1e-3)
-    s = Subject("A", {"tp_k": 2060.0, "zone": "h", "mass_earth": 3.0})
+    s = Subject("terrestrial", {"tp_k": 2060.0, "zone": "h", "mass_earth": 3.0})
     assert RECIPES.derive("i6", s)["p_eq_bar"] == pytest.approx(3.5e-4, rel=0.02)
 
 
@@ -338,14 +338,14 @@ def test_the_lava_world_boundaries_are_the_text_edges_of_miguel_2011_and_the_dif
 
 
 def test_example_j_the_frost_and_evolved_atmospheres_are_outputs_of_the_retention_physics():
-    titan = full("Y", is_moon=True, radius_km=2500.0, ts_k=61.0, insolation=0.012, **{"drawn.d": "d5"})
-    frost = full("D", ts_k=61.0, **{"drawn.d": "d5"})
+    titan = full("terrestrial", is_moon=True, radius_km=2500.0, ts_k=61.0, insolation=0.012, **{"drawn.d": "d5"})
+    frost = full("terrestrial", ts_k=61.0, **{"drawn.d": "d5"})
     w3 = RECIPES.raw_weight(RECIPES.entry("j3"), titan)
     w4 = RECIPES.raw_weight(RECIPES.entry("j4"), frost)
     assert w3 / (w3 + w4) == pytest.approx(0.471, abs=1e-3)   # the two windows overlap from 57 to 67 K
-    mars = full("K", mass_earth=0.1, ts_k=220.0, **{"drawn.d": "d3"})
+    mars = full("terrestrial", mass_earth=0.1, ts_k=220.0, **{"drawn.d": "d3"})
     assert dict(RECIPES.probabilities("j", mars)) == {"j2": 1.0}
-    none = full("K", mass_earth=0.1, ts_k=300.0, **{"drawn.d": "d3"})
+    none = full("terrestrial", mass_earth=0.1, ts_k=300.0, **{"drawn.d": "d3"})
     with draw.bound(1):
         assert RECIPES.draw_group("j", none).name == "none"   # the explicit outcome: none of these applies
     for entry in (RECIPES.entry("j2"), RECIPES.entry("j3"), RECIPES.entry("j4")):
@@ -364,44 +364,44 @@ def test_example_k_the_coma_classes_and_the_carbon_dioxide_to_water_bins():
 
 
 def test_example_l_m_n_and_o_the_white_dwarf_atmosphere_the_trace_gases_the_clouds_and_the_radioisotopes():
-    wd = Subject("E", {"host_type": "WD", "ts_k": 1800.0})
+    wd = Subject("terrestrial", {"host_type": "WD", "ts_k": 1800.0})
     p = dict(RECIPES.probabilities("l", wd))
     assert p["l1"] == pytest.approx(0.997, abs=1e-3) and RECIPES.derive("l1", wd)["p_eq_bar"] == pytest.approx(2.39e-5, rel=0.01)
-    giant = Subject("J", {"t_layer_k": 900.0, "gas_has_co_h2s": True})
+    giant = Subject("giant", {"t_layer_k": 900.0, "gas_has_co_h2s": True})
     assert RECIPES.probability("m7", giant) == pytest.approx(0.030, abs=1e-3)
     assert RECIPES.probability("m8", giant) == pytest.approx(1.0, abs=1e-3)
     assert RECIPES.derive("m9", giant)["k_eq"] == pytest.approx(0.034, abs=1e-3)
-    cloud = Subject("J", {"profile_t_min_k": 300.0, "profile_t_max_k": 2000.0, "teq_k": 800.0})
+    cloud = Subject("giant", {"profile_t_min_k": 300.0, "profile_t_max_k": 2000.0, "teq_k": 800.0})
     assert RECIPES.crossed_windows("n1", cloud) == ["Al-Ti oxides", "Fe", "forsterite", "enstatite", "Cr", "MnS"]
     assert RECIPES.crossed_windows("n2", cloud) == ["Na2S", "KCl/ZnS"]
     assert RECIPES.crossed_windows("n3", cloud) == []
     assert RECIPES.probability("n6", cloud) == pytest.approx(0.067, abs=1e-3)
-    sun = Subject("E", {"thin_disc_fgk": True, "age_gy": 3.0})
+    sun = Subject("terrestrial", {"thin_disc_fgk": True, "age_gy": 3.0})
     assert [round(b[2], 4) for b in RECIPES.bins("o1", sun)] == [0.0, 0.8729, 0.1271]
     assert RECIPES.derive("o5", sun)["heating_ratio"] == pytest.approx(1.432, abs=1e-3)
-    assert RECIPES.derive("o5", Subject("E", {"age_gy": 8.0}))["heating_ratio"] == pytest.approx(0.589, abs=1e-3)
+    assert RECIPES.derive("o5", Subject("terrestrial", {"age_gy": 8.0}))["heating_ratio"] == pytest.approx(0.589, abs=1e-3)
 
 
 def test_example_p_the_uv_regime_depends_on_the_stellar_mass_through_the_saturation_time():
-    early_m = Subject("E", {"host_type": "M", "host_mass_solar": 0.55, "age_gy": 1.0})
+    early_m = Subject("terrestrial", {"host_type": "M", "host_mass_solar": 0.55, "age_gy": 1.0})
     v = RECIPES.derive("p4", early_m)
     assert v["tau_sat_gy"] == pytest.approx(0.162) and v["lx_over_lbol"] == pytest.approx(8.5e-5, rel=0.02)
     for mass, tau in ((0.25, 0.6), (0.15, 2.3)):
-        s = Subject("E", {"host_type": "M", "host_mass_solar": mass, "age_gy": 1.0})
+        s = Subject("terrestrial", {"host_type": "M", "host_mass_solar": mass, "age_gy": 1.0})
         assert RECIPES.derive("p4", s)["tau_sat_gy"] == pytest.approx(tau)
-    young_m = Subject("E", {"host_type": "M", "host_mass_solar": 0.15, "age_gy": 0.5})
+    young_m = Subject("terrestrial", {"host_type": "M", "host_mass_solar": 0.15, "age_gy": 0.5})
     p = dict(RECIPES.probabilities("p", young_m))
     assert p["p4"] > 0.99 and p["p3"] < 0.01
-    sun = Subject("E", {"host_type": "G", "host_mass_solar": 1.0, "age_gy": 4.5})
+    sun = Subject("terrestrial", {"host_type": "G", "host_mass_solar": 1.0, "age_gy": 4.5})
     assert dict(RECIPES.probabilities("p", sun)) == {"p1": 1.0}
-    infant = Subject("E", {"host_type": "G", "host_mass_solar": 1.0, "age_gy": 0.05})
+    infant = Subject("terrestrial", {"host_type": "G", "host_mass_solar": 1.0, "age_gy": 0.05})
     assert dict(RECIPES.probabilities("p", infant)) == {"p5": 1.0}
     assert "replaces LU[0.162, 2]" in RECIPES.entry("p4").notes
 
 
 def test_the_corrected_white_dwarf_redox_ensemble_replaces_the_six_star_centre():
-    d4 = RECIPES._dist_of(RECIPES.entry("a4"), Subject("E", {}))
-    d3 = RECIPES._dist_of(RECIPES.entry("a3"), Subject("E", {}))
+    d4 = RECIPES._dist_of(RECIPES.entry("a4"), Subject("terrestrial", {}))
+    d3 = RECIPES._dist_of(RECIPES.entry("a3"), Subject("terrestrial", {}))
     assert d4["mu"] == -1.25 and d4["sigma"] == 0.22 and d3["mu"] == -1.25 and d3["sigma"] == 0.22
     assert "Corrected 2026-10-18" in RECIPES.entry("a3").notes and "0.55 dex" in RECIPES.entry("a3").notes
 
@@ -422,14 +422,14 @@ def test_for_every_class_a_group_s_probabilities_add_up_to_one_or_the_group_does
 
 
 def test_a_group_with_no_supporting_row_for_the_class_is_an_error_that_names_the_class_and_the_table():
-    with pytest.raises(pt.PossibilityError, match="atmosphere-g.*'E'"):
-        RECIPES.draw_group("g", full("E"))
+    with pytest.raises(pt.PossibilityError, match="atmosphere-g.*'terrestrial'"):
+        RECIPES.draw_group("g", full("terrestrial"))
 
 
 # --- draws -------------------------------------------------------------------------------------------------------------
 
 def test_a_group_draw_follows_its_probabilities_and_stores_the_design_constants_inside_their_brackets():
-    s = full("V", mass_earth=5.0, core_radius_earth=1.54, insolation=30.0, v_esc_kms=20.0, snow_ratio=1.5)
+    s = full("giant", mass_earth=5.0, core_radius_earth=1.54, insolation=30.0, v_esc_kms=20.0, snow_ratio=1.5)
     counts = {}
     with draw.bound(11):
         for _ in range(3000):
@@ -437,13 +437,13 @@ def test_a_group_draw_follows_its_probabilities_and_stores_the_design_constants_
             counts[picked.name] = counts.get(picked.name, 0) + 1
             assert 0.05 <= picked.constants[("e", "f_env0")] <= 0.2 and 0.1 <= picked.constants[("e", "eta")] <= 0.5
     assert counts.get("e1", 0) > 0 and counts.get("e2", 0) > 0 and set(counts) <= {"e1", "e2", "e3", "e4"}
-    given = full("V", mass_earth=5.0, core_radius_earth=1.54, insolation=100.0, snow_ratio=1.5)
+    given = full("giant", mass_earth=5.0, core_radius_earth=1.54, insolation=100.0, snow_ratio=1.5)
     with draw.bound(1):
         assert 0 < RECIPES.draw_group("e", given).probability <= 1.0
 
 
 def test_a_continuous_row_draws_inside_its_range_and_its_bins_describe_the_draw():
-    s = Subject("J", dict(mass_jupiter=0.3, teq_k=950.0, zone="h"))
+    s = Subject("giant", dict(mass_jupiter=0.3, teq_k=950.0, zone="h"))
     with draw.bound(5):
         z = [RECIPES.draw_value("f5", s) for _ in range(4000)]
         c = [RECIPES.draw_value("f7", s) for _ in range(4000)]
@@ -454,7 +454,7 @@ def test_a_continuous_row_draws_inside_its_range_and_its_bins_describe_the_draw(
         assert got == pytest.approx(p, abs=0.03)
     above = sum(1 for v in c if v > 0.8) / len(c)
     assert above == pytest.approx(RECIPES.probability_in("f7", s, 0.8, None), abs=0.02)
-    assert RECIPES.draw_value("a4", Subject("E", {"host_type": "G"})) is None          # its gate does not pass
+    assert RECIPES.draw_value("a4", Subject("terrestrial", {"host_type": "G"})) is None          # its gate does not pass
 
 
 def test_a_row_with_several_values_draws_a_dict_and_the_log_uniform_ranges_hold():
@@ -468,29 +468,29 @@ def test_a_row_with_several_values_draws_a_dict_and_the_log_uniform_ranges_hold(
 
 
 def test_a_binary_row_is_present_with_its_probability_and_carries_a_value_when_it_has_one():
-    s = full("J", t_layer_k=962.0)
+    s = full("giant", t_layer_k=962.0)
     with draw.bound(4):
         hits = sum(RECIPES.draw_binary("m7", s)[0] for _ in range(4000))
     assert hits / 4000 == pytest.approx(0.5, abs=0.03)
-    rogue = full("I", zone="r")
+    rogue = full("giant", zone="r")
     with draw.bound(4):
         present, fraction = RECIPES.draw_binary("b6", rogue)
         counts = sum(RECIPES.draw_binary("b6", rogue)[0] for _ in range(2000))
     assert counts / 2000 == pytest.approx(0.8, abs=0.04)
-    assert RECIPES.draw_binary("b6", full("E", zone="e")) == (False, None)
+    assert RECIPES.draw_binary("b6", full("terrestrial", zone="e")) == (False, None)
 
 
 def test_the_rotation_percentile_is_uniform_and_only_drawn_for_a_host_in_the_saturated_or_young_branch():
-    s = full("E", **{"drawn.p": "p4"})
+    s = full("terrestrial", **{"drawn.p": "p4"})
     with draw.bound(6):
         picks = [RECIPES.draw_value("p6", s) for _ in range(4000)]
     assert min(picks) >= 0.02 and max(picks) <= 0.98
     assert sum(picks) / 4000 == pytest.approx(0.5, abs=0.01)
-    assert RECIPES.draw_value("p6", full("E", **{"drawn.p": "p1"})) is None
+    assert RECIPES.draw_value("p6", full("terrestrial", **{"drawn.p": "p1"})) is None
 
 
 def test_draw_all_draws_the_tables_in_order_and_the_joint_probability_is_parent_times_conditional():
-    s = full("E", redox_diw=0.5, ts_k=1000.0, pressure_bar=100.0, snow_ratio=1.5, insolation=1.0)
+    s = full("terrestrial", redox_diw=0.5, ts_k=1000.0, pressure_bar=100.0, snow_ratio=1.5, insolation=1.0)
     with draw.bound(21):
         result = RECIPES.draw_all(s)
     assert list(result.groups)[:3] == ["a", "b", "d"]
@@ -505,7 +505,7 @@ def test_draw_all_draws_the_tables_in_order_and_the_joint_probability_is_parent_
 
 
 def _worker_draw(seed):
-    s = full("E", redox_diw=0.5, ts_k=1000.0, pressure_bar=100.0, snow_ratio=1.5, insolation=3.0)
+    s = full("terrestrial", redox_diw=0.5, ts_k=1000.0, pressure_bar=100.0, snow_ratio=1.5, insolation=3.0)
     with draw.bound(seed):
         r = RECIPES.draw_all(s)
     return ([(g, d.name, d.probability) for g, d in sorted(r.groups.items())],
@@ -538,7 +538,7 @@ def test_a_row_without_a_source_or_with_a_state_it_does_not_know_is_refused():
 
 
 def test_a_class_a_kind_or_a_quantity_it_does_not_know_is_refused():
-    with pytest.raises(DataError, match="unknown classes Q9"):
+    with pytest.raises(DataError, match="unknown kinds Q9"):
         broken(lambda d: row_of(d, "a5").update(classes=["Q9"]))
     with pytest.raises(DataError, match="kind"):
         broken(lambda d: row_of(d, "a5").update(kind="guess"))
@@ -564,19 +564,19 @@ def test_weights_that_refer_to_each_other_in_a_circle_are_an_error_naming_the_ci
         row_of(d, "a6").update(weight="w('a5')")
     other = broken(change)
     with pytest.raises(pt.TableError, match="circle"):
-        other.probabilities("a", full("E"))
+        other.probabilities("a", full("terrestrial"))
 
 
 def test_a_weight_that_comes_out_negative_or_a_probability_above_one_is_an_error():
     other = broken(lambda d: row_of(d, "a5").update(weight="0 - 1"))
     with pytest.raises(pt.TableError, match="not a finite number of 0 or more"):
-        other.probabilities("a", full("E"))
+        other.probabilities("a", full("terrestrial"))
     other = broken(lambda d: row_of(d, "e6").update(weight="1.5"))
     with pytest.raises(pt.TableError, match="above 1"):
-        other.probability("e6", full("S", **{"drawn.e": "e2"}))
+        other.probability("e6", full("giant", **{"drawn.e": "e2"}))
     other = broken(lambda d: row_of(d, "b1").update(lets={}, weight="log(snow_ratio)"))
     with pytest.raises(pt.TableError, match="cannot be evaluated"):
-        other.probabilities("b", full("E", snow_ratio=0.0))
+        other.probabilities("b", full("terrestrial", snow_ratio=0.0))
 
 
 def test_groups_distributions_and_windows_that_are_broken_are_refused():
@@ -598,9 +598,9 @@ def test_groups_distributions_and_windows_that_are_broken_are_refused():
 
 def test_a_condition_on_a_drawn_parent_that_was_not_drawn_does_not_pass_and_is_no_error():
     entry = RECIPES.entry("c1")
-    assert not entry.supports(Subject("E", {"ts_k": 1000.0, "pressure_bar": 100.0, "drawn.a": None}))
-    assert not entry.supports(Subject("E", {"ts_k": 1000.0, "pressure_bar": 100.0}))
-    assert entry.supports(Subject("E", {"ts_k": 1000.0, "pressure_bar": 100.0, "drawn.a": "a5"}))
+    assert not entry.supports(Subject("terrestrial", {"ts_k": 1000.0, "pressure_bar": 100.0, "drawn.a": None}))
+    assert not entry.supports(Subject("terrestrial", {"ts_k": 1000.0, "pressure_bar": 100.0}))
+    assert entry.supports(Subject("terrestrial", {"ts_k": 1000.0, "pressure_bar": 100.0, "drawn.a": "a5"}))
 
 
 def test_every_quantity_a_gate_or_weight_reads_is_documented_in_inputs():
@@ -619,6 +619,6 @@ def test_every_quantity_a_gate_or_weight_reads_is_documented_in_inputs():
 
 def test_the_condition_one_of_of_the_possibility_table_passes_a_member_and_refuses_the_rest():
     c = pt.Condition("host_type", one_of=("F", "G"))
-    assert c.holds(Subject("E", {"host_type": "G"})) and not c.holds(Subject("E", {"host_type": "M"}))
+    assert c.holds(Subject("terrestrial", {"host_type": "G"})) and not c.holds(Subject("terrestrial", {"host_type": "M"}))
     assert pt.Table("t", 1, [pt.Row("a", ("E",), 1.0, "S 2020", conditions=(c,))]).digest() != pt.Table(
         "t", 1, [pt.Row("a", ("E",), 1.0, "S 2020", conditions=(pt.Condition("host_type", one_of=("F",)),))]).digest()

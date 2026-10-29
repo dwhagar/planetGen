@@ -810,8 +810,8 @@ def object_url(kind, object_id):
 @bp.route("/object/<ref>", methods=["GET", "POST"])
 def object_page(ref):
     """Any object reference (`planet:12`, `nebula:3`, `system:` and a printed ID): the page the site has for the kind, or,
-    for a star, planet, moon, belt or comet, its own page (UX.143, `web/item_pages.py`). A POST is an admin Regenerate,
-    Change class or Delete of that body."""
+    for a star, planet, moon, belt or comet, its own page (UX.143, `web/item_pages.py`). A POST is an admin Regenerate or
+    Delete of that body."""
     return item_pages.object_page_response(ref)
 
 

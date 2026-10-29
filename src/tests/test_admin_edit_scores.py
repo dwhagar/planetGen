@@ -65,30 +65,6 @@ def test_a_regenerated_moon_holds_a_current_score(admin, mysql_config):  # noqa:
     _assert_scores_are_current(mysql_config, system_id)
 
 
-def test_a_class_change_leaves_current_scores_on_the_planet_and_its_moons(admin, mysql_config):  # noqa: F811
-    _sector_id, system_id = _saved_system(mysql_config, _with_moons)
-    planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != "a" and p.moons)
-    from planetgen import tuning
-    from planetgen.admin import edits as adminEdits
-    other = next(c for c in sorted(tuning.PLANET_CLASSES)
-                 if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass))
-    response = admin.post(f"/api/planets/{pid('planet', planet.db_id)}/class", json={"class": other, "force": True})
-    assert response.status_code == 200, response.get_json()
-    _assert_scores_are_current(mysql_config, system_id)
-
-
-def test_a_moon_class_change_leaves_a_current_score(admin, mysql_config):  # noqa: F811
-    _sector_id, system_id = _saved_system(mysql_config, _with_moons)
-    moon = next(p for p in _load(mysql_config, system_id).planets if p.body_type != "a" and p.moons).moons[0]
-    from planetgen import tuning
-    from planetgen.admin import edits as adminEdits
-    other = next(c for c in sorted(tuning.PLANET_CLASSES)
-                 if c != moon.planet_class and adminEdits.class_fits_mass(c, moon.mass))
-    response = admin.post(f"/api/moons/{pid('moon', moon.db_id)}/class", json={"class": other, "force": True})
-    assert response.status_code == 200, response.get_json()
-    _assert_scores_are_current(mysql_config, system_id)
-
-
 def test_a_star_change_leaves_current_scores_on_every_body(admin, mysql_config):  # noqa: F811
     _sector_id, system_id = _saved_system(mysql_config, _with_moons)
     response = admin.post(f"/api/systems/{pid('system', system_id)}/star", json={"star_type": "K2V", "drop_facilities": True})

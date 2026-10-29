@@ -17,7 +17,7 @@ EARTH = dict(mass_earth=1.0, ts_k=288.0, pressure_bar=1.0, age_gy=4.5, long_live
              runaway_ratio=0.5, teq_k=255.0, xuv_index=1.0, v_esc_kms=11.2, radius_km=6371.0, host_mass_solar=1.0)
 
 
-def subject(body_class="A", **changes):
+def subject(body_class="terrestrial", **changes):
     return Subject(body_class, {**EARTH, **changes})
 
 
@@ -98,7 +98,7 @@ def test_the_inventory_follows_the_delivered_water_class():
     # TEST.401: GEN.802 made the rows follow the Bern population in the formation distance, so at the Earth's snow ratio of 0.5 the draw
     # holds b1, b3 and b4 and b2 (the thin water class) only inside the snow line; the sweep is at a ratio of 0.3 where all of b1 to b3 appear.
     seen = {}
-    for seed in range(60):
+    for seed in range(300):     # b2 is 6 percent at this formation distance (GEN.802), so 60 seeds could miss it
         near = subject(ocean_present=False, snow_ratio=0.3)
         with draw.bound(seed):
             recipe = RECIPES.draw_all(near, categories=md.ROCKY_CATEGORIES)    # a world with an ocean also weathers (GEN.674)
@@ -149,10 +149,10 @@ def test_an_earth_like_oxidised_volcano_gas_is_water_carbon_dioxide_and_sulfur_d
 def test_a_subject_without_a_quantity_the_tables_read_is_refused_by_name():
     with pytest.raises(MixtureError, match="pressure_bar"):
         with draw.bound(0):
-            md.outgassed_mixture(Subject("A", {k: v for k, v in EARTH.items() if k != "pressure_bar"}))
+            md.outgassed_mixture(Subject("terrestrial", {k: v for k, v in EARTH.items() if k != "pressure_bar"}))
     with pytest.raises(MixtureError):
         with draw.bound(0):
-            md.outgassed_mixture(Subject("A", {k: v for k, v in EARTH.items() if k != "ocean_present"}))
+            md.outgassed_mixture(Subject("terrestrial", {k: v for k, v in EARTH.items() if k != "ocean_present"}))
 
 
 def test_every_quantity_of_the_mixture_draw_is_in_the_result_for_the_record():

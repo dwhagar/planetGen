@@ -101,9 +101,11 @@ def test_a_v141_galaxy_gets_the_draws_back_and_keeps_its_temperatures(mysql_conf
     for key, row in rebuilt.items():
         before = recorded[key]
         assert row["surface_temperature_k"] == before["surface_temperature_k"]
-        assert row["albedo_basis"] in (climate_draws.BASIS_INVERSE, climate_draws.BASIS_CLASS_DRAW)
+        assert row["albedo_basis"] in (climate_draws.BASIS_INVERSE, climate_draws.BASIS_BACKFILL_DRAW)
         assert 0.0 <= row["bond_albedo"] < 1.0 and row["greenhouse_factor"] >= -1e-9
-        if row["albedo_basis"] == climate_draws.BASIS_INVERSE:
+        # A v141 galaxy kept the scale height at the no-air temperature, which the inverse reads; this generator's air solver keeps it at
+        # the surface temperature, so a body with a greenhouse is not inverted exactly by the old law (only an airless one is).
+        if row["albedo_basis"] == climate_draws.BASIS_INVERSE and before["greenhouse_factor"] == 0.0:
             inverted += 1
             assert row["bond_albedo"] == pytest.approx(before["bond_albedo"], rel=1e-6, abs=1e-9)
             assert row["greenhouse_factor"] == pytest.approx(before["greenhouse_factor"], rel=1e-6, abs=1e-6)
@@ -132,7 +134,7 @@ def test_a_row_with_no_solution_takes_a_seeded_class_draw(mysql_config):
         for row in edited:
             drawn = conn.execute("SELECT bond_albedo, greenhouse_factor, albedo_basis, surface_temperature_k FROM planets"
                                  " WHERE id = ?", (row["id"],)).fetchone()
-            assert drawn["albedo_basis"] == climate_draws.BASIS_CLASS_DRAW
+            assert drawn["albedo_basis"] == climate_draws.BASIS_BACKFILL_DRAW
             assert drawn["bond_albedo"] is not None and drawn["greenhouse_factor"] >= -1e-9
     finally:
         conn.close()

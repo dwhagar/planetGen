@@ -124,7 +124,6 @@ ID_PATHS = {
     "edits.change_planet_class": {},
     "edits.change_moon_class": {},
     "edits.change_system_star": {},
-    "edits.system_class_options": {"recommended{}": "ref"},
     "population.planet_species": {},
     "population.planet_habitable_species": {"id": "planet"},
     "population.moon_habitable_species": {"id": "moon"},

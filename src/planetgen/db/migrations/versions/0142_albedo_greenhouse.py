@@ -58,8 +58,8 @@ def worked_out(row, table):
     albedo, factor, _reason = climate_draws.from_stored(row, flux)
     if albedo is not None:
         return albedo, factor, climate_draws.BASIS_INVERSE
-    albedo, factor = climate_draws.class_draw(row, flux, f"{table}:{row['id']}")
-    return albedo, factor, climate_draws.BASIS_CLASS_DRAW
+    albedo, factor = climate_draws.backfill_draw(row, flux, f"{table}:{row['id']}")
+    return albedo, factor, climate_draws.BASIS_BACKFILL_DRAW
 
 
 def upgrade():
