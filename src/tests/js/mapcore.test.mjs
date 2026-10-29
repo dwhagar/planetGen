@@ -68,3 +68,27 @@ test("nearestOnScreen picks the nearest entry within its reach", () => {
   assert.equal(M.nearestOnScreen([a, twin], camera, rect, 100, 100, { reach, lastWins: true }).entry, twin);
   assert.equal(M.nearestOnScreen([a], camera, { left: 0, top: 0, width: 0, height: 0 }, 0, 0, { reach }), null);
 });
+
+test("entriesNearScreenPoint lists every entry within reach, nearest first", () => {
+  const camera = new THREE.PerspectiveCamera(90, 1, 1, 1000);
+  camera.position.set(0, 0, 100);
+  camera.lookAt(0, 0, 0);
+  camera.updateMatrixWorld();
+  const rect = { left: 0, top: 0, width: 200, height: 200 };
+  const a = { x: 0, y: 0, z: 0, name: "a" };
+  const b = { x: 10, y: 0, z: 0, name: "b" };
+  const c = { x: -15, y: 0, z: 0, name: "c" };
+  const behind = { x: 0, y: 0, z: 200, name: "behind" };
+  const reach = () => 22;
+  const names = (found) => found.map((item) => item.entry.name);
+  // 1 unit = 1 px here; the pointer is at the screen position of x = 4.
+  assert.deepEqual(names(M.entriesNearScreenPoint([c, b, a, behind], camera, rect, 104, 100, { reach })), ["a", "b", "c"]);
+  assert.deepEqual(names(M.entriesNearScreenPoint([c, b, a], camera, rect, 104, 100, { reach: () => 8 })), ["a", "b"]);
+  assert.deepEqual(names(M.entriesNearScreenPoint([c, b, a], camera, rect, 104, 100, { reach, limit: 2 })), ["a", "b"]);
+  assert.deepEqual(names(M.entriesNearScreenPoint([c, b, a], camera, rect, 104, 100, { reach, accept: (e) => e !== a })), ["b", "c"]);
+  const twin = { x: 0, y: 0, z: 0, name: "twin" };
+  assert.deepEqual(names(M.entriesNearScreenPoint([a, twin], camera, rect, 100, 100, { reach })), ["a", "twin"]);
+  assert.deepEqual(names(M.entriesNearScreenPoint([a, twin], camera, rect, 100, 100, { reach, lastWins: true })), ["twin", "a"]);
+  assert.deepEqual(M.entriesNearScreenPoint([a], camera, { left: 0, top: 0, width: 0, height: 0 }, 0, 0, { reach }), []);
+  assert.equal(M.entriesNearScreenPoint([a], camera, rect, 104, 100, { reach })[0].px, 4);
+});
