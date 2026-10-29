@@ -19,10 +19,11 @@ const COUNT_CAP = 99;
 const PULLED_ORDER = 5;
 
 // A glyph's texture, drawn once per shape and color.
-function makeGlyphTexture(glyph, color, outline) {
+function makeGlyphTexture(glyph, color, outline, count) {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = TEXTURE_PX;
   GLYPHS[glyph](canvas.getContext("2d"), TEXTURE_PX, color, outline);
+  if (count > 1) drawCount(canvas.getContext("2d"), TEXTURE_PX, count, color, outline);    // MAP.340: a crowd of black holes
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
@@ -121,8 +122,9 @@ export function createMarkerLayer(scene, camera, canvasEl, outline, options) {
       if (!textures.has(iconKey)) textures.set(iconKey, makeIconTexture(kind.icon, color, outline, count));
       return textures.get(iconKey);
     }
-    const key = kind.glyph + "|" + kind.color + "|" + outline;
-    if (!textures.has(key)) textures.set(key, makeGlyphTexture(kind.glyph, kind.color, outline));
+    const count = item && item.count > 1 ? item.count : 0;
+    const key = kind.glyph + "|" + kind.color + "|" + outline + "|" + count;
+    if (!textures.has(key)) textures.set(key, makeGlyphTexture(kind.glyph, kind.color, outline, count));
     return textures.get(key);
   }
 

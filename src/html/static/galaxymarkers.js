@@ -210,6 +210,7 @@ export const BLACK_HOLE_KIND = {
   color: "#c58cff",
   maxBlock: Infinity,
   defaultOn: true,
+  crowds: true,       // MAP.340: marks too close on the screen merge into one with a count (`mergeMarks`), among black holes only
   nearField: true,    // MAP.339: chosen by `nearFieldRule` (the view's near field, then by mass over distance squared, then by screen area)
   source: function (node) {
     return (node.points || []).filter(function (point) { return point.type === "black_hole"; }).map(function (point) {
@@ -497,10 +498,16 @@ export function tokenOfItem(kind, item) {
 // MARKER_PX across, so these would lie over each other.
 export const MERGE_PX = 22;
 
+// Black holes merge only with ones about as far from the camera (MAP.340): within this ratio of the crowd's seed (and of its inverse), so a
+// crowd is a crowd in space and not a near hole in front of a far one on the same line of sight, and the Zoom in on them button has
+// somewhere to go. `screenOf` gives the camera distance as `depth`; a mark without one merges at any depth.
+export const MERGE_DEPTH_RATIO = 1.5;
+
 // Merges the crowded star-level interest marks of `chosen` (`selectMarkers`' `[{kind, item}]`, with any other entries after them) into one
-// mark each. `screenOf(item)` is the item's place on the screen in CSS pixels, `{x, y}`, or null for one that has none. Only a system's
-// own interest mark merges (a kind with `interest`, no `bodyRef` or `regionKey`); a black hole, a body's symbol or a region's token stays
-// as it is. The marks are taken pulled-forward ones first (MAP.306), then in the registry's order of reasons, most bodies first, each one gathering the unmerged marks within
+// mark each. `screenOf(item)` is the item's place on the screen in CSS pixels, `{x, y}`, or null for one that has none. A system's
+// own interest mark merges (a kind with `interest`, no `bodyRef` or `regionKey`), and so do black holes (a kind with `crowds`, MAP.340),
+// each only with its own sort (a black hole also only with ones at about its depth, `MERGE_DEPTH_RATIO`): a crowd of black holes is one mark with their count, the heaviest first among them, `{key, id, x, y, z (the middle
+// of its holes), count, holes: true, members, merged: true}`; a body's symbol or a region's token stays as it is. The marks are taken pulled-forward ones first (MAP.306), then in the registry's order of reasons, most bodies first, each one gathering the unmerged marks within
 // `radiusPx` of it, so the same crowd always merges the same way and a mark's symbol is its crowd's best reason (an inhabited world
 // before a habitable one before the rest). A crowd of two or more becomes one entry whose item is
 //   `{key, id, x, y, z (the middle of its systems), n (their bodies), count (their number), tier (the best), members (their items),
@@ -513,11 +520,18 @@ export function mergeMarks(chosen, screenOf, radiusPx) {
   const rest = [];
   chosen.forEach(function (entry) {
     const item = entry.item;
-    const spot = entry.kind.interest && !item.bodyRef && !item.regionKey && !item.follow ? screenOf(item) : null;
+    const mergeable = entry.kind.crowds || (entry.kind.interest && !item.bodyRef && !item.regionKey && !item.follow);
+    const spot = mergeable ? screenOf(item) : null;
     if (spot) placed.push({ entry: entry, spot: spot });
     else rest.push(entry);
   });
   placed.sort(function (p, q) {
+    const holes = (p.entry.kind.crowds ? 1 : 0) - (q.entry.kind.crowds ? 1 : 0);
+    if (holes) return holes;
+    if (p.entry.kind.crowds) {
+      return (blackHoleMass(q.entry.item) || 0) - (blackHoleMass(p.entry.item) || 0)
+        || (p.entry.item.key < q.entry.item.key ? -1 : p.entry.item.key > q.entry.item.key ? 1 : 0);
+    }
     return (q.entry.pulled ? 1 : 0) - (p.entry.pulled ? 1 : 0)
       || order.indexOf(p.entry.kind.interest) - order.indexOf(q.entry.kind.interest) || (q.entry.item.n || 0) - (p.entry.item.n || 0)
       || (p.entry.item.key < q.entry.item.key ? -1 : p.entry.item.key > q.entry.item.key ? 1 : 0);
@@ -529,7 +543,11 @@ export function mergeMarks(chosen, screenOf, radiusPx) {
     taken.add(seed);
     const crowd = [seed];
     placed.forEach(function (other) {
-      if (taken.has(other)) return;
+      if (taken.has(other) || !!other.entry.kind.crowds !== !!seed.entry.kind.crowds) return;
+      if (seed.entry.kind.crowds && seed.spot.depth > 0 && other.spot.depth > 0) {
+        const ratio = other.spot.depth / seed.spot.depth;
+        if (ratio > MERGE_DEPTH_RATIO || ratio < 1 / MERGE_DEPTH_RATIO) return;
+      }
       if (Math.hypot(other.spot.x - seed.spot.x, other.spot.y - seed.spot.y) <= radius) {
         taken.add(other);
         crowd.push(other);
@@ -543,6 +561,14 @@ export function mergeMarks(chosen, screenOf, radiusPx) {
 // The one entry a crowd of marks is drawn as; `entries` are in the order of preference, the first one the best.
 function mergedEntry(entries) {
   const best = entries[0];
+  if (best.kind.crowds) {
+    const mean = function (axis) { return entries.reduce(function (sum, entry) { return sum + entry.item[axis]; }, 0) / entries.length; };
+    return {
+      kind: crowdKind(best.kind),
+      item: { key: "merge:" + best.item.key, id: "merge:" + best.item.id, name: null, x: mean("x"), y: mean("y"), z: mean("z"),
+        count: entries.length, holes: true, merged: true, members: entries.map(function (entry) { return entry.item; }) },
+    };
+  }
   const total = function (key) { return entries.reduce(function (sum, entry) { return sum + (entry.item[key] || 0); }, 0); };
   const item = {
     key: "merge:" + best.item.key, id: "merge:" + best.item.id, name: null,
@@ -561,7 +587,7 @@ const crowdKinds = new Map();
 function crowdKind(kind) {
   if (!crowdKinds.has(kind.id)) {
     crowdKinds.set(kind.id, Object.assign({}, kind, {
-      describe: function (item) { return item.count + " points of interest"; },
+      describe: function (item) { return item.count + (item.holes ? " black holes" : " points of interest"); },
     }));
   }
   return crowdKinds.get(kind.id);
