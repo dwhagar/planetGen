@@ -1018,7 +1018,7 @@ with `clamp()`.
   class page goes to a Core lane), when the class data is ready (GEN.889
   and GEN.891). Aux 6 (old Aux 11) finishes UX.215 to UX.222 and
   retires.
-  Prerequisites: GEN.891. Related: UX.221.
+  Prerequisites: none. Related: UX.221.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -12459,24 +12459,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   row with tier and tweak level.
   Prerequisites: none. Related: GEN.727, GEN.731, GEN.737, GEN.725.
 
-- [ ] **GEN.843 The stored magnetopause_rp is in Earth radii but is labelled planet radii: wrong for Jupiter and every non-Earth-sized world (bug)**
-  Found by Math 2 (as the lane reported 10:55 AM EDT 2026-10-28) while
-  building the belts (GEN.749, #3410). The stored magnetopause standoff
-  magnetopause_rp holds a value in Earth radii, but the column unit, the
-  property sheet label and the unit registry (GEN.568,
-  db/column_units.py) say planet radii, so Jupiter and any body not
-  Earth-sized reads wrong by the ratio of radii. Do: either store it in
-  planet radii (convert by the body radius at the point of writing, an
-  epoch with --affects fill, take the lock) or relabel the column and
-  the sheet as Earth radii; pick the first if any reader divides by the
-  planet radius, and record which in the unit registry. Done: the unit,
-  label and value agree for Earth, Jupiter and Mars in a test that reads
-  the stored value back. Owner: Core 1 (6:38 AM EDT 2026-10-29: it built the fix
-  locally; it changes a stored value, so it rides Core 1's second change
-  in the same epoch, GEN.857 to GEN.861 + GEN.906, not a lock-free item). Rules: no backward-compat shims; any new numeric
-  column goes in db/column_units.py.
-  Prerequisites: none. Related: GEN.749, GEN.568.
-
 - [ ] **GEN.845 Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764)**
   GEN.764 is done (#3439): `planetgen bring-to-epoch` and the Generate
   task redo what an epoch bump changed, but a stale scatter is refused
@@ -12640,112 +12622,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   requests aim, Boss decision) and GEN.910 (K5V inner third).
   Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
 
-- [ ] **GEN.857 Biogenic gases for non-oxygenic worlds: methane and haze from anoxygenic and chemoautotroph communities, donor drawdown, and registry entries for each stand-in**
-  Follow-up to GEN.855 (biogenic oxygen) and GEN.750 (life timeline),
-  requested through the coordinator at 8:27 PM EDT 2026-10-28. Research:
-  /mnt/project-files/reports/non-oxygen-life-byproducts-2026-10-28.md
-  (research thread; its numbers came from summarised fetches, so
-  spot-check every number against the paper before it becomes a hard
-  value or a test bound). Findings to build on: retinal (proton pumping)
-  and melanin radiotrophy make no gas and have no verified atmospheric
-  effect; anoxygenic porphyrins (bacteriochlorophylls) make zero O2 but
-  draw down their electron donors (H2, Fe2+, H2S), store the oxidised
-  donor as iron oxyhydroxide, sulfur or sulfate, and the community built
-  on them is the main source of methane in an anoxic world, with an
-  organic haze once CH4/CO2 reaches about 0.1 to 0.2; the supply of
-  donors caps anoxygenic fixation at about 1e-4 to 1e-2 of the modern
-  biosphere. Also from the report: the retinal gate share_o2 < 0.1 in
-  tuning.LIFE_CHEMICALS is a design choice, not chemistry, and a retinal
-  biosphere needs a primary-production base because retinal alone fixes
-  no carbon. Do: after GEN.855 and GEN.750 merge, add a biogenic-gas
-  step for worlds whose life is not oxygenic: methane output tied to the
-  donor supply and the life timeline, donor drawdown, the haze
-  threshold, and the retinal gate and carbon base question settled with
-  Boss if it changes which worlds can draw retinal. Every stand-in
-  records its source tier and tweak level in the registry (GEN.725);
-  Boss accepts pragmatic physics if stated and justified. It changes
-  generated output, so it takes an epoch and a lock turn. Done: a seeded
-  fill of anoxygenic worlds carries methane and, past the threshold,
-  haze, oxygen-free worlds of retinal or melanin life carry no gas of
-  their own, each value has a registry row with a source, and the class
-  census (TEST.430) ranges are updated. Owner: Core 1, later.
-  Prerequisites: GEN.750. Related: GEN.855, GEN.750, GEN.725,
-  GEN.851, TEST.430.
-  Research (2026-10-09): Part of the atmosphere of evolution chain
-  approved by Boss, 8:32 PM EDT 2026-10-28 (GEN.858, GEN.859, GEN.860,
-  GEN.861 with it); in the lock queue right after GEN.855.
-  Research (2026-10-09): Life chemistry review (2026-10-28): give the
-  gas ledger per energy mode (oxygenic, far-red oxygenic, anoxygenic by
-  donor, chemolithoautotroph, retinal and melanin none), including the
-  oxygenic ledger (O2 sinks first, CH4 crash, ozone above about 1
-  percent of today's O2) and the donor drawdown; GEN.880
-  (chemolithoautotroph producers) shares it.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): Core 1 keys the gas
-  rows through a small LIFE_CLASS_OF_METABOLISM table (oxygenic 1,
-  anoxygenic 2, retinal and radiotrophic as the Class 3/4 chemotroph
-  base), so the rows already carry class numbers and the class switch
-  (GEN.889) only changes where the number comes from. The ledger rows
-  for Classes 3 to 9 are GEN.891.
-
-- [ ] **GEN.858 Stage-aware air: the atmosphere follows the world's life stage from the timeline (pre-life, microbial anoxic, oxygenation, ozone shield and its UV effect on the surface), so every planet carries the air its life type and stage would make**
-  Boss, 8:32 PM EDT 2026-10-28 (relayed by the coordinator): "make the
-  atmosphere generating code account for the atmosphere of evolution so
-  that every planet has an accurate atmosphere to what would be on it
-  with the kind of and stage of life". Chain owned by Core 1 after
-  GEN.855 (biogenic oxygen) and GEN.750 (life timeline): GEN.858
-  stage-aware air, GEN.857 non-oxygenic gases and haze, GEN.859 the
-  CO2/CH4 cap without O2, GEN.860 melanin weighting, GEN.861 the
-  chemoautotroph carbon base. Research:
-  /mnt/project-files/reports/non-oxygen-life-byproducts-2026-10-28.md
-  (numbers came from summarised fetches; spot-check before hard-coding).
-  Every stand-in records its source tier and tweak level in the registry
-  (GEN.725); Boss accepts pragmatic physics if stated and justified.
-  Each changes generated output, so it takes an epoch and a lock turn
-  unless Core 1 bundles it into the GEN.855 epoch (Core 1's call, say so
-  to TODO). Do: the air solved for a world depends on where its life
-  timeline stands at the world's age: before life, with life but anoxic
-  (methane and CO2 regime), during oxygenation (sinks still absorbing
-  O2), and after the ozone shield forms (the shield's UV effect on the
-  surface dose included); ozone, dose and colour follow the air as they
-  do after GEN.855. Done: on a seeded fill the four stages give four
-  distinct, stated airs, a world whose timeline has not reached a stage
-  never shows that stage's gas, and the class census (TEST.430) ranges
-  are updated.
-  Prerequisites: GEN.750. Related: GEN.855, GEN.750, GEN.857,
-  GEN.859, GEN.860, GEN.861, GEN.725.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): same as GEN.857:
-  class numbers from the start; Classes 3 to 9 rows are GEN.891.
-
-- [ ] **GEN.859 Microbial worlds without O2 keep a capped CO2 and CH4 air: the limit on how much CO2 and CH4 anoxic microbial life leaves in the air**
-  Boss, 8:32 PM EDT 2026-10-28 (relayed by the coordinator): "make the
-  atmosphere generating code account for the atmosphere of evolution so
-  that every planet has an accurate atmosphere to what would be on it
-  with the kind of and stage of life". Chain owned by Core 1 after
-  GEN.855 (biogenic oxygen) and GEN.750 (life timeline): GEN.858
-  stage-aware air, GEN.857 non-oxygenic gases and haze, GEN.859 the
-  CO2/CH4 cap without O2, GEN.860 melanin weighting, GEN.861 the
-  chemoautotroph carbon base. Research:
-  /mnt/project-files/reports/non-oxygen-life-byproducts-2026-10-28.md
-  (numbers came from summarised fetches; spot-check before hard-coding).
-  Every stand-in records its source tier and tweak level in the registry
-  (GEN.725); Boss accepts pragmatic physics if stated and justified.
-  Each changes generated output, so it takes an epoch and a lock turn
-  unless Core 1 bundles it into the GEN.855 epoch (Core 1's call, say so
-  to TODO). Do: set the cap on CO2 and CH4 for worlds whose life is
-  microbial and anoxic, from the methane flux and sink literature in the
-  report (Kharecha, Kasting and Siefert 2005 give about 100 ppmv up to
-  about 3.5 percent CH4 depending on the sinks; spot-check), tied to
-  GEN.858's anoxic stage and GEN.857's methane output. Done: no anoxic
-  microbial world exceeds the cap, the cap is a registry row with
-  source, tier and tweak level, and a test covers a world at and above
-  the cap.
-  Prerequisites: GEN.750. Related: GEN.857, GEN.858, GEN.860,
-  GEN.725.
-
 - [ ] **GEN.862 Design: the life class system, merged as docs/design/habitability/life-classes.md (nine classes, the stage ladder, the ledger, scoring and storage)**
   Boss (2026-10-28, 7:41 PM EDT): the class system is expanded in 9.5
   with a life class system, an expansion of the habitable index, because
@@ -12785,7 +12661,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.888 (L4), GEN.889 (L5), GEN.890 (L6), GEN.891 (L7), GEN.894 (L8),
   GEN.892 (L11), GEN.893 (L13), UX.237 (L9), API.37 and MAP.345 (L10),
   TEST.435 (L12). GEN.874 and GEN.885 are folded into this work.
-  Prerequisites: GEN.858. Related: GEN.857, GEN.861.
+  Prerequisites: none. Related: GEN.857, GEN.861.
 
 - [ ] **GEN.863 Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters**
   Boss (2026-10-28, 7:41 PM EDT): built from the 9.5 design: the
@@ -12915,7 +12791,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and 4 with the supply quantities of GEN.887. Write it as class-table
   rows from the start. Complex cells depend on the class's own oxidant
   instead of free O2 (GEN.890), after GEN.855 and GEN.750 merge.
-  Prerequisites: GEN.857.
+  Prerequisites: none.
 
 - [ ] **GEN.881 Retinal becomes a photoheterotroph supplement that needs a carbon fixer, and Melanin becomes the radiotolerance adaptation with dose in its draw, not a radiation food**
   Life chemistry review (research thread, 2026-10-28,
@@ -12941,16 +12817,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   clouds or pools today (no H2SO4 row in the aerosol module). Feeds
   Classes 5 and 9. Lock turn.
   Prerequisites: none.
-
-- [ ] **GEN.891 The class ledger and the class-keyed stage-aware air for Classes 2 to 9 (O2 rows come from GEN.855; the gas rows of GEN.857/GEN.858 carry class numbers from the start)**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L7. Core 1 keys its rows through a small
-  LIFE_CLASS_OF_METABOLISM table (oxygenic 1, anoxygenic 2, retinal and
-  radiotrophic as the Class 3/4 chemotroph base) so the L5 switch only
-  changes where the number comes from. This item adds the ledger rows
-  for Classes 3 to 9 (stage multiplier and sink limit per row). Lock
-  turn.
-  Prerequisites: GEN.857, GEN.858. Related: GEN.857, GEN.858.
 
 - [ ] **GEN.894 Strange-solvent life classes 5 to 9 (acid-world, dense CO2, cold hydrocarbon sea, ammonia-water, silicon-bearing in acid): windows, supplies, texts, stand-ins and tiers**
   Life class system design (design thread, Boss 9:10 to 9:20 PM EDT
@@ -13139,21 +13005,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bug 1 (takes its lock turn with the other generation bugs).
   Prerequisites: none. Related: UX.208, GEN.904.
   Prerequisites: none. Related: UX.208, GEN.904.
-
-- [ ] **GEN.906 Icy-moon tide is stored as 0.0 where it should be NULL (bug)**
-  Found by Bug 1 (3:07 AM EDT 2026-10-29 as the lane reported, while
-  fixing the TEST.441 migration reds). Icy moons store a tide value of
-  0.0 where the value does not apply and should be NULL (not stored).
-  The fix alters the golden "moon structure" stage, so it is a
-  generation change: epoch and lock turn. Do: write NULL instead of 0.0
-  for the tide column where it is not applicable, with the epoch and the
-  stages-changed affects list; regenerate the golden. Done: no icy moon
-  stores a tide of 0.0 unless it really is zero; the sheet hides the
-  absent value per the absent-values rule. Version 8.1. Owner: Core 1
-  (bundle it with its second change, GEN.857 to GEN.861 and GEN.872,
-  after Aux 2's life bundle). Prerequisites: none. Related: TEST.441,
-  UX.208.
-  Prerequisites: none. Related: TEST.441, UX.208.
 
 - [ ] **GEN.908 Worlds labelled surface ocean are mostly frozen: at least half have a mean surface temperature below 273 K (bug)**
   Found by Core 1 (7:31 AM UTC relay, about 3:31 AM EDT as the lane
@@ -13489,7 +13340,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (item GEN.932). Part of the GEN.922 chain, plan
   /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
   (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
-  Prerequisites: GEN.933. Related: GEN.922, GEN.914.
+  Prerequisites: none. Related: GEN.922, GEN.914.
 
 - [ ] **GEN.928 System primaries follow from the single-star curve plus multiplicity (a top-down solve), with brown dwarf companions and the brown dwarf desert; the star-count table agrees**
   Item 4 of the star mass function chain (GEN.922). For each mass m,
@@ -13586,28 +13437,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   supergiants so GEN.935 is measured against the same curve. Split: Bug
   1 keeps GEN.926 to GEN.934, GEN.936 and GEN.932; GEN.942 is Aux 2's;
   GEN.935, 939, 940, 941, 943 await Boss's staffing answer.
-
-- [ ] **GEN.933 One mass-boundary table (brown dwarf/star, planet/brown dwarf, spectral-class mass edges, Chandrasekhar, neutron star/black hole) with sources and tiers, read by the mass function, companions, rogue bodies and the display ladders**
-  Found by Bug 1 (5:27 PM EDT 2026-10-29 as the lane reported) answering
-  Boss's question whether a unified mass system would help: the object
-  side is already decided and built (mass_object.py MassObject core,
-  StellarObject, PlanetaryObject, SmallBody;
-  docs/design/architecture/mass-object-class.md; open GEN.565 remainder,
-  DB.74, TEST.240) and the unit side is unified (constants, unit
-  registry GEN.568, column_units), but the mass RULES are not:
-  object-boundary masses live in several places (brown dwarf/star 0.08
-  in the initial mass function and multistar code, 0.075 in the display
-  ladders, 80 Mjup = 0.0764 solar masses for rogue brown dwarfs; 13 Mjup
-  typed in 3 modules; spectral-class mass edges in 2 tables;
-  Chandrasekhar separate). Do: one table of boundaries with source and
-  tier per row (stand-in registry rules), read by the curve, the
-  companions, the rogue bodies and the ladders; the initial-final
-  relation and neutron star/black hole mass draw copies are recounted
-  under GEN.930. Lock-free where the output is unchanged (the golden
-  must not move); any boundary that moves is recorded and goes into the
-  GEN.932 epoch. Sits between GEN.926 and GEN.927 in the order. Part of
-  the GEN.922 chain. Owner: Bug 1. Version 8.1.
-  Prerequisites: none. Related: GEN.922, GEN.565, GEN.568.
 
 - [ ] **GEN.934 Replace the hand-written mass conversions in about 47 modules with the unit registry helper (do not rename _sol/_solar)**
   Hygiene item from Bug 1's unified mass assessment (5:27 PM EDT
@@ -18915,6 +18744,28 @@ clears each one.
   at the cause, never skip it. Owner: Aux 4 (its next lock-free item
   after the train 1 rebase). Version 8.1.
   Prerequisites: none. Related: MAP.336.
+
+- [ ] **TEST.461 test_db_column_round_trip fails on planets.porosity: the column is never written (bug)**
+  Found by Core 1's gate for epoch 122 (as the lane reported 7:23 PM EDT
+  2026-10-29), red on clean main: the round-trip test finds
+  planets.porosity is never written by the generator. Do: decide whether
+  the column should be written (porosity is a bulk composition value the
+  interior model uses) or removed (no backward-compat shim: an unused
+  column is deleted with a migration), and fix at the cause. A migration
+  or a stored value change rides a train. Owner: Core 1 (lock-free
+  diagnosis while it waits for its second turn). Version 8.1.
+  Prerequisites: none. Related: DB.70.
+
+- [ ] **TEST.462 test_planets_respect_their_stars_age_and_history fails in a batch run: a class E planet in the habitable list around a star under 0.1 Gy (bug)**
+  Found by Bug 1 (as the lane reported 7:24 PM EDT 2026-10-29):
+  tests/test_star_population.py::test_planets_respect_their_stars_age_and_history
+  fails in a batch run and passes alone on main and on Bug 1's branch
+  (13 minutes each); an order or draw-state dependent rare event,
+  probably the class cut-over (GEN.646) making the class follow
+  conditions while the test asserts the old class rule for young stars.
+  Do: diagnose, and fix at the cause (the test's rule or the generator),
+  never skip. Owner: Bug 1. Version 8.1.
+  Prerequisites: none. Related: GEN.646.
 
 ## USR: User accounts
 
