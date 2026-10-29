@@ -4608,6 +4608,41 @@ def test_the_zoom_slider_is_one_log_scale_and_takes_the_view_through_every_level
     assert _slider_to(page, 0.0)["dist"] > 1e4
 
 
+def test_the_zoom_range_is_one_absolute_range_in_every_stage_and_the_nearest_thing_sets_the_step(page, map_site):
+    """MAP.334: what the camera may do does not depend on the stage: the farthest is the whole galaxy in view in a window, a sector and a
+    system alike, the nearest 1e-3 pc outside a system (until the scene has the precision for finer) and 1e-10 pc in one; and the wheel
+    reads the nearest thing along the pointer's ray, with the distance to it."""
+    page.set_viewport_size(VIEWPORT)
+    limits_js = "() => document.querySelector('#galaxymap3d-canvas').galaxyZoomLimits()"
+    _open_galaxy(page, map_site)
+    page.evaluate("([c]) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...c)", [list(STAR_FIELD_CENTER_PC)])
+    _settle(page)
+    seen = {}
+    for share in (0.15, 0.2, 0.25):
+        _slider_to(page, share)
+        limits = page.evaluate(limits_js)
+        seen[page.evaluate(STAGE_M)] = limits
+        assert abs(limits["farthestPc"] / 37202.0 - 1) < 0.01, limits
+        assert limits["nearestPc"] <= 1e-3 * (1 + 1e-6), limits
+    assert set(seen) == {27, 3, 1}, seen
+    # The nearest thing along a ray: at the middle of the map, with the eye's distance to it.
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    thing = page.evaluate("([x, y]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(x, y)",
+                          [box["x"] + box["width"] / 2, box["y"] + box["height"] / 2])
+    eye = page.evaluate(CAMERA_NOW)["eye"]
+    assert thing["kind"] in ("star", "pick", "column", "plane", "body"), thing
+    assert abs(thing["distance"] - math.dist(eye, thing["point"])) < 1e-6 * thing["distance"], thing
+    # In a system the nearest is a moon framed, the farthest still the whole galaxy.
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_selector(".starmap-sr-list button", state="attached")
+    page.locator(".starmap-sr-list button", has_text="Middling Sun").first.evaluate("b => b.click()")
+    _settle(page)
+    _slider_to(page, 0.6)
+    assert (_galaxy_system(page) or {}).get("id"), "the slider carried the view into the system"
+    limits = page.evaluate(limits_js)
+    assert abs(limits["nearestPc"] / 1e-10 - 1) < 0.01 and abs(limits["farthestPc"] / 37202.0 - 1) < 0.01, limits
+
+
 def test_the_wheel_does_not_stop_at_the_end_of_a_window_whose_sector_was_picked(page, map_site):
     """MAP.333: scrolling out of the window of sectors carries on to the larger windows however it was reached: the wheel
     at the end of the range goes to the parent window (it used to let go of a picked sector first and stop there)."""

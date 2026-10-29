@@ -1,0 +1,4 @@
+**Headline:** The wheel, buttons and pinch zoom over one range in every view, so no stage ends the zoom.
+
+### Changed
+- **One zoom range everywhere (MAP.334).** The wheel, plus and minus, the slider and a pinch can take the camera from the whole galaxy in view down to 0.001 pc outside an opened system and 1e-10 pc (about a moon framed) inside one, whatever window, sector or system is on show. The end of a window's, a sector's or a system's own zoom is now only where it hands over to the next, and the camera goes on past it instead of stopping at a wall. Each wheel step still covers a share of the distance to the nearest thing under the pointer (a star, a body of the open system, the stars thickening along the line of sight, else the point of the focus plane), never closer than a clearance from it.
