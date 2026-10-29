@@ -102,11 +102,26 @@ export function createSectorFrame(options) {
     clear();
     bounds = cell || null;
     if (!bounds) return;
+    // MAP.240: the frame is an object at the middle of its edges, with offsets from it.
+    const points = options.cellPoints(bounds);
+    const origin = [0, 1, 2].map(function (axis) {
+      let low = Infinity;
+      let high = -Infinity;
+      for (let i = axis; i < points.length; i += 3) {
+        low = Math.min(low, points[i]);
+        high = Math.max(high, points[i]);
+      }
+      return Number.isFinite(low) ? (low + high) / 2 : 0;
+    });
+    const offsets = new Float32Array(points.length);
+    for (let i = 0; i < points.length; i++) offsets[i] = points[i] - origin[i % 3];
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(options.cellPoints(bounds), 3));
+    geometry.setAttribute("position", new THREE.BufferAttribute(offsets, 3));
     line = new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({
       color: options.accent, depthTest: false, depthWrite: false, transparent: true, opacity: 0.85,
     }));
+    line.position.set(origin[0], origin[1], origin[2]);
+    line.userData.relativeLayer = "sector frame";
     line.renderOrder = 7;
     line.frustumCulled = false;
     group.add(line);

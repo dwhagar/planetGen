@@ -1234,7 +1234,10 @@ function spherePoint(r, c, t) {
   return [plane * Math.cos(t), plane * Math.sin(t), r * Math.cos(c)];
 }
 
-export function buildPrismGeometry(cells) {
+export function buildPrismGeometry(cells, origin) {
+  // MAP.240: the vertices are written as offsets from `origin` (default the galaxy's centre), the differences worked out in
+  // double before they are rounded to float32; the mesh carries the origin as its position.
+  origin = origin || [0, 0, 0];
   var vertexCount = 0;
   var indexCount = 0;
   var plans = cells.map(function (b) {
@@ -1268,9 +1271,9 @@ export function buildPrismGeometry(cells) {
     uvs[2 * nv] = u;
     uvs[2 * nv + 1] = v;
     var o = 3 * nv;
-    positions[o] = p[0];
-    positions[o + 1] = p[1];
-    positions[o + 2] = p[2];
+    positions[o] = p[0] - origin[0];
+    positions[o + 1] = p[1] - origin[1];
+    positions[o + 2] = p[2] - origin[2];
     normals[o] = n[0];
     normals[o + 1] = n[1];
     normals[o + 2] = n[2];

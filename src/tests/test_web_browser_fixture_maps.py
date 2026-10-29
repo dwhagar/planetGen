@@ -28,7 +28,7 @@ from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
     BARREN_FIELD, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site,
-    halo_site,
+    far_site, halo_site,
     map_site,
 )
 
@@ -856,6 +856,42 @@ def test_the_block_generate_is_disabled_with_its_reason_while_a_job_runs(page, m
     hint = page.locator("#galaxymap3d-info .starmap-generate-block .hint")
     assert "Generate sectors around Fixture Prime is still running" in hint.inner_text()
     assert hint.locator("a").get_attribute("href").endswith("/admin/generate#current-job")
+
+
+SAFE_EXTENT_PC = 10000
+"""float: The farthest, in parsecs, a layer's buffer values may be from the object's own origin (`static/camerarelative.js`'s
+SAFE_EXTENT_PC): float32 holds 10 kpc to 0.001 pc, a tenth of a pixel at the closest zoom of a layer."""
+
+BUFFER_EXTENTS = "() => document.querySelector('#galaxymap3d-canvas').galaxyBufferExtents()"
+
+
+def test_layers_far_from_the_centre_are_built_relative_to_origins_of_their_own(page, far_site):
+    """MAP.240: a superbubble 250 kpc out, a polity's dots and capital there, and the sectors a job made 150 kpc out keep every buffer
+    value within 10 kpc of the origin of the object that holds it (the object carries the origin as its position, in double
+    precision), where a float32 of the absolute place is 0.016 pc off at 250 kpc."""
+    _open_galaxy(page, far_site, "?made=0,9999999999")
+    page.evaluate("() => document.querySelector(\"[data-action='territories']\").click()")   # it sits in the closed Menu
+    page.wait_for_function(f"() => ({BUFFER_EXTENTS})().some((e) => e.layer === 'territory dots')", timeout=20000)
+    extents = page.evaluate(BUFFER_EXTENTS)
+    layers = {e["layer"] for e in extents}
+    assert {"superbubbles", "made rings", "territory dots"} <= layers, layers
+    for e in extents:
+        assert e["extentPc"] <= SAFE_EXTENT_PC, e
+    far = {e["layer"] for e in extents if max(abs(v) for v in e["origin"]) > 100000}
+    assert {"superbubbles", "territory dots"} <= far or "made rings" in far, (far, extents)
+    assert {"superbubbles", "territory dots"} <= far, "the bubble and the dots are really out there"
+    assert sum(1 for e in extents if e["layer"] == "territory dots") >= 2, "dots spread over several kpc are split into cubes"
+
+
+def test_the_blocks_and_their_outlines_are_built_relative_to_origins_of_their_own(page, map_site):
+    """MAP.240: the block prisms of a window, the outline and shade of the block under the pointer and the frame of an opened
+    sector hold offsets from the middle of what they draw, not its place in the galaxy."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    extents = page.evaluate(BUFFER_EXTENTS)
+    prisms = [e for e in extents if e["layer"] == "block prisms"]
+    assert prisms, extents
+    assert all(e["extentPc"] <= SAFE_EXTENT_PC for e in extents), extents
+    assert any(max(abs(v) for v in e["origin"]) > 50 for e in prisms), "the prisms sit away from the galaxy's middle, on an origin"
 
 
 OPEN_PRIME = f"?sector={PRIME_CODE}&open=1"
@@ -3570,6 +3606,19 @@ def test_galaxy_map_names_the_bodies_of_an_open_system_down_to_a_planet(page, ma
     page.click("#galaxymap3d-menu > summary")
     page.click('#galaxymap3d-kinds [data-label="body"]')
     page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'body')")
+
+
+def test_the_dots_and_belts_of_an_open_system_are_built_in_the_systems_own_frame(page, map_site):
+    """MAP.240: a system opened in place is built in its own units inside a group at the system, so its body dots and belt particles hold
+    offsets from the system (in parsecs, well inside the bound), not the system's place in the galaxy."""
+    _open_system_in_place(page, map_site)
+    extents = page.evaluate(BUFFER_EXTENTS)
+    layers = {e["layer"] for e in extents}
+    assert "system dots" in layers, layers
+    for e in extents:
+        if e["layer"].startswith("system"):
+            assert e["extentPc"] <= SAFE_EXTENT_PC and e["extentPc"] < 1.0, e
+            assert max(abs(v) for v in e["origin"]) > 0.5, "the group sits at the system's place in the galaxy"
 
 
 def test_the_bodies_of_an_open_system_carry_their_own_symbols_by_the_same_layers(page, map_site):

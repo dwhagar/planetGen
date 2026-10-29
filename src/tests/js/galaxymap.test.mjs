@@ -40,6 +40,7 @@ function makeBlockMesh(part, translucent) {
   geometry.setIndex(new THREE.BufferAttribute(part.indices, 1));
   const material = new THREE.ShaderMaterial({ uniforms: { fade: { value: 1 }, gridEdges: { value: 1 } }, transparent: translucent });
   const mesh = new THREE.Mesh(geometry, material);
+  if (part.origin) mesh.position.set(part.origin[0], part.origin[1], part.origin[2]);   // MAP.240, as galaxymap3d.js
   mesh.frustumCulled = false;
   mesh.userData.part = part;
   return mesh;

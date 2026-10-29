@@ -17,6 +17,7 @@ const {
   boundsDensity, buildPrismGeometry, cellCoordinates,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { scientificText, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
+const { centreOf } = await import(`./camerarelative.js${VERSION_QUERY}`);
 
 // Unfilled space: this opaque at the sparsest drawn density, rising to
 // BLOCK_OPACITY_DENSE at the densest (90% to 70% see-through). Boss
@@ -388,7 +389,11 @@ export function createBlockScene(config) {
   let colorBy = "default";
 
   function pack(cells) {
-    const built = buildPrismGeometry(cells);
+    // MAP.240: the part's vertices are offsets from the middle of its cells, which its mesh carries as its position.
+    const middlesFlat = [];
+    cells.forEach(function (cell) { Array.prototype.push.apply(middlesFlat, cellCoordinates(cell).cartesian); });
+    const origin = centreOf(middlesFlat);
+    const built = buildPrismGeometry(cells, origin);
     const count = built.owners.length;
     const colors = new Uint16Array(count * 3);
     const centers = new Float32Array(count * 3);
@@ -426,7 +431,7 @@ export function createBlockScene(config) {
     }
     return {
       positions: built.positions, centers: centers, colors: colors, uvs: uvs, alphas: alphas, fills: fills,
-      indices: built.indices, owners: built.owners, vertexCount: count,
+      indices: built.indices, owners: built.owners, vertexCount: count, origin: origin,
     };
   }
 
