@@ -13269,6 +13269,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fixed at the root by GEN.918 (supernova remnants 256 to about 555 once
   the star count is scaled, no per-constant tuning). Owner Bug 1. Closes
   when GEN.918 merges and the census is re-baselined.
+  Research (2026-10-09): REVISED (Bug 1, 3:09 PM EDT 2026-10-29 as the
+  lane reported): not a generator shortfall. The census reference galaxy
+  was not Milky Way-like (see GEN.918); with a Milky Way-like galaxy the
+  census shows 0 flags (Wolf-Rayet 985, magnetars 42, supernova remnants
+  411). Closes with the test-harness fix GEN.918; no epoch, nothing to
+  regenerate.
   Prerequisites: none. Related: TEST.433, GEN.898, GEN.278, TEST.430.
 
 - [ ] **GEN.901 Magnetars: the reference galaxy gets 22 while 26 are known (McGill catalog) and tuning.py (GEN.278) aims at about 100 active (30 to 600) (bug)**
@@ -13289,6 +13295,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fixed at the root by GEN.918 (magnetars 21 to about 46 once the star
   count is scaled, no per-constant tuning). Owner Bug 1. Closes when
   GEN.918 merges and the census is re-baselined.
+  Research (2026-10-09): REVISED (Bug 1, 3:09 PM EDT 2026-10-29 as the
+  lane reported): not a generator shortfall. The census reference galaxy
+  was not Milky Way-like (see GEN.918); with a Milky Way-like galaxy the
+  census shows 0 flags (Wolf-Rayet 985, magnetars 42, supernova remnants
+  411). Closes with the test-harness fix GEN.918; no epoch, nothing to
+  regenerate.
   Prerequisites: none. Related: TEST.433, GEN.898, GEN.278, GEN.897.
 
 - [ ] **GEN.902 Wolf-Rayet stars: the reference galaxy gets about 590 while Rosslowe and Crowther 2015 estimate 1200 (+300, -100) (bug)**
@@ -13311,6 +13323,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fixed at the root by GEN.918 (Wolf-Rayet stars 580 to about 1,260 once
   the star count is scaled, no per-constant tuning). Owner Bug 1. Closes
   when GEN.918 merges and the census is re-baselined.
+  Research (2026-10-09): REVISED (Bug 1, 3:09 PM EDT 2026-10-29 as the
+  lane reported): not a generator shortfall. The census reference galaxy
+  was not Milky Way-like (see GEN.918); with a Milky Way-like galaxy the
+  census shows 0 flags (Wolf-Rayet 985, magnetars 42, supernova remnants
+  411). Closes with the test-harness fix GEN.918; no epoch, nothing to
+  regenerate.
   Prerequisites: none. Related: TEST.433, GEN.898, GEN.900, GEN.901.
 
 - [ ] **GEN.903 Atmosphere possibility table e: rows e1 and e2 (bare rock, retained H/He envelope) are never reached for class I because group b has only row b4 for class I (low priority) (bug)**
@@ -13506,6 +13524,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   low, nudge the Kroupa slope inside its source uncertainty (alpha1 1.3
   +/- 0.5) in the same epoch, recorded as a stand-in row (L1). Owner
   stays Bug 1.
+  Research (2026-10-09): REVISED (Bug 1, 3:09 PM EDT 2026-10-29 as the
+  lane reported): the star-count root fix is not needed (see GEN.918);
+  Bug 1 re-measures the G share on the Milky Way-like reference galaxy
+  and tells TODO before touching the Kroupa slope.
   Prerequisites: none. Related: GEN.897, GEN.898, GEN.899.
 
 - [ ] **GEN.915 Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class**
@@ -13595,7 +13617,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (surfaces). Version 8.1.
   Prerequisites: GEN.646. Related: GEN.915, GEN.916, GEN.646.
 
-- [ ] **GEN.918 The galaxy's star count follows its own star-formation history: the density model counts systems per parsec cubed while the history counts stars formed, so the galaxy holds 0.46 of the stars its history implies (root of GEN.900, GEN.901, GEN.902)**
+- [ ] **GEN.918 The phenomena census uses a reference galaxy that is not Milky Way-like (bulge heavier than disk, history and density disagree by 1.57x); give it a Milky Way-like shape so GEN.900, GEN.901, GEN.902 are judged on the right galaxy (a test-harness fix, no generator change)**
   BOSS DECIDED (3:02 PM EDT 2026-10-29), card answer option 1 'following
   physics as much as possible': fix the root, no per-constant tuning.
   Found by Bug 1 (report
@@ -13622,6 +13644,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bug 1. Version 8.1.
   Prerequisites: none. Related: GEN.900, GEN.901, GEN.902, GEN.914,
   GEN.469, TEST.433, TEST.430.
+  Research (2026-10-09): REVISED by Bug 1 (3:09 PM EDT 2026-10-29 as the
+  lane reported), after measuring again: the generator is NOT short of
+  stars. The 2.17 came from the census reference galaxy
+  tests.test_satellites.SHAPE, which is not Milky Way-like (bulge 2.3e10
+  outweighs the thin disk 2.2e10; the Milky Way's disk is about 3.5e10)
+  and has no mass chain, so its disk history runs on a 7.6e10 median
+  galaxy (1.57x the 5e10 its density holds). A Milky Way-like galaxy
+  drawn through the generator's own shape chain (5.2e10 Msun, bulge a
+  fifth, disk 3.96e10; history and density agree to 2%) gives 0 flags in
+  the full phenomena census: Wolf-Rayet 985 (range 1100 to 1500 widened
+  by draw error), magnetars 42, supernova remnants 411, neutron stars
+  3.75e8. So the item is now a test-harness fix only: no generator
+  change, no epoch, no stand-in row, nothing to regenerate. Boss's
+  answer (option 1, 'following physics as much as possible') was given
+  on the earlier reading; it stands as the rule that the reference
+  galaxy follows physics. Wolf-Rayet stays about 15% under the 1200
+  estimate because companions of massive stars are not counted by the
+  census; Bug 1 notes it, does not tune it. Owner: Bug 1.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
