@@ -726,8 +726,7 @@
     },
     {
       "epoch": 122,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2564",
       "reason": "Class gas ledger: methane and hydrogen drawdown of the built life classes at their stage, the haze, dose and colour redone from the air life leaves (GEN.891, GEN.857, GEN.858, GEN.859); an icy body whose tide underflows stores none (GEN.906); the magnetopause in radii of the body (GEN.843)",
       "affects": ["fill", "population"]
     }
