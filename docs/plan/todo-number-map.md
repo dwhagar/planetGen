@@ -1614,7 +1614,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.862 | The life class system: the habitable index gains a dimension, habitable to what kind of life | none | open |
 | GEN.863 | Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters | none | open |
 | GEN.864 | Sentient life per life class: sentient species and civilizations draw from the life class scores of a world | none | open |
-| GEN.865 | Headline of 9.5: life classes, so every world is rated for the kind of life it could hold, and sentient life draws from them | none | open |
+| GEN.865 | Headline of 9.5: sentient life draws from the life classes, so every sentient world is rated for the kind of life that built it | none | open |
 | GEN.866 | A planet draw around an F5V star at an ecosphere orbit never returns when a large tidally forced moon is generated: the interior heat step size collapses (bug) | none | open |
 | GEN.867 | The star lists and the chemistry weights agree, and a carbon and water chemistry is never drawn on a non-water solvent | none | open |
 | GEN.868 | A world has a life chemistry only after abiogenesis has happened: the map icons, search facet and population code read life_stage, not life_chemical | none | open |
