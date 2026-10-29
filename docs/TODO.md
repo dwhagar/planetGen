@@ -808,6 +808,13 @@ with `clamp()`.
   Research (2026-10-09): Lock-free item given to Core 3 (5:56 PM EDT
   2026-10-29) while it waits for its GEN.328 lock turn; MAP.286 merged
   (#3746). Owner: Core 3.
+  Research (2026-10-09): Core 3 scope note (as the lane reported 6:00 PM
+  EDT 2026-10-29): rows go on the uncharted star and phenomenon pages
+  and the API detail (a built system cuts neutron stars and black holes
+  out of its tree); the accreting-pair kind, the microquasar flag and
+  the spider kind (black widow or redback) are stored and built now,
+  with a page test per kind. The X-ray luminosity row is NOT in this PR:
+  it waits for GEN.952 (stored member radius).
   Prerequisites: none. Related: GEN.272, GEN.247.
 
 - [ ] **UX.187 Pages, lists, the API and the help text show every physics rectification output**
@@ -13770,6 +13777,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2412.03652); the giant and supergiant temperature fix must reach those
   temperatures. Horizontal branch luminosity holds; only hot subdwarf
   luminosities remain unchecked (low importance).
+  Research (2026-10-09): Audit item 13 (finding L8, low priority, as the
+  audit lane reported 6:00 PM EDT): hot subdwarfs (extreme horizontal
+  branch, 20,000 to 35,000 K) get the red clump's 35 to 50 Lsun in the
+  code; published sdB values (Heber et al. 2026, arXiv 2602.15692) are
+  10 to 30 Lsun, 0.1 to 0.25 Rsun, about 0.47 solar masses, with no AGB
+  phase afterward. Fold into this item's horizontal-branch luminosity by
+  colour; the present mass half is on GEN.940.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.936 The 0.08 to 0.1 solar mass main sequence comes from the Baraffe 2015 table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap)**
@@ -13846,6 +13860,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (fresh star-physics lane, Core 5, or Core 3). Must start now: the
   GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
   merged back to back inside the one GEN.932 turn.
+  Research (2026-10-09): Audit item 13 (finding L8, low priority): hot
+  subdwarf present mass is about 0.47 solar masses (Heber et al. 2026,
+  arXiv 2602.15692), not the progenitor's; the luminosity half is on
+  GEN.935.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.941 Forced star types draw their star from the model; the legacy letter tables and the dead random branch are removed; the class reference pages read the new ranges**
@@ -14057,6 +14075,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bug 1 (the mass-ratio input of the GEN.922 chain; TODO proposed it,
   Bug 1 may hand it to Star 1 if it is busy). Version 8.1.
   Prerequisites: none. Related: GEN.922, GEN.932.
+
+- [ ] **GEN.952 Store each scatter member's radius (scatter_members.radius_au) so a page can show the X-ray luminosity of an accreting pair without guessing**
+  Asked by Core 3 while building UX.186 (as the lane reported 6:00 PM
+  EDT 2026-10-29): compact pairs (X-ray binaries, microquasars, spiders)
+  exist only as stored scatter member trees on the uncharted star and
+  phenomenon pages. The accreting-pair kind, the microquasar flag and
+  the spider kind are stored, but the X-ray luminosity is not, and it
+  cannot be recomputed on a page: GEN.272 derives it from each member's
+  radius (the donor's sets the wind speed), the radius is not saved with
+  the member, and neither are the age and evolution it came from. Do:
+  store the member radius (scatter_members.radius_au, new numeric column
+  registered in db/column_units.py) at generation, then show the X-ray
+  luminosity on the pages and the API (the luminosity row of UX.186). A
+  generation change: migration, epoch and a lock turn (place it in Core
+  3's GEN.328 turn if it fits). Owner: Core 3. Version 8.1.
+  Prerequisites: none. Related: UX.186, GEN.272, GEN.328.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
