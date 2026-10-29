@@ -25,7 +25,7 @@ Image = pytest.importorskip("PIL.Image")
 
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
-    DENSE_CENTER_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
+    DENSE_CENTER_PC, DENSE_HALO_RADIUS_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
     BARREN_FIELD, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site, HOLE_FIELD, FAR_BUBBLE,
     far_site, halo_site, holes_site,
@@ -2009,9 +2009,12 @@ def test_dense_fixture_region_is_there_and_can_be_zoomed_into(page, dense_site):
     _settle(page)
     end = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
     assert end["dist"] < start["dist"] / 3, (start["dist"], end["dist"])
-    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(DENSE_CENTER_PC))
+    # MAP.300: the wheel goes on in on a star of the cluster (the one under the middle of the screen), so the cluster's centre may be
+    # off the screen by then; what is under the middle is a star of the cluster.
     box = page.locator(GALAXY_CANVAS).bounding_box()
-    assert 0 < spot["x"] - box["x"] < box["width"] and 0 < spot["y"] - box["y"] < box["height"], (spot, box)
+    middle = page.evaluate("([x, y]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(x, y)",
+                           [box["x"] + box["width"] / 2, box["y"] + box["height"] / 2])
+    assert middle["kind"] == "star" and math.dist(middle["point"], DENSE_CENTER_PC) < DENSE_HALO_RADIUS_PC, (middle, DENSE_CENTER_PC)
 
 
 def _click_star(page, star):
@@ -2093,6 +2096,80 @@ def test_a_selected_star_can_be_bookmarked(page, dense_site):
     star.click()
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info .map-info-bookmark').getAttribute('aria-pressed') === 'false'")
     assert _bookmarks(page) == []
+
+
+def _close_pair_on_the_map(page):
+    """MAP.300: two fixture stars of the dense region under a tenth of a parsec apart that the map draws, in view, as stars of their own
+    at the start (the nearest pair of the bright ones): `(a, b)`."""
+    by_id = {star["id"]: star for star in DENSE_STARS}
+    drawn = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars()")
+    stars = sorted((by_id[star["id"]] for star in drawn if star["visible"] and star["id"] in by_id and by_id[star["id"]]["luminosity_sol"] >= 1.0),
+                   key=lambda star: star["x"])
+    best = None
+    for index, first in enumerate(stars):
+        for second in stars[index + 1:index + 150]:
+            if second["x"] - first["x"] > 0.1:
+                break
+            gap = math.dist((first["x"], first["y"], first["z"]), (second["x"], second["y"], second["z"]))
+            if 0.02 < gap < 0.1 and (best is None or gap < best[0]):
+                best = (gap, first, second)
+    assert best, "the dense region has no two bright stars in view under a tenth of a parsec apart"
+    return best[1], best[2]
+
+
+def _spot(page, star):
+    """The place of `star` on the page (client pixels): where a pointer is on it."""
+    return page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", [star["x"], star["y"], star["z"]])
+
+
+def _under(page, star):
+    """What the map finds under the pointer placed on `star`'s spot: `galaxyNearestThing`'s `{kind, point}`."""
+    spot = _spot(page, star)
+    return page.evaluate("([x, y]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(x, y)", [spot["x"], spot["y"]])
+
+
+def _wheel_in_on(page, star, steps, until=None, delta=-150):
+    """Scrolls in with the pointer on `star`, each step, until `until(camera)` holds or `steps` are used; returns the camera."""
+    for _ in range(steps):
+        camera = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+        if until and until(camera):
+            return camera
+        spot = _spot(page, star)
+        thing = page.evaluate("([x, y]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(x, y)", [spot["x"], spot["y"]])
+        page.mouse.move(spot["x"], spot["y"])
+        page.mouse.wheel(0, delta)
+        page.wait_for_timeout(350)
+        _settle(page)
+    return page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+
+
+def test_the_wheel_comes_close_enough_to_tell_two_stars_under_a_tenth_of_a_parsec_apart(page, dense_site):
+    """MAP.300: scrolling in on a star of the dense region brings the camera down to where the star's neighbour, under a tenth of a parsec
+    away, is a star of its own: each is the thing under the pointer on its own spot, tens of pixels apart, and the wheel goes on to the
+    least distance the map allows (a thousandth of a parsec, `FIELD_FLOOR_PC`)."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 3.0)
+    first, second = _close_pair_on_the_map(page)
+    gap = math.dist((first["x"], first["y"], first["z"]), (second["x"], second["y"], second["z"]))
+    assert gap < 0.1
+
+    def apart(_camera):
+        one, other = _spot(page, first), _spot(page, second)
+        return math.hypot(one["x"] - other["x"], one["y"] - other["y"])
+
+    # In on the first star, the pointer on it at each step, until the second stands clear of it.
+    camera = _wheel_in_on(page, first, 40, until=lambda camera: apart(camera) >= 40)
+    assert apart(camera) >= 40, (apart(camera), camera["dist"])
+    # The map lists its stars to a coarser precision than the fixture's: the point is the star's, to a hundredth of a parsec at worst.
+    for star, other in ((first, second), (second, first)):
+        found = _under(page, star)
+        near = math.dist(found["point"], (star["x"], star["y"], star["z"]))
+        assert found["kind"] == "star" and near < 0.01 and near < math.dist(found["point"], (other["x"], other["y"], other["z"])), (found, star)
+    # And on: the camera goes down to the least the map allows, and the first star is still the thing under the pointer on it.
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyZoomLimits()")["nearestPc"] <= 0.002
+    camera = _wheel_in_on(page, first, 60, until=lambda camera: camera["dist"] <= 0.0011)
+    assert camera["dist"] <= 0.0011, camera["dist"]
+    assert math.dist(camera["eye"], (first["x"], first["y"], first["z"])) < gap, (camera["eye"], first)
 
 
 def test_a_click_between_close_stars_offers_the_ones_within_reach(page, dense_site):
