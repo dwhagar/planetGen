@@ -91,7 +91,7 @@ const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuf
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
 const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
-const { blackHoleDensityPx } = await import(`./mappreferences.js${VERSION_QUERY}`);
+const { blackHoleDensityPx, labelBufferPx } = await import(`./mappreferences.js${VERSION_QUERY}`);
 const {
   regionBlobs: nebulaRegionBlobs, regionLook: nebulaRegionLook, cutToBudget: cutNebulaRegions, FAMILIES: NEBULA_FAMILIES,
   FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour,
@@ -3978,6 +3978,10 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.layers.refresh();
     galaxyLabels = createGalaxyLabels({
       THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers, light: isLightBackground(),
+      // MAP.299: the clear margin between two names, a preference read at each placement.
+      padding: function () {
+        try { return labelBufferPx(window.localStorage); } catch (error) { return labelBufferPx(null); }
+      },
       sources: {
         sectors: stageView.sectorLabels, systems: stageView.systemLabels, bodies: bodyNames, nebulae: cloudLabels,
         stars: starNames, objects: objectNames, worlds: worldNames, regions: regionNames,
