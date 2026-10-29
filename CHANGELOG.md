@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2517] - 2026-10-29
+
+**Headline:** The engine behind "edit everything" can now work out, check and track a change plan, though nothing in the app uses it yet.
+
+### Added
+- **The change plan engine, as a library (ADM.58).** `planetgen/admin/plans.py` holds a plan: an ordered list of operations (move an orbit or a system, set an aspect, regenerate with a keep set, add, remove) on stored systems. It works the whole effect out on copies without writing anything: every field that would change, with its before and after, the neighbours the spacing pass has to move (listed as indirect), a sentence per operation and the layout problems the plan leaves. Each plan has a state (draft, requested, proposed, approved, applied, undone, stale, rejected, withdrawn), and every move records who made it and in which role. A proposed plan is stale when an object it touches was edited after it was proposed, but not when the nightly orbital update moved it; a move then shows its drift and can be planned again from the new values. Operations and the systems as they will be use the same envelope as the remote upload. No page, route, table or stored value changes; the store (ADM.59) and the apply job (ADM.60) come next.
+
 ## [8.0.2516] - 2026-10-29
 
 **Headline:** The Galaxy Map's performance test measures a climb step after its fetch has begun and counts the icon files the map now reads.
