@@ -817,6 +817,15 @@ with `clamp()`.
   Research (2026-10-09): Lock-free item given to Core 3 (7:04 PM EDT
   2026-10-29) after UX.186 merged; taken out of Core 5's chain. Owner:
   Core 3.
+  Research (2026-10-09): Slice 1 merged (#3781, Core 3, as the lane
+  reported 7:21 PM EDT): every physics value on a star, planet or moon
+  page has a one-sentence source line (and the API sheet row carries it
+  as source). Every stored column the audit names that is on main was
+  already a row on the pages and in the API; the gap was the source
+  line. Remaining, in order: the help text, then the lists (data tables)
+  for columns on main, then the rows for columns not on main yet
+  (GEN.738 to 740, GEN.741 to 745, GEN.762, GEN.730, the brown dwarf
+  label), after train 1. The X-ray luminosity is GEN.952.
 
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
   Boss, 8:19 PM EDT 2026-10-24 (message
