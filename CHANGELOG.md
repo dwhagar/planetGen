@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2459] - 2026-10-29
+
+**Headline:** A star picked on the Galaxy Map has a ☆ that bookmarks its system, the pointer reaches 10 px (22 px for a finger), and a crowded click lists the stars within reach.
+
+### Changed
+- **Bookmark a star (MAP.122).** The panel of a picked star carries the ☆ the system and sector panels have: it saves the star's system, and a second press takes it out. A charted star's system now travels with its node (`systems` beside `names`), which also brings back the "View system" link on those stars.
+- **Reach and a choice (MAP.122).** A click or tap picks the nearest star within 10 px of a mouse or 22 px of a finger, and when several stars lie inside that reach the panel lists the nearest few under it; pressing one shows that star instead.
+
 ## [8.0.2458] - 2026-10-29
 
 **Headline:** A world with water vapour in its air is no longer too hot: the vapour thins with height, as it does on the Earth, and the greenhouse sums over that profile.
