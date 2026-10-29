@@ -25,12 +25,13 @@ from planetgen.galaxy import seed as galaxySeed
 from planetgen.generation import directives
 from planetgen.generation import cloud as cloudContext
 from planetgen.generation import fill_stages
-from planetgen.generation import multistar, nebula_contents, scatter_companions
+from planetgen.generation import multistar, nebula_contents, scatter_companions, stored_trees
 from planetgen.generation import system_pass
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import remnant_density, ejecta_field, nebula_field
 from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.system_position import random_unit_vector
+from planetgen.physics import constants as physical_constants
 from planetgen.physics import stellar_evolution
 from planetgen import tuning as program_constants
 from planetgen.util import draw
@@ -337,35 +338,100 @@ def add_star_hosted_nebulae(sector, args, chance_factor=1.0, hosts_out=None):
     return entries
 
 
+def _build_member(sector, args, local, mass_sol, age_yr, seed, galactic_center_dist_ly, label, member_tree=None):
+    """
+    One ordinary young system of `mass_sol` and `age_yr` at the sector-local point `local`, built from `seed`, or None when
+    the point is not in `sector` or the sector's cell is closed to it. `member_tree` is the plan the system is built from
+    (`stored_trees.drawn`), where a group left a tree; left out, the system draws its own companions.
+    """
+    if not sector.contains(local):
+        return None
+    config = run_system.build_system_config(args)
+    config.POPULATION = "young"
+    age_gy = age_yr / 1.0e9
+    with draw.bound(seed):
+        state = stellar_evolution.evolve_star(mass_sol, age_gy, population=config.POPULATION,
+                                              galactic_center_dist_ly=galactic_center_dist_ly)
+        params = stellar_evolution.star_params(mass_sol, age_gy, state)
+        system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly,
+                            primary_star_params=params, member_tree=member_tree)
+    try:
+        entry = sector.add_preplaced_system(system, local, system_config=config)
+    except ValueError:
+        return None
+    entry.system_seed = seed
+    fill_stages.count(sector, fill_stages.NEBULAE, label)
+    return entry
+
+
+def _group_plan(tree):
+    """The plan a member's system is built from where its group had decayed: the hierarchy the group left (`None` where
+    the member is in no group, or in a live one, whose mates are systems of their own and which builds as any star)."""
+    if tree is None or nebula_contents.is_live_group(tree):
+        return None
+    return stored_trees.drawn(multistar.without_members(tree, stored_trees.UNBUILT_KINDS))
+
+
+def add_group_stars(sector, args, member, tree, center_pc, galactic_center_dist_ly, label):
+    """
+    Builds the group mates of a member in a live young group (GEN.328, `nebula_contents.member_group`): each star of the
+    group's tree other than the member is an ordinary young system of its own birth mass and the member's age, at the
+    member's point plus the difference of the two offsets in the group (the member keeps the point it was given). The
+    sector builds the mates whose points fall in it, so a group across a sector boundary is made once, each star by the
+    sector that holds it. Every entry carries `group_seed` (the member's seed, which names the group), `group_decay_age_yr` and
+    `group_offset_au`, and so does the member's own, which `_add_members` marks.
+
+    Returns:
+        list: The mates' `SectorSystemEntry` instances.
+    """
+    entries = []
+    home = tree.members[0].offset_au
+    for mate in tree.members[1:]:
+        if mate.kind not in stored_trees.PAIR_STAR_KINDS:
+            continue    # a brown dwarf or remnant is not a star a system is built around
+        point_pc = tuple(member.position_pc[i] + (mate.offset_au[i] - home[i]) / physical_constants.AU_PER_PARSEC
+                         for i in range(3))
+        local = tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, point_pc))
+        entry = _build_member(sector, args, local, mate.initial_mass_solar, member.age_yr,
+                              f"{member.seed}:group:{mate.member_no}", galactic_center_dist_ly, label)
+        if entry is not None:
+            mark_group_star(entry, member, mate)
+            entries.append(entry)
+    return entries
+
+
+def mark_group_star(entry, member, group_member):
+    """Records on `entry` the group its star is in: the group's name (the seed of the member that rolled it), its decay age and
+    the star's offset from the group's centre, AU."""
+    entry.group_seed = member.seed
+    entry.group_decay_age_yr = group_member.decay_age_yr
+    entry.group_offset_au = group_member.offset_au
+
+
 def _add_members(sector, args, members, center_pc, galactic_center_dist_ly, label):
     """
     Builds the `members` (`nebula_contents.CloudMember`s) whose points fall inside `sector`, each as an ordinary young
     system at its point from its own seed. A member that finds the sector's cell closed to it is skipped, not the
-    nebula.
+    nebula. A massive member may be born in a young group (`nebula_contents.member_group`, GEN.328): its mates are built
+    where they fall (`add_group_stars`), by the same draw in every sector that reaches the member, and where the group had
+    decayed the member's system is the hierarchy it left.
 
     Returns:
         list: The new systems' `SectorSystemEntry` instances.
     """
     entries = []
     for member in members:
+        tree = nebula_contents.member_group(member)
+        live = nebula_contents.is_live_group(tree)
+        if live:
+            entries.extend(add_group_stars(sector, args, member, tree, center_pc, galactic_center_dist_ly, "group-mate"))
         local = tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, member.position_pc))
-        if not sector.contains(local):
+        entry = _build_member(sector, args, local, member.mass_sol, member.age_yr, member.seed, galactic_center_dist_ly,
+                              label, member_tree=_group_plan(tree))
+        if entry is None:
             continue
-        config = run_system.build_system_config(args)
-        config.POPULATION = "young"
-        age_gy = member.age_yr / 1.0e9
-        with draw.bound(member.seed):
-            state = stellar_evolution.evolve_star(member.mass_sol, age_gy, population=config.POPULATION,
-                                                  galactic_center_dist_ly=galactic_center_dist_ly)
-            params = stellar_evolution.star_params(member.mass_sol, age_gy, state)
-            system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly,
-                                primary_star_params=params)
-        try:
-            entry = sector.add_preplaced_system(system, local, system_config=config)
-        except ValueError:
-            continue
-        entry.system_seed = member.seed
-        fill_stages.count(sector, fill_stages.NEBULAE, label)
+        if live:
+            mark_group_star(entry, member, tree.members[0])
         entries.append(entry)
     return entries
 
