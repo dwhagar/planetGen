@@ -2247,34 +2247,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: none. Related: MAP.121, MAP.141.
 
-- [ ] **MAP.336 Zoom redesign Z3: one goTo(target) for every fly with the verb Go to, a find-a-place box, a vertical log ruler with named clickable stops, crumbs as Go to, and Up one level**
-  Size M; may start with Z0. Boss answered the research cards at 6:19 PM
-  EDT 2026-10-28 (1.1 quick fixes then the full rebuild, 2.1 one verb Go
-  to, 3.1 vertical log ruler with named stops, 4.1 a region lands framed
-  on the charted part, 5.1 moon in view first). Design:
-  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
-  (section 6 plan, section 9 decisions). Owner: Core 2. One goTo(target)
-  function behind every fly (instant under reduced motion); the word
-  zoom is used only for the wheel, buttons and slider. The find-a-place
-  box takes names, coordinates, designations, object IDs, regions and
-  recents. A vertical log ruler shows named clickable stops and a
-  readout. Region landing reads one user preference key
-  map.regionLanding (frame = the charted part, about 31 to 38 pc, the
-  default; densest = the MAP.322 ranking, falling back to frame); a
-  missing key reads as frame; the map codes both and the preferences
-  screen is UX.236. Done: browser tests for the box, the ruler, the
-  crumbs and both landing modes.
-  Research (2026-10-09): MAP.190 retired as done (Aux 2 read main at
-  8:39 PM EDT 2026-10-28): the jump list exists (charted-regions list in
-  the Menu, MAP.316/317, GET /galaxy/regions and
-  /api/galaxy/charted-regions, regions largest share first, a click
-  flies to the region). The one missing piece is the open-on rule: the
-  map still opens at the origin (initialCenter [0,0,0] in
-  maps/galaxymap3d.py) and nothing frames the largest group; it belongs
-  here with the region landing (the largest region is regions[0] of the
-  endpoint; a user's home overrides it later, USR.11). Owner: Core 2.
-  Prerequisites: MAP.333. Related: MAP.257, UX.236, API.36.
-
 - [ ] **MAP.337 Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests**
   Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
   (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
@@ -2285,7 +2257,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   machinery and the stage URLs once the camera-driven scenes (Z2) and
   goTo (Z3) carry everything; no compatibility shim. Done: no stage code
   or URL remains, and the rewritten browser tests pass.
-  Prerequisites: MAP.336. Related: MAP.257.
+  Prerequisites: none. Related: MAP.257.
 
 - [ ] **MAP.338 Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers**
   Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
@@ -18869,6 +18841,15 @@ clears each one.
   the generated [X/Fe] distribution against the held table. Low
   priority. Owner: none yet. Version 8.4.
   Prerequisites: none. Related: TEST.455.
+
+- [ ] **TEST.459 The point_phenomena links browser test is red on clean main (bug)**
+  Found by Core 2 while merging MAP.336 (as the lane reported 7:11 PM
+  EDT 2026-10-29): the browser test for the point phenomena links fails
+  on bare main and is not from MAP.336. Do: find the cause (a real fault
+  in the links or a stale test after the Z2 and Z3 map changes), fix it
+  at the cause, never skip it. Owner: Aux 4 (its next lock-free item
+  after the train 1 rebase). Version 8.1.
+  Prerequisites: none. Related: MAP.336.
 
 ## USR: User accounts
 
