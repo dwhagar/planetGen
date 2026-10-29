@@ -1653,3 +1653,6 @@ Baseline: PR #1817.
 | TEST.438 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.874 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.885 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.127 | 8.1 | Queue, caches and performance |
+| GEN.231 | 8.1 | Queue, caches and performance |
+| TEST.315 | 8.1 | Consistency |
