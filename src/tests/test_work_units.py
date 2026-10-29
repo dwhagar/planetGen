@@ -672,8 +672,11 @@ def test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands(mysql
     runs = []
     real = wrapper.run
     monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
-    for fill in (run_plan.fill_map_luminosity, run_plan.fill_habitability):
-        fill(_fill_args(mysql_config))
+    for fill, command in ((run_plan.fill_map_luminosity, "fill-map-luminosity"),
+                          (run_plan.fill_habitability, "rescore-habitability")):
+        args = _fill_args(mysql_config)
+        args.command = command      # each fill is its own command's run: its list is that command's one stage
+        fill(args)
     conn = redisqueue.connect()
     kinds = [[step["kind"] for step in runrecord.read_steps(conn, run)] for run in runs]
     assert kinds == [["fill-map-luminosity"], ["rescore-habitability"]]
