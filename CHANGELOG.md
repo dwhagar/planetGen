@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2476] - 2026-10-29
+
+**Headline:** A test and admin switch forces a planet class into a generated system, so a sample can hold enough planets of every class.
+
+### Added
+- **`SystemConfig.FORCE_CLASS` and `generation/class_sample.py` (GEN.791).** Random generation hardly ever draws some classes (under 30 planets of O, P, T, V, E, K, L, N, F and G in 400 systems), so the property sheet fill audit could not check them. With `FORCE_CLASS` set to a class letter the first orbital slot is that class, in a zone that allows it, and a system that cannot hold it says so in `unmet_requirements`; `class_sample.fill(per_class, seed)` tops a sample up with such systems until every class has enough planets. Default generation never sets the switch, so no generated world changes. Moons follow once the moon generation work (GEN.761) has merged.
+
 ## [8.0.2475] - 2026-10-29
 
 **Headline:** Every number in the life class rules now has a row in the list of stand-in values, with its source tier and tweak level.
