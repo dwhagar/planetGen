@@ -4,7 +4,7 @@
 TEST.301: classes from conditions, on the shared body sweep (`tests/audit/sweep.py`). Every planet and moon has a class of the rule file
 and of its own kind; `classify` is total and pure on all of them; the stored letter is the one the conditions give (a known anomaly until
 the class leaves generation, GEN.646, so the rule reports and does not fail while the tag stands); and a system generated with
-`+habitable_world` answers the request (a known anomaly while the class letter is drawn before the conditions, GEN.853, GEN.854, GEN.646). Each rule has a broken copy
+`+habitable_world` answers the request (a known anomaly while temperate liquid-water worlds are rare and the request is steered by the letter, GEN.909, GEN.853, GEN.854, GEN.916). Each rule has a broken copy
 that the sweep must report.
 
 The first half tests the rules on synthetic bodies.

@@ -61,7 +61,6 @@
      "source": "pre-cut-over 0.687 over 150 systems at 0b4d0ccef"
     },
     "habitable_class": {
-     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.5866,
      "min": 0.0134,
@@ -159,7 +158,6 @@
      "source": "pre-cut-over 0.753 over 150 systems at 0b4d0ccef"
     },
     "habitable_class": {
-     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.7463,
      "min": 0.1337,
@@ -199,7 +197,6 @@
      "source": "pre-cut-over 0.113 over 150 systems at 0b4d0ccef"
     },
     "moons_per_planet": {
-     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 1.8252,
      "min": 0.6645,
@@ -395,7 +392,6 @@
      "source": "pre-cut-over 0.020 over 150 systems at 0b4d0ccef"
     },
     "moons_per_planet": {
-     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 1.938,
      "min": 0.4462,
@@ -437,7 +433,6 @@
      "source": "pre-cut-over 0.380 over 150 systems at 0b4d0ccef"
     },
     "blue_green": {
-     "anomaly": "GEN.889",
      "kind": "stand-in",
      "max": 0.2455,
      "min": 0.01,

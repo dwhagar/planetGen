@@ -1,7 +1,6 @@
 {
  "anomalies": {
-  "class-from-conditions": "GEN.646: the generator still draws the class letter before the body is built; the class leaves generation with the cut-over (Aux 9), and then every stored letter is the conditions' letter",
-  "habitable-request": "GEN.853 (with GEN.854 and GEN.646): the class letter is drawn first, so the world a request steers to as class M comes out at 177 to 270 K around M and K dwarfs with almost no air (checked after GEN.855 merged), does not score habitable and the request answers unmet"
+  "habitable-request": "GEN.909 (with GEN.853, GEN.854 and GEN.916): the class is derived since the cut-over (epoch 121), but a request for a habitable world is still unmet in 11 of 12 seeded systems: temperate liquid-water worlds are rare (the cold air of GEN.909 and the frozen oceans of GEN.908) and the request is still steered by the class letter (GEN.916)"
  },
  "habitable_request_minimum_met_share": 1.0
 }
