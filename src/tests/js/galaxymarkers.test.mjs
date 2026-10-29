@@ -405,3 +405,43 @@ test("black holes at very different depths on one line of sight are not a crowd,
   const same = M.mergeMarks(chosen, (item) => ({ x: item.x * 10, y: 0, depth: 100 + item.id }), 22);
   assert.equal(same.length, 1);
 });
+
+test("each technology band of a civilization is an optional marker kind of its own, ahead of the Civilizations kind, off until chosen (MAP.344)", () => {
+  assert.equal(M.TECH_KINDS.length, M.TECH_BAND_NAMES.length);
+  assert.ok(M.TECH_KINDS.every((k) => k.family === "tech" && k.interest === "civilization" && k.defaultOn === false && M.GLYPHS[k.glyph]));
+  assert.deepEqual(M.TECH_KINDS.map((k) => k.id), M.TECH_BAND_NAMES.map((name) => "marker-tech-" + name.toLowerCase()));
+  assert.equal(new Set(M.TECH_KINDS.map((k) => k.color)).size, M.TECH_KINDS.length, "each band has a colour of its own");
+  const ids = M.MAP_INTEREST_KINDS.map((k) => k.id);
+  assert.ok(ids.indexOf("marker-inhabited") < ids.indexOf("marker-tech-primal") && ids.indexOf("marker-tech-transcendent") < ids.indexOf("marker-civilization"));
+  assert.equal(ids.length, M.INTEREST_KINDS.length + M.TECH_KINDS.length);
+  assert.ok(!M.INTEREST_KINDS.some((k) => k.family === "tech"), "the open system's bodies have no bands");
+});
+
+test("a band's layer shows the systems whose most advanced species is in the band, and the Civilizations layer all of them (MAP.344)", () => {
+  const civ = (id, name, x, tech, band) => ({ id, name, x, y: 0, z: 0, reasons: { civilization: Object.assign({ n: 1 }, band ? { tech, band } : {}) } });
+  const systems = [civ(1, "Forge", 0, 2.1, "Industrial"), civ(2, "Spire", 1, 4.8, "Gravitic"), civ(3, "Dawn", 2, 0.2, "Primal"), civ(4, "Unknown", 3)];
+  const registry = M.createMarkerKinds();
+  M.MAP_INTEREST_KINDS.forEach((kind) => registry.register(kind));
+  const nodes = [{ key: "9.0.0.0", node: { interests: systems } }];
+  const named = (on) => M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => on.includes(id), nodes })
+    .map((c) => [c.kind.id, c.item.name]).sort();
+  assert.deepEqual(named(["marker-tech-industrial"]), [["marker-tech-industrial", "Forge"]]);
+  assert.deepEqual(named(["marker-tech-industrial", "marker-tech-gravitic"]), [["marker-tech-gravitic", "Spire"], ["marker-tech-industrial", "Forge"]]);
+  assert.deepEqual(named(["marker-civilization"]), [["marker-civilization", "Dawn"], ["marker-civilization", "Forge"], ["marker-civilization", "Spire"],
+    ["marker-civilization", "Unknown"]]);
+  assert.deepEqual(named(["marker-civilization", "marker-tech-gravitic"]), [["marker-civilization", "Dawn"], ["marker-civilization", "Forge"],
+    ["marker-civilization", "Unknown"], ["marker-tech-gravitic", "Spire"]], "a system is drawn once, by its band's layer when that is on");
+  assert.deepEqual(named(["marker-tech-transcendent"]), [], "no system is in that band");
+  assert.deepEqual(named([]), []);
+});
+
+test("the card names the most advanced species' band of a civilization (MAP.344)", () => {
+  const system = { id: 1, name: "Forge", x: 0, y: 0, z: 0, reasons: { civilization: { n: 2, tech: 2.1, band: "Industrial" } } };
+  assert.equal(M.interestLines(system).map((l) => l.text).join("; "), "2 worlds with a civilization, most advanced Industrial");
+  const unknown = { id: 2, name: "Unknown", x: 0, y: 0, z: 0, reasons: { civilization: { n: 1 } } };
+  assert.equal(M.interestLines(unknown).map((l) => l.text).join("; "), "1 world with a civilization");
+  const kind = M.TECH_KINDS.find((k) => k.id === "marker-tech-industrial");
+  const [item] = kind.source({ interests: [system] });
+  assert.equal(kind.describe(item), "Forge, 2 worlds with a civilization, most advanced Industrial");
+  assert.equal(item.tech, 2.1);
+});

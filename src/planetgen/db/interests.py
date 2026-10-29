@@ -25,6 +25,10 @@ HABITABLE_MIN_SCORE = habitability.YELLOW_FLOOR
 itself stays Blue or Green (`habitability.is_habitable`, GEN.643); this is the map's reason, one tier wider. A scored terrestrial world
 below it is an `UNINHABITABLE` one."""
 
+TECH_REASONS = (CIVILIZATION,)
+"""tuple: The reasons whose `best_score` is a technology level (0 to 7, `tuning.TECH_BANDS`) and not a habitability score: the map reads it as
+the band of the system's most advanced species, not as a tier colour."""
+
 BODY_TABLES = {"planets": ("planets", "p"), "moons": ("moons", "m"), "belts": ("asteroid_belts", "b")}
 """dict: The tables a reason's tests read, by the key a test is given under in `REASONS`: (table, alias)."""
 
@@ -40,6 +44,14 @@ def _inhabited_test(alias, host_column):
             f" OR EXISTS (SELECT 1 FROM facilities f WHERE f.{host_column} = {alias}.id AND f.kind = 'colony' AND f.placement = 'terrestrial'))")
 
 
+def _tech_of(alias):
+    """The score expression of the `civilization` reason (MAP.344): the technology level (`species.tech_level`) of the species whose homeworld
+    is planet `alias`. A species lives on a planet, so a moon has none."""
+    if alias != "p":
+        return "NULL"
+    return "(SELECT MAX(sp.tech_level) FROM species sp WHERE sp.homeworld_planet_id = p.id)"
+
+
 def _life_test(alias, columns):
     """The test of a world with native life: at least one of the life scores `columns` (0 none to 9 abundant, NULL for a body with no score)
     is 1 or more."""
@@ -53,10 +65,11 @@ REASONS = {
         "planets": _inhabited_test("p", "planet_id"), "moons": _inhabited_test("m", "moon_id"), "score": "phi4", "params": (),
     },
     # Life (MAP.311): read from the stored life scores and the timeline's stage as they are, no expectation of how many worlds qualify. A
-    # reason with no score keeps `best_score` NULL: the map's tier colour is the habitability score's, not a life score's.
+    # reason with no score keeps `best_score` NULL: the map's tier colour is the habitability score's, not a life score's. The civilization
+    # reason's score is the technology level of its most advanced species (MAP.344, in `TECH_REASONS`), NULL for a world with none yet.
     CIVILIZATION: {
         "planets": f"p.life_stage = 'technological_civilization' AND p.planet_class IN ({_CLASSES})",
-        "moons": f"m.life_stage = 'technological_civilization' AND m.planet_class IN ({_CLASSES})", "score": None, "params": (),
+        "moons": f"m.life_stage = 'technological_civilization' AND m.planet_class IN ({_CLASSES})", "score": _tech_of, "params": (),
     },
     SENTIENT: {
         "planets": _life_test("p", ("life_sentient",)), "moons": _life_test("m", ("life_sentient",)), "score": None, "params": (),
@@ -142,8 +155,22 @@ def _score_sql(reason):
     parts = []
     for key, test in _sources(reason):
         table, alias = BODY_TABLES[key]
-        parts.append(f"(SELECT MAX({alias}.{spec['score']}) FROM {table} {alias} WHERE {alias}.star_system_id = ss.id AND {test})")
+        score = spec["score"](alias) if callable(spec["score"]) else f"{alias}.{spec['score']}"
+        parts.append(f"(SELECT MAX({score}) FROM {table} {alias} WHERE {alias}.star_system_id = ss.id AND {test})")
     return "GREATEST(COALESCE(" + ", -1), COALESCE(".join(parts) + ", -1))", _params_of(reason)
+
+
+def refresh_technology(conn):
+    """
+    Puts the `best_score` of the `TECH_REASONS` rows right (MAP.344): the technology level of the most advanced species on a world the reason
+    counts. The species are drawn by the population pass after the planets are stored, and a species' level can change, so the pass and the
+    migration that added the score call this; the rows themselves (which systems, how many worlds) do not depend on a species.
+    """
+    for reason in TECH_REASONS:
+        score_sql, score_params = _score_sql(reason)
+        conn.execute(
+            "UPDATE system_interests i JOIN star_systems ss ON ss.id = i.star_system_id"
+            f" SET i.best_score = NULLIF({score_sql}, -1) WHERE i.reason = ?", (*score_params, reason))
 
 
 def record(conn, where, params):

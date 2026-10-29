@@ -431,6 +431,8 @@ def test_every_planet_class_is_a_reason_after_the_others_and_the_map_lists_the_s
     assert f'PLANET_CLASS_LETTERS = "{"".join(sorted(tuning.PLANET_CLASSES))}".split("")' in script
     assert f"CLASS_MAX_BLOCK = {nodes.CLASS_ABOVE};" in script, "the map and the nodes agree on the biggest block that lists the classes"
     assert all(len(reason) <= 24 for reason in interests.REASONS), "a reason fits the reason column"
+    names = ", ".join(f'"{name}"' for _start, name in tuning.TECH_BANDS)
+    assert f"TECH_BAND_NAMES = [{names}];" in script, "the map's technology bands are the species' bands (MAP.344)"
 
 
 def test_a_system_has_a_row_for_each_class_it_holds_a_planet_or_moon_of(mysql_config):
@@ -617,5 +619,83 @@ def test_a_v172_galaxy_gets_the_life_reasons_from_what_it_holds(mysql_config):
     try:
         got = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
         assert got == want
+    finally:
+        conn.close()
+
+
+def _give_species(conn, planet_id, system_id, name, tech_level):
+    """A species on `planet_id` at technology level `tech_level` (a species lives on a planet)."""
+    conn.execute(
+        "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_stage, build, climate, size, civilization_age_years, era,"
+        " spacefaring, tech_level, tech_source) VALUES (?, ?, ?, 'technological_civilization', 'sturdy', 'temperate', 'medium', 1000, 'industrial',"
+        " 0, ?, 'generated')", (name, planet_id, system_id, tech_level))
+
+
+def test_a_civilization_keeps_the_technology_level_of_its_most_advanced_species_and_the_map_lists_it_as_a_band(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _clear_life(conn, system_id)
+        first, second = [row["id"] for row in conn.execute(
+            "SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 2", (system_id,)).fetchall()]
+        conn.execute("UPDATE planets SET life_stage = 'technological_civilization', planet_class = 'M' WHERE id IN (?, ?)", (first, second))
+        store.recount_habitable_worlds(conn, [system_id])
+        lo, hi = _box(POSITION_PC)
+        row = _rows(conn, system_id)[interests.CIVILIZATION]
+        assert row["n"] == 2 and row["best_score"] is None, "no species is drawn yet, so no level"
+        reason = query.galaxy_system_interests_in_box(conn, lo, hi)[0]["reasons"][interests.CIVILIZATION]
+        assert reason == {"n": 2}, "a system with no species has no band"
+        _give_species(conn, first, system_id, "Lowtech", 1.2)
+        _give_species(conn, second, system_id, "Hightech", 3.7)
+        interests.refresh_technology(conn)
+        assert _rows(conn, system_id)[interests.CIVILIZATION]["best_score"] == pytest.approx(3.7)
+        reason = query.galaxy_system_interests_in_box(conn, lo, hi)[0]["reasons"][interests.CIVILIZATION]
+        assert reason == {"n": 2, "tech": 3.7, "band": "Fusion"}, "the band of the most advanced species, and no habitability tier"
+        # a rebuild of the system's rows keeps the level (the registry gives the same score as the refresh)
+        conn.execute("UPDATE system_interests SET best_score = NULL WHERE star_system_id = ?", (system_id,))
+        store.recount_habitable_worlds(conn, [system_id])
+        assert _rows(conn, system_id)[interests.CIVILIZATION]["best_score"] == pytest.approx(3.7)
+        # a species whose level changes moves the row at the next refresh
+        conn.execute("UPDATE species SET tech_level = 0.4 WHERE name = 'Hightech'")
+        interests.refresh_technology(conn)
+        assert _rows(conn, system_id)[interests.CIVILIZATION]["best_score"] == pytest.approx(1.2)
+        # the life reasons keep no score
+        assert all(row["best_score"] is None for reason, row in _rows(conn, system_id).items()
+                   if reason in (interests.LIFE, interests.SENTIENT))
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_a_v173_galaxy_gets_the_technology_level_from_the_species_it_holds(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _clear_life(conn, system_id)
+        first = conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 1", (system_id,)).fetchone()["id"]
+        conn.execute("UPDATE planets SET life_stage = 'technological_civilization', planet_class = 'M' WHERE id = ?", (first,))
+        _give_species(conn, first, system_id, "Migrant", 2.6)
+        store.recount_habitable_worlds(conn, [system_id])
+        interests.refresh_technology(conn)
+        conn.commit()
+        want = _rows(conn, system_id)[interests.CIVILIZATION]["best_score"]
+        assert want == pytest.approx(2.6)
+    finally:
+        conn.close()
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        conn.execute("UPDATE system_interests SET best_score = NULL WHERE reason = 'civilization'")
+        conn.execute("UPDATE alembic_version SET version_num = '0173'")
+        conn.execute("DELETE FROM schema_migrations")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (173)")
+        conn.commit()
+    finally:
+        conn.close()
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        assert _rows(conn, system_id)[interests.CIVILIZATION]["best_score"] == pytest.approx(want)
     finally:
         conn.close()

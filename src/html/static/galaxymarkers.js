@@ -252,7 +252,10 @@ export const INTEREST_REASONS = [
     glyph: "civilization",
     color: "#f08a4b",
     defaultOn: false,
-    describe: function (reason) { return reason.n + (reason.n === 1 ? " world with a civilization" : " worlds with a civilization"); },
+    describe: function (reason) {
+      return reason.n + (reason.n === 1 ? " world with a civilization" : " worlds with a civilization") +
+        (reason.band ? ", most advanced " + reason.band : "");
+    },
   },
   {
     id: "sentient",
@@ -329,6 +332,10 @@ function interestItems(node, reason) {
     const item = Object.assign({ key: String(system.id), interest: reason.id }, system, { n: mine.n });
     if (mine.tier != null) item.tier = TIER_NAMES.indexOf(mine.tier);
     if (mine.score != null) item.score = mine.score;
+    if (mine.band != null) {
+      item.tech = mine.tech;
+      item.band = mine.band;
+    }
     return item;
   });
 }
@@ -358,6 +365,35 @@ export function interestKind(reason) {
 
 export const INTEREST_KINDS = INTEREST_REASONS.map(interestKind);
 
+// The technology bands of a civilization (MAP.344): `planetgen.tuning.TECH_BANDS`' names, lowest first; tests/test_system_interests.py holds the two
+// lists to each other. A system's band is that of its most advanced species (the civilization reason's `band`, from the species' `tech_level`).
+export const TECH_BAND_NAMES = ["Primal", "Agrarian", "Industrial", "Atomic", "Fusion", "Gravitic", "Antimatter", "Transcendent"];
+
+// The colour of each band's civilization glyph, dull for the lowest rising to bright, so a band can be told at a glance as well as chosen.
+const TECH_BAND_COLORS = ["#8f7a5c", "#b5903f", "#d9822b", "#e8602c", "#e04a6b", "#b45bd6", "#6f7be8", "#4fc3e8"];
+
+// One optional marker for each technology band (MAP.344): the systems whose most advanced species is in that band, drawn as the civilization
+// tower in the band's colour. They share the civilization reason (`interest`), so a system is drawn once (by its band's kind when that is on,
+// else by the Civilizations kind) and the card lists the reason once; a system whose species is not drawn yet has no band and is in the
+// Civilizations kind alone.
+const CIVILIZATION_REASON = INTEREST_REASONS.find(function (reason) { return reason.id === "civilization"; });
+export const TECH_KINDS = TECH_BAND_NAMES.map(function (band, index) {
+  const kind = interestKind(CIVILIZATION_REASON);
+  kind.id = "marker-tech-" + band.toLowerCase();
+  kind.label = band + " civilizations";
+  kind.bodyName = band.toLowerCase() + " civilization";
+  kind.color = TECH_BAND_COLORS[index];
+  kind.family = "tech";
+  kind.defaultOn = false;
+  kind.source = function (node) { return interestItems(node, CIVILIZATION_REASON).filter(function (item) { return item.band === band; }); };
+  return kind;
+});
+
+// The kinds the Galaxy Map registers: the interest kinds with the technology bands ahead of the Civilizations kind, so a system with a band is
+// drawn by its band's colour when that is on. (The open system's bodies use `INTEREST_KINDS`, which have no bands.)
+const CIVILIZATION_AT = INTEREST_KINDS.findIndex(function (kind) { return kind.interest === "civilization"; });
+export const MAP_INTEREST_KINDS = INTEREST_KINDS.slice(0, CIVILIZATION_AT).concat(TECH_KINDS, INTEREST_KINDS.slice(CIVILIZATION_AT));
+
 // The star systems with a habitable world (MAP.220, MAP.303): an overall PHI-6 Yellow or better planet or moon.
 export const HABITABLE_KIND = INTEREST_KINDS.find(function (kind) { return kind.interest === "habitable"; });
 
@@ -370,7 +406,7 @@ export function interestLines(system) {
   INTEREST_REASONS.forEach(function (reason) {
     const mine = system && system.reasons && system.reasons[reason.id];
     if (!mine) return;
-    const shaped = { n: mine.n, score: mine.score, tier: mine.tier == null ? null : TIER_NAMES.indexOf(mine.tier) };
+    const shaped = { n: mine.n, score: mine.score, tier: mine.tier == null ? null : TIER_NAMES.indexOf(mine.tier), tech: mine.tech, band: mine.band };
     lines.push({ id: reason.id, label: reason.label, text: reason.describe(shaped) });
   });
   return lines;

@@ -307,13 +307,18 @@ LIFE_FIELD = [
     {"id": 9001, "name": "Fixture Eden", "reason": "life", "n": 2, "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
     {"id": 9002, "name": "Fixture Rest", "reason": "life", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
     {"id": 9002, "name": "Fixture Rest", "reason": "sentient", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
-    {"id": 9002, "name": "Fixture Rest", "reason": "civilization", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
+    {"id": 9002, "name": "Fixture Rest", "reason": "civilization", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0,
+     "tech": 2.1, "band": "Industrial"},
+    {"id": 9007, "name": "Fixture Dawn", "reason": "civilization", "n": 2, "x": STAR_FIELD_CENTER_PC[0] + 8.0, "y": 3.0, "z": -2.0,
+     "tech": 4.8, "band": "Gravitic"},
+    {"id": 9008, "name": "Fixture Ember", "reason": "civilization", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 8.0, "y": 2.0, "z": 3.0},
     {"id": 9004, "name": "Fixture Rock", "reason": "life", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 2.0, "y": 5.0, "z": -1.0},
     {"id": 9003, "name": "Fixture Jove", "reason": "life", "n": 1, "x": STAR_FIELD_CENTER_PC[0] + 1.0, "y": 8.0, "z": 1.0},
     {"id": 9003, "name": "Fixture Jove", "reason": "sentient", "n": 1, "x": STAR_FIELD_CENTER_PC[0] + 1.0, "y": 8.0, "z": 1.0},
 ]
 """The fixture systems with a world with life (the `life`, `sentient` and `civilization` reasons, MAP.311): life in Fixture Eden, Fixture Rest,
-Fixture Rock and Fixture Jove, sentient life in Fixture Rest and Fixture Jove, a civilization in Fixture Rest only."""
+Fixture Rock and Fixture Jove, sentient life in Fixture Rest and Fixture Jove, a civilization in Fixture Rest (Industrial, level 2.1), Fixture Dawn
+(Gravitic, 4.8; two of them) and Fixture Ember (its species not drawn yet, so no band; MAP.344)."""
 
 
 def interests_of(worlds, giants, barren=(), classes=(), life=()):
@@ -347,10 +352,8 @@ def interests_of(worlds, giants, barren=(), classes=(), life=()):
         entry = systems.setdefault(other["id"], {"id": other["id"], "name": other["name"], "x": other["x"], "y": other["y"],
                                                  "z": other["z"], "reasons": {}})
         entry["reasons"][other["reason"]] = {"n": other["n"]}
-    for other in life:
-        entry = systems.setdefault(other["id"], {"id": other["id"], "name": other["name"], "x": other["x"], "y": other["y"],
-                                                 "z": other["z"], "reasons": {}})
-        entry["reasons"][other["reason"]] = {"n": other["n"]}
+        if other.get("band"):
+            entry["reasons"][other["reason"]].update(tech=other["tech"], band=other["band"])
     return list(systems.values())
 
 

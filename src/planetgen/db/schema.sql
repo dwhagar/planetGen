@@ -1498,6 +1498,8 @@
 --   changes, the migration fills them from the planets and moons already stored.
 -- v173 (MAP.311): `system_interests` also takes the reasons `civilization` (a world whose timeline reached a technological civilization), `sentient` (a sentient life score of 1 or more) and `life` (any of the
 --   four life scores of 1 or more), no score kept; no column changes, the migration fills them from the planets and moons already stored.
+-- v174 (MAP.344): the `civilization` rows of `system_interests` keep, as `best_score`, the technology level of the system's most advanced species (NULL until its species is drawn); no column
+--   changes, the migration sets it from the species already stored.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -4264,7 +4266,7 @@ CREATE TABLE IF NOT EXISTS sector_system_counts (
 -- system_interests (v165, MAP.305, MAP.303): one row for each reason a star system is worth a mark on the Galaxy Map
 -- (`planetgen.db.interests.REASONS`: a planet or moon rated Yellow or better overall on the PHI-6 score, a scored barren one, a gas giant, a
 -- belt, and more as they are added), with how many bodies give it (`n`), the largest score among them (`best_score`, NULL for a reason
--- with no score) and where the system is, so the map's marker layer finds the systems in a box (`query.galaxy_system_interests_in_box`)
+-- with no score; the `civilization` reason's is a technology level, v174) and where the system is, so the map's marker layer finds the systems in a box (`query.galaxy_system_interests_in_box`)
 -- without reading every planet. Derived data: `interests.record` rebuilds a system's rows when its sector is filled and whenever its
 -- scores are worked out again; the position is the system's `galaxy_*_pc`, which never changes. It replaces `habitable_systems` (v148).
 -- ---------------------------------------------------------------------

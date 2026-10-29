@@ -48,7 +48,7 @@ from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.physics import equipment, habitability, habitability_world, life_scores, score_filters
 from planetgen import tuning
-from planetgen.population import facility_ratings, facility_types
+from planetgen.population import facility_ratings, facility_types, tech
 from planetgen.generation import cloud as cloudContext
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
@@ -4885,7 +4885,8 @@ def galaxy_system_interests_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
 
     Returns:
         list[dict]: `id`, `name`, `x`/`y`/`z` (parsecs) and `reasons`, a dict by reason id of `n` (how many bodies) and, for a
-        reason with a score, `score` (the largest) and `tier` (its PHI-6 colour).
+        reason with a score, `score` (the largest) and `tier` (its PHI-6 colour); the `civilization` reason has instead `tech` (the technology
+        level of its most advanced species) and `band` (its name), when the system's species are drawn (MAP.344).
     """
     rows = conn.execute(
         """
@@ -4944,7 +4945,10 @@ def _interest_systems(conn, rows, limit):
             "id": row["star_system_id"], "x": round(row["galaxy_x_pc"], 3), "y": round(row["galaxy_y_pc"], 3),
             "z": round(row["galaxy_z_pc"], 3), "reasons": {}, "bodies": 0})
         reason = {"n": int(row["n"])}
-        if row["best_score"] is not None:
+        if row["best_score"] is not None and row["reason"] in interests.TECH_REASONS:
+            reason["tech"] = round(float(row["best_score"]), 2)
+            reason["band"] = tech.band_name(reason["tech"])
+        elif row["best_score"] is not None:
             reason["score"] = round(float(row["best_score"]), 3)
             reason["tier"] = habitability.tier(float(row["best_score"]))
         system["reasons"][row["reason"]] = reason
