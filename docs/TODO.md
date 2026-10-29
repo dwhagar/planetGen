@@ -2072,6 +2072,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chain filed from that message: TEST.368 (fixture galaxy), MAP.295 and
   MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking, labels, zoom,
   icons; Aux 10). Owner: Aux 10.
+  Research (2026-10-09): OWNER Aux 3 (assigned 7:20 PM EDT 2026-10-29
+  after Boss asked where the map labelling part stands; Aux 10 is
+  retired). Lock-free; separate branch from Aux 3's parked GEN.816
+  branch. Its MAP.299 label work (#3754) is merged, so names for every
+  kind come from that engine.
   Prerequisites: TEST.368. Related: MAP.298, MAP.207, MAP.301.
 
 - [ ] **MAP.307 Stations and facilities become points of interest: interest reasons for the map mark and its menu filter**
