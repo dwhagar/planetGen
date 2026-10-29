@@ -1,0 +1,7 @@
+{
+ "allowed_references": {
+  "planetgen.generation.life:_set_description": "writes the class's own description text onto the body; it claims no life (GEN.92)",
+  "planetgen.generation.life:decide_flavor_text": "picks the flavour line of a body; reads the conditions' class (classify) only to choose between planet and orbital flavour text, never to decide whether it lives",
+  "planetgen.physics.habitability_world:values_from_body": "copies the stored class letter into the value dict; the habitability index does not read it (the sweep proves the scores are the same on every letter)"
+ }
+}
