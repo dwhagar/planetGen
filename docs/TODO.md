@@ -4941,7 +4941,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.741, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.741, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -11797,96 +11797,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   five items; takes it only if nobody has started it.
   Prerequisites: none. Related: GEN.745, GEN.444.
 
-- [ ] **GEN.750 Evolutionary timeline: a model of the time to each life stage from conditions (Boss ruled: model it from physics)**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  L1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T9 (fast,
-  slow); normal is one Earth data point. Today: The evolutionary
-  timeline is three fixed presets (normal: abiogenesis 0.5 Gyr,
-  photosynthesis 1.5, complex cells 2.5, multicellularity 4.0,
-  civilisation 4.5; fast; slow) chosen by the star. The module says it
-  is 'purely speculative... not based on any established scientific
-  models of astrobiology', and the 'normal' row is Earth's history,
-  which the NO FIXED CONTENT rule forbids as a preset. Real physics: a
-  model of the time to each stage from conditions (energy, water,
-  temperature, stability), with the Earth as a test point. This is
-  partly unknowable, so it may be a deliberate design choice. Do: ask
-  Boss whether a model is wanted; if yes, build one and register its
-  tier and tweak level; if no, replace the Earth-history preset with a
-  drawn timeline and record the ruling. Done: Boss's ruling is recorded
-  and the timeline either follows from conditions or is a labelled
-  design draw that does not copy Earth. Each stand-in it touches records
-  its source tier and tweak level in the gap plan registry (GEN.725).
-  Owner: pool (first free lane; 8.1 core lanes do not take it before 8.1
-  closes).
-  Decided (Boss, 4:01 PM EDT 2026-10-24, decision card, option 1): model
-  the timeline from physics (energy, water, temperature, stability),
-  with the Earth only as a test point; no Earth-history preset. The
-  ruling is recorded, so the item is ready for code. Stays in 8.4 with
-  GEN.727 to GEN.749 (Boss, same time, option 1: leave them in 8.4).
-  Spec (2026-10-09): Spec (Update 4:12 PM EDT 2026-10-24, section 14 of
-  reports/best-guess-standins-2026-10-24.md): five hard steps
-  (abiogenesis, oxygenic photosynthesis, complex cells, multicellular
-  animals, civilisation); waiting times exponential with means 0.5, 1.5,
-  5, 10 and 20 Gyr, conditioned on finishing inside the habitable window
-  (hard-step statistics, Carter 1983, Watson 2008). No Earth preset, and
-  the presets option is dropped. Tier T7 as a model; tweak L3, since the
-  means are tunable to target odds. Emergent chance of civilisation is
-  about 0.7 percent of 5.4 Gyr windows; Boss can retune the means.
-  Research (2026-10-09, Physics fix plan): Civilisation ramp folded in
-  (physics fix plan thread, gap row L2): the timeline also models the
-  civilisation ramp and its overlap with the Sentient score, from
-  physics-based steps like the others, with its source tier and tweak
-  level in the registry. No separate item. Suggested owner Lane 3 (items
-  nobody has started), 8.4, pending Boss's answer on early 8.4 starts.
-  Research (2026-10-09, Owner): Boss (5:30 PM EDT 2026-10-24, tapped the
-  card 'Yes, pool lanes may start them'): free pool lanes may start
-  unstarted 8.4 physics items (GEN.727 to GEN.750, GEN.752, GEN.753,
-  GEN.755) before 8.1 closes; the core lanes stay on 8.1; a lane takes
-  only items nobody has started and confirms with TODO first. Proposed
-  owner: Lane 3, after GEN.729.
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Research (2026-10-09): Re-homed to Core 1 (coordinator, 7:13 PM EDT
-  2026-10-28) as the timeline that GEN.855 (biogenic oxygen) reads.
-  Research (2026-10-09): Life chemistry review (2026-10-28), a tuning
-  choice for Boss and Core 1 (L3, T9): with plain exponential waits of
-  means 0.5, 1.5, 5, 10 and 20 Gyr only about 6 percent of worlds reach
-  multicellular animals by 4.6 Gyr and 0.4 percent a civilisation;
-  shortening the animal step to 2 to 3 Gyr and lengthening the
-  civilisation step to 60 to 100 Gyr gives about 43 to 52 percent
-  animals and 0.9 to 1.8 percent civilisations by 6 Gyr (the report's
-  Monte Carlo ignores the temperature clock). Boss wants animals common
-  and civilisations no more common than before.
-  Research (2026-10-09): Boss, 9:01 PM EDT 2026-10-28: review the animal
-  and civilisation step timing as soon as possible (see the Monte Carlo
-  note above). Core 1 reviews the step means with the temperature clock
-  included and brings Boss a plain-words proposal (animals common on
-  suitable worlds, civilisations no more common than before) before the
-  GEN.855 + GEN.750 epoch is merged.
-  Research (2026-10-09): Core 1 timing review (as the lane reported,
-  about 9:03 PM EDT 2026-10-28), Monte Carlo with the temperature clock
-  and the 2 Gyr oxygen delay, ages to 10 Gyr (G) or 13.8 Gyr (K, M).
-  Current means 0.5/1.5/5/10/20 with scale 0.7: animals 12/19/13 in 100
-  and civilisation 1.5/3.4/1.7 in 100 (G/K/M). Proposal: means
-  0.5/1.5/2.5/3/60, scale 1.0: animals 21/33/23 and civilisation
-  0.6/1.5/0.7; with the civilisation step at 100: 0.4/1.0/0.5. Boss
-  decides; Core 1 applies his pick before the golden rewrite if he
-  answers in time, else merges the current values and retunes as a
-  follow-up.
-  Research (2026-10-09): Boss, 9:03 PM EDT 2026-10-28, card answer
-  (option 1, Core 1's proposal): step means 0.5, 1.5, 2.5 (complex
-  cells), 3 (animals) and 60 Gyr (civilization), scale 1.0. Core 1
-  applies it in the GEN.855 + GEN.750 change before the golden rewrite;
-  registry row tier T9, tweak L3.
-  Research (2026-10-09): Boss, 9:13 PM EDT 2026-10-28: sentient should
-  be the most rare kind of life, with most life stopping at animal life.
-  Census and generation targets order the stages by prevalence: sentient
-  is the rarest stage, animals the common ceiling.
-  Prerequisites: none. Related: GEN.649, GEN.740.
-
 - [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
   The GEN.422 fixed point of surface temperature and pressure has no
   climate feedback. Add the three feedbacks that move it: ice-albedo
@@ -12912,6 +12822,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09): Cause found (Bug 1, 7:12 PM EDT as the lane
   reported): 4c leaves no free oxygen in the air and nothing makes
   biogenic oxygen; fixed by GEN.855 (Core 1). Retires with GEN.855.
+  Research (2026-10-09): Update (TODO, 3:06 AM EDT 2026-10-29): the
+  cause GEN.855 merged as #3663 (epoch 119). This item retires when
+  tests/test_population.py builds a civilization again on main; Bug 1
+  reruns it after #3663 and tells me. Core 1's census: civilizations G2V
+  0 in 100, K5V 2 in 100, so the test filter may need a K or a longer
+  search.
   Prerequisites: none. Related: POP.30, TEST.425.
 
 - [ ] **GEN.854 Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug)**
@@ -12935,55 +12851,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reported): same as GEN.853, class M worlds have no free oxygen after
   4c; fixed by GEN.855 (Core 1), not an Aux 9 class-rule problem. Owner
   moves from Aux 9 to Core 1. Retires with GEN.855.
+  Research (2026-10-09): Update (TODO, 3:06 AM EDT 2026-10-29): GEN.855
+  merged as #3663 (epoch 119). Core 1's 80-seed G2V probe: 69 class M
+  worlds, oxygenic life on 16; those with a sunlit sea reach 17 to 54
+  kPa O2 (hot hycean worlds above 70 C make none). Oxygenic life is the
+  limit (Chlorophyll a needs a sunlit sea and is vetoed on A and M
+  stars, GEN.867), so many class M worlds stay not habitable by design.
+  This item retires after Boss regenerates and looks.
   Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
-
-- [ ] **GEN.855 Biogenic oxygen: photosynthesis releases free oxygen into the air as the life timeline passes it, so habitable worlds can reach multicellular life (bug)**
-  Boss, 6:59 PM EDT 2026-10-28: most class M planets are not habitable
-  and most need a hardened pressure suit; the population tests also find
-  no technological civilization (GEN.853, GEN.854). Cause found by Bug 1
-  at about 7:12 PM EDT as the lane reported: since 4c (GEN.411/422,
-  #3311, epoch 106) the solved air of every habitable-host world has
-  zero free oxygen, and the code has no biogenic oxygen step at all (no
-  photosynthesis-to-O2 accumulation anywhere in planetgen).
-  habitability.t_metazoa needs O2 between 8 and 50 kPa, so phi_cpx = 0,
-  life_ceiling = microbial, and nothing reaches multicellularity or a
-  civilization. Evidence on the same 20 seeds of a G2V HABITABLE_WORLD
-  fill, class M planets: before 4c (86f5e3993^) O2 14 to 28 kPa, phi_cpx
-  about 0.45 to 0.57, ceiling none in 19, 2 reached a technological
-  civilization; after 4c (86f5e3993) O2 0.0 kPa on all 8 shown, phi_cpx
-  0.0, ceiling microbial in 15 and none in 6, 0 civilizations, fauna 0
-  on all 21. Same on current main (13 microbial, 7 none of 20). Probe
-  scripts: /tmp/probe_m.py and /tmp/probe_m3.py on the Bug 1 lane
-  machine. Do: build a biogenic oxygen step tied to the GEN.750 life
-  timeline (Boss ruled the timeline is modelled from physics, not copied
-  from Earth): oxygen is released by photosynthesis as the timeline
-  passes oxygenic photosynthesis, accumulates against the sinks (crust
-  and ocean oxidation, volcanic reductants, escape), and the air of a
-  world whose life has passed it carries the resulting O2. Each stand-in
-  records its source tier and tweak level in the registry (GEN.725);
-  Boss accepts pragmatic physics tweaks if they are stated and
-  justified. It changes generated output, so it takes an epoch and a
-  lock turn (second in the queue after Aux 17, because it is
-  Boss-visible). Done: on the same 20-seed G2V fill, habitable class M
-  worlds have O2 in the metazoan window where the timeline says life has
-  passed photosynthesis, and the population tests find technological
-  civilizations again; GEN.853 and GEN.854 retire with it. Owner: Core 1
-  (with GEN.750).
-  Prerequisites: none. Related: GEN.750, GEN.853, GEN.854, GEN.646,
-  GEN.411, GEN.422, GEN.725.
-  Research (2026-10-09): Atmosphere of evolution chain approved by Boss,
-  8:32 PM EDT 2026-10-28: GEN.858 stage-aware air, GEN.857, GEN.859,
-  GEN.860, GEN.861 follow in the same chain (Core 1). Core 1 may bundle
-  any of them into the GEN.855 epoch if it is nearly free, and says so
-  to TODO; otherwise each takes its own lock turn right after GEN.855.
-  Research (2026-10-09): Life chemistry review (2026-10-28): add the
-  standing tests of GEN.873 (an oxygenic world past photosynthesis has
-  more O2 than before it; every pace reaches complex cells inside the
-  age of the universe); check that a surface water body without an ocean
-  (lakes and land) can still draw an oxygenic chemistry with the sunlit
-  gate; bundle the per-body sub-stream of GEN.872 into the same epoch if
-  ready; check that the _again redraw cannot change the pace after the
-  O2 was added.
 
 - [ ] **GEN.856 interior_heat._flux_w_m2 raises ZeroDivisionError and fails the albedo and tidal migration tests on clean main (bug)**
   Reported by Aux 17 at its lock-turn gate for GEN.822 (about 7:56 PM
@@ -13030,7 +12905,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   haze, oxygen-free worlds of retinal or melanin life carry no gas of
   their own, each value has a registry row with a source, and the class
   census (TEST.430) ranges are updated. Owner: Core 1, later.
-  Prerequisites: GEN.855, GEN.750. Related: GEN.855, GEN.750, GEN.725,
+  Prerequisites: GEN.750. Related: GEN.855, GEN.750, GEN.725,
   GEN.851, TEST.430.
   Research (2026-10-09): Part of the atmosphere of evolution chain
   approved by Boss, 8:32 PM EDT 2026-10-28 (GEN.858, GEN.859, GEN.860,
@@ -13074,7 +12949,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   distinct, stated airs, a world whose timeline has not reached a stage
   never shows that stage's gas, and the class census (TEST.430) ranges
   are updated.
-  Prerequisites: GEN.855, GEN.750. Related: GEN.855, GEN.750, GEN.857,
+  Prerequisites: GEN.750. Related: GEN.855, GEN.750, GEN.857,
   GEN.859, GEN.860, GEN.861, GEN.725.
   Research (2026-10-09): Life class design
   (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
@@ -13104,7 +12979,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   microbial world exceeds the cap, the cap is a registry row with
   source, tier and tweak level, and a test covers a world at and above
   the cap.
-  Prerequisites: GEN.855, GEN.750. Related: GEN.857, GEN.858, GEN.860,
+  Prerequisites: GEN.750. Related: GEN.857, GEN.858, GEN.860,
   GEN.725.
 
 - [ ] **GEN.860 Melanin radiotrophs weighted by radiation dose: the star weight times a dose factor from 0.1 at Earth dose to 1.0 at about 1,000 times Earth dose**
@@ -13130,7 +13005,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fill the share of melanin worlds rises with dose as stated, the factor
   is a registry row with source, tier and tweak level, and a test covers
   the two end points.
-  Prerequisites: GEN.855, GEN.750. Related: GEN.857, GEN.858, GEN.725.
+  Prerequisites: GEN.750. Related: GEN.857, GEN.858, GEN.725.
 
 - [ ] **GEN.861 Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need**
   Boss, 8:32 PM EDT 2026-10-28 (relayed by the coordinator): "make the
@@ -13157,7 +13032,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   water). Done: no retinal or melanin world exists without a stated
   carbon source, each gate and weight is a registry row with source,
   tier and tweak level, and a test covers a world with the base removed.
-  Prerequisites: GEN.855, GEN.750. Related: GEN.857, GEN.858, GEN.859,
+  Prerequisites: GEN.750. Related: GEN.857, GEN.858, GEN.859,
   GEN.860, GEN.725.
   Research (2026-10-09): Boss, 7:43 PM EDT 2026-10-28, card answer: the
   retinal gate (share_o2 below 0.1) does not stay; remove it, so the
@@ -13209,7 +13084,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.888 (L4), GEN.889 (L5), GEN.890 (L6), GEN.891 (L7), GEN.894 (L8),
   GEN.892 (L11), GEN.893 (L13), UX.237 (L9), API.37 and MAP.345 (L10),
   TEST.435 (L12). GEN.874 and GEN.885 are folded into this work.
-  Prerequisites: GEN.855, GEN.750, GEN.858. Related: GEN.857, GEN.861.
+  Prerequisites: GEN.858. Related: GEN.857, GEN.861.
 
 - [ ] **GEN.863 Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters**
   Boss (2026-10-28, 7:41 PM EDT): built from the 9.5 design: the
@@ -13273,6 +13148,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   water-chemistry-on-non-water-solvent guard becomes the class's solvent
   term in GEN.886. Do not build this item separately; it closes when
   GEN.889 merges.
+  Research (2026-10-09): Update (Core 1, GEN.855 #3663, 3:05 AM EDT
+  2026-10-29 as the lane reported): STAR_EVOLUTION gives A and M stars
+  no oxygenic chemistry; 15 of 35 weights are dead and Chlorophyll a is
+  vetoed on A and M; M/A complex-cell flags in the census expectations
+  stay tagged GEN.855 with that new reason; this item owns the fix.
   Prerequisites: GEN.855. Related: GEN.861, GEN.725.
 
 - [ ] **GEN.868 A world has a life chemistry only after abiogenesis has happened: the map icons, search facet and population code read life_stage, not life_chemical**
@@ -13358,7 +13238,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prevalence band per chemistry per star letter, goes into the TEST.430
   chain). Each test must fail on today's main for the defect it names
   and pass after its fix. Size S to M.
-  Prerequisites: GEN.867, GEN.868, GEN.871, GEN.855. Related:
+  Prerequisites: GEN.867, GEN.868, GEN.871. Related:
   TEST.430.
   Research (2026-10-09): Life class design
   (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
@@ -13406,7 +13286,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   complexity index and animal grades of GEN.890 (the sponge floor of
   about 0.1 to 0.8 kPa from Mills 2014 stays the Class 1 anchor); build
   it as part of GEN.890.
-  Prerequisites: GEN.855, GEN.867.
+  Prerequisites: GEN.867.
 
 - [ ] **GEN.878 Chemistry-specific energy: the pigment's absorption band times the star's spectrum is the multiplier on LIGHT_SHARE, instead of one bolometric curve for every metabolism**
   Life chemistry review (research thread, 2026-10-28,
@@ -13548,7 +13428,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the star weights of GEN.867. Needs the per-body life sub-stream
   (GEN.872) and Core 1's GEN.855 + GEN.750. One epoch and one migration
   (lock turn).
-  Prerequisites: GEN.872, GEN.855, GEN.750. Related: GEN.863,
+  Prerequisites: GEN.872. Related: GEN.863,
   GEN.867.
   Research (2026-10-09): Bug 2 side note (TEST.435 first run,
   2026-10-28; no fault claimed): 794 of 1,246 life worlds get no shadow

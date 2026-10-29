@@ -1712,3 +1712,5 @@ Baseline: PR #1817.
 | PERF.100 | 8.1 | Queue, caches and performance |
 | MAP.344 | 8.1 | Fly-through map |
 | DOC.20 | 8.1 | Docs |
+| GEN.855 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.750 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
