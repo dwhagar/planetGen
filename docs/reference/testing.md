@@ -414,8 +414,12 @@ it is the same on every run and a range is the researched range itself (a catalo
 population model's share of Wolf-Rayet stars among its living stars of 8 solar masses or more (120,000 draws) times the galaxy's stars
 by population, with the range widened by four Poisson sigma of the draws. About a minute on 4 cores; `python -m tests.audit.prevalence_phenomena`
 prints the report without the test. Giant molecular clouds, planetary nebulae and supernova remnant counts per star, and the globular
-cluster count already have tests of their own (`test_nebula_rates.py`, `test_cluster_count_law.py`); the rest of TEST.433 (open
-clusters, rogue planets, interstellar comets, nebula classes) follows in a later cut.
+cluster count already have tests of their own (`test_nebula_rates.py`, `test_cluster_count_law.py`); the second cut adds seven measures that are not scatter totals: the rates the sectors' fill draws from, read where the fill reads them
+(`tuning.phenomenon_rate_per_star`, `ROGUE_PLANET_MASS_BINS` and `PHENOMENON_RATE_SCALE`, so a dialled rate shows): terrestrial rogue planets
+per star and per pc^3, Jupiter-mass rogue planets per star, brown dwarfs per pc^3, runaway stars per star and interstellar debris per pc^3, each
+against its researched range; and the open clusters a galaxy of the reference shape draws (`open_clusters.generate_open_clusters`, about 17,500,
+against the 1,867 Gaia clusters as a floor and the generator's cap of 100,000). These are rates, not realized sector draws. The nebula classes
+(emission and reflection nebulae around hot stars) are the remainder of TEST.433.
 
 Part F, the body sweeps (`src/tests/audit/sweep.py`): one shared set of generated bodies that the consistency sweeps read. It builds a
 planet of every class and zone pair the class table allows round an M2V, a G2V and an F5V host, with the moons each drew, and adds the

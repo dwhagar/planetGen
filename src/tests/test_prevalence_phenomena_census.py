@@ -89,7 +89,7 @@ def expectations():
 
 
 def test_every_measure_of_the_census_has_a_range(expectations):
-    assert set(expectations["measures"]) == set(phenomena.CLASS_MEASURES.values()) | {"wolf_rayet_stars"}
+    assert set(expectations["measures"]) == set(phenomena.CLASS_MEASURES.values()) | {"wolf_rayet_stars"} | set(phenomena.RATE_MEASURES)
 
 
 def test_every_range_has_a_kind_a_source_and_a_sane_width(expectations):
@@ -103,7 +103,7 @@ def test_every_range_has_a_kind_a_source_and_a_sane_width(expectations):
 def test_the_reference_says_which_galaxy_and_which_papers(expectations):
     reference = expectations["reference"]
     assert reference["kind"].startswith("norm") and "SHAPE" in reference["galaxy"]
-    assert set(reference["sources"]) >= {"Green2019", "McGill", "FrewParker", "Rosslowe"}
+    assert set(reference["sources"]) >= {"Green2019", "McGill", "FrewParker", "Rosslowe", "Mroz2017", "Kirkpatrick2021", "CantatGaudin2020"}
 
 
 # --- The census ------------------------------------------------------------------------------------------------------------
@@ -115,6 +115,7 @@ def test_the_phenomena_census_raises_no_new_flag(expectations):
     that no known anomaly explains. Known anomalies are in the report; one that no longer trips is listed as stale there."""
     values = phenomena.summarize(phenomena.galaxy_totals())
     values["wolf_rayet_stars"], hits = phenomena.wolf_rayet_total()
+    values.update(phenomena.rate_values())
     findings = phenomena.compare(values, expectations, {"wolf_rayet_stars": hits})
     header = f"Norms: {expectations['reference']['kind']}. Galaxy: {expectations['reference']['galaxy']}."
     stale = phenomena.stale_anomalies(expectations, findings)
@@ -137,3 +138,28 @@ def test_a_broken_range_trips_the_live_flag(expectations):
     broken["measures"]["stellar_black_holes"].update(min=1.0e12, max=1.0e13)
     assert any(f.measure == "stellar_black_holes" and f.kind in ("out-of-range", "missing")
                for f in phenomena.compare(values, broken))
+
+
+def test_the_rates_are_read_where_the_fill_reads_them_and_repeat(expectations):
+    values = phenomena.rate_values()
+    assert values == phenomena.rate_values()
+    assert set(values) == set(phenomena.RATE_MEASURES)
+    assert phenomena.compare(values, {"measures": {m: b for m, b in expectations["measures"].items() if m in values}}) == []
+
+
+def test_a_rate_scale_that_dials_a_kind_down_trips_its_flag(monkeypatch, expectations):
+    from planetgen import tuning
+
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "rogue-planet", 0.1)
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "brown-dwarf", 2.0)
+    values = phenomena.rate_values()
+    flagged = {f.measure for f in phenomena.compare(values, expectations) if f.measure in phenomena.RATE_MEASURES}
+    assert {"rogue_terrestrial_per_star", "rogue_terrestrial_per_pc3", "brown_dwarfs_per_pc3"} <= flagged
+
+
+def test_the_open_clusters_of_the_reference_galaxy_are_alive_young_and_many(expectations):
+    from planetgen import tuning
+
+    count = phenomena.rate_values()["open_clusters"]
+    bounds = expectations["measures"]["open_clusters"]
+    assert bounds["min"] <= count <= bounds["max"] <= tuning.OPEN_CLUSTER_MAX_COUNT
