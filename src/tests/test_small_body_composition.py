@@ -247,6 +247,8 @@ def test_a_comets_organics_take_the_shared_tables_density_not_a_separate_one():
     prop = row.props["rho_grain_g_cm3"]
     assert prop.value == 1.5
     assert tuple(prop.measured_range) == (1.0, 2.0)
+    # GEN.660: the 2 g/cm3 that Choukroun et al. 2020 is reported to give is the top of the table's range, and the row says so.
+    assert prop.measured_range[1] >= 2.0 and "Choukroun" in row.note
     comet = sb.draw_comet()
     assert "complex_organics" not in comet.densities
     assert sb.REFRACTORY_DENSITIES == {"silicate_dust": 3500.0}
