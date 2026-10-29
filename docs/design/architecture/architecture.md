@@ -213,6 +213,7 @@ The constants and the maths behind every generated body.
 | [`habitability_world.py`](../../../src/planetgen/physics/habitability_world.py) | The habitability score of every planet and moon (GEN.89): turns a body's stored air, water, temperature, radiation and light into the `World` that `habitability.scores` reads (GEN.84) and stores the result. |
 | [`hii.py`](../../../src/planetgen/physics/hii.py) | H II regions from their stars' ionizing photons (GEN.150). |
 | [`hydrosphere.py`](../../../src/planetgen/physics/hydrosphere.py) | Water on planets, moons and rogue planets (GEN.88). |
+| [`imf.py`](../../../src/planetgen/physics/imf.py) | The initial mass function (GEN.926): the one place the generator's stellar mass function lives, a piecewise power law read from `tuning.IMF_BREAKS_SOL` and `IMF_SLOPES`; the draw of a star's mass, the number or mass of stars in a range, the segments a mass grid is built on. |
 | [`insolation.py`](../../../src/planetgen/physics/insolation.py) | Summed insolation of a planet in a multi-star system (GEN.148). |
 | [`kepler.py`](../../../src/planetgen/physics/kepler.py) | Two-body Kepler and Barker propagation for eccentric and parabolic orbits. |
 | [`light_travel.py`](../../../src/planetgen/physics/light_travel.py) | Light-travel positions (VIEW.5): where an object appears to be to an observer. Built and tested, but no production Python calls it yet (only tests); the callers are planned in VIEW.12, VIEW.2 and VIEW.18. |

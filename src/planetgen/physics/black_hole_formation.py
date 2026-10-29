@@ -17,7 +17,7 @@ import functools
 import math
 
 from planetgen import tuning
-from planetgen.physics import ms_lifetime, stellar_evolution
+from planetgen.physics import imf, ms_lifetime, stellar_evolution
 
 
 @functools.lru_cache(maxsize=1)
@@ -25,7 +25,7 @@ def imf_massive_share():
     """The share of the stars born that have `tuning.CORE_COLLAPSE_MASS_RANGE_SOL` solar masses (8 to 150): 0.637% of
     the generator's own IMF (the massive stars that can end as a neutron star or a black hole)."""
     low, high = tuning.CORE_COLLAPSE_MASS_RANGE_SOL
-    return stellar_evolution.imf_number(low, high) / stellar_evolution.imf_number(tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1])
+    return imf.number(low, high) / imf.number(imf.lowest_mass_sol(), imf.highest_mass_sol())
 
 
 @functools.lru_cache(maxsize=1)
@@ -37,7 +37,7 @@ def _lifetime_table():
     edges = [low * (high / low) ** (i / steps) for i in range(steps + 1)]
     masses = [math.sqrt(a * b) for a, b in zip(edges, edges[1:])]
     ages = [ms_lifetime.lifetime_gy(m) * stellar_evolution.remnant_age_fraction(m) for m in masses]
-    weights = [stellar_evolution.imf_number(a, b) for a, b in zip(edges, edges[1:])]
+    weights = [imf.number(a, b) for a, b in zip(edges, edges[1:])]
     return tuple(ages), tuple(weights)
 
 

@@ -10,7 +10,7 @@ import pytest
 from planetgen import tuning
 from planetgen.galaxy import density, disk_history, system_mass as galaxy_system_mass
 from planetgen.generation import multistar, system_mass
-from planetgen.physics import mathcheck, remnant_mass, remnant_progenitors, stellar_evolution
+from planetgen.physics import imf, mathcheck, remnant_mass, remnant_progenitors, stellar_evolution
 from planetgen.util import draw
 
 
@@ -33,7 +33,7 @@ def test_a_lower_cap_and_a_lower_prevalence_lower_the_expected_count():
 @pytest.mark.parametrize("age_gy", [0.3, 3.0, 10.0])
 def test_the_placed_stars_mean_mass_is_a_seeded_draw_of_the_initial_mass_function(age_gy):
     rng = draw.Stream(f"gen545-imf-{age_gy}")
-    masses = stellar_evolution.sample_imf_mass_sol
+    masses = imf.sample
     drawn = system_mass.present_mass_sol(np.array([masses(rng=rng) for _ in range(40000)]), age_gy)
     error = drawn.std() / math.sqrt(len(drawn))
     number, mean_mass, _others = system_mass._placed_bins()
@@ -45,7 +45,7 @@ def test_the_placed_stars_mean_agrees_with_the_moments_the_perturber_mass_uses()
     # They differ only in where a star leaves the main sequence (the giant phases' end, not the main sequence's).
     for age_gy in (1.0, 5.0, 10.0):
         mass, _square = system_mass.present_day_moments(age_gy)
-        old = mass / system_mass.imf_integral(0.0, tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1])
+        old = mass / imf.integral(0.0, tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1])
         number, mean_mass, _others = system_mass._placed_bins()
         new = float(np.sum(number * system_mass.present_mass_sol(mean_mass, age_gy)) / number.sum())
         assert new == pytest.approx(old, rel=0.03)
@@ -90,7 +90,7 @@ def test_the_mean_system_mass_is_a_seeded_draw_of_systems(age_gy):
     rng = draw.Stream(f"gen545-systems-{age_gy}")
     found = []
     for _ in range(4000):
-        mass = stellar_evolution.sample_imf_mass_sol(rng=rng)
+        mass = imf.sample(rng=rng)
         if stellar_evolution.evolve_star(mass, age_gy, rng) is None:
             kind = "black-hole" if remnant_progenitors.fails(mass) else "neutron-star"
             found.append(remnant_mass.draw_mass_sol(kind, rng=rng))
@@ -123,10 +123,10 @@ def test_the_window_mean_is_the_mean_over_its_ages_and_a_law_weights_them():
 def test_the_compact_companions_left_out_are_under_the_bound():
     # 1% of the stars of 2 to 14 solar masses get a white dwarf, 0.03% a neutron star and 0.02% a black hole.
     table = multistar.MEMBER_STATE_BY_PLACED["star-intermediate"]
-    number = system_mass.imf_integral(0.0, 2.0, 14.0) / system_mass.imf_integral(
+    number = imf.integral(0.0, 2.0, 14.0) / imf.integral(
         0.0, tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1])
     massive = multistar.MEMBER_STATE_BY_PLACED["star-massive"]
-    heavy = system_mass.imf_integral(0.0, 14.0, tuning.IMF_BREAKS_SOL[-1]) / system_mass.imf_integral(
+    heavy = imf.integral(0.0, 14.0, tuning.IMF_BREAKS_SOL[-1]) / imf.integral(
         0.0, tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1])
     added = (number * (table["white-dwarf"][0] * 0.9 + table["neutron-star"][0] * 1.4 + table["black-hole"][0] * 9.0)
              + heavy * (massive["neutron-star"][0] * 1.4 + massive["black-hole"][0] * 9.0))

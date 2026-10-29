@@ -46,7 +46,7 @@ from dataclasses import dataclass, field
 from typing import Callable
 
 from planetgen.galaxy import core_gas as coreGas, galactic_orbit
-from planetgen.physics import formation
+from planetgen.physics import formation, imf
 from planetgen.physics import orbits
 from planetgen.physics import relations
 from planetgen.physics import surface_composition
@@ -911,7 +911,7 @@ def _kroupa_cdf(m):
 
 def _imf_p_value():
     rng = draw.Stream(SEED + 1)
-    draws = [stellar_evolution.sample_imf_mass_sol(rng=rng) for _ in range(4000)]
+    draws = [imf.sample(rng=rng) for _ in range(4000)]
     edges = [0.08, 0.15, 0.3, 0.5, 0.8, 1.5, 3.0, 8.0, 150.0]
     shares = [_kroupa_cdf(b) - _kroupa_cdf(a) for a, b in zip(edges, edges[1:])]
     return chi_square_p_value(_bin_counts(draws, edges), shares)
@@ -994,7 +994,7 @@ def _moon_mass_p_value():
 def _distribution_checks():
     chi = f"chi-square goodness of fit, p >= {CHI_SQUARE_P_MIN:g}"
     return [
-        Check("imf_matches_kroupa", "distribution", "stellar_evolution.sample_imf_mass_sol",
+        Check("imf_matches_kroupa", "distribution", "imf.sample",
               _imf_p_value, CHI_SQUARE_P_MIN, 0.0,
               f"Kroupa 2001, MNRAS 322:231 (alpha 1.3 below 0.5 M_sun, 2.3 above); {chi}", mode="min",
               unit="p"),

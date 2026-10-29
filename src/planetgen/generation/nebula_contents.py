@@ -37,7 +37,7 @@ from planetgen import tuning
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula, choose_weighted_class
-from planetgen.physics import component_profiles, hii, stellar_evolution
+from planetgen.physics import component_profiles, hii, imf, stellar_evolution
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 
@@ -167,7 +167,7 @@ def cloud_members(galaxy_seed, nebula, center_pc):
             offset = tuple(rng.gauss(0.0, sigma) for _ in range(3)) if "mean" in rule else (0.0, 0.0, 0.0)
             if math.sqrt(sum(c * c for c in offset)) <= radius_pc:
                 break
-        mass = stellar_evolution.sample_imf_mass_sol(None, tuning.PRE_MAIN_SEQUENCE_MAX_MASS_SOL, rng)
+        mass = imf.sample(None, tuning.PRE_MAIN_SEQUENCE_MAX_MASS_SOL, rng)
         age = rng.uniform(0.0, tuning.PROTOSTAR_MAX_AGE_YR)
         members.append(CloudMember(tuple(center_pc[i] + offset[i] for i in range(3)), mass, age, f"{base}:{n}"))
     return members
@@ -217,7 +217,7 @@ def _member_mass(name, age_myr, rng):
     low, high = hii.mass_range_of_type(name, tuning.NEBULA_SEED_MASS_RANGE_SOL["E"][1])
     age_gy = age_myr / 1000.0
     for _ in range(_DEAD_MEMBER_TRIES):
-        mass = stellar_evolution.sample_imf_mass_sol(low, high, rng)
+        mass = imf.sample(low, high, rng)
         if stellar_evolution.main_sequence_lifetime_gy(mass) > age_gy:
             return mass
     return low

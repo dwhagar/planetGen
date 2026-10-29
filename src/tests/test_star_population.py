@@ -15,7 +15,7 @@ import random
 
 import pytest
 
-from planetgen.physics import constants as phys_c, main_sequence
+from planetgen.physics import constants as phys_c, imf, main_sequence
 from planetgen import tuning as prog_c
 from planetgen.physics import stellar_evolution as se
 from planetgen.generation import star_population as sp
@@ -117,11 +117,11 @@ def test_white_dwarfs_are_earth_sized_and_dim(population):
 
 def test_imf_sampler_respects_truncation():
     rng = random.Random(1)
-    masses = [se.sample_imf_mass_sol(min_mass_sol=1.4, rng=rng) for _ in range(5000)]
+    masses = [imf.sample(min_mass_sol=1.4, rng=rng) for _ in range(5000)]
     assert min(masses) >= 1.4
     assert max(masses) <= prog_c.IMF_BREAKS_SOL[-1]
     # Kroupa: about half of all stars are below 0.3 Msun.
-    all_masses = [se.sample_imf_mass_sol(rng=rng) for _ in range(20000)]
+    all_masses = [imf.sample(rng=rng) for _ in range(20000)]
     below = sum(m < 0.3 for m in all_masses) / len(all_masses)
     assert 0.4 < below < 0.65
 
@@ -230,7 +230,7 @@ def test_a_light_stars_cell_bound_holds_and_is_tight_enough_to_draw(population, 
         previous = cumulative[index]
         measures = []
         for _ in range(6):
-            mass = sp._sample_power_law(low, high, alpha, rng)
+            mass = imf.sample_power_law(low, high, alpha, rng)
             measures.append(sum(max(0.0, min(end, window[1]) - max(start, window[0])) * chance
                                 for start, end, chance in sp._bright_windows(mass, floor)))
         assert max(measures) <= bound * (1 + 1e-9), (low, high)

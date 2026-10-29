@@ -41,6 +41,7 @@ import numpy as np
 from planetgen import tuning
 from planetgen.galaxy import mass_chain
 from planetgen.galaxy.age_law import AgeLaw
+from planetgen.physics import imf
 
 _GYR_PER_HUBBLE_TIME = 977.792
 """float: `1 / H0` in Gy for `H0 = 1` km/s/Mpc over 100 (so `977.792 / (100 h)` Gy)."""
@@ -193,13 +194,7 @@ def mass_return_fraction(breaks, slopes):
     its whole mass. (A single Salpeter slope of 2.35 from 0.1 to 100 gives their 0.27.)
     """
     mass = np.geomspace(breaks[0], breaks[-1], 200_001)
-    density = np.empty_like(mass)
-    scale = 1.0
-    for i, alpha in enumerate(slopes):
-        inside = (mass >= breaks[i]) & (mass <= breaks[i + 1])
-        density[inside] = scale * mass[inside] ** -alpha
-        if i + 1 < len(slopes):
-            scale *= breaks[i + 1] ** (slopes[i + 1] - alpha)
+    density = imf.density(mass, breaks, slopes)
     intercept, slope = tuning.WHITE_DWARF_REMNANT_MASS_SOL["intercept"], tuning.WHITE_DWARF_REMNANT_MASS_SOL["slope"]
     remnant = np.where(mass < 8.0, intercept + slope * mass,
                        np.where(mass < tuning.BLACK_HOLE_RETURN_MASS_SOL, tuning.NEUTRON_STAR_RETURN_REMNANT_SOL, mass))
