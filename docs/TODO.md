@@ -2676,16 +2676,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows it saves real bytes. Owner: Core 2 when dry.
   Prerequisites: MAP.339. Related: MAP.339, MAP.340.
 
-- [ ] **MAP.343 Sector Map and System Map signs for the reasons to look (life, sentient life, civilization) and the chosen-class markers: body-level markers know only inhabited, gas giant, habitable, uninhabitable and belt**
-  Left out of MAP.311 and MAP.220 (Aux 4, as the lane reported, 9:18 PM
-  EDT 2026-10-28): the Galaxy Map has the three reason glyph kinds and
-  the 20 class marker kinds, but body-level reasonOfBody in
-  bodymarkers.js only knows inhabited, gas giant, habitable,
-  uninhabitable and belt, so the Sector Map and System Map show none of
-  them. Add the same reasons and class markers there, off by default in
-  the same Points of interest group, with a browser test per map.
-  Prerequisites: none. Related: MAP.311, MAP.220.
-
 - [ ] **MAP.344 The civilization marker gains a technology band: filter and mark worlds by the technology level of their species**
   Left out of MAP.311 (needs species tech_level, which is not stored on
   the map side): store or derive the technology band per civilization

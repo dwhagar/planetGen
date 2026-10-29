@@ -1989,7 +1989,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.340 | Black hole crowd badges: crowded black hole marks merge into one mark with a count badge and a click list (bug) | none | open |
 | MAP.341 | Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug) | none | open |
 | MAP.342 | Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority) | none | open |
-| MAP.343 | Sector Map and System Map signs for the reasons to look (life, sentient life, civilization) and the chosen-class markers: body-level markers know only inhabited, gas giant, habitable, uninhabitable and belt | none | open |
+| MAP.343 | Sector Map and System Map signs for the reasons to look (life, sentient life, civilization) and the chosen-class markers: body-level markers know only inhabited, gas giant, habitable, uninhabitable and belt | none | done, PR #3576 |
 | MAP.344 | The civilization marker gains a technology band: filter and mark worlds by the technology level of their species | none | open |
 | MAP.345 | Map and search filters: a world filter for 'supports Class N' and 'has Class N' with a minimum score, from the life_class_scores index | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
