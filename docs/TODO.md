@@ -883,6 +883,9 @@ with `clamp()`.
   PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
   progress-line work only: no generated-output change and no lock turn;
   if any step turns out to change a stored value, stop and tell TODO.
+  Research (2026-10-09): Lock-free item given to Aux 7 (6:04 PM EDT
+  2026-10-29) while it waits for its lock turn; MAP.300 merged (#3751).
+  Owner: Aux 7.
   Prerequisites: GEN.768. Related: UX.199, UX.203.
 
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
@@ -2146,29 +2149,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   branch, no generated-output change; the former owner lane is retired).
   If this step turns out to change a stored value, stop and tell TODO.
   Prerequisites: TEST.368. Related: MAP.229, MAP.298, MAP.241.
-
-- [ ] **MAP.300 Zoom reaches far enough in to single out one item in even a dense cluster (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: need to be able to zoom in
-  far enough to be able to single out even a dense cluster. Do: find
-  what stops the zoom short in filled space (the camera's minimum
-  distance or the zoom step floor, the node cut resolution, or the
-  precision of the camera-relative coordinates, MAP.267) and let the
-  camera approach any single item in the densest region until that item
-  fills the view. Done: a browser test zooms into the fixture's densest
-  cluster and singles out one star and then one of its neighbours at
-  under a tenth of a parsec apart. Part of one chain filed from that
-  message: TEST.368 (fixture galaxy), MAP.295 and MAP.296 (infobox, Core
-  2), MAP.297 to MAP.303 (clicking, labels, zoom, icons; Aux 10). Owner:
-  Aux 10.
-  Research (2026-10-09): OWNER Aux 7 (assigned 5:21 PM EDT 2026-10-29 by
-  TODO as the lane's one lock-free item while it waits for the
-  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
-  his ask at 5:18 PM EDT; separate branch, no generated-output change;
-  if the lane already holds a lock-free item it finishes that first). If
-  this step turns out to change a stored value, stop and tell TODO.
-  Prerequisites: TEST.368. Related: MAP.257, MAP.292, MAP.267, MAP.301.
 
 - [ ] **MAP.301 Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message

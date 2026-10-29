@@ -2002,7 +2002,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.297 | Remove the sector boxes from the maps: clicking goes to a location, never to a sector block (bug) | none | done, PR #3284 |
 | MAP.298 | Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug) | none | done, PR #3316 |
 | MAP.299 | In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug) | none | open |
-| MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) | none | open |
+| MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) | none | done, PR #3751 |
 | MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | none | open |
 | MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | none | open |
 | MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | none | done, PR #3496 |
