@@ -466,19 +466,6 @@ with `clamp()`.
   calls), the activity log shape decision, per-command tests.
   Prerequisites: none. Related: UX.102.
 
-- [ ] **UX.127 The Galaxy Map block menu offers Generate again**
-  Split from GEN.231 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Put `blockGenerateButtons` back
-  in `generatebuttons.js` and show Generate in the Galaxy Map's block
-  menu, starting child a's job and linking to its progress; disabled
-  with a reason while another run is active. Done: a browser test over
-  fixture data clicks Generate on a block menu and sees the job start,
-  and sees it disabled while a run is active.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.231.
-
 - [ ] **UX.130 Console design brief: colours, type, panel shapes and iconography, approved by Boss**
   Split from UX.43 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). A design note in docs/design (with
@@ -2808,19 +2795,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxyprisms.neighbourBlock.
   Prerequisites: none. Related: MAP.121, MAP.141.
 
-- [ ] **MAP.334 Zoom redesign Z1: one global zoom policy, with pace and clearance taken from the distance to the nearest thing; zoom floor 1e-10 pc (1e-12 pc after Z5)**
-  Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
-  (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
-  vertical log ruler with named stops, 4.1 a region lands framed on the
-  charted part, 5.1 moon in view first). Design:
-  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
-  (section 6 plan, section 9 decisions). Owner: Core 2. Replace the
-  per-stage zoom limits with one policy that sets pace and near
-  clearance from the camera distance to the nearest drawn thing. Done: a
-  browser test zooms from the galaxy to the floor with a steady pace and
-  no clipping.
-  Prerequisites: MAP.333. Related: MAP.257.
-
 - [ ] **MAP.335 Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source**
   Size L. Boss answered the research cards at 6:19 PM EDT 2026-10-28
   (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
@@ -4763,38 +4737,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   regenerate today (only whole sectors), so it overlaps the GEN.764
   revise job. Owner: Core 1, built inside GEN.764.
   Prerequisites: none. Related: GEN.228 (done, PR #1610).
-
-- [ ] **GEN.231 Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back**
-  The Galaxy Map moved to the shell, band and wedge ladder
-  (243/81/27/9/3 shells deep, then sectors; PR #1612,
-  docs/design/galaxy/spherical-block-ladder.md), and with it the old block
-  addresses went away. `planetgen generate --block` is refused with "the
-  Galaxy Map's blocks are being rebuilt on shells" (`cli/generate.py`,
-  `tests/test_gen_cli_errors.py`) and the block generate buttons
-  (`blockGenerateButtons`) were removed from `generatebuttons.js`. Done:
-  a block of the new ladder (its m, shell, band and wedge) is a region
-  the generate command and the work queue can fill, nearest sectors
-  first, with the same progress, cancel and resume as a neighbourhood
-  fill; `--block` takes the new block address; the Galaxy Map's block
-  menu offers Generate again; the refusal text and its test are gone.
-  Found by Maps (2026-10-15). Owner: Core for the region and the
-  command; the button is Interface, after Core. Order it after PERF.99
-  so the queue it uses is the new one.
-  Finding (Quality, 2026-10-15): the `--block` refusal message in
-  planetgen/cli/generate.py (about line 726) still says "the Galaxy
-  Map's blocks are being rebuilt on shells" although the map is rebuilt;
-  the option is still refused until it is ported to the
-  m.shell.band.wedge key. This item reworded the message to say what is
-  true until the mode is built.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: GEN.310, UX.127. Its own note says 'Core, then
-  Interface for the buttons': a server and command change and a browser
-  change owned by two lanes.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: UX.127. Related: GEN.101, MAP.120.
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
   Step 10 of the whole-sphere train. High-velocity clouds are the one
@@ -19086,22 +19028,6 @@ clears each one.
   both tests pass. Owner: Condition-based classes lane.
   Prerequisites: GEN.679.
 
-- [ ] **TEST.315 TEST.210 reports the class shares and ranges as outputs; TEST.209 adds that the class agrees with the conditions**
-  Step C16 of the condition-based classes build (design draft
-  design-drafts/condition-based-classes-2026-10-23.md section 7, from
-  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
-  after generation from the finished body). Filed by the TODO thread at
-  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
-  GEN.647 and GEN.646. Do: extend the two sweeps so the class shares and
-  ranges are reported as outputs and every body's class agrees with its
-  conditions. Done: both sweeps carry the new checks. Owner: Composition
-  L.
-  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
-  EDT 2026-10-28, high priority) takes this with TEST.430 where it
-  overlaps the class census; confirm any other lane's claim with TODO
-  first.
-  Prerequisites: GEN.689, TEST.209, TEST.210.
-
 - [ ] **TEST.317 test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails under heavy load (bug)**
   Found by Core 2 at 12:40 AM EDT 2026-10-24 (as the lane reported), in
   src/tests/test_web_browser_sector_reach.py: the test fails alone only
@@ -19855,6 +19781,17 @@ clears each one.
   census for life is TEST.435 (moved into 8.1): prevalence per class and
   stage inside researched ranges, sentient the rarest rung, animals to
   civilizations at least 20 to 1.
+  Research (2026-10-09): Part A merged (#3568, Bug 2, as the lane
+  reported 9:27 PM EDT 2026-10-28): the class census with TEST.315's
+  class shares folded in; TEST.315 is retired. The test is slow (about 5
+  minutes on 4 cores) and runs when generation changes: a lane whose
+  change shifts class, colour or life ceiling shares gets a named flag
+  and fixes it by tagging the item or fixing the cause, never by
+  widening a range. Parts B to E (TEST.431, TEST.395, TEST.432,
+  TEST.433) and TEST.435 follow. Anomalies noted: GEN.855 (oxygen),
+  GEN.829 (class T never drawn), GEN.866 (the hang), GEN.812 (intended
+  greenhouse change warms K5V ecosphere moons; the range waits for the
+  class cut-over).
 
 - [ ] **TEST.431 System census: full systems per star type with planets, moons, belts and comets per system, the zero-planet share, binary share, habitable-world share, and life stage and civilization shares (prevalence suite part B)**
   Part of the full prevalence suite (TEST.430, Boss 7:27 PM EDT
