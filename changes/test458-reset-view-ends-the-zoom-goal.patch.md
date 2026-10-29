@@ -1,0 +1,5 @@
+**Headline:** Reset view now works after the minus button has been pressed past the end of the sector's range, where it used to do nothing.
+
+### Fixed
+
+- **Reset view, Fly to and Centre end a zoom-distance goal still being chased (TEST.458).** Plus and minus (and the slider and a pinch) ask for a camera distance and keep chasing it, across stages if need be, for a few seconds. Pressing minus repeatedly in an opened sector left that goal alive at the end of the sector's range; Reset view flew the camera back to the opening view and the chase then took it straight out again, so the button seemed to do nothing. A move the person asks for now ends the goal first. The scale-line browser test also took its opening zoom from a frame of the page's flight in; it now waits for the flight to land, a new test holds the Reset view case, and the MAP.301 browser test now holds that the camera comes into the dense region and rests in it rather than one resting point, which moved with the frames the approach took. No stored value or generated output changes.

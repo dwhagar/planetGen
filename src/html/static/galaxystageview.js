@@ -2659,6 +2659,13 @@ export function createStageView(host) {
     chaseZoomGoal();
   }
 
+  // TEST.458: a move the person asks for (Reset view, a fly-to, a centring) ends a distance goal still being chased: left alive, it
+  // took the view back out to where the plus or minus presses had been taking it as soon as the move was over.
+  function dropZoomGoal() {
+    zoomGoal = 0;
+    zoomStalledAt = 0;
+  }
+
   // A camera-only flight (a fly to a point, a centring) is finished at once where it was going, so the controls take the view from there.
   function finishSoftFlight() {
     if (!animation || !animation.soft) return;
@@ -2951,6 +2958,7 @@ export function createStageView(host) {
   // Back to the stage's own view, after turning or moving it.
   function resetView() {
     if (!resolved || animation || !display) return;
+    dropZoomGoal();
     const from = viewNow();
     const to = enteredSystem ? cameraForSystem(enteredSystem) : entered ? cameraForSector(entered) : cameraFor(resolved);
     flyCamera(from, to, null, function () {
@@ -2996,6 +3004,7 @@ export function createStageView(host) {
   // the angle: the view then turns and zooms about it (MAP.199).
   function flyToPoint(goal, wanted) {
     if (!view || animation || !resolved || !view.fit || !isFree(resolved)) return;
+    dropZoomGoal();
     const point = goal.slice();
     const around = enteredSystem ? enteredSystem.fitPoints : entered ? entered.fitPoints : fitPointsOf(resolved);
     const fit = fitDistance(around, view.fit.target, view.quat);
@@ -3032,6 +3041,7 @@ export function createStageView(host) {
   // Flies the orbit center to `goal` (a world point), keeping the angle and
   // the zoom: turning and zooming then both go about it (MAP.199).
   function centreOn(goal) {
+    dropZoomGoal();
     const from = viewNow();
     const to = { target: goal, dist: view.dist, quat: view.quat.clone() };
     followBody = null;
