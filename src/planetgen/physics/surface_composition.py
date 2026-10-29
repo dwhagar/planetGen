@@ -90,7 +90,7 @@ RANGES = {
 """
 
 OCEAN, ICE = "ocean", "ice"
-LIQUID_STATES = ("surface ocean", "hycean", "ice-covered ocean")
+LIQUID_STATES = ("surface ocean", "brine seep", "hycean", "ice-covered ocean")
 FROZEN_STATES = ("ice", "ice-covered ocean")
 SLAB, CRUSHED, POWDER = "slab", "crushed", "powder"
 GRAINS = (SLAB, CRUSHED, POWDER)
@@ -307,7 +307,7 @@ def _covered(inputs, frozen):
     share = min(max(inputs.ocean_fraction or 0.0, 0.0), 1.0)
     if share <= 0.0:
         return 0.0, None
-    if inputs.hydrosphere in ("surface ocean", "hycean"):
+    if inputs.hydrosphere in ("surface ocean", "brine seep", "hycean"):
         return share, OCEAN
     if inputs.hydrosphere in FROZEN_STATES and frozen:
         return share, ICE

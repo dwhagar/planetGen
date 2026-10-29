@@ -28,7 +28,9 @@ planets (`physics.rogue_surface`) use the functions here.
    surface water is under `BRINE_MAX_WATER_FRACTION` has its salts
    concentrated: the base melts at the drawn eutectic of a perchlorate brine
    (`clathrate_brine.draw_brine`, 198 to 236 K, GEN.762) and the brine ocean
-   keeps that salt's water activity.
+   keeps that salt's water activity. A liquid surface whose ocean class is the
+   chloride brine is a `brine seep`, not a `surface ocean` (GEN.908): so little
+   water that its salts fix its chemistry, often under no air at all.
 4. **The compressed column and high-pressure ice (GEN.461).** The water over
    the covered area is integrated from the surface down with its density
    rising with the pressure (`water_layer.column`: 746 km deep at 11 GPa for
@@ -66,7 +68,11 @@ HYDROSPHERE_FIELDS = (
 """tuple: What `generate_hydrosphere` sets on a planet or moon, as stored in
 `planets` and `moons` (the aquifer layer on a world with no liquid at its surface)."""
 
-HYDROSPHERE_STATES = ("dry", "vapour", "ice", "ice-covered ocean", "surface ocean", "hycean")
+BRINE_SEEP = "brine seep"
+"""str: The state of a liquid surface whose ocean is a chloride brine (GEN.908): a puddle of concentrated salt water that melts below
+273 K under thin or no air, not a sea. It is a liquid surface (the ocean columns apply, and it holds water for a base), but the checks
+that ask for a `surface ocean` (a sunlit sea for life, the plate tectonics of a wet world, an induction ocean) do not take it."""
+HYDROSPHERE_STATES = ("dry", "vapour", "ice", "ice-covered ocean", "surface ocean", BRINE_SEEP, "hycean")
 OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutral")
 
 WATER_MELTING_K = 273.15
@@ -289,6 +295,8 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
     if not liquid_km:
         return surface_w
     kind = ocean_class(body, hp_km, surface_w, covered)
+    if kind == "chloride brine" and state == "surface ocean":
+        body.hydrosphere = BRINE_SEEP
     (ph_lo, ph_hi), (aw_lo, aw_hi) = OCEAN_CHEMISTRY[kind]
     body.ocean_class = kind
     body.ocean_ph = draw.uniform(ph_lo, ph_hi)

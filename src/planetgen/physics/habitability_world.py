@@ -240,7 +240,7 @@ def groundwater(values):
 
 def solvent(values):
     """"water", "hydrocarbon" or `None`: the stable liquid life would use."""
-    if values.get("hydrosphere") in ("surface ocean", "hycean", "ice-covered ocean") or groundwater(values) != "none":
+    if values.get("hydrosphere") in ("surface ocean", "brine seep", "hycean", "ice-covered ocean") or groundwater(values) != "none":
         return "water"
     temperature = values["surface_temperature_k"]
     methane = atmosphere.partial_kpa(values, "ch4")
@@ -253,7 +253,7 @@ def solvent(values):
 def water_source(values):
     """What a base can draw water from (`habitability.WATER_SOURCE_FACTOR`)."""
     state = values.get("hydrosphere")
-    if state in ("surface ocean", "hycean"):
+    if state in ("surface ocean", "brine seep", "hycean"):
         return "liquid"
     if state in ("ice", "ice-covered ocean"):
         return "ice"

@@ -727,7 +727,7 @@ _SURFACE = (
     "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", "phosphorus", "magnetopause_rp",
 )
 _OCEAN = ("ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "water_base_pressure_pa")
-OCEAN_STATES = ("surface ocean", "ice-covered ocean", "hycean")
+OCEAN_STATES = ("surface ocean", "brine seep", "ice-covered ocean", "hycean")
 """tuple: The hydrospheres that hold a liquid ocean, the ones the ocean columns describe."""
 _LIFE_DETAIL = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity",
                 "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",

@@ -2314,7 +2314,7 @@ CREATE TABLE IF NOT EXISTS planets (
     flare_irradiation_index     DOUBLE,
     -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
     water_mass_fraction         DOUBLE,
-    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'hycean')),
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
     ocean_depth_km              DOUBLE,
@@ -2647,7 +2647,7 @@ CREATE TABLE IF NOT EXISTS moons (
     flare_irradiation_index     DOUBLE,
     -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
     water_mass_fraction         DOUBLE,
-    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'hycean')),
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
     ocean_depth_km              DOUBLE,

@@ -207,7 +207,7 @@ def test_every_generated_body_has_a_consistent_ground():
         if mix.get(sc.ICE):
             assert body.surface_temperature < 273.15
         if mix.get(sc.OCEAN):
-            assert body.hydrosphere in ("surface ocean", "hycean")
+            assert body.hydrosphere in ("surface ocean", "brine seep", "hycean")
         if mix.get("carbon"):
             assert body.carbon_rock
         if mix.get("metal"):

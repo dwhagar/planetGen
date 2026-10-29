@@ -110,7 +110,7 @@ OCEAN_CONDUCTIVITY_S_M = {
 dilute ocean 0.5, Europa's MgSO4 2.75 (Hand and Chyba 2007), sodium carbonate
 3, saturated chloride 5, sulfuric acid 10 (planetGen defaults)."""
 INDUCTION_HYDROSPHERES = ("ice-covered ocean", "surface ocean", "hycean")
-"""tuple: The states with a liquid ocean for an induced field."""
+"""tuple: The states with a liquid ocean for an induced field (a `brine seep` is a puddle, not a conducting ocean layer; GEN.908)."""
 
 EARTH_STANDOFF_RP = 9.75
 EARTH_WIND_PA = 2.24e-9

@@ -86,7 +86,7 @@ OCEAN_SPAN_K = (258.0, 275.0, 315.0, 343.0)
 """tuple[float]: The temperatures, K, at which the factor for the sea's liquid range rises from 0 to 1 and falls to 0 again (T6, L3)."""
 
 LIVING_HYDROSPHERES = ("surface ocean", "hycean")
-"""tuple: The states with a sunlit sea for the photosynthesis to stand in."""
+"""tuple: The states with a sunlit sea for the photosynthesis to stand in (a `brine seep` is not one; GEN.908)."""
 
 MINIMUM_PA = 1.0
 """float: Under this partial pressure, Pa, a world is counted as making no oxygen."""
