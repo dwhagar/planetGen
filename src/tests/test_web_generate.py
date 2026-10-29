@@ -2003,6 +2003,16 @@ def test_bring_to_epoch_job_runs_the_command(site, client, no_spawn, monkeypatch
     assert _argv(job["steps"][-1]) == ["bring-to-epoch"]
 
 
+def test_no_choice_on_a_task_page_is_a_bare_number(site, client):
+    """UX.213, Boss: never a number without a unit or context. The neutron star and black hole limit listed 1, 2, 4 and 6; every
+    choice of every task page names what it counts."""
+    bare = re.compile(r"<(?:sl-option|option)[^>]*>\s*[-+]?[\d.,]+%?\s*</")
+    for key in ("add-sectors", "new-galaxy", "plan-only", "scatters", "bring-to-epoch", "check", "wipe"):
+        assert not bare.findall(_task_html(client, key)), key
+    html = _task_html(client, "scatters")
+    assert ">1 solar mass</sl-option>" in html and ">6 solar masses</sl-option>" in html
+
+
 def _finish_found(**over):
     found = {"error": None, "run": "20261029-120000-ab12", "title": "New galaxy", "stopped_in": "Scatter the phenomena",
              "carried": ["Plan", "Sectors"], "again": ["Scatter the phenomena", "Index the phenomena"],

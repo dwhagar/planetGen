@@ -48,6 +48,19 @@ def test_every_screen_is_accessible_and_fits(browser, axe_source, server, config
     assert not problems, f"at {viewport}/{scheme}:\n  " + "\n  ".join(problems)
 
 
+def test_no_choice_of_a_task_page_is_a_bare_number(browser, server, config):
+    """UX.213: the drawn choices of every task page (the dropdowns' options) each carry a unit or a noun."""
+    context, page, problems, base_url = _page(browser, server)
+    try:
+        for key in TASK_KEYS:
+            page.goto(base_url + f"/admin/generate/task/{key}", wait_until="load")
+            labels = page.evaluate("() => [...document.querySelectorAll('sl-option, option')].map((o) => o.textContent.trim())")
+            problems += [f"{key}: {label!r}" for label in labels if label and all(ch in "0123456789.,+-%" for ch in label)]
+    finally:
+        context.close()
+    assert not problems, "bare numbers: " + ", ".join(problems)
+
+
 def test_review_shows_the_command_and_back_keeps_the_draft(browser, server, config):
     context, page, problems, base_url = _page(browser, server)
     try:
