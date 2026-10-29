@@ -18351,37 +18351,6 @@ clears each one.
   galaxy-placed stars and the final classes after the class cut-over
   (GEN.646).
 
-- [ ] **TEST.398 The test preflight kills stale planetgen.cli.worker processes, which pick up the units of later runs (bug)**
-  Math 1 finding (3:49 AM EDT 2026-10-25): stale planetgen.cli.worker
-  processes left on a test machine pick up units of later test runs and
-  give wrong or doubled results. Do: scripts/test.py's preflight
-  (TEST.376) lists planetgen.cli.worker processes that do not belong to
-  the current run (by the run id or by start time before the run) and
-  kills them before every command and phase, and says so in its line;
-  the lane rule in lanes.md says the same until it lands. Done: a test
-  starts a stray worker, runs the preflight and sees it gone; the
-  current run's own workers are not touched. Owner: Bug 1 (owns
-  TEST.376). Rules: no backward-compat shims.
-  Prerequisites: none. Related: TEST.376, PERF.181.
-
-- [ ] **TEST.402 test_db_column_round_trip fails once under load: the stars' disk columns read back NULL (bug)**
-  Found by the 4c lane (about 4:17 AM EDT): test_db_column_round_trip
-  failed once under load with the stars' disk columns NULL, and passed
-  on re-run (a second failure is real). Do: find whether the stars' disk
-  columns are written after the round trip's read under load (a commit
-  ordering or a worker race), or whether the test reads before the fill
-  finishes; make the order deterministic. Done: the test passes 20 runs
-  in a row under the parallel load of scripts/test.py. Owner: Bug 1,
-  after TEST.397 and the two blockers above, or a free lane. Rules: no
-  backward-compat shims; never skip or quarantine the test;
-  scripts/test.py changed --resume.
-  Research (2026-10-09): Core 2 (2:07 PM EDT 2026-10-28 as the lane
-  clock reads): on a clean main worktree test_db_column_round_trip also
-  died with 'the spectrum has no light between 380 and 780 nm' in
-  generation. GEN.844 (#3443, 1:00 PM EDT) fixes that crash; Bug 1
-  re-checks on current main before treating it as a new cause.
-  Prerequisites: none. Related: TEST.398, PERF.181.
-
 - [ ] **TEST.403 Three scatter tests are far too slow: test_a_galaxy_with_no_scatter_still_rolls_its_own runs over 4.5 minutes, and two others hang for an hour under -n 4 (bug)**
   Found by Aux 5 (Lane H, as the lane reported 4:18 AM EDT 2026-10-25)
   on clean main:
@@ -18400,34 +18369,6 @@ clears each one.
   shims; never skip or quarantine a test; scripts/test.py changed
   --resume.
   Prerequisites: none. Related: PERF.174, PERF.175, PERF.193.
-
-- [ ] **TEST.405 The system page tests and the migration 0148 habitable_systems test are red on main (bug)**
-  Found by Aux 14 (as the lane reported 4:52 AM EDT 2026-10-25) as known
-  reds on clean main, not that lane's change: the system-page tests and
-  the migration 0148 habitable_systems test. Do: run them on clean main,
-  name the failing assertion of each, find the commit that moved them
-  (GEN.441, GEN.732, GEN.652 or the habitability work), and fix the code
-  or the expectation with the reason in the PR. Done: both pass on main.
-  Owner: Bug 1 after TEST.399 and TEST.400, or a free lane. Rules: never
-  skip or quarantine a test; scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.399, TEST.400.
-
-- [ ] **TEST.406 Four tests are red on main: test_surface_air stored-partials sum (1e-9 relative) and test_resume_across_builds, test_progress_log (2), test_redis_cleanup fail with an unexpected keyword on_child (bug)**
-  Found by Aux 4 (as the lane reported 5:33 AM
-  EDT 2026-10-25) on clean main, not that lane's change:
-  test_surface_air::test_the_stored_partials_add_up_to_the_pressure_and_the_state_follows_from_them
-  fails because a giant's summed pressure is 99999.99989688 against
-  100000 (1e-9 relative); test_resume_across_builds, test_progress_log
-  (2 tests) and test_redis_cleanup fail with an unexpected keyword
-  'on_child'. Do: run each on clean main, name the commit that moved it,
-  then fix the code or the expectation with the reason in the PR (the
-  partials sum may need a relative tolerance that matches the stored
-  precision, which is a stand-in tolerance to record; the on_child
-  keyword is a signature mismatch between a caller and the progress or
-  worker helper). Done: all four pass on main. Owner: Bug 1 after
-  TEST.399 and TEST.400, or a free lane. Rules: never skip or quarantine
-  a test; scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.405.
 
 - [ ] **TEST.408 test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug)**
   Found by Core 4 (as the lane reported 7:25 AM EDT 2026-10-28, report
@@ -18539,31 +18480,15 @@ clears each one.
   as the lane reported) fixed four sector-click tests that its wall
   icons affected; recheck which of the seven still fail on current main
   before starting.
+  Research (2026-10-09): Update (Bug 1, #3690, about 8:55 AM EDT
+  2026-10-29 as the lane reported): a REAL regression found and fixed:
+  the planet page redesign UX.215 dropped the moon system map link
+  MAP.308; restored. The 4 object-page axe link-in-text-block reds are
+  fixed by underlining the summary and 'Part of' links; the Menu filter
+  test and the open-menu overlap audit are fixed for the 70-toggle Menu.
+  All but one test of this item are closed; Bug 1 names the remaining
+  test when it closes the item.
   Prerequisites: none. Related: MAP.209, MAP.210, TEST.414.
-
-- [ ] **TEST.420 Runner self-tests and the limit-slider follow-again browser test are red on main (bug)**
-  Found by Aux 10 (as the lane reported 11:48 AM EDT 2026-10-28) while
-  merging MAP.327 (#3422): the runner self-tests (the tests of
-  scripts/test.py itself) and the limit-slider follow-again browser test
-  fail the same on main without that change. The habitability end-to-end
-  marker test is already TEST.414. Do: run each alone on main, find the
-  change that broke it, fix the code or the test so it still checks its
-  property, and name the exact test ids in this item as you find them
-  (the lane's PR gave no ids). Done: both pass on main in a combined
-  run. Owner: Bug 1 after DB.108/GEN.826, or Aux 10 for the slider test.
-  Rules: never skip or loosen a test to get green.
-  Test ids (2026-10-09): Test ids from Aux 10 (11:52 AM EDT 2026-10-28
-  as the lane reported; all fail alone on a clean origin/main worktree):
-  src/tests/test_progress_log.py::test_the_runner_starts_a_log_for_the_build_and_hands_its_path_to_pytest
-  and ::test_main_resumes_with_a_skip_list_and_says_so_on_its_last_line;
-  src/tests/test_redis_cleanup.py::test_the_runner_prints_what_it_cleared_before_the_first_phase;
-  src/tests/test_resume_across_builds.py::test_main_says_how_many_tests_were_reused_and_from_which_run
-  (the on_child keyword failures of TEST.406);
-  src/tests/test_web_browser_limit_sliders.py::test_ticking_follow_again_returns_the_core_to_the_galaxy_wide_limits
-  (the click on the Follow checkbox is intercepted by the site header,
-  then by the checkbox's own control span; 120 s timeout). The slider
-  one is Bug 1's.
-  Prerequisites: none. Related: TEST.414, TEST.418.
 
 - [ ] **TEST.427 Three column registry tests are red on main: aerosol_draw has no unit, tidal_flux_w_m2 is written but listed as NULL, host_eccentricity is not serializable (bug)**
   Found by Lane K (Aux 7) at 5:40 PM EDT 2026-10-28 as the lane
@@ -18707,6 +18632,17 @@ clears each one.
   edits a field not used by the rules and finds the class unchanged;
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
+
+- [ ] **TEST.450 test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel is red on main: 80 wheel ticks at a sector centre no longer reach open=1 (bug)**
+  Found by Bug 1 (about 8:55 AM EDT 2026-10-29 as the lane reported). 80
+  wheel ticks at a sector's centre no longer reach open=1: the address
+  stays ?sector=...&cam=.... Probably MAP.335 (#3647) or the Z0 landing
+  changed what the wheel does. Do: the map lane says whether the wheel
+  is meant to open a sector now; if yes, find why it stops short and fix
+  the map; if no, update the test to the new way to open a sector.
+  Version 8.1. Owner: Core 2 (map and continuous zoom). Prerequisites:
+  none. Related: MAP.335, MAP.333.
+  Prerequisites: none. Related: MAP.335, MAP.333.
 
 ## USR: User accounts
 
