@@ -19920,14 +19920,6 @@ clears each one.
   fix the code, or the test if its expectation is stale. Owner: Bug 1.
   Prerequisites: none. Related: TEST.434, MAP.240.
 
-- [ ] **TEST.440 test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale fails on main: the scale text reads 0.25 sectors where 2.5 is expected (bug)**
-  Found by Aux 4 (old Aux 2; as the lane reported, 9:18 PM EDT
-  2026-10-28) on a clean main while merging MAP.311. Find whether the
-  arrow keys really change the scale (a code bug) or the expected text
-  is stale after the zoom changes (MAP.333), and fix the code or the
-  test. Owner: Aux 4.
-  Prerequisites: none. Related: TEST.434, MAP.333.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**

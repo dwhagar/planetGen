@@ -1657,3 +1657,4 @@ Baseline: PR #1817.
 | GEN.231 | 8.1 | Queue, caches and performance |
 | TEST.315 | 8.1 | Consistency |
 | MAP.334 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| TEST.440 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
