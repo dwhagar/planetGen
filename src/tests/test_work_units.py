@@ -8,7 +8,7 @@ import threading
 
 import pytest
 
-from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
+from planetgen.queue import commands, redisqueue, runline, runrecord, units, wrapper
 from planetgen.util.settings import get_settings
 
 
@@ -190,6 +190,39 @@ def test_a_second_run_waits_in_line_for_the_first_and_then_runs(monkeypatch, con
         timer.join()
     assert runrecord.read_run(conn, run_id)["state"] == "done" and len(results) == 2
     assert waits[0] == (first, 1) and waits[-1] == (None, None)
+
+
+def test_a_runs_results_do_not_depend_on_the_place_it_started_from(monkeypatch, conn):
+    """PERF.154: the waiting list only decides when a run starts. The same steps give the same units, the same results and
+    the same stages whether the machine was free, or the run was next in line, or third (the generated sectors
+    are a function of the seed and the cut of the work, never of the place in the line)."""
+    _handlers(monkeypatch, test=_square)
+    monkeypatch.setattr(wrapper, "report_wait", lambda holder, position: None)
+
+    def run_from(ahead):
+        """A run that finds the machine held and `ahead` other runs in front of it."""
+        holder = runrecord.start_run(conn, "Holder", [runrecord.Stage("test", "T", units=1)]) if ahead is not None else None
+        tickets = [runline.join(conn, runline.RUN, f"Ahead {number}") for number in range(ahead or 0)]
+        timers = [threading.Timer(1.0 + 0.4 * number, runline.leave, (conn, ticket)) for number, ticket in enumerate(tickets)]
+        if holder:
+            timers.append(threading.Timer(1.2 + 0.4 * len(tickets), runrecord.finish_run, (conn, holder, "done")))
+        for timer in timers:
+            timer.start()
+        try:
+            results = {}
+            run_id = wrapper.run("Same", [_step(4)], lambda index, plan: None,
+                                 lambda index, unit, result: results.__setitem__(unit, result))
+        finally:
+            for timer in timers:
+                timer.join()
+        run = runrecord.read_run(conn, run_id)
+        return results, [(stage["key"], stage["units"], stage["cost"]) for stage in run["stages"]]
+
+    free = run_from(None)
+    next_in_line = run_from(0)
+    third_in_line = run_from(2)
+    assert free[0] == {unit: {"value": unit ** 2} for unit in range(4)}
+    assert next_in_line == free and third_in_line == free
 
 
 def test_a_run_gives_up_after_the_wait_bound_and_names_the_run_it_waited_for(monkeypatch, conn):

@@ -9,7 +9,7 @@ and left running after the request that started them has returned.
 A job is a directory under the jobs directory (`jobs_dir()`):
 
     <jobs dir>/
-        active                  the running job's id (the one-job lock)
+        queued-<ticket>.json    the recipe of a job waiting in the line (0600; it holds the database environment)
         20260930-124433-1a2b/
             job.json            what to run: id, title, steps (argv lists), env
             runner.pid          the job's worker's pid, written when it is started
@@ -18,7 +18,7 @@ A job is a directory under the jobs directory (`jobs_dir()`):
             progress.json       written by planetgen (planetgen.queue.progress_file)
             output.log          every step's stdout and stderr
 
-`start_job` writes `job.json`, takes the lock and queues
+`start_job` writes `job.json`, takes the lock (a hash in Redis, `<prefix>:job:active`) and queues
 `planetgen.web.job_runner.run(<job dir>)` as an RQ job on Redis, on a
 queue of the job's own (PERF.24 step 3). It then starts one burst worker
 for that queue (`planetgen.cli.worker`), named after the job, in its own
@@ -31,13 +31,18 @@ server at `redis.url`, no job starts.
 Only one job runs at a time: generation, planning and reset all write the
 same database. A lock whose runner has died (the server was rebooted mid
 job) is noticed and cleared by the next `start_job`, and that job shows
-as "interrupted".
+as "interrupted". A job that finds another running does not fail: `submit`
+puts it in the one waiting list (`planetgen.queue.runline`, PERF.154), up to
+`queue.max_waiting` entries, and it starts by itself when the job before it
+succeeded or was cancelled (`promote_queued`).
 
 The database a job writes is the one this site shows (`helpers.db_name`),
 passed to the child through the same `PLANETGEN_MYSQL_*` environment
 variables every command-line tool reads, never on the command line.
 """
 
+import contextlib
+import dataclasses
 import json
 import os
 import re
@@ -48,8 +53,10 @@ import sys
 import tempfile
 import time
 
+import redis
+
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue
+from planetgen.queue import redisqueue, runline, runrecord
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util import log, stagemark
 from planetgen.util.settings import get_settings
@@ -73,13 +80,10 @@ DEFAULT_KEEP = 20
 """int: How many finished jobs (and their logs) are kept; older ones are
 deleted when a new job starts."""
 
-LOCK_NAME = "active"
-"""str: Must match `planetgen.web.job_runner.LOCK_NAME`."""
-
-QUEUED_NAME = "next.json"
-"""str: The jobs directory's one waiting job (ADM.123): the same spec as a job's `job.json`, plus `queued_at`,
-`after_job` (the job it waits for) and, once that job failed, `held`. Mode 0600 like `job.json`: it holds the same
-database environment."""
+QUEUED_PREFIX = "queued-"
+"""str: A waiting job's recipe is the file `queued-<ticket>.json` in the jobs directory (ADM.123): the same spec as a job's
+`job.json`. Mode 0600 like `job.json`: it holds the same database environment, which does not go into Redis. The
+waiting list (`planetgen.queue.runline`) holds the rest."""
 
 CANCEL_NAME = "cancel"
 """str: Must match `planetgen.web.job_runner.CANCEL_NAME`."""
@@ -112,10 +116,6 @@ class JobBusy(Exception):
     def __init__(self, job):
         super().__init__(f"job {job['id'] if job else '?'} is still running")
         self.job = job
-
-
-class QueueFull(Exception):
-    """A job is already waiting for the running one; there is room for one."""
 
 
 def _config():
@@ -361,12 +361,15 @@ def list_jobs(limit=10, root=None, offset=0):
 
 
 def active_job(root=None):
-    """The running job (`get_job` dict), or `None`."""
+    """The running job (`get_job` dict), or `None`.
+
+    Raises:
+        OSError: No writable jobs directory, or no Redis server answers (the lock is kept there).
+    """
     root = root or jobs_dir()
-    try:
-        with open(os.path.join(root, LOCK_NAME), "r", encoding="utf-8") as f:
-            holder = f.read().strip()
-    except OSError:
+    with _redis_errors():
+        holder = _read_lock(_connection())
+    if not holder:
         return None
     job = get_job(holder, root)
     if job is None or job["finished"]:
@@ -474,138 +477,117 @@ def read_log(job_id, offset=0, max_bytes=64 * 1024, root=None):
 # Starting and stopping jobs
 # ---------------------------------------------------------------------
 
-CLEARING_NAME = "active.clearing"
-"""str: Held (created exclusively) by whoever is clearing a stale lock,
-so two admins starting a job at once can't both clear it, the second
-deleting the lock the first has just taken (TEST.40)."""
+class _LockHeld(Exception):
+    """The job lock is taken."""
 
 
-def _lock_age(path):
+@contextlib.contextmanager
+def _redis_errors():
+    """A Redis failure as the `OSError` that the pages and `start_job`'s callers already handle."""
+    try:
+        yield
+    except redis.exceptions.RedisError as exc:
+        raise OSError(f"no Redis server answers (config.json's redis.url); start Redis to run jobs: {exc}") from exc
+
+
+def _connection():
+    return redisqueue.connect()
+
+
+def _lock_key():
+    return runrecord._k("job", "active")
+
+
+_TAKE = """
+if redis.call('HSETNX', KEYS[1], 'id', ARGV[1]) == 1 then
+  redis.call('HSET', KEYS[1], 'at', ARGV[2])
+  return 1
+end
+return 0
+"""
+
+_RELEASE = """
+if redis.call('HGET', KEYS[1], 'id') == ARGV[1] then return redis.call('DEL', KEYS[1]) end
+return 0
+"""
+
+
+def _write_lock(connection, job_id):
+    """Creates the job lock holding `job_id` and the time, in one step, so nobody ever reads it half made.
+
+    Raises:
+        _LockHeld: The lock exists.
+    """
+    if not connection.register_script(_TAKE)(keys=[_lock_key()], args=[job_id, time.time()]):
+        raise _LockHeld(job_id)
+
+
+def _read_lock(connection):
+    holder = connection.hget(_lock_key(), "id")
+    return None if holder is None else runrecord._s(holder).strip()
+
+
+def _lock_age(connection):
+    taken = connection.hget(_lock_key(), "at")
+    try:
+        return time.time() - float(runrecord._s(taken))
+    except (TypeError, ValueError):
+        return None
+
+
+def _path_age(path):
     try:
         return time.time() - os.path.getmtime(path)
     except OSError:
         return None
 
 
-def _write_lock(lock, job_id):
-    """Creates `lock` holding `job_id` in one step, so nobody ever reads
-    it empty: the id goes into a temporary file that is then hard-linked
-    to the lock's name (which fails if the lock exists). Where hard links
-    aren't available, creates it exclusively and then writes it.
-
-    Raises:
-        FileExistsError: The lock exists.
-    """
-    directory = os.path.dirname(lock)
-    fd, tmp = tempfile.mkstemp(prefix=".active-", dir=directory)
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(job_id)
-        try:
-            os.link(tmp, lock)
-            return
-        except FileExistsError:
-            raise
-        except (OSError, NotImplementedError):
-            pass
-    finally:
-        try:
-            os.remove(tmp)
-        except OSError:
-            pass
-    fd = os.open(lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o640)
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        f.write(job_id)
-
-
-def _read_lock(lock):
-    try:
-        with open(lock, "r", encoding="utf-8") as f:
-            return f.read(256).strip()
-    except OSError:
-        return None
-
-
-def _clear_stale_lock(root, lock, holder):
-    """Removes `lock` if it still holds `holder` (judged stale), under
-    `CLEARING_NAME`. Returns whether the caller may try again now."""
-    clearing = os.path.join(root, CLEARING_NAME)
-    try:
-        fd = os.open(clearing, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o640)
-    except FileExistsError:
-        age = _lock_age(clearing)
-        if age is not None and age > STARTING_GRACE_SECONDS:
-            # Left by a process that died while clearing.
-            try:
-                os.remove(clearing)
-            except OSError:
-                pass
-        return False
-    os.close(fd)
-    try:
-        if _read_lock(lock) == holder:
-            try:
-                os.remove(lock)
-            except OSError:
-                pass
-        return True
-    finally:
-        try:
-            os.remove(clearing)
-        except OSError:
-            pass
-
-
 def _take_lock(root, job_id):
     """
-    Creates the `active` lock for `job_id`, clearing a stale one. A lock
-    counts as stale when the job it names has finished, or is unknown
-    (garbage, an id whose `job.json` is missing or unreadable) and the
-    lock is older than `STARTING_GRACE_SECONDS` -- a younger one may
-    belong to a job still being written.
+    Creates the job lock for `job_id`, clearing a stale one. A lock counts as stale when the job it names has finished,
+    or is unknown (garbage, an id whose `job.json` is missing or unreadable) and the lock is older than
+    `STARTING_GRACE_SECONDS` -- a younger one may belong to a job still being written.
 
     Raises:
         JobBusy: A live job (or one still starting) holds it.
     """
-    lock = os.path.join(root, LOCK_NAME)
-    for _attempt in range(3):
-        try:
-            _write_lock(lock, job_id)
-            return
-        except FileExistsError:
-            pass
-        holder = _read_lock(lock)
-        if holder is None:
-            continue  # gone meanwhile
-        job = get_job(holder, root) if JOB_ID_RE.match(holder) else None
-        if job is not None and not job["finished"]:
-            raise JobBusy(job)
-        if job is None:
-            age = _lock_age(lock)
-            if age is None:
-                continue
-            if age < STARTING_GRACE_SECONDS:
-                raise JobBusy(None)
-        if not _clear_stale_lock(root, lock, holder):
-            raise JobBusy(active_job(root))
+    with _redis_errors():
+        connection = _connection()
+        for _attempt in range(3):
+            try:
+                _write_lock(connection, job_id)
+                return
+            except _LockHeld:
+                pass
+            holder = _read_lock(connection)
+            if holder is None:
+                continue  # gone meanwhile
+            job = get_job(holder, root) if JOB_ID_RE.match(holder) else None
+            if job is not None and not job["finished"]:
+                raise JobBusy(job)
+            if job is None:
+                age = _lock_age(connection)
+                if age is None:
+                    continue
+                if age < STARTING_GRACE_SECONDS:
+                    raise JobBusy(None)
+            connection.register_script(_RELEASE)(keys=[_lock_key()], args=[holder])        # only if it still names the holder
     raise JobBusy(active_job(root))
 
 
-def _release_lock(root, job_id):
-    lock = os.path.join(root, LOCK_NAME)
+def release_lock(job_id):
+    """Frees the job lock if it names `job_id`."""
     try:
-        with open(lock, "r", encoding="utf-8") as f:
-            holder = f.read().strip()
-    except OSError:
-        return
-    if holder != job_id:
-        return
-    try:
-        os.remove(lock)
-    except FileNotFoundError:
-        return
+        with _redis_errors():
+            _connection().register_script(_RELEASE)(keys=[_lock_key()], args=[job_id])
     except OSError as exc:
-        log.warning("jobs: could not remove the lock for job %s: %s", job_id, exc)
+        log.warning("jobs: could not free the lock for job %s: %s", job_id, exc)
+
+
+def free_lock():
+    """Frees the job lock whoever holds it (Stop everything)."""
+    with _redis_errors():
+        _connection().delete(_lock_key())
 
 
 def _prune(root, keep):
@@ -613,7 +595,8 @@ def _prune(root, keep):
     one the lock names, one still running or starting, or one whose
     `job.json` can't be read yet less than `STARTING_GRACE_SECONDS` old."""
     names = sorted((name for name in os.listdir(root) if JOB_ID_RE.match(name)), reverse=True)
-    holder = _read_lock(os.path.join(root, LOCK_NAME))
+    with _redis_errors():
+        holder = _read_lock(_connection())
     for name in names[keep:]:
         if name == holder:
             continue
@@ -621,7 +604,7 @@ def _prune(root, keep):
         if job is not None and not job["finished"]:
             continue
         if job is None:
-            age = _lock_age(os.path.join(root, name))
+            age = _path_age(os.path.join(root, name))
             if age is None or age < STARTING_GRACE_SECONDS:
                 continue
         shutil.rmtree(os.path.join(root, name), ignore_errors=True)
@@ -682,7 +665,7 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
         if spawn:
             _spawn(path)
     except BaseException:
-        _release_lock(root, job_id)
+        release_lock(job_id)
         raise
     log.debug("Started job %s (%s) for %s on %s: %s", job_id, kind, admin, database,
               [step["label"] for step in steps])
@@ -808,7 +791,7 @@ def _end_orphan(root, path, job_id, who):
             did = True
         except OSError:
             pass
-    _release_lock(root, job_id)
+    release_lock(job_id)
     return did
 
 
@@ -842,102 +825,186 @@ def cancel_job(job_id, root=None, who=None):
 
 
 # ---------------------------------------------------------------------
-# The one waiting job (ADM.123)
+# Jobs waiting in the line (ADM.123, PERF.154)
 # ---------------------------------------------------------------------
 
-def _queued_path(root):
-    return os.path.join(root, QUEUED_NAME)
+@dataclasses.dataclass
+class Submitted:
+    """What `submit` did: `job_id` the job it started now, or `ticket` and `position` (1 is next) of the place it took in
+    the waiting list, `running` the title of the job it waits for."""
+
+    job_id: str = None
+    ticket: str = None
+    position: int = None
+    running: str = None
+
+
+def _spec_path(root, ticket):
+    return os.path.join(root, f"{QUEUED_PREFIX}{ticket}.json")
+
+
+def _write_spec(path, spec):
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        json.dump(spec, f)
+
+
+def _remove(path):
+    with contextlib.suppress(OSError):
+        os.remove(path)
+
+
+def submit(kind, title, steps, env=None, admin=None, database=None, root=None, draft=None):
+    """
+    Starts the job, or, when another job is running, puts it in the waiting list (PERF.154): it starts by itself when the
+    job before it succeeded or was cancelled and is held for an admin when that job failed.
+
+    Returns:
+        Submitted: The job started, or the place taken.
+
+    Raises:
+        runline.LineFull: The list holds `queue.max_waiting` entries; the message names them.
+        updateguard.UpdateRunning, OSError: As `start_job`.
+    """
+    root = root or jobs_dir()
+    try:
+        return Submitted(job_id=start_job(kind, title, steps, env=env, admin=admin, database=database, root=root,
+                                          draft=draft))
+    except JobBusy as busy:
+        running = busy.job["title"] if busy.job else "Another job"
+    ticket = queue_next(kind, title, steps, env=env, admin=admin, database=database, root=root, draft=draft)
+    started = promote_queued(root)      # the running job may have ended since the lock was refused
+    waiting = [entry["ticket"] for entry in queued_jobs(root)]
+    if started and ticket not in waiting:
+        return Submitted(job_id=started)
+    return Submitted(ticket=ticket, position=waiting.index(ticket) + 1 if ticket in waiting else None, running=running)
 
 
 def queue_next(kind, title, steps, env=None, admin=None, database=None, root=None, draft=None):
     """
-    Puts a job in the one place after the running job: it starts by itself when that job succeeds or is cancelled,
-    and is held for the admin to start or discard when it failed.
+    Puts a job at the end of the waiting list: it starts by itself when the job before it succeeded or was cancelled, and
+    is held for the admin to start or discard when that job failed.
+
+    Returns:
+        str: The entry's ticket.
 
     Raises:
-        QueueFull: A job is already waiting.
-        OSError: No writable jobs directory.
+        runline.LineFull: The list holds `queue.max_waiting` entries.
+        OSError: No writable jobs directory, or no Redis server.
     """
     root = root or jobs_dir()
     running = active_job(root)
-    spec = {
-        "kind": kind, "title": title, "admin": admin, "database": database, "steps": steps, "env": env or {},
-        "queued_at": time.time(), "after_job": running["id"] if running else None, "held": None,
-        "draft": draft or [],
-    }
+    ticket = secrets.token_hex(8)
+    spec = {"kind": kind, "title": title, "admin": admin, "database": database, "steps": steps, "env": env or {},
+            "draft": draft or []}
+    path = _spec_path(root, ticket)
+    _write_spec(path, spec)
     try:
-        fd = os.open(_queued_path(root), os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    except FileExistsError as exc:
-        raise QueueFull("a job is already waiting") from exc
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        json.dump(spec, f)
-    log.debug("Queued %s (%s) for %s behind %s", title, kind, admin, spec["after_job"])
+        with _redis_errors():
+            connection = _connection()
+            ahead = runline.of_type(connection, runline.JOB, root)
+            runline.join(connection, runline.JOB, title, who=admin, database=database, kind=kind, ticket=ticket,
+                         fields={"root": root, "spec": os.path.basename(path),
+                                 "after_job": running["id"] if running and not ahead else None})
+    except BaseException:
+        _remove(path)
+        raise
+    log.debug("Queued %s (%s) for %s behind %s", title, kind, admin, running["id"] if running else None)
+    return ticket
 
 
-def queued_job(root=None):
-    """The waiting job as `{"kind", "title", "admin", "database", "queued_at", "after_job", "held"}` (no steps or
-    environment), or `None`."""
-    spec = _read_json(_queued_path(root or jobs_dir()))
-    if not spec:
-        return None
-    return {key: spec.get(key) for key in ("kind", "title", "admin", "database", "queued_at", "after_job", "held")}
+def queued_jobs(root=None):
+    """The jobs waiting in the list, next first, as `{"ticket", "kind", "title", "admin", "database", "queued_at",
+    "after_job", "held", "position"}` (no steps or environment)."""
+    root = root or jobs_dir()
+    with _redis_errors():
+        found = runline.of_type(_connection(), runline.JOB, root)
+    return [{"ticket": entry["ticket"], "kind": entry["kind"], "title": entry["title"], "admin": entry["who"],
+             "database": entry["database"], "queued_at": entry["queued_at"], "after_job": entry["after_job"],
+             "held": entry["held"], "position": entry["position"]} for entry in found]
 
 
-def discard_queued(root=None):
-    """Removes the waiting job; True when there was one."""
-    try:
-        os.remove(_queued_path(root or jobs_dir()))
-    except OSError:
-        return False
-    return True
+def line_view(root=None):
+    """The whole waiting list as the strip shows it, in the order it arrived: `{"ticket", "type", "title", "who",
+    "held", "position"}` for the jobs waiting for the running job and the runs waiting for the machine."""
+    with _redis_errors():
+        found = runline.entries(_connection())
+    root = root or jobs_dir()
+    return [{"ticket": entry["ticket"], "type": entry["type"], "title": entry["title"], "who": entry["who"],
+             "held": entry["held"], "position": entry["position"]}
+            for entry in found if entry["type"] == runline.RUN or entry["root"] == root]
+
+
+def discard_queued(root=None, ticket=None):
+    """Takes a waiting job out of the list (the next one when no `ticket` is given); True when there was one."""
+    root = root or jobs_dir()
+    with _redis_errors():
+        connection = _connection()
+        found = runline.of_type(connection, runline.JOB, root)
+        entry = next((e for e in found if ticket is None or e["ticket"] == ticket), None)
+        if entry is None:
+            return False
+        gone = runline.leave(connection, entry["ticket"])
+    _remove(_spec_path(root, entry["ticket"]))
+    return gone
+
+
+def discard_all_queued(root=None):
+    """Takes every waiting job out of the list; how many there were."""
+    root = root or jobs_dir()
+    count = 0
+    while discard_queued(root):
+        count += 1
+    return count
 
 
 def promote_queued(root=None, force=False):
     """
-    Starts the waiting job if the job it waited for is over. Called when a job ends (`job_runner.run`), when an admin
-    page asks for the running job, and by Start now (`force`, for a held job).
+    Starts the job at the head of the waiting list if the job it waited for is over. Called when a job ends
+    (`job_runner.run`), when an admin page asks for the running job, and by Start now (`force`, for a held job).
 
     Returns:
         str | None: The new job's id, or `None` (nothing waiting, still running, held, or the start failed).
     """
     root = root or jobs_dir()
-    path = _queued_path(root)
-    spec = _read_json(path)
-    if not spec or active_job(root) is not None:
-        return None
-    after = get_job(spec["after_job"], root) if spec.get("after_job") else None
-    if not force and after is not None:
-        if not after["finished"]:
+    with _redis_errors():
+        connection = _connection()
+        waiting = runline.of_type(connection, runline.JOB, root)
+        if not waiting or active_job(root) is not None:
             return None
-        if after["status"] not in ("succeeded", "cancelled"):
-            if not spec.get("held"):
-                spec["held"] = f"The job before it did not succeed ({after['status']})."
-                _write_queued(path, spec)
+        entry = waiting[0]
+        after = get_job(entry["after_job"], root) if entry["after_job"] else None
+        if not force and after is not None:
+            if not after["finished"]:
+                return None
+            if after["status"] not in ("succeeded", "cancelled"):
+                if not entry["held"]:
+                    runline.set_field(connection, entry["ticket"], "held",
+                                      f"The job before it did not succeed ({after['status']}).")
+                return None
+        if not runline.claim(connection, entry["ticket"]):        # one process wins this
             return None
-    claimed = path + ".starting"
+    spec_path = _spec_path(root, entry["ticket"])
+    spec = _read_json(spec_path)
     try:
-        os.rename(path, claimed)       # one process wins this
-    except OSError:
-        return None
-    try:
-        job_id = start_job(spec["kind"], spec["title"], spec["steps"], env=spec.get("env"),
-                           admin=spec.get("admin"), database=spec.get("database"), root=root,
-                           draft=spec.get("draft"))
+        if not spec:
+            raise OSError("its recipe is gone")
+        job_id = start_job(spec["kind"], spec["title"], spec["steps"], env=spec.get("env"), admin=spec.get("admin"),
+                           database=spec.get("database"), root=root, draft=spec.get("draft"))
     except JobBusy:
-        os.rename(claimed, path)
+        with _redis_errors():
+            runline.restore(connection, entry["ticket"])
         return None
     except Exception as exc:  # noqa: BLE001 -- keep the job for the admin to start or discard
-        log.error("Could not start the waiting job %s: %s", spec.get("title"), exc)
-        spec["held"] = f"It could not be started: {exc}"
-        _write_queued(claimed, spec)
-        os.rename(claimed, path)
+        log.error("Could not start the waiting job %s: %s", entry["title"], exc)
+        with _redis_errors():
+            runline.set_field(connection, entry["ticket"], "held", f"It could not be started: {exc}")
+            runline.restore(connection, entry["ticket"])
         return None
-    os.remove(claimed)
+    with _redis_errors():
+        runline.leave(connection, entry["ticket"])
+        later = runline.of_type(connection, runline.JOB, root)
+        if later:
+            runline.set_field(connection, later[0]["ticket"], "after_job", job_id)      # it waits for the job just started
+    _remove(spec_path)
     return job_id
-
-
-def _write_queued(path, spec):
-    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".next-")
-    with os.fdopen(fd, "w", encoding="utf-8") as f:
-        json.dump(spec, f)
-    os.replace(tmp, path)

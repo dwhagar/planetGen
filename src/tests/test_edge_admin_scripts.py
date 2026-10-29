@@ -50,6 +50,19 @@ def restore_signals():
         signal.signal(sig, handler)
 
 
+def _hold(job_id):
+    """The job lock (kept in Redis, `jobs.release_lock`) names `job_id`."""
+    from planetgen.queue import redisqueue
+    from planetgen.web import jobs
+    jobs._write_lock(redisqueue.connect(), job_id)
+
+
+def _holder():
+    from planetgen.queue import redisqueue
+    from planetgen.web import jobs
+    return jobs._read_lock(redisqueue.connect())
+
+
 def _make_job(tmp_path, steps, job_id="job1", lock_holder="job1", env=None):
     job_dir = tmp_path / job_id
     job_dir.mkdir()
@@ -58,7 +71,7 @@ def _make_job(tmp_path, steps, job_id="job1", lock_holder="job1", env=None):
         job["env"] = env
     (job_dir / "job.json").write_text(json.dumps(job))
     if lock_holder is not None:
-        (tmp_path / jobRunner.LOCK_NAME).write_text(lock_holder + "\n")
+        _hold(lock_holder)
     return job_dir
 
 
@@ -82,7 +95,7 @@ def test_job_runs_every_step_in_order_and_succeeds(tmp_path, restore_signals):
     assert state["finished_at"] >= state["started_at"]
     log = (job_dir / "output.log").read_text()
     assert log.index("first") < log.index("Stage 2 of 2: two") < log.index("True")
-    assert not (tmp_path / jobRunner.LOCK_NAME).exists()
+    assert _holder() is None
 
 
 def test_job_stops_at_the_first_failing_step(tmp_path, restore_signals):
@@ -104,7 +117,7 @@ def test_a_missing_program_fails_the_job_instead_of_crashing(tmp_path, restore_s
     state = _state(job_dir)
     assert state["status"] == "failed"
     assert state["error"].startswith("The job runner failed:")
-    assert not (tmp_path / jobRunner.LOCK_NAME).exists()
+    assert _holder() is None
 
 
 def test_a_malformed_step_is_recorded_as_a_failure(tmp_path, restore_signals):
@@ -134,7 +147,7 @@ def test_job_env_reaches_the_steps_and_cannot_undo_the_progress_file(tmp_path, r
 def test_the_lock_is_left_alone_when_another_job_holds_it(tmp_path, restore_signals):
     job_dir = _make_job(tmp_path, [_step("ok", "pass")], lock_holder="someone-else")
     assert jobRunner.run(str(job_dir)) == 0
-    assert (tmp_path / jobRunner.LOCK_NAME).read_text().strip() == "someone-else"
+    assert _holder() == "someone-else"
 
 
 def test_a_missing_lock_is_not_an_error(tmp_path, restore_signals):

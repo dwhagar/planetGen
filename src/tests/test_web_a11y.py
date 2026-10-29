@@ -364,7 +364,7 @@ def sample_job(tmp_path_factory):
     with open(os.path.join(path, "state.json"), "w", encoding="utf-8") as f:
         f.write('{"status": "succeeded", "pid": 1, "step": 1, "started_at": 1759236000, '
                 '"finished_at": 1759236002, "exit_code": 0, "error": null}')
-    os.remove(os.path.join(root, jobs.LOCK_NAME))
+    jobs.release_lock(job_id)
     try:
         yield job_id
     finally:

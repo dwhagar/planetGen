@@ -37,6 +37,7 @@ from urllib.parse import urlencode
 
 from flask import abort, current_app, flash, g, get_flashed_messages, jsonify, redirect, request, url_for
 
+from planetgen.queue import runline
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
     esc, format_number, format_distance_ly, inside_text, linkify_nearest, nearest_systems_html,
@@ -408,10 +409,14 @@ def _handle_post(sector_id, admin):
             return "neighborhood_estimate", result["estimate"]
         # ADM.11: a background job, like the Generate page's, so it runs
         # to the end whether or not this page stays open.
-        error = _start_neighborhood_job(sector_id, admin,
-                                        generate_anyway=bool(request.form.get(generate_page.GENERATE_ANYWAY_FIELD)))
+        error, waiting = _start_neighborhood_job(sector_id, admin,
+                                                 generate_anyway=bool(request.form.get(generate_page.GENERATE_ANYWAY_FIELD)))
         if error:
             return "neighborhood", error
+        if waiting:
+            flash(f"{waiting} is running, so generating the sectors around this one waits its turn and starts by "
+                  "itself. Follow it on the Generate page.", _FLASH_CATEGORY)
+            return page_again
         flash("Started generating the sectors around this one. It keeps running if you close this page; "
               "follow it on the Generate page.", _FLASH_CATEGORY)
         return page_again
@@ -421,31 +426,33 @@ def _handle_post(sector_id, admin):
 
 def _start_neighborhood_job(sector_id, admin, generate_anyway=False):
     """Starts `planetgen sectors --center-sector <id>` (and the steps after it) over the default
-    radius as a Generate page job (`web/jobs.py`). `generate_anyway`: the
-    admin chose "Generate anyway" over a no-room refusal (ADM.33), which
-    goes in the activity log. Returns an error message, or `None` once it
-    has started."""
+    radius as a Generate page job (`web/jobs.py`); behind a running job it waits in the list and starts by itself
+    (PERF.154). `generate_anyway`: the admin chose "Generate anyway" over a no-room refusal (ADM.33), which
+    goes in the activity log. Returns `(error, waiting)`: an error message or `None`, and the title of the running
+    job it waits for or `None` once it has started."""
     database = db_name()
     form = {"mode": "center", "center_sector": str(sector_id),
             "center_radius_pc": str(tuning.DEFAULT_GENERATE_RADIUS_PC)}
     try:
         kind, title, steps = generate_page.build_job("galaxy", form, database)
         env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
-        job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database)
+        submitted = jobs.submit(kind, title, steps, env=env, admin=admin.get("username"), database=database)
     except generate_page.FormError as exc:
-        return str(exc)
-    except jobs.JobBusy as exc:
-        running = exc.job["title"] if exc.job else "Another job"
-        return f"{running} is still running. Wait for it to finish, or cancel it on the Generate page."
+        return str(exc), None
+    except runline.LineFull as exc:
+        return str(exc), None
     except OSError as exc:
         log.error(f"Could not start the neighborhood job for sector {sector_id}: {exc}")
-        return f"The job could not be started: {exc}"
-    activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
+        return f"The job could not be started: {exc}", None
+    if submitted.job_id is None:
+        activity_log.event("GEN", "job.queue", user=admin.get("username"), kind=kind, db=database, title=title)
+        return None, submitted.running
+    activity_log.event("GEN", "job.start", user=admin.get("username"), job=submitted.job_id, kind=kind, db=database,
                       title=title)
     if generate_anyway:
-        activity_log.event("GEN", "job.generate_anyway", user=admin.get("username"), job=job_id, db=database,
+        activity_log.event("GEN", "job.generate_anyway", user=admin.get("username"), job=submitted.job_id, db=database,
                            title=title)
-    return None
+    return None, None
 
 
 def _with_bright_stars(neighbors):

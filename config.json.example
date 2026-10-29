@@ -76,7 +76,8 @@
     "long_workers": 1,
     "long_job_seconds": 60.0,
     "unit_ceiling_seconds": 300.0,
-    "wait_minutes": 60.0
+    "wait_minutes": 60.0,
+    "max_waiting": 8
   },
   "ratelimit": {
     "default": "200 per day;50 per hour",

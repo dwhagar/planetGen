@@ -149,7 +149,7 @@ def _wait_finished(job_id, root, timeout=30):
                     final = json.load(f).get("status") in ("succeeded", "failed", "cancelled")
             except (OSError, ValueError):
                 final = False
-            holder = jobs._read_lock(os.path.join(root, jobs.LOCK_NAME))
+            holder = jobs._read_lock(redisqueue.connect())
             if final and holder != job_id:
                 return job
         time.sleep(0.05)
@@ -956,16 +956,15 @@ def test_scatter_threshold_must_be_a_preset_range(site, client, no_spawn, value)
 
 def test_one_job_at_a_time(site, client, no_spawn, jobs_root):
     assert _post(client, action="plan").status_code == 303
-    # The first job is "starting" (spawned moments ago), so it holds the lock. The next one waits behind it
-    # (ADM.123) and a third has no room.
+    # The first job is "starting" (spawned moments ago), so it holds the lock. The next ones wait behind it in the one
+    # waiting list (ADM.123, PERF.154) until it holds `queue.max_waiting` entries.
     resp = _post(client, action="reset", confirm=DB)
     assert resp.status_code == 303 and jobs.active_job()["title"] == "Plan the galaxy"
-    assert jobs.queued_job()["kind"] == "reset"
+    assert jobs.queued_jobs()[0]["kind"] == "reset"
     resp = _post(client, action="reset", confirm=DB)
-    assert resp.status_code == 409
-    assert "Plan the galaxy is still running and another job is already waiting" in resp.get_data(as_text=True)
+    assert resp.status_code == 303 and len(jobs.queued_jobs()) == 2
     resp = _post(client, headers={"Accept": "application/json"}, action="reset", confirm=DB)
-    assert resp.status_code == 409 and "still running" in resp.get_json()["error"]
+    assert resp.status_code == 202 and resp.get_json()["position"] == 3
     html = _forms_html(client)
     assert "Cancel job" in html and "The forms below unlock" not in html
 
@@ -1058,6 +1057,7 @@ def _step(label, code):
     return {"label": label, "argv": [PY, "-c", code]}
 
 
+@pytest.mark.real_queue
 def test_runner_runs_steps_in_order_and_reports_progress(jobs_root, redis_server):
     progress = (
         "from planetgen.queue import progress_file; "
@@ -1078,13 +1078,13 @@ def test_runner_runs_steps_in_order_and_reports_progress(jobs_root, redis_server
     assert jobs.active_job() is None
     # The runner writes its final state.json and only then drops the lock
     # (a finished holder's lock already counts as free), so give it a moment.
-    lock = os.path.join(jobs_root, jobs.LOCK_NAME)
     deadline = time.time() + 10
-    while os.path.exists(lock):
+    while jobs._read_lock(redisqueue.connect()) is not None:
         assert time.time() < deadline, "the runner never released its lock"
         time.sleep(0.05)
 
 
+@pytest.mark.real_queue
 def test_runner_stops_at_the_first_failure(jobs_root, redis_server):
     job_id = jobs.start_job("new_galaxy", "Fails", [
         _step("Breaks", "import sys; print('boom'); sys.exit(3)"),
@@ -1096,6 +1096,7 @@ def test_runner_stops_at_the_first_failure(jobs_root, redis_server):
     assert "should not run" not in jobs.log_tail(job_id)
 
 
+@pytest.mark.real_queue
 def test_cancel_stops_the_running_step(site, client, jobs_root, redis_server):
     job_id = jobs.start_job("galaxy", "Slow", [
         _step("Sleeps", "import time; print('sleeping', flush=True); time.sleep(60)"),
@@ -1116,6 +1117,7 @@ def test_cancel_stops_the_running_step(site, client, jobs_root, redis_server):
     assert "cancelled" in html and "Cancel job" not in html
 
 
+@pytest.mark.real_queue
 def test_cancel_stops_the_steps_own_children(jobs_root, tmp_path, redis_server):
     """Cancel stops the step's whole process tree (a `plan` pool's
     workers), not just the step: a grandchild that would write a file
@@ -1153,6 +1155,7 @@ def test_cancel_is_a_file_the_runner_reads(jobs_root):
     assert jobs.active_job() is None
 
 
+@pytest.mark.real_queue
 def test_cancel_of_a_finished_job_does_nothing(jobs_root, redis_server):
     job_id = jobs.start_job("reset", "Quick", [_step("x", "pass")])
     _wait_finished(job_id, jobs_root)
@@ -1160,6 +1163,7 @@ def test_cancel_of_a_finished_job_does_nothing(jobs_root, redis_server):
     assert not os.path.exists(os.path.join(jobs_root, job_id, jobs.CANCEL_NAME))
 
 
+@pytest.mark.real_queue
 def test_cancel_of_a_job_cancels_the_runs_it_started_at_once(site, client, jobs_root, redis_server):
     """PERF.99: the runs the job's step started are cancelled by the cancel itself, through the stop command, not left to
     the step noticing; the machine is free before the step is gone."""
@@ -1206,6 +1210,7 @@ def test_runner_liveness_on_this_platform(jobs_root):
     assert not jobs._runner_alive(proc.pid, "20260101-000000-abcd")
 
 
+@pytest.mark.real_queue
 def test_old_jobs_are_pruned(jobs_root, monkeypatch, redis_server):
     monkeypatch.setattr(jobs, "keep_count", lambda: 2)
     ids = []
@@ -1243,6 +1248,7 @@ def test_python_executable_falls_back_when_embedded(monkeypatch):
 
 # --- Real database ----------------------------------------------------------------
 
+@pytest.mark.real_queue
 def test_reset_job_empties_a_real_database(mysql_config, jobs_root, redis_server):
     from planetgen.db import store as _db
     from planetgen.galaxy.sector import SpaceSector
@@ -1514,14 +1520,16 @@ def test_a_plain_reset_has_no_data_step():
 
 # --- PERF.24: jobs run on Redis ------------------------------------------------------
 
-def test_without_redis_no_job_starts(jobs_root, monkeypatch):
+def test_without_redis_no_job_starts(jobs_root, redis_server, monkeypatch):
     monkeypatch.setenv("PLANETGEN_REDIS_URL", "redis://127.0.0.1:1/0")
     with pytest.raises(OSError, match="no Redis server"):
         jobs.start_job("reset", "No Redis", [_step("x", "pass")])
-    lock = os.path.join(jobs_root, jobs.LOCK_NAME)
-    assert jobs.active_job(jobs_root) is None, f"lock left behind: {os.path.exists(lock)} {os.listdir(jobs_root)}"
+    monkeypatch.setenv("PLANETGEN_REDIS_URL", redis_server)
+    assert jobs.active_job(jobs_root) is None, f"lock left behind: {os.listdir(jobs_root)}"
+    assert not os.listdir(jobs_root), "no job folder left behind"
 
 
+@pytest.mark.real_queue
 def test_a_job_runs_on_its_own_queue_and_leaves_none_behind(jobs_root, redis_server):
 
     job_id = jobs.start_job("reset", "Queued", [_step("x", "print('queued')")])

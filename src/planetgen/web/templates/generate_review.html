@@ -43,7 +43,7 @@
   <p class="error" role="note">This deletes data in <code>{{ database }}</code> and can't be undone.</p>
   {%- endif %}
   {%- if active %}
-  <p class="hint" role="status">{{ active.title }} is running. {% if queued_job %}A job is already waiting behind it, so this cannot be queued until that one starts or is discarded.{% else %}This will start when it finishes.{% endif %}</p>
+  <p class="hint" role="status">{{ active.title }} is running. {% if line_full %}The waiting list is full, so this cannot be queued until one in it starts or is discarded.{% else %}This will wait its turn and start by itself when the jobs ahead of it end.{% endif %}</p>
   {%- endif %}
   <div class="search-actions">
     <form method="post" action="{{ url_for('web.generate') }}" class="table-form">
@@ -61,7 +61,7 @@
       {%- if review.estimate and review.estimate.refused %}
       <input type="hidden" name="{{ generate_anyway_field }}" value="1">
       {%- endif %}
-      <button type="submit" class="btn{% if review.destructive %} btn-danger{% endif %}"{% if active and queued_job %} disabled{% endif %}>{{ review.run_label }}</button>
+      <button type="submit" class="btn{% if review.destructive %} btn-danger{% endif %}"{% if active and line_full %} disabled{% endif %}>{{ review.run_label }}</button>
     </form>
     <form method="post" action="{{ url_for('web.generate_task', key=task.key) }}" class="table-form">
       {{ csrf_field() }}

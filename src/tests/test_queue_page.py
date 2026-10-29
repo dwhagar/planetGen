@@ -338,20 +338,24 @@ def test_a_fill_button_starts_its_command_as_a_job_and_writes_the_audit_entry(
     assert events[-1][1]["started_from"] == "queue page"
 
 
-def test_a_fill_is_refused_while_another_run_is_live_or_a_job_holds_the_lock(
-        web_app, admin_client, conn, monkeypatch):
-    monkeypatch.setattr(jobs, "start_job", lambda *a, **k: pytest.fail("should not start"))
+def test_a_fill_behind_a_live_run_or_a_running_job_waits_its_turn(web_app, admin_client, conn, monkeypatch):
+    """PERF.154: nothing is refused for a busy machine; a fill is a job and waits in the list for the job before it
+    (its own run then waits for the machine)."""
+    started = []
+    monkeypatch.setattr(jobs, "start_job", lambda *a, **k: started.append(a[1]) or "20261001-000000-aaaa")
     live = _run(conn, title="Fill shell 7", queued=False)
     runrecord.touch(conn, live)
     response = _post(web_app, admin_client, action="fill-habitability")
-    assert "Fill shell 7 is still running" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
+    assert response.status_code == 303 and started, "a live run does not refuse a fill"
     runcontrol.cancel_run(conn, live)
 
     def busy(*args, **kwargs):
         raise jobs.JobBusy({"id": "20261001-000000-abcd", "title": "Generate sectors"})
     monkeypatch.setattr(jobs, "start_job", busy)
+    monkeypatch.setattr(jobs, "promote_queued", lambda *a, **k: None)
     response = _post(web_app, admin_client, action="fill-map-luminosity")
-    assert "Generate sectors is still running" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
+    assert response.status_code == 303
+    assert [job["title"] for job in jobs.queued_jobs()] == ["Fill map luminosity"]
 
 
 def test_retry_refuses_another_database_and_a_run_with_no_command(web_app, admin_client, conn, monkeypatch):
@@ -376,7 +380,7 @@ def test_retry_plan_for_a_run_a_web_job_started_begins_at_the_step_that_failed(t
     ], spawn=False)
     path = root_dir / job_id
     (path / "state.json").write_text('{"status": "failed", "step": 2, "started_at": 1, "finished_at": 2}')
-    (root_dir / jobs.LOCK_NAME).unlink()
+    jobs.release_lock(job_id)
     job, steps = jobs.remaining_steps(job_id)
     assert job["status"] == "failed" and [step["label"] for step in steps] == ["Plan", "Fill"]
     run = {"kind": "generation", "job": job_id, "title": "Fill", "argv": ["galaxy"], "database": None}
