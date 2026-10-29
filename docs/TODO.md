@@ -12459,6 +12459,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cells), 3 (animals) and 60 Gyr (civilization), scale 1.0. Core 1
   applies it in the GEN.855 + GEN.750 change before the golden rewrite;
   registry row tier T9, tweak L3.
+  Research (2026-10-09): Boss, 9:13 PM EDT 2026-10-28: sentient should
+  be the most rare kind of life, with most life stopping at animal life.
+  Census and generation targets order the stages by prevalence: sentient
+  is the rarest stage, animals the common ceiling.
   Prerequisites: none. Related: GEN.649, GEN.740.
 
 - [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
@@ -13839,6 +13843,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sentient life kept as it is (Boss, 7:38 PM EDT: no more intelligent
   worlds than now, but a mix of kinds). Carbon and water based only
   until Boss approves another chemistry.
+  Research (2026-10-09): Boss, 9:13 PM EDT 2026-10-28: sentient should
+  be the most rare kind of life, with most life stopping at animal life.
+  Census and generation targets order the stages by prevalence: sentient
+  is the rarest stage, animals the common ceiling.
   Prerequisites: GEN.863.
 
 - [ ] **GEN.865 Headline of 9.5: sentient life draws from the life classes, so every sentient world is rated for the kind of life that built it**
@@ -19677,6 +19685,10 @@ clears each one.
   chemistry share per star letter (section 9.3 test 3) once the star
   lists and weights agree (GEN.867); the later bands for routes and
   traits are TEST.436.
+  Research (2026-10-09): Boss, 9:13 PM EDT 2026-10-28: sentient should
+  be the most rare kind of life, with most life stopping at animal life.
+  Census and generation targets order the stages by prevalence: sentient
+  is the rarest stage, animals the common ceiling.
 
 - [ ] **TEST.431 System census: full systems per star type with planets, moons, belts and comets per system, the zero-planet share, binary share, habitable-world share, and life stage and civilization shares (prevalence suite part B)**
   Part of the full prevalence suite (TEST.430, Boss 7:27 PM EDT
@@ -19768,6 +19780,10 @@ clears each one.
   Boss (2026-10-28, 7:41 PM EDT): adds the life class and stage shares
   to the prevalence suite of TEST.430, with targets from the researched
   norms and the share of sentient worlds held to its present value.
+  Research (2026-10-09): Boss, 9:13 PM EDT 2026-10-28: sentient should
+  be the most rare kind of life, with most life stopping at animal life.
+  Census and generation targets order the stages by prevalence: sentient
+  is the rarest stage, animals the common ceiling.
   Prerequisites: GEN.863, TEST.430.
 
 - [ ] **TEST.436 Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges**
