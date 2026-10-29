@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2475] - 2026-10-29
+
+**Headline:** Every number in the life class rules now has a row in the list of stand-in values, with its source tier and tweak level.
+
+### Changed
+- **Stand-in registry rows for the life class rules (GEN.893).** Section 6.19 of the gap-filling plan has one row for each of the fifteen life classes (solvent factor, energy band, gates, windows, supply placeholder, with the tier and tweak of the least certain number) and rows for the complexity thresholds, the hydrogen floor of non-water classes and the reference star. The generated list of stand-in values (`stand-in-values.md`) picks them up, and a new test fails when a class has no row or a row claims a better tier than its numbers.
+
 ## [8.0.2474] - 2026-10-29
 
 **Headline:** The generator can now score every rocky world for each of the fifteen kinds of life in the life class design, in shadow, without changing anything a player sees.
