@@ -13659,6 +13659,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
   Prerequisites: GEN.927, GEN.928, GEN.929, GEN.930, GEN.931. Related:
   GEN.922.
+  Research (2026-10-09): Scope (Boss 5:42 PM EDT 2026-10-29): the epoch
+  includes the star class audit items GEN.935 to GEN.943 as well as
+  GEN.927 to GEN.931 (GEN.944 is later, 8.4). Bug 1 may order them
+  inside the one merge.
 
 - [ ] **GEN.933 One mass-boundary table (brown dwarf/star, planet/brown dwarf, spectral-class mass edges, Chandrasekhar, neutron star/black hole) with sources and tiers, read by the mass function, companions, rogue bodies and the display ladders**
   Found by Bug 1 (5:27 PM EDT 2026-10-29 as the lane reported) answering
@@ -13831,6 +13835,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the GEN.932 epoch with the GEN.922 star mass function chain unless
   stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
   or a fresh star-physics lane). Version 8.1.
+  Research (2026-10-09): BOSS DECIDED (5:42 PM EDT 2026-10-29, card
+  answer option 1): this item is IN the long-term epoch GEN.932, so star
+  subclass names, forced types and life paces are settled once. Owner
+  Bug 1.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.942 Supported life paces come from the star's actual lifespan; the per-letter lifespan table (tuning.STAR_EVOLUTION) is removed**
@@ -13850,6 +13858,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the GEN.932 epoch with the GEN.922 star mass function chain unless
   stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
   or a fresh star-physics lane). Version 8.1.
+  Research (2026-10-09): BOSS DECIDED (5:42 PM EDT 2026-10-29, card
+  answer option 1): this item is IN the long-term epoch GEN.932, so star
+  subclass names, forced types and life paces are settled once. Owner
+  Bug 1.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.943 Spectral subclasses from a letter-and-subclass temperature lookup table (Pecaut and Mamajek style), the K/M boundary at about 3,900 K, and a decision on Yerkes class VI (subdwarf)**
@@ -13869,6 +13881,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the GEN.932 epoch with the GEN.922 star mass function chain unless
   stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
   or a fresh star-physics lane). Version 8.1.
+  Research (2026-10-09): BOSS DECIDED (5:42 PM EDT 2026-10-29, card
+  answer option 1): this item is IN the long-term epoch GEN.932, so star
+  subclass names, forced types and life paces are settled once. Owner
+  Bug 1.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.944 Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars)**
