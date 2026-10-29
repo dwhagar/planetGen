@@ -13957,6 +13957,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   work_* tables: progress.json and progress_file.py, the work.py
   writers, the job runner's step estimates from work_jobs, the update
   guard's reads of them.
+  Research (2026-10-09): Update (Core 4, DB.29 #3645, 1:15 AM EDT
+  2026-10-29 as the lane reported): delete WorkRunSource in
+  updateguard.py together with the work tables; the update guard now
+  stops update.sh and migrate while any job is active unless --yes is
+  passed (--yes replaced --cancel-running, no shim).
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
@@ -14600,58 +14605,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.179.
   Design: [docs/design/operations/db-check-and-parity-repair.md](design/operations/db-check-and-parity-repair.md)
-
-- [ ] **DB.29 update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them**
-  Boss, 2026-10-15 02:55Z: "Add TODO item, when migrating the database
-  to a new version, if there are active jobs, ask the user to cancel the
-  jobs first before changing anything." Widened by Boss, 02:56Z: "In
-  fact, anytime update is run, it won't start without either --yes
-  passed OR if the user specifically confirms they want to cancel all
-  jobs prior to starting the upgrade or install." Done: before it
-  changes anything, update.sh (every install and every upgrade, not only
-  runs that migrate) and the migrate command check for active jobs
-  (running or queued generation runs and other background jobs). With
-  none, they proceed as before. With any, they list them and stop until
-  either `--yes` was passed, or the user types an explicit confirmation
-  that all active jobs may be cancelled; only then are the jobs
-  cancelled, and then the install or upgrade starts. Boss, 02:59Z: "the
-  update script needs to know if it's being run either from systemd or
-  cron, and if it has, assume no unless --yes is passed. Or say 30
-  seconds of waiting for input and it assumes no and cancels the
-  update." So update.sh detects a run from systemd or cron (no person
-  at the keyboard) and then assumes "no": it changes nothing and exits
-  non-zero unless `--yes` was passed. When it does prompt, 30 seconds
-  without an answer count as "no": it changes nothing and exits
-  non-zero. Without `--yes` and without a terminal to ask on, it does
-  the same.
-  update.sh still never edits the user's Redis configuration (OPS.48).
-  A test covers each path (no jobs, jobs and `--yes`, jobs and a typed
-  confirmation, jobs and no answer within 30 seconds, jobs and a run
-  from systemd or cron), and the check is the one place every
-  migration goes through.
-  Dependency: how the active jobs are read depends on the work queue
-  steps. PERF.96 (run record and counters in Redis, done, PR #1553)
-  supplies the library call that lists active runs, which the check
-  uses; and PERF.99 supplies the cancel through the stop
-  command, after which the check uses them. PERF.100 (which deletes the
-  old work tables with a migration) must pass through this check too.
-  Owner: Database, after DB.28 (done, PR #1476) and before PERF.100.
-  Prerequisites: none. Related: PERF.95 (done, PR #1506), PERF.96
-  (done, PR #1553), PERF.99, PERF.100, OPS.48, DB.18, DB.27 (done, PR
-  #1446), DB.28 (done, PR #1476).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Owner: Core 4 (lock-free item while it waits for the generation lock, 11:53 PM EDT 2026-10-28; this replaces any earlier owner line on this item). Separate branch; no generation change.
 
 - [ ] **DB.40 Parity data backup part: the parity file of the DB repair copied into the backup archive**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
@@ -15821,6 +15774,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   that is not started before its version); no lane yet.
   Prerequisites: none. Related: ADM.57, ADM.6, ADM.7, ADM.8.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
+  Owner: Core 4 (lock-free item while it waits for the generation lock, 1:15 AM EDT 2026-10-29; library only, no generation change; this replaces any earlier owner line on this item). Separate branch; it builds on planetgen/admin/edits.py.
 
 - [ ] **ADM.59 Change plan store: save, load and list plans, and mark them stale**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
