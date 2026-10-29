@@ -1431,29 +1431,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
-- [ ] **MAP.173 The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): regions
-  plus single nebulae per tile, nested like MAP.154 so a parent list is
-  a subset of its child, in the JSON tile first and the packed tile
-  (MAP.159) after; budget 600 regions per tile ranked by volume; one
-  cache-stamp bump together with MAP.147 and MAP.151. Done: the layer,
-  the budget and a test on a seeded galaxy. Owner: Foundations lane 2,
-  with MAP.151 and MAP.159.
-  Prerequisites: none. Related: MAP.147, MAP.151 (done, PR #1539),
-  MAP.159.
-  Tile-format changes are one chain with MAP.171 and MAP.195 (one
-  cache-stamp bump), so this item moved into the Fly-through thread;
-  MAP.172 and GEN.202 moved to phase 1 as foundations (2026-10-16
-  review).
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
-
 - [ ] **MAP.176 Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
@@ -1465,7 +1442,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the MAP.153 rule) as the camera zooms in, budget 600, per-kind
   toggles (MAP.123) and a legend block. Done: the layer, the toggles and
   the legend, with a browser test on a seeded galaxy. Default: 16 px
-  cells and a 600 budget. Owner: Foundations lane 2.
+  cells and a 600 budget. Owner: Core 3 (nebula chain; MAP.173 merged as #3609).
   Note (2026-10-10, nebula density research, PR #1188): add a stress
   test with 3,000 candidate regions keeping the 600 with the largest
   volume; the region counts stay above the 600 budget from 8 kpc to 1
@@ -1534,7 +1511,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Draws the far-zoom markers of the marker layer (first child of
   MAP.132), so it needs it (2026-10-16 review); it keeps the
   planetary-nebula and remnant kind.
-  Prerequisites: GEN.202, MAP.173. Related: MAP.132.
+  Prerequisites: GEN.202. Related: MAP.132.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
 - [ ] **MAP.180 Picking, hover and fly-to for nebula regions and cover**
@@ -16980,7 +16957,7 @@ clears each one.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: MAP.173, GEN.202. Related: PERF.68.
+  Prerequisites: GEN.202. Related: PERF.68.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
 - [ ] **TEST.137 test_a_neighborhood_from_the_generate_page[core] fails once under load (bug)**

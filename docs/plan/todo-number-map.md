@@ -1825,7 +1825,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.170 | The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional | none | open |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | none | open |
 | MAP.172 | Nebula cell aggregates in the region pyramid | none | done, PR #2431 |
-| MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | none | open |
+| MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | none | done, PR #3609 |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | none | done, PR #2694 |
 | MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | done, PR #1203 |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | none | open |
