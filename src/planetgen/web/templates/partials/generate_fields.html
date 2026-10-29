@@ -39,11 +39,11 @@
 {%- set use_star = (not form) or form.get("compact_use_star") -%}
 {%- set chosen = (form.get("compact_min_mass") if form else none) or compact_presets[-1] -%}
 {%- set presets = [] -%}
-{%- for preset in compact_presets %}{% set _ = presets.append({"value": preset|int, "label": preset|int}) %}{% endfor -%}
+{%- for preset in compact_presets %}{% set _ = presets.append({"value": preset|int, "label": (preset|int|string) ~ " solar mass" ~ ("es" if preset|int != 1 else "")}) %}{% endfor -%}
 <fieldset class="generate-compact" data-compact-limit>
   <legend>{{ compact_label }}</legend>
   {{ ui_checkbox("compact_use_star", "Use the star mass setting", checked=use_star, id=id ~ "-star") }}
-  {{ ui_select("compact_min_mass", "Or neutron stars and black holes from this many solar masses", presets, chosen|float|int, id=id) }}
+  {{ ui_select("compact_min_mass", "Or neutron stars and black holes from at least", presets, chosen|float|int, id=id) }}
   <span class="field-hint">Every neutron star and black hole at least this heavy is placed across the whole galaxy;
   lighter ones are drawn when their sector is made. The central black hole or quasar is always created. Lower
   limits fill the database: {% for preset, cost in compact_warnings %}{{ preset|int }} solar mass{{ "es" if preset > 1 }} is {{ cost }}{{ "; " if not loop.last else "." }}{% endfor %}</span>
