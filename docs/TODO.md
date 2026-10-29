@@ -13960,12 +13960,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in-request entry point (`ensure_sector_generated`) so it cannot come
   back. Option 2 (an admin's visit queues a one-sector run) stays open
   for later as PERF.204. PERF.149 closes with option 1 merged.
-  Research (2026-10-09): BOSS DECIDED rule 2 (1:19 PM EDT 2026-10-29):
-  'Just 1 with the option for 2'. Do option 1 now: tests that a visit to
-  an uncharted sector generates and queues nothing, and remove the dead
-  in-request entry point (`ensure_sector_generated`) so it cannot come
-  back. Option 2 (an admin's visit queues a one-sector run) stays open
-  for later as PERF.204. PERF.149 closes with option 1 merged.
 
 - [ ] **PERF.154 One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5)**
   Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
@@ -14089,29 +14083,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Performance lane (proposed; it is retiring, so the pool or Core 5 if
   it has already gone).
   Prerequisites: none. Related: PERF.155, PERF.167, PERF.171, PERF.123.
-
-- [ ] **PERF.182 Finish an incomplete run: resume a New galaxy run that died partway from the stage it stopped in**
-  Boss, 1:53 PM EDT 2026-10-24, for version 8.2: "We need to find a way
-  to finish an incomplete run." Cause: Boss's New galaxy run died in
-  Stage 7 (MySQL out of memory, PERF.181) and the only way forward was
-  to wipe and start over. Today a single fill stage can resume after an
-  interruption (TEST.23, test_gen_resume), but the New galaxy run as a
-  whole cannot. Do: record per stage what a run finished (stage, command
-  and arguments, the galaxy seed and the build), and add a Finish run
-  action (command, Generate page button and console line) that takes the
-  last incomplete run, checks the galaxy seed and build still match, and
-  carries on from the first stage that did not finish, with each stage
-  able to skip work it already saved (stages already resumable keep
-  their way, the scatter stages need one). Done: a New galaxy run killed
-  in any stage, then Finish run, ends with the same galaxy as an
-  uninterrupted run (same seed, same sectors, same scatter), and a test
-  kills a run in two different stages and compares. Related: GEN.633
-  (storage repair, Core 1) is a different thing (it repairs stored data,
-  it does not continue a run); PERF.181, TEST.23. Phase: 8.2 phase 2.
-  Owner: Core 5 (11:55 AM EDT 2026-10-29), as its next item after PERF.149:
-  it built the one step list of `planetgen galaxy` (PERF.172), which the
-  per-stage record and Finish run sit on. No generation change, no epoch.
-  Prerequisites: none. Related: PERF.181, GEN.633, PERF.98, PERF.99, PERF.172.
 
 - [ ] **PERF.188 The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python**
   Found by Bug Hunt while fixing the load flakes of TEST.344 (relayed
@@ -14300,7 +14271,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the run finishes; visitors who are not admins still queue nothing.
   Version 8.2. Owner: none yet (Core 5 is the natural owner); follows
   PERF.149.
-  Prerequisites: none. Related: PERF.149, PERF.182.
+  Prerequisites: none. Related: PERF.149.
 
 ## DB: Database and schema
 
