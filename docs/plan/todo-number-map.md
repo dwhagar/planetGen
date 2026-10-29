@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.238 |
 | MAP | MAP.347 |
 | NAV | NAV.65 |
-| GEN | GEN.935 |
+| GEN | GEN.945 |
 | PERF | PERF.209 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1685,6 +1685,16 @@ Parents marked "new parent" had no old number of their own.
 | GEN.932 | The star mass function epoch: golden, design docs, census targets and tags, retire the old tags; items 3 to 7 land as one merge in one lock turn | none | open |
 | GEN.933 | One mass-boundary table (brown dwarf/star, planet/brown dwarf, spectral-class mass edges, Chandrasekhar, neutron star/black hole) with sources and tiers, read by the mass function, companions, rogue bodies and the display ladders | none | open |
 | GEN.934 | Replace the hand-written mass conversions in about 47 modules with the unit registry helper (do not rename _sol/_solar) | none | open |
+| GEN.935 | Evolved stars from the real post-main-sequence tracks: read the MIST post-main-sequence rows at setup for subgiant, giant, core-helium-burning, asymptotic giant and supergiant luminosity, temperature, radius and duration; red supergiants stop at about 300,000 Lsun; a Cepheid and yellow-star flag | none | open |
+| GEN.936 | The 0.08 to 0.1 solar mass main sequence comes from the Baraffe 2015 table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap) | none | open |
+| GEN.937 | Neutron star masses from the sourced Gaussians in tuning (two populations) and black hole masses from a progenitor-mass and metallicity law | none | open |
+| GEN.938 | One white dwarf initial-final mass relation, read by the star model, the multi-star roster, the disk history and mass_loss | none | open |
+| GEN.939 | Wolf-Rayet luminosity and mass follow the star: a helium-star mass-luminosity relation, and a binary-stripped Wolf-Rayet route | none | open |
+| GEN.940 | Present mass for giants, horizontal-branch, asymptotic and massive stars: a Reimers-type loss for the red giant and asymptotic branches and a wind loss for massive stars | none | open |
+| GEN.941 | Forced star types draw their star from the model; the legacy letter tables and the dead random branch are removed; the class reference pages read the new ranges | none | open |
+| GEN.942 | Supported life paces come from the star's actual lifespan; the per-letter lifespan table (tuning.STAR_EVOLUTION) is removed | none | open |
+| GEN.943 | Spectral subclasses from a letter-and-subclass temperature lookup table (Pecaut and Mamajek style), the K/M boundary at about 3,900 K, and a decision on Yerkes class VI (subdwarf) | none | open |
+| GEN.944 | Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

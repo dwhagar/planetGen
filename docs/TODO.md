@@ -13563,6 +13563,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Boss's question of 5:27 PM EDT 2026-10-29): GEN.933 (one
   mass-boundary table, between GEN.926 and GEN.927) and GEN.934 (hand
   conversions to the registry helper, off the critical path).
+  Research (2026-10-09): Star class audit filed (2026-10-29,
+  /mnt/project-files/reports/star-class-audit-2026-10-29.md): GEN.935,
+  GEN.936, GEN.937, GEN.938, GEN.939, GEN.940, GEN.941, GEN.942,
+  GEN.943, GEN.944 are the ten audit items; the first eight ride the
+  GEN.932 epoch (decide with Boss whether the subclass and forced-type
+  changes GEN.942 and GEN.943 are in it), the last is later (8.4).
 
 - [ ] **GEN.926 One initial mass function module (physics/imf.py) replaces the six copies of the power-law code, with no change of output**
   Item 2 of the star mass function chain (GEN.922). One module holds the
@@ -13685,6 +13691,198 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (no output change), off the critical path of the GEN.922 chain. Owner:
   Bug 1. Version 8.1.
   Prerequisites: none. Related: GEN.922, GEN.568.
+
+- [ ] **GEN.935 Evolved stars from the real post-main-sequence tracks: read the MIST post-main-sequence rows at setup for subgiant, giant, core-helium-burning, asymptotic giant and supergiant luminosity, temperature, radius and duration; red supergiants stop at about 300,000 Lsun; a Cepheid and yellow-star flag**
+  Audit findings H1, H2, H3 (high). Supergiant temperature is drawn with
+  no link to luminosity or mass (30 percent of 56,000 supergiants are
+  smaller than the star's own main-sequence radius; a third of those
+  above 300,000 Lsun are red, 100 and 150 solar mass 'red hypergiants'
+  of 3,000 to 4,500 Rsun against about 1,500 Rsun real; no stars between
+  5,000 and 9,000 K); giants and asymptotic giants have a uniform 3,500
+  to 5,000 K regardless of luminosity (the tip reaches about 66 Rsun
+  where the real tip is 150 to 200), which also feeds the planet
+  engulfment test; stars of 2.2 solar masses and up have no core helium
+  burning (a 3 solar mass giant draws a median 970 Lsun where the clump
+  is about 100 to 300) and a fixed 10 percent subgiant phase. Do: read
+  the post-main-sequence rows of the MIST archive that setup already
+  downloads (datasets/isochrones.py keeps only the main-sequence rows)
+  and use them for luminosity, temperature and radius, keeping the phase
+  durations; red supergiant limit recorded L2 until Humphreys and
+  Davidson 1979 or a track set is read; flag Cepheids and yellow stars.
+  Stand-in tier Verified for MIST rows (L0), educated guess from physics
+  where a recalled rule stands in (L1). From the star class audit
+  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
+  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
+  the GEN.932 epoch with the GEN.922 star mass function chain unless
+  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
+  or a fresh star-physics lane). Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.932.
+
+- [ ] **GEN.936 The 0.08 to 0.1 solar mass main sequence comes from the Baraffe 2015 table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap)**
+  Audit finding H4 (high). 11.6 percent of primaries lie between the IMF
+  floor 0.08 and the MIST grid 0.1 and are straight-line extrapolated
+  (at 0.08 the generator gives L 6.1e-4 Lsun, 2,780 K against Baraffe L
+  2.6e-4, 2,343 K: 2.3 times too bright, 430 K too hot); the
+  hydrogen-burning limit is a fixed 0.08 while the project's own
+  constants say 0.072 to 0.074 at solar metallicity and 0.092 at zero,
+  and brown dwarfs stop at 0.0764, leaving 0.0764 to 0.08 empty. Do: use
+  Baraffe 2015 (already in the project files and used for brown dwarfs)
+  for 0.07 to 0.1 and make the boundary depend on [Fe/H]. Touches the
+  GEN.926 to GEN.928 mass function work (the share in 0.08 to 0.1 moves
+  with the curve) and the GEN.933 boundary table. From the star class
+  audit (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
+  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
+  the GEN.932 epoch with the GEN.922 star mass function chain unless
+  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
+  or a fresh star-physics lane). Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.932.
+
+- [ ] **GEN.937 Neutron star masses from the sourced Gaussians in tuning (two populations) and black hole masses from a progenitor-mass and metallicity law**
+  Audit finding M1. Neutron star masses are uniform 1.1 to 2.2 solar
+  masses (mean 1.65, 27 percent above 1.9) while observed ones average
+  1.4 to 1.5 (slow pulsars 1.49 +/- 0.19, recycled 1.54 +/- 0.23,
+  recalled Ozel and Freire 2016); tuning.STELLAR_NS_MASS_GAUSSIANS holds
+  exactly those two Gaussians and nothing reads them. Black holes are
+  uniform 5 to 20 solar masses whatever the progenitor (a 100 solar mass
+  star never leaves more than 20; the 8 to 12 solar mass peak, the tail
+  to 40 and the 2 to 5 mass gap from gravitational waves are absent).
+  Do: read the Gaussians; derive black hole mass from the progenitor
+  mass and metallicity (the GEN.560/563 black hole formation notes carry
+  the share, this is the missing mass half); a tweaked law is fine if
+  labelled L1 or L2. Recounted with GEN.930 (remnants). From the star
+  class audit
+  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
+  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
+  the GEN.932 epoch with the GEN.922 star mass function chain unless
+  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
+  or a fresh star-physics lane). Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.932.
+
+- [ ] **GEN.938 One white dwarf initial-final mass relation, read by the star model, the multi-star roster, the disk history and mass_loss**
+  Audit finding M2. The star model, the multi-star roster and
+  remnant_mass.white_dwarf_mass_sol use Kalirai 2008 (0.109 M + 0.394,
+  clamped 0.5 to 1.35); the disk history and
+  mass_loss.progenitor_mass_sol use Weidemann 2000 (0.444 + 0.084 M);
+  they differ by 0.03 at 2 solar masses and 0.125 at 7, so a white
+  dwarf's recovered progenitor is not the one it was drawn from. Do: one
+  relation (Cummings 2018 or Kalirai with a stated tweak) in one place,
+  read everywhere; consider the helium-core white dwarf (under 0.45) the
+  0.5 floor never makes. The generated white dwarf population itself is
+  fine (mean mass 0.68, median 5,650 K). Merges with GEN.930 (remnants,
+  which recounts the copies). From the star class audit
+  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
+  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
+  the GEN.932 epoch with the GEN.922 star mass function chain unless
+  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
+  or a fresh star-physics lane). Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.932.
+
+- [ ] **GEN.939 Wolf-Rayet luminosity and mass follow the star: a helium-star mass-luminosity relation, and a binary-stripped Wolf-Rayet route**
+  Audit finding M3. Wolf-Rayet luminosity is log-uniform 1e5 to 1e6 Lsun
+  whatever the progenitor (median 3e5 for 25 or 100 solar masses) and
+  present mass is a uniform 0.4 to 0.6 of the initial mass;
+  binary-stripped Wolf-Rayet stars (about half of real ones) have no
+  route outside the exotic types; very massive WNh stars cannot occur.
+  Do: luminosity from the present mass by a helium-star mass-luminosity
+  relation; present mass from the mass-loss law; the stripped route. The
+  Wolf-Rayet count target is Bug 1's census (GEN.902 root, now GEN.929).
+  From the star class audit
+  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
+  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
+  the GEN.932 epoch with the GEN.922 star mass function chain unless
+  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
+  or a fresh star-physics lane). Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.932.
+
+- [ ] **GEN.940 Present mass for giants, horizontal-branch, asymptotic and massive stars: a Reimers-type loss for the red giant and asymptotic branches and a wind loss for massive stars**
+  Audit finding M4. Almost no star carries mass loss: a 0.9 solar mass
+  giant, horizontal-branch and asymptotic giant star all report 0.9 (a
+  real horizontal-branch star is 0.55 to 0.7); a 60 solar mass
+  main-sequence star and a 20 solar mass red supergiant keep their birth
+  mass (real losses 10 to 40 percent). This feeds surface gravity,
+  orbital periods and the habitable-zone and Hill sphere sizes of every
+  giant host. Do: a present-mass function of phase (Reimers-type for the
+  giant branches, a simple wind loss for massive stars), recorded as a
+  stand-in tier; mass_loss.py handles only the white dwarf orbit growth
+  today. From the star class audit
+  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
+  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
+  the GEN.932 epoch with the GEN.922 star mass function chain unless
+  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
+  or a fresh star-physics lane). Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.932.
+
+- [ ] **GEN.941 Forced star types draw their star from the model; the legacy letter tables and the dead random branch are removed; the class reference pages read the new ranges**
+  Audit finding M5. A forced type (STAR_TYPE, for example G2V) draws its
+  luminosity log-uniformly inside the old letter range, independent of
+  temperature, and takes mass from L to the 1/3.5; the old ranges
+  disagree with the MIST main sequence (K luminosity 0.08 to 0.6 against
+  MIST 0.033 to 0.46; A mass 1.4 to 2.1 against 1.7 to 2.5), so a forced
+  K5V can come out at a K0 luminosity; the same ranges are printed on
+  the class reference pages (web/lib/classref.py). The old random branch
+  of generate_star (SPECTRAL_PROBABILITIES_NORMAL) has no caller outside
+  star.py. Do: a forced type picks a mass and age that give that letter,
+  subclass and class (or reads luminosity from the MIST row at the
+  type's temperature), delete the dead branch and the legacy tables (no
+  shims), and let the class pages read the new ranges. From the star
+  class audit
+  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
+  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
+  the GEN.932 epoch with the GEN.922 star mass function chain unless
+  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
+  or a fresh star-physics lane). Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.932.
+
+- [ ] **GEN.942 Supported life paces come from the star's actual lifespan; the per-letter lifespan table (tuning.STAR_EVOLUTION) is removed**
+  Audit finding M6. The per-letter lifespan table (from the old 10 Gy x
+  M^-2.5 law) still decides which life paces a planet may use: it says G
+  stars (9.1 to 17.5 Gy) and F stars (4.3 to 9.1 Gy) support the slow
+  pace whose milestone is 35 Gy and A stars (1.5 to 4.3 Gy) the normal
+  pace (4.5 Gy), so a planet can be asked to wait past its star's death;
+  the model's own lifetimes are G 10 to 35, F 2.1 to 9.6, A 0.65 to 2.2
+  Gy. Do: derive the supported paces from the star's actual lifespan as
+  the evolved-star branch already does and remove the table (life
+  depends on conditions only, GEN.915). Touches the life code that
+  GEN.888 and GEN.894 extend, so coordinate with Aux 2. From the star
+  class audit
+  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
+  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
+  the GEN.932 epoch with the GEN.922 star mass function chain unless
+  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
+  or a fresh star-physics lane). Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.932.
+
+- [ ] **GEN.943 Spectral subclasses from a letter-and-subclass temperature lookup table (Pecaut and Mamajek style), the K/M boundary at about 3,900 K, and a decision on Yerkes class VI (subdwarf)**
+  Audit findings L1 and L2. Subclasses are linear in temperature inside
+  each letter (B5 is about 15,400 K but placed near 18,800 K; O3 would
+  show at about 50,000 K instead of 44,000 K); the K/M boundary is 3,700
+  K where the usual one is about 3,900 K (see GEN.897/898 that moved the
+  edge); no Yerkes class VI is ever generated (metal-poor dwarfs come
+  out as V). Do: a lookup table of letter-subclass temperatures; label a
+  main-sequence star VI when it is under-luminous for its temperature by
+  the usual margin, or accept and document V. L1 and L2 change every
+  star's displayed subclass, so they belong in the one epoch if subclass
+  names are to stay stable afterward. Boss decision: whether this is in
+  the long-term epoch. From the star class audit
+  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
+  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
+  the GEN.932 epoch with the GEN.922 star mass function chain unless
+  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
+  or a fresh star-physics lane). Version 8.1.
+  Prerequisites: none. Related: GEN.922, GEN.932.
+
+- [ ] **GEN.944 Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars)**
+  Audit findings L3 and L4 (low urgency). [Fe/H] is drawn first but is
+  independent of age inside each population window (0 to 0.1, 0.1 to 3,
+  3 to 10 Gy, one mean each), the old population ends at 10 Gy (no
+  thick-disk stars from 10 to 13 Gy), and the alpha-enhanced branch is
+  drawn separately; Cepheids, Mira and other long-period variables,
+  carbon and S stars, T Tauri naming and Ap/Am stars have no class or
+  flag (carbon-star abundances exist in the composition code). Do:
+  later, with Bug 1's age work; cheap flags once the post-main-sequence
+  tracks land. Not in the long-term epoch unless Bug 1 says it is cheap.
+  Owner: none yet (Bug 1 later). Version 8.4.
+  Prerequisites: none. Related: GEN.922.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
