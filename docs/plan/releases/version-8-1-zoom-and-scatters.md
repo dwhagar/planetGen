@@ -279,8 +279,7 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.211 | A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism |  | Boss 11:57 PM EDT; the proof of the star composition. |
-| TEST.215 | The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one | TEST.211 | Boss 1:43 AM EDT, Stand-in only: R5, calibration rows fenced into tests. |
+| TEST.215 | The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one |  | Boss 1:43 AM EDT, Stand-in only: R5, calibration rows fenced into tests. |
 
 ## Phase 5: New scatters: core, halo, interface update and docs
 
