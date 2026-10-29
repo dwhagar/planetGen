@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2455] - 2026-10-29
+
+**Headline:** The Generate page's log, the queue's run log and update.sh now read like the downloaded log: the same timestamps, severities and stage markers.
+
+### Changed
+- **Generate page log (UX.123).** The stage marks in a job's log, on the page and in the download, are now the logging standard's display lines, with the time and its zone (`2026-10-24 14:40:00 EDT INFO     job: === Stage 4 of 12: Scatter the massive stars ===`), as the records file holds them.
+- **Queue run page (UX.123).** Each line of a run's log is drawn with the same display line as the download's record; the run API's events carry the stage, stage count, unit and seconds fields a line is made of.
+- **update.sh (UX.123).** Its own output prints the same timestamp, severity, component and `=== Stage N of 9: ... ===` marker as the other logs, warnings and errors on stderr (`scripts/logrecord.sh`); a test checks the shell lines against the Python ones.
+
 ## [8.0.2454] - 2026-10-28
 
 **Headline:** Whether a close-in sub-Neptune keeps or loses its hydrogen envelope now comes from the published mass-loss rate of hot planets and its star's XUV history, and the radius valley still lands where Kepler found it.
