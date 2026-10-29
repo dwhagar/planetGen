@@ -593,6 +593,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.906 | Icy-moon tide is stored as 0.0 where it should be NULL (bug) |  |  |
 | GEN.911 | Habitable-world requests and the habitable zone: the zone mostly holds frozen worlds, so decide where habitable requests aim (inner half of the zone or a temperate band from the solved climate) |  |  |
 | GEN.913 | A forced civilization (+intelligent_life request) should retry placement until a civilization-capable world exists; today it usually fails to appear (bug) |  |  |
+| GEN.918 | The galaxy's star count follows its own star-formation history: the density model counts systems per parsec cubed while the history counts stars formed, so the galaxy holds 0.46 of the stars its history implies (root of GEN.900, GEN.901, GEN.902) |  |  |
 | GEN.917 | The dominant surface material and the aerosol draw are chosen from the conditions, not from the class letter | GEN.646 |  |
 | GEN.916 | The habitable-world guarantee is judged on the conditions (a world that can hold life), not on the class letter M | GEN.646 |  |
 | TEST.452 | A sweep finds the life-capable conditions on every planet class and proves the generator lets life evolve there (a class-blind life test) | GEN.915 |  |
