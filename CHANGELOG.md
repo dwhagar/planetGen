@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2485] - 2026-10-29
+
+**Headline:** Every planet and moon class now passes one sweep that checks its air, temperature, ozone and clouds, and another that checks its composition against its mass, radius and description.
+
+### Added
+- **The atmosphere and temperature sweep (TEST.209).** `src/tests/audit/sweep.py` builds one planet of every class and zone round three host stars, with their moons, and the bodies of 24 generated systems. `src/tests/audit/sweep_atmosphere.py` checks 11 rules on them: the partial pressures add up to the pressure, the mean molar mass, air density and scale height follow from the gases, the temperature is the Stefan-Boltzmann value on the stored albedo and greenhouse quantity, the ozone follows the oxygen and the star, the cloud, haze and dust depths follow their rules, and every gas in the text is in the table. Each rule has a broken copy that the sweep must report.
+- **The bulk composition sweep (TEST.210).** `src/tests/audit/sweep_bulk.py` checks 8 rules on the same bodies: the metal, rock, water, ice and envelope shares make one, the detail values are shares, the density and gravity follow from the mass and radius, the radius is the structure model's, a body is at least as dense as its materials at zero pressure, and the composition phrase names exactly the materials the shares hold. Both sweeps pass on the current generator.
+
+TODO items resolved: TEST.209, TEST.210. Added: none.
+
 ## [8.0.2484] - 2026-10-29
 
 **Headline:** The star system page now shows the map's symbols beside its worlds, with the collapsed "Map symbols" key under them.
