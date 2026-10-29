@@ -1,0 +1,7 @@
+{
+ "anomalies": {
+  "class-from-conditions": "GEN.646: the generator still draws the class letter before the body is built; the class leaves generation with the cut-over (Aux 9), and then every stored letter is the conditions' letter",
+  "habitable-request": "GEN.855 (with GEN.853 and GEN.854): the air solve of 4c leaves no free oxygen, so a world the request steered to as a life class does not score habitable and the request answers unmet"
+ },
+ "habitable_request_minimum_met_share": 1.0
+}

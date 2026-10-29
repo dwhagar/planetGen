@@ -41,8 +41,8 @@
   }
  },
  "unreached_allowed": {
-  "atmosphere-e/e1/I": "group b has only row b4 for class I, so p('b4') is 1 and (1 - p('b4')) is 0: the table never gives an I planet bare rock or the retained H/He envelope. The generator draws an I planet's air from the giant mixture (H2 and He), so these rows are not on its path; whether the gate or the weight changes is for the table's owner",
-  "atmosphere-e/e2/I": "same as e1/I: the retained-envelope row, and the envelope-metal rows e5 and e6 that follow it, are never reached for class I",
+  "atmosphere-e/e1/I": "GEN.903 (low priority, owner Aux 1, rides the class cut-over): group b has only row b4 for class I, so p('b4') is 1 and (1 - p('b4')) is 0: the table never gives an I planet bare rock or the retained H/He envelope. The generator draws an I planet's air from the giant mixture (H2 and He), so these rows are not on its path; whether the gate or the weight changes is for the table's owner",
+  "atmosphere-e/e2/I": "GEN.903 (low priority, owner Aux 1, rides the class cut-over): same as e1/I: the retained-envelope row, and the envelope-metal rows e5 and e6 that follow it, are never reached for class I",
   "atmosphere-e/e3/T": "group b has no row for class T, so p('b4') is 0: the table never makes a gas giant a water world; probably intended",
   "atmosphere-e/e4/T": "same as e3/T: no hycean gas giant"
  }

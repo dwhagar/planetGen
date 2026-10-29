@@ -444,6 +444,15 @@ lists, each with a note, the tables whose rows are independent flags and not exc
 rows that no subject reaches today. Subjects take their numbers from physical ranges and agree with one another where the generator's do
 (the escape speed follows the mass, the equilibrium temperature the insolation).
 
+The fourth is the classes from conditions (TEST.301, `tests/audit/sweep_classes.py`, `tests/test_sweep_classes.py`). On the same bodies it
+checks that every planet and moon has a class letter of the rule file and of its own kind, that `classify` is total and pure (the same
+twice and from the stored columns, and it leaves the body alone), and that the stored letter is the one the conditions give, re-derived from
+the rule rows. It also generates 12 seeded systems with `+habitable_world` and counts the requests answered `aim` or `fallback`. Two
+results are known anomalies listed in `tests/data/class_sweep_expectations.json`, so they are reported in `class-sweep-latest.md` and
+`habitable-request-latest.md` and do not fail: the stored letter is still drawn before the body is built (GEN.646), and the air solve of 4c
+leaves no free oxygen so most requests answer unmet (GEN.855). When an anomaly's tag is removed the rule fails on any miss, and a tag on a
+rule that holds everywhere is flagged stale in the report. The reclassification after an edit is left for 8.6.
+
 
 ## Setting up a cloud session
 
