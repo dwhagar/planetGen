@@ -274,6 +274,6 @@ def test_a_failed_reset_stops_the_update_before_the_guard(tmp_path):
 def test_update_sh_knows_the_flag_and_says_so_in_its_help_and_the_deployment_notes():
     with open(os.path.join(REPO, "update.sh"), encoding="utf-8") as handle:
         text = handle.read()
-    assert "--reset-jobs) RESET_JOBS=1" in text and "[--cancel-running] [--reset-jobs]" in text
+    assert "--reset-jobs) RESET_JOBS=1" in text and "[--yes] [--reset-jobs]" in text
     with open(os.path.join(REPO, "docs", "deployment", "README.md"), encoding="utf-8") as handle:
         assert "--reset-jobs" in handle.read()

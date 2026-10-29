@@ -356,7 +356,7 @@ run. On macOS it prints the `SIGHUP` to send to gunicorn.
 `sudo ./update.sh --kill-all` first does a full stop (`planetgen queue stop-all --no-hold`, the same routine
 as Stop everything on the admin Queue page): it cancels every run and job, empties the queues and ends every planetgen
 worker and command process, including ones nothing lists any more. It only does so when you give it; without it the
-update stops only the work it lists, and refuses while other work runs unless you answer y or add `--cancel-running`.
+update stops only the work it lists, and refuses while other work runs unless you answer y or add `--yes`.
 To stop everything and keep it stopped, use `sudo planetgen queue stop-all` (or the Queue page) and
 `planetgen queue resume` when you are ready.
 

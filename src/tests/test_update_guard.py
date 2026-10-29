@@ -249,7 +249,7 @@ def test_update_sh_takes_the_guard_before_its_first_change_and_requires_it_by_st
     assert text.index("git reset --hard") < text.index("\nensure_update_guard\n", first + 1) < text.index("log_stage 2 9")
     assert text.index("use_site_python\nensure_update_guard required") < text.index("log_stage 3 9")
     assert text.index("ensure_update_guard required") < text.index("\nmigrate_or_reset_db\n")
-    assert "--cancel-running" in text
+    assert "--yes" in text
 
 
 def test_update_sh_names_every_step_for_the_failure_message():
@@ -272,7 +272,7 @@ def run_shell(script, *, status_out=None):
         export PLANETGEN_VENV=$(mktemp -d); VENV=$PLANETGEN_VENV
         mkdir -p "$VENV/bin" "$VENV/src"
         printf '#!/bin/sh\\nexit 0\\n' > "$VENV/bin/python"; chmod +x "$VENV/bin/python"
-        CANCEL_RUNNING=()
+        ANSWER_YES=()
         source {REPO}/scripts/deploy-common.sh
         update_guard() {{ echo "update_guard $*" >> "$LOG"; return "${{GUARD_STATUS:-0}}"; }}
     '''
@@ -283,14 +283,14 @@ def run_shell(script, *, status_out=None):
 def test_the_shell_functions_hold_the_guard_once_and_end_it_with_the_step(tmp_path):
     log = tmp_path / "calls"
     done = run_shell('''
-        CANCEL_RUNNING=(--cancel-running)
+        ANSWER_YES=(--yes)
         ensure_update_guard; ensure_update_guard
         UPDATE_STEP="step 5/9, migrating the database"
         (exit 3) || finish_update_guard
     ''', status_out=str(log))
     assert done.returncode == 0, done.stderr
     calls = log.read_text().splitlines()
-    assert calls[0].startswith("update_guard begin --pid ") and calls[0].endswith("--cancel-running")
+    assert calls[0].startswith("update_guard begin --pid ") and calls[0].endswith("--yes")
     assert len(calls) == 2
     assert calls[1].startswith("update_guard end --pid ") and "--failed --step step 5/9, migrating the database" in calls[1]
 
