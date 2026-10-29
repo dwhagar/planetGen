@@ -38,7 +38,7 @@ this API instead.
 
 ## API version and object IDs
 
-Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here.
+Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here and a row in [api-compatibility.md](api-compatibility.md) (API.4: each version, the release that first carried it, the routes and payload formats it changed, and which clients speak it), which is built from `docs/reference/api-versions.json`.
 
 - **9** (MAP.287): `GET /api/systems/<id>/scene`: a star, planet and moon no longer has `color`; it has `look`, the body look record (`bodylook.py`), which holds its `color` and everything the painters need. A comet keeps `color`.
 - **8** (MAP.262): `GET /api/galaxy/tiles` is gone: the map's data is read by sector-block node (`GET /api/galaxy/nodes`), and `GET /api/galaxy/changes` no longer has `tiles` (it has `nodes`).

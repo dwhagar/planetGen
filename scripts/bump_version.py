@@ -82,6 +82,10 @@ TODO_MAP_FILE = os.path.join("docs", "plan", "todo-number-map.md")
 GOLDEN_DIR = os.path.join("src", "tests", "golden")
 EPOCHS_FILE = os.path.join(GOLDEN_DIR, "epochs.json")
 GENERATION_OUTPUT_RE = re.compile(r"^generation-output: changed[ \t]*$", re.M)
+API_VERSION_FILE = os.path.join("src", "planetgen", "api", "version.py")
+API_VERSIONS_FILE = os.path.join("docs", "reference", "api-versions.json")
+API_VERSION_NOTE_RE = re.compile(r"^api-version: changed[ \t]*$", re.M)
+API_NUMBER_RE = re.compile(r"^API_VERSION\s*=\s*(?P<number>\d+)", re.M)
 
 BUMP_LEVELS = ("patch", "minor", "major")
 
@@ -359,6 +363,24 @@ def fill_pending_epoch(root, version):
     return changed
 
 
+def fill_pending_api_version(root, version):
+    """Names `version` as the first release of an API version that a change raised and no release has named yet
+    (`pending`); returns whether `api-versions.json` changed."""
+    path = os.path.join(root, API_VERSIONS_FILE)
+    if not os.path.exists(path):
+        return False
+    data = json.loads(_read(root, API_VERSIONS_FILE))
+    changed = False
+    for entry in data.get("versions", []):
+        if entry.get("pending"):
+            entry["first_release"] = version
+            del entry["pending"]
+            changed = True
+    if changed:
+        _write(root, API_VERSIONS_FILE, json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    return changed
+
+
 def _epochs_text(data):
     """The text of `epochs.json` for `data`, formatted as `planetgen.util.generator_epoch.format_epochs` does for
     every writer of the file (loaded from the checkout the script belongs to, so it needs no installed package)."""
@@ -374,6 +396,8 @@ def apply_release(root, version, date, body):
     carries a `generation-output: changed` line)."""
     if GENERATION_OUTPUT_RE.search(body):
         fill_pending_epoch(root, version)
+    if API_VERSION_NOTE_RE.search(body):
+        fill_pending_api_version(root, version)
     text = _read(root, VERSION_FILE)
     _write(root, VERSION_FILE, VERSION_RE.sub(lambda m: f"__version__ = {m.group(1)}{version}{m.group(1)}", text, count=1))
 
@@ -429,6 +453,7 @@ def stamp(root, date=None, dry_run=False, commit=False, out=sys.stdout):
         os.remove(os.path.join(root, CHANGES_DIR, fragment.filename))
         if commit:
             epochs = [EPOCHS_FILE] if os.path.exists(os.path.join(root, EPOCHS_FILE)) else []
+            epochs += [API_VERSIONS_FILE] if os.path.exists(os.path.join(root, API_VERSIONS_FILE)) else []
             _git(root, "add", "-A", "--", VERSION_FILE, README_FILE, CHANGELOG_FILE, *epochs,
                  f"{CHANGES_DIR}/{fragment.filename}")
             slug = FRAGMENT_RE.match(fragment.filename).group("slug")
@@ -514,6 +539,46 @@ def check_generator_epoch(root, base, merge_base, added_notes):
     ]
 
 
+def _api_state_at(root, ref):
+    """`(API_VERSION, rows of the history)` at `ref`, or None when the history file is not there."""
+    try:
+        history = json.loads(_git(root, "show", f"{ref}:{API_VERSIONS_FILE.replace(os.sep, '/')}"))["versions"]
+        number = API_NUMBER_RE.search(_git(root, "show", f"{ref}:{API_VERSION_FILE.replace(os.sep, '/')}"))
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    return (int(number.group("number")) if number else None), history
+
+
+def check_api_version(root, merge_base, added_notes):
+    """
+    The API version rule (API.4): a PR that raises `API_VERSION`, adds the row of `docs/reference/api-versions.json` for it and
+    says `api-version: changed` in its note does all three together or none; the row is the next number, and pending.
+
+    Returns:
+        list[str]: problems found (empty means the PR is fine or the history is not there yet).
+    """
+    after, before = _api_state_at(root, "HEAD"), _api_state_at(root, merge_base)
+    if after is None or before is None:
+        return []   # the PR that adds the history
+    raised = after[0] != before[0]
+    added = len(after[1]) - len(before[1])
+    said = any(API_VERSION_NOTE_RE.search(_git(root, "show", f"HEAD:{path}")) for path in added_notes)
+    if after[0] is None or after[1][-1].get("version") != after[0]:
+        return [f"{API_VERSIONS_FILE} must end at the API version {after[0]} of {API_VERSION_FILE}, it ends at "
+                f"{after[1][-1].get('version') if after[1] else None}"]
+    if added not in (0, 1) or (raised and added != 1):
+        return [f"{API_VERSIONS_FILE} gained {added} rows; a PR that raises the API version adds exactly one"]
+    changed = {"API_VERSION raised": raised, "history row added": added == 1, "note says 'api-version: changed'": said}
+    if len(set(changed.values())) == 1:
+        if raised and not after[1][-1].get("pending"):
+            return [f"the new row of {API_VERSIONS_FILE} must be marked \"pending\": true with \"first_release\": null"]
+        return []
+    done = [what for what, yes in changed.items() if yes]
+    missing = [what for what, yes in changed.items() if not yes]
+    return ["The API version, its row in docs/reference/api-versions.json and the note's 'api-version: changed' line go together "
+            f"or not at all: this PR has {', '.join(done) or 'none of them'} but not {', '.join(missing)}."]
+
+
 def _versions_at(root, ref):
     def show(path):
         return _git(root, "show", f"{ref}:{path}")
@@ -564,6 +629,7 @@ def check_pr(root, base, allow_no_fragment=False):
                     "major release."
                 )
     problems.extend(check_generator_epoch(root, base, merge_base, added_notes))
+    problems.extend(check_api_version(root, merge_base, added_notes))
     if not added_notes and not allow_no_fragment:
         problems.append(
             f"This PR adds no release note under {CHANGES_DIR}/. Add one "

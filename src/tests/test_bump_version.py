@@ -511,3 +511,87 @@ def test_an_epoch_without_a_valid_affects_list_is_refused(tmp_path, affects):
     _commit(root, GENERATION_NOTE)
     problems = bump_version.check_pr(root, "main")
     assert len(problems) == 1 and "epoch 2" in problems[0] and "affects" in problems[0], problems
+
+
+# -- the API version (API.4) ---------------------------------------------------------------------
+
+API_NOTE = FIXED_NOTE.rstrip("\n") + "\napi-version: changed\n"
+
+
+def _api(root, version, rows, pending=False):
+    """Writes `API_VERSION = version` and a history of `rows` rows (the last one `pending` when asked)."""
+    os.makedirs(os.path.join(root, os.path.dirname(bump_version.API_VERSION_FILE)), exist_ok=True)
+    os.makedirs(os.path.join(root, os.path.dirname(bump_version.API_VERSIONS_FILE)), exist_ok=True)
+    with open(os.path.join(root, bump_version.API_VERSION_FILE), "w") as f:
+        f.write(f'"""Docstring."""\n\nAPI_VERSION = {version}\n')
+    entries = [{"version": n, "first_release": "1.0.%d" % n, "items": ["API.1"], "summary": "s", "changes": []}
+               for n in range(1, rows + 1)]
+    if pending:
+        entries[-1].update({"first_release": None, "pending": True})
+    with open(os.path.join(root, bump_version.API_VERSIONS_FILE), "w") as f:
+        json.dump({"versions": entries}, f, indent=2)
+
+
+def _api_repo(tmp_path):
+    root = _make_repo(str(tmp_path))
+    _api(root, 3, 3)
+    _init_git(root)
+    _git(root, "checkout", "-q", "-b", "feature")
+    return root
+
+
+@needs_git
+def test_check_pr_passes_an_api_bump_with_its_row_and_note_line(tmp_path):
+    root = _api_repo(tmp_path)
+    _api(root, 4, 4, pending=True)
+    _commit(root, API_NOTE)
+    assert bump_version.check_pr(root, "main") == []
+
+
+@needs_git
+def test_check_pr_passes_a_pr_that_leaves_the_api_alone(tmp_path):
+    root = _api_repo(tmp_path)
+    _commit(root, FIXED_NOTE)
+    assert bump_version.check_pr(root, "main") == []
+
+
+@needs_git
+@pytest.mark.parametrize("raised, row, line, missing", [
+    (True, False, False, "must end at the API version 4"),
+    (True, True, False, "api-version: changed"),
+    (False, False, True, "API_VERSION raised"),
+])
+def test_check_pr_rejects_a_partial_api_change(tmp_path, raised, row, line, missing):
+    root = _api_repo(tmp_path)
+    if raised or row:
+        _api(root, 4 if raised else 3, 4 if row else 3, pending=row)
+    _commit(root, API_NOTE if line else FIXED_NOTE)
+    problems = bump_version.check_pr(root, "main")
+    assert problems and missing in " ".join(problems)
+
+
+@needs_git
+def test_check_pr_rejects_a_history_that_does_not_end_at_the_api_version(tmp_path):
+    root = _api_repo(tmp_path)
+    _api(root, 5, 4, pending=True)
+    _commit(root, API_NOTE)
+    assert "must end at the API version 5" in " ".join(bump_version.check_pr(root, "main"))
+
+
+@needs_git
+def test_check_pr_requires_the_new_api_row_to_be_pending(tmp_path):
+    root = _api_repo(tmp_path)
+    _api(root, 4, 4, pending=False)
+    _commit(root, API_NOTE)
+    assert "pending" in " ".join(bump_version.check_pr(root, "main"))
+
+
+def test_stamping_an_api_note_names_the_release_of_the_pending_row(tmp_path):
+    root = _make_repo(str(tmp_path), version="1.2.3")
+    _api(root, 3, 3, pending=True)
+    _note(root, "a-fix.patch.md", FIXED_NOTE)
+    _note(root, "b-api.patch.md", API_NOTE)
+    bump_version.stamp(root, date="2026-02-02", out=io.StringIO())
+    rows = json.load(open(os.path.join(root, bump_version.API_VERSIONS_FILE)))["versions"]
+    assert rows[2]["first_release"] == "1.4.5" and "pending" not in rows[2]   # the second note's release
+    assert rows[1]["first_release"] == "1.0.2"
