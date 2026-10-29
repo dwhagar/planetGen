@@ -2549,6 +2549,19 @@ def test_crowded_black_holes_are_one_mark_with_a_count_and_a_list_and_split_on_z
     assert len(holes_after) >= 2, "the holes of the crowd are drawn as smaller crowds and single marks"
 
 
+def _spot_clear_of_names(page, spot, tooltip_text):
+    """A pixel within a mark's reach that names it on hover: a name label drawn over the mark takes the pointer first (the map's
+    label engine places names by the room the canvas has, so a mark may lie under one), and the mark's own spot a few pixels
+    above or to the side is clear of it."""
+    for dx, dy in ((0, 0), (0, -6), (6, -6), (-6, -6), (0, -9), (8, 0), (-8, 0), (0, 6), (0, 9)):
+        page.mouse.move(spot[0] + dx - 30, spot[1] + dy - 30)
+        page.mouse.move(spot[0] + dx, spot[1] + dy)
+        page.wait_for_timeout(120)
+        if tooltip_text in page.locator("#galaxymap3d-tooltip").inner_text():
+            return (spot[0] + dx, spot[1] + dy)
+    raise AssertionError(f"no pixel near {spot} names {tooltip_text!r} on hover")
+
+
 def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked(page, map_site):
     """MAP.219: the marker layer draws a glyph over each black hole in view, with a Menu toggle that rides in the
     address, a legend line while on, and a click on the glyph shows the black hole's card."""
@@ -2578,10 +2591,7 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     spot = _screen_of(page, (maw["x"], maw["y"], maw["z"]))
     assert spot
-    page.mouse.move(*spot)
-    page.mouse.move(spot[0] + 1, spot[1])
-    page.wait_for_timeout(200)
-    assert "Fixture Maw" in page.locator("#galaxymap3d-tooltip").inner_text()
+    spot = _spot_clear_of_names(page, spot, "Fixture Maw")
     page.mouse.click(*spot)
     assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Maw"
     # Off: no markers, no legend line, and the address says so.
@@ -3331,6 +3341,27 @@ def test_the_opened_sector_is_framed_and_dimmed_around_with_a_labelled_icon_on_e
     page.wait_for_function("([d]) => location.search.includes('sector=' + d)", arg=[designation], timeout=20000)
     _settle(page)
     assert page.evaluate(SECTOR_FRAME_LINES) != before or not page.evaluate(SECTOR_VIEW)["opened"]
+
+
+OPACITIES = "() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.opacities()"
+
+
+def test_markers_outside_an_opened_sector_dim_as_the_stars_do(page, holes_site):
+    """MAP.341: with a sector opened in place the stars outside it dim to 0.3 (MAP.327), and so does every marker outside it, black holes
+    and the rest; with none opened the markers are whole, and closing the sector gives them back."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, holes_site)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.entries().length > 0", timeout=20000)
+    whole = page.evaluate(OPACITIES)
+    assert whole and all(mark["opacity"] == 1 for mark in whole), whole
+    _open_galaxy(page, holes_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    _settle(page)
+    assert page.evaluate(SECTOR_VIEW)["outsideDim"] == 0.3
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.entries().length > 0", timeout=20000)
+    dimmed = page.evaluate(OPACITIES)
+    assert dimmed and all(mark["opacity"] == 0.3 for mark in dimmed), dimmed
+    assert any(mark["kind"] == "marker-black-hole" for mark in dimmed), dimmed
 
 
 def _sector_in_address(page):

@@ -883,6 +883,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (glow) glow.setVisible(glowLayerOn && !hiddenCell);
     if (regionLayer) regionLayer.setVisible(regionsOn && !hiddenCell);
     if (nebulaLayer) nebulaLayer.setVisible(!hiddenCell);
+    if (markerLayer) markerLayer.setOutsideShare(hiddenCell ? SECTOR_OUTSIDE_SHARE : 1);    // MAP.341: the marks dim as the stars do
     if (sectorFrame) sectorFrame.set(hiddenCell);
   }
 
@@ -3658,6 +3659,7 @@ function initGalaxyMap3d(canvasEl, data) {
     markerLayer = createMarkerLayer(scene, camera, canvasEl, isLightBackground() ? "#ffffff" : "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
     });
+    markerLayer.setOutsideShare(hiddenCell ? SECTOR_OUTSIDE_SHARE : 1);    // MAP.341: a sector may be open before the layer exists
     stageView.layers.bulkGroup(POI_GROUP);
     stageView.layers.bulkGroup(CLASS_GROUP);
     markerKinds.kinds().forEach(function (kind) {
