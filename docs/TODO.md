@@ -2425,19 +2425,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.341 Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug)**
-  Found by the research thread (report
-  /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
-  section 6; Boss answered 6:22 PM EDT 2026-10-28: density default 1.2,
-  one mark per 120 by 120 px, as a user preference; rare heavy holes
-  2.2, no landmark exemption). Boss live observation, so a bug. Owner:
-  Core 2. Black hole and other markers keep full brightness when a
-  sector is opened while the stars outside it dim (MAP.327). Dim every
-  marker outside the opened sector the same way. Done: a browser test
-  opens a sector and finds the outside markers dimmed.
-  Prerequisites: none. Related: MAP.327.
-  Owner: Core 3 (lock-free item while it waits for the generation lock, 12:45 AM EDT 2026-10-29; MAP.340 merged as #3640; the marker code is Core 3's; Core 2 owns the opened-sector view, so tell it before the PR; this replaces any earlier owner line on this item). Separate branch.
-
 - [ ] **MAP.342 Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority)**
   Found by the research thread (report
   /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
@@ -2449,6 +2436,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   holes the near-field rule will drop anyway. Do it only after MAP.339
   shows it saves real bytes. Owner: Core 2 when dry.
   Prerequisites: MAP.339. Related: MAP.339, MAP.340.
+  Owner: Core 3 (lock-free item while it waits for the generation lock, 1:55 AM EDT 2026-10-29; MAP.341 merged as #3652; optional: measure first and do it only if it saves real bytes; this replaces any earlier owner line on this item). Separate branch.
 
 - [ ] **MAP.344 The civilization marker gains a technology band: filter and mark worlds by the technology level of their species**
   Left out of MAP.311 (needs species tech_level, which is not stored on
