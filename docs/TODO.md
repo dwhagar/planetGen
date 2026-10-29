@@ -13970,6 +13970,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Rides the GEN.932 epoch if ready in time, else a later epoch. Owner:
   Bug 1 (the mass-ratio input of the GEN.922 chain; TODO proposed it,
   Bug 1 may hand it to Star 1 if it is busy). Version 8.1.
+  Research (2026-10-09): Bug 1 (as the lane reported 6:17 PM EDT
+  2026-10-29): folded into GEN.928, because the top-down primary solve
+  needs the mass-ratio law as its input and doing the flat law first
+  then replacing it would be two derivations. Treat as part of GEN.928;
+  it closes with it.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.952 Store each scatter member's radius (scatter_members.radius_au) so a page can show the X-ray luminosity of an accreting pair without guessing**
@@ -18931,6 +18936,10 @@ clears each one.
   of them from coming back red. The test_prevalence 2,000-system timing
   tests that time out at 900 s on the slower machines (also on main) are
   a machine limit, not part of this item. Owner: Bug 1. Version 8.1.
+  Research (2026-10-09): Moved from Bug 1 to Aux 7 (6:19 PM EDT
+  2026-10-29) as its lock-free item: Bug 1 is on the GEN.922 star chain.
+  Aux 7 also saw the two item_pages summary assertions red on main
+  ('summary inline-links' markup); they belong here. Owner: Aux 7.
   Prerequisites: none. Related: TEST.411, TEST.450.
 
 - [ ] **TEST.454 The observed star mass-function curve as data, with a per-bin harness that measures the generator against it (segments from 0.01 to 150 solar masses by object type)**
