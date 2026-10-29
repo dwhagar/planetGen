@@ -416,7 +416,8 @@ class StarSystem:
 
                     habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
                     belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
-                if habitable_satisfied and belt_satisfied:
+                    class_satisfied = self._forced_class_present()
+                if habitable_satisfied and belt_satisfied and class_satisfied:
                     log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
                               f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
                               f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
@@ -448,13 +449,16 @@ class StarSystem:
                 self._trim_to_orbit_ceiling(bodies, self._orbit_ceiling_au(member))
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
-            if (habitable_satisfied and belt_satisfied) or _round:
+            class_satisfied = self._forced_class_present()
+            if (habitable_satisfied and belt_satisfied and class_satisfied) or _round:
                 break
         self.unmet_requirements = []
         if not habitable_satisfied:
             self.unmet_requirements.append("a habitable world")
         if not belt_satisfied:
             self.unmet_requirements.append("an asteroid belt")
+        if not class_satisfied:
+            self.unmet_requirements.append(f"a planet of class {self.system_config.FORCE_CLASS}")
         forced = self._forced_star_count()
         if forced is not None and len(self.stars) != forced and forced > 1:
             # A star at the hydrogen-burning limit has no lighter star to be its companion (GEN.631).
@@ -1146,7 +1150,16 @@ class StarSystem:
         if system_objects < required_objects:
             system_objects = required_objects
 
+        forced_class = self.system_config.FORCE_CLASS if apply_guarantees else None
+        if forced_class and self.system_config.SLOTS:
+            raise ValueError("FORCE_CLASS cannot be combined with SLOTS: a slot already names its class.")
+        if forced_class and forced_class not in tuning.PLANET_CLASSES:
+            raise ValueError(f"FORCE_CLASS {forced_class!r} is not a planet class.")
+        if forced_class:
+            system_objects = max(system_objects, 1)
         slots = (self.system_config.SLOTS or []) if apply_guarantees else []
+        if forced_class and not slots:
+            slots = [{"type": "planet", "planet_class": forced_class}]
         disk_edge_au = self._disk_outer_edge_au(star)
 
         if system_objects > 0:
@@ -1382,8 +1395,14 @@ class StarSystem:
         return radius_au
 
     def _explicit_request(self):
-        """Whether the config asks for a habitable world or lists its slots."""
-        return self.system_config.HABITABLE_WORLD is True or bool(self.system_config.SLOTS)
+        """Whether the config asks for a habitable world or a class, or lists its slots."""
+        return (self.system_config.HABITABLE_WORLD is True or bool(self.system_config.SLOTS)
+                or bool(self.system_config.FORCE_CLASS))
+
+    def _forced_class_present(self):
+        """Whether the system holds a planet of `system_config.FORCE_CLASS` (True when none is forced)."""
+        letter = self.system_config.FORCE_CLASS
+        return not letter or any(getattr(planet, "planet_class", None) == letter for planet in self.planets)
 
     def _apply_star_history(self, planets, star):
         """
