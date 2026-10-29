@@ -15,7 +15,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import climate_draws, constants
+from planetgen.physics import climate_draws, constants, orbit_elements
 from planetgen.util import draw
 
 TOLERANCE = 1e-9
@@ -30,7 +30,8 @@ def host_star():
 
 
 def _flux(planet, star):
-    distance_km = float(planet.distance) * constants.AU_TO_KM
+    # GEN.727: the light of an eccentric orbit, averaged over it, is that of a circle of radius a (1 - e^2)^(1/4)
+    distance_km = orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity) * constants.AU_TO_KM
     return climate_draws.starlight_w_m2(star.luminosity, distance_km)
 
 
