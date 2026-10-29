@@ -65,6 +65,14 @@ test("the names of named stars come back on their stars, by id (MAP.298)", () =>
   assert.equal("names" in nodes["3.1.2.4"], false);
 });
 
+test("the system of a charted star comes back on its star, by id (MAP.122)", () => {
+  const { nodes } = P.unpackResponse(bytes());
+  assert.equal(nodes["3.1.2.3"].stars[0].system_id, 3);
+  assert.equal(nodes["3.1.2.3"].generated[0].system_id, 12);
+  assert.equal("system_id" in nodes["3.1.2.3"].stars[1], false);
+  assert.equal("systems" in nodes["3.1.2.4"], false);
+});
+
 test("printed object IDs and mixed ids come back as they went in", () => {
   const { nodes } = P.unpackResponse(bytes());
   assert.deepEqual(nodes["3.1.2.3"].generated.map((star) => star.id), ["FE81000A2B-0000005-000", "FE81000A2B-0000006-000"]);

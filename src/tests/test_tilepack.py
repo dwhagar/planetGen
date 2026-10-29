@@ -49,6 +49,18 @@ def test_the_names_of_the_stars_that_have_one_ride_in_the_json_and_come_back_on_
     assert trimmed[0]["name"] == "Alpha" and "name" not in trimmed[1]
 
 
+def test_the_system_of_a_charted_star_rides_in_the_json_and_comes_back_on_its_star():
+    """MAP.122: the columns hold only a charted flag, so a node lists the systems of its charted stars by id in `systems`
+    (the page's "View system" and ☆ need the id); a star with no system gets none and a node with none has no `systems`."""
+    node = {"stars": [star(5, 1.0, 1.0, 1.0, 1.0, system_id=9), star(6, 2.0, 1.0, 1.0, 1.0)],
+            "generated": [star("FE81000A2B-0000005-000", 3.0, 1.0, 1.0, 1.0, system_id="FE81000A2B-0000007-000")]}
+    back = tilepack.unpack_node(tilepack.pack_node(node))
+    assert [s.get("system_id") for s in back["stars"]] == [9, None]
+    assert back["generated"][0]["system_id"] == "FE81000A2B-0000007-000"
+    assert back["stars"][0]["charted"] is True and back["stars"][1]["charted"] is False
+    assert "systems" not in tilepack.unpack_node(tilepack.pack_node({"stars": [star(1, 1.0, 1.0, 1.0, 1.0)]}))
+
+
 def test_the_tier_of_a_halo_or_satellite_star_rides_with_the_charted_flag():
     """MAP.252: the halo (1) and the satellite galaxies (2) are the first to dim under "Charted only"; the flag byte
     carries them beside `charted` and a star of the disc has no `tier`."""
@@ -62,10 +74,11 @@ def test_the_tier_of_a_halo_or_satellite_star_rides_with_the_charted_flag():
 
 def test_a_star_costs_about_twenty_bytes_where_json_costs_over_a_hundred():
     stars = [star(i, i * 0.37, -i * 0.11, i * 0.02, 1.0 + i, temperature_k=5000 + i, radius_sol=1.0 + i / 100,
-                  star_type="G", system_id=i) for i in range(1000)]
+                  star_type="G", system_id=i if i % 20 == 0 else None) for i in range(1000)]
     packed = tilepack.pack_node({"stars": stars})
     as_json = json.dumps(tilecache.trim_node({"stars": stars}), separators=(",", ":"))
-    assert len(packed) < 21 * len(stars) + 200
+    # MAP.122: the few charted stars (one in twenty here) add their system id to the node's JSON, about ten bytes each.
+    assert len(packed) < 21 * len(stars) + 20 * 50 + 200
     assert len(packed) * 5 < len(as_json)
 
 

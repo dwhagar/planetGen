@@ -97,7 +97,7 @@ const {
   approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, magnitudeShare, RAMP,
 } = await import(`./starmagnitude.js${VERSION_QUERY}`);
 const {
-  cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture,
+  cssVar, entriesNearScreenPoint, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture,
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
@@ -638,7 +638,7 @@ function showInterestSystemInfo(system) {
 // MAP.243: a star beyond the galaxy's outline (the halo, a satellite galaxy), where no block or sector of the
 // whole-galaxy view holds it: what is known of it and where it is.
 // A star of the map (MAP.304): what the node lists of it, and its system's page when it has one.
-function showStarInfo(star) {
+function showStarInfo(star, nearby) {
   var spec = {
     title: star.name || "Star",
     fields: [
@@ -650,7 +650,13 @@ function showStarInfo(star) {
     more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   };
   if (star.system_id != null && sceneData.systemUrl) {
-    spec.view = { href: String(sceneData.systemUrl).replace("{id}", encodeURIComponent(star.system_id)), label: "View system →" };
+    var systemPage = String(sceneData.systemUrl).replace("{id}", encodeURIComponent(star.system_id));
+    spec.view = { href: systemPage, label: "View system →" };
+    // MAP.122: the ☆ saves the star's system (a star in unmade space has no system to keep).
+    spec.bookmark = endpointBookmark("system:" + star.system_id, star.name || "Star system", systemPage);
+  }
+  if (nearby) {
+    spec.after = [nearby];
   }
   showInfo(withRegion(spec, [star.x, star.y, star.z]));
 }
@@ -4026,7 +4032,47 @@ function initGalaxyMap3d(canvasEl, data) {
   // any distance: the nearest drawn star under the pointer, the brightest of those level with it. A star is pickable
   // while it is drawn, that is, its node's share and its apparent brightness both leave it visible, as the shader works
   // them out (starmagnitude.js's twin). The list is worked out once per view and star set, not per pointer event.
-  var STAR_PICK_PX = 8;
+  // MAP.122: the pointer's reach on a star, 10 px for a mouse and 22 px for a finger (a thumb covers more than a cursor),
+  // and when several stars lie inside it the panel offers the nearest few to choose from.
+  var STAR_MOUSE_PICK_PX = 10;
+  var STAR_TOUCH_PICK_PX = 22;
+  var STAR_CHOICES = 6;
+  var lastPointer = { type: "mouse", x: 0, y: 0 };
+  ["pointerdown", "pointerup", "pointermove"].forEach(function (name) {
+    canvasEl.addEventListener(name, function (event) {
+      lastPointer = { type: event.pointerType === "touch" ? "touch" : "mouse", x: event.clientX, y: event.clientY };
+    }, true);
+  });
+  function starReach() {
+    return lastPointer.type === "touch" ? STAR_TOUCH_PICK_PX : STAR_MOUSE_PICK_PX;
+  }
+  // The stars within the reach of the last pointer, nearest first (the brightest of those level with it first).
+  function starsNearPointer() {
+    return entriesNearScreenPoint(pickableStars(), camera, canvasEl.getBoundingClientRect(), lastPointer.x, lastPointer.y,
+      { reach: starReach, lastWins: true, limit: STAR_CHOICES }).map(function (found) { return found.entry; });
+  }
+  // The choice of a crowded click: a button for each star within reach, the shown one marked.
+  function starChoiceList(stars, chosen) {
+    var list = document.createElement("ul");
+    list.className = "map-star-choices";
+    list.setAttribute("aria-label", "Stars within reach of the click");
+    stars.forEach(function (star) {
+      var line = document.createElement("li");
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "starmap-btn";
+      button.dataset.starChoice = String(star.id);
+      button.textContent = (star.name || "Star") + ", " + formatLuminositySol(star.luminosity_sol);
+      button.setAttribute("aria-pressed", String(star === chosen));
+      button.addEventListener("click", function () {
+        highlightPosition(star.x, star.y, star.z);
+        showStarInfo(star, starChoiceList(stars, star));
+      });
+      line.appendChild(button);
+      list.appendChild(line);
+    });
+    return list;
+  }
   var STAR_PICK_MIN_SHARE = 0.25;
   var pickableCache = { signature: "", list: [] };
 
@@ -4187,7 +4233,7 @@ function initGalaxyMap3d(canvasEl, data) {
       point.set(star.x, star.y, star.z).project(camera);
       var x = (point.x + 1) / 2 * width;
       var y = (1 - point.y) / 2 * height;
-      return { id: star.id, name: star.name || null, luminosity: star.luminosity_sol, x: x, y: y,
+      return { id: star.id, system_id: star.system_id, name: star.name || null, luminosity: star.luminosity_sol, x: x, y: y,
         visible: point.z > -1 && point.z < 1 && x >= 0 && x <= width && y >= 0 && y <= height };
     });
   };
@@ -4195,13 +4241,14 @@ function initGalaxyMap3d(canvasEl, data) {
   picker.addLayer({
     name: "stars",
     points: pickableStars,
-    reach: function () { return STAR_PICK_PX; },
+    reach: starReach,
     lastWins: true,
     tooltip: function (star) { return (star.name ? star.name + ", " : "") + "star" + (star.star_type && star.star_type !== "fixture" ? " " + star.star_type : ""); },
     hover: phenomenonHover,
     select: function (star) {
       highlightPosition(star.x, star.y, star.z);
-      showStarInfo(star);
+      var crowd = starsNearPointer();
+      showStarInfo(star, crowd.length > 1 && crowd.indexOf(star) >= 0 ? starChoiceList(crowd, star) : null);
     },
   });
 

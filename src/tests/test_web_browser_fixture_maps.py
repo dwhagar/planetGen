@@ -1942,6 +1942,80 @@ def test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box(page,
     assert lines["hovered"]["lines"] == 0, lines
 
 
+def _visible_stars(page):
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars().length > 20", timeout=20000)
+    return [s for s in page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars()") if s["visible"]]
+
+
+def _free_of_panels(page, spots):
+    """The spots (page coordinates) where the map itself, and none of its panels, is under the point."""
+    return page.evaluate("""(spots) => spots.filter(([x, y]) => {
+        const found = document.elementFromPoint(x, y);
+        return found && found.id === 'galaxymap3d-canvas';
+    })""", spots)
+
+
+def test_a_selected_star_can_be_bookmarked(page, dense_site):
+    """MAP.122: the panel of a picked star has a ☆ that saves its system as a bookmark (kind "system"), and a second press
+    takes it out again."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    stars = _visible_stars(page)
+    chosen = next(s for s in stars if all(abs(s["x"] - o["x"]) + abs(s["y"] - o["y"]) > 30 for o in stars if o is not s))
+    _click_star(page, chosen)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info').dataset.state === 'selected'")
+    star = page.locator("#galaxymap3d-info .map-info-bookmark")
+    assert star.inner_text() == "☆" and star.is_enabled()
+    star.click()
+    saved = _bookmarks(page)
+    assert len(saved) == 1 and saved[0]["kind"] == "system" and saved[0]["value"].startswith("system:"), saved
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info .map-info-bookmark').getAttribute('aria-pressed') === 'true'")
+    page.once("dialog", lambda dialog: dialog.accept())   # taking a bookmark out asks first
+    star.click()
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info .map-info-bookmark').getAttribute('aria-pressed') === 'false'")
+    assert _bookmarks(page) == []
+
+
+def test_a_click_between_close_stars_offers_the_ones_within_reach(page, dense_site):
+    """MAP.122: a click that has several stars inside the pointer's reach (10 px for a mouse) selects the nearest and lists
+    the others under its panel; choosing another from the list shows that star instead."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    stars = _visible_stars(page)
+    # Two stars 3 to 9 px apart, so a click on the first has the second inside the 10 px reach and still picks the first.
+    def apart(a, b):
+        return math.hypot(a["x"] - b["x"], a["y"] - b["y"])
+    pairs = [(a, b) for a in stars for b in stars if a["id"] < b["id"] and 3 < apart(a, b) < 9
+             and not any(c is not a and c is not b and apart(c, a) < apart(a, b) for c in stars)]
+    assert pairs, "the dense region has no two stars a few pixels apart"
+    # A pair that is not under a panel of the map.
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    free = set(map(tuple, _free_of_panels(page, [[box["x"] + a["x"], box["y"] + a["y"]] for a, _b in pairs])))
+    first, second = next((a, b) for a, b in pairs if (box["x"] + a["x"], box["y"] + a["y"]) in free)
+    page.mouse.click(box["x"] + first["x"], box["y"] + first["y"])
+    page.wait_for_selector("#galaxymap3d-info .map-star-choices button", timeout=5000)
+    buttons = page.locator("#galaxymap3d-info .map-star-choices button")
+    assert buttons.count() >= 2
+    pressed = page.locator("#galaxymap3d-info .map-star-choices button[aria-pressed='true']")
+    assert pressed.count() == 1 and pressed.get_attribute("data-star-choice") == str(first["id"])
+    other = page.locator(f"#galaxymap3d-info .map-star-choices button[data-star-choice='{second['id']}']")
+    assert other.count() == 1
+    other.click()
+    page.wait_for_selector(f"#galaxymap3d-info .map-star-choices button[data-star-choice='{second['id']}'][aria-pressed='true']")
+    assert page.locator("#galaxymap3d-info .map-star-choices button[aria-pressed='true']").count() == 1
+
+
+def test_a_lone_star_has_no_choice_list(page, dense_site):
+    """MAP.122: with only one star within reach there is nothing to choose, so its panel carries no list."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    stars = _visible_stars(page)
+    chosen = next(s for s in stars if all(abs(s["x"] - o["x"]) + abs(s["y"] - o["y"]) > 40 for o in stars if o is not s))
+    _click_star(page, chosen)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info').dataset.state === 'selected'")
+    assert page.locator("#galaxymap3d-info .map-star-choices").count() == 0
+
+
 def test_a_double_click_on_a_star_flies_to_it(page, dense_site):
     """MAP.304: a double click on a drawn star flies the camera there: its place becomes the middle of the view and the view
     comes in to a sector and a half."""

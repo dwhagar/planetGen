@@ -161,3 +161,35 @@ export function nearestOnScreen(entries, camera, rect, clientX, clientY, options
   });
   return best ? { entry: best, px: bestPx } : null;
 }
+
+// Every entry drawn within `options.reach(entry)` pixels of a screen point, nearest first, as [{entry, px}] (MAP.122: the
+// choice a crowded click offers). `options.accept(entry)` leaves an entry out; `options.limit` keeps the nearest few. The
+// nearest comes first, and among entries at the same distance the later one with `options.lastWins` (as nearestOnScreen).
+export function entriesNearScreenPoint(entries, camera, rect, clientX, clientY, options) {
+  if (!rect.width || !rect.height) {
+    return [];
+  }
+  var found = [];
+  entries.forEach(function (entry, index) {
+    if (options.accept && !options.accept(entry)) {
+      return;
+    }
+    projected.set(entry.x, entry.y, entry.z).project(camera);
+    if (projected.z < -1 || projected.z > 1) {
+      return;
+    }
+    var px = Math.hypot(
+      rect.left + ((projected.x + 1) / 2) * rect.width - clientX,
+      rect.top + ((1 - projected.y) / 2) * rect.height - clientY);
+    if (px <= options.reach(entry)) {
+      found.push({ entry: entry, px: px, index: index });
+    }
+  });
+  found.sort(function (a, b) {
+    return a.px - b.px || (options.lastWins ? b.index - a.index : a.index - b.index);
+  });
+  if (options.limit) {
+    found = found.slice(0, options.limit);
+  }
+  return found.map(function (item) { return { entry: item.entry, px: item.px }; });
+}

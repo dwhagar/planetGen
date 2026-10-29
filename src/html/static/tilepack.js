@@ -140,6 +140,15 @@ export function unpackNode(bytes) {
       }
     }
   }
+  // A charted star's system rides the same way (MAP.122): the page's "View system" and its ☆ need the id.
+  if (node.systems) {
+    for (const section of ["stars", "generated"]) {
+      for (const star of node[section]) {
+        const system = node.systems[String(star.id)];
+        if (system !== undefined && system !== null) star.system_id = system;
+      }
+    }
+  }
   return node;
 }
 
