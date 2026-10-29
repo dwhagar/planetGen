@@ -98,6 +98,13 @@ def csda_range_g_cm2(energy_mev, material="air"):
     return _interpolate(energy_mev, ENERGIES_MEV, ranges)
 
 
+def stopping_power_mev_cm2_g(energy_mev, material="air"):
+    """The total mass stopping power, MeV cm2/g, of a proton of `energy_mev` in a row of the table (log-log between its energies; the first and
+    last segments continue past the ends)."""
+    _, stopping = _table(material)
+    return _interpolate(energy_mev, ENERGIES_MEV, stopping)
+
+
 def energy_mev(column_g_cm2, material="air"):
     """The kinetic energy, MeV, a vertical proton needs to cross `column_g_cm2` of `material`: a row of the table
     (`"air"`, `"CO2"`, `"H"`, ...) or a mixture `{row: mass fraction}`, whose fractions are normalised."""

@@ -798,6 +798,8 @@ def generate_moons(planet, moon_count=None):
     parent_kind = moon_composition.parent_kind(planet.envelope_mass_fraction or 0.0, planet.mass)
     # GEN.466: a giant's regular moons share one circumplanetary disk (the lifetime, the ice line, the ice ramp)
     disk_system = moon_composition.draw_disk_system(planet.mass) if parent_kind == moon_composition.GIANT else None
+    if disk_system is not None:
+        moon_composition.store_disk(planet, disk_system)
 
     # Deferred import: planet imports this module at load time, so Planet
     # can't be imported here at module level without a circular import.

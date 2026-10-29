@@ -4,7 +4,7 @@ Code: `physics/surface_composition.py`. Tests: `tests/test_surface_composition.p
 
 ## What it reads and gives
 
-Reads (a `SurfaceInputs`): class, surface temperature and pressure, the air's oxygen and other partial pressures, the bulk fractions of GEN.428 (water, other ices, rock, metal, rock FeO, carbon rock), the hydrosphere state, ocean fraction and class of GEN.461, the internal and tidal heat flow, the age and the plate-tectonics chance.
+Reads (a `SurfaceInputs`): whether the body is a giant (from its structure, `body_type`, never the class letter: GEN.917, GEN.915), surface temperature and pressure, the air's oxygen and other partial pressures, the bulk fractions of GEN.428 (water, other ices, rock, metal, rock FeO, carbon rock), the hydrosphere state, ocean fraction and class of GEN.461, the internal and tidal heat flow, the age and the plate-tectonics chance.
 
 Gives (a `SurfaceComposition`): the areal `mix` (ocean, ice and the ground types, summing to 1), the mass `components` (rows of the shared materials table, summing to 1) and the grain state. A giant has no ground (`None`).
 

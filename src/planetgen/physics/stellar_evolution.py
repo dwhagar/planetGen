@@ -427,14 +427,12 @@ def _supergiant_yerkes_class(luminosity_sol):
 def birth_fe_h(rng=draw, population=None, fe_h_peaks=None, galactic_center_dist_ly=None):
     """
     A star's birth [Fe/H] (GEN.651, GEN.553's order: composition first): drawn from its `population` (or
-    `fe_h_peaks`, a cluster's or satellite's own distribution) at `galactic_center_dist_ly` from the centre (the Sun's
-    distance without one) by `metallicity.sample_fe_h`. A cluster or satellite star with no distribution of its own is
-    drawn as the halo's.
+    `fe_h_peaks`, a cluster's or satellite's own distribution, GEN.662) at `galactic_center_dist_ly` from the centre (the
+    Sun's distance without one) by `metallicity.sample_fe_h`. A cluster or satellite star with no distribution of its own
+    takes the generic cluster's or satellite's (`metallicity.generic_peaks`), never the halo's.
     """
-    if population in ("cluster", "satellite", "satellite_young", "satellite_intermediate") and not fe_h_peaks:
-        population = "halo"
     distance = scales.default_galactocentric_ly() if galactic_center_dist_ly is None else galactic_center_dist_ly
-    return metallicity.sample_fe_h(population, distance, rng, peaks=fe_h_peaks)
+    return metallicity.sample_fe_h(population, distance, rng, peaks=fe_h_peaks or metallicity.generic_peaks(population))
 
 
 def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, population=None, fe_h_peaks=None,

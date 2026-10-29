@@ -52,7 +52,7 @@ import math
 
 import numpy as np
 
-from planetgen.physics import constants
+from planetgen.physics import constants, metallicity
 from planetgen.physics.stellar_evolution import birth_fe_h
 from planetgen import tuning
 from planetgen.galaxy import scatter_limits as scatterLimits
@@ -74,7 +74,7 @@ from planetgen.galaxy.spherical import (
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import object_first, place_terms, stored_trees
 from planetgen.generation.star_population import (
-    bright_band_fraction, mass_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
+    bright_band_fraction, fe_h_support, mass_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
     sample_mass_band_stars,
 )
 from planetgen.physics.units import pc_to_ly
@@ -237,21 +237,25 @@ def _finite_or_none(value):
     return value if value is None or math.isfinite(value) else None
 
 
-def star_fe_h(population, params):
+def star_fe_h(params):
     """A bright star's [Fe/H] (GEN.158): the birth one its place drew before the star (`birth_fe_h`, GEN.651; the
-    star's lifetimes and giant branch follow it), which `params` carries. `None` for a cluster or satellite star,
-    which carries its component's value (GEN.159, GEN.237)."""
-    if population in POPULATIONS_IN_THE_GATE:
-        return None
+    star's lifetimes and giant branch follow it), which `params` carries. A cluster or satellite star's is its
+    component's (GEN.662)."""
     return params["metallicity_fe_h"]
 
 
-def spot_fe_h(population, spots, rng):
+def spot_fe_h(population, spots, rng, fe_h_peaks=None):
     """The birth [Fe/H] source of the stars placed at `spots` (each ends in its point, whole milliparsecs), for
     `sample_bright_stars`' `fe_h_source`: a draw from the population at the spot's distance from the galactic centre
-    (GEN.651). `None` for a population in the gate, whose stars take their component's value."""
+    (GEN.651), or, for a population in the gate, from its component's own distribution `fe_h_peaks`
+    (`component_field.fe_h_peaks_of`, GEN.662)."""
     if population in POPULATIONS_IN_THE_GATE:
-        return None
+        def component_source(index):
+            return birth_fe_h(rng, population, fe_h_peaks)
+        peaks = fe_h_peaks or metallicity.generic_peaks(population)
+        if peaks:
+            component_source.bins = fe_h_support(peaks)
+        return component_source
 
     def source(index):
         distance_ly = pc_to_ly(math.sqrt(sum((value / MPC_PER_PC) ** 2 for value in spots[index][-1])))
@@ -276,7 +280,7 @@ def _row(shell_index, band_index, wedge, point, population, params, rng):
         population, params["type"], params["yerkes_class"], params["mass_kg"],
         params["radius_km"], params["temperature_k"], params["luminosity_w"],
         params["age_gy"], _finite_or_none(params["lifespan_gy"]), params["initial_mass_sol"],
-        _finite_or_none(params["phase_end_age_gy"]), seed, star_fe_h(population, params),
+        _finite_or_none(params["phase_end_age_gy"]), seed, star_fe_h(params),
     )
 
 
@@ -753,7 +757,7 @@ def _draw_groups(shape, groups, high_band, edge_pc, expected_at_density_1, rng, 
     yield from draw_placed(placed, pass_bands, rng, on_progress, base, age_laws_of(shape))
 
 
-def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=None):
+def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=None, fe_h_peaks=None):
     """
     The rows of stars already placed: each one's type and luminosity drawn from `rng`, population by population and
     tier by tier (GEN.322, GEN.324).
@@ -764,6 +768,8 @@ def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=No
         pass_bands (list): The `PassBand` of each tier.
         base (float): The progress already reported, so `on_progress` carries on from it.
         age_laws (dict, optional): `age_laws_of` the galaxy; the ages are spread evenly without it.
+        fe_h_peaks (tuple, optional): The [Fe/H] distribution of the component the stars belong to, for the populations
+            in the gate (`component_field.fe_h_peaks_of`, GEN.662); the generic cluster's or satellite's without it.
     """
     total_placed = sum(len(spots) for spots in placed.values())
     drawn = 0
@@ -774,7 +780,7 @@ def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=No
                 continue
             stars = sample_bright_stars(len(spots), band.min_luminosity_sol, population, rng,
                                         max_luminosity_sol=band.max_luminosity_sol, mass_range=band.mass_range,
-                                        age_laws=age_laws, fe_h_source=spot_fe_h(population, spots, rng))
+                                        age_laws=age_laws, fe_h_source=spot_fe_h(population, spots, rng, fe_h_peaks))
             for (shell_index, band_index, wedge, point), params in zip(spots, stars):
                 drawn += 1
                 if on_progress is not None:

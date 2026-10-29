@@ -74,11 +74,11 @@ def redox_factor(name, redox):
 
 def contact(values):
     """
-    How much of the rock's chemistry the water reaches, 0 to 1: the whole of it under a surface, ice-covered or hycean ocean, less for
+    How much of the rock's chemistry the water reaches, 0 to 1: the whole of it under a surface, brine-seep, ice-covered or hycean ocean, less for
     an aquifer (by how deep it is) and 0 with no liquid water. A world with a very deep ocean (`deep_water_fraction`) has ice on its floor.
     """
     state = values.get("hydrosphere")
-    if state in ("surface ocean", "hycean", "ice-covered ocean"):
+    if state in ("surface ocean", "brine seep", "hycean", "ice-covered ocean"):
         if (values.get("water_mass_fraction") or 0.0) >= number("deep_water_fraction"):
             return number("contact_deep_water")
         return number("contact_ocean")

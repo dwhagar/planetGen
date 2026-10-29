@@ -214,7 +214,7 @@ def scatter_stars(components, edge_pc, seed, fractions, pass_bands, tiered=None,
         for shell_index, band_index, wedge, point, population, tier in component_spots(
                 component, edge_pc, by_tier, tiers_of_places, rng, skip_addresses, here[1]):
             placed[(tier, population)].append((shell_index, band_index, wedge, point))
-        yield from bright_stars.draw_placed(placed, pass_bands, rng)
+        yield from bright_stars.draw_placed(placed, pass_bands, rng, fe_h_peaks=component_field.fe_h_peaks_of(component))
 
 
 def expected_stars(components, fractions, tiered=None):

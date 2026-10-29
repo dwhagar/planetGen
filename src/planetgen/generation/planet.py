@@ -26,7 +26,7 @@ import math
 from planetgen import tuning
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import aerosols, atmosphere, body_colour, bulk_composition, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
+from planetgen.physics import aerosols, atmosphere, body_colour, bulk_composition, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen.util import draw
 from planetgen.generation.planetary_object import PlanetaryObject
@@ -227,13 +227,14 @@ class Planet(PlanetaryObject):
         *giant_interior.BODY_FIELDS,
         giant_interior.LAYERS_ATTRIBUTE,
         *surface_composition.COLUMN_FIELDS,
+        *moon_composition.BODY_FIELDS,
         *rings.BODY_FIELDS,
         *radiation.BODY_FIELDS,
         *habitability_world.BODY_FIELDS,
         *aerosols.BODY_FIELDS,
         *body_colour.BODY_FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "born_beyond_snow_line",
+        "born_beyond_snow_line", "host_eccentricity",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -265,8 +266,8 @@ class Planet(PlanetaryObject):
 
     moon_origin = None
     moon_disk_system = None
-    """str or None, DiskSystem or None: A moon's origin (`moon_composition.ORIGINS`) and its parent's circumplanetary disk while the moon is
-    being generated; not stored (their columns are DB.70)."""
+    """str or None, DiskSystem or None: A moon's origin (`moon_composition.ORIGINS`, stored: DB.70) and its parent's circumplanetary disk while
+    the moon is being generated (not stored itself; the giant keeps its numbers in `moon_composition.DISK_FIELDS`)."""
 
     reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
     """
@@ -401,7 +402,7 @@ class Planet(PlanetaryObject):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
-        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS:
+        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + moon_composition.DISK_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS:
             setattr(self, field, None)
         setattr(self, atmosphere.GAS_FIELD, {})
 
