@@ -2696,7 +2696,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.183 | Facility pages: add the facility kind to the object index and resolver so /object/facility:<ID> works | none | done, PR #3060 |
 | UX.184 | Star cluster and region pages: stored cluster and region objects and their object pages | none | done, PR #3065 |
 | UX.185 | Phenomenon pages: paragraph text and neighbour links from the stored row | none | done, PR #3045 |
-| UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary | none | open |
+| UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary | none | done, PR #3775 |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output | none | open |
 | UX.188 | Captain-first object pages, step C0: the GLANCE registry, the At a glance panel partial and its test (every key is in the sheet; the page renders the panel above the sheet) | none | done, PR #3116 |
 | UX.189 | Captain-first object pages, step C1: planet and moon pages | none | done, PR #3116 |

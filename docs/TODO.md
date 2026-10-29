@@ -790,38 +790,6 @@ with `clamp()`.
   sitemap entries.
   Prerequisites: none.
 
-- [ ] **UX.186 Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary**
-  Residual of GEN.272 (relayed 3:37 PM EDT 2026-10-24 as the lane
-  reported; filed by the TODO thread). Kind: display. GEN.272 gives
-  neutron stars and black holes accreting companions (X-ray binaries,
-  microquasars, spider pulsars, Gaia-kind dormant pairs) and derives an
-  X-ray luminosity under the Eddington limit, but no page shows them.
-  Do: show the accreting-pair kind, X-ray luminosity, microquasar flag
-  and spider kind (black widow or redback) on the star page and in the
-  API, with units from the registry. Done: a page test for each kind.
-  Owner: pool (display lane). Prerequisites: none.
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 4 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Research (2026-10-09): Lock-free item given to Core 3 (5:56 PM EDT
-  2026-10-29) while it waits for its GEN.328 lock turn; MAP.286 merged
-  (#3746). Owner: Core 3.
-  Research (2026-10-09): Core 3 scope note (as the lane reported 6:00 PM
-  EDT 2026-10-29): rows go on the uncharted star and phenomenon pages
-  and the API detail (a built system cuts neutron stars and black holes
-  out of its tree); the accreting-pair kind, the microquasar flag and
-  the spider kind (black widow or redback) are stored and built now,
-  with a page test per kind. The X-ray luminosity row is NOT in this PR:
-  it waits for GEN.952 (stored member radius).
-  Research (2026-10-09): Moved out of Core 5's chain (6:14 PM EDT
-  2026-10-29): Core 3 already holds and is building it. Core 5 skips it.
-  Prerequisites: none. Related: GEN.272, GEN.247.
-
 - [ ] **UX.187 Pages, lists, the API and the help text show every physics rectification output**
   Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the UX.
   For each physics item in 8.1 that changes a stored value (the table in
@@ -846,6 +814,9 @@ with `clamp()`.
   PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
   progress-line work only: no generated-output change and no lock turn;
   if any step turns out to change a stored value, stop and tell TODO.
+  Research (2026-10-09): Lock-free item given to Core 3 (7:04 PM EDT
+  2026-10-29) after UX.186 merged; taken out of Core 5's chain. Owner:
+  Core 3.
 
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
   Boss, 8:19 PM EDT 2026-10-24 (message
@@ -13981,6 +13952,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   luminosity on the pages and the API (the luminosity row of UX.186). A
   generation change: migration, epoch and a lock turn (place it in Core
   3's GEN.328 turn if it fits). Owner: Core 3. Version 8.1.
+  Research (2026-10-09): UX.186 merged (#3775, Core 3, as the lane
+  reported 7:03 PM EDT) without the X-ray luminosity row: the Compact
+  binaries panel and the API compact_pairs show the kind and the
+  microquasar flag from stored bits. This item stores the member radius
+  and then adds the luminosity row to that panel and to compact_pairs.
   Prerequisites: none. Related: UX.186, GEN.272, GEN.328.
 
 ## PERF: Speed, caching, bulk generation and parallel work
