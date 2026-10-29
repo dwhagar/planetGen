@@ -458,6 +458,16 @@ leaves no free oxygen so most requests answer unmet (GEN.855). When an anomaly's
 rule that holds everywhere is flagged stale in the report. The reclassification after an edit is left for 8.6.
 
 
+Part G, the life census (TEST.435, `src/tests/audit/prevalence_life.py`, `src/tests/test_prevalence_life_census.py`): 240 seeded whole
+systems, every terrestrial planet and moon with a life chemistry put on the highest rung it reached (origin, producers, complex cells,
+multicellular, animals, sentient), and the shares of life worlds checked against Boss's targets for the life class system
+(`docs/design/habitability/life-classes.md` 5.2: the majority stop below animals, 15 to 35 percent reach animals, at most 2 percent are
+sentient and fewer than one in twenty animal worlds) in `src/tests/data/prevalence_life_expectations.json`, widened by four binomial sigma of
+the run's life worlds. The shadow life class of each life world (`life_classes.best`, GEN.886) is counted in the report and not checked, as the
+design says per-class bands are measured and not forced; the class store (GEN.889) will let the census read the stored class. The report is
+`life-census-latest.md`; about a minute on 4 cores; `python -m tests.audit.prevalence_life` prints it without the test. Known anomaly: GEN.855
+(no biogenic oxygen, so no world reaches animals).
+
 ## Setting up a cloud session
 
 A fresh container needs `pip install -e ".[test,api,browser]"`, the NLTK
