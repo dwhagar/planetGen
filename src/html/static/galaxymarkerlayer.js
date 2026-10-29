@@ -113,6 +113,12 @@ export function createMarkerLayer(scene, camera, canvasEl, outline, options) {
   const textures = new Map();
   const sprites = [];
   let drawn = [];
+  // MAP.341: the share of its strength a mark outside the opened sector keeps (1 with none opened, SECTOR_OUTSIDE_SHARE with one), as
+  // the stars do (MAP.327). A mark that stands for the open sector's own bodies keeps all of it.
+  let outsideShare = 1;
+  function opacityOf(entry) {
+    return entry.item.bodyRef || entry.item.follow ? 1 : outsideShare;
+  }
 
   function textureOf(kind, item) {
     if (kind.icon) {
@@ -150,6 +156,7 @@ export function createMarkerLayer(scene, camera, canvasEl, outline, options) {
       sprite.material.map = textureOf(entry.kind, entry.item);
       sprite.material.needsUpdate = true;
       sprite.position.set(entry.x, entry.y, entry.z);
+      sprite.material.opacity = opacityOf(entry);
       sprite.renderOrder = entry.pulled ? PULLED_ORDER : 4;    // a mark pulled forward (MAP.306) is drawn over the others
       sprite.visible = true;
     });
@@ -193,6 +200,17 @@ export function createMarkerLayer(scene, camera, canvasEl, outline, options) {
     set: set,
     update: update,
     entries: function () { return drawn; },
+    // Dims every mark outside the opened sector to `share` (0 to 1) of its strength; 1 gives it back.
+    setOutsideShare: function (share) {
+      outsideShare = Math.min(1, Math.max(0, share));
+      drawn.forEach(function (entry, index) { sprites[index].material.opacity = opacityOf(entry); });
+    },
+    // What each mark is drawn at, for the browser tests: `[{kind, name, opacity}]`.
+    opacities: function () {
+      return drawn.map(function (entry, index) {
+        return { kind: entry.kind.id, name: entry.item.name || null, opacity: sprites[index].material.opacity };
+      });
+    },
     group: group,
     // Hides or shows the whole layer (a view with no sectors to be seen through).
     setVisible: function (on) { group.visible = !!on; },
