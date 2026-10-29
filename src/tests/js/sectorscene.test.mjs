@@ -194,3 +194,43 @@ test("a charted star, a phenomenon and a charted neighbor offer What's within, a
   assert.deepEqual(SS.infoSpec(waiting, {}, nav).links, []);
   assert.deepEqual(SS.infoSpec({ ...neighbor, exists: false, sectorId: null }, {}, nav).links || [], []);
 });
+
+test("a remnant's shell thins and brightens the younger it is (MAP.286)", () => {
+  const young = SS.remnantShell(50);
+  const middle = SS.remnantShell(2000);
+  const old = SS.remnantShell(100000);
+  assert.ok(young.innerRatio > middle.innerRatio && middle.innerRatio > old.innerRatio, "the hollow fills as it ages");
+  assert.ok(young.alpha > middle.alpha && middle.alpha > old.alpha, "an old shell is fainter");
+  assert.ok(young.density > old.density);
+  assert.notEqual(young.color, old.color);
+  assert.match(middle.color, /^#[0-9a-f]{6}$/);
+});
+
+test("a remnant's age outside the generator's span is held at its ends, and no age keeps the plain shell", () => {
+  assert.deepEqual(SS.remnantShell(1), SS.remnantShell(50));
+  assert.deepEqual(SS.remnantShell(1e9), SS.remnantShell(100000));
+  for (const age of [undefined, null, 0, -5, NaN]) {
+    assert.equal(SS.remnantShell(age).innerRatio, 0.82);
+  }
+});
+
+test("the remnant in the scene is painted from its age, a plain shell when it has none (MAP.286)", () => {
+  function shellOf(ageYears) {
+    const data = structuredClone(F.sectorMap.data);
+    const cloud = structuredClone(data.clouds.find((c) => c.key === "nebula:1"));
+    Object.assign(cloud, { kind: "supernovaRemnant", key: "supernova_remnant:7", ageYears });
+    delete cloud.nebulaId;
+    data.clouds = [cloud];
+    const sector = SS.buildSectorScene(data, { origin: [0, 0, 0], unit: 1, flipY: false, pixelRatio: 1 });
+    const found = [];
+    sector.group.traverse((object) => { if (object.material && object.material.uniforms && object.material.uniforms.innerRatio) found.push(object.material.uniforms); });
+    assert.equal(found.length, 1);
+    return found[0];
+  }
+  const young = shellOf(50);
+  const old = shellOf(100000);
+  assert.equal(young.innerRatio.value, SS.remnantShell(50).innerRatio);
+  assert.ok(young.innerRatio.value > old.innerRatio.value);
+  assert.ok(young.maxAlpha.value > old.maxAlpha.value);
+  assert.equal(shellOf(undefined).innerRatio.value, 0.82);
+});
