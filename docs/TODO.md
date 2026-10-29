@@ -11155,6 +11155,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
   Owner: Aux 2 (lock-free item while it waits for the generation lock, 11:59 PM EDT 2026-10-28; separate branch, no generation change; the former survival equipment lane is retired).
   Prerequisites: GEN.424. Related: GEN.424, DB.71.
+  Progress (Aux 2, 12:04 AM EDT 2026-10-29 as the lane reported): the lock-free half merged as #3631 (the ten toxic limits read from the NIOSH Pocket Guide; NO2 danger level 13 ppm; a test holds the filter grade to the physics). Remaining, needs the lock: world_from feeds only five stored gases (O2, CO2, CO, H2S, SO2) to the equipment rules, so ammonia (about 12% of planets, up to 30x its danger level), HCN and the rest never trigger a filter, own air or chemical suit; wiring them changes stored equipment columns and the golden. Aux 2 adds it to its life bundle epoch.
 
 - [ ] **GEN.660 The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug)**
   Found by Habitability lane K (relayed 8:21 PM EDT 2026-10-23 as the
@@ -13951,6 +13952,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   read Redis) and PERF.100 (delete queue/work.py and the work_* tables).
   PERF.98 stays open until PERF.100 lands.
   Prerequisites: none. Related: PERF.86.
+  Owner: Aux 2 (lock-free item while it waits for the generation lock, 12:04 AM EDT 2026-10-29 as the lane reported; this replaces any earlier owner line on this item). Separate branch; if a step changes generated output, park that step for the lock.
 
 - [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
