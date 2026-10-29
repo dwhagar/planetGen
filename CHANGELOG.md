@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2506] - 2026-10-29
+
+**Headline:** The Galaxy Map can mark civilizations by technology band: the Menu has a Civilization technology group with a marker for each band, from Primal to Transcendent.
+
+### Changed
+
+- **Civilizations by technology band (MAP.344).** Each star system with a civilization now carries the technology level of its most advanced species (the species' `tech_level`, 0 to 7) on the map, and the Menu has a Civilization technology group with one marker for each band (Primal, Agrarian, Industrial, Atomic, Fusion, Gravitic, Antimatter, Transcendent), off until chosen. A band's marker shows only the systems whose most advanced species is in that band, in a colour of its own; a system is drawn once, by its band's marker when that is on, otherwise by the Civilizations marker, which still shows every civilization (including a world whose species is not drawn yet, which has no band). The card of a system names the band ("2 worlds with a civilization, most advanced Gravitic"). The level is stored with the system's civilization interest row (migration 0174 fills it from the species already stored; the population pass keeps it right), and the sector nodes list it as `tech` and `band`. Nothing a generator draws changes, so there is no epoch.
+
 ## [8.0.2505] - 2026-10-29
 
 **Headline:** The old MySQL job tree is gone: its code and its four tables are deleted now that every run lives on Redis.
