@@ -12860,22 +12860,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This item retires after Boss regenerates and looks.
   Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
 
-- [ ] **GEN.856 interior_heat._flux_w_m2 raises ZeroDivisionError and fails the albedo and tidal migration tests on clean main (bug)**
-  Reported by Aux 17 at its lock-turn gate for GEN.822 (about 7:56 PM
-  EDT 2026-10-28 as the lane reported): on clean main the albedo and
-  tidal migration tests fail with a ZeroDivisionError in
-  interior_heat._flux_w_m2. Find the input that gives a zero divisor (a
-  zero or missing radius, mass or area for some body kind), decide
-  whether the right answer is a guarded zero, a skipped row or a stored
-  NULL (never a silent fake value), and fix it with a test on the
-  failing input. If the fix changes any stored value it takes an epoch
-  and a lock turn; if it only stops a crash on a row that was never
-  filled, it does not. The eight reds Aux 17 saw on clean main also
-  include field units RoguePlanet, fuzz api auth, a test_runner hang and
-  a batch work-units test; Bug 1 has those on its red-test list. Owner:
-  Bug 1.
-  Prerequisites: none. Related: GEN.778, GEN.784, GEN.835, TEST.405.
-
 - [ ] **GEN.857 Biogenic gases for non-oxygenic worlds: methane and haze from anoxygenic and chemoautotroph communities, donor drawdown, and registry entries for each stand-in**
   Follow-up to GEN.855 (biogenic oxygen) and GEN.750 (life timeline),
   requested through the coordinator at 8:27 PM EDT 2026-10-28. Research:
@@ -13607,6 +13591,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: UX.208, GEN.904.
   Prerequisites: none. Related: UX.208, GEN.904.
 
+- [ ] **GEN.906 Icy-moon tide is stored as 0.0 where it should be NULL (bug)**
+  Found by Bug 1 (3:07 AM EDT 2026-10-29 as the lane reported, while
+  fixing the TEST.441 migration reds). Icy moons store a tide value of
+  0.0 where the value does not apply and should be NULL (not stored).
+  The fix alters the golden "moon structure" stage, so it is a
+  generation change: epoch and lock turn. Do: write NULL instead of 0.0
+  for the tide column where it is not applicable, with the epoch and the
+  stages-changed affects list; regenerate the golden. Done: no icy moon
+  stores a tide of 0.0 unless it really is zero; the sheet hides the
+  absent value per the absent-values rule. Version 8.1. Owner: Core 1
+  (bundle it with its second change, GEN.857 to GEN.861 and GEN.872,
+  after Aux 2's life bundle). Prerequisites: none. Related: TEST.441,
+  UX.208.
+  Prerequisites: none. Related: TEST.441, UX.208.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -13639,68 +13638,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the near and far distance and the zone count, state the error); no
   kernel code of its own.
   Design: [docs/design/orbits/gravity-map.md](design/orbits/gravity-map.md)
-
-- [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
-  Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
-  process, all the scatter phases, are individual commands, then a
-  general process wrapper makes a list of the commands that need to be
-  run, and then puts those into the redis queue individually." The
-  wrapper builds the command list, each command is one queue item. Once
-  the stages are commands (PERF.106 to PERF.108), every way to start
-  generation uses the one wrapper of PERF.118: the Generate page
-  (`web/generate_page.py`, `web/job_runner.py`), the API jobs
-  (`queue/api_jobs.py`) and the one-off `planetgen sector` and
-  `planetgen system` commands (each a one-command run), so there is no
-  second way to run a stage and no start path that skips the run record.
-  Done: each of those entry points builds its command list with the
-  wrapper and queues it; a test starts a run from each and finds it on
-  the run record; a grep finds no stage started outside the wrapper.
-  Owner: Core 5 (after PERF.98, before PERF.99 reads the run record on
-  the pages).
-  Decided (Boss, 2026-10-17, 4:15 PM EDT): from the command line Boss
-  runs `plan`, then `scatter`; each scatter kind is its own command even
-  where the root command is the same (a scatter command for only mass,
-  only luminosity, only phenomena, only the nebula field, only the
-  backfill, and so on, never one command that groups them). Each command
-  has its own parameters, which the UX sets when it runs the commands
-  through the API and which Boss sets on the command line. When a new
-  generate job is called, the wrapper ONLY selects the commands that
-  will run and never touches the others; they run in sequence; the
-  progress bars are dynamic to the current context and show only what is
-  going to run (the overall bar, the stage count and the estimate come
-  from the selected commands alone). So each entry point sends its own
-  parameters per command, and its progress shows only the commands
-  selected.
-  Decided (Boss, 2026-10-17, 4:18 PM EDT): the governing principle of
-  PERF.118 holds for every start path: each entry point only builds the
-  list of steps from what the user requested and hands it to the
-  wrapper, which alone handles the sequence.
-  The command inventory (docs/design/architecture/command-inventory.md, PERF.120)
-  lists every other command and entry point.
-  Decided (Boss, 2026-10-18, 5:14 to 5:15 PM EDT, cards F1 to F4, all as
-  Core 5 recommended, relayed by the coordinator): F1 'One wrapper run':
-  the Generate page builds the command list and one wrapper run follows
-  it, and `web/job_runner.py` only starts that run detached (it does not
-  build or order commands). F2: reset, check-math and the like are
-  one-unit registry commands. F3: each API job is a small run of its own.
-  F4: `planetgen sector` and `planetgen system` go through the wrapper
-  (each a one-command run).
-  F3 and F4 merged in #2563 (Core 5, 9:55 PM EDT 2026-10-22 as the lane reported, main dd6d46d0): `planetgen sector`, `planetgen
-  system` and each API job now run through the wrapper as runs of their
-  own. Core 5's own wait-for-turn for API jobs was removed, because
-  PERF.153 (#2562) makes every run wait in line. Still open here: F1 and
-  F2 and the Generate page, reset, check-math and data-check parts,
-  which remain with PERF.123 to PERF.125.
-  Prerequisites: PERF.98. Related: PERF.99, PERF.118.
-  Owner: Aux 2 (lock-free item while it waits for the generation lock, 2:30 AM EDT 2026-10-29; PERF.98 merged as #3654 so the prerequisite is met; PERF.154 waits on it; this replaces any earlier owner line on this item). Separate branch; if a step changes generated output, park that step for the lock.
-  Research (2026-10-09): Scope narrowed (Aux 2, 2:36 AM EDT 2026-10-29
-  as the lane reported; TODO agreed): PERF.119 is now F2 only: reset,
-  check-math and the data check become one-unit registry commands
-  started through the wrapper, and the one-off planetgen sector and
-  planetgen system commands each a one-command run. The large part
-  (every generating verb's own starter, and the Generate page building
-  one command list followed by one wrapper run) moves to PERF.202 and
-  PERF.203.
 
 - [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
@@ -13998,7 +13935,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   retired. PERF.150 left an interim wait in queue/runwait.py; this item
   lands with Core 5 and removes that file when the waiting list
   replaces it.
-  Prerequisites: PERF.119, PERF.203. Related: PERF.98, PERF.99,
+  Prerequisites: PERF.203. Related: PERF.98, PERF.99,
   PERF.100, PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
 - [ ] **PERF.162 Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word**
@@ -18364,22 +18301,6 @@ clears each one.
   the test passes on any seed, 20 runs in a row. Owner: Bug 1.
   Prerequisites: none. Related: GEN.778.
 
-- [ ] **TEST.388 test_reproducible_draws fails on math.hypot in physics/impact_history.py:140 and physics/iron_branch_tuning.py:79 (bug)**
-  Aux 8 (Lane L, 11:54 PM EDT 2026-10-24 as the lane reported, gate of
-  GEN.818 #3264): the guard test test_reproducible_draws fails because
-  math.hypot is used in impact_history.py (GEN.739, #3246, Citations
-  lane) and iron_branch_tuning.py (GEN.512, #3250, Math lane); the
-  reproducible-draw rule allows only the deterministic math helpers
-  (util/detmath). Replace math.hypot with the deterministic helper in
-  both files. Done: the guard passes. Owner: the Citations lane for
-  impact_history.py, the Math lane for iron_branch_tuning.py.
-  Research (2026-10-09): Update (Aux 7, 12:06 AM EDT 2026-10-29 as the
-  lane reported): the same guard now also fails on math.dist at
-  galaxy/named_regions.py:133 (GEN.826, #3490). Replace it with the
-  deterministic helper there too. The Citations and Math lanes are
-  retired: Owner now Bug 1 for all three files.
-  Prerequisites: none. Related: TEST.384, GEN.739, GEN.512.
-
 - [ ] **TEST.389 test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug)**
   Aux 8 (Lane L, 11:54 PM EDT 2026-10-24 as the lane reported): in the
   gate of GEN.818 (nothing of that change is in generation)
@@ -18656,20 +18577,6 @@ clears each one.
   one is Bug 1's.
   Prerequisites: none. Related: TEST.414, TEST.418.
 
-- [ ] **TEST.422 test_generation_size_estimate (3 tests error in setup) and test_phenomenon_scatter (scatter_lists_each_shells_phenomena_by_kind, a_fill_builds_its_rows_at_their_stored_points) are red on clean main (bug)**
-  Found by Aux 16 at 1:27 PM EDT 2026-10-28 as the lane reported,
-  identical on clean main at 57f782d6 and not caused by its
-  PERF.193/174/175 PR (#3449). Its combined gate run also showed
-  test_gen_compact_orbit_laws, test_runaway_history, test_sulfur_balance
-  and test_prevalence failing; those four were not isolated, so the
-  first step is to run each alone on main and keep only the real ones
-  (test_gen_compact_orbit_laws may be fixed by GEN.832, #3433). Fix
-  each, or file the generator cause. Owner: Bug 1. Not caused by any
-  lock holder; say so in the PR instead of fixing it there.
-  Research (2026-10-09): Aux 1 saw test_phenomenon_scatter red on main
-  again (2026-10-28, GEN.791 gate); already tracked here.
-  Prerequisites: none.
-
 - [ ] **TEST.426 test_galaxy_map_window_follows_the_browser_window_when_it_is_resized fails in long full-file runs and passes alone (bug)**
   Found by Core 2 with MAP.306 (#3501, 5:40 PM EDT 2026-10-28 as the
   lane reported): the browser test failed twice in long full-file runs
@@ -18715,6 +18622,9 @@ clears each one.
   test. Owner: Bug 1, after TEST.425.
   Research (2026-10-09): Aux 1 saw test_api_job_runs red on main again
   (2026-10-28, GEN.791 gate); already tracked here.
+  Research (2026-10-09): Update (Bug 1, #3665, 3:07 AM EDT 2026-10-29 as
+  the lane reported): the seo matrix part is fixed; the
+  test_api_job_runs part (job_runs) is still Bug 1's.
   Prerequisites: none. Related: TEST.425, TEST.427, TEST.428.
 
 - [ ] **TEST.430 Class census: a standing seeded report of every planet and moon class share and overall colour per star type and zone, with stored expected ranges and anomaly flags**
@@ -18806,6 +18716,9 @@ clears each one.
   GEN.703 (datasets/hitran_cia.py, ir_ktables.py), DB.48 (db/repair.py),
   GEN.441 (describe/sheet.py:460), DB.46 (util/settings.py:377) and the
   generate help test; the exact list for part (2).
+  Research (2026-10-09): Update (Bug 1, #3665, 3:07 AM EDT 2026-10-29 as
+  the lane reported): parts (1) and (2) are fixed; part (3), the seven
+  node-JS test files, is still Bug 1's.
   Prerequisites: none. Related: MAP.220, MAP.311, TEST.405, TEST.418.
 
 - [ ] **TEST.435 Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges**
@@ -18843,34 +18756,6 @@ clears each one.
   fix the code, or the test if its expectation is stale. Owner: Bug 1.
   Prerequisites: none. Related: TEST.434, MAP.240.
 
-- [ ] **TEST.441 Tests red on main from the albedo-greenhouse, moon-tidal-flux and mass-backfill migrations; the white dwarf models dataset is also missing on a fresh test machine (bug)**
-  Found by Aux 11 (as the lane reported, 2026-10-28) while merging
-  UX.215-222 (#3573) on the slow-machine allowance; none are in its
-  files. Red: test_mass_backfill (same-seed stars),
-  test_migration_albedo_greenhouse (two tests),
-  test_migration_moon_tidal_flux. A fresh test machine also needs
-  `datasets fetch white_dwarf_models` before the suite runs; the setup
-  step that fetches the datasets (update.sh path) should do it, or the
-  tests that need it should say so. Do: find each cause (check the last
-  epoch and migration that touched these), fix the test or the code
-  (never skip, loosen or quarantine a test), and make the white dwarf
-  models fetch part of test setup. Owner: Bug 1.
-  Research (2026-10-09): Aux 1 (GEN.791 merged as #3592, as the lane
-  reported 2026-10-28) also saw an intermittent pressure >= 1.0
-  assertion in test_planets (the test is unchanged on main); fold it
-  into this item: find the draw that gives pressure >= 1.0, fix the test
-  or the code.
-  Research (2026-10-09): Core 3 (as the lane reported, 2026-10-28,
-  MAP.173 gate) also saw the SC2 dataset missing on a fresh lane
-  machine; same fix as the white dwarf models: the test setup fetches
-  every dataset the suite needs.
-  Research (2026-10-09): Update (Aux 7, 12:06 AM EDT 2026-10-29 as the
-  lane reported): two tests in test_migration_albedo_greenhouse fail on
-  main without PERF.201 (surface temperature 429.74 K against the
-  expected 429.70 K). Bug 1 decides whether the expected value or the
-  migration is wrong.
-  Prerequisites: none. Related: TEST.332, TEST.434, TEST.405.
-
 - [ ] **TEST.443 Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not**
   The remainder of TEST.301 (its sweep part merged as #3619 with Bug 2:
   every planet and moon has a class of its own kind, classify is total
@@ -18883,21 +18768,18 @@ clears each one.
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
 
-- [ ] **TEST.446 Two tests red on main: the generated config.schema.json out of date, and the batch-fill units listing rescore-habitability first (bug)**
-  Found by Aux 2 (2:27 AM EDT 2026-10-29 as the lane reported) after
-  PERF.100 (#3656):
-  test_settings.py::test_the_generated_files_match_the_model
-  (config.schema.json is out of date after a settings change, not from
-  PERF.100; Aux 2 named MAP.342, but MAP.342 was dropped with no change,
-  so find the commit that added a setting without regenerating the file,
-  probably MAP.335 or MAP.341) and
-  test_work_units.py::test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands
-  (rescore-habitability is listed first in the batch units). Do:
-  regenerate the file with the repo tooling and add the missing
-  regeneration to the change that skipped it; fix the unit order or the
-  test, whichever is wrong. Not a skip. Done: both pass on main. Owner:
-  Bug 1. Prerequisites: none. Related: PERF.100, TEST.441.
-  Prerequisites: none. Related: PERF.100, TEST.441.
+- [ ] **TEST.448 test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count is red on main: blocks show no tint in the new sector view (bug)**
+  Found by Bug 1 (3:07 AM EDT 2026-10-29 as the lane reported).
+  test_habitability_end_to_end_browser.py::test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count
+  is red on main: the blocks show no tint in the new sector view (the
+  patches overlap and the camera is inside the sector), likely from
+  MAP.335 (#3647) or MAP.341 (#3652). Do: bisect, then fix the test or
+  the sector view so the habitable tint shows; keep the test. Not a
+  skip. Done: the test passes on main. Owner: Aux 3 (map browser test
+  fixer, waiting for its lock turn); ask Core 2 if the cause is in the
+  new sector view. Prerequisites: none. Related: MAP.335, MAP.341,
+  TEST.445.
+  Prerequisites: none. Related: MAP.335, MAP.341, TEST.445.
 
 ## USR: User accounts
 
