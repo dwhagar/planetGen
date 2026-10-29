@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2477] - 2026-10-29
+
+**Headline:** Every kind of life now has plain words for what it drinks, eats, breathes and gives off, and for each stage of its history.
+
+### Added
+- **Life class text (GEN.892).** A text file and a small module (`planetgen.physics.life_class_text`) give a name and a sentence for each rung of the stage ladder (no life yet, origin, producers, complex cells, multicellular, animals in three grades, sentient) for each of the nine life classes, with generic words where a class has none of its own. They also build the sentence "It drinks ..., eats ..., breathes ... and gives off ..." from the class rules. Nothing shows them yet; the planet page, search and API use them when the class switch lands.
+
 ## [8.0.2476] - 2026-10-29
 
 **Headline:** A test and admin switch forces a planet class into a generated system, so a sample can hold enough planets of every class.
