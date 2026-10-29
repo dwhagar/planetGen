@@ -1019,6 +1019,15 @@ with `clamp()`.
   default one per 120 by 120 px (MAP.339); a missing key reads as the
   default. List it on the same screen with its plain-words description
   and a Reset.
+  Research (2026-10-09): Black hole density preference (Core 3, MAP.339
+  #3636, 12:16 AM EDT 2026-10-29 as the lane reported): the map reads
+  the number key map.blackHoleDensity (the side in pixels of the square
+  one mark may stand on; default 120, valid 30 to 1000) through
+  src/html/static/mappreferences.js, from localStorage under
+  planetgen.pref.map.blackHoleDensity as the number's text, falling back
+  to 120 when missing or out of range. The preferences screen can write
+  that key (or replace the one reader function); the map picks it up at
+  its next marker refresh.
   Prerequisites: none. Related: MAP.336, USR.7.
 
 - [ ] **UX.237 Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists**
@@ -2430,23 +2439,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.339 Black holes: 237 of 240 drawn at a 10 pc zoom are far from the view; show them by a near-field rule (bug)**
-  Found by the research thread (report
-  /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
-  section 6; Boss answered 6:22 PM EDT 2026-10-28: density default 1.2,
-  one mark per 120 by 120 px, as a user preference; rare heavy holes
-  2.2, no landmark exemption). Boss live observation, so a bug. Owner:
-  Core 3 (moved from Core 2, 11:49 PM EDT 2026-10-28: Core 3's lock-free item). Do, in galaxymarkers.js and refreshMarkers: show a black hole
-  within 3 view distances of the view centre; beyond that only if its
-  mass is at least Mmin times (r/3d) squared; rank by mass over distance
-  squared from the view centre; cap the count by screen area at the
-  preference density (default one mark per 120 by 120 px, key
-  map.blackHoleDensity, a missing key reads as the default); no landmark
-  exemption. The preferences screen is UX.236. Done: a browser test at a
-  10 pc zoom finds only the near and the heavy-enough holes, and the
-  density key changes the cap.
-  Prerequisites: none. Related: MAP.305, MAP.327, UX.236.
-
 - [ ] **MAP.340 Black hole crowd badges: crowded black hole marks merge into one mark with a count badge and a click list (bug)**
   Found by the research thread (report
   /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
@@ -2459,6 +2451,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   browser test finds one merged black hole mark with its list in a crowd
   and the split on zoom in.
   Prerequisites: none. Related: MAP.305, MAP.339.
+  Owner: Core 3 (lock-free item while it waits for the generation lock, 12:16 AM EDT 2026-10-29; MAP.339 merged as #3636; same file mappreferences.js and the black hole markers; Core 2 is in galaxystageview.js, so tell it before each PR; this replaces any earlier owner line on this item). Separate branch.
 
 - [ ] **MAP.341 Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug)**
   Found by the research thread (report
