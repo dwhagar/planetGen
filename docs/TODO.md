@@ -13405,20 +13405,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.874 and GEN.885.
   Prerequisites: GEN.887, GEN.888, GEN.889.
 
-- [ ] **GEN.896 Since 4c (epoch 106) hot-zone planets and moons almost never score Yellow: the Yellow share fell to 0 for M2V, G2V and F5V (bug)**
-  Found by Bug 2 in the class census (TEST.430), 2026-10-28. Share of
-  hot-zone planets and moons scoring Yellow, before 4c then on main: M2V
-  9% then 0%; K5V 21% then 21% (unchanged); G2V 11% then 0%; F5V 3% then
-  0%; A0V 4% then 1%; K0III 14% then 4%. The cause is unknown: it is not
-  the oxygen loss (GEN.855), so look at the solved air and its
-  temperature in the hot zone. Do: bisect the change between epoch 105
-  and 106 on hot-zone bare draws, find which input drops the score, fix
-  it at the cause, and keep the prevalence targets of TEST.430 as the
-  check (record the tweak level if physics has to be nudged). Version
-  8.1. Owner: Bug 1.
-  Prerequisites: none. Related: GEN.855, GEN.853, GEN.854, TEST.430,
-  GEN.646.
-
 - [ ] **GEN.897 K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug)**
   Found by Bug 2 in the star census (TEST.432, first draw of 40,000
   stars at the default galaxy reference position), 2026-10-28. Norms:
@@ -13445,6 +13431,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the model, not a hard-coded neighbourhood), fix the mix or the young
   fraction, and re-run the census. If the fix is a tweak, record it in
   the stand-in registry. Version 8.1. Owner: Bug 1.
+  Research (2026-10-09): Update (Bug 1, about 1:09 PM EDT 2026-10-29 as
+  the lane reported): not an age-mix bug. A rises only 0.11% to 0.15%
+  with the A/F edge move (7500 to 7200 K). The star formation history
+  (young + intermediate 12.5%) matches the observed present star
+  formation over the mean (0.27 to 0.38 against 0.20) and B (0.04%);
+  four times more recent stars would break both, and a constant history
+  gives only A 0.3%. The 0.6% to 1.1% norm is 4 stars of 378. Bug 1
+  recommends closing as 'edge fixed, residual documented': A stays a
+  documented known anomaly, no model change. Closes when the
+  star-statistics change merges.
   Prerequisites: none. Related: TEST.432, TEST.430, GEN.896.
 
 - [ ] **GEN.899 An M2V primary has a companion star in 15.8% of systems; the star-count table says 27% and Duchene and Kraus 2013 give 26% +/- 3% (bug)**
@@ -13457,6 +13453,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cannot lower the stellar companion share), and keep the brown dwarf
   share as it is. A change that moves the draws is a generation change
   (lock queue, epoch). Version 8.1. Owner: Bug 1.
+  Research (2026-10-09): Update (Bug 1, about 1:09 PM EDT 2026-10-29 as
+  the lane reported): fixed at the cause. A companion's mass was drawn
+  0.1 to 1 times the primary's, so over half of a low-mass M dwarf's
+  companions were brown dwarfs and got cut out. Now every counted
+  companion is a star (at least 0.08 solar masses) and a brown dwarf is
+  one extra member in 3% of trees (tuning.BROWN_DWARF_COMPANION_CHANCE,
+  stand-in row SC2, T2 L0). This lowers the brown dwarf share from about
+  17% of M2V trees to 3% (against the item text 'keep the brown dwarf
+  share'; the old share was unphysical, the brown dwarf desert, and made
+  scattered trees incomplete). M2V companion share 15.8% to 26.6% (norm
+  22 to 35%).
   Prerequisites: none. Related: TEST.432, GEN.229, TEST.430.
 
 - [ ] **GEN.900 Supernova remnants: the reference galaxy gets 260 while 294 are already catalogued (Green 2019) and the design target in tuning.py is 400 to 3000 (bug)**
@@ -13595,8 +13602,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and Aux 1 recommend 2 if it stays physical, 1 if a cheaper rule is
   wanted. Do: put the choice to Boss in plain words, then wire the
   chosen aim into the habitable-request steering of GEN.646 (Aux 1); a
-  generation change, lock turn. Version 8.1. Owner: Aux 1 (GEN.646
-  request steering), after Boss decides. Prerequisites: none. Related:
+  generation change, lock turn. Version 8.1. BOSS DECIDED (card answer 'Core 4 choice 1', 11:41 AM EDT
+  2026-10-29): aim habitable requests at a temperate band worked out
+  from the solved climate (the band where the solved surface temperature
+  is liquid-water and the air holds at least 10 kPa), so it stays
+  physical; not the inner half of the zone and not a changed zone edge.
+  Done: a +habitable_world request chooses the system, star and orbit
+  from that band, not from the zone edges, and the census (Bug 2's
+  habitable-request census) shows the met share against the aim/fallback/
+  unmet numbers recorded below; a request no try can meet still says
+  unmet. Owner: Core 1 (11:42 AM EDT 2026-10-29); Aux 1 retires after
+  the class cut-over GEN.646 merges and hands over its census harness.
+  Prerequisites: GEN.646 (the cut-over). Related:
   GEN.909, GEN.854, GEN.646, GEN.907.
   Research (2026-10-09): Update (Core 4, about 5:07 AM EDT 2026-10-29 as
   the lane reported): GEN.910 found no K5V-specific fault. At equal flux
@@ -13608,6 +13625,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   option 1 (a temperate band from the solved climate) over aiming at the
   inner half. The albedo-follows-star-colour gap is GEN.912. Owner moves
   from Aux 1 (retiring) to Core 1 once Boss decides.
+  Research (2026-10-09): Update (Aux 1, about 10:36 AM EDT 2026-10-29 as
+  the lane reported): habitable-request census with the class cut-over
+  rebased on main 86cac9be (includes GEN.855), 30 systems per star,
+  results as aim (a Blue/Green world) / fallback (best is Yellow) /
+  unmet: F5V 1/13/16, G2V 2/10/18, K5V 0/12/18, M2V 0/2/28, M5V 0/2/28.
+  The cut-over alone does not cure the unmet requests, which fits Core
+  4's GEN.909 finding (outer zone cold by the physics); it does make the
+  unmet state honest (the system says unmet instead of faking a class
+  M). Planet shares among ecosphere draws are mostly N, F, G, H, E, with
+  M at about 0.1 to 0.2 percent. This is the evidence for the Boss
+  decision on where habitable requests aim.
   Prerequisites: none. Related: GEN.909, GEN.854, GEN.646, GEN.907.
 
 - [ ] **GEN.912 The planet albedo draw does not follow the star's colour, so planets of cool stars come out a little too cold (stand-in)**
@@ -13641,6 +13669,101 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2. Prerequisites: GEN.867. Related: GEN.646, GEN.854, GEN.872.
   Prerequisites: none. Related: GEN.646, GEN.854, GEN.872.
 
+- [ ] **GEN.914 G dwarfs are 3.1% of stars against 4.1% to 5.0% observed: the mass function from 0.5 to 1 solar mass (Kroupa slope 2.3) gives too few stars of 0.86 to 1.1 solar masses (bug)**
+  Found by Bug 1 (as the lane reported, about 1:09 PM EDT 2026-10-29)
+  while fixing GEN.897 (K/M edge 3700 to 3900 K, A/F edge 7500 to 7200
+  K, rows SC1). With the K share fixed (19.4% to 10.8%), G dwarfs are
+  still 3.1% of stars against 4.1% to 5.0% observed. The Kroupa mass
+  function between 0.5 and 1 solar mass (slope 2.3) gives too few stars
+  of 0.86 to 1.1 solar masses. Do: check the mass function and the
+  mass-to-class map in that range against the sources used for GEN.897,
+  find whether the G share is low from the slope, the mass limits of
+  class G, or the age mix; fix or document with the stand-in registry
+  tier and tweak level; a generation change: lock turn, can ride Bug 1's
+  star-statistics change (GEN.897+898+899) if found in time. Version
+  8.1. Owner: Bug 1. Prerequisites: none. Related: GEN.897, GEN.898,
+  GEN.899.
+  Prerequisites: none. Related: GEN.897, GEN.898, GEN.899.
+
+- [ ] **GEN.915 Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class**
+  Boss requirement (2:46 PM EDT 2026-10-29): "I want to make sure every
+  possible combination of effects, whatever planet class it is, that can
+  possibly evolve life does so no matter what planet class it is." Do:
+  audit every place the life draw, the chemistry weights, the
+  habitability checks and the class cut-over (GEN.646) look at the class
+  letter, a class list or a body-type list (for example the A and M veto
+  on oxygenic life that GEN.867 lifts), and replace each with a test on
+  the conditions themselves (solvent and temperature window, pressure,
+  energy supply, radiation, age and stability, supply of the needed
+  elements). A class that fails a condition is blocked by the condition,
+  not by its letter. Anything that really is a class property (a gas
+  giant has no surface) must come from the conditions that define the
+  class and be written as such. Record any remaining class-dependent
+  rule in the stand-in registry with its reason. Aux 2 checks this
+  against epoch 120 first and fixes what it finds in that epoch or its
+  second turn. Owner: Aux 2. Version 8.1.
+  Prerequisites: GEN.867. Related: GEN.867, GEN.646, GEN.888, GEN.894,
+  GEN.913, TEST.435.
+  Research (2026-10-09): Aux 2 audit of epoch 120 (PR #3702, 2:50 PM EDT
+  as the lane reported): the life code (physics/life_classes.py,
+  life_supply.py, life_complexity.py, generation/life.py) has no
+  class-letter or star-type veto; the letter only picks flavour text.
+  The class dependence that remains is upstream of life, in draws that
+  run first: physics/bulk_draw.py reads the class for the water mass
+  fraction (hydrosphere.WATER_MASS_FRACTION[class], GEN.685), porosity
+  (class D) and the S mass-radius branch; physics/climate_draws.py reads
+  it for the albedo range; generation/system.py reads class M for the
+  habitable guarantee (GEN.916). GEN.646 (Aux 1, class last) must remove
+  the letter-keyed draws: Aux 1 confirms in the cut-over PR which of
+  these are gone and files or names the rest; water fraction, albedo,
+  porosity and mass-radius draws not keyed on the letter are part of
+  this item if GEN.646 leaves them.
+  Research (2026-10-09): Aux 1 report (2:52 PM EDT as the lane
+  reported): its GEN.646 cut-over branch already removes the class
+  letter from bulk_draw (water share by origin range, porosity from the
+  compaction law, no S branch) and climate_draws, and a body has class
+  None until its conditions are final. The letter is still read in
+  physics/surface_composition.py and physics/aerosols.py (filed as
+  GEN.917) and in generation/planet.py (a redraw when HABITABLE_WORLD is
+  False and a life class lands in the ecosphere) and
+  generation/system.py (request steering, the habitable guarantee, the M
+  count), filed as GEN.916 (Core 1).
+
+- [ ] **GEN.916 The habitable-world guarantee is judged on the conditions (a world that can hold life), not on the class letter M**
+  Found by Aux 2 (2:50 PM EDT 2026-10-29 as the lane reported), from
+  Boss's requirement of 2:46 PM EDT that life depends only on conditions
+  (GEN.915): generation/system.py (about lines 1320 and 2036) reads
+  class M to place the guaranteed habitable world, so a request can pass
+  or fail on the letter. Do: the guarantee, the retry and the check that
+  it was met all test the conditions that make a world able to hold life
+  (the GEN.911 temperate band from the solved climate, solvent and
+  temperature window, pressure, energy supply), for any class. Fits Core
+  1's second change with GEN.911 (after GEN.646 puts the class last).
+  Owner: Core 1. Version 8.1.
+  Research (2026-10-09): Aux 1 report (2:52 PM EDT as the lane
+  reported), more letter reads to remove here: generation/planet.py
+  redraws a body when HABITABLE_WORLD is False and a life class lands in
+  the ecosphere, and generation/system.py steers requests, the habitable
+  guarantee and the M count by class letters. Aux 1's GEN.646 PR does
+  not change them.
+  Prerequisites: GEN.646. Related: GEN.915, GEN.911, GEN.646.
+
+- [ ] **GEN.917 The dominant surface material and the aerosol draw are chosen from the conditions, not from the class letter**
+  Found by Aux 1 (2:52 PM EDT 2026-10-29 as the lane reported) in its
+  GEN.646 cut-over branch, from Boss's requirement of 2:46 PM EDT that
+  life and everything it depends on follow conditions only (GEN.915):
+  physics/surface_composition.py draws the dominant surface material
+  from the class letter (DOMINANT_TABLE.draw(planet_class) and a giant
+  class check), so the ground follows the letter; physics/aerosols.py
+  keys its draw stream on the letter (a stream label only, no physics,
+  but it ties the draws to the class). Do: the dominant surface material
+  comes from the composition, temperature, pressure and age the body
+  already has, with the tier and tweak scale recorded in the stand-in
+  registry; the aerosol stream is keyed on the body's own identity and
+  conditions. A generation change: lock turn after GEN.646. Owner: Aux 7
+  (surfaces). Version 8.1.
+  Prerequisites: GEN.646. Related: GEN.915, GEN.916, GEN.646.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -13673,48 +13796,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the near and far distance and the zone count, state the error); no
   kernel code of its own.
   Design: [docs/design/orbits/gravity-map.md](design/orbits/gravity-map.md)
-
-- [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/architecture/command-inventory.md. This item is done when
-  every command of the inventory does one and only one thing, takes only
-  its own parameters, and runs alone or as a step of a wrapper list, and
-  the commands that still did more are reshaped by its subitems. It also
-  holds the rules a new command follows: one job, its own parameters, no
-  knowledge of another stage or of the order, a registered kind with
-  JSON arguments and a result (PERF.118), a test that runs it alone, and
-  a docs line. The nightly orbital update of GEN.105 follows the same
-  rules (it replaces `cli.orbits`). Owner: Core 5 (proposed; the
-  PERF.118 chain).
-  Prerequisites: none. Related: PERF.118, PERF.121, PERF.122,
-  PERF.123, PERF.124, PERF.125, PERF.126, PERF.127, PERF.128.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
-
-- [ ] **PERF.128 `benchmark` is a step list handed to the wrapper, not a sequence of its own**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/architecture/command-inventory.md. Today `planetgen
-  benchmark` starts `plan` and then `galaxy` over a small shell as child
-  processes in scratch databases and prints the timings. Done: it builds
-  a step list (skeleton, scatters, sectors, link, backfill, settle over
-  the small shell) and hands it to the wrapper in the scratch databases,
-  reading the stage timings the run record already holds; it runs no
-  stage itself. Owner: Core 5 (proposed; the PERF.118 chain).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Prerequisites: none. Related: PERF.31, PERF.118, PERF.120.
-  Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
 
 - [ ] **PERF.129 Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -13941,6 +14022,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane's clock reads, with PERF.119).
   Prerequisites: PERF.119. Related: PERF.98, PERF.119, PERF.123,
   PERF.124, PERF.125, MAP.146.
+  Research (2026-10-09): Update (Core 5, PR 3705, 11:53 AM EDT
+  2026-10-29 as the lane reported): rule 1 is merged. While a run
+  changes the galaxy, /galaxy answers 503 with a page saying a
+  generation is running (stage, the banner's sentence, a Queue link for
+  admins, checks again every 30 s) and shows the map when the run ends;
+  page tests and a Chromium test cover both states. PERF.149 stays open
+  for rule 2 only: no web route generates a sector today
+  (`ensure_sector_generated` has no caller in the site or API, no GET
+  route writes), so Core 5 proposes option 1 (tests that a visit
+  generates and queues nothing, and remove the dead in-request entry
+  point). Waiting on Boss's answer (asked at 11:48 AM EDT).
+  Research (2026-10-09): BOSS DECIDED rule 2 (1:19 PM EDT 2026-10-29):
+  'Just 1 with the option for 2'. Do option 1 now: tests that a visit to
+  an uncharted sector generates and queues nothing, and remove the dead
+  in-request entry point (`ensure_sector_generated`) so it cannot come
+  back. Option 2 (an admin's visit queues a one-sector run) stays open
+  for later as PERF.204. PERF.149 closes with option 1 merged.
 
 - [ ] **PERF.154 One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5)**
   Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
@@ -14064,27 +14162,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Performance lane (proposed; it is retiring, so the pool or Core 5 if
   it has already gone).
   Prerequisites: none. Related: PERF.155, PERF.167, PERF.171, PERF.123.
-
-- [ ] **PERF.182 Finish an incomplete run: resume a New galaxy run that died partway from the stage it stopped in**
-  Boss, 1:53 PM EDT 2026-10-24, for version 8.2: "We need to find a way
-  to finish an incomplete run." Cause: Boss's New galaxy run died in
-  Stage 7 (MySQL out of memory, PERF.181) and the only way forward was
-  to wipe and start over. Today a single fill stage can resume after an
-  interruption (TEST.23, test_gen_resume), but the New galaxy run as a
-  whole cannot. Do: record per stage what a run finished (stage, command
-  and arguments, the galaxy seed and the build), and add a Finish run
-  action (command, Generate page button and console line) that takes the
-  last incomplete run, checks the galaxy seed and build still match, and
-  carries on from the first stage that did not finish, with each stage
-  able to skip work it already saved (stages already resumable keep
-  their way, the scatter stages need one). Done: a New galaxy run killed
-  in any stage, then Finish run, ends with the same galaxy as an
-  uninterrupted run (same seed, same sectors, same scatter), and a test
-  kills a run in two different stages and compares. Related: GEN.633
-  (storage repair, Core 1) is a different thing (it repairs stored data,
-  it does not continue a run); PERF.181, TEST.23. Phase: 8.2 phase 2.
-  Owner: none yet.
-  Prerequisites: none. Related: PERF.181, GEN.633, PERF.98, PERF.99.
 
 - [ ] **PERF.188 The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python**
   Found by Bug Hunt while fixing the load flakes of TEST.344 (relayed
@@ -14258,6 +14335,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.99.
   Prerequisites: PERF.202. Related: PERF.119, PERF.202, PERF.154,
   PERF.99.
+
+- [ ] **PERF.204 An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2)**
+  Boss (1:19 PM EDT 2026-10-29), asked by Core 5 what a visit to an
+  uncharted sector should do: "Just 1 with the option for 2": do
+  option 1 now (PERF.149: tests that a visit
+  generates and queues nothing, and remove the dead in-request entry
+  point), and keep option 2 open for later: an admin who opens an
+  uncharted cell gets a one-sector run queued by itself and the page
+  shows "queued" (today the admin gets a Generate button that starts a
+  run). Do: when Boss asks for it, the admin visit queues a one-sector
+  run through the wrapper, once per cell (no second queue entry while
+  one is waiting), the page shows queued and then opens the sector when
+  the run finishes; visitors who are not admins still queue nothing.
+  Version 8.2. Owner: none yet (Core 5 is the natural owner); follows
+  PERF.149.
+  Prerequisites: none. Related: PERF.149.
 
 ## DB: Database and schema
 
@@ -18580,26 +18673,21 @@ clears each one.
   is this one.
   Prerequisites: none. Related: MAP.335, MAP.333.
 
-- [ ] **TEST.451 Ten reds Core 5 saw on main at its PERF.172 merge (9:59 AM EDT 2026-10-29): re-run each on current main, close the ones already fixed, file the real ones (bug)**
-  Reported by Core 5 (as the lane reported), not caused by PERF.172: (1)
-  test_step_registry: check-datasets, reset-galaxy and check-math
-  missing from steps.STEP_KINDS; (2) test_db_column_round_trip:
-  life_age_* and disk_* columns never written; (3)
-  test_generation_stats: the unmeasured wording ("not timed yet" vs "not
-  yet measured"); (4) /galaxy/near with x=1e200 returns 500
-  (OverflowError); (5) test_galaxy_gen settle-job test times out; (6)
-  the physics ValueError "spectrum has no light between 380 and 780 nm"
-  in system generation (test_fuzz_system_generation and others). Several
-  may already be fixed by Bug 1 (#3681, #3689, #3690) or sit inside Aux
-  2's epoch 120 (fuzz generation tests). Do: on current main re-run
-  each; close what passes; for each that still fails say whether it is a
-  test fault or a code fault and fix it (the x=1e200 500 is a code
-  fault: refuse out-of-range coordinates with a clear error; the
-  spectrum ValueError is a code fault: find which star draw gives no
-  visible light and why). A fix that changes generated output waits for
-  a lock turn. Version 8.1. Owner: Bug 1. Prerequisites: none. Related:
-  TEST.434, TEST.449, NAV.61.
-  Prerequisites: none. Related: TEST.434, TEST.449.
+- [ ] **TEST.452 A sweep finds the life-capable conditions on every planet class and proves the generator lets life evolve there (a class-blind life test)**
+  Boss requirement (2:46 PM EDT 2026-10-29), companion of GEN.915: life
+  must depend only on conditions, never on the class letter. Do: for
+  each of the 20 class letters, sweep the conditions the class can take
+  (temperature, pressure, solvent, energy supply, radiation, age) with
+  the forced-class sampler, mark the combinations that the life model
+  says can host life, and assert that the generator actually draws life
+  for them at a rate inside the model's own probability (not zero, not
+  class-dependent when the conditions are equal). Also assert that two
+  worlds of different classes with identical conditions get identical
+  life odds. A failure names the class and the condition combination.
+  Owner: Bug 2 (with the census harness of TEST.430 and TEST.435); runs
+  with the targeted gate when life, classes or habitability change.
+  Version 8.1.
+  Prerequisites: GEN.915. Related: TEST.430, TEST.435, GEN.915.
 
 ## USR: User accounts
 

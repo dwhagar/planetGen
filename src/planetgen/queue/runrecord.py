@@ -7,7 +7,9 @@ and 5.2): the one place a run lives. A library with no pages and no workers of i
 Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):
 
 * `<PREFIX>:run:<id>`            hash: title, who, database, argv, seed, state, the stage list (JSON), the current
-                                  stage, times. No expiry while live; `KEEP_SECONDS` after the run ends.
+                                  stage, times, and what a run needs to be finished later (PERF.182): the galaxy's seed
+                                  and the build the run was started on, and the run it finishes, if it does. No expiry
+                                  while live; `KEEP_SECONDS` after the run ends.
 * `<PREFIX>:run:<id>:s<k>`       hash: stage k's counters (units, units done, predicted cost and cost done, seconds
                                   the units took, first and last finish) and the decayed sums the ETA reads.
 * `<PREFIX>:run:<id>:s<k>:done`  set: the indexes of the units that finished; also the barrier.
@@ -261,7 +263,8 @@ def active_run(conn, kind=GENERATION):
 
 
 def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=None, seed=None, now=None,
-              steps=None, kind=GENERATION, disregard_missing_data=False, debug="", job=None):
+              steps=None, kind=GENERATION, disregard_missing_data=False, debug="", job=None, galaxy_seed=None,
+              build=None, finishes=None):
     """
     Records a new run and takes the machine for it (a `MAINTENANCE` or `CHECK` run takes only its own place, so a
     generation run and one of those may be live together).
@@ -278,6 +281,9 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
             `debug_key(run_id)`, and the process that started the run prints them (`planetgen.util.log.RelayReader`).
         job (str, optional): The Generate page job that started the run (PERF.99): kept in the record and appended to
             `job_runs_key(job)`.
+        galaxy_seed (str, optional): The galaxy's seed as hex and `build` the version key of the code that started the
+            run (PERF.182): what a later `Finish run` checks are still the same before it carries on.
+        finishes (str, optional): The id of the run this one carries on from (`generation/finish_run.py`).
 
     Returns:
         str: The run id.
@@ -305,7 +311,8 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
         "seed": "" if seed is None else str(seed), "state": "running", "stages": json.dumps(declared),
         "steps": json.dumps(steps or []), "disregard_missing_data": "1" if disregard_missing_data else "",
         "debug": debug or "", "current": 0, "created": now, "started": now, "updated": now,
-        "finished": "", "error": "", "owner": _owner(), "job": job or ""})
+        "finished": "", "error": "", "owner": _owner(), "job": job or "", "galaxy_seed": galaxy_seed or "",
+        "build": build or "", "finishes": finishes or ""})
     if job:
         pipe.rpush(job_runs_key(job), run_id)
         pipe.expire(job_runs_key(job), KEEP_SECONDS)
@@ -408,6 +415,16 @@ def conclusion(conn, run_id, index):
     """What `set_conclusion` stored for stage `index`, or `None` while the stage is not concluded."""
     raw = conn.hget(stage_key(run_id, index), "conclusion")
     return None if raw is None else json.loads(_s(raw))
+
+
+def stored_conclusion(conn, run_id, key):
+    """What the end of the stage `key` of run `run_id` found (`conclusion`), `None` when the run has no such stage or the stage
+    was not concluded (a run carries on from a run's finished stages with theirs, PERF.182)."""
+    declared = json.loads(_s(conn.hget(run_key(run_id), "stages")) or "[]")
+    for index, stage in enumerate(declared):
+        if _s(stage["key"]) == key:
+            return conclusion(conn, run_id, index)
+    return None
 
 
 def begin_stage(conn, run_id, index, now=None):
@@ -619,7 +636,8 @@ def read_run(conn, run_id):
     """
     The run as one dict for pages and the ETA (`runeta.estimate`): the record (`id`, `title`, `kind`, `who`, `database`,
     `job`, `argv`, `state`, `current`, `created`, `started`, `updated`, `finished`, `error`) and `stages`, each the declared
-    stage with its counters merged in (numbers, `None` where not set yet). `None` for an unknown run.
+    stage with its counters merged in (numbers, `None` where not set yet), and `galaxy_seed`, `build` and `finishes`
+    (PERF.182: `None` for a run that recorded none). `None` for an unknown run.
     """
     pipe = conn.pipeline()
     pipe.hgetall(run_key(run_id))
@@ -632,6 +650,8 @@ def read_run(conn, run_id):
         pipe.hgetall(stage_key(run_id, index))
     run = {"id": run_id, "title": record["title"], "kind": record.get("kind") or GENERATION, "who": record["who"],
            "database": record["database"], "job": record.get("job") or None, "argv": json.loads(record.get("argv") or "[]"),
+           "galaxy_seed": record.get("galaxy_seed") or None, "build": record.get("build") or None,
+           "finishes": record.get("finishes") or None,
            "state": record["state"], "error": record["error"] or None, "current": int(float(record["current"])),
            "stages": []}
     for name in ("created", "started", "updated", "finished"):
@@ -695,4 +715,4 @@ def recent_runs(conn, limit=20):
 
 __all__ = ["CHECK", "GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_cancelling", "is_stale",
            "EventHandler", "job_runs", "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
-           "set_stage_plan", "start_run", "unit_done", "write_log_file", "log_text", "log_records", "event_record"]
+           "set_stage_plan", "start_run", "stored_conclusion", "unit_done", "write_log_file", "log_text", "log_records", "event_record"]

@@ -2,6 +2,43 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2532] - 2026-10-29
+
+**Headline:** A generation run that stopped partway can be finished instead of wiped: `planetgen finish-run`, or "Finish the last run" on the Generate page.
+
+### Added
+- **Finish the last run.** A run that was killed, ran out of database memory or was cancelled carries on from the first stage that did not finish, on the same galaxy: the stages it finished are kept, the stage that stopped runs again from its start (a sector stage skips the sectors it already saved, a scatter empties what it rewrites first), and every stage after it runs as it would have. The galaxy ends the same as an uninterrupted run (same seed, same sectors, same scatter).
+- **Where.** `planetgen finish-run [--run ID]`, the "Finish the last run" card on the Generate page (it also goes on with the steps of that job that never started, for example the link and the sector paths of a New galaxy), and the typed command `finish run`. A failed run now prints the `planetgen finish-run` line.
+- **Safe.** A run records the galaxy's seed and the PlanetGen build it worked on, and is carried on only while both are still the ones it started on, in the database it worked on. A run is carried on once; a finish that stops is finished in turn.
+
+### Changed
+- **The run record keeps what each stage finished**, and the starting run's galaxy seed, build and the run it carried on. The Queue page's Retry is unchanged.
+
+## [8.0.2531] - 2026-10-29
+
+**Headline:** The Galaxy Map's near-sector request no longer fails with a server error for a point very far away, and the galaxy generation tests run in half an hour less.
+
+### Fixed
+- **`/galaxy/near` answered 500 for a point 1e200 parsecs away.** The distance from the centre was found by squaring the three coordinates, which overflows a float for a coordinate that large; it uses the overflow-safe hypotenuse now, and a point that far gets the normal empty answer. Regression tests cover three far points (TEST.451).
+- **`test_galaxy_gen.py` took half an hour and stopped single tests at the 900 s limit.** Its sparse-wedge test generated a dense sector with every system's planets, moons and solved air (the "settle-job timeout" Core 5 saw). These tests are about which sectors a run makes and where, so the whole file now makes planetless systems; it runs in 18 minutes and its slowest test takes 7 (TEST.451).
+
+TODO items resolved: TEST.451. The step-registry, column round trip and generation-stats wording reds already pass on main after #3681 and #3689, and the "no light between 380 and 780 nm" error did not occur in 600 seeded random systems (GEN.844 made that case a colour instead of an error).
+
+## [8.0.2530] - 2026-10-29
+
+**Headline:** The Galaxy Map is closed while a galaxy generation runs.
+
+### Changed
+- **No map from a half-built galaxy.** While a run is changing the galaxy, the Galaxy Map page says a generation is running instead of drawing the map: it shows the stage the run is at and the banner's sentence, checks again by itself every 30 seconds, and shows the map as soon as the run has ended. An admin gets a link to the Queue page. The page answers 503 and is not kept by browsers or caches.
+
+## [8.0.2529] - 2026-10-29
+
+**Headline:** `planetgen benchmark` times the real runs instead of a sequence of its own.
+
+### Changed
+- **The benchmark is `plan` and then `galaxy`.** The scatters, the backfill, the population and the settle are stages of the galaxy run (PERF.172), so the benchmark no longer runs the scatters before the fill as commands of its own.
+- **The stage timings come from the runs' records.** The report reads each stage's wall time, units and worker seconds from the run records in Redis (the figures the Queue page shows) instead of the stage rows in the control database.
+
 ## [8.0.2528] - 2026-10-29
 
 **Headline:** The hot-zone Yellow share that fell to 0 since the solved air is explained, and the class census now expects it.

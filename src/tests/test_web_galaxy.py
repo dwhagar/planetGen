@@ -225,6 +225,59 @@ def test_galaxy_scene_data_gives_an_admin_the_generate_target(client, fake, monk
     assert target["csrfToken"]
 
 
+@pytest.fixture
+def running(redis_server, key_prefix, monkeypatch):
+    """A run changing the galaxy (PERF.149), started and ended by the test; the site reads Redis through it."""
+    from planetgen.queue import redisqueue, runrecord
+    from planetgen.queue.runrecord import Stage
+    from planetgen.web.lib import galaxystatus
+    conn = redisqueue.connect(redis_server)
+    monkeypatch.setattr(runrecord, "PREFIX", key_prefix)
+    monkeypatch.setattr(galaxystatus, "_client", lambda: conn)
+    galaxystatus.clear_cache()
+
+    class Run:
+        run_id = None
+
+        def start(self):
+            self.run_id = runrecord.start_run(conn, "Galaxy", [Stage("mass", "Scatter the massive stars", units=4)])
+            runrecord.begin_stage(conn, self.run_id, 0)
+            galaxystatus.clear_cache()
+
+        def end(self):
+            runrecord.finish_run(conn, self.run_id, "done")
+            galaxystatus.clear_cache()
+
+    yield Run()
+    galaxystatus.clear_cache()
+
+
+def test_the_galaxy_map_is_closed_while_a_galaxy_generation_runs_and_opens_when_it_ends(client, fake, running):
+    """PERF.149 (Boss, 4:55 PM EDT 2026-10-22: no galaxy view during generation): the page says a generation is running."""
+    running.start()
+    resp = client.get("/galaxy")
+    html = resp.get_data(as_text=True)
+    assert resp.status_code == 503
+    assert "The Galaxy Map is closed while the galaxy is generated" in html
+    assert "The galaxy is being changed by a background job" in html and "Scatter the massive stars" in html
+    assert 'id="galaxymap3d-canvas"' not in html and "galaxymap3d.js" not in html
+    assert '<meta http-equiv="refresh" content="30">' in html
+    assert resp.headers["Cache-Control"] == "no-store"
+    assert "/admin/queue" not in html                              # the Queue page is for admins
+    assert fake.node_calls == []                                    # nothing was read from the half-built galaxy
+    running.end()
+    reopened = client.get("/galaxy")
+    assert reopened.status_code == 200 and 'id="galaxymap3d-canvas"' in reopened.get_data(as_text=True)
+
+
+def test_an_admin_is_linked_to_the_queue_page_from_the_closed_galaxy_map(client, fake, running, monkeypatch):
+    monkeypatch.setattr(apiclient, "auth_me", lambda cookie_header: {"username": "admin"})
+    client.set_cookie(SESSION_COOKIE_NAME, "token-value")
+    running.start()
+    html = client.get("/galaxy").get_data(as_text=True)
+    assert '<a href="/admin/queue">See the job on the Queue page</a>' in html
+
+
 def test_galaxy_first_view_is_written_to_the_disk_cache(client, fake):
     client.get("/galaxy")
     assert len(fake.node_calls) == 1

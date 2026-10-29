@@ -17,9 +17,9 @@ own copy in IndexedDB, so a visitor's cached nodes survive a reload.
 """
 
 
-from flask import Response, current_app, jsonify, redirect, request, url_for
+from flask import Response, current_app, jsonify, make_response, redirect, request, url_for
 
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, galaxystatus
 from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.maps.galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
 from planetgen.web.maps.galaxymap3d import render_galaxy_map3d_panel
@@ -187,6 +187,9 @@ def galaxy():
     if maintenance.is_on():  # UX.112: the map is being rebuilt; one page says so
         return redirect(url_for("web.maintenance_page"), code=302)
     db = db_name()
+    running = galaxystatus.status(db)
+    if running["active"]:   # PERF.149: nothing is drawn from a half-built galaxy
+        return _generating_page(running)
     quadrant = _parse_quadrant(request.args.get("quadrant"))
 
     sectors = apiclient.get_galaxy_sectors(db)
@@ -239,6 +242,26 @@ def galaxy():
         description="An interactive 3D map of every sector placed in this charted galaxy.",
         **context,
     )
+
+
+GENERATING_REFRESH_SECONDS = 30
+"""int: How often the page that stands in for the Galaxy Map while a run changes the galaxy asks again."""
+
+
+def _generating_page(running):
+    """
+    The page the Galaxy Map answers with while a run is changing the galaxy (PERF.149): what the banner says, the stage the
+    run is at, a link to the Queue page for an admin, and a `503` (the map is back when the run ends) that is not kept.
+    """
+    admin = current_admin()
+    html, status = render_page(
+        "galaxy_generating.html", title="Galaxy Map", section="galaxy", breadcrumbs=[crumb("Galaxy")],
+        description="The Galaxy Map is closed while the galaxy is generated.", status=503, status_info=running,
+        status_text=running["text"], admin=admin is not None and not admin.get("must_change_credentials"),
+        refresh=GENERATING_REFRESH_SECONDS)
+    response = make_response(html, status)
+    response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 def _course_from_args():

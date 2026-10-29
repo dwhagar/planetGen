@@ -73,3 +73,4 @@ def test_the_banner_appears_and_goes_without_a_reload(browser, base_url, run_con
         banner.wait_for(state="hidden", timeout=10000)
     finally:
         page.close()
+

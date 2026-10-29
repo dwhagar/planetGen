@@ -18,7 +18,7 @@ complete before the run starts, and in the stage's plan and results.
 import contextlib
 
 from planetgen.db import store
-from planetgen.generation import run_common, stages
+from planetgen.generation import finish_run, run_common, stages
 from planetgen.queue import wrapper
 from planetgen.util import log
 
@@ -111,6 +111,7 @@ def run_followed(args, followers, title, seed=None):
     mysql_config = store.mysql_config_from_args(args)
     workers = run_common._worker_count(args)
     database = wrapper.database_args(mysql_config)
+    galaxy_seed, build = finish_run.current_galaxy(args)
     steps, listing = wrapper.plan_steps(
         args, [(f.key, f.label, {"database": database, "workers": workers, **f.params()}) for f in followers])
     rows = {f.key: row for f in followers if f.own_row and (row := stages.row_for(f.key)) is not None}
@@ -139,7 +140,7 @@ def run_followed(args, followers, title, seed=None):
             wrapper.run(title, steps, on_plan, on_result, on_progress, workers_count=workers,
                         who=getattr(args, "who", None), database=mysql_config.database,
                         argv=getattr(args, "argv", None), seed=seed, listing=listing, rows=rows or None,
-                        on_stage_done=on_stage_done)
+                        on_stage_done=on_stage_done, galaxy_seed=galaxy_seed, build=build)
         except BaseException as exc:
             for follower in open_ones:
                 follower.abort(type(exc), exc, exc.__traceback__)

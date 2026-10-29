@@ -118,6 +118,9 @@ def _expand(conn, run_id, index):
     key = stages[index]["key"]
     step = next(commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id) if item["key"] == key)
     started = time.time()       # the stage's time counts from before it was cut: reading the galaxy is part of it
+    if step.params.get(FINISHED_BY):
+        _carry_finished_stage(conn, run_id, index, step, started)
+        return 0
     prepare = commands.prepare_function(step.kind)
     if prepare is not None:
         prepare(step.params)
@@ -135,6 +138,26 @@ def _expand(conn, run_id, index):
                         expected_seconds=json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
                         .get("expected_seconds"))
     return len(expansion.units)
+
+
+FINISHED_BY = "finished_by"
+"""str: The step parameter that marks a stage a run carries on from (PERF.182, `generation/finish_run.py`): the id of the earlier
+run that finished it. The stage is not cut, prepared, run or concluded again: it opens and ends at once with no unit, and
+carries the conclusion the earlier run stored, which the process following the run reads as it would a stage that just ended."""
+
+
+def _carry_finished_stage(conn, run_id, index, step, now):
+    """Opens and ends stage `index` at once as one the run before it finished (`FINISHED_BY`): a plan with no unit that says
+    so, and the earlier run's conclusion (`runrecord.stored_conclusion`), if the command has a `conclude`."""
+    earlier = step.params[FINISHED_BY]
+    runrecord.set_stage_plan(conn, run_id, index, 0, 0.0,
+                             {"kind": step.kind, "units": 0, "cost": 0.0,
+                              "detail": {"skip": f"finished by run {earlier}", FINISHED_BY: earlier}})
+    runrecord.begin_stage(conn, run_id, index, now=now)
+    runrecord.end_stage(conn, run_id, index, now=now)
+    if commands.conclude_function(step.kind) is not None:
+        stored = runrecord.stored_conclusion(conn, earlier, step.key)
+        runrecord.set_conclusion(conn, run_id, index, stored if stored is not None else {})
 
 
 def _conclude_empty_stage(conn, run_id, index, label):
@@ -361,7 +384,8 @@ def report_wait(holder, position):
 
 
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
-        seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None, on_stage_done=None):
+        seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None, on_stage_done=None, galaxy_seed=None,
+        build=None, finishes=None):
     """
     Runs the queued `steps` as one run: starts the run record (the machine is busy for it), queues the first stage,
     makes sure workers are running (`workers_count` of them at most: the run's `--workers`) and follows each stage to
@@ -378,6 +402,9 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
             (`steps_for`); stored in the run record. Default: `steps`.
         on_stage_done (callable, optional): `on_stage_done(index, conclusion)` when every unit of stage `index` is done
             and its command's `conclude` has run (`conclusion` is what it returned, `None` for a command with none).
+        galaxy_seed (str, optional): The galaxy's seed as hex and `build` the code's version key, recorded with the run
+            so a later `Finish run` can tell the galaxy and the code are still the ones it was started on (PERF.182);
+            `finishes` is the id of the run this one carries on from.
         rows (dict, optional): `{stage key: row}`, the `generation_stage_runs` row the unit that completes each stage
             writes (`generation.stages.hand_over_open_stage`, `stages.row_for`); a stage with none stores no row.
         kind (str): `runrecord.GENERATION` for a run that changes the galaxy (it owns the machine and shows the
@@ -412,7 +439,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     start = lambda: runrecord.start_run(       # noqa: E731
         conn, title, stages, who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded],
         kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug,
-        job=os.environ.get(JOB_ENV) or None)
+        job=os.environ.get(JOB_ENV) or None, galaxy_seed=galaxy_seed, build=build, finishes=finishes)
     if kind == runrecord.GENERATION:
         run_id = runwait.start_when_free(conn, start, get_settings().queue.wait_minutes * 60, on_wait=report_wait)
     else:
@@ -459,6 +486,9 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         except redis.exceptions.RedisError:
             pass        # a full Redis refuses this write too; the original error is the one to show
         log.trace(f"run {run_id} finished: {'cancelled' if stopped else 'failed'} ({message})", area="queue")
+        if galaxy_seed and kind == runrecord.GENERATION:
+            log.error(f"Run {run_id} stopped before it was done. 'planetgen finish-run' carries it on from the first stage "
+                      f"that did not finish.")
         if relay:
             relay.finish()
         if full:

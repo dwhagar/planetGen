@@ -4,13 +4,13 @@
 `planetgen benchmark` (PERF.31): where a generation run spends its time, from
 the plan to a finished fill.
 
-It makes a scratch database and control database, runs the real commands in
-child processes with a fixed galaxy seed (`plan`, its scatters, then `galaxy` over a small
-shell with the scatter on), and prints for each worker count asked:
+It makes a scratch database and control database and hands the real commands to the wrapper in child processes with a
+fixed galaxy seed (PERF.128): `plan` and then `galaxy` over a small shell, whose run is the whole step list (the sectors,
+the link, the scatters, the backfill, the population and the settle are stages of it, PERF.172). It has no sequence of
+its own: the stages and their order are the commands'. It prints for each worker count asked:
 
-- every stage's wall time and share of the run (the numbered stages every
-  generation command records in `generation_stage_runs`, UX.89), with what
-  the stage reports it did (shells, sectors, objects);
+- every stage's wall time and share of the run (read from the run's record in Redis, the same figures the Queue page
+  shows), with the units it ran and the worker seconds they took;
 - the database's share: the statements and rows the server counted while the
   run went (`Com_*` and `Innodb_rows_*`), per second of the run;
 - the server's `innodb_buffer_pool_size`, the size and row count of each of the run's largest tables and the
@@ -34,9 +34,8 @@ import tempfile
 import time
 import uuid
 
-import pymysql
-
 from planetgen.db import login, store
+from planetgen.queue import redisqueue, runrecord
 from planetgen.util import log
 
 DEFAULT_SEED = "0000000000000000000000000000BEEF"
@@ -182,21 +181,26 @@ def _make_control_schema(config, control):
             os.environ[store.CONTROL_DB_ENV_VAR] = previous
 
 
-def _stages(config, control, database):
-    conn = login.connect(host=config.host, port=config.port, user=config.user, password=config.password,
-                           database=control, autocommit=True, cursorclass=pymysql.cursors.DictCursor)
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT command, stage_n, stage_total, stage_key, label, skipped, seconds, metrics "
-                        "FROM generation_stage_runs WHERE database_name = %s ORDER BY id", (database,))
-            rows = cur.fetchall()
-    finally:
-        conn.close()
+def stages_of_runs(conn, database):
+    """
+    The stages of the runs that worked on `database`, oldest run first, from their records in Redis (PERF.128): for each
+    its command (`plan` for the skeleton's run, else the run's title), key, label, wall `seconds` (from the first unit's start to the last unit's end), whether
+    it `skipped` (it cut no unit), and `metrics` (the `units` it ran and the `worker_seconds` they took).
+
+    Args:
+        conn (redis.Redis): The queue's Redis.
+        database (str): The scratch database the runs were made for.
+    """
+    runs = [run for run in (runrecord.read_run(conn, run_id) for run_id in runrecord.recent_runs(conn, limit=500))
+            if run is not None and run["database"] == database]
     stages = []
-    for row in rows:
-        stages.append({"command": row["command"], "key": row["stage_key"], "label": row["label"],
-                       "skipped": bool(row["skipped"]), "seconds": float(row["seconds"]),
-                       "metrics": json.loads(row["metrics"] or "{}")})
+    for run in sorted(runs, key=lambda found: found["created"] or 0.0):
+        command = "plan" if run["stages"] and run["stages"][0]["key"] == "skeleton" else run["title"].lower()
+        for stage in run["stages"]:
+            wall = (stage["ended"] - stage["started"]) if stage["started"] is not None and stage["ended"] is not None else 0.0
+            stages.append({"command": command, "key": stage["key"], "label": stage["label"],
+                           "skipped": stage["units"] == 0, "seconds": max(wall, 0.0),
+                           "metrics": {"units": stage["done"], "worker_seconds": round(stage["seconds"] or 0.0, 2)}})
     return stages
 
 
@@ -232,15 +236,15 @@ def _profile(config, control, args, workdir):
 
 
 def _plan_commands(args):
-    """The commands of the plan: the skeleton, then the scatters on it, each its own command (PERF.121)."""
+    """The commands that come before the fill: the skeleton (`plan`). The scatters are stages of the `galaxy` run (PERF.172)."""
     from planetgen.generation import run_common
-    floor = ["--bright-star-min-luminosity", "100000"]
-    return [["plan", "--seed", args.seed, f"--edge={args.max_shell * run_common._edge_pc():g}pc"],
-            ["scatter", "--mass", *floor], ["scatter", "--luminosity", *floor], ["scatter", "--phenomena"]]
+    return [["plan", "--seed", args.seed, f"--edge={args.max_shell * run_common._edge_pc():g}pc"]]
 
 
 def _fill_args(args):
-    return ["galaxy", "--shell", str(args.shell), "--limit", str(args.sectors), "--yes"]
+    """The `galaxy` run: a few sectors of one shell, with the bright stars scattered down to a high floor."""
+    return ["galaxy", "--shell", str(args.shell), "--limit", str(args.sectors), "--yes",
+            "--bright-star-min-luminosity", "100000"]
 
 
 def run_benchmark(args):
@@ -275,7 +279,7 @@ def run_benchmark(args):
             total = plan_seconds + fill_seconds
             results.append({
                 "workers": workers, "plan_seconds": plan_seconds, "fill_seconds": fill_seconds,
-                "stages": _stages(config, control, database),
+                "stages": stages_of_runs(redisqueue.connect(), database),
                 "database": {name: after[name] - before[name] for name in STATUS_VARIABLES},
                 "buffer_pool_bytes": _buffer_pool_bytes(admin),
                 "tables": _table_sizes(admin, database),

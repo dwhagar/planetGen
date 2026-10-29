@@ -848,7 +848,7 @@ def fetch_near(db, x, y, z, r):
     stamp = galaxy.get("stamp")
     radius = min(radius, NEAR_MAX_EDGES * edge_pc)
     nothing = {"at": None, "edge_pc": edge_pc, "r": radius, "sectors": [], "stamp": stamp}
-    if math.sqrt(point[0] ** 2 + point[1] ** 2 + point[2] ** 2) > (spherical.MAX_ADDRESSABLE_SHELL + 0.5) * edge_pc:
+    if math.hypot(*point) > (spherical.MAX_ADDRESSABLE_SHELL + 0.5) * edge_pc:      # hypot does not overflow on a point 1e200 away
         return nothing
     try:
         shell, band, wedge = spherical.sector_address_at(point, edge_pc)

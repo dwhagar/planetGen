@@ -243,6 +243,21 @@
     </ul>
     {%- endif %}
     {%- endif %}
+    {%- elif task.key == "finish-run" %}
+    {%- if finish.error %}
+    <p class="hint" role="alert">{{ finish.error }}</p>
+    {%- else %}
+    <p>The last run, <strong>{{ finish.title }}</strong>, stopped in <strong>{{ finish.stopped_in }}</strong>. It records the
+    galaxy and the PlanetGen build it worked on, and this carries it on only while both are still the ones it started
+    on. The stages it finished are kept
+    {%- if finish.carried %} ({{ finish.carried|join(", ") }}){% endif %}; the stage that stopped runs again from its start,
+    skipping what it already saved, and so do the stages after it
+    {%- if finish.again|length > 1 %} ({{ finish.again|join(", ") }}){% endif %}. The finished galaxy is the one an
+    uninterrupted run makes.</p>
+    {%- if finish.later %}
+    <p>It then goes on with the steps of that job that never started: {{ finish.later|map(attribute="label")|join(", ") }}.</p>
+    {%- endif %}
+    {%- endif %}
     {%- elif task.key == "check" %}
     <p>Looks for damage in <code>{{ database }}</code>: the schema version, table health, rows whose parent is gone,
     ids that would clash, impossible values, sector counts and version keys. It changes nothing, and the job ends
@@ -255,7 +270,7 @@
       {{ confirm_field("reset-confirm") }}
     </div>
     {%- endif %}
-    {%- if task.key not in ("check", "wipe", "bring-to-epoch") %}
+    {%- if task.key not in ("check", "wipe", "bring-to-epoch", "finish-run") %}
     <div class="search-fields">
       {{ disregard_data("disregard-data") }}
     </div>
@@ -267,7 +282,9 @@
     <p class="hint generate-size" id="size-report" data-size-report data-url="{{ url_for('web.generate_size', key=task.key) }}" role="status" aria-live="polite" hidden></p>
     {%- endif %}
     <div class="search-actions">
+      {%- if not (task.key == "finish-run" and finish.error) %}
       <button type="submit" class="btn{% if task.danger == 'destroys' %} btn-danger{% endif %}" data-review>Review</button>
+      {%- endif %}
       <a class="btn" href="{{ url_for('web.generate') }}">Cancel</a>
     </div>
   </form>

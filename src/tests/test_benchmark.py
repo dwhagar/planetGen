@@ -32,13 +32,45 @@ def _run(workers=1):
             "worker_startup": {"import_seconds": 1.25, "connect_seconds": 0.05, "process_seconds": 1.5}}
 
 
-def test_every_command_of_the_benchmarks_plan_is_one_the_cli_accepts():
-    """PERF.121: the plan is the skeleton and then each scatter, so each is a command of its own."""
+def test_the_benchmark_is_the_plan_then_a_galaxy_run_with_no_sequence_of_its_own():
+    """PERF.121, PERF.128: the plan, then the fill; the scatters are stages of the `galaxy` run (PERF.172)."""
     parser, _parsers = generate.build_parser()
     commands = benchmark._plan_commands(_args())
-    assert [command[0] for command in commands] == ["plan", "scatter", "scatter", "scatter"]
-    for command in commands:
+    assert [command[0] for command in commands] == ["plan"]
+    fill = benchmark._fill_args(_args())
+    for command in [*commands, fill]:
         assert parser.parse_args(command).command == command[0]
+    assert fill[0] == "galaxy" and parser.parse_args(fill).bright_star_min_luminosity == 100000.0
+
+
+@pytest.fixture
+def conn(redis_server, key_prefix, monkeypatch):
+    from planetgen.queue import redisqueue, runrecord
+    monkeypatch.setattr(runrecord, "PREFIX", key_prefix)
+    return redisqueue.connect(redis_server)
+
+
+def test_the_stage_timings_are_read_from_the_runs_records(conn):
+    """PERF.128: the report's stages are the stages of the runs of the scratch database, from their records in Redis."""
+    from planetgen.queue import runrecord
+    from planetgen.queue.runrecord import Stage
+    plan = runrecord.start_run(conn, "Galaxy skeleton", [Stage("skeleton", "Galaxy skeleton", units=1)], database="bench_w1", now=100)
+    runrecord.begin_stage(conn, plan, 0, now=100)
+    runrecord.unit_done(conn, plan, 0, 0, seconds=3.0, now=104)
+    runrecord.finish_run(conn, plan, "done", now=104)
+    galaxy = runrecord.start_run(conn, "Galaxy", [Stage("sectors", "Generate the sectors", units=2),
+                                                  Stage("link", "Link the sectors", units=0)], database="bench_w1", now=200)
+    runrecord.begin_stage(conn, galaxy, 0, now=200)
+    runrecord.unit_done(conn, galaxy, 0, 0, seconds=2.0, now=203)
+    runrecord.unit_done(conn, galaxy, 0, 1, seconds=2.5, now=210)
+    runrecord.finish_run(conn, galaxy, "done", now=210)
+    runrecord.start_run(conn, "Galaxy", [Stage("sectors", "Generate the sectors", units=1)], database="another", now=300)
+    found = benchmark.stages_of_runs(conn, "bench_w1")
+    assert [(stage["command"], stage["key"]) for stage in found] == [("plan", "skeleton"), ("galaxy", "sectors"),
+                                                                   ("galaxy", "link")]
+    assert found[0]["seconds"] == 4.0 and found[1]["seconds"] == 10.0 and not found[1]["skipped"]
+    assert found[1]["metrics"] == {"units": 2, "worker_seconds": 4.5}
+    assert found[2]["skipped"] and found[2]["seconds"] == 0.0
 
 
 def test_workers_parse_to_whole_numbers():

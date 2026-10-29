@@ -1437,6 +1437,14 @@ def test_regression_galaxy_cell_far_address_is_a_400(app, fuzz_db, params):
     assert response.status_code in (200, 400)
 
 
+# B6b (fixed): /galaxy/near with a point 1e200 away squared the coordinates (OverflowError) -> 500 (TEST.451)
+@pytest.mark.parametrize("params", [{"x": "1e200", "y": "0", "z": "0"}, {"x": "1e308", "y": "1e308", "z": "1e308"},
+                                    {"x": "-1e200", "y": "1e200", "z": "0", "r": "1e300"}])
+def test_regression_galaxy_near_far_point_is_not_a_500(app, fuzz_db, params):
+    response = app.test_client().get("/galaxy/near", query_string=params)
+    assert response.status_code in (200, 400)
+
+
 # B7 (fixed): /api/health?db=<unknown> reports 503 'database unreachable' instead of 404
 @pytest.mark.parametrize("db", ["nope", "", XSS_MARKER])
 def test_regression_health_unknown_db_is_a_404(app, fuzz_db, db):

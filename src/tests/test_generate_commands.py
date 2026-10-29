@@ -38,6 +38,8 @@ def test_a_typed_line_fills_the_form_the_old_form_would_have_filled(line, argv):
     ("plan", "plan-only", {}, False),
     ("plan only", "plan-only", {}, False),
     ("wipe", "wipe", {}, False),
+    ("finish run", "finish-run", {"action": "finish_run"}, True),
+    ("finish", "finish-run", {"action": "finish_run"}, True),
 ])
 def test_the_other_commands_open_a_task(line, task, fields, review):
     command = generate_commands.parse(line)
@@ -51,6 +53,7 @@ def test_text_that_is_not_a_command_is_left_alone(line):
 
 @pytest.mark.parametrize("line, message", [
     ("add sectors foo", "I don't know 'foo'"),
+    ("finish run now", "takes no options"),
     ("add sectors radius", "'radius' needs a value"),
     ("add sectors radius 5 radius 6", "given twice"),
     ("add sectors radius big", "Radius needs a number"),
