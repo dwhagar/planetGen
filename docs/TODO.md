@@ -13528,6 +13528,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane reported): the star-count root fix is not needed (see GEN.918);
   Bug 1 re-measures the G share on the Milky Way-like reference galaxy
   and tells TODO before touching the Kroupa slope.
+  Research (2026-10-09): BOSS DECIDED (3:19 PM EDT 2026-10-29, card
+  answer option 1 'please'): nudge the Kroupa low-mass slope alpha1 from
+  1.3 to 1.1, inside the published range 1.3 +/- 0.5, recorded as an L1
+  stand-in row. Measured by Bug 1 over 40,000 draws at 1.1: G 3.60%
+  (range 3.5 to 6.5), K 12.5% (10 to 14), M 73.1% (67 to 78, closer to
+  RECONS 74.9%), F 2.05%, A 0.16%, white dwarfs 8.1% (4.5 to 7, out;
+  filed as GEN.919). Its own epoch (moves every galaxy's star counts,
+  plan stage), lock turn after Bug 1's #3713, or in the same turn if
+  ready. Owner: Bug 1.
   Prerequisites: none. Related: GEN.897, GEN.898, GEN.899.
 
 - [ ] **GEN.915 Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class**
@@ -13662,6 +13671,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy follows physics. Wolf-Rayet stays about 15% under the 1200
   estimate because companions of massive stars are not counted by the
   census; Bug 1 notes it, does not tune it. Owner: Bug 1.
+
+- [ ] **GEN.919 White dwarfs are 8.1% of stars against 4.5% to 7% expected once the low-mass slope is 1.1; their share follows the old-population age spread, not the slope (bug)**
+  Found by Bug 1 (3:15 PM EDT 2026-10-29 as the lane reported) while
+  measuring GEN.914 over 40,000 draws on #3713's code: at the Kroupa
+  low-mass slope alpha1 1.3 white dwarfs are 7.1% (inside the range, at
+  the edge), at the Boss-chosen 1.1 they are 8.1% (outside 4.5% to 7%).
+  Steepening the high slope instead (2.3 to 2.0) raises them to 10%,
+  which is worse. Their share follows the old-population age spread (how
+  many stars are old enough to have left the main sequence), not the
+  slope. Do: find what sets the age spread of the old populations (thick
+  disk, halo, bulge ages and their weights) against the observed white
+  dwarf fraction of the stellar census, fix it from observed physics
+  with a recorded stand-in row if a tweak is needed, and keep the other
+  shares (G 3.6%, K 12.5%, M 73.1%) in range. A generation change that
+  moves star counts: its own epoch with --affects plan and later stages,
+  lock turn after GEN.914 (or in the same epoch if ready). Owner: Bug 1.
+  Version 8.1.
+  Prerequisites: none. Related: GEN.914, GEN.897, GEN.898, GEN.899.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
