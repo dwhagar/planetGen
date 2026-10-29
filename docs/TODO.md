@@ -12595,26 +12595,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   UX.208. Suggested owner: Aux 11 (pages).
   Prerequisites: none. Related: UX.208.
 
-- [ ] **GEN.791 Generator switch that forces a planet or moon class so a sample can hold at least 30 of every class (random generation gives under 30 of classes O, P, T, V, E, K, L, N, F, G)**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): The fill audit needs 30 bodies of every class; random
-  generation gives under 30 planets in ten classes and under 15 moons of
-  classes E to M. Add a test-only or admin option that forces a class
-  through the habitable-request path (GEN.646 territory), without a
-  class letter in generation. Not a change to default generation. Done:
-  the column is filled for every body the sheet rule says it applies to,
-  or the sheet rule is changed to say why it does not apply (a sentence
-  of reason in describe/sheet.py APPLIES), and the UX.208 test lists no
-  empty applicable pair for it; a drawn or computed value has a source
-  and a GEN.725 registry row with tier and tweak level, a unit (GEN.772)
-  and a column_units entry; a change to generated output carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
-  UX.208. Suggested owner: Core 3 or Aux 9 (class lane).
-  Prerequisites: none. Related: UX.208, GEN.646, GEN.681.
-
 - [ ] **GEN.794 Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 quiet and active NH3 rates, or a computation from the Cheng 2006 cross section and measured solar spectra**
   Citations lane (Aux 17), GEN.793 merged #3211, relayed 9:56 PM EDT
   2026-10-24 as the lane reported: Irwin 2019 is an absorption line list
@@ -19423,6 +19403,8 @@ clears each one.
   (test_gen_compact_orbit_laws may be fixed by GEN.832, #3433). Fix
   each, or file the generator cause. Owner: Bug 1. Not caused by any
   lock holder; say so in the PR instead of fixing it there.
+  Research (2026-10-09): Aux 1 saw test_phenomenon_scatter red on main
+  again (2026-10-28, GEN.791 gate); already tracked here.
   Prerequisites: none.
 
 - [ ] **TEST.426 test_galaxy_map_window_follows_the_browser_window_when_it_is_resized fails in long full-file runs and passes alone (bug)**
@@ -19468,6 +19450,8 @@ clears each one.
   also saw is TEST.427 (Aux 7 fixes it inside its lock turn). Find each
   breaking commit and fix the code or the matrix, never loosen or skip a
   test. Owner: Bug 1, after TEST.425.
+  Research (2026-10-09): Aux 1 saw test_api_job_runs red on main again
+  (2026-10-28, GEN.791 gate); already tracked here.
   Prerequisites: none. Related: TEST.425, TEST.427, TEST.428.
 
 - [ ] **TEST.430 Class census: a standing seeded report of every planet and moon class share and overall colour per star type and zone, with stored expected ranges and anomaly flags**
@@ -19625,6 +19609,11 @@ clears each one.
   epoch and migration that touched these), fix the test or the code
   (never skip, loosen or quarantine a test), and make the white dwarf
   models fetch part of test setup. Owner: Bug 1.
+  Research (2026-10-09): Aux 1 (GEN.791 merged as #3592, as the lane
+  reported 2026-10-28) also saw an intermittent pressure >= 1.0
+  assertion in test_planets (the test is unchanged on main); fold it
+  into this item: find the draw that gives pressure >= 1.0, fix the test
+  or the code.
   Prerequisites: none. Related: TEST.332, TEST.434, TEST.405.
 
 ## USR: User accounts
