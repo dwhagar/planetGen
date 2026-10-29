@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.238 |
 | MAP | MAP.347 |
 | NAV | NAV.65 |
-| GEN | GEN.947 |
+| GEN | GEN.951 |
 | PERF | PERF.209 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.456 |
+| TEST | TEST.457 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -1505,7 +1505,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | none | open |
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | none | open |
 | GEN.754 | Wiring guard: the stand-in registry says what the generator reads, and a test fails for a table or module nothing reads | none | open |
-| GEN.755 | Check whether the downloaded MIST grid holds post-main-sequence phases; if not, add a setup fetch under GEN.741 | none | open |
+| GEN.755 | Check whether the downloaded MIST grid holds post-main-sequence phases; if not, add a setup fetch under GEN.741 | none | done, absorbed by GEN.935 (the MIST grid holds the post-main-sequence rows; datasets/isochrones.py keeps only the main sequence) |
 | GEN.756 | Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py) | none | done, PR #3129 |
 | GEN.757 | Piece of GEN.411: the ocean water-vapour cap and the sulfur uptake functions (physics/mixture_sinks.py) | none | done, PR #3129 |
 | GEN.758 | Piece of GEN.411: mechanical test fixes for the deleted class ranges | none | done, PR #3311 |
@@ -1689,7 +1689,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.936 | The 0.08 to 0.1 solar mass main sequence comes from the Baraffe 2015 table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap) | none | open |
 | GEN.937 | Neutron star masses from the sourced Gaussians in tuning (two populations) and black hole masses from a progenitor-mass and metallicity law | none | absorbed by GEN.930 (remnant masses, Bug 1 triage 5:47 PM EDT 2026-10-29) |
 | GEN.938 | One white dwarf initial-final mass relation, read by the star model, the multi-star roster, the disk history and mass_loss | none | absorbed by GEN.930 (one white dwarf initial-final relation, Bug 1 triage) |
-| GEN.939 | Wolf-Rayet luminosity and mass follow the star: a helium-star mass-luminosity relation, and a binary-stripped Wolf-Rayet route | none | open |
+| GEN.939 | Wolf-Rayet luminosity follows the present mass by the helium-star mass-luminosity relation (low priority) | none | open |
 | GEN.940 | Present mass for giants, horizontal-branch, asymptotic and massive stars: a Reimers-type loss for the red giant and asymptotic branches and a wind loss for massive stars | none | open |
 | GEN.941 | Forced star types draw their star from the model; the legacy letter tables and the dead random branch are removed; the class reference pages read the new ranges | none | open |
 | GEN.942 | Supported life paces come from the star's actual lifespan; the per-letter lifespan table (tuning.STAR_EVOLUTION) is removed | none | open |
@@ -1697,6 +1697,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.944 | Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars) | none | open |
 | GEN.945 | Audit every numeric constant the generator uses against the data we already download or hold: which are registered stand-ins, which come from a table, and which are unregistered hand-tuned numbers; ranked findings with a data source named for each | none | open |
 | GEN.946 | Burn down the hand-tuned constants: replace each L3 or L4 registry row and each unregistered constant the audit ranks high with the data we hold, or record why no data exists | none | open |
+| GEN.947 | Pre-main-sequence contraction times are calibrated to MIST (about 2 times too short at 1.5 solar masses and up and at 0.2 solar masses) (low priority) | none | open |
+| GEN.948 | Brown dwarf radius from an age-dependent table (Baraffe 2015) instead of nine hard-coded points | none | open |
+| GEN.949 | Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets | none | open |
+| GEN.950 | Water share of solids by distance from Lodders 2003 Table 11 and its condensation temperatures, replacing the fixed 170 K snow line (low priority) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3302,6 +3306,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.453 | Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug) | none | open |
 | TEST.454 | The observed star mass-function curve as data, with a per-bin harness that measures the generator against it (segments from 0.01 to 150 solar masses by object type) | none | open |
 | TEST.455 | A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink | none | open |
+| TEST.456 | A test that the generated [X/Fe] abundances match the Brewer and Fischer 2016 table, not only its trend and scatter (low priority) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
