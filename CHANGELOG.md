@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2509] - 2026-10-29
+
+**Headline:** The reset, the math check and the data check now run as recorded runs on the work queue, like every other command.
+
+### Changed
+
+- `planetgen reset` (and the Generate page's reset step) wipes the database as one `reset-galaxy` unit of a recorded run, titled "Reset the galaxy". The typed confirmation, the dry run and the progress bar behave as before. A cold worker takes a while to start, so the first reset after a quiet spell may wait a little longer before the wipe begins.
+- `planetgen check-math` runs the math check as a `check-math` unit of a check run, and exits 1 on a failure as before.
+- `planetgen datasets status` runs the data check as a `check-datasets` unit of a check run. `datasets fetch` is unchanged.
+- The command inventory and the work queue design page list the three new commands.
+
+TODO items resolved: PERF.119. Added: none.
+
 ## [8.0.2508] - 2026-10-29
 
 **Headline:** Worlds with oxygenic life now grow the oxygen that life makes, and every world's life reaches each stage on a timeline drawn from its own temperature and air, so animals and civilizations appear again where the air allows them.
