@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2495] - 2026-10-29
+
+**Headline:** Generating a sector is about a third faster on a slow machine, and every stored value is exactly the same.
+
+### Changed
+- **Faster generation (PERF.201).** The gas equilibrium solver's matrix products, the Planck fraction in the infrared optical depth, the interior heat integration, the water continuum and band tables, and the band insolation of a tilt are now worked out with fewer, larger steps (or once instead of again). The stored values are bit for bit the same: tests compare the new sums with the old loops on random inputs, and the golden seed is unchanged.
+
 ## [8.0.2494] - 2026-10-29
 
 **Headline:** The toxic gas limits behind the survival equipment line are now read from the NIOSH Pocket Guide instead of recalled, and a test holds the gas filter grade to the physics.
