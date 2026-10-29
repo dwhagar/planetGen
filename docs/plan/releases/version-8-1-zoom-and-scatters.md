@@ -24,7 +24,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 |---|---|---|---|
 | PERF.202 | Move each generating verb's starter handlers and start-time checks into the step units, so a verb is expressible as units in one run |  |  |
 | PERF.203 | The Generate page and job_runner follow one wrapper run: one command list, one run, with the page's progress, state and log files kept | PERF.202 |  |
-| PERF.149 | A map visit queues the missing sector as a run instead of generating it in the web request, and the Galaxy View is closed while a galaxy generation runs |  |  |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill |  | Parent; closes with its subitems. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands |  | Research: ledger size at full galaxy. |
 | PERF.154 | One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5) | PERF.203 |  |

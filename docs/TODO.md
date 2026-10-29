@@ -13925,47 +13925,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fix), not here (the coordinator, 8:48 PM EDT 2026-10-21).
   Prerequisites: none. Related: PERF.145, PERF.142, PERF.143, PERF.146.
 
-- [ ] **PERF.149 A map visit queues the missing sector as a run instead of generating it in the web request, and the Galaxy View is closed while a galaxy generation runs**
-  Boss, 4:55 PM EDT 2026-10-22 (relayed by the coordinator at 4:55 PM
-  EDT as the lane's clock reads), answering Core 5's question about
-  `ensure_sector_generated`: "Let's say no galaxy view during generation
-  and add to the queue". Two rules. (1) While a galaxy generation is
-  running, the Galaxy View is not offered (the map pages say a
-  generation is running and link to the queue page; nothing is drawn
-  from a half-built galaxy). (2) A sector that a map visit would
-  generate is queued as a run (one wrapper run, PERF.119) and the page
-  shows that it is queued, instead of generating the sector inside the
-  web request. Found by Core 5 (PERF.123 to PERF.125 work), which left
-  `ensure_sector_generated` as it was because it was Boss's call. Do:
-  replace the in-request call with a queued run and a status the page
-  can poll or refresh; gate the Galaxy View on "no galaxy generation
-  running" (the run record of PERF.98 and PERF.119 says which is
-  running), with a clear message; keep every other generate path as it
-  is. Done: a visit to an ungenerated sector returns at once with a
-  queued state and a run appears in the queue; the Galaxy View refuses
-  to open while a galaxy generation runs and opens when it ends; browser
-  tests for both. Owner: Core 5 (the coordinator, 4:55 PM EDT as the
-  lane's clock reads, with PERF.119).
-  Prerequisites: PERF.119. Related: PERF.98, PERF.119, PERF.123,
-  PERF.124, PERF.125, MAP.146.
-  Research (2026-10-09): Update (Core 5, PR 3705, 11:53 AM EDT
-  2026-10-29 as the lane reported): rule 1 is merged. While a run
-  changes the galaxy, /galaxy answers 503 with a page saying a
-  generation is running (stage, the banner's sentence, a Queue link for
-  admins, checks again every 30 s) and shows the map when the run ends;
-  page tests and a Chromium test cover both states. PERF.149 stays open
-  for rule 2 only: no web route generates a sector today
-  (`ensure_sector_generated` has no caller in the site or API, no GET
-  route writes), so Core 5 proposes option 1 (tests that a visit
-  generates and queues nothing, and remove the dead in-request entry
-  point). Waiting on Boss's answer (asked at 11:48 AM EDT).
-  Research (2026-10-09): BOSS DECIDED rule 2 (1:19 PM EDT 2026-10-29):
-  'Just 1 with the option for 2'. Do option 1 now: tests that a visit to
-  an uncharted sector generates and queues nothing, and remove the dead
-  in-request entry point (`ensure_sector_generated`) so it cannot come
-  back. Option 2 (an admin's visit queues a one-sector run) stays open
-  for later as PERF.204. PERF.149 closes with option 1 merged.
-
 - [ ] **PERF.154 One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5)**
   Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
   (design report
