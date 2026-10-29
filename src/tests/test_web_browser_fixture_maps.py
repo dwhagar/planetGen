@@ -2447,6 +2447,15 @@ def _markers_until(page, done, seconds=20):
         page.wait_for_timeout(100)
 
 
+def _hole_names(page):
+    """The names of the black holes the marks stand for (a crowd's mark, MAP.340, for each of its members), sorted."""
+    names = []
+    for entry in page.evaluate(MARKERS):
+        if entry["kind"] == "marker-black-hole":
+            names.extend(entry["members"] or [entry["name"]])
+    return sorted(names)
+
+
 def _hole_view(page, base, density=None, dist_pc=10.0):
     """The Galaxy Map of `holes_site` looking at its star field from `dist_pc` parsecs (a 10 pc zoom), the density preference set to
     `density` pixels first when given; returns the black hole marks drawn once they have settled, and the view's facts."""
@@ -2457,7 +2466,7 @@ def _hole_view(page, base, density=None, dist_pc=10.0):
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.entries().length > 0", timeout=20000)
     last = None
     for _ in range(30):
-        names = sorted(e["name"] for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole")
+        names = _hole_names(page)
         if names == last:
             break
         last = names
@@ -2502,12 +2511,42 @@ def _hole_view_after_reload(page):
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.entries().length > 0", timeout=20000)
     last = None
     for _ in range(30):
-        names = sorted(e["name"] for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole")
+        names = _hole_names(page)
         if names == last:
             break
         last = names
         page.wait_for_timeout(300)
     return last, None
+
+
+def test_crowded_black_holes_are_one_mark_with_a_count_and_a_list_and_split_on_zoom_in(page, holes_site):
+    """MAP.340: from 200 pc the thirty near black holes of `holes_site` lie within a few pixels of each other, so they are drawn as one
+    mark with their count (a badge on the glyph), its card lists them each with its mass and has a Zoom in on them button, and after
+    zooming in the crowd has split into more, smaller crowds or single marks."""
+    page.set_viewport_size(VIEWPORT)
+    drawn, view = _hole_view(page, holes_site, density=30, dist_pc=200.0)
+
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-black-hole" and e["count"] for e in entries))
+    crowds = [e for e in found if e["kind"] == "marker-black-hole" and e["count"]]
+    assert crowds, found
+    crowd = max(crowds, key=lambda e: e["count"])
+    assert crowd["count"] >= 5, crowds
+    button = page.locator(".starmap-sr-markers button", has_text=f"{crowd['count']} black holes")
+    assert button.count() >= 1
+    button.first.evaluate("b => b.click()")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    assert page.locator("#galaxymap3d-info h3").inner_text() == f"{crowd['count']} black holes"
+    members = page.locator("#galaxymap3d-info .map-info-crowd-system")
+    assert members.count() == crowd["count"]
+    assert "Near Hole" in members.first.inner_text() or "Heavy Hole" in members.first.inner_text() or "Far Hole" in members.first.inner_text()
+    zoom = page.locator("#galaxymap3d-info button", has_text="Zoom in on them")
+    assert zoom.count() == 1
+    zoom.click()
+    _settle(page)
+    after = _markers_until(page, lambda entries: not any(e["kind"] == "marker-black-hole" and e["count"] and e["count"] >= crowd["count"] for e in entries))
+    holes_after = [e for e in after if e["kind"] == "marker-black-hole"]
+    assert not any(e["count"] and e["count"] >= crowd["count"] for e in holes_after), "the crowd has split"
+    assert len(holes_after) >= 2, "the holes of the crowd are drawn as smaller crowds and single marks"
 
 
 def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked(page, map_site):

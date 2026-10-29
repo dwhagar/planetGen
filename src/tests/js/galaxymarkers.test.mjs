@@ -256,7 +256,7 @@ test("zooming in spreads the marks and the crowd splits again, in the same order
   assert.deepEqual(M.mergeMarks(chosen.slice().reverse(), atX, 22)[0].item.key, M.mergeMarks(chosen, atX, 22)[0].item.key);
 });
 
-test("black holes, a body's symbol and a region's token never merge", () => {
+test("a body's symbol and a region's token never merge, and a black hole never merges with a star's mark", () => {
   const bh = { kind: M.BLACK_HOLE_KIND, item: { key: "b", x: 0, y: 0, z: 0 } };
   const body = mark("marker-habitable", Object.assign(sys(5, "Planet", 0, 1), { bodyRef: "planet:1" }));
   const token = mark("marker-inhabited", Object.assign(sys(6, "Region", 0, 1), { regionKey: "9.0.0.0" }));
@@ -356,4 +356,52 @@ test("selectMarkers keeps the accepted black holes the rule ranks first, up to t
   // Without a near-field rule the kind keeps its old ranking.
   const plain = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes });
   assert.ok(plain.some((entry) => entry.item.id === 900));
+});
+
+// MAP.340: crowds of black holes.
+const bhMark = (id, mass, x) => ({ kind: M.BLACK_HOLE_KIND, item: { key: String(id), id, name: "BH " + id, type: "black_hole", mass_solar: mass, x, y: 0, z: 0 } });
+
+test("black holes within the merge distance are one mark with their count, the heaviest first, and spread out they split", () => {
+  const chosen = [bhMark(1, 6, 0), bhMark(2, 12, 1), bhMark(3, 8, 2), bhMark(4, 7, 200)];
+  const merged = M.mergeMarks(chosen, atX, 22);
+  assert.equal(merged.length, 2);
+  const crowd = merged.find((entry) => entry.item.merged);
+  assert.equal(crowd.item.count, 3);
+  assert.equal(crowd.item.holes, true);
+  assert.deepEqual(crowd.item.members.map((item) => item.id), [2, 3, 1], "the heaviest first");
+  assert.equal(crowd.item.key, "merge:2");
+  assert.deepEqual([crowd.item.x, crowd.item.y, crowd.item.z], [1, 0, 0], "the middle of the holes");
+  assert.equal(crowd.kind.id, "marker-black-hole");
+  assert.equal(crowd.kind.describe(crowd.item), "3 black holes");
+  assert.ok(merged.some((entry) => entry.item.id === 4 && !entry.item.merged), "the far one stays itself");
+  const spread = M.mergeMarks(chosen, (item) => ({ x: item.x * 100, y: 0 }), 22);
+  assert.equal(spread.length, 4);
+  assert.ok(!spread.some((entry) => entry.item.merged));
+});
+
+test("a crowd of black holes and a crowd of systems on the same spot stay two marks", () => {
+  const chosen = [bhMark(1, 6, 0), bhMark(2, 7, 0.3), mark("marker-habitable", sys(5, "A", 0, 1)), mark("marker-habitable", sys(6, "B", 0.1, 1))];
+  const merged = M.mergeMarks(chosen, atX, 22);
+  assert.equal(merged.length, 2);
+  assert.deepEqual(merged.map((entry) => entry.item.holes === true).sort(), [false, true]);
+  assert.deepEqual(merged.map((entry) => entry.item.count).sort(), [2, 2]);
+});
+
+test("the same crowd of black holes merges the same way whatever the order they come in", () => {
+  const chosen = [bhMark(1, 6, 0), bhMark(2, 6, 1), bhMark(3, 6, 2)];
+  const forward = M.mergeMarks(chosen, atX, 22);
+  const backward = M.mergeMarks(chosen.slice().reverse(), atX, 22);
+  assert.equal(forward[0].item.key, backward[0].item.key);
+  assert.deepEqual(forward[0].item.members.map((item) => item.id), backward[0].item.members.map((item) => item.id));
+});
+
+test("black holes at very different depths on one line of sight are not a crowd, and ones at about the same depth are", () => {
+  const chosen = [bhMark(1, 6, 0), bhMark(2, 7, 1), bhMark(3, 8, 2)];
+  const depths = { 1: 100, 2: 400, 3: 120 };
+  const merged = M.mergeMarks(chosen, (item) => ({ x: item.x * 10, y: 0, depth: depths[item.id] }), 22);
+  assert.equal(merged.length, 2);
+  const crowd = merged.find((entry) => entry.item.merged);
+  assert.deepEqual(crowd.item.members.map((item) => item.id).sort(), [1, 3]);
+  const same = M.mergeMarks(chosen, (item) => ({ x: item.x * 10, y: 0, depth: 100 + item.id }), 22);
+  assert.equal(same.length, 1);
 });

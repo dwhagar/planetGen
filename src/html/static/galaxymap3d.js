@@ -3877,12 +3877,23 @@ function initGalaxyMap3d(canvasEl, data) {
       var button = document.createElement("button");
       button.type = "button";
       button.className = "map-info-crowd-system";
-      button.textContent = (system.name || "Star system") + ": " + interestLines(system).map(function (reason) { return reason.text; }).join("; ");
-      button.addEventListener("click", function () {
-        highlightPosition(system.x, system.y, system.z);
-        showInterestSystemInfo(system);
-        stageView.flyToEntry(system);
-      });
+      if (crowd.holes) {
+        // MAP.340: a crowd of black holes, each a button that shows that hole (and flies to it).
+        var mass = system.mass_solar;
+        button.textContent = (system.name || "Black hole") + (mass ? ", " + formatMassSolar(mass) : "");
+        button.addEventListener("click", function () {
+          highlightPosition(system.x, system.y, system.z);
+          showPointInfo(system);
+          stageView.flyToEntry(system);
+        });
+      } else {
+        button.textContent = (system.name || "Star system") + ": " + interestLines(system).map(function (reason) { return reason.text; }).join("; ");
+        button.addEventListener("click", function () {
+          highlightPosition(system.x, system.y, system.z);
+          showInterestSystemInfo(system);
+          stageView.flyToEntry(system);
+        });
+      }
       line.appendChild(button);
       list.appendChild(line);
     });
@@ -3891,7 +3902,7 @@ function initGalaxyMap3d(canvasEl, data) {
       reach = Math.max(reach, Math.hypot(system.x - crowd.x, system.y - crowd.y, system.z - crowd.z));
     });
     showInfo({
-      title: crowd.count + " points of interest",
+      title: crowd.count + (crowd.holes ? " black holes" : " points of interest"),
       fields: [["Distance from core", formatDistancePc(Math.hypot(crowd.x, crowd.y, crowd.z))]],
       after: [list],
       buttons: [{ label: "Zoom in on them", onClick: function () { stageView.flyToEntry({ x: crowd.x, y: crowd.y, z: crowd.z, r: Math.max(reach * 1.5, 0.5) }); } }],
@@ -4056,7 +4067,8 @@ function initGalaxyMap3d(canvasEl, data) {
     var viewH = canvasEl.clientHeight || 1;
     chosen = mergeMarks(chosen, function (item) {
       markerPoint.set(item.x, item.y, item.z).project(camera);
-      return { x: (markerPoint.x + 1) / 2 * viewW, y: (1 - markerPoint.y) / 2 * viewH };
+      return { x: (markerPoint.x + 1) / 2 * viewW, y: (1 - markerPoint.y) / 2 * viewH,
+        depth: Math.hypot(item.x - camera.position.x, item.y - camera.position.y, item.z - camera.position.z) };
     });
     markerLayer.set(chosen);
   }
