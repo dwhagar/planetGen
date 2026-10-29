@@ -13820,6 +13820,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   which remain with PERF.123 to PERF.125.
   Prerequisites: PERF.98. Related: PERF.99, PERF.118.
   Owner: Aux 2 (lock-free item while it waits for the generation lock, 2:30 AM EDT 2026-10-29; PERF.98 merged as #3654 so the prerequisite is met; PERF.154 waits on it; this replaces any earlier owner line on this item). Separate branch; if a step changes generated output, park that step for the lock.
+  Research (2026-10-09): Scope narrowed (Aux 2, 2:36 AM EDT 2026-10-29
+  as the lane reported; TODO agreed): PERF.119 is now F2 only: reset,
+  check-math and the data check become one-unit registry commands
+  started through the wrapper, and the one-off planetgen sector and
+  planetgen system commands each a one-command run. The large part
+  (every generating verb's own starter, and the Generate page building
+  one command list followed by one wrapper run) moves to PERF.202 and
+  PERF.203.
 
 - [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
@@ -14117,7 +14125,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   retired. PERF.150 left an interim wait in queue/runwait.py; this item
   lands with Core 5 and removes that file when the waiting list
   replaces it.
-  Prerequisites: PERF.119. Related: PERF.98, PERF.99,
+  Prerequisites: PERF.119, PERF.203. Related: PERF.98, PERF.99,
   PERF.100, PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
 - [ ] **PERF.162 Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word**
@@ -14380,6 +14388,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and byte counts. Owner: Core 2 when free. Rules: no backward-compat
   shims; keep the benchmark limits as the guard.
   Prerequisites: none. Related: MAP.249, MAP.267.
+
+- [ ] **PERF.202 Move each generating verb's starter handlers and start-time checks into the step units, so a verb is expressible as units in one run**
+  Split from PERF.119 by Aux 2 (2:36 AM EDT 2026-10-29 as the lane
+  reported). Every generating verb (plan, sectors, link, scatter,
+  backfill, settle, population and the rest) still has its own starter
+  with step-specific handlers around a one-step wrapper.run (about 15
+  call sites in run_galaxy, run_plan, run_sector and run_population),
+  plus prework and refusals that read earlier steps' results (for
+  example a redo list that does clear-scatter then scatter, and the
+  check that refuses to draw over stored rows, which would fire at run
+  start). Do: move each starter's handlers and start-time checks into
+  the units and expansions, one verb family at a time (Aux 2 may file or
+  tackle them as sub-parts), so a verb's work is a list of units a
+  single run can follow, with the same refusals and results as today.
+  Done: no verb has a starter outside the units; the existing verb tests
+  pass unchanged; a test runs two verbs in one run and finds both
+  refusals still fire in order. Version 8.1. Owner: Aux 2 (lock-free;
+  park any step that changes generated output). Prerequisites: PERF.119.
+  Related: PERF.119, PERF.203, PERF.154, PERF.118.
+  Prerequisites: PERF.119. Related: PERF.119, PERF.203, PERF.154,
+  PERF.118.
+
+- [ ] **PERF.203 The Generate page and job_runner follow one wrapper run: one command list, one run, with the page's progress, state and log files kept**
+  Split from PERF.119 by Aux 2 (2:36 AM EDT 2026-10-29 as the lane
+  reported). Once PERF.202 makes every verb a list of units, the
+  Generate page (web/generate_page.py, web/job_runner.py) and the API
+  jobs (queue/api_jobs.py) build ONE command list from the selected
+  commands and start ONE wrapper run, instead of a chain of per-verb
+  starters. job_runner follows that one run and keeps the page's
+  progress, state and log files working; the progress bars come from the
+  selected commands alone (Boss, 4:15 PM EDT 2026-10-17). Done: starting
+  a run from the Generate page and from the API each leaves one run on
+  the run record covering all selected commands; the page shows the same
+  progress, state and log as before; a grep finds no stage started
+  outside the wrapper. Version 8.1. Owner: Aux 2 (lock-free).
+  Prerequisites: PERF.202. Related: PERF.119, PERF.202, PERF.154,
+  PERF.99.
+  Prerequisites: PERF.202. Related: PERF.119, PERF.202, PERF.154,
+  PERF.99.
 
 ## DB: Database and schema
 
