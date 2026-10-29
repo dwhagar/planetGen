@@ -13954,6 +13954,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   route writes), so Core 5 proposes option 1 (tests that a visit
   generates and queues nothing, and remove the dead in-request entry
   point). Waiting on Boss's answer (asked at 11:48 AM EDT).
+  Research (2026-10-09): BOSS DECIDED rule 2 (1:19 PM EDT 2026-10-29):
+  'Just 1 with the option for 2'. Do option 1 now: tests that a visit to
+  an uncharted sector generates and queues nothing, and remove the dead
+  in-request entry point (`ensure_sector_generated`) so it cannot come
+  back. Option 2 (an admin's visit queues a one-sector run) stays open
+  for later as PERF.204. PERF.149 closes with option 1 merged.
+  Research (2026-10-09): BOSS DECIDED rule 2 (1:19 PM EDT 2026-10-29):
+  'Just 1 with the option for 2'. Do option 1 now: tests that a visit to
+  an uncharted sector generates and queues nothing, and remove the dead
+  in-request entry point (`ensure_sector_generated`) so it cannot come
+  back. Option 2 (an admin's visit queues a one-sector run) stays open
+  for later as PERF.204. PERF.149 closes with option 1 merged.
 
 - [ ] **PERF.154 One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5)**
   Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
@@ -14273,6 +14285,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.99.
   Prerequisites: PERF.202. Related: PERF.119, PERF.202, PERF.154,
   PERF.99.
+
+- [ ] **PERF.204 An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2)**
+  Boss (1:19 PM EDT 2026-10-29), asked by Core 5 what a visit to an
+  uncharted sector should do: "Just 1 with the option for 2": do
+  option 1 now (PERF.149: tests that a visit
+  generates and queues nothing, and remove the dead in-request entry
+  point), and keep option 2 open for later: an admin who opens an
+  uncharted cell gets a one-sector run queued by itself and the page
+  shows "queued" (today the admin gets a Generate button that starts a
+  run). Do: when Boss asks for it, the admin visit queues a one-sector
+  run through the wrapper, once per cell (no second queue entry while
+  one is waiting), the page shows queued and then opens the sector when
+  the run finishes; visitors who are not admins still queue nothing.
+  Version 8.2. Owner: none yet (Core 5 is the natural owner); follows
+  PERF.149.
+  Prerequisites: none. Related: PERF.149, PERF.182.
 
 ## DB: Database and schema
 
