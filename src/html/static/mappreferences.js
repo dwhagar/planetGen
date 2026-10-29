@@ -17,6 +17,13 @@ export const NUMBER_SETTINGS = {
   "map.labelBuffer": { fallback: 4, min: 0, max: 40 },
 };
 
+// Each setting with a fixed set of words: its key, default and the words a stored value must be one of.
+export const CHOICE_SETTINGS = {
+  // MAP.336: where Go to a region lands: "frame" (the region's charted part fills the view, the default; Boss, 6:19 PM EDT 2026-10-28) or
+  // "densest" (the cluster of its most densely filled sectors).
+  "map.regionLanding": { fallback: "frame", choices: ["frame", "densest"] },
+};
+
 // The setting `key` as a number: the stored value when it is a finite number inside its range, else the default.
 export function readNumber(storage, key) {
   const setting = NUMBER_SETTINGS[key];
@@ -39,4 +46,22 @@ export function blackHoleDensityPx(storage) {
 // The label buffer setting: the clear margin in pixels between two names.
 export function labelBufferPx(storage) {
   return readNumber(storage, "map.labelBuffer");
+}
+
+// The setting `key` as one of its words: the stored value when it is one, else the default.
+export function readChoice(storage, key) {
+  const setting = CHOICE_SETTINGS[key];
+  if (!setting) throw new Error("unknown choice setting: " + key);
+  try {
+    const text = storage && storage.getItem(PREFIX + key);
+    const word = text === null || text === undefined ? "" : String(text).trim();
+    return setting.choices.includes(word) ? word : setting.fallback;
+  } catch (error) {
+    return setting.fallback;
+  }
+}
+
+// MAP.336: where Go to a region lands, "frame" or "densest".
+export function regionLanding(storage) {
+  return readChoice(storage, "map.regionLanding");
 }

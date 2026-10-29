@@ -64,6 +64,9 @@ const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 const SR = await import(`./sectorreach.js${VERSION_QUERY}`);
 const SYS = await import(`./systemreach.js${VERSION_QUERY}`);
 const FIT = await import(`./flytofit.js${VERSION_QUERY}`);
+const RL = await import(`./regionlanding.js${VERSION_QUERY}`);
+const FPLACE = await import(`./findplace.js${VERSION_QUERY}`);
+const { createFindBox } = await import(`./findplacebox.js${VERSION_QUERY}`);
 const { centreOf, offsetsFrom } = await import(`./camerarelative.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
@@ -1117,9 +1120,14 @@ export function createStageView(host) {
   // the next): the camera stays where it is, with its turn and its distance, and the next window's blocks cross-fade
   // in once its data is here, with no flight; the stage is taken up then.
   let keepNext = false;
+  // MAP.336: the "densest" landing a region's window is to go on to once it has arrived (goToRegion).
+  let landingAfter = null;
+  let landingToken = 0;
   function go(next, options) {
     options = options || {};
     if (pinned) return;
+    landingAfter = null;
+    landingToken += 1;
     if (animation) finishAnimation();
     if (crossFade) finishCross();
     const r = resolve(next);
@@ -1277,6 +1285,7 @@ export function createStageView(host) {
       if (record) enterSector(block, record, { push: false });
       else if (block && host.fetchUnchartedScene) enterSector(block, null, { push: false });
     }
+    if (landingAfter) landDensest();
   }
 
   function finishAnimation() {
@@ -2511,6 +2520,21 @@ export function createStageView(host) {
     return thing ? thing.point : null;
   }
 
+  // MAP.336: the nearest named thing of the scene the camera is in, for the ruler's readout: a body of the open system, else a star of the sector
+  // scene (up, ambient or open), by its distance from the eye; null with none.
+  function nearestNamed() {
+    const eye = camera.position;
+    let best = null;
+    const consider = function (entry, kind, radius) {
+      if (!entry || !entry.name || entry.x == null) return;
+      const distance = Math.max(0, Math.hypot(entry.x - eye.x, entry.y - eye.y, entry.z - eye.z) - (radius || 0));
+      if (!best || distance < best.distance) best = { name: entry.name, kind: kind, distance: distance };
+    };
+    if (enteredSystem) systemStage.entries().forEach(function (e) { consider(e, "body", e.r); });
+    if (!best) sectorStage.sceneEntries().forEach(function (e) { if (!sectorStage.sceneHides(e)) consider(e, "star", 0); });
+    return best;
+  }
+
   // MAP.334: the nearest thing along the ray through a screen point, which the zoom steps are shares of: {point, kind, distance} with the point
   // in the world (parsecs), the distance `h` from the eye to it and the kind "star", "body" (a picked body of the open system, with its
   // `radius`), "pick" (any other thing the picker found), "crowd" (the densest layer of drawn stars in front of the thing the wheel would otherwise head for, MAP.301), "column" (the galaxy's stars thickening along the ray) or "plane" (nothing drawn
@@ -3015,11 +3039,11 @@ export function createStageView(host) {
 
   // MAP.319: flies the camera to look at a bounding sphere, `target` = {center: [x, y, z] pc, radius pc}, from where it
   // fills the view (the region, system, moon system or nebula it bounds), keeping the viewing direction.
-  function flyToFit(target) {
+  function flyToFit(target, arrive) {
     if (!target || !target.center) return;
     // MAP.333: inside an opened system a sphere as small as a moon system is framed as closely as it asks; elsewhere the map's minimum view
     // radius holds a framing back from a point-sized sphere.
-    flyToPoint(target.center, FIT.fitDistance(target.radius, camera.fov, aspectNow(), { minRadius: enteredSystem ? GLOBAL_FLOOR_PC : FIT.MIN_VIEW_RADIUS_PC }));
+    flyToPoint(target.center, (arrive > 0 ? arrive : 1) * FIT.fitDistance(target.radius, camera.fov, aspectNow(), { minRadius: enteredSystem ? GLOBAL_FLOOR_PC : FIT.MIN_VIEW_RADIUS_PC }));
   }
 
   // Flies the camera to an object of the sector scene (a star, a phenomenon): a double click on it, its Go to
@@ -3027,6 +3051,97 @@ export function createStageView(host) {
   function flyToEntry(entry) {
     if (!view || !entry || entry.x == null) return;
     flyToPoint([entry.x, entry.y, entry.z], distanceToLookAt(entry));
+  }
+
+  // MAP.336: the one way to go to anything, the verb "Go to" on every button, name, link and result. `target` says where, by one of:
+  // - {center: [x, y, z] pc, radius pc, arrive}: a sphere, framed to fill the view (`arrive` times that distance, 1 by default);
+  // - {center, dist}: a point, from `dist` parsecs away;
+  // - {entry}: an object of the sector scene or the map (a star, a point, a crowd {x, y, z, r}), from where it is looked at;
+  // - {body: entry or ref}: a body of the open system, close enough to see it with its moons;
+  // - {sector: {shell, band, wedge}, open, system, object}: a sector, opened in place with `open`, and with it its system (its printed
+  //   ID) and a body of that (its `<kind>:<id>` reference);
+  // - {region: {block, center, radius}, landing}: a charted region, landing "frame" (its charted part fills the view) or "densest" (the
+  //   cluster of its heaviest sectors), the reader's setting `map.regionLanding` when `landing` is not given;
+  // - {block}, {stage}, {up: true}, {home: true}: a block's window, a stage, one level out, the whole galaxy.
+  // `label` (a name) puts the place in the visit log. True when the move began. Nothing here is held to a stage's range; only the
+  // global limits hold (MAP.333), and the instant move under reduced motion is the flight's own.
+  function goTo(target) {
+    if (!target || !view) return false;
+    let began = true;
+    if (target.up) {
+      up();
+    } else if (target.home) {
+      home();
+    } else if (target.stage) {
+      selection.select({ kind: "stage", stage: target.stage });
+    } else if (target.region) {
+      began = goToRegion(target.region, target.landing);
+    } else if (target.block) {
+      began = openBlock(target.block);
+    } else if (target.sector) {
+      pendingSystem = target.open && target.system ? target.system : null;
+      pendingObject = pendingSystem ? target.object || null : null;
+      began = target.open ? openSector(target.sector) : locate(target.sector);
+    } else if (target.body) {
+      const entry = typeof target.body === "string" ? systemStage.entry(target.body) : target.body;
+      began = !!entry && !!systemStage.where(entry.ref);
+      if (began) flyToBody(entry);
+    } else if (target.entry) {
+      flyToEntry(target.entry);
+    } else if (target.center && target.dist > 0) {
+      flyToPoint(target.center, target.dist);
+    } else if (target.center && target.radius > 0) {
+      flyToFit({ center: target.center, radius: target.radius }, target.arrive);
+    } else {
+      began = false;
+    }
+    if (began && target.label) recents.add(target.label, plainTarget(target));
+    return began;
+  }
+
+  // The part of a target that is plain data, which the visit log keeps and goTo takes again.
+  function plainTarget(target) {
+    const plain = {};
+    ["center", "radius", "dist", "arrive", "sector", "open", "system", "object", "home"].forEach(function (key) {
+      if (target[key] !== undefined && target[key] !== null) plain[key] = target[key];
+    });
+    if (target.region) plain.region = { block: target.region.block, center: target.region.center, radius: target.region.radius };
+    return plain;
+  }
+
+  // A region of the map: its window with the camera framing its extent, and, landing "densest", on from there to the cluster of its
+  // heaviest sectors once their ranking is in (a region the window holds no ranking of stays framed).
+  function goToRegion(region, landing) {
+    if (!region.block) return false;
+    const mode = landing || (host.regionLanding ? host.regionLanding() : "frame");
+    const began = region.center && region.radius > 0 ? openRegion(region.block, { center: region.center, radius: region.radius }) : openBlock(region.block);
+    landingAfter = began && mode === "densest" && region.center ? { center: region.center.slice(), radius: region.radius } : null;
+    return began;
+  }
+
+  // The "densest" landing of a region the window has arrived at: the sectors round its middle are read (the near read, MAP.335, as far as
+  // it looks: 4.5 edges, which holds a region as the map frames it) and the camera goes on to the cluster of the heaviest of them. A
+  // region the read has no ranked sector for, or a map without the read, stays framed.
+  const LANDING_READ_EDGES = 4.5;
+  function landDensest() {
+    const asked = landingAfter;
+    landingAfter = null;
+    if (!asked || pinned || !host.fetchNear) return;
+    const token = ++landingToken;
+    const at = asked.center;
+    const query = "?x=" + at[0].toFixed(3) + "&y=" + at[1].toFixed(3) + "&z=" + at[2].toFixed(3) + "&r=" + (LANDING_READ_EDGES * edgePc).toFixed(3);
+    host.fetchNear(query).then(function (payload) {
+      if (!active || token !== landingToken || animation) return;
+      const ranked = ((payload && payload.sectors) || []).map(function (sector) {
+        const middle = P.cellCenter(P.drillBlockBounds({ m: 1, shell: sector.shell, band: sector.band, wedge: sector.wedge }, edgePc));
+        const mass = sector.stats && sector.stats.mass_kg > 0 ? sector.stats.mass_kg : 0;
+        return { x: middle[0], y: middle[1], z: middle[2], sizePc: edgePc, massKg: mass };
+      });
+      const cluster = RL.densestCluster(ranked, asked, edgePc);
+      if (cluster) flyToFit({ center: cluster.center, radius: cluster.radius });
+    }, function () {
+      // The ranking is an aid; the region stays framed.
+    });
   }
 
   // Flies the orbit center to `goal` (a world point), keeping the angle and
@@ -3046,16 +3161,8 @@ export function createStageView(host) {
   // For the browser tests: the stage on screen.
   canvasEl.galaxyStage = function () { return stage; };
 
-  // For the browser tests: flies to a bounding sphere (MAP.319).
-  canvasEl.galaxyFlyToFit = function (target) { flyToFit(target); };
-  // MAP.335: flies the camera to a point, `dist` parsecs from it, wherever that is; read by the browser tests.
-  canvasEl.galaxyFlyToPoint = function (point, dist) { flyToPoint(point.slice(), dist); };
-  // MAP.335: flies to a body of the open system, as a click on it does; read by the browser tests.
-  canvasEl.galaxyFlyToBody = function (ref) {
-    const entry = systemStage.entry(ref);
-    if (entry) flyToBody(entry);
-    return !!entry;
-  };
+  // For the browser tests: goTo (MAP.336) with a target as the stage view takes it; true when the move began.
+  canvasEl.galaxyGoTo = function (target) { return goTo(target); };
   canvasEl.galaxyFov = function () { return camera.fov; };
 
   // For the browser tests: whether the camera is on its way to a stage, waiting for the stage's data or flying
@@ -3548,9 +3655,10 @@ export function createStageView(host) {
     steps: els.steps,
     stepsExtra: newestButton,
     trailing: function () { return bookmarkButton; },
+    // MAP.336: each crumb is a Go to: the container it names (the stage), or one level out from an open system.
     onSelect: function (step) {
-      if (step.systemUp) up();
-      else selection.select({ kind: "stage", stage: step.stage });
+      if (step.systemUp) goTo({ up: true });
+      else if (step.stage) goTo({ stage: step.stage });
     },
   }) : null;
 
@@ -3615,102 +3723,33 @@ export function createStageView(host) {
     return true;
   }
 
+  // --- The find-a-place box (MAP.336) ------------------------------------------
+
+  // The places gone to by name, kept in the browser (findplace.js).
+  let recentsStorage = null;
+  try { recentsStorage = globalThis.localStorage || null; } catch (error) { recentsStorage = null; }
+  const recents = FPLACE.createRecents(recentsStorage);
+
+  const findBox = els.address && els.matches ? createFindBox(els.address, els.address.querySelector("input"), els.matches, {
+    parse: function (text) { return S.parseAddress(text, edgePc); },
+    parseSector: S.parseSectorDesignation,
+    sectorExists: function (sector) { return !!S.sectorStage(sector.shell, sector.band, sector.wedge); },
+    regions: host.regions || function () { return []; },
+    recents: recents,
+    locate: function (name) { return host.locate(name); },
+    home: { label: "Whole galaxy", target: { home: true } },
+    go: goTo,
+    notice: notice,
+  }) : null;
+  if (els.address) {
+    els.address.addEventListener("submit", function (event) {
+      event.preventDefault();
+      if (findBox) findBox.submit();
+    });
+  }
   function clearMatches() {
-    if (els.matches) {
-      els.matches.textContent = "";
-      els.matches.hidden = true;
-    }
+    if (findBox) findBox.close();
   }
-
-  // A planet or moon hit is a body inside a system (NAV.9): it opens through
-  // /object/<ref>, which lands on its row on the system page.
-  function isBody(match) {
-    return match.kind === "planet" || match.kind === "moon";
-  }
-
-  function bodyUrl(match) {
-    return "/object/" + encodeURIComponent(match.ref);
-  }
-
-  function matchLabel(match) {
-    if (match.kind === "system") return match.name + " (system in " + (match.sector_name || "sector " + match.sector_id) + ")";
-    if (isBody(match)) {
-      const chain = (match.parents || []).filter(function (p) { return p.kind === "planet" || p.kind === "system"; })
-        .reverse().map(function (p) { return p.name; }).filter(Boolean).join(", ");
-      return match.name + " (" + match.kind + (chain ? " of " + chain : "") + ")";
-    }
-    return match.name + " (sector)";
-  }
-
-  // The name lookup's matches: sectors and systems as buttons that fly to the
-  // sector, planets and moons as links to their row on the system page.
-  function showMatches(matches) {
-    const box = els.matches;
-    if (!box) return;
-    box.textContent = "";
-    const list = document.createElement("ul");
-    matches.forEach(function (match) {
-      const item = document.createElement("li");
-      if (isBody(match)) {
-        const link = document.createElement("a");
-        link.href = bodyUrl(match);
-        link.textContent = matchLabel(match);
-        item.appendChild(link);
-      } else {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.textContent = matchLabel(match);
-        button.addEventListener("click", function () {
-          clearMatches();
-          locate(matchAddress(match));
-        });
-        item.appendChild(button);
-      }
-      list.appendChild(item);
-    });
-    box.appendChild(list);
-    box.hidden = false;
-  }
-
-  function onAddress(event) {
-    event.preventDefault();
-    const input = els.address.querySelector("input");
-    clearMatches();
-    const asked = S.parseAddress(input.value, edgePc);
-    if (asked.problem) {
-      notice(asked.problem);
-      return;
-    }
-    if (asked.sector) {
-      locate(asked.sector);
-      return;
-    }
-    notice("Looking up " + asked.name + "…");
-    host.locate(asked.name).then(function (matches) {
-      if (!matches.length) {
-        notice("Nothing is named like " + asked.name + ".");
-        return;
-      }
-      const exact = matches.filter(function (m) { return (m.name || "").toLowerCase() === asked.name.toLowerCase(); });
-      const sectors = new Set((exact.length ? exact : matches).map(function (m) { return m.sector_id; }));
-      if (matches.length === 1 || (exact.length && sectors.size === 1)) {
-        notice("");
-        const only = exact[0] || matches[0];
-        if (isBody(only)) {
-          window.location.assign(bodyUrl(only));
-          return;
-        }
-        locate(matchAddress(only));
-        return;
-      }
-      notice(matches.length + " names match; pick one.");
-      showMatches(matches);
-    }, function () {
-      notice("The lookup failed. Please try again shortly.");
-    });
-  }
-
-  if (els.address) els.address.addEventListener("submit", onAddress);
 
   // --- Turning on, and the URL -----------------------------------------------
 
@@ -3952,7 +3991,6 @@ export function createStageView(host) {
   function selectBodyRef(ref) { systemStage.select(ref); }
 
   return {
-    flyToEntry: flyToEntry,
     selectBody: selectBody,
     selectBodyRef: selectBodyRef,
     systemMarkerSource: systemMarkerSource,
@@ -3986,8 +4024,8 @@ export function createStageView(host) {
     colorBy: function () { return colorBy; },
     setNeedGenerated: setNeedGenerated,
     stage: function () { return stage; },
-    // MAP.319: flies to a bounding sphere, {center: [x, y, z] pc, radius pc}, so it fills the view.
-    flyToFit: flyToFit,
+    // MAP.336: the one way to go to anything (see goTo).
+    goTo: goTo,
     // The opened sector's entries (MAP.68): "Show on map" buttons select
     // one by key.
     // The world point under a screen point (MAP.150); read by the tests.
@@ -4001,6 +4039,12 @@ export function createStageView(host) {
     // viewed; and where the center is (world parsecs).
     zoomShare: zoomShare,
     setZoomShare: setZoomShare,
+    // MAP.336: the log ruler's facts: the camera's distance from its focus, the farthest and nearest the map goes (pc), and the nearest named
+    // thing of the scene up ({name, kind, distance}), or null with none.
+    scaleInfo: function () {
+      if (!view || !(view.dist > 0)) return null;
+      return { dist: view.dist, farPc: globalFarPc(), floorPc: GLOBAL_FLOOR_PC, nearest: nearestNamed() };
+    },
     moveCentre: moveCentre,
     resetCentre: resetCentre,
     centre: function () { return view ? view.target.slice() : null; },
@@ -4031,7 +4075,5 @@ export function createStageView(host) {
     inContainer: function () { return !!stage.win; },
     outsideOutline: outsideOutline,
     go: go,
-    locate: locate,
-    openSector: openSector,
   };
 }

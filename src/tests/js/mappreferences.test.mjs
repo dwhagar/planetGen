@@ -39,3 +39,15 @@ test("the label buffer reads as a number of pixels from 0 to 40 and is 4 when mi
   assert.equal(P.labelBufferPx(store({ "planetgen.pref.map.labelBuffer": "41" })), 4);
   assert.equal(P.labelBufferPx(store({ "planetgen.pref.map.labelBuffer": "wide" })), 4);
 });
+
+test("the region landing reads frame unless the stored word is densest", () => {
+  assert.equal(P.regionLanding(store({})), "frame");
+  assert.equal(P.regionLanding(null), "frame");
+  assert.equal(P.regionLanding(store({ "planetgen.pref.map.regionLanding": "densest" })), "densest");
+  assert.equal(P.regionLanding(store({ "planetgen.pref.map.regionLanding": " frame " })), "frame");
+  ["", "Densest", "closest", "0", "[densest]"].forEach((text) => {
+    assert.equal(P.regionLanding(store({ "planetgen.pref.map.regionLanding": text })), "frame", text);
+  });
+  assert.equal(P.regionLanding({ getItem() { throw new Error("blocked"); } }), "frame");
+  assert.throws(() => P.readChoice(store({}), "map.nope"));
+});

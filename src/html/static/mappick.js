@@ -364,8 +364,12 @@ export function createInfoPanel(panelEl) {
     const view = panelEl.parentElement;
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
     if (!view || view.clientWidth < TALL_BESIDE_REM * rem) return;
-    const pad = view.querySelector(".starmap-navpad");
-    if (pad) panelEl.style.setProperty("--info-pad-clear", Math.ceil(view.getBoundingClientRect().right - pad.getBoundingClientRect().left + 8) + "px");
+    // The zoom controls: the direction star's pad and (MAP.336) the log ruler above it, whichever reaches farther in.
+    const reach = [".starmap-navpad", ".starmap-ruler"].map(function (selector) {
+      const control = view.querySelector(selector);
+      return control ? view.getBoundingClientRect().right - control.getBoundingClientRect().left + 8 : 0;
+    });
+    if (Math.max.apply(null, reach) > 0) panelEl.style.setProperty("--info-pad-clear", Math.ceil(Math.max.apply(null, reach)) + "px");
     panelEl.dataset.tall = "";
     shrinkToFit();
     clearOfPress();
