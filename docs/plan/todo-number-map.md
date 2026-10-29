@@ -688,7 +688,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.17 | Describe the object ID in api.md | none | done, PR #1133 |
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | none | open |
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | none | open |
-| DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | none | open |
+| DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | none | done, PR #3661 |
 | DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions | none | done, PR #1698 |
 | DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | done, PR #1599 |
 | DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | done, PR #1599 |
