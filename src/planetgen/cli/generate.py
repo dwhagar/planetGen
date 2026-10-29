@@ -69,6 +69,7 @@ from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.generation import star_population
 from planetgen.generation.star_population import bright_star_fraction
 from planetgen.generation import stages
+from planetgen.generation import finish_run as finishRun
 from planetgen.generation import run_common
 from planetgen.generation import run_galaxy
 from planetgen.generation import run_phenomenon
@@ -1628,6 +1629,15 @@ def build_parser():
                                     "them, for a sector a black hole or neutron star was added to ('planetgen "
                                     "phenomenon --sector-id' saves no paths itself).")
 
+    finish_run_parser = subparsers.add_parser(
+        'finish-run',
+        description="Carries on a generation run that stopped partway (a killed process, an out-of-memory database, a "
+                    "cancel) from the first stage that did not finish, on the same galaxy and build, instead of "
+                    "starting again: the stages it finished are kept, the one that stopped runs again from its start and "
+                    "the rest run as they would have.",
+        help="Carry on the last generation run that stopped before it was done.")
+    finishRun.add_arguments(finish_run_parser)
+
     phenomenon_parser = subparsers.add_parser(
         'phenomenon',
         description="Exotic Stellar Phenomenon Generation Options",
@@ -1779,6 +1789,7 @@ def build_parser():
         'backfill': backfill_parser,
         'settle': settle_parser,
         'phenomenon': phenomenon_parser,
+        'finish-run': finish_run_parser,
         'population': population_parser,
         'territories': territories_parser,
         'bring-to-epoch': bring_to_epoch_parser,
@@ -1826,7 +1837,7 @@ def process_args():
     elif args.command == 'scatter':
         validate_scatter_args(args, command_parser)
     elif args.command in ('fill-map-luminosity', 'rescore-habitability', 'fill-nebula-blocks', 'fill-block-totals',
-                          'clean-nebula-field',
+                          'clean-nebula-field', 'finish-run',
                           'link', 'backfill', 'settle'):
         validate_fill_args(args, command_parser)
     elif args.command == 'phenomenon':
@@ -1915,7 +1926,7 @@ READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benc
 (no activity log lines or run history)."""
 
 
-BULK_COMMANDS = ("galaxy", "plan", "scatter", "population", "territories")
+BULK_COMMANDS = ("galaxy", "plan", "scatter", "population", "territories", "finish-run")
 """tuple: Subcommands that always generate in bulk, so the data check runs
 first (GEN.590); `sector` joins them when it makes more than one sector
 (`is_bulk_run`)."""
@@ -1954,6 +1965,7 @@ _COMMAND_HANDLERS = {
     'backfill': run_galaxy.run_backfill,
     'settle': run_galaxy.run_settle,
     'phenomenon': run_phenomenon.run_phenomenon,
+    'finish-run': finishRun.run_finish,
     'population': run_population.run_population,
     'territories': run_population.run_territories,
     'bring-to-epoch': run_bring_to_epoch,
@@ -1963,7 +1975,7 @@ _COMMAND_HANDLERS = {
 
 
 DATA_CHANGES = {"plan": ("everything",), "scatter": ("everything",), "clear-scatter": ("everything",),
-                "fill-map-luminosity": ("everything",),
+                "fill-map-luminosity": ("everything",), "finish-run": ("everything",),
                 "rescore-habitability": ("everything",), "fill-nebula-blocks": ("everything",), "fill-block-totals": ("everything",),
                 "clean-nebula-field": ("everything",),
                 "population": ("population",), "territories": ("population",),

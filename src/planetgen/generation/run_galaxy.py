@@ -1515,10 +1515,22 @@ def expand_generate_sectors(params):
     for start in range(0, count, size):
         chunk = items[3 * start:3 * (start + size)]
         unit = {"database": params["database"], "args": params["args"], "edge_pc": params["edge_pc"], "items": chunk}
+        if params.get("again"):
+            unit["again"] = True
         if suffixes:
             unit["suffixes"] = suffixes[start:start + size]
         units.append((unit, float(len(chunk) // 3)))
     return commands.Expansion(units, {"sectors": count})
+
+
+def _saved_addresses(args):
+    """The `(shell, band, wedge)` of every galaxy sector saved now: a stage run again after it stopped (PERF.182) leaves them
+    alone, for each was saved whole in a transaction of its own."""
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        return store.filled_sector_addresses(conn)
+    finally:
+        conn.close()
 
 
 def generate_sectors_unit(unit_args, report):
@@ -1526,7 +1538,8 @@ def generate_sectors_unit(unit_args, report):
     The unit of the sector stages (PERF.107): generates and saves each sector of the chunk (`generate_and_save_sector_at`,
     one transaction each) in its own grid cell, its density resolved from its sector profile as `_BatchDensity` does for
     the run (a density or count the run was given is used for every sector). Every draw for a sector comes from its
-    own seed (GEN.39), so the stars are the same at any worker count.
+    own seed (GEN.39), so the stars are the same at any worker count. A unit of a stage run again after it stopped (`again`,
+    PERF.182) skips the sectors already saved.
 
     Returns:
         dict: `pid` (this process: a unit run by the process that started the run has counted its sectors there already),
@@ -1538,9 +1551,12 @@ def generate_sectors_unit(unit_args, report):
     batch_density = _BatchDensity(store.mysql_config_from_args(args))
     items = unit_args["items"]
     suffixes = unit_args.get("suffixes", [])
+    saved = _saved_addresses(args) if unit_args.get("again") else ()
     done = []
     for place in range(0, len(items), 3):
         address = tuple(items[place:place + 3])
+        if address in saved:
+            continue
         position_pc = sector_position_pc(*address, edge_pc)
         sector_args = batch_density.resolve(args, address, position_pc)
         started = time.monotonic()

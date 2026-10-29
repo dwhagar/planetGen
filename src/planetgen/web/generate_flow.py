@@ -24,7 +24,7 @@ from planetgen.admin import recipes
 from . import adminregistry, bp, generate_commands, jobs
 from .generate_page import (
     ESTIMATE_CONFIRM_FIELD, GENERATE_ANYWAY_FIELD, FormError, _admin_or_403, _admin_or_redirect, _edge_pc,
-    _estimate_view, _no_store, build_job, epoch_status, estimate_for, estimate_needed, page_context,
+    _estimate_view, _no_store, build_job, epoch_status, estimate_for, estimate_needed, finish_status, page_context,
 )
 from .helpers import crumb, db_name, page_url, render_page
 
@@ -60,6 +60,10 @@ TASKS = (
     Task("bring-to-epoch", "Bring the galaxy to the running generator epoch",
          "After the generator changed, generate again only the sectors it altered, leave edited sectors alone, and keep "
          "the rest of the galaxy as it is.", "rewrites", ("bring_to_epoch",)),
+    Task("finish-run", "Finish the last run",
+         "A run that stopped partway (a killed process, a database that ran out of memory, a cancel) carries on from the "
+         "first stage that did not finish, on the same galaxy, instead of wiping and starting again.", "rewrites",
+         ("finish_run",)),
     Task("one-off-system", "Make one system (not saved)",
          "Generate a single star system with any command-line option and get it as Markdown or plain text.", "safe", (),
          endpoint="generate_system"),
@@ -182,7 +186,8 @@ def start_page(admin, error=None, status=200):
 
 def task_page(admin, task, form=None, error=None, status=200):
     """A task's form, filled from `form` when it is shown again."""
-    extra = {"epoch": epoch_status(db_name())} if task.key == "bring-to-epoch" else {}
+    extra = {"epoch": epoch_status(db_name())} if task.key == "bring-to-epoch" else \
+        {"finish": finish_status(db_name())} if task.key == "finish-run" else {}
     return render_screen("generate_task.html", admin, task.label, [crumb(task.label)], form=form, error=error, status=status,
                    task=task, **extra)
 
