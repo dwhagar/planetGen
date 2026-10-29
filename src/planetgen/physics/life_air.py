@@ -143,7 +143,8 @@ def apply_gases(body, life_class, rose):
         if flux > 0.0:
             have = moles.get("CH4", 0.0)
             wanted = methane_target_mol(flux, moles)
-            if wanted > have * number("apply_rise"):
+            pascal_per_mol = body.atmospheric_pressure / sum(moles.values())
+            if wanted > have * number("apply_rise") and (wanted - have) * pascal_per_mol >= biogenic_oxygen.MINIMUM_PA:
                 new["CH4"] = wanted
                 new["CO2"] = moles["CO2"] - (wanted - have)
                 changed = True

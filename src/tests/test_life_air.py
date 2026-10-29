@@ -191,3 +191,14 @@ def test_the_generated_worlds_keep_one_air_and_methane_beside_life_leaves_no_fre
         assert sum(partials.values()) == pytest.approx(body.atmospheric_pressure, rel=2e-3), body.name
         if body.life_class and atmosphere.partial_kpa(body, "ch4") > 0.05:
             assert atmosphere.partial_kpa(body, "o2") < 0.5, body.name
+
+
+def test_a_methane_under_a_pascal_is_not_worth_redoing_the_air(world, monkeypatch):
+    """The carbon dioxide of a carbon-poor air bounds the methane; a gain under `biogenic_oxygen.MINIMUM_PA` leaves the air as it was."""
+    moles = bo.air_moles(world)
+    moles["CO2"] = 1.0e-9 * sum(moles.values())
+    bo.store_air(world, bo.partials_pa(world, moles))
+    before = atmosphere.gas_partials_pa(world)
+    _force_flux(monkeypatch, 1.0e12)
+    assert not life_air.apply_gases(world, _class(2), False)
+    assert atmosphere.gas_partials_pa(world) == before
