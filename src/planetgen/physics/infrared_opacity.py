@@ -25,9 +25,17 @@ Planck peak of the surface (carbon dioxide at 15 um on a temperate world) matter
   600 cm-1 times `P / P_REF` of a band. Koll 2019's statements are its only source (a pure H2O air is thick above about 1e-2 bar, a pure CO2 air is of order
   unity at 1 bar, CO is thin even at 1 bar). It is what makes a dense CO2 or steam air a runaway-like greenhouse, and it grows as
   the square of the pressure (the exponent `PRESSURE_EXPONENT` of the closure is 2).
+* **Water vapour** (GEN.812): the partial pressure of H2O is the surface's, and the vapour thins with height (`vapour_profile`: the
+  humidity falls linearly with pressure, Manabe and Wetherald 1967; the temperature follows the troposphere; the mixing ratio never
+  exceeds the surface's). Well mixed, an Earth twin at 0.77 humidity held three times the water the Earth does and came out at 319 K, not
+  288 K. The H2O bands and far wing take a column that gives the same pressure-weighted opacity as the profile; the continuum is summed
+  over the layers.
 * **Water vapour continuum** (part 03 section 3.2, MT_CKD 4.3, `WATER_CONTINUUM`): the self and foreign coefficients at 200 to
-  3600 cm-1, `tau(nu) = (sigma_self(nu, T) x_w + sigma_for(nu) (1 - x_w)) x_w n0^2 H / (2 n_ref)` for a well-mixed hydrostatic
-  column; it closes the 8 to 12 um window on a humid world and is why a warm ocean world runs away.
+  3600 cm-1, `tau(nu) = sum over layers of (sigma_self(nu, T) x_w + sigma_for(nu) (1 - x_w)) x_w n^2 dz / n_ref`; it closes the 8 to 12 um
+  window on a humid world and is why a warm ocean world runs away.
+* **Clouds** (`CLOUD_LONGWAVE_TAU0`, a stand-in): the module is a clear-sky greenhouse (outgoing 266 W/m2 at 288 K for the Earth, the
+  measured clear-sky value), but the albedo of a body is its all-sky one, so one grey depth for the longwave effect of the cloud is added,
+  scaled with the surface humidity and nil without liquid water.
 * **Collision-induced pairs** (part 03 section 3.1, HITRAN, `CIA_PAIRS`): `kP(T) x1 x2 n0^2 H / 2` is the optical depth if the
   pair absorbed like its peak everywhere in the file's range; the saturating `ln(1 + x)` turns it into the equivalent thickness (it
   reproduces the four cases near the Planck peak in the table of part 03 section 3.1 to 25 percent and is within a factor of 3 for
@@ -35,7 +43,7 @@ Planck peak of the surface (carbon dioxide at 15 um on a temperate world) matter
 
 Limits (stated; the opacities are STAND-INS, labelled in the gap plan registry, until real line data are in): the repo holds band
 centres only, no line strengths, so `kappa0` and the wing coefficients are class values; the bands of a gas without a listed band get
-a plateau between 600 and 1500 cm-1 (the fingerprint region); condensation is not modelled (the stored vapour is taken as it is); the
+a plateau between 600 and 1500 cm-1 (the fingerprint region); condensation aloft is not modelled beyond the vapour profile (no cloud physics, only the grey cloud depth); the
 hot bands of carbon dioxide count a hundredth as much as its fundamentals; no temperature dependence of the band strengths; the
 pressure exponent of the closure is 2 for every air and the lapse scaling alpha runs 0.6 (condensable vapour supplies all the
 opacity) to 0.8 (none does) and 0.85 for an air of hydrogen and helium (part 03 section 5.3: Earth 0.6, Venus 0.8, Titan 0.77,
@@ -54,7 +62,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import constants, gases, mixture
+from planetgen.physics import constants, gases, mixture, saturation
 
 SECOND_RADIATION_CM_K = (2.0 * math.pi * constants.REDUCED_PLANCK * constants.SPEED_OF_LIGHT_M_S / constants.BOLTZMANN) * 100.0
 """float: `h c / k` in cm K, the Planck exponent `x = c2 nu / T` for a wavenumber in cm-1."""
@@ -145,6 +153,22 @@ CIA_PAIRS = {
 }
 """dict: The HITRAN collision-induced pairs of part 03 section 3.1 (DATA, computed there): `kP(T)` at the file's temperatures."""
 
+VAPOUR_LAYERS = 96
+"""int: Layers of equal depth in `ln p` that the water vapour profile is summed over (a midpoint sum; 96 and 192 agree to within 0.5 percent of
+the continuum depth)."""
+HUMIDITY_TOP = 0.02
+"""float: The fraction of the surface pressure at which the relative humidity reaches zero: Manabe and Wetherald (1967) give
+`h(p) = h_s (p / p_s - 0.02) / 0.98`, a humidity that falls linearly with pressure (tier: verified for the Earth's mean state, tweak level L0;
+carried to other worlds it is a STAND-IN, GEN.725 row GH1)."""
+
+CLOUD_LONGWAVE_TAU0 = 0.35
+"""float: STAND-IN (GEN.725 row GH2): the grey longwave optical depth of the cloud an air holds at the Earth's mean surface humidity
+(`EARTH_HUMIDITY`); the cloud scales with the surface humidity and is nil without water vapour. Set so that the Earth's clear-sky greenhouse
+(what the bands, wings and continuum give, and the module's 266 W/m2 at 288 K matches the measured clear-sky outgoing flux) loses the
+cloud longwave effect of the measured all-sky Earth, 26.5 W/m2 (CERES EBAF; tier: educated guess from the needed output, tweak level L2)."""
+EARTH_HUMIDITY = 0.77
+"""float: The mean relative humidity of the Earth's surface air (Manabe and Wetherald 1967), the humidity at which `CLOUD_LONGWAVE_TAU0` holds."""
+
 ITERATIONS = 40
 """int: At most this many steps in the surface temperature fixed point."""
 UNDAMPED_STEPS = 10
@@ -160,7 +184,8 @@ class Opacity:
 
     Attributes:
         tau0 (float): The equivalent grey thickness, `-ln(sum w_k exp(-tau_k))`.
-        by_part (dict): `tau0` of the air with only that part kept: `"bands"`, `"far_wing"`, `"water_continuum"`, `"collision_induced"`.
+        by_part (dict): `tau0` of the air with only that part kept: `"bands"`, `"far_wing"`, `"water_continuum"`, `"collision_induced"`
+            (`"clouds"` is the cloud's own `tau0`, which is added to the rest).
         by_gas (dict): `tau0` of the air with only that gas's bands and far wing kept (continuum and pairs are listed under their own part).
         condensable_share (float): The share of the sum of `by_gas` that is H2O, 0 to 1.
         hydrogen_dominated (bool): H2 and He make up more than half of the molecules.
@@ -171,6 +196,29 @@ class Opacity:
     by_gas: dict
     condensable_share: float
     hydrogen_dominated: bool
+
+
+@dataclass(frozen=True)
+class Vapour:
+    """
+    The water vapour of an air from the surface up to where the humidity runs out, in `VAPOUR_LAYERS` layers of equal `ln p`.
+
+    Attributes:
+        pressure_pa (ndarray): The pressure at the middle of each layer, Pa, falling from the surface.
+        log_step (float): The depth of a layer in `ln p`.
+        temperature_k (ndarray): The temperature of each layer, K (the troposphere's `T_s (p / p_s)^beta`).
+        fraction (ndarray): The mole fraction of water in each layer, at most the surface's.
+        surface_fraction (float): The mole fraction of water at the surface.
+        cloud_cover (float): The cloud the air holds, as a multiple of the Earth's: the surface humidity over `EARTH_HUMIDITY`, nil where the
+            surface is above water's critical temperature (no liquid, no cloud of it).
+    """
+
+    pressure_pa: np.ndarray
+    log_step: float
+    temperature_k: np.ndarray
+    fraction: np.ndarray
+    surface_fraction: float
+    cloud_cover: float
 
 
 def planck_fraction_below(x):
@@ -243,6 +291,42 @@ def far_wing_m2_kg(formula):
     return 0.0
 
 
+def vapour_profile(partial_pressures_pa, temperature_k):
+    """
+    The water vapour of an air by height, or `None` for an air with none.
+
+    The relative humidity falls from the surface's with pressure (Manabe and Wetherald 1967, `HUMIDITY_TOP`), the temperature falls as
+    the troposphere's `T_s (p / p_s)^beta` (`beta = alpha (gamma - 1) / gamma`, `alpha` that of an air whose opacity is condensable
+    vapour, `LAPSE_SCALING_CONDENSABLE`), and the vapour stands at that humidity of its saturation pressure at the layer's
+    temperature, never above the surface's mole fraction. The surface humidity is the surface vapour pressure over its saturation
+    pressure at `temperature_k` (1 above the critical temperature, where there is none, where the saturation pressure has fallen to nothing, and for a surface that holds more than it can).
+    An air whose vapour is well under saturation keeps its mixing ratio until the humidity or the cold takes it; one at the
+    saturation limit loses it as fast as the saturation pressure falls.
+    """
+    if partial_pressures_pa.get("H2O", 0.0) <= 0.0:
+        return None
+    gamma = mixture.heat_capacity_ratio(partial_pressures_pa, temperature_k)
+    total = mixture.total_pressure_pa(partial_pressures_pa)
+    surface_fraction = partial_pressures_pa["H2O"] / total
+    surface_saturation = saturation.pressure_pa("H2O", temperature_k)
+    humidity = min(partial_pressures_pa["H2O"] / surface_saturation, 1.0) if 0.0 < surface_saturation < math.inf else 1.0
+    step = -math.log(HUMIDITY_TOP) / VAPOUR_LAYERS
+    ratio = np.exp(-(np.arange(VAPOUR_LAYERS) + 0.5) * step)
+    exponent = LAPSE_SCALING_CONDENSABLE * (gamma - 1.0) / gamma
+    layer_k = temperature_k * ratio ** exponent
+    held = np.array([humidity * (r - HUMIDITY_TOP) / (1.0 - HUMIDITY_TOP) * saturation.pressure_pa("H2O", t) / (total * r)
+                     for r, t in zip(ratio, layer_k)])
+    return Vapour(pressure_pa=total * ratio, log_step=step, temperature_k=layer_k,
+                  fraction=np.minimum(held, surface_fraction), surface_fraction=surface_fraction,
+                  cloud_cover=humidity / EARTH_HUMIDITY if math.isfinite(surface_saturation) else 0.0)
+
+
+def _vapour_pressure_weight(vapour):
+    """How much of its column a gas that stood at the surface's mole fraction all the way up would have to pass for the vapour's
+    pressure-broadened opacity to be the same: `sum q p^2 / (q_s sum p^2)` over the layers (1 for a well-mixed gas)."""
+    return float(np.sum(vapour.fraction * vapour.pressure_pa ** 2) / (vapour.surface_fraction * np.sum(vapour.pressure_pa ** 2)))
+
+
 def _interpolate(points, x):
     """Linear in x of `[(x, y)]`, flat outside the points."""
     xs = [p[0] for p in points]
@@ -259,26 +343,26 @@ def pair_coefficient(pair, temperature_k):
     return _interpolate(entry[0], temperature_k)
 
 
-def _water_continuum_depth(fractions, temperature_k, pressure_pa, scale_height_m):
-    """The continuum's optical depth in every bin (zero without water vapour)."""
-    x_water = fractions.get("H2O", 0.0)
+def _water_continuum_depth(vapour, molar_mass_kg_mol, gravity_m_s2):
+    """The continuum's optical depth in every bin, summed over the layers of the vapour profile (zero without water vapour)."""
     depth = np.zeros_like(CENTRES_CM1)
-    if x_water <= 0.0:
+    if vapour is None:
         return depth
-    density_cm3 = pressure_pa / (constants.BOLTZMANN * temperature_k) * 1.0e-6
-    height_cm = scale_height_m * 100.0
+    q = vapour.fraction[:, None]
+    density_cm3 = (vapour.pressure_pa / (constants.BOLTZMANN * vapour.temperature_k) * 1.0e-6)[:, None]
+    height_cm = (constants.R * vapour.temperature_k / (molar_mass_kg_mol * gravity_m_s2) * vapour.log_step * 100.0)[:, None]
     nus = [row[0] for row in WATER_CONTINUUM]
     log_self = [math.log(row[1]) for row in WATER_CONTINUUM]
     log_for = [math.log(row[2]) for row in WATER_CONTINUUM]
     exponent = [row[3] for row in WATER_CONTINUUM]
     inside = (CENTRES_CM1 >= nus[0]) & (CENTRES_CM1 <= nus[-1])
     nu = CENTRES_CM1[inside]
-    sigma_self = np.exp(np.interp(nu, nus, log_self)) * (WATER_CONTINUUM_REFERENCE_K / temperature_k) ** np.interp(nu, nus, exponent)
+    cold = (WATER_CONTINUUM_REFERENCE_K / vapour.temperature_k)[:, None]
+    sigma_self = np.exp(np.interp(nu, nus, log_self)) * cold ** np.interp(nu, nus, exponent)
     sigma_for = np.exp(np.interp(nu, nus, log_for))
-    # tau = (sigma_self (n_w / n_ref) + sigma_for (n_for / n_ref)) n_w H / 2 for a well-mixed column: n_w = x_w n0, n_for = (1 - x_w) n0
+    # tau = (sigma_self (n_w / n_ref) + sigma_for (n_for / n_ref)) n_w dz per layer: n_w = q n, n_for = (1 - q) n, dz = H d(ln p)
     reference = WATER_CONTINUUM_REFERENCE_DENSITY_CM3
-    depth[inside] = ((sigma_self * x_water + sigma_for * (1.0 - x_water)) * x_water * density_cm3 ** 2 / reference
-                     * height_cm / 2.0)
+    depth[inside] = (((sigma_self * q + sigma_for * (1.0 - q)) * q * density_cm3 ** 2 / reference) * height_cm).sum(axis=0)
     return depth
 
 
@@ -321,6 +405,11 @@ def optical_depth(partial_pressures_pa, temperature_k, gravity_m_s2):
     weights = planck_weights(temperature_k)
     columns = {formula: fraction * gases.gas(formula).molar_mass * total / (molar_mass * gravity_m_s2)
                for formula, fraction in fractions.items()}
+    vapour = vapour_profile(partial_pressures_pa, temperature_k)
+    if vapour is not None:
+        # the vapour's bands and wings see the pressure of the layer it stands in, so its column counts as much as the well-mixed one that
+        # gives the same pressure-weighted opacity
+        columns["H2O"] *= _vapour_pressure_weight(vapour)
     scaling = total / PRESSURE_REFERENCE_PA
 
     bands = np.zeros_like(CENTRES_CM1)
@@ -333,11 +422,12 @@ def optical_depth(partial_pressures_pa, temperature_k, gravity_m_s2):
             by_gas[formula] = _equivalent(weights, gas_bands + gas_wing)
         bands += gas_bands
         wing += gas_wing
-    continuum = _water_continuum_depth(fractions, temperature_k, total, scale_height)
+    continuum = _water_continuum_depth(vapour, molar_mass, gravity_m_s2)
     pairs = _pair_depth(fractions, temperature_k, total, scale_height)
+    clouds = CLOUD_LONGWAVE_TAU0 * vapour.cloud_cover if vapour is not None else 0.0
     by_part = {"bands": _equivalent(weights, bands), "far_wing": _equivalent(weights, wing), "water_continuum": _equivalent(weights, continuum),
-               "collision_induced": _equivalent(weights, pairs)}
-    tau0 = _equivalent(weights, bands + wing + continuum + pairs)
+               "collision_induced": _equivalent(weights, pairs), "clouds": clouds}
+    tau0 = _equivalent(weights, bands + wing + continuum + pairs) + clouds
     absorber = sum(by_gas.values())
     share = by_gas.get("H2O", 0.0) / absorber if absorber > 0.0 else 0.0
     hydrogen = fractions.get("H2", 0.0) + fractions.get("He", 0.0) > 0.5

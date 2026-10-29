@@ -21,11 +21,11 @@
       "5f1d7ce043386f4f91361a0fd895cbca7569d8674e1f539b8f5b735944ca7c84"
     ],
     "sector-a": [
-      "ba48ef1f209e432267640f105d9bd3d78831a16d6564f636381b42dc62a35ba4",
+      "c9fe435f24e852260d01c4762dc041eb90081f742dd8604b99e8012545adf899",
       "0f8cfb9042f2706b6c6fd4d1971d376259a38c7fbf3de5435c3111da05ba480f"
     ],
     "sector-b": [
-      "865765ea6b5651e94274e3203d6cf997ed4de25af5b164864866939774f7b386",
+      "33c5763a630a38edf4ce11311c59f50430674d5bb61e1c08e3f154a81f9adb39",
       "eb88dd250a28839731cc1341667076ef00b690043e14e86e66702bd0633fc765"
     ],
     "unit-seed": [
@@ -34,10 +34,10 @@
     ]
   },
   "made_on": {
-    "astropy": null,
-    "numpy": "2.5.3",
+    "astropy": "8.0.2",
+    "numpy": "2.5.4",
     "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
     "python": "3.13.17"
   },
-  "overall": "62ea2b7a9d495412568966fb022ad355dac08af0f8a5b655208643024ea02fab"
+  "overall": "5fdcf69c05048324ed5e87aa855f82d9dae8e7d3866b4dd50e9d1eb6c6203eb9"
 }

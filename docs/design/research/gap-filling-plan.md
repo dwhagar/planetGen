@@ -763,6 +763,19 @@ Rows for the stand-ins of the mobile-lid heat law, the mantle ceiling and the th
 | RP2 | P | T2 | L0 | rprocess_enrichment.PRODUCTION_RATIO_RANGE 1.667 to 2.0 (the Th/U production ratio of the r-process, drawn uniform) | the range itself | the uranium of every rocky body | a production ratio outside the range from a nucleosynthesis model | a drawn ratio from a model | Frebel 2007 (second hand; the paper not opened) |
 <!-- interior-heat-standins:end -->
 
+### 6.17 Stand-ins of the water vapour profile and the cloud of the greenhouse (GEN.812)
+
+The greenhouse module (`physics/infrared_opacity.py`) takes the water vapour pressure it is given as the surface's and thins it with height: the humidity falls linearly with pressure (Manabe and Wetherald 1967), the temperature follows the troposphere's `T_s (p/p_s)^beta`, and the vapour stands at that humidity of its saturation pressure at the layer's temperature, never above the surface's mixing ratio. Its continuum and its bands and wings are summed over that profile. The module gives the clear-sky greenhouse of the Earth (266 W/m2 outgoing at 288 K against the measured clear-sky 266); the clouds the all-sky Earth carries (26.5 W/m2 of longwave effect, CERES EBAF) are one more grey optical depth, scaled with the surface humidity.
+
+<!-- greenhouse-standins:begin -->
+| fill_id | kind | tier | tweak | evidence | constant | knobs | validity | falsifier | replaced_by |
+|---|---|---|---|---|---|---|---|---|---|
+| GH1 | P | T7 | L0 | READ for the Earth (Manabe and Wetherald 1967: relative humidity h = h_s (p/p_s - 0.02)/0.98, h_s 0.77); carried to other gases, pressures and gravities from the Earth, which is the inference | infrared_opacity.HUMIDITY_TOP, vapour_profile | the 0.02 top and the linear fall: 0.01 to 0.05 | a temperate air with water below its critical temperature; a supercritical surface keeps its vapour mixed until the cold condenses it | test_the_vapour_thins_with_height_and_holds_about_the_measured_column_for_the_earth | a convective-adjustment humidity from the lapse rate itself (a moist-adiabat model) |
+| GH2 | D | T6 | L0 | COMPUTED (the troposphere of Robinson and Catling 2012: T = T_s (p/p_s)^beta, beta = alpha (gamma - 1)/gamma, with alpha 0.6 for an air whose opacity is condensable vapour) | infrared_opacity.LAPSE_SCALING_CONDENSABLE used by vapour_profile | alpha 0.5 to 0.7 | a troposphere under the radiative-convective boundary | test_the_layered_continuum_converges_with_the_number_of_layers | a moist adiabat that follows the latent heat of the vapour |
+| GH3 | P | T9 | L2 | none for the value: set so the Earth twin (1 bar N2, 400 ppm CO2, 239 W/m2) at its own fixed point sits at the measured 288 K; the published statistic is the cloud longwave effect, 26.5 W/m2 (CERES EBAF, recalled, not opened), of which the module needs 17 W/m2 because its clear-sky greenhouse is a little thick (256 W/m2 absorbed holds 288 K, against the measured clear-sky 266) | infrared_opacity.CLOUD_LONGWAVE_TAU0 | 0.2 to 0.6 | an air with water vapour below its critical temperature | test_an_earth_twin_at_its_own_fixed_point_lands_within_two_kelvin_of_the_measured_288 | a cloud model (condensate path from the saturation excess, particle size, cloud top) |
+| GH4 | P | T7 | L0 | design (the cloud scales with the surface humidity over the Earth's 0.77, and is nil where the surface is above water's critical temperature) | infrared_opacity.EARTH_HUMIDITY, Vapour.cloud_cover | linear to square root of the humidity | a temperate air with water | test_the_cloud_scales_with_the_surface_humidity_and_adds_its_depth_to_the_rest | a cloud model |
+<!-- greenhouse-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
