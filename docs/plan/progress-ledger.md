@@ -1686,3 +1686,4 @@ Baseline: PR #1817.
 | UX.233 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.209 | 8.1 | Consistency |
 | TEST.210 | 8.1 | Consistency |
+| TEST.214 | 8.1 | Composition proofs |
