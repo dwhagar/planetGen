@@ -7,8 +7,9 @@ scatter places (`generation.phenomenon_scatter.SCATTER_CLASSES`) against what su
 The total of a class is what the scatter expects over the whole reference galaxy: `shell_expected_by_class` summed over every shell
 of the outline (`galaxy.skeleton.build_shell_extents`), with no mass cut so that the objects the sectors draw below it count too. It is
 an expectation, not a draw (the draw of a shell matches it within Poisson noise: `test_phenomenon_scatter.py`), so a range is the
-researched range itself and a repeat gives the same figure. The galaxy is the Milky Way's published shape (`tests.test_satellites.SHAPE`:
-a 2.6 kpc disk, a 300 pc thin disk height, a 1.58 kpc bulge, two arms), the one the other audits read profiles from.
+researched range itself and a repeat gives the same figure. The galaxy is a Milky Way-like one (`milky_way_like_shape`: the published
+stellar mass, a 2.6 kpc disk, a 300 pc thin disk height, a bulge a fifth of the stars, two arms), drawn through the generator's own shape
+chain so that its mass, history and density agree, which `tests.test_satellites.SHAPE` (a disk and bulge of equal mass, no mass chain) does not.
 
 `tests/data/prevalence_phenomena_expectations.json` holds the ranges (`min`, `max`, `kind`, `source`, optional `anomaly`), whose kinds
 are `observed` (a count in a survey, a floor when the range's `source` says so), `norm` (a researched estimate) or `stand-in`. A flag
@@ -16,6 +17,7 @@ is a total outside its range with no known item; known ones print in the latest-
 listed as stale there.
 """
 
+import functools
 import json
 import multiprocessing
 import os
@@ -54,17 +56,48 @@ WR_CHUNK = 30000
 
 _STATE = {}
 
+MILKY_WAY_STELLAR_MASS_SOLAR = 5.2e10
+"""float: The Milky Way's stellar mass, solar masses (Licquia and Newman 2015, 5.17e10 +- 1.1e10, recalled)."""
+MILKY_WAY_BULGE_TO_TOTAL = 0.2
+"""float: The share of the Milky Way's stars in its bulge and bar (Bland-Hawthorn and Gerhard 2016: about 1e10 of 5e10, recalled)."""
+MILKY_WAY_STELLAR_HALO_SHARE = 0.02
+"""float: The share of the Milky Way's stars in its stellar halo (Bland-Hawthorn and Gerhard 2016: 4 to 7e8 of 5e10, recalled)."""
+
+
+@functools.lru_cache(maxsize=1)
+def milky_way_like_shape():
+    """
+    The reference galaxy of the census: the shape the generator's own chain draws with the Milky Way's mass, disk scale length (2.6 kpc),
+    thin disk height (300 pc), bulge share, stellar halo share and two arms at the pitch of `tests.test_satellites.SHAPE` (so the reference
+    place is the same), the rest from the mass chain's fixed fallback seed. Its thin disk, thick disk, bulge and halo add to the stellar
+    mass, and the disk history is run on that same mass. (`SHAPE` has no `masses`, so its history runs on a median galaxy a half larger than
+    its density holds, and its bulge weighs as much as its thin disk: it holds too few young stars for its history, and the supernova
+    remnants, magnetars and Wolf-Rayet stars that follow them, GEN.900 to GEN.902.)
+    """
+    import math
+
+    from planetgen.galaxy import density, shape_draw
+
+    drawn = shape_draw.draw_galaxy(
+        None, stellar_mass_solar=MILKY_WAY_STELLAR_MASS_SOLAR, disk_scale_length_pc=2600.0, flatness=2600.0 / 300.0,
+        bulge_to_total=MILKY_WAY_BULGE_TO_TOTAL, arm_count=2, pitch_angle_deg=15.0,
+        stellar_halo_share=MILKY_WAY_STELLAR_HALO_SHARE)
+    return density.build_galaxy_shape(
+        disk_scale_length_pc=drawn.disk_scale_length_pc, disk_scale_height_pc=drawn.disk_scale_height_pc,
+        bulge_scale_radius_pc=drawn.bulge_scale_radius_pc, bulge_amplitude=drawn.bulge_amplitude, arm_count=drawn.arm_count,
+        pitch_angle_rad=math.radians(drawn.pitch_angle_deg), arm_amplitude=0.4, arm_level=1.0,
+        masses=(drawn.chain.stellar_mass_solar, drawn.chain.halo_mass_solar), structure=drawn.structure)
+
 
 def _setup():
     from planetgen import tuning
     from planetgen.galaxy import skeleton
     from planetgen.physics.units import ly_to_pc
-    from tests import test_satellites as satellites
-
+    shape = milky_way_like_shape()
     edge_pc = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
     e_value = skeleton.expected_system_count_at_density_1()
-    extents, _outer, _confirmed = skeleton.build_shell_extents(satellites.SHAPE, edge_pc, 1.0 / e_value)
-    return satellites.SHAPE, edge_pc, e_value, extents
+    extents, _outer, _confirmed = skeleton.build_shell_extents(shape, edge_pc, 1.0 / e_value)
+    return shape, edge_pc, e_value, extents
 
 
 def _job(bounds):
@@ -156,13 +189,12 @@ def rate_values():
     from planetgen.galaxy import skeleton
     from planetgen.generation import open_clusters
     from planetgen.physics.units import ly_to_pc
-    from tests import test_satellites as satellites
 
     scale = tuning.PHENOMENON_RATE_SCALE
     reference = tuning.REFERENCE_STELLAR_DENSITY_PC3
     terrestrial = tuning.ROGUE_PLANET_MASS_BINS["terrestrial"][2] * scale["rogue-planet"]
     edge_pc = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
-    clusters = open_clusters.generate_open_clusters(OPEN_CLUSTER_SEED, satellites.SHAPE, edge_pc, skeleton.expected_system_count_at_density_1())
+    clusters = open_clusters.generate_open_clusters(OPEN_CLUSTER_SEED, milky_way_like_shape(), edge_pc, skeleton.expected_system_count_at_density_1())
     return {
         "rogue_terrestrial_per_star": terrestrial,
         "rogue_terrestrial_per_pc3": terrestrial * reference,
