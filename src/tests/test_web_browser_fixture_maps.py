@@ -880,7 +880,7 @@ def test_a_superbubble_has_a_crisp_rim_brighter_than_its_fill_and_a_fill_fainter
     page.emulate_media(color_scheme=scheme)
     _open_galaxy(page, far_site, "")
     x, y, z, radius = FAR_BUBBLE
-    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})",
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, radius: r})",
                   [[x, y, z], radius * 1.25])
     _settle(page)
     page.wait_for_timeout(500)
