@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2494] - 2026-10-29
+
+**Headline:** The toxic gas limits behind the survival equipment line are now read from the NIOSH Pocket Guide instead of recalled, and a test holds the gas filter grade to the physics.
+
+### Changed
+- **The toxic rows are verified (GEN.657).** Each of the ten rows in `protection_limits.TOXIC_GASES` now cites its NIOSH Pocket Guide entry; the nitrogen dioxide IDLH is 13 ppm (NIOSH 2017-202), where the design draft had recalled 20 ppm. No world reads nitrogen dioxide yet, so no generated value changes. `tests/test_equipment.py` holds each published IDLH and checks that the gas filter grade follows the ratio to the long-term limit, that a gas past its IDLH asks for own air, and that a corrosive one asks for the chemical-barrier suit.
+
+TODO items resolved: none (GEN.657 stays open: reading the stored ammonia, hydrogen cyanide and the other toxic gases into the equipment rules changes stored values and waits for the generation lock). Added: none.
+
 ## [8.0.2493] - 2026-10-29
 
 **Headline:** The property sheet now states, for every column, the physical rule that makes it not apply to a body, and a test fails when an applicable column is empty without a filed item.
