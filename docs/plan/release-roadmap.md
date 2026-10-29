@@ -117,7 +117,7 @@ Lanes: not assigned; GEN.378 is proposed for Core 1 (it writes GEN.368's table),
 Status: Boss named it (7:41 PM EDT); items filed; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Sentient life: sentient species and civilizations draw from the life classes (the carbon life classes themselves are built in 8.1)
 Today: (new)
-Change: New headline (Boss, 7:41 PM EDT 2026-10-28): the sentient life portion is left for 9.5. The life class system for carbon life moved into 8.1 (Boss, 9:10 PM EDT: GEN.862 and GEN.863), so 9.5 holds sentient life and its census. Three items remain in 2 phases after GEN.862, GEN.863, GEN.874 and GEN.885 moved to 8.1 (Boss, 9:10 and 9:11 PM EDT: no approval needed for non-carbon classes either; animals at most, never sentient). Carbon and water based life first; any other chemistry needs Boss's approval before it is built. The share of worlds with sentient life stays as it is.
+Change: New headline (Boss, 7:41 PM EDT 2026-10-28): the sentient life portion is left for 9.5. The life class system for carbon life moved into 8.1 (Boss, 9:10 PM EDT: GEN.862 and GEN.863), so 9.5 holds sentient life and its census. Three items remain in 2 phases after GEN.862, GEN.863, GEN.874 and GEN.885 moved to 8.1 (Boss, 9:10 and 9:11 PM EDT: no approval needed for non-carbon classes either; open build, sentient life stays 9.5). Carbon and water based life first; any other chemistry needs Boss's approval before it is built. The share of worlds with sentient life stays as it is.
 Needs: the atmosphere of evolution and the life timeline of 8.1 (GEN.855, GEN.750, GEN.858), and the prevalence suite (TEST.430).
 Lanes: not assigned; the work sits after 8.1.
 

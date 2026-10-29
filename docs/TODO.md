@@ -13811,6 +13811,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Sentient life stays in 9.5 (GEN.864). A design thread (Design carbon
   life class system) feeds the sub-items; the design may change GEN.875
   to GEN.884. Non-carbon classes remain proposals (GEN.874).
+  Research (2026-10-09): Boss, 9:12 PM EDT 2026-10-28: open build, no
+  more restrictions on life chemistry; the assumption is that if life is
+  possible it develops (so 'stop at animals' and the carbon-only limit
+  no longer apply to the chemistry; sentient life still waits for 9.5 at
+  today's share of worlds). Earlier proposal-only labels and the
+  animals-at-most cap are void.
   Prerequisites: GEN.855, GEN.750, GEN.858. Related: GEN.857, GEN.861.
 
 - [ ] **GEN.863 Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters**
@@ -13969,12 +13975,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.867, GEN.868, GEN.870, GEN.871, GEN.855. Related:
   TEST.430.
 
-- [ ] **GEN.874 Non-carbon and non-water life classes (silicon, hydrocarbon, sulfuric acid and ammonia solvents) in the life class system, animals at most and never sentient**
+- [ ] **GEN.874 Non-carbon and non-water life classes (silicon, hydrocarbon, sulfuric acid and ammonia solvents) in the life class system**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 8, fix 18.
   Boss, 9:11 PM EDT 2026-10-28: no approvals needed at all, we are
-  building it and a whole new classification system (stop at animals,
-  never sentient). Design basis: reports/non-carbon-life-climates-2026-10-28.md
+  building it and a whole new classification system (no chemistry restrictions;
+  sentient life stays 9.5). Design basis: reports/non-carbon-life-climates-2026-10-28.md
   and the carbon life class design. Silicon backbone (Bains 2004; Petkowski
   2020: weak Si-Si bonds, Si oxidises to solid SiO2; works only in
   cryogenic hydrocarbons, concentrated H2SO4 or HF), liquid hydrocarbon
@@ -13985,6 +13991,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life class (atmosphere, temperature, pressure, consumes and produces)
   in the GEN.862 system. Done when the classes are generated, scored and
   shown, with tests.
+  Research (2026-10-09): Boss, 9:12 PM EDT 2026-10-28: open build, no
+  more restrictions on life chemistry; the assumption is that if life is
+  possible it develops (so 'stop at animals' and the carbon-only limit
+  no longer apply to the chemistry; sentient life still waits for 9.5 at
+  today's share of worlds). Earlier proposal-only labels and the
+  animals-at-most cap are void.
   Prerequisites: GEN.862.
 
 - [ ] **GEN.875 Design: adaptation traits drawn from a world's own stress (radiation, UV, sulfide, acid, brine, heat or cold, high CO2, low O2, toxins), each moving one named habitability threshold**
@@ -14114,7 +14126,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wait for 9.5.
   Prerequisites: GEN.877.
 
-- [ ] **GEN.885 Route R5, alternate-oxidant airs (nitrate-rich water, nitrous oxide, chlorate and perchlorate brines) for non-oxygen breathers, animals at most**
+- [ ] **GEN.885 Route R5, alternate-oxidant airs (nitrate-rich water, nitrous oxide, chlorate and perchlorate brines) for non-oxygen breathers**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 7.2 R5, fix 16.
   Microbes only on Earth (perchlorate respiration, Coates and Achenbach
@@ -14122,6 +14134,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   approvals needed, build it with the life classes. Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water and
   carbon based, stop at animals; sentient life and the life class system
   wait for 9.5.
+  Research (2026-10-09): Boss, 9:12 PM EDT 2026-10-28: open build, no
+  more restrictions on life chemistry; the assumption is that if life is
+  possible it develops (so 'stop at animals' and the carbon-only limit
+  no longer apply to the chemistry; sentient life still waits for 9.5 at
+  today's share of worlds). Earlier proposal-only labels and the
+  animals-at-most cap are void.
   Prerequisites: GEN.877.
 
 ## PERF: Speed, caching, bulk generation and parallel work
