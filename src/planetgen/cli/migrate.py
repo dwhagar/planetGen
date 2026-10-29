@@ -187,7 +187,7 @@ def close_site_for_the_sector_switch(config, write=print):
 
 
 @contextlib.contextmanager
-def _update_guard(config, cancel_running):
+def _update_guard(config, yes):
     """
     OPS.41 and OPS.53 for a migration run by hand: when there is something to migrate and `update.sh` is not
     running it (it holds the guard already), list the running work and ask before cancelling it, close the site
@@ -206,7 +206,7 @@ def _update_guard(config, cancel_running):
         return
     pid = os.getpid()
     if not updateguard.begin(pid, by="migrate", config=config, interactive=sys.stdin.isatty(),
-                             cancel_running=cancel_running):
+                             yes=yes, unattended=updateguard.started_unattended()):
         sys.exit(1)
     ok = False
     try:
@@ -226,7 +226,7 @@ def main():
                      "alongside it.",
     )
     add_mysql_connection_args(parser)
-    parser.add_argument("--cancel-running", action="store_true",
+    parser.add_argument("--yes", action="store_true",
                         help="Cancel running and queued work without asking, when a migration is pending "
                              "and this is not run by update.sh.")
     parser.add_argument("--status", action="store_true",
@@ -247,7 +247,7 @@ def main():
         print(version, SCHEMA_VERSION, pending, config.database)
         return
 
-    with _update_guard(config, args.cancel_running):
+    with _update_guard(config, args.yes):
         close_site_for_the_sector_switch(config)
         try:
             version = _migrate_with_progress(config)

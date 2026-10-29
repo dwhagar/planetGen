@@ -191,10 +191,10 @@ before it changes anything, so the only thing that runs is the update:
 
 1. **It lists the running and queued work** (a Generate job, a `planetgen` run from the command line, jobs on the
    shared queues, an orbital update, a Galaxy Map warm-up from an earlier update) and **stops, having changed and
-   cancelled nothing, unless you agree to cancel it.** On a terminal it asks (y/N). With no terminal (the
-   maintenance timer, cron) it refuses with exit status 1 and names the work; add `--cancel-running` to cancel it:
-   `sudo ./update.sh --cancel-running`. Each piece is stopped through its own cancel path and the update waits (up
-   to 10 minutes) until none is left; one that does not stop is reported and the update stops before any change.
+   cancelled nothing, unless you agree to cancel it** (DB.29). On a terminal it asks (y/N) and waits 30 seconds:
+   silence is a no. A run started by systemd or cron, or with no terminal, asks nothing and takes that as no: it
+   refuses with exit status 1 and names the work; add `--yes` to cancel it: `sudo ./update.sh --yes`. Each piece is stopped through its own
+   cancel path and the update waits (up to 10 minutes) until none is left; one that does not stop is reported and the update stops before any change.
 2. **It closes the site**: maintenance mode on with the cause "update" and a lock, `update.lock`, in the state
    folder (`/var/lib/planetGen/state`). Visitors get the "being updated" page; admins can still sign in.
 3. **Nothing new starts** until the update ends: the Generate page and the API refuse to queue work ("the site is
@@ -212,7 +212,7 @@ what the guard lists, kills the queue workers on the machine, and empties the jo
 control database and the queues in Redis (the RQ keys only: the admin's worker count and the caches stay). It cancels
 without asking, so use it when nothing needs to finish.
 
-`python3 -m planetgen.cli.migrate` run by hand does the same when it has something to migrate (`--cancel-running`
+`python3 -m planetgen.cli.migrate` run by hand does the same when it has something to migrate (`--yes`
 works there too). `update.sh` never edits your Redis configuration or your Apache site.
 
 ## After deploying

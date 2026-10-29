@@ -78,11 +78,14 @@
 # ./install.sh` is still there for a full reinstall.
 #
 # Before it changes anything (OPS.41, OPS.53) it takes the update guard
-# (`planetgen.cli.update_guard`): it lists every running or queued piece of
-# work (Generate jobs, work queue runs, queued jobs, the orbital update, the
-# Galaxy Map warm-up) and stops, changing nothing, unless you agree to cancel
-# them (a question on the terminal; without one, e.g. the maintenance timer,
-# add --cancel-running). Then it closes the site (maintenance mode, cause
+# (`planetgen.cli.update_guard`, DB.29): it lists every running or queued piece
+# of work (Generate jobs, runs in the run record, queued jobs, the orbital
+# update, the Galaxy Map warm-up) and stops, changing nothing, unless you
+# agree to cancel them: --yes, or a y typed at the question on the terminal.
+# Nobody to ask is a no: a run started by systemd or cron, one with no
+# terminal, and 30 seconds without an answer all stop it, with exit status 1,
+# unless --yes was given (the maintenance timer adds it when it should cancel
+# the work). Then it closes the site (maintenance mode, cause
 # "update") and nothing else can start until the update has finished. A good
 # update opens the site again at the end; a failed one leaves it closed, says
 # which step failed and how to open it (`python3 -m planetgen.cli.maintenance
@@ -98,11 +101,11 @@
 # --kill-all (PERF.186) is the full stop: before the guard it runs `planetgen queue stop-all --no-hold`, the same
 # routine as the Stop everything button on the Queue page. It cancels every run and the Generate page's job, empties
 # every queue, and ends every planetgen worker and command process on the host with the processes they started,
-# including the ones nothing lists any more, and implies --cancel-running. It is only run when you give it. It does
+# including the ones nothing lists any more, and implies --yes. It is only run when you give it. It does
 # not leave the stop-all hold on (the update's own lock keeps new work out, and the site works after it).
 #
 # Usage:
-#   sudo ./update.sh [--cancel-running] [--reset-jobs] [--kill-all]
+#   sudo ./update.sh [--yes] [--reset-jobs] [--kill-all]
 #   sudo PYTHON=/usr/bin/python3.12 ./update.sh   (make the venv from another Python)
 #
 # Forces the checkout to match origin's branch tip even if there are
@@ -123,15 +126,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/logrecord.sh
 source "$SCRIPT_DIR/scripts/logrecord.sh"
 
-CANCEL_RUNNING=()
+ANSWER_YES=()
 RESET_JOBS=0
 KILL_ALL=0
 for arg in "$@"; do
     case "$arg" in
-        --cancel-running) CANCEL_RUNNING=(--cancel-running) ;;
+        --yes) ANSWER_YES=(--yes) ;;
         --reset-jobs) RESET_JOBS=1 ;;
-        --kill-all) KILL_ALL=1; CANCEL_RUNNING=(--cancel-running) ;;
-        *) log_error "unknown argument '$arg' (the options are --cancel-running, --reset-jobs and --kill-all)."; exit 2 ;;
+        --kill-all) KILL_ALL=1; ANSWER_YES=(--yes) ;;
+        *) log_error "unknown argument '$arg' (the options are --yes, --reset-jobs and --kill-all)."; exit 2 ;;
     esac
 done
 

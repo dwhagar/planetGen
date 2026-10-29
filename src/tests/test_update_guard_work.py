@@ -44,13 +44,13 @@ def test_running_work_is_listed_and_without_a_terminal_the_update_refuses(say, l
     text = "\n".join(lines)
     assert "Generate sectors 12-14 (generate job-0, running, started 2026-10-16T03:00:00Z; holds the work lease)" in text
     assert "Orbital update (generate job-1, queued" in text
-    assert "--cancel-running" in text and "nothing was changed" in text
+    assert "--yes" in text and "nothing was changed" in text
     sure_nothing_changed(fake)
 
 
 def test_the_flag_is_the_operators_word_to_cancel(say, lines):
     fake = FakeWork("Generate sectors", "Warm-up")
-    assert begin(sources=[fake], cancel_running=True, write=say)
+    assert begin(sources=[fake], yes=True, write=say)
     assert sorted(fake.cancelled) == ["job-0", "job-1"] and fake.items() == []
     assert maintenance.read()["cause"] == updateguard.UPDATE_CAUSE and updateguard.read_lock() is not None
     assert "Everything stopped" in "\n".join(lines)
@@ -70,13 +70,13 @@ def test_a_queued_job_is_listed_and_cancelled_like_a_running_one(say, lines):
     fake = FakeWork("Backfill", queued=("Backfill",))
     assert not begin(sources=[fake], write=say)
     assert "queued" in "\n".join(lines)
-    assert begin(sources=[fake], cancel_running=True, write=say)
+    assert begin(sources=[fake], yes=True, write=say)
     assert fake.cancelled == ["job-0"]
 
 
 def test_a_job_that_does_not_stop_in_time_is_reported_and_the_update_stops_before_any_change(say, lines):
     fake = FakeWork("Stubborn run", stops=False)
-    assert not begin(sources=[fake], cancel_running=True, write=say, timeout=0.1)
+    assert not begin(sources=[fake], yes=True, write=say, timeout=0.1)
     text = "\n".join(lines)
     assert "did not stop within" in text and "Stubborn run" in text and "nothing was changed" in text
     assert fake.cancelled == ["job-0"]       # asked once, not every poll
@@ -106,7 +106,7 @@ def test_work_that_starts_after_the_word_is_cancelled_too(say):
             return super().items() if Late.looks > 1 else []
 
     late = Late("Started a moment ago")
-    assert begin(sources=[late], cancel_running=True, write=say)
+    assert begin(sources=[late], yes=True, write=say)
     assert late.cancelled == ["job-0"]
 
 
@@ -174,7 +174,7 @@ def test_a_registered_run_is_listed_stopped_and_forgotten(say):
         assert [(item["kind"], item["pid"]) for item in found] == [("orbits", child.pid)]
         assert not begin(sources=[source], write=say)
         assert child.poll() is None
-        assert begin(sources=[source], cancel_running=True, write=say, timeout=30, poll=0.1)
+        assert begin(sources=[source], yes=True, write=say, timeout=30, poll=0.1)
         assert child.wait(timeout=30) != 0 and source.items() == []
     finally:
         child.kill()

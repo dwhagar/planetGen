@@ -601,7 +601,7 @@ kill_all_once() {
 # have the guard (the first update that brings it) and a new machine may have
 # no virtual environment: then this does nothing, and is called again after
 # the pull and after step 2. With the argument "required" it fails the update
-# instead of doing nothing. Needs CANCEL_RUNNING (an array, maybe empty).
+# instead of doing nothing. Needs ANSWER_YES (an array, maybe empty).
 ensure_update_guard() {
     kill_all_once
     if (( UPDATE_GUARD_HELD )); then
@@ -616,7 +616,7 @@ ensure_update_guard() {
         return 0
     fi
     reset_jobs_once
-    if update_guard begin --pid "$$" ${CANCEL_RUNNING[@]+"${CANCEL_RUNNING[@]}"}; then
+    if update_guard begin --pid "$$" ${ANSWER_YES[@]+"${ANSWER_YES[@]}"}; then
         UPDATE_GUARD_HELD=1
     else
         echo "error: the update did not start." >&2

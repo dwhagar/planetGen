@@ -51,5 +51,5 @@ EnvironmentFile=-/etc/planetgen/maintenance.env
 # With work running (a Generate job, a queued run, an orbital update) and no
 # terminal to ask on, update.sh refuses and changes nothing (OPS.53), so this
 # unit fails that month and the next firing tries again. To cancel the work
-# instead, add `--cancel-running`: ExecStart=/var/lib/planetGen/update.sh --cancel-running
+# instead, add `--yes`: ExecStart=/var/lib/planetGen/update.sh --yes
 ExecStart=/var/lib/planetGen/update.sh

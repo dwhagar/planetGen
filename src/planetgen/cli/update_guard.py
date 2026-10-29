@@ -5,12 +5,13 @@
 What `update.sh` runs to close the site and clear the machine before it changes anything, and to open the site
 again when it has finished (OPS.41, OPS.53; `planetgen.admin.updateguard` says how).
 
-    python3 -m planetgen.cli.update_guard begin --pid PID [--cancel-running]
+    python3 -m planetgen.cli.update_guard begin --pid PID [--yes]
     python3 -m planetgen.cli.update_guard end --pid PID [--failed [--step NAME]]
     python3 -m planetgen.cli.update_guard status
 
 `begin` lists every running or queued piece of work and goes on only if there is none or the operator agrees to
-cancel it (a question on the terminal; where there is none, `--cancel-running`). It exits 0 to go on and 1 when
+cancel it (`--yes`, or a y typed on the terminal within 30 seconds; a run started by systemd or cron, one with no
+terminal and silence are all a no, DB.29). It exits 0 to go on and 1 when
 the update must not (nothing is changed then). `end` opens the site again, or, with `--failed`, leaves it closed
 and says how to open it. `status` prints whether an update runs and what runs.
 """
@@ -27,7 +28,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("command", choices=("begin", "end", "status"))
     parser.add_argument("--pid", type=int, help="The update's process id (it holds the lock while it lives).")
-    parser.add_argument("--cancel-running", action="store_true",
+    parser.add_argument("--yes", action="store_true",
                         help="Cancel the running and queued work without asking.")
     parser.add_argument("--failed", action="store_true", help="With end: the update failed.")
     parser.add_argument("--step", default=None, help="With end --failed: the step that failed.")
@@ -56,7 +57,7 @@ def main(argv=None):
         parser.error(f"{args.command} needs --pid")
     if args.command == "begin":
         ok = updateguard.begin(args.pid, config=config, interactive=sys.stdin.isatty(),
-                               cancel_running=args.cancel_running)
+                               yes=args.yes, unattended=updateguard.started_unattended())
         return 0 if ok else 1
     updateguard.end(args.pid, ok=not args.failed, step=args.step)
     return 0

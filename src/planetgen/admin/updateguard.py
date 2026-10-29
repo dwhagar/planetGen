@@ -11,12 +11,13 @@ migrate) changes the checkout and the databases, nothing else may run:
   `UPDATE_CAUSE` before anything changes and turned off only when the update has finished. An update that fails
   leaves it on, with a message naming the step and the command that turns it off, because the database may be
   half migrated.
-* **Running work is listed first and stopped only with the operator's word** (OPS.53): every Generate job, work
-  queue run, queued job on the shared queues and long command-line run (the orbital update, the Galaxy Map
-  warm-up) is printed; the update goes on only when the operator agrees to cancel them (a question on the
-  terminal, or `--cancel-running` where there is none), each is stopped through its own cancel path, and the
-  update waits until none is left. A job that does not stop in time is reported and the update stops before it has
-  changed anything.
+* **Running work is listed first and stopped only with the operator's word** (OPS.53, DB.29): every Generate job,
+  run in the run record (PERF.96), queued job on the shared queues and long command-line run (the orbital update,
+  the Galaxy Map warm-up) is printed; the update goes on only when the operator agrees to cancel them (`--yes`, or
+  a typed y on the terminal), each is stopped through its own cancel path, and the update waits until none is
+  left. A job that does not stop in time is reported and the update stops before it has changed anything. Nobody
+  to ask is a no: a run started by systemd or cron (`started_unattended`) and one with no terminal refuse unless
+  `--yes` was given, and a question left unanswered for `PROMPT_SECONDS` is a no too.
 * **Nothing new starts** (OPS.53, OPS.54): the update takes a lock, `update.lock` in the state folder, and
   `refuse_while_updating` (called by the Generate page's job starter, the API's job queue, the work queue's runs,
   the queue's workers and the orbital update) refuses for as long as the lock is held by a live process or the
@@ -30,7 +31,10 @@ the guard sees it. This module imports no Flask and, at import time, nothing out
 import contextlib
 import json
 import os
+import re
+import select
 import signal
+import sys
 import tempfile
 import time
 from datetime import datetime, timezone
@@ -63,6 +67,15 @@ STOP_SECONDS = 600
 
 POLL_SECONDS = 2.0
 """float: How often it looks again while it waits."""
+
+PROMPT_SECONDS = 30
+"""int: How long the question to cancel the running work waits for an answer; silence is a no (DB.29)."""
+
+TIMER_PARENTS = ("cron", "crond", "anacron", "atd")
+"""tuple: The names of the processes whose children have no person at the keyboard."""
+
+UNIT_JOB = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{8}-s\d+-u\d+$")
+"""re.Pattern: The id of a queue job that is a unit of a run (`queue/units.py`'s `job_id`): the run lists it."""
 
 TURN_OFF_HINT = "python -m planetgen.cli.maintenance off"
 """str: The command that opens the site again after a failed update."""
@@ -343,6 +356,8 @@ class QueuedJobSource:
             for state, ids in (("queued", queue.get_job_ids()),
                                ("running", queue.started_job_registry.get_job_ids())):
                 for job_id in ids:
+                    if UNIT_JOB.match(job_id):
+                        continue        # a unit of a run: the run is listed (and cancelled) instead
                     job = redisqueue.fetch_job(job_id, connection, redisqueue.serializer_for(name))
                     started = job.started_at or job.enqueued_at if job is not None else None
                     found.append({"source": self.name, "kind": name, "id": job_id,
@@ -357,13 +372,111 @@ class QueuedJobSource:
         return True
 
 
+class RunRecordSource:
+    """The runs whose record in Redis says they are live (`queue/runrecord.py`, PERF.96): a `planetgen` run from
+    the command line, one a Generate job started, a check or a warm-up. Cancelled through `runcontrol.cancel_run`
+    (PERF.99), which takes the run's waiting units off the queue and stops the started ones."""
+
+    name = "run-record"
+
+    def __init__(self, url=None):
+        self.url = url
+
+    def _connection(self):
+        from planetgen.queue import redisqueue
+        connection = redisqueue.connect(self.url or redisqueue.redis_url())
+        connection.ping()
+        return connection
+
+    def items(self):
+        from planetgen.queue import runrecord
+        try:
+            connection = self._connection()
+        except Exception:  # noqa: BLE001 -- no Redis server: no run records
+            return []
+        found = []
+        for run_id in runrecord.recent_runs(connection, limit=100_000):
+            run = runrecord.read_run(connection, run_id)
+            if run is None or run["state"] not in runrecord.LIVE_STATES:
+                continue
+            started = run["started"] or run["created"]
+            found.append({"source": self.name, "kind": run["kind"], "id": run_id, "title": run["title"],
+                          "started": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started)) if started else None,
+                          "holds": "the generation slot" if run["kind"] == runrecord.GENERATION else "a run slot",
+                          "queued": False})
+        return found
+
+    def cancel(self, item):
+        from planetgen.queue import runcontrol
+        return runcontrol.cancel_run(self._connection(), item["id"], who="update") is not None
+
+
 def default_sources(config=None, url=None):
-    """The sources the guard looks at: Generate jobs, work queue runs, queued jobs, registered runs."""
+    """The sources the guard looks at: Generate jobs, work queue runs, runs in the run record, queued jobs,
+    registered runs."""
     control = None
     if config is not None:
         from planetgen.db import store
         control = store.control_mysql_config(config)
-    return [GenerateJobSource(), WorkRunSource(control), QueuedJobSource(url), MarkerSource()]
+    return [GenerateJobSource(), WorkRunSource(control), RunRecordSource(url), QueuedJobSource(url), MarkerSource()]
+
+
+# ---------------------------------------------------------------------
+# Whether there is anybody to ask
+# ---------------------------------------------------------------------
+
+def _parent_names(pid=None):
+    """The names of this process's ancestors, nearest first (Linux `/proc`; empty where there is none)."""
+    names = []
+    pid = os.getppid() if pid is None else pid
+    while pid > 1 and len(names) < 32:
+        try:
+            with open(f"/proc/{pid}/stat", "rb") as handle:
+                text = handle.read().decode("utf-8", "replace")
+        except OSError:
+            break
+        names.append(text.partition("(")[2].rpartition(")")[0])
+        fields = text.rpartition(")")[2].split()
+        pid = int(fields[1]) if len(fields) > 1 else 0
+    return names
+
+
+def started_unattended(environ=None, parents=None, stdin_is_terminal=None):
+    """
+    Whether systemd or cron started this run, so nobody is at the keyboard (DB.29): it takes the answer to "cancel
+    the running work?" as no unless `--yes` was given.
+
+    systemd sets `JOURNAL_STREAM` for a service whose output goes to the journal, and `INVOCATION_ID` for every
+    process of a unit (a terminal opened in a desktop session has that one too, and a terminal on its stdin);
+    cron is the name of an ancestor process.
+
+    Returns:
+        str | None: `"systemd"`, `"cron"`, or `None` when a person may be there.
+    """
+    environ = os.environ if environ is None else environ
+    if stdin_is_terminal is None:
+        stdin_is_terminal = sys.stdin is not None and sys.stdin.isatty()
+    if environ.get("JOURNAL_STREAM") or (environ.get("INVOCATION_ID") and not stdin_is_terminal):
+        return "systemd"
+    names = _parent_names() if parents is None else parents
+    return "cron" if any(name in TIMER_PARENTS for name in names) else None
+
+
+def answer_within(question, seconds=PROMPT_SECONDS, stdin=None):
+    """
+    Asks `question` on the terminal and waits `seconds` for a line.
+
+    Returns:
+        str | None: The reply, or `None` when none came in time (no answer is a no).
+    """
+    stdin = sys.stdin if stdin is None else stdin
+    sys.stdout.write(question)
+    sys.stdout.flush()
+    ready, _, _ = select.select([stdin], [], [], seconds)
+    if not ready:
+        sys.stdout.write("\n")
+        return None
+    return stdin.readline()
 
 
 def list_running(sources):
@@ -423,8 +536,8 @@ def wait_until_idle(sources, timeout=STOP_SECONDS, poll=POLL_SECONDS, write=prin
 # Beginning and ending an update
 # ---------------------------------------------------------------------
 
-def begin(pid, by="update.sh", sources=None, config=None, interactive=False, cancel_running=False,
-          answer=input, write=print, timeout=STOP_SECONDS, poll=POLL_SECONDS):
+def begin(pid, by="update.sh", sources=None, config=None, interactive=False, yes=False, unattended=None,
+          answer=None, write=print, timeout=STOP_SECONDS, poll=POLL_SECONDS):
     """
     Starts an update: lists what runs and gets the operator's word to cancel it, takes the lock, closes the site and
     stops the work, before the first change.
@@ -432,35 +545,44 @@ def begin(pid, by="update.sh", sources=None, config=None, interactive=False, can
     Args:
         pid (int): The process that holds the lock for as long as it lives (`update.sh`'s shell).
         sources: What to look at (`default_sources` for `config`).
-        interactive (bool): Whether to ask on the terminal.
-        cancel_running (bool): The operator already agreed (`--cancel-running`).
-        answer (callable): Asks a question and returns the reply.
+        interactive (bool): Whether there is a terminal to ask on.
+        yes (bool): The operator already agreed (`--yes`).
+        unattended (str | None): Who started this run with nobody at the keyboard (`started_unattended`): it asks
+            nothing, and with running work and no `yes` the answer is no.
+        answer (callable): Asks a question and returns the reply, `None` for none in time (default
+            `answer_within`: `PROMPT_SECONDS` of silence is a no).
 
     Returns:
         bool: Whether the update may go on. `False` leaves everything as it was (nothing cancelled that was not
         agreed, the site open, no lock).
     """
     sources = sources if sources is not None else default_sources(config)
+    answer = answer_within if answer is None else answer
     existing = read_lock()
     if existing is not None and existing["pid"] != pid:
         write(f"error: an update is already running (process {existing['pid']}, since {existing['since']}).")
         return False
     items = list_running(sources)
-    agreed = bool(cancel_running)
+    agreed = bool(yes)
     if items:
         write("The update needs the machine to itself. Running or queued work:")
         for line in describe(items):
             write(line)
+        asks = interactive and not unattended
         if agreed:
             pass
-        elif interactive:
+        elif asks:
             reply = answer("Cancel these and go on with the update? [y/N] ")
-            agreed = str(reply).strip().lower() in ("y", "yes")
+            if reply is None:
+                write(f"No answer in {PROMPT_SECONDS} seconds: taking that as no.")
+            agreed = str(reply or "").strip().lower() in ("y", "yes")
+        elif unattended:
+            write(f"This run was started by {unattended}, with nobody to ask: taking that as no.")
         if not agreed:
             write("Not updating: nothing was changed and nothing was cancelled. "
                   + ("Run it again when the work has finished, or answer y to cancel it."
-                     if interactive else
-                     "Run it again when the work has finished, or add --cancel-running to cancel it."))
+                     if asks else
+                     "Run it again when the work has finished, or add --yes to cancel it."))
             return False
     state = maintenance.read()
     already_closed = state["enabled"] and state["cause"] != UPDATE_CAUSE    # an admin's own closing stays theirs
