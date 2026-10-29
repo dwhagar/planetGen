@@ -11,7 +11,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.system import StarSystem
-from planetgen.physics import activity, constants, magnetism, orbit_elements, spin
+from planetgen.physics import activity, constants, interior_heat, magnetism, orbit_elements, radiogenic, spin
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -190,44 +190,69 @@ def test_core_fractions_follow_density():
     assert magnetism.core_mass_fraction(0.055, 5.43) > 0.4    # Mercury
 
 
+def _core(mass_earth, radius_km, metal, age=4.5, lid=interior_heat.STAGNANT):
+    """The `core_heat.Core` of a rocky planet (`interior_heat.heat`, bulk silicate Earth's radiogenic content)."""
+    k, th, u = radiogenic.BULK_SILICATE_EARTH
+    content = radiogenic.Content(k * radiogenic.formation_mix("K")[1], th * radiogenic.formation_mix("Th")[1],
+                                 u * radiogenic.formation_mix("U")[1], radiogenic.SOLAR_AL26_RATIO)
+    rock = radiogenic.Rock(1.0 - metal, metal, 0.0, radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
+    return interior_heat.heat_flow(content, interior_heat.Interior(1.0e12, 250.0), mass_earth * constants.EARTH_MASS_TO_KG, radius_km,
+                                   age, rock, None, lid).core
+
+
 def test_a_mercury_like_planet_keeps_its_field_at_any_age():
-    """GEN.213: the lifetime test used to run first and always zeroed a 0.055 Earth-mass iron world at 4.5 Gyr."""
+    """GEN.213: an iron world of 0.055 Earth masses keeps Mercury's field, whatever the core model says of a pure-iron core."""
     draw.set_run_seed(13)
     for age in (0.5, 4.5, 10.0):
         for _ in range(50):
             body = _body(0.055, 5.43, 1407.6, age=age)
-            magnetism.generate_field(body)
+            magnetism.generate_field(body, _core(0.055, 2440.0, 0.68, age=age))
             assert 1e18 < body.magnetic_moment_a_m2 < 3e21  # 3e19 A m2, log-normal 0.5 dex
     small_rocky = _body(0.03, 5.43, 24.0)  # under 0.05 Earth masses: too small for a dynamo
-    magnetism.generate_field(small_rocky)
+    magnetism.generate_field(small_rocky, None)
     assert small_rocky.magnetic_moment_a_m2 == 0.0
 
 
 def test_earth_mercury_and_jupiter_get_their_fields():
     draw.set_run_seed(4)
-    earths = []
+    core = _core(1.0, 6371.0, 0.325, age=4.568)
+    assert core.running
+    moments = []
     for _ in range(300):
-        body = _body(1.0, 5.51, 24.0)
-        body.hydrosphere = "surface ocean"
-        body.lid_regime = "mobile" if draw.random() < magnetism.mobile_lid_chance(body, 1.0) else "stagnant"  # GEN.721: the stored regime
-        magnetism.generate_field(body)
-        earths.append(body)
-    alive = [body.magnetic_moment_a_m2 for body in earths if body.magnetic_moment_a_m2]
-    # The dynamo lasts 2 to 6 Gyr at one Earth mass with plate tectonics (60% of watery Earth-mass worlds)
-    # and 0.8 to 2.4 Gyr under a stagnant lid: about 0.6 x 3/8 + 0.4 x 0 of them are alive at 4.5 Gyr.
-    assert 40 < len(alive) < 110
-    median = sorted(alive)[len(alive) // 2]
-    assert 0.1 * magnetism.EARTH_MOMENT_A_M2 < median < 3 * magnetism.EARTH_MOMENT_A_M2
+        body = _body(1.0, 5.51, 24.0, age=4.568)
+        magnetism.generate_field(body, core)
+        moments.append(body.magnetic_moment_a_m2)
+    median = sorted(moments)[len(moments) // 2]
+    assert all(moment > 0.0 for moment in moments)
+    assert median == pytest.approx(magnetism.EARTH_MOMENT_A_M2 * core.dipole_scale, rel=0.2)    # log-normal 0.4 dex about the core's moment
+    assert 0.5 * magnetism.EARTH_MOMENT_A_M2 < median < 2 * magnetism.EARTH_MOMENT_A_M2
     jupiter = _body(318.0, 1.33, 10.0, body_type="g")
     magnetism.generate_field(jupiter)
     assert jupiter.dipole_class == "strong" and jupiter.magnetic_moment_a_m2 > 1e26
     locked = _body(1.0, 5.51, 24.0 * 11)
-    locked.hydrosphere = "surface ocean"
-    locked.lid_regime = "mobile"
-    magnetism.generate_field(locked)
-    while not locked.magnetic_moment_a_m2:
-        magnetism.generate_field(locked)
+    magnetism.generate_field(locked, core)
     assert locked.dipole_class == "multipolar"
+
+
+def test_the_core_decides_whether_a_planet_has_a_field():
+    """GEN.838: a dead core (Mars) has no field at 4.5 Gyr and a young one has; a bigger planet's stronger core makes a stronger field."""
+    draw.set_run_seed(5)
+    mars_old, mars_young = _core(0.107, 3390.0, 0.22), _core(0.107, 3390.0, 0.22, age=0.3)
+    assert not mars_old.running and mars_young.running
+    old, young = _body(0.107, 3.93, 24.6), _body(0.107, 3.93, 24.6, age=0.3)
+    magnetism.generate_field(old, mars_old)
+    magnetism.generate_field(young, mars_young)
+    assert old.magnetic_moment_a_m2 == 0.0 and old.dipole_class == "none"
+    assert young.magnetic_moment_a_m2 > 0.0
+    heavy = _core(2.0, 7800.0, 0.33)
+    assert heavy.dipole_scale > _core(1.0, 6371.0, 0.325).dipole_scale > mars_young.dipole_scale > 0.0
+
+
+def test_a_planet_with_no_core_to_read_has_no_field():
+    draw.set_run_seed(6)
+    body = _body(1.0, 5.51, 24.0)
+    magnetism.generate_field(body, None)
+    assert body.magnetic_moment_a_m2 == 0.0 and body.dipole_class == "none"
 
 
 def test_only_a_planet_with_a_surface_ocean_can_have_a_mobile_lid():
@@ -243,27 +268,16 @@ def test_only_a_planet_with_a_surface_ocean_can_have_a_mobile_lid():
         assert magnetism.mobile_lid_chance(venus, 0.8) == 0.0
 
 
-def test_a_stagnant_lid_shortens_the_dynamo_and_a_mobile_lid_keeps_it():
-    """GEN.177: the same planet at 4.5 Gyr keeps its field far more often with plate tectonics."""
-    def alive(hydrosphere, mass=1.0):
-        draw.set_run_seed(11)
-        count = 0
-        for _ in range(400):
-            body = _body(mass, 5.51, 24.0)
-            body.hydrosphere = hydrosphere
-            body.lid_regime = "mobile" if draw.random() < magnetism.mobile_lid_chance(body, mass) else "stagnant"  # GEN.721: the stored regime
-            magnetism.generate_field(body)
-            count += bool(body.magnetic_moment_a_m2)
-        return count
-    mobile, stagnant = alive("surface ocean"), alive("dry")
-    assert stagnant == 0  # 0.4 x (2 to 6 Gyr) is under 4.5 Gyr for every draw
-    assert mobile > 60    # 0.6 x about 3 in 8, with room for the seed
-    # A watery planet that is 4.5 Gyr old has a lid that decides its field; a young one has a field either way.
-    young = _body(1.0, 5.51, 24.0, age=0.3)
-    young.hydrosphere = "dry"
-    young.lid_regime = "stagnant"
-    magnetism.generate_field(young)
-    assert young.magnetic_moment_a_m2 > 0
+def test_the_lid_reaches_the_field_through_the_mantle_the_core_sits_under():
+    """GEN.838 (GEN.177 before it): a stagnant lid keeps the mantle, and so the base of it the core is measured against, hotter; Earth's
+    core makes its field under either lid."""
+    stagnant, mobile = _core(1.0, 6371.0, 0.325, lid=interior_heat.STAGNANT), _core(1.0, 6371.0, 0.325, lid=interior_heat.MOBILE)
+    assert stagnant.boundary_k > mobile.boundary_k
+    draw.set_run_seed(11)
+    for core in (stagnant, mobile):
+        body = _body(1.0, 5.51, 24.0)
+        magnetism.generate_field(body, core)
+        assert body.magnetic_moment_a_m2 > 0.0
 
 
 def test_europas_ocean_gives_the_induced_dipole_galileo_saw():

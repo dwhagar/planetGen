@@ -173,7 +173,7 @@ def test_the_neutron_star_readers_say_so_when_nothing_was_downloaded(cache):
 def test_the_catalogue_lists_the_datasets_with_distinct_fills():
     assert [dataset.key for dataset in catalogue.ALL] == [
         "isochrones", "white_dwarf_models", "neutron_star_matter", "ozone_uv", "ir_ktables", "ir_cia", "harris_clusters", "noaa_proton_events",
-        "baraffe_isochrones", "stellar_spectra", "mamajek_dwarf_sequence"]
-    assert [dataset.fill for dataset in catalogue.ALL] == ["SC1", "SC2", "SC3", "AD9", "AD10", "AD11", "SC4", "SC5", "SC6", "SL1", "PS12"]
+        "baraffe_isochrones", "stellar_spectra", "mamajek_dwarf_sequence", "hhe_eos"]
+    assert [dataset.fill for dataset in catalogue.ALL] == ["SC1", "SC2", "SC3", "AD9", "AD10", "AD11", "SC4", "SC5", "SC6", "SL1", "PS12", "GS1"]
     assert len(neutron_star_matter.DATASET.pieces) == 1 + neutron_star_matter.EOS_COUNT
     assert all(piece.url.startswith("https://") for dataset in catalogue.ALL for piece in dataset.pieces)
