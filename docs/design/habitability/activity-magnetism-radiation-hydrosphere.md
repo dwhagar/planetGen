@@ -282,7 +282,8 @@ mass fraction c (Earth 0.325) and lid regime:
    induced field if a subsurface ocean exists.
 7. **Output fields:** `magnetic_moment_a_m2`, `dipole_class` (none, weak
    under 0.01 Earth, Earth-like, strong over 5 Earth, multipolar),
-   `magnetopause_rp`.
+   `magnetopause_rp` (the standoff in radii of the body itself, `R_planet` in the unit registry: Earth's 9.75 Earth radii scaled by the
+   field and the wind, then divided by the body's own radius, GEN.843).
 
 **Lid regime, as built (GEN.177).** Rule 2's stagnant-lid factor is applied in
 `magnetism._rocky_moment`: the dynamo lifetime is times 0.4 unless the planet

@@ -185,7 +185,7 @@ def productivity(body, area_m2):
             * temperature_factor(getattr(body, "surface_temperature", None)))
 
 
-def _area_m2(body):
+def area_m2(body):
     return 4.0 * math.pi * (body.radius * 1000.0) ** 2
 
 
@@ -195,7 +195,7 @@ def air_moles(body):
     if not partials:
         return {}
     total = sum(partials.values())
-    column = total * _area_m2(body) / (body.gravity * constants.EARTH_GRAVITY * mixture.mean_molar_mass_kg_mol(partials))
+    column = total * area_m2(body) / (body.gravity * constants.EARTH_GRAVITY * mixture.mean_molar_mass_kg_mol(partials))
     return {formula: pascal / total * column for formula, pascal in partials.items()}
 
 
@@ -221,11 +221,11 @@ def _fire_limit_mol(moles):
     return share / (1.0 - share) * rest
 
 
-def _partials(body, moles):
+def partials_pa(body, moles):
     """The partial pressures, Pa, of `moles` (formula to mol) on `body`: the weight of the column over the area, shared by the fractions."""
     column = sum(moles.values())
     weight = sum(amount * gases.gas(formula).molar_mass for formula, amount in moles.items())
-    total = weight * body.gravity * constants.EARTH_GRAVITY / _area_m2(body)
+    total = weight * body.gravity * constants.EARTH_GRAVITY / area_m2(body)
     return {formula: amount / column * total for formula, amount in moles.items() if amount > 0.0}
 
 
@@ -234,7 +234,7 @@ def profile_of(body):
     radius_km, gravity = getattr(body, "radius", None), getattr(body, "gravity", None)
     if getattr(body, "body_type", "t") == "g" or not radius_km or not gravity:
         return NONE
-    area = _area_m2(body)
+    area = area_m2(body)
     moles = air_moles(body)
     burnt, taken = burn(moles)
     source, reductant = productivity(body, area), reductant_flux(body, area)
@@ -243,7 +243,7 @@ def profile_of(body):
     if surplus <= 0.0 or not burnt:
         return Profile(source, reductant, store, 0.0, 0.0, None)
     steady = min(surplus / WEATHERING_PER_YR, _fire_limit_mol(burnt))
-    pascal = _partials(body, {**burnt, "O2": steady}).get("O2", 0.0)
+    pascal = partials_pa(body, {**burnt, "O2": steady}).get("O2", 0.0)
     if pascal < MINIMUM_PA:
         return Profile(source, reductant, store, 0.0, 0.0, None)
     return Profile(source, reductant, store, steady, pascal, store / surplus / 1e9)
@@ -274,9 +274,20 @@ def apply(body, target_mol):
     if taken <= 0.0 and wanted <= have * APPLY_RISE:
         return False
     burnt["O2"] = wanted
-    air = _partials(body, burnt)
+    air = partials_pa(body, burnt)
     if "O2" not in air or air["O2"] < MINIMUM_PA:
         return False
+    store_air(body, air)
+    return True
+
+
+def store_air(body, air):
+    """
+    Gives `body` the air `air` (formula to partial pressure, Pa): the warming and surface temperature that mixture gives under the starlight the
+    body absorbed (the closure of `surface_air`, so the stored greenhouse factor still follows from the stored air), and the total pressure,
+    molar mass, density and scale height of the new mixture. The doses, aerosols, colour and score that read the air are the caller's to make
+    again (`generation.life`).
+    """
     gravity = body.gravity * constants.EARTH_GRAVITY
     absorbed = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
     warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed)
@@ -288,4 +299,3 @@ def apply(body, target_mol):
     body.atm_density = state.density_kg_m3
     body.scale_height = state.scale_height_m / 1000.0
     atmosphere.store_air(body, air, body.mantle_delta_iw)
-    return True
