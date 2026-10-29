@@ -2018,10 +2018,22 @@ NEBULA_DRAW_KEY = "nebula-draw"
 """str: The key of the step that draws the nebula field: a step of a run of its own, not a stage the plan lists."""
 
 
+def nebula_slab_cut(first, last):
+    """
+    The units of the nebula field for the slabs `first` to `last` (inclusive): `(first slab, slabs)` for each, a unit a
+    slab for a galaxy of up to `units.MAX_UNITS` slabs and `units.coarsen`'s whole multiple of that beyond it (PERF.192),
+    so a large galaxy makes bigger units, not a stage `enqueue_units` refuses. The same slabs always give the same cut.
+    """
+    count = last - first + 1
+    per = units.coarsen(count, 1)
+    return [(start, min(per, last + 1 - start)) for start in range(first, last + 1, per)]
+
+
 def expand_draw_nebula_field(params):
     """
-    The `draw-nebula-field` command's stage (PERF.106, DB.24): a unit per first-index slab of the field's cells, from
-    the stored galaxy alone. `detail` holds the cell edge, so a follower can name a slab's extent.
+    The `draw-nebula-field` command's stage (PERF.106, DB.24): a unit per first-index slab of the field's cells (a run of
+    consecutive slabs per unit in a galaxy with more than `units.MAX_UNITS` of them, PERF.192), from the stored galaxy
+    alone. `detail` holds the cell edge, so a follower can name a slab's extent.
     """
     conn = store.get_connection(_mysql_config_of(params))
     try:
@@ -2032,20 +2044,23 @@ def expand_draw_nebula_field(params):
     outer_shell = max(shell for shell, _high in extents)
     radius_pc, half_height_pc = nebulaField.field_extent_pc(skeleton.edge_pc, extents)
     edge = program_constants.NEBULA_FIELD_CELL_PC
-    slabs = range(math.floor(-radius_pc / edge), math.floor(radius_pc / edge) + 1)
+    first, last = math.floor(-radius_pc / edge), math.floor(radius_pc / edge)
     return commands.Expansion(
-        [({"database": params["database"], "i": i, "radius_pc": radius_pc, "half_height_pc": half_height_pc,
-           "edge_pc": skeleton.edge_pc, "outer_shell": outer_shell}, 1.0) for i in slabs],
-        {"cell_pc": edge, "slabs": len(slabs)})
+        [({"database": params["database"], "i": start, "count": count, "radius_pc": radius_pc,
+           "half_height_pc": half_height_pc, "edge_pc": skeleton.edge_pc, "outer_shell": outer_shell}, float(count))
+         for start, count in nebula_slab_cut(first, last)],
+        {"cell_pc": edge, "slabs": last - first + 1})
 
 
 def draw_nebula_field_unit(params, report):
     """
-    The `draw-nebula-field` command's unit: the kept classes M and N clouds of one slab, from the galaxy's seed and
-    shape, written to `nebula_field` (`_nebula_field_task`). The table is cleared before the run.
+    The `draw-nebula-field` command's unit: the kept classes M and N clouds of its slabs (`count` consecutive ones from
+    `i`, one in a galaxy that needs no coarser cut), from the galaxy's seed and shape, written to `nebula_field`
+    (`_nebula_field_task`). The table is cleared before the run.
 
     Returns:
-        dict: `_nebula_field_task`'s, plus `slab`, the slab's first index.
+        dict: `written` (rows written), `slab` (the first slab's index), `count` (slabs drawn) and `drawn`, one
+            `_nebula_field_task` result with its `slab` for each slab.
     """
     mysql_config = _mysql_config_of(params)
     conn = store.get_connection(mysql_config)
@@ -2054,12 +2069,14 @@ def draw_nebula_field_unit(params, report):
         galaxy_seed = store.get_galaxy_seed(conn)
     finally:
         conn.close()
-    result = _nebula_field_task({
-        "mysql_config": mysql_config, "galaxy_seed": galaxy_seed, "shape": skeleton.shape, "i": params["i"],
-        "radius_pc": params["radius_pc"], "half_height_pc": params["half_height_pc"], "edge_pc": params["edge_pc"],
-        "outer_shell": params["outer_shell"]})
-    result["slab"] = params["i"]
-    return result
+    drawn = []
+    for i in range(params["i"], params["i"] + params["count"]):
+        drawn.append({**_nebula_field_task({
+            "mysql_config": mysql_config, "galaxy_seed": galaxy_seed, "shape": skeleton.shape, "i": i,
+            "radius_pc": params["radius_pc"], "half_height_pc": params["half_height_pc"], "edge_pc": params["edge_pc"],
+            "outer_shell": params["outer_shell"]}), "slab": i})
+    return {"written": sum(result["written"] for result in drawn), "slab": params["i"], "count": params["count"],
+            "drawn": drawn}
 
 
 def _shell_range_text(shells):
@@ -2113,10 +2130,10 @@ class NebulaFieldFollower(followed.Follower):
 
     def on_result(self, unit, result):
         self.written += result["written"]
-        if result["slab"] is not None:
-            _log_nebula_slab(result["slab"], self.cell_pc, result)
-        self.done += 1
-        self.bar.update(advance=1, description=f"Drawing the nebula field ({self.done:,} of {self.slabs:,} slabs)")
+        for drawn in result["drawn"]:
+            _log_nebula_slab(drawn["slab"], self.cell_pc, drawn)
+        self.done += result["count"]
+        self.bar.update(advance=result["count"], description=f"Drawing the nebula field ({self.done:,} of {self.slabs:,} slabs)")
 
     def on_done(self, conclusion):
         linked = conclusion["linked"]

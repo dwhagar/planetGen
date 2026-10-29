@@ -759,9 +759,35 @@ def test_the_nebula_field_is_a_unit_per_slab_and_the_clean_up_one_unit(mysql_con
     assert len(expansion.units) == slabs and expansion.plan["slabs"] == slabs
     unit = json.loads(json.dumps(expansion.units[slabs // 2][0]))
     result = commands.run_alone("draw-nebula-field", unit)
-    assert result["slab"] == unit["i"] and set(result) >= {"written", "counts", "shells", "slab"}
+    assert result["slab"] == unit["i"] and result["count"] == 1 and set(result) >= {"written", "slab", "count", "drawn"}
+    assert [drawn["slab"] for drawn in result["drawn"]] == [unit["i"]] and set(result["drawn"][0]) >= {"counts", "shells"}
     check = commands.run_alone("clean-nebula-field", {**params, "apply": False}, lambda done, estimate: None)
     assert check["deleted"] == 0 and check["lines"][0].startswith("Nebula field cleanup (dry run)")
+
+
+def test_a_galaxy_of_more_than_the_unit_cap_of_slabs_makes_bigger_nebula_field_units(mysql_config, monkeypatch):
+    """PERF.192: one unit per 50 pc slab made a stage `enqueue_units` refused once a galaxy had more than 4000 slabs; the cut
+    now makes a unit a run of consecutive slabs, the same cut at any worker count, every slab in exactly one unit."""
+    import json
+
+    from planetgen import tuning
+    from planetgen.galaxy import nebula_field
+    from planetgen.generation import run_plan
+    from planetgen.queue import units
+    from tests.test_nebula_field_table import _seed_galaxy
+    cut = run_plan.nebula_slab_cut(-1500, 1500)
+    assert len(cut) == 3001 and all(count == 1 for _start, count in cut), "a galaxy under the cap keeps a unit per slab"
+    cut = run_plan.nebula_slab_cut(-10_000, 10_000)
+    assert len(cut) <= units.MAX_UNITS and cut == run_plan.nebula_slab_cut(-10_000, 10_000)
+    assert [slab for start, count in cut for slab in range(start, start + count)] == list(range(-10_000, 10_001))
+    assert max(count for _start, count in cut) > 1
+    _seed_galaxy(mysql_config)
+    edge = tuning.NEBULA_FIELD_CELL_PC
+    monkeypatch.setattr(nebula_field, "field_extent_pc", lambda edge_pc, extents: (5000 * edge, 100.0))
+    expansion = run_plan.expand_draw_nebula_field({"database": wrapper.database_args(mysql_config)})
+    assert expansion.plan["slabs"] == 10_001 and len(expansion.units) <= units.MAX_UNITS
+    assert sum(cost for _args, cost in expansion.units) == expansion.plan["slabs"]
+    json.dumps(expansion.units)
 
 
 def test_the_shells_are_cut_into_the_same_units_whatever_the_worker_count():
