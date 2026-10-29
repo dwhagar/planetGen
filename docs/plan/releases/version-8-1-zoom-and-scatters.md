@@ -25,8 +25,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.202 | Move each generating verb's starter handlers and start-time checks into the step units, so a verb is expressible as units in one run |  |  |
 | PERF.203 | The Generate page and job_runner follow one wrapper run: one command list, one run, with the page's progress, state and log files kept | PERF.202 |  |
 | PERF.149 | A map visit queues the missing sector as a run instead of generating it in the web request, and the Galaxy View is closed while a galaxy generation runs |  |  |
-| PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
-| PERF.128 | `benchmark` is a step list handed to the wrapper, not a sequence of its own |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill |  | Parent; closes with its subitems. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands |  | Research: ledger size at full galaxy. |
 | PERF.154 | One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5) | PERF.203 |  |
@@ -584,7 +582,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.417 | Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug) |  | found by Aux 8 |
 | GEN.845 | Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764) |  |  |
 | GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) |  |  |
-| GEN.896 | Since 4c (epoch 106) hot-zone planets and moons almost never score Yellow: the Yellow share fell to 0 for M2V, G2V and F5V (bug) |  |  |
 | GEN.897 | K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug) |  |  |
 | GEN.898 | A and B stars are far too rare at the reference position: A is 0.11% of stars against 0.6% to 1.1% observed, B 0.01% against 0.04% (bug) |  |  |
 | GEN.899 | An M2V primary has a companion star in 15.8% of systems; the star-count table says 27% and Duchene and Kraus 2013 give 26% +/- 3% (bug) |  |  |

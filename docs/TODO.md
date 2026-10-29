@@ -13405,20 +13405,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.874 and GEN.885.
   Prerequisites: GEN.887, GEN.888, GEN.889.
 
-- [ ] **GEN.896 Since 4c (epoch 106) hot-zone planets and moons almost never score Yellow: the Yellow share fell to 0 for M2V, G2V and F5V (bug)**
-  Found by Bug 2 in the class census (TEST.430), 2026-10-28. Share of
-  hot-zone planets and moons scoring Yellow, before 4c then on main: M2V
-  9% then 0%; K5V 21% then 21% (unchanged); G2V 11% then 0%; F5V 3% then
-  0%; A0V 4% then 1%; K0III 14% then 4%. The cause is unknown: it is not
-  the oxygen loss (GEN.855), so look at the solved air and its
-  temperature in the hot zone. Do: bisect the change between epoch 105
-  and 106 on hot-zone bare draws, find which input drops the score, fix
-  it at the cause, and keep the prevalence targets of TEST.430 as the
-  check (record the tweak level if physics has to be nudged). Version
-  8.1. Owner: Bug 1.
-  Prerequisites: none. Related: GEN.855, GEN.853, GEN.854, TEST.430,
-  GEN.646.
-
 - [ ] **GEN.897 K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug)**
   Found by Bug 2 in the star census (TEST.432, first draw of 40,000
   stars at the default galaxy reference position), 2026-10-28. Norms:
@@ -13595,8 +13581,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and Aux 1 recommend 2 if it stays physical, 1 if a cheaper rule is
   wanted. Do: put the choice to Boss in plain words, then wire the
   chosen aim into the habitable-request steering of GEN.646 (Aux 1); a
-  generation change, lock turn. Version 8.1. Owner: Aux 1 (GEN.646
-  request steering), after Boss decides. Prerequisites: none. Related:
+  generation change, lock turn. Version 8.1. BOSS DECIDED (card answer 'Core 4 choice 1', 11:41 AM EDT
+  2026-10-29): aim habitable requests at a temperate band worked out
+  from the solved climate (the band where the solved surface temperature
+  is liquid-water and the air holds at least 10 kPa), so it stays
+  physical; not the inner half of the zone and not a changed zone edge.
+  Done: a +habitable_world request chooses the system, star and orbit
+  from that band, not from the zone edges, and the census (Bug 2's
+  habitable-request census) shows the met share against the aim/fallback/
+  unmet numbers recorded below; a request no try can meet still says
+  unmet. Owner: Core 1 (11:42 AM EDT 2026-10-29); Aux 1 retires after
+  the class cut-over GEN.646 merges and hands over its census harness.
+  Prerequisites: GEN.646 (the cut-over). Related:
   GEN.909, GEN.854, GEN.646, GEN.907.
   Research (2026-10-09): Update (Core 4, about 5:07 AM EDT 2026-10-29 as
   the lane reported): GEN.910 found no K5V-specific fault. At equal flux
@@ -13684,48 +13680,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the near and far distance and the zone count, state the error); no
   kernel code of its own.
   Design: [docs/design/orbits/gravity-map.md](design/orbits/gravity-map.md)
-
-- [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/architecture/command-inventory.md. This item is done when
-  every command of the inventory does one and only one thing, takes only
-  its own parameters, and runs alone or as a step of a wrapper list, and
-  the commands that still did more are reshaped by its subitems. It also
-  holds the rules a new command follows: one job, its own parameters, no
-  knowledge of another stage or of the order, a registered kind with
-  JSON arguments and a result (PERF.118), a test that runs it alone, and
-  a docs line. The nightly orbital update of GEN.105 follows the same
-  rules (it replaces `cli.orbits`). Owner: Core 5 (proposed; the
-  PERF.118 chain).
-  Prerequisites: none. Related: PERF.118, PERF.121, PERF.122,
-  PERF.123, PERF.124, PERF.125, PERF.126, PERF.127, PERF.128.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
-
-- [ ] **PERF.128 `benchmark` is a step list handed to the wrapper, not a sequence of its own**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/architecture/command-inventory.md. Today `planetgen
-  benchmark` starts `plan` and then `galaxy` over a small shell as child
-  processes in scratch databases and prints the timings. Done: it builds
-  a step list (skeleton, scatters, sectors, link, backfill, settle over
-  the small shell) and hands it to the wrapper in the scratch databases,
-  reading the stage timings the run record already holds; it runs no
-  stage itself. Owner: Core 5 (proposed; the PERF.118 chain).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Prerequisites: none. Related: PERF.31, PERF.118, PERF.120.
-  Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
 
 - [ ] **PERF.129 Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
