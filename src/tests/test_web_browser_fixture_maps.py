@@ -240,6 +240,7 @@ def test_sector_map_drag_turns_and_picks_nothing(page, map_site):
 
 def test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale(page, map_site):
     _open_sector(page, map_site)
+    _settle(page)    # the opening flight (MAP.333) lands after the page is ready: the scale reads 10 pc before it and 1 pc after
     canvas = page.locator(SECTOR_CANVAS)
     scale = page.locator("#galaxymap3d-scale .starmap-scale-label").inner_text()
     canvas.focus()
