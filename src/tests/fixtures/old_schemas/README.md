@@ -54,3 +54,4 @@ Commit each file came from:
 - v168: 8c67694d5 (DB.108 sector mass, before GEN.721 lid regime)
 - v169: GEN.721 lid regime as built in this change (the v168 schema plus `lid_regime`, before GEN.767 day and night shares)
 - v170: c6e39fd5 (GEN.767 day and night shares, before GEN.836 rogue planet rings)
+- v171: 82e2e184 (GEN.836 rogue planet rings, before MAP.220 class interests)

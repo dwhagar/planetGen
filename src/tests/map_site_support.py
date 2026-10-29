@@ -206,7 +206,19 @@ habitable ones and its gas giant (so three reasons name it, the habitable one fi
 one names it before the habitable one does), Fixture Belt a belt."""
 
 
-def interests_of(worlds, giants, barren=()):
+CLASS_FIELD = [
+    {"id": 9001, "name": "Fixture Eden", "letter": "K", "n": 2, "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
+    {"id": 9001, "name": "Fixture Eden", "letter": "O", "n": 1, "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
+    {"id": 9002, "name": "Fixture Rest", "letter": "K", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
+    {"id": 9004, "name": "Fixture Rock", "letter": "G", "n": 2, "x": STAR_FIELD_CENTER_PC[0] - 2.0, "y": 5.0, "z": -1.0},
+    {"id": 9003, "name": "Fixture Jove", "letter": "J", "n": 3, "x": STAR_FIELD_CENTER_PC[0] + 1.0, "y": 8.0, "z": 1.0},
+]
+"""The fixture systems with a planet or moon of a class (the `class-` reasons, MAP.220), listed only by the nodes of 3 shells or fewer as the
+server does: Fixture Eden holds two class K worlds and a class O one, Fixture Rest a class K one, Fixture Rock two class G, Fixture Jove
+three class J (gas giants)."""
+
+
+def interests_of(worlds, giants, barren=(), classes=()):
     """A node's `interests` for fixture `worlds` (`WORLD_FIELD` shape) and `giants` (`GIANT_FIELD` shape), as the server lists them:
     one entry per system with a `reasons` dict."""
     from planetgen.physics import habitability
@@ -229,6 +241,10 @@ def interests_of(worlds, giants, barren=()):
             entry["reasons"][other["reason"]].update(score=0.1, tier="Red")
         if other["reason"] == "inhabited":
             entry["reasons"][other["reason"]].update(score=other["score"], tier=habitability.tier(other["score"]))
+    for world in classes:
+        entry = systems.setdefault(world["id"], {"id": world["id"], "name": world["name"], "x": world["x"], "y": world["y"],
+                                                 "z": world["z"], "reasons": {}})
+        entry["reasons"]["class-" + world["letter"]] = {"n": world["n"]}
     return list(systems.values())
 
 
@@ -648,6 +664,8 @@ class FixtureApi:
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
             barren = [system for system in BARREN_FIELD
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
+            classed = [system for system in CLASS_FIELD
+                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 3 else []
             # Like the real node: every cloud whose sphere reaches into the block's box.
             clouds = []
             for cloud in NEBULAE:
@@ -663,7 +681,7 @@ class FixtureApi:
                 lights["star_temperature_k"] = 5200
             nodes[key] = {"aggregate": {"generated": 0, "stats": None, "lights": lights}, "placed": [],
                           "clouds": clouds, "stars": stars, "generated": None, "points": points,
-                          "interests": interests_of(worlds, giants, barren)}
+                          "interests": interests_of(worlds, giants, barren, classed)}
             # API.35: a 9-block holding a generated sector is a charted region, named with its family.
             regions = charted_regions()
             if block.m == 9 and tuple(block)[1:] in regions:

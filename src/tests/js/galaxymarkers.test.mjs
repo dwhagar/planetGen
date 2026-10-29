@@ -138,9 +138,12 @@ test("a system with two reasons is drawn once, by the first reason that is on, a
 });
 
 test("the reasons are in the order of the best world's symbol and a barren world or a belt is a reason of its own (MAP.321)", () => {
-  assert.deepEqual(M.INTEREST_KINDS.map((k) => k.interest), ["inhabited", "habitable", "uninhabitable", "gas-giant", "asteroid-field"]);
-  assert.deepEqual(M.INTEREST_KINDS.map((k) => k.icon), ["inhabited-world", "habitable-world", "uninhabitable-world", "gas-giant", "asteroid-field"]);
+  const worlds = M.INTEREST_KINDS.filter((k) => k.family !== "class");
+  assert.deepEqual(worlds.map((k) => k.interest), ["inhabited", "habitable", "uninhabitable", "gas-giant", "asteroid-field"]);
+  assert.deepEqual(worlds.map((k) => k.icon), ["inhabited-world", "habitable-world", "uninhabitable-world", "gas-giant", "asteroid-field"]);
   assert.deepEqual(M.INTEREST_KINDS.filter((k) => k.defaultOn).map((k) => k.interest), ["inhabited", "habitable", "gas-giant"]);
+  assert.deepEqual(M.INTEREST_KINDS.slice(worlds.length).map((k) => k.family), M.PLANET_CLASS_LETTERS.map(() => "class"),
+    "the planet classes come after every other reason");
   const systems = [
     { id: 1, name: "Rock", x: 0, y: 0, z: 0, reasons: { uninhabitable: { n: 2, score: 0.1, tier: "Red" } } },
     { id: 2, name: "Belt", x: 1, y: 0, z: 0, reasons: { "asteroid-field": { n: 1 } } },
@@ -159,6 +162,32 @@ test("the reasons are in the order of the best world's symbol and a barren world
     .map((c) => c.kind.id), ["marker-inhabited"], "an inhabited world's symbol comes before a habitable one's");
   assert.equal(M.interestLines(settled).map((l) => l.text).join("; "), "1 inhabited world, best Green; 2 habitable worlds, best Green");
   assert.equal(M.interestLines(systems[2]).map((l) => l.text).join("; "), "1 uninhabitable world; 1 gas giant; 1 asteroid belt");
+});
+
+test("each planet class is an optional marker kind of its own: a glyph with its letter, off until chosen, listed only by small blocks (MAP.220)", () => {
+  const classes = M.INTEREST_KINDS.filter((k) => k.family === "class");
+  assert.deepEqual(classes.map((k) => k.interest), M.PLANET_CLASS_LETTERS.map((letter) => "class-" + letter));
+  assert.ok(classes.every((k) => k.defaultOn === false && !k.icon && M.GLYPHS[k.glyph] && k.maxBlock === M.CLASS_MAX_BLOCK));
+  assert.equal(classes[0].id, "marker-class-A");
+  assert.equal(classes[0].label, "Class A worlds");
+  assert.equal(classes[0].describe({ name: "Rho", n: 1 }), "Rho, 1 class A world");
+  assert.equal(classes[0].describe({ n: 3 }), "3 class A worlds");
+  const registry = M.createMarkerKinds();
+  M.INTEREST_KINDS.forEach((kind) => registry.register(kind));
+  const systems = [
+    { id: 1, name: "Ocean", x: 0, y: 0, z: 0, reasons: { "class-O": { n: 2 }, "class-G": { n: 1 }, habitable: { n: 1, score: 0.8, tier: "Green" } } },
+    { id: 2, name: "Rock", x: 1, y: 0, z: 0, reasons: { "class-G": { n: 3 } } },
+  ];
+  const small = [{ key: "1.0.0.0", node: { interests: systems } }];
+  const big = [{ key: "9.0.0.0", node: { interests: systems } }];
+  const only = (letter, nodes) => M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id === "marker-class-" + letter, nodes });
+  assert.deepEqual(only("G", small).map((c) => [c.kind.id, c.item.name]).sort(), [["marker-class-G", "Ocean"], ["marker-class-G", "Rock"]]);
+  assert.deepEqual(only("O", small).map((c) => c.item.name), ["Ocean"]);
+  assert.deepEqual(only("G", big), [], "a block bigger than the classes' limit does not list them, so no mark is drawn from it");
+  const off = M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id === "marker-habitable", nodes: small });
+  assert.deepEqual(off.map((c) => [c.kind.id, c.item.name]), [["marker-habitable", "Ocean"]], "classes that are off claim nothing");
+  assert.equal(M.interestLines(systems[1]).map((l) => l.text).join("; "), "3 class G worlds");
+  assert.deepEqual(M.legendOf(classes[0]), { text: "Class A worlds", swatch: classes[0].color, swatchClass: "map-marker-swatch" });
 });
 
 test("the infobox lines of a system name every reason it has, in the registry's order", () => {

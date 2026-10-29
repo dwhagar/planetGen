@@ -25,8 +25,8 @@ Image = pytest.importorskip("PIL.Image")
 
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
-    DENSE_CENTER_PC, DENSE_POINTS, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
-    GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
+    DENSE_CENTER_PC, DENSE_POINTS, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
+    BARREN_FIELD, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site,
     halo_site,
     map_site,
@@ -2654,6 +2654,64 @@ def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_list
     assert "2 habitable worlds, best Green" in info and "1 gas giant" in info, info
 
 
+def _fly_to_system(page, system):
+    """Opens the window round the sector a fixture system is in, so the nodes of its own sector are in (the class markers come from
+    nodes of 3 shells or fewer, MAP.220), and waits until the flight ends."""
+    from planetgen.galaxy.spherical import sector_address_at
+
+    shell, band, wedge = sector_address_at((system["x"], system["y"], system["z"]), EDGE_PC)
+    page.evaluate("([cell, g]) => document.querySelector('#galaxymap3d-canvas').galaxyOpenWindow(cell, g)",
+                  [{"m": 1, "shell": shell, "band": band, "wedge": wedge}, 1])
+    _settle(page)
+
+
+def test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time_and_come_in_with_the_sector(page, map_site):
+    """MAP.220: every planet class has a marker of its own in the Menu's World classes group, all off until the visitor picks them;
+    choosing a class marks the systems that hold a world of it once the map is close enough to have their sector (its glyph carries the
+    class letter, its hover text counts them), a system a world reason that is on already marks is marked once, and turning the class
+    off takes its marks away."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    _open_menu(page)
+    group = page.locator("#galaxymap3d-kinds")
+    assert "World classes" in group.inner_text()
+    assert group.locator('button[data-layer^="marker-class-"]').count() == 20
+    assert all(group.locator(f'button[data-layer="marker-class-{letter}"]').get_attribute("aria-pressed") == "false" for letter in "KOGJ")
+    eden = next(s for s in WORLD_FIELD if s["name"] == "Fixture Eden")
+    rock = next(s for s in BARREN_FIELD if s["name"] == "Fixture Rock")
+    _fly_to_system(page, eden)
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
+    assert not [e for e in found if e["kind"].startswith("marker-class-")], "no class is marked until one is chosen"
+    group.locator('button[data-layer="marker-class-K"]').click()
+    group.locator('button[data-layer="marker-class-G"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"].startswith("marker-class-") for e in entries), seconds=8)
+    assert not [e for e in found if e["kind"].startswith("marker-class-")], "Fixture Eden is already marked by its habitable worlds"
+    assert "show=marker-class-G,marker-class-K" in page.url or "show=marker-class-K,marker-class-G" in page.url, page.url
+    _poi_layers(page)    # no world reasons on: a system the classes list is named by its class
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-class-K" for e in entries))
+    assert [e["name"] for e in found if e["kind"] == "marker-class-K"] == ["Fixture Eden"], found
+    assert "Class K worlds" in page.locator("#galaxymap3d-layer-legend").inner_text()
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.wait_for_timeout(300)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    spot = _screen_of(page, (eden["x"], eden["y"], eden["z"]))
+    assert spot
+    page.mouse.move(*spot)
+    page.mouse.move(spot[0] + 1, spot[1])
+    page.wait_for_timeout(200)
+    assert "Fixture Eden, 2 class K worlds" in page.locator("#galaxymap3d-tooltip").inner_text()
+    page.mouse.click(*spot)
+    info = page.locator("#galaxymap3d-info").inner_text()
+    assert "2 class K worlds" in info and "1 class O world" in info, info
+    _fly_to_system(page, rock)
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-class-G" for e in entries))
+    assert [e["name"] for e in found if e["kind"] == "marker-class-G"] == ["Fixture Rock"], found
+    _open_menu(page)
+    group.locator('button[data-layer="marker-class-G"]').click()
+    found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-class-G" for e in entries))
+    assert not [e for e in found if e["kind"] == "marker-class-G"]
+
+
 def test_the_default_map_marks_a_green_and_a_yellow_world_with_the_reason_listed_and_a_red_one_not(page, map_site):
     """MAP.303 acceptance: with no Menu choice made, the map marks the star of a Green world and of a Yellow one (the Yellow one's
     system is also inhabited, so its mark is the inhabited symbol), each card lists the habitable reason with its best tier, and the
@@ -2717,12 +2775,12 @@ def test_the_points_of_interest_menu_group_shows_pulls_forward_or_hides_each_kin
     assert page.locator('#galaxymap3d-kinds button[data-forward="marker-gas-giant"]').get_attribute("aria-pressed") == "true"
     assert page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').get_attribute("aria-pressed") == "false"
     # The one row sets every kind: all hidden, all shown.
-    page.locator('#galaxymap3d-kinds button[data-bulk="hidden"]').click()
+    page.locator('#galaxymap3d-kinds button[data-bulk="hidden"][data-group="Points of interest"]').click()
     assert all(page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').get_attribute("aria-pressed") == "false" for layer in POI_LAYERS)
-    page.locator('#galaxymap3d-kinds button[data-bulk="shown"]').click()
+    page.locator('#galaxymap3d-kinds button[data-bulk="shown"][data-group="Points of interest"]').click()
     assert all(page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').get_attribute("aria-pressed") == "true" for layer in POI_LAYERS)
     assert all(forward[layer].get_attribute("aria-pressed") == "false" for layer in POI_LAYERS)
-    page.locator('#galaxymap3d-kinds button[data-bulk="forward"]').click()
+    page.locator('#galaxymap3d-kinds button[data-bulk="forward"][data-group="Points of interest"]').click()
     assert all(forward[layer].get_attribute("aria-pressed") == "true" for layer in POI_LAYERS)
 
 

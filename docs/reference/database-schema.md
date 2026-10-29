@@ -2063,7 +2063,7 @@ Added in v82 (PERF.74). How many star systems each sector holds, as of the last 
 
 ### `system_interests`
 
-Added in v165 (MAP.305, MAP.303); replaces `habitable_systems` (v148). One row for each star system and reason it is worth a mark on the Galaxy Map, so the marker layer finds the systems with a reason inside a box without reading every planet (`query.galaxy_system_interests_in_box`). The reasons are the registry in `db/interests.py` (`inhabited` (v167): a planet or moon whose timeline reached a technological civilization or that has a terrestrial colony on it, as `query._with_life_fields` decides it, with the best score; `habitable`: a planet or moon whose overall PHI-6 score is Yellow or better, `habitability.YELLOW_FLOOR`; `uninhabitable` (v166): a scored terrestrial planet or moon under that floor; `gas-giant`: a planet with `body_type = 'g'`; `asteroid-field` (v166): a system with an asteroid belt), in the order the map prefers them: a system's mark takes the symbol of its best world, an inhabited one before a habitable one before a barren one before a gas giant before a belt (MAP.321). Derived data: `store.record_system_interests` rebuilds a system's rows when its sector is filled, whenever its scores are worked out again and when a facility is added, changed or removed (a colony makes its world inhabited). A system with no reason, or with no galaxy position, has no row.
+Added in v165 (MAP.305, MAP.303); replaces `habitable_systems` (v148). One row for each star system and reason it is worth a mark on the Galaxy Map, so the marker layer finds the systems with a reason inside a box without reading every planet (`query.galaxy_system_interests_in_box`). The reasons are the registry in `db/interests.py` (`inhabited` (v167): a planet or moon whose timeline reached a technological civilization or that has a terrestrial colony on it, as `query._with_life_fields` decides it, with the best score; `habitable`: a planet or moon whose overall PHI-6 score is Yellow or better, `habitability.YELLOW_FLOOR`; `uninhabitable` (v166): a scored terrestrial planet or moon under that floor; `gas-giant`: a planet with `body_type = 'g'`; `asteroid-field` (v166): a system with an asteroid belt; `class-A` to `class-V` (v172, MAP.220): a system with a planet or moon of that planet class, `n` how many, no score), in the order the map prefers them: a system's mark takes the symbol of its best world, an inhabited one before a habitable one before a barren one before a gas giant before a belt (MAP.321). Derived data: `store.record_system_interests` rebuilds a system's rows when its sector is filled, whenever its scores are worked out again and when a facility is added, changed or removed (a colony makes its world inhabited). A system with no reason, or with no galaxy position, has no row.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -2220,6 +2220,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v172 (MAP.220): the planet class reasons
+
+Migration 0172 adds no column. It fills `system_interests` with one reason for each planet class, `class-A` to `class-V` (`interests.CLASS_REASONS`): a system has a row for each class it has a planet or moon of, with how many, from what is already stored. Nothing a generator draws changes, so there is no epoch. The nodes list these reasons only for blocks of `nodes.CLASS_ABOVE` (3) shells or fewer, a limited number of systems for each class (`NODE_CLASS_SYSTEMS`, `NODE_SECTOR_CLASS_SYSTEMS`), so a node does not carry twenty classes for every system.
 
 ### v171 (GEN.836): the ring system of a rogue planet
 

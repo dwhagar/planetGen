@@ -65,6 +65,39 @@ export const GLYPHS = {
   },
 };
 
+// The planet classes the map can mark (MAP.220): `planetgen.tuning.PLANET_CLASSES`' letters; tests/test_system_interests.py holds the
+// two lists to each other. A class's reason is "class-" and its letter, the same id the server's `system_interests` rows use.
+export const PLANET_CLASS_LETTERS = "ABCDEFGHIJKLMNOPQSTV".split("");
+
+// The biggest block (shells) whose node lists the class reasons (`planetgen.db.nodes.CLASS_ABOVE`): a bigger block has too many systems.
+export const CLASS_MAX_BLOCK = 3;
+
+// The colour of every class glyph (the letter tells them apart) and of the letter on it.
+const CLASS_COLOR = "#e3a63b";
+const CLASS_LETTER_COLOR = "#14161f";
+
+// A class's glyph: a disc ringed in the outline colour with the class letter on it.
+function classGlyph(letter) {
+  return function (ctx, size, color, outline) {
+    const c = size / 2;
+    ctx.beginPath();
+    ctx.arc(c, c, c * 0.92, 0, Math.PI * 2);
+    ctx.fillStyle = outline;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(c, c, c * 0.76, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.fillStyle = CLASS_LETTER_COLOR;
+    ctx.font = "bold " + Math.round(size * 0.64) + "px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(letter, c, c + size * 0.04);
+  };
+}
+
+PLANET_CLASS_LETTERS.forEach(function (letter) { GLYPHS["class-" + letter] = classGlyph(letter); });
+
 // The markers of black holes (not neutron stars or quasars): the nodes' `points` (placed ones and the scattered ones
 // not yet built into a sector), heaviest first. Nodes of every block size list the biggest, so every node counts.
 export const BLACK_HOLE_KIND = {
@@ -141,7 +174,19 @@ export const INTEREST_REASONS = [
     defaultOn: false,
     describe: function (reason) { return reason.n + (reason.n === 1 ? " asteroid belt" : " asteroid belts"); },
   },
-];
+].concat(PLANET_CLASS_LETTERS.map(function (letter) {
+  return {
+    id: "class-" + letter,
+    label: "Class " + letter + " worlds",
+    body: "class " + letter + " world",
+    glyph: "class-" + letter,
+    color: CLASS_COLOR,
+    maxBlock: CLASS_MAX_BLOCK,
+    family: "class",
+    defaultOn: false,
+    describe: function (reason) { return reason.n + (reason.n === 1 ? " class " + letter + " world" : " class " + letter + " worlds"); },
+  };
+}));
 
 // A node's system as an item of one reason: `key`, the system's `id`, `name` and place, how many bodies (`n`), the best
 // score's tier as an index (0 Blue to 3 Red, `tier`; absent for a reason with no score) and every reason the system has
@@ -158,18 +203,25 @@ function interestItems(node, reason) {
 
 // The marker kind of an interest reason: its id is "marker-" and the reason's, the Menu layer and the address's `show=`.
 export function interestKind(reason) {
-  return {
+  const kind = {
     id: "marker-" + reason.id,
     label: reason.label,
-    icon: reason.icon,
-    maxBlock: 81,
+    maxBlock: reason.maxBlock || 81,
     defaultOn: reason.defaultOn,
     interest: reason.id,
+    family: reason.family || null,
     bodyName: reason.body,
     source: function (node) { return interestItems(node, reason); },
     rank: function (item) { return item.n || 0; },
     describe: function (item) { return (item.name ? item.name + ", " : "") + reason.describe(item); },
   };
+  if (reason.glyph) {
+    kind.glyph = reason.glyph;
+    kind.color = reason.color;
+  } else {
+    kind.icon = reason.icon;
+  }
+  return kind;
 }
 
 export const INTEREST_KINDS = INTEREST_REASONS.map(interestKind);
