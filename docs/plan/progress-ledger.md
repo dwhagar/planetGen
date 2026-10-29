@@ -1668,3 +1668,6 @@ Baseline: PR #1817.
 | UX.221 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | UX.222 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.343 | 8.1 | Fly-through map |
+| TEST.437 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.866 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.895 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
