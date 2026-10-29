@@ -10747,7 +10747,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
-  Boss, 6:23 PM EDT 2026-10-23: 'oh planet classes will also be classed
+  Boss, 6:21 PM EDT 2026-10-23: 'oh planet classes will also be classed
   by their physical properties (size, gravity, etc)'. classify(body)
   also reads size and surface gravity; the class code carries a size
   tier (S and V become tiers, not letters, as the class lane reported).
@@ -14311,6 +14311,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
   progress-line work only: no generated-output change and no lock turn;
   if any step turns out to change a stored value, stop and tell TODO.
+  Research (2026-10-09): Lock-free item given to Aux 7 (6:21 PM EDT
+  2026-10-29) after TEST.453 turned out to be done in #3713; taken out
+  of Core 5's chain. Owner: Aux 7.
   Prerequisites: none.
 
 - [ ] **PERF.179 Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug)**
@@ -14330,6 +14333,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
   progress-line work only: no generated-output change and no lock turn;
   if any step turns out to change a stored value, stop and tell TODO.
+  Research (2026-10-09): Lock-free item given to Aux 7 (6:21 PM EDT
+  2026-10-29) after TEST.453 turned out to be done in #3713; taken out
+  of Core 5's chain. Owner: Aux 7.
   Prerequisites: none.
 
 - [ ] **PERF.180 Single-unit stages already past the unit ceiling on big galaxies: clearing the bright stars (211 s on the medium galaxy) and the cache-warm families (one unit each, minutes on a large galaxy)**
@@ -18940,6 +18946,14 @@ clears each one.
   2026-10-29) as its lock-free item: Bug 1 is on the GEN.922 star chain.
   Aux 7 also saw the two item_pages summary assertions red on main
   ('summary inline-links' markup); they belong here. Owner: Aux 7.
+  Research (2026-10-09): Bug 1 (as the lane reported 6:21 PM EDT
+  2026-10-29): DONE in PR #3713 (commit f5f11b2a4, pushed): near/item
+  page galaxy position from the stored point (query.py), an icy moon's
+  zero tide stored as none (interior_heat.py), no atmosphere colour for
+  a body lit by a star with no visible light, and the two planet page
+  tests (summary inline-links); the O-star fuzz timeout did not
+  reproduce. Owner back to Bug 1; it closes when #3713 merges at Bug 1's
+  lock turn. Aux 7 does not redo it.
   Prerequisites: none. Related: TEST.411, TEST.450.
 
 - [ ] **TEST.454 The observed star mass-function curve as data, with a per-bin harness that measures the generator against it (segments from 0.01 to 150 solar masses by object type)**
