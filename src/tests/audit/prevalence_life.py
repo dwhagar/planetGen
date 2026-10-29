@@ -13,7 +13,7 @@ review), widened by four binomial sigma of the run's own count of life worlds, s
 The animal and sentient shares are taken per oxygenic life world (GEN.907, Boss 6:04 AM EDT 10-29): Core 1's timing figures describe worlds
 with oxygenic life, and the default galaxy holds almost none (chlorophyll chemistries are listed for G and K stars and need a sunlit sea),
 so they are measured on `HOST_SYSTEMS` systems made around each of `OXYGENIC_HOSTS`. The share that stops before animals is still taken over
-every life world of the default systems. The class of each life world by the shadow classifier (`physics.life_classes.best`, GEN.886; the class is stored from GEN.889) is counted
+every life world of the default systems. The class of each life world (the one it stores since GEN.889) is counted
 too. Per-class bands are an outcome to measure, not to force (the design's words), so the class shares are in the report and not checked.
 """
 
@@ -70,11 +70,8 @@ def rung(body):
 
 
 def class_of(body):
-    """The shadow life class of a body (`None` for no class at or above the line)."""
-    from planetgen.physics import life_classes
-
-    best = life_classes.best(life_classes.score_classes(body))
-    return best.id if best else None
+    """The life class a body stores (GEN.889; `None` for no class)."""
+    return body.life_class_id
 
 
 def draw_life(indices, star_type=None):

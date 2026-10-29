@@ -711,6 +711,13 @@
       "first_release": "8.0.2508",
       "reason": "Worlds with oxygenic life and a sunlit sea grow the oxygen their life has had time to make, and every world's life reaches each stage on a hard-step timeline drawn from its own surface temperature and air (five waits of 0.5, 1.5, 2.5, 3 and 60 Gyr), replacing the three fixed paces, so the air, the greenhouse, the doses, the colour, the habitability scores and the life stages of living worlds change (GEN.855, GEN.750)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 120,
+      "first_release": null,
+      "pending": true,
+      "reason": "The life class switch (GEN.867, GEN.889): each life world stores one of fifteen classes, drawn by net primary production from the supplies the world delivers; the complexity index and animal grades set how far it gets; a body's life draws from its own stream (GEN.872); the toxic gases reach the equipment rules (GEN.657)",
+      "affects": ["fill"]
     }
   ]
 }
