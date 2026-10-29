@@ -24,10 +24,13 @@ function temperatureColor(temperatureK) {
 // A glow layer in `scene` for `camera` on `canvasEl`. `options`: `light` (true on a light background, where the glow is
 // drawn dark-on-light by normal blending instead of added), `renderOrder` (default 4: under the stars' 5), `look`
 // (`(blob, camera, focalPx) -> {alpha, radiusPx}`, default `glowLook`: the charted regions, MAP.316, are drawn by the same layer
-// with their own) and a blob's own `color` ([r, g, b], 0 to 1) in place of the color of its temperature.
+// with their own), `cut` (`(alphas) -> alphas`, changed in place: the strengths of every blob, which a budget may hold down, MAP.176;
+// default none) and a blob's own `color` ([r, g, b], 0 to 1) in place of the color of its temperature and its `ring` (true: a thin
+// line near the rim).
 export function createGlowLayer(scene, camera, canvasEl, options) {
   const o = options || {};
   const lookOf = o.look || glowLook;
+  const cutOf = o.cut || null;
   const material = new THREE.ShaderMaterial({
     uniforms: { viewport: { value: new THREE.Vector2(800, 600) } },
     vertexShader: [
@@ -35,12 +38,15 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
       "attribute vec3 glowColor;",
       "attribute float glowRadius;",
       "attribute float glowAlpha;",
+      "attribute float glowRing;",
       "uniform vec2 viewport;",
       "varying vec2 vCorner;",
       "varying vec3 vColor;",
       "varying float vAlpha;",
+      "varying float vRing;",
       "void main() {",
       "  vCorner = corner;",
+      "  vRing = glowRing;",
       "  vColor = glowColor;",
       "  vAlpha = glowAlpha;",
       "  vec4 clip = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
@@ -52,12 +58,15 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
       "varying vec2 vCorner;",
       "varying vec3 vColor;",
       "varying float vAlpha;",
+      "varying float vRing;",
       "void main() {",
       "  float r = length(vCorner);",
       "  if (r >= 1.0) discard;",
       // A soft round falloff: bright in the middle, nothing at the rim.
       "  float soft = exp(-r * r * 3.5) * (1.0 - r);",
-      "  float a = soft * vAlpha;",
+      // A blob with a ring (a group of nebulae, MAP.176) also has a thin line near its rim, so it reads as a group.
+      "  float line = vRing * smoothstep(0.78, 0.88, r) * (1.0 - smoothstep(0.88, 0.98, r)) * 0.9;",
+      "  float a = max(soft, line) * vAlpha;",
       o.light ? "  gl_FragColor = vec4(vColor, a);" : "  gl_FragColor = vec4(vColor * a, a);",
       "}",
     ].join("\n"),
@@ -88,6 +97,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
   let frame = [0, 0, 0];
   let alphaAttribute = null;
   let radiusAttribute = null;
+  let ringAttribute = null;
   let on = true;
   let drawnCount = 0;
   let strongestAlpha = 0;
@@ -105,6 +115,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
     const colors = new Float32Array(12 * n);
     const radii = new Float32Array(4 * n);
     const alphas = new Float32Array(4 * n);
+    const rings = new Float32Array(4 * n);
     const indices = new Uint32Array(6 * n);
     list.forEach((blob, i) => {
       const color = blob.color || temperatureColor(blob.temperatureK);
@@ -113,6 +124,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
         positions.set([blob.x - frame[0], blob.y - frame[1], blob.z - frame[2]], 3 * v);
         corners.set(CORNERS[c], 2 * v);
         colors.set(color, 3 * v);
+        rings[v] = blob.ring ? 1 : 0;
       }
       indices.set([4 * i, 4 * i + 1, 4 * i + 2, 4 * i, 4 * i + 2, 4 * i + 3], 6 * i);
     });
@@ -124,6 +136,8 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
     alphaAttribute = new THREE.BufferAttribute(alphas, 1);
     geometry.setAttribute("glowRadius", radiusAttribute);
     geometry.setAttribute("glowAlpha", alphaAttribute);
+    ringAttribute = new THREE.BufferAttribute(rings, 1);
+    geometry.setAttribute("glowRing", ringAttribute);
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
     mesh.geometry.dispose();
     mesh.geometry = geometry;
@@ -157,10 +171,17 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
     if (!mesh.visible || !alphaAttribute) return;
     const position = camera.position.toArray();
     const weigh = makeWeigh ? makeWeigh() : null;
-    blobs.forEach((blob, i) => {
+    const looks = [];
+    let alphas = blobs.map((blob, i) => {
       const share = weigh ? weigh(blob.block) : 1;
       const look = lookOf(blob, position, focalPx);
-      const alpha = share > 0 ? look.alpha * share : 0;
+      looks[i] = look;
+      return share > 0 ? look.alpha * share : 0;
+    });
+    if (cutOf) alphas = cutOf(alphas);
+    blobs.forEach((blob, i) => {
+      const alpha = alphas[i];
+      const look = looks[i];
       if (alpha > 0.002) drawnCount += 1;
       if (alpha > strongestAlpha && onScreen(blob, look.radiusPx)) strongestAlpha = alpha;
       for (let c = 0; c < 4; c++) {

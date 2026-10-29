@@ -1,0 +1,4 @@
+**Headline:** The Galaxy Map now shows nebulae as soft glowing groups, in the colour of their kind.
+
+### Changed
+- **Nebula regions on the map (MAP.176).** Where nebulae lie close together the Galaxy Map draws them as one soft round glow for the group, in the colour of the commonest kind in it (emission pink, reflection blue, diffuse mauve, planetary green, dark umber, remnants orange), with a thin ring round it so a group reads differently from one nebula. A group shows from 2 pixels across, is stronger the more nebulae it holds, and splits into smaller groups as you zoom in, fading in and out with the blocks the way the stars do. At most 600 are drawn at once (the strongest on the screen). The Menu has a switch for each kind under "Nebulae" (all on; `hide=nebulae-emission` in the address turns one off), the legend names each kind and says what a ring is, and the map is whole without them.
