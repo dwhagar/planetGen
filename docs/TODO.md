@@ -12481,6 +12481,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Research (2026-10-09): Re-homed to Core 1 (coordinator, 7:13 PM EDT
   2026-10-28) as the timeline that GEN.855 (biogenic oxygen) reads.
+  Research (2026-10-09): Life chemistry review (2026-10-28), a tuning
+  choice for Boss and Core 1 (L3, T9): with plain exponential waits of
+  means 0.5, 1.5, 5, 10 and 20 Gyr only about 6 percent of worlds reach
+  multicellular animals by 4.6 Gyr and 0.4 percent a civilisation;
+  shortening the animal step to 2 to 3 Gyr and lengthening the
+  civilisation step to 60 to 100 Gyr gives about 43 to 52 percent
+  animals and 0.9 to 1.8 percent civilisations by 6 Gyr (the report's
+  Monte Carlo ignores the temperature clock). Boss wants animals common
+  and civilisations no more common than before.
   Prerequisites: none. Related: GEN.649, GEN.740.
 
 - [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
@@ -13178,37 +13187,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch; tests are `scripts/test.py changed --resume`.
   Prerequisites: GEN.809, GEN.810. Related: GEN.801, GEN.415.
 
-- [ ] **GEN.812 Greenhouse module: a water-vapour profile that dries with height, and pressure broadening checked against Venus and Earth, so an Earth twin at its own fixed point comes out near 288 K (finding 1)**
-  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
-  reports/air-fixed-point-findings-2026-10-24.md finding 1. With the
-  water vapour held at 0.77 of saturation at the answer's own
-  temperature an Earth twin (1 bar N2, 400 ppm CO2, 239 W/m2 absorbed)
-  comes out at 319 K, not 288 K; the module is right only when given the
-  Earth's measured water (292 K). Likely cause: the surface vapour
-  pressure is taken as the column mixing ratio all the way up; real air
-  is drier aloft (Manabe and Wetherald humidity falls with height). Add
-  the vapour profile in the module (not in surface_air). Also dry air at
-  400 ppm CO2 warms from 263 K at 1 bar N2 to 274 K at 3 bar and 340 K
-  at 87 bar: check the pressure broadening against published
-  line-by-line values. Done: the Earth twin lands within 2 K of 288 K
-  with the feedback live, and 106 of 300 forced class M habitable-zone
-  draws above 400 K falls to the share the physics gives. Owner: Aux 4
-  (lane E, the greenhouse module GEN.423 and GEN.703). Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  stand-ins get GEN.725 registry rows with a tier and tweak level; a
-  changed generated value carries `tests.golden_update --reason ...
-  --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`.
-  Prerequisites: GEN.422. Related: GEN.423, GEN.703, GEN.752,
-  GEN.411.
-  Finding (2026-10-09): Aux 8 finding (1:02 AM EDT 2026-10-25, from
-  GEN.814): the greenhouse module's water-vapour feedback is too strong,
-  so cold sealed water worlds sit at the freezing point. The water-world
-  temperature test of GEN.823 cannot pass until this is fixed.
-  Research (2026-10-09): Also (Aux 8, 5:51 PM EDT 2026-10-28 as the lane
-  reported): GEN.823 is wired (#3504) but its temperature test needs
-  GEN.812 to land first; add that test with GEN.812.
-
 - [ ] **GEN.816 A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
   reports/air-fixed-point-findings-2026-10-24.md finding 5. The module
@@ -13659,6 +13637,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.860, GEN.861 follow in the same chain (Core 1). Core 1 may bundle
   any of them into the GEN.855 epoch if it is nearly free, and says so
   to TODO; otherwise each takes its own lock turn right after GEN.855.
+  Research (2026-10-09): Life chemistry review (2026-10-28): add the
+  standing tests of GEN.873 (an oxygenic world past photosynthesis has
+  more O2 than before it; every pace reaches complex cells inside the
+  age of the universe); check that a surface water body without an ocean
+  (lakes and land) can still draw an oxygenic chemistry with the sunlit
+  gate; bundle the per-body sub-stream of GEN.872 into the same epoch if
+  ready; check that the _again redraw cannot change the pace after the
+  O2 was added.
 
 - [ ] **GEN.856 interior_heat._flux_w_m2 raises ZeroDivisionError and fails the albedo and tidal migration tests on clean main (bug)**
   Reported by Aux 17 at its lock-turn gate for GEN.822 (about 7:56 PM
@@ -13710,6 +13696,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09): Part of the atmosphere of evolution chain
   approved by Boss, 8:32 PM EDT 2026-10-28 (GEN.858, GEN.859, GEN.860,
   GEN.861 with it); in the lock queue right after GEN.855.
+  Research (2026-10-09): Life chemistry review (2026-10-28): give the
+  gas ledger per energy mode (oxygenic, far-red oxygenic, anoxygenic by
+  donor, chemolithoautotroph, retinal and melanin none), including the
+  oxygenic ledger (O2 sinks first, CH4 crash, ozone above about 1
+  percent of today's O2) and the donor drawdown; GEN.880
+  (chemolithoautotroph producers) shares it.
 
 - [ ] **GEN.858 Stage-aware air: the atmosphere follows the world's life stage from the timeline (pre-life, microbial anoxic, oxygenation, ozone shield and its UV effect on the surface), so every planet carries the air its life type and stage would make**
   Boss, 8:32 PM EDT 2026-10-28 (relayed by the coordinator): "make the
@@ -13820,6 +13812,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   retinal gate (share_o2 below 0.1) does not stay; remove it, so the
   retinal pigment follows the star and the life kind, not an oxygen
   share gate. Core 1 was told.
+  Research (2026-10-09): Life chemistry review (2026-10-28): the sub-ice
+  and aquifer worlds (about three quarters of main's life worlds) get
+  Melanin with no requirement; their carbon base should be a
+  chemolithoautotroph with a gas ledger that makes no O2 (see GEN.880);
+  Retinal is a photoheterotroph supplement that needs a carbon fixer
+  (GEN.881).
 
 - [ ] **GEN.862 The life class system: the habitable index gains a dimension, habitable to what kind of life**
   Boss (2026-10-28, 7:41 PM EDT): the class system is expanded in 9.5
@@ -13859,6 +13857,280 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by hand, and no `.major.md` note is written without Boss's word.
   Headline: 9.5 (life classes and sentient life).
   Prerequisites: GEN.864, TEST.435.
+
+- [ ] **GEN.866 A planet draw around an F5V star at an ecosphere orbit never returns when a large tidally forced moon is generated: the interior heat step size collapses (bug)**
+  Found by Bug 2 (as the lane reported, 8:52 PM EDT 2026-10-28), on main
+  at 134d8bb: a bare planet draw around an F5V star at an ecosphere
+  orbit does not return for minutes when a large tidally forced moon is
+  generated. The time sits in physics/interior_heat.py, heat then cool,
+  the adaptive step loop (around lines 310 to 320), where the step size
+  of 1 over the stiffness collapses. The moon: 2.26e23 kg, 2517 km,
+  778,000 km from a 4.67e24 kg planet, eccentricity 0.0074, age 4.09 Gy;
+  the surface temperature differs per call, so it depends on the air
+  solve feeding the heat. A hang here stalls any sector fill that rolls
+  such a system. Repro: python3
+  /mnt/project-files/reports/bug2/gen763-hang-repro.py from the repo
+  root (prints HUNG after 60 s). Fix: bound the step loop (a floor on
+  the step, an implicit step for a stiff case, or a cap on the step
+  count with the converged value); the normal-path values must not
+  change, so no epoch is wanted; if the golden files do change, the item
+  goes to the lock queue. Add a regression test with the moon above and
+  a time bound.
+  Prerequisites: none. Related: GEN.856, GEN.763, PERF.190.
+
+- [ ] **GEN.867 The star lists and the chemistry weights agree, and a carbon and water chemistry is never drawn on a non-water solvent**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 4.2 and 8, fix
+  2. 15 of the 35 positive star weights in tuning.LIFE_CHEMICALS are
+  dead because STAR_EVOLUTION potentially_viable_chemicals does not list
+  the chemistry (Melanin on O and B, Chlorophyll a on A, F and M,
+  Blue-Optimized on O, B, A and G, Bacteriochlorophylls on F, G and K,
+  Zinc on O, B and A), so Chlorophyll a can never occur around A or M
+  stars. Derive one table from the other (a weight of 0 means not
+  listed), state which weights you chose as a tweak and why (stand-in
+  registry rows), and add a one-line requires on the water hydrosphere
+  so no chemistry is drawn on a hydrocarbon or other solvent (nothing
+  outside Boss's approval appears by accident). Check the same for Core
+  1's branch (the sunlit ocean gate must not be vetoed on A and M).
+  Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water and
+  carbon based, stop at animals; sentient life and the life class system
+  wait for 9.5. Size S. Changes draws, so it takes a lock turn after
+  GEN.855.
+  Prerequisites: GEN.855. Related: GEN.861, GEN.725.
+
+- [ ] **GEN.868 A world has a life chemistry only after abiogenesis has happened: the map icons, search facet and population code read life_stage, not life_chemical**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 4.7, fix 6. 176
+  of the 2,190 life worlds on main (8 percent: 123 around
+  pre-main-sequence stars, 53 around young stars) have a chemistry, a
+  pace and a schedule but life_stage None and Microbial 0, and
+  everything that tests life_chemical for has-life
+  (web/maps/systemmap.py, db/query.py search facet, population/model.py)
+  calls them living. Either set the chemistry only when abiogenesis has
+  happened, or make every has-life test read life_stage (or the
+  Microbial score). Size S. Changes values, so it takes a lock turn
+  (bundle with the A change).
+  Prerequisites: GEN.855. Related: GEN.853.
+
+- [ ] **GEN.869 Life descriptions and labels say what the chemistry does: Chlorophyll a builds the oxygen, Retinal is a supplement, Zinc-Bacteriochlorophyll is an aerobic acidophile, Melanin is not a pigment, and hosts without a life row are stated**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 4.8, 4.9, fix
+  12. Text contradicts the chemistry: Chlorophyll a says it requires an
+  oxygenated atmosphere as a climax ecology (it makes the oxygen);
+  Retinal says it works in reducing air (proteorhodopsin is abundant in
+  oxygenated surface ocean, Gomez-Consarnau 2019) and makes ATP, not
+  biomass; Zinc-Bacteriochlorophyll uses the anoxygenic text although
+  the only known organism (Acidiphilium rubrum, Wakao 1996) is an
+  aerobic acidophilic heterotroph; the population page labels every
+  chemistry Light-harvesting pigment, including Melanin. Also say in the
+  code, or add rows for it, that a host with no O to M letter (brown
+  dwarfs, remnants) gets no life. Text and labels only, so no epoch and
+  no lock; coordinate the Retinal wording with GEN.861 (Core 1).
+  Prerequisites: none. Related: GEN.861.
+
+- [ ] **GEN.870 Every life constant has a stand-in registry row with its tier and tweak level (LIFE_CHEMICALS gates and star weights, STAR_EVOLUTION, timelines, score thresholds, solvent factors, toxicity limits, O2 band, energy flux and shares)**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 2.3, fix 11
+  (Boss's GEN.725 rule). None of the life constants in tuning.py lines
+  2174 to 2411, physics/habitability.py or physics/habitability_world.py
+  has a row in docs/design/research/stand-in-values.md (only LT1 to LT8
+  and BO9 exist, from Core 1's branch). Add the rows listed in section
+  2.3 of the report (proposed tier and tweak per row, to be corrected by
+  whoever knows better), and a test that fails when a life constant has
+  no row. Docs and registry only (no epoch, no lock).
+  Prerequisites: none. Related: GEN.725.
+
+- [ ] **GEN.871 Sub-ice microbial mats are scored as Flora and as edible plant food, and described with coastlines and light they do not have (bug)**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 4.6, fix 5
+  (quick part). On main 955 of the 1,055 worlds at stage photosynthesis
+  are Melanin radiotroph mats in an ice-covered ocean; the stage text
+  says dark microbial mats cover shallow waters and coastlines;
+  life_scores then gives Flora 1 to 3 and life_scores.food_stage turns
+  flora alone into the macroscopic food rung (0.85, Green) for
+  Suitability. Decide with Boss whether mats count as food; the
+  recommended rule: Flora needs a light-driven or surface mat route,
+  aphotic and sub-ice life is Microbial only with the microbial food
+  rung (0.5), and the stage text says what is there. The producer itself
+  (chemolithoautotrophs) is a 8.4 item. Size S to M. Changes values
+  (lock turn).
+  Prerequisites: GEN.855. Related: GEN.861.
+
+- [ ] **GEN.872 The life pass draws from a per-body sub-stream, so a life-model change no longer re-rolls the names and flavour text of every later body in the system**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 9.1, fix 13. Per
+  body the life pass draws chemistry, pace and flavour in that order and
+  skips draws depending on scores, which depend on the air, so one
+  change in the life model shifts every later body's draws. A per-body
+  sub-stream (draw.bound(Stream(seed_of_body))) makes life changes
+  local. It costs one epoch to introduce and saves every later one; Core
+  1 should bundle it into the GEN.855 + GEN.750 epoch if ready, else it
+  takes the next lock turn. Also make sure the _again redraw in the life
+  pass cannot change the pace after the biogenic oxygen has been added
+  (section 11 point 5).
+  Prerequisites: GEN.855. Related: GEN.750.
+
+- [ ] **GEN.873 Standing life chemistry tests: star weights match the star lists, every pace can reach complex cells inside the age of the universe, no life chemistry without a stage, no Flora under ice, no chemistry on a non-water solvent, every life constant is registered, an oxygenic world past photosynthesis has more O2**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 9.3 tests 1, 2,
+  4, 5, 6, 7 and 8 as standing tests in the suite (test 3, the
+  prevalence band per chemistry per star letter, goes into the TEST.430
+  chain). Each test must fail on today's main for the defect it names
+  and pass after its fix. Size S to M.
+  Prerequisites: GEN.867, GEN.868, GEN.870, GEN.871, GEN.855. Related:
+  TEST.430.
+
+- [ ] **GEN.874 PROPOSAL ONLY, needs Boss approval: non-carbon and non-water life (silicon, hydrocarbon, sulfuric acid or ammonia solvents), animals at most**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 8, fix 18.
+  Listed so they are not forgotten; nothing here is built until Boss
+  approves a specific chemistry. Silicon backbone (Bains 2004; Petkowski
+  2020: weak Si-Si bonds, Si oxidises to solid SiO2; works only in
+  cryogenic hydrocarbons, concentrated H2SO4 or HF), liquid hydrocarbon
+  solvent (SOLVENT_FACTOR 0.2 is a stand-in; solvent() returns it only
+  below 190 K with a saturated methane air), sulfuric acid
+  (SOLVENT_FACTOR 0.1; solvent() never returns it), ammonia-water (not
+  in code). If ever approved it also stops at animals, and each
+  chemistry needs a solvent field. Done when Boss has answered which, if
+  any, to build; this item then files the build items.
+  Prerequisites: GEN.862.
+
+- [ ] **GEN.875 Design: adaptation traits drawn from a world's own stress (radiation, UV, sulfide, acid, brine, heat or cold, high CO2, low O2, toxins), each moving one named habitability threshold**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 6, fix 8 (design
+  part). Table 6.1 maps each stress to real mechanisms (Deinococcus
+  repair, Mn antioxidants, tardigrade Dsup, melanin shielding,
+  sulfide-binding haemoglobin and the cave molly, acidophiles,
+  halophiles, hypercapnia tolerance), the trait it gives and the
+  threshold it moves (DOSE_THRESH_GY times 1, 10 or 100 for ordinary,
+  tolerant and extremotolerant; H2S limits times 10 to 1,000;
+  CO2_TOX_KPA times 2 to 10; METAZOA_O2_LOW_KPA; WATER_ACTIVITY_CRIT;
+  the temperature band). Design note with the checked table, the grades,
+  the draw (probability grows with the stress, capped, one sub-stream
+  draw per body, up to two or three traits), animal caps against microbe
+  caps, tiers and tweak levels. An adaptation never makes a world
+  habitable to people; it only widens what life there can be. Boss:
+  species adaptations for high radiation, hydrogen sulfide and other
+  poisons. Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds,
+  water and carbon based, stop at animals; sentient life and the life
+  class system wait for 9.5.
+  Prerequisites: GEN.855, GEN.750.
+
+- [ ] **GEN.876 Adaptation traits built: drawn in the life pass, stored in a text column, listed on the object page (adapted to: radiation, sulfide) and read by the habitability scores**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 6.2, fix 8
+  (build part), from the checked design. Tier, tweak level and registry
+  rows for every factor; the radiation grade for microbes is separate
+  from the animal grade (phi_cpx currently inherits the microbe L_rad).
+  A migration for the column. Scope (Boss, 7:41 PM EDT 2026-10-28):
+  near-Earth worlds, water and carbon based, stop at animals; sentient
+  life and the life class system wait for 9.5.
+  Prerequisites: GEN.875, GEN.872.
+
+- [ ] **GEN.877 Animal oxygen floor by grade: route R1 replaces the human 8 to 50 kPa window, with a floor of about 0.1 to 0.8 kPa for sponge-grade animals rising with body size**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 4.4, 7.2 R1, fix
+  3. habitability.t_metazoa uses the human breathing window, so Fauna
+  cannot be high on any world a human cannot breathe on; the real animal
+  floor is far lower (sponge Halichondria panicea grows at 0.5 to 4
+  percent of present O2, Mills 2014, recalled and to be spot-checked;
+  diffusion limits scale with body size, Catling 2005). Keep the old
+  window only as a human-comfort score. Tier T2 for the sponge floor, T7
+  for larger animals. Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth
+  worlds, water and carbon based, stop at animals; sentient life and the
+  life class system wait for 9.5.
+  Prerequisites: GEN.855, GEN.867.
+
+- [ ] **GEN.878 Chemistry-specific energy: the pigment's absorption band times the star's spectrum is the multiplier on LIGHT_SHARE, instead of one bolometric curve for every metabolism**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 4.5, fix 10.
+  l_ener ignores life_chemical, so a Retinal, a Melanin and a
+  Chlorophyll a biosphere see the same flux and Chlorophyll a under a
+  red dwarf is not penalised for the lack of 400 to 700 nm light. A
+  far-red pigment is only worth having if the index sees it. Scope
+  (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water and carbon
+  based, stop at animals; sentient life and the life class system wait
+  for 9.5.
+  Prerequisites: GEN.867.
+
+- [ ] **GEN.879 A far-red oxygenic chemistry (chlorophyll d and f) that K and M stars can draw, so the most common stars can have oxygenic life and animals**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 7.1, fix 4. On
+  main an M star can only draw Bacteriochlorophylls, Melanin, Zinc or
+  Retinal and none leads to animals; M dwarfs are about 75 percent of
+  stars. Chl d (Acaryochloris marina, 710 nm), Chl f (Chen 2010,
+  recalled), Wolstencroft and Raven 2002, Kiang 2007 and Gale and Wandel
+  (2017) support oxygenic photosynthesis there. Tier T5 for the
+  chemistry, T7 for the efficiency penalty, L3. The single change that
+  adds the most animal-capable worlds. Follows the chemistry-specific
+  energy item so the index can see the benefit. Scope (Boss, 7:41 PM EDT
+  2026-10-28): near-Earth worlds, water and carbon based, stop at
+  animals; sentient life and the life class system wait for 9.5.
+  Prerequisites: GEN.878, GEN.867.
+
+- [ ] **GEN.880 Chemolithoautotroph producers (H2 methanogens and acetogens, sulfur and iron oxidisers, radiolytic H2) replace Melanin as the producer under ice and in aquifers, with an oxidant budget that caps aphotic animals**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 5 point 1 and 2,
+  fix 5 (full part), 7.1. The generator has no primary producer that
+  works in the dark; the real ones consume H2, H2S or Fe2+ with an
+  oxidant and give off CH4, sulfate and Fe(III), limited by the redox
+  flux from rock and ocean. Sub-ice ocean worlds are capped Microbial
+  unless their oxidant delivery rate is modelled (no Europa O2 flux
+  number from second-hand sources). Shares the gas ledger of GEN.857 and
+  the carbon base of GEN.861. Scope (Boss, 7:41 PM EDT 2026-10-28):
+  near-Earth worlds, water and carbon based, stop at animals; sentient
+  life and the life class system wait for 9.5.
+  Prerequisites: GEN.861, GEN.871, GEN.857.
+
+- [ ] **GEN.881 Retinal becomes a photoheterotroph supplement that needs a carbon fixer, and Melanin becomes the radiotolerance adaptation with dose in its draw, not a radiation food**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 5, 6.3, fix 7.
+  Retinal makes ATP, not biomass; Melanin as a radiotroph is speculative
+  (T8 to T9, Dadachova 2007 power budget about 70 times too small) while
+  melanin as a shield is verified. The retinal gate share_o2 below 0.1
+  is already ruled out by Boss (7:43 PM EDT 2026-10-28) and belongs to
+  GEN.861. Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds,
+  water and carbon based, stop at animals; sentient life and the life
+  class system wait for 9.5.
+  Prerequisites: GEN.861, GEN.876.
+
+- [ ] **GEN.882 Route R2, chemosymbiotic animals: tubeworm, clam, mussel and cave-molly style communities on sulfide, methane or H2 with an oxidant, no light needed**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 7.2 R2, fix 15.
+  Verified on Earth (Cavanaugh 1981, Arp and Childress 1983); the limit
+  is oxidant delivery. Tier T2, L2. Carbon and water only. Scope (Boss,
+  7:41 PM EDT 2026-10-28): near-Earth worlds, water and carbon based,
+  stop at animals; sentient life and the life class system wait for 9.5.
+  Prerequisites: GEN.880, GEN.877.
+
+- [ ] **GEN.883 Route R3, low-oxygen sessile animals: sponge-grade animals with Fauna capped low, on air above 0.5 percent of today's O2 or a CO2 or iron-rich ocean**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 7.2 R3, fix 15.
+  Tier T2 for the sponge result (recalled), T3, L3 for the cap. Scope
+  (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water and carbon
+  based, stop at animals; sentient life and the life class system wait
+  for 9.5.
+  Prerequisites: GEN.877.
+
+- [ ] **GEN.884 Route R4, rare anoxic animals: a few percent of anoxic sulfidic worlds get animals that have lost aerobic respiration, Fauna capped low**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 7.2 R4, fix 15.
+  Contested: Loricifera in the L'Atalante basin (Danovaro 2010) and the
+  parasite Henneguya salminicola (Yahalomi 2020). Tier T3 to T4, L3.
+  Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water and
+  carbon based, stop at animals; sentient life and the life class system
+  wait for 9.5.
+  Prerequisites: GEN.877.
+
+- [ ] **GEN.885 PROPOSAL ONLY, needs Boss approval as fringe physics: route R5, alternate-oxidant airs (nitrate-rich water, nitrous oxide, chlorate and perchlorate brines) for non-oxygen breathers**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 7.2 R5, fix 16.
+  Microbes only on Earth (perchlorate respiration, Coates and Achenbach
+  2006); no animal known; tier T8, L3. Nothing is built until Boss says
+  so. Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water and
+  carbon based, stop at animals; sentient life and the life class system
+  wait for 9.5.
+  Prerequisites: GEN.877.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19391,6 +19663,10 @@ clears each one.
   = TEST.433 (phenomena census), E = TEST.395 (planet occurrence against
   observation, kept as its own part), F = TEST.209, TEST.210, TEST.214,
   TEST.301. Build order A, B, E, C, D, F.
+  Research (2026-10-09): Life chemistry review (2026-10-28): add the
+  chemistry share per star letter (section 9.3 test 3) once the star
+  lists and weights agree (GEN.867); the later bands for routes and
+  traits are TEST.436.
 
 - [ ] **TEST.431 System census: full systems per star type with planets, moons, belts and comets per system, the zero-planet share, binary share, habitable-world share, and life stage and civilization shares (prevalence suite part B)**
   Part of the full prevalence suite (TEST.430, Boss 7:27 PM EDT
@@ -19483,6 +19759,18 @@ clears each one.
   to the prevalence suite of TEST.430, with targets from the researched
   norms and the share of sentient worlds held to its present value.
   Prerequisites: GEN.863, TEST.430.
+
+- [ ] **TEST.436 Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges**
+  Life chemistry review (research thread, 2026-10-28,
+  reports/life-chemistry-review-2026-10-28.md). Section 9.3 test 3 and
+  the new routes. Adds the chemistry share per star letter, the animal
+  share by route and the trait share to the TEST.430 prevalence suite;
+  civilisations stay as rare as before (Boss, 7:38 PM EDT: animals on as
+  many suitable worlds as possible, no more intelligent worlds than
+  now). Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds, water
+  and carbon based, stop at animals; sentient life and the life class
+  system wait for 9.5.
+  Prerequisites: TEST.430, GEN.879, GEN.880, GEN.882, GEN.883, GEN.876.
 
 ## USR: User accounts
 

@@ -616,6 +616,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.422 | test_generation_size_estimate (3 tests error in setup) and test_phenomenon_scatter (scatter_lists_each_shells_phenomena_by_kind, a_fill_builds_its_rows_at_their_stored_points) are red on clean main (bug) |  |  |
 | GEN.845 | Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764) |  |  |
 | GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) |  |  |
+| GEN.866 | A planet draw around an F5V star at an ecosphere orbit never returns when a large tidally forced moon is generated: the interior heat step size collapses (bug) |  |  |
 | TEST.434 | Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug) |  |  |
 | GEN.861 | Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need | GEN.855, GEN.750 |  |
 | GEN.860 | Melanin radiotrophs weighted by radiation dose: the star weight times a dose factor from 0.1 at Earth dose to 1.0 at about 1,000 times Earth dose | GEN.855, GEN.750 |  |
@@ -628,6 +629,13 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.431 | System census: full systems per star type with planets, moons, belts and comets per system, the zero-planet share, binary share, habitable-world share, and life stage and civilization shares (prevalence suite part B) |  |  |
 | TEST.430 | Class census: a standing seeded report of every planet and moon class share and overall colour per star type and zone, with stored expected ranges and anomaly flags |  |  |
 | GEN.855 | Biogenic oxygen: photosynthesis releases free oxygen into the air as the life timeline passes it, so habitable worlds can reach multicellular life (bug) |  |  |
+| GEN.867 | The star lists and the chemistry weights agree, and a carbon and water chemistry is never drawn on a non-water solvent | GEN.855 | Life chemistry review fix. |
+| GEN.869 | Life descriptions and labels say what the chemistry does: Chlorophyll a builds the oxygen, Retinal is a supplement, Zinc-Bacteriochlorophyll is an aerobic acidophile, Melanin is not a pigment, and hosts without a life row are stated |  | Life chemistry review fix. |
+| GEN.870 | Every life constant has a stand-in registry row with its tier and tweak level (LIFE_CHEMICALS gates and star weights, STAR_EVOLUTION, timelines, score thresholds, solvent factors, toxicity limits, O2 band, energy flux and shares) |  | Life chemistry review fix. |
+| GEN.868 | A world has a life chemistry only after abiogenesis has happened: the map icons, search facet and population code read life_stage, not life_chemical | GEN.855 | Life chemistry review fix. |
+| GEN.871 | Sub-ice microbial mats are scored as Flora and as edible plant food, and described with coastlines and light they do not have (bug) | GEN.855 | Life chemistry review fix. |
+| GEN.872 | The life pass draws from a per-body sub-stream, so a life-model change no longer re-rolls the names and flavour text of every later body in the system | GEN.855 | Life chemistry review fix. |
+| GEN.873 | Standing life chemistry tests: star weights match the star lists, every pace can reach complex cells inside the age of the universe, no life chemistry without a stage, no Flora under ice, no chemistry on a non-water solvent, every life constant is registered, an oxygenic world past photosynthesis has more O2 | GEN.867, GEN.868, GEN.870, GEN.871, GEN.855 | Life chemistry review fix. |
 | GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) |  |  |
 | GEN.853 | No generated system reaches a technological civilization any more: tests/test_population.py cannot build one after 200 tries (bug) |  |  |
 | TEST.429 | Four test groups are red on clean main: three test_api_job_runs tests, and test_web_seo for web.galaxy_system_nearest (bug) |  |  |
@@ -671,7 +679,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.834 | Non-water ice species (CO2, CH4, N2 and others) are drawn into the ground but not stored per species |  |  |
 | PERF.198 | Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6) |  |  |
 | GEN.816 | A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5) |  |  |
-| GEN.812 | Greenhouse module: a water-vapour profile that dries with height, and pressure broadening checked against Venus and Earth, so an Earth twin at its own fixed point comes out near 288 K (finding 1) |  |  |
 | GEN.768 | Hours a person can be outside in a day: daylight hours limited by heat, cold, pressure, air supply and radiation dose, computed and stored per planet and moon |  |  |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output |  |  |
 | API.33 | API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug) |  |  |

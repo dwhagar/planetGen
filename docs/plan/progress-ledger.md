@@ -1646,3 +1646,4 @@ Baseline: PR #1817.
 | API.4 | 8.1 | Admin and API housekeeping |
 | MAP.220 | 8.1 | Habitability system |
 | MAP.190 | 8.1 | Fly-through map |
+| GEN.812 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

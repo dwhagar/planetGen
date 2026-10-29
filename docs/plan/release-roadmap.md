@@ -117,7 +117,7 @@ Lanes: not assigned; GEN.378 is proposed for Core 1 (it writes GEN.368's table),
 Status: Boss named it (7:41 PM EDT); items filed; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Life classes: the habitable index gains a dimension, habitable to what kind of life, and sentient life draws from it
 Today: (new)
-Change: New headline (Boss, 7:41 PM EDT 2026-10-28): the sentient life portion is left for 9.5, where the class system is expanded with a life class system, so each world is scored per kind of life. Filed as 5 items in 4 phases. Carbon and water based life first; any other chemistry needs Boss's approval before it is built. The share of worlds with sentient life stays as it is.
+Change: New headline (Boss, 7:41 PM EDT 2026-10-28): the sentient life portion is left for 9.5, where the class system is expanded with a life class system, so each world is scored per kind of life. Filed as 6 items in 4 phases (one is a proposal only for non-carbon chemistries, GEN.874). Carbon and water based life first; any other chemistry needs Boss's approval before it is built. The share of worlds with sentient life stays as it is.
 Needs: the atmosphere of evolution and the life timeline of 8.1 (GEN.855, GEN.750, GEN.858), and the prevalence suite (TEST.430).
 Lanes: not assigned; the work sits after 8.1.
 

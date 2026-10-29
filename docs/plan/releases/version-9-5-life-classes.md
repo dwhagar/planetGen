@@ -21,6 +21,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.862 | The life class system: the habitable index gains a dimension, habitable to what kind of life | GEN.855, GEN.750, GEN.858 | Boss, 7:41 PM EDT 2026-10-28. |
+| GEN.874 | PROPOSAL ONLY, needs Boss approval: non-carbon and non-water life (silicon, hydrocarbon, sulfuric acid or ammonia solvents), animals at most | GEN.862 | Proposal only. |
 
 ## Phase 2: The scores
 
