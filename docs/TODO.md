@@ -19205,28 +19205,6 @@ clears each one.
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
 
-- [ ] **TEST.444 Browser map tests still red on main after TEST.442: the sector_reach double-click tests and the POI icon key test (bug)**
-  Found by Aux 3 (12:4x AM EDT 2026-10-29 as the lane reported) after
-  TEST.442 merged (#3639). Still red on main:
-  test_web_browser_sector_reach.py
-  test_a_double_click_on_a_star_flies_the_camera_to_it and its
-  slow-to-answer-the-first-click twin (the camera ends 0.2 pc from the
-  star), red since at least MAP.333 (59a6ccf53), and
-  test_poi_icons_browser.py::test_the_galaxy_map_keys_all_seven_and_draws_the_habitable_world_marker_with_its_symbol.
-  Do: bisect the double-click pair and the POI key test, fix the cause
-  (the test or the code, whichever is wrong), keep the tests. Not a
-  skip. Done: both files pass on main. Owner: Aux 3 (it is bisecting).
-  Research (2026-10-09): Update (Core 2, 12:51 AM EDT 2026-10-29 as the
-  lane reported): the sector_reach double-click pair, the Go to test and
-  the Enter test (four tests) need no bisect: the info card covers the
-  pressed point and labels overlap the star, so the second click lands
-  on the card. Core 2 fixed it in its MAP.335 branch (mappick.js
-  clearOfPress flips the card away from the press; the test fly setup
-  hides labels) and they pass there. Aux 3 drops those four tests from
-  TEST.444 and keeps only the POI icon key test; they land with MAP.335.
-  Prerequisites: none. Related: TEST.442, MAP.333, MAP.303.
-  Prerequisites: none. Related: TEST.442, MAP.333, MAP.303.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
