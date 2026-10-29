@@ -560,7 +560,7 @@ The map panels and their data.
 |---|---|
 | [`galaxymap3d.js`](../../../src/html/static/galaxymap3d.js) | The 3D Galaxy Map (three.js): scene, the Free look camera, node fetching from `/galaxy/nodes` into an IndexedDB node store, bright stars and clouds, the NAV course line and the Territories overlay. Hands the drill-down to `galaxystageview.js`. |
 | `galaxystages.js` | The drill-down's stage rules with no drawing: which blocks a stage holds, the address (`?cam=` the camera, `&sector=`, `&open=1`; MAP.228) and the stage a camera looks at, breadcrumb, labels, the flight path. No three.js import; tested under node. |
-| `galaxystageview.js` | The drill-down drawn and driven: the stages from galaxy to sector (the block ladder on shells), camera flights, breadcrumb with sibling menus, tooltip, keys, touch, and the address bar. Created by `galaxymap3d.js`, which opens on it. |
+| `galaxystageview.js` | The drill-down drawn and driven: the stages from galaxy to sector (the block ladder on shells), camera flights, breadcrumb with sibling menus, tooltip, keys, touch, the find-a-place box and the one `goTo` (MAP.336). Created by `galaxymap3d.js`, which opens on it. |
 | `galaxyprisms.js` | Sector-grid cells, block level of detail, density shading and the `drill*` ladder rules (the page's copy of `galaxy/spherical.py`, `galaxy/drill.py` and `galaxy/window.py`; `tests/test_galaxyprisms.py` and `tests/test_galaxydrill.py` hold them equal). No three.js import, so tests run it under node. |
 | `galaxyblocks.js` | Builds the block scene's typed arrays, in a Web Worker when it can. |
 | `sectorscene.js`, `galaxysector.js` | One sector's scene (stars, phenomena, bodies; three.js) and the stage that opens it in the Galaxy Map; the sector page's Sector Map is the Galaxy Map locked to its sector (MAP.66, MAP.68). |
@@ -610,7 +610,10 @@ The map panels and their data.
 | `joblog.js` | The job output box: a terminal (Xterm.js) that shows the job's raw output as it streams (ADM.22). |
 | `mapcontrol.js` | The camera and input controller the Galaxy Map's drill-down and the Sector Map's scene share (MAP.64). |
 | `mapcore.js` | The helpers the Galaxy Map, the Sector Map and the System Map share, so each is written once (MAP.63). |
-| `mapnavpad.js` | The Galaxy Map's on-map controls (MAP.200): a slider for the zoom, a direction star of four arrows and a middle button that moves the center the view turns and zooms about, and a readout of where the center is while it moves. |
+| `mapnavpad.js` | The Galaxy Map's on-map controls: a direction star of four arrows and a middle button that moves the center the view turns and zooms about, a readout of where the center is while it moves (MAP.200), and the log ruler with its named stops and distance readout (MAP.336). |
+| `findplace.js`, `findplacebox.js` | The find-a-place box (MAP.336): what a typed line can be (coordinates, designations, object IDs, regions, names, recent places) and the box that lists it. |
+| `maplogruler.js` | The named scales of the map's log ruler and the distance readout's words (MAP.336). |
+| `regionlanding.js` | The cluster of a region's heaviest sectors a "densest" Go to a region lands on (MAP.336). |
 | `mappick.js` | The picking, hover and info-panel layer every 3D map shares (MAP.65). |
 | `menuplace.js` | Button menus that open where they can be seen instead of out of the bottom of the window (UX.85). |
 | `navpick.js` | Picking a NAV course on the maps; the Galaxy Map and the Sector Map hold one pick state (NAV.29, NAV.33). |

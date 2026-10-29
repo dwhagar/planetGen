@@ -102,13 +102,15 @@ def _open(page, url, ready):
 
 
 def _shot(page, selector):
-    """The picture of `selector` without the names laid over it (the label engine's, MAP.231, fade and move)."""
+    """The picture of `selector` without the names laid over it (the label engine's, MAP.231, fade and move) and the ruler's words
+    (MAP.336: their antialiasing differs by a level between a canvas with the focus and one without)."""
     page.wait_for_timeout(150)
-    page.evaluate("() => document.querySelectorAll('.map-labels').forEach((e) => { e.style.visibility = 'hidden'; })")
+    covers = ".map-labels, .starmap-ruler-stops, .starmap-altitude"
+    page.evaluate("(q) => document.querySelectorAll(q).forEach((e) => { e.style.visibility = 'hidden'; })", covers)
     try:
         return page.locator(selector).screenshot()
     finally:
-        page.evaluate("() => document.querySelectorAll('.map-labels').forEach((e) => { e.style.visibility = ''; })")
+        page.evaluate("(q) => document.querySelectorAll(q).forEach((e) => { e.style.visibility = ''; })", covers)
 
 
 # --- The Sector Map -------------------------------------------------------------------
@@ -251,6 +253,11 @@ def test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale(page, map_site):
     assert page.locator("#galaxymap3d-scale .starmap-scale-label").inner_text() == scale, "turning doesn't change the scale"
     _settle(page)    # the last turn and the nodes it asked for have landed: a frame still changing is not the key's doing (TEST.426)
     before = _shot(page, SECTOR_CANVAS)
+    for _ in range(20):    # the turn eases and the sector's scene may still be arriving: the picture is taken once it holds still
+        now = _shot(page, SECTOR_CANVAS)
+        if now == before:
+            break
+        before = now
     page.keyboard.press("a")
     assert _shot(page, SECTOR_CANVAS) == before, "other keys do nothing"
 
@@ -519,7 +526,7 @@ def _open_star_field(page, base):
     """The window round the fixture's star field, then close in on the field, as far in as its systems stand apart on the screen (marks
     closer than `MERGE_PX` are drawn as one, MAP.305)."""
     _open_window(page, base, 27, 27, 0, 0, g=3)
-    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})",
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, radius: r})",
                   [list(STAR_FIELD_CENTER_PC), 7])
     _settle(page)
 
@@ -894,7 +901,7 @@ def test_a_superbubble_has_a_crisp_rim_brighter_than_its_fill_and_a_fill_fainter
     page.emulate_media(color_scheme=scheme)
     _open_galaxy(page, far_site, "")
     x, y, z, radius = FAR_BUBBLE
-    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})",
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, radius: r})",
                   [[x, y, z], radius * 1.25])
     _settle(page)
     page.wait_for_timeout(500)
@@ -2285,7 +2292,7 @@ def test_fly_to_fit_puts_the_sphere_in_the_window_with_no_sector_box(page, dense
     open_dense_region(page, dense_site, 40.0)
     before = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
     center = [before["target"][0] + 3.0, before["target"][1] - 2.0, before["target"][2]]
-    page.evaluate("([center, radius]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: center, radius: radius})",
+    page.evaluate("([center, radius]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: center, radius: radius})",
                   [center, radius_pc])
     page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=20000)
     _settle(page)
@@ -2720,7 +2727,7 @@ def _hole_view_after_reload(page):
 
 def test_crowded_black_holes_are_one_mark_with_a_count_and_a_list_and_split_on_zoom_in(page, holes_site):
     """MAP.340: from 200 pc the thirty near black holes of `holes_site` lie within a few pixels of each other, so they are drawn as one
-    mark with their count (a badge on the glyph), its card lists them each with its mass and has a Zoom in on them button, and after
+    mark with their count (a badge on the glyph), its card lists them each with its mass and has a Go to them button, and after
     zooming in the crowd has split into more, smaller crowds or single marks."""
     page.set_viewport_size(VIEWPORT)
     drawn, view = _hole_view(page, holes_site, density=30, dist_pc=200.0)
@@ -2738,7 +2745,7 @@ def test_crowded_black_holes_are_one_mark_with_a_count_and_a_list_and_split_on_z
     members = page.locator("#galaxymap3d-info .map-info-crowd-system")
     assert members.count() == crowd["count"]
     assert "Near Hole" in members.first.inner_text() or "Heavy Hole" in members.first.inner_text() or "Far Hole" in members.first.inner_text()
-    zoom = page.locator("#galaxymap3d-info button", has_text="Zoom in on them")
+    zoom = page.locator("#galaxymap3d-info button", has_text="Go to them")
     assert zoom.count() == 1
     zoom.click()
     _settle(page)
@@ -3014,7 +3021,7 @@ def test_the_regions_give_way_to_the_stars_as_the_camera_comes_in(page, map_site
     spot = lambda: next(s for s in page.evaluate(REGION_SPOTS) if s["key"] == "9.0.0.0")
     far = spot()
     _open_window(page, map_site, 9, 0, 0, 0, g=3)
-    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: [2.83, 2.83, 0], radius: 2})")
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: [2.83, 2.83, 0], radius: 2})")
     _settle(page)
     near = spot()
     assert near["radiusPx"] > 4 * far["radiusPx"], (far, near)
@@ -3034,7 +3041,7 @@ def test_the_galactic_view_frames_the_region_it_is_in_with_a_fixed_wireframe_and
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site)
     _open_window(page, map_site, 9, 1, 0, 0, g=3)
-    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: [28.88, 21.5, 0], radius: 12})")
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: [28.88, 21.5, 0], radius: 12})")
     _settle(page)
     page.wait_for_function("() => { const f = document.querySelector('#galaxymap3d-canvas').__mapRegionFrame; return f && f.state().framed; }", timeout=20000)
     first = page.evaluate(REGION_FRAME)
@@ -3048,7 +3055,7 @@ def test_the_galactic_view_frames_the_region_it_is_in_with_a_fixed_wireframe_and
     page.mouse.move(520, 480)
     page.wait_for_timeout(300)
     assert page.evaluate(REGION_FRAME) == first
-    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: [2.83, 2.83, 0], radius: 12})")
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: [2.83, 2.83, 0], radius: 12})")
     _settle(page)
     page.wait_for_function("(old) => JSON.stringify(document.querySelector('#galaxymap3d-canvas').__mapRegionFrame.positions()) !== old",
                            arg=__import__("json").dumps(first["positions"]), timeout=20000)
@@ -3090,7 +3097,7 @@ def test_the_menu_lists_the_charted_regions_by_share_or_name_and_a_click_flies_t
 
 
 def test_a_click_on_a_region_shows_its_card_and_a_double_click_flies_to_it(page, map_site):
-    """MAP.316: a region's sphere takes the click (its card: how much is charted, a Fly to region button) and the double click."""
+    """MAP.316: a region's sphere takes the click (its card: how much is charted, a Go to region button) and the double click."""
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site)
     page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
@@ -3108,7 +3115,7 @@ def test_a_click_on_a_region_shows_its_card_and_a_double_click_flies_to_it(page,
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Zarh Region"
     assert "under 1 percent charted" in page.locator("#galaxymap3d-info").inner_text()
-    page.locator("#galaxymap3d-info button", has_text="Fly to region").click()
+    page.locator("#galaxymap3d-info button", has_text="Go to region").click()
     page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
     _settle(page)
     after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
@@ -3127,7 +3134,7 @@ def test_galaxy_map_habitable_world_markers_are_on_by_default_and_name_the_syste
     inhabited, habitable and gas giant layers begin on and the uninhabitable and asteroid field ones off."""
     _open_star_field(page, map_site)
     # MAP.333: the flight lands where it was asked, so frame the black hole (15 pc out) as well.
-    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})",
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, radius: r})",
                   [list(STAR_FIELD_CENTER_PC), 16])
     _settle(page)
     page.wait_for_timeout(1000)
@@ -3512,7 +3519,7 @@ def test_crowded_marks_merge_into_one_with_a_count_whose_card_lists_every_system
     assert page.locator("#galaxymap3d-info h3").inner_text() == f"{crowd['count']} points of interest"
     info = page.locator("#galaxymap3d-info").inner_text()
     assert all(name in info for name in crowd["members"]), info
-    page.locator("#galaxymap3d-info button", has_text="Zoom in on them").click()
+    page.locator("#galaxymap3d-info button", has_text="Go to them").click()
     page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
     _settle(page)
     after = _markers_until(page, lambda entries: not any(e["count"] and e["count"] >= crowd["count"] and e["members"] == crowd["members"] for e in entries))
@@ -4045,7 +4052,7 @@ def test_galaxy_map_names_the_bodies_of_an_open_system_down_to_a_planet(page, ma
     button = page.locator(".starmap-sr-system button", has_text="(planet)").first
     planet = button.inner_text().split(" (")[0]
     button.evaluate("b => b.click()")
-    page.locator("#galaxymap3d-info button", has_text="Fly to").click()
+    page.locator("#galaxymap3d-info button", has_text="Go to").click()
     _wait_system(page)
     page.wait_for_function(f"([name]) => ({LABELS})().some((label) => label.kind === 'body' && label.text === name)", arg=[planet])
     page.click("#galaxymap3d-menu > summary")
@@ -4223,9 +4230,9 @@ def test_galaxy_map_opens_a_system_in_place_and_zooms_to_a_moon(page, map_site):
     assert crumbs[-1] == "Middling Sun" and crumbs[-2].startswith("Sector"), crumbs
     fit = state["distance"]
 
-    # A planet picked from the list shows its panel; Fly to goes in close.
+    # A planet picked from the list shows its panel; Go to goes in close.
     page.locator(".starmap-sr-system button", has_text="(planet)").first.evaluate("b => b.click()")
-    assert "Fly to" in [b.inner_text() for b in page.locator("#galaxymap3d-info button").all()]
+    assert "Go to" in [b.inner_text() for b in page.locator("#galaxymap3d-info button").all()]
     # MAP.126: the picked body's path is drawn full and the others' fade back.
     picked = _galaxy_system(page)["selected"]
     opacity = page.evaluate("(refs) => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); "
@@ -4233,12 +4240,12 @@ def test_galaxy_map_opens_a_system_in_place_and_zooms_to_a_moon(page, map_site):
     assert opacity[0] == 1
     others = [o for ref, o in zip([picked, "planet:1", "planet:2"], opacity) if ref != picked and o is not None]
     assert others and all(o < 0.5 for o in others), opacity
-    page.locator("#galaxymap3d-info button", has_text="Fly to").click()
+    page.locator("#galaxymap3d-info button", has_text="Go to").click()
     _wait_system(page)
     near = _galaxy_system(page)["distance"]
     assert near < fit / 5, (near, fit)
     page.locator(".starmap-sr-system button", has_text="(moon)").first.evaluate("b => b.click()")
-    page.locator("#galaxymap3d-info button", has_text="Fly to").click()
+    page.locator("#galaxymap3d-info button", has_text="Go to").click()
     _wait_system(page)
     assert _galaxy_system(page)["distance"] < near
     assert _galaxy_system(page)["following"] == "moon:1"
@@ -5084,7 +5091,7 @@ def test_a_fly_to_lands_where_it_was_asked_with_no_snap_back_to_the_stage_range(
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site)
     page.wait_for_function("() => { const l = document.querySelector('#galaxymap3d-canvas').__mapRegionList; return l && l.order().length === 2; }", timeout=20000)
-    fly = "([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})"
+    fly = "([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, radius: r})"
     for centre, radius in (([2.83, 2.83, 0.0], 12.0), ([2.83, 2.83, 0.0], 3.0)):
         page.evaluate(fly, [centre, radius])
         page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)

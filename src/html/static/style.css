@@ -846,13 +846,150 @@ tbody tr:last-child td {
   opacity: 0.4;
 }
 
+/* MAP.336: the log ruler, up the map's right side above the direction star: the whole galaxy at the top, a moon at the bottom, a stop
+   for each named scale (a Go to) beside the slider, and the distance readout over the scale bar. */
+.starmap-ruler {
+  position: absolute;
+  right: 0.5rem;
+  top: 0.5rem;
+  bottom: 9.5rem;
+  min-height: 7rem;
+  display: flex;
+  padding: 0.3rem;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  pointer-events: none;
+}
+
+.starmap-ruler > * {
+  pointer-events: auto;
+}
+
+.starmap-ruler.is-disabled {
+  opacity: 0.4;
+}
+
+.starmap-ruler-body {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 1.4rem;
+}
+
 .starmap-zoom-slider {
-  writing-mode: vertical-lr;
-  direction: rtl;
-  width: 1.4rem;
-  height: 6.5rem;
+  appearance: none;
+  -webkit-appearance: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 1.2rem;
+  height: 100%;
   margin: 0;
+  padding: 0;
+  writing-mode: vertical-lr;
+  direction: ltr;
+  background: transparent;
   accent-color: var(--accent);
+}
+
+.starmap-zoom-slider::-webkit-slider-runnable-track {
+  width: 3px;
+  background: var(--border, currentColor);
+  border-radius: 2px;
+}
+
+.starmap-zoom-slider::-moz-range-track {
+  width: 3px;
+  background: var(--border, currentColor);
+  border-radius: 2px;
+}
+
+.starmap-zoom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 1rem;
+  height: 14px;
+  margin-left: -0.35rem;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.starmap-zoom-slider::-moz-range-thumb {
+  width: 1rem;
+  height: 14px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--accent);
+}
+
+.starmap-ruler-stops {
+  position: absolute;
+  right: 1.35rem;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.starmap-ruler-stop {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  padding: 0 0.45rem 0 0.2rem;
+  border: 0;
+  border-right: 2px solid var(--text-muted, currentColor);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.7rem;
+  line-height: 1.1;
+  white-space: nowrap;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.starmap-ruler-stop:hover,
+.starmap-ruler-stop:focus-visible,
+.starmap-ruler-stop.is-near {
+  color: var(--accent);
+  border-right-color: var(--accent);
+}
+
+.starmap-ruler-stop.is-bare {
+  font-size: 0;
+  padding-left: 0.6rem;
+  min-height: 8px;
+}
+
+.starmap-ruler-stop.is-bare:hover,
+.starmap-ruler-stop.is-bare:focus-visible {
+  font-size: 0.7rem;
+  background: var(--bg-subtle);
+  z-index: 1;
+}
+
+.starmap-altitude {
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  pointer-events: none;
+}
+
+/* A map too narrow for the stops' names, or one with a card standing beside the ruler, keeps the ticks (each still a Go to, named by its
+   title and label; the name shows on hover or focus). */
+.starmap-ruler.is-slim .starmap-ruler-stop,
+.galaxy-map-main:has(> .starmap-info[data-overlay][data-state="selected"][data-corner$="right"]) .starmap-ruler-stop {
+  font-size: 0;
+  padding-left: 0.6rem;
+  min-height: 8px;
+}
+
+.starmap-ruler.is-slim .starmap-ruler-stop:hover,
+.starmap-ruler.is-slim .starmap-ruler-stop:focus-visible,
+.galaxy-map-main:has(> .starmap-info[data-overlay][data-state="selected"][data-corner$="right"]) .starmap-ruler-stop:hover,
+.galaxy-map-main:has(> .starmap-info[data-overlay][data-state="selected"][data-corner$="right"]) .starmap-ruler-stop:focus-visible {
+  font-size: 0.7rem;
+  background: var(--bg-subtle);
+  z-index: 1;
 }
 
 .starmap-dirstar {
@@ -2989,6 +3126,13 @@ code {
   max-height: calc(100% - 10.5rem);
 }
 
+/* MAP.336: a card on the right stands to the left of the log ruler, which then keeps its ticks only (the names come back on hover or
+   focus) so the card does not reach over the middle of the map; a tall card stands beside the controls (`--info-pad-clear`). */
+:is(.galaxy-map-main, .starmap-viewport):has(.starmap-ruler) > .starmap-info[data-overlay][data-corner$="right"]:not([data-tall]) {
+  right: 3.2rem;
+  width: min(calc(100% - 3.7rem), clamp(13rem, 36%, 24rem));
+}
+
 :is(.galaxy-map-main, .starmap-viewport):has(.starmap-navpad) > .starmap-info[data-corner="bottom-right"] {
   bottom: 9.5rem;
 }
@@ -4110,6 +4254,63 @@ body.app {
 
 .galaxy-address-matches button:hover {
   border-color: var(--accent);
+}
+
+/* MAP.336: the find-a-place list: a panel over the page under the box, groups of results one to a line. */
+.galaxy-find-results {
+  position: relative;
+  height: 0;
+  margin: 0;
+  z-index: 20;
+}
+
+.galaxy-find-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -0.3rem;
+  max-height: min(24rem, 60vh);
+  overflow-y: auto;
+  padding: 0.3rem 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.galaxy-find-group h4 {
+  margin: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted, var(--text));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.galaxy-address-matches.galaxy-find-results ul {
+  display: block;
+  margin: 0;
+}
+
+.galaxy-find-group [role="option"] {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.3rem 0.6rem;
+  cursor: pointer;
+}
+
+.galaxy-find-group [role="option"]:hover,
+.galaxy-find-group [role="option"].is-active {
+  background: var(--bg-subtle);
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.galaxy-find-detail {
+  color: var(--text-muted, var(--text));
+  font-size: 0.85rem;
+  text-align: right;
 }
 
 /* The Galaxy Map's territory legend (the Territories button). */
