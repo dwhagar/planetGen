@@ -262,6 +262,7 @@ def planet_sections(name, row, sheet, species, piece):
     """
     parts = planet_layout.split_blocks(piece["blocks"] if piece else [])
     values = {r["key"]: _value_html(r) for g in sheet["groups"] for r in g["rows"] if r.get("stored", True)}
+    raw = {r["key"]: r.get("raw") for g in sheet["groups"] for r in g["rows"] if r.get("stored", True)}
     groups = {group["key"]: group for group in sheet_view(sheet)}
 
     def without(key, drop):
@@ -272,7 +273,7 @@ def planet_sections(name, row, sheet, species, piece):
     composition = without("composition", lambda key: key in planet_layout.MASS_SHARED_KEYS)
     phi6 = without("habitability", lambda key: False)
     return {
-        "summary": [trusted_html(sentence) for sentence in planet_summary.summary_sentences(name, row or {}, values)],
+        "summary": [trusted_html(sentence) for sentence in planet_summary.summary_sentences(name, row or {}, values, raw)],
         "life": trusted_html(blocks_html(parts["life"], _ref_link)),
         "civilization": [trusted_html(sentence) for sentence in planet_layout.civilization_sentences(row, species)],
         "notes": trusted_html(blocks_html(parts["rest"], _ref_link)),
