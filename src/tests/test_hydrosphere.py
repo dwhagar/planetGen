@@ -143,9 +143,15 @@ def test_a_brine_seep_is_liquid_water_but_not_a_sunlit_sea_nor_a_wet_world_nor_a
     assert magnetism.mobile_lid_chance(seep, 1.0) == 0.0
     values = {"hydrosphere": "brine seep", "surface_temperature_k": 250.0, "water_mass_fraction": 3e-6}
     assert habitability_world.solvent(values) == "water" and habitability_world.water_source(values) == "liquid"
-    from planetgen import tuning
-    conditions = [c for c in tuning.SUNLIT_OCEAN if c["not_equals"] == "brine seep"]
-    assert conditions, "a sunlit sea is not a brine seep"
+
+
+def test_a_brine_seep_has_no_light_class_but_keeps_the_chemical_ones():
+    """GEN.908: the sunlit classes (1a, 1b, 1c, 2) need an open sea; the chemical ones need liquid water over rock."""
+    from planetgen.physics import life_classes
+    from tests.test_life_classes import world
+    scores = life_classes.score_classes(world(hydrosphere="brine seep"))
+    assert all(scores[c].score == 0 for c in ("1a", "1b", "1c", "2"))
+    assert scores["3a"].score > 0 and scores["4b"].score > 0
 
 
 def test_ocean_worlds_are_mostly_ice_sealed():
