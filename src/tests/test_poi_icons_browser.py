@@ -25,7 +25,7 @@ from planetgen.web.lib import poi_icons
 
 from tests.map_site_support import WORLD_FIELD, map_site  # noqa: F401
 from tests.test_web_browser_fixture_maps import (  # noqa: F401 -- fixtures and the map drivers the lanes' own tests share
-    _markers_until, _open_menu, _open_window, _screen_of, gl_browser, page)
+    STAR_FIELD_CENTER_PC, _markers_until, _open_menu, _open_star_field, _screen_of, _settle, gl_browser, page)
 
 pytestmark = pytest.mark.browser
 
@@ -168,15 +168,22 @@ def test_the_seven_silhouettes_differ_so_colour_is_never_the_only_sign(page, map
 # --- 4. The Galaxy Map ------------------------------------------------------------------------------------------------
 
 def test_the_galaxy_map_keys_all_seven_and_draws_the_habitable_world_marker_with_its_symbol(page, map_site):
-    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    # The habitable worlds layer begins on (MAP.303), and marks closer than MERGE_PX are drawn as one (MAP.305), so the view is
+    # closed in on the field as far as its systems stand apart, with the black hole in it (MAP.333: a flight lands where asked).
+    _open_star_field(page, map_site)
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})",
+                  [list(STAR_FIELD_CENTER_PC), 16])
+    _settle(page)
     page.wait_for_timeout(1000)
     key = page.locator("#galaxy-map-symbols")
     assert key.count() == 1
     assert {svg.get_attribute("data-poi") for svg in key.locator("svg[data-poi]").all()} == set(ICON_IDS)
     _open_menu(page)
-    page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
+    assert page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').get_attribute("aria-pressed") == "true"
     found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries or []))
-    assert {e["name"] for e in found if e["kind"] == "marker-habitable"} == {system["name"] for system in WORLD_FIELD}
+    # MAP.321: an inhabited world names its system before a habitable one does, so Fixture Rest wears the inhabited mark.
+    assert {e["name"] for e in found if e["kind"] == "marker-habitable"} == {"Fixture Eden"}
+    assert {e["name"] for e in found if e["kind"] == "marker-inhabited"} >= {"Fixture Rest"}
     if page.locator("#galaxymap3d-menu").evaluate("m => m.open"):
         page.locator("#galaxymap3d-menu > summary").click()
     page.wait_for_timeout(300)
