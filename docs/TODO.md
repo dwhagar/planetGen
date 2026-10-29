@@ -13608,6 +13608,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   option 1 (a temperate band from the solved climate) over aiming at the
   inner half. The albedo-follows-star-colour gap is GEN.912. Owner moves
   from Aux 1 (retiring) to Core 1 once Boss decides.
+  Research (2026-10-09): Update (Aux 1, about 10:36 AM EDT 2026-10-29 as
+  the lane reported): habitable-request census with the class cut-over
+  rebased on main 86cac9be (includes GEN.855), 30 systems per star,
+  results as aim (a Blue/Green world) / fallback (best is Yellow) /
+  unmet: F5V 1/13/16, G2V 2/10/18, K5V 0/12/18, M2V 0/2/28, M5V 0/2/28.
+  The cut-over alone does not cure the unmet requests, which fits Core
+  4's GEN.909 finding (outer zone cold by the physics); it does make the
+  unmet state honest (the system says unmet instead of faking a class
+  M). Planet shares among ecosphere draws are mostly N, F, G, H, E, with
+  M at about 0.1 to 0.2 percent. This is the evidence for the Boss
+  decision on where habitable requests aim.
   Prerequisites: none. Related: GEN.909, GEN.854, GEN.646, GEN.907.
 
 - [ ] **GEN.912 The planet albedo draw does not follow the star's colour, so planets of cool stars come out a little too cold (stand-in)**
