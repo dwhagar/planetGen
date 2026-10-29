@@ -1658,3 +1658,12 @@ Baseline: PR #1817.
 | TEST.315 | 8.1 | Consistency |
 | MAP.334 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
 | TEST.440 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.328 | 8.1 | Fly-through map |
+| UX.215 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.216 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.217 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.218 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.219 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.220 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.221 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.222 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

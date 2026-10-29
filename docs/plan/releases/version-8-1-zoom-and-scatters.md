@@ -170,7 +170,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws |  | Boss 7:15 PM EDT; the superbubble layer is its sibling item. |
 | MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts |  | GEN.372 audit; Boss card. |
 | DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute |  |  |
-| MAP.328 | Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views) |  |  |
 | MAP.329 | System Map stepping reaches systems across a sector's edge |  | Core 2 follow-up |
 | UX.231 | Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5) |  |  |
 | API.36 | Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6) |  |  |
@@ -617,6 +616,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.439 | test_web_browser_map_perf.py fails on main: the climb moves stars over the buffer at up 1 and up 4, and teardown raises page errors on indexOf and scale (bug) |  |  |
 | GEN.866 | A planet draw around an F5V star at an ecosphere orbit never returns when a large tidally forced moon is generated: the interior heat step size collapses (bug) |  |  |
 | TEST.434 | Tests red on clean main after the habitable-world markers went on by default: the POI icons browser test, test_no_todo_codes_shown and seven node-JS test files (bug) |  |  |
+| TEST.441 | Tests red on main from the albedo-greenhouse, moon-tidal-flux and mass-backfill migrations; the white dwarf models dataset is also missing on a fresh test machine (bug) |  |  |
 | GEN.861 | Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need | GEN.855, GEN.750 |  |
 | GEN.860 | Melanin radiotrophs weighted by radiation dose: the star weight times a dose factor from 0.1 at Earth dose to 1.0 at about 1,000 times Earth dose | GEN.855, GEN.750 |  |
 | GEN.859 | Microbial worlds without O2 keep a capped CO2 and CH4 air: the limit on how much CO2 and CH4 anoxic microbial life leaves in the air | GEN.855, GEN.750 |  |
@@ -714,14 +714,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | OPS.74 | Delete the uncalled helpers (class_allowed_in_zone, build_sector_configs, shell_chunks, draw_mass, mantle_mass_kg, build_nodes, get_galaxy_phenomena, register_card_renderer, read_config, settings_hash, mass_limit_argv) (G7, step 2) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain OPS.72, Boss 10:35 PM EDT. |
 | OPS.72 | Delete the dead tuning knobs and uncalled helpers the unused-values audit found (G7) | OPS.73, OPS.74 |  |
 | UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) |  |  |
-| UX.215 | Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table |  |  |
-| UX.216 | Object pages: the "Rendered example" panel gets an in-universe navigation title |  |  |
-| UX.217 | System and planet pages name the zones: "Ecosphere / Habitable Zone", "Hot Zone", "Cold Zone", each with its range in appropriate units, instead of "Zone E" |  |  |
-| UX.218 | The class letter on pages is a link to the page for that class (Class M and the rest) |  |  |
-| UX.219 | Planet pages: Atmosphere and Composition are each a heading followed by their table; the composition table is the planet's actual composition by mass |  |  |
-| UX.220 | Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores |  |  |
-| UX.221 | Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities | UX.220 |  |
-| UX.222 | Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu | UX.215, UX.220, UX.221, UX.219 |  |
 | UX.213 | Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug) |  |  |
 | GEN.791 | Generator switch that forces a planet or moon class so a sample can hold at least 30 of every class (random generation gives under 30 of classes O, P, T, V, E, K, L, N, F, G) |  |  |
 | GEN.790 | Write the sheet rule for the comet columns mean_anomaly_deg, orbital_period_years and period_class (54 of 234 comets empty) |  |  |

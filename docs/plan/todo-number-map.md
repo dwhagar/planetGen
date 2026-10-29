@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.441 |
+| TEST | TEST.442 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -1972,7 +1972,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.325 | The Galaxy Map infobox is too dense for a readable font: a block card lists ten rows plus a help paragraph in tiny text, and it sits over the zoom controls (bug) | none | done, PR #3331 |
 | MAP.326 | Zooming in from the Galaxy Map does not carry smoothly into the star system map: on no system could Boss zoom from the galaxy into the system view as one continuous move (bug) | none | done, PR #3345 |
 | MAP.327 | Galactic view draws a locked wireframe round the current region with no dimming (the sector part, dimming and wall icons, is done in #3422) | none | done, PR #3445 |
-| MAP.328 | Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views) | none | open |
+| MAP.328 | Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views) | none | done, PR #3573 |
 | MAP.329 | System Map stepping reaches systems across a sector's edge | none | open |
 | MAP.330 | Star glow halos grow huge when stars are blurred and cover most of the screen: fade the glow out strongly with halo size and cut it to zero long before that (bug) | none | done, PR #3454 |
 | MAP.331 | The purple wireframe cube on the Galaxy Map has no legend entry or label, so nothing says it outlines the charted region (bug) | none | done, PR #3535 |
@@ -2658,14 +2658,14 @@ Parents marked "new parent" had no old number of their own.
 | UX.212 | Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug) | none | done, PR #3423 |
 | UX.213 | Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug) | none | open |
 | UX.214 | Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column | none | done, PR #3518 |
-| UX.215 | Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table | none | open |
-| UX.216 | Object pages: the "Rendered example" panel gets an in-universe navigation title | none | open |
-| UX.217 | System and planet pages name the zones: "Ecosphere / Habitable Zone", "Hot Zone", "Cold Zone", each with its range in appropriate units, instead of "Zone E" | none | open |
-| UX.218 | The class letter on pages is a link to the page for that class (Class M and the rest) | none | open |
-| UX.219 | Planet pages: Atmosphere and Composition are each a heading followed by their table; the composition table is the planet's actual composition by mass | none | open |
-| UX.220 | Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores | none | open |
-| UX.221 | Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities | none | open |
-| UX.222 | Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu | none | open |
+| UX.215 | Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table | none | done, PR #3573 |
+| UX.216 | Object pages: the "Rendered example" panel gets an in-universe navigation title | none | done, PR #3573 |
+| UX.217 | System and planet pages name the zones: "Ecosphere / Habitable Zone", "Hot Zone", "Cold Zone", each with its range in appropriate units, instead of "Zone E" | none | done, PR #3573 |
+| UX.218 | The class letter on pages is a link to the page for that class (Class M and the rest) | none | done, PR #3573 |
+| UX.219 | Planet pages: Atmosphere and Composition are each a heading followed by their table; the composition table is the planet's actual composition by mass | none | done, PR #3573 |
+| UX.220 | Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores | none | done, PR #3573 |
+| UX.221 | Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities | none | done, PR #3573 |
+| UX.222 | Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu | none | done, PR #3573 |
 | UX.223 | Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score | none | open |
 | UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) | none | open |
 | UX.225 | Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4) | none | open |
@@ -3227,6 +3227,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.438 | test_planet_classes test_only_the_known_writers_assign_a_class fails: db/interests.py is a new writer of planet_class and is not in CLASS_WRITERS (bug) | none | done, PR #3562 |
 | TEST.439 | test_web_browser_map_perf.py fails on main: the climb moves stars over the buffer at up 1 and up 4, and teardown raises page errors on indexOf and scale (bug) | none | open |
 | TEST.440 | test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale fails on main: the scale text reads 0.25 sectors where 2.5 is expected (bug) | none | done, PR #3571 |
+| TEST.441 | Tests red on main from the albedo-greenhouse, moon-tidal-flux and mass-backfill migrations; the white dwarf models dataset is also missing on a fresh test machine (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
