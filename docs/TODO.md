@@ -844,54 +844,6 @@ with `clamp()`.
   progress-line work only: no generated-output change and no lock turn;
   if any step turns out to change a stored value, stop and tell TODO.
 
-- [ ] **UX.205 Object pages show the day and night time shares, moons with the extra night from their planet**
-  Boss, 7:54 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
-  coordinator), the display half of the day and night shares request.
-  Do: planet and moon pages show the share of time in daylight and in
-  night (and for a moon the extra night in its parent's shadow, with the
-  length of the longest eclipse) in the rotation group and in one
-  sentence of the description; a tidally locked world says so (day side,
-  terminator, night side); an object with no day or night (a star, a
-  free body with no rotation stored) shows nothing; also replaces the
-  "Hours of daylight a person can be outside: not stored" row (UX.199)
-  with these shares. Done: page tests on Earth-like, locked and moon
-  cases find the shares and the sentence. Owner: unowned (Aux 6 retired 2026-10-28; lock-free pool), after GEN.767
-  supplies the columns. Related: UX.199, GEN.767.
-  Research (2026-10-09, Daylight and outside hours): Boss, 8:22 PM EDT
-  2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiGGDyBByq5momrqKfYqJRdr, relayed by the
-  coordinator): "make sure we have an item to fill in the hours of
-  daylight a person can be outside, and a value for how many hours of
-  daylight the planet has." TODO checked the code: the stored
-  `outside_hours` (physics/equipment.py `_outside_hours`) is the hours
-  outside in a working year that the listed radiation suit allows before
-  the dose limit, `None` unless a limit; the property sheet
-  (describe/sheet.py line 177) labels it "Hours of daylight a person can
-  be outside", which it is not, so it shows "not stored" nearly
-  everywhere. No value for the hours of daylight of the planet exists.
-  Add to this item: show both new values, the hours of daylight of the
-  planet (GEN.767 `daylight_hours`) and the hours a person can be
-  outside in a day with the binding limit in words (GEN.GEN.768
-  `outside_hours_day`), in At a glance and the rotation group, and
-  relabel the yearly dose-limited `outside_hours` row "Hours a person
-  can work outside per year (dose limit)"; the "not stored" row then
-  disappears (UX.199).
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 3 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Research (2026-10-09): Lock-free item given to Aux 7 (6:04 PM EDT
-  2026-10-29) while it waits for its lock turn; MAP.300 merged (#3751).
-  Owner: Aux 7.
-  Research (2026-10-09): Moved out of Core 5's chain (6:14 PM EDT
-  2026-10-29): Aux 7 holds it as its lock-free item. Core 5 skips it.
-  Prerequisites: GEN.768. Related: UX.199, UX.203.
-
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
   Boss, 8:19 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiHAYnXa7XwrhJHvc3pY8X4j, relayed by the
@@ -2130,28 +2082,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
   Prerequisites: VIEW.14.
-
-- [ ] **MAP.301 Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: zoom should assume you're
-  headed for the most populated layer currently in front of the zoom
-  direction to avoid going past. Do: when the wheel zooms, pick the zoom
-  target along the ray under the pointer as the densest layer of visible
-  items in front of the camera (a bounded search along the ray over the
-  node counts, MAP.259 to MAP.262) and slow and stop the approach there
-  instead of passing through it; zooming again continues past it. Done:
-  a browser test scrolls toward the fixture's filled region and stops in
-  it, and still reaches a lone star in empty space. Part of one chain
-  filed from that message: TEST.368 (fixture galaxy), MAP.295 and
-  MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking, labels, zoom,
-  icons; Aux 10). Owner: Aux 10 (with MAP.292, which fixed the stuck
-  wheel zoom).
-  Research (2026-10-09): OWNER Aux 4 (assigned 5:45 PM EDT 2026-10-29 by
-  TODO as the lane's next lock-free item after MAP.289 merged; separate
-  branch, no generated-output change; the former owner lane is retired).
-  If this step turns out to change a stored value, stop and tell TODO.
-  Prerequisites: TEST.368. Related: MAP.292, MAP.257, MAP.300, MAP.302.
 
 - [ ] **MAP.302 At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
@@ -11754,6 +11684,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line 177), migration, epoch with --affects fill (own lock turn), tests
   for Earth, hot desert, cold, high dose, locked world and vacuum.
   Depends on GEN.767 (Aux 5, daylight_hours).
+  Research (2026-10-09): UX.205 merged (#3755, Aux 7, as the lane
+  reported 6:16 PM EDT) and left one line open for this item: once
+  outside_hours_day is stored, the pages show the per-day hours-outside
+  value (the old row is relabelled 'Hours a person can work outside per
+  year (dose limit)').
 
 - [ ] **GEN.774 Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows**
   Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
@@ -19033,6 +18968,23 @@ clears each one.
   the generated [X/Fe] distribution against the held table. Low
   priority. Owner: none yet. Version 8.4.
   Prerequisites: none. Related: TEST.455.
+
+- [ ] **TEST.457 test_no_todo_codes_shown fails on main: util/settings.py shows the item code PERF.154 to users (bug)**
+  Found by Aux 7 while building UX.205 (as the lane reported 6:16 PM EDT
+  2026-10-29), red on clean main since PERF.154 (#3727): a user-visible
+  text in planetgen/util/settings.py names PERF.154. Do: reword the text
+  so no item code reaches a user (code comments may keep it), and run
+  the test. Owner: Aux 2 (it built PERF.154). Version 8.1.
+  Prerequisites: none. Related: PERF.154.
+
+- [ ] **TEST.458 test_sector_map_scale_line_follows_the_zoom fails on main (bug)**
+  Found by Aux 4 while merging MAP.301 (#3756, as the lane reported 6:17
+  PM EDT 2026-10-29): the browser test
+  test_sector_map_scale_line_follows_the_zoom is red on clean main. Do:
+  find the cause (a real fault in the scale line or a stale test after
+  the continuous zoom change, MAP.334 onward), fix it at the cause,
+  never skip it. Owner: Aux 4 (its next lock-free item). Version 8.1.
+  Prerequisites: none. Related: MAP.334, MAP.301.
 
 ## USR: User accounts
 

@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.457 |
+| TEST | TEST.459 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -2003,7 +2003,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.298 | Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug) | none | done, PR #3316 |
 | MAP.299 | In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug) | none | done, PR #3754 |
 | MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) | none | done, PR #3751 |
-| MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | none | open |
+| MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | none | done, PR #3756 |
 | MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | none | open |
 | MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | none | done, PR #3496 |
 | MAP.304 | Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug) | none | done, PR #3284 |
@@ -2715,7 +2715,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.202 | Remove the "How the composition was found" line from the object pages (bug) | none | done, PR #3188 |
 | UX.203 | Pages state a missing thing in one sentence instead of a table of zeros: no life, no atmosphere (0 Pa), effectively no water | none | done, PR #3188 |
 | UX.204 | Every collapsible section on an object page starts collapsed | none | done, PR #3188 |
-| UX.205 | Object pages show the day and night time shares, moons with the extra night from their planet | none | open |
+| UX.205 | Object pages show the day and night time shares, moons with the extra night from their planet | none | done, PR #3755 |
 | UX.206 | Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view | none | open |
 | UX.207 | Breadcrumb bar: the system link is labelled "System" and the star link carries the star(s) name (bug) | none | done, PR #3188 |
 | UX.208 | Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column | none | done, PR #3629 |
@@ -3309,6 +3309,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.454 | The observed star mass-function curve as data, with a per-bin harness that measures the generator against it (segments from 0.01 to 150 solar masses by object type) | none | open |
 | TEST.455 | A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink | none | open |
 | TEST.456 | A test that the generated [X/Fe] abundances match the Brewer and Fischer 2016 table, not only its trend and scatter (low priority) | none | open |
+| TEST.457 | test_no_todo_codes_shown fails on main: util/settings.py shows the item code PERF.154 to users (bug) | none | open |
+| TEST.458 | test_sector_map_scale_line_follows_the_zoom fails on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
