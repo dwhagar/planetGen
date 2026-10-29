@@ -1,0 +1,18 @@
+{#- The Galaxy Map while a run is changing the galaxy (web/galaxy_views.py's `galaxy`, PERF.149): nothing is drawn from a
+    half-built galaxy. Context: status (`lib/galaxystatus.status`: stage, percent, text), admin (the viewer is a signed-in
+    admin and may open the Queue page), refresh (seconds until the page asks again). -#}
+{% extends "base.html" %}
+{% block head %}<meta http-equiv="refresh" content="{{ refresh }}">{% endblock %}
+{% block content %}
+<section class="panel" id="galaxy-generating" aria-labelledby="galaxy-generating-heading">
+  <h2 id="galaxy-generating-heading">The Galaxy Map is closed while the galaxy is generated</h2>
+  <p>{{ status_text }}</p>
+  {%- if status_info.stage %}
+  <p>Now: {{ status_info.stage }}{% if status_info.percent is not none %} ({{ status_info.percent | round | int }}% done){% endif %}.</p>
+  {%- endif %}
+  <p class="hint">This page checks again by itself every {{ refresh }} seconds and shows the map as soon as the job has ended.</p>
+  {%- if admin %}
+  <p><a href="{{ url_for('web.admin_queue') }}">See the job on the Queue page</a></p>
+  {%- endif %}
+</section>
+{% endblock %}
