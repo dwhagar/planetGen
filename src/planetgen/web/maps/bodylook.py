@@ -25,7 +25,7 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     pkpa        surface pressure, kPa
     tempK       mean surface temperature, K (a star's effective temperature)
     radiusKm    radius
-    hydro       `hydrosphere` (dry, vapour, ice, ice-covered ocean, surface ocean, hycean)
+    hydro       `hydrosphere` (dry, vapour, ice, ice-covered ocean, surface ocean, brine seep, hycean)
     ocean       fraction of the surface under ocean, 0 to 1
     land        fraction of the surface above sea level, 0 to 1
     oceanClass  ice-sealed, chloride brine, acid sulfate, soda or neutral

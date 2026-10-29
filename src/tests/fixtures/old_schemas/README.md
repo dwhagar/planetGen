@@ -58,3 +58,4 @@ Commit each file came from:
 - v172: 41526f1e (MAP.220 class interests, before MAP.311 life interests)
 - v173: 849970d3 (MAP.343 and later, before MAP.344 civilization technology)
 - v174: 95652091e (MAP.344 civilization technology, before GEN.889 life class switch)
+- v175: 96f2d45ea (GEN.889 life class switch, before GEN.908 brine seep)

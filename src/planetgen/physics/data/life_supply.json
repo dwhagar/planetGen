@@ -19,7 +19,7 @@
    "value": 1.0,
    "tier": "T9",
    "tweak": "L3",
-   "basis": "Liquid water over rock (a surface ocean, an ice-covered ocean or a hycean sea): the whole of the heat and the dose reach it"
+   "basis": "Liquid water over rock (a surface ocean, a brine seep, an ice-covered ocean or a hycean sea): the whole of the heat and the dose reach it"
   },
   "contact_aquifer_reachable": {
    "value": 0.5,
