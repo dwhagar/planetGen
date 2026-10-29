@@ -12,6 +12,9 @@ from planetgen import tuning
 from planetgen.physics import habitability
 
 INHABITED = "inhabited"
+CIVILIZATION = "civilization"
+SENTIENT = "sentient"
+LIFE = "life"
 HABITABLE = "habitable"
 UNINHABITABLE = "uninhabitable"
 GAS_GIANT = "gas-giant"
@@ -37,9 +40,29 @@ def _inhabited_test(alias, host_column):
             f" OR EXISTS (SELECT 1 FROM facilities f WHERE f.{host_column} = {alias}.id AND f.kind = 'colony' AND f.placement = 'terrestrial'))")
 
 
+def _life_test(alias, columns):
+    """The test of a world with native life: at least one of the life scores `columns` (0 none to 9 abundant, NULL for a body with no score)
+    is 1 or more."""
+    return "(" + " OR ".join(f"{alias}.{column} >= 1" for column in columns) + ")"
+
+
+_LIFE_COLUMNS = ("life_microbial", "life_flora", "life_fauna", "life_sentient")
+
 REASONS = {
     INHABITED: {
         "planets": _inhabited_test("p", "planet_id"), "moons": _inhabited_test("m", "moon_id"), "score": "phi4", "params": (),
+    },
+    # Life (MAP.311): read from the stored life scores and the timeline's stage as they are, no expectation of how many worlds qualify. A
+    # reason with no score keeps `best_score` NULL: the map's tier colour is the habitability score's, not a life score's.
+    CIVILIZATION: {
+        "planets": f"p.life_stage = 'technological_civilization' AND p.planet_class IN ({_CLASSES})",
+        "moons": f"m.life_stage = 'technological_civilization' AND m.planet_class IN ({_CLASSES})", "score": None, "params": (),
+    },
+    SENTIENT: {
+        "planets": _life_test("p", ("life_sentient",)), "moons": _life_test("m", ("life_sentient",)), "score": None, "params": (),
+    },
+    LIFE: {
+        "planets": _life_test("p", _LIFE_COLUMNS), "moons": _life_test("m", _LIFE_COLUMNS), "score": None, "params": (),
     },
     HABITABLE: {
         "planets": "p.phi4 >= ?", "moons": "m.phi4 >= ?", "score": "phi4", "params": (HABITABLE_MIN_SCORE,),
@@ -58,7 +81,8 @@ REASONS = {
     },
 }
 """dict: The interest reasons, in the order the map prefers them (the first a system has names its mark, MAP.321: the best world's
-symbol, an inhabited one before a habitable one before a barren one before a gas giant before a belt)."""
+symbol, an inhabited one before a civilization, a sentient species and any life, before a habitable one before a barren one before a gas giant
+before a belt)."""
 
 CLASS_PREFIX = "class-"
 """str: A planet class's reason is this and the class letter ("class-K"): a system with a planet or moon of that class (MAP.220, the

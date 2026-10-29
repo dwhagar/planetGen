@@ -55,3 +55,4 @@ Commit each file came from:
 - v169: GEN.721 lid regime as built in this change (the v168 schema plus `lid_regime`, before GEN.767 day and night shares)
 - v170: c6e39fd5 (GEN.767 day and night shares, before GEN.836 rogue planet rings)
 - v171: 82e2e184 (GEN.836 rogue planet rings, before MAP.220 class interests)
+- v172: 41526f1e (MAP.220 class interests, before MAP.311 life interests)

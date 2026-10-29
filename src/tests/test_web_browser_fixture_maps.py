@@ -25,7 +25,7 @@ Image = pytest.importorskip("PIL.Image")
 
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
-    DENSE_CENTER_PC, DENSE_POINTS, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
+    DENSE_CENTER_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
     BARREN_FIELD, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site,
     halo_site,
@@ -2793,6 +2793,48 @@ def test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time_and_c
     group.locator('button[data-layer="marker-class-G"]').click()
     found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-class-G" for e in entries))
     assert not [e for e in found if e["kind"] == "marker-class-G"]
+
+
+def test_galaxy_map_life_filters_show_only_the_systems_with_life_sentient_life_or_a_civilization(page, map_site):
+    """MAP.311: the Menu's Points of interest group has an optional marker for worlds with life, with sentient life and with a civilization,
+    each off until turned on; each shows only the systems that have it, a system with several is drawn once by the strongest sign, and
+    the card lists the reasons."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    _open_menu(page)
+    layers = {"life": "marker-life", "sentient": "marker-sentient", "civilization": "marker-civilization"}
+    for layer in layers.values():
+        assert page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').get_attribute("aria-pressed") == "false", layer
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
+    assert not [e for e in found if e["kind"] in layers.values()], "none of them is on until it is chosen"
+    named = {reason: {s["name"] for s in LIFE_FIELD if s["reason"] == reason} for reason in layers}
+    for reason, layer in layers.items():
+        _poi_layers(page)    # no other reason on
+        button = page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]')
+        button.click()
+        found = _markers_until(page, lambda entries: {e["name"] for e in entries if e["kind"] == layer} == named[reason])
+        assert {e["name"] for e in found if e["kind"] == layer} == named[reason], (reason, found)
+        assert {e["name"] for e in found if e["kind"] not in (layer, "marker-black-hole")} == set(), found
+        button.click()
+    _poi_layers(page)
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-life"]').click()
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-sentient"]').click()
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-sentient" for e in entries) and
+                           len([e for e in entries if e["kind"] in ("marker-life", "marker-sentient")]) == 4)
+    marks = [(e["name"], e["kind"]) for e in found if e["kind"] in ("marker-life", "marker-sentient")]
+    assert sorted(marks) == [("Fixture Eden", "marker-life"), ("Fixture Jove", "marker-sentient"), ("Fixture Rest", "marker-sentient"),
+                             ("Fixture Rock", "marker-life")], marks
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.wait_for_timeout(300)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    rest = next(s for s in LIFE_FIELD if s["name"] == "Fixture Rest")
+    spot = _screen_of(page, (rest["x"], rest["y"], rest["z"]))
+    assert spot
+    page.mouse.move(*spot)
+    page.mouse.move(spot[0] + 1, spot[1])
+    page.mouse.click(*spot)
+    info = page.locator("#galaxymap3d-info").inner_text()
+    assert "1 world with a civilization" in info and "1 world with sentient life" in info and "1 world with life" in info, info
 
 
 def test_the_default_map_marks_a_green_and_a_yellow_world_with_the_reason_listed_and_a_red_one_not(page, map_site):

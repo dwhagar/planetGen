@@ -139,8 +139,9 @@ test("a system with two reasons is drawn once, by the first reason that is on, a
 
 test("the reasons are in the order of the best world's symbol and a barren world or a belt is a reason of its own (MAP.321)", () => {
   const worlds = M.INTEREST_KINDS.filter((k) => k.family !== "class");
-  assert.deepEqual(worlds.map((k) => k.interest), ["inhabited", "habitable", "uninhabitable", "gas-giant", "asteroid-field"]);
-  assert.deepEqual(worlds.map((k) => k.icon), ["inhabited-world", "habitable-world", "uninhabitable-world", "gas-giant", "asteroid-field"]);
+  assert.deepEqual(worlds.map((k) => k.interest), ["inhabited", "civilization", "sentient", "life", "habitable", "uninhabitable", "gas-giant", "asteroid-field"]);
+  assert.deepEqual(worlds.map((k) => k.icon), ["inhabited-world", undefined, undefined, undefined, "habitable-world", "uninhabitable-world", "gas-giant", "asteroid-field"]);
+  assert.deepEqual(worlds.map((k) => k.glyph), [undefined, "civilization", "sentient", "life", undefined, undefined, undefined, undefined]);
   assert.deepEqual(M.INTEREST_KINDS.filter((k) => k.defaultOn).map((k) => k.interest), ["inhabited", "habitable", "gas-giant"]);
   assert.deepEqual(M.INTEREST_KINDS.slice(worlds.length).map((k) => k.family), M.PLANET_CLASS_LETTERS.map(() => "class"),
     "the planet classes come after every other reason");
@@ -188,6 +189,32 @@ test("each planet class is an optional marker kind of its own: a glyph with its 
   assert.deepEqual(off.map((c) => [c.kind.id, c.item.name]), [["marker-habitable", "Ocean"]], "classes that are off claim nothing");
   assert.equal(M.interestLines(systems[1]).map((l) => l.text).join("; "), "3 class G worlds");
   assert.deepEqual(M.legendOf(classes[0]), { text: "Class A worlds", swatch: classes[0].color, swatchClass: "map-marker-swatch" });
+});
+
+test("worlds with life, with sentient life and with a civilization are three optional kinds with their own sign, beside the habitable worlds (MAP.311)", () => {
+  const kinds = ["civilization", "sentient", "life"].map((reason) => M.INTEREST_KINDS.find((k) => k.interest === reason));
+  assert.deepEqual(kinds.map((k) => [k.id, k.label, k.defaultOn, k.maxBlock]), [
+    ["marker-civilization", "Civilizations", false, 81], ["marker-sentient", "Sentient life", false, 81], ["marker-life", "Life", false, 81]]);
+  assert.ok(kinds.every((k) => !k.icon && M.GLYPHS[k.glyph] && k.color));
+  assert.equal(new Set(kinds.map((k) => k.color)).size, 3);
+  const registry = M.createMarkerKinds();
+  M.INTEREST_KINDS.forEach((kind) => registry.register(kind));
+  const systems = [
+    { id: 1, name: "Green", x: 0, y: 0, z: 0, reasons: { life: { n: 2 }, habitable: { n: 1, score: 0.8, tier: "Green" } } },
+    { id: 2, name: "Minds", x: 1, y: 0, z: 0, reasons: { life: { n: 1 }, sentient: { n: 1 } } },
+    { id: 3, name: "Cities", x: 2, y: 0, z: 0, reasons: { life: { n: 1 }, sentient: { n: 1 }, civilization: { n: 1 } } },
+    { id: 4, name: "Dead", x: 3, y: 0, z: 0, reasons: { uninhabitable: { n: 1, score: 0.1, tier: "Red" } } },
+  ];
+  const nodes = [{ key: "9.0.0.0", node: { interests: systems } }];
+  const only = (kind) => M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id === "marker-" + kind, nodes }).map((c) => c.item.name).sort();
+  assert.deepEqual(only("life"), ["Cities", "Green", "Minds"]);
+  assert.deepEqual(only("sentient"), ["Cities", "Minds"]);
+  assert.deepEqual(only("civilization"), ["Cities"]);
+  const both = M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id === "marker-life" || id === "marker-sentient", nodes });
+  assert.deepEqual(both.map((c) => [c.item.name, c.kind.id]).sort(), [["Cities", "marker-sentient"], ["Green", "marker-life"], ["Minds", "marker-sentient"]],
+    "a system is drawn once, by the strongest sign that is on");
+  assert.equal(kinds[0].describe({ name: "Cities", n: 2 }), "Cities, 2 worlds with a civilization");
+  assert.equal(M.interestLines(systems[2]).map((l) => l.text).join("; "), "1 world with a civilization; 1 world with sentient life; 1 world with life");
 });
 
 test("the infobox lines of a system name every reason it has, in the registry's order", () => {

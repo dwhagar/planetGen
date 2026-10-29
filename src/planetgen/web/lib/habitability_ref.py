@@ -271,6 +271,10 @@ MAP_ROWS = (
                                  "show=marker-habitable) every star system with at least one habitable world gets a "
                                  "marker. Hovering names the system and how many habitable worlds it has; a click "
                                  "opens its summary."),
+    ("Marker: Life", "The Menu's Points of interest group also has three markers for worlds with life: Life (any of the four "
+                     "life scores is 1 or more), Sentient life and Civilizations. They are off until you turn them on "
+                     "(show=marker-life, marker-sentient, marker-civilization in the address); a system with several is "
+                     "marked once, by the strongest."),
     ("Marker: World classes", "The Menu's World classes group has a marker for each planet class, all off until you turn "
                               "one on (kept in the address as show=marker-class-K for class K). A system with a world of "
                               "the class gets a disc with the class letter, once the map is close enough to have its "
