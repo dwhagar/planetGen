@@ -13632,6 +13632,64 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.750, GEN.646, GEN.853, GEN.854, TEST.430.
   Prerequisites: none. Related: GEN.867, GEN.855, GEN.750, GEN.646,
   GEN.853, GEN.854, TEST.430.
+  Research (2026-10-09): Update (Core 1, about 3:31 AM EDT 2026-10-29 as
+  the lane reported): diagnosed, report
+  /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md.
+  The generator is consistent: 1222 of 1246 census life worlds are
+  Melanin (no requirement, M dwarfs are 79 percent of default systems
+  and list no oxygenic chemistry), 4 oxygenic; where oxygenic life lives
+  on a sea world 3 of 17 reached animals, near the band. The band's
+  denominator is the mismatch. Core 1 put the choice to Boss on a card
+  (restate per oxygenic world, change the lists via GEN.867, or both;
+  recommended: restate the bands now, then GEN.867 lists). Two new
+  faults found: GEN.908, GEN.909. Waits for Boss's answer.
+  Research (2026-10-09): Update (Aux 2, about 3:31 AM EDT 2026-10-29 as
+  the lane reported): Aux 2's epoch 120 bundle rewrites life.py: the
+  classes are scored (physics/life_classes.py, merged), the dominant
+  class is drawn by net primary production per body (GEN.872),
+  tuning.LIFE_CHEMICALS and the star weights and lists go away,
+  Chlorophyll a and Blue-Optimized become classes 1a and 1b by the
+  star's light against the pigment band, M dwarfs get far-red class 1c,
+  Melanin is gone (airless rocks get no class). This changes the
+  denominator Core 1 diagnosed, so re-take the life census after epoch
+  120 before restating any band; Core 1's second change waits for Aux
+  2's merge and rebases onto the new life.py.
+
+- [ ] **GEN.908 Worlds labelled surface ocean are mostly frozen: at least half have a mean surface temperature below 273 K (bug)**
+  Found by Core 1 (7:31 AM UTC relay, about 3:31 AM EDT as the lane
+  reported) while diagnosing GEN.907; report
+  /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md.
+  Of the lifeless ocean worlds in the census, G2V 20 of 23, K5V 15 of 18
+  and M2V 18 of 18 have a mean surface temperature below 273 K. Either
+  the ocean label ignores freezing (a frozen world should read as an ice
+  world or a sub-ice ocean, not a surface ocean) or the air and
+  greenhouse after 4c and GEN.812 leave these worlds too cold. Not
+  root-caused. Do: find which, fix it (changes generated output: epoch
+  and lock turn), record any tweak in the stand-in registry with tier
+  and tweak level. Version 8.1. Owner: Core 1 root-causes first (it
+  holds the census data), and hands the fix to the owner of the cause
+  (air chain Aux 4 or Core 4, surface labels Aux 7) if outside its
+  change. Prerequisites: none. Related: GEN.907, GEN.909, GEN.854,
+  GEN.646, GEN.812.
+  Prerequisites: none. Related: GEN.907, GEN.909, GEN.854, GEN.646,
+  GEN.812.
+
+- [ ] **GEN.909 Temperate liquid-water worlds (273 to 323 K, 10 kPa to 1 MPa, ocean) are rare: 10 in 120 systems at G2V, 6 at K5V, 0 at M2V (bug)**
+  Found by Core 1 (about 3:31 AM EDT as the lane reported) while
+  diagnosing GEN.907; report
+  /mnt/project-files/reports/gen907-oxygenic-share-diagnosis-2026-10-29.md.
+  The count of worlds that can hold a sunlit sea is so small that
+  oxygenic life and habitable requests starve. Likely shares a cause
+  with GEN.908 and with Bug 2's unmet +habitable_world requests
+  (GEN.854): cold air after 4c and GEN.812, or the ocean label ignoring
+  freezing. Not root-caused. Do: with GEN.908, measure the temperature,
+  pressure and ocean share of Earth-mass worlds in the habitable zone at
+  current main against what a well-known planet-formation and climate
+  model gives, and say whether the rarity is physical or a fault; if a
+  fault, fix it. Version 8.1. Owner: Core 1 with GEN.908 (one
+  diagnosis). Prerequisites: none. Related: GEN.907, GEN.908, GEN.854,
+  GEN.646.
+  Prerequisites: none. Related: GEN.907, GEN.908, GEN.854, GEN.646.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
