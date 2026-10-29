@@ -97,7 +97,7 @@ def class_reason(letter):
 
 for _letter in sorted(tuning.PLANET_CLASSES):
     REASONS[class_reason(_letter)] = {
-        "planets": "p.planet_class = ?", "moons": "m.planet_class = ?", "score": None, "params": (_letter,),
+        "planets": "p.planet_class IN (?)", "moons": "m.planet_class IN (?)", "score": None, "params": (_letter,),
     }
 del _letter
 
