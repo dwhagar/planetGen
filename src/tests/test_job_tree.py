@@ -287,54 +287,31 @@ def _run(argv):
         sys.argv = old_argv
 
 
-def test_a_galaxy_run_is_a_job_that_ends_done(control_config):
+def test_a_galaxy_run_writes_no_job_tree(control_config):
+    """PERF.98: a run lives on Redis (`queue.runrecord`); `generate` no longer opens a node in the MySQL job tree."""
     _plan_wide_galaxy(control_config)
     _run(["galaxy", "--shell", "1", "--num-systems", "2"] + _mysql_argv(control_config))
-    root_id = _rows(control_config, "SELECT id FROM work_jobs WHERE parent_id IS NULL")[0]["id"]
-    tree = _tree(control_config, root_id)
-    assert tree["kind"] == "galaxy" and tree["state"] == "done"
-    assert tree["argv"] == ["galaxy", "--shell", "1", "--num-systems", "2"]
-    assert "secret" not in tree["title"] and control_config.database not in tree["title"]
-    assert tree["database_name"] == control_config.database
-    # The sectors are units of the run on Redis (PERF.107), no longer tasks of a queue node in this tree.
-    # ... and the population pass and the territories pass `galaxy` ends with (PERF.123, PERF.125) are the two children.
-    assert [child["kind"] for child in tree["children"]] == ["population", "territories"]
+    assert _rows(control_config, "SELECT id FROM work_jobs") == []
     assert len(_rows(control_config, "SELECT id FROM sectors")) == cell_count(1)
 
 
-def test_a_web_job_is_the_root_of_its_steps_runs(control_config, tmp_path, monkeypatch):
+def test_a_web_job_keeps_the_time_of_each_step_in_the_jobs_directory(control_config, tmp_path):
     jobs_dir = tmp_path / "jobs"
     job_dir = jobs_dir / "20261001-120000-abcd"
     job_dir.mkdir(parents=True)
-    child = (
-        "from planetgen.db import store\n"
-        "from planetgen.queue import work\n"
-        "with work.job_node('galaxy', 'Inside the step', store.control_mysql_config()):\n"
-        "    pass\n"
-    )
-    env = {
-        "PLANETGEN_MYSQL_HOST": control_config.host, "PLANETGEN_MYSQL_PORT": str(control_config.port),
-        "PLANETGEN_MYSQL_USER": control_config.user, "PLANETGEN_MYSQL_PASSWORD": control_config.password or "",
-        "PLANETGEN_MYSQL_DATABASE": control_config.database,
-    }
     import json
     (job_dir / "job.json").write_text(json.dumps({
         "id": job_dir.name, "kind": "galaxy", "title": "Generate sectors", "database": control_config.database,
-        "created_at": time.time(), "cwd": str(tmp_path), "env": env,
-        "steps": [{"label": "Step one", "argv": [sys.executable, "-c", child]},
+        "created_at": time.time(), "cwd": str(tmp_path), "env": {},
+        "steps": [{"label": "Step one", "argv": [sys.executable, "-c", "pass"]},
                   {"label": "Step two", "argv": [sys.executable, "-c", "pass"]}],
     }))
     assert jobRunner.run(str(job_dir)) == 0
-    root = _rows(control_config, "SELECT id FROM work_jobs WHERE kind = 'web-job'")[0]["id"]
-    tree = _tree(control_config, root)
-    assert (tree["title"], tree["web_job_id"], tree["state"]) == ("Generate sectors", job_dir.name, "done")
-    assert [(step["kind"], step["title"], step["state"]) for step in tree["children"]] == [
-        ("step", "Step one", "done"), ("step", "Step two", "done")]
-    inside = tree["children"][0]["children"]
-    assert [(node["title"], node["web_job_id"]) for node in inside] == [("Inside the step", None)]
-    assert all(node["seconds"] is not None for _depth, node in _walk(tree))
+    assert _rows(control_config, "SELECT id FROM work_jobs") == []      # no node in the old tree
     state = json.loads((job_dir / "state.json").read_text())
     assert state["step_estimates"] == [None, None] and state["step_started_at"] > 0
+    recorded = jobRunner.recorded_step_seconds(str(jobs_dir))
+    assert set(recorded) == {"Step one", "Step two"} and all(seconds > 0 for seconds in recorded.values())
     # A second run of the same steps now has their recorded times to plan by.
     job_dir.joinpath("state.json").unlink()
     assert jobRunner.run(str(job_dir)) == 0

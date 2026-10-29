@@ -51,10 +51,10 @@ import pymysql
 from planetgen.cli import benchmark
 from planetgen.cli import checkdb as checkdb_cli, queue as queue_cli, warm as warm_cli
 
-from planetgen.queue import commands as queueCommands, work as workQueue
+from planetgen.queue import commands as queueCommands
 from planetgen.db import check as dbCheck, fingerprint, parity, repair as dbRepair, store, table_rebuild
 from planetgen.db import fingerprint_tree as fingerprintTree
-from planetgen.admin import activity_log
+from planetgen.admin import activity_log, updateguard
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, luminosity_floor, prevalence
 from planetgen.galaxy import bring_to_epoch as bringToEpoch, drill, seed as galaxySeed, spherical, version_check, version_key
@@ -1901,7 +1901,7 @@ def run_command_unit(args):
 READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark", "commands", "command-run", "warm", "queue",
                       "refresh-parity")
 """tuple: Subcommands that write nothing generated (`warm` only builds caches), so they aren't logged as runs
-(no activity log lines, job tree node or run history)."""
+(no activity log lines or run history)."""
 
 
 BULK_COMMANDS = ("galaxy", "plan", "scatter", "population", "territories")
@@ -2029,7 +2029,8 @@ def main():
         activity_log.event("GEN", "generate.start", user=_run_user(), command=args.command, db=database)
     status = "failed"
     failure = None      # why the run's open stage failed (UX.122), when it did
-    root = _open_run_node(args, database) if logged else None
+    if logged:
+        updateguard.refuse_while_updating("A run")      # OPS.53: nothing starts while the site is being updated
     previous_term = _exit_on_sigterm() if logged else None
     history = _start_history(args, seed) if logged and not getattr(args, "estimate_only", False) else None
     args.generation_run_id = history   # the run the per-object timings (PERF.92) are saved under
@@ -2065,8 +2066,6 @@ def main():
             stages.fail(failure or "failed")
         if previous_term is not None:
             signal.signal(signal.SIGTERM, previous_term)
-        if root is not None:
-            workQueue.close_node(root, {"ok": "done", "interrupted": "cancelled"}.get(status, "failed"))
         if history is not None:
             _finish_history(args, history, status)
         if logged:
@@ -2079,7 +2078,7 @@ def main():
 def _exit_on_sigterm():
     """
     Makes a SIGTERM (Cancel on the Generate page, `kill`) end the run as `SystemExit(128 + 15)`, so the run's own
-    cleanup runs (its job node and its run record end as cancelled at once, not after the stale time) as Ctrl+C does.
+    cleanup runs (its run record ends as cancelled at once, not after the stale time) as Ctrl+C does.
 
     Returns:
         The handler it replaced, to put back when the run ends, or `None` when it is not the main thread.
@@ -2095,8 +2094,7 @@ def _exit_on_sigterm():
 
 RUN_ARGV_WITHHELD = ("--mysql-host", "--mysql-port", "--mysql-user", "--mysql-password", "--mysql-database",
                      "--debug", "--debug-areas")
-"""tuple: Options left out of the command line a run records in its job
-tree root (`_run_argv`): the database is the site's own when the admin
+"""tuple: Options left out of the command line a run records (`_run_argv`): the database is the site's own when the admin
 page runs it again, and a password never goes in the control database."""
 
 
@@ -2116,21 +2114,6 @@ def _run_argv(argv):
             continue
         kept.append(arg)
     return kept
-
-
-def _open_run_node(args, database):
-    """The job tree root of this run (ADM.12): its command, what it was
-    asked to do, and the command line that would run it again. A run the
-    Generate page started goes under that page job's step
-    (`workQueue.PARENT_ENV_VAR`). Recorded in the control database when
-    there is one; never stops the run."""
-    argv = _run_argv(sys.argv[1:])
-    title = " ".join(["planetgen", *argv])[:255]
-    try:
-        control = store.control_mysql_config(store.mysql_config_from_args(args))
-    except AttributeError:  # a subcommand without the --mysql-* options
-        control = store.control_mysql_config()
-    return workQueue.open_node(args.command, title, control, argv=argv, database=database)
 
 
 def _run_line_seed(args):

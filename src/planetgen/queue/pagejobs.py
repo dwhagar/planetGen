@@ -32,8 +32,7 @@ job runs, `done` of `total` rows is the elapsed share of the expected time (neve
 time left (`None` once the expected time has passed), and the status says so (`estimated`). It reaches `done ==
 total` only when the answer is stored.
 
-A job is also a node on the admin queue page (kind `slow-page`). An admin cancels it there
-(`work.request_control`) or with `POST /api/page-jobs/<id>/cancel` (`cancel`): a job that has not started is
+An admin cancels a job with `POST /api/page-jobs/<id>/cancel` (`cancel`): a job that has not started is
 removed and one that has not begun its query stops; a query already running finishes, and its answer is kept in the
 cache (it is a correct answer the next visitor gets), but the job reports `cancelled`. Every visitor waiting on a
 request shares its job, so a visitor's own "Cancel" only stops that page waiting; it never cancels the job.
@@ -46,7 +45,7 @@ import time
 import redis
 
 from planetgen import tuning
-from planetgen.queue import api_jobs, redisclient, work as workQueue
+from planetgen.queue import api_jobs, redisclient
 from planetgen.util import log
 
 SOCKET_SECONDS = 0.5
@@ -339,34 +338,21 @@ def build_answer(db, target, job_id, config=None):
     from planetgen.web import warmup
     from planetgen.web.lib import apiclient
 
-    title = f"Slow page: /api{target[:150]}"
-    node = workQueue.open_node("slow-page", title, config, database=db)
-    state, started = "failed", time.monotonic()
+    started = time.monotonic()
     try:
         _mark(job_id, started=time.time())
-        asked = _cancel_asked(job_id)
-        if not asked and node.store.available:
-            try:
-                asked = bool(node.store.controls(node.chain).get("cancel"))
-            except Exception as exc:  # noqa: BLE001 -- the admin's request is lost, the job goes on
-                log.debug(f"Slow page job {job_id}: can't read the admin's requests ({exc}).")
-        if asked:
-            state = "cancelled"
-            workQueue.record_task(node, "slow-page-line", f"{target[:200]}: cancelled before it started",
-                                  state="done")
+        if _cancel_asked(job_id):
+            log.debug(f"Slow page job {job_id}: {target[:200]} cancelled before it started.")
             return {"cancelled": True}
         app = warmup.build_app(config)
         with app.test_request_context("/"):
             size = len(apiclient.fetch_target(target))
         seconds = time.monotonic() - started
-        workQueue.record_task(node, "slow-page-line", f"{target[:200]}: {size} bytes in {seconds:.1f} s",
-                              seconds=seconds)
-        state = "done"
+        log.debug(f"Slow page job {job_id}: {target[:200]}: {size} bytes in {seconds:.1f} s.")
         # A cancel that came while the query ran does not undo it: the answer is stored and correct.
         return {"cancelled": True, "seconds": seconds} if _cancel_asked(job_id) else {"seconds": seconds, "bytes": size}
     except Exception as exc:
-        workQueue.record_task(node, "slow-page-line", f"{target[:200]}: {exc}", state="failed", error=str(exc))
+        log.debug(f"Slow page job {job_id}: {target[:200]}: {exc}")
         raise
     finally:
         _mark(job_id, finished=time.time())
-        workQueue.close_node(node, state)

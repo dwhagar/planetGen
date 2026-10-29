@@ -195,43 +195,28 @@ def test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorde
         redisqueue.queue(jobs.QUEUE_PREFIX + job_id, redisqueue.connect(redis_server)).delete(delete_jobs=True)
 
 
-class _Rows:
-    def __init__(self, rows):
-        self.rows = rows
-
-    def fetchall(self):
-        return self.rows
-
-
-class _Control:
-    """A control database connection that knows what the steps took in earlier runs."""
-
-    def __init__(self, took):
-        self.took = took
-
-    def execute(self, sql, params=()):
-        assert "FROM work_jobs" in sql
-        return _Rows([{"title": label, "mean": seconds} for label, seconds in self.took.items()])
-
-    def rollback(self):
-        pass
-
-
-def test_a_jobs_expected_seconds_are_the_sum_of_what_its_steps_took_before(monkeypatch):
+def test_a_jobs_expected_seconds_are_the_sum_of_what_its_steps_took_before(monkeypatch, tmp_path):
     steps = [{"label": "Reset", "argv": ["reset"]}, {"label": "Other", "argv": ["other"]}]
-    assert job_runner.step_estimates(_Control({"Reset": 30.0, "Other": 90.0}), steps)[0] == [30.0, 90.0]
-    assert job_runner.step_estimates(_Control({"Reset": 30.0}), steps)[0] == [30.0, None]
+    control = object()
+    both = {"Reset": 30.0, "Other": 90.0}
+    assert job_runner.step_estimates(control, steps, both)[0] == [30.0, 90.0]
+    assert job_runner.step_estimates(control, steps, {"Reset": 30.0})[0] == [30.0, None]
 
-    class Connection(_Control):
+    class Connection:
         def close(self):
             pass
 
     from planetgen.db import store
-    monkeypatch.setattr(store, "get_control_connection", lambda config: Connection({"Reset": 30.0, "Other": 90.0}))
+    from planetgen.web import jobs
+    monkeypatch.setattr(store, "get_control_connection", lambda config: Connection())
+    monkeypatch.setattr(jobs, "configured_jobs_dir", lambda: str(tmp_path))
     job = {"steps": steps, "env": {}}
+    assert job_runner.expected_seconds(job) is None             # nothing recorded yet
+    for label, seconds in both.items():
+        job_runner._record_step_seconds(str(tmp_path), label, seconds)
     assert job_runner.expected_seconds(job) == 120.0
-    monkeypatch.setattr(store, "get_control_connection", lambda config: Connection({"Reset": 30.0}))
-    assert job_runner.expected_seconds(job) is None
+    job_runner._record_step_seconds(str(tmp_path), "Reset", 50.0)
+    assert job_runner.recorded_step_seconds(str(tmp_path)) == {"Reset": 40.0, "Other": 90.0}
     monkeypatch.setattr(store, "get_control_connection", lambda config: (_ for _ in ()).throw(OSError("no database")))
     assert job_runner.expected_seconds(job) is None
 

@@ -134,14 +134,14 @@ def reset_jobs(config, redis_url=None, assume_yes=False, dry_run=False, sources=
         redis_url (str): The Redis server (default the configured one).
         assume_yes (bool): Do not ask.
         dry_run (bool): Print what there is, change nothing.
-        sources: What the update guard looks at (default `updateguard.default_sources(config)`).
+        sources: What the update guard looks at (default `updateguard.default_sources()`).
         write, answer: Where the lines go and how a question is asked.
         control (MySQLConfig): The control database (default the one next to `config`).
 
     Returns:
         bool: Whether it finished (a dry run counts); `False` when the operator said no.
     """
-    sources = sources if sources is not None else updateguard.default_sources(config)
+    sources = sources if sources is not None else updateguard.default_sources()
     control = control or (store.control_mysql_config(config) if config is not None else None)
     connection = _redis(redis_url)
     running = updateguard.list_running(sources)

@@ -17,8 +17,8 @@ import pytest
 
 from planetgen import tuning
 from planetgen.admin import auth as adminAuth
-from planetgen.db import dataversion, query, store
-from planetgen.queue import api_jobs, pagejobs, redisclient, work as workQueue, workers
+from planetgen.db import dataversion, query
+from planetgen.queue import api_jobs, pagejobs, redisclient, workers
 from planetgen.web.app import create_app
 from planetgen.web.lib import apiclient, pagecache, slowpages
 from tests.test_api import seeded_sector  # noqa: F401 -- the fixture galaxy needs
@@ -211,17 +211,6 @@ def test_a_worker_builds_the_answer_into_the_cache_and_an_edit_invalidates_it(sl
     answer = _list(_site(config), db)
     assert answer["total"] >= 1
     assert not [target for target in seen if target.startswith("/phenomena")]
-
-    # It is on the admin runs page, beside the warm-up's jobs.
-    conn = store.get_connection(config)
-    try:
-        roots, _total = workQueue.list_roots(conn)
-        [node] = [root for root in roots if root["kind"] == "slow-page"]
-        assert node["title"].startswith("Slow page: /api/phenomena") and node["status"] == "done"
-        tree = workQueue.load_tree(conn, node["id"])
-        assert any(task["kind"] == "slow-page-line" and "bytes in" in task["task_key"] for task in tree["tasks"])
-    finally:
-        conn.close()
 
     # An edit that bumps what the answer read throws it away: the next request, still slow, queues a new job (this
     # build was quick on a tiny test galaxy, and the cost rule trusts a measured time, so say it was not).

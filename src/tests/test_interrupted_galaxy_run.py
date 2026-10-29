@@ -17,7 +17,7 @@ from planetgen.queue import work as workQueue
 from planetgen.db import store as _db
 
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
-from tests.test_work_queue import _rows, control_config  # noqa: F401 -- fixture
+from tests.test_work_queue import _run_states, control_config  # noqa: F401 -- fixture
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -60,7 +60,7 @@ _LAUNCH_GENERATE = ("from planetgen.generation import run_galaxy; run_galaxy.req
     (signal.SIGTERM, True),   # Cancel on the Generate page stops the step's whole process group
     (signal.SIGTERM, False),  # `kill <pid>` of the run alone
 ])
-def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(control_config, sig, group):
+def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(control_config, redis_server, sig, group):
     _plan_wide_galaxy(control_config)
     env = dict(os.environ, PLANETGEN_CONTROL_DATABASE=control_config.database, PLANETGEN_WORKERS="2")
     env.pop(workQueue.PARENT_ENV_VAR, None)
@@ -92,8 +92,5 @@ def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(contro
 
     sectors, short, orphans = _sector_counts(control_config)
     assert sectors >= 1 and short == [] and orphans == 0
-    jobs = _rows(control_config, "SELECT kind, state FROM work_jobs WHERE parent_id IS NULL OR kind = 'queue'")
-    assert jobs and all(job["state"] == "cancelled" for job in jobs), jobs
-    assert _rows(control_config, "SELECT COUNT(*) AS n FROM work_tasks WHERE state IN ('queued', 'running')"
-                 )[0]["n"] == 0
-    assert all(row["holder"] is None for row in _rows(control_config, "SELECT holder FROM work_lease"))
+    # The run's record on Redis (PERF.98): the run is another process, so it is under the real key prefix.
+    assert _run_states(redis_server, control_config.database, prefix="planetgen") == ["cancelled"]
