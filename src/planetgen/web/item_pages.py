@@ -29,7 +29,7 @@ from planetgen.web.lib import bodyview, facility_display, planet_layout, planet_
 from planetgen.web.lib.habitability_chips import chips_html
 from planetgen.web.lib.fmt import esc
 from planetgen.web.lib.systempage import facilities_by_host, facilities_html
-from planetgen.web.lib.objecttree import CHILD_NOUNS, TreeContext, nodes_html, tree_html
+from planetgen.web.lib.objecttree import CHILD_NOUNS, TreeContext, has_poi_mark, nodes_html, tree_html
 
 from . import edit_actions, static_url
 from .class_pages import class_url
@@ -153,7 +153,7 @@ def tree_context():
     pages and habitability page its summary line links into."""
     return TreeContext(
         item_url=item_url, tree_url=lambda ref: page_url("object_tree", ref=ref), class_url=class_url,
-        sprite_url=static_url("icons.svg"), help_url=page_url("habitability_levels"))
+        sprite_url=static_url("icons.svg"), help_url=page_url("habitability_levels"), static_url=static_url)
 
 
 def tree_response(ref):
@@ -187,9 +187,17 @@ def tree_panel(ref, name, page, loaded=None):
                                   token=page["next"], ref=ref, loaded=loaded))
 
 
+def tree_has_marks(page, loaded=None):
+    """Whether a tree drawn from `page` (and the levels `loaded` below it) carries a point-of-interest symbol, so the page shows
+    the key to them (UX.233)."""
+    levels = [page["items"], *(items for items, _ in (loaded or {}).values())]
+    return any(has_poi_mark(items) for items in levels)
+
+
 def system_tree(db, system_id, name):
     """The system page's tree: the system's stars (and whatever orbits the whole system, for a close pair), with each
-    star's own bodies already open below it. `None` for a system with no stars or bodies."""
+    star's own bodies already open below it. `(panel, marks)`: the panel (`None` for a system with no stars or bodies) and whether
+    its rows carry a point-of-interest symbol (UX.233)."""
     ref = f"system:{system_id}"
     page = apiclient.get_object_children(db, ref, limit=TREE_PAGE)
     loaded = {}
@@ -197,7 +205,7 @@ def system_tree(db, system_id, name):
         if item["kind"] == "star" and item["child_count"]:
             below = apiclient.get_object_children(db, item["ref"], limit=TREE_PAGE)
             loaded[item["ref"]] = (below["items"], below["next"])
-    return tree_panel(ref, name, page, loaded)
+    return tree_panel(ref, name, page, loaded), tree_has_marks(page, loaded)
 
 
 def _listed(row):
@@ -591,7 +599,8 @@ def render_item(kind, printed_id):
     previous, following = neighbours(detail, kind, row) if row is not None else (None, None)
     sheet = apiclient.get_object_sheet(db, ref)
     species = dominant_species(db, kind, row) if row is not None else None
-    tree = tree_panel(ref, name, apiclient.get_object_children(db, ref, limit=TREE_PAGE))
+    children = apiclient.get_object_children(db, ref, limit=TREE_PAGE)
+    tree = tree_panel(ref, name, children)
     admin = _admin_context(kind, printed_id, system_id)
     nav_ref = endpoint(kind, printed_id)
     return render_page(
@@ -612,6 +621,7 @@ def render_item(kind, printed_id):
         **sheet_context(sheet),
         **({"planet": planet_sections(name, row, sheet, species, piece)} if kind in ("planet", "moon") else {}),
         tree=tree,
+        tree_marks=tree_has_marks(children),
         location=location(chain_parents, detail.get("inside")),
         previous=previous,
         following=following,

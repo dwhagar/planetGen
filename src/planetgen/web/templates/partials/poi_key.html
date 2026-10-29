@@ -11,3 +11,11 @@
   {%- endfor %}
 </dl>
 {% endmacro %}
+
+{#- The key on an object page (UX.233): the collapsed "Map symbols" panel, the same lines as the Galaxy Map's. Show it only on a page that draws a symbol. -#}
+{% macro poi_key_panel(panel_id="map-symbols") %}
+<details class="panel" id="{{ panel_id }}">
+  <summary>Map symbols</summary>
+  {{ poi_key() }}
+</details>
+{% endmacro %}
