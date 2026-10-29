@@ -115,24 +115,18 @@ def test_planet_physical_properties_are_finite_and_sane(host_star, cls, zone):
 
 
 @pytest.mark.parametrize("cls,zone", VALID_CLASS_ZONE_PAIRS, ids=[f"{c}-{z}" for c, z in VALID_CLASS_ZONE_PAIRS])
-def test_planet_life_chemical_matches_its_conditions_and_star(host_star, cls, zone):
+def test_planet_life_class_is_one_its_conditions_support(host_star, cls, zone):
     """
-    A planet's assigned life_chemical (once planetLife.apply_life_data runs)
-    must be one its own stored conditions allow (the chemical's `requires`,
-    GEN.647) and, since apply_life_data intersects that with what the star's
-    spectral type supports, one the star's potentially_viable_chemicals name.
-    A gas giant carries none.
+    A planet's life class (once planetLife.apply_life_data runs) is one its own stored conditions support: it
+    is among the classes the body scores 1 or more for (GEN.889). A gas giant carries none.
     """
     planet = make_planet(host_star, cls, zone)
-    found = planet_classes.quantities(planet_classes.values_from_body(planet))
     for _ in range(5):
         planetLife.apply_life_data(planet)
         if planet.body_type == "g":
-            assert planet.life_chemical is None
-        elif planet.life_chemical is not None:
-            assert planet_classes.holds(
-                prog_c.LIFE_CHEMICALS[planet.life_chemical]["requires"], found, missing=None
-            ), f"{cls}-{zone}: {planet.life_chemical!r} does not fit the body's conditions"
+            assert planet.life_class is None
+        elif planet.life_class_id is not None:
+            assert planet.life_class_scores.get(planet.life_class_id, 0) > 0, f"{cls}-{zone}: {planet.life_class_id!r} is not supported"
 
 
 def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
@@ -145,7 +139,7 @@ def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
     already-decided self.flavor_text.
     """
     planet = make_planet(host_star, "M", "e")
-    planet.life_chemical, planet.life_stage = "Melanin", None  # Life, but not multicellular.
+    planet.life_class, planet.life_class_variant, planet.life_stage = 3, "b", None  # Life, but not multicellular.
     monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
 
     planetLife.decide_flavor_text(planet)
@@ -166,7 +160,7 @@ def test_the_flavour_line_is_stored_as_a_key_and_read_back_from_it(host_star, mo
     """DB.51: the line is kept as `category:index` into the `tuning` list it was drawn from."""
     monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
     planet = make_planet(host_star, "M", "e")
-    planet.life_chemical, planet.life_stage = "Melanin", "multicellularity"
+    planet.life_class, planet.life_class_variant, planet.life_stage = 3, "b", "multicellularity"
     planetLife.decide_flavor_text(planet)
     category, index = planet.flavor_key.split(":")
     assert category == "habitable"
@@ -296,22 +290,21 @@ def test_zone_position_mode_does_not_move_a_moon(host_star):
     assert moon.distance == pytest.approx(moon_distance)
 
 
-def test_no_class_names_a_life_chemical_and_each_chemical_states_its_conditions():
+def test_no_planet_class_names_a_life_class():
     """GEN.647: life follows a body's stored conditions, not its class letter."""
-    assert not any("life_chemical" in data for data in prog_c.PLANET_CLASSES.values())
+    assert not any("life_class" in data or "life_chemical" in data for data in prog_c.PLANET_CLASSES.values())
     assert not hasattr(prog_c, "PLANET_CLASS_MAX_LIFE_STAGE")
-    for name, data in prog_c.LIFE_CHEMICALS.items():
-        assert isinstance(data["requires"], list), name
+    assert not hasattr(prog_c, "LIFE_CHEMICALS")
 
 
-def test_a_world_the_index_gives_no_life_carries_no_chemical(host_star):
-    """A body whose habitability index scores 0 for microbial life carries none whatever its air (GEN.206)."""
-    seen_zero = False
+def test_a_world_no_class_supports_carries_no_class(host_star):
+    """A body that supports no life class carries none whatever its air (GEN.206)."""
+    seen_none = False
     for _ in range(12):
         planet = make_planet(host_star, "N", "e")
         planetLife.apply_life_data(planet)
-        if planetLife.life_ceiling(planet) == "none":  # GEN.411: the class no longer fixes the air, so not every N scores 0
-            seen_zero = True
-            assert planet.life_chemical is None and planet.life_stage is None
-    if not seen_zero:
-        pytest.skip("no draw of class N in zone e scored 0 for microbial life")
+        if not planet.life_class_scores:  # GEN.411: the class no longer fixes the air, so not every N supports nothing
+            seen_none = True
+            assert planet.life_class is None and planet.life_stage is None
+    if not seen_none:
+        pytest.skip("no draw of class N in zone e supported a life class")

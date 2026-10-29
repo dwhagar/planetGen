@@ -34,6 +34,7 @@ def _earth(**changes):
         "hydrosphere": "surface ocean", "ocean_class": "neutral", "ocean_ph": 8.1, "water_activity": 0.98,
         "phosphorus": "limited", "water_mass_fraction": 2.34e-4, "surface_dose_msv_yr": 2.4,
         "dose_ground_msv_yr": 0.5, "energy_flux_w_m2": 82.0, "native_life": "biosphere",
+        "life_class": 1, "life_class_variant": "a", "star_teff_k": 5772.0,
     }
     values.update(changes)
     return fold_air(values)
@@ -57,6 +58,22 @@ def test_the_air_decides_the_kit():
     vacuum = hw.compute(_earth(atmospheric_pressure_pa=0.0, **{f"p_{g}_kpa": 0.0 for g in ("o2", "n2", "ar", "co2", "h2o")}))
     assert vacuum["eq_body"] == 4 and vacuum["eq_supply"] >= 2  # a pressure suit on its own air
     assert vacuum["tier_pressure"] == 3
+
+
+def test_every_toxic_gas_of_the_table_reaches_the_world():
+    """GEN.657: the world reads every gas of the toxic table, not only CO, H2S and SO2 (an ammonia air is a hazard to the filter)."""
+    from planetgen.physics import protection_limits
+    values = _earth()
+    air = dict(values[atmosphere.GAS_FIELD])
+    for formula in protection_limits.TOXIC:
+        air[formula] = 0.5 * 1000.0
+    values[atmosphere.GAS_FIELD] = air
+    world = hw.world_from(values)
+    for formula in protection_limits.TOXIC:
+        assert world.partial_kpa(formula) == pytest.approx(0.5), formula
+    clean = hw.compute(_earth())
+    foul = hw.compute(values)
+    assert foul["eq_gas_filter"] > clean["eq_gas_filter"] or foul["eq_body"] > clean["eq_body"]
 
 
 def test_a_lethal_dose_needs_a_hardened_habitat():
@@ -322,9 +339,11 @@ def test_suitability_follows_the_native_life_and_microbes_in_the_ocean_under_ice
     buried = hw.compute(_earth(hydrosphere="ice-covered ocean", native_life="microbial"))
     assert buried["phi4_suitability"] == pytest.approx(0.2) and buried["tier_suitability"] == 3
     # Boss, 2026-10-24: flora, fauna and a civilization on a world are food even when its ocean is under ice (GEN.765)
+    # (the animals of a sub-ice world are a chemical class's, Class 4b here, with Fauna and no Flora: GEN.889)
     farmed = hw.compute(_earth(hydrosphere="ice-covered ocean", native_life="biosphere", life_stage="technological_civilization",
-                               evolutionary_pace="Earth Norm"))
-    assert farmed["life_flora"] > 0 and farmed["life_fauna"] > 0 and farmed["phi4_suitability"] > 0.2
+                               evolutionary_pace="Earth Norm", life_class=4, life_class_variant="b", life_complexity=1.0,
+                               life_animal_grade=3, internal_heat_flux_w_m2=0.09, surface_temperature_k=268.0))
+    assert farmed["life_flora"] == 0 and farmed["life_fauna"] > 0 and farmed["phi4_suitability"] > 0.2
 
 
 def test_flora_is_always_good_food_and_flora_with_fauna_is_better():

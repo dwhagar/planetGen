@@ -56,8 +56,8 @@ SEARCHED_COLUMNS = {
     "sectors": ("name", "galactic_radius_pc"),
     "star_systems": ("name", "sector_id", "quadrant"),
     "stars": ("name", "star_type", "yerkes_class", "radius_km"),
-    "planets": ("name", "planet_class", "body_type", "life_chemical", "radius_km"),
-    "moons": ("name", "planet_class", "body_type", "life_chemical", "radius_km"),
+    "planets": ("name", "planet_class", "body_type", "life_class", "radius_km"),
+    "moons": ("name", "planet_class", "body_type", "life_class", "radius_km"),
     "asteroid_belts": ("density",),
 }
 

@@ -167,7 +167,7 @@ def _earthlike(conn, planet_id, **changes):
         "body_type": "t", "atmospheric_pressure_pa": 101325.0, "surface_temperature_k": 288.15, "gravity_g": 1.0,
         "hydrosphere": "surface ocean", "ocean_ph": 8.0, "water_activity": 1.0, "phosphorus": "limited",
         "water_mass_fraction": 0.0002, "surface_dose_msv_yr": 2.0, "dose_ground_msv_yr": 2.0, "uv_surface_index": 1.0, "mass_kg": 5.97e24,
-        "radius_km": 6371.0, "energy_flux_w_m2": 80.0, "flux_variation": 0.0, "life_chemical": "chlorophyll",
+        "radius_km": 6371.0, "energy_flux_w_m2": 80.0, "flux_variation": 0.0, "life_class": 1, "life_class_variant": "a",
         "p_o2_kpa": 21.2, "p_n2_kpa": 79.0, "p_co2_kpa": 0.04, "p_h2o_kpa": 1.0, "life_stage": "technological_civilization",
         "evolutionary_pace": "normal", "life_system_age_gyr": 4.6, "life_milestone_age_gyr": 4.5, **changes,
     }
@@ -183,9 +183,9 @@ def _earthlike(conn, planet_id, **changes):
 
 def _species(conn, planet_id, system_id, name, tech):
     conn.execute(
-        "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_chemical, life_stage, build, climate, "
+        "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_class, life_stage, build, climate, "
         "size, civilization_age_years, era, spacefaring, tech_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (name, planet_id, system_id, "chlorophyll", "technological_civilization", "medium", "temperate", "medium",
+        (name, planet_id, system_id, "1a", "technological_civilization", "medium", "temperate", "medium",
          60000.0, "established", 1, tech))
     return conn.execute("SELECT id FROM species WHERE name = ?", (name,)).fetchone()["id"]
 
@@ -416,7 +416,7 @@ def test_the_report_is_clean_for_a_consistent_galaxy(mysql_config, galaxy, capsy
 def test_a_species_whose_own_homeworld_is_an_abiotic_surface_is_still_consistent(mysql_config, galaxy):
     conn = store.get_connection(mysql_config)
     try:
-        conn.execute("UPDATE planets SET life_chemical = NULL WHERE id = ?", (galaxy["earth"],))
+        conn.execute("UPDATE planets SET life_class = NULL, life_class_variant = NULL WHERE id = ?", (galaxy["earth"],))
         conn.commit()
         assert species_fit.inconsistencies(conn) == []
         # ...while another species placed there is judged on Suitability as well.

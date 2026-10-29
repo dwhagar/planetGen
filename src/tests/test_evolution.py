@@ -2,7 +2,7 @@
 evolution.get_evolutionary_state regression tests.
 
 The most advanced milestone a timeline reports is capped by `max_stage` (the habitability index's ceiling,
-`generation.life.stage_ceiling`) and by INTELLIGENT_LIFE=False, never by a class letter (GEN.92, GEN.647): a forced
+`life_complexity.top_stage`) and by INTELLIGENT_LIFE=False, never by a class letter (GEN.92, GEN.647): a forced
 INTELLIGENT_LIFE=True at a very old age must still stop at the cap it is given. GEN.750: the state reads the schedule the world drew
 (`physics.life_timeline`) and draws nothing.
 
@@ -16,6 +16,7 @@ from planetgen.generation.evolution import MILESTONE_KEYS, get_evolutionary_stat
 from planetgen.util import draw
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
+from planetgen.physics import life_classes
 
 
 AGES = (0.1, 0.4, 1.0, 2.0, 3.0)
@@ -113,17 +114,21 @@ def test_a_forced_civilization_on_a_world_without_oxygen_is_still_not_before_now
     assert state["stage"] == "technological_civilization" and state["milestone_age_gyr"] == 4.0
 
 
-@pytest.mark.parametrize("chemical", sorted(prog_c.LIFE_CHEMICALS))
-def test_every_chemistry_has_a_metabolism_with_words_for_its_first_light_stage(chemical):
-    metabolism = evolution.metabolism(chemical)
-    assert metabolism in prog_c.LIFE_METABOLISMS
-    assert evolution.stage_name("photosynthesis", chemical) and evolution.stage_text("photosynthesis", chemical)
+@pytest.mark.parametrize("class_id", sorted(life_classes.BY_ID))
+def test_every_life_class_has_words_for_each_milestone(class_id):
+    for stage in MILESTONE_KEYS:
+        assert evolution.stage_name(stage, class_id) and evolution.stage_text(stage, class_id)
 
 
-def test_only_a_water_splitting_chemistry_releases_oxygen():
-    for chemical in prog_c.LIFE_CHEMICALS:
-        text = evolution.stage_text("photosynthesis", chemical)
-        if evolution.metabolism(chemical) == "oxygenic":
-            assert "releasing oxygen" in text
+def test_only_a_water_splitting_class_puts_oxygen_into_its_water():
+    for class_id, row in life_classes.BY_ID.items():
+        text = evolution.stage_text("photosynthesis", class_id)
+        assert evolution.releases_oxygen(class_id) == row.releases_oxygen
+        if row.releases_oxygen:
+            assert "putting oxygen" in text
         else:
-            assert "release no oxygen" in text and "releasing oxygen" not in text
+            assert "putting oxygen" not in text and "releasing oxygen" not in text
+
+
+def test_a_grade_names_the_animals_of_multicellular_life():
+    assert evolution.stage_name("multicellularity", "1a", 3) != evolution.stage_name("multicellularity", "1a", 0)

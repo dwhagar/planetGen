@@ -357,7 +357,7 @@ def test_a_star_result_links_to_its_own_page(client, fake):
 
 
 def _body_row(id_, name, **extra):
-    return {"id": id_, "ref": f"planet:FE81000A2B-0000005-{id_:03d}", "name": name, "planet_class": "M", "body_type": "t", "life_chemical": None, "radius_km": 6371.0,
+    return {"id": id_, "ref": f"planet:FE81000A2B-0000005-{id_:03d}", "name": name, "planet_class": "M", "body_type": "t", "life_class_id": None, "radius_km": 6371.0,
             "star_system_id": 7, "system_name": "Kepler-42", "sector_id": 5, "equipment": None, "phi4": None,
             **{f"tier_{d}": None for d in ("pressure", "temperature", "air", "water", "radiation", "suitability")}, **extra}
 

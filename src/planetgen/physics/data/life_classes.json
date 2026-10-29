@@ -83,6 +83,21 @@
      "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
     }
    ],
+   "life": {
+    "metabolism": "oxygenic",
+    "oxidant": "o2",
+    "oxidant_yield": null,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [
+     "Green"
+    ],
+    "reflection_spectrum_non_visible": [
+     "Near-infrared edge (Canonical Vegetation Red Edge / VRE)"
+    ],
+    "tier": "T1",
+    "tweak": "L0",
+    "basis": "Chlorophyll a splits water and makes the oxygen; the first step to light is the reference 1 (physics/life_timeline.py, GEN.750)"
+   },
    "supply": null,
    "note": "Class 1a on an Earth-like world is exactly today's PHI_bio (life-classes.md 8.1). The old oxygen gate of Chlorophyll a is gone: Class 1 makes the oxygen (GEN.855)."
   },
@@ -160,6 +175,26 @@
      "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
     }
    ],
+   "life": {
+    "metabolism": "oxygenic",
+    "oxidant": "o2",
+    "oxidant_yield": null,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [
+     "Red",
+     "Orange",
+     "Yellow",
+     "Biofluorescent Green",
+     "Biofluorescent Red"
+    ],
+    "reflection_spectrum_non_visible": [
+     "Blue-shifted vegetation edge",
+     "Strong UV absorption"
+    ],
+    "tier": "T6",
+    "tweak": "L3",
+    "basis": "A blue-tuned porphyrin that still splits water: the same oxygenic metabolism and first step as 1a"
+   },
    "supply": null,
    "note": ""
   },
@@ -237,6 +272,22 @@
      "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
     }
    ],
+   "life": {
+    "metabolism": "oxygenic",
+    "oxidant": "o2",
+    "oxidant_yield": null,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [
+     "Black",
+     "Deep Red"
+    ],
+    "reflection_spectrum_non_visible": [
+     "Far-red edge near 750 nm"
+    ],
+    "tier": "T5",
+    "tweak": "L3",
+    "basis": "Chlorophylls d and f still split water: the same metabolism and first step as 1a"
+   },
    "supply": null,
    "note": ""
   },
@@ -321,12 +372,29 @@
      "basis": "Habitat 255 to 370 K (life-classes.md 3.1, Class 2 window)"
     }
    ],
+   "life": {
+    "metabolism": "anoxygenic",
+    "oxidant": "none",
+    "oxidant_yield": 0.11,
+    "first_step_scale": 0.6,
+    "reflection_spectrum_visible": [
+     "None (Black)"
+    ],
+    "reflection_spectrum_non_visible": [
+     "Deep infrared edge (> 1.0 \u00b5m)"
+    ],
+    "tier": "T7",
+    "tweak": "L3",
+    "basis": "Anoxygenic photosynthesis needs one reaction centre and no water splitting, so it comes first (0.6); its respiration is anaerobic, about a ninth of the aerobic yield (Gale and Wandel, read in the review)"
+   },
    "supply": {
     "quantity": "donor_supply",
+    "ref": 0.05,
+    "npp_per_unit": 0.01,
     "placeholder": 1.0,
     "tier": "T9",
     "tweak": "L4",
-    "basis": "The donor supply (hydrogen, Fe2+ or H2S delivered) is not stored yet (GEN.887); the placeholder 1 assumes an anoxic ocean has its donors"
+    "basis": "The donor supply (hydrogen, Fe2+ or H2S delivered, GEN.887) must reach a twentieth of Earth's for the class to be fully supported; its mats are donor-limited to about 1 percent of an oxygenic biosphere per unit of Earth's supply (life-classes.md 4: 1e-4 to 1e-2 of today's biosphere)"
    },
    "note": ""
   },
@@ -365,7 +433,7 @@
    ],
    "windows": [
     {
-     "quantity": "temperature_k",
+     "quantity": "habitat_temperature_k",
      "low": 255.0,
      "high": 395.0,
      "sigma_low": 15.0,
@@ -375,12 +443,24 @@
      "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
     }
    ],
+   "life": {
+    "metabolism": "hydrogenotroph",
+    "oxidant": "co2",
+    "oxidant_yield": 0.11,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [],
+    "reflection_spectrum_non_visible": [],
+    "tier": "T7",
+    "tweak": "L3",
+    "basis": "Methanogens and acetogens breathe carbon dioxide: the anaerobic yield 0.11; chemistry needs no light step, so the first step is the reference 1"
+   },
    "supply": {
     "quantity": "h2_supply",
+    "ref": 0.3,
     "placeholder": 1.0,
     "tier": "T9",
     "tweak": "L4",
-    "basis": "The hydrogen supply from serpentinisation (rock type, water, heat) is not stored yet (GEN.887); the placeholder 1 assumes ultramafic rock is present"
+    "basis": "Hydrogen from serpentinisation (GEN.887): a world gives enough at 0.3 of Earth's"
    },
    "note": ""
   },
@@ -419,7 +499,7 @@
    ],
    "windows": [
     {
-     "quantity": "temperature_k",
+     "quantity": "habitat_temperature_k",
      "low": 255.0,
      "high": 395.0,
      "sigma_low": 15.0,
@@ -429,12 +509,24 @@
      "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
     }
    ],
+   "life": {
+    "metabolism": "hydrogenotroph",
+    "oxidant": "sulfate",
+    "oxidant_yield": 0.11,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [],
+    "reflection_spectrum_non_visible": [],
+    "tier": "T7",
+    "tweak": "L3",
+    "basis": "Sulfate reducers of the deep crust: the anaerobic yield 0.11, first step 1"
+   },
    "supply": {
     "quantity": "radiolytic_h2_supply",
+    "ref": 0.1,
     "placeholder": 1.0,
     "tier": "T9",
     "tweak": "L4",
-    "basis": "Radiolytic hydrogen from the rock's uranium, thorium and potassium and the water is not stored yet (GEN.887); the placeholder 1 assumes enough"
+    "basis": "Radiolytic hydrogen (GEN.887): a tenth of Earth's is enough"
    },
    "note": ""
   },
@@ -473,7 +565,7 @@
    ],
    "windows": [
     {
-     "quantity": "temperature_k",
+     "quantity": "habitat_temperature_k",
      "low": 255.0,
      "high": 395.0,
      "sigma_low": 15.0,
@@ -483,12 +575,24 @@
      "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
     }
    ],
+   "life": {
+    "metabolism": "chemolithotroph",
+    "oxidant": "o2",
+    "oxidant_yield": null,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [],
+    "reflection_spectrum_non_visible": [],
+    "tier": "T2",
+    "tweak": "L2",
+    "basis": "Sulfur, iron and nitrogen oxidisers breathe oxygen: the yield follows the oxygen of the air (as Class 1); first step 1"
+   },
    "supply": {
     "quantity": "donor_supply",
+    "ref": 0.05,
     "placeholder": 1.0,
     "tier": "T9",
     "tweak": "L4",
-    "basis": "The reduced fuel supply (H2S, Fe2+, NH4+, CH4) is not stored yet (GEN.887); the placeholder 1 assumes vents or seeps supply it"
+    "basis": "The reduced fuel supply (H2S, Fe2+, NH4+, CH4, GEN.887): a twentieth of Earth's is enough"
    },
    "note": ""
   },
@@ -527,7 +631,7 @@
    ],
    "windows": [
     {
-     "quantity": "temperature_k",
+     "quantity": "habitat_temperature_k",
      "low": 255.0,
      "high": 395.0,
      "sigma_low": 15.0,
@@ -537,13 +641,35 @@
      "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
     }
    ],
-   "supply": {
-    "quantity": "oxidant_supply",
-    "placeholder": 0.3,
-    "tier": "T9",
+   "life": {
+    "metabolism": "chemolithotroph",
+    "oxidant": "nitrate",
+    "oxidant_yield": 0.6,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [],
+    "reflection_spectrum_non_visible": [],
+    "tier": "T6",
     "tweak": "L4",
-    "basis": "Nitrate and nitrogen-oxide delivery is not stored yet (GEN.887); the placeholder 0.3 stands for a slow oxidant supply"
+    "basis": "Denitrification yields about 0.6 of aerobic respiration per electron (recalled); first step 1"
    },
+   "supply": [
+    {
+     "quantity": "nitrate_supply",
+     "ref": 0.3,
+     "placeholder": 0.3,
+     "tier": "T9",
+     "tweak": "L4",
+     "basis": "Nitrate delivery (GEN.887): the abiotic supply of an anoxic ocean, 0.3 of Earth's, is enough"
+    },
+    {
+     "quantity": "donor_supply",
+     "ref": 0.05,
+     "placeholder": 1.0,
+     "tier": "T9",
+     "tweak": "L4",
+     "basis": "The reduced fuel supply: a twentieth of Earth's is enough"
+    }
+   ],
    "note": ""
   },
   {
@@ -581,7 +707,7 @@
    ],
    "windows": [
     {
-     "quantity": "temperature_k",
+     "quantity": "habitat_temperature_k",
      "low": 255.0,
      "high": 395.0,
      "sigma_low": 15.0,
@@ -591,13 +717,35 @@
      "basis": "Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms"
     }
    ],
-   "supply": {
-    "quantity": "oxidant_supply",
-    "placeholder": 0.1,
-    "tier": "T9",
+   "life": {
+    "metabolism": "chemolithotroph",
+    "oxidant": "perchlorate",
+    "oxidant_yield": 0.5,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [],
+    "reflection_spectrum_non_visible": [],
+    "tier": "T8",
     "tweak": "L4",
-    "basis": "Perchlorate delivery is not stored yet (GEN.887); the placeholder 0.1 stands for a very slow supply"
+    "basis": "Chlorate and perchlorate respiration is nearly as energetic as nitrate; first step 1"
    },
+   "supply": [
+    {
+     "quantity": "perchlorate_supply",
+     "ref": 0.1,
+     "placeholder": 0.1,
+     "tier": "T9",
+     "tweak": "L4",
+     "basis": "Perchlorate delivery (GEN.887): the slow supply of a salt-free ocean, 0.1 of Earth's nitrate, is enough"
+    },
+    {
+     "quantity": "donor_supply",
+     "ref": 0.05,
+     "placeholder": 1.0,
+     "tier": "T9",
+     "tweak": "L4",
+     "basis": "The reduced fuel supply: a twentieth of Earth's is enough"
+    }
+   ],
    "note": ""
   },
   {
@@ -634,6 +782,17 @@
     }
    ],
    "windows": [],
+   "life": {
+    "metabolism": "acidophile",
+    "oxidant": "acid",
+    "oxidant_yield": 0.11,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [],
+    "reflection_spectrum_non_visible": [],
+    "tier": "T6",
+    "tweak": "L4",
+    "basis": "The acid itself is the oxidant: the anaerobic yield 0.11 (the climates report's own bookkeeping, no source gives rates)"
+   },
    "supply": null,
    "note": ""
   },
@@ -682,6 +841,17 @@
      "basis": "Warm dry ground, acid pools 283 to 373 K (life-classes.md 3.1, Class 5b window)"
     }
    ],
+   "life": {
+    "metabolism": "acidophile",
+    "oxidant": "acid",
+    "oxidant_yield": 0.11,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [],
+    "reflection_spectrum_non_visible": [],
+    "tier": "T6",
+    "tweak": "L4",
+    "basis": "As 5a"
+   },
    "supply": null,
    "note": ""
   },
@@ -747,12 +917,24 @@
      "basis": "Liquid below 304 K, supercritical above that and about 73 bar (life-classes.md 3.1)"
     }
    ],
+   "life": {
+    "metabolism": "hydrogenotroph",
+    "oxidant": "co2",
+    "oxidant_yield": 0.11,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [],
+    "reflection_spectrum_non_visible": [],
+    "tier": "T8",
+    "tweak": "L4",
+    "basis": "Carbon dioxide is the solvent and the oxidant: the anaerobic yield 0.11"
+   },
    "supply": {
     "quantity": "h2_supply",
+    "ref": 0.3,
     "placeholder": 0.5,
     "tier": "T9",
     "tweak": "L4",
-    "basis": "The hydrogen supply is not stored yet (GEN.887); 0.5 stands for a half of Class 3's"
+    "basis": "Hydrogen as fuel (GEN.887): enough at 0.3 of Earth's"
    },
    "note": ""
   },
@@ -803,12 +985,24 @@
      "basis": "N2 and CH4 air around 1.5 bar (life-classes.md 3.1, Class 7 window)"
     }
    ],
+   "life": {
+    "metabolism": "hydrogenator",
+    "oxidant": "none",
+    "oxidant_yield": 0.11,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [],
+    "reflection_spectrum_non_visible": [],
+    "tier": "T8",
+    "tweak": "L4",
+    "basis": "Hydrogenation of acetylene gives about the anaerobic yield 0.11"
+   },
    "supply": {
     "quantity": "hydrogen_acetylene_supply",
+    "ref": 0.3,
     "placeholder": 0.5,
     "tier": "T9",
     "tweak": "L4",
-    "basis": "The hydrogen and acetylene supply (haze organics) is not stored yet (GEN.887); 0.5 is a stand-in"
+    "basis": "Hydrogen and acetylene from the haze (GEN.887): enough at 0.3 of the methane share that gives the full supply"
    },
    "note": ""
   },
@@ -847,7 +1041,7 @@
    ],
    "windows": [
     {
-     "quantity": "temperature_k",
+     "quantity": "habitat_temperature_k",
      "low": 176.0,
      "high": 273.0,
      "sigma_low": 10.0,
@@ -857,12 +1051,24 @@
      "basis": "176 to 273 K: the water-ammonia eutectic is about 176 K (recalled)"
     }
    ],
+   "life": {
+    "metabolism": "hydrogenotroph",
+    "oxidant": "co2",
+    "oxidant_yield": 0.11,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [],
+    "reflection_spectrum_non_visible": [],
+    "tier": "T8",
+    "tweak": "L4",
+    "basis": "Carbonate or carbon dioxide as the oxidant: the anaerobic yield 0.11"
+   },
    "supply": {
     "quantity": "h2_supply",
+    "ref": 0.3,
     "placeholder": 0.5,
     "tier": "T9",
     "tweak": "L4",
-    "basis": "The hydrogen supply is not stored yet (GEN.887); 0.5 is a stand-in"
+    "basis": "Hydrogen (GEN.887): enough at 0.3 of Earth's"
    },
    "note": ""
   },
@@ -918,6 +1124,17 @@
      "basis": "As Class 5; silicones resist 98 percent acid at 90 C (life-classes.md 3.1, read in the climates report)"
     }
    ],
+   "life": {
+    "metabolism": "acidophile",
+    "oxidant": "acid",
+    "oxidant_yield": 0.11,
+    "first_step_scale": 1.0,
+    "reflection_spectrum_visible": [],
+    "reflection_spectrum_non_visible": [],
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "As Class 5"
+   },
    "supply": null,
    "note": ""
   }

@@ -45,10 +45,21 @@ def energy_text(energy):
     return "chemical (internal and tidal heat)"
 
 
-def supply_text(supply):
-    if not supply:
+def supplies_of(row):
+    """The supplies of a class as a list (the rule file holds one object or a list of them)."""
+    supply = row.get("supply")
+    return [] if not supply else supply if isinstance(supply, list) else [supply]
+
+
+def supply_text(supplies):
+    if not supplies:
         return "none"
-    return f"{supply['quantity']} (placeholder {supply['placeholder']:g} until it is stored)"
+    return "; ".join(f"{supply['quantity']} (full at {supply['ref']:g} of Earth's, placeholder {supply['placeholder']:g})" for supply in supplies)
+
+
+def life_text(life):
+    oxidant_yield = "from the air" if life["oxidant_yield"] is None else f"{life['oxidant_yield']:g}"
+    return f"{life['metabolism']}; breathes {life['oxidant']} (yield {oxidant_yield}); first step x{life['first_step_scale']:g}"
 
 
 def render(document):
@@ -72,13 +83,18 @@ def render(document):
         windows = "; ".join(window_text(w) for w in row["windows"]) or "none"
         solvent = f"{row['solvent']['medium']} (factor {row['solvent']['factor']:g})"
         lines.append(f"| {row['id']} | {_cell(solvent)} | {_cell(energy_text(row['energy']))} | {_cell(gates)} | {_cell(windows)} | "
-                     f"{_cell(supply_text(row.get('supply')))} |")
+                     f"{_cell(supply_text(supplies_of(row)))} |")
+    lines += ["", "## What each class lives on", "", "| Class | Metabolism, oxidant and first step | Colour in visible light | Outside visible light |", "|---|---|---|---|"]
+    for row in document["classes"]:
+        life = row["life"]
+        lines.append(f"| {row['id']} | {_cell(life_text(life))} | {_cell(', '.join(life['reflection_spectrum_visible']) or 'none')} | "
+                     f"{_cell(', '.join(life['reflection_spectrum_non_visible']) or 'none')} |")
     lines += ["", "## Why each number is what it is", ""]
     for row in document["classes"]:
         lines += [f"### Class {row['id']}: {row['name']}", ""]
         for label, entry in [("solvent", row["solvent"]), ("energy", row["energy"])] + [("gate", g) for g in row["gates"]] \
-                + [("window", w) for w in row["windows"]] + ([("supply", row["supply"])] if row.get("supply") else []):
-            what = {"solvent": row["solvent"]["medium"], "energy": row["energy"]["source"]}.get(label) or entry.get("quantity", "")
+                + [("window", w) for w in row["windows"]] + [("supply", s) for s in supplies_of(row)] + [("life", row["life"])]:
+            what = {"solvent": row["solvent"]["medium"], "energy": row["energy"]["source"], "life": row["life"]["metabolism"]}.get(label) or entry.get("quantity", "")
             lines.append(f"- {label} {what}: {entry['tier']}, {entry['tweak']}. {entry['basis']}")
         if row.get("note"):
             lines.append(f"- note: {row['note']}")

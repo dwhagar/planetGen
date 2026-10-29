@@ -31,18 +31,38 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 | 1a | water (factor 1) | light, 400 to 700 nm, efficiency 1 | hydrosphere in surface ocean, hycean; pressure_pa >= 10.0; co2_partial_pa >= 5.0; band_light_vs_earth >= 0.01 | temperature_k 255 to 395 (falls off over 15 below, 15 above) | none |
 | 1b | water (factor 1) | light, 300 to 500 nm, efficiency 1 | hydrosphere in surface ocean, hycean; pressure_pa >= 10.0; co2_partial_pa >= 5.0; band_light_vs_earth >= 0.01 | temperature_k 255 to 395 (falls off over 15 below, 15 above) | none |
 | 1c | water (factor 1) | light, 700 to 800 nm, efficiency 0.8 | hydrosphere in surface ocean, hycean; pressure_pa >= 10.0; co2_partial_pa >= 5.0; band_light_vs_earth >= 0.01 | temperature_k 255 to 395 (falls off over 15 below, 15 above) | none |
-| 2 | water (factor 1) | light, 800 to 1050 nm, efficiency 0.8 | hydrosphere in surface ocean, hycean; pressure_pa >= 10.0; co2_partial_pa >= 5.0; band_light_vs_earth >= 0.01; share_o2 < 0.03 | temperature_k 255 to 370 (falls off over 15 below, 15 above) | donor_supply (placeholder 1 until it is stored) |
-| 3a | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | temperature_k 255 to 395 (falls off over 15 below, 15 above) | h2_supply (placeholder 1 until it is stored) |
-| 3b | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | temperature_k 255 to 395 (falls off over 15 below, 15 above) | radiolytic_h2_supply (placeholder 1 until it is stored) |
-| 4a | water (factor 1) | chemical (internal and tidal heat) | share_o2 >= 0.001 | temperature_k 255 to 395 (falls off over 15 below, 15 above) | donor_supply (placeholder 1 until it is stored) |
-| 4b | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | temperature_k 255 to 395 (falls off over 15 below, 15 above) | oxidant_supply (placeholder 0.3 until it is stored) |
-| 4c | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | temperature_k 255 to 395 (falls off over 15 below, 15 above) | oxidant_supply (placeholder 0.1 until it is stored) |
+| 2 | water (factor 1) | light, 800 to 1050 nm, efficiency 0.8 | hydrosphere in surface ocean, hycean; pressure_pa >= 10.0; co2_partial_pa >= 5.0; band_light_vs_earth >= 0.01; share_o2 < 0.03 | temperature_k 255 to 370 (falls off over 15 below, 15 above) | donor_supply (full at 0.05 of Earth's, placeholder 1) |
+| 3a | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | h2_supply (full at 0.3 of Earth's, placeholder 1) |
+| 3b | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | radiolytic_h2_supply (full at 0.1 of Earth's, placeholder 1) |
+| 4a | water (factor 1) | chemical (internal and tidal heat) | share_o2 >= 0.001 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | donor_supply (full at 0.05 of Earth's, placeholder 1) |
+| 4b | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | nitrate_supply (full at 0.3 of Earth's, placeholder 0.3); donor_supply (full at 0.05 of Earth's, placeholder 1) |
+| 4c | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | perchlorate_supply (full at 0.1 of Earth's, placeholder 0.1); donor_supply (full at 0.05 of Earth's, placeholder 1) |
 | 5a | sulfuric (factor 0.1) | chemical (internal and tidal heat) | acid_medium >= 1.0 | none | none |
 | 5b | sulfuric (factor 0.1) | chemical (internal and tidal heat) | acid_medium >= 1.0 | temperature_k 283 to 373 (falls off over 15 below, 15 above) | none |
-| 6 | co2 (factor 0.1) | chemical (internal and tidal heat) | share_co2 >= 0.5; pressure_pa >= 518000.0; co2_phase in liquid, supercritical | temperature_k 217 to 400 (falls off over 20 below, 40 above) | h2_supply (placeholder 0.5 until it is stored) |
-| 7 | hydrocarbon (factor 0.2) | chemical (internal and tidal heat) | none | temperature_k 90 to 190 (falls off over 10 below, 10 above); pressure_pa 50000 to 500000 (falls off over 30000 below, 300000 above) | hydrogen_acetylene_supply (placeholder 0.5 until it is stored) |
-| 8 | ammonia_water (factor 0.1) | chemical (internal and tidal heat) | ammonia_water_mass_fraction >= 0.1 | temperature_k 176 to 273 (falls off over 10 below, 10 above) | h2_supply (placeholder 0.5 until it is stored) |
+| 6 | co2 (factor 0.1) | chemical (internal and tidal heat) | share_co2 >= 0.5; pressure_pa >= 518000.0; co2_phase in liquid, supercritical | temperature_k 217 to 400 (falls off over 20 below, 40 above) | h2_supply (full at 0.3 of Earth's, placeholder 0.5) |
+| 7 | hydrocarbon (factor 0.2) | chemical (internal and tidal heat) | none | temperature_k 90 to 190 (falls off over 10 below, 10 above); pressure_pa 50000 to 500000 (falls off over 30000 below, 300000 above) | hydrogen_acetylene_supply (full at 0.3 of Earth's, placeholder 0.5) |
+| 8 | ammonia_water (factor 0.1) | chemical (internal and tidal heat) | ammonia_water_mass_fraction >= 0.1 | habitat_temperature_k 176 to 273 (falls off over 10 below, 10 above) | h2_supply (full at 0.3 of Earth's, placeholder 0.5) |
 | 9 | sulfuric (factor 0.1) | chemical (internal and tidal heat) | acid_medium >= 1.0; silicon_rich_crust >= 1.0 | temperature_k 283 to 363 (falls off over 15 below, 10 above) | none |
+
+## What each class lives on
+
+| Class | Metabolism, oxidant and first step | Colour in visible light | Outside visible light |
+|---|---|---|---|
+| 1a | oxygenic; breathes o2 (yield from the air); first step x1 | Green | Near-infrared edge (Canonical Vegetation Red Edge / VRE) |
+| 1b | oxygenic; breathes o2 (yield from the air); first step x1 | Red, Orange, Yellow, Biofluorescent Green, Biofluorescent Red | Blue-shifted vegetation edge, Strong UV absorption |
+| 1c | oxygenic; breathes o2 (yield from the air); first step x1 | Black, Deep Red | Far-red edge near 750 nm |
+| 2 | anoxygenic; breathes none (yield 0.11); first step x0.6 | None (Black) | Deep infrared edge (> 1.0 µm) |
+| 3a | hydrogenotroph; breathes co2 (yield 0.11); first step x1 | none | none |
+| 3b | hydrogenotroph; breathes sulfate (yield 0.11); first step x1 | none | none |
+| 4a | chemolithotroph; breathes o2 (yield from the air); first step x1 | none | none |
+| 4b | chemolithotroph; breathes nitrate (yield 0.6); first step x1 | none | none |
+| 4c | chemolithotroph; breathes perchlorate (yield 0.5); first step x1 | none | none |
+| 5a | acidophile; breathes acid (yield 0.11); first step x1 | none | none |
+| 5b | acidophile; breathes acid (yield 0.11); first step x1 | none | none |
+| 6 | hydrogenotroph; breathes co2 (yield 0.11); first step x1 | none | none |
+| 7 | hydrogenator; breathes none (yield 0.11); first step x1 | none | none |
+| 8 | hydrogenotroph; breathes co2 (yield 0.11); first step x1 | none | none |
+| 9 | acidophile; breathes acid (yield 0.11); first step x1 | none | none |
 
 ## Why each number is what it is
 
@@ -55,6 +75,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - gate co2_partial_pa: T7, L3. Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)
 - gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model
 - window temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
+- life oxygenic: T1, L0. Chlorophyll a splits water and makes the oxygen; the first step to light is the reference 1 (physics/life_timeline.py, GEN.750)
 - note: Class 1a on an Earth-like world is exactly today's PHI_bio (life-classes.md 8.1). The old oxygen gate of Chlorophyll a is gone: Class 1 makes the oxygen (GEN.855).
 
 ### Class 1b: Oxygenic light-eaters: blue and UV tuned (Blue-Optimized Porphyrins)
@@ -66,6 +87,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - gate co2_partial_pa: T7, L3. Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)
 - gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model
 - window temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
+- life oxygenic: T6, L3. A blue-tuned porphyrin that still splits water: the same oxygenic metabolism and first step as 1a
 
 ### Class 1c: Oxygenic light-eaters: far-red (chlorophyll d and f)
 
@@ -76,6 +98,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - gate co2_partial_pa: T7, L3. Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)
 - gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model
 - window temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
+- life oxygenic: T5, L3. Chlorophylls d and f still split water: the same metabolism and first step as 1a
 
 ### Class 2: Anoxygenic light-eaters (Bacteriochlorophylls)
 
@@ -87,53 +110,62 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model
 - gate share_o2: T9, L3. Free oxygen below 3 percent poisons an anoxygenic or hydrogen-eating microbe: the existing gate (life-classes.md 3.1, Class 2 window)
 - window temperature_k: T7, L3. Habitat 255 to 370 K (life-classes.md 3.1, Class 2 window)
-- supply donor_supply: T9, L4. The donor supply (hydrogen, Fe2+ or H2S delivered) is not stored yet (GEN.887); the placeholder 1 assumes an anoxic ocean has its donors
+- supply donor_supply: T9, L4. The donor supply (hydrogen, Fe2+ or H2S delivered, GEN.887) must reach a twentieth of Earth's for the class to be fully supported; its mats are donor-limited to about 1 percent of an oxygenic biosphere per unit of Earth's supply (life-classes.md 4: 1e-4 to 1e-2 of today's biosphere)
+- life anoxygenic: T7, L3. Anoxygenic photosynthesis needs one reaction centre and no water splitting, so it comes first (0.6); its respiration is anaerobic, about a ninth of the aerobic yield (Gale and Wandel, read in the review)
 
 ### Class 3a: Hydrogen eaters: geochemical hydrogen (serpentinisation, vents)
 
 - solvent water: T9, L3. Liquid water in contact with rock (ocean, ice-covered ocean or aquifer)
 - energy chemical: T9, L3. The share of the body's heat flow that life can use (CHEMICAL_SHARE), as the index already scores sub-ice life; no light needed
 - gate pressure_pa: T9, L3. Any pressure: a deep ocean or aquifer is not exposed to the air
-- window temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
-- supply h2_supply: T9, L4. The hydrogen supply from serpentinisation (rock type, water, heat) is not stored yet (GEN.887); the placeholder 1 assumes ultramafic rock is present
+- window habitat_temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
+- supply h2_supply: T9, L4. Hydrogen from serpentinisation (GEN.887): a world gives enough at 0.3 of Earth's
+- life hydrogenotroph: T7, L3. Methanogens and acetogens breathe carbon dioxide: the anaerobic yield 0.11; chemistry needs no light step, so the first step is the reference 1
 
 ### Class 3b: Hydrogen eaters: radiolytic hydrogen and sulfate (deep crust, aquifers)
 
 - solvent water: T9, L3. Liquid water in contact with rock
 - energy chemical: T9, L3. The share of the body's heat flow that life can use; radiogenic heat and dose make the hydrogen
 - gate pressure_pa: T9, L3. Any pressure: a deep ocean or aquifer is not exposed to the air
-- window temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
-- supply radiolytic_h2_supply: T9, L4. Radiolytic hydrogen from the rock's uranium, thorium and potassium and the water is not stored yet (GEN.887); the placeholder 1 assumes enough
+- window habitat_temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
+- supply radiolytic_h2_supply: T9, L4. Radiolytic hydrogen (GEN.887): a tenth of Earth's is enough
+- life hydrogenotroph: T7, L3. Sulfate reducers of the deep crust: the anaerobic yield 0.11, first step 1
 
 ### Class 4a: Sulfur, iron and nitrogen eaters: oxygen as the oxidant
 
 - solvent water: T9, L3. Liquid water
 - energy chemical: T9, L3. The energy of the fuel meeting the oxidant, scored on the share of the heat flow life can use
 - gate share_o2: T9, L3. An oxygen sea: oxygen at least 0.1 percent of the air for the oxidant to reach the vents (life-classes.md 3.1, Class 4 window)
-- window temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
-- supply donor_supply: T9, L4. The reduced fuel supply (H2S, Fe2+, NH4+, CH4) is not stored yet (GEN.887); the placeholder 1 assumes vents or seeps supply it
+- window habitat_temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
+- supply donor_supply: T9, L4. The reduced fuel supply (H2S, Fe2+, NH4+, CH4, GEN.887): a twentieth of Earth's is enough
+- life chemolithotroph: T2, L2. Sulfur, iron and nitrogen oxidisers breathe oxygen: the yield follows the oxygen of the air (as Class 1); first step 1
 
 ### Class 4b: Sulfur, iron and nitrogen eaters: nitrate and nitrogen oxides as the oxidant
 
 - solvent water: T9, L3. Liquid water
 - energy chemical: T9, L3. The energy of the fuel meeting the oxidant
 - gate pressure_pa: T9, L3. Any pressure: a deep ocean or aquifer is not exposed to the air
-- window temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
-- supply oxidant_supply: T9, L4. Nitrate and nitrogen-oxide delivery is not stored yet (GEN.887); the placeholder 0.3 stands for a slow oxidant supply
+- window habitat_temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
+- supply nitrate_supply: T9, L4. Nitrate delivery (GEN.887): the abiotic supply of an anoxic ocean, 0.3 of Earth's, is enough
+- supply donor_supply: T9, L4. The reduced fuel supply: a twentieth of Earth's is enough
+- life chemolithotroph: T6, L4. Denitrification yields about 0.6 of aerobic respiration per electron (recalled); first step 1
 
 ### Class 4c: Sulfur, iron and nitrogen eaters: chlorate and perchlorate as the oxidant
 
 - solvent water: T9, L3. Liquid water
 - energy chemical: T9, L3. The energy of the fuel meeting the oxidant
 - gate pressure_pa: T9, L3. Any pressure: a deep ocean or aquifer is not exposed to the air
-- window temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
-- supply oxidant_supply: T9, L4. Perchlorate delivery is not stored yet (GEN.887); the placeholder 0.1 stands for a very slow supply
+- window habitat_temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
+- supply perchlorate_supply: T9, L4. Perchlorate delivery (GEN.887): the slow supply of a salt-free ocean, 0.1 of Earth's nitrate, is enough
+- supply donor_supply: T9, L4. The reduced fuel supply: a twentieth of Earth's is enough
+- life chemolithotroph: T8, L4. Chlorate and perchlorate respiration is nearly as energetic as nitrate; first step 1
 
 ### Class 5a: Acid-world life: cloud-deck plankton
 
 - solvent sulfuric: T9, L3. Concentrated sulfuric acid as the liquid; the existing SOLVENT_FACTOR of sulfuric acid, 0.1 (planetGen's choice)
 - energy chemical: T9, L3. Chemical energy of the acid medium; light too in the cloud layer
 - gate acid_medium: T6, L4. A liquid sulfuric acid layer is present: nothing in the generator models it yet (GEN.888), so this class scores 0 until then
+- life acidophile: T6, L4. The acid itself is the oxidant: the anaerobic yield 0.11 (the climates report's own bookkeeping, no source gives rates)
 
 ### Class 5b: Acid-world life: pool and crust mats
 
@@ -141,6 +173,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - energy chemical: T9, L3. Chemical energy of the acid medium
 - gate acid_medium: T6, L4. A liquid sulfuric acid pool is present: not modelled yet (GEN.888)
 - window temperature_k: T6, L3. Warm dry ground, acid pools 283 to 373 K (life-classes.md 3.1, Class 5b window)
+- life acidophile: T6, L4. As 5a
 
 ### Class 6: Dense-CO2 life
 
@@ -150,7 +183,8 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - gate pressure_pa: T2, L0. Liquid CO2 needs above 5.2 bar (the triple point is 5.18 bar)
 - gate co2_phase: T2, L0. The CO2 is liquid or supercritical at the surface
 - window temperature_k: T8, L3. Liquid below 304 K, supercritical above that and about 73 bar (life-classes.md 3.1)
-- supply h2_supply: T9, L4. The hydrogen supply is not stored yet (GEN.887); 0.5 stands for a half of Class 3's
+- supply h2_supply: T9, L4. Hydrogen as fuel (GEN.887): enough at 0.3 of Earth's
+- life hydrogenotroph: T8, L4. Carbon dioxide is the solvent and the oxidant: the anaerobic yield 0.11
 
 ### Class 7: Cold hydrocarbon-sea life
 
@@ -158,15 +192,17 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - energy chemical: T9, L3. Chemical energy of hydrogen and acetylene, scored on the share of the heat flow life can use
 - window temperature_k: T8, L3. 90 to 190 K (life-classes.md 3.1, Class 7 window)
 - window pressure_pa: T8, L3. N2 and CH4 air around 1.5 bar (life-classes.md 3.1, Class 7 window)
-- supply hydrogen_acetylene_supply: T9, L4. The hydrogen and acetylene supply (haze organics) is not stored yet (GEN.887); 0.5 is a stand-in
+- supply hydrogen_acetylene_supply: T9, L4. Hydrogen and acetylene from the haze (GEN.887): enough at 0.3 of the methane share that gives the full supply
+- life hydrogenator: T8, L4. Hydrogenation of acetylene gives about the anaerobic yield 0.11
 
 ### Class 8: Ammonia-water life
 
 - solvent ammonia_water: T9, L3. Water with ammonia as the liquid; 0.1 like the other strange solvents (planetGen's choice)
 - energy chemical: T9, L3. Chemical energy of hydrogen and gradients, scored on the share of the heat flow life can use
 - gate ammonia_water_mass_fraction: T8, L3. Ammonia at least 10 percent of the water mass (life-classes.md 3.1, Class 8 window); the ammonia inventory is not stored yet (GEN.887), so this class scores 0 until then
-- window temperature_k: T8, L3. 176 to 273 K: the water-ammonia eutectic is about 176 K (recalled)
-- supply h2_supply: T9, L4. The hydrogen supply is not stored yet (GEN.887); 0.5 is a stand-in
+- window habitat_temperature_k: T8, L3. 176 to 273 K: the water-ammonia eutectic is about 176 K (recalled)
+- supply h2_supply: T9, L4. Hydrogen (GEN.887): enough at 0.3 of Earth's
+- life hydrogenotroph: T8, L4. Carbonate or carbon dioxide as the oxidant: the anaerobic yield 0.11
 
 ### Class 9: Silicon-bearing life in acid
 
@@ -175,6 +211,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - gate acid_medium: T6, L4. A liquid sulfuric acid layer or pool is present: not modelled yet (GEN.888)
 - gate silicon_rich_crust: T9, L4. A silicon-rich crust (GEN.441 crust composition); not exposed as a quantity yet
 - window temperature_k: T9, L3. As Class 5; silicones resist 98 percent acid at 90 C (life-classes.md 3.1, read in the climates report)
+- life acidophile: T9, L4. As Class 5
 
 ## Classes that do not drink water
 

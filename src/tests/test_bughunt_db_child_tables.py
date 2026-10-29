@@ -143,7 +143,7 @@ def _generate_habitable_system_with_moons():
 
 def _first_planet_with_life_data(system):
     for obj in system.planets:
-        if getattr(obj, "life_chemical", None) and getattr(obj, "evolutionary_pace", None):
+        if getattr(obj, "life_class", None) and getattr(obj, "evolutionary_pace", None):
             return obj
     return None
 
@@ -214,7 +214,8 @@ def test_moon_life_structure_round_trips(mysql_config):
                 found_moon = moons[0]
                 break
         assert found_moon is not None, "no seed in 0-39 gave a life-bearing planet and a moon"
-        found_moon.life_chemical = planet.life_chemical
+        found_moon.life_class = planet.life_class
+        found_moon.life_class_variant = planet.life_class_variant
         for name in LIFE_COLUMNS[:4]:
             setattr(found_moon, name, getattr(planet, name))
 

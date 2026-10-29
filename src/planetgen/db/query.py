@@ -46,7 +46,7 @@ from planetgen.db import countcache, hostednebula, interests, nebula_blocks, poi
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics import equipment, habitability, habitability_world, life_scores, score_filters
+from planetgen.physics import equipment, habitability, habitability_world, life_classes, life_scores, score_filters
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types, tech
 from planetgen.generation import cloud as cloudContext
@@ -6088,11 +6088,31 @@ def _search_facet_body(conn):
     ]
 
 
-def _search_facet_life(conn):
+def _life_class_label(class_id):
+    """The facet label of a life class id: `"Class 1a: oxygenic light-eaters ..."`."""
+    return f"Class {class_id}: {life_classes.describe(class_id).name}" if class_id in life_classes.BY_ID else str(class_id)
+
+
+def _life_class_facet(conn, table):
+    """The life classes living on the bodies of `table` (`planets` or `moons`), with how many bodies each is the class of."""
     rows = conn.execute(
-        "SELECT life_chemical AS v, COUNT(*) AS c FROM planets WHERE life_chemical IS NOT NULL GROUP BY v ORDER BY v"
+        f"SELECT CONCAT(life_class, COALESCE(life_class_variant, '')) AS v, COUNT(*) AS c FROM {table} WHERE life_class IS NOT NULL GROUP BY v ORDER BY v"
     ).fetchall()
-    return [{"value": row["v"], "label": row["v"], "count": row["c"], "tooltip": None} for row in rows]
+    return [{"value": row["v"], "label": _life_class_label(row["v"]), "count": row["c"], "tooltip": None} for row in rows]
+
+
+def _life_class_clause(alias, class_ids, clauses, params):
+    """Adds the filter on the life classes `class_ids` (ids such as `"1a"`, `"6"`) of the table `alias`."""
+    if not class_ids:
+        return
+    pairs = sorted((int(class_id[:1]), class_id[1:]) for class_id in class_ids)
+    clauses.append(f"({alias}.life_class, COALESCE({alias}.life_class_variant, '')) IN ({','.join('(?, ?)' for _ in pairs)})")
+    for number, variant in pairs:
+        params.extend((number, variant))
+
+
+def _search_facet_life(conn):
+    return _life_class_facet(conn, "planets")
 
 
 def _search_equipment_options(conn, table):
@@ -6175,10 +6195,7 @@ def _search_facet_moon_body(conn):
 
 
 def _search_facet_moon_life(conn):
-    rows = conn.execute(
-        "SELECT life_chemical AS v, COUNT(*) AS c FROM moons WHERE life_chemical IS NOT NULL GROUP BY v ORDER BY v"
-    ).fetchall()
-    return [{"value": row["v"], "label": row["v"], "count": row["c"], "tooltip": None} for row in rows]
+    return _life_class_facet(conn, "moons")
 
 
 def _search_facet_density(conn):
@@ -6432,9 +6449,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     if body_tags:
         clauses.append(f"p.body_type IN ({','.join('?' * len(body_tags))})")
         params.extend(sorted(body_tags))
-    if life_tags:
-        clauses.append(f"p.life_chemical IN ({','.join('?' * len(life_tags))})")
-        params.extend(sorted(life_tags))
+    _life_class_clause("p", life_tags, clauses, params)
     _append_size_clause(clauses, params, "p.radius_km", size_range)
     if term:
         match, match_params = _search_match(conn, "p.name", term)
@@ -6444,7 +6459,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     rows, page = _search_page(
         conn,
         f"""
-        SELECT p.id, p.name, p.planet_class, p.body_type, p.life_chemical, {_equipment_columns('p')}, {_tiers("p")}, p.radius_km,
+        SELECT p.id, p.name, p.planet_class, p.body_type, CONCAT(p.life_class, COALESCE(p.life_class_variant, '')) AS life_class_id, {_equipment_columns('p')}, {_tiers("p")}, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
@@ -6465,9 +6480,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     if body_tags:
         clauses.append(f"m.body_type IN ({','.join('?' * len(body_tags))})")
         params.extend(sorted(body_tags))
-    if life_tags:
-        clauses.append(f"m.life_chemical IN ({','.join('?' * len(life_tags))})")
-        params.extend(sorted(life_tags))
+    _life_class_clause("m", life_tags, clauses, params)
     _append_size_clause(clauses, params, "m.radius_km", size_range)
     if term:
         match, match_params = _search_match(conn, "m.name", term)
@@ -6477,7 +6490,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     rows, page = _search_page(
         conn,
         f"""
-        SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, {_equipment_columns('m')}, {_tiers("m")}, m.radius_km,
+        SELECT m.id, m.name, m.planet_class, m.body_type, CONCAT(m.life_class, COALESCE(m.life_class_variant, '')) AS life_class_id, {_equipment_columns('m')}, {_tiers("m")}, m.radius_km,
                m.planet_id, m.rogue_planet_id, COALESCE(p.name, rp.name) AS planet_name, m.star_system_id,
                ss.name AS system_name, COALESCE(ss.sector_id, rp.sector_id) AS sector_id
         """,

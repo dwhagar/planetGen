@@ -175,7 +175,7 @@ def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=N
     if texts.get("planet_q"):
         tiers = {f"tier_{d}": i % 4 for i, d in enumerate(("pressure", "temperature", "air", "water", "radiation",
                                                            "suitability"))}
-        planets = [{"id": i, "name": f"World {i:03d}", "planet_class": "M", "body_type": "t", "life_chemical": None,
+        planets = [{"id": i, "name": f"World {i:03d}", "planet_class": "M", "body_type": "t", "life_class_id": None,
                     "radius_km": 6371.0, "star_system_id": 7, "system_name": "Kepler-42", "sector_id": None,
                     "equipment": "Required: gas-mix mask. Recommended: hardened habitat.", "phi4": 0.5,
                     "life_microbial": 3, "life_flora": 0, "life_fauna": 1, "life_sentient": 0,

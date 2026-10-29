@@ -47,7 +47,7 @@ from hypothesis import strategies as st
 from planetgen.generation import evolution
 from planetgen.physics import constants as pc, kepler as km
 from planetgen.generation import life as planetLife
-from planetgen.physics import life_timeline, planets as pp
+from planetgen.physics import life_complexity, life_timeline, planets as pp
 from planetgen import tuning as prog
 from planetgen.galaxy import galactic_orbit
 from planetgen.physics import formation
@@ -312,10 +312,10 @@ def assert_life_caps(system, cfg):
         stage = obj.life_stage
         if stage is None:
             continue
-        cap = planetLife.stage_ceiling(obj)
+        cap = life_complexity.top_stage(obj.life_complexity, obj.life_animal_grade or 0) if obj.life_complexity is not None else None
         if cap is not None:
             assert evolution.MILESTONE_KEYS.index(stage) <= evolution.MILESTONE_KEYS.index(cap), (
-                f"a body whose index allows {cap} reports {stage}")
+                f"a body whose complexity allows {cap} reports {stage}")
         if cfg.INTELLIGENT_LIFE is False:
             assert stage != "technological_civilization"
 
@@ -674,9 +674,9 @@ def test_life_pass_is_stable_on_reload(seed):
     for a, b in zip(system.planets, rebuilt.planets):
         if a.body_type == "a":
             continue
-        assert (a.life_chemical, a.life_stage, a.evolutionary_pace, a.life_milestone_age_gyr,
+        assert (a.life_class, a.life_class_variant, a.life_stage, a.evolutionary_pace, a.life_milestone_age_gyr,
                 a.life_system_age_gyr, a.flavor_key, a.has_timeline, a.flavor_text) == \
-               (b.life_chemical, b.life_stage, b.evolutionary_pace, b.life_milestone_age_gyr,
+               (b.life_class, b.life_class_variant, b.life_stage, b.evolutionary_pace, b.life_milestone_age_gyr,
                 b.life_system_age_gyr, b.flavor_key, b.has_timeline, b.flavor_text)
         with _deterministic_entropy(seed):
             planetLife.apply_life_data(b)

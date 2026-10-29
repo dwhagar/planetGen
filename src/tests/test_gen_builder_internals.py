@@ -410,7 +410,7 @@ def test_a_habitable_world_with_no_viable_chemistry_gets_no_timeline(monkeypatch
             break
     assert planet is not None
 
-    monkeypatch.setattr(planetLife, "get_viable_life_chemicals", lambda *args, **kwargs: {})
+    monkeypatch.setattr(planetLife.life_classes, "score_classes", lambda *args, **kwargs: {})
     planetLife.apply_life_data(planet)
-    assert planet.life_chemical is None
+    assert planet.life_class is None
     assert not planet.has_timeline and planet.evolutionary_pace is None

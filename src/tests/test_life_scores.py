@@ -26,14 +26,28 @@ def test_a_kind_of_life_needs_its_stage():
     microbial, flora, fauna, sentient = life_scores.scores(0.9, 0.9, "photosynthesis")
     assert (microbial, 0 < flora <= tuning.LIFE_SCORE_SIMPLE_FLORA_MAX, fauna, sentient) == (9, True, 0, 0)
     assert life_scores.scores(0.9, 0.9, "complex_cells")[2:] == (0, 0)
-    assert life_scores.scores(0.9, 0.9, "multicellularity") == (9, 9, 9, 0)
-    assert life_scores.scores(0.9, 0.9, "technological_civilization", 4.5, 4.6)[3] == 9
+    assert life_scores.scores(0.9, 0.9, "multicellularity") == (9, 9, 0, 0)  # no animal grade, no Fauna
+    assert life_scores.scores(0.9, 0.9, "multicellularity", grade=3) == (9, 9, 9, 0)
+    assert life_scores.scores(0.9, 0.9, "technological_civilization", 4.5, 4.6, grade=3)[3] == 9
 
 
 def test_the_surface_sets_how_much():
-    assert life_scores.scores(0.2, 0.2, "multicellularity") == (2, 2, 2, 0)
-    assert life_scores.scores(0.9, 0.1, "multicellularity")[:3] == (9, 9, 1)  # fauna follows the complex-life likelihood
-    assert life_scores.scores(0.04, 0.0, "multicellularity")[:3] == (1, 1, 0)
+    assert life_scores.scores(0.2, 0.2, "multicellularity", grade=3) == (2, 2, 2, 0)
+    assert life_scores.scores(0.9, 0.1, "multicellularity", grade=3)[:3] == (9, 9, 1)  # fauna follows the complex-life likelihood
+    assert life_scores.scores(0.04, 0.0, "multicellularity", grade=3)[:3] == (1, 1, 0)
+
+
+def test_the_animal_grade_caps_the_fauna_a_class_shows():
+    caps = tuning.LIFE_COMPLEXITY["fauna_cap"]
+    for grade in (1, 2, 3):
+        assert life_scores.scores(0.9, 0.9, "multicellularity", grade=grade)[2] == min(9, caps[grade])
+
+
+def test_a_chemical_class_has_no_flora_but_can_have_fauna():
+    """GEN.871: only a class that eats light has Flora; a vent world's animals feed on its microbes."""
+    microbial, flora, fauna, sentient = life_scores.scores(0.9, 0.9, "multicellularity", light_producer=False, grade=2)
+    assert (microbial, flora, sentient) == (9, 0, 0) and 0 < fauna <= tuning.LIFE_COMPLEXITY["fauna_cap"][2]
+    assert life_scores.scores(0.9, 0.9, "photosynthesis", light_producer=False)[1] == 0
 
 
 def test_a_likelihood_under_the_line_is_none():
@@ -44,14 +58,14 @@ def test_a_likelihood_under_the_line_is_none():
 def test_fauna_never_exceeds_the_flora_it_feeds_on():
     for bio in (0.05, 0.3, 0.6, 1.0):
         for cpx in (0.0, 0.05, 0.3, 0.6, 1.0):
-            _, flora, fauna, _ = life_scores.scores(bio, min(bio, cpx), "multicellularity")
+            _, flora, fauna, _ = life_scores.scores(bio, min(bio, cpx), "multicellularity", grade=3)
             assert fauna <= flora
 
 
 def test_a_young_civilization_scores_in_proportion_and_never_below_one():
-    full = life_scores.scores(0.9, 0.9, "technological_civilization", 1.0, 1.0 + tuning.LIFE_SCORE_SENTIENT_FULL_GYR)[3]
-    half = life_scores.scores(0.9, 0.9, "technological_civilization", 1.0, 1.0 + tuning.LIFE_SCORE_SENTIENT_FULL_GYR / 2)[3]
-    new = life_scores.scores(0.9, 0.9, "technological_civilization", 1.0, 1.0)[3]
+    full = life_scores.scores(0.9, 0.9, "technological_civilization", 1.0, 1.0 + tuning.LIFE_SCORE_SENTIENT_FULL_GYR, grade=3)[3]
+    half = life_scores.scores(0.9, 0.9, "technological_civilization", 1.0, 1.0 + tuning.LIFE_SCORE_SENTIENT_FULL_GYR / 2, grade=3)[3]
+    new = life_scores.scores(0.9, 0.9, "technological_civilization", 1.0, 1.0, grade=3)[3]
     assert full == 9 and 1 < half < full and new == 1
 
 
@@ -84,7 +98,7 @@ def test_generated_bodies_carry_scores_that_agree_with_their_life():
                 scores = tuple(getattr(body, name) for name in life_scores.FIELDS)
                 assert all(0 <= value <= tuning.LIFE_SCORE_MAX for value in scores)
                 assert scores[2] <= scores[1]
-                if body.life_chemical is None:
+                if body.life_class is None:
                     assert scores == (0, 0, 0, 0)
                 else:  # a planet or moon, in any zone, with a chemistry has an evolutionary path (Boss, 2026-10-23)
                     assert body.evolutionary_pace is not None

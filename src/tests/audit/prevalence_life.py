@@ -107,10 +107,10 @@ def draw_life(indices, star_type=None):
                         if body.body_type != "t":
                             continue
                         worlds += 1
-                        if body.life_chemical:
+                        if body.life_class:
                             life += 1
                             rungs[rung(body)] += 1
-                            if evolution.releases_oxygen(body.life_chemical):
+                            if evolution.releases_oxygen(body.life_class_id):
                                 oxygenic[rung(body)] += 1
                             classes[str(class_of(body))] += 1
             except _Abandoned:

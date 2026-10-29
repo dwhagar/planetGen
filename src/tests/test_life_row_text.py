@@ -37,7 +37,7 @@ def _system():
             system = StarSystem(system_config=config)
         bodies = [b for p in system.planets if p.body_type != "a" for b in (p, *p.moons)]
         planets = [p for p in system.planets if p.body_type != "a"]
-        if len(planets) >= 3 and sum(1 for b in bodies if b.life_chemical and b.has_timeline) >= 2:
+        if len(planets) >= 3 and sum(1 for b in bodies if b.life_class and b.has_timeline) >= 2:
             return system, config
     pytest.fail("no system with three planets and two worlds with a timeline in 80 seeds")
 
@@ -64,7 +64,7 @@ def test_the_five_milestone_ages_round_trip(mysql_config):
     for original, again in zip(_bodies(system), _bodies(loaded)):
         for field in evolution.SCHEDULE_FIELDS:
             assert getattr(again, field) == getattr(original, field), (original.name, field)
-        seen += bool(original.life_chemical)
+        seen += bool(original.life_class)
     assert seen >= 2
 
 

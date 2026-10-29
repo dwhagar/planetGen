@@ -224,17 +224,17 @@ def test_a_world_counts_as_habitable_by_its_overall_tier(monkeypatch):
 
 
 def test_the_life_sentences_are_short_and_plain():
-    """GEN.221: one sentence for the chemistry (and the pace), one each for what the life looks like."""
+    """GEN.221: one sentence for the life class (and the pace), one each for what the life looks like."""
     seen = 0
     for _overrides, system in _systems(4):
         document = describe(system)
         for body in system.planets + system.secondary_planets:
-            if body.body_type == "a" or not body.life_chemical:
+            if body.body_type == "a" or not body.life_class:
                 continue
             section = next(s for s in model.sections(document) if s["title"] == body.name)
             life = [_plain(sentence) for block in section["blocks"] if block["type"] == "prose" and block["role"] == "life"
                     for sentence in block["text"]]
-            assert life and f"life based on {body.life_chemical.lower()}" in life[0].lower() and "could arise" not in life[0]
+            assert life and f"class {body.life_class}{body.life_class_variant or ''} life" in life[0].lower() and "could arise" not in life[0]
             assert all(len(sentence) < 160 and "suitable for the development" not in sentence for sentence in life)
             seen += 1
     assert seen > 0

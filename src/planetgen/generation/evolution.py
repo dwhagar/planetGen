@@ -5,29 +5,24 @@ Evolutionary Timeline
 =====================
 
 What a world's life has reached at its star's age: the stage whose age on the world's schedule is the latest not past it, capped by what
-the habitability index allows and by a forced or forbidden civilization. The schedule itself, a draw of five hard steps (GEN.750), is
+its life class can reach (`physics.life_complexity`) and by a forced or forbidden civilization. The schedule itself, a draw of five hard steps (GEN.750), is
 `physics.life_timeline`; the oxygen the oxygenic ones make is `physics.biogenic_oxygen`; `generation.life.apply_life_data` joins them.
 """
 
 
 from planetgen import tuning
+from planetgen.physics import life_class_text, life_classes
 
 MILESTONE_KEYS = tuning.LIFE_MILESTONES
 """
-tuple[str]: `EVOLUTIONARY_TEXT`'s own milestone
-keys, in ascending order of life complexity -- shared by
+tuple[str]: The milestone keys, in ascending order of life complexity -- shared by
 `get_evolutionary_state` for both display-name lookup and comparing a
-milestone against a cap (`life.stage_ceiling`).
+milestone against a cap (`physics.life_complexity.top_stage`).
 """
 
-MILESTONE_DISPLAY_NAMES = {
-    "abiogenesis": "Abiogenesis",
-    "photosynthesis": "Photosynthesis",
-    "complex_cells": "Complex Cells",
-    "multicellularity": "Multicellularity",
-    "technological_civilization": "Technological Civilization",
-}
-
+RUNG_OF_MILESTONE = {"abiogenesis": 1, "photosynthesis": 2, "complex_cells": 3, "multicellularity": 4, "technological_civilization": 6}
+"""dict: The rung of the stage ladder (`physics.life_class_text`, life-classes.md 5.1) each milestone stands for; a world whose multicellular life has
+animals (an animal grade of 1 to 3) is at rung 5."""
 
 SCHEDULE_FIELDS = tuning.LIFE_SCHEDULE_FIELDS
 """tuple[str]: The body columns holding a world's milestone schedule (DB.100), one age in Gyr for each `MILESTONE_KEYS`
@@ -44,9 +39,8 @@ def get_evolutionary_state(star, ages, max_stage=None):
         star (Star): The host star.
         ages (tuple): The age, Gyr, of each `MILESTONE_KEYS` milestone (`None` for one the world never reaches).
         max_stage (str, optional): A `MILESTONE_KEYS` key capping the milestone, whether from the natural age-based
-            roll below or a forced `INTELLIGENT_LIFE=True`: the habitability index allows a world only microbial life
-            (GEN.206), so its timeline stops at "photosynthesis" (`life.stage_ceiling`). The class letter caps nothing
-            (GEN.647).
+            roll below or a forced `INTELLIGENT_LIFE=True`: the complexity of its life class allows a world only so
+            far (`physics.life_complexity.top_stage`). The planet class letter caps nothing (GEN.647).
 
     Returns:
         dict: `stage` (a `MILESTONE_KEYS` key, `None` when no milestone has been reached), `milestone_age_gyr` (`None` with no stage)
@@ -104,28 +98,27 @@ def get_evolutionary_state(star, ages, max_stage=None):
             "system_age_gyr": current_system_age}
 
 
-def stage_name(stage, life_chemical):
-    """The display name of a milestone (`MILESTONE_DISPLAY_NAMES`), the "photosynthesis" one as the chemistry's own
-    way of harvesting energy calls it (`tuning.LIFE_METABOLISMS`)."""
-    if stage == "photosynthesis":
-        return tuning.LIFE_METABOLISMS[metabolism(life_chemical)]["stage_name"].title()
-    return MILESTONE_DISPLAY_NAMES[stage]
+def _rung(stage, grade):
+    """`(rung, grade label or None)` of a milestone on a world whose animals are of grade `grade` (0 for none)."""
+    if stage == "multicellularity" and grade:
+        return 5, life_class_text.GRADES[min(int(grade), 3) - 1]
+    return RUNG_OF_MILESTONE[stage], None
 
 
-def stage_text(stage, life_chemical):
-    """What the biosphere is like at a milestone: `tuning.EVOLUTIONARY_TEXT`, the "photosynthesis" one by the
-    chemistry's metabolism (`tuning.LIFE_METABOLISMS`)."""
-    if stage == "photosynthesis":
-        return tuning.LIFE_METABOLISMS[metabolism(life_chemical)]["text"]
-    return tuning.EVOLUTIONARY_TEXT[stage]
+def stage_name(stage, class_id, grade=0):
+    """The display name of a milestone on a world of life class `class_id` (`physics.life_class_text`): the class's own words for the rung,
+    the animal grade's when its multicellular life has animals (`grade`, 1 to 3)."""
+    rung, label = _rung(stage, grade)
+    return life_class_text.stage_name(class_id, rung, label)
 
 
-def metabolism(life_chemical):
-    """How a life chemistry harvests its energy (`tuning.LIFE_CHEMICALS[...]["metabolism"]`)."""
-    return tuning.LIFE_CHEMICALS[life_chemical]["metabolism"]
+def stage_text(stage, class_id, grade=0):
+    """What the biosphere is like at a milestone on a world of life class `class_id` (`physics.life_class_text`)."""
+    rung, label = _rung(stage, grade)
+    return life_class_text.stage_description(class_id, rung, label)
 
 
-def releases_oxygen(life_chemical):
-    """Whether a life chemistry splits water for its electrons and so makes free oxygen (`metabolism` is `oxygenic`;
+def releases_oxygen(class_id):
+    """Whether a life class splits water for its electrons and so makes free oxygen (`life_classes.LifeClass.releases_oxygen`;
     `physics.biogenic_oxygen`)."""
-    return bool(life_chemical) and metabolism(life_chemical) == "oxygenic"
+    return bool(class_id) and life_classes.describe(class_id).releases_oxygen

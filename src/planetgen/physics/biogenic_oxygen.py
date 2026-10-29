@@ -4,7 +4,7 @@
 Free oxygen from oxygenic photosynthesis (GEN.855, docs/design/habitability/life-timeline-and-oxygen.md)
 =========================================================================================================
 
-A world whose life splits water for its electrons (a chemistry of `tuning.LIFE_CHEMICALS` whose `metabolism` is `"oxygenic"`) fills its air with oxygen; one whose life does
+A world whose life splits water for its electrons (a life class of `physics/life_classes.py` whose `metabolism` is `"oxygenic"`) fills its air with oxygen; one whose life does
 not, does not. The oxygen a world holds is the balance of a source and its sinks, in moles of O2 a year:
 
 * **Source** `S`: the organic carbon its life buries, which leaves the oxygen of the water it was made from behind. It goes with the

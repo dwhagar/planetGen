@@ -393,7 +393,7 @@ def hosted_facilities(db, system_id, kind, row):
 
 def dominant_species(db, kind, row):
     """`{"name", "url"}` of a life world's dominant species, or `None` (also before population has made any)."""
-    if kind != "planet" or not row.get("life_chemical") or not population_status()["species"]:
+    if kind != "planet" or not row.get("life_class") or not population_status()["species"]:
         return None
     try:
         species = apiclient.get_planet_species(db, row["id"])

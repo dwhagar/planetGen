@@ -911,6 +911,21 @@ moon_interior_layers = sa.Table(
 )
 
 
+moon_life_class_scores = sa.Table(
+    'moon_life_class_scores',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('life_class', sa.String(2), nullable=False),
+    sa.Column('score', mysql.TINYINT(unsigned=True), nullable=False),
+    sa.Index('idx_moon_life_class_scores_class', 'life_class', 'score'),
+    sa.Index('uq_moon_life_class_scores', 'moon_id', 'life_class', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_life_class_scores_moon', ondelete='CASCADE'),
+    sa.CheckConstraint('(`score` between 1 and 9)', name='moon_life_class_scores_chk_1'),
+    mysql_engine="InnoDB",
+)
+
+
 moon_reflection_spectrum = sa.Table(
     'moon_reflection_spectrum',
     metadata,
@@ -957,7 +972,6 @@ moons = sa.Table(
     sa.Column('min_orbit_distance_km', mysql.DOUBLE(), nullable=True),
     sa.Column('habitable_zone_inner_km', mysql.DOUBLE(), nullable=False),
     sa.Column('habitable_zone_outer_km', mysql.DOUBLE(), nullable=False),
-    sa.Column('life_chemical', sa.String(64), nullable=True),
     sa.Column('flavor_text_count', mysql.INTEGER(), server_default=sa.text("'0'"), nullable=False),
     sa.Column('life_stage', sa.String(32), nullable=True),
     sa.Column('evolutionary_pace', sa.String(16), nullable=True),
@@ -1135,9 +1149,15 @@ moons = sa.Table(
     sa.Column('solar_day_hours', mysql.DOUBLE(), nullable=True),
     sa.Column('daylight_hours', mysql.DOUBLE(), nullable=True),
     sa.Column('polar_circle_deg', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_class', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_class_variant', mysql.CHAR(1), nullable=True),
+    sa.Column('life_class_best', sa.String(2), nullable=True),
+    sa.Column('life_class_best_score', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_animal_grade', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_complexity', mysql.DOUBLE(), nullable=True),
     sa.Index('ft_moons_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_moons_body_type', 'body_type'),
-    sa.Index('idx_moons_life_chemical', 'life_chemical'),
+    sa.Index('idx_moons_life_class', 'life_class'),
     sa.Index('idx_moons_name', 'name'),
     sa.Index('idx_moons_next_update_due', 'next_update_due'),
     sa.Index('idx_moons_parent', 'parent_type', 'parent_id'),
@@ -1707,6 +1727,21 @@ planet_interior_layers = sa.Table(
 )
 
 
+planet_life_class_scores = sa.Table(
+    'planet_life_class_scores',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('life_class', sa.String(2), nullable=False),
+    sa.Column('score', mysql.TINYINT(unsigned=True), nullable=False),
+    sa.Index('idx_planet_life_class_scores_class', 'life_class', 'score'),
+    sa.Index('uq_planet_life_class_scores', 'planet_id', 'life_class', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_life_class_scores_planet', ondelete='CASCADE'),
+    sa.CheckConstraint('(`score` between 1 and 9)', name='planet_life_class_scores_chk_1'),
+    mysql_engine="InnoDB",
+)
+
+
 planet_reflection_spectrum = sa.Table(
     'planet_reflection_spectrum',
     metadata,
@@ -1752,7 +1787,6 @@ planets = sa.Table(
     sa.Column('min_orbit_distance_km', mysql.DOUBLE(), nullable=True),
     sa.Column('habitable_zone_inner_km', mysql.DOUBLE(), nullable=False),
     sa.Column('habitable_zone_outer_km', mysql.DOUBLE(), nullable=False),
-    sa.Column('life_chemical', sa.String(64), nullable=True),
     sa.Column('flavor_text_count', mysql.INTEGER(), server_default=sa.text("'0'"), nullable=False),
     sa.Column('life_stage', sa.String(32), nullable=True),
     sa.Column('evolutionary_pace', sa.String(16), nullable=True),
@@ -1933,9 +1967,15 @@ planets = sa.Table(
     sa.Column('solar_day_hours', mysql.DOUBLE(), nullable=True),
     sa.Column('daylight_hours', mysql.DOUBLE(), nullable=True),
     sa.Column('polar_circle_deg', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_class', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_class_variant', mysql.CHAR(1), nullable=True),
+    sa.Column('life_class_best', sa.String(2), nullable=True),
+    sa.Column('life_class_best_score', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_animal_grade', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_complexity', mysql.DOUBLE(), nullable=True),
     sa.Index('ft_planets_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_planets_body_type', 'body_type'),
-    sa.Index('idx_planets_life_chemical', 'life_chemical'),
+    sa.Index('idx_planets_life_class', 'life_class'),
     sa.Index('idx_planets_name', 'name'),
     sa.Index('idx_planets_next_update_due', 'next_update_due'),
     sa.Index('idx_planets_parent', 'parent_type', 'parent_id'),
@@ -2456,7 +2496,7 @@ species = sa.Table(
     sa.Column('name', sa.String(255), nullable=False),
     sa.Column('homeworld_planet_id', mysql.BIGINT(unsigned=True), nullable=False),
     sa.Column('star_system_id', mysql.BIGINT(unsigned=True), nullable=False),
-    sa.Column('life_chemical', sa.String(64), nullable=True),
+    sa.Column('life_class', sa.String(2), nullable=True),
     sa.Column('life_stage', sa.String(32), nullable=False),
     sa.Column('build', sa.String(16), nullable=False),
     sa.Column('climate', sa.String(16), nullable=False),

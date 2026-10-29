@@ -1,0 +1,125 @@
+{
+ "version": 1,
+ "title": "The life supply rules",
+ "description": "How much of the fuel and the oxidant a chemical life class eats a world supplies (GEN.887, docs/design/habitability/life-classes.md 8.3). Every number carries its source tier (T1 to T9) and tweak level (L0 to L4) next to it. A supply is a share of what Earth gives (1 is Earth's), worked out from the columns a body stores, so it is never stored itself and an edit of the body moves it with the rest.",
+ "numbers": {
+  "earth_heat_flux_w_m2": {
+   "value": 0.087,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "Earth's mean surface heat flow, 0.087 W/m2 (Davies and Davies 2010, recalled): the heat a supply of 1 stands for"
+  },
+  "heat_share_max": {
+   "value": 10.0,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The most a hot body's heat flow counts for, in Earth's: past ten times Earth's the water does not carry more of the rock's chemistry, and Io's 2 W/m2 is 23 times Earth's"
+  },
+  "contact_ocean": {
+   "value": 1.0,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "Liquid water over rock (a surface ocean, an ice-covered ocean or a hycean sea): the whole of the heat and the dose reach it"
+  },
+  "contact_aquifer_reachable": {
+   "value": 0.5,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "An aquifer whose top is within reach of the surface (GEN.654): the water is in the rock but in a thin layer"
+  },
+  "contact_aquifer_deep": {
+   "value": 0.2,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "An aquifer too deep to reach: the rock reacts but little of it is open to the surface"
+  },
+  "deep_water_fraction": {
+   "value": 0.05,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "A world whose water is over this share of its mass has an ocean so deep that high-pressure ice, not rock, lies on its floor (Earth's ocean is 0.02 percent)"
+  },
+  "contact_deep_water": {
+   "value": 0.1,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "The water-rock contact of such a world: only what leaks through the ice reaches the rock"
+  },
+  "h2_redox": {
+   "reduced": 1.0,
+   "intermediate": 0.6,
+   "oxidized": 0.3,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "The hydrogen a hydrothermal system gives by the redox state of the mantle it draws from (a reduced mantle gives most, GEN.85); Earth's is intermediate"
+  },
+  "donor_redox": {
+   "reduced": 2.0,
+   "intermediate": 1.0,
+   "oxidized": 0.3,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "The reduced gas and iron (hydrogen sulfide, ferrous iron) a volcanic world gives by the redox state of its mantle; Earth's is intermediate and is 1"
+  },
+  "radiolytic_dose_ref_msv_yr": {
+   "value": 0.5,
+   "tier": "T3",
+   "tweak": "L3",
+   "basis": "The ground dose of Earth's crust, about 0.5 mSv/yr (UNSCEAR terrestrial external gamma, recalled): the dose the radiolysis of the water in rock is taken to match at 1"
+  },
+  "nitrate_abiotic": {
+   "value": 0.3,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "The nitrate an anoxic ocean gets from lightning, radiolysis and impacts, as a share of Earth's (an oxygen world makes far more by nitrification)"
+  },
+  "nitrate_oxygen_kpa": {
+   "value": 10.0,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "The oxygen partial pressure, kPa, at which nitrification gives the full supply"
+  },
+  "perchlorate_base": {
+   "value": 0.1,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "The perchlorate supply of a world with a salt-free ocean, as a share of Earth's nitrate: very slow (it forms in dry air and from the radiolysis of chloride)"
+  },
+  "perchlorate_brine": {
+   "value": 1.0,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "The multiplier of a chloride-brine ocean, which holds the chloride that radiolysis and ultraviolet light turn into perchlorate"
+  },
+  "perchlorate_other": {
+   "value": 0.3,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "The multiplier of any other ocean"
+  },
+  "haze_methane_share": {
+   "value": 0.005,
+   "tier": "T7",
+   "tweak": "L4",
+   "basis": "The methane share of the air at which ultraviolet light makes enough haze organics (acetylene) for a hydrogenating life; Titan's is about 0.05 (recalled)"
+  },
+  "ice_ocean_base_k": {
+   "value": 273.15,
+   "tier": "T2",
+   "tweak": "L1",
+   "basis": "The water under an ice lid sits at the melting point of ice (a little lower under pressure and with salt): 273.15 K stands in"
+  },
+  "crust_conductivity_w_m_k": {
+   "value": 2.5,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "Thermal conductivity of crustal rock, 2 to 3 W/m/K (Clauser and Huenges 1995, recalled): the temperature of an aquifer below the surface rises with its depth by the heat flow over this"
+  },
+  "habitat_max_k": {
+   "value": 420.0,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The hottest habitat a class can sample (the hottest known hyperthermophile grows at 395 to 400 K): the temperature of a deep aquifer is capped here so a deep hot layer does not exclude a cooler one above it"
+  }
+ }
+}

@@ -69,6 +69,8 @@ LOCAL_UNITS = {
     "dex": LocalUnit("logarithmic"), "mag": LocalUnit("magnitude"), "pH": LocalUnit("logarithmic", suffix=" pH (7 is neutral)"),
     "aw": LocalUnit("ratio", suffix=" of 1 (life needs about 0.6 or more)"),
     "score1": LocalUnit("score", suffix=" of 1"), "score9": LocalUnit("score", suffix=" of 9"),
+    "grade3": LocalUnit("score", suffix=" of 3 (0 is no animals, 1 sessile, 2 small and mobile, 3 large and active)"),
+    "complexity": LocalUnit("ratio", suffix="× the Earth's (what the class's energy and oxygen allow; animals need about 1e-4 or more)"),
     "tau": LocalUnit("ratio", suffix=" optical depth"),
     "dose-mult": LocalUnit("ratio", suffix="× the open-space cosmic-ray dose"),
     "dna-mult": LocalUnit("ratio", suffix="× Earth's DNA-damaging dose"),
@@ -381,6 +383,10 @@ TABLES = {
         "id": ("id", "moon_id"),
         "Pa": ("partial_pa",),
     },
+    "moon_life_class_scores": {
+        "id": ("id", "moon_id"),
+        "score9": ("score",),
+    },
     "moon_reflection_spectrum": {
         "id": ("id", "moon_id"),
         "index": ("position",),
@@ -388,7 +394,7 @@ TABLES = {
     "moons": {
         "id": ("id", "planet_id", "star_system_id", "star_id", "parent_id", "rogue_planet_id"),
         "index": (
-            "orbital_index", "tier_pressure",
+            "orbital_index", "tier_pressure", "life_class",
             "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
             *EQUIPMENT_LEVELS,
             "albedo_basis",
@@ -422,8 +428,10 @@ TABLES = {
         "R_planet": ("magnetopause_rp",),
         "xuv-earth": ("xuv_flux_earth",),
         "ratio": ("aerosol_draw",),
+        "grade3": ("life_animal_grade",),
+        "complexity": ("life_complexity",),
         "dose-mult": ("dose_helio_mult",),
-        "score9": ("life_microbial", "life_flora", "life_fauna", "life_sentient"),
+        "score9": ("life_microbial", "life_flora", "life_fauna", "life_sentient", "life_class_best_score"),
         "score1": ("phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability",
                    "phi4_radiation", "l_solv", "l_chem", "l_ener", "l_rad"),
         "xuv-ref": ("xuv_exposure_index",),
@@ -620,6 +628,10 @@ TABLES = {
         "id": ("id", "planet_id"),
         "Pa": ("partial_pa",),
     },
+    "planet_life_class_scores": {
+        "id": ("id", "planet_id"),
+        "score9": ("score",),
+    },
     "planet_reflection_spectrum": {
         "id": ("id", "planet_id"),
         "index": ("position",),
@@ -627,7 +639,7 @@ TABLES = {
     "planets": {
         "id": ("id", "star_system_id", "star_id", "parent_id", "host_node_id"),
         "index": (
-            "orbital_index", "tier_pressure",
+            "orbital_index", "tier_pressure", "life_class",
             "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
             *EQUIPMENT_LEVELS,
             "albedo_basis",
@@ -662,8 +674,10 @@ TABLES = {
         "R_planet": ("magnetopause_rp",),
         "xuv-earth": ("xuv_flux_earth",),
         "ratio": ("aerosol_draw",),
+        "grade3": ("life_animal_grade",),
+        "complexity": ("life_complexity",),
         "dose-mult": ("dose_helio_mult",),
-        "score9": ("life_microbial", "life_flora", "life_fauna", "life_sentient"),
+        "score9": ("life_microbial", "life_flora", "life_fauna", "life_sentient", "life_class_best_score"),
         "score1": ("phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability",
                    "phi4_radiation", "l_solv", "l_chem", "l_ener", "l_rad"),
         "xuv-ref": ("xuv_exposure_index",),

@@ -35,6 +35,7 @@ from planetgen.util import generator_epoch
 from planetgen.util import log
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.physics import life_classes
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util import detmath
 from planetgen.physics import unit_registry as units
@@ -408,7 +409,7 @@ def scan_life_worlds(conn):
     while low < top:
         high = min(top, low + SCAN_BATCH)
         rows = conn.execute(
-            "SELECT p.id, p.uid, p.star_system_id, p.life_chemical, p.gravity_g, p.surface_temperature_k, "
+            "SELECT p.id, p.uid, p.star_system_id, p.life_class, p.life_class_variant, p.gravity_g, p.surface_temperature_k, "
             "p.life_stage, p.life_system_age_gyr, p.life_milestone_age_gyr, "
             "cfg.intelligent_life, cfg.prevalence_intelligent_life FROM planets p "
             "JOIN star_systems ss ON ss.id = p.star_system_id "
@@ -441,13 +442,13 @@ def scan_life_worlds(conn):
             with draw.bound(f"species-name:{key}"):
                 name = _unique_species_name(conn, taken)
             taken.add(name)
-            inserts.append((name, planet_id, row["star_system_id"], row["life_chemical"], timeline.life_stage,
+            inserts.append((name, planet_id, row["star_system_id"], life_classes.class_id(row["life_class"], row["life_class_variant"]), timeline.life_stage,
                             traits["build"], traits["climate"], traits["size"], age, era, int(spacefaring),
                             generator_epoch.generator_epoch()))
         with conn:
             if inserts:
                 conn.executemany(
-                    "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_chemical, life_stage, "
+                    "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_class, life_stage, "
                     "build, climate, size, civilization_age_years, era, spacefaring, generator_epoch) "
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", inserts,
                 )
@@ -652,7 +653,7 @@ def population_status(conn):
 
 _SPECIES_COLUMNS = (
     "s.id, s.name, s.homeworld_planet_id, p.name AS homeworld_name, s.star_system_id, ss.name AS system_name, "
-    "s.life_chemical, s.life_stage, s.build, s.climate, s.size, s.civilization_age_years, s.era, s.spacefaring, "
+    "s.life_class, s.life_stage, s.build, s.climate, s.size, s.civilization_age_years, s.era, s.spacefaring, "
     "pol.id AS polity_id, pol.name AS polity_name, "
     "s.energy_index, s.materials_index, s.information_index, s.medical_index, s.propulsion_index, s.defense_index, "
     "s.tech_level, s.tech_source"

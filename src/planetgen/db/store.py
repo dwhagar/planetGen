@@ -75,7 +75,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, body_colour, bulk_composition, daylight, giant_interior, orbit_elements, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, bulk_composition, daylight, giant_interior, life_classes, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -606,7 +606,7 @@ still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
-    "planet_gases", "moon_gases",
+    "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores",
     "asteroid_belt_composition",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes",
 ))
@@ -2959,7 +2959,7 @@ BODY_FIELDS = (
     object_rows.attr("scale_height_km", "scale_height"), object_rows.attr("hill_radius_km", "hill_radius"),
     object_rows.scaled("min_orbit_distance_km", "min_orbit_distance", _AU_KM, nullable=True),
     _au_pair("habitable_zone_inner_km", "habitable_zone_outer_km", "habitable_zone"),
-    object_rows.attr("life_chemical"),
+    object_rows.each(life_classes.BODY_FIELDS),
     object_rows.attr("life_stage"), object_rows.attr("evolutionary_pace"),
     object_rows.attr("life_milestone_age_gyr"), object_rows.attr("life_system_age_gyr"),
     *(object_rows.attr(field) for field in tuning.LIFE_SCHEDULE_FIELDS),
@@ -3019,7 +3019,7 @@ def _insert_interior_layers(conn, table, id_column, owner_id, layers):
 
 
 def body_child_rows(conn, body, body_id):
-    """Writes a planet's or moon's reflection spectrum, interior layer rows and gas rows (after any old ones were deleted)."""
+    """Writes a planet's or moon's reflection spectrum, interior layer rows, gas rows and life class score rows (after any old ones were deleted)."""
     prefix, id_column = ("moon", "moon_id") if body.is_moon else ("planet", "planet_id")
     _insert_reflection_spectrum(
         conn, f"{prefix}_reflection_spectrum", id_column, body_id,
@@ -3030,6 +3030,10 @@ def body_child_rows(conn, body, body_id):
         if partial_pa > 0.0:
             conn.execute(f"INSERT INTO {prefix}_gases ({id_column}, gas, partial_pa) VALUES (?, ?, ?)",
                          (body_id, formula, partial_pa))
+    for class_id, score in sorted((getattr(body, life_classes.SCORES_FIELD, None) or {}).items()):
+        if score > 0:
+            conn.execute(f"INSERT INTO {prefix}_life_class_scores ({id_column}, life_class, score) VALUES (?, ?, ?)",
+                         (body_id, class_id, score))
 
 
 def body_gases(conn, body_ids, is_moon):
@@ -3045,6 +3049,34 @@ def body_gases(conn, body_ids, is_moon):
                 f"SELECT {id_column}, gas, partial_pa FROM {table} WHERE {id_column} IN ({marks})", tuple(chunk)).fetchall():
             air.setdefault(row[id_column], {})[row["gas"]] = row["partial_pa"]
     return air
+
+
+def body_class_scores(conn, body_ids, is_moon):
+    """`{body id: {class id: score 1 to 9}}` of the planets or moons `body_ids`: the life classes their rows keep in
+    `planet_life_class_scores` or `moon_life_class_scores` (a body that supports none has no key)."""
+    table, id_column = ("moon_life_class_scores", "moon_id") if is_moon else ("planet_life_class_scores", "planet_id")
+    found = {}
+    ids = list(body_ids)
+    for start in range(0, len(ids), 1000):
+        chunk = ids[start:start + 1000]
+        marks = ", ".join("?" * len(chunk))
+        for row in conn.execute(
+                f"SELECT {id_column}, life_class, score FROM {table} WHERE {id_column} IN ({marks})", tuple(chunk)).fetchall():
+            found.setdefault(row[id_column], {})[row["life_class"]] = row["score"]
+    return found
+
+
+def with_life_inputs(conn, rows, is_moon):
+    """`with_gases` rows that also hold the temperature of the star each orbits as `star_teff_k` (`None` for a circumbinary planet), the
+    one input of a life class re-score (`habitability_world.compute`) a `planets` or `moons` row lacks."""
+    rows = with_gases(conn, rows, is_moon)
+    star_ids = sorted({row["star_id"] for row in rows if row.get("star_id") is not None})
+    teff = {}
+    for start in range(0, len(star_ids), 1000):
+        chunk = star_ids[start:start + 1000]
+        for star in conn.execute(f"SELECT id, temperature_k FROM stars WHERE id IN ({', '.join('?' * len(chunk))})", tuple(chunk)).fetchall():
+            teff[star["id"]] = star["temperature_k"]
+    return [{**row, "star_teff_k": teff.get(row.get("star_id"))} for row in rows]
 
 
 def with_gases(conn, rows, is_moon):
@@ -4701,8 +4733,8 @@ def compact_host_of_star(conn, star_id):
 
 def _stored_native_life(row):
     """The `habitability.LIFE_STAGES` stage of a stored planet or moon `row` (`planets` or `moons`), read
-    from its life chemistry and the milestone its timeline reached (`habitability_world.native_life`), for a re-score."""
-    return habitability_world.native_life(row["life_chemical"], row["life_stage"], row["life_system_age_gyr"] is not None)
+    from its life class and the milestone its timeline reached (`habitability_world.native_life`), for a re-score."""
+    return habitability_world.native_life(row["life_class"], row["life_stage"], row["life_system_age_gyr"] is not None)
 
 
 def stored_world(conn, table, row, with_life=True):
@@ -4749,7 +4781,7 @@ def _refresh_cloud_doses(conn, system_changes):
             (system_id,)).fetchone() is not None
         for table in ("planets", "moons"):
             rows = []
-            for row in with_gases(conn, conn.execute(
+            for row in with_life_inputs(conn, conn.execute(
                 f"SELECT * FROM {table} WHERE star_system_id = ? AND dose_gcr_msv_yr IS NOT NULL", (system_id,)
             ).fetchall(), table == "moons"):
                 column = radiation.column_g_cm2(row["atmospheric_pressure_pa"], row["gravity_g"])
@@ -4817,7 +4849,7 @@ def refresh_habitability(conn, system_id):
     updated = 0
     for table in ("planets", "moons"):
         rows = []
-        for row in with_gases(conn, conn.execute(
+        for row in with_life_inputs(conn, conn.execute(
                 f"SELECT * FROM {table} WHERE star_system_id = ? AND energy_flux_w_m2 IS NOT NULL AND body_type <> 'g'",
                 (system_id,)).fetchall(), table == "moons"):
             swing = swings.get((table, row["id"]), 0.0)
@@ -9040,6 +9072,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
     data = object_rows.load_dict(PLANET_BODY_FIELDS if not is_moon else BODY_FIELDS, row)
     data.update({
         atmosphere.GAS_FIELD: body_gases(conn, [row["id"]], is_moon).get(row["id"], {}),
+        life_classes.SCORES_FIELD: body_class_scores(conn, [row["id"]], is_moon).get(row["id"]),
         "is_moon": is_moon,
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,

@@ -76,6 +76,7 @@ import colorsys
 import math
 import statistics
 
+from planetgen.physics import life_classes
 from planetgen.physics.constants import AU_TO_KM
 from planetgen.web.lib.fmt import (
     esc, format_distance_km, format_gravity_g_short, format_pressure_pa, format_speed_kms, format_temperature_k)
@@ -676,7 +677,7 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
     legibly, a small tilted ring behind gas giants (`body_type == "g"`)
     for an at-a-glance silhouette cue beyond just color, a small green
     "supports life" badge at the marker's own edge when `has_life` is set
-    (`planets`/`moons`.`life_chemical` is non-NULL), and (when
+    (`planets`/`moons`.`life_stage` is non-NULL), and (when
     `show_label` is set) a name label at `label_direction` (one of
     `_LABEL_DIRECTIONS` -- "below", this function's own default, needs no
     further reasoning; any other value, or `label_pushed` being set,
@@ -772,6 +773,12 @@ def _star_marker_svg(cx, cy, r_px, star, attrs, bounds=_DEFAULT_BOUNDS):
     )
 
 
+def _life_class_text(planet):
+    """The side panel's line for the life class on a body (`"Class 1a"`), `None` for none."""
+    class_id = life_classes.class_id(planet.get("life_class"), planet.get("life_class_variant"))
+    return None if class_id is None else f"Class {class_id}"
+
+
 def _atmosphere_text(planet):
     atmosphere = planet.get("atmosphere")
     return atmosphere if atmosphere and atmosphere != "None" else "None (airless)"
@@ -810,7 +817,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "distance": to_plain_text(format_body_distance(planet["distance_km"], planet.get("_is_moon", False))),
         "period": format_period(planet["period_years"]),
         "gravity": format_gravity_g_short(planet["gravity_g"]) if planet["gravity_g"] is not None else "",
-        "life": planet.get("life_chemical"),
+        "life": _life_class_text(planet),
         "atmosphere": _atmosphere_text(planet),
         "composition": planet.get("composition"),
         "surfacetemp": format_temperature_k(surface_temp_k) if surface_temp_k is not None else None,
@@ -1219,7 +1226,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
             label_pushed=bool(placement and placement["pushed"]),
             label_shift=(placement["shift"] if placement else (0.0, 0.0)),
             show_label=(placement is not None),
-            has_life=bool(row.get("life_chemical")),
+            has_life=bool(row.get("life_stage")),
             bounds=bounds,
         ))
 
@@ -1579,7 +1586,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None, members
             label_pushed=bool(placement and placement["pushed"]),
             label_shift=(placement["shift"] if placement else (0.0, 0.0)),
             show_label=(placement is not None),
-            has_life=bool(row.get("life_chemical")),
+            has_life=bool(row.get("life_stage")),
             bounds=bounds,
         ))
 
@@ -1680,7 +1687,7 @@ def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True):
         # xkm/ykm are relative to it, so a measurement needs (0, 0) here,
         # not its position around the star.
         "sysmap-planet", dict(_planet_attrs(planet), xkm=0.0, ykm=0.0), is_self=True,
-        has_life=bool(planet.get("life_chemical")), bounds=bounds,
+        has_life=bool(planet.get("life_stage")), bounds=bounds,
     )
 
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in markers], bounds=bounds)
@@ -1695,7 +1702,7 @@ def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True):
             label_pushed=bool(placement and placement["pushed"]),
             label_shift=(placement["shift"] if placement else (0.0, 0.0)),
             show_label=(placement is not None),
-            has_life=bool(row.get("life_chemical")),
+            has_life=bool(row.get("life_stage")),
             bounds=bounds,
         ))
 

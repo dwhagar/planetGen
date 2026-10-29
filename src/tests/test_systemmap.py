@@ -37,7 +37,7 @@ def _star(id_, mass_kg=1.989e30, radius_km=696_000, star_type="G2V", temperature
 
 
 def _planet(id_, star_id, x_km, y_km, distance_km=None, radius_km=6371.0, planet_class="G", body_type="t",
-            moons=None, life_chemical=None, zone="e", period_years=1.0, gravity_g=1.0,
+            moons=None, life_stage=None, zone="e", period_years=1.0, gravity_g=1.0,
             atmosphere=None, composition=None, surface_temperature_k=None, atmospheric_pressure_pa=None):
     return {
         "id": id_, "star_id": star_id, "name": f"Planet {id_}",
@@ -45,7 +45,7 @@ def _planet(id_, star_id, x_km, y_km, distance_km=None, radius_km=6371.0, planet
         "distance_km": distance_km if distance_km is not None else math.hypot(x_km, y_km),
         "radius_km": radius_km, "planet_class": planet_class, "body_type": body_type,
         "zone": zone, "period_years": period_years, "gravity_g": gravity_g,
-        "life_chemical": life_chemical, "moons": moons or [],
+        "life_stage": life_stage, "life_class": 1 if life_stage else None, "life_class_variant": "a" if life_stage else None, "moons": moons or [],
         "atmosphere": atmosphere, "composition": composition, "surface_temperature_k": surface_temperature_k,
         "atmospheric_pressure_pa": atmospheric_pressure_pa,
     }
@@ -55,7 +55,7 @@ def _moon(id_, x_km, y_km, radius_km=1737.0):
     return {
         "id": id_, "name": f"Moon {id_}", "position_x_km": x_km, "position_y_km": y_km, "position_z_km": 0.0,
         "distance_km": math.hypot(x_km, y_km), "radius_km": radius_km, "planet_class": "D", "body_type": "t",
-        "zone": "e", "period_years": 0.05, "gravity_g": 0.1, "life_chemical": None,
+        "zone": "e", "period_years": 0.05, "gravity_g": 0.1, "life_stage": None,
     }
 
 
@@ -578,8 +578,8 @@ def test_empty_system_renders_without_crashing():
     assert "Nothing to show yet" in html
 
 
-def test_life_chemical_planet_gets_a_life_badge():
-    planet = _planet(1, 10, AU_KM, 0.0, life_chemical="carbon")
+def test_life_class_planet_gets_a_life_badge():
+    planet = _planet(1, 10, AU_KM, 0.0, life_stage="multicellularity")
     system = {"name": "Life Test", "binary_configuration": None}
     html = sm.render_system_map_panel(system, [_star(10)], [planet], [])
     assert "sysmap-life-badge" in html

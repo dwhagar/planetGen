@@ -235,7 +235,7 @@ def test_a_planets_page_lists_the_facilities_it_hosts_and_its_chips(client, monk
 def test_a_life_worlds_page_names_its_dominant_species(client, monkeypatch):
     """UX.176: the dominant species of a life world is on the world's own page; a lifeless body never looks one up."""
     detail = _detail()
-    detail["planets"][0]["life_chemical"] = "chlorophyll"
+    detail["planets"][0]["life_class"] = 1
     asked = []
 
     def get_planet_species(db, planet_id):
