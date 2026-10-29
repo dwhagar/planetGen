@@ -3664,7 +3664,12 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.layers.bulkGroup(POI_GROUP);
     stageView.layers.bulkGroup(CLASS_GROUP);
     stageView.layers.bulkGroup(TECH_GROUP);
-    markerKinds.kinds().forEach(function (kind) {
+    // The Menu lists a group's layers together, so the technology bands (registered ahead of the Civilizations kind, which they pre-empt) come
+    // after the points of interest.
+    var familyOrder = { tech: 1, "class": 2 };
+    markerKinds.kinds().map(function (kind, index) { return { kind: kind, index: index }; }).sort(function (p, q) {
+      return (familyOrder[p.kind.family] || 0) - (familyOrder[q.kind.family] || 0) || p.index - q.index;
+    }).map(function (entry) { return entry.kind; }).forEach(function (kind) {
       stageView.layers.register({
         id: kind.id, label: kind.label, modes: ["galaxy"], forward: !!kind.interest && !kind.family,
         group: kind.family === "class" ? CLASS_GROUP : kind.family === "tech" ? TECH_GROUP : kind.interest ? POI_GROUP : "Markers",
