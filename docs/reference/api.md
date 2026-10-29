@@ -284,7 +284,14 @@ connectivity to that specific schema rather than the default one.
   pre-placed bright stars (`bright_star`) and scatter objects in the sphere
   that are not built yet, counted and never listed; the search never
   generates and never reads the sectors (NAV.60: it reads each table by its
-  cell key).
+  cell key). `nearest=K` (NAV.61) asks for the nearest K rows instead: the
+  search tries 2, 4, 8, 16 and 32 pc and stops at the first sphere that
+  holds K, so it is quick at the dense core too, and `distance` is optional
+  and caps how far it looks. A sphere that holds more than 100,000 systems
+  is refused (400) with the text that says to shrink the distance. The
+  answer carries `systems_in_range` (the systems in the sphere, counted no
+  further than 10,000) and `systems_in_range_capped` (`true` above that),
+  which the What's nearby page shows as "10,000+".
 - `GET /api/objects/<ref>` — one object by its reference (NAV.7), the one
   form every kind shares: `<kind>:<id>` with kind `sector`, `system`, `star`,
   `planet`, `moon`, `belt`, `comet`, `facility` (UX.183: its parents run down to the body it is built on, or to its

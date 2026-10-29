@@ -29,6 +29,13 @@ requested page are read afterwards.
 
 What has not been generated yet is counted, never listed and never filled: the pre-placed bright stars and the
 scatter objects (`bright_stars` and `phenomenon_scatter` rows whose system or object is not built).
+
+The dense core (NAV.61, design note section 6.5): a sphere's cost follows the rows inside it, and the core holds 15
+systems per cubic parsec, so a 50 pc sphere there holds millions. Before any row is read, `_rows_in_reach` counts what
+the sphere holds with an early stop (`region.capped_count`, 11 ms at most however full the sphere is). A sphere over
+`SPHERE_LIMIT` is refused with the text that says to shrink the distance; one over `COUNT_CAP` systems is reported as
+"`COUNT_CAP`+" in `systems_in_range`. `nearest` asks for the nearest K rows through a ladder of radii (`LADDER_PC`),
+stopping at the first sphere that holds K, so it is cheap wherever the place is.
 """
 
 import math
@@ -43,6 +50,16 @@ sectors at 4 pc a side)."""
 
 DEFAULT_LIMIT = 50
 MAX_LIMIT = 200
+
+SPHERE_LIMIT = 100_000
+"""int: The most systems (and unbuilt objects) a sphere may hold for a search to run. About 70 ms of scan on the design
+note's measurements; a larger sphere is refused (NAV.61, Core's call)."""
+
+COUNT_CAP = 10_000
+"""int: A count of the systems in a sphere is shown as `COUNT_CAP`+ above this (the early-stop count reads one past it)."""
+
+LADDER_PC = (2.0, 4.0, 8.0, 16.0, 32.0)
+"""tuple: The radii `nearest` tries, smallest first; the last rung is always the largest distance asked for."""
 
 FACILITY_KIND = "facility"
 
@@ -176,6 +193,22 @@ def _unbuilt(conn, center, distance):
     return counts
 
 
+def _rows_in_reach(conn, center, distance):
+    """
+    What the sphere holds, counted with an early stop: `(systems, unbuilt)`, each no more than `SPHERE_LIMIT + 1` (a
+    count of `SPHERE_LIMIT + 1` means "more than the limit"). `unbuilt` is the bright stars and scatter objects not built.
+    """
+    cap = SPHERE_LIMIT + 1
+    systems = region.capped_count(conn, "star_systems", ("p.galaxy_x_pc", "p.galaxy_y_pc", "p.galaxy_z_pc"),
+                                  center, distance, cap)
+    position = ("p.position_x_mpc / 1000.0", "p.position_y_mpc / 1000.0", "p.position_z_mpc / 1000.0")
+    unbuilt = (region.capped_count(conn, "bright_stars", position, center, distance, cap,
+                                   where="p.star_system_id IS NULL")
+               + region.capped_count(conn, "phenomenon_scatter", position, center, distance, cap,
+                                     where="p.built_at IS NULL"))
+    return systems, unbuilt
+
+
 def _body_counts(conn, system_ids, wanted):
     """`{system_id: {kind: count}}` for the wanted body kinds."""
     tables = {"star": "stars", "planet": "planets", "moon": "moons", "belt": "asteroid_belts", "comet": "comets"}
@@ -298,6 +331,12 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
         raise NearError(f"limit is 1 to {MAX_LIMIT} and offset is 0 or more")
     center = place["point_pc"]
 
+    in_reach, unbuilt_in_reach = _rows_in_reach(conn, center, distance)
+    if max(in_reach, unbuilt_in_reach) > SPHERE_LIMIT:
+        raise NearError(
+            f"{distance:g} pc around {place['name']} holds more than {SPHERE_LIMIT:,} systems, too many to list; "
+            f"shrink the distance (a smaller sphere is much cheaper) or ask for the nearest few with nearest")
+
     systems = _systems_in_reach(conn, center, distance)
     self_system = place["id"] if place["kind"] == "system" else None
     body_wanted = wanted & set(BODY_KINDS)
@@ -377,4 +416,40 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
                   "point_pc": list(center)},
         "distance_pc": distance, "total": total, "by_kind": by_kind, "limit": limit, "offset": offset,
         "not_generated": unbuilt, "not_generated_total": sum(unbuilt.values()), "rows": rows,
+        "systems_in_range": min(in_reach, COUNT_CAP), "systems_in_range_capped": in_reach > COUNT_CAP,
     }
+
+
+def nearest(conn, place, count, kinds=None, max_distance_pc=MAX_DISTANCE_PC):
+    """
+    The nearest `count` rows to a place, found through a ladder of radii (NAV.61).
+
+    Asks for `LADDER_PC` in turn (only the rungs under `max_distance_pc`, then `max_distance_pc` itself) and stops at the
+    first sphere that holds `count` rows, so the cost follows the neighbourhood and not the distance to the next
+    sparse star: at the core 200 systems lie within a few parsecs, at the Sun within about 8. Everything outside a
+    sphere is farther than everything inside it, so the rows of the first sphere that holds `count` are the nearest.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        place (dict): `place_from_reference` or `place_from_point`.
+        count (int): How many rows, 1 up to `MAX_LIMIT`.
+        kinds (iterable, optional): Only these `SEARCH_KINDS`; all by default.
+        max_distance_pc (float): Do not look farther than this, up to `MAX_DISTANCE_PC`.
+
+    Returns:
+        dict: The result of `objects_within` for the sphere that answered, with at most `count` rows; its `distance_pc`
+        is the rung that answered, and `total` may be below `count` when even the last rung holds fewer.
+
+    Raises:
+        NearError: For a count, distance or kind that cannot be used, or a rung the dense-core guard refuses.
+    """
+    count = int(count)
+    if count < 1 or count > MAX_LIMIT:
+        raise NearError(f"the number of nearest rows is 1 to {MAX_LIMIT}")
+    farthest = _check_distance(max_distance_pc)
+    rungs = [rung for rung in LADDER_PC if rung < farthest] + [farthest]
+    for rung in rungs:
+        result = objects_within(conn, place, rung, kinds=kinds, limit=count)
+        if result["total"] >= count:
+            break
+    return result

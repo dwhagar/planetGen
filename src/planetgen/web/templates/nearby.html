@@ -79,6 +79,7 @@
   <h2 id="results-heading">Within {{ distance_text }} pc of {{ place_name }}</h2>
   {%- if counts %}
   <p class="badges">
+    {%- if systems_capped %}<span class="badge">{{ num(systems_in_range) }}+ star systems in range</span>{% endif %}
     {%- for entry in counts %}<span class="badge">{{ num(entry.count) }} {{ entry.label|lower }}</span>{% endfor %}
   </p>
   {%- endif %}

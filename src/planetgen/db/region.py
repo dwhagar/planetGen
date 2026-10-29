@@ -19,6 +19,9 @@ The runs are written into the statement as integers; the point and the radius as
 little loose (a billionth), and the caller measures the exact distance with `detmath`, so the answer does not depend on
 how MySQL rounds a sum.
 
+`capped_count` answers "how many, up to a cap?" from the same statement, stopped early (NAV.61): the count of a sphere holding a
+million rows costs about what the count of one holding the cap does.
+
 The `sectors` table is never read.
 """
 
@@ -105,3 +108,26 @@ def region_rows(conn, table, columns, position, center, radius, where="", where_
     """
     sql, runs = region_statement(table, columns, position, center, radius, where, runs)
     return conn.execute(sql, tuple(where_params) * (2 if runs else 1)).fetchall()
+
+
+def capped_count(conn, table, position, center, radius, cap, where="", where_params=()):
+    """
+    How many rows of `table` lie within `radius` of `center`, counting no further than `cap` (NAV.61).
+
+    The statement is `region_statement` stopped by `LIMIT cap` inside a `COUNT(*)`, so a sphere holding a million rows is
+    counted as fast as one holding `cap`: 11 ms at most on the design note's measurements. The SQL test is the loose one
+    (a billionth), so a row on the surface may count; a count is a guard and a label, not a list.
+
+    Args:
+        cap (int): The most to count, 1 or more.
+
+    Returns:
+        int: The count, at most `cap`; `cap` means "`cap` or more".
+    """
+    cap = int(cap)
+    if cap < 1:
+        raise RegionError("a count is capped at 1 or more")
+    sql, runs = region_statement(table, "1 AS one", position, center, radius, where)
+    row = conn.execute(f"SELECT COUNT(*) AS n FROM ({sql} LIMIT {cap}) AS counted",
+                       tuple(where_params) * (2 if runs else 1)).fetchone()
+    return int(row["n"])
