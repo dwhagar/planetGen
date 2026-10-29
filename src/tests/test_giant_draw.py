@@ -103,7 +103,7 @@ def test_the_same_seed_makes_the_same_giant():
 
 
 def test_jupiter_gets_helium_rain_and_a_hot_giant_does_not():
-    own = giant_draw.own_flux_w_m2(_giant("J", JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM))
+    own = giant_draw.own_flux_w_m2(_giant(JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM))
     cold = giant_draw.ONE_BAR_OVER_EFFECTIVE * giant_draw.effective_temperature_k(50.0, own)
     hot = giant_draw.ONE_BAR_OVER_EFFECTIVE * giant_draw.effective_temperature_k(5e5, own)
     assert 140.0 < cold < 185.0 and hot > 1000.0
@@ -119,7 +119,7 @@ SOLAR_SYSTEM_GIANTS = (("Jupiter", 317.8, 69911.0, 5.2, 166.0, 0.08), ("Uranus",
 @pytest.mark.parametrize("name, mass_earth, radius_km, distance_au, measured_k, tolerance", SOLAR_SYSTEM_GIANTS)
 def test_the_one_bar_temperature_of_the_solar_system_giants_is_near_the_measured_one(name, mass_earth, radius_km, distance_au,
                                                                                     measured_k, tolerance):
-    body = _giant("J", mass_earth * constants.EARTH_MASS_TO_KG, distance=distance_au, radius=radius_km)
+    body = _giant(mass_earth * constants.EARTH_MASS_TO_KG, distance=distance_au, radius=radius_km)
     flux = body.star.luminosity / (4 * 3.141592653589793 * (distance_au * constants.AU_TO_KM) ** 2) / 1e6
     one_bar = giant_draw.ONE_BAR_OVER_EFFECTIVE * giant_draw.effective_temperature_k(flux, giant_draw.own_flux_w_m2(body))
     assert one_bar == pytest.approx(measured_k, rel=tolerance), name
@@ -132,8 +132,8 @@ def test_a_giant_without_its_own_heat_is_far_colder_at_one_bar():
 
 
 def test_a_giants_own_heat_fades_with_age_and_grows_with_mass():
-    young = giant_draw.own_flux_w_m2(_giant("J", JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM, star=_star(age=1.0)))
-    old = giant_draw.own_flux_w_m2(_giant("J", JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM, star=_star(age=9.0)))
-    light = giant_draw.own_flux_w_m2(_giant("J", 0.3 * JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM))
+    young = giant_draw.own_flux_w_m2(_giant(JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM, star=_star(age=1.0)))
+    old = giant_draw.own_flux_w_m2(_giant(JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM, star=_star(age=9.0)))
+    light = giant_draw.own_flux_w_m2(_giant(0.3 * JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM))
     assert young > old
-    assert giant_draw.own_flux_w_m2(_giant("J", JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM)) > light
+    assert giant_draw.own_flux_w_m2(_giant(JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM)) > light
