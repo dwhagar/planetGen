@@ -1997,7 +1997,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.339 | Black holes: 237 of 240 drawn at a 10 pc zoom are far from the view; show them by a near-field rule (bug) | none | done, PR #3636 |
 | MAP.340 | Black hole crowd badges: crowded black hole marks merge into one mark with a count badge and a click list (bug) | none | done, PR #3640 |
 | MAP.341 | Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug) | none | done, PR #3652 |
-| MAP.342 | Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority) | none | open |
+| MAP.342 | Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority) | none | dropped (measured by Core 3, 2026-10-29: saves under 15 KB gzipped once per view) |
 | MAP.343 | Sector Map and System Map signs for the reasons to look (life, sentient life, civilization) and the chosen-class markers: body-level markers know only inhabited, gas giant, habitable, uninhabitable and belt | none | done, PR #3576 |
 | MAP.344 | The civilization marker gains a technology band: filter and mark worlds by the technology level of their species | none | open |
 | MAP.345 | Map and search filters: a world filter for 'supports Class N' and 'has Class N' with a minimum score, from the life_class_scores index | none | open |
@@ -2240,7 +2240,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.95 | Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count | none | done, PR #1506 |
 | PERF.96 | Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library | none | done, PR #1553 |
 | PERF.97 | Work queue step 3: the mass scatter end to end on the new queue | none | done, PR #1999 |
-| PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | none | open |
+| PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | none | done, PR #3654 |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | none | done, PR #3030 |
 | PERF.100 | Work queue step 6: delete the old machinery and the work_* tables (Alembic migration) | none | open |
 | PERF.101 | No progress is shown while the phenomena indexes are built, and a phase with no updates shows no time remaining (bug) | none | done, PR #1620 |

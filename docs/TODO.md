@@ -2425,19 +2425,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.342 Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority)**
-  Found by the research thread (report
-  /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
-  section 6; Boss answered 6:22 PM EDT 2026-10-28: density default 1.2,
-  one mark per 120 by 120 px, as a user preference; rare heavy holes
-  2.2, no landmark exemption). Boss live observation, so a bug. Owner:
-  Core 2. Optional: the node payload for big nodes (over 27 sectors)
-  stops listing every stellar black hole, so the client does not receive
-  holes the near-field rule will drop anyway. Do it only after MAP.339
-  shows it saves real bytes. Owner: Core 2 when dry.
-  Prerequisites: MAP.339. Related: MAP.339, MAP.340.
-  Owner: Core 3 (lock-free item while it waits for the generation lock, 1:55 AM EDT 2026-10-29; MAP.341 merged as #3652; optional: measure first and do it only if it saves real bytes; this replaces any earlier owner line on this item). Separate branch.
-
 - [ ] **MAP.344 The civilization marker gains a technology band: filter and mark worlds by the technology level of their species**
   Left out of MAP.311 (needs species tech_level, which is not stored on
   the map side): store or derive the technology band per civilization
@@ -13829,66 +13816,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the wrapper), PERF.106 to PERF.108 (the stages as commands) and
   PERF.119 (every start path).
 
-- [ ] **PERF.98 Work queue step 4: the remaining stages and the sector and backfill units on the new queue**
-  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
-  docs/design/operations/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
-  the only place a run lives; each scatter its own queue item run in
-  order; counters plus an event stream for progress; cancel in about 0.5
-  s; the MySQL job tree retired); Redis required for every run including
-  one worker; workers on demand with an idle timeout and no always-on
-  service; one Redis instance; no Redis password while it binds
-  loopback; stage timing into the existing MySQL stage tables from the
-  completing unit; the event stream is the live log, written to the jobs
-  directory at run end with the last 20 kept. Each step leaves main
-  working, one PR, Foundations lane 1. Section 5.1 and 5.11 step 4. Move
-  every other stage (skeleton, phenomena, luminosity, sectors, link,
-  backfill, population, settle) and the sector and backfill units onto
-  run records, units and barriers; one-shot stages are one unit. Stage
-  timing goes into generation_stage_runs and generation_stats from the
-  unit that completes the stage; a hard-killed worker is seen at once by
-  the work-horse-killed handler, and every job gets a real job_timeout.
-  Done when: every generation command runs on the new queue and the old
-  executor is unused.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: PERF.106, PERF.107, PERF.108. Step 4 moves
-  eight stages, the sector units and the backfill units onto the new
-  queue, plus stage timing, the killed-worker handler and job timeouts:
-  it touches generation/run_plan.py (1,594 lines), run_galaxy.py
-  (1,664), run_sector.py (884) and bright_stars.py, and every later
-  queue item (PERF.99, PERF.100, GEN.231, DB.29's gate) waits for all of
-  it.
-  Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the old Core queue runs
-  after the new top 5 work, routed by area): PERF.97 right after the 8.1
-  phase 1 top 5, PERF.98 to PERF.100 after the infinite zoom tree.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
-  registered with the wrapper of PERF.118, and the wrapper builds the
-  command list, each command is one queue item; the stages are not wired
-  in any other way. PERF.118 (the wrapper) comes first and PERF.119
-  (every start path uses it) comes after this umbrella.
-  Subitems merged (Core 5, 9:08 AM EDT 2026-10-21 as the lane reported):
-  PERF.107 (#2305, release 8.0.1846) and PERF.108 (#2305, release
-  8.0.1847) join PERF.106 (slices 1 to 5, #2259 to #2278), so every
-  subitem named above is done. This umbrella stays open until Core 5
-  confirms that the old executor is unused (its "done when" line); the
-  TODO thread asked at 9:15 AM EDT.
-  Core 5's answer (9:23 AM EDT 2026-10-21 as the lane reported): PERF.98
-  is NOT done although every subitem is merged. The stages are commands,
-  but the old executor is still used on main: `planetgen sector` still
-  builds a WorkQueue (generation/run_sector.py:993 via
-  run_common._work_queue), about 12 `workQueue.job_node(...)` wrappers
-  still write the MySQL job tree (plan, scatter, population, fills), and
-  the Queue page and API still read that tree. Those end with PERF.119
-  (sector and system through the wrapper), PERF.121 and PERF.122 (the
-  job_node wrappers go away or move to the run record), PERF.99 (pages
-  read Redis) and PERF.100 (delete queue/work.py and the work_* tables).
-  PERF.98 stays open until PERF.100 lands.
-  Prerequisites: none. Related: PERF.86.
-  Owner: Aux 2 (lock-free item while it waits for the generation lock, 12:04 AM EDT 2026-10-29 as the lane reported; this replaces any earlier owner line on this item). Separate branch; if a step changes generated output, park that step for the lock.
-
 - [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/operations/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
@@ -13937,6 +13864,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stops update.sh and migrate while any job is active unless --yes is
   passed (--yes replaced --cancel-running, no shim).
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
+  Owner: Aux 2 (lock-free item while it waits for the generation lock, 1:58 AM EDT 2026-10-29; PERF.98 merged as #3654 and DB.29 as #3645, so the old tree code in work.py and the work_* tables have no writer; delete WorkRunSource in updateguard.py with them; this replaces any earlier owner line on this item). Separate branch; check main for the next free migration number; no epoch, no golden.
 
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
   Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
