@@ -10,7 +10,7 @@ import pytest
 from planetgen import tuning
 from planetgen.physics import equipment
 from planetgen.physics.habitability import World
-from planetgen.physics.protection_limits import RADIATION_STEPS
+from planetgen.physics.protection_limits import PPM_KPA, RADIATION_STEPS, TOXIC
 
 AIR = {"O2": 0.21}
 
@@ -71,6 +71,53 @@ def test_a_pressure_below_the_suit_limit_needs_a_pressure_suit_and_a_thin_air_on
 def test_a_toxic_gas_past_its_idlh_asks_for_its_own_air():
     assert _code(gases={"CO": 0.05, "O2": 0.2}, pressure=100.0, temperature=5.0) == "S2"
     assert _code(gases={"H2S": 0.0003, "SO2": 0.0005, "O2": 0.21}, pressure=100.0) == "S2"
+
+
+NIOSH_IDLH_PPM = {"CO": 1200, "H2S": 100, "SO2": 100, "NH3": 300, "HF": 30, "HCl": 45, "Cl2": 10, "NO2": 13, "HCN": 50, "O3": 5}
+"""The IDLH of each toxic row as the NIOSH Pocket Guide prints it (cdc.gov/niosh/npg, opened for GEN.657), HCl from NIOSH
+2025-110 and NO2 from NIOSH 2017-202, the newest documents."""
+
+
+def _levels_with(gas, partial_kpa):
+    return equipment.compute(_world(pressure=100.0, gases={"O2": 0.21, gas: partial_kpa / 100.0}))
+
+
+def test_every_toxic_row_cites_the_niosh_pocket_guide_and_its_idlh_is_the_published_one():
+    assert set(TOXIC) == set(NIOSH_IDLH_PPM)
+    for gas, row in TOXIC.items():
+        assert "NIOSH" in row.source and "recalled" not in row.source.lower(), gas
+        assert row.idlh_kpa == pytest.approx(NIOSH_IDLH_PPM[gas] * PPM_KPA, rel=0.03), gas
+        assert 0 < row.chronic_kpa < row.idlh_kpa, gas
+
+
+@pytest.mark.parametrize("gas", sorted(TOXIC))
+def test_the_gas_filter_grade_follows_the_gas_and_never_reaches_into_idlh(gas):
+    row = TOXIC[gas]
+    for ratio in (0.5, 3.0, 20.0, 200.0, 2000.0):
+        partial = ratio * row.chronic_kpa
+        levels = _levels_with(gas, partial)
+        if partial > row.idlh_kpa or ratio > equipment.HAZARD_RATIOS[2]:
+            assert levels["eq_supply"] >= 2 and levels["eq_gas_filter"] == 0, (gas, ratio)
+        else:
+            expected = 0 if ratio <= 1 else 1 if ratio <= equipment.HAZARD_RATIOS[0] else 2 if ratio <= equipment.HAZARD_RATIOS[1] else 3
+            assert levels["eq_gas_filter"] == expected, (gas, ratio)
+            assert levels["eq_supply"] == 0, (gas, ratio)
+
+
+@pytest.mark.parametrize("gas", sorted(TOXIC))
+def test_a_corrosive_gas_past_its_idlh_asks_for_a_chemical_barrier_suit_and_the_others_do_not(gas):
+    row = TOXIC[gas]
+    levels = _levels_with(gas, 2.0 * row.idlh_kpa)
+    if row.skin:
+        assert levels["eq_body"] == 3 and "chemical-barrier suit" in equipment.required_names(levels), gas
+    else:
+        assert levels["eq_body"] == 0, gas
+    assert levels["eq_supply"] == 2, gas
+
+
+def test_a_world_with_every_toxic_gas_under_its_limit_needs_no_filter():
+    gases = {"O2": 0.21, **{gas: 0.5 * row.chronic_kpa / 100.0 for gas, row in TOXIC.items()}}
+    assert equipment.compute(_world(pressure=100.0, gases=gases))["eq_gas_filter"] == 0
 
 
 def test_gravity_asks_for_a_frame_and_then_a_vehicle():
