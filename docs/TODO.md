@@ -13713,6 +13713,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bug 1.
   Prerequisites: none. Related: GEN.778, GEN.784, GEN.835, TEST.405.
 
+- [ ] **GEN.857 Biogenic gases for non-oxygenic worlds: methane and haze from anoxygenic and chemoautotroph communities, donor drawdown, and registry entries for each stand-in**
+  Follow-up to GEN.855 (biogenic oxygen) and GEN.750 (life timeline),
+  requested through the coordinator at 8:27 PM EDT 2026-10-28. Research:
+  /mnt/project-files/reports/non-oxygen-life-byproducts-2026-10-28.md
+  (research thread; its numbers came from summarised fetches, so
+  spot-check every number against the paper before it becomes a hard
+  value or a test bound). Findings to build on: retinal (proton pumping)
+  and melanin radiotrophy make no gas and have no verified atmospheric
+  effect; anoxygenic porphyrins (bacteriochlorophylls) make zero O2 but
+  draw down their electron donors (H2, Fe2+, H2S), store the oxidised
+  donor as iron oxyhydroxide, sulfur or sulfate, and the community built
+  on them is the main source of methane in an anoxic world, with an
+  organic haze once CH4/CO2 reaches about 0.1 to 0.2; the supply of
+  donors caps anoxygenic fixation at about 1e-4 to 1e-2 of the modern
+  biosphere. Also from the report: the retinal gate share_o2 < 0.1 in
+  tuning.LIFE_CHEMICALS is a design choice, not chemistry, and a retinal
+  biosphere needs a primary-production base because retinal alone fixes
+  no carbon. Do: after GEN.855 and GEN.750 merge, add a biogenic-gas
+  step for worlds whose life is not oxygenic: methane output tied to the
+  donor supply and the life timeline, donor drawdown, the haze
+  threshold, and the retinal gate and carbon base question settled with
+  Boss if it changes which worlds can draw retinal. Every stand-in
+  records its source tier and tweak level in the registry (GEN.725);
+  Boss accepts pragmatic physics if stated and justified. It changes
+  generated output, so it takes an epoch and a lock turn. Done: a seeded
+  fill of anoxygenic worlds carries methane and, past the threshold,
+  haze, oxygen-free worlds of retinal or melanin life carry no gas of
+  their own, each value has a registry row with a source, and the class
+  census (TEST.430) ranges are updated. Owner: Core 1, later.
+  Prerequisites: GEN.855, GEN.750. Related: GEN.855, GEN.750, GEN.725,
+  GEN.851, TEST.430.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
