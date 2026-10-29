@@ -13696,6 +13696,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (with GEN.750).
   Prerequisites: none. Related: GEN.750, GEN.853, GEN.854, GEN.646,
   GEN.411, GEN.422, GEN.725.
+  Research (2026-10-09): Atmosphere of evolution chain approved by Boss,
+  8:32 PM EDT 2026-10-28: GEN.858 stage-aware air, GEN.857, GEN.859,
+  GEN.860, GEN.861 follow in the same chain (Core 1). Core 1 may bundle
+  any of them into the GEN.855 epoch if it is nearly free, and says so
+  to TODO; otherwise each takes its own lock turn right after GEN.855.
 
 - [ ] **GEN.856 interior_heat._flux_w_m2 raises ZeroDivisionError and fails the albedo and tidal migration tests on clean main (bug)**
   Reported by Aux 17 at its lock-turn gate for GEN.822 (about 7:56 PM
@@ -13744,6 +13749,115 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   census (TEST.430) ranges are updated. Owner: Core 1, later.
   Prerequisites: GEN.855, GEN.750. Related: GEN.855, GEN.750, GEN.725,
   GEN.851, TEST.430.
+  Research (2026-10-09): Part of the atmosphere of evolution chain
+  approved by Boss, 8:32 PM EDT 2026-10-28 (GEN.858, GEN.859, GEN.860,
+  GEN.861 with it); in the lock queue right after GEN.855.
+
+- [ ] **GEN.858 Stage-aware air: the atmosphere follows the world's life stage from the timeline (pre-life, microbial anoxic, oxygenation, ozone shield and its UV effect on the surface), so every planet carries the air its life type and stage would make**
+  Boss, 8:32 PM EDT 2026-10-28 (relayed by the coordinator): "make the
+  atmosphere generating code account for the atmosphere of evolution so
+  that every planet has an accurate atmosphere to what would be on it
+  with the kind of and stage of life". Chain owned by Core 1 after
+  GEN.855 (biogenic oxygen) and GEN.750 (life timeline): GEN.858
+  stage-aware air, GEN.857 non-oxygenic gases and haze, GEN.859 the
+  CO2/CH4 cap without O2, GEN.860 melanin weighting, GEN.861 the
+  chemoautotroph carbon base. Research:
+  /mnt/project-files/reports/non-oxygen-life-byproducts-2026-10-28.md
+  (numbers came from summarised fetches; spot-check before hard-coding).
+  Every stand-in records its source tier and tweak level in the registry
+  (GEN.725); Boss accepts pragmatic physics if stated and justified.
+  Each changes generated output, so it takes an epoch and a lock turn
+  unless Core 1 bundles it into the GEN.855 epoch (Core 1's call, say so
+  to TODO). Do: the air solved for a world depends on where its life
+  timeline stands at the world's age: before life, with life but anoxic
+  (methane and CO2 regime), during oxygenation (sinks still absorbing
+  O2), and after the ozone shield forms (the shield's UV effect on the
+  surface dose included); ozone, dose and colour follow the air as they
+  do after GEN.855. Done: on a seeded fill the four stages give four
+  distinct, stated airs, a world whose timeline has not reached a stage
+  never shows that stage's gas, and the class census (TEST.430) ranges
+  are updated.
+  Prerequisites: GEN.855, GEN.750. Related: GEN.855, GEN.750, GEN.857,
+  GEN.859, GEN.860, GEN.861, GEN.725.
+
+- [ ] **GEN.859 Microbial worlds without O2 keep a capped CO2 and CH4 air: the limit on how much CO2 and CH4 anoxic microbial life leaves in the air**
+  Boss, 8:32 PM EDT 2026-10-28 (relayed by the coordinator): "make the
+  atmosphere generating code account for the atmosphere of evolution so
+  that every planet has an accurate atmosphere to what would be on it
+  with the kind of and stage of life". Chain owned by Core 1 after
+  GEN.855 (biogenic oxygen) and GEN.750 (life timeline): GEN.858
+  stage-aware air, GEN.857 non-oxygenic gases and haze, GEN.859 the
+  CO2/CH4 cap without O2, GEN.860 melanin weighting, GEN.861 the
+  chemoautotroph carbon base. Research:
+  /mnt/project-files/reports/non-oxygen-life-byproducts-2026-10-28.md
+  (numbers came from summarised fetches; spot-check before hard-coding).
+  Every stand-in records its source tier and tweak level in the registry
+  (GEN.725); Boss accepts pragmatic physics if stated and justified.
+  Each changes generated output, so it takes an epoch and a lock turn
+  unless Core 1 bundles it into the GEN.855 epoch (Core 1's call, say so
+  to TODO). Do: set the cap on CO2 and CH4 for worlds whose life is
+  microbial and anoxic, from the methane flux and sink literature in the
+  report (Kharecha, Kasting and Siefert 2005 give about 100 ppmv up to
+  about 3.5 percent CH4 depending on the sinks; spot-check), tied to
+  GEN.858's anoxic stage and GEN.857's methane output. Done: no anoxic
+  microbial world exceeds the cap, the cap is a registry row with
+  source, tier and tweak level, and a test covers a world at and above
+  the cap.
+  Prerequisites: GEN.855, GEN.750. Related: GEN.857, GEN.858, GEN.860,
+  GEN.725.
+
+- [ ] **GEN.860 Melanin radiotrophs weighted by radiation dose: the star weight times a dose factor from 0.1 at Earth dose to 1.0 at about 1,000 times Earth dose**
+  Boss, 8:32 PM EDT 2026-10-28 (relayed by the coordinator): "make the
+  atmosphere generating code account for the atmosphere of evolution so
+  that every planet has an accurate atmosphere to what would be on it
+  with the kind of and stage of life". Chain owned by Core 1 after
+  GEN.855 (biogenic oxygen) and GEN.750 (life timeline): GEN.858
+  stage-aware air, GEN.857 non-oxygenic gases and haze, GEN.859 the
+  CO2/CH4 cap without O2, GEN.860 melanin weighting, GEN.861 the
+  chemoautotroph carbon base. Research:
+  /mnt/project-files/reports/non-oxygen-life-byproducts-2026-10-28.md
+  (numbers came from summarised fetches; spot-check before hard-coding).
+  Every stand-in records its source tier and tweak level in the registry
+  (GEN.725); Boss accepts pragmatic physics if stated and justified.
+  Each changes generated output, so it takes an epoch and a lock turn
+  unless Core 1 bundles it into the GEN.855 epoch (Core 1's call, say so
+  to TODO). Do: melanin (radiotrophic) life chemistries are drawn with
+  weight = the star weight times a dose factor that rises from 0.1 at
+  Earth's surface dose to 1.0 at about 1,000 times that dose; melanin
+  gives no air output (report section 5: no verified atmospheric
+  effect), so this only changes which worlds draw it. Done: on a seeded
+  fill the share of melanin worlds rises with dose as stated, the factor
+  is a registry row with source, tier and tweak level, and a test covers
+  the two end points.
+  Prerequisites: GEN.855, GEN.750. Related: GEN.857, GEN.858, GEN.725.
+
+- [ ] **GEN.861 Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need**
+  Boss, 8:32 PM EDT 2026-10-28 (relayed by the coordinator): "make the
+  atmosphere generating code account for the atmosphere of evolution so
+  that every planet has an accurate atmosphere to what would be on it
+  with the kind of and stage of life". Chain owned by Core 1 after
+  GEN.855 (biogenic oxygen) and GEN.750 (life timeline): GEN.858
+  stage-aware air, GEN.857 non-oxygenic gases and haze, GEN.859 the
+  CO2/CH4 cap without O2, GEN.860 melanin weighting, GEN.861 the
+  chemoautotroph carbon base. Research:
+  /mnt/project-files/reports/non-oxygen-life-byproducts-2026-10-28.md
+  (numbers came from summarised fetches; spot-check before hard-coding).
+  Every stand-in records its source tier and tweak level in the registry
+  (GEN.725); Boss accepts pragmatic physics if stated and justified.
+  Each changes generated output, so it takes an epoch and a lock turn
+  unless Core 1 bundles it into the GEN.855 epoch (Core 1's call, say so
+  to TODO). Retinal and melanin chemistries fix no carbon (report
+  sections 3 and 5), so a biosphere that uses them needs a carbon-fixing
+  base or it cannot support itself. Do: give such worlds a
+  chemoautotroph base (hydrogen, iron or sulfur donors, or radiolytic
+  hydrogen in the case of melanin worlds) with its own gate and weight,
+  and settle with Boss whether the retinal gate share_o2 < 0.1 stays
+  (the report shows it is a design choice: retinal works in oxygenated
+  water). Done: no retinal or melanin world exists without a stated
+  carbon source, each gate and weight is a registry row with source,
+  tier and tweak level, and a test covers a world with the base removed.
+  Prerequisites: GEN.855, GEN.750. Related: GEN.857, GEN.858, GEN.859,
+  GEN.860, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
