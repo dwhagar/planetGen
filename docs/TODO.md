@@ -18003,36 +18003,6 @@ clears each one.
   so the fix should land with or after it. Owner: Bug Hunt.
   Prerequisites: none. Related: UX.180, TEST.317.
 
-- [ ] **TEST.328 Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists**
-  Finding of lane B at 2:52 AM EDT 2026-10-24 (as the lane reported):
-  test_migration_habitable_worlds, test_migration_snow_line and
-  test_db_schema_version_detect downgrade the schema by hand, so each
-  lane that adds a migration must add an undo step to all three or they
-  fail on main (this was TEST.325). Do: one shared helper that
-  downgrades to a revision through Alembic's own downgrade (or drops the
-  columns a migration added from its own list), used by the three tests.
-  DB.97 and DB.98 (regression-test cleanup lane) delete or replace some
-  of these tests; do this after DB.98 and only for what is left. Done:
-  adding a migration needs no edit to those tests. Owner: none (pool);
-  the regression-test cleanup lane proposed, after DB.98.
-  Research (2026-10-09, Update): Update 4:18 AM EDT 2026-10-24 (as the
-  regression test lane reported on DB.97, #2905):
-  store.detect_schema_version and _VERSION_MARKERS are gone, so a
-  migration test that rewinds a database must record the rewound version
-  itself (DELETE FROM schema_migrations, then INSERT the version). The
-  shared helper of this item should do exactly that.
-  Research (2026-10-09, Update): Regression-test cleanup lane (6:33 AM
-  EDT 2026-10-24, as the lane reported): DB.98 merged (#2931):
-  BASELINE_VERSION is 130; revisions below 0130 and the old-schema
-  fixtures v61 to v129 are deleted; a migration PR adds only the
-  previous version's fixture (schema_v144 was missing on main and was
-  added). The shared downgrade helper of this item works within that
-  baseline.
-  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Bug 1 takes it after TEST.393 and
-  TEST.394.
-  Prerequisites: none. Related: DB.98.
-
 - [ ] **TEST.331 test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug)**
   Found by the detail pages lane at 5:54 AM EDT 2026-10-24 (as the lane
   reported), checked in a clean worktree on untouched origin/main: the
@@ -18423,6 +18393,11 @@ clears each one.
   in a full-file run and under -n 4. Owner: Bug 1 or a free lane after
   TEST.405/406/398/402. Rules: never skip or quarantine a test;
   scripts/test.py changed --resume.
+  Research (2026-10-09): Update (Bug 1, about 9:40 AM EDT 2026-10-29 as
+  the lane reported): the three flaky map tests (indexeddb revisit and
+  two sector_reach double-click flights) did not reproduce in two long
+  runs. Kept open until it recurs; if it has not recurred when Bug 1
+  finishes its queue, Bug 1 retires it.
   Prerequisites: none. Related: TEST.394, TEST.383.
 
 - [ ] **TEST.412 src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug)**
@@ -18466,43 +18441,6 @@ clears each one.
   Owner: Bug 1 after DB.108/GEN.826. Rules: never skip or loosen a test
   to get green; keep the property each test checks. Related: TEST.408.
   Prerequisites: none. Related: TEST.408, TEST.410.
-
-- [ ] **TEST.418 Seven map browser tests are red on clean main (bug)**
-  Found by Core 4 (as the lane reported 11:19 AM EDT 2026-10-28, report
-  core4-map320-report-2026-10-28.md) in a clean worktree at origin/main.
-  In test_web_browser_fixture_maps.py:
-  test_sector_page_map_keeps_to_its_sector,
-  test_wheel_zoom_turns_about_the_centre_and_a_shift_click_chooses_it,
-  test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box,
-  test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked,
-  test_sector_map_click_on_the_selected_nebula_clears_it,
-  test_one_wheel_scroll_runs_from_the_galaxy_to_a_sector_with_no_stop_and_no_swoop;
-  and
-  test_web_browser_maps.py::test_system_map_selection_drill_and_measure
-  (the Nav button and the info panel intercept the click). Do: find
-  which change broke each (the nav pad, MAP.297 or the info panel are
-  the likely ones), fix the code or the test's click target so each
-  still checks its property, and also look at
-  test_web_a11y.py::test_page_is_accessible_and_fits[web.object_page-*],
-  which failed once in a long run with link-in-text-block on the planet
-  page and passes alone (order-dependent). Done: the seven tests pass on
-  main and the a11y test passes in a combined run. Owner: Bug 1 after
-  DB.108/GEN.826, or Core 2 for the ones in the Galaxy Map click paths.
-  Rules: never skip or loosen a test to get green; keep the property
-  each test checks.
-  Progress (2026-10-09): Aux 10 (MAP.327, #3422, 11:48 AM EDT 2026-10-28
-  as the lane reported) fixed four sector-click tests that its wall
-  icons affected; recheck which of the seven still fail on current main
-  before starting.
-  Research (2026-10-09): Update (Bug 1, #3690, about 8:55 AM EDT
-  2026-10-29 as the lane reported): a REAL regression found and fixed:
-  the planet page redesign UX.215 dropped the moon system map link
-  MAP.308; restored. The 4 object-page axe link-in-text-block reds are
-  fixed by underlining the summary and 'Part of' links; the Menu filter
-  test and the open-menu overlap audit are fixed for the 70-toggle Menu.
-  All but one test of this item are closed; Bug 1 names the remaining
-  test when it closes the item.
-  Prerequisites: none. Related: MAP.209, MAP.210, TEST.414.
 
 - [ ] **TEST.427 Three column registry tests are red on main: aerosol_draw has no unit, tidal_flux_w_m2 is written but listed as NULL, host_eccentricity is not serializable (bug)**
   Found by Lane K (Aux 7) at 5:40 PM EDT 2026-10-28 as the lane
@@ -18656,6 +18594,16 @@ clears each one.
   the map; if no, update the test to the new way to open a sector.
   Version 8.1. Owner: Core 2 (map and continuous zoom). Prerequisites:
   none. Related: MAP.335, MAP.333.
+  Research (2026-10-09): Update (Core 2, about 9:07 AM EDT 2026-10-29 as
+  the lane reported): yes, the wheel is meant to open a sector (the
+  wheel handler opens it once the sector's scene is whole). Reproduced
+  on a clean checkout of the MAP.335 merge commit: 2 of 4 runs fail; in
+  a failed run the sector scene never loads (galaxyAmbient() stays null
+  with the camera inside the sector), so it is intermittent, not a
+  changed rule. Core 2 takes it after MAP.336 lands. The arrow-keys test
+  flakes the same way on that commit; Core 2 made it wait for a still
+  picture inside MAP.336's PR. The last test of TEST.418 (now retired)
+  is this one.
   Prerequisites: none. Related: MAP.335, MAP.333.
 
 ## USR: User accounts
