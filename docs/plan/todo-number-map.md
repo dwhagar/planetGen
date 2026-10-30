@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.240 |
 | MAP | MAP.353 |
 | NAV | NAV.65 |
-| GEN | GEN.1060 |
+| GEN | GEN.1087 |
 | PERF | PERF.219 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.495 |
+| TEST | TEST.496 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -1810,6 +1810,33 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1057 | Wire conditional rings: a ring follows from moon decay or comet passage and a giant with neither has none, so Saturn-like broad rings are the tail (epoch, replaces the BC20 draw), plus ring age, R4 and R9 | none | open |
 | GEN.1058 | Wire the G1 giant-impact tilt and the ring plane following the equator | none | open |
 | GEN.1059 | The GEN.412 inversion of a stored giant row ignores the giant's own heat, so its stored albedo and greenhouse factor no longer reproduce its temperature from starlight alone (bug) | none | open |
+| GEN.1060 | Belt research read: open the nine sources of design section 8 (Bottke 2006, Wisdom 1980 and 1982, Moons and Morbidelli 1995, Walsh 2011, Raymond and Izidoro 2017, Stern and Levison 2002, Soter 2006, Margot 2015, Thomas 2010, Kenyon and Bromley 2008, Debes and Sigurdsson 2002, Zuckerman 2010, Koester 2014, Ida and Guillot 2016, Gladman and Volk 2021), one register row per number used | none | open |
+| GEN.1061 | physics/belt_ledger.py: the size-law top-end order statistic, the individual-object draw by the cut rule with mass conserved, and the Dc iteration with belt_mass | none | open |
+| GEN.1062 | physics/resonance_gaps.py: the resonance and chaotic-zone map from the giants' orbits and the size-dependent Yarkovsky cut | none | open |
+| GEN.1063 | physics/body_status.py: roundness mass by composition, Soter mu, Stern-Levison Lambda, Margot Pi, and the status words (planet, dwarf planet, minor body, moon), both words and numbers stored | none | open |
+| GEN.1064 | physics/belt_history.py: early-depletion survival, instability sweep, and the star events (engulf partly, mass-loss destabilise share, companion truncation, white dwarf pollution link) | none | open |
+| GEN.1065 | Belt member designation: a pure function designation(belt_id, rank) printing the belt ID plus the rank in hex (no name, no salad name, no codec name), and its round trip through parse_id | none | open |
+| GEN.1066 | Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table | none | open |
+| GEN.1067 | Per-member composition from the finished taxon kernel at the body's own a, differentiated bodies only if the 26Al ratio says so, density from the compaction taper | none | open |
+| GEN.1068 | Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py) | none | open |
+| GEN.1069 | Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words | none | open |
+| GEN.1070 | Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump | none | open |
+| GEN.1071 | Outer (Kuiper-type) disc built as a belt from the same chain, linked to the debris descriptor so the descriptor and the belt are one thing | none | open |
+| GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | none | open |
+| GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | none | open |
+| GEN.1074 | Captured asteroid moons: a giant near a belt captures bodies from it as irregular moons; research the capture mechanisms and rates, then plan the build | none | dropped (research done in the captured asteroid moons draft; the build items are GEN.1075 to GEN.1087) |
+| GEN.1075 | Captured moons read list and register rows: Nesvorny et al. 2003 and 2007, Hamilton and Burns 1991, Agnor and Hamilton 2006, Vokrouhlicky 2008, Bottke 2010, Sheppard and Jewitt 2003 and 2005, Nicholson 2008, Granvik 2012, Rosenblatt 2016 | none | open |
+| GEN.1076 | physics/irregular_zone.py: Hill radius, stable limits (prograde and retrograde), the inner edge from the outermost regular moon, the Kozai exclusion | none | open |
+| GEN.1077 | physics/irregular_population.py: capture windows, the cumulative count N0(>R), grinding, and the order-statistic draw into individual, on-demand and population tiers | none | open |
+| GEN.1078 | physics/irregular_orbits.py: a/r_H, e, i, survival and families (parent breakup with a velocity spread) | none | open |
+| GEN.1079 | Collisional-saturation check for the irregular zone: reuse belt_mass_earth and show the invariance across the four giants, or replace the guess with a fitted scalar per planet registered at L3 | none | open |
+| GEN.1080 | Composition of captured bodies from the reservoir (the GEN.473 taxon kernel at the source belt or disc) and a heterogeneous parent | none | open |
+| GEN.1081 | Captured-origin weight depends on moon mass: the ORIGIN_TABLE row `captured` becomes a function of mass so a 1e20 kg or heavier moon is rarely captured, as a pure helper | none | open |
+| GEN.1082 | The architecture records its capture windows (the instability event, the number of giant-giant close encounters, the gas-disc lifetime already kept in DiskSystem) as a field on the system | none | open |
+| GEN.1083 | Wire irregular moons into generate_moons as a second tier above the regular moons (MOON_MIN_MASS_KG left alone for the regular list) with the captured-origin weight | none | open |
+| GEN.1084 | Store the individual irregular moons and the new moon columns (migration, API version), and call the stability test for irregulars in drop_unstable_moons and in bring-to-epoch when a planet moves | none | open |
+| GEN.1085 | Belt ledger link: a captured member leaves its belt's mass total; until then captured bodies come from the outer-disc reservoir only | none | open |
+| GEN.1086 | System map and pages for irregular moons (eccentric, inclined, retrograde orbits on the moon-orbit view, a body page per irregular) and the clearance ledger taking the irregular zone as occupied space | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3472,6 +3499,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.492 | Census re-baseline for every oddity share and the prevalence suite rows (one pass after each of trains 12, 13 and 14) | none | open |
 | TEST.493 | Giant oddity audit: the super-Jupiter mass ceiling (G9), the hot Neptune desert survivors (G7, LTT 9779 b), and which G rows are derived outputs only (G2 to G6, G8, G10, G11); file bugs for any that are not | none | open |
 | TEST.494 | Ring invariants in the plausibility harness: ring mass under 1e-4 of the planet, ring inside the Roche limit unless R4 names its resonance, optical depth an output, no ring inside 0.1 AU, ring plane in the equator | none | open |
+| TEST.495 | Designation for captured bodies: the belt-member designation `<belt ID>.<rank hex>` is kept with a parent link, outside-reservoir bodies print `<planet ID>.<rank hex>`; both pure and round-trip through parse_id | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
