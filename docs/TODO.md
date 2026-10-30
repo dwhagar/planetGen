@@ -14285,6 +14285,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch, removes the xfail)
   Prerequisites: none. Related: GEN.873, GEN.894.
 
+- [ ] **GEN.1002 Registered table rows that rest on a Solar System body are flagged stand-in with a replacement item, or re-sourced**
+  Reported by Aux 3 (as the lane reported, 5:05 AM EDT 2026-10-30) when
+  merging TEST.215 (#3954): a new test scans every registered row's
+  source and limit for a Solar System body and requires it to be a
+  flagged stand-in with a replacement item, listed pending, or reviewed
+  as not resting on a body (reasons in
+  tests/data/solar_system_rows.json). These rows rest on a body and are
+  not flagged: atmosphere-k k7 (single comet 67P species), atmosphere-a
+  a1 and a2 (tuned to Moon, Mars and Earth anchors, GEN.482),
+  atmosphere-b b1 (dry carbon tuned to bulk silicate Earth, GEN.813),
+  surface-ground-types ultramafic, anorthositic, basaltic, felsic and
+  oxidised (Hu 2012 Earth and Moon crust library; GEN.474 rock_types
+  replaces them once wired). Do: for each row either flag it a stand-in
+  in GEN.725 with tier, tweak level and the replacement item, or
+  re-source it from a physics value; move the test's pending list down
+  as rows are done. Flagging changes table state, which is in the table
+  digest, so the change rides a merge train (renumbers migration/epoch
+  as the runbook says). Done: no row in the pending list of the Solar
+  System test; GEN.725 rows carry the replacement items. Related:
+  TEST.215, GEN.725, GEN.482, GEN.813, GEN.474. Owner: Aux 3 (proposed),
+  after GEN.474 wiring where a row waits on it.
+  Prerequisites: none. Related: TEST.215, GEN.725, GEN.482, GEN.813,
+  GEN.474.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -17507,44 +17531,6 @@ clears each one.
   planet, moon and star class, built as a census check on TEST.186's
   harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
   over it, not four builds.
-
-- [ ] **TEST.215 The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one**
-  Body composition research lane, section 14.4 of
-  docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
-  the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:43 AM EDT, Stand-in only), filed by the TODO thread. R5: the Earth,
-  Mars, Moon, Galilean-moon and Sirius B targets in the parts stay as
-  calibration, and measured Solar System shapes must never be a source
-  of a generator table (the standing no-fixed-content rule, and Boss's
-  ruling of 1:43 AM EDT). Do: move the calibration rows into the test
-  files with a `calibration_only` flag and assert that no table row of
-  the possibility-table loader (GEN.472) is sourced only from a measured
-  Solar System body, and that every `stand-in` row names a replacement
-  item. Done: the test passes on the tables the build has and fails when
-  a calibration row is read by a generator table. Owner: unowned
-  (research; Boss or a read-only research lane).
-  Prerequisites: TEST.211. Related: TEST.214, TEST.211,
-  GEN.472.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 8, "Flagged
-  stand-ins only": a measured Solar System shape may enter a generator
-  table only as a row flagged `stand-in` that names an existing
-  replacement item; unflagged Solar System sourced rows and the
-  calibration targets (Earth, Mars, Moon, Galilean moons, Sirius B) are
-  never a table source. TEST.215's assertion exempts rows flagged
-  `stand-in` with a replacement item and fails on any other Solar System
-  sourced row. GEN.520 D6 (the Solar System population as the
-  within-system comet shape) is kept as a flagged stand-in with the
-  replacement item GEN.595.
-  Owner (2026-10-30 5:00 AM EDT): Aux 3 takes this tests-only item while
-  its giant items wait on Core 4 (TODO, 5:00 AM EDT); this replaces the
-  earlier Core 4 owner line. It must change no table value: move the
-  calibration rows into test files with the calibration_only flag and
-  add the assertion; any row it would need to change in a generator
-  table is reported to TODO first
 
 - [ ] **TEST.219 Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster**
   Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
