@@ -30,7 +30,7 @@ def _heat(spin_days, distance_m=3.844e8, retrograde=False, moons=True):
     return interior_heat.heat_flow(_bulk_silicate_earth(), STIFF, EARTH, 6371.0, 4.5, ROCK, forcing)
 
 
-def _systems(seeds=range(6)):
+def _systems(seeds=range(16)):
     for seed in seeds:
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
@@ -116,7 +116,7 @@ def test_the_history_runs_again_to_the_same_state_without_new_draws():
 
 def test_a_moon_moves_with_its_planet_tide_and_keeps_its_orbit_plane():
     """An outward-drifting moon is farther than it was born, with its inclination and eccentricity unchanged and its position at its new distance."""
-    for system in _systems(range(6)):
+    for system in _systems(range(16)):
         for planet in system.planets:
             if planet.body_type == "a":
                 continue
