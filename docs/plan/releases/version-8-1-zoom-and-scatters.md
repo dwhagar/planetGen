@@ -526,11 +526,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 |---|---|---|---|
 | GEN.480 | Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1) |  | Atmosphere lane research need R1 (rows b4, e3, e4, e5); replaces the seeded bracket of the DESIGN rows. |
 | GEN.483 | Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4) |  | Atmosphere lane research need R4 (rows d6); replaces the seeded bracket of the DESIGN rows. |
-| GEN.484 | Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5) |  | Atmosphere lane research need R5 (rows f7); replaces the seeded bracket of the DESIGN rows. |
-| GEN.485 | Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6) |  | Atmosphere lane research need R6 (rows h2, h3, h4); replaces the seeded bracket of the DESIGN rows. |
-| GEN.486 | Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7) |  | Atmosphere lane research need R7 (rows i6); replaces the seeded bracket of the DESIGN rows. |
-| GEN.487 | Source the evolved and frost atmospheres: cold vapour pressures, the habitable-zone coefficients, the occurrence of Titan-, Pluto- and Venus-like bodies and the abiotic O2 frequency (AR8) |  | Atmosphere lane research need R8 (rows j1 to j5); replaces the seeded bracket of the DESIGN rows. |
-| GEN.488 | Source the comet coma classes and their volatile ratios (AR9) |  | Atmosphere lane research need R9 (rows k1 to k5, k7); replaces the seeded bracket of the DESIGN rows. |
 | GEN.489 | Source the white-dwarf and pulsar planet options (AR10) |  | Atmosphere lane research need R10 (rows a4, l1, l2, l3); replaces the seeded bracket of the DESIGN rows. |
 | GEN.490 | Source the trace-gas presence weights (AR11) |  | Atmosphere lane research need R11 (rows m2 to m6, m11); replaces the seeded bracket of the DESIGN rows. |
 | GEN.491 | Source the cloud and haze windows and yields (AR12) |  | Atmosphere lane research need R12 (rows n6, n7); replaces the seeded bracket of the DESIGN rows. |
@@ -712,9 +707,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |
 | GEN.839 | The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug) |  |  |
 | GEN.838 | A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling |  |  |
-| GEN.775 | Replace the planet-minus-star Fe/Mg scatter and super-Mercury tail (registry row BC8) with a larger sample of rocky planets with precise masses and stellar Fe/Mg |  |  |
-| GEN.776 | Replace the rogue-planet volatile loss at ejection (registry row BC11) with a measured atmosphere or free-floating-planet volatile survey |  | Aux 14, GEN.734: replacing item of a registry row; pool, after 8.1. |
-| GEN.777 | Replace the core light-element split (registry row BC18) with a second body that has seismic or core-density data |  | Aux 14, GEN.734: replacing item of a registry row; pool, after 8.1. |
 | GEN.794 | Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 rates or a computation from the Cheng 2006 cross section |  | Citations lane, GEN.793: pool, after 8.1. |
 | GEN.800 | Wire the stored magnetosphere and stellar activity outputs into escape, dose and habitability (G2) | GEN.804, GEN.805, GEN.806, GEN.807, GEN.808 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
 | GEN.804 | Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
@@ -733,6 +725,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.950 | Water share of solids by distance from Lodders 2003 Table 11 and its condensation temperatures, replacing the fixed 170 K snow line (low priority) |  |  |
 | GEN.990 | Raise the C, O and Si abundance scatter, now about half the Brewer and Fischer 2016 scatter (bug) |  |  |
 | GEN.991 | Raise generated [O/Fe] by 0.03 to 0.09 dex to the Brewer and Fischer 2016 table in every [Fe/H] bin |  |  |
+| GEN.993 | Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12 |  |  |
 | GEN.989 | Lower generated [Mg/Fe] by 0.05 to 0.07 dex for [Fe/H] above -0.2 to match Brewer and Fischer 2016 (bug) |  |  |
 | GEN.988 | Give Ca, S and Ar a star-to-star scatter like the other generated [X/Fe] abundances (bug) |  |  |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there |  | Under GEN.90. Same reconcile/zone code as phase 0's physics fixes. |

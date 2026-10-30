@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.239 |
 | MAP | MAP.352 |
 | NAV | NAV.65 |
-| GEN | GEN.993 |
+| GEN | GEN.994 |
 | PERF | PERF.209 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1234,11 +1234,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.481 | Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2) | none | done, PR #3220 |
 | GEN.482 | Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3) | none | done, PR #3220 |
 | GEN.483 | Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4) | none | open |
-| GEN.484 | Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5) | none | open |
-| GEN.485 | Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6) | none | open |
-| GEN.486 | Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7) | none | open |
-| GEN.487 | Source the evolved and frost atmospheres: cold vapour pressures, the habitable-zone coefficients, the occurrence of Titan-, Pluto- and Venus-like bodies and the abiotic O2 frequency (AR8) | none | open |
-| GEN.488 | Source the comet coma classes and their volatile ratios (AR9) | none | open |
+| GEN.484 | Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5) | none | done, PR #3840 |
+| GEN.485 | Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6) | none | done, PR #3840 |
+| GEN.486 | Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7) | none | done, PR #3840 |
+| GEN.487 | Source the evolved and frost atmospheres: cold vapour pressures, the habitable-zone coefficients, the occurrence of Titan-, Pluto- and Venus-like bodies and the abiotic O2 frequency (AR8) | none | done, PR #3848 |
+| GEN.488 | Source the comet coma classes and their volatile ratios (AR9) | none | done, PR #3840 |
 | GEN.489 | Source the white-dwarf and pulsar planet options (AR10) | none | open |
 | GEN.490 | Source the trace-gas presence weights (AR11) | none | open |
 | GEN.491 | Source the cloud and haze windows and yields (AR12) | none | open |
@@ -1525,9 +1525,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.772 | Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug) | none | done, PR #3478 |
 | GEN.773 | A temperature difference is never converted as a temperature: the day and night swing of 9.07 K shows as 9.07 K (or 9.07 C degrees), not -264 C (bug) | none | done, PR #3478 |
 | GEN.774 | Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows | none | open |
-| GEN.775 | Replace the planet-minus-star Fe/Mg scatter and super-Mercury tail (registry row BC8) with a larger sample of rocky planets with precise masses and stellar Fe/Mg | none | open |
-| GEN.776 | Replace the rogue-planet volatile loss at ejection (registry row BC11) with a measured atmosphere or free-floating-planet volatile survey | none | open |
-| GEN.777 | Replace the core light-element split (registry row BC18) with a second body that has seismic or core-density data | none | open |
+| GEN.775 | Replace the planet-minus-star Fe/Mg scatter and super-Mercury tail (registry row BC8) with a larger sample of rocky planets with precise masses and stellar Fe/Mg | none | done, PR #3846 |
+| GEN.776 | Replace the rogue-planet volatile loss at ejection (registry row BC11) with a measured atmosphere or free-floating-planet volatile survey | none | closed, no measurement of a rocky free-floating planet's volatiles exists (Sources 1 searched) |
+| GEN.777 | Replace the core light-element split (registry row BC18) with a second body that has seismic or core-density data | none | done, Mars check made; the wider core light-element range is filed as a wiring item |
 | GEN.778 | Fill tidal_flux_w_m2 for planets and moons: tidal heating flux at the surface from eccentricity, spin and the body's interior (never filled in the sample) | none | open |
 | GEN.779 | Fill induced_moment_a_m2: the induced magnetic dipole moment of conducting oceans and cores in a varying field (never filled; every planet empty) | none | done, PR #3796 |
 | GEN.780 | Fill porosity for rocky and icy bodies: the surface and crust porosity from composition and gravity (never filled) | none | open |
@@ -1743,6 +1743,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.990 | Raise the C, O and Si abundance scatter, now about half the Brewer and Fischer 2016 scatter (bug) | none | open |
 | GEN.991 | Raise generated [O/Fe] by 0.03 to 0.09 dex to the Brewer and Fischer 2016 table in every [Fe/H] bin | none | open |
 | GEN.992 | Re-finish every rocky planet and moon after the star's age is final, then re-judge the forced requests with the retry round | none | open |
+| GEN.993 | Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12 | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
