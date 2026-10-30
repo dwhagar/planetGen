@@ -204,6 +204,9 @@ class Torques:
         dissipation: `k2/Q` of the planet as a function of the tide's angular frequency (`constant_dissipation`, `rheology_dissipation`).
         thermal (ThermalTide, optional): The air's thermal tide.
         factor (float): `GRAVITATIONAL_TORQUE_FACTOR`.
+        softness (float): 0 for the sharp sign flip of a constant-Q torque at each raiser's orbital rate; above 0 the sign is replaced by
+            `tanh(sigma / (2 softness |n|))` (the regularisation of Auclair-Desrotour et al. 2017 equation 77, which uses 1e-2 of the orbital rate), for
+            integrations that cannot step across a jump (`moon_orbits`).
     """
 
     planet: Planet
@@ -211,6 +214,7 @@ class Torques:
     dissipation: object
     thermal: ThermalTide = None
     factor: float = GRAVITATIONAL_TORQUE_FACTOR
+    softness: float = 0.0
 
     def gravitational(self, spin, raiser):
         """The torque on the planet of one raiser's tide, N m (negative slows a prograde spin)."""
@@ -218,7 +222,10 @@ class Torques:
         if sigma == 0.0:
             return 0.0
         k_g = constants.G * raiser.mass_kg ** 2 * self.planet.radius_m ** 5 / raiser.distance_m ** 6
-        return -math.copysign(self.factor * k_g * self.dissipation(abs(sigma)), sigma)
+        sign = math.copysign(1.0, sigma)
+        if self.softness > 0.0:
+            sign = math.tanh(sigma / (2.0 * self.softness * max(abs(raiser.orbital_rate), 1.0e-30)))
+        return -sign * self.factor * k_g * self.dissipation(abs(sigma))
 
     def atmospheric(self, spin):
         """The thermal tide's torque, N m (positive for a prograde spin)."""

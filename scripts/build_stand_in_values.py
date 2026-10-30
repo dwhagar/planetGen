@@ -85,6 +85,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.24", "6.24 Stand-ins of the spin torques",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.25", "6.25 Stand-ins of the moon orbits",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.30", "6.30 Stand-ins of the dynamo field",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )

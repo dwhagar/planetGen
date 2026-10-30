@@ -219,3 +219,15 @@ def test_the_rheology_makes_the_torque_depend_on_the_tide_frequency():
     assert torques.total(n * 1.5) < 0.0 < torques.total(n * 0.5)
     result = spin_torques.evolve(torques, 3.0 * n, 10.0e9 * YEAR)
     assert math.isfinite(result.rate)
+
+
+def test_softness_smooths_the_sign_flip_and_leaves_the_far_torque_alone():
+    planet = spin_torques.Planet(EARTH_MASS, EARTH_RADIUS)
+    raiser = spin_torques.Raiser(MOON_MASS, MOON_A, spin_torques.orbital_rate(EARTH_MASS, MOON_A))
+    sharp = spin_torques.Torques(planet, (raiser,), spin_torques.constant_dissipation(0.3, 100.0), None, 1.5)
+    soft = spin_torques.Torques(planet, (raiser,), spin_torques.constant_dissipation(0.3, 100.0), None, 1.5, 0.01)
+    n = raiser.orbital_rate
+    assert soft.total(n) == 0.0
+    assert abs(soft.total(n * 1.0001)) < 0.1 * abs(sharp.total(n * 1.0001))
+    assert soft.total(n * 2.0) == pytest.approx(sharp.total(n * 2.0), rel=1.0e-6)
+    assert soft.total(n * 0.5) == pytest.approx(sharp.total(n * 0.5), rel=1.0e-6)

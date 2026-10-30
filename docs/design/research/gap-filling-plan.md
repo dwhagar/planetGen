@@ -941,6 +941,19 @@ The sum of the torques on a planet's spin: its star's tide, each moon's tide and
 | TQ6 | T | T6 | L0 | spin_torques.evolve (a one-dimensional flow; a resonance whose window holds the eccentricity captures for sure, a sign flip of the torque at a raiser's orbital rate or a smooth zero stops it; obliquity zero, circular torques) | none | a planet with one star and up to a few moons | test_spin_torques::test_one_star_with_constant_q_is_the_built_despinning | a spin-orbit integration with obliquity and eccentricity | the same simplifications as SP10 of 6.14 |
 <!-- spin-torques-standins:end -->
 
+### 6.25 Stand-ins of the moon orbits (GEN.958)
+
+The exchange of angular momentum between a planet's spin and its moons' orbits (`physics/moon_orbits.py`, a pure module until GEN.959 wires it into `planet.add_moons`, `rings` and the planet's heat). The torque is the one of 6.24; these are the choices the integration adds.
+
+<!-- moon-orbits-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| TM1 | T | T2 | L0 | moon_orbits.COROTATION_SOFTNESS 0.01 (the constant-Q torque's sign flip at a moon's orbital rate is smoothed over 1 percent of that rate so the integrator can cross it) | 0.001 to 0.05 | a moon near corotation with the planet | test_moon_orbit_evolution::test_angular_momentum_is_conserved_between_the_spin_and_the_orbit | the frequency-dependent rheology of 6.23, which has no jump | the tanh regularisation sigma_S = 1e-2 n of Auclair-Desrotour, Mathis and Laskar 2017 (arXiv:1709.10148) equation 77, read in full |
+| TM2 | P | T2 | L1 | moon_orbits.HILL_ESCAPE_FRACTION 0.4 (a moon pushed beyond this share of the planet's Hill radius is lost) | 0.3 to 0.5 | prograde moons | test_moon_orbit_evolution::test_a_moon_pushed_past_the_hill_sphere_escapes | an orbit-stability fit with eccentricity and the moon's mass | stable prograde orbits reach about half the Hill radius (Hamilton and Burns 1991; Domingos et al. 2006; recalled); the 0.4 is a little under |
+| TM3 | T | T6 | L0 | moon_orbits.evolve (a moon that reaches the fluid Roche limit becomes ring material and the planet takes the angular momentum it has there; none is kept in the ring) | none | a moon falling in | test_moon_orbit_evolution::test_a_moon_of_a_locked_planet_falls_into_a_ring_and_the_spin_takes_its_momentum | a ring that keeps part of the angular momentum and spreads (viscous spreading, Crida and Charnoz 2012) | angular momentum is conserved; the share the ring keeps is argued, not read |
+| TM4 | T | T6 | L0 | moon_orbits.evolve (moons act on the planet's spin and on their own orbit only; no moon-moon resonance or collision, orbits circular and coplanar) | none | up to a few moons | test_moon_orbit_evolution::test_several_moons_are_followed_together | an N-body or secular integration | the same simplifications as the built spin (SP10 of 6.14) |
+<!-- moon-orbits-standins:end -->
+
 ### 6.30 Stand-ins of the dynamo field (GEN.966)
 
 The dipole moment of a rocky core or a giant's metallic layer from the power that drives it and the spin (`physics/dynamo.py`): the buoyancy-flux scaling of Olson and Christensen (2006), the Rossby number that gates the dipole, and the share of a giant's heat that drives it. GEN.967 replaces the design defaults of `magnetism` with it.
