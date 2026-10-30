@@ -19886,6 +19886,12 @@ clears each one.
   species setup hit one random failure in the gas solver
   (gas_equilibrium np.diag) that passed alone: find the input that makes
   np.diag fail and fix it or file it. Not Core 5's.
+  Another red (Sources 2, as the lane reported 12:11 AM EDT) (2026-10-30
+  12:11 AM EDT):
+  test_object_rows::test_planets_moons_belts_and_comets_are_read_back
+  fails on main with KeyError score in the life_class loader (the
+  life-class fields were reshaped by API.37 #3871 or the earlier class
+  work); find the commit and fix it or hand it to its owner.
   Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
 
 - [ ] **TEST.464 Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug)**
