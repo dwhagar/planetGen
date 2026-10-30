@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2567] - 2026-10-30
+
+**Headline:** The skeleton, clear-scatter and clean-nebula-field commands now run as stages of the shared run, so they can share one run with other commands.
+
+### Changed
+- **Three one-step commands start their run through the shared stage list (PERF.202).** `planetgen plan` (the skeleton), `planetgen clear-scatter` and `planetgen clean-nebula-field` each used to start a one-step run of their own; they now follow a stage of the shared run like the other commands, so two of them can run in one run and keep their refusals, in order. The output is unchanged; a stopped run of these now also records the galaxy seed and build so `planetgen finish-run` can carry it on.
+
 ## [8.0.2566] - 2026-10-30
 
 **Headline:** The browser test that clicks a black hole, a neutron star and a quasar on the Galaxy Map finds each by its tooltip, so a wheel step that moves them a few pixels no longer sends its click elsewhere.
