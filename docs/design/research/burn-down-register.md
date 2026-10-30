@@ -141,7 +141,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.98:BW4 | no data | - | tuned to the Earth's mid-latitude surface wind; a boundary-layer drag law on the surface roughness replaces it when the surface roughness is stored |
 | 6.98:BW5 | no data | - | the Earth's night to day wind ratio is the only value held; a stable boundary-layer model replaces it |
 | 6.88:RG2 | replace | GEN.1119 | the ejection records (RP1) give the time of each loss after formation, so the drawn delay distribution is replaced by the architecture's own |
-| 6.87:RK1 | replace | GEN.1113 | the kick research reads the ejection speeds against perturber mass and orbit from the N-body papers and replaces the tuned energy step |
+| 6.87:RK7 | replace | GEN.1119 | the closest approach of each scattering is in the architecture's own ejection record, which replaces the line through three medians |
 | 6.112:MO2 | replace | GEN.1119 | the ejection record gives the real closest approach, so the curve through two printed points is not needed |
 | 6.86:TU1 | replace | GEN.1111 | the rogue research settles the per-star rate of free-floating planets and replaces the level ceilings |
 | 6.86:TU2 | no data | - | uniform placement is the neutral choice; the smoothed rogue field (GEN.1115) is the only thing that could change it |

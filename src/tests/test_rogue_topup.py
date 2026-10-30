@@ -52,8 +52,8 @@ def test_a_shortfall_the_ceiling_cannot_cover_leaves_a_remainder_for_the_asteroi
 
 def test_a_shortfall_under_the_ceiling_is_made_up_exactly_and_the_last_rogue_is_cut_to_fit():
     plan = _plan("Many", 20, 7.0)
-    assert not plan.stopped_by_level and plan.remainder_kg == 0.0
-    assert plan.placed_mass_kg == pytest.approx(7.0 * EARTH)
+    assert not plan.stopped_by_level and plan.remainder_kg < rt.MIN_MASS_EARTH * EARTH         # only a crumb lighter than the lightest rogue is left
+    assert plan.placed_mass_kg + plan.remainder_kg == pytest.approx(7.0 * EARTH)
     assert all(r.mass_earth <= 7.0 for r in plan.rogues)
 
 

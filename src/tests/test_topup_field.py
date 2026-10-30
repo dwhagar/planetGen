@@ -74,7 +74,7 @@ def test_the_same_stream_gives_the_same_plan():
 
 def test_the_history_helper_gives_the_rogue_top_up_the_same_numbers_as_before():
     rng = random.Random(3)
-    velocity, origin = rogue_topup.apparent_history(rng, HOSTS, rogue_topup.DEFAULT_AGE_LAW, rogue_topup.VELOCITY_DISPERSION_KM_S, rogue_topup.GALACTOCENTRIC_RADIUS_PC)
+    velocity, origin = rogue_topup.apparent_history(rng, rogue_topup.DEFAULT_AGE_LAW, rogue_topup.VELOCITY_DISPERSION_KM_S, rogue_topup.GALACTOCENTRIC_RADIUS_PC)
     assert len(velocity) == 3 and origin.origin == "apparent" and math.isfinite(origin.distance_pc)
 
 

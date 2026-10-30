@@ -124,11 +124,11 @@ def draw_radius_age(rng, speed_ms):
     return radius, field_dispersal.age_yr_at_radius(radius, speed_ms)
 
 
-def _field(mass_kg, rng, sector_edge_pc, host_masses_kg, age_law, dispersion, placement, radius_pc):
+def _field(mass_kg, rng, sector_edge_pc, age_law, dispersion, placement, radius_pc):
     position = rogue_topup.place_in_sector(rng, sector_edge_pc, placement)
     speed = draw_speed_ms(rng)
     radius, age = draw_radius_age(rng, speed)
-    velocity, origin = rogue_topup.apparent_history(rng, host_masses_kg, age_law, dispersion, radius_pc)
+    velocity, origin = rogue_topup.apparent_history(rng, age_law, dispersion, radius_pc)
     return TopUpField(mass_kg, min(LARGEST_BODY_MASS_KG, mass_kg), BULK_DENSITY_KG_M3, speed, age, radius, position, velocity, origin)
 
 
@@ -157,11 +157,10 @@ def plan(rng, remainder_kg, host_masses_kg, sector_edge_pc=tuning.DEFAULT_SECTOR
     if not host_masses_kg:
         raise TopUpFieldError("a top-up needs at least one host star to donate the mass")
     fields, remaining = [], remainder_kg
-    hosts = tuple(host_masses_kg)
     while remaining > 0.0:
         mass = draw_mass_kg(rng) if len(fields) < MAX_FIELDS - 1 else remaining
         if mass >= remaining or remaining - mass < FLOOR_MASS_KG:
             mass = remaining                                              # a rest under the cut joins the last field
-        fields.append(_field(mass, rng, sector_edge_pc, hosts, age_law, dispersion_km_s, placement, galactocentric_radius_pc))
+        fields.append(_field(mass, rng, sector_edge_pc, age_law, dispersion_km_s, placement, galactocentric_radius_pc))
         remaining -= mass
     return FieldTopUp(tuple(fields), math.fsum(f.mass_kg for f in fields), 0.0)
