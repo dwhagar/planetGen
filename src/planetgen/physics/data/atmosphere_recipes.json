@@ -1510,7 +1510,7 @@
    "gate_text": "GIANT, BD",
    "weight_text": "(1-f_tail) core + f_tail tail; core log10(C/O) ~ N(log10 0.55, 0.15) truncated to [0.2, 0.8]; tail U[0.8, 1.5]; f_tail = LU[0.0013, 0.34], default 0.03",
    "source": "stellar C/O median 0.47 with no star above 0.8 (N=849); planets (LExACoM, 69): median 0.57, tail 0.043 to 0.087 above 0.8 (tunable-gaps 3.4, COMPUTED from READ tables); core width 0.21 dex reproduces the 12 of 69 planets below 0.35 (GEN.516; the single planet WASP-77Ab 0.59 +/- 0.08, Line 2021, READ, gave 0.15)",
-   "status": "DESIGN",
+   "status": "DERIVED",
    "research": [
     "R5"
    ],
@@ -1783,13 +1783,16 @@
    "option": "CO + H2O + H2; CO2 rises with m",
    "gate_text": "Tday 1500 to 2200 K",
    "weight_text": "Phi-window",
-   "source": "part 05 s8 (design edges)",
-   "status": "DESIGN",
+   "source": "the edges are computed equilibrium lines at the photospheric pressure (methane equal to carbon monoxide; water 10 percent destroyed) with the NASA polynomials at solar metals and C/O 0.55, gas only and no ions; the softness of 100 K is DESIGN (GEN.518) (COMPUTED, DESIGN softness)",
+   "status": "DERIVED",
    "research": [
     "R6"
    ],
    "notes": "",
-   "labels": [],
+   "labels": [
+    "COMPUTED",
+    "DESIGN"
+   ],
    "state": "partly verified",
    "limit": "the edges are computed equilibrium lines at the photospheric pressure (methane equal to carbon monoxide; water 10 percent destroyed) with the NASA polynomials at solar metals and C/O 0.55, gas only and no ions; the softness of 100 K is DESIGN (GEN.518)",
    "replacement": "",
@@ -1817,14 +1820,14 @@
    "option": "Thermally dissociated: H, OH, H-, Na, K, Fe, Mg, SiO, ions",
    "gate_text": "Tday>2200 K",
    "weight_text": "Phi-window",
-   "source": "Arcangeli 2018 WASP-18b (READ); edge DESIGN",
-   "status": "DESIGN",
+   "source": "the edge is the computed temperature at which a tenth of the water is destroyed, at the photospheric pressure, gas only and no ions; the softness of 100 K is DESIGN (GEN.518) (COMPUTED, DESIGN softness)",
+   "status": "DERIVED",
    "research": [
     "R6"
    ],
    "notes": "no mole fractions without FastChem or GGchem",
    "labels": [
-    "READ",
+    "COMPUTED",
     "DESIGN"
    ],
    "state": "partly verified",
@@ -1853,15 +1856,15 @@
    "option": "TiO/VO gas kept (leaky cold trap)",
    "gate_text": "h2 or h3; grain radius a (um)",
    "weight_text": "P(log Kzz >= Kmin(a)); Kzz ~ LU[1e7, 1e11]; log Kmin = 7.48 + 3.52 (log10 a + 1)/2",
-   "source": "Spiegel 2009: few 1e7 for 0.1 um to 1e11 for 10 um grains (READ); Kzz prior DESIGN (TEST: WASP-107b 10^11.6, READ)",
-   "status": "DESIGN",
+   "source": "a Ti threshold between 2350 and 2641 K from N=5 planets (TiO seen at 2641 K, not at 2210, 2250, 2260 and 2350 K); no population measures Kzz, so none is drawn (GEN.519) (READ, COMPUTED)",
+   "status": "DERIVED",
    "research": [
     "R6"
    ],
    "notes": "TiO above 2000 to 2300 K, VO above 1700 to 1900 K",
    "labels": [
     "READ",
-    "DESIGN"
+    "COMPUTED"
    ],
    "state": "partly verified",
    "limit": "a Ti threshold between 2350 and 2641 K from N=5 planets (TiO seen at 2641 K, not at 2210, 2250, 2260 and 2350 K); no population measures Kzz, so none is drawn (GEN.519)",
@@ -2078,15 +2081,15 @@
    "option": "Bare silicate vapour (volatile-free melt) vs volatile-bearing CO2/CO",
    "gate_text": "ROCKY zone h, 1<=M<=10",
    "weight_text": "volatile-bearing c[0.1,0.9], bare 1-c",
-   "source": "TEST 55 Cnc e CO2/CO, 0.01 to 100 bar (Hu 2024 READ); weight DESIGN",
-   "status": "DESIGN",
+   "source": "2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2): the bracket is the 95 percent interval 0.29 to 0.99 of Beta(3, 1) (GEN.511) (READ, COMPUTED)",
+   "status": "DERIVED",
    "research": [
     "R7"
    ],
    "notes": "P_eq: log10 P = k1 exp(k2 Ts), small vapour fraction k1=-34.7, k2=-0.00112 (Kite 2016, 1400 to 2800 K, READ)",
    "labels": [
     "READ",
-    "DESIGN"
+    "COMPUTED"
    ],
    "state": "partly verified",
    "limit": "2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2): the bracket is the 95 percent interval 0.29 to 0.99 of Beta(3, 1) (GEN.511)",
@@ -2331,14 +2334,14 @@
    "option": "CO2-dominated coma",
    "gate_text": "COMET active (perihelion<3 AU, repo threshold), icy AST",
    "weight_text": "0.5",
-   "source": "25-comet sample, about half CO2-dominated (Harrington Pinto 2022, SNIPPET)",
-   "status": "DESIGN",
+   "source": "13 of 25 comets (HP22 Table 2); the class depends on the heliocentric distance (every coma beyond about 3.5 AU is CO-dominated) and 9 of the 13 rest on an upper limit on CO, so the share is inflated by an amount that cannot be corrected (GEN.520) (READ)",
+   "status": "DERIVED",
    "research": [
     "R9"
    ],
    "notes": "",
    "labels": [
-    "SNIPPET"
+    "READ"
    ],
    "state": "partly verified",
    "limit": "13 of 25 comets (HP22 Table 2); the class depends on the heliocentric distance (every coma beyond about 3.5 AU is CO-dominated) and 9 of the 13 rest on an upper limit on CO, so the share is inflated by an amount that cannot be corrected (GEN.520)",
@@ -2360,14 +2363,14 @@
    "option": "CO-dominated coma",
    "gate_text": "same",
    "weight_text": "1/3",
-   "source": "same (SNIPPET)",
-   "status": "DESIGN",
+   "source": "9 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520) (READ)",
+   "status": "DERIVED",
    "research": [
     "R9"
    ],
    "notes": "Hale-Bopp CO 23 %, Hyakutake 18.2 % of H2O (READ)",
    "labels": [
-    "SNIPPET"
+    "READ"
    ],
    "state": "partly verified",
    "limit": "9 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520)",
@@ -2389,14 +2392,14 @@
    "option": "Comparable CO2 and CO",
    "gate_text": "same",
    "weight_text": "0.1",
-   "source": "same (SNIPPET)",
-   "status": "DESIGN",
+   "source": "3 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520) (READ)",
+   "status": "DERIVED",
    "research": [
     "R9"
    ],
    "notes": "the three weights sum to 0.93; normalised",
    "labels": [
-    "SNIPPET"
+    "READ"
    ],
    "state": "partly verified",
    "limit": "3 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520)",
@@ -2418,15 +2421,15 @@
    "option": "CO2/H2O (PARAM)",
    "gate_text": "all k",
    "weight_text": "LN(0.12, 0.5 dex)",
-   "source": "median about 12 % (SNIPPET); TEST 67P 4.7+-1.4 % (Rubin 2019 READ); sigma by eye",
-   "status": "DESIGN",
+   "source": "geometric mean 10.9 percent and 0.51 dex of 21 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520) (READ, COMPUTED)",
+   "status": "DERIVED",
    "research": [
     "R9"
    ],
    "notes": "",
    "labels": [
     "READ",
-    "SNIPPET"
+    "COMPUTED"
    ],
    "state": "partly verified",
    "limit": "geometric mean 10.9 percent and 0.51 dex of 21 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520)",
@@ -2457,15 +2460,15 @@
    "option": "CO/H2O (PARAM)",
    "gate_text": "all k",
    "weight_text": "LN(0.03, 0.6 dex), range 0.005 to 0.23",
-   "source": "Willacy 2025 Tables 2, 3 range 0.5 to 23 % (READ); median SNIPPET; TEST 67P 3.1+-0.9 %",
-   "status": "DESIGN",
+   "source": "geometric mean 2.5 percent and 0.65 dex of 16 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520) (READ, COMPUTED)",
+   "status": "DERIVED",
    "research": [
     "R9"
    ],
    "notes": "",
    "labels": [
     "READ",
-    "SNIPPET"
+    "COMPUTED"
    ],
    "state": "partly verified",
    "limit": "geometric mean 2.5 percent and 0.65 dex of 16 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520)",
@@ -2532,14 +2535,15 @@
    "option": "Single-comet species: CH4 3.4e-3, C2H6 2.9e-3, H2CO 3.2e-3, H2S 1.1e-2, N2 8.9e-4, O2 3.1e-2, OCS 4.1e-4, SO2 1.3e-3, Ar 5.8e-6, Kr 4.9e-7, Xe 2.4e-7, Ne <5e-8",
    "gate_text": "all k",
    "weight_text": "LN(67P value, 0.6 dex)",
-   "source": "Rubin 2019 (READ), one comet only; 0.6 dex = spread of CO",
-   "status": "DESIGN",
+   "source": "CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, Rubin 2019) with a design width of 0.6 dex and stay stand-in values (GEN.520) (READ, DESIGN width)",
+   "status": "DERIVED",
    "research": [
     "R9"
    ],
    "notes": "O2 presence probability unsourced N2, O2, OCS, SO2, Ar, Kr and Xe are built from one measured comet (67P, Rubin 2019) and stay flagged stand-in values; O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) and is not drawn.",
    "labels": [
-    "READ"
+    "READ",
+    "DESIGN"
    ],
    "state": "partly verified",
    "limit": "CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, Rubin 2019) with a design width of 0.6 dex and stay stand-in values (GEN.520)",

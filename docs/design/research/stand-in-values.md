@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 395 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 403 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 46 | 0 | 3 | 0 | 0 | 49 |
-| T2 | 69 | 3 | 0 | 1 | 0 | 73 |
-| T3 | 54 | 9 | 2 | 10 | 0 | 75 |
+| T1 | 51 | 0 | 3 | 0 | 0 | 54 |
+| T2 | 70 | 3 | 0 | 1 | 0 | 74 |
+| T3 | 55 | 9 | 2 | 10 | 0 | 76 |
 | T4 | 16 | 0 | 0 | 2 | 0 | 18 |
 | T5 | 21 | 6 | 1 | 0 | 0 | 28 |
-| T6 | 39 | 10 | 4 | 27 | 0 | 80 |
+| T6 | 39 | 10 | 5 | 27 | 0 | 81 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 263 | 31 | 13 | 71 | 17 | 395 |
+| All | 270 | 31 | 14 | 71 | 17 | 403 |
 
 ## How the labels were given
 
@@ -601,14 +601,37 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PA11 | P | T6 | L3 | tuning.PLANET_MIN_MASS_OUTER_EARTH 0.6649 and PLANET_MIN_MASS_EARTH 0.1 (the lightest oligarch that is a planet, beyond and inside the snow line) | outer 0.3 to 1.5; inner 0.05 to 0.2 | all chains | test_planet_architecture::test_a_star_gets_its_planets_in_order_with_the_masses_a_planet_has_and_a_seeded_run_repeats; a planet count beyond 2 AU outside the microlensing counts | a belt formation and size-frequency model | design (Mercury is 0.055 Earth masses); the outer floor tuned to the count of the Neptune-mass planets beyond the snow line (Suzuki et al. 2016, recalled) | GEN.728 | no data |
 | PA12 | P | T7 | L0 | planet_occurrence.json `disc_dust_scatter` 0.7 dex and tuning.DISC_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_ANCHORS ((0.15, 0.85), (0.6, 0.75), (1.0, 0.30), (1.4, 0.30)) (the scatter of the solids and the share of stars with an inner system by mass) | scatter 0.5 to 0.9; shares inside the bands | all hosts | test_planet_architecture::test_the_share_of_stars_with_an_inner_system_follows_the_observed_anchors | the formation model that gives the share from the disc (GEN.729 follow-up) | Andrews et al. 2013 (arXiv:1305.5262, READ: 0.7 dex); Zhu 2018 (30 percent Sun-like); Yang 2020 (75 percent under 5000 K, 35 percent over 6500 K) | GEN.728 | - |
 
-## 6.37 Stand-ins of the stars after the main sequence
+## 6.37 Stand-ins of the brown dwarf ceiling
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SB1 | P | T1 | L0 | substellar_ceiling.LIMIT_MASS_SOLAR 0.07 (the hydrogen-burning limit of the solar-metallicity models; the table also holds 0.072) | none | solar metallicity | a model whose limit lies more than 0.005 solar masses from 0.07 (the limit rises at low [Fe/H], GEN.936) | the limit as a function of [Fe/H] from the Baraffe table (GEN.936) | test_substellar_ceiling::test_the_limit_mass_is_hottest_at_ten_million_years_as_the_paper_says | GEN.494 | - |
+| SB2 | P | T1 | L0 | substellar_ceiling.HOTTEST_K 2950 (the highest temperature the limit mass reaches; the table has 2946 K at 10 Myr) | none | any age from 0.5 Myr to 10 Gyr | an isochrone set whose limit mass peaks more than 100 K from 2950 K | a later set of models | test_substellar_ceiling::test_the_limit_mass_is_hottest_at_ten_million_years_as_the_paper_says | GEN.494 | - |
+
+## 6.38 Stand-ins of the aluminium-26 and iron-60 at birth
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BR1 | P | T1 | L0 | birth_radioisotopes.MEAN_LIFE_YR (26Al 1.035 Myr, 60Fe 3.78 Myr) | none | any region | a measured half-life differing by more than 5 percent | the next evaluation of the half-lives | test_birth_radioisotopes::test_the_yields_per_mass_formed_are_the_gamma_ray_mass_over_rate_and_mean_life | GEN.476 | - |
+| BR2 | P | T1 | L0 | birth_radioisotopes.GALAXY_AL26_MASS_SOLAR 2.0 and FE60_AL26_FLUX_RATIO 0.15 (the gamma-ray masses of the two isotopes in the Galaxy; the 26Al mass is 1.7 to 3) | 26Al mass 1.7 to 3 | massive-star nucleosynthesis at about solar metallicity | a gamma-ray mass differing from 2.0 by more than 40 percent | a later INTEGRAL mass or a yield model (Limongi and Chieffi) | test_birth_radioisotopes::test_the_mean_ratio_is_about_ten_times_under_the_solar_systems | GEN.476 | - |
+| BR3 | P | T1 | L0 | birth_radioisotopes.GALAXY_STAR_FORMATION_SOLAR_MASSES_PER_YR 1.65 (the Galaxy's star formation rate, +-0.19) | 1.46 to 1.84 | the rate the gamma-ray masses are divided by | a rate differing by more than 20 percent | a later meta-analysis | test_birth_radioisotopes::test_the_yields_per_mass_formed_are_the_gamma_ray_mass_over_rate_and_mean_life | GEN.476 | - |
+| BR4 | P | T2 | L0 | birth_radioisotopes.RECURRENCE_RANGE_YR 5 to 10 Myr (the time between core-collapse additions to a region's gas, as Meyer and Clayton give it, read second-hand in Lugaro et al. 2018) | 5 to 10 Myr | a region with cluster formation at the Galactic rate | a cluster formation rate that puts the recurrence outside 3 to 15 Myr | a recurrence from the region's own cluster formation rate | test_birth_radioisotopes::test_the_draws_keep_the_mean_and_are_spiky_for_the_short_lived_isotope | GEN.476 | - |
+| BR5 | P | T6 | L2 | birth_radioisotopes.EVENT_YIELD_SIGMA_LN 1.0 (the log-normal spread of the yield of one addition, the richness of the cluster) | 0.5 to 1.5 | all regions | a Solar System ratio outside the 90th to 99.9th percentile of the draws, or a share of stars with more than a tenth of it outside 4 to 66 percent (row o6) | a cluster mass function and its yields (GEN.476 follow-up) | test_birth_radioisotopes::test_the_solar_system_ratio_is_in_the_upper_tail_of_the_distribution | GEN.476 | - |
+
+## 6.39 Stand-ins of the X-ray saturation time by mass
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RS1 | P | T3 | L0 | saturation_time.ANCHORS_MYR (thirteen masses by three percentiles, read off the published figure by pixel position; the fast curve at 0.1 solar masses by eye) | each value within about 10 percent; the steep 1.1 to 1.2 solar mass edge of the fast curve within 30 percent | solar metallicity, 0.1 to 1.2 solar masses | a star sample with a saturated fraction against age and mass differing from the model's by more than a third (Medina 2022 gives 2.4 +- 0.3 Gyr for 0.1 to 0.3 solar masses, and the tests keep the median curve near it) | the tracks of the model itself (Johnstone's MIT-licensed code) or a measured saturated fraction against mass | test_saturation_time::test_the_published_curves_are_reproduced_at_their_anchors; test_saturation_time::test_the_mid_to_late_m_dwarfs_stay_saturated_for_gigayears_as_medina_2022_finds | GEN.493 | - |
+
+## 6.40 Stand-ins of the stars after the main sequence
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PS1 | P | T3 | L1 | tuning.HELIUM_FLASH_MASS_SOL 2.2 (a star lighter than this ignites its helium in a flash and has a horizontal branch; a heavier one burns it quietly as a core-helium-burning giant) | 1.8 to 2.3 | every star of 0.8 to 8 solar masses | test_post_main_sequence::test_the_windows_follow_each_other_from_the_end_of_the_main_sequence_to_the_end_of_the_track; a cluster whose helium-burning stars change kind below 1.8 or above 2.3 solar masses | the mass at which the MIST tracks themselves change kind, read from the phase column at setup | RECALLED (Hurley, Pols and Tout 2000: the helium flash mass is 1.6 to 2.0 solar masses by metallicity; MIST's own transition sits near 2.0 to 2.3) | - | - |
-| PS2 | P | T3 | L0 | tuning.HORIZONTAL_BRANCH_DURATION_GY 0.1 and AGB_MS_FRACTION 0.002 (how long a flash star burns helium in its core, and the share of its main-sequence life it spends on the asymptotic branch) | 0.07 to 0.12 Gy; 0.001 to 0.005 | stars under HELIUM_FLASH_MASS_SOL | test_gen_horizontal_branch::test_the_horizontal_branch_to_red_giants_above_it_ratio_is_the_observed_one; a branch star to red giant ratio in globular clusters outside 1.2 to 1.7 | the MIST track durations for the light stars once its low-mass grid reaches the flash | READ (Salaris et al. 2004: 1.44 +- 0.06 horizontal-branch stars to each red giant brighter than the branch, which a 100 Myr branch reproduces) | - | - |
+| PS2 | P | T3 | L0 | tuning.HORIZONTAL_BRANCH_DURATION_GY 0.1 and tuning.AGB_MS_FRACTION 0.002 (how long a flash star burns helium in its core, and the share of its main-sequence life it spends on the asymptotic branch) | 0.07 to 0.12 Gy; 0.001 to 0.005 | stars under HELIUM_FLASH_MASS_SOL | test_gen_horizontal_branch::test_the_horizontal_branch_to_red_giants_above_it_ratio_is_the_observed_one; a branch star to red giant ratio in globular clusters outside 1.2 to 1.7 | the MIST track durations for the light stars once its low-mass grid reaches the flash | READ (Salaris et al. 2004: 1.44 +- 0.06 horizontal-branch stars to each red giant brighter than the branch, which a 100 Myr branch reproduces) | - | - |
 | PS3 | P | T3 | L1 | tuning.SUPERGIANT_MIN_MASS_SOL 8 (from it a star has one supergiant window and ends in a core collapse; under it, giants and a white dwarf) | 7 to 9 | all stars | a white dwarf progenitor above 8 or a core-collapse progenitor below 7 solar masses | the mass where the MIST thermal pulses end (EEP 808 reached by the track), read at setup | RECALLED (carbon ignition between 7 and 9 solar masses by composition and convective overshoot; Doherty et al. 2015) | - | - |
 | PS4 | P | T3 | L0 | tuning.BRIGHT_GIANT_MIN_MASS_SOL 4 (the giant classes III and II divide here) | 3 to 6 | giants | none | a class by luminosity per Morgan and Keenan's calibration | design (class II is a rare bright giant; the luminosity of a 4 solar mass giant is about 1000 Lsun) | - | - |
 | PS5 | P | T3 | L1 | tuning.SUPERGIANT_YERKES_THRESHOLDS_SOL (10000, 50000, 500000 Lsun for IAB, IA, 0) | each edge a factor 2 | supergiants | none | the Yerkes-class calibration of absolute magnitude (GEN.943) | RECALLED (Ib near M_V -5, Iab -6, Ia -7 to -8, hypergiants -9 to -10) | - | - |
-| PS6 | P | T3 | L1 | tuning.CEPHEID_TEMPERATURE_RANGE_K (5000, 7000), CEPHEID_MIN_LUMINOSITY_SOL 500, CEPHEID_MAX_INITIAL_MASS_SOL 13 (a giant or supergiant on its track is flagged as a classical Cepheid) | edges 300 K; luminosity 300 to 1000; mass 10 to 15 | giants and supergiants | test_post_main_sequence::test_stars_inside_the_instability_strip_are_flagged_as_classical_cepheids_only_when_luminous_and_of_the_right_mass; a Cepheid below 3 or above 13 solar masses | the instability strip from a pulsation calculation (the MIST tracks carry no pulsation) | READ-level facts (classical Cepheids are 3 to 13 solar masses of 100 to 30000 Lsun, T_eff 5000 to 7000 K; the strip is fuzzier than the edges) | - | - |
+| PS6 | P | T3 | L1 | tuning.CEPHEID_TEMPERATURE_RANGE_K (5000, 7000), tuning.CEPHEID_MIN_LUMINOSITY_SOL 500, tuning.CEPHEID_MAX_INITIAL_MASS_SOL 13 (a giant or supergiant on its track is flagged as a classical Cepheid) | edges 300 K; luminosity 300 to 1000; mass 10 to 15 | giants and supergiants | test_post_main_sequence::test_stars_inside_the_instability_strip_are_flagged_as_classical_cepheids_only_when_luminous_and_of_the_right_mass; a Cepheid below 3 or above 13 solar masses | the instability strip from a pulsation calculation (the MIST tracks carry no pulsation) | READ-level facts (classical Cepheids are 3 to 13 solar masses of 100 to 30000 Lsun, T_eff 5000 to 7000 K; the strip is fuzzier than the edges) | - | - |
 | PS7 | P | T5 | L1 | evolved_tracks.MASS_NODES_SOL (130 log-spaced masses from 0.8 to 300) and the linear mapping of each generator window onto a stretch of the track's equivalent evolutionary points | none | all post-main-sequence stars | test_evolved_tracks (track construction against synthetic isochrones); test_gen_horizontal_branch::test_the_time_a_star_spends_above_a_luminosity_on_the_mist_branch_follows_the_hurley_branch | the generator's own time-in-phase formulas fitted to MIST at setup | design (the node count only sets how finely the tracks are rebuilt; the time mapping keeps the Hurley, Pols and Tout base of the giant branch and helium ignition) | - | - |

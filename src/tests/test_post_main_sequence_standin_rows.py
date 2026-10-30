@@ -1,5 +1,5 @@
 """
-The stand-in registry rows of the stars after the main sequence (GEN.935, docs/design/research/gap-filling-plan.md section 6.37):
+The stand-in registry rows of the stars after the main sequence (GEN.935, docs/design/research/gap-filling-plan.md section 6.40):
 every row names a constant that exists and a test that exists, and every constant the post-main-sequence code chooses has a row.
 """
 

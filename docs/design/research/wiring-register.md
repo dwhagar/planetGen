@@ -105,3 +105,14 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.36:PA10 | GEN.728 | `GIANT_INWARD_MIGRATION_SIGMA_LN, GIANT_CLEARING_SPACING`, read by `planet_architecture`, which `system.py` calls at the wiring |
 | row | 6.36:PA11 | GEN.728 | `PLANET_MIN_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
 | row | 6.36:PA12 | GEN.728 | `DISC_SOLIDS_SCATTER_DEX, INNER_SYSTEM_FRACTION_ANCHORS`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| module | planetgen.physics.substellar_ceiling | GEN.494 | the Baraffe 2015 hydrogen-burning limit temperature by age (lock-free); the wiring step replaces the 2800 K clip of `brown_dwarf` and the hot edge of the atmosphere row g1 with it, riding the Baraffe brown dwarf tracks of GEN.948 |
+| row | 6.37:SB1 | GEN.494 | `substellar_ceiling.LIMIT_MASS_SOLAR`, read when the wiring step lands |
+| row | 6.37:SB2 | GEN.494 | `substellar_ceiling.HOTTEST_K`, read when the wiring step lands |
+| module | planetgen.physics.birth_radioisotopes | GEN.476 | aluminium-26 and iron-60 at a star's birth from the gamma-ray masses, the region's depletion time and the granularity of the sources (lock-free); the wiring step has `radiogenic.draw_content` take the 26Al ratio from it, and row o6 its enriched share |
+| row | 6.38:BR1 | GEN.476 | `birth_radioisotopes.MEAN_LIFE_YR`, read when the wiring step lands |
+| row | 6.38:BR2 | GEN.476 | `birth_radioisotopes.GALAXY_AL26_MASS_SOLAR, FE60_AL26_FLUX_RATIO`, read when the wiring step lands |
+| row | 6.38:BR3 | GEN.476 | `birth_radioisotopes.GALAXY_STAR_FORMATION_SOLAR_MASSES_PER_YR`, read when the wiring step lands |
+| row | 6.38:BR4 | GEN.476 | `birth_radioisotopes.RECURRENCE_RANGE_YR`, read when the wiring step lands |
+| row | 6.38:BR5 | GEN.476 | `birth_radioisotopes.EVENT_YIELD_SIGMA_LN`, read when the wiring step lands |
+| module | planetgen.physics.saturation_time | GEN.493 | the X-ray saturation time by stellar mass and initial rotation percentile from Johnstone et al. 2021 (lock-free); the wiring step has row p6 and the activity table's `t_sat` read it with the star's own mass |
+| row | 6.39:RS1 | GEN.493 | `saturation_time.ANCHORS_MYR`, read when the wiring step lands |

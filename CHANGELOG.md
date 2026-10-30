@@ -2,6 +2,45 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2592] - 2026-10-30
+
+**Headline:** How long a star stays X-ray saturated is now tabulated by mass and initial rotation from Johnstone et al. 2021 (not yet used by the generator).
+
+### Changed
+
+- New library `physics/saturation_time.py`: the age at which a star falls out of X-ray saturation by mass (0.1 to 1.2 solar masses) and initial rotation percentile, read off the published model figure. Cool red dwarfs stay saturated for gigayears, Sun-like stars for tens of millions of years. Nothing in generation reads it yet; the wiring step (the activity table and row p6) follows with the epoch train.
+
+## [8.0.2591] - 2026-10-30
+
+**Headline:** The atmosphere recipe rows whose research was already built are now labelled as derived, not as a design.
+
+### Changed
+
+- **Part 09 row statuses (GEN.484, GEN.485, GEN.486, GEN.488).** Eleven rows (f7 the giants' C/O, h2 to h4 the hot-giant chemistry edges and titanium threshold, i6 the lava-world volatile share, k1 to k5 and k7 the comet coma classes and ratios) said `DESIGN` in the research table although their weights were fitted to published samples by earlier items. They now say `DERIVED` and carry the same source text as the recipe data, and the giants' C/O row was re-counted on the full Brewer and Fischer table. Nothing generated changes.
+
+## [8.0.2590] - 2026-10-30
+
+**Headline:** The aluminium-26 and iron-60 a star is born with are now derived from gamma-ray masses and the region's star formation (not yet used by the generator).
+
+### Changed
+
+- New library `physics/birth_radioisotopes.py`: the 26Al/27Al and 60Fe/56Fe ratios at a star's birth from the Galaxy's gamma-ray masses of the two isotopes, the star formation rate, the depletion time of the star's region and the discreteness of the sources (a median star is born with a few percent of the mean, one in about seventy with the Solar System's ratio). Nothing in generation reads it yet; the wiring step (the radiogenic module and the early-heating row) follows with the epoch train.
+
+## [8.0.2589] - 2026-10-30
+
+**Headline:** The hottest a brown dwarf can be at each age is now read from the Baraffe 2015 table (not yet used by the generator).
+
+### Changed
+
+- New library `physics/substellar_ceiling.py`: the temperature of the hydrogen-burning limit mass by age from the Baraffe et al. 2015 isochrones (about 2950 K at 10 Myr, 2050 K at 1 Gyr, 1630 K at 10 Gyr), with the age at which a temperature stops being possible for a brown dwarf. Nothing in generation reads it yet; the wiring step (the hot edge of the young late-M-like row and the 2800 K clip) follows with the Baraffe brown dwarf tracks.
+
+## [8.0.2588] - 2026-10-30
+
+**Headline:** The map-luminosity fill and the habitability re-score now run as stages of the shared run, with their finishing steps inside it.
+
+### Changed
+- **The two fills no longer start a run of their own (PERF.202).** `planetgen fill-map-luminosity` is a map-luminosity stage followed by the Galaxy Map's block light totals made again, as the scatters already were; `planetgen rescore-habitability` is a habitability stage whose block totals are made by the command's own finishing step, once the last range is done. The output is unchanged, and the stages can now share one run with other commands.
+
 ## [8.0.2587] - 2026-10-30
 
 **Headline:** The search page can now find planets and moons that could support a given kind of life, with a minimum score.
