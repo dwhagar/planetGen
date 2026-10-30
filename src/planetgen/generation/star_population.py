@@ -286,14 +286,14 @@ def _mass_grid(extra_edges=(), cells=None):
     low, high = imf.lowest_mass_sol(), imf.highest_mass_sol()
     cells = pc.BRIGHT_STAR_MASS_GRID_CELLS if cells is None else cells
     edges = {low * (high / low) ** (i / cells) for i in range(cells + 1)}
-    edges.update(pc.IMF_BREAKS_SOL)
+    edges.update(segment[0] for segment in imf.segments(imf.PRIMARY))
     edges.update((pc.BRIGHT_GIANT_MIN_MASS_SOL, pc.SUPERGIANT_MIN_MASS_SOL, pc.HELIUM_FLASH_MASS_SOL))
     edges.update(extra_edges)
     edges = sorted(edge for edge in edges if low <= edge <= high)
 
     grid = []
     for a, b in zip(edges, edges[1:]):
-        _low, _high, alpha, norm = imf.segment_at(a)
+        _low, _high, alpha, norm = imf.segment_at(a, imf.PRIMARY)
         grid.append((a, b, alpha, norm))
     return grid
 

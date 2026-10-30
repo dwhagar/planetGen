@@ -6,7 +6,8 @@ Star Population Model
 
 Draws a random star as physics rather than from a spectral-letter table:
 
-1. a mass from the Kroupa (2001) initial mass function (`imf.sample`),
+1. a mass from the primary mass function, the single-star initial mass function less the companions of the heavier
+   primaries (`imf.sample`, `imf.PRIMARY`, GEN.928),
 2. an age from the star-formation history (`sample_star_age_gy`),
 3. the star's present state from how far that age is into its own
    main-sequence lifetime (`evolve_star`): main sequence (V), subgiant
@@ -606,7 +607,7 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
     for _ in range(pc.STAR_MODEL_MAX_REDRAWS):
         birth = fe_h if fe_h is not None else birth_fe_h(rng, population, fe_h_peaks, galactic_center_dist_ly)
         if large_star:
-            mass = imf.sample(min_mass_sol=pc.LARGE_STAR_MIN_MASS_SOL, rng=rng)
+            mass = imf.sample(min_mass_sol=pc.LARGE_STAR_MIN_MASS_SOL, rng=rng, curve=imf.PRIMARY)
             if max_mass_sol is not None and mass >= max_mass_sol:
                 continue
             low, high = population_age_range_gy(population)
@@ -616,7 +617,7 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
             low, high = age_window_gy(low, high, age_bias)
             age = rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng)
         else:
-            mass = imf.sample(rng=rng)
+            mass = imf.sample(rng=rng, curve=imf.PRIMARY)
             if large_star is False and mass >= pc.LARGE_STAR_MIN_MASS_SOL:
                 continue
             if max_mass_sol is not None and mass >= max_mass_sol:
