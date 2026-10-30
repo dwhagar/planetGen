@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 525 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 532 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 60 | 0 | 5 | 0 | 0 | 65 |
-| T2 | 80 | 9 | 0 | 1 | 0 | 90 |
-| T3 | 63 | 18 | 5 | 11 | 0 | 97 |
-| T4 | 26 | 0 | 0 | 4 | 4 | 34 |
+| T2 | 81 | 9 | 0 | 1 | 0 | 91 |
+| T3 | 65 | 19 | 5 | 11 | 0 | 100 |
+| T4 | 27 | 0 | 0 | 4 | 4 | 35 |
 | T5 | 30 | 9 | 1 | 0 | 0 | 40 |
-| T6 | 40 | 24 | 10 | 32 | 0 | 106 |
+| T6 | 40 | 26 | 10 | 32 | 0 | 108 |
 | T7 | 24 | 6 | 6 | 7 | 0 | 43 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 324 | 66 | 29 | 81 | 25 | 525 |
+| All | 328 | 69 | 29 | 81 | 25 | 532 |
 
 ## How the labels were given
 
@@ -821,6 +821,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SC3 | P | T3 | L0 | the droplet radius, log-uniform on 0.3 to 3.85 micron, and the density 1800 kg/m3 (`radius_low_um`, `radius_high_um`, `density_kg_m3`): they only set how much acid a depth needs | 0.3 to 4; 1670 to 1840 | any air that makes the cloud | the papers disagree on the mode radii (mode 1 0.30, 0.4 or 0.49; mode 2 1.0, 1.04 or 1.4 micron), so the widest range is used | a size from the cloud microphysics | Gillmann and others 2024 (arXiv 2404.07669) section 3.5.2 and Arney and Kane 2018 Table 2, read; Dai and others 2022 (arXiv 2207.10238) density, a model value | - | - |
 | SC4 | P | T5 | L1 | the share of the sky under an acid cloud, 1 (`cover`) | 0.5 to 1 | any air that makes the cloud | a second acid-cloud world seen partly clear | a cover from the cloud dynamics | Gillmann and others 2024: the one known world is completely enshrouded | - | - |
 | SC5 | P | T6 | L1 | the acid supply: the three gates of `acid_medium` (sulfur dioxide, an oxidiser, water), and no production rate, only the limit of all the sulfur dioxide above the base made into acid (`sulfuric_cloud.acid_column_limit_kg_m2`), which binds only in a thin air | none | airs with sulfur dioxide | the limit binds in a thick air in a way the photochemistry would not allow (the acid of a 150 ppm air at 2 bar is hundreds of times the cloud's mass) | a photochemical production rate, with a sink | Gillmann and others 2024 section 3.5.3: cloud-top SO2 5 to 100 ppbv, 130 to 180 ppm below the cloud | - | - |
+
+## 6.63 Stand-ins of the acid cloud's infrared optics and the minor-gas wings
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CF1 | D | T2 | L0 | the refractive index of the acid droplets: Myhre and others 2003 (HITRAN aerosol package, 76 and 81 percent H2SO4 at 298 K, 400 to 7500 cm-1), held at the ends of that range, and the 550 nm real index 1.4345 from Palmer and Williams 1975 (75 and 84.5 percent, imaginary part 0) | 76 to 81 percent; other temperatures in the tables (267 to 298 K) | acid clouds of 250 to 370 K | a cold-cloud index (Tisdale 1998 at 215 K, Biermann 2000) that changes the 10 micron extinction by more than 20 percent | the index at the cloud's own temperature and strength | HITRAN aerosol package hitran_ri.tar read 10-30; the Myhre file header gives the strengths and temperatures | - | - |
+| CF2 | P | T3 | L0 | the droplet size distribution: gamma, effective variance 0.2 (`VARIANCE` of the builder), effective radii 0.3, 0.5, 0.7, 1.0, 1.4, 2.0, 3.0, 3.85 micron | variance 0.1 to 0.3; the radii bracket the published modes | any acid cloud | a measured Venus size distribution whose extinction at 10 micron differs from the gamma by more than 30 percent | the multi-mode distribution of the cloud models | Arney and Kane 2018 Table 2 (variances 0.19 to 0.262, read); the Gillmann and others 2024 radii | - | - |
+| CF3 | P | T3 | L1 | `cloud_infrared.TOP_OVER_BASE_PRESSURE` 0.0192: the cloud top pressure over the base pressure | 0.01 to 0.05 | any acid cloud | a cloud whose depth in the air is not spread between these levels | a top from the temperature profile (the tropopause) | Arney and Kane 2018 Table 1 read: upper cloud top 70 km, 0.0267 bar; lower cloud base 47.5 km, 1.391 bar | GEN.1020 | - |
+| CF4 | P | T6 | L1 | the scattering of the cloud in the infrared is scaled, not solved: the solver sees `tau_ext (1 - omega g)` as pure absorption | none | clouds with omega above 0.5 in the window bands (3.5 to 5 micron) | a two-stream scattering solution with the same droplets that differs by more than 20 K in surface temperature | a scattering infrared solver | the similarity relation (Hansen and Travis 1974) | - | - |
+| CF5 | P | T3 | L0 | the acid strength read for the optics, 80 percent (`DEFAULT_WEIGHT_PERCENT`), linearly between the 76 and 81 percent tables | 75 to 85 | clouds of 75 to 90 percent | the strength of the acid drawn from the air's water (acid_medium) differs from 80 | `acid_medium.weight_percent` at the cloud level | Gillmann and others 2024: 80 percent at the equator; Arney and Kane 2018: 75 to 85 | - | - |
+| FW6 | P | T4 | L0 | the half widths of minor-gas lines broadened by carbon dioxide at 296 K and 1 atm (`co2_far_wing.json` `minor_gamma_cm1_atm`): water 0.13, sulfur dioxide 0.10, carbon monoxide 0.065 cm-1 | water 0.09 to 0.15; SO2 0.07 to 0.13; CO 0.05 to 0.08 | minor gases in carbon dioxide air | HITRAN CO2-broadened widths outside the knobs | the HITRAN line list | recalled, not read; no open source found (the arXiv search was blocked by robots.txt, the Ptashnik 2019 CO2-broadened continuum and Takagi 2010 are behind paywalls) | - | - |
+| FW7 | P | T6 | L1 | `minor_uses_chi` 1: the minor-gas wings take the carbon dioxide self factor chi, weighted by the carbon dioxide share of the air (so Earth-like air adds nothing and keeps the MT_CKD continuum), and in a carbon dioxide air they partly double the continuum of `line_opacity` | 0 (pure Lorentz) to 1 | minor gases in carbon dioxide air | a measured CO2-broadened water continuum differing from the wing plus the MT_CKD foreign continuum by more than a factor of 2 | the measured CO2-broadened H2O continuum | none found; the wings add under 1 K at 30 ppm of water, so the bracket 0 to 1 does not move a result that matters | - | - |
 
 ## 6.56 Stand-ins of the registered rows that rest on a Solar System body
 
