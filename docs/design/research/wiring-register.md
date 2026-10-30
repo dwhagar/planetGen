@@ -248,6 +248,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.94:IZ1 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
 | row | 6.94:IZ2 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
 | row | 6.94:IZ3 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
+| module | planetgen.physics.rogue_collision | GEN.1103 | the rate, disruption speed, largest remnant, fragment speeds and shock of a rogue-rogue collision; the field columns and host rule (GEN.1103, GEN.1104) call it |
 | module | planetgen.physics.irregular_orbits | GEN.1083 | the a / r_H, eccentricity, inclination and family draw of irregular moons; the captured-moon wiring will call it |
 | row | 6.96:IO1 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
 | row | 6.96:IO2 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
