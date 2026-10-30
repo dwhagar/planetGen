@@ -83,3 +83,9 @@ def test_bad_inputs_raise():
         bm.disruption_threshold_j_per_kg(0.0)
     with pytest.raises(ValueError):
         bm.density_word(0.0, 1.0)
+
+
+def test_a_belt_whose_largest_body_is_too_strong_to_disrupt_keeps_what_formed():
+    """Past Xc = 1 the constant of Wyatt et al.'s law goes negative; the mass is then the primordial one, not a negative number (GEN.1061)."""
+    assert bm.collisional_constant(10.0, 10.2, 1.0, 5000.0) < 0.0
+    assert bm.belt_mass_earth(2.0, 10.0, 10.2, 1.0, 4500.0, 5000.0) == pytest.approx(2.0)
