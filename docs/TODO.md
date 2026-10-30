@@ -6464,7 +6464,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are quiet-Sun values and the active Sun shortens H2O by 1.7 and CO2 by
   2.35 (items GEN.495 and GEN.496).
   Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:54 AM EDT as the lane reported; findings 21 to 30, part
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
   10A to 10D of atmosphere-composition.md): NH3 photolysis lifetime at 1 AU: default 1.5e-4 per s (6.7e3 s), range 1.3e-4 to 1.8e-4 per s (5.6e3 to 7.7e3 s), settled by the two lanes in part 10E (GEN.496 stores the quiet-Sun rate and an activity factor of 1.05 to 1.10); comet CO2 ratios confirmed, other comet ranges
   per finding 27.
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
@@ -6526,7 +6526,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4.494 MPa; the deliquescence relative humidity sources (Gough 2011,
   Nuding 2014) and the JPL copyright page were not reached.
   Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:54 AM EDT as the lane reported; findings 21 to 30, part
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
   10A to 10D of atmosphere-composition.md): the CO2 hydrate quadruple
   point Q1 271.60 K at 1.044 MPa is confirmed; the brine and H2SO4-H2O
   remarks carry no constants and stay unadopted until Tabazadeh 1997,
