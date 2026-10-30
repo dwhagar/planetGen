@@ -18924,6 +18924,22 @@ clears each one.
   TEST.417.
   Prerequisites: none. Related: TEST.463, TEST.290.
 
+- [ ] **TEST.469 test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming fails on main: a generated body has urey_ratio 1.85 with a mantle that is no longer warming (bug)**
+  Reported by Sources 1 (as the lane reported, 6:18 AM EDT 2026-10-30)
+  on a worktree at origin/main: the assertion 1.8538154881179374 <= 1.0
+  + 1e-06 fails on a generated planet's urey_ratio, a body with a ratio
+  above one although its mantle is no longer warming. It may come from a
+  recent change to the bulk water, radiogenic heating or ages (train 2,
+  epoch 124), or it may be an older latent case the random stream now
+  reaches. Do: capture the failing body (seed, star, age, composition,
+  mantle state) from the test; find whether the ratio is computed
+  wrongly (heat production against loss) or the test's 'still warming'
+  condition is wrong for that body; fix the right one with the reason
+  recorded, no change to results that were already right. Done: the test
+  passes on main. Related: TEST.463, TEST.468, GEN.842. Owner: Bug 2
+  (proposed), after TEST.417.
+  Prerequisites: none. Related: TEST.463, TEST.468, GEN.842.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
