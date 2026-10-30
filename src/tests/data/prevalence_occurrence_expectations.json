@@ -1,7 +1,5 @@
 {
- "anomalies": {
-  "GEN.646": "the mass-first giants of the cut-over are rarer around FGK stars than observed (0.03 and 0.07 per star against 0.05 to 0.25 and 0.08 to 0.35): the gas-survival share of the mass law (GEN.711 stand-in) was tuned before the cut-over and is not retuned here; filed for a retune"
- },
+ "anomalies": {},
  "errors": {
   "anomaly": ""
  },
@@ -27,7 +25,6 @@
   "KGF": {
    "measures": {
     "cold_giants": {
-     "anomaly": "GEN.646",
      "kind": "observed",
      "max": 0.25,
      "min": 0.05,
@@ -40,7 +37,6 @@
      "source": "Earth-mass planets in the ecosphere (eta-Earth) 0.2 to 0.6 per Sun-like star (Bryson et al. 2021, Petigura et al. 2018), widened for 300 stars"
     },
     "giants": {
-     "anomaly": "GEN.646",
      "kind": "observed",
      "max": 0.35,
      "min": 0.08,
