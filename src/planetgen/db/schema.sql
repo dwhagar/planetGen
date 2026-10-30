@@ -1507,9 +1507,9 @@
 --   (see `migrations/versions/0175_life_classes.py`); the rest comes when the galaxy is regenerated.
 -- v176 (MAP.351): `system_interests` also takes the reasons `lifeclass-1a` to `lifeclass-9`, one for each life class that lives on a planet or moon of the system (`life_class` and
 --   `life_class_variant`), no score kept; no column changes, the migration fills them from the planets and moons already stored.
--- v176 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
---   is 52 to 63 percent silica; NULL on a row made before v176 (the regenerated galaxy replaces it; see `migrations/versions/0176_ground_intermediate.py`). (GEN.475) `asteroid_belts` and `asteroid_fields`
---   also gain `chondrite_group`, the nearest meteorite group of the body's mean composition (`none` far from every group), NULL before v176.
+-- v177 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
+--   is 52 to 63 percent silica; NULL on a row made before v177 (the regenerated galaxy replaces it; see `migrations/versions/0177_ground_intermediate.py`). (GEN.475) `asteroid_belts` and `asteroid_fields`
+--   also gain `chondrite_group`, the nearest meteorite group of the body's mean composition (`none` far from every group), NULL before v177.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2437,7 +2437,7 @@ CREATE TABLE IF NOT EXISTS planets (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
-    ground_intermediate_fraction  DOUBLE,  -- v176 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
+    ground_intermediate_fraction  DOUBLE,  -- v177 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
     water_base_pressure_pa      DOUBLE NULL,  -- v151 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2 (NULL for a planet)
     aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
@@ -2766,7 +2766,7 @@ CREATE TABLE IF NOT EXISTS moons (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
-    ground_intermediate_fraction  DOUBLE,  -- v176 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
+    ground_intermediate_fraction  DOUBLE,  -- v177 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
     water_base_pressure_pa      DOUBLE NULL,  -- v147 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2
     aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
@@ -2934,7 +2934,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
-    chondrite_group             VARCHAR(4) NULL,  -- v176 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v176
+    chondrite_group             VARCHAR(4) NULL,  -- v177 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v177
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),
@@ -3828,7 +3828,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-    chondrite_group     VARCHAR(4) NULL,  -- v176 (GEN.475): the nearest chondrite group of the field's mean composition, `none` far from every group, NULL before v176
+    chondrite_group     VARCHAR(4) NULL,  -- v177 (GEN.475): the nearest chondrite group of the field's mean composition, `none` far from every group, NULL before v177
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
 
