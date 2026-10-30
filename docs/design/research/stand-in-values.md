@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 837 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 842 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 130 | 11 | 7 | 1 | 0 | 149 |
-| T2 | 107 | 25 | 0 | 1 | 0 | 133 |
+| T1 | 131 | 11 | 7 | 1 | 0 | 150 |
+| T2 | 109 | 25 | 0 | 1 | 0 | 135 |
 | T3 | 77 | 31 | 5 | 10 | 0 | 123 |
-| T4 | 36 | 4 | 0 | 15 | 6 | 61 |
+| T4 | 36 | 4 | 0 | 15 | 8 | 63 |
 | T5 | 42 | 13 | 0 | 0 | 0 | 55 |
 | T6 | 70 | 53 | 13 | 40 | 0 | 176 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 13 | 6 | 4 | 39 | 19 | 81 |
-| All | 501 | 152 | 38 | 119 | 27 | 837 |
+| All | 504 | 152 | 38 | 119 | 29 | 842 |
 
 ## How the labels were given
 
@@ -1298,6 +1298,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BP2 | P | T9 | L0 | belt_page.DENSITY_DIAMETERS_KM (1, 10, 100): the density factor counts objects per square AU above these diameters | Boss's 1, 10 and 100 km | every belt page | none (Boss's request) | none | Boss 4:37 PM EDT 2026-10-30 (objects per square something); design section 12 | UX.241 | - |
 | BP3 | P | T9 | L1 | belt_page.L2_FLOOR_KG 1e15: bins whose bodies are over this mass are labelled drawn on demand from the belt's seed, the rest a total only | 3e14 to 3e15 (about 7 to 14 km) | every belt page | the design's L2 tier moving to another floor | the belt storage rule when it merges (belt design section 3) | design belt-evolution.md section 3 (L2 from 1e15 kg) | UX.241 | - |
 | BP4 | P | T9 | L0 | belt_page.SHARE_SAMPLES 24 and MIN_SHARE 0.005: the typical composition of a belt is the taxon kernel averaged at 24 distances taken at equal steps of the belt's mass, taxa under half a percent left out of the list | 12 to 100 samples; 0.001 to 0.02 | every belt page | a composition list that changes by over 1 percent with more samples | none (numerical and presentation) | uses belt_history.SURFACE_DENSITY_SLOPE (row BHS2) for the steps and the kernel of GEN.473 | UX.241 | - |
+
+## 6.121 Stand-ins of the Lagrange trojans
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| TJ1 | D | T1 | L0 | trojans.MU_CRIT (1 - sqrt(23/27)) / 2 = 0.0385: the largest m2 / (m1 + m2) with stable L4 and L5 | none (exact) | every pair | an N-body run of a pair under 0.0385 that loses its trojan at once | none | Schwarz, Bazso, Funk and Zechner 2016 (arXiv 1608.00784, READ), quoting Gascheau 1843 and Routh 1875 | GEN.1149 | - |
+| TJ2 | P | T2 | L0 | trojans.stable: the secondary plus the trojan under MU_CRIT of the three masses | 0.035 to 0.042 | a trojan of planet mass or more | an N-body run of a pair at 3 percent whose trojan escapes in 1 Gyr | an N-body map of the generator's own pairs | TROY III (arXiv 2407.04677, abstract READ) and research/oddity-rates.md WR10; Cresswell and Nelson 2009 (arXiv 0811.4611, READ) find pairs stable for 1 Gyr | GEN.1149 | - |
+| TJ3 | D | T2 | L0 | trojans.libration_period, trojans.TADPOLE_LIMIT_DEG 23.9: the slow libration period of the linearised problem and the tadpole to horseshoe limit | limit 23 to 25 | small-mass trojans | a librating body whose period differs from the law by over 10 percent | none | Murray and Dermott 1999 ch. 3 (recalled, not opened) | GEN.1149 | - |
+| TJ4 | P | T4 | L4 | trojans.LEADING_SHARE_RANGE (0.5, 0.62): the share of a swarm in L4 | 0.5 to 0.7 | swarms of giants | a swarm whose leading share is outside the range | the capture history of the generated giant | none read; Jupiter's L4 outnumbers its L5 by about 1.6 to 1 (recalled) | GEN.1149 | no data |
+| TJ5 | P | T4 | L4 | trojans.ECC_MAX 0.2 and INCLINATION_MAX_DEG 35: the largest eccentricity and inclination of a trojan's orbit | e 0.1 to 0.3; i 30 to 40 | every trojan | an N-body run of a trojan inside the limits that leaves in 1 Gyr | an N-body map of the trojan region by mass ratio | none read for a limit; Earth Trojans (arXiv 1812.01244, abstract READ) are stable under 15 degrees and between 24 and 37 degrees | GEN.1149 | no data |
 
 ## 6.94 Stand-ins of the irregular zone
 
