@@ -60,8 +60,8 @@ def test_insert_row_writes_one_plain_insert_and_returns_the_id():
     assert connection.calls == [("INSERT INTO stars (name, age_gy) VALUES (?, ?)", ("A", 2.0))]
 
 
-def test_a_belt_is_written_in_kilometres_with_a_stated_zero_point_and_mass():
-    belt = types.SimpleNamespace(distance=2.0, lower_limit=1.5, upper_limit=3.0, density=0.4,
+def test_a_belt_is_written_in_kilometres_with_a_stated_zero_point_and_its_own_mass():
+    belt = types.SimpleNamespace(distance=2.0, lower_limit=1.5, upper_limit=3.0, density=0.4, mass_kg=1.5e21,
                                  get_composition_summary=lambda: "rock")
     connection = _Connection()
     context = {"star_system_id": 5, "star_id": 2, "orbital_index": 1}
@@ -71,7 +71,7 @@ def test_a_belt_is_written_in_kilometres_with_a_stated_zero_point_and_mass():
     assert row["distance_km"] == 2.0 * constants.AU_TO_KM and row["upper_limit_km"] == 3.0 * constants.AU_TO_KM
     assert row["composition_summary"] == "rock" and row["star_id"] == 2 and row["orbital_index"] == 1
     assert [row[name] for name in columns if name.startswith(("position_", "velocity_"))] == [0.0] * 6
-    assert row["mass_kg"] == 0.0
+    assert row["mass_kg"] == 1.5e21
 
 
 def test_an_anchored_remnant_leaves_its_motion_and_spin_to_its_star():
@@ -211,7 +211,7 @@ def _check_bodies(system, checked):
             row = _stored(store.BELT_FIELDS, body, context)
             loaded = store._belt_row_to_dict(row, [{"component": "ice", "concentration": 0.5}])
             original = body.to_dict()
-            for key in ("distance", "lower_limit", "upper_limit", "density"):
+            for key in ("distance", "lower_limit", "upper_limit", "density", "mass_kg"):
                 _same(original[key], loaded[key])
             assert loaded["body_type"] == "a" and loaded["composition"] == [["ice", 0.5]]
             checked.add("belt")
