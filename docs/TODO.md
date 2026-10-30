@@ -1138,26 +1138,10 @@ with `clamp()`.
   and API field, API version bump with the change note). Done: page and
   API tests, the web a11y and link checks, the unit shown beside every
   number, a link from the system page. No backward-compat shim. Where we
-  think it belongs (best guess, can move): Core 2, train 16 (after the
-  members are stored on train 15).
+  think it belongs (best guess, can move): Core 2, train 7 (after the
+  members are stored on train 7).
   Prerequisites: UX.240, GEN.1070, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
-- [ ] **UX.242 Systems tables: Stars, Objects and Habitable world columns replace the Binary column (All systems table and the search Systems panel)**
-  Boss, 4:45 PM EDT 2026-10-30. PR #4142 (open, merges alone): stars =
-  every row of stars in the system, objects = stars + planets + moons +
-  belts, habitable world = a planet or moon at Yellow or better;
-  /api/systems carries star_count, object_count, has_habitable_world;
-  derived at read time, no migration, no generated output. Its tests
-  were only compiled in the thread container: a lane machine runs
-  scripts/test.py changed --resume, then merges it. Lock-free. Owner:
-  Core 1 (runs the tests and merges; separate from its TEST queue).
-  Boss 5:49 PM EDT 10-30 (priority) (2026-10-30 5:50 PM EDT): Boss has
-  not yet tested the third-star fix and needs this merged first so he
-  can find those systems: top priority for Core 1. He also needs the
-  star count searchable from the search box (UX.239 first slice, same
-  owner).
-  Prerequisites: none.
 
 - [ ] **UX.243 Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4)**
   Boss, 4:47 PM EDT 2026-10-30. The counter reads the state of the
@@ -6615,7 +6599,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
   thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
   from Sources 1 at its request. This replaces any earlier owner line.
-  Lock-free step first; the wiring step rides train 7. Brief:
+  Lock-free step first; the wiring step rides train 6. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
 
 - [ ] **GEN.474 Replace the Earth rock-type library, measured on Earth, by ground types derived from the bulk composition and the melting of the mantle**
@@ -6679,7 +6663,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
   thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
   from Sources 1 at its request. This replaces any earlier owner line.
-  Lock-free step first; the wiring step rides train 7. Brief:
+  Lock-free step first; the wiring step rides train 6. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
 
 - [ ] **GEN.475 Meteorite groups become outputs and not inputs: regions of composition space reachable from the drawn bulk, with the measured groups kept as calibration**
@@ -6718,7 +6702,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
   thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
   from Sources 1 at its request. This replaces any earlier owner line.
-  Lock-free step first; the wiring step rides train 7. Brief:
+  Lock-free step first; the wiring step rides train 6. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Part 1 merged (2026-10-29 10:51 PM EDT): Sources 2 merged part 1
   (#3859): chondrite groups as a composition-space map with a
@@ -6767,7 +6751,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
   thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
   from Sources 1 at its request. This replaces any earlier owner line.
-  Lock-free step first; the wiring step rides train 7. Brief:
+  Lock-free step first; the wiring step rides train 6. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
 
 - [ ] **GEN.477 The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug)**
@@ -6891,7 +6875,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
   thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
   from Sources 1 at its request. This replaces any earlier owner line.
-  Lock-free step first; the wiring step rides train 7. Brief:
+  Lock-free step first; the wiring step rides train 6. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   E2 lock-free step merged (2026-10-29 10:51 PM EDT): Sources 2 merged
   the E2 lock-free step (#3855, as the lane reported 10:51 PM EDT): belt
@@ -7011,11 +6995,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
   thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
   from Sources 1 at its request. This replaces any earlier owner line.
-  Lock-free step first; the wiring step rides train 7. Brief:
+  Lock-free step first; the wiring step rides train 6. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   TODO thread (Sources 2 and Sources 1 agreed) (2026-10-30 11:38 AM
   EDT): Owner: Sources 1 (claude/gen492); Sources 2 has not started it.
-  Sources 2 keeps the GEN.473/474/475/477/493/494/595 wiring on train 7.
+  Sources 2 keeps the GEN.473/474/475/477/493/494/595 wiring on train 6.
   Sources 1 (step 1 merged as #4046, as the lane reported) (2026-10-30
   11:46 AM EDT): Lock-free step done: physics/potassium_depletion.py
   draws potassium depletion by body class from Dauphas et al. 2022 Table
@@ -7025,7 +7009,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/gen492-potassium-depletion-2026-10-30.md.
   Step 2, the wiring (radiogenic.draw_content takes the draw plus Barrat
   CI K/U 71,429; Earth K heat drops about 20 percent; new epoch, no
-  migration), rides train 7. Item stays open until step 2 merges.
+  migration), rides train 6. Item stays open until step 2 merges.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.493 Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14)**
@@ -7075,7 +7059,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
   thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
   from Sources 1 at its request. This replaces any earlier owner line.
-  Lock-free step first; the wiring step rides train 7. Brief:
+  Lock-free step first; the wiring step rides train 6. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
@@ -7135,7 +7119,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
   thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
   from Sources 1 at its request. This replaces any earlier owner line.
-  Lock-free step first; the wiring step rides train 7. Brief:
+  Lock-free step first; the wiring step rides train 6. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
@@ -9815,7 +9799,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
   thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
   from Sources 1 at its request. This replaces any earlier owner line.
-  Lock-free step first; the wiring step rides train 7. Brief:
+  Lock-free step first; the wiring step rides train 6. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none.
 
@@ -10979,7 +10963,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MPI-Mainz ozone cross sections are downloaded; the class census
   expectations are in src/tests/data/prevalence_expectations.json.
   Catalog sections 2 and 4.
-  Ready for train 6 (4:06 PM EDT 2026-10-30): Aux 2 (as the lane
+  Ready for train 5 (4:06 PM EDT 2026-10-30): Aux 2 (as the lane
   reported): branch claude/gen768-outside-hours, one migration
   (provisional 0187_outside_hours_day, schema v187, v186 fixture), epoch
   --affects fill, no draw changes, does not move life, air or class
@@ -12775,7 +12759,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in bulk_draw. Do: change the draw, register the stand-in in GEN.725
   with tier and tweak level, run the Mars check as a test. Changes
   generated output (core size, radius, density, heat): epoch, --affects
-  fill, rides train 7 (sources, last). Owner: Sources 1. Version 8.1.
+  fill, rides train 6 (sources, last). Owner: Sources 1. Version 8.1.
   Prerequisites: none. Related: GEN.777, GEN.725.
 
 - [ ] **GEN.994 Wire the hot-giant regime edges (equilibrium_edges) into the atmosphere row for hot giants**
@@ -12842,7 +12826,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   because the Kennicutt law has no low-density threshold. The quantity
   is right and the value about 3 times short; it is registered as 6.49
   AL1 and the fix is filed as GEN.999. Close this item when the registry
-  row AL1 lands with the train 7 wiring branch.
+  row AL1 lands with the train 6 wiring branch.
   Prerequisites: none. Related: GEN.469, GEN.476, GEN.477.
 
 - [ ] **GEN.999 Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy**
@@ -13065,7 +13049,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-30: build all of GEN.1006. Star 2 (the pivot, ahead of
   GEN.1024): MemberRecord and Star.from_record, tree and build read the
   record, schema adds radius_max_au and mass_max_solar. Lock-free pieces
-  first (pure record, tests), then the wiring. Train 8. Merge
+  first (pure record, tests), then the wiring. Train 5. Merge
   authorization: all merges without human review. Times to Boss in EDT
   only.
 
@@ -13082,7 +13066,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
   2026-10-30: build all of GEN.1006. Star 2, after GEN.1009 (same
   module): one keep-out rule at every depth. Branch from the GEN.1009
-  branch. Train 9. Merge authorization: all merges without human review.
+  branch. Train 5. Merge authorization: all merges without human review.
   Times to Boss in EDT only.
   Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
 
@@ -13102,7 +13086,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
   2026-10-30: build all of GEN.1006. Star 2, after GEN.1010: truncated
   sampling of period and eccentricity, deleting the 60-try loop and the
-  restart loop. Train 9. Merge authorization: all merges without human
+  restart loop. Train 5. Merge authorization: all merges without human
   review. Times to Boss in EDT only.
 
 - [ ] **GEN.1012 Overlap-free stars P6: a general history rule replacing the white-dwarf-only engulfment test in classify_pair**
@@ -13125,7 +13109,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-30: build all of GEN.1006. Tides 1 (engulfment and tides are
   its area), after GEN.1009: the history rule replacing the
   white-dwarf-only engulfment test; registers the engulfment constants
-  below Mustill and Villaver 2012. Train 9. Merge authorization: all
+  below Mustill and Villaver 2012. Train 6. Merge authorization: all
   merges without human review. Times to Boss in EDT only.
   Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
 
@@ -13142,7 +13126,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
   2026-10-30: build all of GEN.1006. Aux 3 (waiting lane), after
   GEN.1009: compact members and brown dwarfs kept in the tree for the
-  orbit draw. Train 9. Merge authorization: all merges without human
+  orbit draw. Train 6. Merge authorization: all merges without human
   review. Times to Boss in EDT only.
   Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
 
@@ -13168,14 +13152,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-30: build all of GEN.1006. Planets 1, after GEN.1011: the
   clearance ledger and planet, moon and belt sampling from it, replacing
   _orbit_floor_au and the per-star a_crit reads; takes GEN.1023 (the
-  9.93 Hill radii pair) with it. Train 10. Merge authorization: all
+  9.93 Hill radii pair) with it. Train 6. Merge authorization: all
   merges without human review. Times to Boss in EDT only.
   Part 1 merged (PR #4099) (3:30 PM EDT 2026-10-30):
   physics/clearance_ledger.py (derived ledger of the spans a planet,
   moon or belt may sit in; no output change, no epoch; 33 tests). Part
   2, the wiring that replaces _orbit_floor_au, the a_crit reads and the
   space_orbits pushes, waits on GEN.1009 and GEN.1011 (Star 2) and rides
-  train 10.
+  train 6.
 
 - [ ] **GEN.1015 Overlap-free stars P9: delete the GEN.1004 quick fix (built_tree_clears, the clearance branch of _companions_fit, _built_stars_clear), no shim**
   Remove the quick fix once the construction guarantees clearance; set
@@ -13192,7 +13176,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-30: build all of GEN.1006. Bug 1, after GEN.1011 and GEN.1014:
   delete built_tree_clears, the _companions_fit clearance branch and
   _built_stars_clear (GEN.1004 fix), no shim; TEST.476 invariant set to
-  zero. Train 10. Merge authorization: all merges without human review.
+  zero. Train 6. Merge authorization: all merges without human review.
   Times to Boss in EDT only.
 
 - [ ] **GEN.1016 Overlap-free stars P10: per-level hierarchical stability margin and the 2+2 quadruple fit, if the verifier shows it is needed**
@@ -13225,7 +13209,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-30: build all of GEN.1006. Core 3, after GEN.1011 and TEST.477
   (its verifier): per-level stability margin, the 2+2 fit and the 3+1
   criterion from the research item; takes GEN.1028 (MA01 q_out <= 5).
-  Train 11. Merge authorization: all merges without human review. Times
+  Train 6. Merge authorization: all merges without human review. Times
   to Boss in EDT only.
   GEN.1029 merged (PR #4098) (3:28 PM EDT 2026-10-30): The 3+1 stability
   network is in (physics/quadruple_stability.py, design
@@ -13250,7 +13234,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
   2026-10-30: build all of GEN.1006. Bug 1 (star lane) first, after
   GEN.951: P0 gives the star tree the primary [Fe/H], age and mass the
-  build uses. Train 8 with GEN.1009. Merge authorization: all merges
+  build uses. Train 5 with GEN.1009. Merge authorization: all merges
   without human review. Times to Boss in EDT only.
   Prerequisites: none. Related: GEN.1006, GEN.1004, GEN.1009, TEST.476.
 
@@ -13482,7 +13466,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   their own Bond albedo range 0.29 to 0.50 (the measured four: Jupiter
   0.50, Saturn 0.34, Uranus 0.30, Neptune 0.29;
   climate_draws.DEFAULT_ALBEDO_RANGE is the rock range) as part of
-  GEN.1030, rides train 7, and registers it in GEN.725 with tier and
+  GEN.1030, rides train 6, and registers it in GEN.725 with tier and
   tweak level. The internal heat law is left alone for now and the
   Uranus anomaly is registered as a stand-in row. Do (this item): find a
   physical reason for the spread of ice-giant internal heat (Uranus near
@@ -13491,7 +13475,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that can give a Uranus-like low heat. Done: a Uranus-mass giant can
   draw a low internal heat with a stated source and a registry row; the
   stand-in row is retired. Owner: none yet (pool; Air 1 or Core 4 giants
-  chain after train 7). Version 8.1.
+  chain after train 6). Version 8.1.
   Prerequisites: GEN.1030. Related: GEN.1030, GEN.810.
 
 - [ ] **GEN.1034 Ocean tide data: the open-ocean equilibrium tide height and range at a world's surface from each moon and the star, for worlds with a surface ocean**
@@ -13521,7 +13505,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   solar peak-to-peak and about 0.8 m spring range, an ocean world with
   no moon shows only the star's tide, a locked-to-the-star ocean world
   shows none from it, and the property sheet carries the columns. Owner:
-  Tides 1 (lock-free module now; wiring rides train 7 after train 5
+  Tides 1 (lock-free module now; wiring rides train 6 after train 5
   merges). Version 8.1.
   Boss widened the scope (4:07 PM EDT 2026-10-30): Boss, 4:07 PM EDT
   2026-10-30: gather all the data we can for ocean tides, and check
@@ -13560,7 +13544,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   out of the tide module and moves to the weird-conditions research
   thread ("Research plausible weird planet conditions"). The tide module
   for non-water liquids waits for GEN.1035 (surface liquid inventory,
-  Aux 4), planned train 10 or later; the water columns stay on train 7.
+  Aux 4), planned train 6 or later; the water columns stay on train 6.
   The weird-conditions thread inherits: mercury and other liquid metals,
   deep global heavy-liquid layers (fluid Love-number path), and exotic
   liquids not in GEN.1035's first table.
@@ -13604,9 +13588,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   melting/boiling curve, density, viscosity, surface tension where
   known, source or stand-in) first, in small parts, merged by Aux 4; the
   wiring (stored surface_liquid, coverage, hydrosphere interplay,
-  description text) is lock work, planned for train 9, before the
-  non-water parts of GEN.1034 (train 10 or later). The water-ocean tide
-  columns of GEN.1034 ride train 7 unchanged.
+  description text) is lock work, planned for train 5 (the GEN.1035 liquid part), before the
+  non-water parts of GEN.1034 (train 6 or later). The water-ocean tide
+  columns of GEN.1034 ride train 5 unchanged.
   Part 1 merged (PR #4123) (4:24 PM EDT 2026-10-30): Aux 4 (as the lane
   reported): physics/surface_liquids.py and
   physics/data/surface_liquids.json, 51 liquids (19 species with
@@ -13615,7 +13599,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   natrocarbonatite) each with window, density, viscosity, surface
   tension, tier, tweak and source; the supply rule and the ideal
   methane-ethane-nitrogen sea; registry rows LQ1 to LQ10 (section 6.69).
-  No output change. Wiring turn (train 9) is next, Aux 4.
+  No output change. Wiring turn (train 5) is next, Aux 4.
   Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
 
 - [ ] **GEN.1046 W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches**
@@ -13636,7 +13620,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
   sources and stand-ins are accepted when each is registered in GEN.725
   with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Lock work, train 12. Done: a
+  confirmed by the lane that builds it. Lock work, train 9. Done: a
   forced oddity shows on the page with its cause sentence and in the
   API; dial 0 changes no other draw (isolation test); the census
   re-baselined by the census item. Owner: Planets 1. Version 8.1.
@@ -13648,7 +13632,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
   sources and stand-ins are accepted when each is registered in GEN.725
   with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Lock work, train 12 (with the
+  confirmed by the lane that builds it. Lock work, train 9 (with the
   table wiring). Each module's author wires their own input and Planets
   1 integrates. Done: tests per oddity, the harness passes, the census
   shares sit in the literature ranges. Owner: Aux 7 (W1, W2), Planets 1
@@ -13661,8 +13645,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
   sources and stand-ins are accepted when each is registered in GEN.725
   with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Lock work, train 13, after the
-  GEN.1006 chain (trains 8 to 11). Done: tests, harness, census. Owner:
+  confirmed by the lane that builds it. Lock work, train 9, after the
+  GEN.1006 chain (trains 5 and 6). Done: tests, harness, census. Owner:
   Planets 1 (W5 module from Aux 7). Version 8.1.
   Prerequisites: GEN.1047, GEN.1016.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
@@ -13672,7 +13656,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
   sources and stand-ins are accepted when each is registered in GEN.725
   with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Lock work, train 14. Done:
+  confirmed by the lane that builds it. Lock work, train 9. Done:
   tests, harness, census. Owner: Core 4 (W14) with Tides 1 (W9 rings
   from moon_orbits). Version 8.1.
   Prerequisites: GEN.1047.
@@ -13683,7 +13667,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
   sources and stand-ins are accepted when each is registered in GEN.725
   with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Lock work, train 14. Done:
+  confirmed by the lane that builds it. Lock work, train 9. Done:
   tests, harness, census; W20 only after GEN.972. Owner: Aux 3 (W19),
   Air 1 (W20). Version 8.1.
   Prerequisites: GEN.1046, GEN.1047.
@@ -13726,7 +13710,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design docs/design/systems/weird-worlds.md sections 8 and 9).
   Secondary and tertiary sources and stand-ins are accepted when each is
   registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Lock work, train 14 (with the
+  confirmed by the lane that builds it. Lock work, train 9 (with the
   W14 and W9 wiring). Done: tests, harness, the census ring shares.
   Owner: Tides 1 (ring origin), with Core 2 (age and painter). Version
   8.1.
@@ -13739,7 +13723,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design docs/design/systems/weird-worlds.md sections 8 and 9).
   Secondary and tertiary sources and stand-ins are accepted when each is
   registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Lock work, train 13 (with the
+  confirmed by the lane that builds it. Lock work, train 9 (with the
   W5, W3, W4 wiring). Done: tests, harness, census. Owner: Core 4.
   Version 8.1.
   Prerequisites: GEN.1047. Related: GEN.1033.
@@ -13777,7 +13761,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Kirkwood gaps (3:1 at 2.50 AU, 5:2, 7:3, 2:1) from Jupiter and the
   empty zone inside Neptune's chaotic zone. Lock-free. Where we think it
   belongs (best guess, can move): Core 3 (stability lane, waits for
-  train 11; separate branch), after the research read.
+  train 6; separate branch), after the research read.
   Prerequisites: GEN.1060. Related: GEN.1016.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -13801,7 +13785,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   text history line per event the page can show. Pure function. Done:
   tests on white dwarf, red giant and binary-truncation cases.
   Lock-free. Where we think it belongs (best guess, can move): Star 2
-  (owns the post-main-sequence epoch work, after its train 9 items;
+  (owns the post-main-sequence epoch work, after its train 5 items;
   separate branch), or Sources 2 if Star 2 stays busy.
   Prerequisites: GEN.1060.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
@@ -13848,7 +13832,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only for a differentiated belt, density from compaction. Pure function
   over the ledger draw. Done: tests show the gradient across a belt and
   the undifferentiated case. Lock-free. The belt-wide taxa wiring is
-  GEN.473 (train 7); this is the per-member step. Where we think it
+  GEN.473 (train 6); this is the per-member step. Where we think it
   belongs (best guess, can move): Sources 1 (composition and sources
   lane; separate branch), after the ledger draw.
   Prerequisites: GEN.1061.
@@ -13866,15 +13850,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Stand-ins accepted when registered with tier and tweak level; a number
   marked [R] in the design is read from its source by the lane that
   builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 15. Design section
+  are test targets, never inputs. Lock work, train 7. Design section
   2.1 and 4 steps 1 to 3: the annulus from the architecture gap or tail,
   M0 from the disc solids, the formation snow line stored, the giants'
   chaotic zones and resonance gaps removed, the early-depletion draw.
   The belt gap map is a clearance entry in the GEN.1014 ledger. Done:
   tests, a new epoch with --affects, the census re-baselined by the
   census item. Replaces the slot roll; no backward-compat shim. Where we
-  think it belongs (best guess, can move): Planets 1, train 15 (after
-  the GEN.1014 wiring on train 10 and the ledger, gaps and history
+  think it belongs (best guess, can move): Planets 1, train 7 (after
+  the GEN.1014 wiring on train 6 and the ledger, gaps and history
   modules).
   Prerequisites: GEN.1014, GEN.1062, GEN.1064. Related:
   GEN.728.
@@ -13899,13 +13883,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Stand-ins accepted when registered with tier and tweak level; a number
   marked [R] in the design is read from its source by the lane that
   builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 15. Design section 10
+  are test targets, never inputs. Lock work, train 7. Design section 10
   item 10: the belt's stored mass is the budget the ledger spends; the
   density word is derived from mass per area, no shim. New columns
   registered in db/column_units.py. Done: migration, tests, golden, the
   page shows the mass and its history. Builds on the GEN.477 wiring
-  (train 7). Where we think it belongs (best guess, can move): Sources
-  2, train 15 (same train as the belt birth).
+  (train 6). Where we think it belongs (best guess, can move): Sources
+  2, train 7 (same train as the belt birth).
   Belt origins (2026-10-30 4:35 PM EDT): Adds the origin, formation and
   history text columns to the belt record (design belt-origins section
   4).
@@ -13924,14 +13908,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Stand-ins accepted when registered with tier and tweak level; a number
   marked [R] in the design is read from its source by the lane that
   builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 15. Design section 3,
+  are test targets, never inputs. Lock work, train 7. Design section 3,
   5 and 10 item 11: members stored by the cut rule (at most 300 per
   belt), L2 bodies addressable by (belt id, rank) and rebuilt, never
   stored; each page shows status, mass, composition and the belt
   history. Done: migration, API version bump with the change note,
   tests, map and page checks. No backward-compat shim. Where we think it
   belongs (best guess, can move): Core 2 (map and pages) with Sources 2
-  (storage), train 15.
+  (storage), train 7.
   Belt origins (2026-10-30 4:35 PM EDT): Stored members carry the
   scatter tag once the scatter phase is wired (GEN.1092).
   Belt page (Boss 4:37 PM EDT) (2026-10-30 4:38 PM EDT): Each stored
@@ -13951,13 +13935,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Stand-ins accepted when registered with tier and tweak level; a number
   marked [R] in the design is read from its source by the lane that
   builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 16. Design section
+  are test targets, never inputs. Lock work, train 7. Design section
   2.1 and 10 item 12: the outer disc beyond the last giant, its mass and
   size law (hot and cold populations, Fraser 2014), the cold-disc
   occurrence from Sibthorpe 2018, one belt record replacing the separate
   descriptor. New epoch. Done: tests, census share of systems with an
   outer disc matches the descriptor's occurrence. Where we think it
-  belongs (best guess, can move): Sources 2, train 16 (after train 15).
+  belongs (best guess, can move): Sources 2, train 7 (after the belt birth in the same train).
   Belt origins (2026-10-30 4:35 PM EDT): The outer disc is fed by the
   scatter step (GEN.1092).
   Kuiper-type objects in the sweep (2026-10-30 4:39 PM EDT): Boss asked
@@ -13981,13 +13965,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Stand-ins accepted when registered with tier and tweak level; a number
   marked [R] in the design is read from its source by the lane that
   builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 16. Design section
+  are test targets, never inputs. Lock work, train 7. Design section
   2.5 and 10 item 13: the belt history module (engulf partly,
   destabilise a share on mass loss, scatter inward) applied when a star
   becomes a remnant, with the pollution rate linked to whether a belt or
   planet survives. New epoch. Done: tests, white dwarf pollution share
   within the observed 25 to 50 percent band as a census check. Where we
-  think it belongs (best guess, can move): Star 2, train 16.
+  think it belongs (best guess, can move): Star 2, train 7.
   Prerequisites: GEN.1064, GEN.1068.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -14003,13 +13987,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Stand-ins accepted when registered with tier and tweak level; a number
   marked [R] in the design is read from its source by the lane that
   builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Lock work, train 16. Design section 4
+  are test targets, never inputs. Lock work, train 7. Design section 4
   closing note and 10 item 14: when the star changes epoch (GEN.1006)
   the belt mass is recomputed from the new age without redrawing the
   individual members above the grinding scale; the tail changes, the top
   bodies do not. Done: tests with a before and after epoch, stable
   ranks. Where we think it belongs (best guess, can move): Bug 1
-  (GEN.1006 chain, GEN.1017 on train 8), train 16 after the GEN.1006
+  (GEN.1006 chain, GEN.1017 on train 5), train 7 after the GEN.1006
   chain has merged.
   Prerequisites: GEN.1069, GEN.1006.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
@@ -14074,7 +14058,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   level; [R] numbers are read from the source by the lane that builds
   it. Do: design section 4: a captured body takes the composition of the
   reservoir it came from, and family members share a parent. Pure
-  function. Done: tests. Lock-free. Needs the GEN.473 wiring (train 7)
+  function. Done: tests. Lock-free. Needs the GEN.473 wiring (train 6)
   merged first. Where we think it belongs (best guess, can move):
   Sources 1 (with the per-member composition item GEN.1067).
   Prerequisites: GEN.1077, GEN.1067.
@@ -14089,10 +14073,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   designation function with the belt evolution items (goal #4130).
   Stand-ins accepted when registered in GEN.725 with tier and tweak
   level; [R] numbers are read from the source by the lane that builds
-  it. Lock work, train 15 with the belt birth item. One epoch with the
+  it. Lock work, train 7 with the belt birth item. One epoch with the
   GEN.728 wiring, --affects plan. Done: tests, golden, census
   re-baseline. Where we think it belongs (best guess, can move): Planets
-  1, train 15.
+  1, train 7.
   Belt origins (2026-10-30 4:35 PM EDT): Captured moons from the scatter
   step wait for the census (GEN.1087) to show a moon deficit, with
   GEN.921.
@@ -14108,10 +14092,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   designation function with the belt evolution items (goal #4130).
   Stand-ins accepted when registered in GEN.725 with tier and tweak
   level; [R] numbers are read from the source by the lane that builds
-  it. Lock work, train 17. New epoch, --affects plan, golden. Done:
+  it. Lock work, train 7. New epoch, --affects plan, golden. Done:
   tests, census share of giants with irregulars and the head counts per
   giant. Where we think it belongs (best guess, can move): Core 3 (owns
-  the moon draw lock), train 17.
+  the moon draw lock), train 7.
   Prerequisites: GEN.1082, GEN.1079, GEN.1080.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -14124,10 +14108,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   designation function with the belt evolution items (goal #4130).
   Stand-ins accepted when registered in GEN.725 with tier and tweak
   level; [R] numbers are read from the source by the lane that builds
-  it. Lock work, train 17. Replaces the open weights, no backward-compat
+  it. Lock work, train 7. Replaces the open weights, no backward-compat
   shim. Done: migration, API version bump with the change note, tests,
   columns in db/column_units.py. Where we think it belongs (best guess,
-  can move): Core 3 with Sources 2 (storage), train 17.
+  can move): Core 3 with Sources 2 (storage), train 7.
   Prerequisites: GEN.1083, GEN.1070. Related: GEN.1006.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -14140,10 +14124,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   designation function with the belt evolution items (goal #4130).
   Stand-ins accepted when registered in GEN.725 with tier and tweak
   level; [R] numbers are read from the source by the lane that builds
-  it. Lock work, train 18 (with the belt storage already merged). Epoch
+  it. Lock work, train 7 (with the belt storage already merged). Epoch
   with the belt storage. Done: tests show belt mass minus captured mass
   is conserved. Where we think it belongs (best guess, can move):
-  Sources 2, train 18.
+  Sources 2, train 7.
   Prerequisites: GEN.1084, GEN.1069.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -14156,10 +14140,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   designation function with the belt evolution items (goal #4130).
   Stand-ins accepted when registered in GEN.725 with tier and tweak
   level; [R] numbers are read from the source by the lane that builds
-  it. Lock work, train 18, part of the 8.2 object pages.
+  it. Lock work, train 7, part of the 8.2 object pages.
   web/maps/moonorbits.py, GEN.1014 clearance entry. Done: tests and map
   checks. Where we think it belongs (best guess, can move): Core 2,
-  train 18.
+  train 7.
   Prerequisites: GEN.1084. Related: GEN.1014.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -14173,11 +14157,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the planet list; the scatter phase is a rule over the architecture's
   events with stored mass shares, no N-body run. Stand-ins accepted when
   registered in GEN.725 with tier and tweak level; the Solar System is a
-  test target, never an input. Lock work, train 16 with the outer-disc
+  test target, never an input. Lock work, train 7 with the outer-disc
   item (it extends the member storage and the outer disc). New epoch,
   API bump with the change note. Done: tests, harness, census
   re-baseline; every belt page says where it came from. Where we think
-  it belongs (best guess, can move): Sources 2 with Planets 1, train 16.
+  it belongs (best guess, can move): Sources 2 with Planets 1, train 7.
   Scatter placement (Boss confirmed 4:37 PM EDT) (2026-10-30 4:40 PM
   EDT): Boss confirmed the origins, scatter and Class D defaults and the
   build. The scatter sweep sits in generation after the giants are
@@ -14208,7 +14192,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fix: cap the draw at the brown-dwarf edge with the host-mass
   dependence. The fix changes generated output (lock work, epoch,
   --affects plan) and removes the xfail. Where we think it belongs (best
-  guess): Core 4 giants chain, train 7.
+  guess): Core 4 giants chain, train 5.
   Prerequisites: none.
 
 - [ ] **GEN.1097 Every object has a day-and-night state and counter: solar day length, day and night hours, and an explicit state for tidally locked, non-rotating, polar-day and no-solid-surface bodies, stored for planets, moons, belt bodies and (where meaningful) stars (bug)**
@@ -14227,7 +14211,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   body, the Sun; the values stored for every object kind (columns in
   db/column_units.py, migration, API bump). Lock work (epoch if a value
   draws, migration). Where we think it belongs (best guess, can move):
-  Aux 2 (owns GEN.768 hours outside), train 7.
+  Aux 2 (owns GEN.768 hours outside), train 6.
   Prerequisites: none. Related: GEN.768, GEN.957.
 
 - [ ] **GEN.1103 AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed**
@@ -14237,9 +14221,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   choice and two small questions (retire past 1 ly versus keep a record
   row; the remnant planet) are with Boss; the lane builds the modules
   with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Lock work, train 20 (with the supernova host rule). Design
+  GEN.725. Lock work, train 8 (with the supernova host rule). Design
   L1. Epoch, migration, no backward-compat shim. Done: tests, golden,
-  census. Where we think it belongs (best guess, can move): Aux 4, train 20.
+  census. Where we think it belongs (best guess, can move): Aux 4, train 8.
   Boss decision (2026-10-30 4:55 PM EDT): Boss decided 4:54 PM EDT
   2026-10-30: option 1, physics only, no labelled game rate; fields come
   only from physical sources (supernova-unbound belts and the other
@@ -14256,9 +14240,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   choice and two small questions (retire past 1 ly versus keep a record
   row; the remnant planet) are with Boss; the lane builds the modules
   with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Lock work, train 20. Design L2. Done: tests, census share of
+  GEN.725. Lock work, train 8. Design L2. Done: tests, census share of
   remnants with a field. Where we think it belongs (best guess, can
-  move): Aux 4, train 20 (same train as the columns).
+  move): Aux 4, train 8 (same train as the columns).
   Prerequisites: GEN.1103.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -14269,10 +14253,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   choice and two small questions (retire past 1 ly versus keep a record
   row; the remnant planet) are with Boss; the lane builds the modules
   with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Lock work, train 21 after the belt ledger items are merged
+  GEN.725. Lock work, train 8 after the belt ledger items are merged
   (belt member storage and designation). API version bump. Done: tests,
   pages. Where we think it belongs (best guess, can move): Core 2 with
-  Aux 4, train 21.
+  Aux 4, train 8.
   Prerequisites: GEN.1103, GEN.1070.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -14283,8 +14267,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   choice and two small questions (retire past 1 ly versus keep a record
   row; the remnant planet) are with Boss; the lane builds the modules
   with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Lock work, train 21. Design L4. Done: map and page checks.
-  Where we think it belongs (best guess, can move): Core 2, train 21.
+  GEN.725. Lock work, train 8. Design L4. Done: map and page checks.
+  Where we think it belongs (best guess, can move): Core 2, train 8.
   Prerequisites: GEN.1105.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -14295,9 +14279,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   choice and two small questions (retire past 1 ly versus keep a record
   row; the remnant planet) are with Boss; the lane builds the modules
   with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Lock work, train 21, after the GEN.1006 chain. Design L5.
+  GEN.725. Lock work, train 8, after the GEN.1006 chain. Design L5.
   Done: tests with a before and after epoch. Where we think it belongs
-  (best guess, can move): Bug 1 (GEN.1006 chain), train 21.
+  (best guess, can move): Bug 1 (GEN.1006 chain), train 8.
   Boss decision (2026-10-30 4:55 PM EDT): Boss decided 4:54 PM EDT
   2026-10-30: option 1, physics only, no labelled game rate; fields come
   only from physical sources (supernova-unbound belts and the other
@@ -14333,7 +14317,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in db/column_units.py, migration, API bump); the units shown. Lock
   work (migration, API version, regional temperatures move). Where we
   think it belongs (best guess, can move): Aux 2 with the day-and-night
-  state item, train 7.
+  state item, train 6.
   Prerequisites: GEN.1097. Related: GEN.768, GEN.1048.
 
 - [ ] **GEN.1110 Average wind speeds by day and by night in each of the seven latitude bands: the day-to-night thermal wind from the pressure difference, zonal jets and trade winds from the equator-to-pole temperature difference and the Rossby number, faded out below about 1 kPa**
@@ -14369,8 +14353,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   draw; no backward-compat shim. Lock work (epoch with --affects,
   migration, API field), after the architecture slot loop and the
   clearance ledger. Where we think it belongs (best guess, can move):
-  Planets 1, train 19.
-  Rogue train 19 (Boss, 4:57 PM EDT) (2026-10-30 4:59 PM EDT): Boss,
+  Planets 1, train 8.
+  Rogue train 8 (Boss, 4:57 PM EDT) (2026-10-30 4:59 PM EDT): Boss,
   4:57 PM EDT 2026-10-30: rogue planets are all physics, each has its
   own moon system and moon compositions, and a rogue planet is
   functionally and programmatically identical to a planet in a system
@@ -14379,8 +14363,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one body chain of GEN.557), not a simplified one; the flat-rate rogue
   tables are deleted. This item is the core of train 19: epoch with
   --affects, migration, golden refresh through Bug 2. The fields
-  (GEN.1103 and GEN.1104) move to train 20 and GEN.1105 to GEN.1107 to
-  train 21.
+  (GEN.1103 and GEN.1104) move to train 8 and GEN.1105 to GEN.1107 to
+  train 8.
   Boss idea, 5:03 PM EDT (each star donates rogues) (2026-10-30 5:04 PM
   EDT): Boss: have each star system in a sector donate rogue planets:
   they are generated as part of the system, with a slot and a full
@@ -14467,8 +14451,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   again; deleting a sector deletes the rogues its systems ejected, not
   those that landed in it (GEN.1127 removes the cascade). The earlier
   virtual-donor, home-sector and landing-phase paragraphs are void.
-  Released from hold. Order: GEN.1127 (train 19a) first, this item with
-  GEN.1129 on train 19, the abundance level and top-up GEN.1120 on train
+  Released from hold. Order: GEN.1127 (train 6) first, this item with
+  GEN.1129 on train 8, the abundance level and top-up GEN.1120 on train
   19b.
   Removal of defaults (5:59 PM EDT) (2026-10-30 5:59 PM EDT): GEN.1112
   is retired (RP2 to RP7 modules merged: rogue_mass_function,
@@ -14480,47 +14464,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   compatibility shim.
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
-
-- [ ] **GEN.1113 Rogue ejection kick research (D1): read the full texts, extract ejection speed against perturber mass and orbit, direction statistics and moon survival, replace the kick stand-in, test against Sayed et al.**
-  Rogue planet drift and storage (Boss, 5:06 PM EDT 2026-10-30, ejection
-  vector research; design docs/design/systems/rogue-planet-drift.md,
-  goal #4130). Finding: a rogue ejected with a few km/s spreads along
-  the galactic orbit by roughly 1 kpc per 0.5 Gyr, so almost none is
-  near its donor; the recommended storage is virtual donors (each sector
-  draws its own ejection events and runs a closed-form drift, so the
-  rogue lands in the sector where it is, with no real donor needed).
-  Done: report and GEN.725 rows. Lock-free. Where we think it belongs
-  (best guess, can move): Planets 1 (with the rogue review GEN.1109),
-  separate branch.
-  Boss answer (5:29 PM EDT) (2026-10-30 5:31 PM EDT): The kick direction
-  question is answered: isotropic in the origin planet's frame, using
-  the planet's actual movement vector plus the system's motion; check
-  the research for the speed against the perturber and moon survival
-  only.
-  Region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT): Unchanged by the
-  region study; its kick answer is the origin planet's actual motion
-  plus the scattering kick.
-  Owner (5:56 PM EDT) (2026-10-30 5:56 PM EDT): Moved to Aux 7 (built
-  rogue_kick.py; row RK1 names this item), separate branch, together
-  with GEN.1117.
-  Prerequisites: none. Related: GEN.1111, GEN.1109.
-  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
-
-- [ ] **GEN.1117 Register the rogue drift and kick stand-ins in GEN.725 (D7): the rows of design section 8, each with tier and tweak level and a burn-down line where L3 or L4**
-  Rogue planet drift and storage (Boss, 5:06 PM EDT 2026-10-30, ejection
-  vector research; design docs/design/systems/rogue-planet-drift.md,
-  goal #4130). Finding: a rogue ejected with a few km/s spreads along
-  the galactic orbit by roughly 1 kpc per 0.5 Gyr, so almost none is
-  near its donor; the recommended storage is virtual donors (each sector
-  draws its own ejection events and runs a closed-form drift, so the
-  rogue lands in the sector where it is, with no real donor needed).
-  Done: registry rows and burn-down lines merged. Lock-free (docs).
-  Where we think it belongs (best guess, can move): Whoever builds D1
-  and D2, in the same PRs.
-  Owner (5:56 PM EDT) (2026-10-30 5:56 PM EDT): Moved to Aux 7, in the
-  same PRs as GEN.1113.
-  Prerequisites: none. Related: GEN.1111, GEN.1109.
-  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
 - [ ] **GEN.1119 RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today**
   Rogue planet physics (goal #4130, review report
@@ -14566,7 +14509,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   page. Lock work (new option in the generation parameters, epoch with
   --affects, API version bump), after GEN.1111. Where we think it
   belongs (best guess, can move): Planets 1 for the yield and the option
-  plumbing in the rogue rows (train 19), Core 5 for the web form fields.
+  plumbing in the rogue rows (train 8), Core 5 for the web form fields.
   Reworded by the region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT):
   Three-stage spread (study section 8.5): stage 0 subtracts residents
   from the sector budget (GEN.1124); stage 1 is real physics with no
@@ -14584,7 +14527,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   region run (GEN.1128), and registers ROGUE_TOPUP_PLACEMENT (L3,
   burn-down line). Default until Boss answers: the top-up fills the
   shortfall only up to the level. Replaces the single spread-tweak
-  wording above. Train 19b, after the rogue rows.
+  wording above. Train 8, after the rogue rows.
   Boss 5:49 PM EDT 10-30 (2026-10-30 5:50 PM EDT): The three-stage plan
   is confirmed by Boss; whole sectors are confirmed as the tile.
   Prerequisites: none. Related: GEN.1111, GEN.1119, TEST.499.
@@ -14622,7 +14565,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   separate). This makes the collision bump of _rank_chain a legal rename
   and reverses principle 1 of object-id-options.md. A moved rogue keeps
   the ID of its birth position unless Boss asks otherwise (default).
-  Backfill one current row per existing object. Train 22.
+  Backfill one current row per existing object. Train 9.
   Boss 5:49 PM EDT 10-30 (2026-10-30 5:50 PM EDT): Confirmed: a moved
   rogue keeps its ID fixed (birth-position ID), so the move history row
   applies only to renames and collision bumps.
@@ -14662,7 +14605,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fixture, ledger tests, delete tests per the audit report, update.sh
   applies it. Lock work (migration; goes on its own early train, "train
   19a", before the rogue rows). Where we think it belongs (best guess,
-  can move): Core 5 (sectors and fill) with the DB lane, train 19a.
+  can move): Core 5 (sectors and fill) with the DB lane, train 6.
   Prerequisites: none. Related: GEN.1118, GEN.1111.
 
 - [ ] **GEN.1128 Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger**
@@ -14724,53 +14667,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 2 (life), after the life class build, a later train.
   Prerequisites: none. Related: GEN.648, GEN.688, GEN.644.
 
-- [ ] **GEN.1131 Class descriptions for N, K and Q agree with the bodies their rules select**
-  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
-  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Class N says hot
-  and CO2/sulfur dominated but its rule is only 10 bar (only 38 of 105
-  are CO2 or SO2 half or more, 35 have over 30 percent hydrogen, 30 are
-  under 400 K); class K says cold desert but 43 of 44 are ice-covered
-  ocean; class Q says swings between extremes but its line is
-  eccentricity 0.06 (128 bodies, 29 percent of those with air). Boss:
-  yes, edit the descriptions. Do: rewrite the three sentences
-  (tuning.PLANET_CLASSES text, the class pages, the design docs) to say
-  what the rule selects, changing no class and no threshold; Q keeps its
-  line for now (Boss: do not raise it to 0.5 until the Q assessment is
-  read). Done: the sentences match the sample numbers of the report,
-  tests that read the descriptions pass. Lock-free if only text changes
-  (otherwise note generation-output). Where we think it belongs (best
-  guess, can move): Core 4, separate branch.
-  Prerequisites: none. Related: GEN.29, GEN.1132.
-
-- [ ] **GEN.1132 Assess retiring Class Q: what depends on it, which bodies it covers, and whether eccentricity belongs in a separate orbit or climate flag, with a recommendation**
-  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
-  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Boss: "do we even
-  need a Class Q? I'm not sure we should have a class that is basically
-  just an orbit." Do not change Q to 0.5 for now. Do: list every
-  dependence on class Q (tuning rows, life classes, habitability, the
-  class census and tests, pages, the map legend, searches, design docs);
-  the 128 bodies it covers in the 1,788-body sample and what class each
-  would take by composition and conditions if Q were retired (the class
-  follows the finished body, GEN.644 to 648); whether eccentricity
-  swings should become a flag or field on the orbit or climate sheet
-  instead (the seven-band climate of GEN.1108 could carry it); the cost
-  of retiring a letter (all 20 letters stay was Boss's earlier rule,
-  8:16 PM EDT 10-29, so retiring needs his word). Done: a short report
-  with a recommendation and the questions for Boss. Lock-free
-  (research). Where we think it belongs (best guess, can move): Core 4,
-  or a research lane if Core 4 is full.
-  Boss 5:52 PM EDT 10-30 (2026-10-30 5:52 PM EDT): Boss: the planet's
-  orbital information can just store the eccentricity value, and "at a
-  glance" can flag it when it is very high. That points to retiring
-  Class Q and covering the extreme-orbit case with the stored value plus
-  an at-a-glance flag. Fold into the assessment: what depends on Q
-  today, the high-eccentricity threshold for the flag, which bodies the
-  128 Q bodies become, and the epoch impact of retiring the class (the
-  class is derived from the finished body, so the derivation changes; an
-  epoch with --affects). A recommendation to retire Q still needs the
-  Boss word that the 20-letter rule changes.
-  Prerequisites: none. Related: GEN.29, GEN.1131, GEN.1108.
-
 - [ ] **GEN.1133 Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree**
   Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
   1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Boss: yes, apply
@@ -14790,21 +14686,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can move): Core 4, a later train.
   Prerequisites: none. Related: GEN.29, GEN.1111.
 
-- [ ] **GEN.1134 Rogue radiogenic inputs from the ejecting star's composition: the long-lived heat (Th, U, K) and 26Al of an ejected planet from the parent star's stored composition, replacing the sigma 0.22 dex offsets and ROGUE_ACTIVE_HEAT_FLUX_W_M2**
-  Row 12 of the rogue review
-  (docs/design/research/rogue-planet-review.md) was in nobody's RP list,
-  found by Sources 1 after GEN.1112 RP2 to RP7 merged. Do: a pure module
-  that takes the ejecting star's stored composition ([Fe/H] and the
-  alpha and r-process proxies it holds) and the planet's age since
-  formation and gives the radiogenic heat production and the 26Al
-  contribution, using the same source values the bound planets use (so a
-  rogue stays identical to a bound planet); register the stand-ins in
-  GEN.725 and remove the placeholder offsets by the wiring in GEN.1111.
-  Done: tests against the bound-planet value for the same star and a
-  spread within the sourced uncertainty. Lock-free (pure module). Where
-  we think it belongs (best guess, can move): Sources 1, separate
-  branch.
-  Prerequisites: none. Related: GEN.1111, GEN.1119.
+- [ ] **GEN.1135 Retire Class Q: remove the row from planet_classes.json, tuning.PLANET_CLASSES and HABITABLE_PLANET_CLASSES, and show the orbit swing as the stored flux_variation plus an "At a glance" flag when it is very high**
+  Boss, 6:07 PM EDT 2026-10-30: retire Class Q entirely; eccentricity
+  stays in the orbit data with an at-a-glance flag when very high.
+  Assessment: reports/core4-class-q-assessment-2026-10-30.md (GEN.1132).
+  What depends on Q: the Q row of planet_classes.json (name, sentence,
+  basis, flux_variation minimum 0.25, the quantity and the reserve list;
+  the order of rows decides ties, Q sits between N and V);
+  tuning.PLANET_CLASSES['Q'] (read by generation/life.py into
+  planet.description) and tuning.HABITABLE_PLANET_CLASSES (Q is listed);
+  a map colour; the forced-class request; and the tests
+  test_planet_classes (the Q case of the quantity table),
+  test_class_sample (its letter list) and audit/sweep_classes. The 128 Q
+  bodies of the 1,788-body sample go to V 59, K 34, P 22, B 6, F 3, O 3,
+  M 1, so the stored class letter changes for about 7 percent of bodies,
+  plus the description text and habitable_class for B; positions,
+  masses, climates and life do not change. The letter Q stays reserved
+  (the 20-letter rule is changed by Boss: 19 classes in use). Default
+  taken until Boss gives the line: the flag shows a row "Seasonal swing
+  of starlight: very high" in the glance panel of planets and moons only
+  at flux_variation 0.75 or more (4 percent of bodies; 0.5 would flag 12
+  percent, 0.25 would flag 36 percent), with the number on the full
+  sheet as now. Done: row and description removed, flag in the glance
+  panel, tests, golden update, census re-baseline. Lock work (epoch with
+  --affects for the class column and description, golden). Where we
+  think it belongs (best guess, can move): Core 4, in the classes window
+  with the Class M fix (train 9; train 6 if the Class M research reports
+  before its freeze).
+  Class M (6:08 PM EDT) (2026-10-30 6:08 PM EDT): Boss, 6:07 PM EDT:
+  investigate how to fix the Class M problem (Class M never appears: 0
+  of 3,164 bodies in Aux 2's sweep, 1 of 1,788 in Core 4's) since no one
+  knows how rare Earth-type planets are in the actual universe. A
+  research thread is being started by the coordinator; its items are
+  filed when it reports and ride the same window as this item.
+  Prerequisites: none. Related: GEN.1132, GEN.1131, GEN.854.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19558,7 +19473,7 @@ clears each one.
   branch, merge it yourself).
   Prerequisites: none. Related: TEST.391, TEST.472, TEST.484.
 
-- [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after each of trains 12, 13 and 14)**
+- [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after train 9)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
   sources and stand-ins are accepted when each is registered in GEN.725
@@ -19569,7 +19484,7 @@ clears each one.
   8.1.
   Rings added (4:19 PM EDT 2026-10-30): The census also covers the ring
   shares (GEN.1054 to GEN.1058, design section 9) and the giant tilt
-  (GEN.1053, GEN.1058): one pass after each of trains 12, 13 and 14.
+  (GEN.1053, GEN.1058): one pass after train 9.
   Prerequisites: GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
@@ -19588,7 +19503,7 @@ clears each one.
   only in the rogue note, the missing host and the quantities that
   depend on starlight (the equilibrium temperature is the internal and
   ambient value). Lock-free (test). Where we think it belongs (best
-  guess, can move): Core 1, built with train 19 so the train gate
+  guess, can move): Core 1, built with train 8 so the train gate
   carries it.
   Prerequisites: GEN.1111.
 
@@ -19604,7 +19519,7 @@ clears each one.
   target scale. Do: a census check after the rogue rows are wired
   (GEN.1111), bands wide because the observations are loose; fails if
   the yield leaves them. Where we think it belongs (best guess, can
-  move): Bug 2 (census) after train 19.
+  move): Bug 2 (census) after train 8.
   Prerequisites: GEN.1111.
   Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
 
