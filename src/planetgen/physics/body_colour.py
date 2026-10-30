@@ -68,7 +68,8 @@ def _solid_colour(body):
     haze, dust, cloud = aerosols.colour_layers(stored, _CENTRES)
     result = atmosphere_colour.atmosphere_colour(
         column, temperature_k=temperature, ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
-        ground_albedo=ground_albedo(body), haze=haze, dust=dust, cloud=cloud, cloud_cover=stored.cloud_cover)
+        ground_albedo=ground_albedo(body), haze=haze, dust=dust, cloud=cloud, cloud_cover=stored.cloud_cover,
+        light=atmosphere_colour.body_light(body.star))
     return result.colour.rgb8
 
 

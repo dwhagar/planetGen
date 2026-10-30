@@ -17,7 +17,7 @@ from planetgen.describe import build as describe_build
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, main_sequence, pre_main_sequence as pms
+from planetgen.physics import constants, main_sequence, pre_main_sequence as pms, stellar_abundances as sa
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -55,8 +55,9 @@ def test_the_hayashi_temperature_and_birthline_radius_are_the_bhac15_ones(mass, 
 
 
 def test_the_longest_contraction_shortcut_covers_the_lightest_star():
-    assert pms.contraction_time_yr(0.08) < tuning.PRE_MAIN_SEQUENCE_LONGEST_YR
-    assert pms.contraction_time_yr(0.08) > 0.8 * tuning.PRE_MAIN_SEQUENCE_LONGEST_YR
+    lightest = sa.hydrogen_burning_limit_sol(sa.PROTO_Z)       # the least a star is at solar metallicity (GEN.936)
+    assert pms.contraction_time_yr(lightest) < tuning.PRE_MAIN_SEQUENCE_LONGEST_YR
+    assert pms.contraction_time_yr(lightest) > 0.8 * tuning.PRE_MAIN_SEQUENCE_LONGEST_YR
 
 
 def test_a_heavier_star_contracts_faster_and_the_old_law_is_gone():

@@ -28,7 +28,9 @@ def host_star():
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
     with draw.bound("giant-settle:star"):
-        return Star(cfg)
+        star = Star(cfg)
+    star.age = 1.0       # drawn young, so a raise of a few Gy stays inside the radius tables' age range
+    return star
 
 
 def _table_giant(star, seeds=40):
@@ -51,7 +53,7 @@ def _table_radius_km(planet):
 def test_settling_a_giant_sets_its_radius_volume_gravity_and_air_together(host_star):
     planet = _table_giant(host_star)
     young = planet.radius
-    host_star.age = max(host_star.age, 1.0) + 6.0
+    host_star.age = 7.0
     assert planets.settle_giant(planet) is True
     assert planet.radius < young
     assert planet.radius == pytest.approx(_table_radius_km(planet), rel=1e-9)
@@ -64,7 +66,7 @@ def test_settling_a_giant_sets_its_radius_volume_gravity_and_air_together(host_s
 
 def test_a_settled_giant_is_settled_for_good(host_star):
     planet = _table_giant(host_star)
-    host_star.age = max(host_star.age, 1.0) + 6.0
+    host_star.age = 7.0
     planets.settle_giant(planet)
     stored = (planet.radius, planet.gravity, planet.scale_height, planet.composition)
     assert planets.settle_giant(planet) is False
@@ -73,7 +75,7 @@ def test_a_settled_giant_is_settled_for_good(host_star):
 
 def test_settling_draws_nothing_from_the_run_stream(host_star):
     planet = _table_giant(host_star)
-    host_star.age = max(host_star.age, 1.0) + 6.0
+    host_star.age = 7.0
     draw.set_run_seed(5)
     planets.settle_giant(planet)
     after = draw.random()
@@ -104,7 +106,7 @@ def test_a_moon_the_smaller_giant_cannot_hold_is_dropped(host_star):
     too_big = SimpleNamespace(radius=0.999 * limit_km, mass=1e-6 * planet.mass, distance=planet.hill_radius * 0.12 / constants.AU_TO_KM,
                               eccentricity=0.0, position_x=0.0, position_y=0.0, position_z=0.0)
     planet.moons = [kept, too_big]
-    host_star.age = max(host_star.age, 1.0) + 6.0
+    host_star.age = 7.0
     assert planets.settle_giant(planet) is True
     assert planet.moons == [kept]
 

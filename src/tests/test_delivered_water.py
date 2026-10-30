@@ -94,7 +94,7 @@ def test_a_rocky_body_takes_the_delivery_law_and_an_icy_one_keeps_its_range(monk
     icy = _Body(5.0)
     assert bulk_draw.origin_of(icy) == ICY
     water, _ice, shares = bulk_draw._water_and_ice(icy)
-    assert tuning.ICY_WATER_MASS_FRACTION[0] * 0.5 <= water <= 0.95
+    assert tuning.ICY_WATER_MASS_FRACTION_FLOOR * 0.5 <= water <= 0.95
     assert sum(shares.values()) == pytest.approx(1.0)
 
 

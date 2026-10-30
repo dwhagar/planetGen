@@ -1,6 +1,6 @@
 # Stability of a 2+2 quadruple star system (GEN.1031)
 
-Part of GEN.1006 (overlap-free multi-star systems, [overlap-free-systems.md](overlap-free-systems.md)). This is the 2+2 counterpart of [quadruple-stability-3p1.md](quadruple-stability-3p1.md) (GEN.1029); how the network is ported, why a plain numpy forward pass, and the reading of "stable" are the same and are not repeated. The module is `physics/quadruple_stability.py` (functions with the suffix `_2p2`); GEN.1016 (Core 3) wires it into the multi-star limits. Stand-in rows QT1 to QT4 in section 6.66 of [gap-filling-plan.md](../research/gap-filling-plan.md).
+Part of GEN.1006 (overlap-free multi-star systems, [overlap-free-systems.md](overlap-free-systems.md)). This is the 2+2 counterpart of [quadruple-stability-3p1.md](quadruple-stability-3p1.md) (GEN.1029); how the network is ported, why a plain numpy forward pass, and the reading of "stable" are the same and are not repeated. The module is `physics/quadruple_stability.py` (functions with the suffix `_2p2`); GEN.1016 (Core 3) wires it into the multi-star limits. Stand-in rows QT1 to QT4 in section 6.73 of [gap-filling-plan.md](../research/gap-filling-plan.md).
 
 ## 1. The problem and the form chosen
 

@@ -1,5 +1,5 @@
 """
-GEN.236: the sector profile's kind factors (`SectorProfile.kind_factors`) and the planet cull by metallicity. The rate
+GEN.236: the sector profile's kind factors (`SectorProfile.kind_factors`) and the planets a metal-poor star makes. The rate
 per star of each rare kind stays what it was; the place scales it (supernova remnants by the gas, molecular clouds and
 nebulae by the gas and the young stars, rogue planets and comets by the planets the place's [Fe/H] allows), and a
 metal-poor star's disk makes fewer planets and almost no giants.
@@ -19,7 +19,7 @@ from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from planetgen.generation import nebula_contents, phenomenon_scatter, run_sector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import metallicity
+from planetgen.physics import constants, metallicity, planet_architecture
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 
@@ -320,38 +320,27 @@ def test_the_hosted_nebula_chance_is_scaled_by_the_nebula_factor(monkeypatch):
 # --- The planet cull --------------------------------------------------------------------------------------------------
 
 
-def _system_estimating(monkeypatch, fe_h, ceiling=150):
-    cfg = SystemConfig()
-    cfg.STAR_TYPE = "G2V"
-    cfg.BINARY_SYSTEM = False
-    cfg.PLANETS = False
-    system = StarSystem(system_config=cfg)
-    system.system_config.PLANETS = None
-    system.system_config.MAX_PLANETS = True
-    monkeypatch.setattr(system, "_estimate_max_objects_from_disk_physics", lambda star: ceiling)
-    return system, SimpleNamespace(metallicity_fe_h=fe_h)
+def _architectures(fe_h, count=60):
+    """The architectures of `count` Sun-like stars of [Fe/H] `fe_h` (Z / Z0 = 10^fe_h), each from its own stream."""
+    return [planet_architecture.build(constants.SOLAR_MASS_TO_KG, 2.34, 10.0 ** fe_h, fe_h, 30.0, stream=draw.Stream(f"cull:{fe_h}:{i}"))
+            for i in range(count)]
 
 
-@pytest.mark.parametrize("fe_h", [-0.5, -0.3, 0.0, 0.4, None])
-def test_a_star_at_or_above_the_floor_or_without_a_metallicity_keeps_its_ceiling(monkeypatch, fe_h):
-    system, star = _system_estimating(monkeypatch, fe_h)
-    assert system.estimate_num_objects(star) == 150
+@pytest.mark.parametrize("fe_h", [-1.0, -1.6, -2.4])
+def test_a_metal_poor_star_carries_fewer_planets_than_a_solar_one(fe_h):
+    poor = sum(len(a.planets) for a in _architectures(fe_h))
+    solar = sum(len(a.planets) for a in _architectures(0.0))
+    assert poor < 0.6 * solar
 
 
-@pytest.mark.parametrize("fe_h", [-0.7, -1.0, -1.6, -2.4])
-def test_a_metal_poor_star_is_capped_at_the_share_of_the_reference_objects_its_metallicity_allows(monkeypatch, fe_h):
-    system, star = _system_estimating(monkeypatch, fe_h)
-    allowed = math.ceil(tuning.PLANET_OCCURRENCE_REFERENCE_OBJECTS * metallicity.planet_occurrence_factor(fe_h) - 1e-9)
-    assert system.estimate_num_objects(star) == allowed
-    assert 1 <= allowed < tuning.PLANET_OCCURRENCE_REFERENCE_OBJECTS
+@pytest.mark.parametrize("fe_h", [-1.0, -1.6, -2.4])
+def test_a_metal_poor_star_makes_almost_no_giants(fe_h):
+    giants = sum(p.runaway for a in _architectures(fe_h, 100) for p in a.planets)
+    solar_giants = sum(p.runaway for a in _architectures(0.0, 100) for p in a.planets)
+    assert giants <= 0.1 * solar_giants
 
 
-def test_a_ceiling_under_the_allowance_is_not_raised(monkeypatch):
-    system, star = _system_estimating(monkeypatch, -1.6, ceiling=1)
-    assert system.estimate_num_objects(star) == 1
-
-
-def test_no_halo_system_carries_more_planets_than_its_metallicity_allows():
+def test_no_halo_system_carries_more_planets_than_a_disk_one_does_on_average():
     counts = []
     for index in range(20):
         with draw.bound(f"halo-cull:{index}"):
@@ -360,14 +349,8 @@ def test_no_halo_system_carries_more_planets_than_its_metallicity_allows():
             cfg.POPULATION = "halo"
             cfg.BINARY_SYSTEM = False
             system = StarSystem(system_config=cfg)
-        fe_h = system.primary_star.metallicity_fe_h
-        allowed = max(math.ceil(tuning.PLANET_OCCURRENCE_REFERENCE_OBJECTS
-                                * metallicity.planet_occurrence_factor(fe_h) - 1e-9),
-                      1 if fe_h >= metallicity.floor_fe_h() else 0)
-        if fe_h < metallicity.floor_fe_h():
-            assert len(system.planets) <= allowed, (fe_h, len(system.planets))
         counts.append(len(system.planets))
-    assert sum(counts) / len(counts) < 0.5 * 8.5      # a disk G dwarf holds about 8.5
+    assert sum(counts) / len(counts) < 0.5 * 6.9      # a disk G dwarf holds about 6.9
 
 
 def test_a_close_binary_proxy_takes_its_primarys_metallicity():

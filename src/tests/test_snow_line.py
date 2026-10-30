@@ -1,4 +1,4 @@
-"""GEN.458: each star draws its own snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU
+"""GEN.458: each star draws its own snow line, 0.2 dex around the 182 K blackbody position (Lodders 2003), and stores it once; the fixed 2.7 AU
 constant is gone (`physics/formation.py`, `Star.snow_line_au`, `stars.snow_line_km`, `planets/moons.born_beyond_snow_line`)."""
 
 import math
@@ -12,7 +12,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, formation
+from planetgen.physics import condensate_shares, constants, formation
 from planetgen.util import draw
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -35,13 +35,13 @@ def _system(seed, star_type="G2V", **overrides):
 
 # --- the centre and the scatter ---------------------------------------------------------------------------------
 
-def test_the_centre_is_the_170_k_blackbody_position_and_scales_with_the_root_of_the_luminosity():
+def test_the_centre_is_the_182_k_blackbody_position_and_scales_with_the_root_of_the_luminosity():
     sun = formation.snow_line_au(constants.SOLAR_LUMINOSITY)
-    assert sun == pytest.approx(2.68, abs=0.005)
-    # an independent route: the temperature of a blackbody at that distance is 170 K
+    assert sun == pytest.approx(2.339, abs=0.005)
+    # an independent route: the temperature of a blackbody at that distance is 182 K
     distance_m = sun * constants.AU_M
     temperature = (constants.SOLAR_LUMINOSITY / (16.0 * math.pi * constants.STEFAN_BOLTZMANN_CONSTANT * distance_m ** 2)) ** 0.25
-    assert temperature == pytest.approx(constants.SNOW_LINE_TEMPERATURE_K, rel=1e-9)
+    assert temperature == pytest.approx(condensate_shares.ICE_CONDENSATION_K["H2O"], rel=1e-9)
     assert formation.snow_line_au(4 * constants.SOLAR_LUMINOSITY) == pytest.approx(2 * sun)
 
 

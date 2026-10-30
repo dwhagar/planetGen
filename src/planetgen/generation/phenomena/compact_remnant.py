@@ -26,9 +26,9 @@ radiation, a neutron star's thermal glow) unless it has an accretion disk,
 which makes `orbits.calculate_habitable_zone` naturally collapse its
 `habitable_zone` to (0, 0) AU -- there is no thermal habitable zone around a
 dark object -- without any special-casing in `StarSystem._generate_planets`.
-Likewise, `StarSystem._estimate_max_objects_from_disk_physics`'s snow-line
--driven ceiling naturally comes out to zero planets for such a dim
-remnant, matching the real rarity of confirmed planets around black
+Likewise, the planet architecture's disc (`StarSystem._plan_architecture`,
+out to a multiple of the snow line) naturally comes out to zero planets for
+such a dim remnant, matching the real rarity of confirmed planets around black
 holes/neutron stars; `SystemConfig.PLANETS`/`NUM_ORBITS` can still force
 orbiting bodies explicitly (see `phenomenonGen.py --num-orbits`).
 
