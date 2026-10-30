@@ -1099,6 +1099,24 @@ WATER_PER_HYDROGEN_MASS = 8.94
 DISK_MASS_FRACTION_RANGE = (0.01, 0.3)
 DISK_OUTER_RADIUS_RANGE_AU = (10.0, 300.0)
 DISK_DUST_SUBLIMATION_K = 1500.0
+# The cold debris disk of a main-sequence star (GEN.787, physics/debris_disk.py). Sibthorpe et al. 2018 (MNRAS 475, 3046, the
+# Herschel DEBRIS survey; arXiv:1803.00072, sections 2.5 and 3 and Tables 1 and 2 read 2026-10-30): the share of stars with a
+# detected cold disk is F 23.9, G 14.3 and K 13.0 percent (47 discs round 275), M 2.2 percent (89 stars) and, raw, 24 percent for
+# A stars. The pairs are (upper mass in solar masses, share); the last has no upper mass. The masses are the spectral types'
+# (M under 0.45, K to 0.8, G to 1.04, F to 1.4, A and hotter above); Matthews et al. 2014 find the dust shows no clear dependence on
+# type from late B to M, so a hotter star takes the A figure.
+DEBRIS_DISK_INCIDENCE = ((0.45, 0.022), (0.8, 0.130), (1.04, 0.143), (1.4, 0.239), (None, 0.24))
+BLACKBODY_AT_ONE_AU_K = 278.3
+# The dust temperature of a detected disk: the 47 discs of Sibthorpe 2018 Table 1 have blackbody radii from 0.63 to 280 AU with a
+# median of 23 AU (7 to 40 AU for most), which at one solar luminosity is a median of 58 K; the log-normal width 0.45 puts the
+# middle two thirds of Sun-like stars at about 7 to 40 AU (a stand-in fitted to that statement, not a fit to the table).
+DEBRIS_DISK_TEMPERATURE_MEDIAN_K = 58.0
+DEBRIS_DISK_TEMPERATURE_LOG_SIGMA = 0.45
+# The belt lies further out than a blackbody grain would: the paper's 7 to 40 AU blackbody radii "scale to about 40 AU for realistic
+# dust properties", about 1.7 times the median 23 AU. The edges at 0.7 and 1.5 of the belt radius are a design choice (a ring about
+# as wide as it is far out), not read from a source.
+DEBRIS_RADIUS_OVER_BLACKBODY = 1.74
+DEBRIS_DISK_EDGES_OVER_RADIUS = (0.7, 1.5)
 # Companions of a protostar: the multiplicity fraction of Perseus' Class 0
 # (0.57) and Class I (0.23) protostars, Tobin et al. 2016 (ApJ 818:73,
 # arXiv:1601.00692, abstract read 2026-10-17).

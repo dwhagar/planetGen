@@ -156,6 +156,9 @@ _DISK_LABELS = {"post-agb": "Circumbinary post-AGB"}
 
 
 def _star_disk_text(star):
+    if star.disk_mass_solar is None:    # a debris disk (GEN.787): its dust light is measured, its mass is not
+        return inline(_DISK_LABELS.get(star.disk_kind) or star.disk_kind.replace("-", " ").capitalize(), " disk, from ",
+                      _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", with no bodies in it")
     return inline(_DISK_LABELS.get(star.disk_kind) or star.disk_kind.replace("-", " ").capitalize(), " disk of ",
                   _mass_solar(star.disk_mass_solar), ", from ",
                   _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", with no bodies in it")
