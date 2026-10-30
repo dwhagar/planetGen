@@ -163,7 +163,10 @@ def test_drop_is_idempotent_on_a_freshly_generated_planet(star):
 
 
 def test_shrinking_the_hill_sphere_drops_the_outer_moons_first(star):
-    planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), mass=GAS_GIANT_KG, moon_count=6)
+    # How many of the six moons asked for keep a stable orbit is a draw (1 to 6 over seeds 3301 to 3320): the property needs a planet
+    # with two or more, and the file's seed gave one after the star epoch moved the draws (TEST.481), so this planet is drawn from its own.
+    with deterministic_entropy(3302):
+        planet = Planet(star.system_config, star, star.habitable_zone, cold_distance(star), mass=GAS_GIANT_KG, moon_count=6)
     distances = sorted(moon.distance for moon in planet.moons)
     assert len(distances) >= 2
     planet.distance /= 50  # drag it far inward: its Hill sphere shrinks 50x
