@@ -301,18 +301,34 @@ def _solar_th_over_mg():
     return found["mass_fractions"]["Th"] / star.elements["Mg"]
 
 
-def star_offset_dex(star):
-    """`host_offset_dex` for a star object (`generation.star.Star`, a binary's proxy), or `None` when it has no [Fe/H] or no age to
-    read it from. The key is the one the star's [Fe/H] stream uses (its mass, age and distance from the centre), so every planet of
-    a star gets the same offset."""
+def _star_key(star):
+    """The key a star's streams are named by (its mass, age and distance from the centre; `stellar_composition.abundance_key`), or `None` when it has no [Fe/H] or no age."""
     fe_h = getattr(star, "metallicity_fe_h", None)
     age = getattr(star, "age", None)
     if fe_h is None or age is None:
         return None
     mass, distance = getattr(star, "mass", None), getattr(star, "galactic_center_dist_ly", None)
     # a star made with no place in the galaxy (a single system) has no distance; its [Fe/H] stream is keyed on `None` there
-    key = f"{mass!r}:{age!r}:{distance!r}" if distance is None else sc.abundance_key(mass=mass, age_gy=age, distance_ly=distance)
-    return host_offset_dex(float(fe_h), float(age), key)
+    return f"{mass!r}:{age!r}:{distance!r}" if distance is None else sc.abundance_key(mass=mass, age_gy=age, distance_ly=distance)
+
+
+def star_offset_dex(star):
+    """`host_offset_dex` for a star object (`generation.star.Star`, a binary's proxy), or `None` when it has no [Fe/H] or no age to
+    read it from. The key is the one the star's [Fe/H] stream uses (its mass, age and distance from the centre), so every planet of
+    a star gets the same offset."""
+    key = _star_key(star)
+    return None if key is None else host_offset_dex(float(star.metallicity_fe_h), float(star.age), key)
+
+
+def star_al26_ratio(star, shape=None):
+    """
+    The 26Al/27Al a star was born with (GEN.476): one sum of decayed additions on a stream named by the star, about the mean of its galaxy's gas (`al26_mean` at its [Fe/H]). Every
+    body of a star shares it, being born from the same gas. `None` when the star has no [Fe/H] or no age (a body with no host draws its own).
+    """
+    key = _star_key(star)
+    if key is None:
+        return None
+    return birth_radioisotopes.sample_ratio("Al26", al26_mean(shape, float(star.metallicity_fe_h)), draw.Stream(f"al26-birth:{key}"))
 
 
 def th_u_ratio_now(production_ratio, factor):
@@ -369,7 +385,7 @@ def star_al26_mean(body):
     return al26_mean(shape, getattr(star, "metallicity_fe_h", None))
 
 
-def draw_content(offset_dex=None, rng=draw, refractory_enrichment=1.0, th_u_factor=None, al26_mean_ratio=None):
+def draw_content(offset_dex=None, rng=draw, refractory_enrichment=1.0, th_u_factor=None, al26_mean_ratio=None, al26_ratio=None):
     """
     A body's `Content`. Every draw is made whatever the branch, in this order: the host-less offset, the r-process production ratio, the
     potassium depletion and the seed of the aluminium-26 additions, so the stream after it is the same for every body.
@@ -380,6 +396,7 @@ def draw_content(offset_dex=None, rng=draw, refractory_enrichment=1.0, th_u_fact
         th_u_factor (float or None): The enrichment `F` of the host's birth gas (`rprocess_enrichment`, at least 1); `None` takes that of
             the typical star of the default galaxy (a stand-alone call with no galaxy).
         al26_mean_ratio (float or None): The steady-state 26Al/27Al of the host's gas (`al26_mean`); `None` takes the default galaxy's at solar [Fe/H].
+        al26_ratio (float or None): The host star's birth ratio (`star_al26_ratio`), shared by its bodies; `None` draws the body's own about the mean (the seed draw is made either way).
         refractory_enrichment (float): How many times the Earth's share the body's refractory elements (Al, Th, U) are in its
             silicate; the body's Al2O3 over the bulk silicate Earth's (part E 2.8b: Th and U scale with it; `rock_of`), 1 for a body with none.
 
@@ -397,7 +414,8 @@ def draw_content(offset_dex=None, rng=draw, refractory_enrichment=1.0, th_u_fact
     if th_u_factor is None:
         th_u_factor = default_th_u_factor()
     u_now = th_now / th_u_ratio_now(production_ratio, th_u_factor)
-    al26_ratio = birth_radioisotopes.sample_ratio("Al26", al26_mean() if al26_mean_ratio is None else al26_mean_ratio, draw.Stream(f"al26-birth:{al26_seed!r}"))
+    if al26_ratio is None:
+        al26_ratio = birth_radioisotopes.sample_ratio("Al26", al26_mean() if al26_mean_ratio is None else al26_mean_ratio, draw.Stream(f"al26-birth:{al26_seed!r}"))
     k_now = k_depletion * CI_CHONDRITE_K_OVER_U * u_now
     return Content(
         k0_ppm=k_now * formation_mix("K")[1], th0_ppm=th_now * formation_mix("Th")[1], u0_ppm=u_now * formation_mix("U")[1],
@@ -412,7 +430,7 @@ def generate_content(body, refractory_enrichment=1.0):
             setattr(body, name, None)
         return
     content = draw_content(star_offset_dex(body.star), refractory_enrichment=refractory_enrichment, th_u_factor=star_th_u_factor(body),
-                           al26_mean_ratio=star_al26_mean(body))
+                           al26_mean_ratio=star_al26_mean(body), al26_ratio=star_al26_ratio(body.star, getattr(getattr(body, "system_config", None), "GALAXY_SHAPE", None)))
     body.c_k0_ppm, body.c_th0_ppm, body.c_u0_ppm = content.k0_ppm, content.th0_ppm, content.u0_ppm
     body.al26_ratio = content.al26_ratio
 

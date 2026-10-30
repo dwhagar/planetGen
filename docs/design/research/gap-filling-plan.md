@@ -1205,6 +1205,16 @@ The atmosphere recipe rows of GEN.480 (occurrence of water-rich and H/He worlds)
 | CI5 | P | T6 | L1 | comet_ice_budget.zone_shares: equal masses of planetesimals form in equal intervals of ln r (a solids surface density as 1 / r) | surface density index 0.5 to 1.5 | planetesimal discs | a measured planetesimal mass distribution with distance | the disc model of the solids (GEN.950 wiring) | test_comet_ice_budget::test_equal_masses_form_in_equal_intervals_of_ln_r |
 <!-- comet-ice-standins:end -->
 
+### 6.49 Stand-ins of the wiring of aluminium-26 at birth (GEN.476, GEN.998)
+
+`radiogenic.al26_mean` gives a star's galaxy-wide mean 26Al/27Al from the yield of massive stars over the gas depletion time of the thin disc. The depletion time is the generator's own disc history (GEN.469), not a measurement. Trace (GEN.998): the default galaxy shape is a small one (5.8e9 solar masses of thin disc, scale length 772 pc), whose gas over star formation, rings weighted by area, is 0.85 Gy; a Milky Way mass disc (3.5e10, 2600 pc) gives 1.46 Gy, against 4.2 Gy measured for the Galaxy (0.7e10 solar masses of cold gas over 1.65 solar masses a year, Bland-Hawthorn and Gerhard 2016, Licquia and Newman 2015). The gap is the star formation law: Kennicutt's law at index 1.4 is applied to every ring with no low-density threshold, so the outer, gas-poor rings form stars faster than observed. The quantity is the right one (total gas over total star formation is the mean 26Al abundance's denominator); its value is a factor of about 3 short for a Milky Way mass disc, so the mean 26Al/27Al is about 3 times high.
+
+<!-- al26-wiring-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| AL1 | P | T5 | L1 | radiogenic._depletion_time_yr: the thin disc's gas over its star formation now (the rings weighted by area), standing for the host's depletion time at its birth | the star formation law's index and a low-density threshold; 1.0 to 4.2 Gy for a Milky Way mass disc | spiral discs of the generator | the Milky Way mass shape's depletion time outside 2.5 to 6 Gy, or a measured 26Al/27Al of the Galaxy's gas more than a factor of 3 from the mean | a star formation law with a threshold in GEN.469 (Kennicutt 1998 and Bigiel et al. 2008, not read) and the host's local gas at its birth radius and time | test_radiogenic::test_the_aluminium_26_of_a_star_is_a_spiky_sum_of_decayed_additions_about_its_regions_mean |
+<!-- al26-wiring-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

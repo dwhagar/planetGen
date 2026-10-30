@@ -84,10 +84,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.26:GS4 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | row | 6.26:GS5 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | row | 6.26:GS6 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
-| module | planetgen.physics.condensate_shares | GEN.950 | Lodders 2003 condensates by temperature and the water share of the solids (lock-free); the wiring step reads the snow line temperature, the ice boost of the surface density and the water range of an icy body from it |
-| row | 6.35:CS1 | GEN.950 | `condensate_shares.ICE_CONDENSATION_K`, read when the wiring step lands |
-| row | 6.35:CS2 | GEN.950 | `condensate_shares.TABLE_11_MASS_PERCENT`, read when the wiring step lands |
-| row | 6.35:CS3 | GEN.950 | `condensate_shares.ROCK_OXYGEN_SHARE`, read when the wiring step lands |
 | module | planetgen.physics.planet_architecture | GEN.728 | the planet architecture (inner system, thinning, outer chain, gas, migration); `system.py` calls it at the wiring on merge train 4 |
 | module | planetgen.physics.planet_occurrence | GEN.728 | the reader of the observed occurrence bands; the architecture and the census read it |
 | module | planetgen.physics.kepler_multiplicity | GEN.728 | the Kepler transit multiplicity harness, read by the tuning tests until the wiring |
@@ -106,13 +102,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.36:PA12 | GEN.728 | `DISC_SOLIDS_SCATTER_DEX, INNER_SYSTEM_FRACTION_ANCHORS`, read by `planet_architecture`, which `system.py` calls at the wiring |
 | module | planetgen.physics.saturation_time | GEN.493 | the X-ray saturation time by stellar mass and initial rotation percentile from Johnstone et al. 2021 (lock-free); the wiring step has row p6 and the activity table's `t_sat` read it with the star's own mass |
 | row | 6.39:RS1 | GEN.493 | `saturation_time.ANCHORS_MYR`, read when the wiring step lands |
-| module | planetgen.physics.taxon_kernel | GEN.473 | the taxa of a belt from the disk's ice lines and the early heating by aluminium-26 (lock-free); the wiring step replaces `small_body_composition.kernel` with it and hands it the belt's temperature and the star's 26Al ratio |
-| row | 6.41:TK1 | GEN.473 | `taxon_kernel.WATER_LINE_K, AMMONIA_LINE_K`, read when the wiring step lands |
-| row | 6.41:TK2 | GEN.473 | `taxon_kernel.PRIMITIVE_BELOW_K, WIDTH_LN_T`, read when the wiring step lands |
-| row | 6.41:TK3 | GEN.473 | `taxon_kernel.IMPLANT_FRACTION`, read when the wiring step lands |
-| row | 6.41:TK4 | GEN.473 | `taxon_kernel.MELT_ENERGY_J_PER_KG, ALUMINIUM_MASS_FRACTION`, read when the wiring step lands |
-| row | 6.41:TK5 | GEN.473 | `taxon_kernel.ACCRETION_SPREAD_MYR`, read when the wiring step lands |
-| row | 6.41:TK6 | GEN.473 | `taxon_kernel.DRY_SPLIT, IGNEOUS_SPLIT, HYDRATED_SPLIT`, read when the wiring step lands |
 | module | planetgen.physics.belt_mass | GEN.477 | the mass left in a planetesimal belt after collisional grinding (Wyatt et al. 2007; lock-free); the wiring step gives `AsteroidBelt` its mass and its density word from it |
 | row | 6.43:BM1 | GEN.477 | `belt_mass.GRAIN_DENSITY_KG_M3, STRENGTH_FLOOR_J_PER_KG`, read when the wiring step lands |
 | row | 6.43:BM2 | GEN.477 | `belt_mass.DENSE_FACTOR`, read when the wiring step lands |

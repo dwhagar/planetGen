@@ -18,7 +18,7 @@ this module's logic.
 
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import small_body_composition
+from planetgen.physics import radiogenic, small_body_composition
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
@@ -52,6 +52,13 @@ def format_composition_summary(composition):
     if len(composition_phrases) == 2:
         return f"{composition_phrases[0]} and {composition_phrases[1]}"
     return ", ".join(composition_phrases[:-1]) + f", and {composition_phrases[-1]}"
+
+
+def _star_al26_ratio(system_config, star):
+    """The aluminium-26 the star was born with (`radiogenic.star_al26_ratio`); a star with no [Fe/H] or age (a binary's proxy) takes its galaxy's mean."""
+    shape = getattr(system_config, "GALAXY_SHAPE", None)
+    ratio = radiogenic.star_al26_ratio(star, shape)
+    return radiogenic.al26_mean(shape, getattr(star, "metallicity_fe_h", None)) if ratio is None else ratio
 
 
 class AsteroidBelt:
@@ -94,7 +101,7 @@ class AsteroidBelt:
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object for the system.
-            star: The star (or binary proxy) the belt orbits; its stored snow line decides the taxa (GEN.442).
+            star: The star (or binary proxy) the belt orbits; its luminosity and the aluminium-26 it was born with decide the taxa (GEN.473).
             distance (float): The average distance from the star in AU.
             lower_limit (float): The inner boundary of the belt in AU.
             upper_limit (float): The outer boundary of the belt in AU.
@@ -106,7 +113,7 @@ class AsteroidBelt:
         self.body_type = 'a'
         self.density = draw.choice(["dense", "sparse", "typical"])
         log.choice("Asteroid belt density", self.density, "uniform draw among dense/sparse/typical")
-        self.makeup = small_body_composition.draw_belt(distance, star.snow_line_au)
+        self.makeup = small_body_composition.draw_belt(distance, star.luminosity, _star_al26_ratio(system_config, star))
         self.composition = small_body_composition.describe(self.makeup)
 
     def to_dict(self):

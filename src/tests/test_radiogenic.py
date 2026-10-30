@@ -285,3 +285,16 @@ def test_the_given_mean_sets_the_scale_and_one_seed_gives_one_ratio():
     high = [radiogenic.draw_content(0.0, rng=draw.Stream(f"m{i}"), al26_mean_ratio=1e-5).al26_ratio for i in range(200)]
     assert sum(high) > 20 * sum(low)
     assert radiogenic.draw_content(0.0, rng=draw.Stream("same")).al26_ratio == radiogenic.draw_content(0.0, rng=draw.Stream("same")).al26_ratio
+
+
+def test_every_body_of_a_star_shares_its_birth_aluminium_26_and_a_star_without_a_history_has_none_to_share():
+    from types import SimpleNamespace
+    star = SimpleNamespace(metallicity_fe_h=-0.1, age=3.0, mass=1.0, galactic_center_dist_ly=26000.0)
+    first, second = radiogenic.star_al26_ratio(star), radiogenic.star_al26_ratio(SimpleNamespace(**vars(star)))
+    assert first == second and first >= 0.0
+    other = radiogenic.star_al26_ratio(SimpleNamespace(metallicity_fe_h=-0.1, age=3.1, mass=1.0, galactic_center_dist_ly=26000.0))
+    assert other != first or first == 0.0
+    assert radiogenic.star_al26_ratio(SimpleNamespace(metallicity_fe_h=None, age=3.0)) is None
+    content = radiogenic.draw_content(0.0, rng=draw.Stream("shared"), al26_ratio=first)
+    assert content.al26_ratio == first
+    assert draw.Stream("shared").random() == draw.Stream("shared").random()
