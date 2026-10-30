@@ -1974,6 +1974,9 @@ PLANET_CLASSES = {
         "composition": 'anthracite, basalt, and hydrocarbons',
         "type": 't',
     },
+    # GEN.1091: the class is a rule over the finished body's conditions (`physics/data/planet_classes.json`): surface pressure under 10 Pa and at
+    # least 1 percent of the mass water or ice. Size is not in the rule; the intended scale is a dwarf planet or a moon (radius 50 to 500 km), and
+    # the class covers belt members and dwarf planets as well as moons (docs/design/systems/belt-origins.md).
     'D': {
         "description": 'a small icy body',
         "composition": 'frozen hydrocarbons and ice',
