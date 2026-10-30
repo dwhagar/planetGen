@@ -1806,3 +1806,12 @@ Baseline: PR #1817.
 | GEN.843 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.933 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.460 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.33 | 8.4 | Planet classes |
+| GEN.350 | 8.4 | Planet classes |
+| GEN.351 | 8.4 | Planet classes |
+| GEN.352 | 8.4 | Planet classes |
+| GEN.353 | 8.4 | Planet classes |
+| GEN.354 | 8.4 | Planet classes |
+| GEN.28 | 8.4 | Planet classes |
+| GEN.741 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.921 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

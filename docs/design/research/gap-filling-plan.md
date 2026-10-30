@@ -473,6 +473,8 @@ Every slider on the Generate page and every `planetgen plan` shape flag has a ra
 | Two theory fills | the simpler one; the other is recorded as an alternative in `assumptions` |
 | Derived against measured | a derived fill that disagrees with a READ measurement fails its falsifier and is demoted to P until corrected |
 | Paper against a second-hand value in our files | the paper wins; both values stay in the record and the fill is marked "paper read, differs" (section 4.10 lists twelve) |
+| A secondary source (a paper that cites a paper) and nothing better | accepted by default (Boss, 8:16 PM EDT 2026-10-29); evidence label 2ND-HAND with the citing work named; a primary that is read later replaces it |
+| No source at all | a stand-in is allowed if it is registered with tier and tweak level; hand-tuning without a registry row is not |
 
 ### 6.5 Downloaded data and offline tests
 
