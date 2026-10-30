@@ -1134,6 +1134,54 @@ with `clamp()`.
   Prerequisites: UX.240, GEN.1070, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
+- [ ] **UX.242 Systems tables: Stars, Objects and Habitable world columns replace the Binary column (All systems table and the search Systems panel)**
+  Boss, 4:45 PM EDT 2026-10-30. PR #4142 (open, merges alone): stars =
+  every row of stars in the system, objects = stars + planets + moons +
+  belts, habitable world = a planet or moon at Yellow or better;
+  /api/systems carries star_count, object_count, has_habitable_world;
+  derived at read time, no migration, no generated output. Its tests
+  were only compiled in the thread container: a lane machine runs
+  scripts/test.py changed --resume, then merges it. Lock-free. Owner:
+  Core 1 (runs the tests and merges; separate from its TEST queue).
+  Prerequisites: none.
+
+- [ ] **UX.243 Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4)**
+  Boss, 4:47 PM EDT 2026-10-30. The counter reads the state of the
+  day-and-night item and counts the object's own day in real time (time
+  of day, day number), or states "tidally locked: permanent day side" or
+  "no night"; the spin display speed stays a labelled display choice and
+  the page says the sphere is shown spinning faster than real. Done:
+  page and API tests, a11y check, the unit shown beside every number.
+  Where we think it belongs (best guess, can move): Core 2 (pages),
+  after the day-and-night state item; lock work (API field).
+  Boss addition, 4:52 PM EDT (2026-10-30 4:53 PM EDT): The counter also
+  shows the day and night hours of each latitude band beside its
+  temperature (from GEN.1108), and the spin-speed fix for slow and
+  locked bodies is UX.244.
+  Prerequisites: GEN.1097. Related: MAP.277, VIEW.14.
+
+- [ ] **UX.244 Slow and tidally locked bodies look frozen on screen: spin.js clamps every period over 1000 h to one turn per 600 s (stand-in SP1, L4), so Eakkar IV (class V, rotation 46.8 days, locked to its orbit) never visibly turns (bug)**
+  Boss, 4:47 PM EDT 2026-10-30 (live observation). Fix: draw a locked
+  body turning relative to the star so the day side visibly moves (the
+  sphere is fixed to the star direction and the stars drift), revisit
+  the clamp for slow rotators so a 46.8 day rotation visibly turns, and
+  label the spin as faster than real. The display speed stays a labelled
+  display choice kept separate from the real-time day counter (UX.243).
+  Done: browser checks for a fast, a slow and a locked body; SP1 row
+  updated. Lock-free (display only). Where we think it belongs (best
+  guess, can move): Core 2 (map and body views), separate branch, merge
+  it yourself, version 8.1.
+  Boss addition, 4:55 PM EDT (2026-10-30 4:57 PM EDT): On the object
+  page's rotating picture (the sensor display, bodyview.js) EVERY planet
+  is drawn viewed at the terminator: the day and night line down the
+  middle, the axial tilt shown by how the terminator and the poles lean,
+  the body still turning about its own axis at the labelled display
+  speed. A tidally locked body is labelled as locked on the picture and
+  in the text and is drawn the same way with the day side fixed toward
+  the star. Done adds: browser checks for a tilted body (Uranus-like),
+  an untilted one and a locked one.
+  Prerequisites: none. Related: MAP.277.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -13653,22 +13701,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
-- [ ] **GEN.1039 W1 module: a seasonal temperature swing from the stored obliquity in the regional temperature (tilt-driven climate), polar summer hotter than the equator, ice and wet-bulb limits by season**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: a pure function in physics
-  (regional_temperature or a new module) taking obliquity, eccentricity,
-  air and ocean heat capacity and returning the seasonal swing by
-  latitude, so a 98 degree tilt changes what a reader sees; the climate
-  has no obliquity term today (design section 2 gap a). Done: tests on
-  Earth, Mars-like and Uranus-like tilts, energy checks. Lock-free
-  module; wiring is the lock item below. Owner: Aux 7 (after W2).
-  Version 8.1.
-  Prerequisites: GEN.1036.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **GEN.1040 W10 module: collisional mantle stripping to an iron-rich (Mercury type) core fraction, pure function (Marcus 2010, Benz 2007 scaling)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -13692,34 +13724,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   d orbit with hazes, fading as the star ages, bounded by Lopez and
   Fortney 2014 scaling elsewhere; tests on Kepler-51 b c d and WASP-107
   b. Lock-free. Owner: Core 4 (after W14). Version 8.1.
-  Prerequisites: GEN.1036.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **GEN.1043 W5 module: detect resonant chains from the stored periods and compute the forced eccentricity and the resulting tidal heating (Goldreich and Soter, Murray and Dermott), pure function**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: physics/resonant_chains.py:
-  period ratios within 5 percent of 3:2, 4:3, 5:3, 2:1 among three or
-  more planets, forced e of 0.001 to 0.01 feeding tidal_heating as it
-  does for moons; tests on TRAPPIST-1 and the Laplace moons. Needs the
-  overlap-free systems chain for the lock step only. Lock-free module.
-  Owner: Aux 7 (after W1). Version 8.1.
-  Prerequisites: GEN.1036. Related: GEN.737, GEN.1006.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **GEN.1044 W19 module: the nightside collapse threshold of a thin-air locked planet (Wordsworth 2011, Leconte 2013), pure function**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do:
-  physics/nightside_collapse.py: whether N2 or CO2 freezes onto the dark
-  side given pressure (under about 0.1 to 0.3 bar), stellar flux and the
-  heat transport, returning the retained fraction; tests with Mars-like
-  and Earth-like air on locked planets. Lock-free. Owner: Aux 3 (while
-  it waits for the flip train). Version 8.1.
   Prerequisites: GEN.1036.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
@@ -13771,7 +13775,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1 integrates. Done: tests per oddity, the harness passes, the census
   shares sit in the literature ranges. Owner: Aux 7 (W1, W2), Planets 1
   (W10), Core 4 (W15). Version 8.1.
-  Prerequisites: GEN.1039, GEN.1040, GEN.1042, GEN.1047.
+  Prerequisites: GEN.1040, GEN.1042, GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1049 Wire W5 resonance heating and the W3 high-eccentricity and W4 misaligned-orbit tails in planet_architecture**
@@ -13782,7 +13786,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   confirmed by the lane that builds it. Lock work, train 13, after the
   GEN.1006 chain (trains 8 to 11). Done: tests, harness, census. Owner:
   Planets 1 (W5 module from Aux 7). Version 8.1.
-  Prerequisites: GEN.1043, GEN.1047, GEN.1016.
+  Prerequisites: GEN.1047, GEN.1016.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1050 Wire W14 (the dying-planet flag) and W9 (rings from decayed moons)**
@@ -13804,7 +13808,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   confirmed by the lane that builds it. Lock work, train 14. Done:
   tests, harness, census; W20 only after GEN.972. Owner: Aux 3 (W19),
   Air 1 (W20). Version 8.1.
-  Prerequisites: GEN.1044, GEN.1046, GEN.1047.
+  Prerequisites: GEN.1046, GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1052 Heavy-liquid layers and mercury (from GEN.1034): the deep global heavy-liquid path with the fluid Love number, the thin-layer refusal, and mercury and other liquid metals as rows of the surface liquid table**
@@ -14602,6 +14606,322 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the belt ledger.
   Prerequisites: GEN.1061. Related: GEN.568.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1094 Read Goldberg and Batygin 2023 for the librating share of near-resonant pairs (the share of pairs that are heating-capable, W5), and register the number**
+  Weird worlds (goal #4117), found by Sources 1 in GEN.1037:
+  near-resonance is 15 percent of neighbouring pairs and 70 percent in
+  young systems, but the share that librates is not in the paper read.
+  Done: the share with source in docs/design/research/oddity-rates.md
+  and a GEN.725 row. Lock-free. Where we think it belongs (best guess):
+  Sources 1 (separate branch, merge it yourself), version 8.1.
+  Prerequisites: none. Related: GEN.1043.
+
+- [ ] **GEN.1095 Confirm the remaining [R] oddity rates (W6, W7, W9, W12, W16, W21 to W26, G1, G7) against papers and register the stand-ins**
+  Weird worlds (goal #4117), the follow-on to GEN.1037
+  (docs/design/research/oddity-rates.md): same method, secondary sources
+  accepted, each unconfirmed number a GEN.725 row with tier and tweak.
+  Done: table rows and registry rows merged. Lock-free. Where we think
+  it belongs (best guess): Sources 1 after the Goldberg and Batygin
+  read, version 8.1.
+  Prerequisites: GEN.1094.
+
+- [ ] **GEN.1096 planet_mass.gas_outcome returns max(runaway, core) and the core is capped at 0.01 of the star, not at the 13 Jupiter-mass edge: a 1.5 to 2 solar-mass host at twice solar metals draws 15 to 21 Jupiter masses (4 in 3,000 draws) (bug)**
+  Found by Aux 3 in TEST.493 (PR #4138): the case is a strict xfail in
+  tests/test_giant_oddity_audit.py. A Sun-like host ceiling is 10.5
+  Jupiter masses; 10 to 13 appear only above about 1.24 solar masses.
+  Fix: cap the draw at the brown-dwarf edge with the host-mass
+  dependence. The fix changes generated output (lock work, epoch,
+  --affects plan) and removes the xfail. Where we think it belongs (best
+  guess): Core 4 giants chain, train 7.
+  Prerequisites: none.
+
+- [ ] **GEN.1097 Every object has a day-and-night state and counter: solar day length, day and night hours, and an explicit state for tidally locked, non-rotating, polar-day and no-solid-surface bodies, stored for planets, moons, belt bodies and (where meaningful) stars (bug)**
+  Boss, 4:47 PM EDT 2026-10-30: spins run in effectively real time on
+  screen but not all objects have a night and day, and ALL objects
+  should have a night-and-day counter. Today daylight_hours and the day
+  and night shares are stored for planets (migration 0170, GEN.767) and
+  GEN.768 builds the hours outside; moons, belt bodies and stars carry
+  no day state, and a locked body has no stated state. Do: a pure
+  function of spin period, orbital period, eccentricity, tilt and the
+  host giving the solar (synodic) day, the day and night hours by
+  latitude band, and the state word (cycle, tidally locked with a
+  permanent day side, non-rotating, polar day or night, no surface);
+  stars show the rotation period and the word "no night". Done: tests on
+  Earth, Mars, Venus, Mercury (3:2), a locked M-dwarf planet, Io, a belt
+  body, the Sun; the values stored for every object kind (columns in
+  db/column_units.py, migration, API bump). Lock work (epoch if a value
+  draws, migration). Where we think it belongs (best guess, can move):
+  Aux 2 (owns GEN.768 hours outside), train 7.
+  Prerequisites: none. Related: GEN.768, GEN.957.
+
+- [ ] **GEN.1098 Interstellar fields research read: the sources of design section 10 (LS12 and the rest), one GEN.725 row per number used**
+  Interstellar asteroid fields from rogue-planet collisions and the
+  other sources (Boss, 4:40 PM EDT 2026-10-30; design
+  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
+  choice and two small questions (retire past 1 ly versus keep a record
+  row; the remnant planet) are with Boss; the lane builds the modules
+  with the rate as a labelled dial and registers every stand-in in
+  GEN.725. Do: read each source, write the numbers the field modules
+  need. Done: report and registry rows. Lock-free. Where we think it
+  belongs (best guess, can move): Aux 4 (one lane for the F chain,
+  separate branch), after GEN.1035.
+  Prerequisites: none.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1099 physics/rogue_collision.py: rogue-rogue collision rate (cross-section with focusing), Maxwellian speed window, Q_R against Q*_RD, shock pressure, unbound mass and ejecta dispersion**
+  Interstellar asteroid fields from rogue-planet collisions and the
+  other sources (Boss, 4:40 PM EDT 2026-10-30; design
+  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
+  choice and two small questions (retire past 1 ly versus keep a record
+  row; the remnant planet) are with Boss; the lane builds the modules
+  with the rate as a labelled dial and registers every stand-in in
+  GEN.725. Do: design F1. Tests: the Galaxy rate 0.1 to 10 per 10 Gyr,
+  the window fractions of design section 3.1, the regime order.
+  Lock-free. Where we think it belongs (best guess, can move): Aux 4,
+  after the research read.
+  Boss decision (2026-10-30 4:55 PM EDT): Boss decided 4:54 PM EDT
+  2026-10-30: option 1, physics only, no labelled game rate; fields come
+  only from physical sources (supernova-unbound belts and the other
+  physical sources), a retired field past 1 ly is marked retired, and
+  the leftover planet of a collision is its own rogue planet. The
+  collision rate is the physical one (about one per Galaxy life), so the
+  generator makes almost none from collisions; the leftover planet is
+  its own rogue planet.
+  Rogue parents (R4) (2026-10-30 4:57 PM EDT): The field parents and the
+  collision speed window are drawn from the rogue ejection population of
+  GEN.1111, not from a flat table.
+  Prerequisites: GEN.1098.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1100 physics/field_dispersal.py: expansion radius from age, age from radius, freeze-out radius per size, shear term, retirement age, and a body position from (seed, rank, age)**
+  Interstellar asteroid fields from rogue-planet collisions and the
+  other sources (Boss, 4:40 PM EDT 2026-10-30; design
+  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
+  choice and two small questions (retire past 1 ly versus keep a record
+  row; the remnant planet) are with Boss; the lane builds the modules
+  with the rate as a labelled dial and registers every stand-in in
+  GEN.725. Do: design F2. Pure function, reversible in age, mass
+  conserved. Lock-free. Where we think it belongs (best guess, can
+  move): Aux 4.
+  Rogue parents (R4) (2026-10-30 4:57 PM EDT): The field parents and the
+  collision speed window are drawn from the rogue ejection population of
+  GEN.1111, not from a flat table.
+  Prerequisites: GEN.1098.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1101 physics/field_rates.py: the four source rates (collision, supernova-unbound belts, and the others), the hosted rule for unbound belts, the labelled floor dial keeping both figures**
+  Interstellar asteroid fields from rogue-planet collisions and the
+  other sources (Boss, 4:40 PM EDT 2026-10-30; design
+  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
+  choice and two small questions (retire past 1 ly versus keep a record
+  row; the remnant planet) are with Boss; the lane builds the modules
+  with the rate as a labelled dial and registers every stand-in in
+  GEN.725. Do: design F4 and section 8. Registers the stand-ins. Boss
+  picks the rate; the dial default follows his answer. Lock-free. Where
+  we think it belongs (best guess, can move): Aux 4.
+  Boss decision (2026-10-30 4:55 PM EDT): Boss decided 4:54 PM EDT
+  2026-10-30: option 1, physics only, no labelled game rate; fields come
+  only from physical sources (supernova-unbound belts and the other
+  physical sources), a retired field past 1 ly is marked retired, and
+  the leftover planet of a collision is its own rogue planet. Drop the
+  floor dial: the rates are the physical ones and nothing else; no field
+  is drawn at a made-up per-sector rate.
+  Prerequisites: GEN.1098.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1102 Field composition from two differentiated parents (iron, silicate, ice shards) replacing draw_field("collisional")**
+  Interstellar asteroid fields from rogue-planet collisions and the
+  other sources (Boss, 4:40 PM EDT 2026-10-30; design
+  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
+  choice and two small questions (retire past 1 ly versus keep a record
+  row; the remnant planet) are with Boss; the lane builds the modules
+  with the rate as a labelled dial and registers every stand-in in
+  GEN.725. Do: design F3, using the finished taxon kernel and the member
+  composition step. Lock-free. Where we think it belongs (best guess,
+  can move): Aux 4 (or Sources 1), after F1 and F2.
+  Rogue parents (R4) (2026-10-30 4:57 PM EDT): The field parents and the
+  collision speed window are drawn from the rogue ejection population of
+  GEN.1111, not from a flat table.
+  Prerequisites: GEN.1099, GEN.1100.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1103 AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed**
+  Interstellar asteroid fields from rogue-planet collisions and the
+  other sources (Boss, 4:40 PM EDT 2026-10-30; design
+  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
+  choice and two small questions (retire past 1 ly versus keep a record
+  row; the remnant planet) are with Boss; the lane builds the modules
+  with the rate as a labelled dial and registers every stand-in in
+  GEN.725. Lock work, train 19 (with the supernova host rule). Design
+  L1. Epoch, migration, no backward-compat shim. Done: tests, golden,
+  census. Where we think it belongs (best guess, can move): Aux 4, train
+  19.
+  Boss decision (2026-10-30 4:55 PM EDT): Boss decided 4:54 PM EDT
+  2026-10-30: option 1, physics only, no labelled game rate; fields come
+  only from physical sources (supernova-unbound belts and the other
+  physical sources), a retired field past 1 ly is marked retired, and
+  the leftover planet of a collision is its own rogue planet. The field
+  density no longer comes from a flat table at all.
+  Prerequisites: GEN.1099, GEN.1100, GEN.1101, GEN.1102.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1104 Supernova host rule: a young supernova remnant and its remnant core draw the unbound belt as a field, like NEBULA_HOST_RULES**
+  Interstellar asteroid fields from rogue-planet collisions and the
+  other sources (Boss, 4:40 PM EDT 2026-10-30; design
+  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
+  choice and two small questions (retire past 1 ly versus keep a record
+  row; the remnant planet) are with Boss; the lane builds the modules
+  with the rate as a labelled dial and registers every stand-in in
+  GEN.725. Lock work, train 19. Design L2. Done: tests, census share of
+  remnants with a field. Where we think it belongs (best guess, can
+  move): Aux 4, train 19 (same train as the columns).
+  Prerequisites: GEN.1103.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1105 Field members (individual bodies by the belt cut rule) with `<field ID>.<rank hex>` designations, status flags, and the sector and field pages**
+  Interstellar asteroid fields from rogue-planet collisions and the
+  other sources (Boss, 4:40 PM EDT 2026-10-30; design
+  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
+  choice and two small questions (retire past 1 ly versus keep a record
+  row; the remnant planet) are with Boss; the lane builds the modules
+  with the rate as a labelled dial and registers every stand-in in
+  GEN.725. Lock work, train 20 after the belt ledger items are merged
+  (belt member storage and designation). API version bump. Done: tests,
+  pages. Where we think it belongs (best guess, can move): Core 2 with
+  Aux 4, train 20.
+  Prerequisites: GEN.1103, GEN.1065, GEN.1070.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1106 Field render: a 3D view for the field page (today _NO_VIEW), the sector map drawing the cloud or annulus plus the individual points at v x age, the render seed from the uid not the database id**
+  Interstellar asteroid fields from rogue-planet collisions and the
+  other sources (Boss, 4:40 PM EDT 2026-10-30; design
+  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
+  choice and two small questions (retire past 1 ly versus keep a record
+  row; the remnant planet) are with Boss; the lane builds the modules
+  with the rate as a labelled dial and registers every stand-in in
+  GEN.725. Lock work, train 20. Design L4. Done: map and page checks.
+  Where we think it belongs (best guess, can move): Core 2, train 20.
+  Prerequisites: GEN.1105.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1107 Bring-to-epoch for fields: age advances, radius follows, retirement past 1 ly marks or deletes the row (Boss to pick; default retire)**
+  Interstellar asteroid fields from rogue-planet collisions and the
+  other sources (Boss, 4:40 PM EDT 2026-10-30; design
+  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
+  choice and two small questions (retire past 1 ly versus keep a record
+  row; the remnant planet) are with Boss; the lane builds the modules
+  with the rate as a labelled dial and registers every stand-in in
+  GEN.725. Lock work, train 20, after the GEN.1006 chain. Design L5.
+  Done: tests with a before and after epoch. Where we think it belongs
+  (best guess, can move): Bug 1 (GEN.1006 chain), train 20.
+  Boss decision (2026-10-30 4:55 PM EDT): Boss decided 4:54 PM EDT
+  2026-10-30: option 1, physics only, no labelled game rate; fields come
+  only from physical sources (supernova-unbound belts and the other
+  physical sources), a retired field past 1 ly is marked retired, and
+  the leftover planet of a collision is its own rogue planet. Default
+  retire is confirmed.
+  Prerequisites: GEN.1103, GEN.1006.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1108 Climate by latitude band for every body in seven bands (the equator, three above, three below, the poles inside the outermost band each side), the temperature categories of regional_temperature.py extended to seven: day and night length and the temperature range by day and by night (bug)**
+  Boss, 4:52 and 4:53 PM EDT 2026-10-30: every body says how much day
+  and night it has at various places from the equator, in the same
+  categories as the temperatures. He means lines of latitude: the
+  equator, three bands above it and three below, the poles included in
+  the outermost band on each side (seven bands), each with climate data
+  including day length and night length and the temperature range for
+  day and for night. regional_temperature.py has four bands today
+  (BANDS: polar, north, equator, south; 60 to 90, 20 to 60, -20 to 20,
+  -60 to -20 degrees), so this widens the category set to seven (the
+  lane keeps the existing names where they still fit and names the new
+  ones, widths a stand-in registered in GEN.725) and moves the stored
+  regional temperatures to it. Do: a pure function of tilt, orbit,
+  eccentricity, spin and host returning for each band the mean day and
+  night hours per day, the longest polar day and night over the year,
+  the state (cycle, permanent day side, permanent night side, terminator
+  band, non-rotating with the year as the day), and the temperature
+  range by day and by night from the existing day and night shares and
+  the regional model; the page shows the seven bands beside each other,
+  replacing the "no day and night range stored for this place" note.
+  Done: tests on Earth (24 h at the equator, a polar day of about 186
+  days north of the Arctic circle), Uranus (98 degrees), a locked
+  planet, Venus; values stored per band for every object kind (columns
+  in db/column_units.py, migration, API bump); the units shown. Lock
+  work (migration, API version, regional temperatures move). Where we
+  think it belongs (best guess, can move): Aux 2 with the day-and-night
+  state item, train 7.
+  Prerequisites: GEN.1097. Related: GEN.768, GEN.1048.
+
+- [ ] **GEN.1109 Review rogue planet generation so physics drives it: where the counts, masses and properties rest on stand-ins or flat rates, and what replaces each (ejection from the architecture, scattering, the mass function, the survival of moons and air)**
+  Boss, 4:54 PM EDT 2026-10-30: physics is the driver for rogue planets
+  as for interstellar fields, no game-rate fudges. Today the mass bins
+  and the rate per star are tuning constants (ROGUE_PLANET_MASS_BINS,
+  ROGUE_PLANET_RATE_PER_STAR in tuning.py, the interstellar-object-rates
+  note), the ejection and capture test is GEN.291, the wanderers are
+  GEN.557, and the loss fraction of volatiles at ejection is the
+  stand-in BC11. Do: a review report listing for every rogue planet
+  quantity (count per star and per volume, mass function, ejection
+  survival of air and moons, age, temperature, internal heat) whether it
+  is physics, a sourced stand-in or a flat rate, with the physical
+  replacement (the ejection rate from the architecture and the scatter
+  step of GEN.1089, the stellar-encounter unbinding of GEN.291, the
+  star-formation history, Spitzer/microlensing counts as test targets)
+  and an item per replacement. Done: report merged with the table and
+  the replacement items filed by TODO. Lock-free. Where we think it
+  belongs (best guess, can move): Planets 1 (owns the architecture and
+  ejection), separate branch, after the scatter module.
+  Design table (R1) (2026-10-30 4:57 PM EDT): This is R1 of
+  docs/design/systems/interstellar-asteroid-fields.md section 13: the
+  table of section 13.1 lists every rogue quantity with its kind (flat
+  rate, default, anchored fit) and the physics-driven replacement to
+  research; the output also checks the ejection yield per star against
+  microlensing rates. Replacement modules are the R3 item and the rows
+  created from architecture ejections are the R2 item.
+  Prerequisites: none. Related: GEN.557, GEN.1089, GEN.110.
+
+- [ ] **GEN.1110 Average wind speeds by day and by night in each of the seven latitude bands: the day-to-night thermal wind from the pressure difference, zonal jets and trade winds from the equator-to-pole temperature difference and the Rossby number, faded out below about 1 kPa**
+  Boss asked, 4:53 PM EDT 2026-10-30, whether wind speed by day and
+  night across the bands can be estimated; the spins thread says yes as
+  order-of-magnitude averages. Do: a pure function of band temperatures
+  by day and night, air pressure and mass, spin and radius returning the
+  mean wind in m/s for each band by day and by night (thermal wind of
+  the day-night temperature difference, a geostrophic zonal jet scaled
+  by the Rossby number, the locked-planet day-to-night flow), with the
+  stand-ins registered in GEN.725 and the units shown. Needs the
+  seven-band climate item (GEN.1108) because the temperature categories
+  are four bands today, not seven. Planned, for Boss to confirm since he
+  asked it as a question. Lock work when stored (columns, migration,
+  API); the module is lock-free. Where we think it belongs (best guess,
+  can move): Aux 7 (spin and tides) for the module, Aux 2 for the
+  storage, after the seven-band item.
+  Prerequisites: GEN.1108. Related: GEN.1108.
+
+- [ ] **GEN.1111 Rogue rows created from the architecture's ejections: mass, composition, moons kept, ejection speed, age and the parent system, with the flat rate becoming a test target**
+  Boss, 4:54 PM EDT 2026-10-30: physics all the way for rogue planets.
+  Design section 13 (R2): every ejection the architecture performs
+  becomes a rogue, counted with the sector's stars; the rogue row
+  records the ejecting system (or "formed free") so it has a history
+  sentence, and the speed is the escape speed at the scattering orbit
+  plus the host's velocity. Replaces the flat ROGUE_PLANET_RATE_PER_STAR
+  draw; no backward-compat shim. Lock work (epoch with --affects,
+  migration, API field), after the architecture slot loop and the
+  clearance ledger. Where we think it belongs (best guess, can move):
+  Planets 1, train 19.
+  Prerequisites: GEN.1109, GEN.1014. Related: GEN.291, GEN.557, GEN.728.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1112 Replace the rogue-planet defaults one by one with their physical derivations (mass function from ejection, gas-giant threshold from the envelope fraction, age from the ejecting system, envelope and water share from formation, tidal flux from kept moons, radiogenic inputs from the parent star), each a small pure module**
+  Boss, 4:54 PM EDT 2026-10-30. Design section 13.1 right-hand column is
+  the list; each replacement registers its stand-ins in GEN.725 and
+  removes the tuning default it replaces (no shim). The heat-law anchors
+  (Jupiter flux, Neptune temperature, cooling t^-1.3, photosphere
+  pressures) and the escape parameter 15 are sourced and stay. Done: a
+  module and tests per replaced default; the defaults gone from
+  tuning.py. Lock-free for the modules; their wiring rides the
+  rogue-rows item. Where we think it belongs (best guess, can move):
+  Sources 1 (idle, separate branch), after the review report.
+  Prerequisites: GEN.1109. Related: GEN.557.
+  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19370,19 +19690,6 @@ clears each one.
   TEST.481) or any free lane. Version 8.1.
   Prerequisites: none. Related: PERF.203.
 
-- [ ] **TEST.485 test_planets h-0: atmospheric_pressure 0.99999999993 sits under the 1.0 floor (bug)**
-  Found by Bug 2's train 4 merge (PR #4105; relayed 3:37 PM EDT
-  2026-10-30 as the lane reported), red after the merge. The drawn
-  atmospheric pressure is 0.99999999993 where the check wants at least
-  1.0: a rounding of a value that should be clamped or a floor that
-  should be tolerant by one part in 1e9. Do: find which, fix the right
-  side without loosening the property beyond that. Done: test_planets
-  h-0 passes. Owner: Core 1 (after TEST.476) or any free lane. Version
-  8.1.
-  Owner (3:43 PM EDT 2026-10-30): Core 1 (assigned by TODO after
-  TEST.476; test-only or lock-free, separate branch, merge it yourself).
-  Prerequisites: none. Related: TEST.484.
-
 - [ ] **TEST.486 test_planets c-2: a life class is kept but life_class_scores is None when no class scores above the line after the oxygen build (bug)**
   Found by Bug 2's train 4 merge (PR #4105; relayed 3:37 PM EDT
   2026-10-30 as the lane reported), red after the merge. life.py
@@ -19394,18 +19701,6 @@ clears each one.
   design note. Owner: Aux 2 (life area). Version 8.1.
   Owner (3:43 PM EDT 2026-10-30): Aux 2 (assigned by TODO; a lock turn
   if the output moves).
-  Prerequisites: none. Related: TEST.484.
-
-- [ ] **TEST.487 test_no_todo_codes_shown fails twice: a GEN.474 string and the PERF.203 help text show TODO codes to users (bug)**
-  Found by Bug 2's train 4 merge (PR #4105; relayed 3:37 PM EDT
-  2026-10-30 as the lane reported), red after the merge. Red on clean
-  main too. A user-facing string carries a TODO code (GEN.474 in one
-  string, PERF.203 in a help text). Do: remove the codes from the shown
-  text (keep them in comments and docs only). Done: the test passes.
-  Owner: Core 1 (after TEST.476) or any free lane; lock-free. Version
-  8.1.
-  Owner (3:43 PM EDT 2026-10-30): Core 1 (assigned by TODO after
-  TEST.476; test-only or lock-free, separate branch, merge it yourself).
   Prerequisites: none. Related: TEST.484.
 
 - [ ] **TEST.489 Reds on clean main found by Core 3: test_cache_warmup (nodes_to_warm, full_cache_leaves, nodes_family: insert_bright_stars column count mismatch), test_satellites (2), test_activity (stored field and exposure), test_sector_gen research rates per star (black-hole rate 0.00123 over the 0.0012 cap) (bug)**
@@ -19448,19 +19743,6 @@ clears each one.
   Prerequisites: GEN.1036.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
-- [ ] **TEST.491 W21 audit: check end to end that M dwarf water loss can leave an oxygen air and that the life scores never read oxygen alone (Luger and Barnes 2015, Wordsworth and Pierrehumbert 2014)**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: a test over a sample of M
-  dwarf ecosphere planets in the pre-main-sequence luminous phase
-  (biogenic_oxygen, mixture_escape); file a bug if it fails. Done: the
-  test passes or the bug is filed. Lock-free. Owner: Aux 3 (after W19).
-  Version 8.1.
-  Prerequisites: none.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after each of trains 12, 13 and 14)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -19474,20 +19756,6 @@ clears each one.
   shares (GEN.1054 to GEN.1058, design section 9) and the giant tilt
   (GEN.1053, GEN.1058): one pass after each of trains 12, 13 and 14.
   Prerequisites: GEN.1047.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **TEST.493 Giant oddity audit: the super-Jupiter mass ceiling (G9), the hot Neptune desert survivors (G7, LTT 9779 b), and which G rows are derived outputs only (G2 to G6, G8, G10, G11); file bugs for any that are not**
-  Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md sections 8 and 9).
-  Secondary and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Do: a test over a sample of
-  giants for the mass tail (10 to 13 Jupiter masses present, nothing
-  above the brown dwarf edge), the desert occupancy (few Neptunes inside
-  3 d, with a surviving outlier), and a check that Uranus-like heat
-  spread is GEN.1033's and not duplicated. Lock-free. Owner: Aux 3
-  (after W21). Version 8.1.
-  Prerequisites: none. Related: GEN.1033.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **TEST.494 Ring invariants in the plausibility harness: ring mass under 1e-4 of the planet, ring inside the Roche limit unless R4 names its resonance, optical depth an output, no ring inside 0.1 AU, ring plane in the equator**
@@ -19515,6 +19783,21 @@ clears each one.
   Core 1 (same lane as GEN.1065).
   Prerequisites: GEN.1065.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **TEST.496 test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug)**
+  Found by Core 2 after MAP.337 step 1 (PR #4119, 4:41 PM EDT as the
+  lane reported). Core 2 leaves it for MAP.337 steps 2 and 3, which
+  remove the stage URLs; it closes when they merge and the test passes.
+  Owner: Core 2. Version 8.1.
+  Prerequisites: MAP.337.
+
+- [ ] **TEST.497 test_planet_physical_properties e-3 fails on an unseeded star (air pressure 0.99999 Pa against a floor of 1.0), the same cause as TEST.486 (bug)**
+  Found by Aux 2 (4:42 PM EDT 2026-10-30): the trace trim of the
+  thin-air regime stores 0.99999 Pa; TEST.485 already widened the floor
+  for one test, this is another test with the same floor. Fix: seed the
+  star and allow the designed trim. Lock-free. Where we think it belongs
+  (best guess): Core 1.
+  Prerequisites: none.
 
 ## USR: User accounts
 
