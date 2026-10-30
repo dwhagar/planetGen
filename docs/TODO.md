@@ -15383,6 +15383,44 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fill, rides train 3 after GEN.961. Owner: Aux 7. Version 8.1.
   Prerequisites: GEN.961. Related: GEN.961, GEN.962, GEN.958.
 
+- [ ] **GEN.988 Give Ca, S and Ar a star-to-star scatter like the other generated [X/Fe] abundances (bug)**
+  Finding 1 of TEST.456 (Sources 1, #3817, as the lane reported 9:30 PM
+  EDT 2026-10-29): the new test holds generated stellar [X/Fe] to the
+  Brewer and Fischer 2016 table by [Fe/H] bin (bands from the
+  project-file VizieR TSV). Changes generated output (star compositions,
+  so every planet's bulk draw): epoch, --affects fill, rides train 3
+  with the star epoch; the abundance fits are in stellar_abundances.
+  Every constant it changes gets a GEN.725 registry row (tier and tweak
+  level). Owner: Sources 1. Version 8.1. Today Ca, S and Ar carry no
+  scatter at all. Do: scatter from the Brewer and Fischer 2016 table,
+  per [Fe/H] bin, the same way the other elements get theirs.
+  Prerequisites: none. Related: TEST.456, GEN.948, GEN.984, GEN.932.
+
+- [ ] **GEN.989 Lower generated [Mg/Fe] by 0.05 to 0.07 dex for [Fe/H] above -0.2 to match Brewer and Fischer 2016 (bug)**
+  Finding 2 of TEST.456 (Sources 1, #3817, as the lane reported 9:30 PM
+  EDT 2026-10-29): the new test holds generated stellar [X/Fe] to the
+  Brewer and Fischer 2016 table by [Fe/H] bin (bands from the
+  project-file VizieR TSV). Changes generated output (star compositions,
+  so every planet's bulk draw): epoch, --affects fill, rides train 3
+  with the star epoch; the abundance fits are in stellar_abundances.
+  Every constant it changes gets a GEN.725 registry row (tier and tweak
+  level). Owner: Sources 1. Version 8.1. Generated [Mg/Fe] sits 0.05 to
+  0.07 dex above the table for [Fe/H] of -0.2 and up. Do: refit the Mg
+  trend in that range to the table (secondary sources accepted).
+  Prerequisites: none. Related: TEST.456, GEN.984, GEN.932.
+
+- [ ] **GEN.990 Raise the C, O and Si abundance scatter, now about half the Brewer and Fischer 2016 scatter (bug)**
+  Finding 3 of TEST.456 (Sources 1, #3817, as the lane reported 9:30 PM
+  EDT 2026-10-29): the new test holds generated stellar [X/Fe] to the
+  Brewer and Fischer 2016 table by [Fe/H] bin (bands from the
+  project-file VizieR TSV). Changes generated output (star compositions,
+  so every planet's bulk draw): epoch, --affects fill, rides train 3
+  with the star epoch; the abundance fits are in stellar_abundances.
+  Every constant it changes gets a GEN.725 registry row (tier and tweak
+  level). Owner: Sources 1. Version 8.1. Do: set the scatter of C, O and
+  Si to the table's per-bin scatter.
+  Prerequisites: none. Related: TEST.456, GEN.984, GEN.932.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -20322,20 +20360,6 @@ clears each one.
   radius valley RV2, RV3, SEP rows, neutron star anchors, cluster laws).
   Catalog sections 1 and 4.
   Prerequisites: GEN.945. Related: GEN.725, GEN.754, GEN.945.
-
-- [ ] **TEST.456 A test that the generated [X/Fe] abundances match the Brewer and Fischer 2016 table, not only its trend and scatter (low priority)**
-  Found by the data-use audit (rank 9, 10-29): the fit keeps the trend
-  and the scatter, not the real joint distribution. Do: a test comparing
-  the generated [X/Fe] distribution against the held table. Low
-  priority. Owner: none yet. Version 8.4.
-  Owner (full build) (2026-10-29 8:35 PM EDT): Sources 1. This replaces
-  any earlier owner line.
-  Data we hold (2026-10-29 8:55 PM EDT): Lodders 2003 Table 11 and
-  condensation temperatures, Weisberg 2006 chondrite groups and the
-  Brewer and Fischer 2016 star table (1,615 stars, 15 elements, held as
-  a TSV) are in the project files, read once by the GEN.465/468 research
-  pass. Catalog sections 1 and 3.
-  Prerequisites: none. Related: TEST.455.
 
 - [ ] **TEST.459 The point_phenomena links browser test is red on clean main (bug)**
   Found by Core 2 while merging MAP.336 (as the lane reported 7:11 PM
