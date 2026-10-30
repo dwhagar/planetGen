@@ -2189,6 +2189,18 @@ export function createStageView(host) {
     return sectorStage.isOpen() ? { id: sectorStage.sectorId(), share: sectorStage.fade() } : null;
   };
 
+  // For the browser tests (MAP.302): every entry of the sector opened in place, {key, kind, name, x, y, z, hidden}, in the map's frame
+  // (parsecs) as galaxyScreenOf takes it, so a test can look for one of every kind the sector holds and click where it is drawn.
+  canvasEl.galaxySectorEntries = function () {
+    if (!sectorStage.isOpen()) return [];
+    return sectorStage.entries().map(function (entry) {
+      return {
+        key: entry.key || null, kind: sectorStage.kindOf(entry), name: entry.name || "", x: entry.x, y: entry.y, z: entry.z,
+        hidden: sectorStage.hides(entry),
+      };
+    });
+  };
+
   // --- The sector opened in place (MAP.66) ------------------------------------
 
   // Closes the open sector's scene; the stage it sits in stays.

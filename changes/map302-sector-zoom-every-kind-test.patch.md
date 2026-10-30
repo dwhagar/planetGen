@@ -1,0 +1,4 @@
+**Headline:** A browser test now holds that at sector zoom every kind of thing a sector holds is drawn, named under the pointer and picked by a click.
+
+### Changed
+- **Sector zoom draws and picks every kind (MAP.302).** On the fixture sector (now with a brown dwarf, a black hole, an asteroid field, a supernova remnant, an interstellar comet and a quasar beside its stars, nebula, neutron star and rogue planets) the opened sector is checked kind by kind: each is in the scene, a hover where it is drawn names it, and a click picks it and opens its panel. Nothing was missing in the drawing; rogue planets stay off until asked for in the Menu (they outnumber the stars), so the test opens the page with them shown. Clusters and facilities are not sector contents yet (a globular cluster is a galaxy-scale container; stations and facilities are MAP.307, 8.3).
