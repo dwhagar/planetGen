@@ -1114,7 +1114,7 @@ with `clamp()`.
   Lock-free until the page route. Where we think it belongs (best guess,
   can move): Core 2 (map and pages lane, separate branch), after the
   ledger and the density module.
-  Prerequisites: GEN.1061, GEN.1093.
+  Prerequisites: GEN.1061.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **UX.241 Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row**
@@ -14460,29 +14460,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1088, GEN.1089, GEN.1090, GEN.1070, GEN.1071.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
-- [ ] **GEN.1093 physics/belt_density.py: the belt density factor (objects per square AU above a stated diameter, plus mass per square AU) from the size law, the belt annulus and the ledger**
-  Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
-  asteroid belt information page that will show the bodies in the
-  asteroid belt that are named and the contents and sizes of the rest of
-  the mass of the asteroid belt, as well as a density factor in
-  object/square (something, not sure which unit)"; design
-  docs/design/systems/belt-evolution.md section 12, goal #4130). Belt
-  members have a designation, not a name (Boss 4:21 PM EDT), so the list
-  is the individually tracked bodies by designation. Do: pure function
-  returning N(>D) per AU squared for the diameters 1, 10 and 100 km and
-  the mass per AU squared in Earth masses, from the annulus area (pi
-  (a_out^2 - a_in^2), or the radial profile when the gap map exists) and
-  the size-law slope and cut. The unit is objects per square
-  astronomical unit (stated with the diameter limit); register it and
-  the mass-per-area unit in the unit registry (GEN.568,
-  db/column_units.py) so no number shows without its unit. Done: tests
-  (a belt twice as wide at the same mass has half the factor), unit rows
-  registered, no wiring. Lock-free. Where we think it belongs (best
-  guess, can move): Aux 7 (separate branch, merge it yourself), after
-  the belt ledger.
-  Prerequisites: GEN.1061. Related: GEN.568.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
 - [ ] **GEN.1094 Read Goldberg and Batygin 2023 for the librating share of near-resonant pairs (the share of pairs that are heating-capable, W5), and register the number**
   Weird worlds (goal #4117), found by Sources 1 in GEN.1037:
   near-resonance is 15 percent of neighbouring pairs and 70 percent in
@@ -15385,20 +15362,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: none. Related: PERF.149.
-
-- [ ] **PERF.210 Cut the cost of GEN.992: re-finish only the bodies whose result can change after the star age is final**
-  Aux 7 report (as the lane reported 11:12 PM EDT 2026-10-29). GEN.992
-  makes every rocky planet and moon again when it was made at an age
-  more than 2 percent younger than the final age; every re-run is a full
-  air solve, so system generation on a G2V takes 64 percent longer (12
-  systems: 28.8 s to 47.3 s, 232 bodies made again). Do: find which
-  bodies cannot change (for example an airless body, or one whose air,
-  class and field do not read the age) and skip them, reuse an unchanged
-  air solve, or cache what the re-run shares with the first pass; keep
-  every result identical to GEN.992 with the same seeds. Rides after
-  GEN.992 merges (it edits the same function). Owner: Aux 7. Version
-  8.1.
-  Prerequisites: GEN.992. Related: GEN.992, PERF.209.
 
 ## DB: Database and schema
 
