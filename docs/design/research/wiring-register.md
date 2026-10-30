@@ -140,3 +140,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.68:OT1 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT2 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT6 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
+| module | planetgen.physics.ring_origin | GEN.1054 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
+| row | 6.70:RO1 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO2 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO3 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO4 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO5 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO6 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO7 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO8 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
