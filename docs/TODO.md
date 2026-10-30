@@ -13484,6 +13484,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows to the table passes, and no Solar System planet or comet is a
   fixed input. Two steps: the model and rows (lock-free) and the digest
   flip that rides a train. Owner: Aux 3 (after GEN.1002).
+  Progress (2026-10-30 12:56 PM EDT): Aux 3 (as the lane reported 12:59
+  PM EDT): part 1 for a1/a2 merged in #4057:
+  physics/magma_ocean_redox.py (surface redox of a magma ocean from base
+  pressure through the ferric share), registry rows MR1 to MR7 in
+  section 6.57 (tiers T3 to T7, tweaks L0 to L2, section number a
+  placeholder for allocate_numbers), three recipe expression functions;
+  nothing generated changes. Hirschmann 2022 Eq. 21/34 and Deng 2020
+  equation bodies were not readable, so MR3 to MR5 use the numbers
+  GEN.482 recorded. Next: b1 dry carbon (soot-line model, Li 2021), then
+  k7, then the flip for a1/a2/b1/k7 as one digest step that rides a
+  train.
   Prerequisites: GEN.474. Related: GEN.1002, GEN.474, GEN.595, GEN.725.
 
 - [ ] **GEN.1006 Stars and bodies in one system never overlap by design: every member knows the others when any is rebuilt, then fit and adjust afterwards**
@@ -18488,17 +18499,6 @@ clears each one.
   STARS=4 forced runs and reports the failures by class. Lock-free (a
   test and a module, no output change). Owner: Bug 2 or any free lane.
   Prerequisites: none. Related: GEN.1006, GEN.1004, TEST.476.
-
-- [ ] **TEST.478 tests/test_api.py _bright_row (and its row near line 1491) is one value short since GEN.846 added bright_stars.rotation_period_hours (bug)**
-  Found by Aux 3 (relayed 11:57 AM EDT 2026-10-30):
-  test_galaxy_bright_stars_in_box_matches_a_brute_force_search fails on
-  main with pymysql 1136 (column count), the same fault TEST.474 fixed
-  in test_web_a11y.py. Do: give `_bright_row` and its row the new
-  rotation_period_hours value, or build both from the column list so the
-  next column cannot break them, and grep the tests for other hand-built
-  bright_stars rows. Done: the test passes on main. Lock-free, test
-  only. Owner: Bug 2 or any free lane.
-  Prerequisites: none. Related: TEST.474, GEN.846.
 
 ## USR: User accounts
 
