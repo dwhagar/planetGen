@@ -253,3 +253,22 @@ def test_gen833_below_earths_gravity_ice_relief_does_not_grow_but_a_rock_basins_
     assert hy.ocean_fraction(layer_km, small, icy=True) > hy.ocean_fraction(layer_km, small)
     heavy = 3.0 * constants.EARTH_GRAVITY
     assert hy.ocean_fraction(layer_km, heavy, icy=True) == hy.ocean_fraction(layer_km, heavy)
+
+
+def test_gen781_a_frozen_body_stores_its_high_pressure_ice_even_when_there_is_none():
+    """GEN.781: a body in the state ice or ice-covered ocean says how much high-pressure ice lies under its water, 0 when none, and
+    a deep one keeps its thickness; an open ocean without any stores nothing."""
+    frozen = []
+    for seed in range(12):
+        draw.set_run_seed(seed)
+        moon = _body("D", 70.0, 0.0, mass_earth=3.0e-6, radius_km=200.0, is_moon=True, water_mass_fraction=0.2,
+                     primary_mass_kg=constants.JUPITER_MASS_TO_KG, distance=0.01)
+        _generate_hydrosphere(moon, 0.002)
+        assert moon.hydrosphere in hy.FROZEN_COVER_STATES
+        frozen.append(moon)
+    assert all(moon.hp_ice_km == 0.0 for moon in frozen)
+    draw.set_run_seed(3)
+    ocean = _body("O", 290.0, 101325.0)
+    _generate_hydrosphere(ocean, 0.087)
+    if ocean.hydrosphere not in hy.FROZEN_COVER_STATES and not ocean.hp_ice_km:
+        assert ocean.hp_ice_km is None

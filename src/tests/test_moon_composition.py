@@ -260,7 +260,7 @@ def test_a_small_moons_density_follows_the_tapered_compaction_law(generated_moon
         checked += 1
     assert checked
     big = [moon for moon in generated_moons if moon.mass >= compaction.TAPER_END_KG]
-    assert big and all(moon.porosity is None for moon in big)
+    assert big and all(moon.porosity is not None and 0.0 < moon.porosity < 0.4 for moon in big)   # GEN.780: the upper crust's, not a heap's
 
 
 def test_the_same_seed_gives_the_same_moons():

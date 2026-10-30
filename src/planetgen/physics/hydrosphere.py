@@ -312,7 +312,7 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
         body.ocean_fraction = max(covered, frozen_cover(body, gravity))
         body.land_fraction = 1.0 - body.ocean_fraction
     body.ice_shell_km = shell_km or None
-    body.hp_ice_km = hp_km or None
+    body.hp_ice_km = hp_km if state in FROZEN_COVER_STATES else hp_km or None    # GEN.781: a frozen body says 0 when no high-pressure ice lies under it
     body.ocean_depth_km = liquid_km
     body.water_base_pressure_pa = column.base_pressure_pa
     if not liquid_km:

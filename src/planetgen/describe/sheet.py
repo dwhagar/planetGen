@@ -191,7 +191,7 @@ _BODY_GROUPS = (
            ("ice_other_mass_fraction", "Other ices mass fraction"), ("envelope_mass_fraction", "Gas envelope mass fraction"),
            ("envelope_helium_fraction", "Helium share of the envelope"), ("envelope_z_fraction", "Heavy-element share of the envelope"),
            ("rock_feo_fraction", "Iron oxide share of the rock"), ("rock_al2o3_fraction", "Alumina share of the rock"),
-           ("rock_mg_si_ratio", "Magnesium to silicon ratio of the rock"), ("porosity", "Porosity"),
+           ("rock_mg_si_ratio", "Magnesium to silicon ratio of the rock"), ("porosity", "Porosity (upper crust; the whole body for a small one)"),
            ("carbon_rock", "Carbon-rich rock", FLAG)),
     *_rows("atmosphere", ("atmospheric_pressure_pa", "Surface pressure"), ("atm_density", "Air density"),
            ("atm_molar_density", "Mean molar mass of the air"), ("scale_height_km", "Scale height"),
@@ -469,6 +469,9 @@ _BODY_NOT_SHOWN = {
               "not list it as a row yet"),
     **_excuse(tuple(column for column in regional_temperature.SWING_OF.values() if column != "temp_swing_k"),
               "the day and night swing of a place; shown on the row of its temperature as a range, from the coldest hour to the hottest"),
+    **_excuse(("moon_origin", "moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km"),
+              "how a moon formed and the circumplanetary disk of its giant parent (DB.70): they set the moon's makeup, which the composition "
+              "rows already show, and the page does not list them as rows yet"),
     **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
@@ -771,8 +774,8 @@ _BODY_RULES = [
      "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life or surface temperature"),
     (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES and (row is None or (row.get("atmospheric_pressure_pa") or 0) > 0),
      "a dead world, a small icy body and an airless super-Earth, and any body whose air has gone to nothing, have no air column to give a density, scale height or haze"),
-    (("lid_regime",), lambda klass, row: klass not in GIANT_CLASSES,
-     "a giant has no lid: only a rocky or icy body has a crust over a mantle"),
+    (("lid_regime", "porosity"), lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant has no lid and no crust: only a rocky or icy body has a crust over a mantle, with pores in it"),
     (_DAYLIGHT, lambda klass, row: _locked(row) is not True,
      "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight or day share to give"),
     (("shelter_column_g_cm2",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0 or (row.get("eq_shelter_rec") or 0) > 0,
@@ -833,7 +836,7 @@ generation pathway, not a rule."""
 
 OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
-        ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
+        ("tidal_flux_w_m2", "GEN.778"), ("outside_hours", "GEN.768"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
     **{("star", key): item for key, item in (
         ("state", "GEN.786"), ("decay_age_yr", "GEN.785"), ("lethal_event_rate_per_gyr", "GEN.785"),

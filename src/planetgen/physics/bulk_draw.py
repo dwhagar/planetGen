@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, constants, delivered_water, elements,
+from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, constants, crust_porosity, delivered_water, elements,
                                hydrosphere, ice_species, moon_composition, stellar_abundances, stellar_composition)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
@@ -475,7 +475,28 @@ def _settle(body, bulk, mass_given):
     _store(body, bulk)
 
 
+def _macroporosity(body, bulk):
+    """
+    The porosity stored for `body` when the draw gave none (GEN.780). A body of `compaction.TAPER_END_KG` or more has no macroporosity
+    (the pores are closed, Boss's decision S9, so the structure solver gave it none) and stores the mean porosity of its upper crust
+    (`crust_porosity`: its gravity and its share of water and ice); a lighter heap stores the tapered brittle law of Bierson and Nimmo
+    (`compaction.compacted_density_kg_m3`) against the density of its grains. A body with an envelope keeps `None`.
+    """
+    if bulk.porosity is not None or bulk.envelope > 0.0:
+        return bulk.porosity
+    if body.mass >= compaction.TAPER_END_KG:
+        return crust_porosity.mean_porosity(crust_porosity.gravity_m_s2(body.mass, body.radius), bulk.water + bulk.ice)
+    low, high = compaction.ROCK_FRACTION_RANGE
+    try:
+        density = compaction.compacted_density_kg_m3(body.radius, min(max(bulk.metal + bulk.rock, low), high))
+    except compaction.OutOfRange:    # heavier than its radius's heap: the solver decides, and the crust sets the porosity
+        return crust_porosity.mean_porosity(crust_porosity.gravity_m_s2(body.mass, body.radius), bulk.water + bulk.ice)
+    grain = bulk_structure.mixing_density_kg_m3(bulk.metal, bulk.rock, bulk.water, bulk.ice, 0.0)
+    return min(max(1.0 - density / grain, 0.0), 1.0)
+
+
 def _store(body, bulk):
+    bulk = dataclasses.replace(bulk, porosity=_macroporosity(body, bulk))
     for attribute, value in bulk.to_attributes().items():
         setattr(body, attribute, value)
     body.composition = composition_text.text(body)  # GEN.430: the text states the stored fractions
