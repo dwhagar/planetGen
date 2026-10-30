@@ -805,48 +805,16 @@ class _ShellTracker:
 CHANNEL_INTERVAL_SECONDS = 0.25
 """float: How often a worker drawing a task reports its stars (PERF.4)."""
 
-CHUNKS_PER_WORKER = 32
-"""int: About how many tasks of equal expected work a scatter is cut into for each worker, so that no worker is left
-with a big one at the end while the others sit idle."""
-
 MAX_SHELLS_PER_CHUNK = 64
 """int: The most consecutive shells one task draws, so the progress moves steadily at the thin edge of the galaxy,
 where thousands of shells hold almost nothing."""
-
-
-def shell_chunks(rows, workers):
-    """
-    Cuts the outline into tasks of consecutive shells with about equal
-    expected work. A shell draws from a stream of its own, so how the shells
-    are grouped changes nothing in what is drawn; only how well the workers
-    are kept busy.
-
-    Args:
-        rows (list): `(shell_index, high_band, weight)`, innermost shell first.
-        workers (int): How many workers share the run.
-
-    Returns:
-        list[list]: The rows of each task, the heaviest task first.
-    """
-    total = sum(weight for _shell, _high, weight in rows)
-    target = total / max(workers, 1) / CHUNKS_PER_WORKER
-    chunks, current, weight = [], [], 0.0
-    for row in rows:
-        current.append(row)
-        weight += row[2]
-        if weight >= target or len(current) >= MAX_SHELLS_PER_CHUNK:
-            chunks.append(current)
-            current, weight = [], 0.0
-    if current:
-        chunks.append(current)
-    return sorted(chunks, key=lambda chunk: -sum(row[2] for row in chunk))
 
 
 def static_shell_chunks(rows):
     """
     The units of a scatter on the new queue (PERF.97): the outline cut into runs of consecutive shells of about
     equal expected work, from the rows alone (`units.static_chunks`), so the same galaxy is the same units at any
-    worker count. The heaviest unit first, as `shell_chunks`.
+    worker count. The heaviest unit first.
 
     Args:
         rows (list): `(shell_index, high_band, weight)`, innermost shell first.

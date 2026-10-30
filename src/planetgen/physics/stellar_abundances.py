@@ -491,7 +491,7 @@ def solar_birth_th_over_eu():
 def solar_birth_u_over_th():
     """The birth atomic U/Th of the solar scale (0.572): A21's meteoritic log eps with uranium-238 and uranium-235 and thorium
     decayed back (the half-lives of GEN.438, NUBASE2020). The 2003 Palme and O'Neill cross-check sits
-    `tuning.STELLAR_U_TH_UNCERTAINTY` away."""
+    6 percent away (stellar-composition.md step 10)."""
     logs = tuning.STELLAR_SOLAR_LOG_EPS
     age = tuning.STELLAR_SOLAR_SYSTEM_AGE_GY
     u238, u235 = elements.isotope("U-238"), elements.isotope("U-235")

@@ -87,11 +87,6 @@ LIQUID_WATER_K = (273.15, 647.0)
 """tuple: The surface temperatures between which an ocean can exist (freezing point and critical point of water)."""
 
 
-def mantle_mass_kg(mass_kg, rock_mass_fraction):
-    """The mass of the mantle that holds the delivered volatiles: the silicate share of the body."""
-    return mass_kg * rock_mass_fraction
-
-
 def degassed_share(released_j, mantle_kg):
     """`1 - exp(-Theta)`, the share of an easily degassed element at the surface after the interior has released `released_j` J."""
     if mantle_kg <= 0.0 or released_j <= 0.0:
@@ -129,7 +124,7 @@ def impact_inventory(balance, mantle_kg):
 
     Args:
         balance (dict): The result of `impact_history.veneer_balance`.
-        mantle_kg (float): The mantle's mass (`mantle_mass_kg`).
+        mantle_kg (float): The mantle's mass.
 
     Returns:
         dict: `{"H", "C", "N"}` moles of atoms per 100 g of mantle.

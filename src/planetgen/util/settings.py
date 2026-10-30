@@ -50,7 +50,6 @@ Annotations here are `Optional[...]`/`List[...]`, as in most of the package.
 """
 
 import copy
-import hashlib
 import json
 import os
 import re
@@ -959,11 +958,6 @@ def _read_json_object(path, label):
     return data
 
 
-def read_config():
-    """The `config.json` dict (empty when there is no file); raises `SettingsError` for one that can't be read."""
-    return _read_json_object(logpaths.CONFIG_PATH, "config.json")
-
-
 def migrate(data):
     """
     Brings a file's dict up to `CONFIG_VERSION` (no migrations exist yet:
@@ -1174,15 +1168,6 @@ def docs_table():
         rows.append(f"| `{path}` | {meta['x-label']} | {type_name(meta['annotation'])}{unit} | {_format_default(field_default(info))} | "
                     f"{applies} | {edited} | {env} | {meta['description']}{secret} |")
     return "\n".join(rows) + "\n"
-
-
-def settings_hash(settings=None):
-    """A short hash of the effective settings, secrets left out (for a
-    page that detects a concurrent edit)."""
-    settings = settings or get_settings()
-    secret_paths = {path for path, _i, meta in iter_fields() if meta["x-secret"]}
-    flat = {path: _lookup(settings, path) for path, _i, _m in iter_fields() if path not in secret_paths}
-    return hashlib.sha256(json.dumps(flat, sort_keys=True, default=str).encode()).hexdigest()[:16]
 
 
 def _lookup(settings, path):

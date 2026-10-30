@@ -119,21 +119,6 @@ def map_luminosity(mass_solar):
     return None if mass_solar is None else stellarEvolution.map_luminosity_sol(mass_solar)
 
 
-def draw_mass(kind, subtype, min_mass_solar, rng):
-    """The solar mass (MAP.165) a scattered black hole or neutron star is
-    drawn with, from `rng`, at or above the scatter's cut; `None` for a
-    kind not drawn by mass. The sector build gives the object this mass, so
-    the map and the sector page agree."""
-    bounds = mass_range(kind, subtype, min_mass_solar, True)
-    if bounds is None:
-        return None
-    low, high = bounds
-    if low >= high:
-        return low
-    law = mass_law(kind, subtype)
-    return log_uniform(low, high, rng=rng) if law[1] else rng.uniform(low, high)
-
-
 def class_label(kind, subtype):
     """What a log line calls a class: a black hole's mass class in front ("stellar black-hole"), else its kind."""
     return f"{subtype} {kind}" if subtype else kind
@@ -411,8 +396,8 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
 
 
 def _masses(kind, subtype, min_mass_solar, uniform):
-    """The solar masses `draw_mass` gives from the uniform draws `uniform` (one per object); `None` for a
-    kind not drawn by mass."""
+    """The solar masses the uniform draws `uniform` (one per object) give, log-uniform or uniform by the class's `mass_law`
+    between the scatter's cut and the class's top; `None` for a kind not drawn by mass."""
     bounds = mass_range(kind, subtype, min_mass_solar, True)
     if bounds is None:
         return None
