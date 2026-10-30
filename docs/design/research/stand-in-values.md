@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 833 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 837 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 70 | 53 | 13 | 40 | 0 | 176 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
-| T9 | 10 | 5 | 4 | 39 | 19 | 77 |
-| All | 498 | 151 | 38 | 119 | 27 | 833 |
+| T9 | 13 | 6 | 4 | 39 | 19 | 81 |
+| All | 501 | 152 | 38 | 119 | 27 | 837 |
 
 ## How the labels were given
 
@@ -1289,6 +1289,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CP2 | P | T6 | L1 | belt_history.SURFACE_DENSITY_SLOPE 1.5 (row BHS2) as the weight of a body's source distance in the annulus: the mass up to a goes as a^(2 - slope), so a little more of it is near the inner edge | slope 1 to 2 | every reservoir annulus | a captured population whose source distances sit far from this weighting | the annulus's own surface density from the architecture's disc | row BHS2 (minimum-mass nebula); no new constant | GEN.1083 | - |
 | CP3 | P | T6 | L3 | captured_composition.PARENT_LUMPS 4: a family's parent is this many lumps, each from its own distance in the annulus with its own taxon, and a fragment is one lump | 3 to 8 | families of irregular moons | a family whose members are far more or less alike than the lumps give | the parent's formation as a rubble of the disc's bodies (belt design) | Sharkey et al. 2025 abstract (read): the Himalia group's members differ in phyllosilicate content; the number is the group's four known members | GEN.1083 | no data |
 | CP4 | D | T6 | L1 | a captured body's composition is belt_member.member (the GEN.473 taxon kernel) at its source distance and mass, then its water ice is reduced by moon_composition.CAPTURE_ICE_LOSS (uniform 0 to 0.5), one loss for a whole parent | loss 0 to 0.5 | every captured small body | a captured body whose volatiles are far from the kernel at its source after the loss | a heating model of the capture (energy deposited in the gas era or by the encounters) | Barr and Schwamb 2016, qualitative (the existing captured-moon rule); the kernel is GEN.473 (rows TK1 to TK6) | - | - |
+
+## 6.120 Stand-ins of the asteroid belt page
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BP1 | P | T9 | L0 | belt_page.BIN_EDGES_KM (1, 10, 100, 1000) and BIN_LOW_KM 0.001: the size table of the rest of the belt splits at the decades below the smallest stored body, the lowest bin running down to a metre | edges at any round diameters | every belt page | a belt page whose bins hide a mass peak (over half the leftover mass in one bin of the lowest decade) | none (presentation) | design belt-evolution.md section 12; the size law's cumulative index under 2 puts few parts in 10^4 of the mass below a metre | UX.241 | - |
+| BP2 | P | T9 | L0 | belt_page.DENSITY_DIAMETERS_KM (1, 10, 100): the density factor counts objects per square AU above these diameters | Boss's 1, 10 and 100 km | every belt page | none (Boss's request) | none | Boss 4:37 PM EDT 2026-10-30 (objects per square something); design section 12 | UX.241 | - |
+| BP3 | P | T9 | L1 | belt_page.L2_FLOOR_KG 1e15: bins whose bodies are over this mass are labelled drawn on demand from the belt's seed, the rest a total only | 3e14 to 3e15 (about 7 to 14 km) | every belt page | the design's L2 tier moving to another floor | the belt storage rule when it merges (belt design section 3) | design belt-evolution.md section 3 (L2 from 1e15 kg) | UX.241 | - |
+| BP4 | P | T9 | L0 | belt_page.SHARE_SAMPLES 24 and MIN_SHARE 0.005: the typical composition of a belt is the taxon kernel averaged at 24 distances taken at equal steps of the belt's mass, taxa under half a percent left out of the list | 12 to 100 samples; 0.001 to 0.02 | every belt page | a composition list that changes by over 1 percent with more samples | none (numerical and presentation) | uses belt_history.SURFACE_DENSITY_SLOPE (row BHS2) for the steps and the kernel of GEN.473 | UX.241 | - |
 
 ## 6.94 Stand-ins of the irregular zone
 
