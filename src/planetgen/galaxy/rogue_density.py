@@ -37,17 +37,17 @@ import numpy as np
 from planetgen.util.checks import finite_domain
 
 RING_STEPS = 16
-"""int: Points round a ring of the average (the design note's "about 16"). [Numerical, stand-in RD4, tier T9, tweak L0.]"""
+"""int: Points round a ring of the average (the design note's "about 16"). [Numerical, stand-in RSM4, tier T9, tweak L0.]"""
 
 RADIAL_SMOOTH_PC = 190.0
 """float: The Gaussian width in galactocentric radius of the displacement between a donor and an old rogue: the rms radial offset of `rogue_drift.drift` for the stand-in kick distribution at 1 to 10 Gyr
-(the design note says "0.1 to 0.7 kpc" and guessed 0.5). [Stand-in RD1, tier T6, tweak L1.]"""
+(the design note says "0.1 to 0.7 kpc" and guessed 0.5). [Stand-in RSM1, tier T6, tweak L1.]"""
 
 VERTICAL_SMOOTH_PC = 30.0
-"""float: The same in height (rms 30 pc; the design note says "about 20 to 50 pc"). [Stand-in RD2, tier T6, tweak L1.]"""
+"""float: The same in height (rms 30 pc; the design note says "about 20 to 50 pc"). [Stand-in RSM2, tier T6, tweak L1.]"""
 
 YOUNG_AGE_MYR = 100.0
-"""float: Rogues ejected within this long keep the donor's structure (the design note: "younger than about 100 Myr"), the share of the sector's own density. [Stand-in RD3, tier T6, tweak L1.]"""
+"""float: Rogues ejected within this long keep the donor's structure (the design note: "younger than about 100 Myr"), the share of the sector's own density. [Stand-in RSM3, tier T6, tweak L1.]"""
 
 _NODES = (-math.sqrt(3.0), 0.0, math.sqrt(3.0))
 _WEIGHTS = (1.0 / 6.0, 2.0 / 3.0, 1.0 / 6.0)
