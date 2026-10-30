@@ -1152,9 +1152,12 @@ def test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate(pa
         assert elapsed > 0.2, elapsed
         dot = abs(sum(x * y for x, y in zip(a["quaternion"], b["quaternion"])))
         turned = 2 * math.acos(min(1.0, dot))
+        if a["locked"]:
+            assert turned < 0.02, (a["ref"], turned)      # UX.244: a locked body keeps its face toward what it orbits
+            continue
         assert turned == pytest.approx(a["rate"] * elapsed, abs=2e-3), (a["ref"], turned, a["rate"], elapsed)
         checked += a["rate"] > 0
-    assert checked >= 2, "bodies with a stored period turn"
+    assert checked >= 2, ("bodies with a stored period turn", [(a["ref"], a["rate"], a["locked"]) for a in got["first"]])
 
 
 @pytest.mark.viewport(1280, 900)
@@ -1220,3 +1223,30 @@ def test_galaxy_map_steps_to_the_neighbouring_region_at_its_own_level(page, base
         assert centre() == ring
     else:
         assert ways["out"]
+
+
+def test_a_locked_moon_in_the_system_map_keeps_its_day_side_toward_its_planet(page, base_url, site_app):
+    """UX.245: in a planet's moon scene a tidally locked moon is turned to face the planet (the scene's own marker) instead of
+    turning by the display law: the direction it faces is the one from the moon's marker to the planet's."""
+    client = site_app.test_client()
+    found = None
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        scene = client.get(f"/api/systems/{system['id']}/scene").get_json()
+        for planet in scene["planets"]:
+            if any(moon["look"].get("locked") for moon in planet.get("moons", [])):
+                found = (system["id"], planet["id"])
+                break
+        if found:
+            break
+    if not found:
+        pytest.skip("no generated moon is tidally locked")
+    system_id, planet_id = found
+    page.emulate_media(reduced_motion="no-preference")
+    _open(page, f"{base_url}/system/{system_id}?scene=planet-{planet_id}", "#sysmap-root")
+    page.wait_for_function("() => { const c = document.querySelector('#sysmap-spheres-canvas');"
+                           " return c && c.__spins && c.__spins().some((s) => s.kind === 'moon' && s.locked && s.toward); }")
+    spins = page.evaluate("() => document.querySelector('#sysmap-spheres-canvas').__spins()")
+    parent = next(s for s in spins if s["isSelf"])
+    for moon in (s for s in spins if s["kind"] == "moon" and s["locked"] and s["toward"]):
+        want = (parent["cx"] - moon["cx"], -(parent["cy"] - moon["cy"]))
+        assert moon["toward"][0] == pytest.approx(want[0], abs=1e-6) and moon["toward"][1] == pytest.approx(want[1], abs=1e-6), (moon, want)

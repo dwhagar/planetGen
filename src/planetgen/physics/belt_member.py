@@ -105,6 +105,22 @@ def _filling(makeup, mass_kg, taxon, u_porosity):
 
 
 @finite_domain()
+def typical_density_kg_m3(taxon, mass_kg):
+    """
+    The bulk density of a typical body of `taxon` at `mass_kg`, kg/m^3: the filling of `member` (the compaction taper's for a stored body, the middle of the family's porosity range for a light one) times the taxon's grain
+    density. For the size table of a belt, which has no single body to draw.
+
+    Raises:
+        compaction.OutOfRange: The mass is over `compaction.TAPER_END_KG`.
+    """
+    if taxon not in sbc.TAXON_DATA or not mass_kg > 0.0:
+        raise BeltMemberError("the taxon must be a known one and the mass positive")
+    makeup = sbc.makeup_from_components("belt", sbc.TAXON_DATA[taxon].fractions, 0.0)
+    _, filling = _filling(makeup, mass_kg, taxon, 0.5)
+    return makeup.grain_density_kg_m3 * filling
+
+
+@finite_domain()
 def member(u_taxon, u_porosity, mass_kg, distance_au, luminosity_w, aluminium_26_ratio):
     """
     The composition, density and radius of one belt member.

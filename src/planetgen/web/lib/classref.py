@@ -28,6 +28,7 @@ Sequence Star" -> ("G", "V")).
 """
 
 import functools
+import logging
 import math
 
 from markupsafe import Markup, escape
@@ -35,6 +36,7 @@ from markupsafe import Markup, escape
 from planetgen.physics import brown_dwarf_types, constants as phys, planet_classes, small_body_composition
 from planetgen import tuning as pc
 from planetgen.datasets import mamajek_sequence
+from planetgen.datasets.fetch import DataMissing
 from planetgen.generation import forced_star
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
@@ -453,6 +455,19 @@ def catalog():
         data["slug"] = slug
         types[slug] = data
     return types
+
+
+def preload():
+    """Builds `catalog()` now so no request does; `False` (the site still boots) when a dataset the star classes read
+    has not been downloaded yet: `update.sh` swaps in the new code before its downloads finish, and a worker that
+    started in between used to die at boot with every page a 500. The catalog is not cached on a failure, so the
+    first /classes request after the download builds it."""
+    try:
+        catalog()
+    except DataMissing as missing:
+        logging.getLogger(__name__).warning("the class reference catalog was not built at start: %s", missing)
+        return False
+    return True
 
 
 def alphabetical(rows, key="name"):

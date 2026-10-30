@@ -2,6 +2,129 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2825] - 2026-10-30
+
+**Headline:** The Search page's star spectral and luminosity tags now list every star type the generator can produce.
+
+### Fixed
+- **The star type tags on Search listed only the types already in the database.** The Star: Spectral Class and Star: Luminosity Class lists now come from the generator's own class lists, with a count of 0 for a type no star holds yet.
+
+## [8.0.2824] - 2026-10-30
+
+**Headline:** The web app starts even when a downloaded data set is not there yet, so an update no longer turns every page into a 500 while it downloads.
+
+### Changed
+- `update.sh` pulls the new code in stage 1 but downloads data sets in stage 3 (52 minutes on the live run). Apache's daemon reloaded on the new code in between, and `create_app()` died at boot on the missing `mamajek_dwarf_sequence` file (the class reference catalog is built at start). The catalog now builds at start when it can and is built by the first /classes request after the download when it cannot; the missing file is logged as a warning.
+- **Item:** OPS.79 (bug), every page returned 500 for 52 minutes of update.sh stage 3 because the web app died at boot when a downloaded dataset was missing.
+
+## [8.0.2823] - 2026-10-30
+
+**Headline:** The data behind an asteroid belt information page now exists: the belt's individually tracked bodies by designation, what the rest of its mass is made of by size, and how thick the belt is in objects per square astronomical unit.
+
+### Added
+- **`physics/belt_page.py` (UX.240).** One plain structure with three blocks over a belt's ledger: the stored bodies (designation, mass, diameter, distance, taxon and composition, density, status word and Soter's mu), the rest of the belt mass as diameter bins (count, mass and share, whether drawn on demand or a total only, typical composition and density) that add up with the listed bodies to the belt's mass, and the density factor (objects per square AU above 1, 10 and 100 km, and kilograms per square AU). Every number carries its unit. Nothing serves it yet; the page route and the API field are UX.241.
+- **`belt_member.typical_density_kg_m3`**: the bulk density of a typical body of a taxon at a mass, for the size table.
+- **Stand-in rows BP1 to BP4** in the gap-filling plan (section 6.120), the stand-in list and the wiring register.
+
+generation-output: unchanged
+
+## [8.0.2822] - 2026-10-30
+
+**Headline:** update.sh no longer leaves a migrated site closed because its /api/health probe got no good answer, and says why a probe got no HTTP answer.
+
+### Changed
+- **A health probe that fails after a clean reload is a warning, and the site opens.** By the time the probe runs, the migration is finished and Apache's configtest and reload have both succeeded. Only a failed configtest or reload (status 1) still ends the update with the site closed; a probe that never got a good answer (new status 3 of `reload_web_if_running`) prints the warning, says the database is migrated and current, and opens the site. A live update (v175 to v186) ended with HTTP 403 from the bare address and HTTP 000 from the site's own address, and stayed closed.
+- **"HTTP 000" now says why.** It is not a status code: curl got no HTTP answer at all. The warning names the cause from curl's exit status (connection refused, name lookup, TLS or certificate, timeout, too many redirects). The site's own address is checked with `-k` (the certificate is not what the check judges, and the connection is to this machine) and waits up to 8 seconds for each try, so a cold mod_wsgi start is not mistaken for no answer.
+- **Item:** OPS.78 (bug), update.sh left the migrated site closed when the health probe failed after a clean reload.
+
+## [8.0.2821] - 2026-10-30
+
+**Headline:** Slow bodies now visibly turn, a tidally locked world keeps its day side toward its star, and the object page shows every planet at the day and night line.
+
+### Changed
+- **Slow and tidally locked bodies (UX.244).** The on-screen turn used to treat every rotation over 1000 hours the same, one turn in ten minutes, so a 46.8-day rotation such as Eakkar IV's never seemed to move. The scale now runs to 10000 hours, so that rotation turns about once in four minutes and Venus's 243 days in about eight. A tidally locked world is no longer turned by that scale: in the 3D system view and the sector view it turns once per orbit so the same face stays toward what it orbits, and in the System Map a locked planet keeps its face toward the star. On the object page's sensor view every planet is drawn from the side of its orbit, with the star to the left so the day and night line runs down the middle and the axial tilt leans the poles; the surface turns past the line at a display speed the caption says is much faster than the real rotation, and a locked world is held still with its day side toward the star and labelled locked in the picture's caption. A moon in the System Map is not yet turned to face its planet.
+
+generation-output: unchanged
+
+## [8.0.2820] - 2026-10-30
+
+**Headline:** The prevalence census and the usual shares the Generate page shows match what train 4 generates.
+
+### Changed
+- The class, system and occurrence expectation files tag the shares that train 4 (epoch 126) moved (58 class ranges, 2 system ranges, 2 occurrence ranges, GEN.728), and `tuning.PREVALENCE_BASE_SHARES` are remeasured over 2,000 systems: a world of a class that can carry life 0.598, an asteroid belt 0.039 where it was 0.549, a large star 0.050, at least one planet or belt 0.809, and the share of systems with a pair 0.315 where it was 0.239.
+
+## [8.0.2819] - 2026-10-30
+
+**Headline:** A captured moon or small body now gets its makeup from where it came from, so a body pulled in from the cold outer disc is icy and one from near the planet is not, and a family of fragments does not all look alike.
+
+### Added
+- **`physics/captured_composition.py` (GEN.1080).** The composition of a captured small body from the taxon kernel at its source distance (the outer disc for an instability or exchange capture, the planet's neighbourhood for a gas-era one), less the ice a capture takes away, with its density and radius; and a family's parent as a few lumps from different distances, so fragments differ. Nothing reads it yet; the captured-moon wiring (GEN.1083) does.
+- **Stand-in rows CP1 to CP4** in the gap-filling plan (section 6.119), the stand-in list, the burn-down register and the wiring register.
+
+generation-output: unchanged
+
+## [8.0.2818] - 2026-10-30
+
+**Headline:** The class count script now also prints how much of the surface is ocean on temperate worlds with air, so the lines between desert, temperate and ocean worlds can be placed against real bodies; it stores nothing.
+
+### Added
+- **Ocean-fraction spread (GEN.1145).** `scripts/class_counts.py` adds a histogram in tenths of the ocean share of the bodies at 273.15 to 320 K with air, and the bodies under a 20 percent and over an 80 percent ocean line with their current class and water state.
+
+generation-output: unchanged
+
+## [8.0.2817] - 2026-10-30
+
+**Headline:** The irregular moons of the four giants are checked for saturation: they end within a factor 2.5 of each other, and the repo's belt law is shown not to fit a moon zone.
+
+### Changed
+- **Saturation check of the irregular zones (GEN.1079).** New tests pin how far the grinding of `physics/irregular_population.py` saturates (counts above 5 km and above the storage floor and the mass left within 2.5 to 3 times across Jupiter, Saturn, Uranus and Neptune), that the stored counts match the observed 8, 5, 6 and 8 to within 1.5 times, that a single scalar on the collision probability cannot fix the 5 km counts without breaking those, and that `belt_mass_earth` leaves 400 to 4400 times too little for a zone round a planet. No scalar is added. Test-only.
+
+TODO items resolved: GEN.1079.
+
+No generator output changes.
+
+generation-output: unchanged
+
+## [8.0.2816] - 2026-10-30
+
+**Headline:** A new script prints how many planets and moons fall in each class, how many of those are temperate with a liquid ocean, and how many bodies reach classes E, H and L; it stores nothing.
+
+### Added
+- **Class count script (GEN.1143).** `scripts/class_counts.py` generates a seeded sample of systems and prints the bodies per class, the bodies at 250 to 330 K with a surface or hycean ocean per class, the hydrogen-rich N bodies under 15 Earth masses, and how many bodies reach E, H and L (and would match their own conditions if the rows before them did not take them). Used to decide the class line edits of the next epoch.
+
+generation-output: unchanged
+
+## [8.0.2815] - 2026-10-30
+
+**Headline:** A full reference list of every paper, dataset and catalog the project builds on.
+
+### Added
+
+`docs/REFERENCES.md` and `docs/REFERENCES.html` list more than 2,300 papers in AAS/ADS style with DOI, arXiv and ADS links, the archives and datasets the project reads, and the citations that could not yet be tied to a paper. `scripts/build_references.py` regenerates both from `docs/reference/references-data.json`.
+
+## [8.0.2814] - 2026-10-30
+
+**Headline:** The generator can now say how many small captured bodies a planet holds, from the capture windows its history gave it, instead of every giant getting a few by chance.
+
+### Added
+- **`physics/irregular_population.py` (GEN.1077).** The captured small bodies of a planet from its windows: the instability (its own close encounters with another giant, scaled by its Hill volume), the gas era (gas giants only, bodies of 1 to 500 km), a binary exchange for a massive capture at an ice giant, and a temporary-capture flag. The count is ground down by the collisions of the planet's age, and the largest bodies are drawn as objects (every body above 1e16 kg, then the next heaviest until 90 percent of the mass, at most 100). A Jupiter-like planet gets about one body above 40 km and a few tens above 5 km, the four giants come out the same order, and an Earth gets none. Nothing reads it yet; the captured-moon wiring (GEN.1083) does.
+- **Stand-in rows IP1 to IP14** in the gap-filling plan (section 6.118), the stand-in list, the burn-down register and the wiring register.
+
+generation-output: unchanged
+
+## [8.0.2813] - 2026-10-30
+
+**Headline:** The plan of a region run is written: a sphere around a start point becomes whole sectors, cut into units along the galaxy's own shell and band arcs, nearest first, with resume and the stage barrier.
+
+### Added
+- **The region run plan (GEN.1128, first slice).** `planetgen/galaxy/region_run.py`: `plan` (a sphere of a radius from a start point, plus `grow_shells` whole shells, as the whole sectors it touches; units of at most 27 consecutive wedges of one (shell, band) arc; nearest first; sectors already charted taken out so a stopped run or an overlapping region builds only what is missing), `next_units` (every generate unit before any top-up unit, so a stopped run resumes in the generate stage until the whole set is charted), `unit_items` (a unit as the triples a sector stage takes) and `cost` (sectors, units, shells, the sphere's volume in sectors, seconds only when a per-sector time is given). The plan reads no stream and no database, and no draw reads it, so the same seed gives the same sectors whatever the start, the radius, the cut or the order. The command that runs the units and the chart ledger write follow (GEN.1127).
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1128 stays open for the command).
+
 ## [8.0.2812] - 2026-10-30
 
 **Headline:** The design for objects that change name and ID while keeping their past designations is written.

@@ -103,3 +103,15 @@ def test_bad_inputs_are_refused():
         bm.member(0.3, 0.5, 0.0, 2.7, SUN_W, AL26_SOLAR)
     with pytest.raises(bm.BeltMemberError):
         bm.member(0.3, 1.5, 1e17, 2.7, SUN_W, AL26_SOLAR)
+
+
+def test_a_typical_body_has_the_family_porosity_middle_below_the_taper_and_the_tapers_filling_above():
+    light = bm.typical_density_kg_m3("C", 1.0e15)
+    grain = bm.sbc.makeup_from_components("belt", bm.sbc.TAXON_DATA["C"].fractions, 0.0).grain_density_kg_m3
+    low, high = bm.sbc.POROSITY_RANGES[bm.sbc.TAXON_DATA["C"].family]
+    assert light == pytest.approx(grain * (1.0 - 0.5 * (low + high)))
+    assert bm.typical_density_kg_m3("C", 1.0e20) > light
+    with pytest.raises(bm.BeltMemberError):
+        bm.typical_density_kg_m3("Q", 1.0e15)
+    with pytest.raises(bm.compaction.OutOfRange):
+        bm.typical_density_kg_m3("C", 1.0e23)

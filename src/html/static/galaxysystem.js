@@ -338,7 +338,7 @@ export function createSystemStage(host) {
     spins: function () {
       return open ? open.built.entries.map(function (e) {
         return { ref: e.ref, name: e.name, spinH: e.body.look ? e.body.look.spinH || 0 : 0, angle: Spin.angleAt(e.body.look, Spin.seconds()),
-          rate: Spin.rateOf(e.body.look), axis: Spin.axisOf(e.body.look), at: Spin.seconds(),
+          rate: Spin.rateOf(e.body.look), axis: Spin.axisOf(e.body.look), at: Spin.seconds(), locked: Spin.isLocked(e.body.look),
           quaternion: open.built.objects[e.ref].quaternion.toArray() };
       }) : [];
     },

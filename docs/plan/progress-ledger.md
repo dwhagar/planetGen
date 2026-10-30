@@ -2064,3 +2064,16 @@ Baseline: PR #1817.
 | TEST.489 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.500 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.1121 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1123 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1077 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1079 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1143 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1145 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1080 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.244 | 8.2 | Search by physical values |
+| OPS.78 | 8.2 | Robust tile caching |
+| GEN.1146 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.240 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.79 | 8.2 | Robust tile caching |
+| UX.246 | 8.2 | Search by physical values |
+| UX.247 | 8.2 | Search by physical values |
