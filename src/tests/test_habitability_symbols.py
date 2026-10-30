@@ -321,3 +321,11 @@ def test_a_life_score_is_drawn_with_its_scale():
 
     html = symbols.life_html("flora", 3, "/static/icons.svg")
     assert '>3<span class="hab-life-of">/9</span>' in html and 'aria-label="Flora: 3 of 9"' in html
+
+
+def test_the_life_cluster_ends_with_the_class_of_the_life_that_lives_there():
+    body = {**_life_body(microbial=9, flora=4), "life_class_id": "1a"}
+    cluster = _parse(symbols.life_row(body, SPRITE_URL))
+    last = cluster.findall(f"{SVG}span")[-1]
+    assert last.get("class") == "hab-life-class" and last.text == "1a" and last.get("aria-label") == "Life class 1a"
+    assert "hab-life-class" not in symbols.life_row(_life_body(), SPRITE_URL)
