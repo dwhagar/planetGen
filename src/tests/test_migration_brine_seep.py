@@ -1,14 +1,14 @@
 # tests/test_migration_brine_seep.py
 
 """
-GEN.908: migration 0178 widens the `hydrosphere` CHECK of `planets` and `moons` with `brine seep` and relabels a stored liquid surface of
+GEN.908: migration widens the `hydrosphere` CHECK of `planets` and `moons` with `brine seep` and relabels a stored liquid surface of
 chloride brine, which the water state called a `surface ocean`. Nothing else about a body changes.
 """
 
 import pytest
 
 from planetgen.db import store
-from tests.db_schema_support import load_old_schema
+from tests.db_schema_support import load_old_schema, migration_number
 
 pytestmark = pytest.mark.fresh_database
 
@@ -43,8 +43,8 @@ def _insert(conn, table, row_id, hydrosphere, ocean_class):
     conn.execute(f"INSERT INTO {table} ({names}) VALUES ({', '.join('?' * len(values))})", tuple(values.values()))
 
 
-def test_a_v177_galaxy_takes_the_new_state_and_relabels_its_brine_seeps(mysql_config):
-    load_old_schema(mysql_config, 177)
+def test_the_previous_schemas_galaxy_takes_the_new_state_and_relabels_its_brine_seeps(mysql_config):
+    load_old_schema(mysql_config, migration_number("brine_seep") - 1)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for name in ("planets_chk_5", "moons_chk_5"):

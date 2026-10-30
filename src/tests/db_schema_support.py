@@ -17,12 +17,23 @@ from planetgen.db import store
 
 OLD_SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "old_schemas")
 
+MIGRATIONS_DIR = os.path.join(os.path.dirname(__file__), "..", "planetgen", "db", "migrations", "versions")
+
+
+def migration_number(stem):
+    """The number of the migration file `<number>_<stem>.py`, so a test that starts from the schema before it follows a renumbering."""
+    for name in os.listdir(MIGRATIONS_DIR):
+        if name[:4].isdigit() and name[5:] == stem + ".py":
+            return int(name[:4])
+    raise LookupError(stem)
+
+
 ROWS_BEFORE = (
-    (178, ("UPDATE planets SET hydrosphere = 'surface ocean' WHERE hydrosphere = 'brine seep'",
-           "UPDATE moons SET hydrosphere = 'surface ocean' WHERE hydrosphere = 'brine seep'")),
+    ("brine_seep", ("UPDATE planets SET hydrosphere = 'surface ocean' WHERE hydrosphere = 'brine seep'",
+                    "UPDATE moons SET hydrosphere = 'surface ocean' WHERE hydrosphere = 'brine seep'")),
 )
-"""tuple: `(version, statements)`: what a row must hold to be kept in a schema older than `version`, when the migration of `version`
-widened a CHECK (GEN.908: the `brine seep` hydrosphere is a `surface ocean` again). `downgrade_to` runs them before it puts the old CHECKs back."""
+"""tuple: `(migration stem, statements)`: what a row must hold to be kept in a schema older than that migration, when it widened a CHECK
+(GEN.908: the `brine seep` hydrosphere is a `surface ocean` again). `downgrade_to` runs them before it puts the old CHECKs back."""
 
 
 def _ddl_parts(conn):
@@ -74,8 +85,8 @@ def downgrade_to(config, version):
     try:
         have = _ddl_parts(conn)
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
-        for newer, statements in ROWS_BEFORE:
-            if version < newer:
+        for stem, statements in ROWS_BEFORE:
+            if version < migration_number(stem):
                 for statement in statements:
                     conn.execute(statement)
         for name in sorted(set(have) - set(want)):

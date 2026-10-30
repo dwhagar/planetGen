@@ -536,8 +536,10 @@ connectivity to that specific schema rather than the default one.
   `../src/planetgen/web/lib/tilecache.py` (the web layer's disk cache) calls it
   about once a minute and deletes only the listed nodes, and passes the
   list on to the map's browser cache.
-- `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
-  row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; a non-number is a 400;
+- `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>|<type>:<ID>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
+  row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; `after=<type>:<ID>`, the `type` and `id` of a
+  built row, starts it after that row in the name order and then the tail, PERF.205: the first page by name and every page after a built row cost the
+  same at any depth, and the other sorts read the whole union as before; anything else is a 400;
   `from=<scatter id>`, PERF.135, lists that tail from the row with that id on, `total` counting from there; a value that is not a whole number from 1 up
   is a 400, and one past the end answers the last page of the tail, `past_end` true and `total` its length),
   across every sector and regardless of galaxy placement (unlike
@@ -683,8 +685,9 @@ connectivity to that specific schema rather than the default one.
   any species, polity or owned system exists (all `false` on a database
   without them). Pages that show population data hide themselves when
   the matching flag is false (`population.population_status`).
-- `GET /api/species?spacefaring=true|false&limit=<n>&offset=<n>` — the
-  dominant species of every life world, by name, paginated (see
+- `GET /api/species?spacefaring=true|false&limit=<n>&offset=<n>&after=<species id>` — the
+  dominant species of every life world, by name, paginated (`after`, the `id` of the last species of the page before, starts the page after it in
+  the same order and ignores `offset`, PERF.205; see
   docs/design/habitability/population-and-politics.md). Each item has its homeworld
   (`homeworld_planet_id`, `homeworld_name`, `star_system_id`,
   `system_name`), `life_class` (the id of its life class), `life_stage` (`multicellularity` or

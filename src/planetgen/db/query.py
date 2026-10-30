@@ -2371,6 +2371,82 @@ def _phenomena_where(types=(), descriptors=(), placed=None):
     return (" WHERE " + " AND ".join(clauses)) if clauses else "", params
 
 
+def parse_built_cursor(text):
+    """`(type, row id)` from the `<type>:<id>` text a page of built phenomena hands to the next (PERF.205), or `None`
+    when `text` is a scatter id or is no cursor. The id is the row's database id, as `list_phenomena` returns it."""
+    type_label, _colon, row_id = str(text).partition(":")
+    if type_label in _PHENOMENON_TYPE_TO_TABLE and row_id.isdigit():
+        return type_label, int(row_id)
+    return None
+
+
+def _built_by_name(conn, limit, descending, types, descriptors, placed, after=None):
+    """
+    A page of the built phenomena by name, read in index order (PERF.205): from each phenomenon table the `limit` rows
+    that come next in `ORDER BY name, type, id`, found by walking that table's name index, and the best `limit` of
+    those together. The page costs the same at any depth, since no table is read or sorted past the rows it returns,
+    where the union of every table sorted whole for each page.
+
+    Args:
+        limit (int): Rows to return.
+        descending (bool): Whether the names, then the types and ids, sort downward.
+        types, descriptors, placed: The Phenomena table's filters (`_phenomena_where`).
+        after (tuple, optional): `(type, row id)` of the row the previous page ended on (`parse_built_cursor`); a row that
+            no longer exists starts at the top.
+
+    Returns:
+        list[dict]: The rows, as `list_phenomena` returns them.
+    """
+    direction = "DESC" if descending else "ASC"
+    operator = "<" if descending else ">"
+    start = None
+    if after is not None:
+        table = _PHENOMENON_TYPE_TO_TABLE[after[0]]
+        found = conn.execute(f"SELECT name FROM {table} WHERE id = ?", (after[1],)).fetchone()
+        start = None if found is None else (found["name"], after[0], after[1])
+    parts, params = [], []
+    for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES:
+        if types and type_label not in types:
+            continue
+        clauses, clause_params = [], []
+        if table in ("black_holes", "neutron_stars"):
+            clauses.append("t.star_id IS NULL")
+        if descriptors:
+            clauses.append(f"{descriptor_expr} IN ({', '.join('?' for _ in descriptors)})")
+            clause_params.extend(descriptors)
+        if placed is not None:
+            clauses.append("(t.center_x_pc IS NOT NULL) = ?")
+            clause_params.append(1 if placed else 0)
+        if start is not None:
+            name, start_type, start_id = start
+            clauses.append(f"(t.name {operator} ? OR (t.name = ? AND ? {operator} ?) OR (t.name = ? AND ? = ? AND t.id {operator} ?))")
+            clause_params.extend([name, name, type_label, start_type, name, type_label, start_type, start_id])
+        parts.append(
+            f"(SELECT '{type_label}' AS type, t.id AS id, t.name AS name, {descriptor_expr} AS descriptor, "
+            f"{radius_expr} AS radius_ly, t.sector_id AS sector_id, sec.name AS sector_name, "
+            f"(t.center_x_pc IS NOT NULL) AS placed, 0 AS scattered FROM {table} t "
+            f"LEFT JOIN sectors sec ON sec.id = t.sector_id "
+            f"{'WHERE ' + ' AND '.join(clauses) + ' ' if clauses else ''}"
+            f"ORDER BY t.name {direction}, t.id {direction} LIMIT ?)")
+        params.extend(clause_params + [limit])
+    if not parts:
+        return []
+    rows = conn.execute(
+        f"SELECT * FROM ({' UNION ALL '.join(parts)}) AS phenomena "
+        f"ORDER BY name {direction}, type {direction}, id {direction} LIMIT ?", params + [limit]).fetchall()
+    return [_built_item(row) for row in rows]
+
+
+def _built_item(row):
+    """One built phenomenon of the listing, from a row of the union."""
+    return {
+        "id": row["id"], "type": row["type"], "name": row["name"],
+        "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
+        "sector_id": row["sector_id"], "sector_name": row["sector_name"],
+        "placed": bool(row["placed"]), "scattered": bool(row["scattered"]),
+    }
+
+
 def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False, types=(), descriptors=(),
                    placed=None, after=None, start=None, last=False):
     """
@@ -2393,9 +2469,11 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
         types (iterable[str]): Keep only these types (any of).
         descriptors (iterable[str]): Keep only these descriptors (any of).
         placed (bool, optional): Keep only placed or only unplaced ones.
-        after (int, optional): A scattered row's `scatter_id`: the page starts after it in the tail of unbuilt
+        after (int or tuple, optional): A scattered row's `scatter_id`: the page starts after it in the tail of unbuilt
             scattered phenomena (they follow every built one, in id order), and the built ones and `offset` are
-            not read (a keyset page, PERF.75). Without `limit` it is not used.
+            not read (a keyset page, PERF.75). Or the `(type, row id)` of a built row (`parse_built_cursor`): the page
+            starts after it in the name order, then the tail (PERF.205; the built phenomena are read by name only, so
+            another `sort` is ignored with it). Without `limit` it is not used.
         start (str, optional): The jump-by-value box (PERF.135), a scatter id: the list is the tail of unbuilt
             scattered phenomena from that id on (the built ones are not listed), `offset` counting from there.
             Needs `limit`; text that is not an id raises `ValueError`.
@@ -2427,32 +2505,42 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
     if first is not None and limit is not None:
         return _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), limit, offset or 0,
                                after=after, first=None if last else first, last=last)
+    if isinstance(after, tuple) and limit is not None:
+        return _built_then_scattered(conn, limit, descending, types, descriptors, placed, after)
     if after is not None and limit is not None:
         return _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), limit, 0, after=after)
-    where, params = _phenomena_where(types, descriptors, placed)
+    begin = offset or 0
+    if sort == "name" and begin == 0 and limit is not None:
+        return _built_then_scattered(conn, limit, descending, types, descriptors, placed, None)
+    where, filter_params = _phenomena_where(types, descriptors, placed)
     column = PHENOMENON_SORTS[sort]
-    built_total = conn.execute(
-        f"SELECT COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where}", params).fetchone()["n"]
     query = (f"SELECT * FROM ({_phenomena_union()}) AS phenomena{where} "
              f"ORDER BY {column} IS NULL, {column} {'DESC' if descending else 'ASC'}, name, type, id")
-    start = offset or 0
+    params = list(filter_params)
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
-        params.extend([limit, start])
-    items = [
-        {
-            "id": row["id"], "type": row["type"], "name": row["name"],
-            "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
-            "sector_id": row["sector_id"], "sector_name": row["sector_name"],
-            "placed": bool(row["placed"]), "scattered": bool(row["scattered"]),
-        }
-        for row in conn.execute(query, params).fetchall()
-    ] if start < built_total or limit is None else []
-    # The unbuilt scattered phenomena come after the built ones, in id order.
+        params.extend([limit, begin])
+    items = [_built_item(row) for row in conn.execute(query, params).fetchall()]
+    # The unbuilt scattered phenomena come after the built ones, in id order. The built ones are counted only when the
+    # page starts past some of them, to know where in the tail it starts (PERF.205: not for the first page).
     room = None if limit is None else limit - len(items)
     if room is None or room > 0:
-        items += _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), room,
-                                 max(0, start - built_total))
+        into_tail = 0
+        if begin:
+            built_total = conn.execute(
+                f"SELECT COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where}", filter_params).fetchone()["n"]
+            into_tail = max(0, begin - built_total)
+        items += _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), room, into_tail)
+    return items
+
+
+def _built_then_scattered(conn, limit, descending, types, descriptors, placed, after):
+    """A page by name of the built phenomena after `after` (`(type, row id)`, or the top), and when the built ones end
+    inside it the start of the scattered tail that follows them (PERF.205)."""
+    items = _built_by_name(conn, limit, descending, types, descriptors, placed, after)
+    room = limit - len(items)
+    if room > 0:
+        items += _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), room, 0)
     return items
 
 

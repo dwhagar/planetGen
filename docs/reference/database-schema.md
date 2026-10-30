@@ -1424,8 +1424,8 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `has_helium_shell` | BOOLEAN | nullable | Added in v154. Whether a helium-rich shell sits above the metallic envelope. Read with the layers through `planetgen.physics.giant_interior.interior_of`. |
 | `ground_type`, `ground_grain` | VARCHAR(16), VARCHAR(8) | nullable | Added in v159 (GEN.441). The ground type with the largest areal share (`ocean`, `ice` or a rock type: `ultramafic`, `anorthositic`, `basaltic`, `felsic`, `clay`, `oxidised`, `metal`, `carbon`, `evaporite`, `sulfur`) and the grain state (`slab`, `crushed`, `powder`). NULL for a giant and on a row saved before v152. |
 | `ground_ocean_fraction`, `ground_ice_fraction`, `ground_ultramafic_fraction`, `ground_anorthositic_fraction`, `ground_basaltic_fraction`, `ground_felsic_fraction`, `ground_clay_fraction`, `ground_oxidised_fraction`, `ground_metal_fraction`, `ground_carbon_fraction`, `ground_evaporite_fraction`, `ground_sulfur_fraction` | DOUBLE | nullable | Added in v152. The areal share of the surface that is each ground type; the twelve add up to 1. The minerals, ices and ocean they stand for are rows of the materials table ([surface-composition.md](../design/composition/surface-composition.md)). |
-| `moon_origin` | VARCHAR(8) | nullable | Added in v179 (DB.70). How a moon came to orbit its parent: `disk`, `impact`, `captured`, `ring` or `binary` ([small-bodies-composition.md](../design/composition/small-bodies-composition.md)). NULL for a planet and for a moon saved before v178. |
-| `moon_disk_lifetime_myr`, `moon_disk_alpha_over_f`, `moon_disk_f_inf`, `moon_disk_ice_line_km` | DOUBLE | nullable | Added in v179 (DB.70). A giant planet's circumplanetary disk, where its moons formed: the disk's lifetime in Myr, its alpha over f, the asymptotic ice fraction of its ramp and the distance of its ice line from the giant in km. NULL for a body with no disk. |
+| `moon_origin` | VARCHAR(8) | nullable | Added in v180 (DB.70). How a moon came to orbit its parent: `disk`, `impact`, `captured`, `ring` or `binary` ([small-bodies-composition.md](../design/composition/small-bodies-composition.md)). NULL for a planet and for a moon saved before v179. |
+| `moon_disk_lifetime_myr`, `moon_disk_alpha_over_f`, `moon_disk_f_inf`, `moon_disk_ice_line_km` | DOUBLE | nullable | Added in v180 (DB.70). A giant planet's circumplanetary disk, where its moons formed: the disk's lifetime in Myr, its alpha over f, the asymptotic ice fraction of its ramp and the distance of its ice line from the giant in km. NULL for a body with no disk. |
 
 | `bond_albedo`, `greenhouse_factor` | DOUBLE | nullable | Added in v142 (GEN.412). The two draws the surface temperature is made of: the Bond albedo A and the greenhouse quantity G, with T_e = ((1 - A) S / (4 sigma))^(1/4) and T_s = T_e (1 + G)^(1/4) (S the starlight at the orbit; a moon's is its planet's; never below 2.725 K). G is 0 for a body with no air. |
 | `albedo_basis` | TINYINT UNSIGNED | nullable | Added in v142 (GEN.412). Where the two came from: 0 recorded at generation, 1 the exact inverse of a row saved without them (from its stored scale height), 2 a seeded draw from the class range where the inverse had no solution. NULL for a row with no temperature or no starlight to work from. |
@@ -2196,9 +2196,9 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
-### v178 (GEN.908): the brine seep
+### v179 (GEN.908): the brine seep
 
-Migration 0178 adds no column. `planets.hydrosphere` and `moons.hydrosphere` take a seventh value, `brine seep` (their CHECKs, `planets_chk_5` and `moons_chk_5`, list it), for a liquid surface whose ocean class is the chloride brine (surface water under 2e-5 of the mass): a puddle of concentrated salt water that melts below 273 K, often under thin or no air, not a sea. The migration relabels a stored `surface ocean` whose `ocean_class` is `chloride brine`; the generator gives the new label to bodies it draws from the new epoch on. The checks that ask for a `surface ocean` (a sunlit sea for life, plate tectonics, an induced field) do not take it; the ocean columns, the water solvent and the water source (`liquid`) do apply.
+Migration 0179 adds no column. `planets.hydrosphere` and `moons.hydrosphere` take a seventh value, `brine seep` (their CHECKs, `planets_chk_5` and `moons_chk_5`, list it), for a liquid surface whose ocean class is the chloride brine (surface water under 2e-5 of the mass): a puddle of concentrated salt water that melts below 273 K, often under thin or no air, not a sea. The migration relabels a stored `surface ocean` whose `ocean_class` is `chloride brine`; the generator gives the new label to bodies it draws from the new epoch on. The checks that ask for a `surface ocean` (a sunlit sea for life, plate tectonics, an induced field) do not take it; the ocean columns, the water solvent and the water source (`liquid`) do apply.
 
 ### v176 (MAP.351): the life class reasons
 
@@ -2242,6 +2242,10 @@ Migration 0167 adds no column. It fills `system_interests` with the reason `inha
 ### v166 (MAP.321): two more interest reasons
 
 Migration 0166 adds no column. It fills `system_interests` with the reasons `uninhabitable` (a scored terrestrial planet or moon under `habitability.YELLOW_FLOOR`, with the count and the best score) and `asteroid-field` (the count of belts) from the planets, moons and belts already stored. Nothing a generator draws changes, so there is no epoch.
+
+### v178 (PERF.205): name indexes on the last two phenomenon tables
+
+Migration 0178 adds `idx_asteroid_fields_name` and `idx_interstellar_comets_name` (a `name` index, built online), so every phenomenon table has one and the Phenomena table pages by name in index order. No column and no stored value changes.
 
 ### v177 (PERF.205): the Species table's sort indexes
 
@@ -2293,9 +2297,9 @@ Migration 0153 adds `mantle_eta0_pa_s`, `mantle_activation_kj_mol` and `internal
 ### v152 (GEN.700): the tide heat flow of an icy moon
 
 Migration 0152 adds `tidal_flux_w_m2` (DOUBLE, nullable) to `planets` and `moons`, at the end of each table (a planet has no tide and keeps NULL). The generator drew the tide before and discarded it after thickening or thinning the ice lid; it is now kept and added to the heat flow the chemical energy of the ocean's life reads (`energy_flux_w_m2`, [habitability-index.md](../design/habitability/habitability-index.md) section 8). The forced eccentricity behind a tide is not stored, so a moon saved earlier keeps NULL and its stored energy flux; only a moon generated now has it. One ALTER for each table with no `ALGORITHM=INSTANT` (both have a FULLTEXT index); a column already there is left alone. The version is detected from `planets.tidal_flux_w_m2`.
-### v179 (DB.70): a moon's origin and its giant's disk
+### v180 (DB.70): a moon's origin and its giant's disk
 
-Migration 0179 adds to `planets` and `moons`: `moon_origin` (VARCHAR(8)) and four DOUBLE columns, `moon_disk_lifetime_myr`, `moon_disk_alpha_over_f`, `moon_disk_f_inf` and `moon_disk_ice_line_km`, all nullable, each at the end of the table. Nothing is backfilled: the origin and the disk are draws of the generator epoch, so a row made before the revision keeps NULL and the regenerated galaxy replaces it. A stopped run can be started again (a column already there is skipped).
+Migration 0180 adds to `planets` and `moons`: `moon_origin` (VARCHAR(8)) and four DOUBLE columns, `moon_disk_lifetime_myr`, `moon_disk_alpha_over_f`, `moon_disk_f_inf` and `moon_disk_ice_line_km`, all nullable, each at the end of the table. Nothing is backfilled: the origin and the disk are draws of the generator epoch, so a row made before the revision keeps NULL and the regenerated galaxy replaces it. A stopped run can be started again (a column already there is skipped).
 
 ### v159 (GEN.441): the surface composition of every planet and moon
 

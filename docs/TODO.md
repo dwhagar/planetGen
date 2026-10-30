@@ -15362,27 +15362,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.149.
   Prerequisites: none. Related: PERF.149.
 
-- [ ] **PERF.205 Keyset paging for the species list and the built phenomena list (slice 2 of the PERF.137 OFFSET audit)**
-  Slice 2 of the PERF.137 audit (report
-  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
-  2026-10-29): the species list and built phenomena list still use LIMIT
-  ? OFFSET ?, so a deep page costs a scan of every row before it. Do:
-  move both to keyset paging on their sort key plus id, keep the page
-  links and the API offset working through a cursor, and measure page 1
-  and a deep page at a large table. No generated-output change. Owner:
-  Core 5. Version 8.1.
-  Species half merged #3909 (2:02 AM EDT as the lane reported)
-  (2026-10-30 2:02 AM EDT): the Species list pages by key (API
-  after=<species id>) and the name, era, tech and spacefaring sorts read
-  in index order; schema v177 / migration 0177 (indexes only, no column,
-  no stored value, no epoch). At 1,000,000 species a deep page by name
-  goes 8 s to 4 ms and the first page by era or tech 5-13 s to 4 ms; the
-  homeworld and system sorts still sort every species (names live in
-  other tables). Still open: the built phenomena half (name sort keyset,
-  dropping the full union COUNT from every page); keep PERF.205 open for
-  it
-  Prerequisites: none. Related: PERF.137, PERF.75.
-
 - [ ] **PERF.206 Keyset walk for the octant and binary system group queries (slice 3 of the PERF.137 OFFSET audit)**
   Slice 3 of the PERF.137 audit (report
   /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
@@ -15442,6 +15421,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.992 merges (it edits the same function). Owner: Aux 7. Version
   8.1.
   Prerequisites: GEN.992. Related: GEN.992, PERF.209.
+
+- [ ] **PERF.211 Phenomena and species list sorts that still sort the whole set per page: phenomena by type, descriptor, radius, sector and placed; species by homeworld and by system**
+  Core 5 (as the lane reported, 2:18 AM EDT 2026-10-30), after PERF.205
+  (#3909 species half, #3916 built phenomena half): the Phenomena list
+  sorted by name pages by key and is fast, but the type, descriptor,
+  radius, sector and placed sorts still sort the whole union of the
+  eight phenomenon tables on every page (no index serves them), and
+  Species sorted by homeworld or by system still sorts every species
+  because the names live in other tables. Do: for each sort, either add
+  a key (a stored sort column or an index per table with a merge across
+  the tables) or state in the interface why it stays slow; measure at
+  8,000,000 built phenomena and 1,000,000 species. Done: every sort on
+  the Phenomena and Species lists answers a page in under 100 ms at
+  those sizes, or the exception is stated on this item with the measure.
+  No generated value changes; indexes and keyset paging only. Size M.
+  Owner: Core 5 when its queue ends.
+  Prerequisites: none. Related: PERF.206, PERF.210.
 
 ## DB: Database and schema
 

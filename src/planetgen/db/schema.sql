@@ -1486,7 +1486,7 @@
 --   its partial pressure in Pa); the ten `p_<gas>_kpa` columns are gone. A class's balance gas (helium, sodium, ammonia) is a row like the others, so the pressure is the sum of the rows. The migration
 --   copies each row's ten partial pressures (kPa times 1000) into the child tables.
 -- v159 (GEN.441): `planets` and `moons` gain the surface composition: `ground_type` and `ground_grain` and the areal share of each ground type (`ground_ocean_fraction`, `ground_ice_fraction`, `ground_ultramafic_fraction`, ..., twelve shares that add up to 1), NULL for a giant and for a row saved before v152. The minerals, ices and ocean the shares stand for are rows of the materials table (`physics/surface_composition.py`).
--- v179 (DB.70): `planets` and `moons` gain `moon_origin` (how a moon came to orbit its parent: `disk`, `impact`, `captured`, `ring` or `binary`; NULL for a planet and for a moon saved before) and a giant's circumplanetary disk (`moon_disk_lifetime_myr`, `moon_disk_alpha_over_f`, `moon_disk_f_inf`, `moon_disk_ice_line_km`; NULL for a body with no disk). Nothing is backfilled.
+-- v180 (DB.70): `planets` and `moons` gain `moon_origin` (how a moon came to orbit its parent: `disk`, `impact`, `captured`, `ring` or `binary`; NULL for a planet and for a moon saved before) and a giant's circumplanetary disk (`moon_disk_lifetime_myr`, `moon_disk_alpha_over_f`, `moon_disk_f_inf`, `moon_disk_ice_line_km`; NULL for a body with no disk). Nothing is backfilled.
 -- v164 (GEN.764): `scatter_epochs` holds one row per kind of scatter drawn (`mass`, `luminosity`, `band`, `phenomena`, `nebula-field`), the generator epoch and the run that drew it, and the row goes when the
 --   scatter is cleared; `species` gains `generator_epoch`, the epoch the population pass made it under. A sector has its own epoch (v121) and the plan its own (v131), so every stage's results say what made them.
 -- v165 (MAP.305, MAP.303): `system_interests` replaces `habitable_systems`: one row for each reason a star system is worth a mark on the Galaxy Map (a planet or moon rated
@@ -2435,11 +2435,11 @@ CREATE TABLE IF NOT EXISTS planets (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
-    moon_origin                   VARCHAR(8),  -- v179 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
-    moon_disk_lifetime_myr        DOUBLE,  -- v179: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
-    moon_disk_alpha_over_f        DOUBLE,  -- v179: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
-    moon_disk_f_inf               DOUBLE,  -- v179: the asymptotic ice fraction of the disk's ramp
-    moon_disk_ice_line_km         DOUBLE,  -- v179: the distance of the disk's ice line from the giant, km
+    moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
+    moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
+    moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
+    moon_disk_f_inf               DOUBLE,  -- v180: the asymptotic ice fraction of the disk's ramp
+    moon_disk_ice_line_km         DOUBLE,  -- v180: the distance of the disk's ice line from the giant, km
     water_base_pressure_pa      DOUBLE NULL,  -- v151 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2 (NULL for a planet)
     aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
@@ -2768,11 +2768,11 @@ CREATE TABLE IF NOT EXISTS moons (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
-    moon_origin                   VARCHAR(8),  -- v179 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
-    moon_disk_lifetime_myr        DOUBLE,  -- v179: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
-    moon_disk_alpha_over_f        DOUBLE,  -- v179: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
-    moon_disk_f_inf               DOUBLE,  -- v179: the asymptotic ice fraction of the disk's ramp
-    moon_disk_ice_line_km         DOUBLE,  -- v179: the distance of the disk's ice line from the giant, km
+    moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
+    moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
+    moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
+    moon_disk_f_inf               DOUBLE,  -- v180: the asymptotic ice fraction of the disk's ramp
+    moon_disk_ice_line_km         DOUBLE,  -- v180: the distance of the disk's ice line from the giant, km
     water_base_pressure_pa      DOUBLE NULL,  -- v147 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2
     aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
@@ -3739,6 +3739,7 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
 
     UNIQUE KEY uq_interstellar_comets_uid (uid),
+    KEY idx_interstellar_comets_name (name),  -- v178 (PERF.205): the Phenomena table pages by name in index order
     KEY idx_interstellar_comets_parent (parent_type, parent_id),
     CONSTRAINT chk_interstellar_comets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     CONSTRAINT chk_interstellar_comets_placement CHECK (
@@ -3838,6 +3839,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
 
     -- Named explicitly -- see `nebulae`'s identical "v18" CHECK comment above.
     UNIQUE KEY uq_asteroid_fields_uid (uid),
+    KEY idx_asteroid_fields_name (name),  -- v178 (PERF.205)
     CONSTRAINT chk_asteroid_fields_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
