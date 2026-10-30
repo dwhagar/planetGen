@@ -46,7 +46,7 @@ BOUNDARIES = (
              "Confident Unverified (recalled: Chabrier and Baraffe 2000 give 0.072 solar masses at solar metallicity, Burrows et al. 1997 "
              "about 0.075; the 0.08 is the round figure the mass function uses)",
              "whether a drawn object burns hydrogen is decided at its place, by its birth [Fe/H] "
-             "(`stellar_abundances.hydrogen_burning_limit_sol`: 0.074 at solar Z, 0.092 at Z = 0; GEN.936)."),
+             "(`stellar_abundances.hydrogen_burning_limit_sol`: 0.074 at solar Z, 0.092 at Z = 0)."),
     Boundary("deuterium_burning_limit", 13.0, "Mjup",
              "the edge between a planet and a brown dwarf: the working definition of the IAU Working Group on Extrasolar Planets",
              "Confident Unverified (recalled: Spiegel, Burrows and Milsom 2011 give 11 to 16 Jupiter masses with composition)"),
@@ -54,7 +54,7 @@ BOUNDARIES = (
              "the heaviest brown dwarf the generator draws: the floor of the stars' mass function, so the two functions meet",
              "Confident Unverified (the draw split above; it was a round 80 Jupiter masses, 0.0764 solar masses, and left the stretch to the "
              "stars' 0.08 empty)",
-             "the objects of this stretch burn hydrogen or not by their place's [Fe/H] (GEN.936): the brown dwarf tracks give a stable "
+             "the objects of this stretch burn hydrogen or not by their place's [Fe/H]: the brown dwarf tracks give a stable "
              "late-M or L dwarf to one that does."),
     Boundary("core_collapse_limit", 8.0, "Msun",
              "the initial mass above which a star ends its life in a core collapse (a neutron star or a black hole) and below which it "

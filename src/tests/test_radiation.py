@@ -206,8 +206,8 @@ def test_the_uv_proxies_are_gone():
 def test_the_stored_uv_index_is_the_dna_dose_of_the_spectrum_below_the_bodys_air():
     from planetgen.physics import body_radiation
 
-    with deterministic_entropy(3):
-        draw.set_run_seed(3)
+    with deterministic_entropy(2):    # a seed whose system holds several rocky planets (the architecture leaves some systems bare)
+        draw.set_run_seed(2)
         system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
     checked = 0
     for body in _bodies(system):
@@ -270,7 +270,7 @@ def _bodies(system):
 
 def test_every_generated_body_has_a_consistent_dose():
     seen = {"rocky": 0, "giant": 0, "ozone": 0}
-    for seed in range(12):
+    for seed in range(24):    # the planet architecture (GEN.728) makes a giant in about 1 system of 10, so 12 seeds held none
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)

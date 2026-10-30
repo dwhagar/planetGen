@@ -225,7 +225,7 @@ DATASET = fetch.Dataset(
     title="Infrared correlated-k tables of H2O, CO2 and CH4 (ExoMolOP, R1000, line lists POKAZATEL, UCL-4000 and YT34to10)",
     source="Chubb et al. 2021 (A&A 646, A21), ExoMolOP R1000 ARCiS k-tables from exomol.com",
     pieces=tuple(fetch.Piece(name, url, sha, size, transient=True) for name, url, sha, size in GASES.values()),
-    replaces="the band-strength and wing stand-ins of the grey infrared opacity (removed in GEN.850): plateau opacities per band centre of the gas table",
+    replaces="the band-strength and wing stand-ins of the grey infrared opacity: plateau opacities per band centre of the gas table",
     fill="AD10",
     fallback="none at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the tables are read to fit and check it",
     derived=(DERIVED,),
