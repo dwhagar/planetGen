@@ -154,7 +154,9 @@ def _bodies(system):
 
 def test_every_generated_body_is_scored_consistently():
     seen = {"rocky": 0, "giant": 0}
-    for seed in range(12):
+    for seed in range(60):
+        if seed >= 12 and seen["giant"]:      # twelve systems, and more only until a gas giant has been seen (whether one is drawn moves with the epochs)
+            break
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
