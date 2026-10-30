@@ -1952,3 +1952,17 @@ Baseline: PR #1817.
 | PERF.209 | 8.1 | The headline closes |
 | TEST.473 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | PERF.212 | 8.1 | Queue, caches and performance |
+| GEN.1008 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1007 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1002 | 8.1 | Stand-in replacements |
+| GEN.1018 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.475 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.403 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.302 | 8.1 | Bugs and flaky tests |
+| TEST.219 | 8.1 | Bugs and flaky tests |
+| TEST.478 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1020 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.794 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.477 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.218 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.464 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

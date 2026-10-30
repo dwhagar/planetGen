@@ -50,28 +50,45 @@ class _Counted:
             self._done()
 
 
+STATIC_PREFIX = "/static/"
+"""A request under this path is a file read: it holds no database connection, so it is not counted (TEST.219: the leftovers
+of a browser test page were a few of the Shoelace files the closing page had stopped reading, which no wait ends)."""
+
+
 class InFlight:
-    """WSGI middleware counting the requests that have started and not yet finished."""
+    """WSGI middleware counting the requests that have started and not yet finished, those that can hold a database
+    connection (not `STATIC_PREFIX`)."""
 
     def __init__(self, app):
         self.app = app
         self.active = 0
+        self.routes = {}
         self._cond = threading.Condition()
 
-    def _finished(self):
+    def _finished(self, key):
         with self._cond:
             self.active -= 1
+            self.routes[key] -= 1
             self._cond.notify_all()
 
     def __call__(self, environ, start_response):
+        if environ.get("PATH_INFO", "").startswith(STATIC_PREFIX):
+            return self.app(environ, start_response)
+        key = f"{environ.get('REQUEST_METHOD', '?')} {environ.get('PATH_INFO', '?')}"
         with self._cond:
             self.active += 1
+            self.routes[key] = self.routes.get(key, 0) + 1
         try:
             result = self.app(environ, start_response)
         except BaseException:
-            self._finished()
+            self._finished(key)
             raise
-        return _Counted(result, self._finished)
+        return _Counted(result, lambda: self._finished(key))
+
+    def running_routes(self):
+        """`{"METHOD /path": how many}` of the requests started and not yet finished."""
+        with self._cond:
+            return {key: count for key, count in self.routes.items() if count > 0}
 
     def drain(self, seconds):
         """Waits up to `seconds` for every started request to finish; returns how many are still running."""
@@ -96,6 +113,7 @@ def served(app, drain_seconds=DRAIN_SECONDS):
         thread.join(timeout=10)
         running = counted.drain(drain_seconds)
         if running:
+            named = ", ".join(f"{key} x{count}" for key, count in sorted(counted.running_routes().items()))
             warnings.warn(f"TEST.193: {running} request(s) were still running {drain_seconds} s after the test "
-                          "server stopped; the connections they hold are ended when the database is dropped")
+                          f"server stopped ({named}); the connections they hold are ended when the database is dropped")
         server.server_close()

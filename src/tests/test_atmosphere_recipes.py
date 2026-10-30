@@ -101,7 +101,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 55, "open": 0, "stand-in": 12}
+    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 51, "open": 0, "stand-in": 16}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -110,7 +110,7 @@ def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
     assert RECIPES.open_rows() == [], "no row waits on research any more"
     researched = {r for entry in RECIPES.entries for r in entry.research}
     assert researched == set(RECIPES.research), "every research item concerns at least one row"
-    builders = {f"GEN.{n}" for n in range(509, 526)} | {"GEN.595"}
+    builders = {f"GEN.{n}" for n in range(509, 526)} | {"GEN.595", "GEN.1005"}      # GEN.1005: the rows GEN.1002 flagged (a1, a2, b1, k7)
     for entry in RECIPES.entries:
         if entry.state == pt.STAND_IN:
             assert entry.replacement in builders, (entry.id, entry.replacement)
@@ -119,8 +119,9 @@ def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
 def test_the_stand_ins_are_rows_with_no_measurement_or_built_from_solar_system_bodies():
     stand_ins = {e.id: e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
     assert {"b5", "n7", "o3"} <= set(stand_ins)
-    assert not {"a1", "a2"} & set(stand_ins), "GEN.482 checked both against first-hand ranges at three Solar System bodies"
-    assert not {"k1", "k2", "k3", "k4", "k5", "k7"} & set(stand_ins), "the comet rows follow the Robinson database (GEN.520)"
+    # GEN.1002: a row whose weights rest on Solar System bodies is a flagged stand-in with its replacing item, GEN.482 and GEN.520 notwithstanding
+    assert {e: stand_ins[e] for e in ("a1", "a2", "b1", "k7")} == {"a1": "GEN.1005", "a2": "GEN.1005", "b1": "GEN.1005", "k7": "GEN.1005"}
+    assert not {"k1", "k2", "k3", "k4", "k5"} & set(stand_ins), "the comet rows follow the Robinson database (GEN.520)"
     assert not {"m3", "m4", "m11"} & set(stand_ins), "the life-linked gases are design flags (GEN.525)"
     assert not {"a3", "a4", "f7", "p6"} & set(stand_ins), "rows with a published statistic are not stand-ins"
 

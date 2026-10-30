@@ -2,6 +2,174 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2720] - 2026-10-30
+
+**Headline:** A test run builds each bright-star sampling table once for all its workers and the next run, instead of in every process.
+
+### Changed
+- **PERF.218: the bright-star sampling tables are kept across processes in a test run.** A first sector fill builds hundreds of tables (`star_population._bright_table`, `_mass_band_table`): 717,000 distinct track evaluations, 267 s and 1.84 GB in one process on a slow machine, in every process that fills a sector. The work is distinct, not repeated, and keeping it in memory took over a gigabyte more for a 28 percent saving, so `PLANETGEN_BAND_TABLE_CACHE` (set only by the test suite's conftest; production never sets it) names a folder where each table is kept as JSON under a key made from its arguments, the size and modification time of every file of the package and of the downloaded datasets, the Python and numpy versions and every constant of `tuning`. A changed file, download or constant builds the table again; the numbers are written the way Python writes them, so a table read back is the table that was made. Memory is the same as before. Nothing the generator makes changes.
+
+generation-output: unchanged
+
+TODO items resolved: PERF.218.
+
+## [8.0.2719] - 2026-10-30
+
+**Headline:** A system of many stars shows each further star as its own marker on the System Map, however the stars lie.
+
+### Fixed
+- **Six further stars in nearly the same direction drew on top of each other on the System Map (MAP.213, slice B).** A further star's marker stepped in toward the middle until it cleared the markers already drawn, and when that line was full it stayed on the last one it tried. It now turns to the nearest free direction when its own line is full, so a seven-star system gets seven markers, each opening its own scene; a marker keeps its real direction whenever there is room. The tree's own pairs already reach the map through the member scenes of MAP.290; the 3D view draws the tree node by node (slice A).
+
+## [8.0.2718] - 2026-10-30
+
+**Headline:** An independent check now proves that the stars, planets and moons of a generated system do not overlap.
+
+### Added
+- **The overlap verifier (TEST.477, GEN.1006 part P2).** `planetgen.physics.clearance.audit` reads only what a finished system stores and lists every overlap or broken limit: stars filling their Roche lobes at closest approach, the two sides of a node meeting, hierarchical stability by three published criteria, node masses, planets inside their star, the Holman and Wiegert axes, crossing or crowded planets, moons beyond the Hill limit or touching their planet, and belts over a planet's orbit; it also counts the physical limits the generator does not promise yet (rigid-body Roche limits) as advisories. It imports none of the generator's placement or screening code. `tests/test_clearance.py` holds each form against the generator's own and sweeps stored systems of one to five stars; the long sweep (864 systems) found one failure, a planet pair 9.93 mutual Hill radii apart where the generator promises 10, listed as the one expected failure.
+
+## [8.0.2717] - 2026-10-30
+
+**Headline:** The ammonia active-Sun factor is computed from measured solar spectra instead of taken from an unchecked value.
+
+### Changed
+- The NH3 active-Sun factor of the photolysis table (GEN.794) is 1.07, computed by `scripts/nh3_activity_factor.py` from the Leiden NH3 photodissociation cross section and the daily solar irradiance of SORCE SOLSTICE, UARS SUSIM and UARS SOLSTICE (strongest year over weakest year of each record: 1.066, 1.083 and 1.060). It replaces the unchecked 1.078; the registry rows NA1 and NA2 give its tier, tweak level and bracket (1.05 to 1.15). No generated world changes: no generation code reads the active-Sun factor.
+- The wiring register names GEN.850 for the acid cloud's column modules (GEN.1020 was retired), so the register check passes again.
+
+## [8.0.2716] - 2026-10-30
+
+**Headline:** The 3D system view draws a triple or a deeper tree of stars node by node, each star on the real orbit the tree gives it.
+
+### Changed
+- **A tree of stars is drawn orbit by orbit (MAP.213, slice A).** The browser now places every star about the centre of mass of the node it hangs from, and each node's centre about its parent node's, as the server's `positions_at` does. A star's path is the real eccentric, tilted ellipse of its node and no longer a circle. In the compressed view each node is drawn on its own scale, wide enough for its two sides to clear each other at periapsis (a star with planets going round it needs their whole span, a sub-pair the reach of its own orbit), so a 10,000 AU outer pair and a 0.1 AU inner pair both read; a wide pair with planets round its stars no longer has its second star inside the first star's planets. True scale draws the real distances. A triple's third star is drawn where the tree puts it and is no longer on the first star.
+- `positionsAt` and the checks in `tests/test_js_unit.py` still equal the server's positions; the browser test `test_system_page_3d_view_draws_a_triple_with_every_star_clear_of_the_others` loads a triple scene.
+
+## [8.0.2715] - 2026-10-30
+
+**Headline:** The infrared model's carbon dioxide far wing is now the sourced Perrin and Hartmann one, and the column takes an acid cloud; no stored world changes.
+
+### Changed
+
+- **Sourced far wing and acid cloud in the infrared column (GEN.1019, GEN.1020).** `line_opacity` drops the flat carbon dioxide wing of stand-in IR3 (`CO2_FAR_WING_M2_KG`) and adds the `co2_far_wing` wings of carbon dioxide and, in a carbon dioxide air, of water, sulfur dioxide and carbon monoxide (skipped under 1 kPa of carbon dioxide). `radiative_convective.solve` takes `cloud=(tau_550, radius_um)` and adds the acid cloud's infrared opacity between the level that is 367 K and a top at 0.0192 of that pressure. The clear-sky Venus-like air comes to 757 K with a 1 micron cloud of depth 25 (measured 735 K; the wing alone 539 K). Nothing in generation calls the infrared model yet, so no stored value moves.
+
+## [8.0.2714] - 2026-10-30
+
+**Headline:** The sulfuric acid cloud has an infrared opacity (Mie droplets from the HITRAN acid indices) and the minor gases have a far wing in carbon dioxide air, built and tested; no world changes yet.
+
+### Changed
+
+- **Infrared optics of the acid cloud (GEN.1020, lock-free step).** `cloud_infrared` turns the acid cloud's depth at 550 nm and droplet radius into an optical depth on each of the 130 infrared bands, from Mie spheres (`mie`) of 76 and 81 percent sulfuric acid (the HITRAN aerosol indices of Myhre and others 2003, tabled by `scripts/build_acid_cloud_optics.py`), spread between the cloud base and top in the layers of a column. `co2_far_wing` gains the far wing of water, sulfur dioxide and carbon monoxide lines in a carbon dioxide air. In the clear-sky Venus-like test air the sourced wing and the cloud reach 757 K (measured 735 K). Nothing calls them yet; `line_opacity` still has the flat IR3 wing until the wiring step. Registry rows CF1 to CF5, FW6 and FW7.
+
+## [8.0.2713] - 2026-10-30
+
+**Headline:** The carbon a dry rocky body keeps in its mantle now has a model of its own (building-block carbon, the share already differentiated, the core's share), ready for row b1.
+
+### Changed
+
+- GEN.1005 (part 1 of b1, lock-free): `physics/dry_carbon.py` derives the dry-class carbon bracket, 0.029 to 0.108 weight percent CO2, from the carbon of non-carbonaceous building blocks (0.16 and 0.004 weight percent), the 30 to 60 percent of the accreted mass that had cored before accretion and the 12 to 26 percent of the carbon the core leaves in the mantle (Blanchard et al. 2022); the bulk silicate Earth is a test of it and no longer its anchor. Registry rows DC1 to DC3 (section 6.58 of the gap-filling plan). Row b1 still draws 0.018 to 0.1 until the flip, so nothing the generator draws changes.
+
+## [8.0.2712] - 2026-10-30
+
+**Headline:** The oxygen fugacity of a magma ocean now has a model of its own (the pressure at its base, the ferric share of its iron), ready for the rows that draw it.
+
+### Changed
+
+- GEN.1005 (part 1, lock-free): `physics/magma_ocean_redox.py` gives the magma-ocean surface redox of a rocky body from its mass through the pressure at the base of its ocean, the ferric share of the iron and the fourth-power relation of the ratio to the oxygen fugacity, and the later upper mantle's value; the Moon, Mars and the Earth are tests of it and no longer inputs. The recipe expressions can call it (`magma_ocean_diw`, `magma_ocean_diw_sigma`, `later_mantle_diw`). Registry rows MR1 to MR7 (section 6.57 of the gap-filling plan) carry tiers and tweaks. Rows a1 and a2 still draw the old line until part 2, so nothing the generator draws changes.
+
+## [8.0.2711] - 2026-10-30
+
+**Headline:** The bright-star rows of the API tests are built by column name, so a new column cannot leave them short again.
+
+### Changed
+
+- TEST.478: `tests/test_api.py` builds its `bright_stars` rows with one helper that fills every `store.BRIGHT_STAR_COLUMNS` name from defaults and the values a test names, in the table's order. The rows had been one value short since GEN.846 added the rotation period (the bright-star route tests failed on main with column count 1136).
+
+## [8.0.2710] - 2026-10-30
+
+**Headline:** A sourced carbon dioxide far wing and a sulfuric acid cloud are built and tested, ready for the infrared model and the cloud draw; no world changes yet.
+
+### Changed
+
+- **Carbon dioxide far wing (GEN.1019, lock-free step).** `co2_far_wing` adds back what the infrared k-tables' 25 cm-1 line cutoff drops from a dense carbon dioxide air: each band's Lorentz tail times the sub-Lorentzian factor of Perrin and Hartmann 1989, out to 500 cm-1, with the band strengths read from the carbon dioxide table. Nothing calls it yet; `line_opacity` keeps the flat wing of stand-in IR3 until the wiring step. Registry rows FW1 to FW5.
+- **Sulfuric acid cloud (GEN.1019, lock-free step).** `sulfuric_cloud` draws the acid cloud of an air that holds sulfur dioxide, an oxidiser and water: a base where the dry adiabat is cooler than 367 K, a depth of 20 to 30 and droplet radii of 0.3 to 3.85 micron from the published Venus cloud models, held to the acid the sulfur can make; an air with no sulfur gets none. Nothing calls it yet. `acid_medium.skin_k` is now public. Registry rows SC1 to SC5.
+
+## [8.0.2709] - 2026-10-30
+
+**Headline:** The Generate page's line under the dials is worked out once for the same dials, and the test server's warning about requests left running names each route.
+
+### Changed
+- **TEST.219: what the browser pages left running after the server stopped (kind: perf and test).** The TEST.193 warning now names every request still running by method and path. In `test_web_generate_alignment.py` and `test_web_browser_controls.py` they were `GET /admin/generate/shape-report` (10 at once in one page, each working the whole plan outline out: 3 to 10 s warm, 12 to 116 s cold on a busy machine) and a few Shoelace files under `/static/` that a closing page had stopped reading. The shape report is now kept (`generate_page._shape_preview`, 32 answers): the same dials are answered at once and a repeat of dials still being worked out waits for the one answer instead of making its own. Requests under `/static/` hold no database connection, so the server stop no longer waits for them or counts them. Nothing the generator makes changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.219.
+
+## [8.0.2708] - 2026-10-30
+
+**Headline:** The benchmark suite stops only its own queue workers, so it no longer kills the workers other tests started on the same machine.
+
+### Changed
+- **TEST.302: `benchmark_suite.stop_workers` is scoped to the run's own control database.** It ended every process whose command line held `planetgen.cli.worker`, so a benchmark run beside the queue tests killed their workers and those tests failed with exit -9. It now ends only the workers started with the run's `PLANETGEN_CONTROL_DATABASE` (the scratch one its steps hand on), and a test starts two stand-in workers to show a foreign one survives. Nothing the generator makes changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.302.
+
+## [8.0.2707] - 2026-10-30
+
+**Headline:** The bright-star scatter tests build their sectors in a small galaxy, so the file runs in minutes instead of an hour.
+
+### Changed
+- **TEST.403: the slow scatter tests no longer build thousands of systems.** `make_sector` took the profile's own system count even when a test asked for one (a density overrode it); a test that asks for a count now gets it. The tests that make whole sectors and check what is done around them, not what is in them, use a galaxy of 20 systems per sector at density 1 instead of 2,000, so a sector's fill builds a few dozen pre-placed stars' systems, not about a thousand (the biggest, `test_going_down_a_band_gives_backfilled_sectors_only_what_they_lack`, fell from 10 minutes to 4; the plan-scatter test from 4.5 minutes to 1). Nothing the generator makes changes.
+
+## [8.0.2706] - 2026-10-30
+
+**Headline:** An air with carbonyl sulphide, acetylene, hydrogen chloride and other gases the greenhouse model could not handle no longer stops the model.
+
+### Changed
+
+- **Heat capacity of every gas (GEN.852, part 4).** The radiative-convective model looked up each gas's heat capacity by the name of the NASA database, so an air holding carbonyl sulphide (OCS), acetylene, aluminium oxides and 40 other gases of the table failed with a lookup error. It now looks the gas up by its table formula, falls back to the gas table's heat capacities at 100, 300 and 1000 K, and last to a count of the atoms. Airs that already worked give the same answer. Registry row IR9.
+- **Tropopause level (GEN.852, part 3).** The tropopause the model reports is one of its 40 pressure levels, so it moves in steps of about 26 percent. Nothing reads it, and the surface temperature moves by under 0.1 K when it steps; a test now holds that, and the limit is registry row IR10. No change to any world.
+
+## [8.0.2705] - 2026-10-30
+
+**Headline:** The nearby page tests build their little galaxy in minutes instead of hours on a slow machine.
+
+### Changed
+
+- TEST.475: `test_web_nearby.py` fills its two sectors without the deepest floor of the first fill and without the bright-star bands of a capped cell (the page tests do not read either), so the file runs in about six minutes where four of its eight tests timed out in setup at 900 s on a slow machine. Its hand-placed bright star carries the rotation period column GEN.846 added (the row had one value too few).
+
+## [8.0.2704] - 2026-10-30
+
+**Headline:** A sourced potassium depletion by body class is built and tested, ready for the generator; no world changes yet.
+
+### Changed
+
+- **Potassium depletion (GEN.492, lock-free step).** `potassium_depletion` holds the K/U of the bulk silicate Earth, Mars, Mercury, the Moon, Vesta and the angrite parent body (Dauphas et al. 2022 Table 1) over CI chondrites, and draws a body's depletion from its class: planets of 0.03 Earth masses or more centre on 0.19, smaller bodies on 0.015. Nothing calls it yet; `radiogenic` still draws log-uniform 0.03 to 1 until the wiring step. Registry rows KD1 to KD4.
+
+## [8.0.2703] - 2026-10-30
+
+**Headline:** Nine registered rows that rest on a Solar System body are now flagged as stand-ins with the item that replaces each.
+
+### Changed
+
+- GEN.1002: `atmosphere-a` a1 and a2 (oxygen fugacity tuned to Moon, Mars and Earth), `atmosphere-b` b1 (dry carbon tuned to the bulk silicate Earth) and `atmosphere-k` k7 (the species of one comet) are stand-ins replaced by GEN.1005; the five ground types of `surface-ground-types` (ultramafic, anorthositic, basaltic, felsic, oxidised: the Earth and Moon crust library of Hu, Ehlmann and Seager 2012) are stand-ins replaced by GEN.474. Their rows are in the stand-in list (section 6.56 of `gap-filling-plan.md`, added earlier). No draw reads a row's state, so the generator battery digest is the same (2df2cbcb...) and no generated value changes; the table digests change, and they are read by `Registry.versions` only. The rule in `tests/data/solar_system_rows.json` moves the nine from pending to flagged, and `tests/test_atmosphere_recipes.py` counts 51 partly verified and 16 stand-in rows.
+
+## [8.0.2702] - 2026-10-30
+
+**Headline:** A system of three or more stars no longer puts one star inside another.
+
+### Fixed
+- **A third (or later) star could sit inside another star.** A drawn tree of stars is built again from each member's birth mass and the system's age, so a member the tree had evolved (a white dwarf in a post-common-envelope pair) could come out a giant wider than its own orbit, with its partner or a third star inside it. `StarSystem` now checks the stars as built against the orbits (`multistar.built_tree_clears`) and draws the tree again when one does not clear (about 1 forced triple in 150, 1 forced quadruple in 50).
+  generation-output: changed
+
+## [8.0.2701] - 2026-10-30
+
+**Headline:** The bright-star and phenomenon scatters now work out their seed, mass limit and clearing when their stage opens, so a run can plan the galaxy and scatter it in one go.
+
+### Changed
+
+- PERF.212: the followers of the bright-star passes and of the phenomenon scatter no longer read the database when they are built. Each stage carries a deferred `scatter-settings` parameter that the wrapper resolves just before the stage opens (the seed, the stellar and compact mass limits, what the luminosity pass clears, the record the last pass stores), and keeps in the run record so the stage's end and a resumed run take the same values even after the pass has emptied what they were read from. The skeleton and "no massive-star pass is stored" refusals are made when the stage opens and `planetgen scatter` raises them as before; the nebula field stage now always follows the phenomena (it has no unit for a galaxy with no outline). Nothing stored changes, no epoch.
+
 ## [8.0.2700] - 2026-10-30
 
 **Headline:** The census tests know which of their shifts came with the star and giant changes of epoch 125.

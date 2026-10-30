@@ -66,6 +66,7 @@ import functools
 import math
 
 from planetgen.galaxy import scales
+from planetgen.generation import band_table_cache
 from planetgen.galaxy.age_law import AgeLaw
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
 from planetgen.physics import constants, imf, metallicity, post_main_sequence, wolf_rayet
@@ -291,6 +292,19 @@ def _bin_fe_hs(fe_bin):
     return (fe_bin - half, fe_bin, fe_bin + half)
 
 
+def _encode_table(table):
+    """The kept form of a sampling table (`band_table_cache`): its numbers; the age law is the caller's own."""
+    return {"cells": table["cells"], "cumulative": table["cumulative"], "fraction": table["fraction"]}
+
+
+def _decoder(window, population):
+    """The table again from its kept form, for the age law `window` and `population` it was kept for."""
+    def decode(form):
+        return {"window": window.window, "law": window, "cells": [tuple(cell) for cell in form["cells"]],
+                "cumulative": form["cumulative"], "population": population, "fraction": form["fraction"]}
+    return decode
+
+
 @functools.lru_cache(maxsize=None)
 def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, fe_bin=0.0, reference=False):
     """
@@ -306,10 +320,19 @@ def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, 
     valid for it. The `fraction` is worked out only for a `reference` table, built at the population's own mean
     composition (`reference_fe_h`, `fe_bin` the composition itself, GEN.661), the one the counts use; a sampling table's is
     `None`.
+    Worked out by `_build_bright_table`; a test run keeps each across processes (`band_table_cache`, PERF.218).
     """
     check_threshold(min_luminosity_sol)
     if window is None:
         window = _law(population, None)
+    return band_table_cache.kept(
+        "bright", (min_luminosity_sol, population, mass_range, window, fe_bin, reference),
+        lambda: _build_bright_table(min_luminosity_sol, population, mass_range, window, fe_bin, reference),
+        _encode_table, _decoder(window, population))
+
+
+def _build_bright_table(min_luminosity_sol, population, mass_range, window, fe_bin, reference):
+    """The sampling table `_bright_table` describes, for the age law `window` (never `None`)."""
     cells, cumulative = [], []
     running = bright = living = 0.0
     mass_low, mass_high = mass_range if mass_range is not None else (None, None)
@@ -565,9 +588,18 @@ def _mass_band_table(mass_range, population, window=None, fe_bin=0.0, reference=
     window and the band's `fraction` of ALL living stars (the same
     denominator `bright_star_fraction` uses, so the two subtract). `window` is the population's `AgeLaw` (an even
     spread across its window when `None`).
+    Worked out by `_build_mass_band_table`; a test run keeps each across processes (`band_table_cache`, PERF.218).
     """
     if window is None:
         window = _law(population, None)
+    return band_table_cache.kept(
+        "mass", (mass_range, population, window, fe_bin, reference),
+        lambda: _build_mass_band_table(mass_range, population, window, fe_bin, reference),
+        _encode_table, _decoder(window, population))
+
+
+def _build_mass_band_table(mass_range, population, window, fe_bin, reference):
+    """The sampling table `_mass_band_table` describes, for the age law `window` (never `None`)."""
     mass_low, mass_high = mass_range
     cells, cumulative = [], []
     running = born = living = 0.0

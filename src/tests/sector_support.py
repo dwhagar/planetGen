@@ -8,7 +8,7 @@ backfill, the queued settle), so `make_sector` is that path for a test, built fr
 from planetgen.generation import run_galaxy, run_sector
 
 
-def make_sector(shell_index, band_index, wedge_index, config=None, backfill=True, settle=True, link=True):
+def make_sector(shell_index, band_index, wedge_index, config=None, backfill=True, settle=True, link=True, num_systems=None):
     """
     Generates and saves the sector at an address from its profile, as a run would, and returns what was made.
 
@@ -16,6 +16,8 @@ def make_sector(shell_index, band_index, wedge_index, config=None, backfill=True
         backfill (bool): Run the bright-star backfill around the new sector.
         settle (bool): Queue the settle job (`run_galaxy.queue_settle`) for the new sector.
         link (bool): Link the sector to its neighbours as it is saved.
+        num_systems (int): Generate this many systems instead of the profile's count (TEST.403: a test that checks what is
+            done around the sector, not what is in it, asks for one; a dense cell draws thousands).
 
     Returns:
         dict: `created`, `qualifies`, `in_reach`, `sector_id`, `sector_name` and, when created, `summary`. A cell that
@@ -28,6 +30,9 @@ def make_sector(shell_index, band_index, wedge_index, config=None, backfill=True
     early, args, position_pc, qualifies, edge_pc = run_galaxy._cell_to_generate(address, config, link)
     if early is not None:
         return early
+    if num_systems is not None:
+        args.num_systems = num_systems
+        args.density = None   # a density resolves to the profile's own count and overrides this one
     sector_id, sector_name, sector = run_galaxy.generate_and_save_sector_at(args, address, position_pc, edge_pc)
     if backfill:
         run_galaxy.backfill_bright_stars(config, position_pc)
