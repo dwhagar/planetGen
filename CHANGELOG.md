@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2781] - 2026-10-30
+
+**Headline:** The generator can now say how old a rogue planet is and how long ago it was thrown out of its system.
+
+### Added
+- **`physics/rogue_age.py` (GEN.1112, RP5).** A rogue planet is as old as the star it formed with, so its age is drawn from the galaxy's star-formation history instead of a flat 0.1 to 10 Gy, the moment it was thrown out is placed after its formation (most ejections early, an even share of each decade of time), and the time since ejection is what is left. Those three numbers feed the cooling of a giant, the heat its star gave it before the ejection, how far it has drifted, and the history sentence on its page. Nothing reads it yet; the rogue rows (GEN.1111) do.
+- **Stand-in rows RG1 and RG2** in the gap-filling plan (section 6.88), the stand-in list and the burn-down register.
+
 ## [8.0.2780] - 2026-10-30
 
 **Headline:** A belt's biggest bodies can now be drawn one by one from the belt's mass and size law, and the mass left over is kept, so nothing is lost or counted twice (not used by the generator yet).
