@@ -30,7 +30,7 @@ from hypothesis import strategies as st
 from planetgen.galaxy import galactic_orbit
 from planetgen.generation import stellar_object as star_module
 from planetgen.generation import wide_binary
-from planetgen.physics import formation
+from planetgen.physics import condensate_shares, formation
 from planetgen.physics import orbits
 from planetgen.physics import planets as planet_physics
 from planetgen.physics import units
@@ -196,8 +196,8 @@ def test_solar_reference_points():
     inner, outer = orbits.calculate_habitable_zone(physical_constants.SOLAR_LUMINOSITY, 5772.0)
     assert 0.9 < inner < 1.0 < 1.6 < outer < 1.8
     assert _close(formation.disk_surface_density_scale(physical_constants.SOLAR_MASS_TO_KG), 1.0)
-    # 170 K blackbody: (278.3 K / 170 K)^2 AU for the Sun (docs/design/composition/bulk-composition-sources-check.md)
-    assert abs(formation.snow_line_au(physical_constants.SOLAR_LUMINOSITY) - 2.68) < 0.005
+    # 182 K blackbody (Lodders 2003 Table 10): (278.3 K / 182 K)^2 AU for the Sun
+    assert abs(formation.snow_line_au(physical_constants.SOLAR_LUMINOSITY) - 2.339) < 0.005
 
 
 @given(d=positive, m=positive, big=positive)
@@ -241,7 +241,7 @@ def test_wide_binary_samplers_stay_in_range():
 def test_mmsn_density_jumps_by_the_ice_factor_at_the_snow_line(d, snow, scale):
     density = formation.mmsn_surface_density_gcm2(d, snow, scale)
     bare = physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 * scale * d ** physical_constants.MMSN_SURFACE_DENSITY_EXPONENT
-    expected = bare * (physical_constants.SNOW_LINE_ICE_BOOST_FACTOR if d >= snow else 1)
+    expected = bare * (condensate_shares.WATER_ICE_SOLID_BOOST if d >= snow else 1)
     assert _close(density, expected)
     assert density >= 0
 

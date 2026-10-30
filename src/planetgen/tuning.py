@@ -269,10 +269,10 @@ MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO = 0.1
 # `DELIVERED_WATER_RICH_MAX`, the largest water share a rocky body keeps and still has the rock to be a planet (Thiabaud et al. 2014
 # find at most about 0.5 for the bodies the model formed). Both ends are stand-ins (registry rows DW2 and DW3, tier "educated guess
 # from physics", level L1). A body that formed beyond the snow line of a class that is not rocky is ice and rock: its share is
-# `ICY_WATER_MASS_FRACTION` (Europa 8 percent water, Ganymede about 45, Marboeuf et al. 2014: 5 to 50 percent).
+# drawn from `ICY_WATER_MASS_FRACTION_FLOOR` up to the water share of the solids that the disk temperature at its formation distance condenses (`condensate_shares`, Lodders 2003 Table 11: 0.54 to 0.38, GEN.950; Europa 8 percent water, Ganymede about 45, Marboeuf et al. 2014: 5 to 50 percent).
 DELIVERED_WATER_DRY_MIN = 1.0e-6
 DELIVERED_WATER_RICH_MAX = 0.5
-ICY_WATER_MASS_FRACTION = (0.05, 0.5)
+ICY_WATER_MASS_FRACTION_FLOOR = 0.05
 
 # A terrestrial body's Bond albedo, drawn before its air is solved so it can only read what the body is made of and the starlight
 # it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock keeps the generator's own range (`climate_draws.DEFAULT_ALBEDO_RANGE`); a body with surface water

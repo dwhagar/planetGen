@@ -381,8 +381,8 @@ def _reference_checks():
               "71.5 nGy/h in air over the upper continental crust (Rudnick and Gao 2014 Table 11: U 2.7, Th 10.5 ppm, K2O 2.80 weight "
               "percent; UNSCEAR coefficients)", unit="nGy/h"),
         Check("snow_line_1_lsun", "reference", "formation.snow_line_au(L_sun)",
-              lambda: formation.snow_line_au(pc.SOLAR_LUMINOSITY), 2.68, 0.005,
-              "blackbody snow line at 170 K, 2.68 AU for 1 L_sun (Kennedy and Kenyon 2008)", unit="AU"),
+              lambda: formation.snow_line_au(pc.SOLAR_LUMINOSITY), 2.339, 0.005,
+              "blackbody snow line at 182 K, 2.34 AU for 1 L_sun (Lodders 2003 Table 10: water ice condenses at 182 K)", unit="AU"),
         Check("white_dwarf_0_6_msun_radius", "reference", "stellar_evolution.white_dwarf_radius_km(0.6)",
               lambda: stellar_evolution.white_dwarf_radius_km(0.6), pc.EARTH_RADIUS_KM, 0.15,
               "a typical 0.6 M_sun white dwarf is about Earth-sized (Shapiro & Teukolsky 1983)", unit="km"),
