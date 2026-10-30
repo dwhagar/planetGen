@@ -19388,17 +19388,6 @@ clears each one.
   diagnosis while it waits for its second turn). Version 8.1.
   Prerequisites: none. Related: DB.70.
 
-- [ ] **TEST.462 test_planets_respect_their_stars_age_and_history fails in a batch run: a class E planet in the habitable list around a star under 0.1 Gy (bug)**
-  Found by Bug 1 (as the lane reported 7:24 PM EDT 2026-10-29):
-  tests/test_star_population.py::test_planets_respect_their_stars_age_and_history
-  fails in a batch run and passes alone on main and on Bug 1's branch
-  (13 minutes each); an order or draw-state dependent rare event,
-  probably the class cut-over (GEN.646) making the class follow
-  conditions while the test asserts the old class rule for young stars.
-  Do: diagnose, and fix at the cause (the test's rule or the generator),
-  never skip. Owner: Bug 1. Version 8.1.
-  Prerequisites: none. Related: GEN.646.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
