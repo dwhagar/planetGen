@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2776] - 2026-10-30
+
+**Headline:** Every belt can now say where it came from: the rule that names a belt's cause, and the sentence for its page, are built and tested.
+
+### Added
+- **Belt origins (GEN.1088).** `physics/belt_origin.py` takes the planet chain, the snow line at formation and the disc and gives each belt the cause that made it (a gap in the chain, the unfinished tail, a pile-up at the snow line, the outer disc beyond the last giant, the remains of a destroyed planet, rubble of a collision), then what took mass from it (the chaotic zone and resonance gaps of each giant, and the share a giant that migrated through it swept away), with the mass conserved and one sentence for the belt page ("The leftover of a planet that never grew here ..."). The causes and their sentences are in `physics/data/belt_origins.json`; the numbers are registry section 6.96. Nothing calls it yet (GEN.1068 and GEN.1092 wire it), so no world changes.
+
 ## [8.0.2775] - 2026-10-30
 
 **Headline:** The generator can now say how crowded a belt is: how many objects above 1, 10 and 100 km a square astronomical unit holds, and how much mass.
