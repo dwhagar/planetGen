@@ -3187,6 +3187,8 @@ CREATE TABLE IF NOT EXISTS black_holes (
     KEY idx_black_holes_parent (parent_type, parent_id),
     CONSTRAINT chk_black_holes_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_black_holes_name (name),  -- v40: name uniqueness lookups
+    KEY idx_black_holes_placed_name (star_id, ((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_black_holes_descriptor_name (star_id, ((CASE WHEN has_accretion_disk THEN 'accreting' ELSE 'quiescent' END) COLLATE utf8mb4_unicode_ci), name),
     KEY idx_black_holes_next_update_due (next_update_due),
     CONSTRAINT chk_black_holes_mass_class CHECK (mass_class IN ('stellar', 'intermediate', 'supermassive')),
     CONSTRAINT chk_black_holes_placement CHECK (
@@ -3275,6 +3277,8 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     KEY idx_neutron_stars_parent (parent_type, parent_id),
     CONSTRAINT chk_neutron_stars_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_neutron_stars_name (name),  -- v40: name uniqueness lookups
+    KEY idx_neutron_stars_placed_name (star_id, ((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_neutron_stars_descriptor_name (star_id, pulsar_type, name),
     KEY idx_neutron_stars_next_update_due (next_update_due),
     CONSTRAINT chk_neutron_stars_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
@@ -3384,6 +3388,9 @@ CREATE TABLE IF NOT EXISTS nebulae (
 
     UNIQUE KEY uq_nebulae_uid (uid),
     KEY idx_nebulae_name (name),  -- v40: name uniqueness lookups
+    KEY idx_nebulae_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_nebulae_descriptor_name (nebula_type, name),
+    KEY idx_nebulae_radius_name (radius_ly, name),
     KEY idx_nebulae_next_update_due (next_update_due),
 
     -- Named explicitly (unlike sectors' own identical v4 CHECK above) so
@@ -3489,6 +3496,9 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
 
     UNIQUE KEY uq_supernova_remnants_uid (uid),
     KEY idx_supernova_remnants_name (name),  -- v40: name uniqueness lookups
+    KEY idx_supernova_remnants_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_supernova_remnants_descriptor_name (morphology, name),
+    KEY idx_supernova_remnants_radius_name (radius_ly, name),
     KEY idx_supernova_remnants_next_update_due (next_update_due),
 
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
@@ -3556,6 +3566,8 @@ CREATE TABLE IF NOT EXISTS quasars (
 
     UNIQUE KEY uq_quasars_uid (uid),
     KEY idx_quasars_name (name),  -- v40: name uniqueness lookups
+    KEY idx_quasars_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_quasars_descriptor_name (((CASE WHEN is_radio_loud THEN 'radio-loud' ELSE 'radio-quiet' END) COLLATE utf8mb4_unicode_ci), name),
     CONSTRAINT chk_quasars_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -3692,6 +3704,8 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     KEY idx_rogue_planets_parent (parent_type, parent_id),
     CONSTRAINT chk_rogue_planets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_rogue_planets_name (name),  -- v40: name uniqueness lookups
+    KEY idx_rogue_planets_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_rogue_planets_descriptor_name (((CASE WHEN mass_bin = 'brown-dwarf' THEN 'brown dwarf' WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END) COLLATE utf8mb4_unicode_ci), name),
     KEY idx_rogue_planets_next_update_due (next_update_due),
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     CONSTRAINT chk_rogue_planets_placement CHECK (
@@ -3779,6 +3793,8 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
 
     UNIQUE KEY uq_interstellar_comets_uid (uid),
     KEY idx_interstellar_comets_name (name),  -- v178 (PERF.205): the Phenomena table pages by name in index order
+    KEY idx_interstellar_comets_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_interstellar_comets_descriptor_name (((CASE WHEN is_active THEN 'active' ELSE 'dormant' END) COLLATE utf8mb4_unicode_ci), name),
     KEY idx_interstellar_comets_parent (parent_type, parent_id),
     CONSTRAINT chk_interstellar_comets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     CONSTRAINT chk_interstellar_comets_placement CHECK (
@@ -3879,6 +3895,9 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     -- Named explicitly -- see `nebulae`'s identical "v18" CHECK comment above.
     UNIQUE KEY uq_asteroid_fields_uid (uid),
     KEY idx_asteroid_fields_name (name),  -- v178 (PERF.205)
+    KEY idx_asteroid_fields_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_asteroid_fields_descriptor_name (density, name),
+    KEY idx_asteroid_fields_radius_name (radius_ly, name),
     CONSTRAINT chk_asteroid_fields_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
