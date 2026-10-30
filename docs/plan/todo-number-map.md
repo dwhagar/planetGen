@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.249 |
+| UX | UX.250 |
 | MAP | MAP.355 |
 | NAV | NAV.65 |
 | GEN | GEN.1152 |
@@ -2978,6 +2978,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.246 | Search page Star: Spectral Class and Star: Luminosity Class tags list only the types already stored, so a small database offered 2 types; list every class the generator produces with a count of 0 for a type no star holds yet (bug) | none | done, PR #4261 |
 | UX.247 | The "On this page" menu on object pages is a single sideways-scrolling row (UX.238); restore the grouped list of sections and subsections (left column on wide windows, list under the title on narrow ones) (bug) | none | done, PR #4263 |
 | UX.248 | Abralinar (triple star: close A/B pair plus distant C): Abralinar I is drawn circling the system barycenter instead of the A/B pair it orbits, and nothing says the system is a close pair orbited by a third star (bug) | none | done, PR #4268 |
+| UX.249 | The "On this page" menu should sit in one row across the top when every link fits without scrolling, and be the grouped list otherwise (follow-up to UX.247) (bug) | none | done, PR #4274 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
