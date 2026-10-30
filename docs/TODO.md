@@ -1770,34 +1770,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   checks one of each kind.
   Prerequisites: MAP.207. Related: GEN.237, GEN.209, MAP.145.
 
-- [ ] **MAP.234 Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws**
-  Boss (2026-10-16, 7:16 PM EDT, timeline): "ON the galaxy map, I just
-  realized there is no key, but what are the greenish colored spheroid
-  shapes? They seem to be 2 intersecting elipses to define a space. What
-  are those?" Found by the read-only "galaxy map shapes" thread: they
-  are superbubbles (GEN.254, merged #1814), each drawn as three faint
-  great circles (`static/galaxymap3d.js`, "Superbubbles (GEN.254)",
-  colour 0x6fb3d8, opacity 0.14, always on, never picked, no hover, no
-  legend entry). The help dialog (`GALAXY_MAP_HELP` in
-  `src/planetgen/web/maps/galaxymap3d.py`, "Reading the map") covers
-  only density blocks and stars; it does not mention superbubbles,
-  nebula clouds, supernova remnants, territory balls, course lines or
-  the made-sector rings. The only on-map legends today are the Color by
-  gradient bar (MAP.131) and the course key (NAV.20). Done: a Key
-  section in the help dialog and a small on-map key (collapsible) naming
-  every drawn thing with its colour and shape: density blocks, stars,
-  nebula clouds, remnants, superbubbles, territories, the course line
-  and the made-sector rings; each entry appears only when that thing is
-  drawn at the current view; a browser test that every kind drawn on the
-  map has a key entry (so a new layer cannot be added without one). Not
-  covered elsewhere: DOC.7 is the help page (it lists "nebula and
-  territory overlays" but not superbubbles) and MAP.217 gives a legend
-  per toggled layer, but superbubbles are not a toggled layer today. The
-  superbubble toggle, hover name and radius are MAP.235. Owner: Core 2
-  (the Galaxy Map and its help dialog).
-  Prerequisites: none. Related: MAP.131, NAV.20, MAP.217, DOC.7,
-  GEN.254.
-
 - [ ] **MAP.235 Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row**
   Split from MAP.234 (2026-10-16, 7:21 PM EDT). Superbubbles (GEN.254)
   are drawn always on as faint great circles with no toggle, no picking
@@ -1817,6 +1789,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 2
   held it before; this replaces any earlier owner line).
+  Update (Core 2, MAP.234 #3978) (2026-10-30 6:14 AM EDT): The Key is
+  merged; a test now requires every new layer to have a legend line, key
+  line or stated reason. Territory balls have no line yet because they
+  are not drawn. The superbubble toggle and hover is this item.
   Prerequisites: none. Related: MAP.234, MAP.217, GEN.254.
 
 - [ ] **MAP.242 The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body**
@@ -14633,6 +14609,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TODO); lock-free, no stored-output change
   Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
 
+- [ ] **PERF.216 Find where the 50 pc spherical region count spends its time: the key statement is 3x to 10x slower than the research figure**
+  Reported by Aux 3 (as the lane reported, 6:15 AM EDT 2026-10-30) after
+  TEST.165 (#3980, scripts/bench_region_queries.py, results in
+  docs/design/galaxy/spherical-region-queries.md section 8.1). On 3M
+  real-shaped star_systems rows (0.12 systems/pc3) the key statement
+  COUNT(*) takes warm 5.8 ms at 1 pc, 13.6 ms at 10 pc, 64.5 ms at 25 pc
+  and 427.5 ms at 50 pc (62,336 systems), against the research's 42 ms
+  at 50 pc and 3 ms at 10 pc (6.9 us per system inside against the
+  note's 0.5 us). NAV.60's own loaded-machine figure is 260 ms at 50 pc.
+  The ranking holds (key fastest at every radius, box 1.3x slower at 50
+  pc, sector walk worst from 5 pc up), so only the absolute cost is in
+  question. Do: on a quiet machine find where the 50 pc count spends its
+  time (256 range-checked probes against per-row cost; the plan uses the
+  covering index and the pinned join order), and whether Boss's server
+  shows the same; fix it if a cheaper form returns the same set, with
+  the identical-set check of the benchmark as the test. Done: a recorded
+  cause and either a faster statement with an identical set or a stated
+  reason it stays. Related: NAV.60, TEST.165. Owner: Aux 3 (assigned
+  6:15 AM EDT 2026-10-30 as its lock-free item; no stored value).
+  Prerequisites: none. Related: NAV.60, TEST.165.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -16923,42 +16920,6 @@ clears each one.
   owner line; TEST.186 is merged, PR #2040).
   Design: [docs/design/systems/multi-star-systems.md](design/systems/multi-star-systems.md)
 
-- [ ] **TEST.165 Re-measure the region query on a real generated galaxy, warm and cold**
-  Step 6 (design note sections 8 and 9 item 6). The benchmark scripts in
-  /mnt/project-files/research/spherical-region-queries/ become
-  `scripts/bench_region_queries.py` (seed, centres, the recommended
-  statement against the plain box and the sector walk) and run once on a
-  generated galaxy of a few million systems, warm and cold (restart with
-  a small buffer pool and `O_DIRECT`), with real wide rows and ids from
-  several generation runs; the numbers go into the note. Done: the
-  script is in the repo, the note carries the real-galaxy figures
-  against the research's 42 ms at 50 pc (10 million rows), and any
-  figure more than twice the research's is reported to Core. Owner:
-  Quality (2026-10-15). Boss (2026-10-15 5:32 PM EDT): "if it's not
-  ready in time before the spherical sector layout is, then we'll skip
-  it and move to the next sequence until it's finished research and we
-  can plan it." The research is finished and merged (#1659), so stage C
-  is live.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.276 (Core 2). Core 4 takes it when it unblocks.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): GEN.276 is the named blocker and is already done, so it is not listed as a prerequisite (the named blocker of the 2026-10-16
-  owner line; GEN.276 is merged, PR #1966).
-  Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  OWNER Aux 3 (assigned 5:28 AM EDT 2026-10-30 by TODO as the lane's one
-  lock-free item; measurement and a recorded result only, separate
-  branch, change no stored value) (2026-10-30 5:28 AM EDT): If the
-  measurement shows a query too slow, file it with TODO as a PERF item
-  and do not fix it under this one.
-  Prerequisites: none. Related: NAV.60, DOC.51.
-  Design: [docs/design/galaxy/spherical-region-queries.md](design/galaxy/spherical-region-queries.md)
-
 - [ ] **TEST.168 Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
@@ -18962,6 +18923,40 @@ clears each one.
   main. Related: TEST.463, TEST.290. Owner: Bug 2 (proposed), after
   TEST.417.
   Prerequisites: none. Related: TEST.463, TEST.290.
+
+- [ ] **TEST.469 test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming fails on main: a generated body has urey_ratio 1.85 with a mantle that is no longer warming (bug)**
+  Reported by Sources 1 (as the lane reported, 6:18 AM EDT 2026-10-30)
+  on a worktree at origin/main: the assertion 1.8538154881179374 <= 1.0
+  + 1e-06 fails on a generated planet's urey_ratio, a body with a ratio
+  above one although its mantle is no longer warming. It may come from a
+  recent change to the bulk water, radiogenic heating or ages (train 2,
+  epoch 124), or it may be an older latent case the random stream now
+  reaches. Do: capture the failing body (seed, star, age, composition,
+  mantle state) from the test; find whether the ratio is computed
+  wrongly (heat production against loss) or the test's 'still warming'
+  condition is wrong for that body; fix the right one with the reason
+  recorded, no change to results that were already right. Done: the test
+  passes on main. Related: TEST.463, TEST.468, GEN.842. Owner: Bug 2
+  (proposed), after TEST.417.
+  Prerequisites: none. Related: TEST.463, TEST.468, GEN.842.
+
+- [ ] **TEST.470 test_orbit_elements fails on main: the moon-light test (relative error 6e-6) and the ellipse tests (a lunar-range problem) (bug)**
+  Reported by Aux 7 (as the lane reported, 6:22 AM EDT 2026-10-30) on
+  main d60b9df15 after train 2: tests/test_orbit_elements.py moon-light
+  test misses its tolerance by a relative 6e-6, and the ellipse tests
+  fail on what Aux 7 read as a lunar-range problem. Not from Aux 7's
+  branches. Tides 1 saw the same file's
+  test_every_generated_orbit_is_the_ellipse_it_was_drawn_on stop on a
+  gas-solver stall (GEN.1003), so one of the ellipse failures may be
+  that. Do: run the file on current main with the datasets fetched
+  (ozone_uv needed to generate a system); separate the failures into
+  solver stall (GEN.1003), a tolerance that is tighter than the float
+  error of the lunar-range case, and a real orbit error; for the
+  tolerance cases, set the tolerance from the float error with the
+  reason recorded, never by loosening past it; for a real orbit error,
+  fix the orbit. Done: the file passes on main. Related: TEST.463,
+  GEN.1003, GEN.957. Owner: Bug 2 (proposed), after TEST.417.
+  Prerequisites: none. Related: TEST.463, GEN.1003, GEN.957.
 
 ## USR: User accounts
 

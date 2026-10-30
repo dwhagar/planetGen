@@ -327,6 +327,28 @@ GALAXY_MAP_HELP = """<h3>Moving</h3>
     the brightest (1,000 L&#9737; and up on a new galaxy) everywhere, placed before their sectors are generated,
     and generated systems' stars fainter and fainter as you zoom in. Click one (inside a block) to see it.</li>
   </ul>
+  <h3>Key</h3>
+  <p>The Key at the lower left of the map names what is drawn at the view you are looking at, a line for each kind of
+  thing while it is on the screen; press its heading to fold it away (it stays folded on your next visit).</p>
+  <ul class="map-help-key">
+    <li><strong>Blocks</strong>: predicted density, brighter is denser; a block is more solid the more of its sectors are
+    generated, and the blocks that hold generated sectors are outlined.</li>
+    <li><strong>Points of light</strong>: stars, colored by temperature and brighter the more luminous; a haze stands for
+    stars too faint and close together to tell apart.</li>
+    <li><strong>Soft spheres</strong>: the charted regions, colored by how much of each is generated; a wireframe cube
+    outlines the region the view is in.</li>
+    <li><strong>Faint blue spheres with a rim</strong>: superbubbles, the cavities the supernovae of young star groups
+    blew in the gas.</li>
+    <li><strong>Soft clouds</strong>: nebulae, in the color of their family, and supernova remnants; a ring means
+    several nebulae grouped while they are close together (zoom in to separate them).</li>
+    <li><strong>Marks and symbols</strong>: black holes and the worlds, life and civilizations the Menu's Show on the map
+    lists, each with its own symbol or color in the Key.</li>
+    <li><strong>In an opened sector</strong>: points of light are stars, black holes, neutron stars, quasars and rogue
+    planets, small spheres are interstellar comets, soft clouds are nebulae, remnants and asteroid fields, and outlines
+    are the sectors beside it.</li>
+    <li><strong>Course</strong>: a line through every stop of a course shown from the Nav page, and a dashed line for the
+    direct line from its start to its end.</li>
+  </ul>
   <h3>Bookmarks</h3>
   <ul>
     <li>&#9734; on the breadcrumb bookmarks the view or the selected sector; Bookmarks opens one.</li>

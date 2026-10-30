@@ -104,10 +104,11 @@ def _open(page, url, ready):
 
 
 def _shot(page, selector):
-    """The picture of `selector` without the names laid over it (the label engine's, MAP.231, fade and move) and the ruler's words
-    (MAP.336: their antialiasing differs by a level between a canvas with the focus and one without)."""
+    """The picture of `selector` without the names laid over it (the label engine's, MAP.231, fade and move), the ruler's words
+    (MAP.336: their antialiasing differs by a level between a canvas with the focus and one without) and the Key (MAP.234: its lines
+    follow what is drawn, so they change as the view settles)."""
     page.wait_for_timeout(150)
-    covers = ".map-labels, .starmap-ruler-stops, .starmap-altitude"
+    covers = ".map-labels, .starmap-ruler-stops, .starmap-altitude, #galaxymap3d-layer-legend"
     page.evaluate("(q) => document.querySelectorAll(q).forEach((e) => { e.style.visibility = 'hidden'; })", covers)
     try:
         return page.locator(selector).screenshot()
@@ -442,7 +443,7 @@ def test_sector_map_a_registered_layer_has_a_menu_button_a_url_key_and_a_legend_
     button.click()
     assert button.get_attribute("aria-pressed") == "false"
     assert "hide=testLayer" in page.url
-    assert legend.is_hidden(), "an off layer has no legend line"
+    assert "marks the test layer" not in legend.inner_text(), "an off layer has no legend line"
     button.click()
     assert "hide" not in page.url
     assert "marks the test layer" in legend.inner_text()

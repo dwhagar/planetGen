@@ -2,6 +2,21 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2667] - 2026-10-30
+
+**Headline:** The region query is timed on a table of three million real star system rows, and the design note records the figures.
+
+### Changed
+
+- TEST.165: `scripts/bench_region_queries.py` grows a scratch database of `star_systems` rows (real generated rows, real sector addresses, real cell keys) and times the cell key statement, the box over indexed x, y, z and the sector walk at 1, 5, 10, 25 and 50 pc, warm and cold, checking that the three return the same systems. The results are in `docs/design/galaxy/spherical-region-queries.md` section 8.1: the key statement is the fastest at every radius (by only 1.3 times over the box at 50 pc), and it is 3 to 10 times slower than the research's 42 ms at 50 pc (427 ms counting 62,336 systems). No stored value changes.
+
+## [8.0.2666] - 2026-10-30
+
+**Headline:** The Galaxy Map now has a Key that names everything it draws, on the map and in the help.
+
+### Added
+- **A Key on the Galaxy Map and in its help (MAP.234).** The lower left of the map has a Key with a line for each kind of thing drawn at the view you are looking at: the blocks and their outlines, the stars, the haze, the regions, the superbubbles, the nebulae and remnants, the black holes and the other marks, the kinds in an opened sector, and the course lines when a course is shown. A line appears only while its thing is drawn and goes when it is not. Press the Key's heading to fold it away; it stays folded on your next visit. The help dialog has a Key section that says the same in words. A layer that has no line in the Key now fails a test, so a new layer cannot be added without one.
+
 ## [8.0.2665] - 2026-10-30
 
 **Headline:** A request for a habitable world now gets a temperate world with air and a sea in nearly every system (a temperate sea world was present in 5 of 30 G2V systems before and 30 of 30 now), and the class of a world with life always matches the air it ends up with.
