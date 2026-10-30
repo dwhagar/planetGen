@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 421 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 423 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 53 | 0 | 3 | 0 | 0 | 56 |
+| T1 | 54 | 0 | 3 | 0 | 0 | 57 |
 | T2 | 70 | 3 | 0 | 1 | 0 | 74 |
 | T3 | 53 | 8 | 3 | 10 | 0 | 74 |
 | T4 | 22 | 0 | 0 | 3 | 4 | 29 |
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 39 | 12 | 7 | 28 | 0 | 86 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
-| T9 | 1 | 0 | 2 | 24 | 18 | 45 |
-| All | 277 | 31 | 17 | 73 | 23 | 421 |
+| T9 | 1 | 0 | 2 | 24 | 19 | 46 |
+| All | 278 | 31 | 17 | 73 | 24 | 423 |
 
 ## How the labels were given
 
@@ -668,3 +668,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | BM1 | P | T1 | L0 | belt_mass.GRAIN_DENSITY_KG_M3 2700 and STRENGTH_FLOOR_J_PER_KG 200 (the nominal planetesimal density and the strength of km-size planetesimals in Wyatt et al. 2007; the strength of bodies above about 100 km is the generator's gravity-bound Leinhardt and Stewart threshold) | density 2000 to 3500; strength 100 to 500 | belts of rock-rich planetesimals in collisional equilibrium | a measured belt mass more than a factor of 10 from the law at its age | a size-dependent strength law with the strength regime of Benz and Asphaug (1999, not read) | test_belt_mass::test_wyatts_equation_17_is_reproduced_at_its_stated_assumptions; test_belt_mass::test_the_solar_systems_belt_comes_out_within_a_few_times_the_inferred_mass | GEN.477 | - |
 | BM2 | P | T9 | L4 | belt_mass.DENSE_FACTOR 3 (a belt with three times the reference mass per area is dense, a third sparse) | 2 to 10 | all belts | the dense and sparse shares of the generated belts outside what the words are meant to cover | an observed spread of belt masses at one age | test_belt_mass::test_the_density_word_follows_the_mass_per_area_against_its_reference | GEN.477 | no data |
+
+## 6.44 Stand-ins of the chondrite-group map
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MG1 | P | T1 | L0 | meteorite_groups.CHONDRITE_GROUPS (the group averages of Weisberg, McCoy and Krot 2006 Table 1: fayalite mol percent, metal, refractory inclusions and matrix volume percent; a range is taken at its midpoint, CO and CV have no olivine average) | per group, the table's own ranges | chondrite groups of the Solar System's collection | a group average outside the table's range | the oxygen-isotope and chondrule-size axes, which the table holds and the map leaves out | test_meteorite_groups::test_every_group_is_its_own_nearest_group_except_the_pair_the_table_cannot_tell_apart | GEN.475 | - |
+| MG2 | P | T9 | L4 | meteorite_groups.AXIS_SCALES (10, 15, 5, 30) and NEAREST_LIMIT 1.5 (the width of each axis and the distance past which a body is labelled none) | scales 0.5 to 2 times; near 1 to 3 | all bodies | the share of drawn bodies labelled none outside what the groups are meant to cover | the spread of each group in the collection (the table has only ranges) | test_meteorite_groups::test_the_ordinary_chondrites_are_told_apart_by_their_oxidation | GEN.475 | no data |

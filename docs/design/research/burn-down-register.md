@@ -106,3 +106,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.41:TK5 | no data | - | the accretion spread comes from the chondrite and iron meteorite parent body ages recalled from the Solar System; no other system dates its planetesimals |
 | 6.41:TK6 | replace | GEN.475 | the within-family shares are fixed fractions; the meteorite-group map of GEN.475 gives the groups reachable from the bulk composition and replaces them |
 | 6.43:BM2 | no data | - | the words dense, sparse and typical are labels for the spread of belt masses at one age; no survey resolves the masses of belts of asteroids, and the factor of 3 is a choice of where the words change |
+| 6.44:MG2 | no data | - | the widths of the axes and the distance past which a body is called none are choices; the collection's spread inside each group is not in the table, which gives averages and ranges only |

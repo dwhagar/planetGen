@@ -126,3 +126,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.belt_mass | GEN.477 | the mass left in a planetesimal belt after collisional grinding (Wyatt et al. 2007; lock-free); the wiring step gives `AsteroidBelt` its mass and its density word from it |
 | row | 6.43:BM1 | GEN.477 | `belt_mass.GRAIN_DENSITY_KG_M3, STRENGTH_FLOOR_J_PER_KG`, read when the wiring step lands |
 | row | 6.43:BM2 | GEN.477 | `belt_mass.DENSE_FACTOR`, read when the wiring step lands |
+| module | planetgen.physics.meteorite_groups | GEN.475 | the chondrite groups as regions of a composition space with a nearest-group label (lock-free); the wiring step labels belts and fields from the derived bulk and replaces `taxon_kernel` TK6's fixed within-family splits |
+| row | 6.44:MG1 | GEN.475 | `meteorite_groups.CHONDRITE_GROUPS`, read when the wiring step lands |
+| row | 6.44:MG2 | GEN.475 | `meteorite_groups.AXIS_SCALES, NEAREST_LIMIT`, read when the wiring step lands |
