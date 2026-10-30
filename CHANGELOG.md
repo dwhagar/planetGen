@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2705] - 2026-10-30
+
+**Headline:** The nearby page tests build their little galaxy in minutes instead of hours on a slow machine.
+
+### Changed
+
+- TEST.475: `test_web_nearby.py` fills its two sectors without the deepest floor of the first fill and without the bright-star bands of a capped cell (the page tests do not read either), so the file runs in about six minutes where four of its eight tests timed out in setup at 900 s on a slow machine. Its hand-placed bright star carries the rotation period column GEN.846 added (the row had one value too few).
+
 ## [8.0.2704] - 2026-10-30
 
 **Headline:** A sourced potassium depletion by body class is built and tested, ready for the generator; no world changes yet.
