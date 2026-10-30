@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2815] - 2026-10-30
+
+**Headline:** A full reference list of every paper, dataset and catalog the project builds on.
+
+### Added
+
+`docs/REFERENCES.md` and `docs/REFERENCES.html` list more than 2,300 papers in AAS/ADS style with DOI, arXiv and ADS links, the archives and datasets the project reads, and the citations that could not yet be tied to a paper. `scripts/build_references.py` regenerates both from `docs/reference/references-data.json`.
+
 ## [8.0.2814] - 2026-10-30
 
 **Headline:** The generator can now say how many small captured bodies a planet holds, from the capture windows its history gave it, instead of every giant getting a few by chance.
