@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 373 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 375 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 52 | 5 | 2 | 10 | 0 | 69 |
 | T4 | 16 | 0 | 0 | 2 | 0 | 18 |
 | T5 | 21 | 5 | 1 | 0 | 0 | 27 |
-| T6 | 38 | 10 | 4 | 17 | 0 | 69 |
+| T6 | 38 | 10 | 4 | 19 | 0 | 71 |
 | T7 | 16 | 3 | 1 | 7 | 0 | 27 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 256 | 26 | 13 | 61 | 17 | 373 |
+| All | 256 | 26 | 13 | 63 | 17 | 375 |
 
 ## How the labels were given
 
@@ -338,6 +338,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SP8 | P | T2 | L0 | tidal_spin.RESONANCES | the window edges | a rocky planet brought down from a fast spin | the same windows for a layered planet | READ through a summary of Makarov 2012 (ApJ 752:73, arXiv:1110.2658): with a frequency-dependent rheology capture is certain in 0.34 < e < 0.49 for 2:1, 0.2 < e < 0.41 for 3:2 and e < 0.29 for 1:1; the first window met coming down takes the spin | - | - |
 | SP9 | P | T3 | L0 | tidal_spin.RESONANCE_CAPTURE_PROBABILITY | 0.07 to 1 | Mercury-like captures | a draw once one model is chosen | capture probability inside a window is 1 (Makarov 2012: 40 of 40); Goldreich and Peale 1966 give 0.07 at Mercury's eccentricity with a constant-torque tide and Correia and Laskar 2004 give 0.55 with the eccentricity's chaotic history; the sources split, the bracket is kept | - | - |
 | SP10 | T | T6 | L0 | planets.generate_spin | none | every planet and moon | a coupled spin, obliquity and eccentricity history | approximations of the spin state: a locked body turns exactly once an orbit (not 1 + 6 e^2 of a constant-time-lag tide); the eccentricity is the stored one, not the larger past one; the obliquity stays as drawn until the spin has come all the way down, then is zero; no atmospheric tide, core-mantle coupling or the tide of the body's own moons | - | - |
+| SP11 | P | T6 | L3 | spin.ACCRETION_SPIN_SCALE | 0.25 to 0.6 | a rocky planet above 0.3 Earth masses | Kokubo and Genda 2010 equation 4 with the distribution of the last impacts' mass ratio (`impact_spin`, GEN.978, wired by GEN.979) | INTERIM (GEN.953): the width of the three Gaussian components of a rocky planet's birth spin is scaled by 0.4; the paper's width is the average over planets built by protoplanet-on-protoplanet impacts, and Vesta (5.3 h), Ceres (9.1 h), the Earth after the Moon-forming impact (about 5 h) and Mars (24.6 h) turn at a quarter to a third of breakup or less; 0.4 gives the median free day of 0.1 to 5 Earth masses about 7 hours; falsifier: a measured rotation of a rocky exoplanet or a sample of terrestrial planets (none exists) | - | replace (GEN.979) |
+| SP12 | P | T6 | L3 | spin.SMALL_PLANET_MASS_EARTH, SMALL_PLANET_FACTOR_FLOOR | 0.2 to 0.5 Earth masses; floor 0.02 to 0.1 | a rocky planet under 0.3 Earth masses | the chance of a giant impact by planet mass (`impact_spin.giant_impact_probability`, GEN.978, wired by GEN.979) | INTERIM (GEN.953): a planet under 0.3 Earth masses may never have had a giant impact, so its spin width is cut in proportion to its mass (floor 0.05); chosen so that a Mars (0.107 Earth masses) is slower than its 24.6 hours in about a third of the draws; falsifier: a measured rotation of a rocky exoplanet or a sample of terrestrial planets (none exists) | - | replace (GEN.979) |
 
 ## 6.15 Stand-ins of the trapped radiation belts
 

@@ -88,3 +88,5 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.26:GS4 | replace | GEN.979 | the distribution of the last impactor by planet mass from Kokubo and Ida 2007 or Agnor et al. 1999 replaces the isolation mass and steepness; the planet-formation train can give the isolation mass of the disc (formation.isolation_mass_kg) |
 | 6.26:GS5 | replace | GEN.979 | the same N-body distribution replaces the log-uniform range of the last giant impact |
 | 6.26:GS6 | replace | GEN.979 | the same N-body distribution (the planetesimal-built embryos) replaces the log-uniform range |
+| 6.14:SP11 | replace | GEN.979 | Kokubo and Genda 2010 equation 4 with the distribution of the last impacts' mass ratio (GEN.978, `impact_spin`) replaces the interim scale |
+| 6.14:SP12 | replace | GEN.979 | the chance of a giant impact by planet mass (`impact_spin.giant_impact_probability`, GEN.978) replaces the interim small-planet factor |
