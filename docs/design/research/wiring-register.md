@@ -158,3 +158,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | oddities.json | GEN.1047 | the oddity table (empty until the modules add their rows); read by physics/oddities.py, which nothing calls yet |
 | row | 6.72:OD1 | GEN.1047 | `tuning.WEIRDNESS_DIAL`, read by `oddities.probability` once the table is wired; the dial also goes in the settings page |
 | row | 6.72:OD2 | GEN.1047 | `tuning.WEIRDNESS_RATE_SCALE`, read by `oddities.probability` once the table is wired |
+| module | planetgen.physics.disintegrating_planet | GEN.1050 | the wind, lifetime and gate of a disintegrating rocky planet (W14); the oddity row reads it when its wiring step lands |
+| row | 6.73:DP1 | GEN.1050 | the olivine vapour constants, not read until the oddity row is wired |
+| row | 6.73:DP2 | GEN.1050 | the vapour mean mass and index, not read until the oddity row is wired |
+| row | 6.73:DP3 | GEN.1050 | the full model's factor and the solid angle, not read until the oddity row is wired |
+| row | 6.73:DP4 | GEN.1050 | the duty cycle, not read until the oddity row is wired |
+| row | 6.73:DP5 | GEN.1050 | the gate, not read until the oddity row is wired |
