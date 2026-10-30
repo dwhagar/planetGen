@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 558 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 562 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 68 | 1 | 5 | 1 | 0 | 75 |
-| T2 | 83 | 8 | 0 | 1 | 0 | 92 |
-| T3 | 65 | 20 | 5 | 9 | 0 | 99 |
-| T4 | 27 | 0 | 0 | 4 | 4 | 35 |
+| T2 | 84 | 8 | 0 | 1 | 0 | 93 |
+| T3 | 66 | 20 | 5 | 9 | 0 | 100 |
+| T4 | 27 | 0 | 0 | 5 | 4 | 36 |
 | T5 | 37 | 11 | 1 | 0 | 0 | 49 |
-| T6 | 43 | 26 | 10 | 32 | 0 | 111 |
+| T6 | 43 | 26 | 10 | 33 | 0 | 112 |
 | T7 | 26 | 7 | 8 | 7 | 0 | 48 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 1 | 25 | 19 | 46 |
-| All | 350 | 73 | 30 | 80 | 25 | 558 |
+| All | 352 | 73 | 30 | 82 | 25 | 562 |
 
 ## How the labels were given
 
@@ -915,3 +915,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OT6 | P | T5 | L1 | ocean_tides.H2_OVER_K2 5/3, the Love number h2 from the interior model's k2 when h2 is not given | 1.5 to 2.2 | homogeneous rocky or icy bodies with a stored k2 | the Earth: measured h2 0.61 and k2 0.30 give 2.0 and a floor share of 0.69; the rule gives 0.80 | the Love numbers h2 from the interior structure (GEN.842 tides) | Love 1909 for a homogeneous incompressible elastic sphere (h2 = 5/3 k2), recalled; checked against the Earth's measured pair | GEN.1034 | - |
 | OT7 | P | T6 | L0 | ocean_tides.LOCK_TOLERANCE 1e-3, how close to a raiser's orbital rate a body spins to count as locked to it (no oscillating tide from it) | 1e-4 to 1e-2 | bodies the tide chain (GEN.957) has locked | a body whose spin differs from a raiser's rate by 0.5 percent and whose ocean shows a tide of that period | the tide chain's own lock state, read from the stored spin kind | the same share as `moon_history.SYNCHRONOUS_TOLERANCE`; the choice is the project's | - | - |
 | OT8 | P | T6 | L0 | ocean_tides.ranges: the spring range is the sum of the oscillating raisers' ranges and the neap range the largest less the rest, never below zero | none | two or more raisers of different periods | a world with three raisers whose neap range is measured and differs from the largest less the rest | a harmonic synthesis of the raisers' periods (the constituents of the tide) | the Moon-and-Sun rule of Pugh and Woodworth 2014 (spring = M2 + S2, neap = M2 - S2), recalled; its extension to three raisers is ours | - | - |
+
+## 6.69 Stand-ins of the resonance rings of small bodies
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RR1 | P | T4 | L3 | small_body_rings.RESONANCE_RING_RATE 0.10 and RESONANCE_ORDER 3 (the chance that a small body that meets the conditions has the resonance ring, and the order of the resonance; three of the roughly twenty bodies mapped by occultation have one, a selection-biased count) | rate 0.03 to 0.3; order 3 only | dwarf planets and centaurs under 5e22 kg | a survey of ring searches whose detection rate on bodies of this kind differs from 0.03 to 0.3, or a ring at another order | the survey statistic of the occultation ring searches (Morgado et al. 2023 and later) | test_small_body_rings::test_the_chance_is_the_registered_rate; test_small_body_rings::test_the_ring_orbits_three_times_slower_than_the_body_turns_where_the_known_rings_are | GEN.1057 | no data |
+| RR2 | P | T3 | L0 | small_body_rings.INNER_RING_LIMIT_AU 0.1 (no ring inside this distance from the star; Schlichting and Chang 2011 via the design note, 2ND-HAND, 'about 0.1 AU') | 0.05 to 0.3 | planets and small bodies round Sun-like stars | a ring measured round a planet inside 0.05 AU, or the lifetime calculation putting the limit outside 0.3 AU | the lifetime of a ring against the star's tides and heat, scaled with the star's luminosity | test_small_body_rings::test_no_ring_survives_inside_a_tenth_of_an_au | GEN.1057 | - |
+| RR3 | P | T2 | L0 | small_body_rings.HILL_FRACTION_MAX 0.5 (the widest circular prograde orbit round a small body that stays bound, in Hill radii; Hamilton and Burns 1991, Domingos et al. 2006: 0.49) | 0.3 to 0.5 | prograde circular orbits | a stable prograde orbit measured outside 0.5 Hill radii | an N-body stability limit for the body's eccentricity | test_small_body_rings::test_a_resonance_outside_the_stable_zone_is_no_ring | GEN.1057 | - |
+| RR4 | P | T6 | L3 | small_body_rings.RESONANCE_RING_MASS_KG (1e10, 1e14) and RESONANCE_WIDTH_FRACTION (0.002, 0.05) (the ring's mass and its width over its radius, log-uniform; the range gives a mean optical depth from 0.001 to 10 over a thin ring at a few thousand km) | mass one decade each way; width 0.001 to 0.1 | narrow rings of small bodies | an optical depth and a width measured for Quaoar's ring outside the range | the mass from the ring's optical depth and width as measured by occultations | test_small_body_rings::test_the_ring_is_thin_light_and_dense_enough_to_see | GEN.1057 | no data |

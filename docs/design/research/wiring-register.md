@@ -137,3 +137,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.68:OT1 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT2 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT6 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
+| module | planetgen.physics.small_body_rings | GEN.1057 | the resonance ring of a small body (R4) and the gate against rings inside 0.1 AU (R9), pure functions (lock-free); the wiring step calls them from the ring pass |
+| row | 6.69:RR1 | GEN.1057 | `small_body_rings.RESONANCE_RING_RATE, RESONANCE_ORDER`, read when the wiring step lands |
+| row | 6.69:RR2 | GEN.1057 | `small_body_rings.INNER_RING_LIMIT_AU`, read when the wiring step lands |
+| row | 6.69:RR3 | GEN.1057 | `small_body_rings.HILL_FRACTION_MAX`, read when the wiring step lands |
+| row | 6.69:RR4 | GEN.1057 | `small_body_rings.RESONANCE_RING_MASS_KG, RESONANCE_WIDTH_FRACTION`, read when the wiring step lands |
