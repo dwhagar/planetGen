@@ -178,13 +178,17 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.ring_origin | GEN.1057 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
 | row | 6.70:RO1 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | module | planetgen.physics.venus_spin | GEN.1048 | the spin equilibria of a thick-air planet (thermal tide against the solid tide, Cunha, Correia and Laskar 2015); the weird-worlds wiring (W2) will give a not-locked thick-air planet its slow or retrograde spin |
-| row | 6.80:VS1 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS2 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS4 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS5 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS6 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS7 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS8 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS1 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS2 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS4 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS5 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS6 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS7 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS8 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| module | planetgen.physics.seasonal_swing | GEN.1048 | the temperature through the year at a latitude from the tilt and the orbit; the weird-worlds wiring (W1) will add the seasonal swing to the regional temperatures |
+| row | 6.91:SS1 | GEN.1048 | a constant of the seasonal swing module, read when its wiring step lands |
+| row | 6.91:SS2 | GEN.1048 | a constant of the seasonal swing module, read when its wiring step lands |
+| row | 6.91:SS3 | GEN.1048 | a constant of the seasonal swing module, read when its wiring step lands |
 | row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
