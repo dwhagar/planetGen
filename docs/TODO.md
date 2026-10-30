@@ -14827,6 +14827,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Sources 1. Version 8.1.
   Prerequisites: none. Related: GEN.485, GEN.754, GEN.511.
 
+- [ ] **GEN.995 Draw the binary-stripped Wolf-Rayet channel so the Galaxy Wolf-Rayet count reaches the observed range (bug)**
+  Bug 1's star-epoch census note (as the lane reported 10:53 PM EDT
+  2026-10-29). After the full mass function fix the model gives 890
+  Wolf-Rayet stars in the Galaxy (companions counted, converged at 480k
+  draws) against 1200 +300/-100 observed; the accepted range starts at
+  904, a 1.5 percent miss. The old 958 was too high only because every
+  massive star was counted twice (as primary and again as companion).
+  The missing piece is the binary-stripped Wolf-Rayet channel the
+  generator does not draw. Do: add the channel (a close companion strips
+  the envelope of a massive primary) from a published binary fraction
+  and stripping window, record every stand-in with its tier and tweak
+  level in the gap plan registry (GEN.725), and test that the census
+  count falls inside the accepted range. Changes generated output:
+  epoch, --affects fill, rides the star-side train after GEN.932. Owner:
+  Bug 1 (reassignable to Star 1). Version 8.1.
+  Prerequisites: none. Related: GEN.932, GEN.935, GEN.940.
+
+- [ ] **GEN.996 Draw binary-made low-mass white dwarfs so the white dwarf mean mass reaches the accepted range (bug)**
+  Bug 1's star-epoch census note (as the lane reported 10:53 PM EDT
+  2026-10-29). The white dwarf mean mass is 0.703 solar masses against
+  an accepted 0.55 to 0.70, a 0.4 percent miss: the Cummings 2018
+  initial-final mass relation applied to the generator's age mix gives
+  0.703. The generator has no binary-made low-mass white dwarfs (helium
+  cores near 0.4 solar masses, made when a companion strips the giant
+  before the helium flash). Do: add the helium-core channel from a
+  published binary fraction, register every stand-in in GEN.725 with
+  tier and tweak level, and test that the mean mass lands inside the
+  accepted range. Changes generated output: epoch, --affects fill, rides
+  the star-side train after GEN.932. Owner: Bug 1 (reassignable to Star
+  1). Version 8.1.
+  Prerequisites: none. Related: GEN.932, GEN.995.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19774,6 +19806,17 @@ clears each one.
   machine's MariaDB or the flaky class-mismatch (GEN.980, fixed on Core
   1's branch for train 2). Owner: Bug 2. Version 8.1.
   Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
+
+- [ ] **TEST.464 Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug)**
+  Bug 1 report (as the lane reported 10:53 PM EDT 2026-10-29):
+  test_gen_component_pass (the same-seed test) and the whole-sphere
+  census fixtures run over 900 seconds on a 4-core machine even on the
+  base commit, so they time out under the gate, and Star 1's slower
+  bright-star tables make them worse. Do: cache band_fractions between
+  calls (key on the inputs, no stale reads across epochs), time the two
+  tests before and after, and keep every result identical. Owner: Bug 2.
+  Version 8.1.
+  Prerequisites: none. Related: TEST.463, GEN.935.
 
 ## USR: User accounts
 
