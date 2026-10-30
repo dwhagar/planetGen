@@ -18952,6 +18952,17 @@ clears each one.
   (test_bright_star_scatter) is being timed and shrunk next
   Prerequisites: none. Related: TEST.463, GEN.935.
 
+- [ ] **TEST.468 test_work_units::test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands and test_generation_stats::test_an_unmeasured_server_estimates_from_the_defaults are red on a clean main (bug)**
+  Reported by Core 3 (as the lane reported, 6:04 AM EDT 2026-10-30) on a
+  clean main after train 2: both tests fail and neither is from Core 3's
+  work. Do: recheck both on current main first (it may be train 2's
+  migrations 0182/0183 or the fixture schema, or machine setup such as
+  the ozone_uv dataset); find whether the product or the test is wrong
+  and fix the right one with the reason recorded. Done: both pass on
+  main. Related: TEST.463, TEST.290. Owner: Bug 2 (proposed), after
+  TEST.417.
+  Prerequisites: none. Related: TEST.463, TEST.290.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
