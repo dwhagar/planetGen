@@ -39,6 +39,9 @@ ATMOSPHERE_PA = 101325.0
 """float: One standard atmosphere, Pa, the pressure the half widths are stated at."""
 REFERENCE_K = 296.0
 """float: The temperature the half widths are stated at (HITRAN's)."""
+REFERENCE_PRESSURE_BAR = 1.0e-5
+"""float: The pressure of the k-table the band strengths are read at, bar: its lowest, where the lines are narrow and the band mean times the
+width is the sum of the line strengths."""
 GRID_STEP_CM1 = 0.5
 """float: The step of the grid the tail is integrated on, cm-1."""
 

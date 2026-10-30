@@ -71,10 +71,19 @@ def test_mars_sits_near_its_measured_surface_temperature():
     assert mars.converged and 205.0 < mars.surface_temperature_k < 225.0          # 210 to 215 K measured
 
 
-def test_venus_is_hot_when_its_far_wings_are_included():
-    """The k-tables cut every line at 25 cm-1; the labelled far-wing stand-in (IR3) fills what Koll 2019 says a dense carbon dioxide air holds."""
+def test_venus_with_the_sourced_far_wing_alone_is_warmer_than_without_and_cooler_than_measured():
+    """GEN.1019: the Perrin and Hartmann wing takes the clear-sky 92 bar air from 489 K to about 540 K; the rest of Venus's greenhouse is the cloud."""
     venus = rc.solve(VENUS, 8.87, 160.0)
-    assert venus.converged and 680.0 < venus.surface_temperature_k < 770.0        # 735 K measured
+    assert venus.converged and 500.0 < venus.surface_temperature_k < 600.0
+
+
+def test_venus_with_the_acid_cloud_is_near_its_measured_surface_and_the_droplet_size_moves_it():
+    """GEN.1020: a cloud 25 deep at 550 nm of 1 micron droplets (the middle of the published modes) brings the clear-sky air to about 757 K
+    (735 K measured); droplets of 0.3 micron, the smallest published mode, leave it near 620 K."""
+    cloudy = rc.solve(VENUS, 8.87, 160.0, cloud=(25.0, 1.0))
+    small = rc.solve(VENUS, 8.87, 160.0, cloud=(25.0, 0.3))
+    assert cloudy.converged and small.converged
+    assert 700.0 < cloudy.surface_temperature_k < 800.0 and small.surface_temperature_k < cloudy.surface_temperature_k - 50.0
 
 
 def test_titan_with_its_haze_takes_its_measured_surface_and_without_it_is_too_warm():

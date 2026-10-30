@@ -35,9 +35,9 @@ is 0 to 200 cm-1, below the tables) by 10 g points:
 3. **The water vapour continuum** (MT_CKD 4.3): self and foreign coefficients at eight wavenumbers between 200 and 3600 cm-1, temperature exponent on the self part.
 4. **Collision-induced absorption**: `k(T) x1 x2 n N` for each pair of the air, k the band mean at the layer's temperature.
 5. **Gases without a table** (stand-ins IR1, IR2): a plateau at each band of the gas table with exponential wings, sorted into a distribution.
-6. **The far wing of carbon dioxide** (stand-in IR3): the tables cut every line at 25 cm-1, and a Venus-like air needs what lies beyond.
-   `physics/co2_far_wing.py` (GEN.1019, rows FW1 to FW5) is the sourced replacement, built and tested but not yet called: each carbon dioxide band's Lorentz tail beyond 25 cm-1 times the Perrin and Hartmann 1989 sub-Lorentzian factor, out to 500 cm-1, with the band strengths taken from the carbon dioxide table at its lowest pressure. IR3 stays in `line_opacity` until the wiring step.
-   GEN.1020 adds the acid cloud's infrared opacity (`cloud_infrared`, Mie droplets from the HITRAN sulfuric acid indices, rows CF1 to CF5) and the far wings of water, sulfur dioxide and carbon monoxide in a carbon dioxide air (rows FW6, FW7). With both, the clear-sky Venus-like test air reaches 757 K (measured 735 K); the wing alone gave 539 K.
+6. **The far wings** (rows FW1 to FW7): the tables cut every line at 25 cm-1, and a Venus-like air needs what lies beyond.
+   `physics/co2_far_wing.py` (GEN.1019, rows FW1 to FW5; it replaced the flat stand-in IR3): each carbon dioxide band's Lorentz tail beyond 25 cm-1 times the Perrin and Hartmann 1989 sub-Lorentzian factor, out to 500 cm-1, with the band strengths taken from the carbon dioxide table at its lowest pressure.
+   GEN.1020, wired into the column through `solve(..., cloud=(tau_550, radius_um))`: the acid cloud's infrared opacity (`cloud_infrared`, Mie droplets from the HITRAN sulfuric acid indices, rows CF1 to CF5) and the far wings of water, sulfur dioxide and carbon monoxide in a carbon dioxide air (rows FW6, FW7). With both, the clear-sky Venus-like test air reaches 757 K (measured 735 K); the wing alone gave 539 K.
 
 ## The column
 
@@ -64,7 +64,8 @@ fixed for a step and the step is cut at the crossing (`test_the_adiabat_is_conti
 | Same, vapour free | +1.72 K | larger than held, as water vapour feedback is |
 | Earth, F = 240 W/m2, 410 ppm, clear sky | 275.6 K, tropopause 20 kPa | 288 K with clouds; clear-sky models 275 to 280 K |
 | Mars, 600 Pa, F = 110 W/m2 | 214.6 K | 210 to 215 K |
-| Venus, 92 bar, F = 160 W/m2 (needs IR3) | 711 K | 735 K |
+| Venus, 92 bar, F = 160 W/m2, sourced far wing and acid cloud (depth 25, 1 micron) | 757 K | 735 K |
+| the same with the far wing alone | 539 K | 735 K |
 | Titan, 1.47 bar, F = 2.61 W/m2, no haze (GEN.718) | 106.8 K | 94 K: a clear sky is too warm |
 | Titan with 60 percent of the sunlight taken at 30 mbar | 93.3 K | 94 K |
 
@@ -76,7 +77,7 @@ by the haze, which the old closure had no way to say. Earth's clear-sky target i
 - No clouds in the infrared and no condensation but water. The humidity profile is Earth's. Sunlight is deposited by the caller, never absorbed by the gases here.
 - The stratosphere is clear-sky radiative equilibrium without ozone heating. A gas without a table has stand-in bands.
 - The tables hold 100 K as the lowest temperature and 100 bar as the highest pressure (edge value beyond); H2 and He broadening is under-represented for H2O and CO2.
-- Venus passes only with the carbon dioxide far-wing stand-in. Very dense or pure-steam airs take 20 to 30 seconds.
+- Venus passes only with the acid cloud's infrared opacity (the sourced far wing alone leaves it near 540 K; the droplet radius within the published modes spans about 620 to 820 K). Very dense or pure-steam airs take 20 to 30 seconds.
 - Speed: one to several seconds a call. The generator needs it for few bodies; a lookup table over (pressure, composition, flux) is the way to many (a follow-up).
 - A drier Earth (1000 Pa of vapour against 400 Pa) gives a noisier doubling (1.5 to 2.0 K held) because the tropopause moves one layer at a time (a follow-up).
 
