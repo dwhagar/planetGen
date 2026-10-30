@@ -2801,57 +2801,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## GEN: Generation and physics
 
-- [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
-  Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
-  appears in the habitable zone and adjust so that it fits there." P is
-  already ecosphere-only (`h` False, `e` True, `c` False in
-  `program_constants.PLANET_CLASSES`) and placed at `zone_position_mode`
-  0.90; sampled P worlds run 198-211 K. Done: no path (generation,
-  `reconcile_zone_and_class`, moon regeneration, admin overrides) can
-  put P outside the ecosphere, and its placement, albedo, greenhouse
-  and atmosphere are tuned so a glaciated world with life is
-  consistent at the outer edge of the habitable zone. Evidence: the
-  planet class gap report
-  (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
-  Prerequisites: GEN.411.
-  Plan (2026-10-07): Moved to phase 2 under GEN.90.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): a class contributes an albedo range, an atmosphere
-  mixture from the gas table and composition-fraction priors through the
-  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
-  greenhouse (the composition chain of the 9.0 headline; the planet
-  classes were built to land after it, so they wait for GEN.428 and
-  GEN.411).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): GEN.428 and GEN.411
-  are added to this item's Prerequisites line, so the build reads the
-  wait that the 2026-10-16, 11:58 PM EDT sweep text names.
-  Finding (2026-10-09): Aux 16's class distribution check (2:09 AM EDT
-  2026-10-25): class P (glaciated) is under 0.05 percent of planets and
-  0.3 percent in the ecosphere, Q never occurs, O is 0.1 percent; decide
-  after the cut-over (GEN.689) whether P has a target rate or only needs
-  to be possible when conditions allow it; the rule is part of TEST.395.
-  Research (2026-10-09): RE-SCOPE after the class cut-over (Aux 1
-  hand-off, about 5:04 PM EDT 2026-10-29 as the lane reported; GEN.646
-  merged in PR #3729, epoch 121): a planet's or moon's class is no
-  longer drawn, it is derived from the finished stored body (mass first,
-  then air), so this item is now the classifier rule for this class (and
-  its test through the classifier) and not a class draw or a zone rule
-  at generation. Check what is left against the classifier and what the
-  rule should say; retire it if the derived class already meets the Done
-  line. A change to the classifier moves stored classes (a generation
-  turn). Owner: Core 4 (proposed by TODO, with GEN.733/810/838/839 in
-  its lock turn).
-  Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): classes are conditions-based and derived from the
-  finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-  letters stay; new class letters are revoked (GEN.28 and its children).
-  Core 4: re-read this item against the derived classes, drop any clause
-  that asks for a fixed letter rule, and tell TODO which parts stand;
-  the physics clauses (retention, zones, sense of each class) stand.
-  Moved into 8.1. Owner: Core 4.
-  Related: GEN.412, GEN.423, GEN.428.
-
 - [ ] **GEN.29 Sweep every planet class for sense once the new ones are in (bug)**
   Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
   sure they all make sense logically once the new classes are in
@@ -2865,7 +2814,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10-16 Earth masses come out up to 17,600 km, past class S's
   11,468 km top, and get S as the nearest fit (PR #415); Boss to decide
   whether those sizes make sense or need their own range.
-  Prerequisites: GEN.27.
+  Prerequisites: none.
   Plan (2026-10-07): Under GEN.90: the refactor is the sweep, so it
   stays with it in phase 2.
   Research (2026-10-09, atmospheres-retention-and-classes.md): known
@@ -2895,6 +2844,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that asks for a fixed letter rule, and tell TODO which parts stand;
   the physics clauses (retention, zones, sense of each class) stand.
   Moved into 8.1. Owner: Core 4.
+  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT):
+  narrowed to a final sweep of the 20 derived class rows (descriptions,
+  sizes, temperatures, atmosphere) once GEN.355 lands; Q is no longer
+  never generated (7 to 9 percent in the census); GEN.27 and GEN.90 are
+  dropped; the rogue S size over 17,600 km still needs Boss. Report
+  reports/core4-classifier-reread-2026-10-30.md
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
@@ -2966,70 +2921,52 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   density is this item.
   Prerequisites: TEST.182.
 
-- [ ] **GEN.90 Refactor the planet classes around the habitability index**
-  Boss (2026-10-03 05:38Z): "Refactor all planetary classes to better
-  align with our habitability index system and the research for the
-  different kinds of life, etc." Known conflicts with the research: N
-  (Venus analog, about 737 K) carries life with no stage cap, E sits
-  above the 122 C ceiling, K and L are below the Armstrong limit while L
-  has land animals, P is uncapped, and no class is an Earth-size world
-  with air that life never touched (GEN.28's Z). Done when its subitems
-  are.
-  Prerequisites: GEN.27, GEN.29.
-  Design: [docs/design/habitability/habitability-index.md](design/habitability/habitability-index.md)
-  Research (2026-10-09, atmospheres-retention-and-classes.md): the
-  "Known conflicts" list gains: A and B atmospheres, S in non-hot zones,
-  N zone placement, N and Q life data hidden but stored.
-
-  - [ ] **GEN.91 Classes like S and V in the hot and cold zones**
-    Boss (2026-10-03 05:38Z): "We need a planet class for like Class S
-    and V but in the other zones, so that will require research on when
-    an atmosphere is possible and when it isn't." Candidates from the
-    research: a desiccated post-runaway super-Earth (hot), a
-    hydrogen-rich Hycean super-Earth (cold or outer). Done: atmosphere
-    retention rules (escape velocity, XUV, temperature) written down,
-    then the classes added one per PR under GEN.33's rule.
-    Research (2026-10-09, atmospheres-retention-and-classes.md): (1)
-    `planetgen/physics/atmosphere_retention.py` with the shoreline,
-    Jeans-species, condensation and energy-limited functions and a
-    solar-system plus exoplanet test table (design doc section 3.6); the
-    XUV history and exposure index come from GEN.86's activity module,
-    not the stand-in. (2) Classes follow in the PR order of section 5.2.
-    Record the answer to "when is an atmosphere possible": shoreline
-    ratio below 30, species by lambda (30 kept), the cold side by vapour
-    pressure, H2 and water by energy-limited XUV. "S and V in the other
-    zones" is mostly S itself with air plus a re-scoped N (hot) and an
-    extended X or an R Hycean flag (cold). Letters: none are free after
-    R, U, W, X, Y, Z; Q must not be reused until the database is checked
-    for Q rows. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
-    default Option A): re-scope N,
-    extend X, Hycean as an R flag and retire T, or two-character class
-    codes.
-    Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-    chunks and shared work): this item is now the umbrella and is done
-    when its subitems are: GEN.355, GEN.356. Its first deliverable (the
-    retention module) is a pure library that GEN.28's R and Y and
-    GEN.145 need, but it is bundled with class work and sits after
-    GEN.28 in the thread; the class work it describes (Hycean flag,
-    extended X, retire T) is already inside GEN.28's R and X.
+- [ ] **GEN.91 Classes like S and V in the hot and cold zones**
+  Boss (2026-10-03 05:38Z): "We need a planet class for like Class S
+  and V but in the other zones, so that will require research on when
+  an atmosphere is possible and when it isn't." Candidates from the
+  research: a desiccated post-runaway super-Earth (hot), a
+  hydrogen-rich Hycean super-Earth (cold or outer). Done: atmosphere
+  retention rules (escape velocity, XUV, temperature) written down,
+  then the classes added one per PR under GEN.33's rule.
+  Research (2026-10-09, atmospheres-retention-and-classes.md): (1)
+  `planetgen/physics/atmosphere_retention.py` with the shoreline,
+  Jeans-species, condensation and energy-limited functions and a
+  solar-system plus exoplanet test table (design doc section 3.6); the
+  XUV history and exposure index come from GEN.86's activity module,
+  not the stand-in. (2) Classes follow in the PR order of section 5.2.
+  Record the answer to "when is an atmosphere possible": shoreline
+  ratio below 30, species by lambda (30 kept), the cold side by vapour
+  pressure, H2 and water by energy-limited XUV. "S and V in the other
+  zones" is mostly S itself with air plus a re-scoped N (hot) and an
+  extended X or an R Hycean flag (cold). Letters: none are free after
+  R, U, W, X, Y, Z; Q must not be reused until the database is checked
+  for Q rows. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
+  default Option A): re-scope N,
+  extend X, Hycean as an R flag and retire T, or two-character class
+  codes.
+  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
+  chunks and shared work): this item is now the umbrella and is done
+  when its subitems are: GEN.355, GEN.356. Its first deliverable (the
+  retention module) is a pure library that GEN.28's R and Y and
+  GEN.145 need, but it is bundled with class work and sits after
+  GEN.28 in the thread; the class work it describes (Hycean flag,
+  extended X, retire T) is already inside GEN.28's R and X.
   Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
   build in 8.1): classes are conditions-based and derived from the
   finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-  letters stay; new class letters are revoked (GEN.28 and its children).
-  Core 4: re-read this item against the derived classes, drop any clause
-  that asks for a fixed letter rule, and tell TODO which parts stand;
-  the physics clauses (retention, zones, sense of each class) stand.
-  Moved into 8.1. Owner: Core 4.
-    Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-    build in 8.1): classes are conditions-based and derived from the
-    finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-    letters stay; new class letters are revoked (GEN.28 and its
-    children). Core 4: re-read this item against the derived classes,
-    drop any clause that asks for a fixed letter rule, and tell TODO
-    which parts stand; the physics clauses (retention, zones, sense of
-    each class) stand. Moved into 8.1. Owner: Core 4.
-    Prerequisites: GEN.355, GEN.356.
-    Design: [docs/design/habitability/habitability-index.md](design/habitability/habitability-index.md)
+  letters stay; new class letters are revoked (GEN.28 and its
+  children). Core 4: re-read this item against the derived classes,
+  drop any clause that asks for a fixed letter rule, and tell TODO
+  which parts stand; the physics clauses (retention, zones, sense of
+  each class) stand. Moved into 8.1. Owner: Core 4.
+  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT): now an
+  umbrella over GEN.355 and GEN.963 only (GEN.356 and GEN.145 dropped as
+  fixed letter rules; GEN.90 dropped). The physics answer stands:
+  shoreline ratio below 30, species by lambda, cold side by vapour
+  pressure, H2 and water by energy-limited XUV; that is GEN.355
+  Prerequisites: GEN.355, GEN.963.
+  Design: [docs/design/habitability/habitability-index.md](design/habitability/habitability-index.md)
 
 - [ ] **GEN.93 Nebula conditions in planet generation**
   Boss (2026-10-03 05:38Z): "Account for nebula temperature and
@@ -3636,48 +3573,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   branches; the table is DB.56.
   Prerequisites: GEN.347.
   Design: [docs/design/orbits/collisions-and-mergers.md](design/orbits/collisions-and-mergers.md)
-
-- [ ] **GEN.145 Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30**
-  Class S landed with `atmosphere = None` in the ecosphere and cold
-  zones, which breaks the shoreline by a factor of 50 or more. S is
-  airless only for shoreline ratio over 30 (T_eq above 650 to 1,200 K).
-  It changes existing output, so it needs GEN.92's "unchanged until
-  regenerated" guard.
-  Needs the shoreline functions (child a of GEN.91) and the
-  unchanged-until-regenerated guard of GEN.92 (2026-10-16 review).
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): a class contributes an albedo range, an atmosphere
-  mixture from the gas table and composition-fraction priors through the
-  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
-  greenhouse (the composition chain of the 9.0 headline; the planet
-  classes were built to land after it, so they wait for GEN.428 and
-  GEN.411).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): GEN.428 and GEN.411
-  are added to this item's Prerequisites line, so the build reads the
-  wait that the 2026-10-16, 11:58 PM EDT sweep text names.
-  Research (2026-10-09): RE-SCOPE after the class cut-over (Aux 1
-  hand-off, about 5:04 PM EDT 2026-10-29 as the lane reported; GEN.646
-  merged in PR #3729, epoch 121): a planet's or moon's class is no
-  longer drawn, it is derived from the finished stored body (mass first,
-  then air), so this item is now the classifier rule for this class (and
-  its test through the classifier) and not a class draw or a zone rule
-  at generation. Check what is left against the classifier and what the
-  rule should say; retire it if the derived class already meets the Done
-  line. A change to the classifier moves stored classes (a generation
-  turn). Owner: Core 4 (proposed by TODO, with GEN.733/810/838/839 in
-  its lock turn).
-  Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): classes are conditions-based and derived from the
-  finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-  letters stay; new class letters are revoked (GEN.28 and its children).
-  Core 4: re-read this item against the derived classes, drop any clause
-  that asks for a fixed letter rule, and tell TODO which parts stand;
-  the physics clauses (retention, zones, sense of each class) stand.
-  Moved into 8.1. Owner: Core 4.
-  Prerequisites: GEN.355.
-  Related: GEN.412, GEN.423, GEN.428.
-  Design: [docs/design/habitability/atmospheres-retention-and-classes.md](design/habitability/atmospheres-retention-and-classes.md)
 
 - [ ] **GEN.157 The `neighbor_galaxies` table and a verified data file of about 25 real galaxies**
   One Alembic revision, no change to existing tables, and the data file
@@ -5400,46 +5295,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that asks for a fixed letter rule, and tell TODO which parts stand;
   the physics clauses (retention, zones, sense of each class) stand.
   Moved into 8.1. Owner: Core 4.
-
-- [ ] **GEN.356 Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed**
-  Split from GEN.91 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). N (the Venus analog) sits in the
-  ecosphere at S about 1.05, below the runaway threshold, carries a life
-  chemical and a hidden uncapped timeline. Re-scope it to the hot zone
-  only, lifeless, up to 1.8 Earth radii, with no life data stored; a
-  1-bar 'dune world' is a 10 percent variant of N. It changes existing
-  output, so it uses GEN.92's 'unchanged until regenerated' guard. Done:
-  N is generated only above the runaway threshold with no life chemical
-  or timeline, the class page text matches, and existing galaxies are
-  unchanged until regenerated.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): a class contributes an albedo range, an atmosphere
-  mixture from the gas table and composition-fraction priors through the
-  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
-  greenhouse (the composition chain of the 9.0 headline; the planet
-  classes were built to land after it, so they wait for GEN.428 and
-  GEN.411).
-  Prerequisites: GEN.355. Related: GEN.91,
-  GEN.412, GEN.423, GEN.428.
-  Research (2026-10-09): RE-SCOPE after the class cut-over (Aux 1
-  hand-off, about 5:04 PM EDT 2026-10-29 as the lane reported; GEN.646
-  merged in PR #3729, epoch 121): a planet's or moon's class is no
-  longer drawn, it is derived from the finished stored body (mass first,
-  then air), so this item is now the classifier rule for this class (and
-  its test through the classifier) and not a class draw or a zone rule
-  at generation. Check what is left against the classifier and what the
-  rule should say; retire it if the derived class already meets the Done
-  line. A change to the classifier moves stored classes (a generation
-  turn). Owner: Core 4 (proposed by TODO, with GEN.733/810/838/839 in
-  its lock turn).
-  Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): classes are conditions-based and derived from the
-  finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-  letters stay; new class letters are revoked (GEN.28 and its children).
-  Core 4: re-read this item against the derived classes, drop any clause
-  that asks for a fixed letter rule, and tell TODO which parts stand;
-  the physics clauses (retention, zones, sense of each class) stand.
-  Moved into 8.1. Owner: Core 4.
+  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT): stands
+  whole: today the shoreline exists only as the Berta-Thompson logistic
+  inside the pressure stage, with no standalone module, no Jeans-species
+  or condensation functions and no 13-body table
 
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
   Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -13906,6 +13765,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flag or the rule moves a class: epoch with --affects fill, rides a
   train. Every stand-in it adds gets a GEN.725 registry row with tier
   and tweak level (L0 to L4). Owner: Core 4. Version 8.1.
+  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT):
+  envelope survival is already in physics/envelope_escape.py (GEN.822,
+  hydro-based loss of Kubyshkina et al. 2018 over the star XUV history,
+  Lopez and Fortney 2014 radius) and Hycean is already a hydrosphere
+  state; what is missing is the box (1 to 10 Earth masses, 1.4 to 2.6
+  Earth radii, equilibrium temperature 150 to 500 K, density 1.5 to 3)
+  as a derived flag plus a GEN.725 row. Scope shrinks to that derived
+  flag and the registry row; it moves no class, so it can go lock-free
+  (no epoch). Owner: Core 4
   Prerequisites: none. Related: GEN.350, GEN.355, GEN.829.
 
 - [ ] **GEN.964 H-He equation of state tables (a): a setup catalogue entry and a reader with tests on Jupiter, Saturn, Uranus and Neptune**

@@ -777,7 +777,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.24 | Generate the galactic core on layer 0 | none | dropped (Boss, 2026-10-16, 3:00 PM EDT; superseded: layers are gone and the core is shell 0, filled by the shell mode) |
 | GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | done, PR #350 |
 | GEN.26 | Rogue planet surface conditions | none | done, PR #263 (schema v48; design docs/design/systems/rogue-planet-surface.md) |
-| GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | open |
+| GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | dropped (classes are derived from the finished body (cut-over epoch 121); Core 4 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | dropped (revoked by Boss's full-build sweep 8:16 PM EDT 10-29: new class letters R, U, W, X, Y and Z conflict with conditions-based classes (10-23) and 'all 20 letters stay' (10-28); the part that stands is GEN.963) |
 | GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | none | open |
 | GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PRs #295, #296 |
@@ -840,7 +840,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.87 | Surface radiation dose | none | done, PR #985 |
 | GEN.88 | Hydrosphere and ocean chemistry | none | done, PR #963 |
 | GEN.89 | The habitability score for every planet and moon | none | done, PR #1025 |
-| GEN.90 | Refactor the planet classes around the habitability index | none | open |
+| GEN.90 | Refactor the planet classes around the habitability index | none | dropped (classes are derived from the finished body (cut-over epoch 121); Core 4 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
 | GEN.91 | Classes like S and V in the hot and cold zones | none | open |
 | GEN.92 | Life and its highest stage follow the habitability score | none | done, PR #2833 |
 | GEN.93 | Nebula conditions in planet generation | none | open |
@@ -895,7 +895,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields | none | superseded by GEN.557 (folded into the wanderer body draw), 2026-10-21 |
 | GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | none | open |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs | none | done, PR #2473 |
-| GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | none | open |
+| GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | none | dropped (classes are derived from the finished body (cut-over epoch 121); Core 4 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
 | GEN.146 | Teff-dependent habitable zone from the Kopparapu table | none | done, PR #2685 |
 | GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) | none | done, PR #865 |
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | none | done, PR #1457 |
@@ -1106,7 +1106,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.353 | Class Y, Titan-like world | none | dropped (revoked by Boss's full-build sweep 8:16 PM EDT 10-29: new class letters R, U, W, X, Y and Z conflict with conditions-based classes (10-23) and 'all 20 letters stay' (10-28); the part that stands is GEN.963) |
 | GEN.354 | Class Z, lifeless temperate world | none | dropped (revoked by Boss's full-build sweep 8:16 PM EDT 10-29: new class letters R, U, W, X, Y and Z conflict with conditions-based classes (10-23) and 'all 20 letters stay' (10-28); the part that stands is GEN.963) |
 | GEN.355 | Atmosphere retention module with its test table | none | open |
-| GEN.356 | Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed | none | open |
+| GEN.356 | Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed | none | dropped (classes are derived from the finished body (cut-over epoch 121); Core 4 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
 | GEN.357 | Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud | none | done, PR #3367 |
 | GEN.358 | GEN.94's rules and the four exotic-environment additions reach planet formation | none | open |
 | GEN.359 | Sector fill links cluster stars to their cluster and names the cluster at its first fill | none | open |
