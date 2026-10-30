@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2751] - 2026-10-30
+
+**Headline:** A new test checks that an M dwarf world that lost its water can keep an oxygen air with no life, and that oxygen alone never makes a life class live there.
+
+### Changed
+
+- TEST.491: `tests/test_w21_abiotic_oxygen.py` samples M dwarf ecosphere worlds across ages and masses (only the abiotic-oxygen family holds more than a trace of oxygen, up to the 95 percent cap, and no G or K host gets that family) and scores finished bodies with an oxygen air (a world too hot or too cold for any solvent supports no class; oxygen adds only the classes that breathe it). It passes: no bug to file. No generated output changes.
+
 ## [8.0.2750] - 2026-10-30
 
 **Headline:** A 2+2 quadruple star system can now be tested for stability with a published classifier, as the 3+1 one already can.
