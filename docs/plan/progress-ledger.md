@@ -1990,3 +1990,4 @@ Baseline: PR #1817.
 | GEN.950 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.213 | 8.1 | Multi-star and compact systems |
 | TEST.488 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.484 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
