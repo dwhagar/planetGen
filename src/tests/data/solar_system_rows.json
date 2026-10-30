@@ -1,0 +1,84 @@
+{
+ "pending_decision": {
+  "atmosphere-a": {
+   "a1": "the mean is held inside the published Moon, Mars and Earth ranges and the width tuned to them (GEN.482)",
+   "a2": "a straight-line law fitted to three Solar System anchors, Earth IW+3.5, Mars IW to IW+1 and Moon IW to IW-2 (GEN.482)"
+  },
+  "atmosphere-b": {
+   "b1": "the dry carbon bracket is tuned to the bulk silicate Earth's 100 ppm carbon (GEN.813)"
+  },
+  "atmosphere-k": {
+   "k7": "N2, O2, OCS, SO2, Ar, Kr and Xe come from one measured comet (67P, Rubin 2019) with a design width; the row is partly verified, not flagged stand-in (GEN.520 keeps them as stand-in values)"
+  },
+  "surface-ground-types": {
+   "anorthositic": "the assemblage is one of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
+   "basaltic": "the assemblage is one of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
+   "felsic": "the assemblage is one of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
+   "oxidised": "the assemblage is one of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",
+   "ultramafic": "the assemblage is one of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired"
+  }
+ },
+ "reviewed_not_solar_system": {
+  "atmosphere-e": {
+   "e5": "solar means the solar-abundance scale the sub-Neptune retrievals are quoted on, no Solar System body is a source"
+  },
+  "atmosphere-h": {
+   "h1": "solar metals is the abundance scale of the computed equilibrium line",
+   "h2": "solar metals is the abundance scale of the computed equilibrium line"
+  },
+  "atmosphere-j": {
+   "j2": "the Mars composition is a test value the output is compared with, the weight is the retention physics (Boss, fork 7)",
+   "j3": "the Titan methane share is a test value the output is compared with, the weight is the retention physics (Boss, fork 7)"
+  },
+  "atmosphere-m": {
+   "m1": "the Sun is the reference star of the ozone-column fit, a stellar spectrum and not a body's composition",
+   "m4": "the Venus phosphine claim is a test value for a design flag (GEN.525), never tuned"
+  },
+  "atmosphere-o": {
+   "o1": "solar twins are stars measured for thorium over hydrogen, a stellar sample",
+   "o2": "the solar-twin scale of o1, a stellar sample"
+  },
+  "atmosphere-p": {
+   "p1": "the Sun's FUV and NUV flux is the reference of a stellar-flux fit",
+   "p3": "the Sun's O3 lifetime is the comparison for the stellar-flux fit"
+  },
+  "comet-carbon-chain": {
+   "carbon-chain-depleted-halley_type": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
+   "carbon-chain-depleted-jupiter_family": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
+   "carbon-chain-depleted-long_period": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
+   "carbon-chain-normal-halley_type": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
+   "carbon-chain-normal-jupiter_family": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
+   "carbon-chain-normal-long_period": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here"
+  },
+  "satellite-share": {
+   "inner rubble pile with a satellite": "near-Earth is the name of the asteroid population the binary fraction is measured in (Pravec 2006), a survey class, and the gate's cut is the survey's own"
+  }
+ },
+ "stand_ins": {
+  "atmosphere-m": {
+   "m2": "O3 about 10 percent of the Earth's column (GEN.524 replaces it)"
+  },
+  "moon-satellites": {
+   "no satellites": "the rest of the row above it (1 minus the chance of a moon)"
+  },
+  "planet-satellites": {
+   "no satellites": "the rest of the captured-moon row above it (1 minus the chance of a moon)"
+  },
+  "satellite-share": {
+   "belt rubble pile with a satellite": "the binary fraction measured in near-Earth and main-belt asteroids, modelled by Jacobson 2016 (a measured small-body binary fraction replaces it)"
+  },
+  "small-body-taxa": {
+   "taxon-A": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
+   "taxon-B": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
+   "taxon-C": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
+   "taxon-D": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
+   "taxon-E": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
+   "taxon-K": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
+   "taxon-L": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
+   "taxon-M": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
+   "taxon-P": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
+   "taxon-S": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
+   "taxon-V": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk"
+  }
+ }
+}

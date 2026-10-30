@@ -1048,6 +1048,17 @@ with `clamp()`.
   chart, an additive route, no API version bump) and the adaptation
   traits, which wait on GEN.875 and GEN.876 because no trait data is
   stored.
+  Part 2 merged (Core 5, #3951, 4:59 AM EDT as the lane reported)
+  (2026-10-30 4:59 AM EDT): planet and moon pages get a collapsed "Life
+  and air through the ages" chart in the Life section (oxygen, CO2 and
+  methane partial pressure against star age, life stages numbered, the
+  same figures in a table, "Speculative chemistry" with tier and tweak
+  for L3 and L4 classes), worked backwards from the stored air; no
+  migration, epoch, golden or stored value; new additive routes GET
+  /api/planets|moons/<id>/life-air (API version unchanged; route
+  snapshot and api.md updated). Not drawn: sulfur gases, hydrogen
+  drawdown, the reduced gases the rise burned. UX.237 stays open only
+  for the adaptation traits (waits on GEN.875/876)
   Prerequisites: none. Related: UX.221.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -11511,7 +11522,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
   branch holds the H-He table reader. Hydrogen-helium EOS tables are not
   held otherwise. Catalog sections 3 and 4.
-  Prerequisites: GEN.733, GEN.809, GEN.810, GEN.811. Related: GEN.733, GEN.736, GEN.642, GEN.809, GEN.810, GEN.811.
+  Prerequisites: GEN.733, GEN.809, GEN.810. Related: GEN.733, GEN.736, GEN.642, GEN.809, GEN.810, GEN.811.
 
 - [ ] **GEN.804 Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1)**
   Unused stored values audit chain
@@ -11647,6 +11658,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
   branch holds the H-He table reader. Hydrogen-helium EOS tables are not
   held otherwise. Catalog sections 3 and 4.
+  Lock-free half merged (Aux 3, #3948, as the lane reported) (2026-10-30
+  5:00 AM EDT): new pure module physics/giant_dynamo.py: from a giant
+  interior layers, radius, radiated heat and spin it gives the shell
+  that makes the dynamo (metallic layer of a gas giant or brown dwarf,
+  ionic or superionic water mantle of an ice giant) and the field via
+  dynamo.field; Jupiter-like draws land within 4x of Jupiter moment,
+  Saturn-like about 7x high and Neptune-like about 10x high and as a
+  dipole (stable layer and thin-shell effects not modelled);
+  wiring-register line added. The wiring step (magnetism.generate_field
+  taking a giant moment from it) rides a train after Core 4 GEN.733
+  structure is on a train; an ice giant has no region until then.
+  GEN.967 (Aux 4) calls giant_dynamo.giant_field instead of rebuilding
+  the region
   Prerequisites: GEN.733. Related: GEN.801, GEN.733, GEN.736.
 
 - [ ] **GEN.810 A giant's internal heat reads the interior layers and the helium shell (G3, step 2)**
@@ -11677,30 +11701,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   branch holds the H-He table reader. Hydrogen-helium EOS tables are not
   held otherwise. Catalog sections 3 and 4.
   Prerequisites: GEN.733. Related: GEN.801, GEN.735.
-
-- [ ] **GEN.811 The description of a giant says what its interior is (G3, step 3)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). The description text names the interior kind, the metallic
-  layer, the dilute core and the helium shell where they exist, in the
-  in-universe voice of the pages. Done: three samples read differently
-  and a test pins the wording keys. Version 8.4, phase 1. Owner: Aux 3
-  with Aux 11. Rules: no backward-compat shims; every number has a unit
-  or scale (GEN.772); a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Fortney 2007 giant radii are
-  transcribed in full (physics/giant_radius_tables.py); Lopez and
-  Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
-  branch holds the H-He table reader. Hydrogen-helium EOS tables are not
-  held otherwise. Catalog sections 3 and 4.
-  Prerequisites: GEN.809, GEN.810. Related: GEN.801, GEN.415.
 
 - [ ] **GEN.819 Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet**
   GEN.739 (#3246) added physics/impact_history.py and
@@ -14285,6 +14285,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch, removes the xfail)
   Prerequisites: none. Related: GEN.873, GEN.894.
 
+- [ ] **GEN.1002 Registered table rows that rest on a Solar System body are flagged stand-in with a replacement item, or re-sourced**
+  Reported by Aux 3 (as the lane reported, 5:05 AM EDT 2026-10-30) when
+  merging TEST.215 (#3954): a new test scans every registered row's
+  source and limit for a Solar System body and requires it to be a
+  flagged stand-in with a replacement item, listed pending, or reviewed
+  as not resting on a body (reasons in
+  tests/data/solar_system_rows.json). These rows rest on a body and are
+  not flagged: atmosphere-k k7 (single comet 67P species), atmosphere-a
+  a1 and a2 (tuned to Moon, Mars and Earth anchors, GEN.482),
+  atmosphere-b b1 (dry carbon tuned to bulk silicate Earth, GEN.813),
+  surface-ground-types ultramafic, anorthositic, basaltic, felsic and
+  oxidised (Hu 2012 Earth and Moon crust library; GEN.474 rock_types
+  replaces them once wired). Do: for each row either flag it a stand-in
+  in GEN.725 with tier, tweak level and the replacement item, or
+  re-source it from a physics value; move the test's pending list down
+  as rows are done. Flagging changes table state, which is in the table
+  digest, so the change rides a merge train (renumbers migration/epoch
+  as the runbook says). Done: no row in the pending list of the Solar
+  System test; GEN.725 rows carry the replacement items. Related:
+  TEST.215, GEN.725, GEN.482, GEN.813, GEN.474. Owner: Aux 3 (proposed),
+  after GEN.474 wiring where a row waits on it.
+  Prerequisites: none. Related: TEST.215, GEN.725, GEN.482, GEN.813,
+  GEN.474.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15778,6 +15802,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   #3248 fixed. Property sheet and stats and settings pages were already
   done. Still open: the help pages and glossary (DOC.15) and any CLI
   line the heuristic missed; keep API.33 open for those
+  Update (Core 5, #3958, as the lane reported 5:16 AM EDT) (2026-10-30
+  5:17 AM EDT): CLI help, printed lines and run logs scanned and fixed
+  (plan skeleton line units, Drew line systems, near/planets/moons count
+  lines, verbose life log lines); no generated-output change. What
+  remains: the in-site help pages and glossary (DOC.15) do not exist
+  yet, so the item closes when DOC.15 lands with every number stating
+  its unit.
   Prerequisites: none. Related: GEN.771, DOC.15.
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
@@ -17053,30 +17084,6 @@ clears each one.
   loaded the machine). Closes after its clean runs.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
-- [ ] **TEST.161 Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table**
-  Tests beside the fill-stages item (catalogue sections 3 and 5): adding
-  a kind to a stage moves no draw of another stage; the same object
-  gives the same system in any sector fill order; each kind's system
-  share matches the table within Poisson bounds; a scatter row carries
-  no planet or moon before its sector fills; no room drops the outermost
-  body first. Done: each test exists and runs in the normal suite.
-  Owner: Quality (all TEST items are Quality's), written beside the
-  build step.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: TEST.186 (Core 3). Core 4 takes it when it unblocks.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): TEST.186 is the named blocker and is already done, so it is not listed as a prerequisite (the named blocker of the 2026-10-16
-  owner line; TEST.186 is merged, PR #2040).
-  Owner: Core 3 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: TEST.159.
-  Design: [docs/design/systems/phenomena-catalogue-and-fill.md](design/systems/phenomena-catalogue-and-fill.md)
-
 - [ ] **TEST.162 Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors**
   Step 9 (design note section 9, tests 1 to 9). Companion states within
   four Poisson sigma over a seeded scatter of 1e6 rows; object density
@@ -17177,6 +17184,11 @@ clears each one.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  OWNER Aux 3 (assigned 5:28 AM EDT 2026-10-30 by TODO as the lane's one
+  lock-free item; measurement and a recorded result only, separate
+  branch, change no stored value) (2026-10-30 5:28 AM EDT): If the
+  measurement shows a query too slow, file it with TODO as a PERF item
+  and do not fix it under this one.
   Prerequisites: none. Related: NAV.60, DOC.51.
   Design: [docs/design/galaxy/spherical-region-queries.md](design/galaxy/spherical-region-queries.md)
 
@@ -17405,38 +17417,6 @@ clears each one.
   comments on issue #1694.
   Prerequisites: none.
 
-- [ ] **TEST.200 The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`**
-  From the GEN.372 precision audit (Core 1,
-  docs/design/architecture/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
-  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
-  stored value. Boss decided by card: the nightly update keeps a local
-  offset, and this item documents it and tests it, with no code change
-  to the update. Done: the limit (how far an object's local offset may
-  grow before it is folded into the absolute point) is written in the
-  orbital update's design doc, and
-  `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`
-  pins that after the largest rotation the update applies the local
-  offset is within one unit in the last place of the absolute point.
-  Owner: Core 1.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.372, GEN.223, GEN.294.
-
-- [ ] **TEST.201 `block_stats` totals do not depend on the order of the rows: a test**
-  From the GEN.372 precision audit (Core 1,
-  docs/design/architecture/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
-  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
-  stored value. Done: a test sums the block statistics (`block_stats`)
-  of the same rows in several random orders and requires identical
-  totals (or totals within a stated bound), failing if the sum is order
-  dependent. Compensated sums for the long accumulations wait for
-  GEN.109 (Boss card): see the note on GEN.109. Owner: Core 1.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.372, GEN.109.
-
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -17507,38 +17487,6 @@ clears each one.
   planet, moon and star class, built as a census check on TEST.186's
   harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
   over it, not four builds.
-
-- [ ] **TEST.215 The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one**
-  Body composition research lane, section 14.4 of
-  docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
-  the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:43 AM EDT, Stand-in only), filed by the TODO thread. R5: the Earth,
-  Mars, Moon, Galilean-moon and Sirius B targets in the parts stay as
-  calibration, and measured Solar System shapes must never be a source
-  of a generator table (the standing no-fixed-content rule, and Boss's
-  ruling of 1:43 AM EDT). Do: move the calibration rows into the test
-  files with a `calibration_only` flag and assert that no table row of
-  the possibility-table loader (GEN.472) is sourced only from a measured
-  Solar System body, and that every `stand-in` row names a replacement
-  item. Done: the test passes on the tables the build has and fails when
-  a calibration row is read by a generator table. Owner: unowned
-  (research; Boss or a read-only research lane).
-  Prerequisites: TEST.211. Related: TEST.214, TEST.211,
-  GEN.472.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 8, "Flagged
-  stand-ins only": a measured Solar System shape may enter a generator
-  table only as a row flagged `stand-in` that names an existing
-  replacement item; unflagged Solar System sourced rows and the
-  calibration targets (Earth, Mars, Moon, Galilean moons, Sirius B) are
-  never a table source. TEST.215's assertion exempts rows flagged
-  `stand-in` with a replacement item and fails on any other Solar System
-  sourced row. GEN.520 D6 (the Solar System population as the
-  within-system comet shape) is kept as a flagged stand-in with the
-  replacement item GEN.595.
 
 - [ ] **TEST.219 Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster**
   Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
@@ -20038,6 +19986,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   section, linked from each page it describes, and updated by any later
   change to those features (a feature item is not done until its help
   text is).
+  Added requirement (2026-10-30 5:17 AM EDT): Every number on the help
+  pages and the glossary states its unit; API.33 closes only when this
+  holds (the CLI half is merged in #3958).
   Prerequisites: DOC.57. Related: DOC.6.
 
 - [ ] **DOC.16 The API help page for visitors: what the API is, how to get a key, and where the reference lives**
@@ -20324,76 +20275,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: GEN.576, DB.78, GEN.578. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
-
-- [ ] **DOC.72 The README lists every external file the program needs, with its URL and how to install it, and a check keeps the list complete**
-  Boss, 2026-10-21, 5:44 PM EDT: "Add DOCS item that the README will say
-  what URL's and how to install the external files that are needed to
-  run." Today the downloaded datasets, line lists and data files that
-  the setup step fetches (the shared download step GEN.548, `python3 -m
-  planetgen.cli.datasets fetch`, run by `install.sh` and `update.sh`) or
-  that must be provided by hand (files Boss supplies, papers or datasets
-  that cannot be fetched) are known only from the catalogue in
-  src/planetgen/datasets/catalogue.py. Do: add a README section
-  'External files' that lists every one, with its source URL, the
-  licence note, the cache folder it goes to (`PLANETGEN_DATA_DIR`, else
-  `/var/cache/planetgen/datasets`), the command that fetches it, how to
-  install it by hand when the host is down or the machine has no network
-  (download the URL, check the sha256, put it in the folder), and what
-  stops working while it is missing (the 'replaces' text the catalogue
-  already carries); say which files are fetched at setup and which must
-  be provided by hand; add the same table to docs/deployment/README.md
-  or link to it. Done: the README lists every dataset in the catalogue
-  with its URL and install step, and a test compares the README list
-  with the catalogue (every key and URL appears, nothing extra) so a new
-  dataset cannot skip it; a dataset added by an AD item (AD1 to AD8,
-  GEN.594) fails that test until its README row exists; the install
-  steps are followed once on a clean cache and work. Owner: TODO thread
-  proposes a docs lane or Core 5 after the 8.1 closing audits (not
-  urgent).
-  Update (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed):
-  the README section also says what happens when a file is missing: the
-  run refuses and names the file, its URL and the setup command, unless
-  it is told explicitly to disregard missing files (GEN.599), when it
-  uses the best possible fallback and prints it in the run header; and
-  it says the updater and downloader print the URL of every file they
-  load (GEN.600). The README check compares both statements with the
-  options in the code.
-  GEN.600 is merged as #2464 (relayed 9:01 AM EDT 2026-10-22: `fetch`
-  and `status` print each file's URL and update.sh and install.sh show
-  those lines, docs/reference/cli.md updated); this item still owns the README row
-  for it.
-  Owner: the TODO thread (docs-only change with its catalogue test; this
-  replaces any earlier owner line on this item).
-  GEN.599 is merged as #2560 (relayed 9:10 PM EDT 2026-10-22 as the lane
-  reported: the refusal names every missing file, its URL and the setup
-  command; `--disregard-missing-data` on every subcommand, the API
-  field, the Generate task and the Review pages; fallbacks SC1 none, SC2
-  Chandrasekhar radius, SC3 Chamel and Haensel 2008 crust; no
-  migration). The README row for the refusal, the flag and the printed
-  fallback is this item's, now unblocked; the TODO thread writes it with
-  the README section and its catalogue test (the coordinator, 9:10 PM
-  EDT 2026-10-22: record the DOC.72 README row as the TODO thread's).
-  The README check compares the flag name and the refusal text with the
-  code.
-  Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
-
-- [ ] **DOC.73 INSTALL.md recommends a larger innodb_redo_log_capacity for a machine that runs the full test gate**
-  Suggested by Bug Hunt (about 7:03 AM EDT 2026-10-22 as the lane
-  reported), filed by the TODO thread. MySQL's
-  `innodb_redo_log_capacity` is the 100 MB default on the lane machines
-  and logs 'log_checkpointer lagging' (84 warnings in one gate) under
-  the parallel gate; it slows the gate and was seen with the Galaxy
-  dials lane's lost connections, but it was not the cause of the
-  lost-connection sightings (TEST.265, fixed). Do: add one line to
-  INSTALL.md's database setup (and to the test section) recommending a
-  larger value for a machine that runs `scripts/test.py full` (the lane
-  machine notes already ask for one), with the number the lanes found
-  enough. Done: INSTALL.md names the setting, the value and why. Owner:
-  not assigned (a docs line; any lane).
-  Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: TEST.265.
 
 - [ ] **DOC.76 Docs for the condition-based classes: the rule table, the planet class pages and the help**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A

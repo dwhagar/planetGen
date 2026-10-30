@@ -2,6 +2,79 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2657] - 2026-10-30
+
+**Headline:** INSTALL.md now says to raise MySQL's redo log capacity on a machine that runs the full test gate.
+
+### Changed
+
+- DOC.73: INSTALL.md names `innodb_redo_log_capacity`, the value (2 GB instead of the 100 MB default, in `mysqld.cnf` or with `SET GLOBAL` on MySQL 8.0.30 and later) and why (under the parallel gate the log checkpointer lags and tests can lose their connection), in the requirements and in the development setup. Documentation only.
+
+## [8.0.2656] - 2026-10-30
+
+**Headline:** The README now lists every external data file the program needs, with its URL and how to install it, and a test keeps the list complete.
+
+### Changed
+
+- DOC.72: the README has an "External files" section: every dataset the setup step downloads (ten sets, 62 files) with its source, the exact URLs, the cache folder (`/var/cache/planetgen/datasets` or `PLANETGEN_DATA_DIR`), the fetch command, what it replaces and the labelled fallback `--disregard-missing-data` uses, plus how to see where each stands, what a bulk run does when a file is missing (it refuses, naming the set, the URLs and the setup command, unless told to disregard missing data), and how to install a set by hand on a machine with no network. The list is written from the catalogue by `scripts/readme_external_files.py --write`, and `src/tests/test_readme_external_files.py` fails when a dataset or URL is added or changed without it, or when the statements no longer match the code. The deployment guide links to it. The program reads no other external file, so nothing is provided by hand. Documentation and a check only: no stored value changes.
+
+## [8.0.2655] - 2026-10-30
+
+**Headline:** The limit on the nightly update's local offset is written down and pinned by a test.
+
+### Changed
+
+- TEST.200: the orbital-updates design note says how good the offset stored after a nightly rotation is (one unit in the last place of the absolute coordinate: 28 km at the Sun, 898 km of rounding at the 262 kpc reach, 3.4e5 to 1.1e7 times below the smallest stored move) and what to do if generating anywhere needs finer offsets. tests/test_local_offset_limit.py pins it at 8, 26 and 262 kpc over random centres, offsets, rotations up to a whole orbit and landing sectors; the worst error found is exactly one ulp. Tests and documentation only: the update and every stored value are unchanged.
+
+## [8.0.2654] - 2026-10-30
+
+**Headline:** New tests show the stored block totals do not depend on the order the sectors are added in.
+
+### Changed
+
+- TEST.201: tests/test_block_stats_order.py adds the same generated sectors to the block sums in several random orders (`block_stats.accumulate`), through a rebuild on a database whose sectors were inserted in each order, and as one block of 3000 terms spanning six decades. The counts must be identical and the real sums (expected systems, age, luminosity, mass) within a relative 1e-12, the error of a 64-bit sum of this many terms. All pass, so the totals are order independent within that bound; compensated sums stay with GEN.109. Tests only: no stored value changes.
+
+## [8.0.2653] - 2026-10-30
+
+**Headline:** The command line and the run log now say what every number they print counts or measures.
+
+### Changed
+- **The skeleton line of a plan run** reads "Building skeleton: edge 12000 pc, stellar mass 5.2e10 solar masses, disk scale length 2600 pc, ... 4 spiral arms, pitch angle 12.3 degrees ..." instead of `edge_pc=` and `k_norm=` style pairs, and the three counts of the "Drew" line each end in "systems".
+- **`planetgen near`** ends with "5 objects found within 10 pc; 3 more objects in range are not generated yet", and **`planetgen planets` and `planetgen moons`** end a page with "100 planets shown" or "100 moons shown" before the `--after` to carry on with.
+- **The verbose log of a world's life** gives its complexity as "x Earth's net primary production" with the yield, rate factor and grade as "of 1" and "of 3", and its schedule as ages in Gyr.
+
+## [8.0.2652] - 2026-10-30
+
+**Headline:** New tests hold each kind's system chance to its table, and keep planets and moons out of a scatter row before its sector fills.
+
+### Changed
+
+- TEST.161: tests/test_fill_pass_guards.py checks that the share of every kind's objects that roll a system follows the host tables within four Poisson sigma (a kind the table gives nothing never rolls one), that a rogue planet keeps its moon at the table's chance, that a scatter row has no column for a planet, moon or belt, that a scatter stores its rows and writes no planet, moon, belt or rogue planet before its sector fills, that a filled sector with a black hole holds no planet of its own, and that a body past the orbit ceiling goes outermost first. The stream independence and same-seed same-system checks already in test_gen_fill_stages.py cover the other two items. Tests only: no generated value changes.
+
+## [8.0.2651] - 2026-10-30
+
+**Headline:** A measured Solar System target can no longer be a row of a generator table, and a test lists every row that rests on a Solar System body.
+
+### Changed
+
+- TEST.215: a possibility-table row has a `calibration_only` flag, and the registry refuses a table that holds one, so the Earth, Mars, Moon, Galilean-moon and Sirius B targets live in a test file and never in a table. No registered row had it set, so nothing moved and no table value, weight or digest changes. A new test scans every registered row's source and limit for a Solar System body and requires each to be a flagged stand-in with a replacement item (checked), a row marked pending for a decision, or a row reviewed as not resting on a body (with its reason); a new row that names a body and is in none of them fails. The pending rows are listed for the TODO thread to decide.
+
+## [8.0.2650] - 2026-10-30
+
+**Headline:** A giant's page opens its interior section with one sentence that says what the interior is.
+
+### Changed
+
+- GEN.811: the interior section of a giant's page now starts with a sentence in the voice of the pages that names the kind (gas giant, ice giant, brown dwarf) and the layers it has: the metallic hydrogen where a gas giant's field is made, the dilute core, the helium shell and the helium rain, or an ice giant's conducting water mantle. Three giants read differently, and a test pins the wording keys so a layer kind added later has to be worded. The sentence reads the layers already stored; no generated value changes. The sentences for each layer follow as before.
+
+## [8.0.2649] - 2026-10-30
+
+**Headline:** A planet's or moon's Life section now has a Life and air chart: how its oxygen, carbon dioxide and methane changed as the life took hold.
+
+### Changed
+- **The Life and air chart.** Under the Life section of a planet or moon whose life changed its air there is a collapsed block, "Life and air through the ages". It plots the partial pressure of oxygen, carbon dioxide and methane against the age of the star, with the stages of the life (first life, producers, complex cells, animals) numbered on the chart and the same figures in a table. The air is worked out backwards from the air the world has now, when you open the page; nothing new is stored. A class with tuned numbers (Classes 6 to 9 and others at tweak level L3 or L4) is marked "Speculative chemistry" with its tier. A world whose life did not change its air shows no chart.
+- **`GET /api/planets/<id>/life-air` and `GET /api/moons/<id>/life-air`** give the chart's data (new routes; the API version does not change).
+
 ## [8.0.2648] - 2026-10-30
 
 **Headline:** The Sectors list opens any page as fast as the first when sorted by systems, density or galaxy position, and `planetgen planets` and `moons` page without a filter too.
