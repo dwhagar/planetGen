@@ -14930,6 +14930,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Sources 2 with Bug 1. Version 8.1.
   Prerequisites: GEN.932. Related: GEN.998, GEN.476, GEN.469.
 
+- [ ] **GEN.1000 Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass)**
+  Sources 2 finding (as the lane reported 11:53 PM EDT 2026-10-29): the
+  belt mass of GEN.477 needs the belt's largest body, which nothing in
+  the generator provides. The size law is researched (GEN.566, done) but
+  not built. GEN.477 wiring goes ahead with a registered stand-in
+  largest-body size (T9, L3, GEN.725). Do: build the size-frequency law
+  of GEN.566 as a pure module with tests, draw each belt's largest body
+  from it (own random stream, via draw.py), feed GEN.477 and the belt
+  detail, and retire the stand-in registry row. Changes generated output
+  (belt mass): epoch, --affects fill, rides the train after GEN.477
+  wiring. Owner: Sources 2. Version 8.1.
+  Prerequisites: GEN.477. Related: GEN.477, GEN.566, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
