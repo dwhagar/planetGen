@@ -229,6 +229,20 @@
 {{ poi_key_panel("system-map-symbols") }}
 {%- endif %}
 {%- endif %}
+{%- if orbits %}
+<section class="panel" id="system-orbits" aria-labelledby="system-orbits-heading">
+  <h2 id="system-orbits-heading">Orbits of the stars</h2>
+  <p class="muted">Each orbit is one star circling another, or circling the pair below it. The 3D map places the stars by these orbits.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">No.</th><th scope="col">Joins</th><th scope="col">Kind</th><th scope="col">Mass</th><th scope="col">Separation</th><th scope="col">Period</th><th scope="col">Eccentricity</th><th scope="col">Interaction</th></tr></thead>
+    <tbody>
+      {%- for number, joins, kind, mass, separation, period, eccentricity, interaction in orbits %}
+      <tr><td>{{ number }}</td><td>{{ joins }}</td><td>{{ kind }}</td><td>{{ mass }}</td><td>{{ separation }}</td><td>{{ period }}</td><td>{{ eccentricity }}</td><td>{{ interaction }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
 {%- if facilities or facility_status %}
 <section class="panel" id="facilities" aria-labelledby="facilities-heading">
   <h2 id="facilities-heading">Facilities</h2>

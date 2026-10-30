@@ -2,6 +2,133 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2753] - 2026-10-30
+
+**Headline:** The Galaxy Map's wheel no longer hops from one block window to the next; the camera's zoom carries it, and the picture does not change.
+
+### Changed
+- **The wheel's stage-crossing code is gone from the Galaxy Map (MAP.337, step 1 of 4).** `galaxystageview.js` no longer finds the block under the wheel, asks for the next window ahead of the camera, or swaps the displayed window as the wheel nears the end of a stage's range (`acrossAtMiddle`, `blockUnderWheel`, `windowAcrossFrom`, `prefetchAcross`). Since the zoom range became global (MAP.334) and the sector and system scenes come up from the camera's place (MAP.335), the wheel only zooms, opens the sector and the system where the camera is, and goes back out of them; a wheel turned in the whole-galaxy view zooms the camera straight in.
+
+## [8.0.2752] - 2026-10-30
+
+**Headline:** A test of the least pressure a planet's air has no longer fails on a thin air stored a part in a billion under 1 Pa.
+
+### Fixed
+- **The thin-air floor in test_planets (TEST.485).** A thin regime caps the air at exactly 1 Pa (`surface_air.VACUUM_PRESSURE_PA`) and the solve then drops every gas whose partial is under a billionth of the total (`STORE_MIN_FRACTION`), so the stored sum came out as 0.99999999993 Pa and the check for at least 1.0 failed. About one planet in forty of a plain G2V sweep stores a pressure like that. The floor is now 1 Pa less that billionth share of each gas the registry knows, with a test that the floor allows the trim and no more. Nothing generated changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.485.
+
+## [8.0.2751] - 2026-10-30
+
+**Headline:** A new test checks that an M dwarf world that lost its water can keep an oxygen air with no life, and that oxygen alone never makes a life class live there.
+
+### Changed
+
+- TEST.491: `tests/test_w21_abiotic_oxygen.py` samples M dwarf ecosphere worlds across ages and masses (only the abiotic-oxygen family holds more than a trace of oxygen, up to the 95 percent cap, and no G or K host gets that family) and scores finished bodies with an oxygen air (a world too hot or too cold for any solvent supports no class; oxygen adds only the classes that breathe it). It passes: no bug to file. No generated output changes.
+
+## [8.0.2750] - 2026-10-30
+
+**Headline:** A 2+2 quadruple star system can now be tested for stability with a published classifier, as the 3+1 one already can.
+
+### Changed
+- `physics/quadruple_stability.py` (GEN.1031) also holds the 2+2 quadruple stability network of Vynatheya, Mardling and Hamers 2023 as plain numbers and a numpy forward pass (functions with the suffix `_2p2`, no machine-learning library). On my N-body check of 185 systems drawn like the paper's it agreed with the integration 91 percent of the time against 82 percent for the nested-triple test. It is lenient near the stability boundary (it calls some weakly chaotic systems stable), which the design note says. Nothing in generation calls it yet (GEN.1016 wires it), so no generated world changes.
+- `scripts/build_quadruple_stability.py` now takes `3p1` or `2p2` and the model file; registry rows QT1 to QT4 (section 6.81) and the design note `docs/design/systems/quadruple-stability-2p2.md`.
+
+## [8.0.2749] - 2026-10-30
+
+**Headline:** The generator now has the physics of a Venus-type world, a thick-air planet whose slow or backward spin comes from the star's tide on its air.
+
+### Added
+- **`physics/venus_spin.py` (GEN.1038).** For a rocky planet with a dense air that is not held by a moon it gives the spin rates the star's gravitational tide and the thermal tide of the air leave it in, from the model of Correia and Laskar (2001, 2003) as generalised by Cunha, Correia and Laskar (2015): at most three states, none synchronous, one of them backward when the thermal tide is strong enough (Venus comes out at 242.9 days retrograde, or 76.8 days forward; the Earth has not reached an equilibrium in its age and Mercury has no thermal tide). The tilt the planet is born with picks the state, so no extra draw is needed. Nothing puts this spin on a world yet; that is the weird-worlds wiring (GEN.1048).
+- **Stand-in rows VS1 to VS8** in the gap-filling plan (section 6.80) and the stand-in list.
+
+## [8.0.2748] - 2026-10-30
+
+**Headline:** The air of a tidally locked planet can now be tested for freezing onto its night side (not yet used by the generator).
+
+### Changed
+
+- GEN.1044: `physics/nightside_collapse.py` returns, for a locked planet's main gas, the pressure under which it freezes onto the dark side and the share that stays: CO2 by the fit of Wordsworth 2015 (0.14 bar at Earth's flux for an Earth-mass planet), other gases by the thin-air night-side balance. Registry rows NC1 to NC6 (section 6.75). Nothing the generator draws changes; the wiring is GEN.1051.
+
+## [8.0.2747] - 2026-10-30
+
+**Headline:** The question of when a world can hold an atmosphere now has one place in the code that answers it, tested on the thirteen Solar System bodies it was written from.
+
+### Changed
+- **The retention library (GEN.355).** `physics/atmosphere_retention.py` gives the cosmic shoreline ratio of a body (cumulative insolation over the fourth power of its escape velocity), the verdict that ratio makes (dense, moderate, tenuous, trace or none) and the surface pressure it allows, the gases a body keeps (a Jeans parameter of 30 or more at the exobase, which comes from the thermosphere model), the temperature under which a gas at a given partial pressure is ice, and the share of a planet's mass the star's X-rays could lift out of its well over its life. Tests reproduce the design table: Earth 0.17, Venus 0.43, Titan 0.59, Mars 1.8, Mercury 53, the Moon 82. It changes no generated world: the pressure stage keeps its own logistic shoreline until the envelope-survival rule (GEN.963) reads this module.
+- **Stand-ins recorded.** Rows SH1 to SH4 in the stand-in registry (GEN.725): the shoreline constant (the middle of the window the thirteen bodies leave), the edges of the verdicts, the pressure each verdict allows, and the Jeans threshold. The design note's section 3.6 now says what was built.
+
+## [8.0.2746] - 2026-10-30
+
+**Headline:** The code now knows how a small, very hot rocky planet boils away, and how long it lasts, using the numbers of the planet Kepler-1520 b.
+
+### Changed
+- **The disintegrating planet module (GEN.1041).** `physics/disintegrating_planet.py` gives the mass a rocky planet under about a tenth of an Earth loses to a wind of its own rock vapour when its dayside is over 2000 K, the time it lasts, the mass it has left at an age, and the gate that says which bodies can be one. It follows Perez-Becker and Chiang 2013: for Kepler-1520 b (2150 K, 15.7 hours) a body of two hundredths of an Earth mass loses about a third of an Earth mass per billion years and is gone in about 140 million years, and the mass that survives ten billion years is about a tenth of an Earth in the paper's first estimate and a little under it in the full model. It changes no generated world: the oddity that uses it is a later wiring step (GEN.1050). The dust tail and the transit depth are not in it.
+- **Stand-ins recorded.** Rows DP1 to DP5 in the stand-in registry (GEN.725): the olivine vapour pressure, the vapour's mean mass and index, the full model's lower rate, the duty cycle and the gate.
+
+## [8.0.2745] - 2026-10-30
+
+**Headline:** The weird-worlds oddity table and its loader exist, empty for now, with a weirdness dial and a stream of its own for every oddity roll.
+
+### Added
+- **The oddity table (GEN.1036).** `physics/data/oddities.json` holds the vocabulary for rare, physically plausible outcomes (the lever each one changes and the inputs it may touch, and the quantities a gate or a limit may read) and an empty list of rows; `physics/oddities.py` loads it and refuses a row without a source, a gate, limits, a rate, a tier or a tweak level. Nothing calls it yet: the weird-worlds modules add rows and GEN.1047 wires them into the generator, so no world changes.
+- **A weirdness dial (GEN.1036).** `tuning.WEIRDNESS_DIAL` (1.0; 0 turns every oddity off) and `tuning.WEIRDNESS_RATE_SCALE` (a scale by oddity id) multiply a row's rate, and every roll comes from a stream keyed on the oddity and the body, so adding, removing or turning off one oddity moves no other draw.
+
+## [8.0.2744] - 2026-10-30
+
+**Headline:** The rings that small icy worlds like Quaoar and Haumea hold far outside the usual ring zone now exist as a tested calculation, ready to give some small bodies a narrow ring.
+
+### Changed
+- **Resonance rings of small bodies (GEN.1056).** A new module (`physics/small_body_rings`) puts a narrow ring where a ring would go round three times for each turn of a small body (4 200 km for Quaoar against 4 057 observed, 2 290 for Haumea against 2 287, 426 for Chariklo against 391 and 405), past the Roche limit and inside half the body's Hill radius, with a registered stand-in chance of 0.10. It also holds the gate that no ring survives inside 0.1 AU of a star. Nothing reads it yet: the conditional rings (GEN.1057) wire it on a later generation train.
+
+generation-output: unchanged
+
+## [8.0.2743] - 2026-10-30
+
+**Headline:** The rule that makes a planet's ring come from its own history, a moon that fell inside the Roche limit or a comet that passed inside it, now exists as a tested calculation.
+
+### Changed
+- **Ring origin from history (GEN.1054, first part).** A new module (`physics/ring_origin`) says whether a planet has a ring from what happened to it: a moon the tide drew inside the Roche limit leaves a share of its mass as a ring, a comet that passed inside it leaves a smaller share, each ring spreads away over about half a billion years, a planet closer than 0.1 AU to its star keeps none, and a giant with nothing in its past has none. A Mimas-sized moon that fell 150 million years ago leaves Saturn's ring mass to a factor of two; Phobos would leave Mars a faint ring. The older chances of a ring (every giant, one terrestrial planet in a hundred) are re-registered as hand-tuned until the module is wired in (GEN.1057). Nothing reads the module yet.
+
+generation-output: unchanged
+
+## [8.0.2742] - 2026-10-30
+
+**Headline:** The generator now has a table of the 51 liquids a surface can hold, from liquid helium and methane seas to brines, sulfur, molten salts, metals and lavas, with their windows, densities and viscosities.
+
+### Added
+- **`physics/surface_liquids.py` and `physics/data/surface_liquids.json` (GEN.1035).** For a temperature and a pressure it lists the liquids stable there (the window from the melting point to the boiling point at that pressure, from the saturation curves of `saturation.py` for the 19 species that have them and Clausius-Clapeyron for the rest), picks which liquid a world has (a volatile at saturation in the air condenses; otherwise the body's reservoir of the liquid ranks it), gives the mole fractions and density of a mixed methane-ethane-nitrogen sea, and a density and viscosity for every row. Rows are added by adding a line to the file, so mercury, a new lava or a molten salt are rows. Nothing puts a surface liquid on a world yet; the stored `surface_liquid`, its coverage and the text are the rest of GEN.1035.
+- **Stand-in rows LQ1 to LQ10** in the gap-filling plan (section 6.69) and the stand-in list.
+
+## [8.0.2741] - 2026-10-30
+
+**Headline:** The size of the open-ocean tide a world's moons and star would raise now exists as a tested calculation, ready to give each ocean world its tide range.
+
+### Changed
+- **The open-ocean equilibrium tide (GEN.1034, first part).** A new module (`physics/ocean_tides`) gives the tide each moon and the star raise on a world, from their mass and distance (0.54 m for the Moon on the Earth and 0.25 m for the Sun, as published), the spring range with every raiser in line and the neap range with the largest against the rest, the larger and smaller range at an eccentric orbit's closest and farthest approach, the floor that rises with the tide and the weight of the sea itself. A raiser the world is locked to raises no oscillating tide, an ice-covered ocean has none, and a liquid too heavy for a thin layer (mercury) is refused. It is the equilibrium value only; the range on a coast depends on the basin and is not modelled. Nothing reads it yet: the stored columns come on a later generation train.
+
+generation-output: unchanged
+
+## [8.0.2740] - 2026-10-30
+
+**Headline:** Four tests that failed on a clean main are fixed on the test side: radiation gear for an ultraviolet Red, worlds whose life has not begun, a giant's own heat, and a hot airless world.
+
+### Changed
+- **TEST.484: the climate draws test, the generated-body score test, the class-blind life draw test and the stored-score test pass on main.** (1) `test_every_generated_body_is_scored_consistently` asked a Red Radiation tier to carry radiation gear, but since GEN.445 the tier is the lower of the dose's and the ultraviolet's score, and an ultraviolet Red (a dose under the Yellow edge) is met by the Body Protection ladder (an ultraviolet suit or cover), so the test now asks for gear when the dose is over the Yellow edge and for the ultraviolet step when it is not; it also draws more systems when the twelve hold no gas giant (the star epoch moved that draw). (2) `test_the_generator_gives_life_to_every_supported_planet_and_the_same_life_under_every_class_letter` counted a world the model supports without life as a fault; GEN.997 (a star younger than 0.1 Gy) and GEN.1001 (the first step of the schedule after the star's age) give such a world no life by design, so the audit (`tests/audit/sweep_life.py`) records those two causes, reports them in a fourth column of the rates and still reports a supported world that is lifeless for any other reason. (3) `test_every_body_stores_the_draws_its_temperature_is_made_of` demanded the starlight-only temperature of every body; a giant radiates its own heat too since GEN.816 and the air solve stops at 2000 K, so the expectation includes both (it only failed when the randomly drawn host star gave a giant or a very hot world). (4) `test_the_score_round_trips_and_a_cloud_rescores_the_dose` demanded Body Protection 4 for an airless world, but the level is the highest of the kinds and the system's innermost world (1298 K) needs a heat suit; it now asks for the pressure suit as the least. Nothing the generator makes changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.484.
+
+## [8.0.2739] - 2026-10-30
+
+**Headline:** A system page now lists the orbits of its stars, so a triple or larger system shows what each orbit joins.
+
+### Added
+- **"Orbits of the stars" on the system page (MAP.213, slice C).** A system with two or more stars gets a table below its tree of bodies with one row per orbit in the stored tree of stars: what the orbit joins (two stars, or a star and the pair hung below it, named by its orbit number), whether it is a close, wide or compact pair, its mass, separation, period, eccentricity and how close the pair is (detached, semi-detached, contact and so on). A single star has no panel. `GET /api/systems/<id>` carries the same tree as `orbits` and each star's `parent_node_no` and `slot`; the API version does not change, since nothing was removed.
+
 ## [8.0.2738] - 2026-10-30
 
 **Headline:** A star's own spin sets how active it is, flares reach a world's dose by their size and the field's shield, and a world the flares scour loses its ozone, so UV, sky and life follow.
