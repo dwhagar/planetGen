@@ -1725,6 +1725,13 @@ below it, by Knuth's method (PERF.60)."""
 # find it close to flat); the secondary shares the primary's age.
 BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
 
+BROWN_DWARF_COMPANION_CHANCE = 0.03
+"""float: The chance a star heavier than the hydrogen-burning limit has a brown dwarf companion besides its stars (GEN.899).
+The `star-count` table counts stars, so a companion drawn under the limit used up one of its places (an M2V primary lost
+nearly half of them); the brown dwarfs are an extra member in this share of the systems instead. Stand-in tier
+"Unverified" (second-hand: Metchev and Hillenbrand 2009 find 3.2% (+3.1, -2.7) of solar-type stars with a companion of
+0.013 to 0.075 solar masses at 28 to 1590 AU, the "brown dwarf desert"), tweak scale L0."""
+
 # --- Close-binary types (GEN.270, `generation/multistar.py`, docs/design/multi-star-systems.md 13.2) ---
 SPECTROSCOPIC_MAX_AXIS_AU = 0.26
 """float: A pair closer than this is a spectroscopic binary (the catalogue's "close detached binary, a under 0.26 AU",

@@ -10,7 +10,7 @@ The held gas leaves the air as the condensate does in rule 4: the stored partial
 
 ## 2. The hydrosphere: brine under the lid
 
-A body whose surface water is under `BRINE_MAX_WATER_FRACTION` (2e-5, the line of the chloride brine class) has its salts concentrated. When its surface is under the ice point, the base of the lid melts at the eutectic of a drawn perchlorate (NaClO4, Mg(ClO4)2 or Ca(ClO4)2, equal weights, 198 to 236 K, with the module's spread) instead of 273.15 K, less the pressure term as before. A thinner lid, or none, follows, and a brine warmer than its eutectic is a `surface ocean`, not covered. The ocean's water activity is that salt's figure where the source gave one (Mg 0.555, Ca 0.515; Na has none, so it still draws from the class range).
+A body whose surface water is under `BRINE_MAX_WATER_FRACTION` (2e-5, the line of the chloride brine class) has its salts concentrated. When its surface is under the ice point, the base of the lid melts at the eutectic of a drawn perchlorate (NaClO4, Mg(ClO4)2 or Ca(ClO4)2, equal weights, 198 to 236 K, with the module's spread) instead of 273.15 K, less the pressure term as before. A thinner lid, or none, follows, and a brine warmer than its eutectic is liquid at the surface, not covered: a `brine seep` (GEN.908), not a `surface ocean`, since a puddle of concentrated chloride brine is not a sea that life can use in the light. The ocean's water activity is that salt's figure where the source gave one (Mg 0.555, Ca 0.515; Na has none, so it still draws from the class range).
 
 ## 3. Stand-ins and limits
 

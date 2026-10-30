@@ -143,3 +143,13 @@ def test_a_spectrum_with_no_visible_light_raises():
         photometry.spectrum_to_xyz(lambda lam: 0.0)
     with pytest.raises(ValueError):
         photometry.spectrum_to_xyz([1.0, 2.0])
+
+
+def test_a_body_too_cold_to_shine_gives_no_visible_light_and_so_no_colour():
+    """TEST.453: a black hole's temperature (about 1e-7 K) makes a blackbody with nothing between 380 and 780 nm, which has no
+    chromaticity; the colour of a world around it is none (as for a star with no temperature) and not an error."""
+    assert photometry.gives_visible_light(3000.0) and photometry.gives_visible_light(100.0)
+    assert not photometry.gives_visible_light(6.0e-8) and not photometry.gives_visible_light(0.0)
+    assert not photometry.gives_visible_light(float("nan"))
+    edge = [t for t in (10.0, 20.0, 30.0, 40.0, 50.0, 55.0, 60.0, 70.0) if photometry.gives_visible_light(t)]
+    assert edge and edge[0] <= 70.0

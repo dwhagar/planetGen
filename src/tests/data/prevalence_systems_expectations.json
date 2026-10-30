@@ -42,7 +42,6 @@
      "source": "pre-cut-over 0.640 over 150 systems at 0b4d0ccef"
     },
     "blue_green": {
-     "anomaly": "GEN.889",
      "kind": "stand-in",
      "max": 0.2326,
      "min": 0.01,
@@ -177,7 +176,6 @@
      "source": "pre-cut-over 0.133 over 150 systems at 0b4d0ccef"
     },
     "life_multicellularity": {
-     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.3378,
      "min": 0.01,
@@ -295,7 +293,6 @@
      "source": "pre-cut-over 0.027 over 150 systems at 0b4d0ccef"
     },
     "moons_per_planet": {
-     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 1.7927,
      "min": 0.7148,
@@ -478,6 +475,7 @@
      "source": "pre-cut-over 0.047 over 150 systems at 0b4d0ccef"
     },
     "life_photosynthesis": {
+     "anomaly": "GEN.889",
      "kind": "stand-in",
      "max": 0.8345,
      "min": 0.2188,
@@ -549,6 +547,7 @@
      "source": "pre-cut-over 0.693 over 150 systems at 0b4d0ccef"
     },
     "habitable_class": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.7321,
      "min": 0.1213,

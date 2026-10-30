@@ -419,8 +419,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
 
 
 def _mantle_redox(planet, air, distance, water_lost):
-    """The mantle redox (log10 above iron-wuestite) of a rocky body whose air is not drawn: the mixture's when it has one, else the
-    recipe's redox rows at the body's own mass and age (`surface_air.mantle_redox_diw`)."""
+    """The mantle redox (log10 above iron-wuestite) of a rocky body: the air mixture's when it has one, else (no air, or an envelope's
+    mixture, which has none) the recipe's redox rows at the body's own mass and age (`surface_air.mantle_redox_diw`)."""
     if air is not None and air.mixture.redox_diw is not None:
         return air.mixture.redox_diw
     return surface_air.mantle_redox_diw(planet, distance, water_lost)
@@ -798,6 +798,8 @@ def generate_moons(planet, moon_count=None):
     parent_kind = moon_composition.parent_kind(planet.envelope_mass_fraction or 0.0, planet.mass)
     # GEN.466: a giant's regular moons share one circumplanetary disk (the lifetime, the ice line, the ice ramp)
     disk_system = moon_composition.draw_disk_system(planet.mass) if parent_kind == moon_composition.GIANT else None
+    if disk_system is not None:
+        moon_composition.store_disk(planet, disk_system)
 
     # Deferred import: planet imports this module at load time, so Planet
     # can't be imported here at module level without a circular import.

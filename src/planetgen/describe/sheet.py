@@ -728,7 +728,7 @@ _SURFACE = (
     "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", "phosphorus", "magnetopause_rp",
 )
 _OCEAN = ("ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "water_base_pressure_pa")
-OCEAN_STATES = ("surface ocean", "ice-covered ocean", "hycean")
+OCEAN_STATES = ("surface ocean", "brine seep", "ice-covered ocean", "hycean")
 """tuple: The hydrospheres that hold a liquid ocean, the ones the ocean columns describe."""
 _LIFE_DETAIL = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity",
                 "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
@@ -818,8 +818,6 @@ OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
         ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
-    **{("planet", key): "GEN.904" for key in ("solar_day_hours", "daylight_hours", "day_share_equator")},
-    **{("planet", key): "GEN.905" for key in ("mantle_redox", "mantle_delta_iw")},
     **{("star", key): item for key, item in (
         ("state", "GEN.786"), ("decay_age_yr", "GEN.785"), ("lethal_event_rate_per_gyr", "GEN.785"),
         ("disk_kind", "GEN.787"), ("disk_mass_solar", "GEN.787"), ("disk_inner_au", "GEN.787"), ("disk_outer_au", "GEN.787"),

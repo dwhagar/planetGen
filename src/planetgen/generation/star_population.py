@@ -62,9 +62,10 @@ import bisect
 import functools
 import math
 
+from planetgen.galaxy import scales
 from planetgen.galaxy.age_law import AgeLaw
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
-from planetgen.physics import constants, imf, wolf_rayet
+from planetgen.physics import constants, imf, metallicity, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
     agb_bright_chance, birth_fe_h, evolve_star, giant_bright_chance,
@@ -337,6 +338,24 @@ FE_H_BINS = tuple(sorted({fe_h_bin(tuning.METALLICITY_RANGE_FE_H[0] + i * tuning
 """tuple: Every bin a star's birth [Fe/H] can fall in (`tuning.METALLICITY_RANGE_FE_H`, clamped), ascending."""
 
 
+def reference_fe_h(population):
+    """
+    The birth [Fe/H] a population's star counts are worked out at (GEN.661): the mean of its distribution at the Sun's
+    distance from the galactic centre (`None` is the whole disc's `intermediate`; a young open cluster's stars follow
+    the disc's at their age; a cluster's or satellite's are the weighted mean of the generic peaks). The share of
+    a population's stars that are bright is close to linear in [Fe/H] across a population's few tenths of a dex, so the
+    share at the mean stands for the mixture over the distribution. It does not follow a place's own position (the disc's
+    gradient) or a component's own value: a stand-in, row GEN.661 of the gap-filling plan.
+    """
+    if population in tuning.OPEN_CLUSTER_POPULATIONS:
+        population = metallicity.open_cluster_disk_population(population)
+    peaks = metallicity.generic_peaks(population)
+    if peaks:
+        return sum(weight * mean for weight, mean, _sigma in peaks) / sum(weight for weight, _mean, _sigma in peaks)
+    return metallicity.mean_fe_h("intermediate" if population is None else population,
+                                 scales.default_galactocentric_ly())[0]
+
+
 def warm_bins(min_luminosity_sol, population, mass_range=None, age_laws=None):
     """Builds the sampling table of every [Fe/H] bin for one threshold and population (GEN.651), so a worker that
     forks a horse per job holds them all; a star draws from the table of its own bin."""
@@ -345,11 +364,12 @@ def warm_bins(min_luminosity_sol, population, mass_range=None, age_laws=None):
         _bright_table(float(min_luminosity_sol), population, _check_mass_range(mass_range), window, fe_bin)
 
 
-def _grid_cells(fe_bin):
-    """How many mass cells a table of this [Fe/H] bin has: the full grid for the reference composition's (it works out
-    the share of stars the counts use), a coarser one for the others, whose bounds already stretch over the bin's
-    lifetimes by more than a coarse cell's width, and which are eight times cheaper to build."""
-    return tuning.BRIGHT_STAR_MASS_GRID_CELLS if fe_bin == 0.0 else tuning.BRIGHT_TABLE_BIN_GRID_CELLS
+def _grid_cells(fe_bin, reference=False):
+    """How many mass cells a table of this [Fe/H] bin has: the full grid for the solar bin's and for a population's
+    reference composition's (`reference_fe_h`, which works out the share of stars the counts use), a coarser one for the
+    others, whose bounds already stretch over the bin's lifetimes by more than a coarse cell's width, and which are eight
+    times cheaper to build."""
+    return tuning.BRIGHT_STAR_MASS_GRID_CELLS if reference or fe_bin == 0.0 else tuning.BRIGHT_TABLE_BIN_GRID_CELLS
 
 
 def _bin_fe_hs(fe_bin):
@@ -360,7 +380,7 @@ def _bin_fe_hs(fe_bin):
 
 
 @functools.lru_cache(maxsize=None)
-def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, fe_bin=0.0):
+def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, fe_bin=0.0, reference=False):
     """
     The cached per-(threshold, population, mass range, [Fe/H] bin) sampling table: cell
     edges, slopes and continuity factors, each cell's measure bound, the
@@ -371,8 +391,9 @@ def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, 
     pass below it add up to the share that one threshold gives. `window` is the population's `AgeLaw` (an even spread
     across its window when `None`). `fe_bin` is the birth [Fe/H] the table is built at (`fe_h_bin`; a star's lifetimes
     and giant branch follow its own, GEN.651), so a star is drawn from the table of its own bin and the bounds are
-    valid for it. The `fraction` is worked out for the reference composition's table (bin 0) only, the one the counts
-    use (a stand-in for the mixture of a place's compositions, GEN.661); another bin's is `None`.
+    valid for it. The `fraction` is worked out only for a `reference` table, built at the population's own mean
+    composition (`reference_fe_h`, `fe_bin` the composition itself, GEN.661), the one the counts use; a sampling table's is
+    `None`.
     """
     check_threshold(min_luminosity_sol)
     if window is None:
@@ -380,9 +401,9 @@ def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, 
     cells, cumulative = [], []
     running = bright = living = 0.0
     mass_low, mass_high = mass_range if mass_range is not None else (None, None)
-    with_fraction = fe_bin == 0.0
+    with_fraction = reference
     for a, b, alpha, norm in _mass_grid(tuple(edge for edge in (mass_low, mass_high) if edge is not None),
-                                        _grid_cells(fe_bin)):
+                                        _grid_cells(fe_bin, reference)):
         count = norm * imf.power_law_integral(a, b, alpha)
         if with_fraction:
             # E[measure] over the cell by stratified IMF quantiles.
@@ -430,7 +451,7 @@ def bright_star_fraction(min_luminosity_sol, population=None, mass_range=None, a
         float: The fraction, in `[0, 1]`.
     """
     return _bright_table(float(min_luminosity_sol), population, _check_mass_range(mass_range),
-                         _law(population, age_laws))["fraction"]
+                         _law(population, age_laws), reference_fe_h(population), True)["fraction"]
 
 
 def massive_star_fraction(min_mass_sol, population=None, age_laws=None):
@@ -441,20 +462,25 @@ def massive_star_fraction(min_mass_sol, population=None, age_laws=None):
     `MASS_PASS_MIN_LUMINOSITY_SOL` all its life), and what a mass backfill
     (GEN.187) takes a sector down to.
     """
-    return _mass_band_table((float(min_mass_sol), None), population, _law(population, age_laws))["fraction"]
+    return _mass_band_table((float(min_mass_sol), None), population, _law(population, age_laws),
+                            reference_fe_h(population), True)["fraction"]
 
 
 def _prior_source(population, rng, fe_h_source, index):
     """The draw of a birth [Fe/H] for the `index`-th star: the place's (`fe_h_source(index)`, `sample_bright_stars`)
-    or, with no place, one for `population` at the Sun's distance. A star of a population in the gate takes its
-    component's [Fe/H] later and the row stores none (GEN.159, GEN.237), so it is drawn at the reference composition
-    its tree reads it back at (`multistar.Placed.tree_fe_h`): a stand-in until the component's value reaches the draw
-    (GEN.662)."""
+    or, with no place, one for `population` at the Sun's distance (a cluster or satellite star, the generic cluster's or
+    satellite's: the component pass gives its own, GEN.662)."""
     if fe_h_source is None:
-        if population in POPULATIONS_IN_THE_GATE:
-            return lambda: 0.0
-        return lambda: birth_fe_h(rng, population)
-    return lambda: fe_h_source(index)
+        def generic():
+            return birth_fe_h(rng, population)
+        peaks = metallicity.generic_peaks(population)
+        if peaks:
+            generic.bins = fe_h_support(peaks)
+        return generic
+    placed = lambda: fe_h_source(index)
+    if getattr(fe_h_source, "bins", None):
+        placed.bins = fe_h_source.bins
+    return placed
 
 
 def _table_total(table):
@@ -468,6 +494,15 @@ FE_H_REDRAWS = 100 * tuning.STAR_MODEL_MAX_REDRAWS
 table total, rare in the luminosity window it asks for)."""
 
 
+def fe_h_support(peaks):
+    """The [Fe/H] bins a draw from `peaks` (`((weight, mean, sigma), ...)`) can land in, to four sigma: what a source of a
+    component's compositions is stamped with (`source.bins`), so `_draw_fe_h` keeps its stars against the best bin of
+    their own support, not the best of any composition (GEN.662)."""
+    low, high = tuning.METALLICITY_RANGE_FE_H
+    reach = [(max(low, mean - 4.0 * sigma), min(high, mean + 4.0 * sigma)) for _weight, mean, sigma in peaks]
+    return frozenset(fe_h_bin(value) for a, b in reach for value in (a, b, *(a + (b - a) * k / 16.0 for k in range(1, 16))))
+
+
 def _draw_fe_h(source, totals, rng):
     """
     The birth [Fe/H] for a try at a star the tables condition on (it is bright, or in a mass band): `source()` draws one
@@ -476,9 +511,11 @@ def _draw_fe_h(source, totals, rng):
     measure over its cell's bound, so a composition is kept as often as its stars are there: the composition a place's
     bright stars have is its prior times each composition's bright share, not the prior (a metal-poor halo has no 2500
     Lsun giants in a 3 to 10 Gy window, and its metal-rich tail makes all of them). A try that fails draws a new
-    composition with the next.
+    composition with the next. A source of one component's compositions (`source.bins`, GEN.662) is held against the
+    best bin it can emit, which changes how often a try is kept and not which compositions the stars have.
     """
-    best = max(totals.values())
+    bins = getattr(source, "bins", None)
+    best = max(totals.get(fe_bin, 0.0) for fe_bin in bins) if bins else max(totals.values())
     if best <= 0:
         raise ValueError("no composition makes a star of this kind in this population window")
     for _ in range(FE_H_REDRAWS):
@@ -607,7 +644,7 @@ def bright_band_fraction(min_luminosity_sol, max_luminosity_sol=None, population
 
 
 @functools.lru_cache(maxsize=None)
-def _mass_band_table(mass_range, population, window=None, fe_bin=0.0):
+def _mass_band_table(mass_range, population, window=None, fe_bin=0.0, reference=False):
     """
     The cached sampling table of the stars born in `mass_range` (`(low,
     high)` initial solar masses, `high` `None` for no limit) that are still
@@ -622,8 +659,9 @@ def _mass_band_table(mass_range, population, window=None, fe_bin=0.0):
     mass_low, mass_high = mass_range
     cells, cumulative = [], []
     running = born = living = 0.0
-    with_fraction = fe_bin == 0.0
-    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in mass_range if edge is not None), _grid_cells(fe_bin)):
+    with_fraction = reference
+    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in mass_range if edge is not None),
+                                        _grid_cells(fe_bin, reference)):
         count = norm * imf.power_law_integral(a, b, alpha)
         measure = 0.0
         if with_fraction:
@@ -661,7 +699,7 @@ def mass_band_fraction(min_mass_sol, max_mass_sol=None, max_luminosity_sol=None,
     already placed the brighter ones.
     """
     band = _check_mass_band(min_mass_sol, max_mass_sol)
-    born = _mass_band_table(band, population, _law(population, age_laws))["fraction"]
+    born = _mass_band_table(band, population, _law(population, age_laws), reference_fe_h(population), True)["fraction"]
     if max_luminosity_sol is not None:
         born -= bright_star_fraction(max_luminosity_sol, population, band, age_laws)
     return max(born, 0.0)

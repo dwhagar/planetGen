@@ -126,7 +126,7 @@ def test_a_planet_has_a_page_with_its_sheet_text_places_and_tree(client):
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert "<title>" in page and "Kepler b" in page
-    assert 'class="summary"' in page and "Kepler b is a world" in page      # UX.220: the summary is written from the data
+    assert 'class="summary inline-links"' in page and "Kepler b is a world" in page      # UX.220: the summary is written from the data
     assert "A rocky world." not in page                  # and the stored class description no longer opens the page
     assert 'id="item-properties"' in page and "Mass" in page and "Ocean depth" not in page   # the sheet; a value never stored is not listed (UX.199)
     assert 'href="/sector/4"' in page and 'href="/system/9"' in page          # the places it is in
@@ -438,7 +438,7 @@ def test_a_planet_page_is_laid_out_about_habitability_atmosphere_composition_the
     positions = [names.index(name) for name in wanted]
     assert positions == sorted(positions), names
     assert "Rendered example" not in page
-    assert page.index('id="location"') < page.index("hab-symbols") < page.index('class="summary"')
+    assert page.index('id="location"') < page.index("hab-symbols") < page.index('class="summary inline-links"')
     assert page.index("Life based on carbon") < page.index('id="habitability"') < page.index('id="sheet-atmosphere"') \
         < page.index('id="sheet-composition"') < page.index('id="item-properties"')
     assert 'id="location"' in page.split('id="item-facts"')[1].split("</section>")[0]     # the Location row is inside About

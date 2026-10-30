@@ -42,8 +42,8 @@ def _system(seed=None):
     pytest.fail("no system with two bodies that have air and a cloud in 60 seeds")
 
 
-READ_FROM_AEROSOLS = ("uv_surface_index", "phi4_radiation", "atmosphere_colour")
-"""tuple: What the body stores that reads the aerosols (GEN.445: the cloud, dust and haze cut the ground UV, and the Radiation score is the lower of the dose's score and the ground UV's; GEN.418: the sky colour is seen through them), so it moves with them without a draw."""
+READ_FROM_AEROSOLS = ("uv_surface_index", "phi4_radiation", "atmosphere_colour", "eq_dust")
+"""tuple: What the body stores that reads the aerosols (GEN.445: the cloud, dust and haze cut the ground UV, and the Radiation score is the lower of the dose's score and the ground UV's; GEN.418: the sky colour is seen through them; the dust equipment level follows the dust depth), so it moves with them without a draw."""
 
 
 def _fields(body):

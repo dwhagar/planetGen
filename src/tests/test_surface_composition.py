@@ -16,7 +16,7 @@ def seeded():
 
 
 def earth(**overrides):
-    values = dict(planet_class="M", surface_temperature_k=288.0, pressure_pa=101325.0, o2_partial_pa=21000.0,
+    values = dict(surface_temperature_k=288.0, pressure_pa=101325.0, o2_partial_pa=21000.0,
                   water_mass_fraction=2.3e-4, rock_mass_fraction=0.67, metal_mass_fraction=0.33, rock_feo_fraction=0.08,
                   hydrosphere="surface ocean", ocean_fraction=0.71, internal_heat_flux_w_m2=0.09, age_gy=4.5,
                   mobile_lid=True)
@@ -38,17 +38,31 @@ def test_tables_validate():
 
 
 def test_giants_have_no_ground():
-    for letter in sc.GIANT_CLASSES:
-        assert sc.draw_surface(earth(planet_class=letter)) is None
+    assert sc.draw_surface(earth(giant=True)) is None
 
 
-@pytest.mark.parametrize("planet_class", sorted(set("ABCDEFGHKLMNOPQSV")))
-def test_every_class_sums_to_one(planet_class):
+def test_the_ground_never_reads_the_class_letter():
+    """GEN.917, GEN.915: the inputs hold no class letter, and the dominant ground is drawn on conditions alone (every row of its table
+    is open to any class)."""
+    assert "planet_class" not in sc.SurfaceInputs.__dataclass_fields__
+    assert all(row.classes == (pt.ANY_CLASS,) for row in sc.DOMINANT_TABLE.rows)
     for seed in range(20):
         draw.set_run_seed(seed)
-        result = sc.draw_surface(earth(planet_class=planet_class))
+        result = sc.draw_surface(earth())
         check_sums(result)
         assert result.grain in sc.GRAINS
+
+
+@pytest.mark.parametrize("kwargs", [dict(), dict(surface_temperature_k=150.0, pressure_pa=0.0, water_mass_fraction=0.0, hydrosphere="dry",
+                                                 ocean_fraction=0.0),
+                                    dict(carbon_rock=True, hydrosphere="dry", ocean_fraction=0.0),
+                                    dict(metal_mass_fraction=0.9, rock_mass_fraction=0.1, hydrosphere="dry", ocean_fraction=0.0)])
+def test_the_dominant_ground_follows_the_conditions(kwargs):
+    """A body of these conditions has the ground its conditions say, the same on every seed's stream position."""
+    draw.set_run_seed(5)
+    first = sc.draw_surface(earth(**kwargs))
+    draw.set_run_seed(5)
+    assert sc.draw_surface(earth(**kwargs)).ground_type == first.ground_type
 
 
 def test_ocean_world_has_ocean_and_salts():
@@ -67,7 +81,7 @@ def test_ice_needs_cold_enough_surface():
 
 
 def test_ice_rich_frozen_body_is_all_ice():
-    result = sc.draw_surface(earth(planet_class="D", surface_temperature_k=100.0, pressure_pa=0.0, water_mass_fraction=0.4,
+    result = sc.draw_surface(earth(surface_temperature_k=100.0, pressure_pa=0.0, water_mass_fraction=0.4,
                                    rock_mass_fraction=0.6, hydrosphere="ice", ocean_fraction=0.2))
     assert result.mix == {sc.ICE: 1.0}
     assert set(result.components) == {"water_ice"}
@@ -75,11 +89,11 @@ def test_ice_rich_frozen_body_is_all_ice():
 
 def test_other_ices_stand_only_where_cold_enough():
     shares = {"n2_ice": 0.6, "ch4_ice": 0.4}
-    cold = sc.draw_surface(earth(planet_class="D", surface_temperature_k=30.0, pressure_pa=1.0, water_mass_fraction=0.3,
+    cold = sc.draw_surface(earth(surface_temperature_k=30.0, pressure_pa=1.0, water_mass_fraction=0.3,
                                  ice_mass_fraction=0.2, rock_mass_fraction=0.5, volatile_shares=shares, hydrosphere="ice",
                                  ocean_fraction=0.1))
     assert {"water_ice", "n2_ice", "ch4_ice"} <= set(cold.components)
-    warm = sc.draw_surface(earth(planet_class="D", surface_temperature_k=120.0, pressure_pa=1.0, water_mass_fraction=0.3,
+    warm = sc.draw_surface(earth(surface_temperature_k=120.0, pressure_pa=1.0, water_mass_fraction=0.3,
                                  ice_mass_fraction=0.2, rock_mass_fraction=0.5, volatile_shares=shares, hydrosphere="ice",
                                  ocean_fraction=0.1))
     assert "n2_ice" not in warm.components and "ch4_ice" not in warm.components
@@ -105,7 +119,7 @@ def test_modifiers_follow_the_air_and_the_water():
 
 
 def test_tidal_sulfur():
-    result = sc.draw_surface(earth(planet_class="D", hydrosphere="dry", ocean_fraction=0.0, tidal_heat_flux_w_m2=2.0,
+    result = sc.draw_surface(earth(hydrosphere="dry", ocean_fraction=0.0, tidal_heat_flux_w_m2=2.0,
                                    internal_heat_flux_w_m2=0.01, o2_partial_pa=0.0, mobile_lid=False,
                                    surface_temperature_k=110.0, pressure_pa=0.0))
     assert "sulfur" in result.mix
@@ -207,7 +221,7 @@ def test_every_generated_body_has_a_consistent_ground():
         if mix.get(sc.ICE):
             assert body.surface_temperature < 273.15
         if mix.get(sc.OCEAN):
-            assert body.hydrosphere in ("surface ocean", "hycean")
+            assert body.hydrosphere in ("surface ocean", "brine seep", "hycean")
         if mix.get("carbon"):
             assert body.carbon_rock
         if mix.get("metal"):
