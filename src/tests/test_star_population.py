@@ -288,7 +288,8 @@ def test_a_populations_counts_are_worked_out_at_its_own_composition_not_the_suns
     the solar composition's."""
     assert sp.reference_fe_h("halo") < -1.0 and sp.reference_fe_h("young") == pytest.approx(0.0, abs=0.1)
     assert sp.reference_fe_h("cluster") < -0.5 and sp.reference_fe_h(None) == sp.reference_fe_h("intermediate")
-    for population, least in (("old", 1.02), ("halo", 1.2)):
+    # GEN.935: on the MIST tracks the halo's own-composition gain in bright stars is 1.09 (it was over 1.2 on the hand-set giants)
+    for population, least in (("old", 1.02), ("halo", 1.05)):
         solar = sp._bright_table(500.0, population, None, sp._law(population, None), 0.0, True)["fraction"]
         own = sp.bright_star_fraction(500.0, population)
         assert own > least * solar, (population, own, solar)
