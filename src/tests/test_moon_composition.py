@@ -204,18 +204,30 @@ def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it()
     assert any(i > 130.0 for i in origins["captured"])
 
 
+def _disk_ice_sides(moons):
+    """`(near, far)`: the disk moons formed under a third of their disk's ice line and past one and a half times it."""
+    disk = [moon for moon in moons if moon.moon_origin == "disk"]
+    ratio = lambda moon: moon.distance * 1.495978707e8 / moon.moon_disk_system.ice_line_km
+    return [m for m in disk if ratio(m) < 0.3], [m for m in disk if ratio(m) > 1.5]
+
+
 @pytest.fixture(scope="module")
 def generated_moons():
-    """The moons of 40 seeded systems, each with the origin and disk it was generated from (GEN.466)."""
+    """The moons of seeded Sun-like single stars (GEN.466): at least 40 systems, and more (up to 120) until a few disk moons stand on each
+    side of their disk's ice line, since only a giant makes a disk moon and few systems have one."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     moons = []
     with draw.bound(8):
-        for _ in range(40):
+        for count in range(120):
+            if count >= 40 and all(len(side) >= 2 for side in _disk_ice_sides(moons)):
+                break
             config = SystemConfig()
             config.MOONS = True
+            config.STAR_TYPE = "G2V"
+            config.BINARY_SYSTEM = False
             system = StarSystem(system_config=config)
-            for planet in system.planets + system.secondary_planets:
+            for planet in system.planets:
                 if planet.body_type != "a":
                     moons.extend(planet.moons)
     return moons
@@ -235,9 +247,8 @@ def test_every_generated_moon_has_a_composition_from_its_origin(generated_moons)
 
 
 def test_a_disk_moon_gains_ice_past_its_disks_ice_line(generated_moons):
-    disk = [moon for moon in generated_moons if moon.moon_origin == "disk"]
-    near = [m.water_mass_fraction for m in disk if m.distance * 1.495978707e8 < 0.3 * m.moon_disk_system.ice_line_km]
-    far = [m.water_mass_fraction for m in disk if m.distance * 1.495978707e8 > 1.5 * m.moon_disk_system.ice_line_km]
+    near, far = ([moon.water_mass_fraction for moon in side] for side in _disk_ice_sides(generated_moons))
+    near, far = list(near), list(far)
     assert near and far
     assert max(near) < 0.05
     assert sum(far) / len(far) > sum(near) / len(near) + 0.1
