@@ -11252,28 +11252,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star tables are also held. Catalog sections 1 to 3.
   Prerequisites: none. Related: UX.208, GEN.741, GEN.755.
 
-- [ ] **GEN.787 Fill star disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au for the stars that have a disk (never filled except for one G star)**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): Four columns empty for 521 of 522 stars. Fill them where the
-  star still has a disk and write the sheet rule for the ones that have
-  none. Done: the column is filled for every body the sheet rule says it
-  applies to, or the sheet rule is changed to say why it does not apply
-  (a sentence of reason in describe/sheet.py APPLIES), and the UX.208
-  test lists no empty applicable pair for it; a drawn or computed value
-  has a source and a GEN.725 registry row with tier and tweak level, a
-  unit (GEN.772) and a column_units entry; a change to generated output
-  carries `tests.golden_update --reason ... --affects <stage>` and the
-  next epoch; tests are `scripts/test.py changed --resume`. Version 8.1,
-  with UX.208. Suggested owner: Aux 2 (stars).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Core 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Prerequisites: none. Related: UX.208, GEN.725.
-
 - [ ] **GEN.789 Write the sheet rule for wide_binary_a_crit_km: not applicable to a single star, filled for a binary (348 of 522 stars empty)**
   Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
   as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
@@ -11974,21 +11952,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
+  Update (Aux 7, train 3 #3984) (2026-10-30 7:31 AM EDT): Parts 1 and 3
+  merged in train 3 (claude/gen842). The rest of the item stays open:
+  the parts that follow the tides chain (GEN.955 onward on Tides 1,
+  train 5) and GEN.992 (own slot).
   Prerequisites: none. Related: GEN.727, GEN.731, GEN.737, GEN.725, GEN.953, GEN.954, GEN.955, GEN.956, GEN.957, GEN.958, GEN.959, GEN.960, GEN.961, GEN.976, GEN.977, GEN.978, GEN.979.
-
-- [ ] **GEN.846 Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still)**
-  Found by Aux 10 with MAP.328 (stars in the sector view, #3447, 1:00 PM
-  EDT 2026-10-28 as the lane reported): stars have no stored rotation
-  period (spinH is 0), so the Spin layer cannot turn them and Boss's
-  wish that every star turns on its axis wherever it is seen is unmet.
-  Store a rotation period per star from physics (mass and age
-  gyrochronology for main-sequence stars, the known spin classes for
-  giants, white dwarfs, neutron stars and black holes; a stand-in tier
-  and tweak level in the registry where it is a fit), as a column with
-  its unit in db/column_units.py. It changes generated output, so it
-  takes an epoch with --affects fill and a lock turn. Once stored, stars
-  turn with no further map work. Owner: Core 3 (stars), after GEN.328.
-  Prerequisites: none.
 
 - [ ] **GEN.850 Wire radiative_convective.warming into generation behind a lookup table of the model answers, and delete the infrared_opacity.py plateau code**
   Left by Math 1 after GEN.715/GEN.717/GEN.718 (#3507, 5:55 PM EDT
@@ -12594,101 +12562,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are in the project files; Bedard white dwarf sequences and the neutron
   star tables are also held. Catalog sections 1 to 3.
 
-- [ ] **GEN.927 Single-star mass function rows: a bell below 1 solar mass, the field slope from 1 to 8, the sub-stellar tail and the massive end, with stand-in tiers and tweak levels and a design note**
-  Item 3 of the star mass function chain (GEN.922). Replace the hand-set
-  broken line (1.3 below 0.5, 2.3 above) with sourced rows for the
-  sub-stellar tail, the low-mass bell, the solar range, the field slope
-  from 1 to 8 solar masses and the massive end; research check that the
-  field steepening is a birth function and not a count of stars already
-  dead; stand-in rows with tier and tweak scale; new design note
-  docs/design/galaxy/stellar-mass-function.md. Part of the one epoch
-  (item GEN.932). Part of the GEN.922 chain, plan
-  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
-  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Prerequisites: none. Related: GEN.922, GEN.914.
-
-- [ ] **GEN.928 System primaries follow from the single-star curve plus multiplicity (a top-down solve), with brown dwarf companions and the brown dwarf desert; the star-count table agrees**
-  Item 4 of the star mass function chain (GEN.922). For each mass m,
-  single stars at m equal primaries at m plus companions at m from
-  heavier primaries; solve from the top mass down with no iteration.
-  Inputs are the companion fraction by primary mass and the mass-ratio
-  distribution (Raghavan 2010, Duchene and Kraus 2013, Moe and Di
-  Stefano 2017; today a uniform ratio 0.1 to 1 and the star-count
-  table), each a sourced row with a tier. The system function (peak near
-  0.2 solar masses) then comes out of the physics. Part of the one epoch
-  (GEN.932). Part of the GEN.922 chain, plan
-  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
-  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Prerequisites: GEN.927. Related: GEN.922.
-
-- [ ] **GEN.929 Systems per stellar mass and the galaxy's star count come from the same construction (the mean system mass of item 4); supersedes GEN.918**
-  Item 5 of the star mass function chain (GEN.922). The number of
-  systems per unit stellar mass is the mean system mass of the
-  construction in the primary-function item, one number and not a second
-  anchor, so the galaxy's star count follows its own star-formation
-  history; closes the root of GEN.900 to 902 permanently and supersedes
-  GEN.918 (the census-galaxy fix). Part of the one epoch (GEN.932). Part
-  of the GEN.922 chain, plan
-  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
-  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Prerequisites: GEN.928. Related: GEN.922, GEN.918.
-
-- [ ] **GEN.930 Remnants (white dwarfs, neutron stars, black holes) and giants follow from the curve and are checked against it; the pinned derived-density tests are re-derived, not loosened**
-  Item 6 of the star mass function chain (GEN.922). White dwarfs come
-  from the 0.8 to 8 solar mass stars that have died (initial-final
-  relation, the disk history ages), neutron stars and black holes from
-  the massive share, giants from the evolved stars; no separate anchor
-  for the massive share unless a derivation fails and then a recorded
-  L2. The tests that pin the old shares (black hole 0.00637, neutron
-  star, place terms, GEN.560/563 chain) are re-derived. Absorbs GEN.919
-  (white dwarf share). Part of the one epoch (GEN.932). Part of the
-  GEN.922 chain, plan
-  /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
-  (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
-  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
-  lane reported): this item absorbs the neutron star and black hole mass
-  work (the sourced Gaussians in tuning, a progenitor-mass and
-  metallicity black hole law; former GEN.937) and the one white dwarf
-  initial-final relation (former GEN.938). Both are dropped as separate
-  items.
-  Research (2026-10-09): Audit update (10-29, second pass): black holes
-  keep the 8 to 10 solar mass peak and NO mass gap is built (Ray, Farr
-  and Kalogera 2025: gravitational-wave sample not consistent with a
-  gap); the neutron star Gaussians in tuning are confirmed (Ozel and
-  Freire 2016: slow 1.49 +- 0.19, recycled 1.54 +- 0.23, double 1.33 +-
-  0.09; Antoniadis et al. 2016: 1.39 and 1.81). The wrong white dwarf
-  relation is the disk history and mass_loss one (Weidemann 2000, 0.12
-  low at 5 to 7 solar masses); the star model's Kalirai 2008 is within
-  0.04 of Cummings 2018 from 2 to 8 and 0.06 low at 1. Use Cummings et
-  al. 2018 (MIST version, three linear pieces 0.83 to 2.85, 2.85 to 3.6,
-  3.6 to 7.2 solar masses) everywhere, in one place. Do not use the
-  withdrawn Wolf-Rayet binary fraction.
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Prerequisites: GEN.929. Related: GEN.922, GEN.919.
-
 - [ ] **GEN.931 The spiral-arm contrast at the Sun's place is set per stellar population (young arm populations strong, A stars weak), not by the single inter-arm minimum (the A-star lever of GEN.898)**
   Item 7 of the star mass function chain (GEN.922). The arm contrast at
   the Sun is a population-by-population value from the literature (A
@@ -12716,7 +12589,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chain, plan
   /mnt/project-files/reports/bug1/star-mass-function-chain-plan-2026-10-29.md
   (Bug 1, 2026-10-29). Owner: Bug 1. Version 8.1.
-  Prerequisites: GEN.927, GEN.928, GEN.929, GEN.930, GEN.931. Related:
+  Prerequisites: GEN.931. Related:
   GEN.922.
   Research (2026-10-09): Scope (Boss 5:42 PM EDT 2026-10-29): the epoch
   includes the star class audit items GEN.935 to GEN.943 as well as
@@ -12748,79 +12621,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (no output change), off the critical path of the GEN.922 chain. Owner:
   Bug 1. Version 8.1.
   Prerequisites: none. Related: GEN.922, GEN.568.
-
-- [ ] **GEN.935 Evolved stars from the real post-main-sequence tracks: read the MIST post-main-sequence rows at setup for subgiant, giant, core-helium-burning, asymptotic giant and supergiant luminosity, temperature, radius and duration; red supergiants stop at about 300,000 Lsun; a Cepheid and yellow-star flag**
-  Audit findings H1, H2, H3 (high). Supergiant temperature is drawn with
-  no link to luminosity or mass (30 percent of 56,000 supergiants are
-  smaller than the star's own main-sequence radius; a third of those
-  above 300,000 Lsun are red, 100 and 150 solar mass 'red hypergiants'
-  of 3,000 to 4,500 Rsun against about 1,500 Rsun real; no stars between
-  5,000 and 9,000 K); giants and asymptotic giants have a uniform 3,500
-  to 5,000 K regardless of luminosity (the tip reaches about 66 Rsun
-  where the real tip is 150 to 200), which also feeds the planet
-  engulfment test; stars of 2.2 solar masses and up have no core helium
-  burning (a 3 solar mass giant draws a median 970 Lsun where the clump
-  is about 100 to 300) and a fixed 10 percent subgiant phase. Do: read
-  the post-main-sequence rows of the MIST archive that setup already
-  downloads (datasets/isochrones.py keeps only the main-sequence rows)
-  and use them for luminosity, temperature and radius, keeping the phase
-  durations; red supergiant limit recorded L2 until Humphreys and
-  Davidson 1979 or a track set is read; flag Cepheids and yellow stars.
-  Stand-in tier Verified for MIST rows (L0), educated guess from physics
-  where a recalled rule stands in (L1). From the star class audit
-  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
-  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
-  the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Star 1 (Boss 5:49 PM EDT 2026-10-29, option 1, a fresh
-  lane). Version 8.1.
-  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
-  lane reported): the post-main-sequence and label work goes to a
-  star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
-  (fresh star-physics lane, Core 5, or Core 3). Must start now: the
-  GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
-  merged back to back inside the one GEN.932 turn.
-  Research (2026-10-09): Audit update (10-29, second pass, as the audit
-  lane reported 5:50 PM EDT): sharper numbers. A 3 solar mass core
-  helium burning star is 113 to 144 Lsun at about 4,950 K and 14 to 16
-  Rsun in MIST against the code's 580 to 1,960 Lsun (5 to 15 times too
-  bright, 3 to 6 times too large); 5 solar masses 1,507 Lsun against
-  1,300 to 8,500; 8 solar masses matches. The fixed subgiant phase is 10
-  percent of main-sequence life in the code and under 1 percent (0.3 to
-  0.8) by the project's own Hurley, Pols and Tout code at 2.5 to 8 solar
-  masses; keep the HPT durations. The red giant tip (Serenelli et al.
-  2017 Table 2, 1 solar mass) is 65 Rsun at Z 0.0001 and 123 Rsun at Z
-  0.004, the AGB tip about 6,000 Lsun (M_bol -7.2). Red supergiant limit
-  log L 5.5 (Davies, Crowther and Beasor 2018) and 5.2 for type II
-  progenitors (Davies and Beasor 2020) verified; largest real red
-  supergiant about 1,540 Rsun (Levesque et al. 2009). MIST is sampled
-  every 0.05 dex in age, so the Hertzsprung gap and blue loops are not
-  resolved by it; take their durations from HPT.
-  Research (2026-10-09): Audit update 3 (10-29, as the audit lane
-  reported 5:55 PM EDT): the Cepheid instability strip is about 5,100 to
-  6,300 K at log L 3 and 4,700 to 5,600 K at log L 4 (verified, arXiv
-  2412.03652); the giant and supergiant temperature fix must reach those
-  temperatures. Horizontal branch luminosity holds; only hot subdwarf
-  luminosities remain unchecked (low importance).
-  Research (2026-10-09): Audit item 13 (finding L8, low priority, as the
-  audit lane reported 6:00 PM EDT): hot subdwarfs (extreme horizontal
-  branch, 20,000 to 35,000 K) get the red clump's 35 to 50 Lsun in the
-  code; published sdB values (Heber et al. 2026, arXiv 2602.15692) are
-  10 to 30 Lsun, 0.1 to 0.25 Rsun, about 0.47 solar masses, with no AGB
-  phase afterward. Fold into this item's horizontal-branch luminosity by
-  colour; the present mass half is on GEN.940.
-  Absorbed (2026-10-29 8:30 PM EDT): GEN.741 (post-main-sequence tracks,
-  filed 10-24) is revoked as superseded by this item. What it asked
-  beyond GEN.935 stays here: a test on the Hertzsprung-Russell diagram
-  of a synthetic cluster, and evolved stars' planets reading the new
-  luminosity and radius. Secondary sources are accepted for the track
-  shapes (Boss 8:16 PM EDT 2026-10-29).
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.936 The 0.08 to 0.1 solar mass main sequence comes from the Baraffe 2015 table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap)**
   Audit finding H4 (high). 11.6 percent of primaries lie between the IMF
@@ -12855,114 +12655,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (phase -1) are also downloaded. Catalog sections 1 and 3.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
-- [ ] **GEN.939 Wolf-Rayet luminosity follows the present mass by the helium-star mass-luminosity relation (low priority)**
-  Audit finding M3. Wolf-Rayet luminosity is log-uniform 1e5 to 1e6 Lsun
-  whatever the progenitor (median 3e5 for 25 or 100 solar masses) and
-  present mass is a uniform 0.4 to 0.6 of the initial mass; very
-  massive WNh stars cannot occur. Low priority after the audit
-  re-check: the range is right up to about 40 solar masses and the
-  code is too low only above about 60 (Crowther 2007 relation [V]);
-  the binary-stripped route is dropped (Shenar et al. 2020: observed
-  binary fractions 30 to 40 percent).
-  Do: luminosity from the present mass by the helium-star
-  mass-luminosity relation; present mass from the mass-loss law. The
-  Wolf-Rayet count target is Bug 1's census (GEN.902 root, now GEN.929).
-  From the star class audit
-  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
-  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
-  the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Star 1 (Boss 5:49 PM EDT 2026-10-29, option 1, a fresh
-  lane). Version 8.1.
-  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
-  lane reported): the post-main-sequence and label work goes to a
-  star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
-  (fresh star-physics lane, Core 5, or Core 3). Must start now: the
-  GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
-  merged back to back inside the one GEN.932 turn.
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Star 1 finding (as the lane reported 11:21 PM EDT) (2026-10-29 11:21
-  PM EDT): MIST tracks of Wolf-Rayet stars of 60 to 150 solar masses end
-  at 4e5 to 9e5 solar luminosities, so the audit's "code too low above
-  60" does not show in the tracks; GEN.939 is READY as PR #3873 (stacked
-  on #3858, registry row PS9) and rides train 3 after #3842 and #3858.
-  Prerequisites: none. Related: GEN.922, GEN.932.
-
-- [ ] **GEN.940 Present mass for giants, horizontal-branch, asymptotic and massive stars: a Reimers-type loss for the red giant and asymptotic branches and a wind loss for massive stars**
-  Audit finding M4. Almost no star carries mass loss: a 0.9 solar mass
-  giant, horizontal-branch and asymptotic giant star all report 0.9 (a
-  real horizontal-branch star is 0.55 to 0.7); a 60 solar mass
-  main-sequence star and a 20 solar mass red supergiant keep their birth
-  mass (real losses 10 to 40 percent). This feeds surface gravity,
-  orbital periods and the habitable-zone and Hill sphere sizes of every
-  giant host. Do: a present-mass function of phase (Reimers-type for the
-  giant branches, a simple wind loss for massive stars), recorded as a
-  stand-in tier; mass_loss.py handles only the white dwarf orbit growth
-  today. From the star class audit
-  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
-  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
-  the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Star 1 (Boss 5:49 PM EDT 2026-10-29, option 1, a fresh
-  lane). Version 8.1.
-  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
-  lane reported): the post-main-sequence and label work goes to a
-  star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
-  (fresh star-physics lane, Core 5, or Core 3). Must start now: the
-  GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
-  merged back to back inside the one GEN.932 turn.
-  Research (2026-10-09): Audit item 13 (finding L8, low priority): hot
-  subdwarf present mass is about 0.47 solar masses (Heber et al. 2026,
-  arXiv 2602.15692), not the progenitor's; the luminosity half is on
-  GEN.935.
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Prerequisites: none. Related: GEN.922, GEN.932.
-
-- [ ] **GEN.941 Forced star types draw their star from the model; the legacy letter tables and the dead random branch are removed; the class reference pages read the new ranges**
-  Audit finding M5. A forced type (STAR_TYPE, for example G2V) draws its
-  luminosity log-uniformly inside the old letter range, independent of
-  temperature, and takes mass from L to the 1/3.5; the old ranges
-  disagree with the MIST main sequence (K luminosity 0.08 to 0.6 against
-  MIST 0.033 to 0.46; A mass 1.4 to 2.1 against 1.7 to 2.5), so a forced
-  K5V can come out at a K0 luminosity; the same ranges are printed on
-  the class reference pages (web/lib/classref.py). The old random branch
-  of generate_star (SPECTRAL_PROBABILITIES_NORMAL) has no caller outside
-  star.py. Do: a forced type picks a mass and age that give that letter,
-  subclass and class (or reads luminosity from the MIST row at the
-  type's temperature), delete the dead branch and the legacy tables (no
-  shims), and let the class pages read the new ranges. From the star
-  class audit
-  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
-  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
-  the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Star 1 (Boss 5:49 PM EDT 2026-10-29, option 1, a fresh
-  lane). Version 8.1.
-  Research (2026-10-09): BOSS DECIDED (5:42 PM EDT 2026-10-29, card
-  answer option 1): this item is IN the long-term epoch GEN.932, so star
-  subclass names, forced types and life paces are settled once. Owner
-  Bug 1.
-  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
-  lane reported): the post-main-sequence and label work goes to a
-  star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
-  (fresh star-physics lane, Core 5, or Core 3). Must start now: the
-  GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
-  merged back to back inside the one GEN.932 turn.
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Prerequisites: none. Related: GEN.922, GEN.932.
-
 - [ ] **GEN.942 Supported life paces come from the star's actual lifespan; the per-letter lifespan table (tuning.STAR_EVOLUTION) is removed**
   Audit finding M6. The per-letter lifespan table (from the old 10 Gy x
   M^-2.5 law) still decides which life paces a planet may use: it says G
@@ -12987,46 +12679,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
   lane reported): owner moves to Aux 2 (life paces are its area); in the
   long-term epoch GEN.932 (Boss 5:42 PM EDT).
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Prerequisites: none. Related: GEN.922, GEN.932.
-
-- [ ] **GEN.943 Spectral subclasses from a letter-and-subclass temperature lookup table (Pecaut and Mamajek style), the K/M boundary at about 3,900 K, and a decision on Yerkes class VI (subdwarf)**
-  Audit findings L1 and L2. Subclasses are linear in temperature inside
-  each letter (B5 is about 15,400 K but placed near 18,800 K; O3 would
-  show at about 50,000 K instead of 44,000 K); the K/M boundary is 3,700
-  K where the usual one is about 3,900 K (see GEN.897/898 that moved the
-  edge); no Yerkes class VI is ever generated (metal-poor dwarfs come
-  out as V). Do: a lookup table of letter-subclass temperatures; label a
-  main-sequence star VI when it is under-luminous for its temperature by
-  the usual margin, or accept and document V. L1 and L2 change every
-  star's displayed subclass, so they belong in the one epoch if subclass
-  names are to stay stable afterward. Boss decision: whether this is in
-  the long-term epoch. From the star class audit
-  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
-  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
-  the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Star 1 (Boss 5:49 PM EDT 2026-10-29, option 1, a fresh
-  lane). Version 8.1.
-  Research (2026-10-09): BOSS DECIDED (5:42 PM EDT 2026-10-29, card
-  answer option 1): this item is IN the long-term epoch GEN.932, so star
-  subclass names, forced types and life paces are settled once. Owner
-  Bug 1.
-  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
-  lane reported): the post-main-sequence and label work goes to a
-  star-physics owner, not Bug 1; staffing put to Boss at 5:47 PM EDT
-  (fresh star-physics lane, Core 5, or Core 3). Must start now: the
-  GEN.932 lock turn waits on the slowest piece. Branch and PR on main,
-  merged back to back inside the one GEN.932 turn.
-  Research (2026-10-09): Audit update (10-29, second pass): checked
-  against Mamajek's table, 50 of its 87 types come out off by 1 to 3
-  subclass steps in the generator (the Sun reads G3, K0 reads G8, M0
-  reads K8); Mamajek's temperatures B5V 15,700 K, O9.5V 31,900 K, O3V
-  44,900 K.
   Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
   setup with all phases (pre-main-sequence, subgiant, giant, core helium
   burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
@@ -13137,31 +12789,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replace steps stay open.
   Prerequisites: GEN.945. Related: GEN.725, GEN.945.
 
-- [ ] **GEN.947 Pre-main-sequence contraction times are calibrated to MIST (about 2 times too short at 1.5 solar masses and up and at 0.2 solar masses) (low priority)**
-  Audit finding L6 (low priority, second pass of the star class audit,
-  /mnt/project-files/reports/star-class-audit-2026-10-29.md, section 6).
-  The pre-main-sequence contraction times are about 2 times too short
-  from 1.5 solar masses up and at 0.2 solar masses, compared with MIST;
-  below 0.5 to 1 solar mass they agree with Baraffe. Do: calibrate the
-  contraction time to the MIST pre-main-sequence rows setup already
-  downloads (or record a stand-in tier and tweak level). Rides the
-  GEN.932 epoch only if it is ready in time; otherwise a later epoch.
-  Stand-in tier Verified for MIST rows (L0). Owner: Star 1 (Boss 5:49 PM
-  EDT 2026-10-29, a fresh lane; TODO filed this at the audit lane's word
-  5:50 PM EDT). Version 8.1.
-  Research (2026-10-09): Data-use audit (10-29, as the audit lane
-  reported 5:51 PM EDT): do this from the MIST pre-main-sequence rows
-  (phase -1) that setup already downloads and discards; today
-  pre-main-sequence uses 3 constants fitted to Baraffe (a registered
-  stand-in until replaced).
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Prerequisites: none. Related: GEN.935, GEN.932.
-
 - [ ] **GEN.948 Brown dwarf radius from an age-dependent table (Baraffe 2015) instead of nine hard-coded points**
   Found by the data-use audit
   (/mnt/project-files/reports/data-use-audit-2026-10-29.md, rank 3,
@@ -13244,27 +12871,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   then replacing it would be two derivations. Treat as part of GEN.928;
   it closes with it.
   Prerequisites: none. Related: GEN.922, GEN.932.
-
-- [ ] **GEN.952 Store each scatter member's radius (scatter_members.radius_au) so a page can show the X-ray luminosity of an accreting pair without guessing**
-  Asked by Core 3 while building UX.186 (as the lane reported 6:00 PM
-  EDT 2026-10-29): compact pairs (X-ray binaries, microquasars, spiders)
-  exist only as stored scatter member trees on the uncharted star and
-  phenomenon pages. The accreting-pair kind, the microquasar flag and
-  the spider kind are stored, but the X-ray luminosity is not, and it
-  cannot be recomputed on a page: GEN.272 derives it from each member's
-  radius (the donor's sets the wind speed), the radius is not saved with
-  the member, and neither are the age and evolution it came from. Do:
-  store the member radius (scatter_members.radius_au, new numeric column
-  registered in db/column_units.py) at generation, then show the X-ray
-  luminosity on the pages and the API (the luminosity row of UX.186). A
-  generation change: migration, epoch and a lock turn (place it in Core
-  3's GEN.328 turn if it fits). Owner: Core 3. Version 8.1.
-  Research (2026-10-09): UX.186 merged (#3775, Core 3, as the lane
-  reported 7:03 PM EDT) without the X-ray luminosity row: the Compact
-  binaries panel and the API compact_pairs show the kind and the
-  microquasar flag from stored bits. This item stores the member radius
-  and then adds the luminosity row to that panel and to compact_pairs.
-  Prerequisites: none. Related: UX.186, GEN.272, GEN.328.
 
 - [ ] **GEN.955 Tides stage 1b: wire the rheology into tidal_heating, interior_heat and circularisation**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
@@ -13364,38 +12970,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
   Prerequisites: GEN.955. Related: GEN.842, GEN.839, GEN.908.
-
-- [ ] **GEN.961 Settle giants: after the star's age is final, recompute each giant's radius and redraw its interior, at the mean light of its real orbit (eccentricity-first folded in)**
-  Replaces the earlier eccentricity-first wording of this item. Research
-  /mnt/project-files/reports/gen842-eccentricity-first-2026-10-29.md
-  (relayed 8:27 PM EDT 2026-10-29): drawing the eccentricity before the
-  radius gains under 0.05 percent on any giant the generator makes (the
-  brightest light a giant gets is 0.7 times Earth's), but the same line
-  of code has a much bigger error, filed as the bug GEN.976. Do: one
-  'settle giants' pass after Star.adjust_age_for_planets
-  (stellar_object.py around lines 255 to 295; star.py
-  adjust_pair_age_for_planets): recompute the table radius at the final
-  age (deterministic), redraw the interior from a sub-stream of the
-  planet's own seed (decide the sub-stream first), take the orbit's mean
-  light (GEN.842 part (1), coded by Aux 7, supplies it) so the
-  eccentricity-first order becomes free; keep the radius table call
-  drawless and split from the fallback draw (the report's prototype
-  patch is in gen842-eccentricity-first-2026-10-29-files/). Audit the
-  other planet stages that read the star's age before it is final
-  (generate_orbit_shape tidal circularisation reads it too). The 4 to 6
-  lane-hour estimate is the report's. Changes generated output: epoch
-  with --affects fill, rides the GEN.932 train (the star epoch
-  regenerates every system anyway, so no extra re-roll). The guard test
-  GEN.977 has no epoch and merges first. Each stand-in it adds gets a
-  GEN.725 registry row with tier and tweak level. Owner: Aux 7. Version
-  8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: GEN.977. Related: GEN.842, GEN.976, GEN.932, GEN.727.
 
 - [ ] **GEN.962 Rocky planets hold 1.5 to 2.0 moons of 1e20 kg and over each (the Solar System has 1 for 4 rocky planets): ground the moon rate in giant-impact and capture frequency**
   Found by Bug 1 with GEN.921 (report
@@ -13532,23 +13106,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   carbon-oxygen only. Catalog sections 1 and 2.
   Prerequisites: none. Related: GEN.743.
 
-- [ ] **GEN.969 Neutron star structure (b): wire the integrated radius and layers into the neutron star model, and add helium-core and oxygen-neon white dwarf layers**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Split of GEN.743. Do: the neutron star radius and structure come from
-  the integration instead of a measured band; helium-core and
-  oxygen-neon white dwarfs get layers (today every white dwarf sequence
-  is carbon-oxygen). --affects fill. Changes generated output: epoch
-  with the stated --affects, rides a train. Every stand-in it adds gets
-  a GEN.725 registry row with tier and tweak level (L0 to L4). Owner:
-  Star 2 (new lane, proposed by TODO). Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): 21 neutron star equations of
-  state (Malik 2024) and 20 outer-crust models (Servais and Chamel 2026)
-  are downloaded at setup and read by tests only
-  (datasets/neutron_star_matter.py); Bedard white dwarf sequences are
-  carbon-oxygen only. Catalog sections 1 and 2.
-  Prerequisites: GEN.968. Related: GEN.743.
-
 - [ ] **GEN.970 Stellar spectra (a): a spectral library entry (BT-Settl, MUSCLES for M dwarfs) and a lookup by temperature, gravity and activity, with tests on the Sun and an M dwarf**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
   secondary sources accepted by default; registered stand-ins allowed).
@@ -13647,28 +13204,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the run, and this item removes the mark.
   Prerequisites: GEN.973. Related: GEN.752, GEN.684.
 
-- [ ] **GEN.976 A giant's radius is read at the star's age before the age is moved: 28 percent of table-sized giants have a stored radius over 1 percent too large, up to 9.3 percent (bug)**
-  Found by the eccentricity-first research
-  (/mnt/project-files/reports/gen842-eccentricity-first-2026-10-29.md
-  section 6, relayed by the coordinator 8:27 PM EDT 2026-10-29).
-  Star.adjust_age_for_planets moves the star's age up after the planets
-  exist, but draw_giant reads planet.star.age when the giant is drawn.
-  Measured on 138 table-sized giants of 4,200 systems: 39 (28 percent)
-  have a stored radius more than 1 percent off the table value at the
-  final age, 16 over 3 percent, 6 over 5 percent, the worst 9.3 percent,
-  always too large; rocky planets were not measured;
-  generate_orbit_shape (tidal circularisation) reads the same stale age.
-  Fix: the settle-giants pass in GEN.961. Changes generated output:
-  epoch with --affects fill, rides the GEN.932 train. Owner: Aux 7.
-  Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: none. Related: GEN.961, GEN.763, GEN.839.
-
 - [ ] **GEN.979 Birth spin derivation (b): the birth rotation of a rocky planet follows Kokubo and Genda eq. 4 with the gamma law, replacing the scale factor of GEN.953**
   Boss, 8:48 PM EDT 2026-10-29 ('Yes, build it': build the birth-spin
   derivation, not only the scale tweak). Do: accretion_spin draws the
@@ -13732,107 +13267,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chain). Version 8.1.
   Prerequisites: none. Related: GEN.754, GEN.804, GEN.805, GEN.800.
 
-- [ ] **GEN.984 Make the star's composition draw independent of its age so every planet reads the final composition (bug)**
-  Aux 7's stale-age audit
-  /mnt/project-files/reports/gen961-stale-age-audit-2026-10-30.md (as
-  the lane reported 9:26 PM EDT 2026-10-29). The star's age is set when
-  the star is made and rises once after all planets exist, so everything
-  a planet draws in Planet.__init__ reads the provisional, younger age.
-  Found while fixing GEN.961: stellar_composition.abundance_key includes
-  the age, so bulk_draw.host_ratios(star) reads a different abundance
-  draw than the star's own stored final-age composition (a 1e-6 Gyr age
-  change moved a giant's radius 0.28 percent through the envelope Z).
-  Do: make the key age-free (a star's composition does not change with
-  its age), or take every planet's host ratios from the final
-  composition; test that a planet and its star read the same draw.
-  Changes generated output: epoch, --affects fill, rides train 3 with
-  the star epoch. Owner: Bug 1 (stellar composition, with GEN.932).
-  Version 8.1.
-  Prerequisites: none. Related: GEN.961, GEN.976, GEN.932.
-
-- [ ] **GEN.985 Circularise a close-in planet's eccentricity again at the final star age**
-  Aux 7's stale-age audit
-  /mnt/project-files/reports/gen961-stale-age-audit-2026-10-30.md (as
-  the lane reported 9:26 PM EDT 2026-10-29). The star's age is set when
-  the star is made and rises once after all planets exist, so everything
-  a planet draws in Planet.__init__ reads the provisional, younger age.
-  planets.generate_orbit_shape circularises the birth eccentricity with
-  the provisional age (orbit_elements.circularised(birth, age, time)),
-  so a close-in planet (time under about 10 Gyr) of a star whose age
-  rose keeps too large an eccentricity. Do: keep the birth eccentricity
-  as a private attribute (like DrawnGiant) and circularise again in the
-  settle pass of GEN.961; moons read the parent's eccentricity
-  (host_eccentricity) so they follow. Changes generated output: epoch,
-  --affects fill, rides train 3 after GEN.961. Owner: Aux 7. Version
-  8.1.
-  Prerequisites: GEN.961. Related: GEN.961, GEN.976, GEN.842.
-
-- [ ] **GEN.987 Read a moon's tidal heat from the settled giant's radius**
-  Aux 7's stale-age audit
-  /mnt/project-files/reports/gen961-stale-age-audit-2026-10-30.md (as
-  the lane reported 9:26 PM EDT 2026-10-29). The star's age is set when
-  the star is made and rises once after all planets exist, so everything
-  a planet draws in Planet.__init__ reads the provisional, younger age.
-  After GEN.961 settles a giant (radius up to 9.3 percent smaller), a
-  moon's tidal heat still reads the parent's radius from before the
-  settle; heat goes as R^5, a factor up to about 1.6. Do: check that
-  interior_heat.update_heat (already run for moons in the life pass)
-  reads the settled parent radius; if not, make it, with a test on a
-  giant whose radius moved. Changes generated output: epoch, --affects
-  fill, rides train 3 after GEN.961. Owner: Aux 7. Version 8.1.
-  Prerequisites: GEN.961. Related: GEN.961, GEN.962, GEN.958.
-
-- [ ] **GEN.988 Give Ca, S and Ar a star-to-star scatter like the other generated [X/Fe] abundances (bug)**
-  Finding 1 of TEST.456 (Sources 1, #3817, as the lane reported 9:30 PM
-  EDT 2026-10-29): the new test holds generated stellar [X/Fe] to the
-  Brewer and Fischer 2016 table by [Fe/H] bin (bands from the
-  project-file VizieR TSV). Changes generated output (star compositions,
-  so every planet's bulk draw): epoch, --affects fill, rides train 3
-  with the star epoch; the abundance fits are in stellar_abundances.
-  Every constant it changes gets a GEN.725 registry row (tier and tweak
-  level). Owner: Sources 1. Version 8.1. Today Ca, S and Ar carry no
-  scatter at all. Do: scatter from the Brewer and Fischer 2016 table,
-  per [Fe/H] bin, the same way the other elements get theirs.
-  Prerequisites: none. Related: TEST.456, GEN.948, GEN.984, GEN.932.
-
-- [ ] **GEN.989 Lower generated [Mg/Fe] by 0.05 to 0.07 dex for [Fe/H] above -0.2 to match Brewer and Fischer 2016 (bug)**
-  Finding 2 of TEST.456 (Sources 1, #3817, as the lane reported 9:30 PM
-  EDT 2026-10-29): the new test holds generated stellar [X/Fe] to the
-  Brewer and Fischer 2016 table by [Fe/H] bin (bands from the
-  project-file VizieR TSV). Changes generated output (star compositions,
-  so every planet's bulk draw): epoch, --affects fill, rides train 3
-  with the star epoch; the abundance fits are in stellar_abundances.
-  Every constant it changes gets a GEN.725 registry row (tier and tweak
-  level). Owner: Sources 1. Version 8.1. Generated [Mg/Fe] sits 0.05 to
-  0.07 dex above the table for [Fe/H] of -0.2 and up. Do: refit the Mg
-  trend in that range to the table (secondary sources accepted).
-  Prerequisites: none. Related: TEST.456, GEN.984, GEN.932.
-
-- [ ] **GEN.990 Raise the C, O and Si abundance scatter, now about half the Brewer and Fischer 2016 scatter (bug)**
-  Finding 3 of TEST.456 (Sources 1, #3817, as the lane reported 9:30 PM
-  EDT 2026-10-29): the new test holds generated stellar [X/Fe] to the
-  Brewer and Fischer 2016 table by [Fe/H] bin (bands from the
-  project-file VizieR TSV). Changes generated output (star compositions,
-  so every planet's bulk draw): epoch, --affects fill, rides train 3
-  with the star epoch; the abundance fits are in stellar_abundances.
-  Every constant it changes gets a GEN.725 registry row (tier and tweak
-  level). Owner: Sources 1. Version 8.1. Do: set the scatter of C, O and
-  Si to the table's per-bin scatter.
-  Prerequisites: none. Related: TEST.456, GEN.984, GEN.932.
-
-- [ ] **GEN.991 Raise generated [O/Fe] by 0.03 to 0.09 dex to the Brewer and Fischer 2016 table in every [Fe/H] bin**
-  Left over from GEN.988 to GEN.990 (Sources 1, as the lane reported
-  9:55 PM EDT 2026-10-29): generated [O/Fe] sits 0.03 to 0.09 dex below
-  the table in every bin (inside the 0.10 test tolerance of TEST.456,
-  but it moves C/O). Do: refit the O trend to the table, check C/O
-  against the table's 0.385 after the GEN.988 to GEN.990 refit, and note
-  the table's own measurement error (0.03 to 0.06 dex) against the
-  scatter. Changes star compositions: epoch, --affects fill, rides train
-  3 on the same branch as GEN.988 to GEN.990 (claude/gen988-990). Every
-  constant it changes gets a GEN.725 registry row. Owner: Sources 1.
-  Version 8.1.
-  Prerequisites: none. Related: GEN.988, GEN.989, GEN.990, TEST.456.
-
 - [ ] **GEN.992 Re-finish every rocky planet and moon after the star's age is final, then re-judge the forced requests with the retry round**
   Found by GEN.986 (Aux 7, report
   /mnt/project-files/reports/gen986-final-age-rocky-planets-2026-10-30.md,
@@ -13851,7 +13285,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets re-roll their air, census re-baseline. Option B (draw the age
   first, 20 to 30 hours, rewrite of system order) is not planned. Needs
   GEN.961, GEN.985 and GEN.987 first. Owner: Aux 7. Version 8.1.
-  Prerequisites: GEN.961, GEN.985, GEN.987. Related: GEN.986, GEN.961,
+  Prerequisites: GEN.987. Related: GEN.986, GEN.961,
   GEN.985, GEN.987, GEN.763.
 
 - [ ] **GEN.993 Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12**
@@ -13960,34 +13394,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (belt mass): epoch, --affects fill, rides the train after GEN.477
   wiring. Owner: Sources 2. Version 8.1.
   Prerequisites: GEN.477. Related: GEN.477, GEN.566, GEN.725.
-
-- [ ] **GEN.1001 A world whose star is younger than the first step of its life schedule is stored with a life class but no life stage, so the map markers, the object page line and the class filters show life that has not started (bug)**
-  Found by Core 3 in the GEN.873 standing tests (as the lane reported,
-  2:33 AM EDT 2026-10-30; test
-  test_a_body_with_a_life_class_has_a_life_stage in PR #3918, a strict
-  xfail). Seen on cold, slow chemical-class worlds round a 0.5 Gyr star:
-  24 of 904 sweep bodies, classes 3a and 3b have life_class set and
-  life_stage None, so no life scores yet a class. The class markers on
-  the map (MAP.351), the object page Has Class N life line and the class
-  filters read life_class. Do in two steps. Step 1, lock-free: those
-  readers treat a body with no life_stage as having no life class yet
-  (marker, line and filter), with a test; Core 3 owns MAP.351 and takes
-  it. Step 2, rides a train: draw no class until the schedule's first
-  step is reached (changes what is drawn, so it needs an epoch with
-  --affects fill), then remove the xfail marker in the test. Done: no
-  stored body has a life_class without a life_stage and the xfail is
-  gone. Owner: step 1 Core 3, step 2 Aux 2 (life lane) or Bug 1.
-  Step 1 merged (Core 3, #3927, as the lane reported) (2026-10-30 2:54
-  AM EDT): a body that suits a life class but has no life stage yet is
-  left out of the Galaxy Map class marks, the class filter and its
-  count, search results, the habitability icons, the API life_class_id,
-  the dominant species line on the object page and the system map side
-  panel; two new tests; no migration, nothing drawn changes. Existing
-  databases keep the old lifeclass map rows of those bodies until their
-  systems are saved again (a small data migration would clear them; not
-  filed, optional). Step 2 remains (draw no class before the first step,
-  epoch, removes the xfail)
-  Prerequisites: none. Related: GEN.873, GEN.894.
 
 - [ ] **GEN.1002 Registered table rows that rest on a Solar System body are flagged stand-in with a replacement item, or re-sourced**
   Reported by Aux 3 (as the lane reported, 5:05 AM EDT 2026-10-30) when
