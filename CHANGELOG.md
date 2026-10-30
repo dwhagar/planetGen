@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2619] - 2026-10-30
+
+**Headline:** The docs now have a page on the atmosphere data model: what a planet or moon stores about its air and where each value comes from.
+
+### Changed
+
+- **The atmosphere data model page (DOC.63).** A new reference page lists every value a body stores about its air (the gas rows, pressure, density, scale height, temperature, albedo and greenhouse quantity, mantle redox, ozone, haze, dust, cloud, colour) with its unit and the code that makes it, and describes the gas table, the mixture rule, ozone, aerosols and the consistency sweep with their sources. The atmosphere colour page no longer says the aerosols are not stored.
+
 ## [8.0.2618] - 2026-10-30
 
 **Headline:** The Galaxy Map now fills the browser window, with only 20 pixels of buffer above and below it.
