@@ -19885,6 +19885,11 @@ clears each one.
   test_star_population::test_planets_respect_their_stars_age_and_history
   takes over 500 s on a slow machine and times out under load (it passes
   alone, GEN.997 #3887 fixed its logic).
+  Bug 1 and Aux 5 both confirm (2026-10-30 1:57 AM EDT):
+  test_saturation_single_source (WATER_CRITICAL_K in
+  radiative_convective.py) is red on clean main; Aux 5 also saw
+  test_aquifers and test_sweep_classes red on clean main. The query_db
+  exit code red is filed as TEST.465
   Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
 
 - [ ] **TEST.464 Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug)**
@@ -19897,6 +19902,23 @@ clears each one.
   tests before and after, and keep every result identical. Owner: Bug 2.
   Version 8.1.
   Prerequisites: none. Related: TEST.463, GEN.935.
+
+- [ ] **TEST.465 test_admin_script_cli: query_db exits 1 instead of 2 for an incomplete command line when the database is not reachable (bug)**
+  Bug 1 (as the lane reported, 1:53 AM EDT 2026-10-30) listed
+  test_admin_script_cli as red and not its own. Reproduced by the TODO
+  thread on a machine with no MySQL:
+  test_query_db_rejects_an_incomplete_command_line[argv1] fails with
+  assert 1 == 2 (tests/test_admin_script_cli.py line 200) because the
+  script prints 'could not open the database (2003, Connection refused)'
+  and exits 1 before it checks the command line. Do: check the arguments
+  before the script opens the database, so a bad command line exits 2
+  whatever the database state; if the cause is something else on a
+  machine that has MySQL, say so on this item. Done: the test passes
+  with and without a reachable database. Distinct from TEST.298 (a
+  finalizer flake). Owner: Bug 2. Version 8.1. Also noted by Bug 1:
+  test_saturation_single_source (WATER_CRITICAL_K) is already listed
+  under TEST.463.
+  Prerequisites: none. Related: TEST.298, TEST.463.
 
 ## USR: User accounts
 
