@@ -13895,22 +13895,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1036. Related: GEN.1033, GEN.732.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
-- [ ] **GEN.1054 Ring origin from history: a ring comes from a moon decayed inside the Roche limit (R1, Canup 2010, Hesselbrock and Minton 2017) or a comet passing inside it (R2, Dones 1991), pure function; the always-a-ring rule for giants is what it replaces**
-  Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md sections 8 and 9).
-  Secondary and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Do: physics/ring_origin.py: from
-  the moon-decay result of moon_orbits (GEN.959 already makes rings from
-  fallen moons: reuse it) and a comet-passage rate, whether a ring
-  exists, its mass and origin; Saturn and Phobos as tests. The stand-ins
-  BC20 to BC23 of GEN.732 are re-registered (T4, L3) until Cassini ring
-  age and disruption rates replace them. Lock-free module. Owner: Tides
-  1 (after the GEN.1034 module; separate branch, merge it yourself).
-  Version 8.1.
-  Prerequisites: GEN.1036. Related: GEN.732, GEN.959.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **GEN.1055 Ring age and pollution darkening: a ring stores its age and its ice share and darkness follow from pollution over time (R6); ring shadow climate hook (R8)**
   Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md sections 8 and 9).
@@ -13947,7 +13931,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   W14 and W9 wiring). Done: tests, harness, the census ring shares.
   Owner: Tides 1 (ring origin), with Core 2 (age and painter). Version
   8.1.
-  Prerequisites: GEN.1054, GEN.1055, GEN.1056, GEN.1047. Related:
+  Prerequisites: GEN.1055, GEN.1056, GEN.1047. Related:
   GEN.732, GEN.959.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
