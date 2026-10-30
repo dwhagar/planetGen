@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2585] - 2026-10-30
+
+**Headline:** A white dwarf's page no longer lists flare, X-ray and lifespan rows that it can never have.
+
+### Changed
+- **White dwarf activity rows (GEN.788).** The sheet rows for the flare law, the UV-C share, the X-ray share of the light and the lifespan are empty for every white dwarf by design (it has no corona or flares and does not leave its stage). The fill audit counted them as gaps in the A to K stars because a white dwarf is named by its colour. The sheet now says so in a rule, and every other star still owes the four rows. Nothing generated or stored changes.
+
 ## [8.0.2584] - 2026-10-30
 
 **Headline:** The water share of a disk's solids by temperature is now computed from Lodders 2003 (not yet used by the generator).
