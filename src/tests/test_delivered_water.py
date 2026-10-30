@@ -89,16 +89,17 @@ class _Body:
 def test_a_rocky_body_takes_the_delivery_law_and_an_icy_one_keeps_its_range(monkeypatch):
     rocky = _Body(0.8)
     assert bulk_draw.origin_of(rocky) == ROCKY
-    water, ice = bulk_draw._water_and_ice(rocky)
-    assert delivered_water.bracket("dry")[0] <= water <= tuning.DELIVERED_WATER_RICH_MAX and ice == 0.0
+    water, ice, shares = bulk_draw._water_and_ice(rocky)
+    assert delivered_water.bracket("dry")[0] <= water <= tuning.DELIVERED_WATER_RICH_MAX and ice == 0.0 and shares is None
     icy = _Body(5.0)
     assert bulk_draw.origin_of(icy) == ICY
-    water, _ice = bulk_draw._water_and_ice(icy)
+    water, _ice, shares = bulk_draw._water_and_ice(icy)
     assert tuning.ICY_WATER_MASS_FRACTION[0] * 0.5 <= water <= 0.95
+    assert sum(shares.values()) == pytest.approx(1.0)
 
 
 def test_a_body_with_no_mass_is_drawn_at_the_middle_of_the_models_masses():
     body = _Body(0.8)
     body.mass = None
-    water, _ice = bulk_draw._water_and_ice(body)
+    water, _ice, _shares = bulk_draw._water_and_ice(body)
     assert 0.0 < water <= tuning.DELIVERED_WATER_RICH_MAX
