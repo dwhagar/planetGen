@@ -6902,6 +6902,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
 
 - [ ] **GEN.474 Replace the Earth rock-type library, measured on Earth, by ground types derived from the bulk composition and the melting of the mantle**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -6961,6 +6966,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
 
 - [ ] **GEN.475 Meteorite groups become outputs and not inputs: regions of composition space reachable from the drawn bulk, with the measured groups kept as calibration**
   Body composition research lane, section 14.4 of
@@ -6995,6 +7005,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
 
 - [ ] **GEN.476 Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range**
   Body composition research lane, section 14.4 of
@@ -7034,6 +7049,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
 
 - [ ] **GEN.477 The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug)**
   Finding F11 of the Body composition research lane (section 14.5 of
@@ -7153,6 +7173,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
 
 - [ ] **GEN.480 Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -7209,6 +7234,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
@@ -7592,6 +7622,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.490 Source the trace-gas presence weights (AR11)**
@@ -7652,6 +7687,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.491 Source the cloud and haze windows and yields (AR12)**
@@ -7738,6 +7778,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.492 Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13)**
@@ -7798,6 +7843,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.493 Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14)**
@@ -7844,6 +7894,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.494 Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15)**
@@ -7899,6 +7954,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.510 Tuned draw builder B2: delivery and water worlds**
@@ -10574,6 +10634,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
+  Owner (Sources 2) (2026-10-29 9:57 PM EDT): Sources 2 (new lane,
+  thread cmsg_01RuNTFUNB92A8cm5CbojQAiN6CXyAjqAz7nJVv4N9Nzf9), split
+  from Sources 1 at its request. This replaces any earlier owner line.
+  Lock-free step first; the wiring step rides train 7. Brief:
+  /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
   Prerequisites: none.
 
 - [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
