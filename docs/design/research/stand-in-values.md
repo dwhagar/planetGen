@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 553 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 558 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 67 | 1 | 5 | 1 | 0 | 74 |
-| T2 | 82 | 8 | 0 | 1 | 0 | 91 |
+| T1 | 68 | 1 | 5 | 1 | 0 | 75 |
+| T2 | 83 | 8 | 0 | 1 | 0 | 92 |
 | T3 | 65 | 20 | 5 | 9 | 0 | 99 |
 | T4 | 27 | 0 | 0 | 4 | 4 | 35 |
-| T5 | 37 | 10 | 1 | 0 | 0 | 48 |
-| T6 | 41 | 26 | 10 | 32 | 0 | 109 |
+| T5 | 37 | 11 | 1 | 0 | 0 | 49 |
+| T6 | 43 | 26 | 10 | 32 | 0 | 111 |
 | T7 | 26 | 7 | 8 | 7 | 0 | 48 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 1 | 25 | 19 | 46 |
-| All | 346 | 72 | 30 | 80 | 25 | 553 |
+| All | 350 | 73 | 30 | 80 | 25 | 558 |
 
 ## How the labels were given
 
@@ -905,3 +905,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | WF4 | P | T6 | L0 | radiation.FLARE_ENERGY_SPAN 1000: the flare energies the SEP dose weights run over 1e33 to 1e36 erg | 1e2 to 1e4 | flaring stars | test_radiation::test_a_shallow_flare_slope_puts_more_energy_in_the_big_flares_and_raises_the_particle_dose | the energy range of the star's own flare statistics (Davenport 2016; Gunther et al. 2020) | RECALLED (the largest superflares seen are of order 1e36 erg; 1e33 is the table's N33 unit) | - | - |
 | WF5 | P | T7 | L0 | radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and LETHAL_EVENT_LIMIT_PER_GYR 10: the flag that flares or galactic events keep the ozone down | limit 100 to 1000 | worlds with an ozone column | test_radiation::test_proxima_b_without_a_field_loses_its_ozone_and_earth_does_not | a photochemistry run of the flare fluence on the air (Tilley et al. 2019; Segura et al. 2010) | design (the design note section 2.3: Proxima b about 2,100, Earth 0.003, on either side of the limit) | - | - |
 | WF6 | P | T3 | L1 | radiation.OZONE_LOSS_REMAINING 0.1: the share of its ozone a flagged world keeps | 0.06 to 0.2 | worlds the flares hold at the flag | test_radiation::test_a_world_whose_ozone_is_lost_keeps_a_tenth_of_it_and_takes_more_ultraviolet | the ozone column of the photochemistry run | RECALLED (Segura et al. 2010: 94 percent removed; Howard et al. 2018: 90 percent) | - | - |
+
+## 6.68 Stand-ins of the open-ocean equilibrium tide
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| OT1 | P | T2 | L0 | ocean_tides.LOADING_REFUSE 0.9, the largest 3 rho_liquid / (5 rho_mean) the thin-layer loading factor 1 / (1 - 3 rho_liquid / (5 rho_mean)) is used at; a heavier liquid is refused | 0.5 to 0.95 | an ocean of a light liquid (water, hydrocarbons, ammonia-water) on a rocky or icy body | an ocean whose self-attraction was computed with the fluid Love numbers and differs from the thin-layer factor by more than 20 percent below 0.9 | the fluid-Love-number path for a heavy or global layer (the weird-conditions research) | Farrell 1972 and Pugh and Woodworth 2014 chapter 3, recalled from memory (not opened); the factor is 1.12 for water on the Earth | GEN.1034 | - |
+| OT2 | P | T1 | L0 | ocean_tides.WATER.density_kg_m3 1000 kg/m3, the density of the ocean liquid | 1000 to 1030 | water oceans | a brine ocean whose density moves the loading factor by more than 1 percent (denser than 1060) | the surface liquid table of GEN.1035 (density by liquid and temperature) | NIST density of water at 4 degrees; sea water is 1025, which moves the factor by 0.3 percent | GEN.1034 | - |
+| OT6 | P | T5 | L1 | ocean_tides.H2_OVER_K2 5/3, the Love number h2 from the interior model's k2 when h2 is not given | 1.5 to 2.2 | homogeneous rocky or icy bodies with a stored k2 | the Earth: measured h2 0.61 and k2 0.30 give 2.0 and a floor share of 0.69; the rule gives 0.80 | the Love numbers h2 from the interior structure (GEN.842 tides) | Love 1909 for a homogeneous incompressible elastic sphere (h2 = 5/3 k2), recalled; checked against the Earth's measured pair | GEN.1034 | - |
+| OT7 | P | T6 | L0 | ocean_tides.LOCK_TOLERANCE 1e-3, how close to a raiser's orbital rate a body spins to count as locked to it (no oscillating tide from it) | 1e-4 to 1e-2 | bodies the tide chain (GEN.957) has locked | a body whose spin differs from a raiser's rate by 0.5 percent and whose ocean shows a tide of that period | the tide chain's own lock state, read from the stored spin kind | the same share as `moon_history.SYNCHRONOUS_TOLERANCE`; the choice is the project's | - | - |
+| OT8 | P | T6 | L0 | ocean_tides.ranges: the spring range is the sum of the oscillating raisers' ranges and the neap range the largest less the rest, never below zero | none | two or more raisers of different periods | a world with three raisers whose neap range is measured and differs from the largest less the rest | a harmonic synthesis of the raisers' periods (the constituents of the tide) | the Moon-and-Sun rule of Pugh and Woodworth 2014 (spring = M2 + S2, neap = M2 - S2), recalled; its extension to three raisers is ours | - | - |
