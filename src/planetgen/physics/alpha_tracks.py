@@ -43,3 +43,9 @@ def metallicity_shift(alpha_fe_dex):
 def equivalent_fe_h(fe_h, branch):
     """The [Fe/H] of the solar-scaled track a star of this branch and [Fe/H] is read from."""
     return fe_h + metallicity_shift(alpha_fe(fe_h, branch))
+
+
+def track_fe_h(fe_h, age_gy):
+    """The [Fe/H] of the solar-scaled track a star of this birth [Fe/H] and age reads (GEN.1024): its [Fe/H] raised by its branch's
+    alpha excess (`stellar_abundances.branch_of` finds the branch, the same one its composition has)."""
+    return equivalent_fe_h(fe_h, stellar_abundances.branch_of(fe_h, age_gy))

@@ -54,7 +54,7 @@ from statistics import NormalDist
 from planetgen import tuning
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, brown_dwarf, constants, imf, mass_boundaries, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
+    accretion, alpha_tracks, brown_dwarf, constants, imf, mass_boundaries, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
     stability, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
@@ -599,7 +599,7 @@ def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0):
         dwarf = brown_dwarf.state(initial_mass, age_yr / 1.0e9)
         return _Leaf("brown-dwarf", dwarf["spectral_type"], initial_mass, initial_mass,
                      _m_to_au(dwarf["radius_sol"] * constants.SOLAR_RADIUS_M))
-    young = pre_main_sequence.state(initial_mass, age_yr, fe_h)
+    young = pre_main_sequence.state(initial_mass, age_yr, alpha_tracks.track_fe_h(fe_h, age_yr / 1.0e9))
     if young is not None:
         # GEN.242: still contracting; the radius follows from the track's luminosity and temperature.
         kind = "protostar" if young["yerkes_class"] == pre_main_sequence.PROTOSTAR else "pre-main-sequence"

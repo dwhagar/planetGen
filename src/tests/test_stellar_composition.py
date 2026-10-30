@@ -62,10 +62,11 @@ def test_a_stars_key_does_not_move_when_its_age_rises_after_its_planets_are_made
 def test_the_draws_are_a_function_of_the_key_alone_and_all_are_always_drawn():
     one, two = sc.key_draws("42"), sc.key_draws("42")
     assert one == two and one != sc.key_draws("43")
-    assert 0.0 <= one.u_branch < 1.0 and len(one.normals) == 5 and 0.0 <= one.u_crust_model < 1.0
+    assert len(one.normals) == 5 and 0.0 <= one.u_crust_model < 1.0
     # The fixed order: changing only what is drawn last cannot move what is drawn first.
     stream = draw.Stream("abundance:42")
-    assert stream.random() == one.u_branch and tuple(stream.gauss(0.0, 1.0) for _ in range(4)) == one.normals[:4]
+    stream.random()      # the draw the branch used to take, kept unread so no later draw moved (GEN.1024)
+    assert tuple(stream.gauss(0.0, 1.0) for _ in range(4)) == one.normals[:4]
     assert stream.random() == one.u_enhanced and stream.random() == one.u_carbon
     assert stream.gauss(0.0, 1.0) == one.eu_normal and stream.gauss(0.0, 1.0) == one.th_eu_normal
     assert stream.random() == one.u_atmosphere and stream.random() == one.u_wolf_rayet
@@ -99,7 +100,7 @@ def _main_sequence_makeup(star):
 def test_a_main_sequence_star_follows_the_relations_with_its_own_draws():
     makeup = sc.star_makeup(sc.MAIN_SEQUENCE, -0.45, 9.5, 0.9, "uid-1")
     draws = sc.key_draws("uid-1")
-    branch = sa.branch_from_uniform(-0.45, 9.5, draws.u_branch)
+    branch = sa.branch_of(-0.45, 9.5)
     expected = sa.composition(-0.45, sa.abundance_offsets(-0.45, branch, draws.normals, draws.u_enhanced, draws.u_carbon))
     assert makeup.branch == branch and makeup.birth == expected and makeup.surface == makeup.birth
     assert total(makeup.birth) == pytest.approx(1.0, abs=1e-12)
@@ -386,7 +387,7 @@ def test_a_sweep_of_every_kind_of_star_the_generator_makes_adds_up_and_follows_t
                 makeup = sc.star_makeup(kind, fe_h, age, state["mass_sol"], key, wolf_rayet_subtype=state.get("wr_subtype"),
                                         teff_k=state["temperature_k"])
                 draws = sc.key_draws(key)
-                branch = sa.branch_from_uniform(fe_h, age, draws.u_branch)
+                branch = sa.branch_of(fe_h, age)
                 expected = sa.composition(fe_h, sa.abundance_offsets(fe_h, branch, draws.normals, draws.u_enhanced,
                                                                      draws.u_carbon))
                 assert makeup.branch == branch and makeup.birth == expected, (mass, age)
