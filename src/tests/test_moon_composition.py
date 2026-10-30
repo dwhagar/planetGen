@@ -204,14 +204,23 @@ def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it()
     assert any(i > 130.0 for i in origins["captured"])
 
 
+SYSTEMS_MIN = 40
+SYSTEMS_MAX = 400
+DISK_MOONS_WANTED = 30
+
+
 @pytest.fixture(scope="module")
 def generated_moons():
-    """The moons of 40 seeded systems, each with the origin and disk it was generated from (GEN.466)."""
+    """The moons of seeded systems, each with the origin and disk it was generated from (GEN.466): at least 40 systems, and more until
+    `DISK_MOONS_WANTED` disk moons are in hand (TEST.500: the planet architecture makes few giants, the only hosts of disk moons, so 40
+    systems held three, all far past the ice line, and none near it)."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     moons = []
     with draw.bound(8):
-        for _ in range(40):
+        for number in range(SYSTEMS_MAX):
+            if number >= SYSTEMS_MIN and sum(moon.moon_origin == "disk" for moon in moons) >= DISK_MOONS_WANTED:
+                break
             config = SystemConfig()
             config.MOONS = True
             system = StarSystem(system_config=config)
