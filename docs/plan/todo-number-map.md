@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.245 |
 | MAP | MAP.354 |
 | NAV | NAV.65 |
-| GEN | GEN.1142 |
+| GEN | GEN.1145 |
 | PERF | PERF.219 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1873,7 +1873,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1120 | Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range | none | open |
 | GEN.1121 | Designation history: an object may change its name and ID, keeps a stored history of its previous designations, and its current ID is always completely unique across the whole galaxy | none | done (split into GEN.1138 to GEN.1141 after the design note (#4234) and Boss answers) |
 | GEN.1122 | Read Pollack 1979 and Cuk and Burns 2004 for the gas-drag capture window strength and register the number (CM14) | none | done, PR #4192 |
-| GEN.1123 | Audit every table that carries sector_id and its ON DELETE rule, and every path that deletes or regenerates a sector, and report which objects would be lost when a sector is deleted though they drifted in | none | open |
+| GEN.1123 | Audit every table that carries sector_id and its ON DELETE rule, and every path that deletes or regenerates a sector, and report which objects would be lost when a sector is deleted though they drifted in | none | done, PR #report sector-delete-audit-gen1123-2026-10-30 |
 | GEN.1124 | Resident-mass subtraction: a pure function giving a sector's remaining mass budget after what it already holds (arrived rogues, pre-placed bright stars, scattered phenomena, extended objects whose centre lies there) | none | done, PR #4207 |
 | GEN.1125 | Rogue top-up planner: a pure module that, from a sector's mass shortfall and the Rogues level cap, says how many rogues to place, their masses by the existing mass bins (96 percent terrestrial, 4 percent gas giant), and gives each a placement inside the sector, a realistic velocity and an apparent origin marked "apparent" | none | done, PR #4204 |
 | GEN.1126 | Top-up asteroid field kind: lighter interstellar asteroid fields made when the Rogues cap leaves sector mass unmatched, smaller bodies, lower density, a larger volume, no full body history, origin a registered stand-in "unbound remnant" | none | done, PR #4212 |
@@ -1892,6 +1892,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1139 | Designation history part c: a read of a retired ID redirects to the current object, a write against it answers 409, a deleted object answers 410 (api/ids.py and the page routes) | none | open |
 | GEN.1140 | Designation history part d: Formerly lines on the object page, the former_designations API field and search by a past name | none | open |
 | GEN.1141 | Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete | none | open |
+| GEN.1142 | Class lines patch for the train 6 epoch: T hydrogen-envelope test ahead of N, N Venus-like sentence and hot, not-hydrogen-dominated rule, K without the under 273 K condition and ordered after P | none | open |
+| GEN.1143 | Class count script: temperate-ocean bodies per class, hydrogen-rich N bodies under 15 Earth masses, and the E, H and L reach (prints only) | none | open |
+| GEN.1144 | Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
