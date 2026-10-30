@@ -499,5 +499,6 @@ def test_the_command_line_asks_for_the_nearest_few(galaxy, monkeypatch, capsys):
 
     out = run("--nearest", "3", "--kinds", "system")
     assert out.count("\n") == 4 and " objects found within " in out    # three rows and the summary line (API.33: it counts objects)
-    with pytest.raises(SystemExit, match="--distance"):
+    with pytest.raises(SystemExit) as refused:      # a command-line error: argparse exits 2 and writes the usage and the reason to stderr (TEST.465)
         run()
+    assert refused.value.code == 2 and "give --distance" in capsys.readouterr().err
