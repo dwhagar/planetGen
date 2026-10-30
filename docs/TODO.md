@@ -4719,7 +4719,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   add the Harris file to the setup catalogue (or a reduced committed
   table; Boss decides, the licence is free if the source is named) so a
   fresh server has it, then the reader and the calibration test.
-  Setup entry (2026-10-29 9:15 PM EDT): The setup catalogue entry for
+  Setup entry (2026-10-29 8:35 PM EDT): The setup catalogue entry for
   the Harris file is built by Sources 1 (with the NOAA and Baraffe
   entries), then the reader and the calibration test are Core 4's.
   Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
@@ -11499,7 +11499,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   set (255 events) is held only in the project files; add it to the
   setup catalogue (or a reduced committed table, licence is Boss's) so a
   fresh server has it before the lane that takes this item starts.
-  Setup entry (2026-10-29 9:15 PM EDT): The setup catalogue entry for
+  Setup entry (2026-10-29 8:35 PM EDT): The setup catalogue entry for
   the NOAA proton events is built by Sources 1 unless Aux 7's branch
   claude/gen746-749 already carries one.
   Prerequisites: none. Related: GEN.436, GEN.444.
@@ -11806,29 +11806,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   elsewhere, the lane tells TODO before taking it. Lock-free parts
   first; the part that changes generated output rides a train.
   Prerequisites: none. Related: UX.208, GEN.725, GEN.684.
-
-- [ ] **GEN.779 Fill induced_moment_a_m2: the induced magnetic dipole moment of conducting oceans and cores in a varying field (never filled; every planet empty)**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): Empty for all 4493 planets, including giants. Fill it where the
-  body has a conductive layer and a time-varying field, or say in the
-  sheet rule where it does not apply. Done: the column is filled for
-  every body the sheet rule says it applies to, or the sheet rule is
-  changed to say why it does not apply (a sentence of reason in
-  describe/sheet.py APPLIES), and the UX.208 test lists no empty
-  applicable pair for it; a drawn or computed value has a source and a
-  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
-  column_units entry; a change to generated output carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
-  UX.208. Suggested owner: Aux 4 (radiation) with Aux 6.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 4. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Prerequisites: none. Related: UX.208, GEN.725.
 
 - [ ] **GEN.780 Fill porosity for rocky and icy bodies: the surface and crust porosity from composition and gravity (never filled)**
   Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
@@ -12318,7 +12295,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is already started elsewhere, the lane tells TODO before taking it.
   Lock-free parts first; the part that changes generated output rides a
   train.
-  Owner (full build, corrected) (2026-10-29 9:15 PM EDT): Core 4.
+  Owner (full build, corrected) (2026-10-29 8:35 PM EDT): Core 4.
   Already built in Core 4's parked branch claude/project-thread-wm6oti
   (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
   waiting for a train; nobody rebuilds it. This replaces the owner line
@@ -12585,7 +12562,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is already started elsewhere, the lane tells TODO before taking it.
   Lock-free parts first; the part that changes generated output rides a
   train.
-  Owner (full build, corrected) (2026-10-29 9:15 PM EDT): Core 4.
+  Owner (full build, corrected) (2026-10-29 8:35 PM EDT): Core 4.
   Already built in Core 4's parked branch claude/project-thread-wm6oti
   (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
   waiting for a train; nobody rebuilds it. This replaces the owner line
@@ -12612,7 +12589,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is already started elsewhere, the lane tells TODO before taking it.
   Lock-free parts first; the part that changes generated output rides a
   train.
-  Owner (full build, corrected) (2026-10-29 9:15 PM EDT): Core 4.
+  Owner (full build, corrected) (2026-10-29 8:35 PM EDT): Core 4.
   Already built in Core 4's parked branch claude/project-thread-wm6oti
   (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
   waiting for a train; nobody rebuilds it. This replaces the owner line
@@ -13733,7 +13710,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   catalogue entry with a source URL (raw data never in the repo; licence
   note is Boss's, DATA-LICENSE.md), so a fresh server has it. The
   age-dependent brown dwarf radius is GEN.948.
-  Setup entry (2026-10-29 9:15 PM EDT): The setup catalogue entry for
+  Setup entry (2026-10-29 8:35 PM EDT): The setup catalogue entry for
   the Baraffe 2015 table is built by Sources 1 (with the Harris and NOAA
   entries); Bug 1 starts its other steps meanwhile.
   Prerequisites: none. Related: GEN.922, GEN.932.
@@ -14007,7 +13984,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only a research pass today (GEN.468). Do: the water share of solids by
   distance reads the table. Low priority. Stand-in tier Verified (L0)
   once read. Owner: none yet. Version 8.4.
-  Owner (full build) (2026-10-29 9:15 PM EDT): Sources 1. This replaces
+  Owner (full build) (2026-10-29 8:35 PM EDT): Sources 1. This replaces
   any earlier owner line.
   Prerequisites: none. Related: GEN.944, GEN.468.
 
@@ -14071,7 +14048,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fill, rides a train. About 4 to 6 lane-hours. Every stand-in it adds
   gets a GEN.725 registry row with tier and tweak level (L0 to L4).
   Owner: Aux 7 (it owns GEN.842). Version 8.1.
-  Interim (2026-10-29 9:30 PM EDT): Boss 8:48 PM EDT 2026-10-29 chose to
+  Interim (2026-10-29 8:50 PM EDT): Boss 8:48 PM EDT 2026-10-29 chose to
   build the derivation (GEN.978, GEN.979) rather than keep the scale
   tweak. This item stays as the INTERIM stand-in (the 0.4 scale at tweak
   level L3, with a registry row that names eq. 4 and GEN.979 as its
@@ -14269,7 +14246,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and a lane waiting for a train can do it. Every stand-in it adds gets
   a GEN.725 registry row with tier and tweak level (L0 to L4). Owner:
   Aux 3 (giants chain GEN.801, GEN.809 to GEN.811). Version 8.1.
-  Owner (full build, corrected) (2026-10-29 9:15 PM EDT): Core 4.
+  Owner (full build, corrected) (2026-10-29 8:35 PM EDT): Core 4.
   Already built in Core 4's parked branch claude/project-thread-wm6oti
   (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
   waiting for a train; nobody rebuilds it. This replaces the owner line
@@ -14287,7 +14264,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Every stand-in it adds gets a GEN.725 registry row with tier and tweak
   level (L0 to L4). Owner: Aux 3 (giants chain GEN.801, GEN.809 to
   GEN.811). Version 8.1.
-  Owner (full build, corrected) (2026-10-29 9:15 PM EDT): Core 4.
+  Owner (full build, corrected) (2026-10-29 8:35 PM EDT): Core 4.
   Already built in Core 4's parked branch claude/project-thread-wm6oti
   (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
   waiting for a train; nobody rebuilds it. This replaces the owner line
@@ -14305,7 +14282,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can do it. Every stand-in it adds gets a GEN.725 registry row with
   tier and tweak level (L0 to L4). Owner: Aux 4 (magnetosphere chain
   GEN.800). Version 8.1.
-  Start point (2026-10-29 9:15 PM EDT): Core 4's parked branch
+  Start point (2026-10-29 8:35 PM EDT): Core 4's parked branch
   claude/project-thread-wm6oti has core_heat.py: a core thermal model
   whose dipole moment comes from the core's buoyancy flux and whose
   dynamo lifetime is the history of the liquid shell (tested on Earth, a
@@ -14324,7 +14301,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects, rides a train. Every stand-in it adds gets a GEN.725
   registry row with tier and tweak level (L0 to L4). Owner: Aux 4
   (magnetosphere chain GEN.800). Version 8.1.
-  Start point (2026-10-29 9:15 PM EDT): Core 4's parked branch
+  Start point (2026-10-29 8:35 PM EDT): Core 4's parked branch
   claude/project-thread-wm6oti has core_heat.py: a core thermal model
   whose dipole moment comes from the core's buoyancy flux and whose
   dynamo lifetime is the history of the liquid shell (tested on Earth, a
@@ -19412,7 +19389,7 @@ clears each one.
   and the scatter, not the real joint distribution. Do: a test comparing
   the generated [X/Fe] distribution against the held table. Low
   priority. Owner: none yet. Version 8.4.
-  Owner (full build) (2026-10-29 9:15 PM EDT): Sources 1. This replaces
+  Owner (full build) (2026-10-29 8:35 PM EDT): Sources 1. This replaces
   any earlier owner line.
   Prerequisites: none. Related: TEST.455.
 
