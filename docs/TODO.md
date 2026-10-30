@@ -13507,7 +13507,46 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1004 investigation thread for the design, then Star 2 or the first
   free lane for the build. The build changes output, so it rides a
   train.
+  Investigation thread design (relayed 10:54 AM EDT as the coordinator
+  reported) (2026-10-30 10:54 AM EDT): Report
+  /mnt/project-files/reports/multistar-overlap-free-design-2026-10-30.md
+  names three causes (the tree evolves companions at [Fe/H] 0: GEN.1007;
+  a giant's radius drawn twice: GEN.1008; pairs drawn at the Roche edge)
+  and the design: build every Star first from its own seed, mass, age
+  and the system [Fe/H], place orbits last from the built radii, model
+  interactions as replacement objects, count any dropped member. Order:
+  GEN.1007, GEN.1008, then this item (invert the build order, steps 1 to
+  3), with TEST.476 as the gate of each; each part changes output and
+  needs an epoch (--affects fill) and golden on a train. Boss has also
+  started a broader research thread (Research overlap-free multi-star
+  system design) whose fuller design doc updates this item when it
+  lands.
   Prerequisites: none. Related: GEN.1004, TEST.162, TEST.476, GEN.725.
+
+- [ ] **GEN.1007 Overlap-free stars, part a: pass the primary's [Fe/H] into the star tree (the tree evolves companions at [Fe/H] 0 while the build uses the real value)**
+  Part of GEN.1006 (design:
+  /mnt/project-files/reports/multistar-overlap-free-design-2026-10-30.md,
+  cause 1). `Placed.fe_h` is not passed in `StarSystem._drawn_plan`, so
+  the tree evolves companions at [Fe/H] 0 and the build at the primary's
+  real [Fe/H]; seed 384 (a quadruple at [Fe/H] +0.30) has the tree make
+  a 1.38 Msun companion a white dwarf and the build a giant. Do: pass
+  fe_h=primary.metallicity_fe_h into the tree draw. Done: the tree and
+  the build agree on every member's class over the TEST.476 sample;
+  output changes, so it needs an epoch (--affects fill) and a golden
+  refresh on a train. Owner: Bug 1 (star lane) after GEN.951.
+  Prerequisites: none. Related: GEN.1006, GEN.1004, TEST.476.
+
+- [ ] **GEN.1008 Overlap-free stars, part b: store a giant's radius draw on the member and read it at build, so the radius is drawn once**
+  Part of GEN.1006 (design report, cause 2). A giant's radius depends on
+  a random position along its branch, drawn once by the tree and again,
+  from another stream, by the build (seed 384 after part a: tree radius
+  0.031 AU, built 0.045 AU, enough to break a 0.0088 AU pair). Do: draw
+  the branch position once, store it on the member (and on the built
+  object), and have the tree read it; no second draw anywhere. Done: the
+  tree radius equals the built radius for every giant over the TEST.476
+  sample. Output changes, so it needs an epoch (--affects fill) and
+  golden on a train. Owner: Bug 1 after part a.
+  Prerequisites: GEN.1007. Related: GEN.1006, GEN.1004, TEST.476.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
