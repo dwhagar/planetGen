@@ -6971,6 +6971,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from Sources 1 at its request. This replaces any earlier owner line.
   Lock-free step first; the wiring step rides train 7. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
+  TODO thread (Sources 2 and Sources 1 agreed) (2026-10-30 11:38 AM
+  EDT): Owner: Sources 1 (claude/gen492); Sources 2 has not started it.
+  Sources 2 keeps the GEN.473/474/475/477/493/494/595 wiring on train 7.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.493 Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14)**
