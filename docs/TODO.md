@@ -14888,7 +14888,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   separate commands (reset, plan, sectors, link, scatters, settle...),
   each its own run; jobs.job_runs(job_id) lists several runs and
   job_runner follows the job's processes, not one run. Follows PERF.202.
-  Step 1 merged (Aux 2, #3923, as the lane reported) (2026-10-30 2:49 AM
+  Step 1 merged (Aux 2, #3923, as the lane reported) (2026-10-30 2:47 AM
   EDT): each single-stage verb (skeleton, scatters, map luminosity,
   habitability, nebula field, clear scatter, link, backfill, settle,
   population, territories) builds its run as a followed.Planned and
