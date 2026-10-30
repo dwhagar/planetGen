@@ -940,6 +940,19 @@ The sum of the torques on a planet's spin: its star's tide, each moon's tide and
 | TQ6 | T | T6 | L0 | spin_torques.evolve (a one-dimensional flow; a resonance whose window holds the eccentricity captures for sure, a sign flip of the torque at a raiser's orbital rate or a smooth zero stops it; obliquity zero, circular torques) | none | a planet with one star and up to a few moons | test_spin_torques::test_one_star_with_constant_q_is_the_built_despinning | a spin-orbit integration with obliquity and eccentricity | the same simplifications as SP10 of 6.14 |
 <!-- spin-torques-standins:end -->
 
+### 6.30 Stand-ins of the dynamo field (GEN.966)
+
+The dipole moment of a rocky core or a giant's metallic layer from the power that drives it and the spin (`physics/dynamo.py`): the buoyancy-flux scaling of Olson and Christensen (2006), the Rossby number that gates the dipole, and the share of a giant's heat that drives it. GEN.967 replaces the design defaults of `magnetism` with it.
+
+<!-- dynamo-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| DY1 | D | T2 | L0 | dynamo.DIPOLE_COEFFICIENT 0.2: the dipole's equatorial field at the top of the region is 0.2 sqrt(rho mu0 / 2) (F D)^(1/3) | 0.15 to 0.25 | a dynamo that is dipolar as Earth's is (a local Rossby number under 0.12) | test_dynamo::test_earth_gives_its_own_moment_rossby_number_and_surface_field and the Jupiter and Ganymede tests; a solar-system moment more than a factor of three from the scaling at its own power | the scaling re-fitted to the dynamo simulations of Davies et al. 2022 or the energy-flux law of Christensen 2010 | RECALLED (Olson and Christensen 2006, 145 numerical dynamos, gamma 0.2, solar-system moments to about 15 percent; second-hand through citing papers) |
+| DY2 | P | T7 | L2 | dynamo.GIANT_POWER_SHARE 0.1: the share of a giant's radiated heat that drives its dynamo | 0.05 to 0.3 | gas and ice giants with a metallic or ionic layer | test_dynamo::test_jupiter_is_driven_by_a_tenth_of_its_heat_and_gives_its_moment_and_four_gauss; Saturn comes out six times too strong | the dissipated power of the layer from the giant's own structure and heat (GEN.733, GEN.810) | design (tuned so that Jupiter's 3.35e17 W gives its 1.5e27 A m2; a thermodynamic efficiency of the heat engine is of this size) |
+| DY3 | D | T2 | L1 | dynamo.EARTH_FLUX_DEPTH_M2_S2 1.4e-6: Earth's F D, the unit of the Rossby number and of the power (1.15 TW in the outer core) | power 0.2 to 3 TW | Earth, the unit | test_dynamo::test_earth_gives_its_own_moment_rossby_number_and_surface_field | the core's own thermal history (GEN.838) | COMPUTED (the design note section 3.1: gamma 0.2 and F D 1.4e-6 give 7.8e22 A m2; the published range of the power is 0.2 to 3 TW) |
+| DY4 | D | T5 | L0 | dynamo.MIN_DIPOLE_FRACTION 0.15, DIPOLE_ROSSBY 0.12, EARTH_ROSSBY 0.09 and FLUX_RAYLEIGH_EXPONENT 0.41: the dipole's share falls through a local Rossby number of 0.12 to 0.15 | share 0.05 to 0.2; Rossby 0.1 to 0.12 | all rotating dynamos | test_dynamo::test_the_share_of_the_dipole_is_the_rule_the_magnetism_module_uses and the Ganymede test | a dipole fraction from the dynamo simulation database | RECALLED (Christensen and Aubert 2006 for 0.41 and 0.12; Olson and Christensen 2006 for Earth's 0.09; the soft switch and 0.15 are the design note rule 3.5) |
+<!-- dynamo-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
