@@ -10,7 +10,7 @@ temperature and the radius its mass and age give.
 |---|---|---|
 | Cooling track | Teff and radius for 11 masses from 0.010 to 0.080 solar masses at ages from 0.01 to 10 Gy, log-linear in age and in mass between rows (`tuning.BROWN_DWARF_TRACKS`, a thinned table of the model's `BHAC15_iso.2mass` file) | Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42 (arXiv 1503.04107), the BHAC15 tracks |
 | Past a track's last age | a track that reaches 10 Gy holds its last values (the hydrogen-burning plateau); a shorter one cools at `Teff ~ t^-0.32` with the last radius | Burrows et al. 2001, Rev. Mod. Phys. 73, 719, eq. 2 (arXiv astro-ph/0103383) |
-| Temperature | the track's, no hotter than 2,800 K (`tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K`, a late-M dwarf) | as above |
+| Temperature | the track's, no hotter than the temperature of the hydrogen-burning limit at the age (`substellar_ceiling.cap_k`: 2,950 K at the peak, 2,050 K at 1 Gy, 1,630 K at 5 Gy; a body at or above 0.07 solar masses only the 2,950 K peak) | Baraffe et al. 2015 section 3.3 and the BHAC15 table (GEN.494) |
 | Radius | the track's, 0.09 to 0.16 solar radii old, larger when young | as above |
 | Luminosity | `L = R^2 (Teff / Teff_sun)^4` of the two | Stefan-Boltzmann |
 | Mass function | `dN/dM ~ M^-0.6` between 13 and 80 Jupiter masses | Kirkpatrick et al. 2021, ApJS 253, 7 (arXiv 2011.11616): alpha 0.6 +- 0.1 from 525 L, T and Y dwarfs within 20 pc |

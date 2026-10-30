@@ -1595,9 +1595,9 @@
    "category": "g",
    "kind": "option",
    "option": "Young hot, late-M-like",
-   "gate_text": "BD; Teff 2200 to 2800 K",
+   "gate_text": "BD; Teff 2200 to 2950 K",
    "weight_text": "Phi-window (s 100 K)",
-   "source": "cap 2800 K = repo ROGUE_MAX_EFFECTIVE_TEMPERATURE_K; lower edge DESIGN",
+   "source": "cap 2950 K = the BHAC15 temperature of the hydrogen-burning limit at its peak (`substellar_ceiling.HOTTEST_K`, GEN.494); lower edge DESIGN",
    "status": "DESIGN",
    "research": [
     "R15"
@@ -1607,7 +1607,7 @@
     "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "late M is the extension of the map above L0 (2238 K); the map has no M-type fit (Table 13) and the 2800 K cap is the repo's rogue maximum (GEN.517)",
+   "limit": "late M is the extension of the map above L0 (2238 K); the map has no M-type fit (Table 13) and the 2950 K cap is the BHAC15 temperature of the hydrogen-burning limit at its peak (GEN.494)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -1615,7 +1615,7 @@
    ],
    "conditions": [],
    "group": "g",
-   "weight": "phi((2800 - teff_k)/100) - phi((2238 - teff_k)/134)"
+   "weight": "phi((2950 - teff_k)/100) - phi((2238 - teff_k)/134)"
   },
   {
    "id": "g2",

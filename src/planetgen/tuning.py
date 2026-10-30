@@ -3055,12 +3055,6 @@ ROGUE_NEPTUNE_INTERNAL_TEMPERATURE_K = 53.0
 Jupiter it fixes how a sub-Jupiter giant's heat scales with mass
 (L ~ M^1.65)."""
 
-ROGUE_MAX_EFFECTIVE_TEMPERATURE_K = 2800.0
-"""float: The hottest a rogue gets. The cooling law above assumes an old,
-shrunken body; a brown dwarf younger than a few hundred million years is
-still puffed up, so the law (with today's radius) overshoots. Young brown
-dwarfs near the hydrogen-burning limit are late-M dwarfs, ~2,800 K."""
-
 # Brown dwarfs as stars (GEN.252, GEN.549, docs/design/systems/brown-dwarf-state.md): the cooling track, the mass function and the
 # map from temperature to spectral type.
 BROWN_DWARF_TRACKS = (

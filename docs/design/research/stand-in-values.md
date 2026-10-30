@@ -606,8 +606,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| SB1 | P | T1 | L0 | substellar_ceiling.LIMIT_MASS_SOLAR 0.07 (the hydrogen-burning limit of the solar-metallicity models; the table also holds 0.072) | none | solar metallicity | a model whose limit lies more than 0.005 solar masses from 0.07 (the limit rises at low [Fe/H], GEN.936) | the limit as a function of [Fe/H] from the Baraffe table (GEN.936) | test_substellar_ceiling::test_the_limit_mass_is_hottest_at_ten_million_years_as_the_paper_says | GEN.494 | - |
-| SB2 | P | T1 | L0 | substellar_ceiling.HOTTEST_K 2950 (the highest temperature the limit mass reaches; the table has 2946 K at 10 Myr) | none | any age from 0.5 Myr to 10 Gyr | an isochrone set whose limit mass peaks more than 100 K from 2950 K | a later set of models | test_substellar_ceiling::test_the_limit_mass_is_hottest_at_ten_million_years_as_the_paper_says | GEN.494 | - |
+| SB1 | P | T1 | L0 | substellar_ceiling.LIMIT_MASS_SOLAR 0.07 (the hydrogen-burning limit of the solar-metallicity models; the table also holds 0.072) | none | solar metallicity | a model whose limit lies more than 0.005 solar masses from 0.07 (the limit rises at low [Fe/H], GEN.936) | the limit as a function of [Fe/H] from the Baraffe table (GEN.936) | test_substellar_ceiling::test_the_limit_mass_is_hottest_at_ten_million_years_as_the_paper_says | - | - |
+| SB2 | P | T1 | L0 | substellar_ceiling.HOTTEST_K 2950 (the highest temperature the limit mass reaches; the table has 2946 K at 10 Myr) | none | any age from 0.5 Myr to 10 Gyr | an isochrone set whose limit mass peaks more than 100 K from 2950 K | a later set of models | test_substellar_ceiling::test_the_limit_mass_is_hottest_at_ten_million_years_as_the_paper_says | - | - |
 
 ## 6.38 Stand-ins of the aluminium-26 and iron-60 at birth
 

@@ -260,7 +260,7 @@ MACHINE = {
                weight="phi((1100 - teff_k)/100) if body_class == 'brown-dwarf' else phi((500 - teq_k)/100)"),
 
     # ---- g. brown dwarfs ----
-    "g1": dict(state="partly verified", limit="late M is the extension of the map above L0 (2238 K); the map has no M-type fit (Table 13) and the 2800 K cap is the repo's rogue maximum (GEN.517)", kind="option", group="g", classes=BD, weight="phi((2800 - teff_k)/100) - phi((2238 - teff_k)/134)"),
+    "g1": dict(state="partly verified", limit="late M is the extension of the map above L0 (2238 K); the map has no M-type fit (Table 13) and the 2950 K cap is the BHAC15 temperature of the hydrogen-burning limit at its peak (GEN.494)", kind="option", group="g", classes=BD, weight="phi((2950 - teff_k)/100) - phi((2238 - teff_k)/134)"),
     "g2": dict(kind="option", group="g", classes=BD, weight="phi((2238 - teff_k)/134) - phi((1273 - teff_k)/79)"),
     "g3": dict(kind="option", group="g", classes=BD, weight="phi((1273 - teff_k)/79) - phi((686 - teff_k)/79)"),
     "g4": dict(state="partly verified", limit="late T (T8 to T9) is a subclass of T, not a type of its own; its edges are the map's T8 and Y0 values (Kirkpatrick 2021 Table 13, GEN.494)", kind="option", group="g", classes=BD, weight="phi((686 - teff_k)/79) - phi((460 - teff_k)/79)"),
