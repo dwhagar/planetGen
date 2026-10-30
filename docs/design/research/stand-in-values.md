@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 457 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 458 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,7 +37,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 56 | 0 | 3 | 0 | 0 | 59 |
-| T2 | 77 | 6 | 0 | 1 | 0 | 84 |
+| T2 | 77 | 7 | 0 | 1 | 0 | 85 |
 | T3 | 56 | 9 | 3 | 10 | 0 | 78 |
 | T4 | 22 | 0 | 0 | 3 | 4 | 29 |
 | T5 | 25 | 6 | 1 | 0 | 0 | 32 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 18 | 6 | 1 | 7 | 0 | 32 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 295 | 42 | 18 | 77 | 25 | 457 |
+| All | 295 | 43 | 18 | 77 | 25 | 458 |
 
 ## How the labels were given
 
@@ -566,9 +566,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| NS1 | P | T2 | L0 | neutron_star_structure.CRUST_CORE_DENSITY_FM3 0.08 (the baryon density at the bottom of the crust; the tables do not mark the transition) | 0.07 to 0.10 | the crust thickness and crust mass of a star above 1 solar mass | a transition density read from the tables that differs from 0.08 by more than 0.02 | the transition each table's own compressible-liquid-drop crust uses (Malik et al. 2024) | test_neutron_star_structure_real::test_a_one_point_four_solar_mass_star_has_a_crust_about_a_kilometre_thick | GEN.969 | - |
-| NS2 | P | T2 | L0 | neutron_star_structure.NEUTRON_DRIP_DENSITY_FM3 2.6e-4 (the baryon density at the bottom of the outer crust, shared by the BSk22 crust of every table) | none | the outer-crust thickness | the outer-crust files of Servais and Chamel 2026 ending at a different density | the per-model drip density of the Servais and Chamel 2026 files (`neutron_star_matter.outer_crust`) | test_datasets_real::test_every_mass_model_of_the_outer_crust_starts_with_iron_56_and_ends_near_the_drip_density | GEN.969 | - |
+| NS1 | P | T2 | L0 | neutron_star_structure.CRUST_CORE_DENSITY_FM3 0.08 (the baryon density at the bottom of the crust; the tables do not mark the transition) | 0.07 to 0.10 | the crust thickness and crust mass of a star above 1 solar mass | a transition density read from the tables that differs from 0.08 by more than 0.02 | the transition each table's own compressible-liquid-drop crust uses (Malik et al. 2024) | test_neutron_star_structure_real::test_a_one_point_four_solar_mass_star_has_a_crust_about_a_kilometre_thick | - | - |
+| NS2 | P | T2 | L0 | neutron_star_structure.NEUTRON_DRIP_DENSITY_FM3 2.6e-4 (the baryon density at the bottom of the outer crust, shared by the BSk22 crust of every table) | none | the outer-crust thickness | the outer-crust files of Servais and Chamel 2026 ending at a different density | the per-model drip density of the Servais and Chamel 2026 files (`neutron_star_matter.outer_crust`) | test_datasets_real::test_every_mass_model_of_the_outer_crust_starts_with_iron_56_and_ends_near_the_drip_density | - | - |
 | NS3 | T | T5 | L0 | the surface is the lowest pressure of a table (6e-15 MeV fm^-3, a mass density of 1e4 g/cm^3); no ocean, atmosphere or envelope is added | none | the radius to about 10 m | a radius that changes by more than 100 m when the surface is moved to 1e6 g/cm^3 | a neutron star envelope model (GEN.969 if it matters) | test_neutron_star_structure::test_a_light_polytropic_star_has_the_radius_of_the_newtonian_n_equals_one_polytrope | - | - |
+| NS4 | P | T2 | L1 | neutron_star.eos_weight: a normal weight on each table's R(1.4) about 12.45 +- 0.65 km and R(2.08) about 12.35 +- 0.75 km (Miller et al. 2021), and for a table whose heaviest star is under 2.08 solar masses a normal weight on the shortfall in sigmas of 0.07 (PSR J0740+6620, Fonseca et al. 2021); a star's equation of state is the weighted quantile of the radii at its mass, picked by the one standard-normal draw | none | the radius of a neutron star of 1.1 to 2.2 solar masses | NICER or gravitational-wave radii that exclude the weighted median 12.8 km at 1.4 solar masses, or the 21 tables replaced by a set that spans the Miller et al. interval | a Bayesian posterior over the equation of state (Miller et al. 2021's own three frameworks, or Raaijmakers et al. 2021) | test_neutron_star_radius::test_the_weights_favour_the_equations_that_fit_the_constraints | - | - |
 
 ## 6.33 Stand-ins of the stellar spectra
 

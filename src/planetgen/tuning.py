@@ -2463,15 +2463,6 @@ larger share keeps them and adds the top of the mass range down to the mass that
 share, 45%, reaches down to about 14.5 solar masses, where Ertl et al. 2016, quoting Ugliano et al. 2012, put the lowest
 island) [S, stand-in: the nesting of the windows is not sourced]."""
 
-# Neutron star radius (GEN.463, physics/neutron_star.py): the centre and the
-# spread, km, at two masses, from Miller et al. 2021 (ApJL 918:L28,
-# arXiv:2105.06979): R(1.4 Msun) = 12.45 +- 0.65 and R(2.08 Msun) = 12.35 +-
-# 0.75, the full range of the 68% intervals over three equation-of-state
-# frameworks; a star draws a normal deviation about the line between them,
-# clipped at NEUTRON_STAR_RADIUS_CLIP_SIGMA deviations (the 95% band).
-NEUTRON_STAR_RADIUS_ANCHORS = ((1.4, 12.45, 0.65), (2.08, 12.35, 0.75))
-NEUTRON_STAR_RADIUS_CLIP_SIGMA = 2.0
-
 # Pulsar spin period, in milliseconds, split into the two real observed
 # populations (Lorimer 2008, "Binary and Millisecond Pulsars", Living
 # Reviews in Relativity 11:8, reviewing the ATNF pulsar catalog): young,

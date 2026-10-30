@@ -133,7 +133,7 @@ RELATIONS = (
     Relation("neutron star outer crust without the downloaded tables", "Chamel and Haensel 2008 Table 2", STAND_IN,
              "taken only by a run told to disregard missing data; one sequence instead of 20 nuclear mass models"),
     Relation("neutron star inner crust and core", "Malik, Pais and Providencia 2024, 21 equations of state, downloaded (SC3)",
-             OPEN, "the tables are on disk and nothing integrates them yet: a star's radius comes from the measured band (physics/neutron_star.py)"),
+             OPEN, "a star's radius is read from the integrated mass-radius curves of the 21 tables, weighted by NICER (physics/neutron_star.py); the inner crust and core composition is not drawn from them yet"),
     Relation("black hole quantities", "Kerr-Newman formulas (Bardeen, Press and Teukolsky 1972); the no-hair theorem "
              "(Chrusciel, Costa and Heusler 2012)", VERIFIED),
     Relation("brown dwarf deuterium limit", "Spiegel, Burrows and Milsom 2011 Table 1", VERIFIED),
