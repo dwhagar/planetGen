@@ -129,11 +129,12 @@ class StarDraws:
     u_pollution: float
 
 
-def abundance_key(uid=None, mass=None, age_gy=None, distance_ly=None, bright_seed=None, group=None):
+def abundance_key(uid=None, mass=None, distance_ly=None, bright_seed=None, group=None):
     """
     The key of a star's draws (the stream is `abundance:` plus this): `group` (a system's primary, or `cluster:{seed}`) if
-    given, else `bright:{seed}`, else the star's `uid`, else the quantities that seed the [Fe/H] stream (`mass`, `age_gy`,
-    `distance_ly`, as their `repr`).
+    given, else `bright:{seed}`, else the star's `uid`, else the star's birth mass and distance from the galactic centre (as their `repr`). The age is not in the key: a star's age rises
+    once, after its planets are made (`Star.adjust_age_for_planets`), and the star's makeup and every planet's host ratios must read the
+    same draws before and after (GEN.984).
 
     Raises:
         StarMakeupError: Nothing identifies the star.
@@ -144,9 +145,9 @@ def abundance_key(uid=None, mass=None, age_gy=None, distance_ly=None, bright_see
         return f"bright:{bright_seed}"
     if uid is not None:
         return f"{uid}"
-    if mass is None or age_gy is None or distance_ly is None:
-        raise StarMakeupError("a star's key needs a group, a bright-star seed, a uid, or its mass, age and distance")
-    return f"{mass!r}:{age_gy!r}:{distance_ly!r}"
+    if mass is None or distance_ly is None:
+        raise StarMakeupError("a star's key needs a group, a bright-star seed, a uid, or its mass and distance")
+    return f"{mass!r}:{distance_ly!r}"
 
 
 def cluster_key(seed):

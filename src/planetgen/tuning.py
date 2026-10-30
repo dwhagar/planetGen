@@ -24,6 +24,8 @@ names the test lets through); or is stored as a positive "fall" (how far
 down, not minus how far) and subtracted where it is used.
 """
 
+import math as _math
+
 from planetgen.generation.phenomena import registry as _phenomena_registry
 from planetgen.physics import constants as _physical_constants
 from planetgen.physics import mass_boundaries as _boundaries
@@ -759,12 +761,42 @@ and two or more (triples and quadruples). The chance of a companion is 1 - `sing
 # luminosity. SPECTRAL_PROBABILITIES_NORMAL above is kept as the census the
 # model is tested against, not as a draw.
 
-# Kroupa (2001), MNRAS 322:231 -- the initial mass function as a broken
-# power law dN/dM ~ M^-alpha: alpha = 1.3 from 0.08 to 0.5 Msun and 2.3
-# above, up to the ~150 Msun upper limit of real stars. IMF_BREAKS_SOL are
-# the segment edges and IMF_SLOPES each segment's alpha.
-IMF_BREAKS_SOL = (_boundaries.sol("hydrogen_burning_limit"), 0.5, 150.0)
-IMF_SLOPES = (1.3, 2.3)
+# The single-star initial mass function (GEN.927): Chabrier (2003), PASP 115:763, Table 2, the Galactic disk, individual stars:
+# a log-normal in log mass below 1 Msun and a power law above it, joined continuously. All four are recalled, not read in the
+# paper (tier Confident Unverified, level L0; docs/design/galaxy/stellar-mass-function.md).
+IMF_BELL_CENTRE_SOL = 0.079
+"""float: The solar mass at which the log-normal part of the single-star mass function peaks per logarithm of mass (Chabrier
+2003, Table 2, disk, individual stars: `m_c` = 0.079; the systems' own function, 0.22, is derived here, not set)."""
+IMF_BELL_WIDTH_DEX = 0.69
+"""float: The width of that log-normal in dex of mass (Chabrier 2003: `sigma` = 0.69)."""
+IMF_BELL_TOP_SOL = 1.0
+"""float: The mass at which the log-normal gives way to the power law above it (Chabrier 2003: 1 solar mass)."""
+IMF_HIGH_SLOPE = 2.3
+"""float: The power law above `IMF_BELL_TOP_SOL`, `dN/dM ~ M^-2.3` (Chabrier 2003: `x` = 1.3 per logarithm of mass; Kroupa 2001:
+2.3 above 0.5). A birth function: the steeper 2.7 of the field (Kroupa, Tout and Gilmore 1993) counts stars still alive and
+is what the disk history reproduces from this and the ages (docs/design/galaxy/stellar-mass-function.md)."""
+IMF_NODE_SPACING_DEX = 0.05
+"""float: The spacing of the nodes the log-normal is cut into, each pair joined by a power law through the function at both
+(the function is kept as a continuous piecewise power law, `physics/imf.py`); at 0.05 dex the chord is within 0.07% of
+the log-normal."""
+
+
+def _bell_rows():
+    """`(breaks, slopes)` of the log-normal below `IMF_BELL_TOP_SOL` cut into power-law segments at `IMF_NODE_SPACING_DEX`
+    (a segment's slope is the chord of `ln dN/dM` against `ln M` between its nodes), then the high power law up to 150 Msun."""
+    low = _boundaries.sol("hydrogen_burning_limit")
+    cells = int(_math.ceil(_math.log10(IMF_BELL_TOP_SOL / low) / IMF_NODE_SPACING_DEX))
+    breaks = [low * (IMF_BELL_TOP_SOL / low) ** (i / cells) for i in range(cells + 1)]
+
+    def log_density(mass):
+        return -(_math.log10(mass) - _math.log10(IMF_BELL_CENTRE_SOL)) ** 2 / (2.0 * IMF_BELL_WIDTH_DEX ** 2) - _math.log(mass)
+
+    slopes = [-(log_density(b) - log_density(a)) / _math.log(b / a) for a, b in zip(breaks, breaks[1:])]
+    return tuple(breaks) + (150.0,), tuple(slopes) + (IMF_HIGH_SLOPE,)
+
+
+IMF_BREAKS_SOL, IMF_SLOPES = _bell_rows()
+"""tuple: The segment edges (solar masses) and each segment's `alpha` (`dN/dM ~ M^-alpha`) of the single-star function."""
 
 # The default star-formation history: ages uniform over the thin disk's
 # 0-10 Gy. Population-dependent ages by position come on top of this (the
@@ -945,11 +977,20 @@ MASSLESS_MARKER_MASS_SOL = 1.0
 SUN_EFFECTIVE_TEMPERATURE_K = 5772.0
 
 # White dwarfs: final mass from the initial-final mass relation of
-# Kalirai et al. (2008), ApJ 676:594 (M_f = 0.109 M_i + 0.394), clamped to
-# the observed range; luminosity from Mestel cooling,
-# L = WD_COOLING_L0 * (M/0.6) * t_cool^-1.4 (Lsun, t_cool in Gy), clamped.
-WD_IFMR_SLOPE = 0.109
-WD_IFMR_INTERCEPT_SOL = 0.394
+# Cummings et al. (2018), ApJ 866:21 (arXiv 1809.01673), the MIST-based fit, equations 4 to 6, read; luminosity from Mestel
+# cooling, L = WD_COOLING_L0 * (M/0.6) * t_cool^-1.4 (Lsun, t_cool in Gy), clamped.
+WD_IFMR_PIECES = (
+    (0.83, 2.85, 0.080, 0.489),
+    (2.85, 3.60, 0.187, 0.184),
+    (3.60, 7.20, 0.107, 0.471),
+)
+"""tuple: The white dwarf initial-final mass relation, `(low, high, slope, intercept)` per piece: the final mass is
+`intercept + slope * M_i` solar masses for an initial mass between `low` and `high` (Cummings et al. 2018, equations 4, 5
+and 6, the fit to the MIST tracks; the pieces join at 2.85 and 3.60). The first piece is carried down to the lightest
+progenitor (`WHITE_DWARF_PROGENITOR_SOL`) and the last up to the core collapse limit. Verified (read in the paper); one
+relation, read by the star model, the member draw, the disk history and `mass_loss`. The relation of Kalirai et al. (2008)
+the generator used before runs 0.04 to 0.06 under it, and Weidemann (2000), the disk history's, 0.1 to 0.16 under at 5 to 7
+solar masses (the audit of the star classes, M2)."""
 WD_MASS_RANGE_SOL = (0.5, 1.35)
 WD_COOLING_L0_SOL = 1.0e-3
 WD_COOLING_EXPONENT = -1.4
@@ -1199,9 +1240,6 @@ follows the stellar mass the halo's growth builds."""
 HALO_GROWTH_RATE_AT_1E12_MSUN_YR = 46.1
 """float: That fit's amplitude, solar masses per year for a halo of 1e12 solar masses at z = 0. It only sets how the
 halo's mass went back in time; the disk's inflow is scaled to the stars it must build, so its size drops out."""
-WHITE_DWARF_REMNANT_MASS_SOL = {"intercept": 0.444, "slope": 0.084}
-"""dict: A star of 1 to 7 solar masses leaves a white dwarf of `intercept + slope * m` (Weidemann 2000's initial-final masses
-as Madau and Dickinson 2014, ARA&A 52, 415, arXiv 1403.0007, quote them, read)."""
 NEUTRON_STAR_RETURN_REMNANT_SOL = 1.4
 """float: The remnant of a star of 8 to `BLACK_HOLE_RETURN_MASS_SOL` solar masses (the same source's choice)."""
 BLACK_HOLE_RETURN_MASS_SOL = 40.0
@@ -3334,14 +3372,14 @@ PREVALENCE_DRAW_SHARES = {
     "wide_binary": 0.810,       # pairs that are wide (S-type: an axis of 0.25 AU or more)
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
-    "multi_star": 0.0045,       # systems with five or more stars (see below)
+    "multi_star": 0.0044,       # systems with five or more stars (see below)
 }
 # `multi_star` is not measured from generated systems: `StarSystem` builds only a
 # single star, a close pair or a wide pair until the member-tree host lands
 # (GEN.630), so no run yet has five stars. It is the `star-count` table's
 # five-or-more columns (`generation.multistar.star_count_weights`) averaged over the
-# placed star's initial mass function (`IMF_BREAKS_SOL`, `IMF_SLOPES`, 2,000 log bins
-# from 0.08 to 150 solar masses), before any age or remnant, 0.447% of systems.
+# placed star's primary mass function (`imf.PRIMARY`, GEN.928; 400 log bins
+# from 0.08 to 150 solar masses), before any age or remnant, 0.442% of systems.
 # Remeasure it from generated systems once GEN.630 merges.
 
 # The most stars a system may hold (`SystemConfig.MAX_STARS`, GEN.267; the
@@ -3757,7 +3795,7 @@ BLACK_HOLE_UNBOUND_FRACTION = 0.02
 
 CORE_COLLAPSE_MASS_RANGE_SOL = (SUPERGIANT_MIN_MASS_SOL, IMF_BREAKS_SOL[-1])
 """tuple: The initial masses that end as a neutron star or a black hole, solar masses: 8 (the supergiants' edge) to the
-top of the IMF, 150 (GEN.560). 0.637% of the stars born."""
+top of the IMF, 150 (GEN.560). 0.713% of the stars born (GEN.927)."""
 
 BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE = (0.0, 0.45)
 """tuple: The share of the massive stars of solar metallicity that fail to explode and leave a black hole: the widest

@@ -134,11 +134,11 @@ def _ratios(fe_h, age_gy, key):
 
 
 def star_key(star):
-    """The key of `star`'s abundance draws: the one its [Fe/H] stream is seeded with (mass, age and galactic distance)."""
+    """The key of `star`'s abundance draws: the star's mass and galactic distance, not its age (GEN.984)."""
     distance_ly = getattr(star, "galactic_center_dist_ly", None)
     if distance_ly is None:
         distance_ly = scales.default_galactocentric_ly()
-    return stellar_composition.abundance_key(mass=star.mass, age_gy=star.age, distance_ly=distance_ly)
+    return stellar_composition.abundance_key(mass=star.mass, distance_ly=distance_ly)
 
 
 def metal_ratio_to_solar(star):

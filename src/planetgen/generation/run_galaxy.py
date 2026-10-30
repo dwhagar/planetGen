@@ -323,9 +323,13 @@ def _fill_context(args, address):
             return None
         profile = sector_profile(address, skeleton)
         limits, backfill_seed = run_plan._scatter_limits_and_seed(conn, skeleton)
-        resolution = galaxyResolution.cell_resolution(
-            profile, skeleton.cell_star_ceiling, skeleton.fill_luminosity_cap_sol,
-            limits.mass_limit_at(address[0], address[1]))
+        # The resolution reads the reference metallicity, which depends on the galaxy's own disk scale length: bind the
+        # galaxy as the fill will, so the cell is aimed at the number its stored stats then record.
+        with galaxySeed.seeded(skeleton.galaxy_seed, "sector", address,
+                               disk_scale_length_pc=skeleton.shape.disk_scale_length_pc, shape=skeleton.shape):
+            resolution = galaxyResolution.cell_resolution(
+                profile, skeleton.cell_star_ceiling, skeleton.fill_luminosity_cap_sol,
+                limits.mass_limit_at(address[0], address[1]))
         if resolution.capped:
             # GEN.281: a cell above the ceiling is taken down to the cap and no further.
             run_plan._draw_sector_bands(conn, skeleton, [tuple(address)], resolution.luminosity_cap_sol,

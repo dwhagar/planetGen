@@ -6,7 +6,7 @@ Status: built (GEN.554 slice 1). The mass islands are `explosion-islands.md` (sl
 
 Before: every galaxy rolled neutron stars at a fixed 4.0e-3 per star (`tuning.PHENOMENON_RATE_PER_STAR`, from Boss's research density of 1e9 in 2.5e11, GEN.100), whatever its metals. A black hole needs a massive star that fails to explode (`black-hole-density.md`), and that star would otherwise have made a neutron star, so the two counts were not independent and the old fixed rate could not follow the black hole draw.
 
-After: every star of 8 to 150 solar masses ends as a neutron star or a black hole (the IMF share, 0.637% of the stars born). A place's neutron stars per star are the black hole sum with `1 - F_p` in place of `F_p`:
+After: every star of 8 to 150 solar masses ends as a neutron star or a black hole (the IMF share, 0.713% of the stars born since GEN.927; 0.637% on the Kroupa function). A place's neutron stars per star are the black hole sum with `1 - F_p` in place of `F_p`:
 
 ```
 r_NS(place) = IMF_SHARE x (1 - u) x sum over populations p [ w_p(place) x C_p x (1 - F_p(place)) ]
