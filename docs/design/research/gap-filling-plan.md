@@ -1786,6 +1786,14 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | CU2 | B | T2 | L0 | cluster_unbinding.relative_speed_km_s: sqrt(6) times the one-axis dispersion, the rms relative speed of two stars from a Maxwellian | none | a cluster in virial equilibrium with isotropic motions | a cluster with a measured relative speed far from sqrt(6) sigma | the speed of encounters from the cluster's velocity distribution | the sum of two independent Maxwellians (our derivation) |
 | CU3 | P | T6 | L1 | cluster_unbinding.half_mass_density: the density the planet sees is the half-mass density 3 M / (8 pi r_h^3) for the whole life of the cluster | the density at 0.5 to 2 r_h | the encounters of planets in the half-mass region; the core is denser | a cluster where the unbound fraction of planets measured by radius shows no gradient | the density at the planet's own position from the cluster's profile (`king`) | the half-mass density is the usual single number for a cluster; the weighting is ours |
 
+### 6.114 Stand-ins of the radiogenic heat of a rogue (GEN.1134)
+
+`physics/rogue_radiogenic.py` gives a rogue rock the thorium, uranium, potassium and aluminium-26 of the star it left, by the laws a bound planet of that star uses: `radiogenic.host_offset_dex` for the star's [Fe/H], age and draw key, `rprocess_enrichment.th_u_factor_of_shape` for the star's age in its galaxy, and `radiogenic.draw_content` for the rest, so a rogue and a bound rocky planet of one star given one random stream have the same content. It replaces the host-less draw (`draw_content(None)`) in `rogue_surface`. The activity cut, tried as a mantle state, did not discriminate (the one-box mantle of `interior_heat` stays at 1,950 K or more for 0.01 to 3 Earth masses at 4.5 to 10 Gy), so the heat-flow cut stays, now registered. Not read by the generator until the rogue rows are created (GEN.1111).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| RY1 | P | T6 | L3 | rogue_radiogenic.ACTIVE_HEAT_FLUX_W_M2 0.04 W/m2: a rocky rogue whose heat flow reaches it is geologically active | 0.02 to 0.087 | rocky rogues of 0.01 to 3 Earth masses | a model of when a stagnant lid stops erupting that puts the cut far from 0.04 for an Earth-mass body | a stagnant-lid eruption model on the interior heat (mantle potential temperature against the solidus at the lid's base) | between Mars (about 0.02 W/m2, recalled, InSight) and the Earth (0.087, Pollack et al. 1993, recalled); the old `ROGUE_ACTIVE_HEAT_FLUX_W_M2`, moved here unchanged |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

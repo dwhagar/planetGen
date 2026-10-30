@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 793 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 794 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 77 | 31 | 5 | 9 | 0 | 122 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 41 | 13 | 0 | 0 | 0 | 54 |
-| T6 | 67 | 46 | 12 | 35 | 0 | 160 |
+| T6 | 67 | 46 | 12 | 36 | 0 | 161 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 6 | 2 | 10 |
 | T9 | 7 | 3 | 4 | 38 | 19 | 71 |
-| All | 484 | 133 | 36 | 113 | 27 | 793 |
+| All | 484 | 133 | 36 | 114 | 27 | 794 |
 
 ## How the labels were given
 
@@ -1241,6 +1241,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CU1 | B | T3 | L1 | cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to every orbit | a factor of a few either way for hard planets | planets soft against the cluster (circular speed under V, `soft`); a harder orbit is overestimated by a factor the paper does not give | an N-body unbinding rate for a planet at 5 to 30 AU in a cluster of 1 km/s that is far below the formula | the cross sections of the N-body encounters for hard orbits (Fregeau et al. 2006, not read) | Spurzem, Giersz, Heggie and Lin 2009 arXiv:astro-ph/0612757 eqs. 36 and 37, read | - | - |
 | CU2 | B | T2 | L0 | cluster_unbinding.relative_speed_km_s: sqrt(6) times the one-axis dispersion, the rms relative speed of two stars from a Maxwellian | none | a cluster in virial equilibrium with isotropic motions | a cluster with a measured relative speed far from sqrt(6) sigma | the speed of encounters from the cluster's velocity distribution | the sum of two independent Maxwellians (our derivation) | - | - |
 | CU3 | P | T6 | L1 | cluster_unbinding.half_mass_density: the density the planet sees is the half-mass density 3 M / (8 pi r_h^3) for the whole life of the cluster | the density at 0.5 to 2 r_h | the encounters of planets in the half-mass region; the core is denser | a cluster where the unbound fraction of planets measured by radius shows no gradient | the density at the planet's own position from the cluster's profile (`king`) | the half-mass density is the usual single number for a cluster; the weighting is ours | - | - |
+
+## 6.114 Stand-ins of the radiogenic heat of a rogue
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RY1 | P | T6 | L3 | rogue_radiogenic.ACTIVE_HEAT_FLUX_W_M2 0.04 W/m2: a rocky rogue whose heat flow reaches it is geologically active | 0.02 to 0.087 | rocky rogues of 0.01 to 3 Earth masses | a model of when a stagnant lid stops erupting that puts the cut far from 0.04 for an Earth-mass body | a stagnant-lid eruption model on the interior heat (mantle potential temperature against the solidus at the lid's base) | between Mars (about 0.02 W/m2, recalled, InSight) and the Earth (0.087, Pollack et al. 1993, recalled); the old `ROGUE_ACTIVE_HEAT_FLUX_W_M2`, moved here unchanged | GEN.1111 | no data |
 
 ## 6.94 Stand-ins of the irregular zone
 

@@ -229,6 +229,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.112:MO1 | GEN.1111 | a constant of the rogue moons module, read when its wiring step lands |
 | row | 6.112:MO3 | GEN.1111 | a constant of the rogue moons module, read when its wiring step lands |
 | module | planetgen.physics.cluster_unbinding | GEN.1111 | the share of planets a birth cluster has unbound; the rogue rows add it to the ejections |
+| module | planetgen.physics.rogue_radiogenic | GEN.1111 | the radiogenic content and heat of a rogue from the star it left; the rogue rows read them in place of the host-less draw |
+| row | 6.114:RY1 | GEN.1111 | a constant of the rogue radiogenic module, read when its wiring step lands |
 | row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
