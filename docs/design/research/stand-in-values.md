@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 740 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 744 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 76 | 27 | 5 | 9 | 0 | 117 |
 | T4 | 36 | 2 | 0 | 15 | 6 | 59 |
 | T5 | 39 | 12 | 0 | 0 | 0 | 51 |
-| T6 | 63 | 35 | 12 | 34 | 0 | 144 |
+| T6 | 63 | 38 | 12 | 34 | 0 | 147 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 3 | 2 | 7 |
-| T9 | 6 | 1 | 4 | 34 | 19 | 64 |
-| All | 462 | 110 | 36 | 105 | 27 | 740 |
+| T9 | 7 | 1 | 4 | 34 | 19 | 65 |
+| All | 463 | 113 | 36 | 105 | 27 | 744 |
 
 ## How the labels were given
 
@@ -1189,6 +1189,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | IZ1 | P | T2 | L1 | irregular_zone.PROGRADE_STABLE_FRACTION 0.4, the share of the Hill radius out to which a prograde orbit is stable | 0.4 to 0.5 | prograde irregulars of the four giants | a stable prograde body found beyond 0.5 of the Hill radius | an integration-fitted limit by planet, star mass and eccentricity (Nesvorny et al. 2003) | numerical surveys quoted by Jewitt and Haghighipour 2007 give about 0.4; the 0.4895 of the moon code is Hamilton and Burns 1991 for a circular regular moon | GEN.1076 | - |
 | IZ2 | P | T1 | L0 | irregular_zone.RETROGRADE_STABLE_FRACTION 0.55, the share of the Hill radius out to which a retrograde orbit is stable | 0.5 to 0.6 | retrograde irregulars of the four giants | a stable retrograde body found beyond 0.6 of the Hill radius | the same integration-fitted limit | Vokrouhlicky, Nesvorny and Levison 2008, quoting Nesvorny et al. 2003: 0.5 to 0.6 depending on the mean eccentricity; 0.55 is the middle | GEN.1076 | - |
 | IZ3 | P | T1 | L0 | irregular_zone.INNER_EDGE_FACTOR 1.0, the multiple of the outermost regular moon's distance a pericentre must exceed | 1.0 to 1.5 | the giants with regular moons | an irregular with a pericentre inside Callisto's, Iapetus's or Oberon's orbit that has survived | a collision-rate cut against the regular moon's size | Vokrouhlicky, Nesvorny and Levison 2008: q greater than 0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus | GEN.1076 | - |
+
+## 6.102 Stand-ins of the smoothed rogue density
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RSM1 | D | T6 | L1 | rogue_density.RADIAL_SMOOTH_PC 190: the Gaussian width in galactocentric radius between a donor and an old rogue | 100 to 700 pc (the design's range) | rogues older than 1 Gyr in a disc | the radial spread of a measured sample of free-floating planets against their donors' birth radii | the width from the kick distribution of GEN.1113 and the orbit integrator behind galactic-potential.md | rogue_drift.drift over the stand-in kick distribution (computed, not read); Hill's equations (Binney and Tremaine 2008, recalled) | GEN.1111 | - |
+| RSM2 | D | T6 | L1 | rogue_density.VERTICAL_SMOOTH_PC 30: the same in height | 20 to 50 pc (the design's range) | rogues older than 1 Gyr in a disc | the scale height of observed free-floating planets against their donors' | the same as RSM1 | rogue_drift.drift over the stand-in kick distribution (computed) | GEN.1111 | - |
+| RSM3 | D | T6 | L1 | rogue_density.YOUNG_AGE_MYR 100: rogues ejected within this long keep the donor's structure; the share is this over the population's history (ejections uniform in time) | 30 to 300 Myr | sectors of any galaxy | a time-resolved ejection rate (planet scattering peaks early, so the share is higher in young populations) | the ejection-time distribution of the yield table (R1) | the design note's "younger than about 100 Myr" and its uniform-in-donor-age test (recalled from rogue-planet-drift.md) | GEN.1111 | - |
+| RSM4 | P | T9 | L0 | rogue_density.RING_STEPS 16: points round a ring (exact for fewer than 16 arms or bar ends), with 3 nodes each in radius and height | 8 to 64 | every smoothing | not applicable (a quadrature) | a finer rule if a density with finer azimuthal structure is added | the design note's "about 16 density evaluations" | GEN.1111 | - |
 
 ## 6.95 Stand-ins of the belt sources
 
