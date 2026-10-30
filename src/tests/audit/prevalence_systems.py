@@ -28,6 +28,8 @@ SYSTEM_TIME_LIMIT_S = 180
 """int: Seconds one system may take before the census abandons it and counts it."""
 
 EARTH_MASS_KG = 5.9722e24
+EARTH_RADIUS_KM = 6371.0
+SOLAR_MASS_KG = 1.98847e30
 
 MILESTONES = ("abiogenesis", "photosynthesis", "complex_cells", "multicellularity", "technological_civilization")
 
@@ -63,8 +65,9 @@ def _record(system):
     comets = len(system.comets) + len(getattr(system, "secondary_comets", ()))
     hab_count, _m = system.count_habitable()
     primary = [planet for planet in system.planets if planet.body_type != "a"]
-    orbits = [[round((planet.mass or 0.0) / EARTH_MASS_KG, 4), round(planet.distance, 4), planet.planet_class] for planet in primary]
-    return {"orbits": orbits, "hz": [round(edge, 4) for edge in system.primary_star.habitable_zone], "planets": len(planets), "belts": belts, "moons": sum(len(planet.moons) for planet in planets), "comets": comets,
+    orbits = [[round((planet.mass or 0.0) / EARTH_MASS_KG, 4), round(planet.distance, 4), planet.planet_class,
+               round((getattr(planet, "radius", 0.0) or 0.0) / EARTH_RADIUS_KM, 4)] for planet in primary]
+    return {"orbits": orbits, "star_mass": round(system.primary_star.mass / SOLAR_MASS_KG, 4), "hz": [round(edge, 4) for edge in system.primary_star.habitable_zone], "planets": len(planets), "belts": belts, "moons": sum(len(planet.moons) for planet in planets), "comets": comets,
             "binary": system.binary_type is not None, "habitable_class": system.count_habitable_class_worlds() > 0,
             "blue_green": hab_count > 0, "reached": reached}
 

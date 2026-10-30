@@ -643,7 +643,7 @@ connectivity to that specific schema rather than the default one.
   colour: Blue 1 or more, Green 0.75 to under 1, Yellow 0.4 to under 0.75, Red under 0.4); `domain=<domain>:<colour>`
   (domains `pressure`, `temperature`, `air`, `water`, `radiation`, `suitability`; `suitability:green`); `life_level=<kind>:<1|5>`
   (kind `microbial`, `flora`, `fauna` or `sentient`, that life score 1 or more or 5 or more, of 9); `living=alive|lifeless|food|civilization`
-  (`food` is flora, fauna or a civilization). Unscored bodies (gas giants, bodies saved before the scores) match none of them.
+  (`food` is flora, fauna or a civilization); `supports=<class id>:<1|5>` (MAP.345: the body supports that life class, `1a`, `2`, `6`, with a class score of 1 or more or 5 or more of 9, read from the class score table's index; the class that actually lives on the body is the `life=<class id>` facet). Unscored bodies (gas giants, bodies saved before the scores) match none of them.
   `planet_sort`/`moon_sort` order a panel by `phi4`, `suitability`, a domain name, `microbial`, `flora`, `fauna` or `sentient`:
   worst first, `-` in front for best first (`-phi4`); an unscored body comes last either way. The facets answer their options with counts.
 - `GET /api/facilities/<id>` — one facility (see "Facilities" below).

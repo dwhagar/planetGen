@@ -1,6 +1,6 @@
 {
  "anomalies": {
-  "GEN.646": "the mass-first giants of the cut-over are rarer around FGK stars than observed (0.03 and 0.07 per star against 0.05 to 0.25 and 0.08 to 0.35): the gas-survival share of the mass law (GEN.711 stand-in) was tuned before the cut-over and is not retuned here; filed for a retune"
+  "GEN.728": "stars with a Kepler-like planet are 60 to 70 percent against 30 observed (the count is a uniform integer, not an occurrence law); the number of Kepler-like planets of a host is not drawn from a multiplicity law; planets of 1 to 20 Earth radii per star are not the observed number; planets of 1 to 4 Earth radii per M dwarf are not the observed number"
  },
  "errors": {
   "anomaly": ""
@@ -10,75 +10,137 @@
  },
  "reference": {
   "groups": {
-   "KGF": [
-    "K5V",
-    "G2V",
+   "F": [
     "F5V"
+   ],
+   "G": [
+    "G2V"
+   ],
+   "K": [
+    "K5V"
    ],
    "M": [
     "M2V"
    ]
   },
-  "kind": "observed rates (recalled by Aux 16, tier T2/T3, unverified)",
+  "kind": "observed rates of planet_occurrence.json (READ or 2ND-HAND, tier T1 or T2)",
   "seeds": "the system census's: crc32 of 'system:<star>' (tests.audit.prevalence.seed_for)",
   "systems_per_type": 100
  },
  "types": {
-  "KGF": {
+  "F": {
    "measures": {
-    "cold_giants": {
-     "anomaly": "GEN.646",
+    "inner_fraction": {
      "kind": "observed",
-     "max": 0.25,
-     "min": 0.05,
-     "source": "giants at 1 to 10 AU about 0.10 to 0.15 per FGK star (Fulton et al. 2021, 0.3 to 10 AU)"
+     "max": 0.5668,
+     "min": 0.1332,
+     "source": "stars hotter than 6500 K with Kepler-like planets (Yang, Xie and Zhou 2020, arXiv:2002.02840; READ, T1)"
     },
-    "earth_mass_in_hz": {
+    "inner_multiplicity": {
      "kind": "observed",
-     "max": 0.8,
-     "min": 0.12,
-     "source": "Earth-mass planets in the ecosphere (eta-Earth) 0.2 to 0.6 per Sun-like star (Bryson et al. 2021, Petigura et al. 2018), widened for 300 stars"
+     "max": 2.8291,
+     "min": 0.7709,
+     "source": "the same for stars hotter than 6500 K (Yang, Xie and Zhou 2020, arXiv:2002.02840; READ, T1)"
+    }
+   }
+  },
+  "G": {
+   "measures": {
+    "earth_in_hz": {
+     "kind": "observed",
+     "max": 0.7781,
+     "min": 0.1919,
+     "source": "planets of 0.5 to 1.5 Earth radii in the conservative habitable zone of stars of 4800 to 6300 K (the two extremes of the extrapolation, 0.37 and 0.60, are the band's ends) (Bryson et al. 2021, arXiv:2010.14812; READ, T1)"
     },
-    "giants": {
-     "anomaly": "GEN.646",
+    "giants_2_8_au": {
      "kind": "observed",
-     "max": 0.35,
-     "min": 0.08,
-     "source": "giants of 100 Earth masses or more about 0.15 to 0.25 per FGK star (Wright et al. 2012, Fulton et al. 2021)"
+     "max": 0.2283,
+     "min": 0.0556,
+     "source": "giant planets (0.1 to 20 Jupiter masses) with semi-major axes of 2 to 8 AU, per FGKM star of the California Legacy Survey (Fulton et al. 2021, arXiv:2105.11584; READ, T1)"
     },
-    "hot_jupiters": {
+    "hot_jupiter_rate": {
      "kind": "observed",
-     "max": 0.02,
+     "max": 0.0357,
      "min": 0.0,
-     "source": "hot Jupiters about 0.005 to 0.01 per FGK star (Wright et al. 2012; Fressin et al. 2013: 0.0043), widened for 300 stars"
+     "source": "planets of 8 to 20 Earth radii with periods under 10 days, Kepler field (Zhu and Dong 2021, arXiv:2103.02127; READ, T1); or hot Jupiters of F, G and K dwarfs of the solar neighbourhood, radial velocity (the larger of the two measured rates; Zhu and Dong 2021 give 0.9 to 1.2 percent from Mayor et al. 2011 and Wright et al. 2012) (Wright et al. 2012, arXiv:1205.2273; READ, T1)"
     },
-    "inner_planets": {
+    "inner_fraction": {
+     "anomaly": "GEN.728",
      "kind": "observed",
-     "max": 1.6,
-     "min": 0.4,
-     "source": "1 to 20 Earth-mass planets inside 0.5 AU about 0.5 to 1 per FGK star (Fressin et al. 2013, Zhu et al. 2018, Petigura et al. 2018)"
+     "max": 0.4245,
+     "min": 0.1755,
+     "source": "stars with at least one planet of radius 1 Earth radius or more and period under 400 days (Zhu et al. 2018, arXiv:1802.09526; READ, T1)"
     },
-    "super_earths_per_neptune": {
+    "inner_multiplicity": {
+     "anomaly": "GEN.728",
      "kind": "observed",
-     "max": 12.0,
-     "min": 1.0,
-     "source": "planets of 2 to 10 Earth masses outnumber those of 10 to 50: the mass function falls steadily above about 10 Earth masses (Fressin et al. 2013, Petigura et al. 2018)"
+     "max": 3.8428,
+     "min": 2.1572,
+     "source": "mean number of Kepler-like planets (radius 1 Earth radius or more, period under 400 days) in a system that has any (Zhu et al. 2018, arXiv:1802.09526; READ, T1)"
+    },
+    "pairs_over_10_hill_radii": {
+     "kind": "observed",
+     "max": 1.0,
+     "min": 0.4157,
+     "source": "adjacent pairs in multi-planet Kepler systems at least 10 mutual Hill radii apart; the most common spacing is about 20; essentially no pair has a period ratio under 1.2 (Weiss et al. 2018, arXiv:1706.06204; READ, T1)"
+    },
+    "planets_per_star": {
+     "kind": "observed",
+     "max": 1.5437,
+     "min": 0.9163,
+     "source": "planets of 1 to 20 Earth radii with periods under 400 days, per Sun-like star (Zhu and Dong 2021, ARA&A 59:291, arXiv:2103.02127 (their own analysis of the Kepler DR25 sample); READ, T1)"
+    }
+   }
+  },
+  "K": {
+   "measures": {
+    "giants_2_8_au": {
+     "kind": "observed",
+     "max": 0.2283,
+     "min": 0.0556,
+     "source": "giant planets (0.1 to 20 Jupiter masses) with semi-major axes of 2 to 8 AU, per FGKM star of the California Legacy Survey (Fulton et al. 2021, arXiv:2105.11584; READ, T1)"
+    },
+    "pairs_over_10_hill_radii": {
+     "kind": "observed",
+     "max": 1.0,
+     "min": 0.4157,
+     "source": "adjacent pairs in multi-planet Kepler systems at least 10 mutual Hill radii apart; the most common spacing is about 20; essentially no pair has a period ratio under 1.2 (Weiss et al. 2018, arXiv:1706.06204; READ, T1)"
+    },
+    "planets_per_star": {
+     "anomaly": "GEN.728",
+     "kind": "observed",
+     "max": 4.3436,
+     "min": 2.2564,
+     "source": "the same for stars of 4000 to 5000 K, a factor of about 2.7 above the Sun-like sample (Zhu and Dong 2021, arXiv:2103.02127; READ, T1)"
     }
    }
   },
   "M": {
    "measures": {
-    "giants": {
+    "hot_jupiter_rate": {
      "kind": "observed",
-     "max": 0.12,
+     "max": 0.0134,
      "min": 0.0,
-     "source": "giants about 0.03 to 0.06 per M dwarf (Johnson et al. 2010, Bonfils et al. 2013), widened for 100 stars"
+     "source": "planets of 7 Earth radii to 2 Jupiter radii with periods of 0.8 to 10 days around M dwarfs of 0.45 to 0.65 solar masses (Gan et al. 2023, arXiv:2210.08313; READ, T1)"
     },
-    "hot_jupiters": {
+    "inner_fraction": {
      "kind": "observed",
-     "max": 0.01,
-     "min": 0.0,
-     "source": "hot Jupiters under 0.002 per M dwarf (Johnson et al. 2010; transit surveys), widened for 100 stars"
+     "max": 1.0,
+     "min": 0.3276,
+     "source": "stars cooler than 5000 K with Kepler-like planets (radius 1 Earth radius or more, period under 400 days) (Yang, Xie and Zhou 2020, arXiv:2002.02840; READ, T1)"
+    },
+    "inner_multiplicity": {
+     "kind": "observed",
+     "max": 4.3794,
+     "min": 1.2206,
+     "source": "the same for stars cooler than 5000 K (Yang, Xie and Zhou 2020, arXiv:2002.02840; READ, T1)"
+    },
+    "small_planets_per_star": {
+     "anomaly": "GEN.728",
+     "kind": "observed",
+     "max": 3.1349,
+     "min": 1.8651,
+     "source": "planets of 1 to 4 Earth radii with periods under 200 days, per M dwarf (Dressing and Charbonneau 2015, arXiv:1501.01623; READ, T1)"
     }
    }
   }

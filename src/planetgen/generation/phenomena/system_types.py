@@ -247,8 +247,11 @@ SYSTEM_TYPE_RATES = {
     "millisecond-pulsar-companion": _t(
         "13.4", "Pulsar with a white dwarf (millisecond pulsar)", "millisecond pulsars", 0.78, "S",
         ("old", "bulge", "cluster", "nuclear_cluster", "nuclear_disc"), "draw_accreting_compact", 272, "F", (10, 11),
-        by_class={"white-dwarf": 0.80, "black-widow": 0.08, "redback": 0.04, "neutron-star": 0.05, "other": 0.03},
-        note="Companion mass gap 0.07 to 0.1 solar masses is empty; spiders carry an ablation flag."),
+        by_class={"white-dwarf": 0.8474, "black-widow": 0.08, "redback": 0.04, "neutron-star": 0.0026, "black-hole": 3e-5,
+                  "other": 0.03},
+        note="Companion mass gap 0.07 to 0.1 solar masses is empty; spiders carry an ablation flag. A neutron star "
+             "companion is 0.2 percent of recycled pulsars (the double neutron star rate allows about 0.04 percent of "
+             "neutron stars; 5 percent would be ten times too many; stand-in row AC10)."),
     "pulsar-massive-companion": _t(
         "13.4", "Pulsar with a main-sequence or Be star", "young neutron stars", 0.02, "S", ("young",),
         _TREE, 261, "F", (10, 11), low=0.01, high=0.03,

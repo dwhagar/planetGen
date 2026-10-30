@@ -795,6 +795,9 @@ _PLANET_RULES = [
 ]
 
 _STAR_RULES = [
+    (("flare_alpha", "uv_c_share", "log_lx_lbol", "lifespan_gy"), lambda klass, row: row is None or row.get("yerkes_class") != "VII",
+     "a white dwarf has no corona and no flares, so no X-ray share, flare law or UV-C draw, and it does not leave the stage it is in, "
+     "so its lifespan has no end"),
     (("wide_binary_a_crit_km",), lambda klass, row: row is None or row.get("role") != "single",
      "the critical orbit radius is set by a companion star, so a single star has none"),
 ]
@@ -815,13 +818,11 @@ OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
         ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
-    ("moon", "induced_moment_a_m2"): "GEN.779",
     **{("planet", key): "GEN.904" for key in ("solar_day_hours", "daylight_hours", "day_share_equator")},
     **{("planet", key): "GEN.905" for key in ("mantle_redox", "mantle_delta_iw")},
     **{("star", key): item for key, item in (
         ("state", "GEN.786"), ("decay_age_yr", "GEN.785"), ("lethal_event_rate_per_gyr", "GEN.785"),
         ("disk_kind", "GEN.787"), ("disk_mass_solar", "GEN.787"), ("disk_inner_au", "GEN.787"), ("disk_outer_au", "GEN.787"),
-        ("flare_alpha", "GEN.788"), ("uv_c_share", "GEN.788"), ("log_lx_lbol", "GEN.788"), ("lifespan_gy", "GEN.788"),
         ("wide_binary_a_crit_km", "GEN.789"))},
 }
 """dict: The columns known to be empty where they apply (UX.208), `{(kind, key): item id}`: each is a gap in the generation
