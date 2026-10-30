@@ -3379,8 +3379,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.462 | test_planets_respect_their_stars_age_and_history fails in a batch run: a class E planet in the habitable list around a star under 0.1 Gy (bug) | none | done, PR #3794 |
 | TEST.463 | Reds on main reported by Core 5 at 10:33 PM EDT 2026-10-29: triage each one and fix or assign it (bug) | none | open |
 | TEST.464 | Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug) | none | open |
-| TEST.465 | test_admin_script_cli: query_db exits 1 instead of 2 for an incomplete command line when the database is not reachable (bug) | none | open |
-| TEST.466 | test_generate_py_system_output_writes_a_file_and_no_database: the plain system output starts with a newline (bug) | none | open |
+| TEST.465 | test_admin_script_cli: query_db exits 1 instead of 2 for an incomplete command line when the database is not reachable (bug) | none | done, PR #3932 |
+| TEST.466 | test_generate_py_system_output_writes_a_file_and_no_database: the plain system output starts with a newline (bug) | none | done, PR #3932 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
