@@ -605,7 +605,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.928 | System primaries follow from the single-star curve plus multiplicity (a top-down solve), with brown dwarf companions and the brown dwarf desert; the star-count table agrees | GEN.927 |  |
 | GEN.927 | Single-star mass function rows: a bell below 1 solar mass, the field slope from 1 to 8, the sub-stellar tail and the massive end, with stand-in tiers and tweak levels and a design note |  |  |
 | GEN.922 | The star mass function is built right: initial mass function and present-day populations match the observed curve segment by segment, for every mass range and every star-like object type (parent, replaces the one-number GEN.914 tweak) |  |  |
-| GEN.921 | Moons per planet rose after the class cut-over (G2V 1.90 against 1.25): find out why and whether it is right (bug) |  |  |
 | GEN.920 | Giants around F, G and K stars are too rare after the class cut-over: 0.03 cold and 0.07 in all per star against 0.05 to 0.25 and 0.08 to 0.35 observed; retune the mass-law gas share (bug) |  |  |
 | PERF.208 | A stored, indexed sector system count, density and quadrant so the remaining Sectors list sorts page by key (slice 5 of the PERF.137 OFFSET audit) |  |  |
 | PERF.207 | planetgen planets and moons take --limit and --after (keyset), replacing OFFSET listing (slice 4 of the PERF.137 OFFSET audit) |  |  |
@@ -642,20 +641,44 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.849 | Re-fit the delivered-water rows b2/b3 against the bodies bulk water (the rows deliver 0.1 to 0.2 percent of mass against 0.01 to 0.03 percent of body water) |  |  |
 | TEST.427 | Three column registry tests are red on main: aerosol_draw has no unit, tidal_flux_w_m2 is written but listed as NULL, host_eccentricity is not serializable (bug) |  |  |
 | GEN.848 | Store a day and night swing for every temperature the sheet shows (only the equator has one) (bug) |  |  |
-| GEN.842 | Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left |  | Math 2 follow-up |
+| GEN.842 | Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left | GEN.953, GEN.954, GEN.955, GEN.956, GEN.957, GEN.958, GEN.959, GEN.960, GEN.961, GEN.976, GEN.977 | Math 2 follow-up |
+| GEN.953 | Birth spin retune: a scale on the rocky planet birth rotation so free days fall in the Solar System range |  |  |
+| GEN.954 | Tides stage 1a (lock-free): a rheology module giving k2 and Q from temperature, melt fraction and tide frequency |  |  |
+| GEN.955 | Tides stage 1b: wire the rheology into tidal_heating, interior_heat and circularisation | GEN.954 |  |
+| GEN.956 | Tides stage 2a (lock-free): a torque-sum module for planet spin: star, moon and atmospheric thermal torques with floors and an attractor | GEN.954 |  |
+| GEN.957 | Tides stage 2b: wire the torque sum into planet spin, with the moon-on-planet tide after the moons exist | GEN.955, GEN.956, GEN.953 |  |
+| GEN.958 | Tides stage 3a (lock-free): a moon orbit evolution module: outward drift, spiral-in and the Roche fall | GEN.956 |  |
+| GEN.959 | Tides stage 3b: wire moon orbit history, rings from fallen moons and the moons' tide into the planet's heat | GEN.957, GEN.958 |  |
+| GEN.960 | Tides side thread: ice rheology for the hydrosphere ice shell and the icy branch of tidal_heating (c-ice) | GEN.955 |  |
+| GEN.961 | Settle giants: after the star's age is final, recompute each giant's radius and redraw its interior, at the mean light of its real orbit (eccentricity-first folded in) | GEN.977 |  |
+| GEN.976 | A giant's radius is read at the star's age before the age is moved: 28 percent of table-sized giants have a stored radius over 1 percent too large, up to 9.3 percent (bug) |  |  |
+| GEN.977 | Guard test: a seeded sweep fails if the generator ever makes a table-sized giant with light over 300 times Earth's and eccentricity over 0.3 |  |  |
+| GEN.962 | Rocky planets hold 1.5 to 2.0 moons of 1e20 kg and over each (the Solar System has 1 for 4 rocky planets): ground the moon rate in giant-impact and capture frequency |  |  |
+| GEN.963 | The envelope-survival rule and the Hycean flag on the existing sub-Neptune classes (the part of GEN.350 that stays; no new class letter) |  |  |
 | GEN.729 | Planet spacing from the observed period-ratio and size-uniformity statistics, with stability checked |  |  |
 | GEN.730 | Formation-era dynamics: giant impacts, scattering and instability instead of one survival constant |  |  |
-| GEN.733 | Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model |  |  |
-| GEN.736 | Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model |  |  |
+| GEN.733 | Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model | GEN.964, GEN.965 |  |
+| GEN.964 | H-He equation of state tables (a): a setup catalogue entry and a reader with tests on Jupiter, Saturn, Uranus and Neptune |  |  |
+| GEN.965 | H-He equation of state tables (b): replace the n=1 polytrope in the giant interior solver with the tables | GEN.964 |  |
+| GEN.736 | Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model | GEN.966, GEN.967 |  |
+| GEN.966 | Dynamo field (a): a pure module giving field strength and lifetime from core heat flow and spin, with tests on Earth, Mercury, Ganymede, Jupiter and Mars (dead) |  |  |
+| GEN.967 | Dynamo field (b): the stored field strength, moment and lifetime come from the dynamo module and feed the radiation shielding | GEN.966 |  |
 | GEN.740 | Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere) |  |  |
-| GEN.741 | Post-main-sequence stellar tracks: subgiant, red giant, horizontal branch, asymptotic giant and supergiant from mass and age instead of random draws |  |  |
-| GEN.743 | Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs |  |  |
+| GEN.743 | Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs | GEN.968, GEN.969 |  |
+| GEN.968 | Neutron star structure (a): a TOV integration over the equation-of-state tables held on disk, tested against NICER radii |  |  |
+| GEN.969 | Neutron star structure (b): wire the integrated radius and layers into the neutron star model, and add helium-core and oxygen-neon white dwarf layers | GEN.968 |  |
 | GEN.744 | Alpha-enhanced stellar tracks and an age-metallicity relation from the galaxy's own history |  |  |
-| GEN.745 | Stellar spectra by temperature, gravity and activity (model atmospheres) instead of a blackbody with a seeded UV share |  |  |
+| GEN.745 | Stellar spectra by temperature, gravity and activity (model atmospheres) instead of a blackbody with a seeded UV share | GEN.970, GEN.971 |  |
+| GEN.970 | Stellar spectra (a): a spectral library entry (BT-Settl, MUSCLES for M dwarfs) and a lookup by temperature, gravity and activity, with tests on the Sun and an M dwarf |  |  |
+| GEN.971 | Stellar spectra (b): the UV band shares and the map colour of a star come from the library spectrum, not from a blackbody with a seeded UV-C share | GEN.970 |  |
 | GEN.746 | Cosmic-ray dose below 100 g/cm2 of air from shower simulations instead of a straight stand-in between the Moon and Mars |  |  |
 | GEN.747 | Solar energetic particle events: the full event set and the Weibull parameters |  |  |
 | GEN.748 | Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's |  |  |
-| GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | GEN.462 |  |
+| GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | GEN.462, GEN.972, GEN.973, GEN.974, GEN.975 |  |
+| GEN.972 | Climate feedback 1: ice-albedo on the surface temperature fixed point (ice cover grows as the planet cools and raises the albedo) |  |  |
+| GEN.973 | Climate feedback 2: water vapour on the fixed point (a warmer ocean world holds more vapour and warms further, up to the runaway limit of GEN.639) | GEN.972 |  |
+| GEN.974 | Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share) | GEN.973 |  |
+| GEN.975 | Climate sensitivity sweep test: the fixed point converges on a cooling and a warming sweep and stays inside the published range of Earth's climate sensitivity | GEN.972, GEN.973, GEN.974 |  |
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | GEN.503, GEN.504 |  |
 | GEN.821 | Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure |  |  |
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample |  |  |
@@ -690,6 +713,32 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |
 | GEN.839 | The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug) |  |  |
 | GEN.838 | A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling |  |  |
+| GEN.775 | Replace the planet-minus-star Fe/Mg scatter and super-Mercury tail (registry row BC8) with a larger sample of rocky planets with precise masses and stellar Fe/Mg |  |  |
+| GEN.776 | Replace the rogue-planet volatile loss at ejection (registry row BC11) with a measured atmosphere or free-floating-planet volatile survey |  | Aux 14, GEN.734: replacing item of a registry row; pool, after 8.1. |
+| GEN.777 | Replace the core light-element split (registry row BC18) with a second body that has seismic or core-density data |  | Aux 14, GEN.734: replacing item of a registry row; pool, after 8.1. |
+| GEN.794 | Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 rates or a computation from the Cheng 2006 cross section |  | Citations lane, GEN.793: pool, after 8.1. |
+| GEN.800 | Wire the stored magnetosphere and stellar activity outputs into escape, dose and habitability (G2) | GEN.804, GEN.805, GEN.806, GEN.807, GEN.808 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
+| GEN.804 | Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
+| GEN.805 | The surface dose and the habitability radiation component read the stored flare irradiation index and magnetopause (G2, step 2) | GEN.804 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
+| GEN.806 | Delete the duplicate XUV recomputation in physics/mixture_subject.py and read xuv_exposure_index (G2, step 3) | GEN.804 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
+| GEN.807 | Stellar activity (flare rate, XUV saturation) follows the star's rotation: rotation_period_hours, flare_alpha and xuv_saturated get readers (G2, step 4) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
+| GEN.808 | The ozone-loss flag feeds the UV limit on life and the surface look (G2, step 5) | GEN.805 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
+| GEN.801 | Wire the giant-planet interior outputs into the field, the heat and the description (G3) | GEN.733, GEN.809, GEN.810, GEN.811 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
+| GEN.809 | A giant's dipole moment and class come from the metallic-hydrogen shell and the dilute core (G3, step 1) | GEN.733 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.801, Boss 10:35 PM EDT. |
+| GEN.810 | A giant's internal heat reads the interior layers and the helium shell (G3, step 2) | GEN.733 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.801, Boss 10:35 PM EDT. |
+| GEN.811 | The description of a giant says what its interior is (G3, step 3) | GEN.809, GEN.810 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.801, Boss 10:35 PM EDT. |
+| GEN.912 | The planet albedo draw does not follow the star's colour, so planets of cool stars come out a little too cold (stand-in) |  |  |
+| GEN.944 | Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars) |  |  |
+| GEN.949 | Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets |  |  |
+| GEN.950 | Water share of solids by distance from Lodders 2003 Table 11 and its condensation temperatures, replacing the fixed 170 K snow line (low priority) |  |  |
+| TEST.456 | A test that the generated [X/Fe] abundances match the Brewer and Fischer 2016 table, not only its trend and scatter (low priority) |  |  |
+| GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there |  | Under GEN.90. Same reconcile/zone code as phase 0's physics fixes. |
+| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | GEN.27, GEN.91 | Under GEN.90: the refactor is the sweep. Bug, but by definition a sweep after the new classes; it can't go earlier. Includes rocky rogues of 10-16 Earth masses (up to 17,600 km) that get S as nearest fit (PR #415). |
+| GEN.90 | Refactor the planet classes around the habitability index | GEN.27, GEN.29, GEN.91 | Parent; takes GEN.33, GEN.28, GEN.27 and GEN.29 as its subitems. |
+| GEN.91 | Classes like S and V in the hot and cold zones | GEN.355, GEN.356 |  |
+| GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | GEN.355 | Research follow-up to class S (built). |
+| GEN.355 | Atmosphere retention module with its test table |  | Split from GEN.91. |
+| GEN.356 | Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed | GEN.355 | Split from GEN.91. |
 
 ## Phase 12: The headline closes
 
@@ -706,4 +755,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
 | TEST.380 | First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp |  |  |
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, TEST.300, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.741, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.752, GEN.753, GEN.754 |  |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, TEST.300, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.752, GEN.753, GEN.754 |  |
