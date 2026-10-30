@@ -13439,6 +13439,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   another star's radius and no star missing from the system page, the
   system map and the 3D view; the fix says which of the three it was.
   Owner: first free lane after the research thread reports.
+  Core 3 (as the lane reported) (2026-10-30 9:52 AM EDT): Before MAP.255
+  (#4015) the browser put any star without a stored pair orbit, a
+  triple's third star included, at the barycenter on top of the other
+  stars (orbitpositions.js returned [0,0,0]); MAP.255 fixes that in the
+  3D view and MAP.213 slice A also draws each node's orbit. The Python
+  and System Map SVG side is MAP.213 slice B and is not yet checked.
+  This may be the whole cause; confirm with Boss on a rebuilt map before
+  closing.
   Prerequisites: TEST.162. Related: TEST.162, GEN.728, MAP.255.
 
 - [ ] **GEN.1005 Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover)**
@@ -18335,20 +18343,6 @@ clears each one.
   main with the ranges or the code explained in the change note. Owner:
   Bug 2 (census re-tag, with Star 2 for the companion rate).
   Prerequisites: G, E, N, ., 9, 4, 1.
-
-- [ ] **TEST.474 tests/test_web_a11y.py::_add_bright_stars fails with pymysql 1136 "Column count doesn't match value count" and errors every site_app browser test in setup (bug)**
-  Found by Core 3 (relayed 9:09 AM EDT 2026-10-30 as the lane reported):
-  red on clean main. test_web_browser_controls.py and the other site_app
-  browser tests error in setup, because _add_bright_stars in
-  tests/test_web_a11y.py passes rows to store.insert_bright_stars with
-  the old column count. Probable cause: GEN.846 (train 3, migration
-  0185) added bright_stars.rotation_period_hours and the fixture rows
-  were not extended. Fails on main: yes. Do: give the fixture rows the
-  new column (or build them from the column list so the next column
-  cannot break them), and run the site_app browser tests. Done: the
-  browser tests pass setup on main. Owner: Bug 2 (train 3 fallout), or
-  the first free lane.
-  Prerequisites: T, E, S, T, ., 4, 6, 3.
 
 - [ ] **TEST.475 tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug)**
   Found by Aux 3 (relayed 9:46 AM EDT 2026-10-30 as the lane reported,

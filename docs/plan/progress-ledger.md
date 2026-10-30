@@ -1947,3 +1947,4 @@ Baseline: PR #1817.
 | TEST.345 | 8.1 | Bugs and flaky tests |
 | TEST.471 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | PERF.217 | 8.1 | The headline closes |
+| TEST.474 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
