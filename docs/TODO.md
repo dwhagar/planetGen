@@ -2258,22 +2258,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.349 Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place) **
-  Left unbuilt by MAP.336 (zoom redesign Z3, #3778, as Core 2 reported
-  7:11 PM EDT 2026-10-29) and approved by Boss (7:22 PM EDT): every line
-  in the Galaxy Map panels and the info popup that names a container or
-  a place (the region, its parent family, each listed system or sector)
-  has its own Go to button, using the same Go to as the find box, the
-  crumbs and the results list. Done: a browser test clicks the Go to on
-  a region line, a parent line and a listed place and the camera lands
-  on each. Owner: Core 2 (with the info popup redesign). Version 8.1.
-  Core 2 (MAP.347 merged #3940) (2026-10-30 4:00 AM EDT): Go to on the
-  region and parent lines now lives inside the Expand part of the popup;
-  Start Here and End Here also moved behind Expand (one extra click the
-  first time). Boss to say if the region and parent Go to lines should
-  be in the first view instead
-  Prerequisites: none. Related: MAP.336.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
