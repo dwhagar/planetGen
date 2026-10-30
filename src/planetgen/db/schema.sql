@@ -1505,6 +1505,7 @@
 --   complexity index of the class, `physics/life_complexity.py`); the classes a body supports are the child tables `planet_life_class_scores` and `moon_life_class_scores` (one row for each class
 --   with a score of 1 or more); `species.life_chemical` becomes `species.life_class` (the id). A row made before v175 keeps the class its chemistry stood for and nothing else
 --   (see `migrations/versions/0175_life_classes.py`); the rest comes when the galaxy is regenerated.
+-- v176 (GEN.952): `scatter_members.radius_au` (DOUBLE, NULL), a member's extent in AU, so a page can work out the X-ray luminosity of an accreting pair; NULL on a row made before v176, nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -4222,6 +4223,7 @@ CREATE TABLE IF NOT EXISTS scatter_members (
     initial_mass_solar   DOUBLE NOT NULL,
     seed                 BIGINT UNSIGNED NOT NULL,
     epoch_unix                  DOUBLE NULL,  -- v102 (DB.55): when the position and velocity hold
+    radius_au                   DOUBLE NULL,  -- v176 (GEN.952): the extent of the member in AU, NULL on a row made before v176
     PRIMARY KEY (source, source_id, member_no),
     CONSTRAINT chk_scatter_members_source CHECK (source IN (1, 2)),
     CONSTRAINT chk_scatter_members_kind CHECK (kind IN (
