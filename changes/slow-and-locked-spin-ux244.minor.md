@@ -1,6 +1,0 @@
-**Headline:** Slow bodies now visibly turn, a tidally locked world keeps its day side toward its star, and the object page shows every planet at the day and night line.
-
-### Changed
-- **Slow and tidally locked bodies (UX.244).** The on-screen turn used to treat every rotation over 1000 hours the same, one turn in ten minutes, so a 46.8-day rotation such as Eakkar IV's never seemed to move. The scale now runs to 10000 hours, so that rotation turns about once in four minutes and Venus's 243 days in about eight. A tidally locked world is no longer turned by that scale: in the 3D system view and the sector view it turns once per orbit so the same face stays toward what it orbits, and in the System Map a locked planet keeps its face toward the star. On the object page's sensor view every planet is drawn from the side of its orbit, with the star to the left so the day and night line runs down the middle and the axial tilt leans the poles; the surface turns past the line at a display speed the caption says is much faster than the real rotation, and a locked world is held still with its day side toward the star and labelled locked in the picture's caption. A moon in the System Map is not yet turned to face its planet.
-
-generation-output: unchanged
