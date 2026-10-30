@@ -23,8 +23,8 @@ import re
 from planetgen.generation import forced_star
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import (activity, age_metallicity, debris_disk, formation, imf, metallicity, pre_main_sequence, spin,
-                               stellar_state)
+from planetgen.physics import (activity, age_metallicity, debris_disk, formation, imf, metallicity, pre_main_sequence,
+                              spin, stellar_state)
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, birth_fe_h, evolve_star, sample_living_star,
