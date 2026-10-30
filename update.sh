@@ -63,7 +63,7 @@
 # (after its own configtest; restarted only when step 6 just installed mod_wsgi), the
 # planetgen-gunicorn unit on Linux, or the launchd gunicorn daemon on macOS, then checks
 # that /api/health answers. A failed step ends the update non-zero and prints the command
-# to run by hand; nothing running prints the command and ends zero. A reload aborts a
+# to run by hand; a reload that worked but whose /api/health probe never got a good answer only warns and the site opens; nothing running prints the command and ends zero. A reload aborts a
 # mod_wsgi request still running after about 4 seconds; touching src/html/wsgi.py does not.
 #
 # After the steps it starts building the site's caches in the background
@@ -309,6 +309,10 @@ else
         log_error "Done, but the site was not reloaded cleanly (see the warning above); the old code may still be serving."
         print_reload_commands >&2
         exit 1
+    elif (( reload_status == 3 )); then
+        # The migration finished (step 5) and the reload itself succeeded: only the probe got no good answer, which
+        # can be the address's fault (another virtual host, no https listener) as much as the app's. The site opens.
+        log_warning "the site was reloaded but /api/health did not answer well (see the warning above); the database is migrated and current, so the site is opened. Check it by hand."
     else
         log_notice "Done. Nothing that serves the site is running, so nothing was reloaded. When it is, run:"
         print_reload_commands
