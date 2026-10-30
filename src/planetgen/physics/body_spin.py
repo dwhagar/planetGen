@@ -24,7 +24,7 @@ rows of `docs/design/research/gap-filling-plan.md` sections 6.14 (SP7 to SP10, n
 
 import math
 
-from planetgen.physics import constants, interior_heat, radiogenic, spin_torques, tidal_heating, tidal_spin
+from planetgen.physics import constants, icy_tide, interior_heat, radiogenic, spin_torques, tidal_heating, tidal_spin
 
 
 def planet_of(body):
@@ -40,7 +40,8 @@ def dissipation_of(body, planet):
     if getattr(body, "body_type", None) == "g":
         return spin_torques.constant_dissipation(tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
     if tidal_heating.is_icy(body):
-        return spin_torques.constant_dissipation(tidal_heating.ICY_K2, tidal_heating.ICE_TIDAL_Q)
+        flux, top = interior_heat.icy_shell_flux_w_m2(body), interior_heat.icy_shell_top_k(body)
+        return spin_torques.tabulate(lambda frequency: icy_tide.k2_over_q(planet.mass_kg, planet.radius_m, frequency, flux, top))
     interior = interior_heat.interior_of(body)
     if interior is None or radiogenic.content_of(body) is None:
         raise interior_heat.InteriorHeatError("a rocky body's spin needs its stored content and mantle draws")

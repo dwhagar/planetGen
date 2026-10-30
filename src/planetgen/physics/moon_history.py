@@ -14,6 +14,7 @@ the thermal tide of the air on the planet's spin in the same sum (`body_spin`, G
   that has no moons (TM5).
 * **Each moon** that stays is moved to the distance it reached (`planets.move_orbit`: period, Hill sphere, position and speed follow, the plane, the
   shape and where it is on its orbit do not), and its own spin is run again at that distance when it moved by `RESPIN_FRACTION` (a ten-thousandth) or more.
+* **The lunar system stays one a generated one could be:** `_settle` pushes a moon out to clear the one inside it, and loses one below the innermost orbit (ring material) or whose apoapsis passes the stable range.
 * **A moon that falls** inside its Roche limit is removed and its mass is ring material (`fallen_moon_mass_kg`, which `rings.apply` reads: the planet
   has a ring, of up to `rings.MAX_MASS_OVER_PLANET` of its mass, of disrupted moon); one pushed out of the stable part of the Hill sphere is lost.
 * **The planet's heat** reads the moons that stay: the power their tides dissipate in a rocky planet is part of `tidal_heating.Forcing` (`moons`), found
@@ -59,6 +60,29 @@ def born_moons(planet):
     return born
 
 
+def _settle(planet, survivors):
+    """
+    The moons that stay, in order of distance, held to the rules a generated lunar system keeps (`validation.check_lunar_system`): a moon below the
+    innermost orbit (inside the planet's air and the room the largest moon needs) is lost to drag and its mass is ring material, a moon is pushed out
+    (never in) to clear the one inside it by that one's `min_orbit_distance`, and one whose apoapsis then lies beyond the stable range is lost (TM4: moons
+    do not meet, so the tide's drift is the only thing that moves them, and this keeps them apart). Returns `(moons, ring_mass_kg)`.
+    """
+    from planetgen.physics import planets
+    low_km, high_km = planets.moon_orbit_bounds_km(planet)
+    kept, ring_mass_kg, last = [], 0.0, None
+    for moon in survivors:
+        if moon.distance * constants.AU_TO_M / 1000.0 < low_km:
+            ring_mass_kg += moon.mass
+            continue
+        if last is not None and moon.distance < last.distance + last.min_orbit_distance:
+            planets.move_orbit(moon, last.distance + last.min_orbit_distance, planet.mass)
+        if moon.distance * (1.0 + (moon.eccentricity or 0.0)) * constants.AU_TO_M / 1000.0 > high_km * (1.0 + 1.0e-9):
+            continue
+        kept.append(moon)
+        last = moon
+    return kept, ring_mass_kg
+
+
 def apply(planet, primary_mass_kg):
     """
     Runs the history of `planet`'s moons and its spin together and sets them on the bodies (the module docstring). Called by `planets.generate_spin` for a planet with
@@ -87,18 +111,21 @@ def apply(planet, primary_mass_kg):
         found = body_spin.evolve(planet, primary_mass_kg, semi_major_axis_m, birth[0], age_s, getattr(planet, "eccentricity", 0.0) or 0.0)
         planets.generate_spin(planet, primary_mass_kg, birth=birth, found=found)
         return None
+    entry = {id(m): m.distance for m in born}
     survivors = []
     for moon, fate in zip(born, result.moons):
         if fate.fate == "stays":
-            moved = abs(fate.distance_m / constants.AU_TO_M / moon.distance - 1.0)
-            if moved > 1.0e-12:
-                planets.move_orbit(moon, fate.distance_m / constants.AU_TO_M, planet.mass)
-            if moved >= RESPIN_FRACTION:
-                planets.generate_spin(moon, planet.mass, birth=moon._birth_spin)
+            target_au = fate.distance_m / constants.AU_TO_M
+            if abs(target_au / moon.distance - 1.0) > 1.0e-12:
+                planets.move_orbit(moon, target_au, planet.mass)
             survivors.append(moon)
-    survivors.sort(key=lambda m: m.distance)      # a moon that drifted past another keeps its place by distance (TM4: they do not meet)
+    survivors.sort(key=lambda m: m.distance)      # a moon that drifted past another keeps its place by distance
+    survivors, dragged_kg = _settle(planet, survivors)
+    for moon in survivors:
+        if abs(moon.distance / entry[id(moon)] - 1.0) >= RESPIN_FRACTION:
+            planets.generate_spin(moon, planet.mass, birth=moon._birth_spin)
     planet.moons[:] = survivors
-    planet.fallen_moon_mass_kg = result.ring_mass_kg
+    planet.fallen_moon_mass_kg = result.ring_mass_kg + dragged_kg
     if survivors:
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in survivors])

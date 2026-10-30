@@ -14,7 +14,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants as pc
+from planetgen.physics import icy_tide, constants as pc
 from planetgen.physics import body_spin, impact_spin, interior_heat, spin, tidal_heating
 from planetgen.physics.planets import generate_spin
 from planetgen.util import draw
@@ -101,7 +101,8 @@ def test_the_rheology_is_each_bodys_own():
     assert moon_k2 == pytest.approx(0.0242, rel=0.2) and 10.0 < moon_q < 100.0
     assert interior_heat.tidal_response(JUPITER, n) == (tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
     icy = _body(1.0e22, 1000.0, water_mass_fraction=0.5)
-    assert interior_heat.tidal_response(icy, n) == (tidal_heating.ICY_K2, tidal_heating.ICE_TIDAL_Q)
+    k2, q = interior_heat.tidal_response(icy, n)      # the ice shell's (GEN.960): the homogeneous ice sphere's k2 and a finite Q
+    assert k2 == pytest.approx(icy_tide.love_k2(1.0e22, 1.0e6, n)) and 1.0 < q < math.inf
 
 
 def test_a_hotter_mantle_dissipates_more_and_a_fast_tide_less():

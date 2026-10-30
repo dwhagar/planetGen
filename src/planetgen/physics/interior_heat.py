@@ -55,7 +55,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, bulk_structure, constants, magnetism, moon_orbits, radiogenic, spin_torques, tidal_heating, tidal_rheology
+from planetgen.physics import atmosphere, bulk_structure, constants, icy_tide, magnetism, moon_orbits, radiogenic, spin_torques, tidal_heating, tidal_rheology
 from planetgen.util import draw
 
 BODY_FIELDS = ("mantle_eta0_pa_s", "mantle_activation_kj_mol")
@@ -502,15 +502,18 @@ def tide_temperature_k(body):
 
 def tidal_response(body, frequency_rad_s):
     """
-    `(k2, Q)` of a body, its tidal Love number and quality factor, at a tide of `frequency_rad_s` (GEN.955): a gas giant's or an icy body's fixed pair
-    (`tidal_heating`), or for rock `tidal_rheology.rock_response` of its mass and radius at `tide_temperature_k` with the viscosity it drew, the melt that
+    `(k2, Q)` of a body, its tidal Love number and quality factor, at a tide of `frequency_rad_s` (GEN.955): a gas giant's fixed pair
+    (`tidal_heating`), an icy body's ice shell's (`icy_tide.k2_over_q` at the heat flux the shell conducts, GEN.960; `inf` for a body with no shell), or for rock `tidal_rheology.rock_response` of its mass and radius at `tide_temperature_k` with the viscosity it drew, the melt that
     temperature makes in its mantle, and the tide's frequency. A cold small body is stiff (Q up to `tidal_rheology.COLD_Q_CEILING`), a mantle near its
     solidus dissipates most, a molten one is weak.
     """
     if getattr(body, "body_type", None) == "g":
         return tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q
     if tidal_heating.is_icy(body):
-        return tidal_heating.ICY_K2, tidal_heating.ICE_TIDAL_Q
+        radius_m = body.radius * 1000.0
+        k2 = icy_tide.love_k2(body.mass, radius_m, frequency_rad_s)
+        k2_over_q = icy_tide.k2_over_q(body.mass, radius_m, frequency_rad_s, icy_shell_flux_w_m2(body), icy_shell_top_k(body))
+        return k2, (k2 / k2_over_q if k2_over_q > 0.0 else math.inf)
     interior = interior_of(body)
     if interior is None or radiogenic.content_of(body) is None:
         raise InteriorHeatError("a rocky body's tidal response needs its stored content and mantle draws")
@@ -552,6 +555,22 @@ def lid_of(body):
     return MOBILE if getattr(body, "lid_regime", None) == MOBILE else STAGNANT
 
 
+def icy_shell_top_k(body):
+    """The temperature at the top of an icy body's shell, K: its surface temperature once its climate is known, else `icy_tide.TOP_FALLBACK_K`."""
+    surface_k = getattr(body, "surface_temperature", None)
+    return surface_k if surface_k and surface_k > 0.0 else icy_tide.TOP_FALLBACK_K
+
+
+def icy_shell_flux_w_m2(body):
+    """The heat flux an icy body's shell conducts, W/m2: its own heat (stored once `update_heat` has run, else worked out here with no tide) plus the tide's."""
+    own = getattr(body, "internal_heat_flux_w_m2", None)
+    if own is None:
+        content, interior = radiogenic.content_of(body), interior_of(body)
+        own = heat_flow(content, interior, body.mass, body.radius, getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY,
+                        radiogenic.rock_of(body), None, lid_of(body), surface_of(body)).own_flux_w_m2 if content is not None and interior is not None else icy_tide.OWN_FLUX_FALLBACK_W_M2
+    return max(own + (getattr(body, "tidal_flux_w_m2", None) or 0.0), icy_tide.MIN_FLUX_W_M2)
+
+
 def surface_of(body):
     """The surface temperature a body's interior is measured against, K: its own once its climate is known, else `SURFACE_TEMPERATURE_K`."""
     surface_k = getattr(body, "surface_temperature", None)
@@ -578,7 +597,7 @@ def update_heat(body):
     Runs the thermal history of a rocky body to its star's age now and sets `OUTPUT_FIELDS` (the Urey ratio, the heat flow of its own and the
     tide's, GEN.737); no draws, so it can be repeated when the star's age is adjusted for its planets. The tide is that of the orbit stored
     with the body (`tidal_heating.forcing_of`): a rocky body's goes through the box (`heat`, which may melt it), an icy body's (a water mass
-    fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more) heats its ice shell and is `tidal_heating.icy_flux_w_m2`. Returns the `Heat`, or `None`
+    fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more) heats its ice shell (`icy_tide`, GEN.960). Returns the `Heat`, or `None`
     (fields `None`) for a body with no stored content or interior (a gas giant, or a row from before GEN.699).
     """
     content, interior = radiogenic.content_of(body), interior_of(body)
@@ -593,7 +612,14 @@ def update_heat(body):
                       lid_of(body), surface_of(body))
     body.urey_ratio, body.internal_heat_flux_w_m2 = found.urey_ratio, found.own_flux_w_m2
     if icy:
-        body.tidal_flux_w_m2 = tidal_heating.icy_flux_w_m2(forcing, body.radius) if forcing else 0.0
+        # GEN.960: the shell's tide in equilibrium with the shell it makes (`icy_tide.flux_from_tide`), over its surface
+        radius_m = body.radius * 1000.0
+        if forcing is not None and forcing.eccentricity > 0.0:
+            _, power = icy_tide.flux_from_tide(body.mass, radius_m, forcing.host_mass_kg, forcing.semi_major_axis_m, forcing.eccentricity,
+                                               found.own_flux_w_m2, icy_shell_top_k(body))
+            body.tidal_flux_w_m2 = power / (4.0 * math.pi * radius_m ** 2)
+        else:
+            body.tidal_flux_w_m2 = 0.0
     else:
         body.tidal_flux_w_m2 = found.tidal_w / (4.0 * math.pi * (body.radius * 1000.0) ** 2)
     return found

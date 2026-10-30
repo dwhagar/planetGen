@@ -14,7 +14,7 @@ from planetgen.generation import validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.system import StarSystem
-from planetgen.physics import interior_heat, tidal_heating
+from planetgen.physics import icy_tide, interior_heat, tidal_heating
 from planetgen.physics import constants, insolation, kepler, orbit_elements as oe
 from planetgen.physics import planets as planet_physics
 from planetgen.util import draw
@@ -224,7 +224,8 @@ def test_a_gas_giant_dissipates_less_than_a_rock_of_its_size():
     k2, q = interior_heat.tidal_response(_body(5.972e24, 6371.0), n)
     assert q < tidal_heating.GIANT_TIDAL_Q and 0.1 < k2 < 1.5
     icy = types.SimpleNamespace(mass=1.0e22, radius=1000.0, body_type="t", water_mass_fraction=0.4)
-    assert interior_heat.tidal_response(icy, n) == (tidal_heating.ICY_K2, tidal_heating.ICE_TIDAL_Q)
+    k2, q = interior_heat.tidal_response(icy, n)      # the ice shell's (GEN.960)
+    assert k2 == pytest.approx(icy_tide.love_k2(1.0e22, 1.0e6, n)) and 1.0 < q < math.inf
 
 
 # --- Generated systems -------------------------------------------------------------------------------------------------

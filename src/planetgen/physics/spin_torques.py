@@ -155,6 +155,41 @@ def rheology_dissipation(planet, temperature_k, eta0_pa_s, activation_j_mol, sol
     return dissipation
 
 
+TABLE_RANGE_RAD_S = (1.0e-14, 1.0e-1)
+"""tuple: The tide frequencies `tabulate` covers (a tide a million years long to one of a minute). Source tier T6, tweak level L0."""
+TABLE_POINTS = 56
+"""int: Points of `tabulate`'s table, log-spaced; a dissipation that varies by a power of the frequency between them is good to a part in a thousand. Source tier T6, tweak level L0."""
+
+
+def tabulate(dissipation, frequency_range=TABLE_RANGE_RAD_S, points=TABLE_POINTS):
+    """
+    `dissipation` (`k2/Q` against tide frequency) as a table in log-log, for one that is costly to evaluate (an ice shell integrates over its temperatures at each
+    frequency, `icy_tide.k2_over_q`); the flow of a spin evaluates it thousands of times. Outside the range the end values are continued with the end slopes. A zero
+    anywhere (a body with no shell) gives the constant zero.
+    """
+    low, high = math.log(frequency_range[0]), math.log(frequency_range[1])
+    logs = [low + (high - low) * i / (points - 1) for i in range(points)]
+    values = [dissipation(math.exp(x)) for x in logs]
+    if not all(v > 0.0 for v in values):
+        if not any(v > 0.0 for v in values):
+            return lambda frequency: 0.0
+        values = [max(v, 1.0e-300) for v in values]
+    ys = [math.log(v) for v in values]
+    slope_low = (ys[1] - ys[0]) / (logs[1] - logs[0])
+    slope_high = (ys[-1] - ys[-2]) / (logs[-1] - logs[-2])
+    step = (high - low) / (points - 1)
+
+    def table(frequency):
+        x = math.log(max(frequency, 1.0e-300))
+        if x <= low:
+            return math.exp(ys[0] + slope_low * (x - low))
+        if x >= high:
+            return math.exp(ys[-1] + slope_high * (x - high))
+        i = min(int((x - low) / step), points - 2)
+        return math.exp(ys[i] + (ys[i + 1] - ys[i]) * (x - logs[i]) / step)
+    return table
+
+
 def thermal_pressure_amplitude_pa(surface_pressure_pa, flux_w_m2):
     """`q0`, Pa: the zero-frequency amplitude of the thermal tide's pressure field, from `THERMAL_TABLE` (log-log in pressure above 1 bar, linear
     in pressure below it) and `FLUX_EXPONENT_Q0`."""

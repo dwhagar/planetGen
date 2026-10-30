@@ -15,8 +15,8 @@ heating follows the orbit: a moon with a forced eccentricity (the Laplace resona
 has been circularised (`orbit_elements.circularised`) has little left. The power is taken as constant over the body's age (a stand-in:
 the eccentricity was larger for a planet that has since circularised, so its past heating was more).
 
-Rheology of an icy body (a water mass fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more): one `k2/Q` of 3e-4, the figure that
-gives Europa's 1.4e11 W (`ICY_K2_OVER_Q`); the heat goes into its ice shell (`hydrosphere`), over its surface.
+Rheology of an icy body (a water mass fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more): the ice shell's own (`icy_tide`, GEN.960), in equilibrium with the shell
+it makes; the heat goes into the shell (`hydrosphere`), over its surface.
 
 Rheology of a rocky body (GEN.955): its Love number and quality factor are `tidal_rheology.rock_response` of its own mass and radius, the
 tide's frequency, its mantle's temperature and the viscosity it drew (`interior_heat.Interior`), so a cold mantle is stiff and barely
@@ -41,14 +41,6 @@ from planetgen.physics import constants, hydrosphere, tidal_rheology
 
 ROCK_RIGIDITY_PA = 7.0e10
 """float: The shear modulus of the solid mantle, Pa (PREM mantle average: 65 to 80 GPa). Source tier T2."""
-ICE_TIDAL_Q = constants.MOON_TIDAL_DISSIPATION_Q
-"""float: The tidal quality factor of an icy body's shell (GEN.960 replaces it with the ice rheology); rock has none: its Q follows its temperature
-(`interior_heat.tidal_response`). Source tier T3, tweak level L2."""
-ICY_K2 = 0.03
-"""float: An icy body's Love number; with `ICE_TIDAL_Q` it gives `ICY_K2_OVER_Q`."""
-ICY_K2_OVER_Q = ICY_K2 / ICE_TIDAL_Q
-"""float: An icy body's `k2/Q` of 3e-4: Europa's 1.4e11 W at its eccentricity of 0.009 (Peale, Cassen and Reynolds 1979 for Io, applied to the
-ice shell by Ojakangas and Stevenson 1989). Source tier T3, tweak level L2 (tuned to the published figure)."""
 GIANT_TIDAL_Q = 1.0e5
 """float: A gas giant's tidal quality factor (Jupiter's 3e4 to 1e6, Saturn's 1.8e4 from the motions of their moons). Source tier T3, tweak L0."""
 GIANT_K2 = 0.3
@@ -158,9 +150,3 @@ def rigid_k2(mass_kg, radius_m):
     being `3 G M^2 / (4 pi R^4)`."""
     pressure = 3.0 * constants.G * mass_kg ** 2 / (4.0 * math.pi * radius_m ** 4)
     return 1.5 / (1.0 + 9.5 * ROCK_RIGIDITY_PA / pressure)
-
-
-def icy_flux_w_m2(forcing, radius_km):
-    """An icy body's tide over its surface, W/m2."""
-    radius_m = radius_km * 1000.0
-    return peale_power_w(ICY_K2_OVER_Q, forcing, radius_m) / (4.0 * math.pi * radius_m ** 2)

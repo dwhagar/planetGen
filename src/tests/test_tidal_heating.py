@@ -12,7 +12,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import interior_heat, radiogenic, spin_torques, tidal_heating
+from planetgen.physics import icy_tide, interior_heat, radiogenic, spin_torques, tidal_heating
 from planetgen.physics import constants as pc
 from planetgen.physics.mathcheck import _bulk_silicate_earth
 from planetgen.util import draw
@@ -48,20 +48,23 @@ def test_peale_power_has_the_published_scaling():
     assert tidal_heating.peale_power_w(3.0e-4, farther, 1560.8e3) == pytest.approx(base / 2 ** 7.5)
 
 
-def test_europa_gets_its_published_tide_from_its_real_eccentricity():
-    """Europa: 1.4e11 W at e = 0.0094 (Peale, Cassen and Reynolds 1979 with the ice shell's k2/Q); the heat flow over its surface is 4.6e-3 W/m2."""
-    forcing = tidal_heating.Forcing(JUPITER, 6.711e8, 0.0094)
-    assert tidal_heating.peale_power_w(tidal_heating.ICY_K2_OVER_Q, forcing, 1560.8e3) == pytest.approx(1.4e11, rel=0.1)
-    assert tidal_heating.icy_flux_w_m2(forcing, 1560.8) == pytest.approx(4.6e-3, rel=0.1)
+def test_europa_gets_a_tide_of_the_published_size_from_its_ice_shell_with_nothing_fitted():
+    """Europa: 1e11 to 1e12 W of tide at e = 0.0094 in a shell of 10 to 30 km (Hussmann and Spohn 2004; the old 1.4e11 W was a fitted k2/Q): the shell's own rheology
+    (`icy_tide`, GEN.960) gives it from the temperature profile and the strain, with the radiogenic heat of its rock under it."""
+    from planetgen.physics import hydrosphere, icy_tide
+    flux, power = icy_tide.flux_from_tide(4.8e22, 1560.8e3, JUPITER, 6.711e8, 0.0094, 7.0e-4, 100.0)
+    assert 1.0e11 < power < 1.0e12
+    thickness_km = hydrosphere.ice_shell_thickness_km(flux, 100.0)
+    assert 10.0 < thickness_km < 40.0
+    assert flux == pytest.approx(7.0e-4 + power / (4.0 * math.pi * 1560.8e3 ** 2), rel=1e-9)
 
 
-def test_enceladus_gets_the_equilibrium_tide_and_not_its_unexplained_remainder():
-    """Enceladus: the equilibrium tide of its eccentricity of 0.0047 is about 1 GW (Meyer and Wisdom 2007: 1.1 GW), its radiated 16 GW (Howett et
-    al. 2011) is more than that tide makes, an open problem the old 1 to 50 resonance boost papered over. This is the tide alone."""
-    forcing = tidal_heating.Forcing(SATURN, 2.3802e8, 0.0047)
-    power = tidal_heating.icy_flux_w_m2(forcing, 252.1) * 4 * math.pi * (252.1e3) ** 2
-    assert power == pytest.approx(1.1e9, rel=0.7)
-    assert power < 1.5e10
+def test_enceladus_gets_a_tide_within_a_factor_of_ten_of_what_it_radiates():
+    """Enceladus: 16 GW radiated at its eccentricity of 0.0047 (Howett et al. 2011); the equilibrium shell of the model makes 1e11 W, six times more (the shell
+    is 6 km against an observed 20 or so), the one body the stand-ins of `icy_tide` overshoot, within the factor of ten they claim."""
+    from planetgen.physics import icy_tide
+    _, power = icy_tide.flux_from_tide(1.08e20, 252.1e3, SATURN, 2.3802e8, 0.0047, 3.0e-4, 75.0)
+    assert 1.6e9 < power < 1.6e11
 
 
 def test_the_moon_is_flexed_solid_and_heated_by_a_fraction_of_a_percent_of_its_own_heat():
@@ -171,7 +174,9 @@ def test_every_generated_body_stores_the_tide_of_its_orbit_and_the_habitability_
                 continue
             if (body.water_mass_fraction or 0.0) >= hydrosphere.ICY_MIN_WATER_FRACTION:
                 icy += 1
-                assert body.tidal_flux_w_m2 == pytest.approx(tidal_heating.icy_flux_w_m2(forcing, body.radius))
+                _, power = icy_tide.flux_from_tide(body.mass, body.radius * 1000.0, forcing.host_mass_kg, forcing.semi_major_axis_m, forcing.eccentricity,
+                                                   body.internal_heat_flux_w_m2, interior_heat.icy_shell_top_k(body))
+                assert body.tidal_flux_w_m2 == pytest.approx(power / (4.0 * math.pi * (body.radius * 1000.0) ** 2))
             else:
                 rocky += 1
                 assert body.tidal_flux_w_m2 >= 0.0
@@ -203,7 +208,6 @@ def test_an_icy_body_on_an_orbit_so_round_the_tide_underflows_stores_zero():
                 continue
             body.eccentricity = 1.0e-203
             interior_heat.update_heat(body)
-            assert tidal_heating.icy_flux_w_m2(tidal_heating.forcing_of(body), body.radius) == 0.0
             assert body.tidal_flux_w_m2 == 0.0
             return
     pytest.skip("no icy body on an orbit in these seeds")
