@@ -18350,6 +18350,28 @@ clears each one.
   3 (assigned 7:18 AM EDT 2026-10-30).
   Prerequisites: none. Related: TEST.465, PERF.217.
 
+- [ ] **TEST.472 Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug)**
+  Reported by Bug 2 (as the lane reported, 7:36 AM EDT 2026-10-30),
+  checked on a worktree of origin/main after train 3 with ozone_uv
+  fetched:
+  test_migration_aerosols::test_the_same_seed_draws_the_same_aerosols_and_they_move_no_other_draw
+  (list comparison fails),
+  test_migration_albedo_greenhouse::test_a_saved_system_keeps_its_draws_and_the_temperature_follows_them
+  (assert 2000.0 == 2346.97),
+  test_migration_gas_tables::test_a_saved_system_keeps_every_bodys_air
+  and ::test_a_v154_galaxy_gets_its_air_in_the_child_tables
+  ('AsteroidBelt' object has no attribute 'moons' at
+  test_migration_gas_tables.py:30). Do: for each, find whether a
+  generator change since the test was written (the star epoch, GEN.846
+  rotation, GEN.849 delivered water, GEN.916 temperate aim) moved the
+  draw and the expectation must follow, or the product is wrong; for the
+  AsteroidBelt case the test fixture reads a field belts no longer have;
+  fix the right side with the reason recorded and never loosen a check
+  past what the change explains. Done: all four pass on main. Related:
+  TEST.463, TEST.468, TEST.469, TEST.470. Owner: Bug 2 (proposed), after
+  TEST.417.
+  Prerequisites: none. Related: TEST.463, TEST.468, TEST.469, TEST.470.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
