@@ -4,19 +4,19 @@
 The torques on a planet's spin: its star's tide, each moon's tide and the thermal tide of its air (GEN.956)
 =========================================================================================================
 
-`tidal_spin.evolve` wears a body's spin down by the tide of what it orbits and nothing else. A planet's spin has three more things
-acting on it: the tide each of its **moons** raises in it (the Moon slows the Earth and drives itself outward; a moon inside the planet's
+A constant-Q despinning by the tide of what a body orbits (the form this module's gravitational torque reduces to for one raiser and a constant `Q`) is the
+simplest case. A planet's spin has three more things acting on it: the tide each of its **moons** raises in it (the Moon slows the Earth and drives itself outward; a moon inside the planet's
 corotation radius is dragged in), the **thermal tide** of a thick atmosphere, whose heated bulge is pulled by the star the other way and can
 hold a planet away from synchronous rotation (Venus, the non-synchronous planets of Leconte et al. 2015), and the planet's own **rheology**,
 which makes the gravitational torque depend on frequency (`tidal_rheology`). This module is the sum of those torques and the evolution of a spin
-under it. Nothing calls it yet (GEN.957 wires it into `planets.generate_spin` and a post-pass after the moons exist).
+under it. `body_spin` fills it from a body's stored fields and `planets.generate_spin` runs it (GEN.957).
 
 **Gravitational torque.** A body of radius `R` spinning at `omega` under the tide of a mass `M` on an orbit of radius `a` and rate `n`, at the
 semi-diurnal frequency `sigma = 2 (omega - n)`:
 
     N_g = - F K_g b_g(sigma),      K_g = G M^2 R^5 / a^6,      b_g(sigma) = sign(sigma) k2/Q (|sigma|)
 
-`F` is `GRAVITATIONAL_TORQUE_FACTOR`: 3 as the built despinning has it (`tidal_spin`, after Gladman et al. 1996; SP7) and 3/2 in Murray and Dermott and in
+`F` is `GRAVITATIONAL_TORQUE_FACTOR`: 3 as the despinning has had it since GEN.731 (after Gladman et al. 1996; SP7) and 3/2 in Murray and Dermott and in
 Leconte et al. 2015 (the same constant-Q result written for a different definition of Q). `k2/Q` comes from a callable, so it can be constant
 (`constant_dissipation`, today's behaviour: a torque that does not depend on the spin, flipping sign at synchronous rotation) or the
 frequency-dependent rheology of the body (`rheology_dissipation`, which has no discontinuity at synchronism and, at low frequency, a torque
@@ -49,6 +49,7 @@ convective atmosphere with a fitted amplitude; moons act on the spin only, and `
 """
 
 import math
+import warnings
 from dataclasses import dataclass
 
 from scipy import integrate, optimize
@@ -56,7 +57,7 @@ from scipy import integrate, optimize
 from planetgen.physics import constants, tidal_rheology, tidal_spin
 
 GRAVITATIONAL_TORQUE_FACTOR = 3.0
-"""float: `F` of the gravitational torque as the built despinning has it (`tidal_spin.despin_rate_rad_s2`); Leconte et al. 2015 and Murray and
+"""float: `F` of the gravitational torque as the despinning has had it since GEN.731 (Gladman et al. 1996); Leconte et al. 2015 and Murray and
 Dermott write 3/2 for the same constant-Q result. The thermal torque is scaled with it, so the ratio of the two stays the paper's. Source tier T3,
 tweak level L0."""
 THERMAL_TABLE = (
@@ -82,6 +83,10 @@ EQUILIBRIUM_TOLERANCE = 1.0e-3
 """float: How close, in units of the distance from an equilibrium to the orbital rate, the spin must come to count as having reached it."""
 SCAN_POINTS = 240
 """int: Grid points per side of the orbital rate where `equilibria` looks for a sign change of the smooth torque."""
+STOP_CLOSENESS = 1.0e-9
+"""float: The flow to a zero of the torque ends within this share of the distance travelled (the approach is exponential, so the log of it is all the time it adds). Source tier T6, tweak level L0."""
+TORQUE_FLOOR_N_M = 1.0e-30
+"""float: The least torque the flow integral divides by, N m; below it the spin does not move in any age. Source tier T6, tweak level L0."""
 
 
 @dataclass(frozen=True)
@@ -305,7 +310,7 @@ def evolve(torques, spin_rate, age_s, eccentricity=0.0):
     """
     A planet born spinning at `spin_rate` (rad/s) after `age_s` under `torques`: the one-dimensional flow `I d omega/dt = N(omega)`, run in
     the direction of the net torque until it is caught (a resonance whose window holds `eccentricity`, a synchronous state, an asynchronous balance) or the age is up.
-    With constant `Q` and one raiser this is `tidal_spin.evolve`.
+    With constant `Q` and one raiser the spin falls linearly at the rate `F K k2 / (I Q)` to the first stop.
     """
     inertia = torques.planet.inertia
     star_rate = torques.raisers[0].orbital_rate
@@ -352,7 +357,17 @@ def _flow_time(torques, inertia, start, stop, direction):
     lo, hi = sorted((start, stop))
     if _is_constant(torques, lo, hi):
         return inertia * (hi - lo) / abs(torques.total(0.5 * (lo + hi)))
-    value, _ = integrate.quad(lambda w: inertia / abs(torques.total(w)), lo, hi, epsabs=0.0, epsrel=1.0e-7, limit=200)
+    # A balance (or a synchronous state under a torque that fades with the tide's frequency) is a zero of the torque at `stop`: the spin comes to it
+    # exponentially and the integral diverges as the log of the distance, so the flow ends within STOP_CLOSENESS of the span of it.
+    margin = STOP_CLOSENESS * (hi - lo)
+    if stop >= start:
+        hi -= margin
+    else:
+        lo += margin
+    with warnings.catch_warnings():
+        # the integrand climbs steeply into the zero; the value is still good to the tolerance the ages need
+        warnings.simplefilter("ignore", integrate.IntegrationWarning)
+        value, _ = integrate.quad(lambda w: inertia / max(abs(torques.total(w)), TORQUE_FLOOR_N_M), lo, hi, epsabs=0.0, epsrel=1.0e-6, limit=200)
     return value
 
 

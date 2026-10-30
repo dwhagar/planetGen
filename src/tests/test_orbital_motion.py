@@ -8,7 +8,7 @@ Regression tests for the orbital-motion feature (docs/TODO.md's
 the primary-mass-aware `period` formula (Kepler's third law using the
 actual body a planet/moon orbits, not always the star), and
 `planetPhysics.generate_orbital_motion_properties`/
-`tidal_spin.locking_time_s` (real tidal-despinning physics decides
+`body_spin.evolve` (real tidal-despinning physics decides
 whether a moon is tidally locked, not a flat probability -- see [5.11.1]).
 Also covers the later position/speed follow-up: `Planet.position_x/y/z`/
 `orbital_speed_kms`, derived from the orbital elements above via
@@ -35,10 +35,10 @@ import pytest
 
 from planetgen.physics import constants as pc
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import spin, tidal_spin
+from planetgen.physics import spin
 from planetgen.physics.planets import generate_orbital_motion_properties
 from planetgen.generation.system import StarSystem
-from tests.tide_support import rocky
+from tests.tide_support import locking_time_s, rocky
 
 N_SYSTEMS = 20
 
@@ -146,7 +146,7 @@ def _spin_rate(period_hours):
 
 def test_moon_tidal_lock_is_not_universal(bodies):
     """
-    Real tidal physics (`tidal_spin.locking_time_s`) decides
+    Real tidal physics (`body_spin.evolve`) decides
     locking, not a flat probability -- across many independently
     generated moons (spanning a wide range of mass/radius/distance/
     primary-mass/system-age combinations), that should produce both
@@ -168,20 +168,20 @@ def test_tidal_locking_timescale_matches_real_earth_moon_order_of_magnitude():
     """
     moon = _rocky(distance=384400 / pc.AU_TO_KM, mass=7.342e22, radius=1737.4, body_type="t")
     earth_mass_kg = 5.972e24
-    t_lock_years = tidal_spin.locking_time_s(moon, earth_mass_kg, moon.distance * pc.AU_TO_M, _spin_rate(10.0)) / pc.SECONDS_PER_YEAR
+    t_lock_years = locking_time_s(moon, earth_mass_kg, moon.distance * pc.AU_TO_M, _spin_rate(10.0)) / pc.SECONDS_PER_YEAR
     assert 1e6 < t_lock_years < 5e8
 
 
 def test_tidal_locking_timescale_increases_with_distance_and_decreases_with_primary_mass():
     close = _rocky(distance=0.001, mass=1e22, radius=1500, body_type="t")
     far = _rocky(distance=0.01, mass=1e22, radius=1500, body_type="t")
-    t_close = tidal_spin.locking_time_s(close, 6e24, close.distance * pc.AU_TO_M, _spin_rate(10.0))
-    t_far = tidal_spin.locking_time_s(far, 6e24, far.distance * pc.AU_TO_M, _spin_rate(10.0))
+    t_close = locking_time_s(close, 6e24, close.distance * pc.AU_TO_M, _spin_rate(10.0))
+    t_far = locking_time_s(far, 6e24, far.distance * pc.AU_TO_M, _spin_rate(10.0))
     assert t_far > t_close
 
     moon = _rocky(distance=0.01, mass=1e22, radius=1500, body_type="t")
-    t_light_primary = tidal_spin.locking_time_s(moon, 1e23, moon.distance * pc.AU_TO_M, _spin_rate(10.0))
-    t_heavy_primary = tidal_spin.locking_time_s(moon, 1e26, moon.distance * pc.AU_TO_M, _spin_rate(10.0))
+    t_light_primary = locking_time_s(moon, 1e23, moon.distance * pc.AU_TO_M, _spin_rate(10.0))
+    t_heavy_primary = locking_time_s(moon, 1e26, moon.distance * pc.AU_TO_M, _spin_rate(10.0))
     assert t_heavy_primary < t_light_primary
 
 

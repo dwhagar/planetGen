@@ -64,12 +64,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.15:RB5 | GEN.983 | `radiation_belts.ATMOSPHERE_EDGE_SCALE_HEIGHTS`, read when the belts are |
 | row | 6.15:RB6 | GEN.983 | `radiation_belts.EARTH_OUTER_PEAK_GY_YR`, read when the belts are |
 | row | 6.15:RB7 | GEN.983 | `radiation_belts.OUTER_RISE_EXPONENT`, read when the belts are |
-| module | planetgen.physics.spin_torques | GEN.957 | the star, moon and thermal-tide torques on a planet's spin (stage 2a, lock-free); stage 2b wires the sum into planet spin |
 | module | planetgen.physics.moon_orbits | GEN.959 | moon orbit drift, spiral-in and the Roche fall (stage 3a, lock-free); stage 3b wires the history into the planet |
-| row | 6.24:TQ1 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.24:TQ2 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.24:TQ3 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.24:TQ4 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
 | row | 6.25:TM1 | GEN.959 | a constant of the tides chain's lock-free module, read when its wiring step lands |
 | row | 6.25:TM2 | GEN.959 | a constant of the tides chain's lock-free module, read when its wiring step lands |
 | module | planetgen.physics.condensate_shares | GEN.950 | Lodders 2003 condensates by temperature and the water share of the solids (lock-free); the wiring step reads the snow line temperature, the ice boost of the surface density and the water range of an icy body from it |

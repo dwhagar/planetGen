@@ -23,7 +23,7 @@ import math
 import re
 
 from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -496,7 +496,7 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     stat (this generator doesn't track rotational phase -- nothing consumes
     "which side currently faces the primary"). `generate_spin` draws the
     body's birth spin and wears it down by the tide of what it orbits for the
-    age of its star (`tidal_spin`, GEN.731): the moon ends up locked
+    age of its star (`body_spin`, GEN.731 and GEN.957): the moon ends up locked
     (`rotation_period_hours` == its own orbital period, converted to hours)
     or in a spin-orbit resonance when the tide has had time to bring it there,
     which is the norm for large or close-in moons, not a rare special case,
@@ -537,10 +537,11 @@ def generate_spin(planet, primary_mass_kg):
     Draws a planet's or moon's `rotation_period_hours` and spin axis (GEN.104, GEN.731; `physics.spin.SPIN_FIELDS`). It is born spinning (a
     rocky planet at the rate and angle the giant impacts that built it leave, `spin.accretion_spin`; a moon at a rate from
     `spin.planet_day_hours`, as a gas giant) and the tide of what it orbits then wears the spin toward the orbit's rate for the age of its
-    star (`tidal_spin.evolve`, the body's own Love number and quality factor, the orbit's eccentricity from `generate_orbit_shape`). A body
+    star (`body_spin.evolve`: the gravitational tide with the body's own frequency-dependent rheology and, for a rocky planet with an air, the
+    thermal tide of the air, GEN.957; the orbit's eccentricity from `generate_orbit_shape`). A body
     the tide has brought all the way down turns once an orbit (locked) or in a spin-orbit resonance such as Mercury's 3:2
-    (`spin.spin_state`), with its axis on the orbit normal; any other keeps its tilt, a rocky planet's from the impacts and a moon's or giant's
-    a Rayleigh one. Called again when a move changes the body's period, since that can change the state.
+    (`spin.spin_state`), with its axis on the orbit normal; one the thermal and gravitational tides hold in balance away from synchronism turns at that
+    rate, upright or upside down; any other keeps its tilt, a rocky planet's from the impacts and a moon's or giant's a Rayleigh one. Called again when a move changes the body's period, since that can change the state.
     """
     age_s = _yr_to_s(_gyr_to_yr(planet.star.age))
     semi_major_axis_m = _au_to_m(planet.distance)
@@ -550,14 +551,19 @@ def generate_spin(planet, primary_mass_kg):
         spin_rate, impact_tilt = spin.accretion_spin(planet.mass, planet.radius)
     else:
         spin_rate = 2.0 * math.pi / _h_to_s(spin.planet_day_hours(planet.body_type))
-    spin_rate, ratio = tidal_spin.evolve(planet, primary_mass_kg, semi_major_axis_m, spin_rate, age_s, eccentricity)
+    found = body_spin.evolve(planet, primary_mass_kg, semi_major_axis_m, spin_rate, age_s, eccentricity)
     period_hours = planet.period * _yr_to_h(1.0)
-    if ratio is not None:
-        planet.rotation_period_hours = period_hours / ratio
+    if found.ratio is not None:
+        planet.rotation_period_hours = period_hours / found.ratio
         tilt = 0.0
     else:
-        planet.rotation_period_hours = 2.0 * math.pi / spin_rate / 3600.0
-        tilt = impact_tilt if impact_tilt is not None else spin.rayleigh_tilt_deg()
+        planet.rotation_period_hours = 2.0 * math.pi / abs(found.rate) / 3600.0
+        if found.kind == "asynchronous":
+            tilt = 0.0 if found.rate > 0.0 else 180.0      # the tides have brought it to its balance: upright, or upside down (Venus)
+        else:
+            tilt = impact_tilt if impact_tilt is not None else spin.rayleigh_tilt_deg()
+            if found.rate < 0.0:
+                tilt = 180.0 - tilt
     spin.set_spin(planet, spin.orbit_normal(planet.orbital_inclination_deg,
                                             planet.orbital_ascending_node_deg), tilt)
     # GEN.86: the field depends on the rotation just set.
@@ -828,7 +834,7 @@ def generate_moons(planet, moon_count=None):
         # log-uniformly gives every order of magnitude equal weight instead,
         # which both matches that real spacing pattern better and -- since
         # tidal-locking timescale scales with distance^6
-        # (`tidal_spin.locking_time_s`) -- stops real tidal-locking
+        # (`body_spin.evolve`) -- stops real tidal-locking
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
         moon_distance_km = math.exp(draw.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
