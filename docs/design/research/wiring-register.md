@@ -137,3 +137,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.potassium_depletion | GEN.492 | the potassium depletion drawn by body class; replaces the log-uniform `tuning.RADIOGENIC_K_DEPLETION_RANGE` once `radiogenic` calls it with the body's mass |
 | row | 6.61:KD3 | GEN.492 | `potassium_depletion.CLASS_MASS_EARTH`, not read until `radiogenic` calls the module |
 | row | 6.61:KD4 | GEN.492 | `potassium_depletion.MAX_DEPLETION`, not read until `radiogenic` calls the module |
+| data | co2_far_wing.json | GEN.1019 | the carbon dioxide far-wing rules (Perrin and Hartmann chi, widths, reach); `line_opacity` will read them when the wing replaces IR3 |
+| module | planetgen.physics.co2_far_wing | GEN.1019 | the far wing of carbon dioxide; replaces the flat `CO2_FAR_WING_M2_KG` of IR3 once `line_opacity` calls it |
