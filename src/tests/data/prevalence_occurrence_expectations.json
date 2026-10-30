@@ -1,6 +1,6 @@
 {
  "anomalies": {
-  "GEN.728": "the planet architecture (wired on merge train 4) meets the observed bands of the Sun-like hosts and the M dwarfs; two gaps remain: K dwarfs make 1.8 planets per star against 2.26 to 4.34 (the inner share is interpolated in the star's mass, 0.6 at 0.7 solar masses against the 0.75 observed under 5000 K, and a K dwarf's disc makes fewer planets than the factor of 2.7 over Sun-like stars), and F stars have a multiplicity of about 3 against 1.8 observed (the multiplicity has no stellar-mass dependence yet)"
+  "GEN.728": "The giant-planet and planets-per-star rates of the planet architecture (GEN.728, wired on train 4, epoch 126) against the observed bands; Planets 1 tunes the architecture toward them, so the gap is carried by GEN.728."
  },
  "errors": {
   "anomaly": ""
@@ -84,6 +84,7 @@
      "source": "adjacent pairs in multi-planet Kepler systems at least 10 mutual Hill radii apart; the most common spacing is about 20; essentially no pair has a period ratio under 1.2 (Weiss et al. 2018, arXiv:1706.06204; READ, T1)"
     },
     "planets_per_star": {
+     "anomaly": "GEN.728",
      "kind": "observed",
      "max": 1.5437,
      "min": 0.9163,
@@ -135,6 +136,7 @@
      "source": "the same for stars cooler than 5000 K (Yang, Xie and Zhou 2020, arXiv:2002.02840; READ, T1)"
     },
     "small_planets_per_star": {
+     "anomaly": "GEN.728",
      "kind": "observed",
      "max": 3.1349,
      "min": 1.8651,

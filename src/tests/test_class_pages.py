@@ -575,3 +575,17 @@ def test_the_habitability_page_explains_the_map_views_the_temperatures_and_the_c
     for text in ("On the Galaxy Map", "Color by: Habitable worlds", "show=marker-habitable", "Temperatures across a world",
                  "terminator ring", "solid for a required item, outlined for a recommended one", "0.1 mg/m3"):
         assert text in html, text
+
+
+def test_a_missing_dataset_does_not_stop_the_site_booting(monkeypatch):
+    """update.sh pulls the new code before its downloads finish; a worker that started then died at boot on
+    DataMissing (mamajek_dwarf_sequence) and every page was a 500."""
+    from planetgen.datasets.fetch import DataMissing
+
+    def missing():
+        raise DataMissing("mamajek_dwarf_sequence: not downloaded")
+
+    monkeypatch.setattr(classref, "catalog", missing)
+    assert classref.preload() is False
+    monkeypatch.setattr(classref, "catalog", lambda: {})
+    assert classref.preload() is True

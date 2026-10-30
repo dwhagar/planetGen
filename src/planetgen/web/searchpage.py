@@ -15,6 +15,8 @@ bookmarkable URL:
 - `sector_q`, `system_q`, `star_q`, `planet_q`, `moon_q`: a name search
   for one kind of object.
 - `<star|planet|moon>_<min|max>_radius_km`: a size range.
+- `stars`: how many stars a system holds (UX.239): `3` exactly three, `3+` three or more, or `single`, `binary`, `trinary`, `quaternary`,
+  `quintenary` (five or more). A `stars:<value>` word typed into the main search `q` (the header search box) is the same filter.
 - One repeated parameter per tag facet (`type=star&spectral=G&spectral=K`),
   see `TAG_FACETS`.
 - `<panel>_page`: each result panel's page (`sectors_page`, ...,
@@ -25,12 +27,14 @@ The query logic itself lives in `planetgen.db.query.search`, behind `GET /api/se
 """
 
 import math
+import re
 from urllib.parse import urlencode
 
 from flask import g, request, url_for
 
 from planetgen.physics import equipment, score_filters
 from planetgen.physics.habitability_world import TIER_NAMES
+from planetgen.util import star_count
 from planetgen.web.lib import apiclient, datatable, slowpages
 from planetgen.web.lib.datatable import Column, Result, Table
 from planetgen.web.lib.fmt import format_number
@@ -108,6 +112,13 @@ SIZE_ENTITIES = (
     ("moon", "Moon", "e.g. 1737 (Moon)"),
 )
 SIZE_FIELDS = tuple(f"{entity}_{bound}_radius_km" for entity, _l, _p in SIZE_ENTITIES for bound in ("min", "max"))
+STAR_COUNT_CHOICES = star_count.STAR_COUNT_CHOICES
+"""tuple: The stars filter's choices, `(value, label)`, for the form's menu."""
+STARS_FIELD = "stars"
+"""str: The stars filter's parameter (UX.239); it is kept with the other text fields of a state."""
+TEXT_FIELDS = tuple(f[0] for f in NAME_FIELDS) + SIZE_FIELDS + (STARS_FIELD,)
+"""tuple: Every parameter a state holds as text."""
+_Q_STARS = re.compile(r"(?:^|\s)stars:(\S+)", re.IGNORECASE)
 
 RESULT_PANELS = (
     # (panel, heading) -- mirrors planetgen.db.query.SEARCH_RESULT_PANELS
@@ -121,8 +132,17 @@ RESULT_PANELS = (
 )
 PANEL_NAMES = tuple(panel for panel, _heading in RESULT_PANELS)
 
-_ALL_PARAMS = ("q",) + tuple(f[0] for f in NAME_FIELDS) + SIZE_FIELDS + TAG_FACETS + tuple(
+_ALL_PARAMS = ("q",) + TEXT_FIELDS + TAG_FACETS + tuple(
     f"{panel}_{part}" for panel in PANEL_NAMES for part in ("page", "sort", "order"))
+
+
+def _valid_stars(text):
+    """The stars filter as typed when it is one (a count, a count and a plus, or a name), else empty: a hand-edited URL is ignored, not an error."""
+    try:
+        star_count.parse_star_count(text)
+    except ValueError:
+        return ""
+    return text.strip().lower()
 
 
 class SearchState:
@@ -130,7 +150,7 @@ class SearchState:
 
     def __init__(self, q="", texts=None, tags=None, pages=None):
         self.q = q
-        self.texts = {key: "" for key in tuple(f[0] for f in NAME_FIELDS) + SIZE_FIELDS}
+        self.texts = {key: "" for key in TEXT_FIELDS}
         self.texts.update(texts or {})
         self.tags = {facet: set() for facet in TAG_FACETS}
         for facet, values in (tags or {}).items():
@@ -144,7 +164,13 @@ class SearchState:
         def first(key):
             return (args.get(key) or "").strip()
 
-        texts = {key: first(key) for key in tuple(f[0] for f in NAME_FIELDS) + SIZE_FIELDS}
+        texts = {key: first(key) for key in TEXT_FIELDS}
+        q = first("q")
+        found = _Q_STARS.search(q)
+        if found:       # `stars:3` typed in the search box is the stars filter, and the rest of the box stays a name
+            q = _Q_STARS.sub("", q, count=1).strip()
+            texts[STARS_FIELD] = texts[STARS_FIELD] or found.group(1)
+        texts[STARS_FIELD] = _valid_stars(texts[STARS_FIELD])
         tags = {}
         for facet in TAG_FACETS:
             values = {value.strip() for value in args.getlist(facet) if value.strip()}
@@ -152,7 +178,7 @@ class SearchState:
                 values &= _FACET_ALLOWED[facet]
             tags[facet] = values
         pages = {panel: parse_page(args.get(f"{panel}_page")) for panel in PANEL_NAMES}
-        return cls(first("q"), texts, tags, pages)
+        return cls(q, texts, tags, pages)
 
     def copy(self, **changes):
         state = SearchState(self.q, dict(self.texts), {k: set(v) for k, v in self.tags.items()},
@@ -199,13 +225,17 @@ class SearchState:
     def sizes(self):
         return {entity: self.size_range(entity) for entity, _l, _p in SIZE_ENTITIES}
 
+    def stars(self):
+        """The stars filter as `apiclient.get_search` sends it (`stars=`), or `None` for no filter."""
+        return self.texts.get(STARS_FIELD) or None
+
     def active(self):
         """True when anything at all is being searched for."""
         return bool(self.q or any(self.texts.values()) or any(self.tags.values()))
 
     def advanced_open(self):
-        """Open the per-object fields when one of them is in use."""
-        return any(self.texts.values())
+        """Open the per-object fields when one of them is in use (the stars filter sits in the main form)."""
+        return any(value for key, value in self.texts.items() if key != STARS_FIELD)
 
     # -- URLs ----------------------------------------------------------------
 
@@ -215,7 +245,7 @@ class SearchState:
         pairs = []
         if self.q:
             pairs.append(("q", self.q))
-        for key in tuple(f[0] for f in NAME_FIELDS) + SIZE_FIELDS:
+        for key in TEXT_FIELDS:
             if self.texts.get(key):
                 pairs.append((key, self.texts[key]))
         for facet in TAG_FACETS:
@@ -287,6 +317,10 @@ def active_filters(state, facet_labels):
         if state.texts[key]:
             texts = dict(state.texts, **{key: ""})
             chips.append({"label": f"{label}: “{state.texts[key]}”", "url": state.copy(texts=texts).url()})
+    if state.stars():
+        texts = dict(state.texts, **{STARS_FIELD: ""})
+        chips.append({"label": f"Stars: {star_count.star_count_label(star_count.parse_star_count(state.stars()))}",
+                      "url": state.copy(texts=texts).url()})
     for entity, label, _ph in SIZE_ENTITIES:
         size_range = state.size_range(entity)
         if size_range is None:
@@ -370,7 +404,7 @@ SORT_KEYS = {"Habitability": "phi4", "Suitability": "suitability", "Microbes": "
 
 _PANEL_COLUMNS = {
     "sectors": ["Name", "Edge", "Galaxy Map"],
-    "systems": ["Name", "Sector", "Binary", "Star type", "Galaxy Map"],
+    "systems": ["Name", "Sector", "Stars", "Objects", "Habitable world", "Star type", "Galaxy Map"],
     "stars": ["Name", "Role", "Type", "Radius", "System", "Sector"],
     "planets": ["Name", "Class", "Body", "Radius", "Life Class", "Equipment", "Habitability", *SCORE_COLUMNS,
                 "System", "Sector"],
@@ -404,7 +438,8 @@ def _cells(panel, row):
         return [_link(row["name"], row["url"]), {"text": f"{format_number(row['edge_mpc'], ',.2f')} mpc"},
                 _show_on_map(row)]
     if panel == "systems":
-        return [_link(row["name"], row["url"]), _sector_link(row), {"text": "Yes" if row["is_binary"] else "No"},
+        return [_link(row["name"], row["url"]), _sector_link(row), {"text": str(row["star_count"])},
+                {"text": str(row["object_count"])}, {"text": "Yes" if row["has_habitable_world"] else "No"},
                 {"text": row["star_summary"]}, _show_on_map(row)]
     if panel == "stars":
         return [_link(row["name"], row["url"]), {"text": row["role"]}, {"text": row["star_type"]}, _radius(row),
@@ -463,7 +498,7 @@ def fetch(state):
     waiting = []
     try:
         data = apiclient.get_search(db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
-                                    offsets=api_offsets(state), panels=[], sorts=api_sorts(request.args))
+                                    offsets=api_offsets(state), panels=[], sorts=api_sorts(request.args), stars=state.stars())
     except slowpages.Pending as pending:
         data = None
         waiting.append(pending)
@@ -472,7 +507,7 @@ def fetch(state):
         try:
             answer = apiclient.get_search(
                 db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
-                offsets={panel: api_offsets(state).get(panel, 0)}, panels=[panel], sorts=api_sorts(request.args))
+                offsets={panel: api_offsets(state).get(panel, 0)}, panels=[panel], sorts=api_sorts(request.args), stars=state.stars())
             results[panel] = answer["results"].get(panel)
         except slowpages.Pending as pending:
             waiting.append(pending)
@@ -493,7 +528,7 @@ def _panel_loader(panel):
             state = SearchState.from_args(request.args)
             data = apiclient.get_search(
                 db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=limit,
-                offsets={panel: offset}, panels=[panel], sorts=api_sorts(request.args))
+                offsets={panel: offset}, panels=[panel], sorts=api_sorts(request.args), stars=state.stars())
             cached = data["results"][panel]
         if cached is None:
             return Result([], 0)
