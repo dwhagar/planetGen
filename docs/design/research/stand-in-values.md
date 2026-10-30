@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 373 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 376 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 43 | 0 | 3 | 0 | 0 | 46 |
+| T1 | 46 | 0 | 3 | 0 | 0 | 49 |
 | T2 | 69 | 3 | 0 | 1 | 0 | 73 |
 | T3 | 52 | 5 | 2 | 10 | 0 | 69 |
 | T4 | 16 | 0 | 0 | 2 | 0 | 18 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 16 | 3 | 1 | 7 | 0 | 27 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 256 | 26 | 13 | 61 | 17 | 373 |
+| All | 259 | 26 | 13 | 61 | 17 | 376 |
 
 ## How the labels were given
 
@@ -575,3 +575,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AR1 | P | T6 | L1 | age_metallicity.THIN_BIRTH_FE_H 0.05 (the thin disc's mean [Fe/H] at age 0; the slope below it is Haywood's 0.025 dex per Gyr) | -0.05 to 0.15 | thin-disc stars | a thin disc whose young stars average more than 0.1 away | the Geneva-Copenhagen age-metallicity relation (Casagrande et al. 2011) | test_alpha_and_age_metallicity::test_the_relation_matches_the_populations_the_generator_has_today | GEN.744 | - |
 | AR2 | P | T6 | L1 | age_metallicity.THICK_ANCHOR_FE_H -0.10 (the thick disc's mean [Fe/H] at 8 Gyr where it ends; the slope below it is Haywood's 0.15 dex per Gyr) | -0.3 to 0.1 | thick-disc stars of 8 to 13 Gyr | a thick disc whose 8 Gyr stars average more than 0.2 away | the relation of Haywood et al. 2013 Fig. 9 fitted star by star | test_alpha_and_age_metallicity::test_the_thick_disc_ends_at_its_anchor_and_is_held_outside_its_window | GEN.744 | - |
 | AR3 | P | T6 | L1 | age_metallicity.SIGMA (0.15 thin, 0.10 thick; the scatter about the mean at one age) | each 0.05 | disc stars | a measured scatter at one age differing by more than 0.05 | the fitted scatters of the two relations | test_alpha_and_age_metallicity::test_a_draw_is_the_mean_plus_the_scatter_and_stays_in_range | GEN.744 | - |
+
+## 6.35 Stand-ins of the condensates by temperature
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CS1 | P | T1 | L0 | condensate_shares.ICE_CONDENSATION_K (water 182 K, ammonia hydrate 131 K, methane 41 K; the methane clathrate at 78 K is left out) | the pressure: 10^-4 bar | the gas of the minimum-mass nebula near the snow line | a disk whose mid-plane pressure at the snow line differs by two decades or more and puts the water line more than 10 K away | a pressure-dependent condensation temperature (Fray and Schmitt 2009, held second-hand) | test_condensate_shares::test_the_water_share_steps_down_at_each_ice_line_as_table_11_prints | GEN.950 | - |
+| CS2 | P | T1 | L0 | condensate_shares.TABLE_11_MASS_PERCENT (rock 0.489, water 0.571, ammonia 0.097, methane 0.330, percent of the nebula, Solar System composition) | the composition column (photospheric gives the same ratios; Anders and Grevesse 1989 gives water over rock 2.09) | solar C/O, every carbon in methane and every nitrogen in ammonia | planetesimals whose ice over rock measured near 1 (comets) instead of 2.04 | the comet-calibrated ice budget (Marboeuf et al. 2014) as a switch | test_condensate_shares::test_the_water_share_steps_down_at_each_ice_line_as_table_11_prints | GEN.950 | - |
+| CS3 | P | T1 | L0 | condensate_shares.ROCK_OXYGEN_SHARE 0.2275 (the share of the Sun's oxygen bound in rock before water ice condenses) | none | rock-forming metals in the solar ratios | a rock whose oxygen share differs from the Sun's by more than 5 points | the oxygen budget of the star's own Mg, Si, Fe and Ca | test_condensate_shares::test_oxygen_after_the_rock_makes_the_water | GEN.950 | - |

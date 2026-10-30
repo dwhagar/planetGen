@@ -85,3 +85,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.26:GS4 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | row | 6.26:GS5 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | row | 6.26:GS6 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
+| module | planetgen.physics.condensate_shares | GEN.950 | Lodders 2003 condensates by temperature and the water share of the solids (lock-free); the wiring step reads the snow line temperature, the ice boost of the surface density and the water range of an icy body from it |
+| row | 6.35:CS1 | GEN.950 | `condensate_shares.ICE_CONDENSATION_K`, read when the wiring step lands |
+| row | 6.35:CS2 | GEN.950 | `condensate_shares.TABLE_11_MASS_PERCENT`, read when the wiring step lands |
+| row | 6.35:CS3 | GEN.950 | `condensate_shares.ROCK_OXYGEN_SHARE`, read when the wiring step lands |
