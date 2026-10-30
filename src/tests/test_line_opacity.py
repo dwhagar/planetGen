@@ -264,11 +264,20 @@ def test_the_far_wing_of_carbon_dioxide_is_unity_thick_at_a_bar_and_grows_faster
 # ---- gases without a table ----
 
 def test_a_gas_without_a_table_takes_the_stand_in_path_and_still_absorbs():
-    prepared = ir.prepare({"N2": 1.0e5, "NH3": 1.0e3})
-    assert "NH3" in prepared.standin and prepared.tabled == ()
-    depth = _depth({"N2": 1.0e5, "NH3": 1.0e3}, 300.0, 1.0e5)
+    prepared = ir.prepare({"N2": 1.0e5, "N2O": 1.0e3})
+    assert "N2O" in prepared.standin and prepared.tabled == ()
+    depth = _depth({"N2": 1.0e5, "N2O": 1.0e3}, 300.0, 1.0e5)
     assert depth.shape == (ir.BANDS, ir.GRID_POINTS) and np.all(np.isfinite(depth)) and depth.sum() > 0.0
     assert np.all(np.diff(depth, axis=-1) >= -1e-12)
+
+
+def test_the_five_gases_added_in_gen_852_are_read_from_their_tables():
+    assert set(ir.TABLE_GASES) >= {"NH3", "SO2", "H2S", "CO", "HCN"}
+    for gas in ("NH3", "SO2", "H2S", "CO", "HCN"):
+        prepared = ir.prepare({"N2": 1.0e5, gas: 1.0e3})
+        assert gas in prepared.tabled and gas not in prepared.standin
+        depth = _depth({"N2": 1.0e5, gas: 1.0e3}, 300.0, 1.0e5)
+        assert np.all(np.isfinite(depth)) and depth.sum() > 0.0
 
 
 def test_no_gas_of_the_table_gives_a_nan_or_a_negative_depth():

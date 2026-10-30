@@ -11,8 +11,8 @@ that: the optical depth of one layer (a pressure, a temperature and the molecule
 bands from 0 to 12000 cm-1, each band divided into 10 g points of a correlated-k distribution, so a band that is black in its
 line centres and open between them keeps its windows. `radiative_convective` uses it layer by layer.
 
-* **Line absorption** of water vapour, carbon dioxide and methane: the ExoMolOP correlated-k tables (`datasets/ir_ktables.py`,
-  POKAZATEL, UCL-4000 and YT34to10 line lists), read at the layer's temperature (linear in 1/T) and pressure (linear in ln P) and
+* **Line absorption** of water vapour, carbon dioxide, methane, ammonia, sulphur dioxide, hydrogen sulphide, carbon monoxide and hydrogen
+  cyanide: the ExoMolOP correlated-k tables (`datasets/ir_ktables.py`, line lists POKAZATEL, UCL-4000, YT34to10, CoYuTe, ExoAmes, AYT2, Li2015 and Harris), read at the layer's temperature (linear in 1/T) and pressure (linear in ln P) and
   multiplied by the molecules of the gas. Gases overlap by the random-overlap method (`overlap`): the k-distributions are
   combined as if the lines of different gases were uncorrelated, then sorted again by strength.
 * **The water vapour continuum** (MT_CKD 4.3, part 03 section 3.2, `WATER_CONTINUUM`): self and foreign coefficients that close
@@ -84,11 +84,9 @@ STANDIN_DYAD_BAND_FACTOR = 1.0e-5
 """float: STAND-IN (IR1, tier T7, L1): a Fermi dyad (label contains `dyad`) counts this much of a fundamental's plateau."""
 STANDIN_GENERIC_BAND_CM1 = (600.0, 1500.0)
 """tuple: STAND-IN (IR1, tier T7, L0): the plateau of a gas flagged `"ir"` whose table lists no band."""
-STANDIN_FAR_WING_M2_KG = {"CO": 1.0e-5}
-"""dict: STAND-IN (IR2, tier T5, L0): the far-wing mass opacity at one bar of a gas without a table, m2/kg, read from Koll 2019's statement (CO
-thin even at one bar). A gas flagged `"ir"` without an entry takes `STANDIN_GENERIC_WING_M2_KG`, one flagged `"weak"`
-`STANDIN_WEAK_WING_M2_KG`."""
 STANDIN_GENERIC_WING_M2_KG = 1.0e-4
+"""float: STAND-IN (IR2, tier T7, L0): the far-wing mass opacity at one bar of a gas flagged `"ir"` without a table, m2/kg. A gas flagged `"weak"`
+takes `STANDIN_WEAK_WING_M2_KG`."""
 STANDIN_WEAK_WING_M2_KG = 1.0e-5
 STANDIN_WING_REACH_CM1 = 600.0
 """float: STAND-IN (IR2, tier T7, L0): how far from a band the far wing reaches at one bar; it grows with the pressure (line widths do)."""
@@ -328,8 +326,6 @@ def _plateaus(formula):
 
 def _wing_mass_opacity(formula):
     """The far-wing mass opacity of a gas without a table at one bar, m2/kg."""
-    if formula in STANDIN_FAR_WING_M2_KG:
-        return STANDIN_FAR_WING_M2_KG[formula]
     flag = gases.gas(formula).ir
     if flag == "ir":
         return STANDIN_GENERIC_WING_M2_KG

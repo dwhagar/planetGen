@@ -16,7 +16,7 @@ Boss's decision of 4:01 PM EDT on 2026-10-24 was to use the public line-list dat
 
 | Dataset | Fill | What | Source |
 |---|---|---|---|
-| `ir_ktables` | AD10 | Correlated-k tables of H2O, CO2 and CH4 at resolving power 1000, 0.3 to 50 micron, 22 pressures (1e-5 to 100 bar), 27 temperatures (100 to 3400 K), 20 g points | ExoMolOP (Chubb et al. 2021) from POKAZATEL, UCL-4000 and YT34to10 |
+| `ir_ktables` | AD10 | Correlated-k tables of H2O, CO2, CH4, NH3, SO2, H2S, CO and HCN at resolving power 1000, 0.3 to 50 micron, 22 pressures (1e-5 to 100 bar), 27 temperatures (100 to 3400 K), 20 g points | ExoMolOP (Chubb et al. 2021) from POKAZATEL, UCL-4000, YT34to10, CoYuTe, ExoAmes, AYT2, Li2015 and Harris |
 | `ir_cia` | AD11 | Collision-induced absorption of 11 pairs: N2-N2, O2-O2, N2-O2, CO2-CO2, N2-CH4, N2-H2, CO2-CH4, CO2-H2, H2-H2, H2-CH4, H2-He | HITRAN CIA (Karman et al. 2019) |
 
 Setup downloads each file, checks its sha256, reduces it and deletes it (`transient` pieces). The reduction keeps the band mean of the k-distribution:

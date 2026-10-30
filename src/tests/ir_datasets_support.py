@@ -19,9 +19,9 @@ BLOCK = 2880
 PRESSURES_BAR = np.logspace(-2.0, 2.0, 5)
 TEMPERATURES_K = np.array([100.0, 300.0, 1000.0, 2500.0])
 """ndarray: The fixture's axes; 2500 K is above `ir_ktables.T_MAX_K`, so the reducer drops it."""
-LINE_CENTRE_CM1 = {"H2O": 1600.0, "CO2": 667.0, "CH4": 1306.0}
-LINE_WIDTH_CM1 = {"H2O": 300.0, "CO2": 60.0, "CH4": 100.0}
-LINE_STRENGTH = {"H2O": 3.0e-19, "CO2": 1.0e-18, "CH4": 5.0e-19}
+LINE_CENTRE_CM1 = {"H2O": 1600.0, "CO2": 667.0, "CH4": 1306.0, "NH3": 950.0, "SO2": 1360.0, "H2S": 1290.0, "CO": 2143.0, "HCN": 712.0}
+LINE_WIDTH_CM1 = {"H2O": 300.0, "CO2": 60.0, "CH4": 100.0, "NH3": 80.0, "SO2": 70.0, "H2S": 90.0, "CO": 40.0, "HCN": 50.0}
+LINE_STRENGTH = {"H2O": 3.0e-19, "CO2": 1.0e-18, "CH4": 5.0e-19, "NH3": 4.0e-19, "SO2": 6.0e-19, "H2S": 2.0e-19, "CO": 3.0e-19, "HCN": 5.0e-19}
 """dicts: Where each fixture gas absorbs, how wide the band is, and its peak k (cm2 per molecule at one bar, 300 K, the strongest g point)."""
 FLOOR = 1.0e-30
 """float: The k away from the band, cm2 per molecule."""
