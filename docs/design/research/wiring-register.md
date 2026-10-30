@@ -212,6 +212,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.89:GD2 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
 | row | 6.89:GD3 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
 | row | 6.89:GD4 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
+| module | planetgen.physics.rogue_age | GEN.1111 | a rogue's age, ejection delay and time since ejection; the rogue rows read them for the heat law, the drift and the history sentence |
+| row | 6.88:RG1 | GEN.1111 | a constant of the rogue age module, read when its wiring step lands |
+| row | 6.88:RG2 | GEN.1111 | a constant of the rogue age module, read when its wiring step lands |
 | row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
@@ -253,6 +256,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.83:SX3 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
 | row | 6.83:SX4 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
 | row | 6.83:SX5 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
+| module | planetgen.physics.belt_ledger | GEN.1069 | the stored bodies of a belt by the mass cut, the size laws and the largest body settled with the collisional mass (lock-free, GEN.1061); the belt store and the belt generator call it, the outer disc (GEN.1071) and the scatter step (GEN.1092) after them |
+| row | 6.95:BR17 | GEN.1069 | `belt_ledger.L1_MASS_KG`, read when the wiring step lands |
+| row | 6.95:BR18 | GEN.1069 | `belt_ledger.LEDGER_COVERAGE, LEDGER_MAX_BODIES`, read when the wiring step lands |
+| row | 6.95:BR19 | GEN.1069 | `belt_ledger.ICY_LAW`, read when the wiring step lands |
+| row | 6.95:BR20 | GEN.1069 | `belt_ledger.ROCKY_LAW`, read when the wiring step lands |
+| row | 6.95:BR21 | GEN.1069 | `belt_ledger.LEDGER_MAX_SHARE, SOLVE_TOLERANCE, SOLVE_MIN_KM`, read when the wiring step lands |
 | module | planetgen.physics.belt_origin | GEN.1092 | the cause of each belt (gap, tail, snow line, outer disc, destroyed planet, rubble), what the giants cleared and a moving giant swept, and the sentence for the belt page; GEN.1068 gives it the final chain and GEN.1092 stores its result |
 | data | belt_origins.json | GEN.1092 | the causes of a belt and the sentence each prints; read by physics/belt_origin.py, which nothing calls yet |
 | row | 6.97:BG1 | GEN.1092 | `belt_origin.GAP_SPACING_K`, read when the belt origin wiring lands |

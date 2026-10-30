@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 729 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 734 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 115 | 3 | 6 | 1 | 0 | 125 |
+| T1 | 115 | 4 | 6 | 1 | 0 | 126 |
 | T2 | 100 | 19 | 0 | 1 | 0 | 120 |
 | T3 | 74 | 27 | 5 | 9 | 0 | 115 |
 | T4 | 36 | 2 | 0 | 15 | 6 | 59 |
 | T5 | 39 | 12 | 0 | 0 | 0 | 51 |
 | T6 | 62 | 35 | 12 | 34 | 0 | 143 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
-| T8 | 0 | 1 | 0 | 1 | 2 | 4 |
-| T9 | 5 | 1 | 4 | 33 | 19 | 62 |
-| All | 457 | 108 | 35 | 102 | 27 | 729 |
+| T8 | 0 | 1 | 1 | 2 | 2 | 6 |
+| T9 | 6 | 1 | 4 | 34 | 19 | 64 |
+| All | 458 | 109 | 36 | 104 | 27 | 734 |
 
 ## How the labels were given
 
@@ -1013,6 +1013,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | NC5 | P | T7 | L0 | nightside_collapse.collapse for a gas other than CO2: the same grey balance, not calibrated | none | N2 and other gases the paper leaves to later work | a 3D run of an N2 air whose collapse pressure differs from this by a factor over 3 | the N2 collapse pressures of a later Wordsworth or Leconte paper | the paper says N2 collapse is left to future work (Section 3.6); N2 freezes under 126 K so at Earth's flux it holds at any pressure here | - | - |
 | NC6 | P | T9 | L0 | nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed | 0.1 to 0.9 | any gas | a page text that reads wrongly at the cut | none (the retained share is the number to use) | needed output: the share, not the flag, is the physics | GEN.1051 | - |
 
+## 6.88 Stand-ins of the rogue planet age
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RG1 | P | T8 | L2 | rogue_age.EJECTION_DELAY_MIN_GY 0.001 Gy, the earliest ejection after formation | 0.0003 to 0.01 | ejected planets and embryos | an ejection record (GEN.1119) with a large share of ejections earlier than 1 Myr after formation | the delay distribution of the architecture's own ejection records | the gas disc's first Myr is before planets scatter; an educated guess from physics | GEN.1111 | - |
+| RG2 | P | T8 | L3 | rogue_age.DELAY_INDEX 1, the ejection delay's density goes as t^-1 | 0 to 2 | the scattering of giants and embryos | ejection records whose delays are not spread evenly over the decades of time | the delay distribution of the ejection records (GEN.1119) | Chatterjee et al. 2008 give scattering times from 1e6 to 1e9 yr and beyond, recalled; the even spread is ours | GEN.1111 | replace (GEN.1119) |
+
 ## 6.89 Stand-ins of the rogue planet drift
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -1192,8 +1199,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BR14 | P | T2 | L0 | white dwarfs polluted by debris: at least 27 percent accreting now (up to 50 percent), 56 percent with heavy elements, rates a few 1e5 to a few 1e8 g/s (cooling ages 20 to 200 My) | 27 to 50 percent; rate range as printed | DA white dwarfs of 17 000 to 27 000 K | a larger unbiased survey outside the fractions | the rate from the belt and planet architecture of the system (GEN.1061 ledger) | Koester, Gaensicke and Farihi 2014 (arXiv:1404.2617, READ); Zuckerman 2010 not reached (20 to 30 percent) | - | - |
 | BR15 | P | T1 | L0 | debris disc incidence round F to K stars: 17.1 (+2.6 -2.3) percent of 275 stars, 20.2 +/- 2.0 in DUNES, 29 +/- 9 among exoplanet hosts; most discs at fractional luminosity 1e-5, blackbody radius 7 to 40 au | measured errors | Sun-like stars within 25 pc | a population census whose share of belts with an excess is outside the range | a belt census from the generator's own ledgers | Sibthorpe et al. 2018 (arXiv:1803.00072, READ); Marshall et al. 2014 (arXiv:1403.6186, READ) | - | - |
 | BR16 | P | T4 | L0 | a belt at the snow line (a pressure bump where rock-rich planetesimals form when the pebble flux is above a critical value in a low-viscosity disc): no rate is read; the origin table keeps its own weight | none | discs with alpha under 1e-3 | a survey of belt radii against the snow line | a disc model with the pebble flux (GEN.1054) | Ida and Guillot 2016 (arXiv:1610.09643, READ), qualitative | - | - |
-| BR17 | P | T9 | L0 | the mass cuts of a belt's ledger: individual bodies above 1e19 kg (about 200 km of rock), reproducible on demand from 1e15 kg (about 10 km) | 1e18 to 1e20 kg; 1e14 to 1e16 kg | every belt and outer disc | not applicable (a storage rule) | a cut from the cost of storing a belt | Boss's rule of 4:27 PM EDT 2026-10-30 (belt-evolution.md section 11) | - | - |
-| BR18 | P | T9 | L0 | the coverage rule of a belt's ledger: store the heaviest bodies until 90 percent of the belt mass is covered, at most 300 bodies per belt | 80 to 95 percent; 100 to 1000 | every belt and outer disc | not applicable (a storage rule) | a cut from the cost of storing a belt | Boss's rule of 4:27 PM EDT 2026-10-30 (belt-evolution.md section 11) | - | - |
+| BR17 | P | T9 | L0 | belt_ledger.L1_MASS_KG 1e19: individual bodies above 1e19 kg (about 200 km of rock); the 1e15 kg floor of the reproducible tier is not built yet | 1e18 to 1e20 kg; 1e14 to 1e16 kg | every belt and outer disc | not applicable (a storage rule) | a cut from the cost of storing a belt | Boss's rule of 4:27 PM EDT 2026-10-30 (belt-evolution.md section 11) | GEN.1069 | - |
+| BR18 | P | T9 | L0 | belt_ledger.LEDGER_COVERAGE 0.9 and belt_ledger.LEDGER_MAX_BODIES 300: store the heaviest bodies until 90 percent of the belt mass is covered, at most 300 bodies per belt | 80 to 95 percent; 100 to 1000 | every belt and outer disc | not applicable (a storage rule) | a cut from the cost of storing a belt | Boss's rule of 4:27 PM EDT 2026-10-30 (belt-evolution.md section 11) | GEN.1069 | - |
+| BR19 | P | T1 | L1 | belt_ledger.ICY_LAW: the hot Kuiper belt's cumulative size law, q 1.0 below and 4.35 above a break of 121 km (alpha1 = 0.87, faint alpha2 near 0.2, H_B = 7.7; 121 km is for an albedo of 0.10 and 1 g/cm3) | break 99 to 192 km (albedo 0.15 to 0.04); bright slope 4.15 to 4.42 | Kuiper-type discs, hot population | a Kuiper-type belt whose largest bodies are far outside the law's order statistic at its mass | a size law from the disc's own collisional equilibrium; DEEP V's tapered fit (arXiv:2309.09478) | Fraser et al. 2014 (arXiv:1401.2157, READ); the albedo is an assumption | GEN.1069 | - |
+| BR20 | P | T9 | L3 | belt_ledger.ROCKY_LAW: a rocky belt's cumulative size law, q 1.3 below 5 km and 3.0 from 5 km (Ivezic: differential 2.3 and 4), and q 4 above a break of 200 km | break 100 to 400 km; steep slope 3.5 to 5 | rocky belts, bodies of 0.4 km and up | a census of a rocky belt with the number above 1e19 kg far from tens at the main belt's mass | Bottke et al. 2005 and the size-frequency of large asteroids (not reached) | q 1.3 and 3.0: Ivezic et al. 2001 (astro-ph/0105511, READ); 200 km and 4: educated guess from needed output (a stretch of q = 3 holds equal mass per doubling of size, so the law must steepen) | GEN.1069 | no data |
+| BR21 | P | T9 | L0 | belt_ledger.LEDGER_MAX_SHARE 0.95, belt_ledger.SOLVE_TOLERANCE 1e-3 and belt_ledger.SOLVE_MIN_KM 1e-3: the most of the belt's mass the stored bodies may hold, and the stopping test and bracket of the search for the belt's largest body | share 0.9 to 0.99 | every belt and outer disc | not applicable (a guard and a numerical bracket) | a guard from the cost of a draw | needed output (mass is conserved) | GEN.1069 | - |
 
 ## 6.96 Stand-ins of the irregular orbits
 
