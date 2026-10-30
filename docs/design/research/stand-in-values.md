@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 630 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 633 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 82 | 1 | 5 | 1 | 0 | 89 |
-| T2 | 91 | 9 | 0 | 1 | 0 | 101 |
+| T2 | 92 | 9 | 0 | 1 | 0 | 102 |
 | T3 | 73 | 26 | 5 | 9 | 0 | 113 |
-| T4 | 30 | 0 | 0 | 13 | 6 | 49 |
+| T4 | 30 | 1 | 0 | 14 | 6 | 51 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
 | T6 | 51 | 30 | 12 | 33 | 0 | 126 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 393 | 87 | 32 | 91 | 27 | 630 |
+| All | 394 | 88 | 32 | 92 | 27 | 633 |
 
 ## How the labels were given
 
@@ -1057,3 +1057,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | HF1 | D | T2 | L0 | helium_fractionation.DIFFUSION_A_CM 1.04e18 and DIFFUSION_EXPONENT 0.732: the binary diffusion coefficient of hydrogen in helium | none (both papers quote Mason and Marrero 1970) | 3,000 to 10,000 K | a measured diffusion coefficient at the homopause | the table of Mason and Marrero 1970 | Hu et al. 2015 eq. 9, Malsky et al. 2023 A3 (read) | GEN.1047 | - |
 | HF2 | T | T3 | L1 | helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONISED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1 | T 3,000 to 10,000 K (the weaker fractionation is at the higher T); x 0 to 0.5 | planets of 4 to 20 Earth masses with a thin envelope | the ion-neutral frequency of Schunk and Nagy 1980 in the full b' | b' from the ionisation fraction at the homopause at each step (Malsky et al. 2023 A3) | Hu et al. 2015 Sec. 2.1; Malsky et al. 2023 A.1, A.4 (read); the form 1/(1 + x) is a fit to the one value of Hu | GEN.1047 | - |
 | HF3 | B | T3 | L0 | helium_fractionation.SOLAR_ENVELOPE_HELIUM 0.245 and MIN_HELIUM_FOR_ENHANCED 0.4: the starting helium share and the line of the enhanced planets | start 0.24 to 0.27 | hydrogen-helium envelopes | a measured primordial envelope helium | the solar mix of the star's own composition | Malsky et al. 2023 Introduction and A (X 0.74, Y 0.24) (read) | GEN.1047 | - |
+
+## 6.78 Stand-ins of the giant-impact tilt of an ice giant
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| GT1 | D | T2 | L0 | giant_tilt.DEFAULT_IMPACT_SPEED_KM_S 5: the speed at infinity; and the angular momentum of an impact at contact `mu v_c R_c sin(theta)` | 1 to 9 km/s (their test: no significant change) | ice giants of 5 to 30 Earth masses hit by 0.3 to 3.6 Earth masses | an impact simulation of the same masses with a different angular momentum | the angular momentum of the SPH runs of Kegerreis et al. 2018 as a function of b | Kegerreis et al. 2018 Sec. 2.3 and Appendix B (read); contact at the sum of the radii is the module's | GEN.1058 | - |
+| GT2 | D | T4 | L1 | giant_tilt.MOMENT_OF_INERTIA_FACTOR 0.225, RETAINED_SHARE 0.9 and PRE_IMPACT_SPIN_BREAKUP 0.2: the planet's moment of inertia, the share of the angular momentum it keeps and the spin before | I 0.22 to 0.24; kept 0.8 to 1; spin 0 (Kegerreis) to 0.3 | Uranus and Neptune | an interior model of a given ice giant, or a run that measures the debris angular momentum | the Helled et al. 2010 interior models and the debris of an SPH run | Kegerreis et al. 2018 Sec. 2.1, 3.4 (read); I is recalled, not read | GEN.1058 | - |
+| GT3 | P | T4 | L3 | giant_tilt.MERGER_SHARE 0.55, IMPACTOR_SHARE (0.02, 0.25) and MASS_RANGE_EARTH (5, 30): the share of ice giants with a recorded giant merger, the impactor's mass share log-uniform, and the masses | merger share 0.3 to 1; impactor share 0.01 to 0.5 | the draw of the tilt tail | a survey of obliquities of giants; a population synthesis with impact histories | the impact history of the outer chain (GEN.1058) | design table G1 (Uranus 98 degrees, one ice giant in five; tuned so the share tilted over 60 degrees is 0.2), Kegerreis et al. 2018 Sec. 2.1 and Morbidelli et al. 2012 Sec. 5 (read) | GEN.1058 | replace (GEN.1058) |
