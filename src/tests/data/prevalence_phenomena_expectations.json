@@ -16,7 +16,9 @@
    "HuntReffert2023": "Hunt and Reffert 2023 (arXiv:2303.13424, read 2026-10-29): 7167 clusters in Gaia DR3, as many as a few thousand of them unbound moving groups"
   }
  },
- "anomalies": {},
+ "anomalies": {
+  "GEN.995": "890 against 1100 to 1500 (the draws' tolerance puts the edge at 904), counted over the primaries and their companions. The massive stars follow the mass function exactly now (GEN.927 to GEN.930; the 958 before counted every massive star twice, as a primary and again as a companion); what is missing is the Wolf-Rayet stars that binary stripping makes out of stars too light to be one alone, which the generator does not draw"
+ },
  "measures": {
   "stellar_black_holes": {
    "min": 10000000.0,
@@ -53,7 +55,7 @@
    "max": 1500,
    "kind": "observed",
    "source": "Rosslowe and Crowther 2015 (arXiv:1412.0699): 1200, +300 and -100, Wolf-Rayet stars in the Galaxy (read 2026-10-29); 322 found since the VIIth catalogue",
-   "anomaly": "GEN.995: 890 against 1100 to 1500 (the draws' tolerance puts the edge at 904), counted over the primaries and their companions. The massive stars follow the mass function exactly now (GEN.927 to GEN.930; the 958 before counted every massive star twice, as a primary and again as a companion); what is missing is the Wolf-Rayet stars that binary stripping makes out of stars too light to be one alone, which the generator does not draw"
+   "anomaly": "GEN.995"
   },
   "supernova_remnants": {
    "min": 294,

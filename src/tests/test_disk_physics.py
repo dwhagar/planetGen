@@ -57,8 +57,8 @@ def _max_objects(star_type):
 
 def test_snow_line_scales_with_sqrt_luminosity():
     solar = snow_line_au(constants.SOLAR_LUMINOSITY)
-    # the 170 K blackbody position, (278.3 K / 170 K)^2 AU for the Sun (bulk-composition-sources-check.md)
-    assert solar == pytest.approx(2.68, abs=0.005)
+    # the 182 K blackbody position, (278.3 K / 182 K)^2 AU for the Sun (Lodders 2003 Table 10)
+    assert solar == pytest.approx(2.339, abs=0.005)
     quadruple_lum = snow_line_au(4 * constants.SOLAR_LUMINOSITY)
     # L -> 4L should push the snow line out by sqrt(4) = 2x.
     assert quadruple_lum == pytest.approx(2 * solar)
@@ -135,3 +135,26 @@ def test_more_luminous_star_has_a_larger_snow_line_and_disk():
     dim = snow_line_au(0.01 * constants.SOLAR_LUMINOSITY)
     bright = snow_line_au(100 * constants.SOLAR_LUMINOSITY)
     assert bright > dim
+
+
+# --- A belt stands where the disc built no planet (PA13) ---
+
+def test_a_belt_never_replaces_a_giant_or_a_planet_of_an_earth_mass(monkeypatch):
+    from planetgen.physics import planet_architecture
+    monkeypatch.setattr(prog_c, "ASTEROID_BELT_PROBABILITY", 1.0)
+    built = []
+    original = planet_architecture.build
+
+    def spy(*args, **kwargs):
+        built.append(original(*args, **kwargs))
+        return built[-1]
+
+    monkeypatch.setattr(planet_architecture, "build", spy)
+    for _ in range(3):
+        built.clear()
+        system = StarSystem(system_config=_make_config("M2V", PLANETS=True, MAX_PLANETS=True, MOONS=False))
+        heavy_planned = sum(1 for seed in built[0].planets if seed.mass_kg >= prog_c.BELT_REPLACES_BELOW_EARTH * constants.EARTH_MASS_TO_KG
+                            and seed.distance_au < 20.0)
+        heavy_made = sum(1 for body in system.planets if body.body_type != 'a'
+                         and body.mass >= prog_c.BELT_REPLACES_BELOW_EARTH * constants.EARTH_MASS_TO_KG)
+        assert heavy_made >= heavy_planned

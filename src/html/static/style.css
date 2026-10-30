@@ -3186,19 +3186,18 @@ code {
   color: var(--text-muted);
 }
 
-/* MAP.315: the region a pick lies in, each name a button that looks like a link. */
+/* MAP.315, MAP.349: the region a pick lies in and its family, a line each with its own Go to. */
 .map-info-region {
   margin: 0 0 0.6em;
 }
 
-.map-info-region-link {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--link, inherit);
-  font: inherit;
-  text-decoration: underline;
-  cursor: pointer;
+.map-info-place {
+  margin: 0 0 0.3em;
+}
+
+/* MAP.349: a Go to button beside the name of a container or a place in a card's lines and lists. */
+.map-info-go {
+  margin-left: 0.25em;
 }
 
 @media (max-width: 40rem) {

@@ -33,7 +33,7 @@ const { fitRendererToCanvas, watchResize } = await import(`./mapcore.js${VERSION
 const { createPicker, createTooltip, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERSION_QUERY}`);
 const { fitDistance: framingDistance } = await import(`./flytofit.js${VERSION_QUERY}`);
-const { orbitPath, relativeAt, cometOrbitFields } = await import(`./orbitpositions.js${VERSION_QUERY}`);
+const { orbitPath, nodePaths, relativeAt, cometOrbitFields } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED } = await import(`./systemscale.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
@@ -165,30 +165,32 @@ export function buildSystemScene(scene, layout, options) {
     entries.push(entry);
     byRef[item.ref] = entry;
 
-    if (item.kind === "planet" || item.kind === "moon" || item.kind === "comet"
-        || (item.kind === "star" && body.orbit)) {
-      // A close pair circles its barycenter, each star at the other's share
-      // of the separation: the second star on (1 - f) of it, the first on
-      // f of it, on the opposite side (MAP.136). Drawing the whole
-      // separation for the second star put its line through the first.
+    if (item.kind === "planet" || item.kind === "moon" || item.kind === "comet") {
       const around = body.orbit.around;
-      const share = item.kind === "star" && around === "barycenter" ? 1 - body.orbit.secondary_mass_fraction : 1;
-      const addTrail = (ref, scale, trailColor) => {
-        const path = orbitPath(body.orbit).map((point) => point.map((c) => c * scale));
-        const line = lineFrom(layout, around, path, trailColor, item.kind === "moon" ? 0.45 : 0.6);
-        line.userData.ref = ref;
-        line.userData.base = { color: line.material.color.clone(), opacity: line.material.opacity };
-        trails[ref] = line;
-        hang(around, line);
-      };
-      addTrail(item.ref, share, color);
-      if (item.kind === "star" && around === "barycenter") {
-        scene.stars.filter((other) => !other.orbit).forEach((other) => {
-          addTrail(other.ref, -body.orbit.secondary_mass_fraction, colorOf(other));
-        });
-      }
+      const path = orbitPath(body.orbit);
+      const line = lineFrom(layout, around, path, color, item.kind === "moon" ? 0.45 : 0.6);
+      line.userData.ref = item.ref;
+      line.userData.base = { color: line.material.color.clone(), opacity: line.material.opacity };
+      trails[item.ref] = line;
+      hang(around, line);
     }
   });
+
+  // MAP.213: the stars' paths are the orbits of the scene's tree, each child of a node on its own ellipse about the node's
+  // centre of mass, the slot-0 child on the other side of it from the slot-1 child, each at the other's share of the
+  // separation (MAP.136); a sub-pair's centre follows its own path about its parent node's centre.
+  if (scene.stars.length) {
+    const colors = {};
+    scene.stars.forEach((star) => { colors[star.ref] = colorOf(star); });
+    nodePaths(scene).forEach((path) => {
+      const trailColor = colors[path.ref] || new THREE.Color("#ffffff");
+      const line = lineFrom(layout, path.around, path.points, trailColor, 0.6);
+      line.userData.ref = path.ref;
+      line.userData.base = { color: line.material.color.clone(), opacity: line.material.opacity };
+      trails[path.ref] = line;
+      hang(path.around, line);
+    });
+  }
 
   // A dot for every body, a few pixels across whatever its size, so a body
   // too small to see at true scale is still found; the sphere covers it once
@@ -252,6 +254,7 @@ export function buildSystemScene(scene, layout, options) {
     for (const ref of Object.keys(placed)) {
       const p = placed[ref];
       const entry = byRef[ref];
+      if (!entry) continue;    // a tree node's centre of mass: a point the stars hang from, not a body
       objects[ref].position.set(p[0], p[1], p[2]);
       entry.x = p[0];
       entry.y = p[1];
@@ -722,6 +725,8 @@ export function createSystemView(options) {
     // MAP.328, for the browser tests: how far each body has turned, its rate (radians a second) and its axis.
     spins: () => built.entries.map((e) => ({ ref: e.ref, angle: Spin.angleAt(e.body.look, Spin.seconds()),
       rate: Spin.rateOf(e.body.look), axis: Spin.axisOf(e.body.look), at: Spin.seconds(), quaternion: built.objects[e.ref].quaternion.toArray() })),
+    // MAP.213, for the browser tests: where each body is drawn now, in world units, and how large.
+    placed: () => built.entries.map((e) => ({ ref: e.ref, kind: e.kind, x: e.x, y: e.y, z: e.z, radius: e.radius })),
     // The bodies by name, for the screen-reader list.
     list: () => built.entries.map((e) => ({ ref: e.ref, name: e.name, kind: e.kind })),
     camera: camera,

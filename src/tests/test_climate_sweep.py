@@ -4,7 +4,7 @@ to a warming sweep. Every solve must converge, the temperature must rise with th
 inside the published range of Earth's climate sensitivity: an equilibrium warming of 2 to 5 K for a doubling of carbon dioxide (the very likely
 range of IPCC AR6, 2021, chapter 7), a forcing of 3.7 W/m2 for the doubling, so 0.54 to 1.35 K per W/m2 of absorbed flux.
 
-Where the fixed point stands: it converges and warms with the light, with a response (about 0.4 K per W/m2 with the old grey closure) under the published lower
+Where the fixed point stands: it converges and warms with the light, with a response (about 0.23 K per W/m2 with the greenhouse table of GEN.850; 0.4 with the old grey closure) under the published lower
 bound, because the feedbacks that make a climate more sensitive than its Planck response are not in it yet. The lower bound is held by a strict expected
 failure that names them; when GEN.972 (ice-albedo), GEN.973 (water vapour) and GEN.974 (cloud albedo) bring the response inside the range, the test passes, the
 expected failure fails the run, and the mark comes off.

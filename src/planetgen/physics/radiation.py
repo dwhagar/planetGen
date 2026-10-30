@@ -23,10 +23,11 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    presses the star's heliosphere to 1 AU or less (`heliosphere_compression`).
    Open space at generation; `store.refresh_containment` updates it when
    the system is found inside a nebula or remnant.
-3. **Stellar particles (`dose_sep_msv_yr`, GEN.747).** A free-space `FREE_MSV_YR sqrt(N33 / N33_sun) / d_AU^2`, `FREE_MSV_YR` (about 265 mSv/yr) the
-   dose to the organs of the protons of the 47 measured solar events of 1997 to 2015 summed over their 18 years (`solar_particles`), times
-   the share of that dose that gets past the column's proton cutoff (`proton_range`: NIST PSTAR) and the dipole's `Rc0 cos^4(latitude)`, averaged
-   over the latitudes (`solar_particles.dose_share`; 1 without air or field).
+3. **Stellar particles (`dose_sep_msv_yr`, GEN.747).** A free-space `FREE_MSV_YR sqrt(N33 / N33_sun) / d_AU^2` (`FREE_MSV_YR` about 265 mSv/yr) times the
+   square root of the flares' energy weight for the star's own frequency slope (`flare_energy_weight`, `flare_alpha`, GEN.805: a shallow distribution puts
+   more of the energy in the big flares), the dose to the organs of the protons of the 47 measured solar events of 1997 to 2015 summed over their 18
+   years (`solar_particles`), times the share of that dose that gets past the column's proton cutoff (`proton_range`: NIST PSTAR) and the dipole's
+   `Rc0 cos^4(latitude)`, averaged over the latitudes (`solar_particles.dose_share`; 1 without air or field).
 4. **Ground (`dose_ground_msv_yr`).** The gamma dose in air at 1 m over the surface rock and the radon of its uranium, from the
    body's own stored potassium, thorium and uranium (`radiogenic`, GEN.459), at its star's age: the same concentrations its interior
    heat reads, so there is no independent dose draw (`a_rad` is gone). The surface rock is the area-weighted rock of the body's stored
@@ -38,12 +39,13 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    `physics/ozone.py`), haze, dust and cloud, lit by the star's own spectrum with its stored UV-C share (`physics/body_radiation.py`, GEN.443); a
    body with no air reads the star's unfiltered light (GEN.445; docs/design/composition/radiation-model.md section 7). There is no proxy: no
    ratio to the Sun, no ozone exponent.
-6. **Ozone loss (`ozone_loss_flag`).** True when there is ozone and either
-   the system's lethal galactic events exceed one per 100 Myr or particle
-   events deliver 100 mSv/yr at the ozone layer (X = 10 g/cm2). A loss
-   event that removes air (stripping, impact, escape) scales the stored
-   column by the share of the air kept and the UV index follows
-   (`apply_air_loss`, GEN.668); the flag keeps its meaning.
+6. **Ozone loss (`ozone_loss_flag`, GEN.805, GEN.808).** True when there is ozone and either the system's lethal galactic events exceed one
+   per 100 Myr or the planet's flare irradiation index (`flare_irradiation_index`, `N33 / d_AU^2`: Earth 0.003, Proxima b about 2,100) times
+   the field's shielding `f_B` reaches `FLARE_OZONE_LIMIT` (300; `f_B` is 1 without a dipole, 0.3 for a magnetopause under 3 radii and 0.1
+   above: the design note section 2.3). A world that loses its ozone keeps `OZONE_LOSS_REMAINING` of it (Segura et al. 2010: 94 percent
+   removed by one large flare; Howard et al. 2018: 90 percent by repeated flaring): the stored `ozone_column_du` is the column that is left, the
+   UV index, the habitability score and the colour of the sky and ground are worked out from it. A loss event that removes air (stripping,
+   impact, escape) scales the stored column by the share of the air kept and the UV index follows (`apply_air_loss`, GEN.668).
 7. **Galactic hazard (`lethal_event_rate_per_gyr`, on the star).** A
    supernova within 8 pc, 1.5 per Gyr at 8 kpc from the centre, times
    `exp((8 kpc - R) / 1.45 kpc)` (250x at the centre), plus gamma-ray bursts
@@ -151,8 +153,18 @@ RADON_SV_PER_BQ_H_M3 = 9e-9
 RADON_EQUILIBRIUM_OUTDOORS = 0.6
 """float: The dose of 9 nSv per Bq h/m3 of radon at 0.6 of equilibrium outdoors (UNSCEAR; part 07 2.10)."""
 
-OZONE_LAYER_G_CM2 = 10.0
-OZONE_SEP_MSV_YR = 100.0
+FLARE_OZONE_LIMIT = 300.0
+"""float: The flare irradiation index times `f_B` above which flares keep a world's ozone down (the design note section 2.3, a design default):
+Proxima b without a field is flagged and Earth is not."""
+SHIELD_NO_FIELD, SHIELD_WEAK_FIELD, SHIELD_STRONG_FIELD = 1.0, 0.3, 0.1
+"""float: `f_B`, the share of the flares' particles that reach the ozone layer: no dipole, a magnetopause under `WEAK_MAGNETOPAUSE_RP`, above it."""
+WEAK_MAGNETOPAUSE_RP = 3.0
+"""float: The standoff, in radii of the body, under which a field is too squeezed to shield well."""
+OZONE_LOSS_REMAINING = 0.1
+"""float: The share of its ozone a world keeps when flares hold the flag (Segura et al. 2010: 94 percent removed; Howard et al. 2018: 90 percent)."""
+FLARE_ENERGY_SPAN = 1.0e3
+"""float: The span of flare energies, over the 1e33 erg of `N33`, the energy weight is worked out over (1e33 to 1e36 erg: the largest superflares seen
+on solar-type stars are 1e35 to 1e36). A design default."""
 
 LETHAL_EVENT_LIMIT_PER_GYR = 10.0
 """float: One lethal event per 100 Myr: the rate above which galactic hazards
@@ -328,12 +340,47 @@ def sep_dose_msv_yr(free_msv_yr, column_g_cm2, cutoff_gv):
     return free_msv_yr * solar_particles.dose_share(proton_cutoff_gv(column_g_cm2), cutoff_gv)
 
 
-def free_sep_msv_yr(flare_n33_per_yr, distance_au):
-    """Rule 3's free-space dose at `distance_au`: the Sun's mean yearly dose at 1 AU from its measured events (`solar_particles.FREE_MSV_YR`)
-    scaled by the square root of the star's rate of 1e33 erg flares over the Sun's and the inverse square of the distance."""
+def flare_energy_weight(flare_alpha):
+    """
+    The energy a flare distribution of slope `flare_alpha` (`dN/dE ~ E^-alpha`, `N33` flares above 1e33 erg) puts out over 1e33 to 1e36 erg
+    (`FLARE_ENERGY_SPAN`), over what a slope of 2 does: 1 for a star with no slope, above 1 for a shallower one and below for a steeper
+    (about 2.2 and 0.5 at slopes of 1.8 and 2.2).
+    """
+    if not flare_alpha:
+        return 1.0
+    exponent = 2.0 - flare_alpha
+    if abs(exponent) < 1e-9:
+        return 1.0
+    return (FLARE_ENERGY_SPAN ** exponent - 1.0) / (exponent * math.log(FLARE_ENERGY_SPAN))
+
+
+def free_sep_msv_yr(flare_n33_per_yr, distance_au, flare_alpha=None):
+    """Rule 3's free-space dose at `distance_au`: the Sun's mean yearly dose at 1 AU from its measured events (`solar_particles.FREE_MSV_YR`) scaled by
+    the square root of the star's rate of 1e33 erg flares over the Sun's, with the flares' energy weight for the star's slope (the dose goes as the
+    square root of the energy they put out), and the inverse square of the distance."""
     if not flare_n33_per_yr or not distance_au:
         return 0.0
-    return solar_particles.FREE_MSV_YR * math.sqrt(flare_n33_per_yr / N33_SUN_PER_YR) / distance_au ** 2
+    return solar_particles.FREE_MSV_YR * math.sqrt(flare_n33_per_yr / N33_SUN_PER_YR * flare_energy_weight(flare_alpha)) / distance_au ** 2
+
+
+def field_shielding(magnetopause_rp, dipole_class):
+    """`f_B`: the share of the flares' particles that reach the ozone layer through the field: 1 for no dipole, `SHIELD_WEAK_FIELD` for a magnetopause
+    under `WEAK_MAGNETOPAUSE_RP` radii, `SHIELD_STRONG_FIELD` above."""
+    if dipole_class in (None, "none") or not magnetopause_rp:
+        return SHIELD_NO_FIELD
+    return SHIELD_WEAK_FIELD if magnetopause_rp < WEAK_MAGNETOPAUSE_RP else SHIELD_STRONG_FIELD
+
+
+def ozone_lost(body):
+    """Whether flares or galactic events keep a world's ozone down (rule 6): needs a stored ozone column, and the system's lethal events above the limit or
+    the stored flare irradiation index times `field_shielding` at `FLARE_OZONE_LIMIT`."""
+    if not (getattr(body, "ozone_column_du", None) or 0.0) > 0.0:
+        return False
+    hazard = getattr(body.star, "lethal_event_rate_per_gyr", None)
+    if hazard is not None and hazard > LETHAL_EVENT_LIMIT_PER_GYR:
+        return True
+    index = getattr(body, "flare_irradiation_index", None) or 0.0
+    return index * field_shielding(getattr(body, "magnetopause_rp", None), getattr(body, "dipole_class", None)) >= FLARE_OZONE_LIMIT
 
 
 def gas_density_g_cm3(pressure_pa, molar_mass_kg_mol, temperature_k):
@@ -426,7 +473,7 @@ def generate_dose(body):
     cutoff = cutoff_rigidity_gv(moment, body.radius)
     modulation = log_uniform(*tuning.GCR_SOLAR_MODULATION_RANGE)
     gcr = gcr_dose_msv_yr(column, cutoff, modulation)
-    free = free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), distance)
+    free = free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), distance, getattr(star, "flare_alpha", None))
     sep = sep_dose_msv_yr(free, column, cutoff)
     ground = _ground_dose(body, pressure_pa)
     p_o2_pa = mixture.partial_pressures_pa(body).get("O2", 0.0)
@@ -436,11 +483,10 @@ def generate_dose(body):
     body.dose_ground_msv_yr = ground
     body.dose_helio_mult = 1.0
     body.surface_dose_msv_yr = gcr + sep + ground
+    body.ozone_loss_flag = ozone_lost(body)
+    if body.ozone_loss_flag:     # GEN.808: the ozone the flares leave is what filters the ultraviolet and tints the sky
+        body.ozone_column_du *= OZONE_LOSS_REMAINING
     body.uv_surface_index = body_radiation.dna_dose_index(body)
-    hazard = getattr(star, "lethal_event_rate_per_gyr", None)
-    ozone_sep = sep_dose_msv_yr(free, OZONE_LAYER_G_CM2, cutoff)
-    body.ozone_loss_flag = bool(body.ozone_column_du > 0.0 and (
-        (hazard is not None and hazard > LETHAL_EVENT_LIMIT_PER_GYR) or ozone_sep >= OZONE_SEP_MSV_YR))
 
 
 def apply_air_loss(body, retained_fraction):

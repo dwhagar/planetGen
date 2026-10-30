@@ -815,6 +815,40 @@ def test_system_page_3d_view_paints_its_bodies_from_the_look_record(page, base_u
         assert shown["texture"].split(":")[0] == str(body["look"]["seed"]), (body["ref"], shown)
 
 
+def test_system_page_3d_view_draws_a_triple_with_every_star_clear_of_the_others(page, base_url, site_app):
+    """MAP.213: a system of three stars is drawn node by node: the scene's tree puts the inner pair about its centre and the
+    third star about the whole, each on its own scale, so the three stars sit apart (none at the middle, on top of another)."""
+    import json
+    import math
+
+    from tests.test_body_positions import triple_scene
+
+    system_id, scene = _system_with_planets(site_app.test_client())
+    tree = triple_scene()["tree"]
+    refs = {"star:1": "star:9001", "star:2": "star:9002", "star:3": "star:9003"}
+    scene["tree"] = {"nodes": tree["nodes"], "origin": None,
+                     "members": [dict(member, ref=refs[member["ref"]]) for member in tree["members"]]}
+    stars = []
+    for number, ref in enumerate(refs.values(), start=1):
+        star = dict(scene["stars"][0], ref=ref, id=9000 + number, name=f"Triple {number}", role="member" if number == 3 else "primary",
+                    orbit=None, position_km=[0.0, 0.0, 0.0])
+        stars.append(star)
+    scene["stars"] = stars
+    scene["epoch_unix"] = tree["nodes"][0]["epoch_unix"]
+    for planet in scene["planets"]:
+        planet["orbit"]["around"] = "barycenter"
+    body = json.dumps(scene)
+    page.route(re.compile(r"/system/[^/?]+/scene"),
+               lambda route: route.fulfill(status=200, content_type="application/json", body=body))
+    _open(page, f"{base_url}/system/{system_id}?view=3d", '#sysview3d[data-ready="true"]')
+    page.wait_for_timeout(500)
+    placed = {b["ref"]: b for b in page.evaluate("document.querySelector('#sysview3d-canvas').systemView.placed()")}
+    assert set(refs.values()) <= set(placed)
+    for a, b in (("star:9001", "star:9002"), ("star:9001", "star:9003"), ("star:9002", "star:9003")):
+        gap = math.dist([placed[a][axis] for axis in "xyz"], [placed[b][axis] for axis in "xyz"])
+        assert gap > placed[a]["radius"] + placed[b]["radius"], (a, b, gap)
+
+
 def _system_with_moons(client):
     for system in client.get("/api/systems?limit=100").get_json()["items"]:
         scene = client.get(f"/api/systems/{system['id']}/scene").get_json()

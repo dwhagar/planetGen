@@ -104,12 +104,28 @@ class Timeline:
         if window is None:
             raise ValueError(f"{age_gy} Gy is outside the post-main-sequence windows of a {self.mass_sol} solar mass star")
         span = window.end_gy - window.start_gy
-        share = min(max((age_gy - window.start_gy) / span, 0.0), 1.0) if span > 0.0 else 0.0
+        return self._state_in(window, min(max((age_gy - window.start_gy) / span, 0.0), 1.0) if span > 0.0 else 0.0)
+
+    def _state_in(self, window, share):
+        """The `State` `share` of the way through `window` (0 at its start, 1 at its end)."""
         frac = window.f_start + share * (window.f_end - window.f_start)
         mass, log_l, log_teff, log_r, h1, c12, phase = self.track.at_frac(frac, window.first_eep, window.last_eep)
         frac = min(max(frac, self.track.frac[self.track.index_of(window.first_eep)]),
                    self.track.frac[self.track.index_of(window.last_eep)])
         return State(window.name, self.present_mass(frac, mass, window), 10.0 ** log_l, 10.0 ** log_teff, 10.0 ** log_r, h1, c12, phase)
+
+    def radius_max_sol(self, age_gy):
+        """The largest radius, in solar radii, the star has had after its main sequence by `age_gy` (GEN.1009): the largest of the
+        track's radius at the end of every window the star has finished and at its place in the window it is in, which is
+        where the first ascent and the asymptotic branch end (the red-giant and AGB tips). 0.0 before the first window."""
+        largest = 0.0
+        for window in self.windows:
+            if age_gy <= window.start_gy:
+                break
+            span = window.end_gy - window.start_gy
+            share = min(max((age_gy - window.start_gy) / span, 0.0), 1.0) if span > 0.0 else 1.0
+            largest = max(largest, self._state_in(window, share).radius_sol)
+        return largest
 
     def present_mass(self, frac, track_mass, window):
         """

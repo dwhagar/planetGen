@@ -14,7 +14,7 @@ The numbers marked COMPUTED were made for this note with the two small programs 
 - **Comets.** `Comet` (generation/comet.py) draws a nucleus diameter of 0.5 to 20 km, an orbit and a list of ten components; `bulk_mass.comet_nucleus_mass_kg` takes the mass from one tuning density. No volatile abundance, ratio or porosity is stored.
 - **Dwarf planets, class D.** A class D body (radius 50 to 500 km, "frozen hydrocarbons and ice") draws the rocky density of every terrestrial class, 3.93 to 5.37 g/cm3 (finding F3).
 - **Moons.** `generate_moons` (physics/planets.py) fills the room around a planet with independent `Planet(is_moon=True)` bodies: class from the terrestrial classes except `MOON_BLACKLIST`, radius up to the parent's divided by 10^(1/3), mass at most a tenth of the parent's, distance log-uniform from a Roche-like bound. Nothing about the parent's composition, the circumplanetary disk or the age enters.
-- **The loader and the snow line.** The gated table loader exists (GEN.472, `generation/possibility_table.py`); `formation.snow_line_au` is 2.7 AU times the square root of the luminosity (a 170 K blackbody value); the per-system snow line with its 0.2 dex scatter is GEN.458.
+- **The loader and the snow line.** The gated table loader exists (GEN.472, `generation/possibility_table.py`); `formation.snow_line_au` is 2.34 AU times the square root of the luminosity (a 182 K blackbody value, Lodders 2003; 2.7 AU at the 170 K first used); the per-system snow line with its 0.2 dex scatter is GEN.458.
 
 ## 2. The decisions
 

@@ -55,13 +55,14 @@ from planetgen import tuning
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
     accretion, brown_dwarf, constants, imf, mass_boundaries, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
-    stability, stellar_composition)
+    stability, stellar_abundances, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
 _m_to_au = units.converter("m", "au")
 _km_to_m = units.converter("km", "m")
+_km_to_au = units.converter("km", "au")
 _m_to_km = units.converter("m", "km")
 _au_to_m = units.converter("au", "m")
 _yr_to_d = units.converter("yr", "d")
@@ -591,10 +592,12 @@ def _radius_au(state):
     return _m_to_au(radius_sol * constants.SOLAR_RADIUS_M)
 
 
-def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0):
-    """A star-like member of this birth mass at the system's age."""
-    if initial_mass < mass_boundaries.sol("hydrogen_burning_limit"):
-        # GEN.252: the L, T or Y type its cooling gives at the system's age, and the radius the same laws fix.
+def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0, substellar=False):
+    """A star-like member of this birth mass at the system's age. A `substellar` one was drawn from the brown dwarf mass function (the
+    objects of 0.074 to 0.08 solar masses among them are the stable late-M and L dwarfs of the census, `physics/brown_dwarf.py`)."""
+    if substellar or initial_mass < stellar_abundances.hydrogen_burning_limit_for_fe_h(fe_h):
+        # GEN.252: the L, T or Y type its cooling gives at the system's age, and the radius the same laws fix. Under the limit
+        # of its place's [Fe/H] (GEN.936): 0.074 at solar Z, up to 0.092 at none.
         dwarf = brown_dwarf.state(initial_mass, age_yr / 1.0e9)
         return _Leaf("brown-dwarf", dwarf["spectral_type"], initial_mass, initial_mass,
                      _m_to_au(dwarf["radius_sol"] * constants.SOLAR_RADIUS_M))
@@ -982,6 +985,35 @@ class _Builder:
                 self.extra_flags[index] = self.extra_flags.get(index, 0) | MEMBER_FRAGILE
             if leaf.kind == "thorne-zytkow":
                 self.extra_flags[index] = self.extra_flags.get(index, 0) | MEMBER_THEORETICAL
+
+
+def built_tree_clears(nodes, stars):
+    """
+    Whether the built stars of a tree clear its orbits: the same screen `_Builder.clears_extents` runs on the drawn leaves, run
+    on the radii and masses the build gave the stars (`nodes` the tree's `OrbitNode`s, `stars` `(parent_node_no, radius_au,
+    mass_solar)` for each). A star the build makes from a birth mass and an age can come out larger than the tree's member
+    (a giant where the tree had a white dwarf), and a pair then holds a star inside its partner.
+    """
+    singles, inner = {}, {}
+    for parent, radius_au, mass_solar in stars:
+        singles.setdefault(parent, []).append((radius_au, mass_solar))
+    for node in nodes:
+        inner.setdefault(node.parent_node_no, []).append(node)
+    for node in nodes:
+        axis_au = _km_to_au(node.separation_km)
+        peri = axis_au * (1.0 - node.eccentricity)
+        pair = singles.get(node.node_no, [])
+        if len(pair) == 2 and node.node_no not in inner:
+            (radius_a, mass_a), (radius_b, mass_b) = pair
+            if (roche.filling_factor(radius_a, peri, mass_a, mass_b) > MAX_FILL_FACTOR
+                    or roche.filling_factor(radius_b, peri, mass_b, mass_a) > MAX_FILL_FACTOR):
+                return False
+            continue
+        extent = sum(radius for radius, _mass in pair) + sum(
+            child.separation_km / constants.AU_TO_KM * (1.0 + child.eccentricity) for child in inner.get(node.node_no, ()))
+        if peri < PERICENTRE_EXTENT_FACTOR * extent:
+            return False
+    return True
 
 
 def _shape(units, rng):
@@ -1402,7 +1434,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         brown = (n_stars is None and birth > mass_boundaries.sol("hydrogen_burning_limit") and len(leaves) < max_stars - (compact is not None)
                  and rng.random() < tuning.BROWN_DWARF_COMPANION_CHANCE)
         if brown:
-            leaves.append(_star_leaf(brown_dwarf.sample_mass_solar(rng), age_yr, rng, fe_h=placed.tree_fe_h))
+            leaves.append(_star_leaf(brown_dwarf.sample_mass_solar(rng), age_yr, rng, fe_h=placed.tree_fe_h, substellar=True))
         if stripped and count >= 2:
             leaves[1] = _stripped_helium_leaf(birth, rng)
             leaf.flags |= MEMBER_MASS_GAINER

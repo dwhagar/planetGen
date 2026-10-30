@@ -58,7 +58,8 @@ const {
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { createSectorFrame } = await import(`./sectorframe.js${VERSION_QUERY}`);
-const { cellEdgePoints, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
+const { cellEdgePoints, parseSectorDesignation, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
+const { objectIdOf } = await import(`./findplace.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
 const superbubble = await import(`./superbubble.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
@@ -231,41 +232,52 @@ var REGION_BLOCK_MAX = 9;
 var regionLookup = null;
 var regionOpener = null;
 
-// A line "Region: <name> (in <parent>)" for the point (x, y, z) pc, each name a button that flies to its block. It
-// stays hidden until the region is known, and for a point in no charted region (a 9-block with no generated sector has
-// no name on the wire).
+// MAP.349: a Go to button for a line of a card that names a container or a place: it flies the camera there as the find box, the crumbs
+// and the results list do (the map's one goTo), and is named for what it goes to.
+function goToButton(name, go) {
+  var button = document.createElement("button");
+  button.type = "button";
+  button.className = "btn btn-small btn-secondary map-info-go";
+  button.textContent = "Go to";
+  button.setAttribute("aria-label", "Go to " + name);
+  button.addEventListener("click", go);
+  return button;
+}
+
+// A line of a card, "<label> <name>" with its Go to button.
+function placeLine(label, name, go) {
+  var line = document.createElement("p");
+  line.className = "map-info-place";
+  line.append(label + " ", name, " ", goToButton(name, go));
+  return line;
+}
+
+// MAP.315, MAP.349: the lines "Region: <name>" and "In: <parent>" for the point (x, y, z) pc, each with its own Go to that flies to its
+// block (the region framed by its extent, MAP.319; its family by its 81-block). They stay hidden until the region is known, and for a
+// point in no charted region (a 9-block with no generated sector has no name on the wire).
 function regionNode(position) {
   if (!regionLookup || !position) {
     return null;
   }
-  var line = document.createElement("p");
-  line.className = "map-info-region";
-  line.hidden = true;
+  var box = document.createElement("div");
+  box.className = "map-info-region";
+  box.hidden = true;
   regionLookup(position[0], position[1], position[2]).then(function (region) {
     if (!region || !region.name) {
       return;
     }
-    function opener(label, fly) {
-      var button = document.createElement("button");
-      button.type = "button";
-      button.className = "map-info-region-link";
-      button.textContent = label;
-      button.addEventListener("click", fly);
-      return button;
-    }
-    // The region is framed by its extent, the sphere of its charted sectors (MAP.319); its family by its 81-block.
-    line.append("Region: ", opener(region.name, function () { regionOpener.region(region); }));
+    box.appendChild(placeLine("Region:", region.name, function () { regionOpener.region(region); }));
     if (region.parent) {
-      line.append(" (in ", opener(region.parent, function () { regionOpener.block(region.parentBlock); }), ")");
+      box.appendChild(placeLine("In:", region.parent, function () { regionOpener.block(region.parentBlock); }));
     }
-    line.hidden = false;
-    if (line.isConnected && infoPanel()) {
+    box.hidden = false;
+    if (box.isConnected && infoPanel()) {
       infoPanel().refit();
     }
   }, function () {
     // A region that could not be looked up is a line left out.
   });
-  return line;
+  return box;
 }
 
 // `spec` with the region line (MAP.315) under its rows, for the point `position` ([x, y, z] pc).
@@ -512,10 +524,10 @@ function regionFacts(blob) {
 }
 
 function showRegionInfo(blob) {
-  showInfo(Object.assign(regionFacts(blob), {
+  showInfo(withRegion(Object.assign(regionFacts(blob), {
     more: [["Radius", formatDistancePc(blob.radiusPc)], ["Region cell", blob.key]],
     buttons: [{ label: "Go to region", onClick: function () { openRegionBlob(blob); } }],
-  }));
+  }), [blob.x, blob.y, blob.z]));
 }
 
 // Flies to a charted region of the regions layer: its window, the camera framing its extent (MAP.319).
@@ -633,6 +645,13 @@ function nearestSystemsNode(systemId) {
       away.className = "map-info-nearest-distance";
       away.textContent = " " + threeFigures(system.distance_ly) + " ly";
       item.append(link, away);
+      // MAP.349: each listed system has its Go to, which opens its sector in place and the system itself, as the find box does.
+      var found = objectIdOf(system.id, parseSectorDesignation);
+      if (found && regionOpener) {
+        item.append(" ", goToButton(system.name || "the system", function () {
+          regionOpener.place({ sector: found.sector, open: true, system: found.system, label: system.name || null });
+        }));
+      }
       list.appendChild(item);
     });
     settle("", list);
@@ -3944,6 +3963,7 @@ function initGalaxyMap3d(canvasEl, data) {
       }
     },
     block: function (block) { stageView.goTo({ block: block }); },
+    place: function (target) { stageView.goTo(target); },
   };
   canvasEl.__mapInfo = infoPanel();    // the browser tests put long cards in it (MAP.295)
   // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
@@ -3975,6 +3995,9 @@ function initGalaxyMap3d(canvasEl, data) {
         });
       }
       line.appendChild(button);
+      // MAP.349: and a Go to of its own, which flies to it and leaves the card as it is.
+      line.appendChild(document.createTextNode(" "));
+      line.appendChild(goToButton(system.name || (crowd.holes ? "the black hole" : "the system"), function () { stageView.goTo({ entry: system }); }));
       list.appendChild(line);
     });
     var reach = 0;
