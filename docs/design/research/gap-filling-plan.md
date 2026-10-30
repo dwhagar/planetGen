@@ -1040,6 +1040,18 @@ The spectra library (`datasets/stellar_spectra.py`, `physics/stellar_library.py`
 | AR3 | P | T6 | L1 | age_metallicity.SIGMA (0.15 thin, 0.10 thick; the scatter about the mean at one age) | each 0.05 | disc stars | a measured scatter at one age differing by more than 0.05 | the fitted scatters of the two relations | test_alpha_and_age_metallicity::test_a_draw_is_the_mean_plus_the_scatter_and_stays_in_range |
 <!-- alpha-age-standins:end -->
 
+### 6.35 Stand-ins of the condensates by temperature (GEN.950)
+
+`physics/condensate_shares.py` holds Lodders 2003 Tables 10 and 11 (the temperatures at which the ices condense and the mass of each condensate for the Solar System composition at 10^-4 bar) and gives the water share of the solids by disk temperature and by distance. The values are the paper's own; the open question is whether planetesimals follow nebular equilibrium (ice over rock about 2) or comets (about 1, Marboeuf et al. 2014, read second-hand in Emsenhuber et al. 2021), which the wiring step settles with the water-share switch of GEN.468.
+
+<!-- condensate-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| CS1 | P | T1 | L0 | condensate_shares.ICE_CONDENSATION_K (water 182 K, ammonia hydrate 131 K, methane 41 K; the methane clathrate at 78 K is left out) | the pressure: 10^-4 bar | the gas of the minimum-mass nebula near the snow line | a disk whose mid-plane pressure at the snow line differs by two decades or more and puts the water line more than 10 K away | a pressure-dependent condensation temperature (Fray and Schmitt 2009, held second-hand) | test_condensate_shares::test_the_water_share_steps_down_at_each_ice_line_as_table_11_prints |
+| CS2 | P | T1 | L0 | condensate_shares.TABLE_11_MASS_PERCENT (rock 0.489, water 0.571, ammonia 0.097, methane 0.330, percent of the nebula, Solar System composition) | the composition column (photospheric gives the same ratios; Anders and Grevesse 1989 gives water over rock 2.09) | solar C/O, every carbon in methane and every nitrogen in ammonia | planetesimals whose ice over rock measured near 1 (comets) instead of 2.04 | the comet-calibrated ice budget (Marboeuf et al. 2014) as a switch | test_condensate_shares::test_the_water_share_steps_down_at_each_ice_line_as_table_11_prints |
+| CS3 | P | T1 | L0 | condensate_shares.ROCK_OXYGEN_SHARE 0.2275 (the share of the Sun's oxygen bound in rock before water ice condenses) | none | rock-forming metals in the solar ratios | a rock whose oxygen share differs from the Sun's by more than 5 points | the oxygen budget of the star's own Mg, Si, Fe and Ca | test_condensate_shares::test_oxygen_after_the_rock_makes_the_water |
+<!-- condensate-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
