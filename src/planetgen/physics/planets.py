@@ -268,7 +268,7 @@ def settle_orbit(planet):
     Takes the tides of a planet's (or captured moon's) orbit again at the star's final age (GEN.985): `generate_orbit_shape` wore the
     birth eccentricity down for the age the star had when the planet was drawn, and the age rises when the planets are in. The birth
     eccentricity is kept with the body for the generation (`_orbit_birth`, not stored), and the circularisation time is read again from the
-    body's radius as it is now. Ages only rise, so the eccentricity only falls, and a lower one clears the star and the neighbours better.
+    body's radius as it is now. Ages only rise, so the eccentricity only falls (it is never raised above what the body has, which the spacing of the orbits may have cut), and a lower one clears the star and the neighbours better.
     The position and velocity are made again on the new ellipse (`update_orbital_position`, the body keeps its place in its plane) and
     a planet's moons are told (`host_eccentricity`). The air, the tide's heat and the spin of a rocky body are read again by the
     re-finish of GEN.992, not here.
@@ -280,8 +280,9 @@ def settle_orbit(planet):
     if birth is None:
         return False
     time_yr = orbit_elements.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance)
-    eccentricity = orbit_elements.circularised(birth, _gyr_to_yr(planet.star.age), time_yr)
-    if abs(eccentricity - planet.eccentricity) <= ECCENTRICITY_SETTLE_TOLERANCE:
+    # never above what the planet has: the spacing of the orbits may have cut it (`validation`) and ages only rise
+    eccentricity = min(planet.eccentricity, orbit_elements.circularised(birth, _gyr_to_yr(planet.star.age), time_yr))
+    if planet.eccentricity - eccentricity <= ECCENTRICITY_SETTLE_TOLERANCE:
         return False
     planet.eccentricity = eccentricity
     for moon in getattr(planet, "moons", ()):
