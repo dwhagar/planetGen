@@ -124,7 +124,7 @@ def test_generated_giants_have_rings_and_moons_and_belts_have_none():
                 ringed += planet.ring_kind is not None
                 if planet.ring_kind is not None:
                     assert planet.ring_inner_km < planet.ring_outer_km
-    assert giants > 10 and ringed >= 0.8 * giants
+    assert giants > 5 and ringed >= 0.8 * giants   # 40 systems hold about 10 giants since the ice boost fell to 2.17 (GEN.950)
 
 
 def test_a_body_regenerated_as_another_class_loses_its_ring():
