@@ -139,3 +139,19 @@ test("a node's ellipse keeps its shape: drawn distances are in proportion to the
   const far = Math.hypot(...layout.place("node:0", [1.6 * 30 * AU_KM, 0, 0]));
   assert.ok(Math.abs(far / near - 4) < 1e-9);
 });
+
+test("compressed, a planet round the inner pair of a triple is drawn outside the pair's own orbit (a close pair below a further star)", () => {
+  const triple = treeScene("triple", false);
+  triple.planets = [{
+    ref: "planet:1", kind: "planet", radius_km: 6371, moons: [],
+    orbit: { around: "node:0", distance_km: 3 * AU_KM, period_years: 3, inclination_deg: 0, ascending_node_deg: 0,
+      position_km: [3 * AU_KM, 0, 0], velocity_kms: [0, 17, 0], epoch_unix: triple.epoch_unix },
+  }];
+  const layout = S.createLayout(triple, S.MODE_COMPRESSED);
+  const inner = triple.tree.nodes.find((node) => node.node_no === 0);
+  const reach = Math.hypot(...layout.place("node:0", [inner.separation_km * (1 + inner.eccentricity), 0, 0]));
+  assert.ok(Math.hypot(...layout.place("node:0", [3 * AU_KM, 0, 0])) > reach, "the planet lies beyond the stars of the pair");
+  const placed = S.layoutPositions(layout, P.relativeAt(triple, 0));
+  const away = Math.hypot(...placed["planet:1"].map((c, axis) => c - placed["node:0"][axis]));
+  assert.ok(Math.abs(away - Math.hypot(...layout.place("node:0", [3 * AU_KM, 0, 0]))) < 1e-9, "placed about the pair's centre");
+});
