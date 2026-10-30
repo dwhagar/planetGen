@@ -1673,11 +1673,11 @@
    "id": "g4",
    "category": "g",
    "kind": "option",
-   "option": "T/Y transition (500 to 700 K): NH3-rich, water cloud near 350 K deeper",
-   "gate_text": "BD; 500 to 700 K",
+   "option": "Late T, NH3-rich (T8 to Y0 at 460 to 686 K), water cloud near 350 K deeper",
+   "gate_text": "BD; 460 to 686 K",
    "weight_text": "Phi-window",
-   "source": "gap in part 05 s7.4 (T and Y rows leave 500 to 700 K uncovered); Burrows and Sharp 1999 (READ)",
-   "status": "DESIGN",
+   "source": "the edges are the type-temperature map itself: T8 686 K and Y0 460 K, scatter 79 K (Kirkpatrick et al. 2021 Table 13, 525 dwarfs within 20 pc; READ); 500 to 700 K is T8 to T9, not a type of its own (GEN.494)",
+   "status": "DERIVED",
    "research": [
     "R15"
    ],
@@ -1686,7 +1686,7 @@
     "READ"
    ],
    "state": "partly verified",
-   "limit": "late T (T8 and later) is a subclass of T, not a type of its own; its edge at T8 (686 K) is a design choice on the map (GEN.517)",
+   "limit": "late T (T8 to T9) is a subclass of T, not a type of its own; its edges are the map's T8 and Y0 values (Kirkpatrick 2021 Table 13, GEN.494)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -2707,7 +2707,7 @@
    "option": "Surviving H/He giant",
    "gate_text": "host WD, GIANT",
    "weight_text": "c[0,0.1]",
-   "source": "fate of planets: Veras 2016 NOT REACHED",
+   "source": "no more than 1 percent of white dwarfs should host close-in giants (Mustill, Veras and Villaver 2014, three giants, read in the abstract and discussion, and as Veras 2016 quotes it; READ); the bracket 0 to 0.1 holds the wider orbits that survive",
    "status": "DESIGN",
    "research": [
     "R10"
@@ -2715,7 +2715,7 @@
    "notes": "composition via tables f and g",
    "replacement": "GEN.513",
    "labels": [
-    "NOT REACHED"
+    "READ"
    ],
    "state": "stand-in",
    "limit": "",
@@ -3670,7 +3670,7 @@
    "option": "Al-26 early heating present",
    "gate_text": "planetesimals formed within a few Myr",
    "weight_text": "c[0.1,1]",
-   "source": "26Al/27Al 5.25e-5 (McDonough 2020 READ); presence in a given system unsourced",
+   "source": "26Al/27Al 5.25e-5 (McDonough 2020 READ); presence in a given system unsourced; `birth_radioisotopes.py` (GEN.476) gives the share of stars born above the melting ratio: 12 percent (6 to 20)",
    "status": "DESIGN",
    "research": [
     "R13"
@@ -3875,9 +3875,9 @@
    "kind": "param",
    "option": "Rotation track (L2 on p4, p5, solar mass): slow / median / fast",
    "gate_text": "any",
-   "weight_text": "0.25 / 0.5 / 0.25",
+   "weight_text": "percentile of the initial rotation distribution uniform 0.02 to 0.98",
    "source": "Tu et al. 2015 (arXiv:1504.04546, READ): the 10th, 50th and 90th percentile tracks of the initial rotation distribution with saturation times 5.7, 23 and 226 Myr; Johnstone et al. 2021 (READ): tracks at every integer percentile 2 to 98; the 150 Myr rotation distribution of the clusters is the observed one",
-   "status": "DESIGN",
+   "status": "DERIVED",
    "research": [
     "R14"
    ],
@@ -3886,7 +3886,7 @@
     "READ"
    ],
    "state": "partly verified",
-   "limit": "the three percentile tracks of Tu 2015 (10, 50 and 90; saturation ends at 5.7, 23 and 226 Myr, solar mass only) interpolated in the logarithm of the saturation time between them; no paper weights the tracks, so the percentile is drawn uniform from 0.02 to 0.98 as Johnstone 2021 offers; the dependence on mass needs the Mors tracks (GEN.523)",
+   "limit": "the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range Johnstone 2021 offers); the saturation time against mass is read off Johnstone 2021 Fig. 10 (`saturation_time.py`, registry RS1, GEN.493); the draw does not yet read it (wiring step)",
    "replacement": "",
    "items": [],
    "classes": [

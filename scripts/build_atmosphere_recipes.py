@@ -93,7 +93,7 @@ def build():
         raise SystemExit("the machine columns and the part disagree: "
                          f"missing {sorted(set(ids) - set(data.MACHINE))}, extra {sorted(set(data.MACHINE) - set(ids))}")
     counts = {s: sum(1 for _c, cells in rows if cells[5].split()[0] == s) for s in STATUSES}
-    if counts != {"SOURCED": 8, "DERIVED": 65, "DESIGN": 31}:
+    if counts != {"SOURCED": 8, "DERIVED": 67, "DESIGN": 29}:
         raise SystemExit(f"part 09 counts changed: {counts}")
     entries = []
     resolved_source = {}
