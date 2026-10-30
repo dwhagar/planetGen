@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2618] - 2026-10-30
+
+**Headline:** The Galaxy Map now fills the browser window, with only 20 pixels of buffer above and below it.
+
+### Changed
+- **The map fills the window (MAP.350).** The map window is as tall as the browser window less the site header and 20 pixels above and below, so the whole map shows with no page scrolling: when the page opens it rests with the map in place, and it stays wherever you scroll it afterwards. The controls are on the map, so the toolbar that used to sit under it, and the crumbs and Find a place box above it, are one scroll away. A short window keeps the least height (320 pixels).
+
 ## [8.0.2617] - 2026-10-30
 
 **Headline:** The sizes in the backup list now say they are in bytes, and a test checks that every number the API returns names its unit or says what it counts.
