@@ -72,7 +72,7 @@ stars to a black hole (it was 2.1).
 
 The four numbers of the log-normal are Confident Unverified, level L0 (recalled, not read in the paper, and used as
 published); the Cummings pieces and the Ozel and Freire Gaussian are Verified. The primary function has no set number.
-Registry section 6.26 of `research/gap-filling-plan.md`.
+Registry section 6.44 of `research/gap-filling-plan.md`.
 
 ## Open
 

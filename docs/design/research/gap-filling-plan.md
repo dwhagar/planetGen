@@ -945,7 +945,7 @@ Rows SC1 and SC2. The star census (`tests/audit/prevalence_stars.py`, TEST.432) 
 | SC2 | P | T2 | L0 | tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars | 0.01 to 0.06 | stars heavier than 0.08 solar masses, trees a directive does not count | test_multistar.test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member | a brown dwarf companion survey of M dwarfs | RECALLED (Metchev and Hillenbrand 2009: 3.2 percent of solar-type stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU) |
 <!-- star-census-standins:end -->
 
-### 6.26 Stand-ins of the stellar mass function (GEN.927, GEN.928)
+### 6.44 Stand-ins of the stellar mass function (GEN.927, GEN.928)
 
 Rows MF1 to MF3. The single-star mass function is Chabrier (2003), and the primaries' function is derived from it and the multiplicity rows, not set (`docs/design/galaxy/stellar-mass-function.md`). Tiers T1 to T9 and tweak levels L0 to L4 as in 6.6a (GEN.725); the lane's reading (Bug 1), for the owner to confirm.
 
