@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 338 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 342 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 38 | 0 | 3 | 0 | 0 | 41 |
-| T2 | 61 | 2 | 0 | 1 | 0 | 64 |
+| T2 | 62 | 3 | 0 | 1 | 0 | 66 |
 | T3 | 49 | 4 | 2 | 10 | 0 | 65 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
 | T5 | 16 | 5 | 1 | 0 | 0 | 22 |
-| T6 | 34 | 7 | 3 | 14 | 0 | 58 |
+| T6 | 36 | 7 | 3 | 14 | 0 | 60 |
 | T7 | 16 | 3 | 1 | 7 | 0 | 27 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 230 | 21 | 12 | 58 | 17 | 338 |
+| All | 233 | 22 | 12 | 58 | 17 | 342 |
 
 ## How the labels were given
 
@@ -501,6 +501,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TQ4 | P | T5 | L0 | spin_torques.THERMAL_SMALL_PRESSURE_SLOPE 1 (below 1 bar q0 goes with the surface pressure; the thermal time loses 6 percent of its surface part) | 0.8 to 1.2 | air under 1 bar | test_spin_torques::test_thin_air_has_a_proportionally_smaller_thermal_tide | a climate run for thin air | the paper's argument that the amplitude goes as the pressure over the scale height |
 | TQ5 | T | T6 | L0 | spin_torques.Torques.atmospheric (the convective-atmosphere Debye torque, N_a = F K_a q0 x / (1 + x^2); a stably stratified air, which flattens it, is not modelled) | none | a thick air with a convective troposphere | test_spin_torques::test_the_asynchronous_equilibria_are_leconte_equation_13 | the stratified-air torque of Auclair-Desrotour, Mathis and Laskar 2017 | Leconte et al. 2015 equations 1 to 3; Auclair-Desrotour et al. 2017 equation 72 gives the same shape and say a stable stratification sends the torque to zero |
 | TQ6 | T | T6 | L0 | spin_torques.evolve (a one-dimensional flow; a resonance whose window holds the eccentricity captures for sure, a sign flip of the torque at a raiser's orbital rate or a smooth zero stops it; obliquity zero, circular torques) | none | a planet with one star and up to a few moons | test_spin_torques::test_one_star_with_constant_q_is_the_built_despinning | a spin-orbit integration with obliquity and eccentricity | the same simplifications as SP10 of 6.14 |
+
+## 6.25 Stand-ins of the moon orbits
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| TM1 | T | T2 | L0 | moon_orbits.COROTATION_SOFTNESS 0.01 (the constant-Q torque's sign flip at a moon's orbital rate is smoothed over 1 percent of that rate so the integrator can cross it) | 0.001 to 0.05 | a moon near corotation with the planet | test_moon_orbit_evolution::test_angular_momentum_is_conserved_between_the_spin_and_the_orbit | the frequency-dependent rheology of 6.23, which has no jump | the tanh regularisation sigma_S = 1e-2 n of Auclair-Desrotour, Mathis and Laskar 2017 (arXiv:1709.10148) equation 77, read in full |
+| TM2 | P | T2 | L1 | moon_orbits.HILL_ESCAPE_FRACTION 0.4 (a moon pushed beyond this share of the planet's Hill radius is lost) | 0.3 to 0.5 | prograde moons | test_moon_orbit_evolution::test_a_moon_pushed_past_the_hill_sphere_escapes | an orbit-stability fit with eccentricity and the moon's mass | stable prograde orbits reach about half the Hill radius (Hamilton and Burns 1991; Domingos et al. 2006; recalled); the 0.4 is a little under |
+| TM3 | T | T6 | L0 | moon_orbits.evolve (a moon that reaches the fluid Roche limit becomes ring material and the planet takes the angular momentum it has there; none is kept in the ring) | none | a moon falling in | test_moon_orbit_evolution::test_a_moon_of_a_locked_planet_falls_into_a_ring_and_the_spin_takes_its_momentum | a ring that keeps part of the angular momentum and spreads (viscous spreading, Crida and Charnoz 2012) | angular momentum is conserved; the share the ring keeps is argued, not read |
+| TM4 | T | T6 | L0 | moon_orbits.evolve (moons act on the planet's spin and on their own orbit only; no moon-moon resonance or collision, orbits circular and coplanar) | none | up to a few moons | test_moon_orbit_evolution::test_several_moons_are_followed_together | an N-body or secular integration | the same simplifications as the built spin (SP10 of 6.14) |
 
 ## 6.30 Stand-ins of the dynamo field
 
