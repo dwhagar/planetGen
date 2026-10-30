@@ -61,18 +61,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.15:RB7 | GEN.983 | `radiation_belts.OUTER_RISE_EXPONENT`, read when the belts are |
 | module | planetgen.physics.spin_torques | GEN.957 | the star, moon and thermal-tide torques on a planet's spin (stage 2a, lock-free); stage 2b wires the sum into planet spin |
 | module | planetgen.physics.moon_orbits | GEN.959 | moon orbit drift, spiral-in and the Roche fall (stage 3a, lock-free); stage 3b wires the history into the planet |
-| module | planetgen.physics.impact_spin | GEN.979 | Kokubo and Genda equation 4 with the gamma law of the last impacts (GEN.978, lock-free); GEN.979 wires it into the rocky planet's birth spin |
 | row | 6.24:TQ1 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
 | row | 6.24:TQ2 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
 | row | 6.24:TQ3 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
 | row | 6.24:TQ4 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
 | row | 6.25:TM1 | GEN.959 | a constant of the tides chain's lock-free module, read when its wiring step lands |
 | row | 6.25:TM2 | GEN.959 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.26:GS2 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
-| row | 6.26:GS3 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
-| row | 6.26:GS4 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
-| row | 6.26:GS5 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
-| row | 6.26:GS6 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | module | planetgen.physics.condensate_shares | GEN.950 | Lodders 2003 condensates by temperature and the water share of the solids (lock-free); the wiring step reads the snow line temperature, the ice boost of the surface density and the water range of an icy body from it |
 | row | 6.35:CS1 | GEN.950 | `condensate_shares.ICE_CONDENSATION_K`, read when the wiring step lands |
 | row | 6.35:CS2 | GEN.950 | `condensate_shares.TABLE_11_MASS_PERCENT`, read when the wiring step lands |

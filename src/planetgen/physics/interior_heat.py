@@ -341,9 +341,10 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         mass_kg, radius_km (float): The body's.
         age_gy (float): Its age.
         rock (radiogenic.Rock): What it is made of.
-        forcing (tidal_heating.Forcing, optional): The orbit that flexes it (GEN.737). A solid body's tide is a second heat source of the
-            box, constant over its age. If that tide is at least the body's own heat and warms the mantle to `tidal_heating.HEAT_PIPE_TEMPERATURE_K`,
-            the body is melt-limited: the mantle holds that temperature and the partly molten body is flexed `MOLTEN_K2_OVER_Q` (Io).
+        forcing (tidal_heating.Forcing, optional): The orbit that flexes it (GEN.737). Its tide is a second heat source of the box, the Peale
+            power with the `k2/Q` of the mantle at its temperature (`tidal_rheology`, GEN.955), integrated with the cooling. If that tide is at least
+            the body's own heat the mantle is never hotter than `Mantle.heat_pipe_k`, where its melt erupts and carries the heat out; if it makes more
+            heat there than it conducts the body is melt-limited and holds that temperature (Io).
         lid (str): `STAGNANT` or `MOBILE`, the regime that sets the heat flux law (GEN.721).
         surface_k (float): The surface temperature the mantle's drop is measured against (a mobile lid) and the body starts from (GEN.735).
 

@@ -210,8 +210,9 @@ def test_a_hot_earth_is_circularised_in_a_billion_years_and_a_far_one_keeps_its_
     assert far > 1e15
     assert oe.circularised(0.3, 5e9, near) < 1e-6
     assert oe.circularised(0.3, 5e9, far) == pytest.approx(0.3, rel=1e-5)
-    # tau goes as a^(13/2): the fifth power of a/R and the 1/n of the period
-    assert oe.circularisation_time_yr(earth, sun, 0.04) / near == pytest.approx(2.0 ** 6.5, rel=1e-9)
+    # tau goes as a^(13/2) at a fixed Q (the fifth power of a/R and the 1/n of the period); the mantle's Q rises with the tide's frequency, so a closer
+    # orbit is damped a little more slowly than that law says
+    assert 2.0 ** 5.0 < oe.circularisation_time_yr(earth, sun, 0.04) / near < 2.0 ** 6.5
     assert oe.circularised(0.3, 1e9, 0.0) == 0.0
     assert oe.circularisation_time_yr(_body(None, 1.0), sun, 1.0) == math.inf
 
