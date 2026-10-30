@@ -2,6 +2,72 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2641] - 2026-10-30
+
+**Headline:** The hours a person can be outside in a day can now be worked out from a body's stored columns; nothing is stored or shown yet.
+
+### Changed
+
+- GEN.768 part 2, prepared: `outside_hours.for_body` takes the equipment levels, the stored `daylight_hours`, the stored day-night swing and, for a tidally locked world, the terminator belt's temperature and 24 hours of light (stand-in row OH11), and gives the hours and the binding limit, or none when the columns do not say. Tests for Earth, a hot desert, a cold world, a high-dose world, a vacuum world, a locked world and a world that needs a vehicle. No column, migration or epoch yet: storing the value, the sheet relabel and the pages ride a train, so a world's output does not change.
+
+## [8.0.2640] - 2026-10-30
+
+**Headline:** `planetgen planets` and `planetgen moons` show a page at a time instead of reading every planet or moon in the galaxy.
+
+### Changed
+- **The planets and moons listings take `--limit` and `--after`.** Each prints 100 rows by default and, when more match, the `--after` to carry on with; the next page starts after that row in the same order, so a page deep in the list costs what the first does. Before, the commands read every matching row, which at a full galaxy meant millions. Filtered by system, sector or class a page takes about 40 milliseconds with 6,000,000 planets. Unfiltered, the order (system name, then orbit) still sorts every planet, so the first page of the whole galaxy takes seconds.
+
+## [8.0.2639] - 2026-10-30
+
+**Headline:** `planetgen query near` rejects a missing distance before it opens the database, a document written to standard output starts at its first line, and ten tests that were red on main are green.
+
+### Fixed
+
+- **`planetgen query near` with neither `--distance` nor `--nearest` is a command-line error (TEST.465).** It exits 2 with the usage text whatever the state of the database; before, it opened the database first and exited 1 when it could not.
+- **`planetgen system --output -` starts at the first line of the document (TEST.466).** The finished progress display wrote a blank line to standard output ahead of the text; a run that writes the document to standard output draws no bar.
+- **Two saves of the same names at once no longer fail with "Transaction characteristics can't be changed while a transaction is in progress" (TEST.463).** The save ends the connection's open transaction before it sets READ COMMITTED.
+- **The radiative-convective water table names its own limit (TEST.463).** The 640 K top of the table is `WATER_TABLE_TOP_K`, a numerical limit just under the critical temperature that `physics/saturation.py` holds; no vapour-pressure constant lives outside the saturation module. The cosmic-ray thin-air curve reads `GCR_PEAK_G_CM2` where it joins the first shower run (the same 100 g/cm2), so the registry row CR4 has a reader.
+- **Tests that were red on main (TEST.463).** The step-kind registry test no longer reads a queue command's name as a progress step kind; the SQL portability list names the interest-count migrations that already use `VALUES()`; the object-row round trip reads a binary pair's stars, not the proxy that stands for both; `/api/auth/me` has an avatar field; the map-rebuild test stubs the sliced warm stages; the sector page test expects a second neighbourhood job to wait in the one waiting list (PERF.154); the wiring register no longer names `surface_dose`, which the code reads now.
+
+## [8.0.2638] - 2026-10-30
+
+**Headline:** Drawing the nebula field can now follow another stage in the same run, the part of one run per Generate job that needs no other change.
+
+### Changed
+
+- PERF.203 step 2: the nebula field stage says "the galaxy's skeleton has never been built" and skips a galaxy with no outline when the stage opens (its `prepare` and `expand`), not when the command starts, so an earlier stage of the same run may be what builds the plan. `planetgen scatter --nebula-field` refuses and draws exactly what it did. The other fills (map luminosity, habitability, population, territories) had no start-time check to move. The scatters, link, settle and the sectors planner read the database to build their stages and are PERF.212 to PERF.214.
+
+## [8.0.2637] - 2026-10-30
+
+**Headline:** The All systems list opens any page as fast as the first when sorted by sector, octant or binary, as it already did by name.
+
+### Changed
+- **The All systems table pages by key in every sort.** Sorted by sector, octant or binary, the page links carry the system the page before ended on and the list carries on from it inside its group, so a page deep in the list costs what the first does. Before, a page counted and skipped every system before it in its group: with 3,000,000 systems, a page 300,000 deep in an octant took 1.5 seconds and now takes 3 milliseconds. `GET /api/systems?after=<system ID>` now works in those sorts as well as by name.
+
+## [8.0.2636] - 2026-10-30
+
+**Headline:** A world that suits a life class but where no life has started yet is no longer shown as having that life.
+
+### Changed
+
+- **No life class before life (GEN.1001).** A planet or moon round a star younger than the first step of its life schedule is stored with the life class it suits and no life stage, and it used to look as if that life lived there. The Galaxy Map life class marks, the life class filter and its count, the class shown in the search results and the habitability icons, the API's `life_class_id`, the dominant species line on the object page and the side panel of the system map now treat such a world as having no living class; the description of the world still says the conditions suit the class and none has appeared yet. A database made before this keeps the old map marks of those worlds until their systems are saved again.
+
+## [8.0.2635] - 2026-10-30
+
+**Headline:** The runs of the generation commands are now built apart from starting them, the first step toward one run for a whole Generate job.
+
+### Changed
+
+- PERF.203 step 1: each single-stage generation command (skeleton, bright-star and phenomena scatters, map luminosity, habitability, nebula field, clear scatter, link, backfill, settle, population, territories) builds its run as a `followed.Planned` (its followers, title and what it returns) and starts it with `followed.run_planned`. Nothing about what a command does or generates changes; the later steps put the planned runs of every selected command into one run.
+
+## [8.0.2634] - 2026-10-30
+
+**Headline:** The test suite now holds standing checks on the life classes: no star letter table, no stage without a class, no Flora under ice, and no class on a solvent it does not allow.
+
+### Changed
+
+- **Standing life class tests (GEN.873).** A new test file checks the life class rules against the shared body sweep and the generated systems: the class rules hold no table keyed by a star letter and every star letter feeds some light class, a body with a life stage has a life class, no light class is supported and no body has Flora under an ice-covered ocean, and no class is supported or lives where its solvent (water, hydrocarbon, liquid carbon dioxide, sulfuric acid or ammonia water) is missing. Each rule is shown to fail on a body made to break it. Nothing the generator draws changes.
+
 ## [8.0.2633] - 2026-10-30
 
 **Headline:** "Near this system" now measures from where the system really is, and four more tests that were red on main are green.

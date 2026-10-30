@@ -147,3 +147,31 @@ def test_the_distance_sort_and_the_name_sort_put_sectors_in_their_order(mysql_co
     finally:
         conn.close()
 
+
+
+# --- PERF.207: planets and moons page by key -----------------------------------------------------------------------
+
+def test_planets_and_moons_page_by_key_in_the_order_one_long_read_gives(mysql_config):
+    """`after` (the row id the previous page ended on) starts the next page in the same order, for planets and for
+    moons, with and without a filter; an id that names nothing starts at the top and `offset` is not used with it."""
+    from tests.test_api import _save_wide_binary_with_moons
+
+    for _ in range(3):
+        _save_wide_binary_with_moons(mysql_config)
+    conn = query.open_readonly(mysql_config)
+    try:
+        for read, kind in ((query.list_planets, "planets"), (query.list_moons, "moons")):
+            for filters in ({}, {"min_radius_km": 1.0}):
+                everything = [row["id"] for row in read(conn, **filters)]
+                assert len(everything) >= 5, (kind, "the seeded galaxy has several")
+                paged, after = [], None
+                for _ in range(len(everything) + 1):
+                    page = read(conn, limit=2, offset=7 if after else 0, after=after, **filters)
+                    if not page:
+                        break
+                    paged += [row["id"] for row in page]
+                    after = page[-1]["id"]
+                assert paged == everything, (kind, filters)
+            assert [row["id"] for row in read(conn, limit=3, after=10 ** 9)] == everything[:3]
+    finally:
+        conn.close()

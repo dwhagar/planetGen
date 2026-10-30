@@ -48,6 +48,12 @@ VALUES_FUNCTION_ALLOWED = {
         "outer_shell_index",
     },
     "planetgen/db/migrations/versions/0148_habitable_worlds_per_system.py": {"habitable_worlds"},
+    "planetgen/db/migrations/versions/0165_system_interests.py": {"best_score", "n"},
+    "planetgen/db/migrations/versions/0166_more_system_interests.py": {"best_score", "n"},
+    "planetgen/db/migrations/versions/0167_inhabited_interests.py": {"best_score", "n"},
+    "planetgen/db/migrations/versions/0172_class_interests.py": {"n"},
+    "planetgen/db/migrations/versions/0173_life_interests.py": {"n"},
+    "planetgen/db/migrations/versions/0176_life_class_interests.py": {"n"},
     "planetgen/population/model.py": {"scanned_planet_id"},
     "planetgen/generation/stats.py": {"__expr__", "bytes_per_system", "systems", "total_bytes"},
 }

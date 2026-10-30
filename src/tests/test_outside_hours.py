@@ -163,3 +163,63 @@ def test_the_new_limit_rows_have_a_value_a_unit_and_a_meaning():
                  "vent_factor", "sweat_max_w"):
         assert rows[name].value > 0 and rows[name].unit and rows[name].meaning
     assert limit("core_cold_limit_c") < limit("core_normal_c") < limit("core_hot_limit_c")
+
+
+# --- GEN.768 part 2: the hours of a body from its stored columns ---------------------------------------------------------------
+
+def _body(world, **columns):
+    """`for_body` of `world` with the columns of a body that turns in 24 h over a year, and `columns` over them."""
+    values = {"rotation_period_hours": 24.0, "period_years": 1.0, "daylight_hours": 12.0, "temp_swing_k": 0.0}
+    values.update(columns)
+    return outside_hours.for_body(world, equipment.compute(world), values)
+
+
+def test_earth_from_its_columns_has_the_full_daylight():
+    assert _body(_world(), daylight_hours=12.1, temp_swing_k=10.0) == (12.1, "daylight")
+
+
+def test_a_hot_desert_from_its_columns_is_cut_by_the_heat():
+    hours, binding = _body(_world(temperature_c=120.0, relative_humidity=0.1), temp_swing_k=40.0)
+    assert binding == "heat" and 1.0 < hours < 12.0
+
+
+def test_a_cold_world_from_its_columns_is_cut_by_the_cold():
+    hours, binding = _body(_world(temperature_c=-49.0))
+    assert binding == "cold" and 1.0 < hours < 12.0
+
+
+def test_a_high_dose_world_from_its_columns_has_the_yearly_hours_over_its_solar_days():
+    world = _world(surface_dose_sv_yr=5.0, dose_gcr_sv_yr=4.0, dose_sep_sv_yr=0.0, dose_ground_sv_yr=1.0)
+    yearly = equipment.compute(world)["outside_hours"]
+    hours, binding = _body(world)
+    assert binding == "dose" and hours == pytest.approx(yearly / outside_hours.work_days_per_year(24.0, 1.0))
+
+
+def test_a_vacuum_world_from_its_columns_is_limited_by_the_gas_in_the_suit():
+    assert _body(_world(pressure_kpa=0.0, temperature_c=0.0, gases={}), temp_swing_k=40.0) == (supply_hours(2), "air")
+
+
+def test_a_locked_world_works_the_terminator_belt_for_a_whole_shift_at_the_belts_temperature():
+    """A world that turns once an orbit has no stored daylight and no day of its own: the belt's 24 hours of light, and the belt's temperature."""
+    belt = 288.15
+    assert _body(_world(), rotation_period_hours=8766.0, period_years=1.0, daylight_hours=None, temp_terminator_k=belt) == \
+        (outside_hours.LOCKED_BELT_LIGHT_HOURS, "daylight")
+    hours, binding = _body(_world(temperature_c=-49.0), rotation_period_hours=8766.0, period_years=1.0, daylight_hours=None,
+                           temp_terminator_k=224.15)
+    assert binding == "cold" and hours < outside_hours.LOCKED_BELT_LIGHT_HOURS
+
+
+def test_a_locked_world_without_a_terminator_temperature_has_no_answer():
+    assert _body(_world(), rotation_period_hours=8766.0, period_years=1.0, daylight_hours=None) == (None, None)
+
+
+def test_a_body_without_stored_daylight_or_rotation_has_no_answer_and_none_is_not_zero():
+    assert _body(_world(), daylight_hours=None) == (None, None)
+    assert _body(_world(), rotation_period_hours=None) == (None, None)
+    assert _body(_world(), daylight_hours=0.0) == (0.0, "daylight")
+
+
+def test_a_body_that_needs_a_vehicle_has_no_hours_from_its_columns():
+    world = _world(pressure_kpa=0.0, temperature_c=900.0, gases={})
+    assert equipment.compute(world)["eq_body"] >= 6, "the test world must be one that needs a vehicle"
+    assert _body(world) == (0.0, "vehicle")

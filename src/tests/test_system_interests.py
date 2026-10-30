@@ -698,7 +698,8 @@ def _set_life_classes(conn, system_id, classes):
     ids = [row["id"] for row in conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
     for index, planet_id in enumerate(ids):
         number, variant = classes[index] if index < len(classes) and classes[index] else (None, None)
-        conn.execute("UPDATE planets SET life_class = ?, life_class_variant = ? WHERE id = ?", (number, variant, planet_id))
+        conn.execute("UPDATE planets SET life_class = ?, life_class_variant = ?, life_stage = ? WHERE id = ?",
+                     (number, variant, "abiogenesis" if number is not None else None, planet_id))
     conn.execute("UPDATE moons SET life_class = NULL, life_class_variant = NULL WHERE star_system_id = ?", (system_id,))
     store.recount_habitable_worlds(conn, [system_id])
 
@@ -723,6 +724,56 @@ def test_a_system_has_a_row_for_each_life_class_that_lives_on_one_of_its_worlds(
         assert _life_class_rows(conn, system_id) == {}, "a world with no life class gives none"
         _set_life_classes(conn, system_id, [(1, "b")])
         assert _life_class_rows(conn, system_id) == {"lifeclass-1b": 1}
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_a_class_a_world_suits_but_has_no_life_stage_for_yet_is_no_row(mysql_config):
+    """GEN.1001: the class is stored for a world whose star is younger than the first step of its schedule, but no life lives there yet."""
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _set_life_classes(conn, system_id, [(1, "a"), (4, "c")])
+        assert _life_class_rows(conn, system_id) == {"lifeclass-1a": 1, "lifeclass-4c": 1}
+        first = conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND life_class = 4 LIMIT 1", (system_id,)).fetchone()["id"]
+        conn.execute("UPDATE planets SET life_stage = NULL WHERE id = ?", (first,))
+        store.recount_habitable_worlds(conn, [system_id])
+        assert _life_class_rows(conn, system_id) == {"lifeclass-1a": 1}
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_the_life_filter_and_its_column_leave_out_a_class_with_no_life_stage_yet(mysql_config):
+    """GEN.1001: the `life` facet counts, filters and names the class only of a world whose life has started."""
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _set_life_classes(conn, system_id, [(1, "a"), (1, "a")])
+        ids = [row["id"] for row in conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND life_class = 1 ORDER BY id", (system_id,)).fetchall()]
+        assert len(ids) == 2
+        tags = {name: set() for name in query.SEARCH_TAG_FACETS}
+        tags["life"] = {"1a"}
+
+        def seen():
+            counted = {option["value"]: option["count"] for option in query._life_class_facet(conn, "planets")}
+            rows = query.search(conn, {}, tags, limit=300)["results"]["planets"]["rows"]
+            return counted.get("1a", 0), {row["id"] for row in rows if row["star_system_id"] == system_id}, rows
+
+        counted, found, _rows_ = seen()
+        assert len(found) == 2
+        conn.execute("UPDATE planets SET life_stage = NULL WHERE id = ?", (ids[0],))
+        after, found, rows = seen()
+        assert after == counted - 1 and len(found) == 1 and ids[0] not in found
+        # the row of the world itself names no class either, whichever filter found it
+        tags["life"] = set()
+        tags["class"] = set()
+        everything = query.search(conn, {}, {**tags, "living": {"alive", "lifeless"}}, limit=300)["results"]["planets"]
+        bare = [row for row in (everything["rows"] if everything else []) if row["id"] == ids[0]]
+        assert all(row["life_class_id"] is None for row in bare)
     finally:
         conn.rollback()
         conn.close()
