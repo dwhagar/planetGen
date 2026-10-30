@@ -87,6 +87,7 @@ SECTORS = [
     for i in range(130)
 ]
 STANDALONE = [{"id": 1000 + i, "name": f"Drifting {i:03d}", "is_binary": i % 2, "star_summary": "G2V",
+               "star_count": 1 + i % 2, "object_count": 5 + i % 3, "has_habitable_world": bool(i % 2),
                "sector_id": None, "sector_name": None, "quadrant": None} for i in range(130)]
 
 
@@ -104,8 +105,8 @@ def _fake_sectors(db, limit=None, offset=None, sort=None, descending=False, quad
 def _fake_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
                   binary=None, placement=None, octants=(), facets=False, after=None, start=None):
     rows = [row for row in STANDALONE if binary is None or bool(row["is_binary"]) == binary]
-    key = {"binary": "is_binary"}.get(sort or "name", "name")
-    rows = sorted(rows, key=lambda row: (row[key], row["name"]), reverse=bool(descending))
+    key = {"octant": "quadrant"}.get(sort or "name", "name")
+    rows = sorted(rows, key=lambda row: (row[key] or "", row["name"]), reverse=bool(descending))
     if start and (sort or "name") == "name":  # PERF.75: the jump-by-value box, as the real reader applies it
         rows = [row for row in rows if (row["name"].casefold() < queryDb._after_prefix(start.casefold())
                                         if descending else row["name"].casefold() >= start.casefold())]
@@ -481,9 +482,9 @@ def test_a_table_keeps_its_sort_and_filter_across_a_reload(page, table_site):
     page.locator("#systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
     assert page.locator("#systems-table .datatable-count-line").inner_text() == "130 systems"
 
-    page.locator("#systems-table th[data-col='binary'] .datatable-sort").click()
-    page.locator("#systems-table th[data-col='binary'][aria-sort='ascending']").wait_for(state="attached")
-    assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["binary"]}
+    page.locator("#systems-table th[data-col='octant'] .datatable-sort").click()
+    page.locator("#systems-table th[data-col='octant'][aria-sort='ascending']").wait_for(state="attached")
+    assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["octant"]}
 
     facet = page.locator("#systems-table .datatable-facet", has_text="Stars")
     facet.locator("summary").click()
@@ -491,12 +492,12 @@ def test_a_table_keeps_its_sort_and_filter_across_a_reload(page, table_site):
     page.locator("#systems-table .datatable-count-line", has_text="65 systems match") \
         .wait_for(state="attached", timeout=10000)
     query = parse_qs(urlparse(page.url).query)
-    assert query["systems_sort"] == ["binary"] and query["binary"] == ["yes"]
+    assert query["systems_sort"] == ["octant"] and query["binary"] == ["yes"]
 
     # A reload renders the table the way it was left.
     page.reload()
     page.locator("#systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
-    assert page.locator("#systems-table th[data-col='binary']").get_attribute("aria-sort") == "ascending"
+    assert page.locator("#systems-table th[data-col='octant']").get_attribute("aria-sort") == "ascending"
     assert page.locator("#systems-table .datatable-count-line").inner_text() == "65 systems match"
 
 
@@ -515,11 +516,11 @@ def test_the_systems_jump_box_begins_the_list_at_a_typed_name(page, table_site):
     assert parse_qs(urlparse(page.url).query) == {"systems_from": ["Drifting 100"]}
 
     # A sort with no box drops the start and hides the box; the name sort again begins at the top.
-    page.locator("#systems-table th[data-col='binary'] .datatable-sort").click()
-    page.locator("#systems-table th[data-col='binary'][aria-sort='ascending']").wait_for(state="attached")
+    page.locator("#systems-table th[data-col='octant'] .datatable-sort").click()
+    page.locator("#systems-table th[data-col='octant'][aria-sort='ascending']").wait_for(state="attached")
     page.locator("#systems-table .datatable-count-line", has_text="130 systems").wait_for(state="attached")
     assert not page.locator("#systems-table .datatable-jump").is_visible()
-    assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["binary"]}
+    assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["octant"]}
 
     # The address gives the same list on a reload, and the link beside the box goes back to the top.
     page.goto(f"{table_site}/systems?systems_from=Drifting+100", wait_until="load")

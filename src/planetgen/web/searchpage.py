@@ -370,7 +370,7 @@ SORT_KEYS = {"Habitability": "phi4", "Suitability": "suitability", "Microbes": "
 
 _PANEL_COLUMNS = {
     "sectors": ["Name", "Edge", "Galaxy Map"],
-    "systems": ["Name", "Sector", "Binary", "Star type", "Galaxy Map"],
+    "systems": ["Name", "Sector", "Stars", "Objects", "Habitable world", "Star type", "Galaxy Map"],
     "stars": ["Name", "Role", "Type", "Radius", "System", "Sector"],
     "planets": ["Name", "Class", "Body", "Radius", "Life Class", "Equipment", "Habitability", *SCORE_COLUMNS,
                 "System", "Sector"],
@@ -404,7 +404,8 @@ def _cells(panel, row):
         return [_link(row["name"], row["url"]), {"text": f"{format_number(row['edge_mpc'], ',.2f')} mpc"},
                 _show_on_map(row)]
     if panel == "systems":
-        return [_link(row["name"], row["url"]), _sector_link(row), {"text": "Yes" if row["is_binary"] else "No"},
+        return [_link(row["name"], row["url"]), _sector_link(row), {"text": str(row["star_count"])},
+                {"text": str(row["object_count"])}, {"text": "Yes" if row["has_habitable_world"] else "No"},
                 {"text": row["star_summary"]}, _show_on_map(row)]
     if panel == "stars":
         return [_link(row["name"], row["url"]), {"text": row["role"]}, {"text": row["star_type"]}, _radius(row),
