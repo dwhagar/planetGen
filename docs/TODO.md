@@ -15378,6 +15378,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   change. Owner: Aux 5. Version 8.1.
   Prerequisites: none. Related: TEST.403, PERF.188, GEN.935.
 
+- [ ] **PERF.210 Cut the cost of GEN.992: re-finish only the bodies whose result can change after the star age is final**
+  Aux 7 report (as the lane reported 11:12 PM EDT 2026-10-29). GEN.992
+  makes every rocky planet and moon again when it was made at an age
+  more than 2 percent younger than the final age; every re-run is a full
+  air solve, so system generation on a G2V takes 64 percent longer (12
+  systems: 28.8 s to 47.3 s, 232 bodies made again). Do: find which
+  bodies cannot change (for example an airless body, or one whose air,
+  class and field do not read the age) and skip them, reuse an unchanged
+  air solve, or cache what the re-run shares with the first pass; keep
+  every result identical to GEN.992 with the same seeds. Rides after
+  GEN.992 merges (it edits the same function). Owner: Aux 7. Version
+  8.1.
+  Prerequisites: GEN.992. Related: GEN.992, PERF.209.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
