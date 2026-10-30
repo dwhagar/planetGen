@@ -42,8 +42,8 @@ def test_phenomena_sort_by_type_breaks_ties_by_name(client, mysql_config):
     _seed(mysql_config)
     assert _names(client.get("/api/phenomena?sort=type")) == [
         "Alpha Cloud", "Zeta Cloud", "Beta Wanderer", "Gamma Wanderer"]
-    assert _names(client.get("/api/phenomena?sort=type&order=desc")) == [
-        "Beta Wanderer", "Gamma Wanderer", "Alpha Cloud", "Zeta Cloud"]
+    assert _names(client.get("/api/phenomena?sort=type&order=desc")) == [      # PERF.211: a tie follows the direction of the sort
+        "Gamma Wanderer", "Beta Wanderer", "Zeta Cloud", "Alpha Cloud"]
 
 
 def test_phenomena_filter_by_type_and_descriptor(client, mysql_config):

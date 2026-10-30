@@ -122,6 +122,33 @@ def _wide_scene(separation_au, eccentricity):
     return scene
 
 
+def eccentric_wide_scene():
+    """MAP.255: a wide pair on an eccentric, tilted orbit with the second star's planet, which `test_js_unit.py` also hands
+    to `static/orbitpositions.js`: the browser draws the pair on the stored ellipse and not on a circle."""
+    scene = _wide_scene(30.0, 0.6)
+    scene["tree"]["nodes"][0].update(inclination_deg=25.0, ascending_node_deg=70.0, arg_periapsis_deg=130.0, mean_anomaly_deg=40.0)
+    scene["planets"] = [{"ref": "planet:3", "orbit": state_orbit("star:2", 1.2, 1.4, 5.0, 20.0, 60.0, SCENE_EPOCH), "moons": []}]
+    scene["comets"] = []
+    return scene
+
+
+def triple_scene(epoch_unix=SCENE_EPOCH):
+    """MAP.255: an eccentric close pair about the centre of a third star on a wide orbit (`scene_epoch` None: the scene has
+    none, the tree's first node says where time zero is)."""
+    scene = sample_scene()
+    scene["epoch_unix"] = epoch_unix
+    scene["stars"].append({"ref": "star:3", "orbit": None})
+    inner, outer = scene["tree"]["nodes"][0], dict(scene["tree"]["nodes"][0])
+    inner.update(parent_node_no=1, slot=0, eccentricity=0.35, arg_periapsis_deg=75.0, mean_anomaly_deg=200.0)
+    outer.update(node_no=1, parent_node_no=None, slot=0, mass_solar=2.0, separation_km=40.0 * AU_KM, eccentricity=0.45,
+                 period_years=150.0, kind="wide", mean_anomaly_deg=310.0, inclination_deg=12.0, ascending_node_deg=95.0,
+                 arg_periapsis_deg=20.0, epoch_unix=SCENE_EPOCH - 7 * 86400.0)
+    scene["tree"]["nodes"].append(outer)
+    scene["tree"]["members"].append({"ref": "star:3", "member_no": 2, "parent_node_no": 1, "slot": 1, "mass_solar": 1.0})
+    scene["planets"], scene["comets"] = [], []
+    return scene
+
+
 def test_a_wide_pair_orbits_the_first_star():
     scene = _wide_scene(30.0, 0.0)
     p = positions_at(scene, 0.0)

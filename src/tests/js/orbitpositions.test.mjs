@@ -30,6 +30,37 @@ test("positionsAt matches the Python positions for every body at every time", ()
   }
 });
 
+test("positionsAt places the stars of a wide pair and of a triple where the tree's eccentric orbits put them (MAP.255)", () => {
+  for (const [name, { scene, cases }] of Object.entries(F.orbitPositions.trees)) {
+    for (const c of cases) {
+      const got = P.positionsAt(scene, c.years);
+      assert.deepEqual(Object.keys(got).sort(), Object.keys(c.positions).sort(), name);
+      for (const ref of Object.keys(c.positions)) {
+        c.positions[ref].forEach((expected, axis) => {
+          const tolerance = Math.max(1, Math.abs(expected) * 1e-9);
+          assert.ok(Math.abs(got[ref][axis] - expected) <= tolerance,
+            `${name}: ${ref} axis ${axis} at ${c.years} y: ${got[ref][axis]} vs ${expected}`);
+        });
+      }
+    }
+  }
+});
+
+test("a wide pair's second star is closest at periapsis and relative to the star it goes round (MAP.255)", () => {
+  const { scene } = F.orbitPositions.trees.wide;
+  const node = scene.tree.nodes[0];
+  const periodsToPeriapsis = -node.mean_anomaly_deg / 360 * node.period_years;
+  const at = P.relativeAt(scene, periodsToPeriapsis);
+  assert.equal(at["star:2"].around, "star:1");
+  assert.ok(Math.abs(Math.hypot(...at["star:2"].rel) - 30 * 0.4 * AU_KM) < 1e-6 * AU_KM);
+  const far = P.relativeAt(scene, periodsToPeriapsis + node.period_years / 2);
+  assert.ok(Math.abs(Math.hypot(...far["star:2"].rel) - 30 * 1.6 * AU_KM) < 1e-6 * AU_KM);
+});
+
+test("a scene with stars and no tree of orbits is refused (MAP.255)", () => {
+  assert.throws(() => P.relativeAt({ stars: [{ ref: "star:1", orbit: null }], planets: [], comets: [] }, 0), /no tree of orbits/);
+});
+
 test("wrappedTurnDeg matches kepler.wrapped_turn_deg, whole orbits dropped before the division", () => {
   for (const c of F.orbitPositions.turns) {
     assert.ok(Math.abs(P.wrappedTurnDeg(c.elapsed, c.period) - c.degrees) <= 1e-12 * 360,

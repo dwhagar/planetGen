@@ -22,6 +22,7 @@ process that started the run does it, between the queued stages. No registered c
 PERF.108 and PERF.121 to PERF.128 gave each its units), so every step of a run is a stage.
 """
 
+import importlib
 import json
 import logging
 import os
@@ -191,9 +192,67 @@ def _stage_clock(conn, run_id, marker):
     return clock
 
 
-RESOLVERS = {"stage-clock": _stage_clock}
-"""dict: Each deferred parameter's name to `resolver(conn, run_id, marker)`, which gives its value (or raises `Unresolved`). A
-command that needs a value worked out when its stage opens adds its resolver here."""
+def plan_detail(key, field):
+    """A deferred parameter (PERF.214): `field` of the summary stage `key` made of itself when it was cut (`commands.Expansion.plan`,
+    what a worker worked out when the stage opened), so a stage after it reads what the stage planned."""
+    return {DEFERRED: "plan-detail", "stage": key, "field": field}
+
+
+def _plan_field(conn, run_id, marker):
+    """The `marker["field"]` of the plan summary stage `marker["stage"]` recorded (`runrecord.set_stage_plan`)."""
+    declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
+    keys = [runrecord._s(item["key"]) for item in declared]
+    if marker["stage"] not in keys:
+        raise Unresolved(f"the run has no stage {marker['stage']!r} to read the plan of")
+    plan = runrecord.read_plan(conn, run_id, keys.index(marker["stage"]))
+    detail = (plan or {}).get("detail") or {}
+    if marker["field"] not in detail:
+        raise Unresolved(f"stage {marker['stage']!r} has not planned {marker['field']!r}")
+    return detail[marker["field"]]
+
+
+RESOLVERS = {"stage-clock": _stage_clock, "plan-detail": _plan_field,
+             "scatter-settings": "planetgen.generation.run_plan:resolve_scatter_settings"}
+"""dict: Each deferred parameter's name to `resolver(conn, run_id, marker)`, which gives its value (or raises `Unresolved`), or to
+`"module:function"` naming it, for a resolver in a module that imports this one. A command that needs a value worked out when its
+stage opens adds its resolver here. A marker that has `MERGE` set stands for several parameters at once: the resolver gives a dict
+and the stage's parameters take it (PERF.212)."""
+
+MERGE = "merge"
+"""str: The key of a deferred parameter whose value is a dict of parameters, which join the stage's (the marker's own name is then
+only a label)."""
+
+
+def deferred(name, merge=False, **fields):
+    """A deferred parameter (PERF.212): the resolver `name` of `RESOLVERS`, given `fields` (plain JSON) to work from. With `merge`
+    it stands for the dict of parameters the resolver gives."""
+    return {DEFERRED: name, **({MERGE: True} if merge else {}), **fields}
+
+
+def cached(conn, run_id, name, compute):
+    """
+    The value `compute()` gave the first time a stage of the run asked for `name`, kept in the run record (PERF.212). A value read from
+    the database when a stage opens would not be the same later: the stage may empty what it read (the scatter's own record), and a
+    resolver runs again at the stage's end and when a stopped run is carried on. The first stage to open computes it, before its
+    own `prepare`, and the later ones, the conclude hooks and `finish_run` take what was kept.
+    """
+    field = f"deferred:{name}"
+    kept = conn.hget(runrecord.run_key(run_id), field)
+    if kept is not None:
+        return json.loads(runrecord._s(kept))
+    value = compute()
+    conn.hsetnx(runrecord.run_key(run_id), field, json.dumps(value))
+    return json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), field)))
+
+
+def _resolver(name):
+    """The function that resolves deferred parameter `name`."""
+    found = RESOLVERS[name]
+    if isinstance(found, str):
+        module, function = found.split(":")
+        found = getattr(importlib.import_module(module), function)
+        RESOLVERS[name] = found
+    return found
 
 
 def resolve_params(conn, run_id, params, strict=True):
@@ -204,15 +263,21 @@ def resolve_params(conn, run_id, params, strict=True):
 
     Raises:
         Unresolved: A deferred parameter has no value and `strict` is true.
+        RuntimeError: A resolver refuses (and `strict` is true).
     """
     out = {}
     for name, value in params.items():
         if is_deferred(value):
             try:
-                value = RESOLVERS[value[DEFERRED]](conn, run_id, value)
-            except Unresolved:
+                found = _resolver(value[DEFERRED])(conn, run_id, value)
+            except (Unresolved, RuntimeError):      # a RuntimeError is a resolver's refusal (the galaxy has no skeleton, say)
                 if strict:
                     raise
+                found = value
+            if value.get(MERGE) and found is not value:
+                out.update(found)
+                continue
+            value = found
         out[name] = value
     return out
 

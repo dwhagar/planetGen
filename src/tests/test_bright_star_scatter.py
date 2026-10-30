@@ -1015,4 +1015,7 @@ def test_a_galaxy_run_scatters_the_stars_then_the_phenomena(mysql_config, monkey
         "start", "neighborhood", "link", "mass", "luminosity", "phenomena", "phenomena-index", "nebula-draw",
         "block-lights", "backfill", "population", "territories", "settle", "run-blocks"]
     by_key = {follower.key: follower for follower in followers}
-    assert by_key["mass"].params()["mass_limit_sol"] == 8.0 and by_key["phenomena"].params()["min_mass_solar"] == 8.0
+    # The limit is read when the stage opens (PERF.212): the followers carry what to read it from, which gives the limit it was given.
+    mass, phenomena = by_key["mass"].params()["settings"], by_key["phenomena"].params()["settings"]
+    assert run_plan._bright_star_settings(mass)["mass"]["mass_limit_sol"] == 8.0
+    assert run_plan._phenomena_settings(phenomena)["phenomena"]["min_mass_solar"] == 8.0

@@ -1940,3 +1940,18 @@ Baseline: PR #1817.
 | GEN.991 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.989 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.988 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.349 | 8.1 | Fly-through map |
+| PERF.211 | 8.1 | The headline closes |
+| PERF.214 | 8.1 | Queue, caches and performance |
+| MAP.255 | 8.1 | Multi-star and compact systems |
+| TEST.345 | 8.1 | Bugs and flaky tests |
+| TEST.471 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.217 | 8.1 | The headline closes |
+| TEST.474 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.190 | 8.1 | The headline closes |
+| PERF.209 | 8.1 | The headline closes |
+| TEST.473 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.212 | 8.1 | Queue, caches and performance |
+| GEN.1008 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1007 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1002 | 8.1 | Stand-in replacements |

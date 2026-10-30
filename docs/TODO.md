@@ -1061,6 +1061,21 @@ with `clamp()`.
   for the adaptation traits (waits on GEN.875/876)
   Prerequisites: none. Related: UX.221.
 
+- [ ] **UX.239 Search for star systems by how many stars they hold: single, binary, trinary, quaternary and more**
+  Boss (2026-10-30, 9:33 AM EDT): we need a way to search for star
+  groups, such as binary, trinary, quaternary and so on. Do: a
+  multiplicity filter (exactly N stars, or N or more, with named choices
+  Single, Binary, Trinary, Quaternary, Quintenary and beyond) in the
+  search page, Nearby, /api/search (parameter `stars`) and the command
+  line, plus a sort key and the count shown in each result row; it reads
+  the stored star count of the system, so it needs no new column unless
+  the count is not stored on the system row (then the owner adds it with
+  its unit entry). It rides the same engine as the physical-value
+  filters (UX.226, UX.227). Done: a browser test finds a known binary
+  and a known triple by the filter, the API and command line agree, and
+  the help text names every choice.
+  Prerequisites: UX.226. Related: UX.227, GEN.728, TEST.162.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -1909,27 +1924,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.315, GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
 
-- [ ] **MAP.255 The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug)**
-  Found by Blocker 2 (relayed 12:12 PM EDT 2026-10-22 as the lane's
-  clock reads, when GEN.311 and GEN.269 merged as #2481), filed by the
-  TODO thread. Python now places a star from the stored orbit tree
-  (`positions_at` reads the orbit nodes, a wide pair on its eccentric
-  orbit), but the browser twin `html/static/orbitpositions.js` still
-  draws a wide pair as a circle, so the browser and Python disagree.
-  Fails on main: yes, in the browser only. Do: move `orbitpositions.js`
-  onto the tree the scene now carries (`tree` in the scene payload),
-  with the eccentric orbit, so it places every star the way
-  `positions_at` does; MAP.213 builds the full JavaScript twin for
-  trees, so this item is the narrow fix that item's owner can take first
-  or fold in. Done: the Python and JavaScript positions of a wide pair
-  agree in `tests/test_js_unit.py` at several phases, and the system map
-  shows the pair on its ellipse. Owner: none (the coordinator assigns;
-  MAP.213's owner is the natural one).
-  Owner: Core 3 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: MAP.213, MAP.253, GEN.311.
-
 - [ ] **MAP.257 Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug)**
   Boss's live observation (relayed 5:27 PM EDT 2026-10-23, typed in the
   project chat): infinite zoom is still really clunky. Boss asks to get
@@ -2257,22 +2251,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test zooms from a system to a moon and to the surface scale without
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
-
-- [ ] **MAP.349 Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place) **
-  Left unbuilt by MAP.336 (zoom redesign Z3, #3778, as Core 2 reported
-  7:11 PM EDT 2026-10-29) and approved by Boss (7:22 PM EDT): every line
-  in the Galaxy Map panels and the info popup that names a container or
-  a place (the region, its parent family, each listed system or sector)
-  has its own Go to button, using the same Go to as the find box, the
-  crumbs and the results list. Done: a browser test clicks the Go to on
-  a region line, a parent line and a listed place and the camera lands
-  on each. Owner: Core 2 (with the info popup redesign). Version 8.1.
-  Core 2 (MAP.347 merged #3940) (2026-10-30 4:00 AM EDT): Go to on the
-  region and parent lines now lives inside the Expand part of the popup;
-  Start Here and End Here also moved behind Expand (one extra click the
-  first time). Boss to say if the region and parent Go to lines should
-  be in the first view instead
-  Prerequisites: none. Related: MAP.336.
 
 ## NAV: Navigation and courses
 
@@ -13400,30 +13378,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wiring. Owner: Sources 2. Version 8.1.
   Prerequisites: GEN.477. Related: GEN.477, GEN.566, GEN.725.
 
-- [ ] **GEN.1002 Registered table rows that rest on a Solar System body are flagged stand-in with a replacement item, or re-sourced**
-  Reported by Aux 3 (as the lane reported, 5:05 AM EDT 2026-10-30) when
-  merging TEST.215 (#3954): a new test scans every registered row's
-  source and limit for a Solar System body and requires it to be a
-  flagged stand-in with a replacement item, listed pending, or reviewed
-  as not resting on a body (reasons in
-  tests/data/solar_system_rows.json). These rows rest on a body and are
-  not flagged: atmosphere-k k7 (single comet 67P species), atmosphere-a
-  a1 and a2 (tuned to Moon, Mars and Earth anchors, GEN.482),
-  atmosphere-b b1 (dry carbon tuned to bulk silicate Earth, GEN.813),
-  surface-ground-types ultramafic, anorthositic, basaltic, felsic and
-  oxidised (Hu 2012 Earth and Moon crust library; GEN.474 rock_types
-  replaces them once wired). Do: for each row either flag it a stand-in
-  in GEN.725 with tier, tweak level and the replacement item, or
-  re-source it from a physics value; move the test's pending list down
-  as rows are done. Flagging changes table state, which is in the table
-  digest, so the change rides a merge train (renumbers migration/epoch
-  as the runbook says). Done: no row in the pending list of the Solar
-  System test; GEN.725 rows carry the replacement items. Related:
-  TEST.215, GEN.725, GEN.482, GEN.813, GEN.474. Owner: Aux 3 (proposed),
-  after GEN.474 wiring where a row waits on it.
-  Prerequisites: none. Related: TEST.215, GEN.725, GEN.482, GEN.813,
-  GEN.474.
-
 - [ ] **GEN.1003 The gas equilibrium solver can stall with no convergence on a hot hydrogen-oxygen mixture (EquilibriumError at 725.97 K and 1.0 bar) (bug)**
   Reported by Tides 1 (as the lane reported, 5:55 AM EDT 2026-10-30):
   tests/test_orbit_elements.py::test_every_generated_orbit_is_the_ellipse_it_was_drawn_on
@@ -13446,6 +13400,283 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.957. Owner: Air 1 (proposed, it owns the surface air solve);
   before train 5.
   Prerequisites: none. Related: GEN.850, GEN.851, TEST.463, GEN.957.
+
+- [ ] **GEN.1004 A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug)**
+  Boss (2026-10-30, 9:33 AM EDT, live observation): found a three-star
+  system on the maps but could never find the third star; he thinks it
+  may have had an orbit or position inside one of the other stars, and
+  is not sure. Do: find which system it is (ask Boss, or scan every
+  stored triple for a member whose orbit lies inside a sibling star's
+  radius or whose position is not placed), then fix the cause in the
+  orbit tree draw (the stable range of an inner companion against its
+  parent's radius), the placement, or the map and system page, as it
+  turns out. The coordinator started a research thread on it. Done: a
+  test over generated triples and deeper trees finds no star inside
+  another star's radius and no star missing from the system page, the
+  system map and the 3D view; the fix says which of the three it was.
+  Owner: first free lane after the research thread reports.
+  Core 3 (as the lane reported) (2026-10-30 9:52 AM EDT): Before MAP.255
+  (#4015) the browser put any star without a stored pair orbit, a
+  triple's third star included, at the barycenter on top of the other
+  stars (orbitpositions.js returned [0,0,0]); MAP.255 fixes that in the
+  3D view and MAP.213 slice A also draws each node's orbit. The Python
+  and System Map SVG side is MAP.213 slice B and is not yet checked.
+  This may be the whole cause; confirm with Boss on a rebuilt map before
+  closing.
+  Investigation thread (relayed by the coordinator, PR #4026, branch
+  claude/project-thread-xhsx5n) (2026-10-30 9:54 AM EDT): Cause found in
+  the generator: a drawn star tree is rebuilt from each member's birth
+  mass and the system age, and a member the tree had evolved (for
+  example a white dwarf of a post-common-envelope pair, born 1.38 Msun
+  at 4.39 Gy) is rebuilt as a still-living giant of 0.033 AU radius
+  while its orbit with its partner is 0.0088 AU, so the partner or a
+  third star sits inside it. Seen in about 1 of 150 forced triples and 1
+  of 50 forced quadruples. Fix: multistar.built_tree_clears runs the
+  Roche and extent screen on the built radii and masses and the draw
+  loop redraws a tree that fails. Changes what rare seeds generate:
+  needs an epoch (--affects fill) and a golden refresh, so it rides
+  train 4; do not merge before. The browser-side barycenter fault
+  (MAP.255) was a second, separate cause for stars with no stored pair
+  orbit.
+  TODO thread (10:58 AM EDT) (2026-10-30 10:57 AM EDT): Replaced by
+  GEN.1006 P9 when that part is scheduled; until then the quick fix
+  (#4026) stays.
+  Prerequisites: TEST.162. Related: TEST.162, GEN.728, MAP.255.
+
+- [ ] **GEN.1005 Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover)**
+  Found by Aux 3 while building GEN.1002 (relayed 9:48 AM EDT 2026-10-30
+  as the lane reported). Four registry rows still rest on the Solar
+  System: (1) atmosphere-a a1 and a2, the magma-ocean and later-mantle
+  oxygen fugacity, a mean and width tuned to Moon, Mars and Earth
+  anchors: replace with a Fe3+/Fe2+ and mantle-mass model; (2)
+  atmosphere-b b1, the dry-delivery carbon, a log bracket tuned to the
+  bulk silicate Earth's 100 ppm: replace with the accreted-material
+  budget (chondrite groups, with the GEN.595 belt and comet side); (3)
+  atmosphere-k k7, the N2, O2, OCS, SO2, Ar, Kr and Xe of comets:
+  replace with more than one comet (67P, Rubin 2019) or ice trapping at
+  the formation temperature. Each replacement is a registered stand-in
+  in GEN.725 (section 6.54 of gap-filling-plan.md as Aux 3 numbers it;
+  allocate_numbers renumbers) with its tier and tweak level, so a later
+  study can swap it. Secondary sources are accepted. Done: the three
+  rows are replaced or re-sourced and registered, the test that ties the
+  rows to the table passes, and no Solar System planet or comet is a
+  fixed input. Two steps: the model and rows (lock-free) and the digest
+  flip that rides a train. Owner: Aux 3 (after GEN.1002).
+  Prerequisites: GEN.474. Related: GEN.1002, GEN.474, GEN.595, GEN.725.
+
+- [ ] **GEN.1006 Stars and bodies in one system never overlap by design: every member knows the others when any is rebuilt, then fit and adjust afterwards**
+  Boss (2026-10-30, 10:51 AM EDT): merge the quick fix for the missing
+  third star (GEN.1004, PR #4026, train 4) but build the deeper, more
+  robust fix as its own item. For a multi-star system, all the star
+  objects need to be aware of the rebuilding of the others, so that in
+  theory any number of stars or objects in one system never overlap by
+  design, and any fitting and adjusting happens afterwards. Do: the
+  design thread researches the most scientifically robust way (build
+  each member's final radius, mass and evolved state before its orbit is
+  placed, so the orbit tree and the physical sizes come from one source
+  of truth; or place by Hill and Roche stability limits computed from
+  the built bodies; or a constraint pass over the whole tree) and writes
+  the design note with its sources and its stand-in tiers (GEN.725);
+  then the lane builds it in small parts. The quick fix of GEN.1004
+  (multistar.built_tree_clears and the redraw loop) is replaced by it,
+  no shim. Done: for every generated system of any star count, no star,
+  planet, moon or belt overlaps another by construction, shown by a test
+  over many seeds with forced triples, quadruples and deeper trees, and
+  the redraw count of TEST.476 falls to a small stated rate. Owner: the
+  GEN.1004 investigation thread for the design, then Star 2 or the first
+  free lane for the build. The build changes output, so it rides a
+  train.
+  Investigation thread design (relayed 10:54 AM EDT as the coordinator
+  reported) (2026-10-30 10:54 AM EDT): Report
+  /mnt/project-files/reports/multistar-overlap-free-design-2026-10-30.md
+  names three causes (the tree evolves companions at [Fe/H] 0: GEN.1007;
+  a giant's radius drawn twice: GEN.1008; pairs drawn at the Roche edge)
+  and the design: build every Star first from its own seed, mass, age
+  and the system [Fe/H], place orbits last from the built radii, model
+  interactions as replacement objects, count any dropped member. Order:
+  GEN.1007, GEN.1008, then this item (invert the build order, steps 1 to
+  3), with TEST.476 as the gate of each; each part changes output and
+  needs an epoch (--affects fill) and golden on a train. Boss has also
+  started a broader research thread (Research overlap-free multi-star
+  system design) whose fuller design doc updates this item when it
+  lands.
+  Design thread (relayed 10:56 AM EDT as the lane reported) (2026-10-30
+  10:58 AM EDT): Design is
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md:
+  evolve each star once into a frozen record that the tree, build and
+  planets all read, draw orbits by truncated sampling (no redraw loops),
+  a general history rule, a clearance ledger for planets, moons and
+  belts, and an independent verifier. It is built as GEN.1009 (P3) to
+  GEN.1016 (P10), after TEST.476 (counters and baseline, lock-free,
+  first) and TEST.477 (the verifier, lock-free). P9 (GEN.1015) deletes
+  the GEN.1004 quick fix, no shim. TEST.476 gets two gate kinds:
+  ceilings for the loops that remain, and an exact-zero invariant for
+  overlap redraws. Stand-in rows of section 7 are registered by the
+  parts that add them (GEN.725 tier and tweak level; literature
+  recalled, not opened, so below Verified). Done: the overlap redraw
+  count is zero and every remaining redraw kind has a registered
+  ceiling. Owner: Star 2 or the first free lane.
+  Revised design (relayed 11:14 AM EDT as the lane reported) (2026-10-30
+  11:15 AM EDT): Revised design:
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md.
+  New: P0 GEN.1017 (pass the primary's [Fe/H] into the tree, cuts
+  first-draw redraws about 60 to 70 percent, first output-changing
+  part); research part GEN.1018 (3+1 quadruple criterion, source
+  verification); Holman and Wiegert coefficients in the repo verified
+  against the paper (fit range mu 0.1 to 0.9, e to 0.8); the moon code
+  lacks the Domingos eccentricity terms and the retrograde limit
+  (carried in GEN.1014); the repo white-dwarf engulfment constants sit
+  below Mustill and Villaver 2012 (GEN.725 row in GEN.1012). GEN.1007
+  and GEN.1008 stay dropped, P0 replaces the first.
+  Prerequisites: TEST.476, TEST.477, GEN.1017, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016.
+
+- [ ] **GEN.1009 Overlap-free stars P3: evolve each star once into a frozen MemberRecord that the tree, the build and the planets all read (replaces GEN.1007 and GEN.1008)**
+  Add `MemberRecord` and `Star.from_record`; the tree and the build read
+  the record, so class, mass and radius (with a giant's branch position
+  and [Fe/H]) come from one evolution; schema adds radius_max_au and
+  mass_max_solar; a radius-equality test replaces MASS_TOLERANCE as the
+  guard. Done: tree radius equals built radius for every member over the
+  TEST.476 sample. Design:
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  (section 4 and 10; sources recalled, not opened, so registry rows stay
+  below Verified until a lane checks them). Changes generated output:
+  --affects star and planet suites, epoch, golden and census re-tag on a
+  merge train. No shim.
+  Prerequisites: TEST.476, TEST.477. Related: GEN.1006, GEN.1004,
+  TEST.476.
+
+- [ ] **GEN.1010 Overlap-free stars P4: one keep-out rule at every depth of the star tree, replacing the Roche-or-extent split**
+  One keep-out rule (Roche filling for two singles, the extent rule
+  above) at every depth, with the per-level stability margin as a
+  registered stand-in (GEN.725, tier and tweak level). Done: the same
+  rule is used by the tree, the build and the verifier. Design:
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  (section 4 and 10; sources recalled, not opened, so registry rows stay
+  below Verified until a lane checks them). Changes generated output:
+  --affects star and planet suites, epoch, golden and census re-tag on a
+  merge train. No shim.
+  Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
+
+- [ ] **GEN.1011 Overlap-free stars P5: truncated sampling of period and eccentricity, deleting the 60-try loop and the tree restart loop**
+  Draw each pair's period and eccentricity from the allowed range by
+  truncated sampling instead of retrying; the shape step reports "no
+  allowed range" when there is none, and the only legal star redraw is
+  that reason. Done: TEST.476's overlap-redraw count is exactly zero.
+  Design:
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  (section 4 and 10; sources recalled, not opened, so registry rows stay
+  below Verified until a lane checks them). Changes generated output:
+  --affects star and planet suites, epoch, golden and census re-tag on a
+  merge train. No shim.
+  Prerequisites: GEN.1009, GEN.1010. Related: GEN.1006, GEN.1004,
+  TEST.476.
+
+- [ ] **GEN.1012 Overlap-free stars P6: a general history rule replacing the white-dwarf-only engulfment test in classify_pair**
+  A history rule for pairs that interact as a member evolves (common
+  envelope, mass transfer, mergers, stripping), taking the built objects
+  of a node and returning replacement objects, with the engulfment
+  factor as a registered stand-in (checked against Mustill and Villaver
+  2012 when a lane can open it). Done: a post-common-envelope pair keeps
+  a consistent class and radius after the rule. Design:
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  (section 4 and 10; sources recalled, not opened, so registry rows stay
+  below Verified until a lane checks them). Changes generated output:
+  --affects star and planet suites, epoch, golden and census re-tag on a
+  merge train. No shim.
+  Revised design (11:14 AM EDT) (2026-10-30 11:15 AM EDT): The repo
+  white-dwarf engulfment constants sit below Mustill and Villaver 2012;
+  register the corrected values as a GEN.725 row with tier and tweak
+  level.
+  Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
+
+- [ ] **GEN.1013 Overlap-free stars P7: keep compact members and brown dwarfs in the tree for the orbit draw**
+  Neutron stars, black holes and brown dwarfs as nodes in the tree for
+  the orbit draw (design 4.4), pending the code check of whether a
+  system build can carry a non-Star member. Done: no orbit is drawn
+  without regard to a compact member of the same system. Design:
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  (section 4 and 10; sources recalled, not opened, so registry rows stay
+  below Verified until a lane checks them). Changes generated output:
+  --affects star and planet suites, epoch, golden and census re-tag on a
+  merge train. No shim.
+  Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
+
+- [ ] **GEN.1014 Overlap-free stars P8: a clearance ledger and planet, moon and belt sampling from it**
+  A derived clearance ledger (not stored) of every star's keep-out and
+  every body's Hill and mutual-Hill extent, and sampling of planets,
+  moons and belts from it, replacing _orbit_floor_au, the per-star
+  a_crit and the min_orbit_distance reads. Moon Hill fractions 0.49 and
+  0.93 are registered stand-ins (check Domingos 2006). Done: the
+  verifier finds no planet, moon or belt overlap. Design:
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  (section 4 and 10; sources recalled, not opened, so registry rows stay
+  below Verified until a lane checks them). Changes generated output:
+  --affects star and planet suites, epoch, golden and census re-tag on a
+  merge train. No shim.
+  Prerequisites: GEN.1009, GEN.1011. Related: GEN.1006, GEN.1004,
+  TEST.476.
+  Revised design (11:14 AM EDT) (2026-10-30 11:15 AM EDT): The moon code
+  lacks the Domingos et al. 2006 eccentricity terms and the retrograde
+  stability limit; the ledger part adds them (stand-in tier until the
+  paper is read by the research part).
+
+- [ ] **GEN.1015 Overlap-free stars P9: delete the GEN.1004 quick fix (built_tree_clears, the clearance branch of _companions_fit, _built_stars_clear), no shim**
+  Remove the quick fix once the construction guarantees clearance; set
+  TEST.476's overlap invariant to zero. Done: the three names are gone
+  and the invariant test passes. Design:
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  (section 4 and 10; sources recalled, not opened, so registry rows stay
+  below Verified until a lane checks them). Changes generated output:
+  --affects star and planet suites, epoch, golden and census re-tag on a
+  merge train. No shim.
+  Prerequisites: GEN.1011, GEN.1014. Related: GEN.1006, GEN.1004,
+  TEST.476.
+
+- [ ] **GEN.1016 Overlap-free stars P10: per-level hierarchical stability margin and the 2+2 quadruple fit, if the verifier shows it is needed**
+  Hierarchical stability for more than three bodies (design section 5):
+  a per-level margin (registered stand-in) and a 2+2 quadruple fit;
+  build only if the TEST.477 verifier shows disruption in the sweep.
+  Optional N-body audit (REBOUND) is a one-off script outside the repo
+  gate. Done: the verifier reports no unstable hierarchy at the chosen
+  margin. Design:
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  (section 4 and 10; sources recalled, not opened, so registry rows stay
+  below Verified until a lane checks them). Changes generated output:
+  --affects star and planet suites, epoch, golden and census re-tag on a
+  merge train. No shim.
+  Prerequisites: TEST.477, GEN.1011. Related: GEN.1006, GEN.1004,
+  TEST.476.
+
+- [ ] **GEN.1017 Overlap-free stars P0: give the star tree the primary's [Fe/H] (and the build's age and mass) so the tree and the build evolve each companion the same way (replaces the dropped GEN.1007)**
+  Root cause found by running it (GEN.1006 revised design,
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  section 10 P0): StarSystem._drawn_plan does not pass the primary's
+  [Fe/H] to multistar.Placed, so the tree evolves companions at [Fe/H] 0
+  while the build uses the primary's. Passing fe_h cuts first-draw
+  redraws by about 60 to 70 percent. Do: pass fe_h, and the same age and
+  mass the build uses; remove or record the lighten and draw_age_yr
+  differences. Done: tree and build classes agree over the TEST.476
+  sample. Changes generated output: --affects fill, epoch, golden and
+  census re-tag on a merge train. First output-changing part of
+  GEN.1006; it can go before P3. Owner: Bug 1 (star lane) after GEN.951.
+  Prerequisites: none. Related: GEN.1006, GEN.1004, GEN.1009, TEST.476.
+
+- [ ] **GEN.1018 Overlap-free stars research part: port a 3+1 quadruple stability criterion and verify the sources from the papers (GEN.1006)**
+  Free research part of GEN.1006
+  (/mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  sections 7, 12 and 13). The nested-triple stability test over-predicts
+  stable 3+1 quadruples (Vynatheya, Mardling and Hamers 2023, read):
+  read the 2023 quadruple models and decide how to port a 3+1 criterion
+  without a machine-learning dependency. Verify from the papers (a lane
+  with access, second-hand rule otherwise): Domingos 2006 (moon Hill
+  fractions, eccentricity terms, retrograde limit), Eggleton 1983,
+  Mardling and Aarseth 2001, Eggleton and Kiseleva 1995 and Chambers
+  1996. Done: a report with the criterion, the checked constants and
+  their GEN.725 tier and tweak rows (the engulfment constants that sit
+  below Mustill and Villaver 2012, the 3+1 margin), and the sources
+  marked Verified or kept below it. No generator change. Owner: Sources
+  1 or Sources 2 (data lanes) or the first free lane.
+  Prerequisites: none. Related: GEN.1006, GEN.725, GEN.1012, GEN.1014.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -13757,27 +13988,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   otherwise).
   Prerequisites: none. Related: TEST.344, GEN.394.
 
-- [ ] **PERF.190 Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates**
-  After the progress output of the block light rebuild exists, measure
-  how long the two phases take (the shell scan and the unit sums) on a
-  New galaxy with the scatter on (commands in
-  /mnt/project-files/reports/phenomena-stall-2026-10-24.md). If the scan
-  dominates, give bright_stars and phenomenon_scatter an index that lets
-  the shell scan and the shell sums run from the index alone, or build
-  the distinct shell list from the plan's own outline (the extents
-  scatter_phenomena already holds) instead of a DISTINCT scan of the
-  tables. Record the before and after times in the item. The progress
-  output exists (PERF.189), so the log lines show where the time goes.
-  Owner: Aux 16 (Performance).
-  OWNER Aux 5 (assigned 6:43 AM EDT 2026-10-30 by TODO as the lane's one
-  lock-free item; replaces the retired Aux 16 line; separate branch)
-  (2026-10-30 6:43 AM EDT): Measure first and record before and after
-  times. A speed-up that builds the shell list from the plan outline in
-  code is lock-free. An index on bright_stars or phenomenon_scatter
-  needs a migration, so stop and tell TODO before adding one: it rides a
-  train.
-  Prerequisites: none. Related: MAP.259.
-
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
   Unused stored values audit (the "Find stored values nothing uses"
   thread, report reports/unused-stored-values-audit-2026-10-24.md,
@@ -13914,18 +14124,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.149.
   Prerequisites: none. Related: PERF.149.
 
-- [ ] **PERF.209 The generator battery digest costs about 30 s in every test process (its docstring says 3 to 5 s); the bright-star table build alone is 18 s**
-  Found by Aux 5 while building TEST.403 (as the lane reported 10:36 PM
-  EDT 2026-10-29): the generator battery digest costs about 30 s at the
-  start of every test process; its docstring says 3 to 5 s; the
-  bright-star scatter case alone takes 18 s
-  (star_population._bright_table). GEN.935 also makes the bright-star
-  tables slower (about 4 s against 1 s for the reference table, Star 1's
-  PR #3842). Do: profile it, cache the table across processes (or build
-  it once per test session), and keep the digest identical. No output
-  change. Owner: Aux 5. Version 8.1.
-  Prerequisites: none. Related: TEST.403, PERF.188, GEN.935.
-
 - [ ] **PERF.210 Cut the cost of GEN.992: re-finish only the bodies whose result can change after the star age is final**
   Aux 7 report (as the lane reported 11:12 PM EDT 2026-10-29). GEN.992
   makes every rocky planet and moon again when it was made at an age
@@ -13939,81 +14137,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.992 merges (it edits the same function). Owner: Aux 7. Version
   8.1.
   Prerequisites: GEN.992. Related: GEN.992, PERF.209.
-
-- [ ] **PERF.211 Phenomena and species list sorts that still sort the whole set per page: phenomena by type, descriptor, radius, sector and placed; species by homeworld and by system**
-  Core 5 (as the lane reported, 2:18 AM EDT 2026-10-30), after PERF.205
-  (#3909 species half, #3916 built phenomena half): the Phenomena list
-  sorted by name pages by key and is fast, but the type, descriptor,
-  radius, sector and placed sorts still sort the whole union of the
-  eight phenomenon tables on every page (no index serves them), and
-  Species sorted by homeworld or by system still sorts every species
-  because the names live in other tables. Do: for each sort, either add
-  a key (a stored sort column or an index per table with a merge across
-  the tables) or state in the interface why it stays slow; measure at
-  8,000,000 built phenomena and 1,000,000 species. Done: every sort on
-  the Phenomena and Species lists answers a page in under 100 ms at
-  those sizes, or the exception is stated on this item with the measure.
-  No generated value changes; indexes and keyset paging only. Size M.
-  Owner: Core 5 when its queue ends.
-  Core 5 audit list (PERF.208 and PERF.215 merged #3949) (2026-10-30
-  4:44 AM EDT): remaining slow spots: species by homeworld and system
-  sorts, phenomena by type, descriptor, radius, sector and placed, the
-  systems and sectors CLI subcommands, and a deep offset-form sectors
-  page (1 to 3 s; the table uses keys). PERF.215 closed without the
-  planets index: MySQL cannot serve a two-table ORDER BY from a join
-  index, so unfiltered planets and moons walk the systems by name in
-  chunks of up to 1000 (6M planets, first page 48 s to 20 ms)
-  Prerequisites: none. Related: PERF.206, PERF.210.
-
-- [ ] **PERF.212 The bright-star, phenomena and shell scatters take their params when their stage opens, not when the run is built**
-  bright_star_followers needs the skeleton and the stored mass limit and
-  settings, so plan then scatter in one run cannot build the scatter
-  followers up front. Found by Aux 2 (as the lane reported, 2:47 AM EDT
-  2026-10-30) while planning PERF.203 step 2: a Follower's params must
-  be complete before the run starts, but several verbs read the database
-  when their followers are BUILT, so the whole page job cannot be one
-  run until each computes its params when its stage opens (in its
-  command's expand or prepare, in a worker). No behaviour or
-  stored-output change, no epoch. Lock-free. Do: move the params into
-  the scatter command's expand or prepare hook; test that planning then
-  scattering in one planned run gives the same stored output as today.
-  Size M. Owner: Aux 2.
-  Update (Core 3, PERF.213 #3985) (2026-10-30 6:39 AM EDT): The hook is
-  in: a deferred step parameter the wrapper resolves when a stage opens,
-  plus a small registry for the stage-open parameters. Aux 2 extends
-  that registry for the bright-star, phenomena and shell scatters; no
-  stored value changes.
-  Prerequisites: PERF.203. Related: PERF.203, PERF.213, PERF.214.
-
-- [ ] **PERF.214 The sectors planner (_plan_sectors) runs in a worker inside the run, not in the starting process**
-  The sectors planner runs in the process that starts the run, so the
-  plan is fixed before the run exists. Found by Aux 2 (as the lane
-  reported, 2:47 AM EDT 2026-10-30) while planning PERF.203 step 2: a
-  Follower's params must be complete before the run starts, but several
-  verbs read the database when their followers are BUILT, so the whole
-  page job cannot be one run until each computes its params when its
-  stage opens (in its command's expand or prepare, in a worker). No
-  behaviour or stored-output change, no epoch. Lock-free. Do: run the
-  planner when the sectors stage opens and let the stages after it read
-  its result; test the same plan and stored output. Size M. Owner: pool
-  (a waiting lane, confirmed with TODO).
-  Owner (2026-10-30 2:54 AM EDT): Core 3 takes this after PERF.213
-  (TODO); lock-free, no stored-output change
-  Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
-
-- [ ] **PERF.217 The near list (near._systems_in_reach) reads the full row of every system in reach: list ids by the covering index and read names for the page only**
-  Reported by Aux 3 (as the lane reported, 7:17 AM EDT 2026-10-30) after
-  PERF.216 (#3992): near._systems_in_reach selects name and sector_id,
-  which are not in the covering index, so a 50 pc list reads the
-  clustered row of all 62,000 systems (1,170 ms against 360 ms for ids
-  only in the lane's profile). Do: list the ids through the covering
-  index with the distance, order and cap, then read names and sector ids
-  for the page only; keep the result and its order identical (a test
-  compares the old and new lists on the same data). Done: the 50 pc list
-  is within about the id-only time with an identical result. Related:
-  PERF.216, NAV.60. Owner: Aux 3 (assigned 7:18 AM EDT 2026-10-30; no
-  stored value).
-  Prerequisites: none. Related: PERF.216, NAV.60.
 
 ## DB: Database and schema
 
@@ -17670,18 +17793,6 @@ clears each one.
   phase on a loaded full run (the Done line).
   Prerequisites: none. Related: TEST.229, TEST.126, TEST.190.
 
-- [ ] **TEST.345 test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree fails on main on a lane machine (bug)**
-  Reported by Core 5 from its PERF.99 gate (#3030, 2:30 PM EDT
-  2026-10-24 as the lane reported): this test fails on main and not
-  because of PERF.99. TODO could not reproduce it (the test skips
-  without the database here). Kind: failing test on main. Likely related
-  to GEN.710 (a pre-placed row with a stored tree can have a member
-  heavier than the primary), which Core 3 is working. Do: reproduce on
-  main with the database, capture the failure text, and either fix it
-  with GEN.710 or file the cause. Done: the test passes on main. Owner:
-  Core 3 (it owns the stored-tree fill).
-  Prerequisites: none. Related: GEN.710.
-
 - [ ] **TEST.346 web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Core 3 and Core 5 but pass for Bug Hunt (bug)**
   Reported by Core 3 (1:50 PM EDT 2026-10-24, "link contrast and nested
   summary") and Core 5 (2:30 PM EDT, four variants), both as red on
@@ -18343,18 +18454,6 @@ clears each one.
   GEN.1003, GEN.957. Owner: Bug 2 (proposed), after TEST.417.
   Prerequisites: none. Related: TEST.463, GEN.1003, GEN.957.
 
-- [ ] **TEST.471 tests/test_near.py::test_the_command_line_asks_for_the_nearest_few fails: argparse exits with code 2 so the pytest.raises(SystemExit, match="--distance") never sees the text (bug)**
-  Reported by Aux 3 (as the lane reported, 7:17 AM EDT 2026-10-30), red
-  on main: the test fails at the pytest.raises(SystemExit,
-  match='--distance') line because argparse exits with code 2 and the
-  exception message is '2', so the match never sees the text. The same
-  kind of fix as TEST.465 (query_db exit code). Do: assert the exit code
-  and read the message from the captured stderr (capsys) instead of
-  matching the exception text. Done: the test passes and still fails if
-  the --distance error is lost. Related: TEST.465, PERF.217. Owner: Aux
-  3 (assigned 7:18 AM EDT 2026-10-30).
-  Prerequisites: none. Related: TEST.465, PERF.217.
-
 - [ ] **TEST.472 Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug)**
   Reported by Bug 2 (as the lane reported, 7:36 AM EDT 2026-10-30),
   checked on a worktree of origin/main after train 3 with ozone_uv
@@ -18376,6 +18475,63 @@ clears each one.
   TEST.463, TEST.468, TEST.469, TEST.470. Owner: Bug 2 (proposed), after
   TEST.417.
   Prerequisites: none. Related: TEST.463, TEST.468, TEST.469, TEST.470.
+
+- [ ] **TEST.475 tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug)**
+  Found by Aux 3 (relayed 9:46 AM EDT 2026-10-30 as the lane reported,
+  while landing PERF.217): the nav section, unknown place 404, crowded
+  sphere and page walk tests of test_web_nearby.py error in fixture
+  setup with the 900 s timeout on a loaded lane machine, not on an
+  assertion; the function-scoped client fixture generates two sectors
+  per test (over 15 minutes there). Not checked on main. Do: build the
+  sample galaxy once per module (module-scoped fixture, read only in the
+  tests that do not write), keeping the tests independent; run the file
+  once on a fast machine. Done: all 8 tests pass in a few minutes on a
+  lane machine. Owner: Aux 3 when free, or Bug 2 in the train gate.
+  Prerequisites: none. Related: PERF.217, TEST.417.
+
+- [ ] **TEST.476 A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts**
+  Boss (2026-10-30, 10:51 AM EDT): a test that measures how often we
+  redraw or regenerate items to make them fit. Do: count every redraw (a
+  star tree redrawn by the GEN.1004 clearance check, a planet or moon
+  orbit redrawn for spacing or Hill stability, a disk or belt redrawn, a
+  member redrawn for a hydrogen limit and so on) in the generator's draw
+  loops by kind and by star count, over a seeded sample (forced triples,
+  quadruples, ordinary systems), and report the rates; the test pins
+  each rate to a registered ceiling so a change that suddenly redraws
+  more is caught, and the report goes in the census output (TEST.430).
+  Count the redraws through the one random wrapper (draw.py) or a
+  counter beside each retry loop, not a second seeded stream, so the
+  counts do not change what is generated. Done: the report lists every
+  retry loop with its rate, the ceilings are registered with a tier, and
+  the test fails when a rate doubles. Owner: Bug 2 (census) or the first
+  free lane; lock-free (a counter only, no output change).
+  Design thread (10:56 AM EDT) (2026-10-30 10:57 AM EDT): Two gate
+  kinds: ceilings for loops that legitimately remain (Kozai reject,
+  shape fail, no room for a planet), pinned to a registered value with a
+  tier, failing when a rate doubles; and an exact-zero invariant for the
+  overlap redraw, which the build parts must reach. Report rate by kind,
+  star count (1, 2, 3, 4, 5+) and placed-star class with a binomial
+  interval over a seeded sample that includes forced triples and
+  quadruples. It goes first, before any output change, on today's code,
+  for the baseline the Done clause of GEN.1006 is measured against.
+  Revised design (11:14 AM EDT) (2026-10-30 11:15 AM EDT): Baseline
+  first-draw failures with the quick fix, per 2,500 forced systems: 3
+  stars 24, 4 stars 17, 5 stars 50, 6 stars 95 (research thread
+  measurement); the test reproduces these numbers as its baseline and
+  then pins ceilings.
+  Prerequisites: none. Related: GEN.1004, TEST.430, TEST.162.
+
+- [ ] **TEST.477 The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2)**
+  Independent check that no star, planet, moon or belt of a generated
+  system overlaps another, reading only stored geometry (radii, orbits,
+  Roche and Hill extents), not the generator's own screens. Run it
+  against today's code with the known failures listed as expected-fail
+  with their seeds (the GEN.1004 cases should already pass). Design:
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  section 10 P2. Done: the sweep over many seeds with STARS=3 and
+  STARS=4 forced runs and reports the failures by class. Lock-free (a
+  test and a module, no output change). Owner: Bug 2 or any free lane.
+  Prerequisites: none. Related: GEN.1006, GEN.1004, TEST.476.
 
 ## USR: User accounts
 
