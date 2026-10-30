@@ -49,9 +49,8 @@ _PLANET = {
 """dict: A planet's column key -> its source line (a moon's inclination has no line written)."""
 
 _STAR = {
-    "rotation_period_hours": "A white dwarf log-normal about a day, a giant a slow 1 to 10 km/s, a cool main-sequence star from "
-                             "gyrochronology (Barnes 2007) with 10 percent scatter, a hot star from a drawn equatorial speed; "
-                             "a star the scatter placed keeps the period drawn from its own seed.",
+    "rotation_period_hours": "A white dwarf log-normal about a day, a giant a slow 1 to 10 km/s, a cool dwarf from "
+                             "gyrochronology (Barnes 2007), a hot star from a drawn speed; a scattered star keeps its own draw.",
     "axial_tilt_deg": "Rayleigh about 15 degrees from the star's reference normal.",
 }
 """dict: A star's column key -> its source line."""
