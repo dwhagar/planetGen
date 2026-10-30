@@ -2053,7 +2053,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.299 | In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug) | none | done, PR #3754 |
 | MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) | none | done, PR #3751 |
 | MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | none | done, PR #3756 |
-| MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | none | open |
+| MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | none | done, PR #3945 |
 | MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | none | done, PR #3496 |
 | MAP.304 | Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug) | none | done, PR #3284 |
 | MAP.305 | Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug) | none | done, PR #3494 |
@@ -2103,7 +2103,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.349 | Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place)  | none | open |
 | MAP.350 | The Galaxy Map window fills the screen with only about 20 pixels of buffer at the top and bottom, so the whole window shows with no page scrolling (bug) | none | done, PR #3905 |
 | MAP.351 | Galaxy Map reason per life class: a point-of-interest reason for each of the 15 life classes with map menu entries, backfilled for stored worlds | none | done, PR #3897 |
-| MAP.352 | Back to a system in a different sector fails when pressed before the first Back has finished (bug) | none | open |
+| MAP.352 | Back to a system in a different sector fails when pressed before the first Back has finished (bug) | none | done, PR #3946 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
