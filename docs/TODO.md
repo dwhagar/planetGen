@@ -18574,6 +18574,43 @@ clears each one.
   then pins ceilings.
   Prerequisites: none. Related: GEN.1004, TEST.430, TEST.162.
 
+- [ ] **TEST.479 test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug)**
+  Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
+  lane reported): earth.tropopause_temperature_k is 168.33 K, outside
+  the test's 170 to 230 K bound; the test's commit says table-dependent
+  tests await the final fit. Do: decide whether the bound or the table
+  is wrong (the real cold-trap tropopause of an Earth-like air is a
+  physics question, check against the published range), fix the right
+  one without loosening the test beyond what the source supports, and
+  push to claude/project-thread-bvcbav with the head named. Done: the
+  test passes on the train branch with a stated source for the bound.
+  Owner: Air 1. Version 8.1.
+  Prerequisites: none. Related: GEN.850, GEN.851.
+
+- [ ] **TEST.480 test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug)**
+  Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
+  lane reported, sent to Planets 1 directly): the test forces class I at
+  a cold slot and the build returns class J. Do: find out whether the
+  test's expectation is stale after the class rules or the wiring of
+  GEN.728 changed the slot's class, or the build ignores the forced
+  class; fix the right one. Done: the test passes on the train branch
+  with the property it checks kept. Owner: Planets 1. Version 8.1.
+  Prerequisites: none. Related: GEN.728.
+
+- [ ] **TEST.481 Three tests red on clean main: the Hill sphere moon drop, the halo evolutionary flux counts and the large component phenomena unit (bug)**
+  Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
+  lane reported), red on clean main too:
+  test_moon_helpers::test_shrinking_the_hill_sphere_drops_the_outer_moons_first;
+  the halo flux test
+  test_the_halo_counts_match_the_evolutionary_flux_of_an_old_population[100,500];
+  test_gen_component_pass::test_a_large_components_phenomena_are_a_unit_per_slice.
+  Do: triage each (stale expectation after the star epoch, a real
+  regression, or a seed that moved) and fix the right side without
+  skipping or loosening beyond the property. Done: all three pass on
+  main. Owner: Bug 2 (after TEST.468 to TEST.472) or any free lane.
+  Version 8.1.
+  Prerequisites: none. Related: TEST.463.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
