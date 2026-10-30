@@ -136,7 +136,8 @@ def run_followed(args, followers, title, seed=None, kind=runrecord.GENERATION, w
         followers[index].end(conclusion)
         open_ones.remove(followers[index])
 
-    with run_common._generation_progress() as progress:
+    # a document written to stdout (`--output -`) must start at its first line: the bar's display, even a finished one, writes a blank line
+    with run_common._generation_progress(disable=getattr(args, "output", None) == "-") as progress:
         log.set_console(progress.console)
         for follower in followers:
             follower.progress, follower.workers = progress, workers

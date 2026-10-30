@@ -189,7 +189,7 @@ def _fit_thin_air_curve():
     (the shower is nil there). For a trial `L_p` the shower's `a` and `1 / L_s` follow from the Mars value and the peak by two linear
     equations, and the Mars slope is then a function of `L_p` alone, found by bisection.
     """
-    x1, d1 = GCR_SHOWER_POINTS[0]
+    x1, d1 = GCR_PEAK_G_CM2, GCR_SHOWER_POINTS[0][1]
     xm, dm, slope_m = GCR_MARS_G_CM2, GCR_MARS_MSV_YR, GCR_MARS_LOG_SLOPE_PER_G_CM2 * GCR_MARS_MSV_YR
 
     def solve(length):
@@ -216,6 +216,7 @@ def _fit_thin_air_curve():
     return 0.5 * (low + high), exponent, shower_length
 
 
+assert GCR_SHOWER_POINTS[0][0] == GCR_PEAK_G_CM2, "the thin-air curve joins the first shower run at the peak"
 GCR_PRIMARY_LENGTH_G_CM2, GCR_BUILD_UP_EXPONENT, GCR_SHOWER_LENGTH_G_CM2 = _fit_thin_air_curve()
 """float: The thin-air curve's fitted numbers (28.3 g/cm2, 5.94 and 17.1 g/cm2). The primaries' length of 28 g/cm2 is not a free number: it
 falls out of the Mars value and slope, and is the size of the nuclear collision length of the carbon-to-oxygen nuclei that carry most of the
@@ -226,7 +227,7 @@ build-up (the form is the Gaisser-Hillas shape of a shower, fitted by its three 
 def thin_air_dose_msv_yr(column_g_cm2):
     """Rule 1's `D0` below the first shower run (`_fit_thin_air_curve`): 500 mSv/yr (the Moon) at no air, down through Mars's 232 at 21 g/cm2
     to a minimum near 35 g/cm2 and up to the runs' 553 at 100."""
-    x1, d1 = GCR_SHOWER_POINTS[0]
+    x1, d1 = GCR_PEAK_G_CM2, GCR_SHOWER_POINTS[0][1]
     x = min(max(column_g_cm2, 0.0), x1)
     primary = GCR_MOON_MSV_YR * math.exp(-x / GCR_PRIMARY_LENGTH_G_CM2)
     if x <= 0.0:

@@ -81,6 +81,8 @@ def process_args():
 
     log.add_debug_arguments(parser)
     args = parser.parse_args()
+    if args.command == 'near' and args.distance is None and args.nearest is None:
+        near_parser.error("give --distance (parsecs) or --nearest (a number of rows)")
     log.apply_debug_arguments(args, parser)
     return args
 
@@ -140,8 +142,6 @@ def main():
                 if args.nearest is not None:
                     result = near.nearest(conn, place, args.nearest, kinds=kinds,
                                           max_distance_pc=args.distance or near.MAX_DISTANCE_PC)
-                elif args.distance is None:
-                    raise near.NearError("give --distance (parsecs) or --nearest (a number of rows)")
                 else:
                     result = near.objects_within(conn, place, args.distance, kinds=kinds,
                                                  limit=args.limit, offset=args.offset)

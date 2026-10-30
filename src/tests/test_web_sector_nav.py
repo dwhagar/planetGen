@@ -513,10 +513,11 @@ def test_generate_neighborhood_starts_a_job_then_redirects_to_get(app, client, f
     assert "keeps running if you close this page" in html
     # The message is shown once.
     assert "keeps running if you close" not in client.get("/sector/5").get_data(as_text=True)
-    # A second one while it runs is refused on the page.
+    # A second one while it runs takes a place in the one waiting list (PERF.154) instead of being refused.
     resp = client.post("/sector/5", data={"action": "generate_neighborhood", "estimate_ok": "1",
                                           csrf.FIELD_NAME: _csrf(app, client)})
-    assert resp.status_code == 200 and "is still running" in resp.get_data(as_text=True)
+    assert resp.status_code == 303
+    assert "waits its turn and starts by itself" in client.get("/sector/5").get_data(as_text=True)
 
 
 def test_generate_error_is_shown_inline(app, client, fake):
