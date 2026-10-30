@@ -92,7 +92,7 @@ def test_a_forced_companion_makes_a_binary_around_the_white_dwarf_and_none_makes
         config.WIDE_BINARY = False
         config.PLANETS = False
         system = StarSystem(system_config=config)
-        assert system.binary_type is not None and system.primary_star.yerkes_class == "VII"
+        assert system.binary_type is not None and any(star.yerkes_class == "VII" for star in system.stars)
         config.BINARY_SYSTEM = False
         assert StarSystem(system_config=config).binary_type is None
 

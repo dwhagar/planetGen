@@ -6,9 +6,7 @@ import pathlib
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TUNING = ROOT / "planetgen" / "tuning.py"
 
-WAITING_FOR_ITS_READER = {
-    "STELLAR_NS_MASS_GAUSSIANS": "GEN.930 (the neutron star masses follow from the star model; the sourced Gaussians are its input)",
-}
+WAITING_FOR_ITS_READER = {}
 """dict: The constants with no reader yet and the item that wires each; an entry goes when its item merges."""
 
 

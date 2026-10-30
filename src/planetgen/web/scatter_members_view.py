@@ -7,7 +7,7 @@ the fill places them when it builds the row's system, and the page says so.
 """
 
 from planetgen.db.compact_pairs import KINDS as PAIR_KINDS
-from planetgen.web.lib.fmt import format_distance_au, format_mass_solar, format_number, format_period_years
+from planetgen.web.lib.fmt import format_distance_au, format_mass_solar, format_number, format_period_years, format_power_w
 
 _KIND_LABELS = {
     "main-sequence": "Main-sequence star", "giant": "Giant", "white-dwarf": "White dwarf",
@@ -45,14 +45,16 @@ def _orbit_label(row, members, age_gy):
 
 def _pair_rows(tree):
     """The compact binaries of a tree as page rows (UX.186): the node, the kind of pair, the compact object, its companion and
-    whether it is a microquasar. A spider's flag is the pair's kind, so it has none."""
+    whether it is a microquasar and its X-ray luminosity (GEN.952). A spider's flag is the pair's kind, so it has none, and a
+    dash stands for a luminosity that is not worked out (a spider, or a tree stored before its members kept a radius)."""
     labels = {row["member_no"]: _member_label(row) for row in tree.get("members") or []}
     rows = []
     for pair in tree.get("compact_pairs") or []:
         microquasar = "\u2013" if pair["kind"] in ("black-widow", "redback") else "Yes" if pair["microquasar"] else "No"
         rows.append([str(pair["node_no"] + 1), PAIR_KINDS[pair["kind"]],
                      f"{pair['compact'] + 1}: {labels[pair['compact']]}",
-                     f"{pair['companion'] + 1}: {labels[pair['companion']]}", microquasar])
+                     f"{pair['companion'] + 1}: {labels[pair['companion']]}", microquasar,
+                     "\u2013" if pair.get("x_ray_luminosity_w") is None else format_power_w(pair["x_ray_luminosity_w"])])
     return rows
 
 

@@ -22,8 +22,9 @@ from planetgen.physics import imf, ms_lifetime, stellar_evolution
 
 @functools.lru_cache(maxsize=1)
 def imf_massive_share():
-    """The share of the stars born that have `tuning.CORE_COLLAPSE_MASS_RANGE_SOL` solar masses (8 to 150): 0.637% of
-    the generator's own IMF (the massive stars that can end as a neutron star or a black hole)."""
+    """The share of the stars born that have `tuning.CORE_COLLAPSE_MASS_RANGE_SOL` solar masses (8 to 150): 0.713% of
+    the generator's own IMF (the massive stars that can end as a neutron star or a black hole; 0.637% on the Kroupa function
+    before GEN.927)."""
     low, high = tuning.CORE_COLLAPSE_MASS_RANGE_SOL
     return imf.number(low, high) / imf.number(imf.lowest_mass_sol(), imf.highest_mass_sol())
 
@@ -81,7 +82,7 @@ def share_cap(neutron_star_unbound_share):
     """
     The most `f` a galaxy can have so that the neutron stars and black holes formed fit among the massive stars born:
     `1 - NS_formed / IMF_SHARE`, `NS_formed` the neutron star rate per star (the bound count; the unbound share ejected
-    on top is added) times `1 + unbound`. 12.1% to 24.7% for the unbound shares of 0.4 to 0.2 (Boss, GEN.563 card 5).
+    on top is added) times `1 + unbound`. 21.4% to 32.7% for the unbound shares of 0.4 to 0.2 (12.1% to 24.7% on the Kroupa function before GEN.927; Boss, GEN.563 card 5).
     """
     formed = tuning.phenomenon_rate_per_star("neutron-star") * (1.0 + neutron_star_unbound_share)
     return max(0.0, 1.0 - formed / imf_massive_share())

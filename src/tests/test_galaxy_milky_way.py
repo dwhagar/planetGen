@@ -200,7 +200,7 @@ def test_the_thin_disks_midplane_is_the_exponential_fits_for_its_column():
     thin_column = 2.0 * sum(thin(z + 2.5) for z in range(0, 12000, 5)) * 5
     assert thin_column / thin(0.0) == pytest.approx(2.0 * SHAPE.disk_scale_height_pc, rel=0.01)
     assert density.relative_density(at(0.0), SHAPE) == pytest.approx(0.75 * recalled_over_derived, abs=0.02)
-    assert density.relative_density(at(0.0), SHAPE) == pytest.approx(0.62, abs=0.01)
+    assert density.relative_density(at(0.0), SHAPE) == pytest.approx(0.59, abs=0.01)     # 0.62 at the mean system mass 0.483 (GEN.545), 0.508 since GEN.928
     column = 2.0 * sum(density.relative_density(at(z + 2.5), SHAPE) for z in range(0, 12000, 5)) * 5
     # parsecs of relative density; 524.26 at 0.4 a system, the same with the isothermal disk
     assert column == pytest.approx(524.26 * recalled_over_derived, rel=0.001)
