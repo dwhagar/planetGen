@@ -13636,6 +13636,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   description text) is lock work, planned for train 9, before the
   non-water parts of GEN.1034 (train 10 or later). The water-ocean tide
   columns of GEN.1034 ride train 7 unchanged.
+  Part 1 merged (PR #4123) (4:24 PM EDT 2026-10-30): Aux 4 (as the lane
+  reported): physics/surface_liquids.py and
+  physics/data/surface_liquids.json, 51 liquids (19 species with
+  saturation curves, hydrocarbons, brines, sulfuric acid, sulfur, molten
+  salts, metals including mercury, sulfide melts, lavas,
+  natrocarbonatite) each with window, density, viscosity, surface
+  tension, tier, tweak and source; the supply rule and the ideal
+  methane-ethane-nitrogen sea; registry rows LQ1 to LQ10 (section 6.69).
+  No output change. Wiring turn (train 9) is next, Aux 4.
   Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
 
 - [ ] **GEN.1036 Oddity table and loader: physics/oddities.py, physics/data/oddities.json, the row schema (requires, rate with source, tier and tweak, named input effect, limits, text) and the GEN.725 registry rows, no wiring**
@@ -13864,6 +13873,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and liquid metals in the GEN.1035 liquid table with a source or a
   stand-in. Lock-free module, rows after GEN.1035. Owner: none yet
   (pool). Version 8.1.
+  Mercury rows (4:24 PM EDT 2026-10-30): Mercury and the other liquid
+  metals are rows of the GEN.1035 table already (PR #4123). What is left
+  here is the deep global heavy-liquid path with the fluid Love number.
   Prerequisites: GEN.1035, GEN.955. Related: GEN.1034, GEN.1035.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
@@ -13881,22 +13893,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the wiring items. Owner: Core 4 (giants chain, after W16). Version
   8.1.
   Prerequisites: GEN.1036. Related: GEN.1033, GEN.732.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **GEN.1054 Ring origin from history: a ring comes from a moon decayed inside the Roche limit (R1, Canup 2010, Hesselbrock and Minton 2017) or a comet passing inside it (R2, Dones 1991), pure function; the always-a-ring rule for giants is what it replaces**
-  Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md sections 8 and 9).
-  Secondary and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Do: physics/ring_origin.py: from
-  the moon-decay result of moon_orbits (GEN.959 already makes rings from
-  fallen moons: reuse it) and a comet-passage rate, whether a ring
-  exists, its mass and origin; Saturn and Phobos as tests. The stand-ins
-  BC20 to BC23 of GEN.732 are re-registered (T4, L3) until Cassini ring
-  age and disruption rates replace them. Lock-free module. Owner: Tides
-  1 (after the GEN.1034 module; separate branch, merge it yourself).
-  Version 8.1.
-  Prerequisites: GEN.1036. Related: GEN.732, GEN.959.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1055 Ring age and pollution darkening: a ring stores its age and its ice share and darkness follow from pollution over time (R6); ring shadow climate hook (R8)**
@@ -13935,7 +13931,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   W14 and W9 wiring). Done: tests, harness, the census ring shares.
   Owner: Tides 1 (ring origin), with Core 2 (age and painter). Version
   8.1.
-  Prerequisites: GEN.1054, GEN.1055, GEN.1056, GEN.1047. Related:
+  Prerequisites: GEN.1055, GEN.1056, GEN.1047. Related:
   GEN.732, GEN.959.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 

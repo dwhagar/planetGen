@@ -32,6 +32,12 @@ Every number is a labelled stand-in in the registry (`gap-filling-plan.md` rows 
 
 ## Left out
 
+Ring colour and albedo (GEN.670), the painter and the gaps (MAP.275), ring shadows and their effect on climate, the lifetime of a ring and the age at which it formed, ring moons (a moon born from a ring, `moon_composition.RING_MAX_ROCHE_RATIO`, still reads `has_ring` False: wiring it is a follow-up for GEN.466), rings of small bodies built as a module but not wired (the next section).
+
+## Rings of small bodies at a spin-orbit resonance (GEN.1056, lock-free step)
+
+`physics/small_body_rings.py` (registry RR1 to RR4, section 6.71) is the R4 row of weird-worlds.md section 9: a small body (under 5e22 kg) whose rotation is slow enough or whose shape pulls hard enough holds a narrow ring where the ring goes round three times for each turn of the body, past the Roche limit of its ice and inside half its Hill radius. The orbit follows from Kepler's third law (`resonance_radius_km`), 4 200 km for Quaoar (observed 4 057), 2 290 for Haumea (observed 2 287) and 426 for Chariklo (observed 391 and 405, whose mass is uncertain); the chance is a stand-in rate (0.10, no survey behind it). `ring_survives` is the R9 gate: no ring inside 0.1 AU of a star (Schlichting and Chang 2011 via the design note, 2ND-HAND). Both are pure functions that nothing calls yet: GEN.1057 wires them with the conditional rings, and the origin there is `disrupted_moon` (the cause named for Quaoar's ring), so no schema change is needed.
+
 Ring colour and albedo (GEN.670), the painter and the gaps (MAP.275), ring shadows and their effect on climate, the lifetime of a ring and the age at which it formed, ring moons (a moon born from a ring, `moon_composition.RING_MAX_ROCHE_RATIO`, still reads `has_ring` False: wiring it is a follow-up for GEN.466), rings of small bodies (Chariklo, Haumea, Quaoar).
 
 ## Ring origin from history (GEN.1054)

@@ -140,16 +140,21 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.68:OT1 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT2 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT6 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
-| module | planetgen.physics.ring_origin | GEN.1054 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
-| row | 6.70:RO1 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO2 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO3 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO4 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO5 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO6 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO7 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO8 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| module | planetgen.physics.small_body_rings | GEN.1057 | the resonance ring of a small body (R4) and the gate against rings inside 0.1 AU (R9), pure functions (lock-free); the wiring step calls them from the ring pass |
+| row | 6.71:RR1 | GEN.1057 | `small_body_rings.RESONANCE_RING_RATE, RESONANCE_ORDER`, read when the wiring step lands |
+| row | 6.71:RR2 | GEN.1057 | `small_body_rings.INNER_RING_LIMIT_AU`, read when the wiring step lands |
+| row | 6.71:RR3 | GEN.1057 | `small_body_rings.HILL_FRACTION_MAX`, read when the wiring step lands |
+| row | 6.71:RR4 | GEN.1057 | `small_body_rings.RESONANCE_RING_MASS_KG, RESONANCE_WIDTH_FRACTION`, read when the wiring step lands |
+| module | planetgen.physics.ring_origin | GEN.1057 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
+| row | 6.70:RO1 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO5 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO6 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO7 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO8 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | module | planetgen.physics.oddities | GEN.1047 | the oddity table and its rolls (candidates, probability, roll, limit_failures); the planet and moon builds call it once GEN.1047 wires the table, with the effects the modules of GEN.1040 and its siblings define |
 | data | oddities.json | GEN.1047 | the oddity table (empty until the modules add their rows); read by physics/oddities.py, which nothing calls yet |
-| row | 6.71:OD1 | GEN.1047 | `tuning.WEIRDNESS_DIAL`, read by `oddities.probability` once the table is wired; the dial also goes in the settings page |
-| row | 6.71:OD2 | GEN.1047 | `tuning.WEIRDNESS_RATE_SCALE`, read by `oddities.probability` once the table is wired |
+| row | 6.72:OD1 | GEN.1047 | `tuning.WEIRDNESS_DIAL`, read by `oddities.probability` once the table is wired; the dial also goes in the settings page |
+| row | 6.72:OD2 | GEN.1047 | `tuning.WEIRDNESS_RATE_SCALE`, read by `oddities.probability` once the table is wired |
