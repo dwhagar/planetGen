@@ -18,7 +18,7 @@ seconds to minutes an air. Three steps, each resumable, each writing into the wo
 `sample` runs the generator for each seed and records the air of every greenhouse call of the surface-air fixed point (the states the table will be
 asked about). Each distinct air also gets one perturbed copy: the pressure scaled by up to a factor of e, every gas multiplied at random by a
 factor of up to about 1.5, the gravity by up to 1.35, the absorbed flux by up to 2.2, and in one in five a share of the sunlight taken
-aloft at a pressure between a ten-thousandth and a tenth of the surface's (a haze, GEN.851). Airs above `PRESSURE_MAX_PA` are left out (the model
+aloft at a pressure between 3e-6 and a tenth of the surface's (a haze, GEN.851), its share log-uniform from 0.003 to 0.9. Airs above `PRESSURE_MAX_PA` are left out (the model
 does not converge there) and so are the airs the model did not converge on.
 
 `designed` adds airs the generator seldom makes but the table must be right for, drawn from four families whose ranges are those of the worlds the
@@ -99,8 +99,8 @@ def perturbed(air, rng):
     norm = sum(scaled.values())
     scale = math.exp(rng.uniform(-1.0, 1.0))
     scaled = {formula: p / norm * total * scale for formula, p in scaled.items()}
-    share = rng.uniform(0.0, 0.9) if rng.random() < 0.2 else 0.0
-    aloft = sum(scaled.values()) * 10.0 ** rng.uniform(-4.0, -1.0)
+    share = math.exp(rng.uniform(math.log(0.003), math.log(0.9))) if rng.random() < 0.2 else 0.0
+    aloft = sum(scaled.values()) * 10.0 ** rng.uniform(-5.5, -1.0)
     return (scaled, gravity * math.exp(rng.uniform(-0.3, 0.3)), flux * math.exp(rng.uniform(-0.8, 0.8)), share, aloft if share > 0.0 else None)
 
 
@@ -156,8 +156,8 @@ def designed_airs(count, rng):
         partials = {formula: share / total * pressure for formula, share in drawn.items() if share > 0.0}
         gravity = math.exp(rng.uniform(math.log(2.0), math.log(25.0)))
         flux = math.exp(rng.uniform(math.log(fluxes[0]), math.log(fluxes[1])))
-        share = rng.uniform(0.0, 0.9) if rng.random() < haze else 0.0
-        aloft = pressure * 10.0 ** rng.uniform(-3.5, -1.0)
+        share = math.exp(rng.uniform(math.log(0.003), math.log(0.9))) if rng.random() < haze else 0.0
+        aloft = pressure * 10.0 ** rng.uniform(-5.5, -1.0)
         airs.append((partials, gravity, flux, share, aloft if share > 0.0 else None))
     return airs
 

@@ -147,6 +147,27 @@ def test_the_vapour_can_be_held_fixed_as_a_whole_profile():
     assert column.water_profile(np.full(rc.LAYERS, 250.0), 288.0) == pytest.approx(held)
 
 
+# ---- the cloud ----
+
+def test_the_cloud_keeps_in_a_share_of_the_flux_in_proportion_to_the_surface_humidity_and_is_nil_without_vapour():
+    from planetgen.physics import saturation
+
+    assert rc.Column(CARBON, 9.81).cloud_share(288.0) == 0.0
+    at_earths = rc.Column({"N2": 1.0e5 - 1.0e3, "H2O": 1.0e3}, 9.81)
+    humidity = 1.0e3 / saturation.pressure_pa("H2O", 288.0)
+    assert at_earths.cloud_share(288.0) == pytest.approx(rc.CLOUD_LONGWAVE_SHARE * humidity / rc.EARTH_HUMIDITY)
+    assert at_earths.cloud_share(300.0) < at_earths.cloud_share(288.0)                 # a drier surface, less cloud
+    assert at_earths.cloud_share(200.0) == pytest.approx(rc.CLOUD_LONGWAVE_SHARE / rc.EARTH_HUMIDITY)     # a saturated surface, the most
+
+
+def test_the_cloud_warms_the_ground_because_it_keeps_in_a_share_of_the_flux(monkeypatch):
+    clear = rc.solve(EARTHLIKE, 9.81, 240.0)
+    monkeypatch.setattr(rc, "CLOUD_LONGWAVE_SHARE", 0.0)
+    bare = rc.solve(EARTHLIKE, 9.81, 240.0)
+    assert clear.converged and bare.converged
+    assert clear.surface_temperature_k > bare.surface_temperature_k + 3.0
+
+
 # ---- the sunlight aloft ----
 
 def test_the_sunlight_aloft_is_a_share_of_the_flux_centred_on_the_haze():

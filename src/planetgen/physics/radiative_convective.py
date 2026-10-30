@@ -75,18 +75,16 @@ WATER_CRITICAL_K = 640.0
 SUNLIGHT_WIDTH_LN_P = 1.0
 """float: STAND-IN (IR8, tier T7, L0): the width of the layer of sunlight deposited aloft, in ln P (a Gaussian: a haze or an upper methane band is a few
 scale heights deep). The share and the pressure are inputs the caller supplies; nothing here derives them from the aerosols."""
-CLOUD_LONGWAVE_TAU0 = 0.36
-"""float: STAND-IN (IR9, tier T9, L2): the grey infrared optical depth of the cloud of an air whose surface humidity is `EARTH_HUMIDITY`, spread over a
-Gaussian of width `CLOUD_WIDTH_LN_P` in ln P centred at `CLOUD_PRESSURE_SHARE` of the surface pressure. The model is a clear-sky one and the albedo of a body is its
-all-sky one, so without this a world that keeps the Earth's cloud (and its cloud shortwave cooling) would lose the cloud's longwave warming: 26.5 W/m2 for the
-Earth (CERES EBAF, the all-sky outgoing flux less the clear-sky one). Set so that the Earth's clear-sky column loses 26 W/m2 of outgoing flux to it (the
-GEN.703 stand-in `CLOUD_LONGWAVE_TAU0` of 0.35 did the same for the grey closure); the cloud scales with the surface humidity and is nil without water vapour."""
-CLOUD_PRESSURE_SHARE = 0.7
-"""float: STAND-IN (IR9, tier T9, L2): the pressure of the cloud as a share of the surface pressure (the Earth's low and middle cloud, 700 hPa of 1000)."""
-CLOUD_WIDTH_LN_P = 0.35
-"""float: STAND-IN (IR9, tier T9, L2): the width of the cloud layer in ln P."""
+CLOUD_LONGWAVE_SHARE = 0.13
+"""float: STAND-IN (IR9, tier T9, L3): the share of the clear-sky outgoing infrared flux the cloud of an air whose surface humidity is `EARTH_HUMIDITY` keeps in.
+The model is a clear-sky one and the albedo of a body is its all-sky one, so without this a world that keeps the Earth's cloud (and its cloud shortwave
+cooling) would lose the cloud's longwave warming: 26.5 W/m2 of the 266 W/m2 the clear-sky Earth sends out (CERES EBAF, 0.10; that leaves the Earth twin of the
+fixed point at 284.6 K, the clear-sky model's own bias of 3 K, and 0.13 puts it at 287.9 K, the measured 288 K, which is the value held). The sky sends out
+`(1 - share) * clear` and the cloud scales with the surface humidity (to 1.3 times at most, a saturated surface) and is nil without water vapour. A cloud
+that is a share of the flux, not a layer in the column, masks the carbon dioxide forcing and the vapour feedback by the same tenth, as the cloudy
+sky of the Earth does, and keeps the feedbacks of the clear column whole (a grey layer over the sky hid all of the vapour's)."""
 EARTH_HUMIDITY = 0.77
-"""float: The mean relative humidity of the Earth's surface air (Manabe and Wetherald 1967), the humidity at which `CLOUD_LONGWAVE_TAU0` holds (tier T1)."""
+"""float: The mean relative humidity of the Earth's surface air (Manabe and Wetherald 1967), the humidity at which `CLOUD_LONGWAVE_SHARE` holds (tier T1)."""
 FINITE_DIFFERENCE_K = 0.5
 """float: The step of the Jacobian of the stratosphere, K."""
 STRATOSPHERE_STEPS = 25
@@ -309,20 +307,18 @@ class Column:
         mean_molar_mass = (1.0 - water) * self.dry_molar_mass + water * WATER_MOLAR_MASS
         molecules_cm2 = self.layer_mass / mean_molar_mass * AVOGADRO * 1.0e-4
         depth = line_opacity.layer_depth(self.prepared, layer_temperature, self.layer_pressure, water, molecules_cm2)
-        return depth + self.cloud_depth(level_temperature[-1])[:, None, None], water
+        return depth, water
 
-    def cloud_depth(self, surface_temperature):
-        """The grey infrared optical depth of the cloud in every layer (stand-in IR9): the cloud scales with the surface humidity, as the Earth's does, and is nil
-        where the air holds no water vapour."""
-        if self.water_surface <= 0.0 or not self.dry:
-            return np.zeros(self.layers) if self.water_surface <= 0.0 else self._cloud_profile(1.0)
+    def cloud_share(self, surface_temperature):
+        """The share of the clear-sky outgoing flux the cloud keeps in (stand-in IR9): `CLOUD_LONGWAVE_SHARE` at the humidity of the Earth, in proportion to the
+        surface humidity, nil where the air holds no water vapour."""
+        if self.water_surface <= 0.0:
+            return 0.0
+        if not self.dry:
+            return CLOUD_LONGWAVE_SHARE / EARTH_HUMIDITY
         saturated = float(saturation_pressure_pa(surface_temperature))
         humidity = min(1.0, self.water_surface * self.surface_pressure_pa / saturated) if math.isfinite(saturated) else 1.0
-        return self._cloud_profile(humidity)
-
-    def _cloud_profile(self, humidity):
-        weight = np.exp(-0.5 * (np.log(self.layer_pressure / (CLOUD_PRESSURE_SHARE * self.surface_pressure_pa)) / CLOUD_WIDTH_LN_P) ** 2)
-        return CLOUD_LONGWAVE_TAU0 * humidity / EARTH_HUMIDITY * weight / weight.sum()
+        return CLOUD_LONGWAVE_SHARE * humidity / EARTH_HUMIDITY
 
 
 # ---- the flux ----
@@ -487,7 +483,7 @@ class _Solver:
         depth, water = column.optical_depth(levels)
         up, down = sweep(levels[None, :], depth, levels[None, -1])
         self.last = (surface_temperature, levels, m, water)
-        return float((up - down)[0, 0])
+        return float((up - down)[0, 0]) * (1.0 - column.cloud_share(surface_temperature))
 
     def residual(self, surface_temperature):
         return self.outgoing(surface_temperature) - self.absorbed
