@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 627 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 634 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 82 | 1 | 5 | 1 | 0 | 89 |
+| T1 | 86 | 2 | 6 | 1 | 0 | 95 |
 | T2 | 90 | 9 | 0 | 1 | 0 | 100 |
 | T3 | 72 | 25 | 5 | 9 | 0 | 111 |
 | T4 | 30 | 0 | 0 | 13 | 6 | 49 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
-| T6 | 51 | 30 | 12 | 33 | 0 | 126 |
+| T6 | 52 | 30 | 12 | 33 | 0 | 127 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 391 | 86 | 32 | 91 | 27 | 627 |
+| All | 396 | 87 | 33 | 91 | 27 | 634 |
 
 ## How the labels were given
 
@@ -1049,3 +1049,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PF2 | D | T3 | L0 | super_puff.PUFF_ENVELOPE (0.07, 0.45): the envelope fractions | Kepler-51 b 0.07 to 0.28, Kepler-79 d 0.33 to 0.40 (Lee and Chiang Sec. 4, after Lopez and Fortney); the module solves 0.16 for Kepler-51 b and 0.41 for Kepler-51 d | planets of 2 to 10 Earth masses | a super-puff with an envelope outside it | the formation model of Lee and Chiang (dust-free accretion in the outer disk) | Lee and Chiang 2016 Sec. 4 (read), Libby-Roberts et al. 2025 abstract (read) | GEN.1048 | - |
 | PF3 | P | T8 | L1 | super_puff.OCCURRENCE_SHARE 0.005: the share of sub-Neptunes that are super-puffs | under 1 percent (the design table, [R]); Lee and Chiang bound the planets over 4 Earth radii inside 50 days to under a tenth of the smaller ones, so the true share is under about 9 percent | sub-Neptunes | a survey statistic of planets under 0.1 g/cc | a measured occurrence from Kepler or TESS | design table; Lee and Chiang 2016 Sec. 4 (read). The [R] rate is not confirmed: no occurrence statistic was found | GEN.1048 | - |
 | PF4 | T | T3 | L1 | super_puff.TIDAL_MIN_FLUX_EARTH 20, TIDAL_MIN_LUMINOSITY_RATIO 1e-5, TIDAL_MAX_RATIO 2 and the fit of eq. 14: the tidal inflation | her fit is of her own radii and its exponents are not the quotient of eqs. 12 and 13; here it multiplies the radius of Lopez and Fortney | flux over 20 Earth fluxes, planets of 1 to 30 Earth masses | a planet whose radius is measured against its obliquity | the full structure model with the tidal heat in the core | Millholland 2019 eqs. 11, 14 and Sec. 4.1 (read) | GEN.1048 | - |
+
+## 6.93 Stand-ins of the collisional mantle stripping
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MT1 | D | T1 | L0 | the disruption threshold `Q*_RD = 1e-4 R_C1^1.2 V^0.8` erg/g (cm, cm/s), `R_C1` the radius of the total mass at 1 g/cm3 | none | head-on impacts of 1e23 to 1e26 kg in the gravity regime | an SPH run of a super-Earth impact whose catastrophic threshold differs from it by more than a factor of 3 | the Leinhardt and Stewart 2012 threshold (`collision_outcome`) once it carries an iron fraction | Marcus 2010 equation 4 (read), their runs fall short of it by under a factor of 2 | - | - |
+| MT2 | D | T1 | L0 | the largest remnant `M_lr / M_tot = 1 - x/2` for `x` from 0 to 2 | none | the same | a remnant mass more than 25 percent from it at the same `x` | none | Marcus 2010 equation 2 (read), after Stewart and Leinhardt 2009 | - | - |
+| MT3 | D | T1 | L0 | the iron fraction of the remnant `0.33 + 0.25 x^1.65` for bodies that began a third iron | none | `x` from 0 to about 1.8 (the rock is gone beyond it) | an SPH run of two Earth-like bodies whose remnant iron differs by more than 0.1 at the same `x` | none | Marcus 2010 equation 3 (read); Bonomo 2019 Fig. 3 run gives 0.64 where it gives 0.64 at x of 1.21 | - | - |
+| MT4 | P | T1 | L2 | mantle_stripping.Q_STAR_SCALE 0.6, the factor on the threshold of MS1 for planet-sized bodies | 0.5 to 1 | head-on impacts of 1e24 to 1e26 kg | an SPH run whose remnant mass differs by more than 25 percent from the module at the same speed | a threshold fitted to more runs (Marcus and others, in preparation, not found) | Marcus 2010 section 3.1 (read): the data "fall short of the prediction from Equation 4 by less than a factor of 2"; Bonomo 2019 Fig. 3 (read): two 10.5 Earth masses at 62.5 km/s leave 8.2 Earth masses and 64 percent iron, which 0.6 reproduces (8.28 and 0.642); tuned to that one point | GEN.1048 | - |
+| MT5 | P | T6 | L0 | the retention law for another starting core fraction: the iron and the rock kept are equation 3 and the remnant mass read as shares of a third-iron body, iron held to all the body had | none | core fractions 0.1 to 0.6 | an SPH run of a body that began at 0.15 or 0.5 iron whose remnant iron differs by more than 0.1 from the module | an SPH grid over starting core fractions | the form is derived from equations 2 and 3, equal to equation 3 at a third | - | - |
+| MT6 | P | T1 | L1 | mantle_stripping.MAX_CORE_MASS_FRACTION 0.85, the core fraction no remnant passes (held to the float under it) | 0.8 to 0.9 | rocky planets | a rocky planet measured above 0.85 | the iron-rich limit of a larger sample | Plotnykov and Valencia 2020 (arXiv:2010.06480, abstract read): the most iron enrichment rocky planets reach is a core fraction of about 0.8; the design's limit is 0.85, nudged inside the printed "about" | GEN.1048 | - |
+| MT7 | P | T1 | L0 | mantle_stripping.IMPACT_ANGLE_DEG 30, the angle from head-on beyond which an impact is a hit-and-run and strips nothing | 30 to 45 | similar-sized bodies | an SPH run of a 40 degree impact between embryos that strips more than a tenth of the mantle | the angle at which the disruption energy doubles, by mass ratio | Marcus 2010 section 3 (read): the onset of hit-and-run is at 30 to 45 degrees (Asphaug 2009); all their 45 degree cases were merging or hit-and-run; the share of impacts inside it is `sin^2` | GEN.1048 | - |

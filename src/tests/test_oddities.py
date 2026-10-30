@@ -1,6 +1,6 @@
 """
 GEN.1036: `planetgen.physics.oddities`, the oddity table and its loader (docs/design/systems/weird-worlds.md 4.1 and 4.4). Four groups: the
-shipped file loads (empty) and its vocabulary is sound; the schema refuses every row that lacks a source, a gate, limits, a tier or a tweak
+shipped file loads and its vocabulary is sound; the schema refuses every row that lacks a source, a gate, limits, a tier or a tweak
 level (one test per refusal); the gate, the limits and the rate (with the weirdness dial) read as the design says; and the draws are
 isolated: a row's roll uses a stream of its own, so adding, removing or turning off a row moves no other draw.
 """
@@ -53,9 +53,9 @@ def _with(*rows):
 
 # --- the shipped file -----------------------------------------------------------------------------------------------------------------------
 
-def test_the_shipped_table_loads_and_is_empty_until_a_module_adds_a_row():
+def test_the_shipped_table_loads_and_holds_the_rows_the_modules_have_added():
     rows, levers, quantities = oddities.load()
-    assert rows == () and oddities.ROWS == () and oddities.BY_ID == {}
+    assert rows == oddities.ROWS and {row.id for row in rows} == set(oddities.BY_ID)
     assert set(levers) == {"L1", "L2", "L3", "L4", "L5", "L6", "L7"} and quantities
 
 
