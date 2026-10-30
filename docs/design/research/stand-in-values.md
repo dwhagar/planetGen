@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 549 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 553 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 66 | 1 | 5 | 1 | 0 | 73 |
+| T1 | 67 | 1 | 5 | 1 | 0 | 74 |
 | T2 | 82 | 8 | 0 | 1 | 0 | 91 |
 | T3 | 65 | 20 | 5 | 9 | 0 | 99 |
 | T4 | 27 | 0 | 0 | 4 | 4 | 35 |
-| T5 | 35 | 10 | 1 | 0 | 0 | 46 |
+| T5 | 37 | 10 | 1 | 0 | 0 | 48 |
 | T6 | 41 | 26 | 10 | 32 | 0 | 109 |
-| T7 | 25 | 7 | 8 | 7 | 0 | 47 |
+| T7 | 26 | 7 | 8 | 7 | 0 | 48 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 1 | 25 | 19 | 46 |
-| All | 342 | 72 | 30 | 80 | 25 | 549 |
+| All | 346 | 72 | 30 | 80 | 25 | 553 |
 
 ## How the labels were given
 
@@ -826,6 +826,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CF5 | P | T3 | L0 | the acid strength read for the optics, 80 percent (`DEFAULT_WEIGHT_PERCENT`), linearly between the 76 and 81 percent tables | 75 to 85 | clouds of 75 to 90 percent | the strength of the acid drawn from the air's water (acid_medium) differs from 80 | `acid_medium.weight_percent` at the cloud level | Gillmann and others 2024: 80 percent at the equator; Arney and Kane 2018: 75 to 85 | - | - |
 | FW6 | P | T4 | L0 | the half widths of minor-gas lines broadened by carbon dioxide at 296 K and 1 atm (`co2_far_wing.json` `minor_gamma_cm1_atm`): water 0.13, sulfur dioxide 0.10, carbon monoxide 0.065 cm-1 | water 0.09 to 0.15; SO2 0.07 to 0.13; CO 0.05 to 0.08 | minor gases in carbon dioxide air | HITRAN CO2-broadened widths outside the knobs | the HITRAN line list | recalled, not read; no open source found (the arXiv search was blocked by robots.txt, the Ptashnik 2019 CO2-broadened continuum and Takagi 2010 are behind paywalls) | - | - |
 | FW7 | P | T6 | L1 | `minor_uses_chi` 1: the minor-gas wings take the carbon dioxide self factor chi, weighted by the carbon dioxide share of the air (so Earth-like air adds nothing and keeps the MT_CKD continuum), and in a carbon dioxide air they partly double the continuum of `line_opacity` | 0 (pure Lorentz) to 1 | minor gases in carbon dioxide air | a measured CO2-broadened water continuum differing from the wing plus the MT_CKD foreign continuum by more than a factor of 2 | the measured CO2-broadened H2O continuum | none found; the wings add under 1 K at 30 ppm of water, so the bracket 0 to 1 does not move a result that matters | - | - |
+
+## 6.65 Stand-ins of the 3+1 quadruple stability network
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| ARM1 | P | T1 | L0 | tuning.ARM_CONTRAST_OLD_DISK 0.10: the old disk's arm contrast `A` in `1 + A cos(arm phase)` | 0.09 to 0.14 | old disk stars (red giants, near-infrared light) near the solar radius | an arm to inter-arm surface density ratio outside 1.2 to 1.35 for an old sample at the solar radius | a contrast by age from Gaia samples of A, F and G stars when one is published | READ (Eilers et al. 2020, ApJ 900:186, abstract: a surface mass density contrast of about +-10% at the solar radius; Drimmel and Spergel 2001, ApJ 556:181, section 4.3: arm to inter-arm 1.2 in J and 1.32 in K; Siebert et al. 2012: 14%) | - | - |
+| ARM2 | D | T5 | L0 | tuning.ARM_GAS_TO_INTERARM_RATIO 4.0 raised to tuning.STAR_FORMATION_LAW_EXPONENT 1.4, as an amplitude (the young population's `A`, 0.749) | gas ratio 2 to 5 (A 0.45 to 0.80) | stars under 0.1 Gy, which have not left the gas they formed in | an arm to inter-arm ratio of young upper main sequence stars outside 3 to 12 | a number from the Gaia maps of young stars (Poggio et al. 2021 give maps and no number) | RECALLED (Koda et al. 2009, ApJ 700:L132: CO arm to inter-arm contrasts of about 2 to 5; Kennicutt 1998 index 1.4, a surface-density law applied here to the volume ratio) | - | - |
+| ARM3 | P | T7 | L0 | the intermediate population's `A` (0.418): the fall of the contrast with the log of the age from the young value at 0.05 Gy to the old one at the old window's geometric mean age (5.5 Gy), read at the intermediate window's (0.55 Gy) | none | stars of 0.1 to 3 Gy | an observed arm contrast of A and F stars far from 0.2 to 0.6 | a contrast by age from a published sample | an inference from the two ends: stars drift out of their birth arm in a few hundred Myr, and the contrast of A and F stars is not published as a number | - | - |
+| ARM4 | P | T5 | L0 | tuning.ARM_CONTRAST_AGE_YOUNG_GY 0.05 | 0.03 to 0.07 | the young population | none | the age law of the disk history | the middle of the young window, 0 to 0.1 Gy | - | - |
 
 ## 6.64 Stand-ins of the NH3 active-Sun factor
 

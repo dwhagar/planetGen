@@ -13756,6 +13756,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   _orbit_floor_au and the per-star a_crit reads; takes GEN.1023 (the
   9.93 Hill radii pair) with it. Train 10. Merge authorization: all
   merges without human review. Times to Boss in EDT only.
+  Part 1 merged (PR #4099) (3:30 PM EDT 2026-10-30):
+  physics/clearance_ledger.py (derived ledger of the spans a planet,
+  moon or belt may sit in; no output change, no epoch; 33 tests). Part
+  2, the wiring that replaces _orbit_floor_au, the a_crit reads and the
+  space_orbits pushes, waits on GEN.1009 and GEN.1011 (Star 2) and rides
+  train 10.
 
 - [ ] **GEN.1015 Overlap-free stars P9: delete the GEN.1004 quick fix (built_tree_clears, the clearance branch of _companions_fit, _built_stars_clear), no shim**
   Remove the quick fix once the construction guarantees clearance; set
@@ -13807,6 +13813,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   criterion from the research item; takes GEN.1028 (MA01 q_out <= 5).
   Train 11. Merge authorization: all merges without human review. Times
   to Boss in EDT only.
+  GEN.1029 merged (PR #4098) (3:28 PM EDT 2026-10-30): The 3+1 stability
+  network is in (physics/quadruple_stability.py, design
+  docs/design/systems/quadruple-stability-3p1.md). Use it after the
+  nested Mardling-Aarseth screen and keep an axis-ratio margin on
+  systems it calls stable: Sources 1 own N-body check found it right 95
+  percent against 49 percent for the nested test, but its precision for
+  stable was only 0.57 on a small near-boundary sample (paper 0.91).
 
 - [ ] **GEN.1017 Overlap-free stars P0: give the star tree the primary's [Fe/H] (and the build's age and mass) so the tree and the build evolve each companion the same way (replaces the dropped GEN.1007)**
   Root cause found by running it (GEN.1006 revised design,
@@ -13939,6 +13952,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   failure. Note GEN.1014 (P8, the clearance ledger) may fix this by
   design; if it is done first, close this with it. Owner: none yet; any
   free lane (Bug 1 is the natural owner). Version 8.1.
+  Cause found (3:30 PM EDT 2026-10-30): Planets 1: a planet after a belt
+  is spaced against the belt only, not the planet before it (seed 208:
+  giant, belt, small planet, 9.933 Hill radii). The ledger holds both,
+  so the GEN.1014 wiring fixes it and removes the expected-fail entry.
   Prerequisites: none. Related: TEST.477, GEN.1014, GEN.1006.
 
 - [ ] **GEN.1024 GEN.744 part B: the alpha-enhanced track shift through evolve_star and the scatter tables**
@@ -14014,24 +14031,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   check the census. Owner: Bug 1 (star lane). Version 8.1.
   Prerequisites: none. Related: GEN.1006, GEN.1010, GEN.1016, GEN.1004.
 
-- [ ] **GEN.1029 Research: port a 3+1 quadruple stability criterion without a machine-learning dependency (Vynatheya, Mardling and Hamers 2023 model files)**
-  Part of GEN.1006 (design docs/design/systems/overlap-free-systems.md
-  section 5 and 13). Nested-triple tests (MA01, EK95) are right only 66
-  percent of the time for 3+1 quadruples (88 percent for 2+2) and
-  overestimate the stable systems (precision 0.59 for 3+1). Do: read the
-  paper's 2+2 and 3+1 model files (Vynatheya, Mardling and Hamers 2023,
-  arXiv 2301.09930; check the licence first, Boss handles
-  DATA-LICENSE.md) and decide how to port a 3+1 criterion as a table or
-  a small formula with no runtime dependency on a machine-learning
-  library; verify it against the paper's accuracy figures on a sample;
-  record every stand-in in GEN.725 with tier and tweak level. Done: a
-  design note with the chosen form and its measured accuracy, a pure
-  module and tests (lock-free); the wiring into the generator is
-  GEN.1016 (P10). Owner (full build): Sources 1. Boss, 2:47 PM EDT
-  2026-10-30: build all of GEN.1006.
-  Prerequisites: GEN.1006. Related: GEN.1006, GEN.1016, GEN.725,
-  GEN.1028.
-
 - [ ] **GEN.1030 Methane pseudo-adiabat in the giant planet column, so Uranus-like and Neptune-like one-bar temperatures match Voyager (GEN.852 tropopause and condensables family)**
   Found by Air 1 (relayed 3:16 PM EDT 2026-10-30 as the lane reported).
   test_giant_one_bar_temperature: Uranus-like 95 K and Neptune-like 84 K
@@ -14047,6 +14046,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test_giant_one_bar_temperature passes at its tolerances. Owner: Air 1
   (rides train 6, lock work). Version 8.1.
   Prerequisites: none. Related: GEN.852, TEST.479.
+
+- [ ] **GEN.1031 Port the 2+2 quadruple stability network of Vynatheya, Mardling and Hamers 2023 the same way as the 3+1 one (about 8,300 numbers, plain numpy forward pass, no machine-learning dependency)**
+  Offered by Sources 1 (relayed 3:28 PM EDT 2026-10-30 as the lane
+  reported) after GEN.1029 (PR #4098) ported the 3+1 network exactly
+  (physics/quadruple_stability.py, scripts/build_quadruple_stability.py,
+  docs/design/systems/quadruple-stability-3p1.md, registry rows QS1 to
+  QS4). Do: the same script and unpickler that cannot run code, a
+  forward pass check against scikit-learn to 1e-8, registry rows with
+  tier and tweak level, a design note section, an N-body spot check as
+  for 3+1. Lock-free: nothing calls it until GEN.1016 wires the
+  stability screen. Done: the 2+2 network gives the same answers as the
+  paper's model on a sample and the registry rows are in. Owner: Sources
+  1 (lock-free, separate branch, merge it yourself). Version 8.1.
+  Prerequisites: none. Related: GEN.1006, GEN.1016.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -14468,56 +14481,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and byte counts. Owner: Core 2 when free. Rules: no backward-compat
   shims; keep the benchmark limits as the guard.
   Prerequisites: none. Related: MAP.249, MAP.267.
-
-- [ ] **PERF.203 The Generate page and job_runner follow one wrapper run: one command list, one run, with the page's progress, state and log files kept**
-  Split from PERF.119 by Aux 2 (2:36 AM EDT 2026-10-29 as the lane
-  reported). Once PERF.202 makes every verb a list of units, the
-  Generate page (web/generate_page.py, web/job_runner.py) and the API
-  jobs (queue/api_jobs.py) build ONE command list from the selected
-  commands and start ONE wrapper run, instead of a chain of per-verb
-  starters. job_runner follows that one run and keeps the page's
-  progress, state and log files working; the progress bars come from the
-  selected commands alone (Boss, 4:15 PM EDT 2026-10-17). Done: starting
-  a run from the Generate page and from the API each leaves one run on
-  the run record covering all selected commands; the page shows the same
-  progress, state and log as before; a grep finds no stage started
-  outside the wrapper. Version 8.1. Owner: Aux 2 (lock-free).
-  Prerequisites: PERF.202. Related: PERF.119, PERF.202, PERF.154,
-  PERF.99.
-  Prerequisites: PERF.202. Related: PERF.119, PERF.202, PERF.154,
-  PERF.99.
-  Research (2026-10-09): Status (Core 5, 3:17 PM EDT 2026-10-29 as the
-  lane reported): not started. The Generate page still builds a job of
-  separate commands (reset, plan, sectors, link, scatters, settle...),
-  each its own run; jobs.job_runs(job_id) lists several runs and
-  job_runner follows the job's processes, not one run. Follows PERF.202.
-  Step 1 merged (Aux 2, #3923, as the lane reported) (2026-10-30 2:47 AM
-  EDT): each single-stage verb (skeleton, scatters, map luminosity,
-  habitability, nebula field, clear scatter, link, backfill, settle,
-  population, territories) builds its run as a followed.Planned and
-  starts it with run_planned; no behaviour or stored-output change, no
-  epoch; new tests/test_planned_runs.py. Next: step 2 (start-time checks
-  into prepare hooks); the item stays open for the later steps
-  Scope split (Aux 2 finding, 2:47 AM EDT, TODO decision) (2026-10-30
-  2:48 AM EDT): step 2 composes only the verbs whose params are static
-  (fills, habitability, nebula field, population) into one run; the
-  data-dependent chains are split into PERF.212 (scatters), PERF.213
-  (link and settle) and PERF.214 (sectors planner), each a prerequisite
-  of the final one-run step. Waiting lanes take PERF.213 and PERF.214;
-  Aux 2 takes PERF.212
-  Progress (2026-10-30 2:32 PM EDT): Aux 2 (as the lane reported 2:31 PM
-  EDT): step 3 merged in #4080: a new planetgen run-job SPEC runs a list
-  of generation commands (plan, sectors, link, backfill, settle, scatter
-  mass/luminosity/phenomena, clear-scatter) as one run with one stage
-  list; start-time checks move to stage open so a job can plan then
-  scatter or clear and redraw; lock-free, no epoch; the Generate page
-  still runs its steps one by one. Next: step 4 (page and API build the
-  spec, job_runner follows one process), then step 5.
-  Step 4 merged (3:06 PM EDT 2026-10-30): PR #4093 (as the lane
-  reported): a Generate job's generating commands run as one run-job
-  step with one stage list and one estimate; Review page, size estimate
-  and numbering unchanged. Step 5 (Finish the last run from the stored
-  run, retire the later list) is next, Aux 2.
 
 - [ ] **PERF.204 An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2)**
   Boss (1:19 PM EDT 2026-10-29), asked by Core 5 what a visit to an
