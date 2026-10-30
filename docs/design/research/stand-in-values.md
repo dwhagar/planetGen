@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 737 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 740 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 115 | 5 | 6 | 1 | 0 | 127 |
-| T2 | 100 | 19 | 0 | 1 | 0 | 120 |
+| T2 | 102 | 19 | 0 | 1 | 0 | 122 |
 | T3 | 74 | 27 | 5 | 9 | 0 | 115 |
-| T4 | 36 | 2 | 0 | 15 | 6 | 59 |
+| T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 39 | 12 | 0 | 0 | 0 | 51 |
 | T6 | 63 | 35 | 12 | 34 | 0 | 144 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 3 | 2 | 7 |
 | T9 | 6 | 1 | 4 | 34 | 19 | 64 |
-| All | 459 | 110 | 36 | 105 | 27 | 737 |
+| All | 461 | 111 | 36 | 105 | 27 | 740 |
 
 ## How the labels were given
 
@@ -1212,6 +1212,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BR19 | P | T1 | L1 | belt_ledger.ICY_LAW: the hot Kuiper belt's cumulative size law, q 1.0 below and 4.35 above a break of 121 km (alpha1 = 0.87, faint alpha2 near 0.2, H_B = 7.7; 121 km is for an albedo of 0.10 and 1 g/cm3) | break 99 to 192 km (albedo 0.15 to 0.04); bright slope 4.15 to 4.42 | Kuiper-type discs, hot population | a Kuiper-type belt whose largest bodies are far outside the law's order statistic at its mass | a size law from the disc's own collisional equilibrium; DEEP V's tapered fit (arXiv:2309.09478) | Fraser et al. 2014 (arXiv:1401.2157, READ); the albedo is an assumption | GEN.1069 | - |
 | BR20 | P | T9 | L3 | belt_ledger.ROCKY_LAW: a rocky belt's cumulative size law, q 1.3 below 5 km and 3.0 from 5 km (Ivezic: differential 2.3 and 4), and q 4 above a break of 200 km | break 100 to 400 km; steep slope 3.5 to 5 | rocky belts, bodies of 0.4 km and up | a census of a rocky belt with the number above 1e19 kg far from tens at the main belt's mass | Bottke et al. 2005 and the size-frequency of large asteroids (not reached) | q 1.3 and 3.0: Ivezic et al. 2001 (astro-ph/0105511, READ); 200 km and 4: educated guess from needed output (a stretch of q = 3 holds equal mass per doubling of size, so the law must steepen) | GEN.1069 | no data |
 | BR21 | P | T9 | L0 | belt_ledger.LEDGER_MAX_SHARE 0.95, belt_ledger.SOLVE_TOLERANCE 1e-3 and belt_ledger.SOLVE_MIN_KM 1e-3: the most of the belt's mass the stored bodies may hold, and the stopping test and bracket of the search for the belt's largest body | share 0.9 to 0.99 | every belt and outer disc | not applicable (a guard and a numerical bracket) | a guard from the cost of a draw | needed output (mass is conserved) | GEN.1069 | - |
+| BR22 | P | T2 | L0 | body_status.ZONE_HILL_RADII 2 sqrt 3: the half-width of the zone of a body, in its Hill radii, within which Soter's mu counts the other bodies (Margot's C, so the two discriminants use one zone) | 2 to 5 Hill radii | bodies orbiting a star | a zone width at which a Solar System planet's mu falls below 100 or a dwarf planet's rises above it | the zone from the chaotic-zone width of BR2 | Margot 2015 (arXiv:1507.06300, READ) | - | - |
+| BR23 | P | T2 | L0 | body_status.LAMBDA_K: the k of Stern and Levison's Lambda = k m^2 / P, fixed so that Lambda is 1 at Margot's clearing mass at 1 au round the Sun (6.7e5 per Earth mass squared per year); their own k was not read | none (a normalisation) | bodies orbiting a star | a Lambda that puts a Solar System dwarf planet above 1 or a planet below it | Stern and Levison's printed k | Soter 2006 (arXiv:astro-ph/0608359, READ) quoting Stern and Levison 2002 | - | - |
+| BR24 | P | T4 | L1 | body_status.ROUND_ROCK_SHIFT_DECADES 1 and ROUND_THRESHOLD 0.5: the roundness of a body is 1 minus the compaction taper (1e19 to 1e21 kg for ice) moved up one decade for rock, round at 0.5 (1e20 kg of ice, 1e21 kg of rock, the lower edges of the BR9 bands) | shift 0.5 to 1.5 decades; threshold 0.3 to 0.7 | icy and rocky small bodies | a measured round body below the half-round mass of its composition or a lumpy one above | BR8 and BR9 read and fitted to composition and heat | design bands of BR8 and BR9 | - | - |
 
 ## 6.96 Stand-ins of the irregular orbits
 
