@@ -13814,30 +13814,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1014. Related: GEN.1006.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
-- [ ] **GEN.1067 Per-member composition from the finished taxon kernel at the body's own a, differentiated bodies only if the 26Al ratio says so, density from the compaction taper**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Do: design section 3.1 step 5: a
-  member's taxon shares come from physics/taxon_kernel.py at its own
-  semi-major axis (a gradient, not one belt value), V, A and M types
-  only for a differentiated belt, density from compaction. Pure function
-  over the ledger draw. Done: tests show the gradient across a belt and
-  the undifferentiated case. Lock-free. The belt-wide taxa wiring is
-  GEN.473 (train 6); this is the per-member step. Where we think it
-  belongs (best guess, can move): Sources 1 (composition and sources
-  lane; separate branch), after the ledger draw.
-  Prerequisites: GEN.1061.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
 - [ ] **GEN.1068 Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py)**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
   so belts evolve and say where we think each belongs; design
@@ -13920,7 +13896,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter tag once the scatter phase is wired (GEN.1092).
   Belt page (Boss 4:37 PM EDT) (2026-10-30 4:38 PM EDT): Each stored
   member is linked from the asteroid belt information page UX.241.
-  Prerequisites: GEN.1067, GEN.1069.
+  Prerequisites: GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **GEN.1071 Outer (Kuiper-type) disc built as a belt from the same chain, linked to the debris descriptor so the descriptor and the belt are one thing**
@@ -13998,23 +13974,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1069, GEN.1006.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
-- [ ] **GEN.1076 physics/irregular_zone.py: Hill radius, stable limits (prograde and retrograde), the inner edge from the outermost regular moon, the Kozai exclusion**
-  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
-  many moons because a lot of them are former asteroids from the belt,
-  if gravitational bodies are near a belt, they should pick up
-  asteroidal moons"; design
-  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
-  designation function with the belt evolution items (goal #4130).
-  Stand-ins accepted when registered in GEN.725 with tier and tweak
-  level; [R] numbers are read from the source by the lane that builds
-  it. Do: design 4 step 1, reusing KOZAI_FORBIDDEN_DEG. Pure function.
-  Done: tests give the Jupiter, Saturn, Uranus and Neptune values of
-  design section 2.1. Lock-free. Where we think it belongs (best guess,
-  can move): Tides 1 (moon orbit lane, separate branch), after the Tides
-  1 train 5 items.
-  Prerequisites: none.
-  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
-
 - [ ] **GEN.1077 physics/irregular_population.py: capture windows, the cumulative count N0(>R), grinding, and the order-statistic draw into individual, on-demand and population tiers**
   Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
   many moons because a lot of them are former asteroids from the belt,
@@ -14061,7 +14020,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   function. Done: tests. Lock-free. Needs the GEN.473 wiring (train 6)
   merged first. Where we think it belongs (best guess, can move):
   Sources 1 (with the per-member composition item GEN.1067).
-  Prerequisites: GEN.1077, GEN.1067.
+  Prerequisites: GEN.1077.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
 - [ ] **GEN.1082 The architecture records its capture windows (the instability event, the number of giant-giant close encounters, the gas-disc lifetime already kept in DiskSystem) as a field on the system**
@@ -14710,9 +14669,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sheet as now. Done: row and description removed, flag in the glance
   panel, tests, golden update, census re-baseline. Lock work (epoch with
   --affects for the class column and description, golden). Where we
-  think it belongs (best guess, can move): Core 4, in the classes window
-  with the Class M fix (train 9; train 6 if the Class M research reports
-  before its freeze).
+  think it belongs (best guess, can move): Core 4, train 6, the first
+  window after train 5 (Boss, 6:12 PM EDT 2026-10-30: as soon as possible
+  so he can test it as a lever for Class M; train 5 had its golden
+  started at 6:13 PM EDT as the runner reported, so it cannot join).
+  Build it now so it is ready when the train 6 list freezes; the Class M
+  fix rides the same window if its research reports in time, else a
+  later one.
   Class M (6:08 PM EDT) (2026-10-30 6:08 PM EDT): Boss, 6:07 PM EDT:
   investigate how to fix the Class M problem (Class M never appears: 0
   of 3,164 bodies in Aux 2's sweep, 1 of 1,788 in Core 4's) since no one

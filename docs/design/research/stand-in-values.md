@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 806 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 810 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 126 | 10 | 7 | 1 | 0 | 144 |
-| T2 | 105 | 21 | 0 | 1 | 0 | 127 |
+| T1 | 127 | 10 | 7 | 1 | 0 | 145 |
+| T2 | 106 | 23 | 0 | 1 | 0 | 130 |
 | T3 | 77 | 31 | 5 | 10 | 0 | 123 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 41 | 13 | 0 | 0 | 0 | 54 |
-| T6 | 71 | 48 | 13 | 36 | 0 | 168 |
+| T6 | 69 | 49 | 13 | 36 | 0 | 167 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
-| T9 | 7 | 3 | 4 | 38 | 19 | 71 |
-| All | 489 | 138 | 38 | 114 | 27 | 806 |
+| T9 | 8 | 3 | 4 | 38 | 19 | 72 |
+| All | 490 | 141 | 38 | 114 | 27 | 810 |
 
 ## How the labels were given
 
@@ -1266,9 +1266,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| IZ1 | P | T2 | L1 | irregular_zone.PROGRADE_STABLE_FRACTION 0.4, the share of the Hill radius out to which a prograde orbit is stable | 0.4 to 0.5 | prograde irregulars of the four giants | a stable prograde body found beyond 0.5 of the Hill radius | an integration-fitted limit by planet, star mass and eccentricity (Nesvorny et al. 2003) | numerical surveys quoted by Jewitt and Haghighipour 2007 give about 0.4; the 0.4895 of the moon code is Hamilton and Burns 1991 for a circular regular moon | GEN.1076 | - |
-| IZ2 | P | T1 | L0 | irregular_zone.RETROGRADE_STABLE_FRACTION 0.55, the share of the Hill radius out to which a retrograde orbit is stable | 0.5 to 0.6 | retrograde irregulars of the four giants | a stable retrograde body found beyond 0.6 of the Hill radius | the same integration-fitted limit | Vokrouhlicky, Nesvorny and Levison 2008, quoting Nesvorny et al. 2003: 0.5 to 0.6 depending on the mean eccentricity; 0.55 is the middle | GEN.1076 | - |
-| IZ3 | P | T1 | L0 | irregular_zone.INNER_EDGE_FACTOR 1.0, the multiple of the outermost regular moon's distance a pericentre must exceed | 1.0 to 1.5 | the giants with regular moons | an irregular with a pericentre inside Callisto's, Iapetus's or Oberon's orbit that has survived | a collision-rate cut against the regular moon's size | Vokrouhlicky, Nesvorny and Levison 2008: q greater than 0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus | GEN.1076 | - |
+| IZ1 | P | T2 | L1 | irregular_zone.PROGRADE_STABLE_FRACTION 0.4, the share of the Hill radius out to which a prograde orbit is stable | 0.4 to 0.5 | prograde irregulars of the four giants | a stable prograde body found beyond 0.5 of the Hill radius | an integration-fitted limit by planet, star mass and eccentricity (Nesvorny et al. 2003) | numerical surveys quoted by Jewitt and Haghighipour 2007 give about 0.4; the 0.4895 of the moon code is Hamilton and Burns 1991 for a circular regular moon | GEN.1083 | - |
+| IZ2 | P | T1 | L0 | irregular_zone.RETROGRADE_STABLE_FRACTION 0.55, the share of the Hill radius out to which a retrograde orbit is stable | 0.5 to 0.6 | retrograde irregulars of the four giants | a stable retrograde body found beyond 0.6 of the Hill radius | the same integration-fitted limit | Vokrouhlicky, Nesvorny and Levison 2008, quoting Nesvorny et al. 2003: 0.5 to 0.6 depending on the mean eccentricity; 0.55 is the middle | GEN.1083 | - |
+| IZ3 | P | T1 | L0 | irregular_zone.INNER_EDGE_FACTOR 1.0, the multiple of the outermost regular moon's distance a pericentre must exceed | 1.0 to 1.5 | the giants with regular moons | an irregular with a pericentre inside Callisto's, Iapetus's or Oberon's orbit that has survived | a collision-rate cut against the regular moon's size | Vokrouhlicky, Nesvorny and Levison 2008: q greater than 0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus | GEN.1083 | - |
 
 ## 6.102 Stand-ins of the smoothed rogue density
 
@@ -1320,13 +1320,17 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TF3 | P | T9 | L3 | topup_field.SPEED_KM_S_RANGE 0.3 to 3, MIN_RADIUS_LY 0.25: the rms speed the field spreads at (log-uniform) and the least rms radius (the radius is drawn between this and the one light year of retirement, IF15, and the age follows from it) | speed 0.1 to 10; radius 0.1 to 0.5 | a field placed in a sector | none (a field is not observed) | the dispersion of a real source (IF12) | Boss, 5:42 PM EDT 2026-10-30: a larger volume | GEN.1120 | no data |
 | TF4 | P | T9 | L3 | topup_field.MIN_FIELD_MASS_KG 1e21, MAX_FIELD_MASS_KG 1.2e24, MAX_FIELDS 12: the lightest field drawn, the heaviest drawn before the last one takes the rest (0.2 Earth masses, under the 0.27 a collision field keeps at most), and the most fields in a sector's top-up | min 1e19 to 1e22; max 1e23 to 1e25; count 4 to 40 | the mass the rogues leave unmatched | none | the unmatched mass of a smaller or a different galaxy model | chosen to keep a sector's top-up to a dozen clouds (IF6 for the 0.27) | GEN.1120 | no data |
 
-## 6.115 Stand-ins of the resonance and chaotic-zone map of a belt
+## 6.116 Stand-ins of the resonance and chaotic-zone map of a belt
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| MC1 | P | T6 | L1 | belt_member._filling: the filling of a stored member (one minus its porosity) is the compacted density of `compaction` over the compaction's own grain density at the member's rock fraction, applied to the taxon's grain density | the taper endpoints (`compaction.TAPER_START_KG`, `TAPER_END_KG`, stand-ins of decision S9) | members of 1e19 to 1e21 kg | a measured bulk density of a main-belt asteroid of that taxon and mass far from grain density times this filling (Carry 2012 densities by taxon) | the structure solver and viscous compaction (GEN.429) | the taper closes the pores of the Bierson and Nimmo ice and silicate mix (rock 3500, ice 920 kg/m3); using it as a filling for other grains is ours | - | - |
-| MC2 | P | T6 | L0 | belt_member._filling: a member under 1e19 kg takes a porosity drawn uniformly in its taxon family's range, 0.25 to 0.55 for the carbonaceous taxa and 0.10 to 0.35 for the rocky ones (`small_body_composition.POROSITY_RANGES`) | the ranges | on-demand members of 1e15 to 1e19 kg | a rubble pile of that size and taxon with a porosity far outside the range (Britt and Consolmagno 2003; Carry 2012) | the porosity from the size law and the collisional history of the belt | the ranges are `small_body_composition`'s (parametrisations of Britt and Consolmagno 2003 and Carry 2012); the uniform draw inside them is ours | - | - |
-| MC3 | P | T6 | L0 | belt_member._filling: a member's rock fraction for the compaction is its rock and metal, held to the table's 0.3 to 0.95 (`compaction.ROCK_FRACTION_RANGE`), the metal counted with the rock | the metal share counted with the ice instead | every taxon (the iron M taxon is held at 0.95) | a metal-rich member whose compaction filling differs from a rock one's by more than the grain density does | a compaction table with metal as a third component | the habit of `moon_composition.density_kg_m3` | - | - |
+| RGP1 | P | T1 | L0 | resonance_gaps.CHAOTIC_ZONE_COEFFICIENT 1.3, resonance_gaps.EXTENDED_ZONE_COEFFICIENT 1.8, resonance_gaps.CRITICAL_ECCENTRICITY_COEFFICIENT 0.21, resonance_gaps.MAX_ECCENTRICITY_COEFFICIENT 2.1, resonance_gaps.LOW_ECCENTRICITY_WIDTH 3.2 and resonance_gaps.HIGH_ECCENTRICITY_WIDTH 7.78: the chaotic zone half-width over a giant's distance 1.3 mu^(2/7) (1.8 (e mu)^(1/5) above e_crit = 0.21 mu^(3/7), crossing above 2.1 mu^(1/4)) and a first-order resonance's width 3.2 mu^(2/3) j^(1/3) (7.78 (e mu j)^(1/2) above) | coefficient 1.3 to 1.4 (numerically 1.35 mu^0.278); 0.86 mu^0.208 numerically for the extended zone | planets of mu 1e-6 to 1e-2, particles of low to moderate eccentricity | a numerical zone differing from the law by more than 20 percent | the eccentricity-dependent zone from the system's own N-body maps | Mustill and Wyatt 2012 (arXiv:1110.1282, READ), after Wisdom 1980 (not reached) | GEN.1069 | - |
+| RGP2 | P | T6 | L1 | resonance_gaps.ORDER_WIDTH_EXPONENT 0.5: a resonance of order k is narrower than a first-order one by e^(0.5 (k - 1)) | exponent 0.3 to 0.7; a factor 0.3 to 3 on the width | resonances of order 2 to 4 | a measured Kirkwood gap width ratio far from the scaling (3:1 against 2:1) | the order-dependent libration widths from Murray and Dermott's resonance Hamiltonians, read | the libration width of a resonance of order k goes as e^(k/2) (recalled); no coefficient taken | GEN.1069 | - |
+| RGP3 | P | T2 | L1 | resonance_gaps.RESONANCE_CLEARING_MYR 10: a belt older than this has emptied its resonance zones | 1 to 100 Myr | belts under a giant | a belt a few Myr old with its zones already empty, or a Gyr belt with them full | the logarithmic loss history of Minton and Malhotra 2010 applied to each zone | the design note's "1 to 10 Myr" (Wisdom 1982 and Moons and Morbidelli 1995, not reached); Minton and Malhotra 2010 (arXiv:0909.3875, READ) for the tail | GEN.1069 | - |
+| RGP4 | P | T9 | L0 | resonance_gaps.MAX_ORDER 4 and resonance_gaps.MAX_P 12: the highest order and ratio listed | order 3 to 6; p 8 to 20 | every belt | not applicable (a list bound) | a strength cut instead of an order cut | needed output (the Kirkwood list is order 4 and below) | GEN.1069 | - |
+| RGP5 | P | T2 | L0 | resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT 1.25: the eccentricity a giant forces on a belt, 5/4 (a / a_giant) e_giant / (1 - e_giant^2) | 1.0 to 1.5 | belts on either side of an eccentric giant, a / a_giant not near 1 | a belt whose measured forced eccentricity differs from the law by more than a factor 2 | the Laplace-Lagrange solution of the system's own planets | Wyatt et al. 1999 (recalled, not opened); the leading secular term | GEN.1069 | - |
+| RGP6 | P | T2 | L1 | resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR 9.3e-4 and resonance_gaps.YARKOVSKY_REFERENCE_AU 1.1: da/dt times D at 1.1 au, scaled with 1/a^2 | coefficient 0.5 to 2 times; flux exponent 1 to 3 | bodies of 0.1 to 40 km | the same as BR1 of 6.95 | the thermal-parameter model of Vokrouhlicky 2015 | Vokrouhlicky et al. 2015 (arXiv:1502.01249, READ); Bennu's measured drift | GEN.1069 | - |
+| RGP7 | P | T6 | L1 | resonance_gaps.ZONE_ECCENTRICITY_FLOOR 0.005: the least free eccentricity the zones and widths are worked out for | 0.001 to 0.02 | cold belts | a measured free eccentricity of a cold belt far from it | the belt's own self-stirred eccentricity from its size law (Kenyon and Bromley 2008) | educated guess from physics (a cold disc, the cold classical belt's e under 0.05) | GEN.1069 | - |
 
 ## 6.95 Stand-ins of the belt sources
 
