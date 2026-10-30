@@ -218,7 +218,7 @@ def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, mo
     maintenance.turn_on(by="migration", cause=maintenance.SECTOR_SWITCH)
     monkeypatch.setattr(maintenance.tempfile, "mkstemp", _denied)
     monkeypatch.setattr(warm_cli, "_site_database", lambda: "x")
-    monkeypatch.setattr(warmup, "warm_family", lambda db, family, cap=None, app=None, config=None: {
+    monkeypatch.setattr(warmup, "warm_family", lambda db, family, cap=None, app=None, config=None, window=None: {
         "family": family, "warmed": 1, "left_out": 0, "seconds": 0.0, "line": f"{family}: ok"})
     monkeypatch.setattr(warmup, "expand_warm_galaxy_nodes", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
@@ -228,6 +228,9 @@ def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, mo
     monkeypatch.setattr(warmup, "warm_galaxy_deep_nodes_unit",
                         lambda args, report: warmup._warm_unit("galaxy-deep-nodes", args))
     monkeypatch.setattr(warmup, "warm_object_index_unit", lambda args, report: warmup._warm_unit("object-index", args))
+    # the sector, system and phenomenon stages read the listing from the API to cut it into slices (PERF.180): one empty slice instead
+    monkeypatch.setattr(warmup, "_expand_objects", lambda params, family: commands.Expansion(
+        [({"database": params["database"], "cap": params.get("cap"), "offset": 0, "count": 0, "left_out": 0}, 1.0)], {family: 0}))
     parser, _parsers = generate_cli.build_parser()
     with pytest.raises(SystemExit) as exit_info:
         warm_cli.run_warm(parser.parse_args(["warm"]))

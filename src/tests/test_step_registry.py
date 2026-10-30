@@ -25,6 +25,8 @@ def _kinds_used():
             if not isinstance(node, ast.Call):
                 continue
             name = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", None)
+            if isinstance(node.func, ast.Attribute) and getattr(node.func.value, "id", None) == "commands":
+                continue          # `commands.Step(key, command, label, params)` is a queue command, whose second argument names a command
             kind = None
             if name in KIND_ARGUMENT and len(node.args) > KIND_ARGUMENT[name]:
                 kind = node.args[KIND_ARGUMENT[name]]
