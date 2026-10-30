@@ -89,3 +89,19 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.35:CS1 | GEN.950 | `condensate_shares.ICE_CONDENSATION_K`, read when the wiring step lands |
 | row | 6.35:CS2 | GEN.950 | `condensate_shares.TABLE_11_MASS_PERCENT`, read when the wiring step lands |
 | row | 6.35:CS3 | GEN.950 | `condensate_shares.ROCK_OXYGEN_SHARE`, read when the wiring step lands |
+| module | planetgen.physics.planet_architecture | GEN.728 | the planet architecture (inner system, thinning, outer chain, gas, migration); `system.py` calls it at the wiring on merge train 4 |
+| module | planetgen.physics.planet_occurrence | GEN.728 | the reader of the observed occurrence bands; the architecture and the census read it |
+| module | planetgen.physics.kepler_multiplicity | GEN.728 | the Kepler transit multiplicity harness, read by the tuning tests until the wiring |
+| data | planet_occurrence.json | GEN.728 | read by `physics/planet_occurrence.py` only |
+| row | 6.36:AR1 | GEN.728 | `ARCH_DISC_SOLIDS_ENHANCEMENT, ARCH_OUTER_GROWTH_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:AR2 | GEN.728 | `ARCH_GAS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:AR3 | GEN.728 | `INNER_INITIAL_COUNT_EXTRA, INNER_COUNT_SIGMA_LN`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:AR4 | GEN.728 | `INNER_PLANET_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:AR5 | GEN.728 | `INNER_NEIGHBOUR_SIGMA_DEX`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:AR6 | GEN.728 | `*_SEPARATION_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:AR7 | GEN.728 | `OLIGARCH_INNER_EDGE_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:AR8 | GEN.728 | `SCULPT_AGE_YR and the survival law`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:AR9 | GEN.728 | `GIANT_MIGRATION_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:AR10 | GEN.728 | `GIANT_INWARD_MIGRATION_SIGMA_LN, GIANT_CLEARING_SPACING`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:AR11 | GEN.728 | `PLANET_MIN_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:AR12 | GEN.728 | `DISC_SOLIDS_SCATTER_DEX, INNER_SYSTEM_FRACTION_ANCHORS`, read by `planet_architecture`, which `system.py` calls at the wiring |

@@ -88,3 +88,13 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.26:GS4 | replace | GEN.979 | the distribution of the last impactor by planet mass from Kokubo and Ida 2007 or Agnor et al. 1999 replaces the isolation mass and steepness; the planet-formation train can give the isolation mass of the disc (formation.isolation_mass_kg) |
 | 6.26:GS5 | replace | GEN.979 | the same N-body distribution replaces the log-uniform range of the last giant impact |
 | 6.26:GS6 | replace | GEN.979 | the same N-body distribution (the planetesimal-built embryos) replaces the log-uniform range |
+| 6.36:AR1 | no data | - | no model of the outer disc solids is filed; the numbers are tuned to the giants at 2 to 8 AU (Fulton et al. 2021), and a measured pebble-flux model replaces them |
+| 6.36:AR2 | no data | - | the share of cores that find gas is tuned to the giant occurrence and its rise with [Fe/H] (Johnson et al. 2010); no survey measures the disc lifetime it stands for |
+| 6.36:AR3 | replace | GEN.730 | the formation-era dynamics item replaces the starting count of the inner chain with the outcome of giant impacts; Zhu et al. 2018 multiplicities are the data |
+| 6.36:AR4 | no data | - | the masses of the Kepler planets are measured for few; the scale is tuned to the 1 to 10 Earth-mass range of Zhu and Dong 2021 and its trend with host mass and metallicity |
+| 6.36:AR5 | no data | - | Weiss et al. 2018 measure the pair ratio, not the spread of masses a system starts with; tuned to the 65 percent outer-larger share |
+| 6.36:AR6 | replace | GEN.730 | the formation-era dynamics item replaces the starting spacing with the instability outcome; Pu and Wu 2015 and Weiss et al. 2018 spacings are the data |
+| 6.36:AR7 | no data | - | the inner edge of the chain is measured as a fall of occurrence inside 10 days (Mulders et al. 2015); the median period and width are tuned to the Kepler rise with period |
+| 6.36:AR9 | no data | - | the hot Jupiter share of giants is tuned to 0.6 to 1.2 percent of Sun-like stars and 0.27 percent of early M dwarfs; no survey measures the migration channel |
+| 6.36:AR10 | no data | - | the inward move of other giants is tuned to the 1 to 3 AU peak of Fulton et al. 2021 and Cumming et al. 2008; no survey measures the migration |
+| 6.36:AR11 | no data | - | the lightest oligarch that counts as a planet is tuned to the Neptune-mass counts beyond the snow line; the microlensing mass function below 1 Earth mass is unmeasured |
