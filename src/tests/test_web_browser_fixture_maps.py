@@ -26,7 +26,7 @@ Image = pytest.importorskip("PIL.Image")
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_HALO_RADIUS_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
-    BARREN_FIELD, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
+    BARREN_FIELD, BESIDE_ID, BESIDE_SYSTEMS, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site, HOLE_FIELD, FAR_BUBBLE,
     far_site, halo_site, holes_site,
     map_site,
@@ -34,6 +34,8 @@ from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
 
 PRIME_CODE = provisional_sector_designation(1, 0, 1)
 """The designation of the fixture's Fixture Prime (shell 1, band 0, wedge 1)."""
+BESIDE_CODE = provisional_sector_designation(1, 0, 2)
+"""The designation of Fixture Beside, the sector next to it (MAP.329)."""
 UNCHARTED_CODE = provisional_sector_designation(*UNCHARTED_CELL)
 """The designation of the fixture's uncharted cell."""
 
@@ -2964,7 +2966,7 @@ def test_the_charted_regions_are_soft_spheres_at_galactic_scale_colored_by_share
     assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapRegions.count()") == 2
     assert all(spot["alpha"] > 0.15 and spot["radiusPx"] >= 5 for spot in spots), spots
     by_key = {spot["key"]: spot for spot in spots}
-    assert by_key["9.1.0.0"]["share"] > by_key["9.0.0.0"]["share"] > 0
+    assert by_key["9.0.0.0"]["share"] > by_key["9.1.0.0"]["share"] > 0    # Fixture Beside (MAP.329) is the second sector of the first
     assert by_key["9.1.0.0"]["color"] != by_key["9.0.0.0"]["color"], "the colour follows the share"
     assert page.evaluate(LINES)["chartedLines"] == 0, "no sector box at galactic scale"
     # The layer is what is drawn there: the picture about a region changes when the Menu's Charted regions is switched off.
@@ -3086,12 +3088,12 @@ def test_the_menu_lists_the_charted_regions_by_share_or_name_and_a_click_flies_t
     details.locator("summary").click()
     order = lambda: page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapRegionList.order()")
     by_share = order()
-    assert [text.split(",")[0] for text in by_share] == ["Fixture Zarh Region", "Fixture Beez Region"], by_share
+    assert [text.split(",")[0] for text in by_share] == ["Fixture Beez Region", "Fixture Zarh Region"], by_share
     assert all(text.endswith("under 1 percent charted") for text in by_share), by_share
     details.locator("[data-regions-sort]").select_option("name")
     assert [text.split(",")[0] for text in order()] == ["Fixture Beez Region", "Fixture Zarh Region"]
     details.locator("[data-regions-sort]").select_option("share")
-    assert [text.split(",")[0] for text in order()] == ["Fixture Zarh Region", "Fixture Beez Region"]
+    assert [text.split(",")[0] for text in order()] == ["Fixture Beez Region", "Fixture Zarh Region"]
     details.locator('button[data-region-key="9.0.0.0"]').click()
     page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
     _settle(page)
@@ -4178,26 +4180,40 @@ def _nearest_that_way(here, others, direction, cone_deg=60.0):
     return best[1] if best else None
 
 
+def _system_places():
+    """Every fixture system's place in the galaxy's frame, pc, by name: a sector's scene lies in the sector's own frame, turned about the
+    z axis to the sector's azimuth (the Fixture Prime wedge 1 at 45 degrees), its stored x and y in mpc from the sector's centre."""
+    places = {}
+    for sector_id, systems in ((SECTOR_ID, SYSTEMS), (BESIDE_ID, BESIDE_SYSTEMS)):
+        centre = _sector_center_pc(*next(s[1:4] for s in SECTORS if s[0] == sector_id))
+        azimuth = math.atan2(centre[1], centre[0])
+        for _i, name, x, y, z, _s in systems:
+            places[name] = (centre[0] + (x * math.cos(azimuth) - y * math.sin(azimuth)) / 1000.0,
+                            centre[1] + (x * math.sin(azimuth) + y * math.cos(azimuth)) / 1000.0, centre[2] + z / 1000.0)
+    return places
+
+
+def _step_buttons(page):
+    return page.eval_on_selector_all(
+        "#galaxymap3d-controls [data-action=step]",
+        "els => Object.fromEntries(els.map(e => [e.dataset.step, !e.disabled]))")
+
+
 def test_the_step_buttons_and_keys_go_from_an_open_system_to_the_nearest_system_that_way(page, map_site):
-    """MAP.121: with a system opened in place the step buttons and keys take the view to the nearest system of the sector
-    lying that way (north, south, east, west, out, in, in the galaxy's frame at the system), keeping the scale; a button
-    is off where no system lies that way."""
+    """MAP.121, MAP.329: with a system opened in place the step buttons and keys take the view to the nearest system lying that
+    way (north, south, east, west, out, in, in the galaxy's frame at the system), keeping the scale, across the sector's edge
+    too once the sectors round it are read; a button is off where no system lies that way."""
     _open_system_in_place(page, map_site)
-    centre = _sector_center_pc(*next(s[1:4] for s in SECTORS if s[0] == SECTOR_ID))
-    # The sector scene turns y back to the galaxy's own (flipY), so a system's y runs the other way from its stored one.
-    places = {name: (centre[0] + x / 1000.0, centre[1] - y / 1000.0, centre[2] + z / 1000.0) for _i, name, x, y, z, _s in SYSTEMS}
+    places = _system_places()
     here = places["Middling Sun"]
     others = [(name, *place) for name, place in places.items() if name != "Middling Sun"]
     expected = {d: _nearest_that_way(here, others, d) for d in ("north", "south", "east", "west", "in", "out")}
     assert any(expected.values()), expected
-
-    def enabled():
-        return page.eval_on_selector_all(
-            "#galaxymap3d-controls [data-action=step]",
-            "els => Object.fromEntries(els.map(e => [e.dataset.step, !e.disabled]))")
-
-    assert enabled() == {d: name is not None for d, name in expected.items()}, (enabled(), expected)
-    direction = next(d for d, name in expected.items() if name)
+    # The sectors round the system are read after it opens: a step goes where it should once they are.
+    page.wait_for_function("(want) => Object.entries(want).every(([d, name]) => document.querySelector('#galaxymap3d-canvas').galaxyStepTo(d) === name)",
+                           arg=expected, timeout=20000)
+    assert _step_buttons(page) == {d: name is not None for d, name in expected.items()}, (_step_buttons(page), expected)
+    direction = next(d for d, name in expected.items() if name and name in {n for _i, n, *_r in SYSTEMS})
     was = _galaxy_system(page)["id"]
     page.click("#galaxymap3d-menu > summary")
     page.click(f'#galaxymap3d-controls [data-step="{direction}"]')
@@ -4208,6 +4224,36 @@ def test_the_step_buttons_and_keys_go_from_an_open_system_to_the_nearest_system_
     assert state["name"] == expected[direction] and state["mode"] == "compressed", (direction, expected, state)
     assert f"&system={state['id']}" in _query(page)
     assert _crumbs(page)[-1] == expected[direction], _crumbs(page)
+
+
+def test_a_step_across_the_sector_edge_opens_the_system_beside_in_its_own_sector(page, map_site):
+    """MAP.329: from Middling Sun, whose nearest system to the east is in the next sector (Across The Edge, 0.6 pc away), the east
+    step opens that sector beside the first and the system in it, keeping the scale, each with its history entry; Back returns
+    to the system it came from."""
+    _open_system_in_place(page, map_site)
+    places = _system_places()
+    others = [(name, *place) for name, place in places.items() if name != "Middling Sun"]
+    assert _nearest_that_way(places["Middling Sun"], others, "east") == "Across The Edge"
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStepTo('east') === 'Across The Edge'", timeout=20000)
+    was = _galaxy_system(page)["id"]
+    page.click("#galaxymap3d-menu > summary")
+    page.click('#galaxymap3d-controls [data-step="east"]')
+    page.wait_for_function("([was]) => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); return !!s && s.id !== was && !s.flying; }",
+                           arg=[was], timeout=30000)
+    _settle(page)
+    state = _galaxy_system(page)
+    assert state["name"] == "Across The Edge" and state["mode"] == "compressed", state
+    assert _query(page) == f"sector={BESIDE_CODE}&open=1&system={state['id']}", _query(page)
+    crumbs = _crumbs(page)
+    assert crumbs[-1] == "Across The Edge" and crumbs[-2].startswith("Sector"), crumbs
+    page.go_back()    # the system's entry, then the sector's own
+    page.wait_for_function("() => !new URL(location.href).searchParams.get('system')", timeout=30000)
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxySystem()", timeout=30000)
+    page.go_back()
+    page.wait_for_function("([was]) => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); return !!s && s.id === was; }",
+                           arg=[was], timeout=30000)
 
 
 def test_a_close_pairs_two_orbits_are_drawn_each_at_its_share(page, map_site):
