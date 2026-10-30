@@ -1,0 +1,5 @@
+**Headline:** The generator can now work out where a planet thrown out of its system has drifted to in the Galaxy.
+
+### Added
+- **`physics/rogue_drift.py` (GEN.1114).** From the kick an ejected planet got and the time since, it gives the planet's position and velocity relative to the star it left, by the exact solution of the equations for two bodies on nearly the same galactic orbit. A planet kicked along the orbit slides away from its star at about 1.3 times the kick (4 pc per million years for 3 km/s) while a sideways or vertical kick only makes it wobble, so after a billion years a typical rogue is a few thousand parsecs from home. For drifts too large for the linear form it gives the angle round the Galaxy instead. It agrees with a direct orbit integration to within a few percent of the separation out to a kiloparsec. Nothing places rogue planets with it yet; that is the virtual-donor step (GEN.1111).
+- **Stand-in rows GD1 to GD4** in the gap-filling plan (section 6.89) and the stand-in list.

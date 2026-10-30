@@ -1684,6 +1684,17 @@ The numbers behind `docs/design/systems/captured-asteroid-moons.md` section 5, r
 | BW5 | P | T9 | L3 | band_winds.NIGHT_COUPLING 0.5, the share of the day's coupling left at night | 0.3 to 0.8 | worlds with a stable night layer | a measured night to day wind ratio far from a half | a boundary-layer stability model | the Earth's night winds are about half the day's, recalled |
 | BW6 | P | T6 | L0 | band_winds.TROPICS_LIMIT_DEG 60, the latitude where westerlies give way to polar winds | 50 to 70 | worlds with a Hadley cell | a general-circulation run with the Ferrel cell ending far from 60 degrees | the Ferrel cell's edge from the same scaling | the Earth's polar front is near 60 degrees, recalled |
 
+### 6.89 Stand-ins of the rogue planet drift (GEN.1114)
+
+`physics/rogue_drift.py` gives where an ejected planet is relative to its star a time after the kick, by the exact solution of Hill's equations in the star's rotating frame (`x = (2 Omega v / kappa^2)(1 - cos kappa t) + (u / kappa) sin kappa t`, the slide along the orbit at `4 Omega A / kappa^2` times the along-orbit kick, the vertical oscillation at `nu`), with the velocity relative to the star and a ring form that turns the along-orbit offset into a wrapped azimuth. It agrees with a direct nonlinear orbit integration in a flat-rotation-curve potential to within a few percent of the separation out to 1 kpc and 200 Myr, and gives the design note's medians (about 30 pc after 10 Myr, 270 pc after 100 Myr for a 3 km/s isotropic kick). The kick is an input. Not read by the generator until the virtual-donor placement (GEN.1111).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| GD1 | P | T1 | L0 | rogue_drift.OORT_A_KM_S_KPC 15.3 km/s/kpc, the shear at the Sun | 14.8 to 15.8 | the Sun's neighbourhood | an Oort constant measured at another galactocentric radius | the potential's own `Omega` and `kappa` at the sector's radius (`Galaxy.from_frequencies`) | Bovy 2017, quoted in the drift note, section 3.1 |
+| GD2 | P | T1 | L0 | rogue_drift.OORT_B_KM_S_KPC -11.9 km/s/kpc | -12.4 to -11.4 | the Sun's neighbourhood | the same | the same | Bovy 2017, quoted in the drift note |
+| GD3 | P | T6 | L1 | rogue_drift.VERTICAL_FREQUENCY_KM_S_KPC 76 km/s/kpc, `nu = sqrt(4 pi G rho)` for 0.1 solar masses per cubic parsec | 60 to 90 | the solar neighbourhood | a vertical frequency from the potential differing by more than 10 percent (the repo's galactic-potential value at the Sun is 74.3) | the potential's `nu` at the sector's radius and height | the standard midplane-density estimate; galactic-potential.md section 7.1 |
+| GD4 | P | T6 | L1 | rogue_drift.LINEAR_LIMIT_PC 1500, the separation up to which the linear equations are taken as good | 1000 to 2000 | all drifts | the integrator behind the potential disagreeing with the closed form by more than 10 percent inside this | the orbit integrator's own validity map | the drift note's "1 to 2 kpc"; the test against a nonlinear integration is good to 5 percent at 600 pc |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
