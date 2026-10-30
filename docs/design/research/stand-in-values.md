@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 766 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 771 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 77 | 28 | 5 | 9 | 0 | 119 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 40 | 12 | 0 | 0 | 0 | 52 |
-| T6 | 64 | 41 | 12 | 34 | 0 | 151 |
+| T6 | 65 | 42 | 12 | 34 | 0 | 153 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
-| T8 | 0 | 1 | 1 | 3 | 2 | 7 |
+| T8 | 0 | 1 | 1 | 6 | 2 | 10 |
 | T9 | 7 | 3 | 4 | 34 | 19 | 67 |
-| All | 476 | 122 | 36 | 105 | 27 | 766 |
+| All | 477 | 123 | 36 | 108 | 27 | 771 |
 
 ## How the labels were given
 
@@ -1012,6 +1012,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | NC4 | P | T9 | L2 | nightside_collapse._calibration: the factor (about 1.24 at Earth's flux) on the grey night-side temperature that makes the balance first lose CO2 at the fit's critical pressure | none | CO2 below the fit's critical pressure | the fit's own critical pressure disagreeing with the balance by a factor over 2 in pressure at another flux | the night-side temperature from the 3D runs | tuned to the published threshold (NC1), so the two agree there and the retained share rises continuously to 1 at it | - | - |
 | NC5 | P | T7 | L0 | nightside_collapse.collapse for a gas other than CO2: the same grey balance, not calibrated | none | N2 and other gases the paper leaves to later work | a 3D run of an N2 air whose collapse pressure differs from this by a factor over 3 | the N2 collapse pressures of a later Wordsworth or Leconte paper | the paper says N2 collapse is left to future work (Section 3.6); N2 freezes under 126 K so at Earth's flux it holds at any pressure here | - | - |
 | NC6 | P | T9 | L0 | nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed | 0.1 to 0.9 | any gas | a page text that reads wrongly at the cut | none (the retained share is the number to use) | needed output: the share, not the flag, is the physics | GEN.1051 | - |
+
+## 6.86 Stand-ins of the rogue planet top-up
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| TU1 | P | T8 | L3 | tuning.ROGUE_LEVEL_CEILINGS None 0, Few 2.5, Normal 4.3, Many 10 terrestrial rogues per star, the most the top-up may bring a sector to | Few 1 to 4; Normal 3 to 6; Many 6 to 15 | the Rogues dropdown of the galaxy and the sector options | a microlensing or survey rate of free-floating Earth-mass planets per star outside 1 to 20 | the rate the rogue research (GEN.1111) settles on, set by Boss's levels | the design note's accepted numbers (region-object-store 8.5); the ceiling is a dial, not a measurement | GEN.1120 | replace (GEN.1111) |
+| TU2 | P | T8 | L3 | tuning.ROGUE_TOPUP_PLACEMENT 1, the share of the sector edge a top-up rogue may be placed over, centred (1 is the whole sector) | 0.25 to 1 | rogues added inside a sector | a rogue count that clusters at the sector middle against the field | the density of the smoothed rogue field (GEN.1115) once it exists | uniform placement is the neutral choice; no source | GEN.1120 | no data |
+| TU3 | P | T8 | L3 | rogue_topup.SCATTERER_AU_RANGE 1 to 30 AU, where the scattering giant of an apparent origin sits, drawn log-uniform | 1 to 5 for the inner edge; 20 to 100 for the outer | the apparent speed and drift of a top-up rogue | ejection distances from the architecture's own records (GEN.1119) outside 1 to 30 AU | the ejection records of GEN.1119 | giants scatter from 1 to 30 AU in the Solar System and in the observed giant-planet period range; an educated guess from physics | GEN.1120 | replace (GEN.1119) |
+| TU4 | P | T6 | L1 | rogue_topup.VELOCITY_DISPERSION_KM_S 35, 25, 20 km/s, the thin disc's U, V and W dispersion of the hosts | within the printed spread | hosts the caller gives no velocity for | the dispersion of the host stars' own velocities in the sector | the velocities of the sector's hosts | the thin-disc dispersions recalled from the local kinematics literature (not opened) | GEN.1120 | - |
+| TU5 | P | T6 | L0 | rogue_topup.GALACTOCENTRIC_RADIUS_PC 8000, the galactocentric radius of the ring used for the arc of an apparent origin where the caller gives none | 7500 to 8500 | the Sun's neighbourhood | none (a position input) | the sector's own galactocentric radius | about the Sun's distance from the Galactic centre | GEN.1120 | - |
 
 ## 6.87 Stand-ins of the rogue planet ejection speed
 
