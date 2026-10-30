@@ -2463,9 +2463,9 @@ CREATE TABLE IF NOT EXISTS planets (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
-    surface_liquid                VARCHAR(32),  -- v187 (GEN.1035): the liquid the surface holds (an id of physics/surface_liquids.py; NULL: none)
-    surface_liquid_fraction       DOUBLE,  -- v187: the share of the surface that liquid covers
-    surface_liquid_depth_km       DOUBLE,  -- v187: its mean depth over that share, km (NULL: not known)
+    surface_liquid                VARCHAR(32),  -- v188 (GEN.1035): the liquid the surface holds (an id of physics/surface_liquids.py; NULL: none)
+    surface_liquid_fraction       DOUBLE,  -- v188: the share of the surface that liquid covers
+    surface_liquid_depth_km       DOUBLE,  -- v188: its mean depth over that share, km (NULL: not known)
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -2816,9 +2816,9 @@ CREATE TABLE IF NOT EXISTS moons (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
-    surface_liquid                VARCHAR(32),  -- v187 (GEN.1035): the liquid the surface holds (an id of physics/surface_liquids.py; NULL: none)
-    surface_liquid_fraction       DOUBLE,  -- v187: the share of the surface that liquid covers
-    surface_liquid_depth_km       DOUBLE,  -- v187: its mean depth over that share, km (NULL: not known)
+    surface_liquid                VARCHAR(32),  -- v188 (GEN.1035): the liquid the surface holds (an id of physics/surface_liquids.py; NULL: none)
+    surface_liquid_fraction       DOUBLE,  -- v188: the share of the surface that liquid covers
+    surface_liquid_depth_km       DOUBLE,  -- v188: its mean depth over that share, km (NULL: not known)
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)

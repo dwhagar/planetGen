@@ -70,3 +70,4 @@ Commit each file came from:
 - v184: 94dbe2b6 (GEN.952 member radius, before GEN.846 star rotation period; rebuilt from v185 by dropping `bright_stars.rotation_period_hours`)
 - v185: 452eb9f1 (GEN.846 star rotation period, before PERF.211 phenomenon sort indexes)
 - v186: 26009638e (PERF.211 phenomenon sort indexes, before GEN.768 hours outside in a day)
+- v187: train 5 (GEN.768 hours outside in a day, before GEN.1035 surface liquid; the train-5 merge before the liquid branch)
