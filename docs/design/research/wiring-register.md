@@ -123,3 +123,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.41:TK4 | GEN.473 | `taxon_kernel.MELT_ENERGY_J_PER_KG, ALUMINIUM_MASS_FRACTION`, read when the wiring step lands |
 | row | 6.41:TK5 | GEN.473 | `taxon_kernel.ACCRETION_SPREAD_MYR`, read when the wiring step lands |
 | row | 6.41:TK6 | GEN.473 | `taxon_kernel.DRY_SPLIT, IGNEOUS_SPLIT, HYDRATED_SPLIT`, read when the wiring step lands |
+| module | planetgen.physics.belt_mass | GEN.477 | the mass left in a planetesimal belt after collisional grinding (Wyatt et al. 2007; lock-free); the wiring step gives `AsteroidBelt` its mass and its density word from it |
+| row | 6.43:BM1 | GEN.477 | `belt_mass.GRAIN_DENSITY_KG_M3, STRENGTH_FLOOR_J_PER_KG`, read when the wiring step lands |
+| row | 6.43:BM2 | GEN.477 | `belt_mass.DENSE_FACTOR`, read when the wiring step lands |

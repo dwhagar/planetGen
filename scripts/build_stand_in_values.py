@@ -117,6 +117,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.42", "6.42 Stand-ins of the brackets the research items GEN.480 and GEN.489 to GEN.493 leave",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.43", "6.43 Stand-ins of the mass left in a belt",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""
 
