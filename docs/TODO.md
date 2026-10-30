@@ -7010,6 +7010,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from Sources 1 at its request. This replaces any earlier owner line.
   Lock-free step first; the wiring step rides train 7. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
+  Part 1 merged (2026-10-29 10:51 PM EDT): Sources 2 merged part 1
+  (#3859): chondrite groups as a composition-space map with a
+  nearest-group label, registry MG1 and MG2 (section 6.44),
+  wiring-register lines name the GEN.475 wiring, which also replaces the
+  taxon_kernel TK6 splits. No output change. The wiring stays open here.
 
 - [ ] **GEN.476 Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range**
   Body composition research lane, section 14.4 of
@@ -7178,6 +7183,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from Sources 1 at its request. This replaces any earlier owner line.
   Lock-free step first; the wiring step rides train 7. Brief:
   /mnt/project-files/handoffs/sources-2-brief-2026-10-29.md.
+  E2 lock-free step merged (2026-10-29 10:51 PM EDT): Sources 2 merged
+  the E2 lock-free step (#3855, as the lane reported 10:51 PM EDT): belt
+  mass from the disc and collisional grinding, registry BM1 and BM2
+  (section 6.43). The wiring step needs a DB.70 mass column plus a
+  migration and moves belt density words only. GEN.477 stays open for
+  the other parts and the wiring.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
