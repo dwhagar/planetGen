@@ -1695,6 +1695,15 @@ The numbers behind `docs/design/systems/captured-asteroid-moons.md` section 5, r
 | GD3 | P | T6 | L1 | rogue_drift.VERTICAL_FREQUENCY_KM_S_KPC 76 km/s/kpc, `nu = sqrt(4 pi G rho)` for 0.1 solar masses per cubic parsec | 60 to 90 | the solar neighbourhood | a vertical frequency from the potential differing by more than 10 percent (the repo's galactic-potential value at the Sun is 74.3) | the potential's `nu` at the sector's radius and height | the standard midplane-density estimate; galactic-potential.md section 7.1 |
 | GD4 | P | T6 | L1 | rogue_drift.LINEAR_LIMIT_PC 1500, the separation up to which the linear equations are taken as good | 1000 to 2000 | all drifts | the integrator behind the potential disagreeing with the closed form by more than 10 percent inside this | the orbit integrator's own validity map | the drift note's "1 to 2 kpc"; the test against a nonlinear integration is good to 5 percent at 600 pc |
 
+### 6.88 Stand-ins of the rogue planet age (GEN.1112, RP5)
+
+`physics/rogue_age.py` gives a rogue planet's age (the ejecting star's, drawn from the galaxy's star-formation `AgeLaw`), the delay after formation at which it was thrown out (power-law density in time from the shortest delay to the parent's age, an even share of each decade at index 1) and the time since ejection, the three numbers the heat law, the drift and the history sentence need. The ejection record of GEN.1119 replaces the drawn delay with the recorded one (`from_record`). Not read by the generator until the rogue rows are created (GEN.1111).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| RG1 | P | T8 | L2 | rogue_age.EJECTION_DELAY_MIN_GY 0.001 Gy, the earliest ejection after formation | 0.0003 to 0.01 | ejected planets and embryos | an ejection record (GEN.1119) with a large share of ejections earlier than 1 Myr after formation | the delay distribution of the architecture's own ejection records | the gas disc's first Myr is before planets scatter; an educated guess from physics |
+| RG2 | P | T8 | L3 | rogue_age.DELAY_INDEX 1, the ejection delay's density goes as t^-1 | 0 to 2 | the scattering of giants and embryos | ejection records whose delays are not spread evenly over the decades of time | the delay distribution of the ejection records (GEN.1119) | Chatterjee et al. 2008 give scattering times from 1e6 to 1e9 yr and beyond, recalled; the even spread is ours |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

@@ -212,6 +212,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.89:GD2 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
 | row | 6.89:GD3 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
 | row | 6.89:GD4 | GEN.1111 | a constant of the rogue drift module, read when its wiring step lands |
+| module | planetgen.physics.rogue_age | GEN.1111 | a rogue's age, ejection delay and time since ejection; the rogue rows read them for the heat law, the drift and the history sentence |
+| row | 6.88:RG1 | GEN.1111 | a constant of the rogue age module, read when its wiring step lands |
+| row | 6.88:RG2 | GEN.1111 | a constant of the rogue age module, read when its wiring step lands |
 | row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
