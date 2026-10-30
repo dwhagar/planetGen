@@ -41,6 +41,7 @@ Use:
 
 import functools
 import math
+import re
 from dataclasses import dataclass
 
 import numpy as np
@@ -166,12 +167,33 @@ def latent_heat_j_mol(temperature_k):
 _CP_GRID = np.arange(100.0, 4001.0, 20.0)
 
 
+def _atoms(formula):
+    """The number of atoms in a molecule written without brackets (`"HC3N"` is 5)."""
+    return sum(int(count or 1) for _symbol, count in re.findall(r"([A-Z][a-z]?)(\d*)", formula))
+
+
 @functools.cache
 def _cp_over_r(formula):
-    """The heat capacity at constant pressure over R of a gas on `_CP_GRID` (the cold end of its fit stands in below the fit)."""
-    thermo = species_thermo.species(formula)
-    low, high = thermo.range_k
-    return np.array([thermo.cp_over_r(min(max(t, low), high)) for t in _CP_GRID])
+    """
+    The heat capacity at constant pressure over R of a gas on `_CP_GRID`, from the first source the gas has (GEN.852, row IR9):
+
+    1. its NASA Glenn fit (`species_thermo.gas`; the cold end of the fit stands in below it, the hot end above it);
+    2. the heat capacities the gas table gives at 100, 300 and 1000 K (`gases.Gas.cp_j_mol_k`), interpolated linearly in temperature and
+       held at the end values beyond them (a polyatomic gas gains heat capacity above 1000 K, so this is low there);
+    3. a rigid-rotor count of the atoms: 5/2 for one, 7/2 for two, and 4 + (3N - 6) / 2 for a molecule of N atoms, half its vibrations awake.
+    """
+    try:
+        thermo = species_thermo.gas(formula)
+    except KeyError:
+        pass
+    else:
+        low, high = thermo.range_k
+        return np.array([thermo.cp_over_r(min(max(t, low), high)) for t in _CP_GRID])
+    known = sorted((float(t), v / R) for t, v in gases.gas(formula).cp_j_mol_k.items() if v is not None)
+    if known:
+        return np.interp(_CP_GRID, [t for t, _ in known], [v for _, v in known])
+    atoms = _atoms(formula)
+    return np.full_like(_CP_GRID, {1: 2.5, 2: 3.5}.get(atoms, 4.0 + 0.5 * (3 * atoms - 6)))
 
 
 # ---- the column ----
