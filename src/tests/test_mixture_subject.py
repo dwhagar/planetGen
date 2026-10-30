@@ -48,6 +48,15 @@ def test_the_earth_gives_the_quantities_the_world_gives():
     assert q["ocean_present"] is True and q["water_lost"] is False
 
 
+def test_the_xuv_index_is_the_one_stored_for_the_distance_the_body_sits_at():
+    """GEN.806: a body that stored its exposure index at its distance gives that value, and the one implementation answers at another distance."""
+    stored = _earth(xuv_exposure_index=7.5, _star_distance_au=1.0)
+    assert ms.quantities_of_body(stored, ts_k=288.0, pressure_bar=1.0)["xuv_index"] == 7.5
+    assert ms.quantities_of_body(stored, ts_k=288.0, pressure_bar=1.0, star_distance_au=2.0)["xuv_index"] == pytest.approx(0.25)
+    unstored = _earth(xuv_exposure_index=None)
+    assert ms.quantities_of_body(unstored, ts_k=288.0, pressure_bar=1.0)["xuv_index"] == pytest.approx(1.0)
+
+
 def test_the_subject_holds_exactly_what_the_class_reads():
     subject = ms.subject_of_body(_earth(), ts_k=288.0, pressure_bar=1.0, ocean_present=True, long_lived_geology=True)
     assert subject.body_class == "terrestrial"

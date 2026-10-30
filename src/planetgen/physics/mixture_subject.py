@@ -131,7 +131,11 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     if zone_edges:
         inner, outer = zone_edges
         quantities["zone"] = "h" if distance_au < inner else ("c" if distance_au > outer else "e")
-    index = activity.exposure_index(star, distance_au)
+    # GEN.806: the index `magnetism.update_exposure` stored for the distance the body sits at; the one implementation (`activity.exposure_index`) answers
+    # for a distance it was not stored for (the mantle's redox is read at another)
+    stored = getattr(body, "xuv_exposure_index", None)
+    same_distance = getattr(body, "_star_distance_au", None) == distance_au
+    index = stored if stored is not None and same_distance else activity.exposure_index(star, distance_au)
     if index is not None:
         quantities["xuv_index"] = index
     flux = climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM)
