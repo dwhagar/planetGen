@@ -14434,23 +14434,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.1111, GEN.1119, TEST.499.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
-- [ ] **GEN.1123 Audit every table that carries sector_id and its ON DELETE rule, and every path that deletes or regenerates a sector, and report which objects would be lost when a sector is deleted though they drifted in**
-  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
-  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
-  #4130). Defaults taken until Boss changes them: whole sectors are the
-  unit of randomness and a region is rounded up to whole sectors (no
-  partial sectors); work units are the galaxy's own (shell, band) arcs;
-  a moved rogue keeps the ID of its birth position, with history; the
-  top-up fills the shortfall only up to the Rogues level. Do: list each
-  positioned table, its sector_id column and delete rule, and each code
-  path that deletes or regenerates a sector (store, admin tools, tests);
-  say which tables must lose the cascade (rogue_planets first) and which
-  are birth-owned. Done: a report with the table and the change per
-  table, which the cascade-removal item uses. Lock-free (report). Where
-  we think it belongs (best guess, can move): Core 5 (sectors and fill),
-  now, separate branch.
-  Prerequisites: none. Related: GEN.1118.
-
 - [ ] **GEN.1127 chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is**
   Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
   GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
@@ -14469,6 +14452,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   applies it. Lock work (migration; goes on its own early train, "train
   19a", before the rogue rows). Where we think it belongs (best guess,
   can move): Core 5 (sectors and fill) with the DB lane, train 6.
+  GEN.1123 audit (Sources 2,
+  reports/sector-delete-audit-gen1123-2026-10-30.md) (2026-10-30 6:57 PM
+  EDT): sector_id is "held now", not "born in": the nightly orbital
+  update already rewrites sector_id of every moved system, phenomenon
+  (not quasars) and space facility. So today a raw DELETE
+  /api/sectors/<id> cascades away drifted-in rogues, interstellar
+  comets, supernova remnants, quasars and space facilities and orphans
+  systems (sector_id NULL, and the motion code then never moves them
+  again), and DELETE .../contents, regenerate and bring-to-epoch delete
+  every system filed there including drifted-in ones, while objects born
+  there that drifted out are left and drawn again under the same ID. Do,
+  in addition: remove ON DELETE CASCADE from rogue_planets,
+  interstellar_comets, supernova_remnants and space facilities (default
+  RESTRICT, so a sector row cannot vanish while a resident points at it,
+  and the delete code removes birth-owned objects first); keep CASCADE
+  for quasars, nearest_systems, the name registry and paths; change
+  delete_sector_with_contents from WHERE sector_id to birth-owned by the
+  first 56 bits of the uid (no new column); the motion code re-files a
+  NULL sector_id object by position; regeneration keeps the sectors row;
+  bring-to-epoch's admin-edit test covers birth-owned objects held
+  elsewhere; DELETE /api/sectors/<id> deletes birth-owned contents and
+  answers 409 while residents remain (defaults taken, TODO, 6:57 PM EDT,
+  until Boss says otherwise). Needs a MySQL test of regenerating sector
+  A when one of its systems drifted into C (second copy refused or
+  renumbered?) before building. GEN.1123 retired.
   Prerequisites: none. Related: GEN.1118, GEN.1111.
 
 - [ ] **GEN.1128 Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger**
@@ -14708,8 +14716,58 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   members follow a parent ID change and that a deleted object answers
   410. Lock-free after part b unless the migration is shared. Where we
   think it belongs (best guess, can move): Core 1, train 9.
-  Prerequisites: GEN.1138, GEN.1123. Related: GEN.1121, GEN.1070.
+  Prerequisites: GEN.1138. Related: GEN.1121, GEN.1070.
   Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
+
+- [ ] **GEN.1142 Class lines patch for the train 6 epoch: T hydrogen-envelope test ahead of N, N Venus-like sentence and hot, not-hydrogen-dominated rule, K without the under 273 K condition and ordered after P**
+  Class index patch
+  (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
+  at 6:48 PM EDT 2026-10-30 to patching the class lines in the same
+  train 6 epoch as the Class Q retirement GEN.1135 and the Class V line
+  GEN.1136). Do: (1) class T: a hydrogen-envelope test ahead of N so
+  hydrogen-rich terrestrial-kind bodies under about 10 Earth masses
+  become T (today 35 of 105 N bodies are hydrogen-rich, median 5.7 Earth
+  masses, and T gets none); (2) class N: 10 bar or more, hot, and not
+  hydrogen dominated, sentence back to Venus-like dense carbon dioxide
+  and sulfur air; (3) class K: drop the under 273 K condition, order it
+  after P, sentence back to an adaptable world with a thin atmosphere
+  (43 of 44 K bodies are frozen ocean); (4) GEN.725 rows for the V line
+  at 2 g, the flux flag at 0.75 and the N temperature line. If the
+  counts of GEN.1143 are not back before the train 6 cut, ship GEN.1135
+  and GEN.1136 alone and hold this item for the next window. Done: tests
+  naming the letters, class page and condition-based-planet-classes.md
+  text updated, covered by the same epoch re-derivation of every class.
+  Lock work, same epoch as GEN.1135. Where we think it belongs (best
+  guess, can move): Core 4, train 6.
+  Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1143.
+
+- [ ] **GEN.1143 Class count script: temperate-ocean bodies per class, hydrogen-rich N bodies under 15 Earth masses, and the E, H and L reach (prints only)**
+  Class index patch
+  (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
+  at 6:48 PM EDT 2026-10-30 to patching the class lines in the same
+  train 6 epoch as the Class Q retirement GEN.1135 and the Class V line
+  GEN.1136). Do: a script (audit/ or scripts/) run on main that prints,
+  per current class, the count of bodies at 250 to 330 K with a liquid
+  ocean; the count of hydrogen-rich N bodies under 15 Earth masses; and
+  how many bodies each of E, H and L reaches. Lock-free (prints only, no
+  output change). Run it on main before the train 6 epoch and again
+  after, so Boss sees what M yields. Where we think it belongs (best
+  guess, can move): Aux 2 (class sweeps).
+  Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1142.
+
+- [ ] **GEN.1144 Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach**
+  Class index patch
+  (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
+  at 6:48 PM EDT 2026-10-30 to patching the class lines in the same
+  train 6 epoch as the Class Q retirement GEN.1135 and the Class V line
+  GEN.1136). Do: after the train 6 epoch lands, re-run the class sweep
+  (GEN.1143 script plus audit/sweep_classes) on the new main and write a
+  short report; only then decide whether E merges into F, whether T and
+  N need a further boundary, and why H and L reach zero bodies (a
+  physics question about Venus and Mars type worlds, not a class-row
+  problem until measured). Boss's call on the decisions. Lock-free
+  report. Where we think it belongs (best guess, can move): Aux 2.
+  Prerequisites: GEN.1135, GEN.1136, GEN.1143. Related: GEN.1142.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
