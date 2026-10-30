@@ -135,7 +135,8 @@ def test_a_fast_rotator_stays_saturated_longer_and_a_slow_one_leaves_saturation_
             star = _spinning(1.0, 0.3, 5772.0, ratio)
             activity.generate_activity(star)
             saturated[name] += bool(star.xuv_saturated)
-    assert saturated["fast"] > 30 > saturated["slow"] + 10, saturated
+    # the saturation age is also drawn from the initial-rotation percentile (GEN.493), so the fast rotator is saturated at 0.3 Gyr in a share of the draws, not in all of them
+    assert saturated["fast"] > 15 > saturated["slow"] + 10, saturated
 
 
 def test_a_star_without_a_spin_or_with_a_law_that_does_not_cover_it_keeps_the_table():
