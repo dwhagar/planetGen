@@ -18,7 +18,7 @@ Three channels, all give the same shape: a speed at infinity of order the escape
 * **Passing stars and cluster encounters** eject the outer planets of a system, with speeds of order the encounter speed ratio times the orbital speed (Hurley and Shara 2002; Malmberg et al. 2011 for clusters), usually 1 km/s or less at 50 au and up. Not read this session [listed, not verified].
 * **Later speed-up of floaters by scattering off field stars**: Lau and Lai 2026 (arXiv:2602.12017): equilibrium velocity about sigma times sqrt(2 ln(m/m_p)) [S, abstract]. This is secular heating and is ignored here (flagged, section 8).
 
-**Stand-in [SI]:** kick speed log-normal, median 3 km/s, sigma 0.8 in ln (so 16 to 84 percent is 1.3 to 6.7 km/s), tail to about 25 km/s. Tier: Marginal educated guess from physics, tweak L2 (tuned to the published range 0.7 to 10.7). R1 replaces it with the speed from each ejection's scattering orbit (escape speed at the scattering orbit times the energy factor).
+**Replaced (GEN.1113, 2026-10-30):** the kick speed is now `v_c X` from the scatterer's mass and distance (Huang and Lai 2025 Eq. 26, checked against Kramer and Profumo 2026), mean 1.15 km/s for a Jupiter at 5.2 AU, ejected-mass independent; see `docs/design/research/rogue-ejection-kick.md`. The earlier stand-in follows for the record: kick speed log-normal, median 3 km/s, sigma 0.8 in ln (so 16 to 84 percent is 1.3 to 6.7 km/s), tail to about 25 km/s. Tier: Marginal educated guess from physics, tweak L2 (tuned to the published range 0.7 to 10.7). R1 replaces it with the speed from each ejection's scattering orbit (escape speed at the scattering orbit times the energy factor).
 
 **Direction.** Scattering is near-isotropic in the star's frame with a lean toward the orbital plane (a planet ejected from a flat system leaves within the system's inclination spread). Direction relative to the *galactic* motion has no physical reason to be perpendicular; the galactic motion does not enter the scattering. [reasoning; no source gives an anisotropy figure, so isotropic with a flag]. Stand-in [SI]: isotropic, tier Confident educated guess from physics, tweak L0.
 
@@ -104,14 +104,14 @@ Caveats registered, not hidden:
 
 | Row | Value | Tier | Tweak |
 |---|---|---|---|
-| Kick speed distribution (median 3 km/s, sigma 0.8 ln, tail to 25 km/s) until R1 | [SI] | Marginal educated guess from physics | L2 against Sayed et al. 0.7 to 10.7 km/s |
+| Kick speed: `v_c X` (rows RK1, RK3, RK4 of 6.87), moons RK5 to RK8 | read (GEN.1113) | Verified (RK1, RK3, RK5, RK8), marginal (RK4) | L0 to L3 |
 | Kick direction isotropic | [SI] | Confident educated guess from physics | L0 |
 | Oort A, B and vertical frequency nu | A 15.3, B -11.9, nu 76 | Verified (A, B), Confident Unverified (nu) | L0 / L1; replace with galactic-potential.md values |
 | Donor density 0.1 systems/pc^3 for the cost table | [SI] | Marginal Unverified | L1, only sizes the cost |
 | Ejection time after formation: R1 gives it; test uses uniform over donor age | [SI] | Unverified | L3 |
 | Secular heating of floaters (Lau and Lai) ignored | omitted | gap | document only |
 
-Not read this session, to read before building: the full texts of 2508.18239, 2608.02945, 2609.21027 (only the abstracts were read; speed medians and direction statements are not in the abstracts), Veras and Raymond 2012 (arXiv:1201.2175, found by search, not read), Hurley and Shara 2002, Malmberg et al. 2011, Bovy 2017 for the Oort constants.
+Read in full since (GEN.1113): 2508.18239, 2608.02945, 2609.21027 and Veras and Raymond 2012 (arXiv:1201.2175); to read still, Hurley and Shara 2002, Malmberg et al. 2011, Bovy 2017 for the Oort constants.
 
 ## 9. Items
 
