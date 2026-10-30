@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2588] - 2026-10-30
+
+**Headline:** The map-luminosity fill and the habitability re-score now run as stages of the shared run, with their finishing steps inside it.
+
+### Changed
+- **The two fills no longer start a run of their own (PERF.202).** `planetgen fill-map-luminosity` is a map-luminosity stage followed by the Galaxy Map's block light totals made again, as the scatters already were; `planetgen rescore-habitability` is a habitability stage whose block totals are made by the command's own finishing step, once the last range is done. The output is unchanged, and the stages can now share one run with other commands.
+
 ## [8.0.2587] - 2026-10-30
 
 **Headline:** The search page can now find planets and moons that could support a given kind of life, with a minimum score.
