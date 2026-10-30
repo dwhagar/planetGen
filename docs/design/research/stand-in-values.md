@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 525 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 528 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 60 | 0 | 5 | 0 | 0 | 65 |
+| T1 | 61 | 0 | 5 | 0 | 0 | 66 |
 | T2 | 80 | 9 | 0 | 1 | 0 | 90 |
 | T3 | 63 | 18 | 5 | 11 | 0 | 97 |
 | T4 | 26 | 0 | 0 | 4 | 4 | 34 |
 | T5 | 30 | 9 | 1 | 0 | 0 | 40 |
 | T6 | 40 | 24 | 10 | 32 | 0 | 106 |
-| T7 | 24 | 6 | 6 | 7 | 0 | 43 |
+| T7 | 24 | 7 | 7 | 7 | 0 | 45 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 324 | 66 | 29 | 81 | 25 | 525 |
+| All | 325 | 67 | 30 | 81 | 25 | 528 |
 
 ## How the labels were given
 
@@ -847,3 +847,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MR5 | P | T5 | L1 | magma_ocean_redox.DIW_PER_LOG_FE3_RATIO 4 and DIW_AT_UNIT_FE3_RATIO 5.62 (dIW = 4 log10(Fe3+/Fe2+) + 5.62) | the 5.62 by plus or minus 0.3 (the temperature of the ocean surface) | an ocean surface at about the temperature of a young rocky body's | a magma-ocean oxygen fugacity at a known Fe3+/FeT that departs from the line by more than 0.5 log units at the surface temperature of the body | a magma-ocean redox model with temperature and composition (GEN.1005 later part) | the fourth power is the stoichiometry of 4 FeO + O2 = 2 Fe2O3; the offset is read off two pairs of Hirschmann 2022 (0.034 gives -0.2, 0.103 gives +1.8), and has no temperature term; test_magma_ocean_redox::test_the_relation_reproduces_the_pairs_of_hirschmann_2022_for_the_earth | - | - |
 | MR6 | P | T5 | L0 | magma_ocean_redox.diw_sigma: the width of the surface dIW as four times the quadrature of the log spreads of the reference ferric share and of the pressure power | none (derived from MR3 and MR4) | a rocky body of 0.001 to 5 Earth masses | a published spread of magma-ocean surface fO2 at fixed mass that is narrower than a third or wider than three times this width | a magma-ocean redox model with temperature and composition (GEN.1005 later part) | the standard deviation of two uniform ranges; no new number; test_magma_ocean_redox::test_the_width_is_the_quadrature_of_the_two_log_spreads_and_least_where_the_pressure_is_the_reference | - | - |
 | MR7 | P | T7 | L2 | magma_ocean_redox.OXIDATION_INCREMENT 1.2 to 2.4 and LATER_MANTLE_SIGMA 1.0 (the later upper mantle's dIW over the magma-ocean surface of the same body, held at one Earth mass above that) | 1.2 to 2.4 for the increment; sigma 0.5 to 1.5 | a rocky body with long-lived geology | an upper-mantle dIW of a rocky body in a model of mantle oxidation that departs from this line by more than 1 log unit | a mantle oxidation model (hydrogen loss, lower-mantle disproportionation, recycling; GEN.1005 later part) | the later upper mantle of the three rocky bodies of the Solar System against their magma-ocean surfaces (Hirschmann 2022 section 4; Deng et al. 2020; GEN.482): sources give a gap of 0 to 3 that grows with mass; the line between 1.2 and 2.4 is tuned to the published ranges; test_magma_ocean_redox::test_the_later_mantle_is_inside_the_published_ranges_within_one_sigma | - | - |
+
+## 6.58 Stand-ins of the dry-body carbon
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| DC1 | P | T1 | L0 | dry_carbon.NC_UNDIFFERENTIATED_C_PPM 1600 and NC_DIFFERENTIATED_C_PPM 40 (carbon of an undifferentiated and of a differentiated non-carbonaceous building block, ppm by weight) | none (the table's values) | a dry rocky body built from non-carbonaceous material | a carbon content of non-carbonaceous bodies measured outside 0.1 to 0.2 weight percent (undifferentiated) or above 0.01 (differentiated) | a building-block model by formation zone and star (GEN.1005 later part) | Blanchard et al. 2022 (EPSL, arXiv:2202.06809) Table 2, READ: 0.16 and 0.004 weight percent; test_dry_carbon::test_a_body_that_took_only_undifferentiated_material_holds_what_the_table_says | GEN.1005 | - |
+| DC2 | P | T7 | L1 | dry_carbon.DIFFERENTIATED_SHARE 0.30 to 0.60 (the share of the accreted mass that had cored before it was accreted) | 0.15 to 0.75 | a dry rocky body accreted from planetesimals | a body-by-body model of the planetesimals' differentiation whose share lies outside 0.15 to 0.75 | an accretion model by formation zone (GEN.1005 later part) | Blanchard et al. 2022: 45 +/- 15 percent reproduces the mantle carbon with 3.35 weight percent carbonaceous carbon, 25 +/- 15 with 2.2; one accretion model of one planet; test_dry_carbon::test_the_mantle_share_and_the_differentiated_share_are_ordered_brackets_inside_zero_and_one | GEN.1005 | - |
+| DC3 | P | T7 | L2 | dry_carbon.MANTLE_SHARE 0.12 to 0.26 (the share of a body's carbon left in the mantle and air after core formation) and CO2_PER_C 3.664 | 0.05 to 0.5 | a dry rocky body with a core | a metal-silicate partitioning model with core size, ocean depth and oxygen fugacity that puts the mantle share of a body outside 0.05 to 0.5 | a core-formation model with the partitioning of Blanchard et al. 2022 Eq. 4 (GEN.1005 later part) | Blanchard et al. 2022: 140 +/- 40 ppm in the mantle of 495 +/- 125 ppm of the whole, mantle 0.68 of the mass; carbon is not extracted efficiently because only 0.16 to 9.9 percent of the mantle equilibrates with each impactor core; test_dry_carbon::test_the_carbon_partitioning_of_the_source_gives_a_siderophile_element_that_the_core_still_leaves_in_the_mantle | GEN.1005 | - |
