@@ -31,7 +31,7 @@ def _block_constants():
 
 def _registry_section():
     text = PLAN.read_text(encoding="utf-8")
-    start = text.index("### 6.23 ")
+    start = text.index("### 6.31 ")
     return text[start:text.index("\n## ", start)]
 
 
@@ -44,7 +44,7 @@ def test_the_block_is_found_and_holds_the_constants_of_the_item():
 
 @pytest.mark.parametrize("name", _block_constants())
 def test_a_tuning_constant_of_the_block_has_a_registry_row(name):
-    assert re.search(rf"tuning\.{name}\b", _registry_section()), f"{name} has no row in section 6.23 of the gap-filling plan"
+    assert re.search(rf"tuning\.{name}\b", _registry_section()), f"{name} has no row in section 6.31 of the gap-filling plan"
 
 
 def test_the_pulsar_row_keeps_the_neutron_star_share_the_code_keeps():

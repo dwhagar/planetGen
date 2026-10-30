@@ -2,6 +2,53 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2574] - 2026-10-30
+
+**Headline:** A new test keeps the generator from making a giant whose radius is read at the wrong light.
+
+### Changed
+- **Guard for giants that are bright and eccentric (GEN.977).** A giant's radius is read from the tables at the light of its orbit's semi-major axis, because the eccentricity is drawn after the radius. That is within 1% of the radius at the orbit's mean light unless the giant gets more than 300 times Earth's light and an eccentricity over 0.3 together. A seeded sweep now fails if the generator ever makes one, and the bound is written into the stand-in registry (OE12). Nothing you see on a planet changes.
+
+## [8.0.2573] - 2026-10-30
+
+**Headline:** A dynamo module gives a planet's magnetic moment from the power that drives its core and its spin, tested on Earth, Jupiter, Saturn, Ganymede, Mercury and a dead Mars; nothing uses it yet.
+
+### Added
+
+- **The field of a dynamo from its power and spin (GEN.966).** The new `planetgen/physics/dynamo.py` takes the power that drives a core (or a giant's metallic layer), the region's radii and density and the spin, and gives the dipole moment, the local Rossby number, the dipole's share and the field at the core-mantle boundary or the surface. The strength is the buoyancy-flux scaling of Olson and Christensen (2006), `B = 0.2 sqrt(rho mu0 / 2) (F D)^(1/3)`; the Rossby number from the same power gates the dipole as it did before (`f_dip` falls through 0.12), so a slowly turning body has a weaker, multipolar field. A dynamo's lifetime is read from the history of its power (`lifetime`), and a giant is driven by a tenth of the heat it radiates. Earth gives 7.8e22 A m2 from 1.15 TW, Jupiter 1.6e27 against 1.5e27 observed, Ganymede 1.0e20 against 1.3e20; Saturn comes out six times too strong and Mercury twenty-two times (a stable layer weakens both, which the scaling does not model: the module takes an attenuation for it). A dead Mars has no power and no field. `magnetism.dipole_share` now calls the module's rule, with the same results. Four stand-in rows (DY1 to DY4, section 6.30 of the gap plan) record the numbers that are not measured. Nothing stored changes: GEN.967 replaces the design defaults with it.
+
+## [8.0.2572] - 2026-10-30
+
+**Headline:** A spin torque module sums a planet's star, moon and thermal-tide torques and runs its spin to the state they leave it in, ready for the tide chain to use.
+
+### Added
+- **`physics/spin_torques.py` (GEN.956, stage 2a of the tide chain).** A pure module for the torques on a planet's spin: the star's tide, each moon's tide (a moon inside corotation spins the planet up, the Earth-Moon day lengthens 2 ms a century) and the thermal tide of a thick air (Leconte et al. 2015, tabulated for 1, 10 and 92 bar), with a spin evolution that stops at a resonance, a synchronous state, a moon's corotation or a balance of the thermal and gravitational tides (the asynchronous states of Venus-like planets). With one star and a constant Q it gives the same spins as the built despinning. Nothing calls it yet; GEN.957 wires it into planet spin.
+- **Stand-in rows TQ1 to TQ6** in the gap-filling plan (section 6.24) and the stand-in list.
+
+## [8.0.2571] - 2026-10-30
+
+**Headline:** A tidal rheology module gives a body's Love number and quality factor from its mantle's temperature, melt and the tide's frequency, ready for the tide chain to use.
+
+### Added
+- **`physics/tidal_rheology.py` (GEN.954, stage 1a of the tide chain).** A pure function of mass, radius, tide frequency, mantle temperature, melt share and the body's own drawn mantle viscosity (Andrade or Maxwell rheology, Henning et al. 2009, Efroimsky 2012) that returns `k2` and `Q`. It gives the Moon its measured Love number and a Q of 61, Io `k2/Q` of a few hundredths in partial melt with no number fitted to Io, and the solid Earth a semi-diurnal Q of a few hundred. Nothing calls it yet; GEN.955 wires it into the tidal heat, the interior heat and the circularisation time.
+- **Stand-in rows TR1 to TR10** in the gap-filling plan (section 6.23) and the stand-in list, each with its source tier and tweak level, and a design note, `docs/design/orbits/tidal-chain.md`.
+- **Census check of GEN.954** on 8,822 generated rocky planets and moons: with the rheology's Q instead of 100, 18.9 percent of free planets and 5.9 percent of free moons would lock, and 3 to 6 percent flip between tide-above-own-heat and below it (note at `docs/design/orbits/tidal-chain.md`).
+
+## [8.0.2570] - 2026-10-30
+
+**Headline:** The property sheet audit no longer excuses the moons' induced magnetic moment as an open gap; the column has been filled since the ocean-moon induction was built.
+
+### Fixed
+
+- **The induced moment of a moon is no longer listed as a known gap (GEN.779).** The fill audit excused the moons' `induced_moment_a_m2` as an open gap, written when the column was believed empty. A moon's induced dipole is set in the final pass of every system (`magnetism.generate_induced_field`, GEN.178: the moon's ocean answering its parent's turning field, 0 for a moon with no liquid ocean, no parent field or a parent that turns with it); a sample of 30 systems has it filled on every moon and non-zero for the ice-covered-ocean moons. The excuse is removed, so the audit now fails if the column is ever empty again. A planet keeps its sheet rule (it orbits its star alone, and its field answer is the part of GEN.779 that rides a train). No stored value or generated output changes.
+
+## [8.0.2569] - 2026-10-30
+
+**Headline:** The young-star planet test checks that no life is drawn, not which class letter a planet gets.
+
+### Changed
+- TEST.462: `test_planets_respect_their_stars_age_and_history` failed now and then because it required that no planet of a star under 0.1 Gy carry a class letter from `HABITABLE_PLANET_CLASSES`. Since the class cut-over (GEN.646) the letter is derived from the finished conditions and says nothing of life (GEN.915), so a class V world around a 0.08 Gy star is right as long as it holds no life. The test now asserts that these planets and their moons have no life class. The test draws unseeded systems, which is why the failure showed only in some runs and orders.
+
 ## [8.0.2568] - 2026-10-30
 
 **Headline:** Stepping from an open system on the Galaxy Map now crosses the sector's edge to the nearest system that way.
