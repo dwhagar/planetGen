@@ -342,7 +342,7 @@ def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_st
     1.25), and a body past 8 Gy has settled. Over the sampled systems every body of a host past 2 Gy lies between 0.2 and 10 (a small moon whose drawn viscosity is
     near the top of the range, 3e13 Pa s and 299 kJ/mol, is still heating up at 4.7 Gy and gives 7.8, with or without its tide)."""
     seen = 0
-    for seed in range(6):
+    for seed in range(12):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
