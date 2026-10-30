@@ -13980,6 +13980,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the design without a row. Lock-free. Where we think it belongs (best
   guess, can move): Sources 2 (belt owner, GEN.473 and GEN.477),
   separate branch, merge it yourself, version 8.1, starts now.
+  Added reads (belt-origins design) (2026-10-30 4:35 PM EDT): Also read
+  Bottke and Morbidelli on the belt size distribution, Fraser 2014 and
+  Bernstein 2004 totals, Grundy 2019 roundness, Levison 2008, Sibthorpe
+  2018 and Marshall 2014 (arXiv:1403.6186); register every number used.
   Prerequisites: none.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -14174,6 +14178,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   modules).
   Prerequisites: GEN.1014, GEN.1061, GEN.1062, GEN.1064. Related:
   GEN.728.
+  Belt origins (2026-10-30 4:35 PM EDT): Each belt also stores where we
+  think it came from (the cause from physics/belt_origin.py) and a
+  one-sentence text; stored with the origin and formation columns of
+  GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **GEN.1069 Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words**
@@ -14195,6 +14203,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   page shows the mass and its history. Builds on the GEN.477 wiring
   (train 7). Where we think it belongs (best guess, can move): Sources
   2, train 15 (same train as the belt birth).
+  Belt origins (2026-10-30 4:35 PM EDT): Adds the origin, formation and
+  history text columns to the belt record (design belt-origins section
+  4).
   Prerequisites: GEN.477, GEN.1068. Related: GEN.477.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -14218,6 +14229,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests, map and page checks. No backward-compat shim. Where we think it
   belongs (best guess, can move): Core 2 (map and pages) with Sources 2
   (storage), train 15.
+  Belt origins (2026-10-30 4:35 PM EDT): Stored members carry the
+  scatter tag once the scatter phase is wired (GEN.1092).
   Prerequisites: GEN.1061, GEN.1063, GEN.1065, GEN.1067, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -14240,6 +14253,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   descriptor. New epoch. Done: tests, census share of systems with an
   outer disc matches the descriptor's occurrence. Where we think it
   belongs (best guess, can move): Sources 2, train 16 (after train 15).
+  Belt origins (2026-10-30 4:35 PM EDT): The outer disc is fed by the
+  scatter step (GEN.1092).
   Prerequisites: GEN.1068, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -14416,6 +14431,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.728 wiring, --affects plan. Done: tests, golden, census
   re-baseline. Where we think it belongs (best guess, can move): Planets
   1, train 15.
+  Belt origins (2026-10-30 4:35 PM EDT): Captured moons from the scatter
+  step wait for the census (GEN.1087) to show a moon deficit, with
+  GEN.921.
   Prerequisites: GEN.1077. Related: GEN.728.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -14482,6 +14500,118 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train 18.
   Prerequisites: GEN.1084. Related: GEN.1014.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1087 Census of Class D and dwarf-size bodies, moons of 50 to 500 km, and belts per system from the current generator, per star type**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Do: measure the current generator (needs
+  `datasets fetch isochrones` on the lane machine) and write the report;
+  it seeds the test targets of the dwarf population and scatter modules
+  and says whether the system needs more Class D bodies than it makes.
+  Done: report with per-star-type numbers. Lock-free. Where we think it
+  belongs (best guess, can move): Aux 3 (audit lane, separate branch),
+  now.
+  Prerequisites: none.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
+- [ ] **GEN.1088 physics/belt_origin.py: the cause table (gap, unfinished tail, snow-line bump, giant stirring, instability depletion, collisional debris, destroyed planet), the survival factors, the origin and formation record and the one-sentence text**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Do: design belt-origins section 3 to 5.
+  Pure functions; every belt gets an origin and a sentence saying where
+  it came from (we know, because the generator made it). Done: tests
+  that each cause fires on its input and mass is conserved; stand-ins
+  registered (educated guess from physics, L1). Lock-free. Where we
+  think it belongs (best guess, can move): Planets 1 (owns the
+  architecture), separate branch, after the research read.
+  Prerequisites: GEN.1060. Related: GEN.1061.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
+- [ ] **GEN.1089 physics/scatter.py: the scatter step as pure functions of the giants and the disc (a rule over the architecture's events with stored mass shares, no N-body run)**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Do: design belt-origins section 6: what
+  fraction of the disc solids ends scattered, in the outer disc, or onto
+  moons. Done: tests with giant-free and giant-rich inputs, Sol not an
+  input. Lock-free. Where we think it belongs (best guess, can move):
+  Core 4 (giants lane, separate branch), after its giants items.
+  Prerequisites: GEN.1060.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
+- [ ] **GEN.1090 physics/dwarf_population.py: N(>D) from belt mass and size law, the order-statistic top body, the dwarf-planet line and Class D tagging**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Do: design belt-origins section 5.
+  Targets only (never inputs): the main belt 200 to 250 bodies of 100 km
+  and up, a Kuiper-type disc 15 to 20 dwarf candidates. Done: tests,
+  stand-ins registered. Lock-free. Where we think it belongs (best
+  guess, can move): Sources 2 (with the belt ledger), separate branch.
+  Prerequisites: GEN.1061, GEN.1087.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
+- [ ] **GEN.1091 Rewrite the Class D wording in tuning.PLANET_CLASSES["D"] and the docs to match the conditions rule plus the ledger scope (docs only)**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Do: Class D stays small, airless and at
+  least 1 percent ice, and applies to belt members and dwarf planets as
+  well as moons (Boss default; changes if he says so). Done: wording and
+  docs agree, tests green. Docs-only, lock-free. Where we think it
+  belongs (best guess, can move): Aux 2 (class lane), separate branch.
+  Prerequisites: none.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
+- [ ] **GEN.1092 Wire the scatter phase and the belt origin: scatter tag on stored members, the outer disc fed from the scatter step, origin and formation shown on the belt page**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Lock work, train 16 with the outer-disc
+  item (it extends the member storage and the outer disc). New epoch,
+  API bump with the change note. Done: tests, harness, census
+  re-baseline; every belt page says where it came from. Where we think
+  it belongs (best guess, can move): Sources 2 with Planets 1, train 16.
+  Prerequisites: GEN.1088, GEN.1089, GEN.1090, GEN.1070, GEN.1071.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

@@ -532,6 +532,12 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1028 | The Mardling and Aarseth 2001 stability criterion holds only for an outer mass ratio q_out of 5 or less and the code does not enforce it (bug) |  |  |
 | GEN.1015 | Overlap-free stars P9: delete the GEN.1004 quick fix (built_tree_clears, the clearance branch of _companions_fit, _built_stars_clear), no shim | GEN.1011, GEN.1014 |  |
 | GEN.1014 | Overlap-free stars P8: a clearance ledger and planet, moon and belt sampling from it | GEN.1009, GEN.1011 |  |
+| GEN.1092 | Wire the scatter phase and the belt origin: scatter tag on stored members, the outer disc fed from the scatter step, origin and formation shown on the belt page | GEN.1088, GEN.1089, GEN.1090, GEN.1070, GEN.1071 |  |
+| GEN.1091 | Rewrite the Class D wording in tuning.PLANET_CLASSES["D"] and the docs to match the conditions rule plus the ledger scope (docs only) |  |  |
+| GEN.1090 | physics/dwarf_population.py: N(>D) from belt mass and size law, the order-statistic top body, the dwarf-planet line and Class D tagging | GEN.1061, GEN.1087 |  |
+| GEN.1089 | physics/scatter.py: the scatter step as pure functions of the giants and the disc (a rule over the architecture's events with stored mass shares, no N-body run) | GEN.1060 |  |
+| GEN.1088 | physics/belt_origin.py: the cause table (gap, unfinished tail, snow-line bump, giant stirring, instability depletion, collisional debris, destroyed planet), the survival factors, the origin and formation record and the one-sentence text | GEN.1060 |  |
+| GEN.1087 | Census of Class D and dwarf-size bodies, moons of 50 to 500 km, and belts per system from the current generator, per star type |  |  |
 | GEN.1086 | System map and pages for irregular moons (eccentric, inclined, retrograde orbits on the moon-orbit view, a body page per irregular) and the clearance ledger taking the irregular zone as occupied space | GEN.1084 |  |
 | GEN.1085 | Belt ledger link: a captured member leaves its belt's mass total; until then captured bodies come from the outer-disc reservoir only | GEN.1084, GEN.1069 |  |
 | GEN.1084 | Store the individual irregular moons and the new moon columns (migration, API version), and call the stability test for irregulars in drop_unstable_moons and in bring-to-epoch when a planet moves | GEN.1083, GEN.1070 |  |
