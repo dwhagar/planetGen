@@ -428,7 +428,7 @@ def _validate_star_count(args, parser, file_data):
 def add_shared_generation_options(parser):
     """
     Adds every per-system generation-tuning option the `sector` and
-    `galaxy` subcommands share -- everything `build_sector_configs()`
+    `galaxy` subcommands share -- everything `iter_sector_configs()`
     (and, via it, `build_system_config`) needs from parsed args -- to
     `parser`. Factored out so the two subcommands' option surfaces can
     never silently drift apart on what a given flag means.
@@ -808,7 +808,7 @@ def validate_galaxy_args(args, parser):
     """
     Validates `add_galaxy_arguments`'s own options, calling `parser.error`
     (which exits) on the first problem found, then shapes `args` into the
-    namespace `generate_sector()`/`build_sector_configs()` expect.
+    namespace `generate_sector()`/`iter_sector_configs()` expect.
     Doesn't include `add_shared_generation_options`'s own validation
     (`validate_shared_generation_args`) -- callers run both.
 
@@ -829,7 +829,7 @@ def validate_galaxy_args(args, parser):
 def validate_sectors_args(args, parser):
     """
     Validates `add_sectors_arguments`'s options (the modes and what goes with each), calling `parser.error` on the first
-    problem found, then shapes `args` into the namespace `generate_sector()`/`build_sector_configs()` expect. Doesn't
+    problem found, then shapes `args` into the namespace `generate_sector()`/`iter_sector_configs()` expect. Doesn't
     include `add_shared_generation_options`'s own validation (`validate_shared_generation_args`).
     """
     if getattr(args, "block", None) is not None:
@@ -927,7 +927,7 @@ def validate_sectors_args(args, parser):
                      "override every position's density uniformly, leaving no per-position value for "
                      "--min-start-density to compare against.")
 
-    # generate_sector()/build_sector_configs() expect a namespace shaped
+    # generate_sector()/iter_sector_configs() expect a namespace shaped
     # like the `sector` subcommand's own output -- see this function's
     # docstring for why these are always None here.
     args.sector_name = None

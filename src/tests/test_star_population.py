@@ -58,7 +58,9 @@ def population():
 # sampling noise and later tuning of the letter boundaries.
 EXPECTED_SHARES = [
     ("M dwarf", 68.0, 80.0),
-    ("K dwarf", 11.0, 18.0),
+    # GEN.897: the K/M edge is 3900 K (M0V), so K is the observed 12% of the main-sequence stars, 8.6% of this sample, which also
+    # holds the pre-main-sequence stars, white dwarfs and giants (K was 11 to 18% with the edge at 3700 K, where it ran to 19%)
+    ("K dwarf", 7.0, 12.0),
     ("G dwarf", 2.0, 6.0),
     ("F dwarf", 1.2, 3.0),
     # GEN.652: on the MIST main sequence a star is A-type (7500 to 10000 K) between about 1.75 and 2.4 solar masses and
@@ -275,3 +277,15 @@ def test_a_metal_poor_place_has_no_giant_that_bright_in_its_window_and_its_metal
     drawn = [sp.sample_bright_stars(1, 2500.0, "old", rng, fe_h_source=lambda index: fe_hs[next(seen) % 4])[0]
              for _ in range(5)]
     assert all(params["metallicity_fe_h"] == 0.1 for params in drawn)
+
+
+def test_a_populations_counts_are_worked_out_at_its_own_composition_not_the_suns():
+    """GEN.661: a metal-poor population's old stars keep more of their giants bright, so its share of bright stars is not
+    the solar composition's."""
+    assert sp.reference_fe_h("halo") < -1.0 and sp.reference_fe_h("young") == pytest.approx(0.0, abs=0.1)
+    assert sp.reference_fe_h("cluster") < -0.5 and sp.reference_fe_h(None) == sp.reference_fe_h("intermediate")
+    for population, least in (("old", 1.02), ("halo", 1.2)):
+        solar = sp._bright_table(500.0, population, None, sp._law(population, None), 0.0, True)["fraction"]
+        own = sp.bright_star_fraction(500.0, population)
+        assert own > least * solar, (population, own, solar)
+    assert sp.massive_star_fraction(8.0, "young") > 0.0

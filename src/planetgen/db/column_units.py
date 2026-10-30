@@ -125,10 +125,12 @@ EQUIPMENT_LEVELS = (
 
 REGIONAL_TEMPERATURES = (
     "temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k", "temp_day_side_k", "temp_terminator_k",
-    "temp_night_side_k",
+    "temp_night_side_k", "temp_polar_swing_k", "temp_north_swing_k", "temp_south_swing_k", "temp_mean_swing_k",
+    "temp_day_side_swing_k", "temp_terminator_swing_k", "temp_night_side_swing_k",
 )
 """tuple: The regional temperatures and the day and night swing on `planets` and `moons` (GEN.656), kelvin."""
-TEMPERATURE_DIFFERENCES = ("temp_swing_k",)
+TEMPERATURE_DIFFERENCES = ("temp_swing_k", "temp_polar_swing_k", "temp_north_swing_k", "temp_south_swing_k", "temp_mean_swing_k",
+                           "temp_day_side_swing_k", "temp_terminator_swing_k", "temp_night_side_swing_k")
 """tuple: The columns of `REGIONAL_TEMPERATURES` that are a size and not a place on the scale: the swing between the
 hottest and the coldest hour is in kelvin of difference (`dK`), so it is never shown as -264 °C."""
 
@@ -403,7 +405,7 @@ TABLES = {
         "km": ("ring_inner_km", "ring_outer_km",
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
             "habitable_zone_inner_km", "habitable_zone_outer_km", "position_x_km", "position_y_km", "position_z_km",
-            "ocean_depth_km", "ice_shell_km", "hp_ice_km", "aquifer_depth_km", "aquifer_thickness_km",
+            "ocean_depth_km", "ice_shell_km", "hp_ice_km", "aquifer_depth_km", "aquifer_thickness_km", "moon_disk_ice_line_km",
         ),
         "kg": ("ring_mass_kg", "mass_kg",),
         "km3": ("volume_km3",),
@@ -427,7 +429,7 @@ TABLES = {
         "A*m2": ("magnetic_moment_a_m2", "induced_moment_a_m2"),
         "R_planet": ("magnetopause_rp",),
         "xuv-earth": ("xuv_flux_earth",),
-        "ratio": ("aerosol_draw",),
+        "ratio": ("aerosol_draw", "moon_disk_alpha_over_f"),
         "grade3": ("life_animal_grade",),
         "complexity": ("life_complexity",),
         "dose-mult": ("dose_helio_mult",),
@@ -445,7 +447,7 @@ TABLES = {
         "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "frac": (
             "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover",
-            "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "envelope_mass_fraction",
+            "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "ice_co2_mass_fraction", "ice_ch4_mass_fraction", "ice_nh3_mass_fraction", "ice_n2_mass_fraction", "ice_so2_mass_fraction", "ice_co_mass_fraction", "ice_hcn_mass_fraction", "ice_other_mass_fraction", "envelope_mass_fraction",
             "rock_feo_fraction", "rock_al2o3_fraction", "envelope_helium_fraction", "envelope_z_fraction", "porosity",
             "ring_ice_fraction",
             "helium_depletion",
@@ -453,6 +455,7 @@ TABLES = {
             "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction", "ground_oxidised_fraction",
             "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction", "ground_sulfur_fraction",
             "day_share_equator", "day_share_mean", "parent_shadow_share",
+            "moon_disk_f_inf",
         ),
         "aw": ("water_activity",),
         "pH": ("ocean_ph",),
@@ -462,6 +465,7 @@ TABLES = {
         "Mearth": ("core_mass_earth", "dilute_core_mass_earth"),
         "GPa": ("metallization_pressure_gpa",),
         "W_m2": ("energy_flux_w_m2", "tidal_flux_w_m2", "internal_heat_flux_w_m2"),
+        "Myr": ("moon_disk_lifetime_myr",),
         "Pa*s": ("mantle_eta0_pa_s",),
         "kJ/mol": ("mantle_activation_kj_mol",),
     },
@@ -648,7 +652,7 @@ TABLES = {
         "km": ("ring_inner_km", "ring_outer_km",
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
             "habitable_zone_inner_km", "habitable_zone_outer_km", "position_x_km", "position_y_km", "position_z_km",
-            "ocean_depth_km", "ice_shell_km", "hp_ice_km", "aquifer_depth_km", "aquifer_thickness_km", "reflex_offset_x_km", "reflex_offset_y_km",
+            "ocean_depth_km", "ice_shell_km", "hp_ice_km", "aquifer_depth_km", "aquifer_thickness_km", "moon_disk_ice_line_km", "reflex_offset_x_km", "reflex_offset_y_km",
             "reflex_offset_z_km",
         ),
         "kg": ("ring_mass_kg", "mass_kg",),
@@ -673,7 +677,7 @@ TABLES = {
         "A*m2": ("magnetic_moment_a_m2", "induced_moment_a_m2"),
         "R_planet": ("magnetopause_rp",),
         "xuv-earth": ("xuv_flux_earth",),
-        "ratio": ("aerosol_draw",),
+        "ratio": ("aerosol_draw", "moon_disk_alpha_over_f"),
         "grade3": ("life_animal_grade",),
         "complexity": ("life_complexity",),
         "dose-mult": ("dose_helio_mult",),
@@ -691,7 +695,7 @@ TABLES = {
         "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "frac": (
             "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover",
-            "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "envelope_mass_fraction",
+            "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "ice_co2_mass_fraction", "ice_ch4_mass_fraction", "ice_nh3_mass_fraction", "ice_n2_mass_fraction", "ice_so2_mass_fraction", "ice_co_mass_fraction", "ice_hcn_mass_fraction", "ice_other_mass_fraction", "envelope_mass_fraction",
             "rock_feo_fraction", "rock_al2o3_fraction", "envelope_helium_fraction", "envelope_z_fraction", "porosity",
             "ring_ice_fraction",
             "helium_depletion",
@@ -699,6 +703,7 @@ TABLES = {
             "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction", "ground_oxidised_fraction",
             "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction", "ground_sulfur_fraction",
             "day_share_equator", "day_share_mean", "parent_shadow_share",
+            "moon_disk_f_inf",
         ),
         "aw": ("water_activity",),
         "pH": ("ocean_ph",),
@@ -708,6 +713,7 @@ TABLES = {
         "Mearth": ("core_mass_earth", "dilute_core_mass_earth"),
         "GPa": ("metallization_pressure_gpa",),
         "W_m2": ("energy_flux_w_m2", "tidal_flux_w_m2", "internal_heat_flux_w_m2"),
+        "Myr": ("moon_disk_lifetime_myr",),
         "Pa*s": ("mantle_eta0_pa_s",),
         "kJ/mol": ("mantle_activation_kj_mol",),
     },
@@ -826,6 +832,7 @@ TABLES = {
     "sector_system_counts": {
         "id": ("sector_id",),
         "count": ("system_count",),
+        "ratio": ("system_density",),
     },
     "sector_tree_nodes": {
         "index": ("level", "shell_index", "band_index"),
@@ -1008,8 +1015,8 @@ SUFFIX_EXCEPTIONS = {
     ("planets", "l_rad"): "radiation tolerance, a score of 0 to 1; the name ends in rad but it is not radians",
     ("moons", "l_rad"): "radiation tolerance, a score of 0 to 1; the name ends in rad but it is not radians",
     ("rogue_planets", "l_rad"): "radiation tolerance, a score of 0 to 1; the name ends in rad but it is not radians",
-    ("planets", "temp_swing_k"): "a temperature difference (kelvin of swing), not a temperature",
-    ("moons", "temp_swing_k"): "a temperature difference (kelvin of swing), not a temperature",
+    **{(table, name): "a temperature difference (kelvin of swing), not a temperature"
+       for table in ("planets", "moons") for name in TEMPERATURE_DIFFERENCES},
     ("nebula_field", "cell_k"): "the third axis of a cell's index, not kelvin",
     ("orbital_events", "hydrogen_limit_sol"): "a mass (the hydrogen-burning limit in solar masses), though the name has no 'mass'",
 }

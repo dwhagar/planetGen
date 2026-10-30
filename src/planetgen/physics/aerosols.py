@@ -541,8 +541,10 @@ def _clear(body):
 
 def stream_of(body):
     """The body's own stream for these draws, seeded from what is final about it before they are made, so no draw of the run's stream
-    moves when they are added, taken out or retuned."""
-    return draw.Stream(f"aerosols:{body.is_moon}:{body.planet_class}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{body.surface_temperature!r}")
+    moves when they are added, taken out or retuned. It is keyed on the body's identity (moon or planet, mass, radius, distance) and its
+    conditions (surface temperature, air pressure), never on its class letter (GEN.917, GEN.915)."""
+    return draw.Stream(f"aerosols:{body.is_moon}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{body.surface_temperature!r}"
+                       f":{getattr(body, 'atmospheric_pressure', None)!r}")
 
 
 def generate_aerosols(body):

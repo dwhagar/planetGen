@@ -376,9 +376,11 @@ def test_a_filled_sector_gives_its_scattered_pulsar_planets_at_fill_from_the_row
         assert key(again) == key(sector)
 
 
-def test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built(mysql_config, certain):
+def test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built(mysql_config, certain, monkeypatch):
     from planetgen.db import store
+    from tests import first_fill
     from tests.test_phenomenon_scatter import _busiest_cell, _scatter_args, _seed_galaxy
+    first_fill.without_the_deepest_floor(monkeypatch)   # the toy galaxy's first fill would draw its thousands of stars (GEN.633, TEST.422)
     _seed_galaxy(mysql_config)
     run_plan.scatter_phenomena(_scatter_args(mysql_config))
     address = _busiest_cell(mysql_config, "kind = 'neutron-star'")

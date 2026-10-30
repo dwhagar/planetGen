@@ -11,6 +11,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import atmosphere, biogenic_oxygen as bo, life_air, life_classes
 
+from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
 
 
@@ -62,7 +63,7 @@ def test_the_ledger_file_carries_a_tier_a_tweak_and_a_basis_on_every_number_and_
     assert set(life_air.CLASSES) == {str(n) for n in range(1, 10)}
     for entry in (*life_air.NUMBERS.values(), *life_air.CLASSES.values()):
         assert entry["tier"] and entry["tweak"] and entry["basis"]
-    assert {row["status"] for row in life_air.CLASSES.values()} == set(life_air.STATUSES)
+    assert {row["status"] for row in life_air.CLASSES.values()} <= set(life_air.STATUSES)
 
 
 def test_a_ledger_number_without_a_basis_is_refused(tmp_path, monkeypatch):
@@ -80,9 +81,10 @@ def test_the_published_earth_methane_flux_sits_inside_the_archean_range():
     assert 9.0 <= life_air.number("earth_donor_methane_tmol_yr") <= 67.0
 
 
-def test_a_pending_class_makes_no_methane_and_a_body_without_a_radius_none(world):
-    pending = next(n for n, row in life_air.CLASSES.items() if row["status"] == "pending")
-    assert life_air.methane_flux_mol_yr(world, _class(int(pending))) == 0.0
+def test_a_pending_class_makes_no_methane_and_a_body_without_a_radius_none(world, monkeypatch):
+    monkeypatch.setitem(life_air.CLASSES["2"], "status", "pending")
+    assert life_air.methane_flux_mol_yr(world, _class(2), {"donor_supply": 1.0}) == 0.0
+    monkeypatch.setitem(life_air.CLASSES["2"], "status", "built")
     bare = copy.copy(world)
     bare.radius = None
     assert life_air.methane_flux_mol_yr(bare, _class(2)) == 0.0
@@ -173,6 +175,59 @@ def test_hydrogen_eaters_draw_hydrogen_down_to_the_cap(world, monkeypatch):
     assert after["H2"] / sum(after.values()) == pytest.approx(life_air.number("hydrogen_max_share"), rel=1e-3)
 
 
+def _add_gas(world, formula, share):
+    moles = bo.air_moles(world)
+    moles[formula] = share / (1.0 - share) * sum(moles.values())
+    bo.store_air(world, bo.partials_pa(world, moles))
+
+
+def test_the_sulfur_eaters_draw_hydrogen_sulfide_down_to_the_cap_and_make_no_gas_of_it(world, monkeypatch):
+    _force_flux(monkeypatch, 0.0)
+    _add_gas(world, "H2S", 0.01)
+    before = bo.air_moles(world)
+    assert life_air.row_of(_class(4, "a"))["status"] == "built" and not life_air.row_of(_class(4, "a")).get("products")
+    assert life_air.apply_gases(world, _class(4, "a"), False)
+    after = bo.air_moles(world)
+    assert after["H2S"] / sum(after.values()) == pytest.approx(life_air.number("h2s_max_share"), rel=1e-3)
+    assert after.get("SO2", 0.0) == pytest.approx(before.get("SO2", 0.0))
+
+
+def test_the_acid_eaters_turn_the_hydrogen_sulfide_they_take_into_the_same_moles_of_sulfur_dioxide(world, monkeypatch):
+    _force_flux(monkeypatch, 0.0)
+    _add_gas(world, "H2S", 0.01)
+    before = bo.air_moles(world)
+    for acid_class in (_class(5, "a"), _class(9)):
+        body = copy.deepcopy(world)
+        assert life_air.apply_gases(body, acid_class, False)
+        after = bo.air_moles(body)
+        taken = before["H2S"] - after.get("H2S", 0.0)
+        assert taken > 0.0
+        assert after.get("SO2", 0.0) - before.get("SO2", 0.0) == pytest.approx(taken * life_air.number("sulfur_dioxide_per_h2s"), rel=1e-6)
+        assert 0.0 < after["H2S"] / sum(after.values()) <= life_air.number("h2s_max_share") * (1.0 + 1e-6)
+
+
+def test_the_cold_hydrogenators_turn_two_thirds_of_a_mole_of_methane_out_of_each_mole_of_hydrogen(world, monkeypatch):
+    _force_flux(monkeypatch, 0.0)
+    _add_gas(world, "H2", 0.3)
+    before = bo.air_moles(world)
+    assert life_air.apply_gases(world, _class(7), False)
+    after = bo.air_moles(world)
+    taken = before["H2"] - after["H2"]
+    assert taken > 0.0 and 0.0 < after["H2"] / sum(after.values()) <= life_air.number("hydrogen_max_share") * (1.0 + 1e-6)
+    assert after.get("CH4", 0.0) - before.get("CH4", 0.0) == pytest.approx(taken * life_air.number("methane_per_h2_hydrogenated"), rel=1e-6)
+
+
+def test_a_ledger_product_of_a_gas_the_class_does_not_draw_down_is_refused(tmp_path, monkeypatch):
+    with open(life_air.DATA_FILE, encoding="utf-8") as handle:
+        document = json.load(handle)
+    document["classes"]["4"]["products"] = {"H2": {"gas": "CH4", "per": "methane_per_h2_hydrogenated"}}
+    path = tmp_path / "life_ledger.json"
+    path.write_text(json.dumps(document), encoding="utf-8")
+    monkeypatch.setattr(life_air, "DATA_FILE", str(path))
+    with pytest.raises(life_air.LifeLedgerError):
+        life_air._load()
+
+
 def test_a_giant_or_a_body_without_air_is_left_alone(world, monkeypatch):
     _force_flux(monkeypatch, 1.0e12)
     giant = copy.copy(world)
@@ -211,3 +266,78 @@ def test_a_world_scored_again_after_life_changed_its_air_keeps_its_flux_swing(wo
     world.flux_variation = 0.37
     habitability_world.generate(world, 0.0)
     assert world.flux_variation == 0.37
+
+
+def test_the_stored_class_is_the_class_of_the_air_life_left():
+    """GEN.980: the gases of the ledger change the air after the class was derived; the class is derived again, so a stored class is the one
+    its stored conditions give (these seeds held worlds of a hydrogen-eating class whose class stayed that of the air before life)."""
+    from planetgen.physics import planet_classes
+    seen = 0
+    for seed in (1, 8, 9, 14):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.all_planets:
+            if planet.body_type == "a":
+                continue
+            for body in (planet, *planet.moons):
+                if body.body_type != "g" and body.planet_class is not None:
+                    seen += 1
+                    assert planet_classes.classify(body) == body.planet_class, (seed, body.name)
+    assert seen > 0
+
+
+# --- UX.237: the air through the age of the star ------------------------------------------------------------------
+
+STAGES = {"abiogenesis": 0.2, "photosynthesis": 0.5, "complex_cells": 1.5, "multicellularity": 2.5, "technological_civilization": None}
+
+
+def _steps(history, formula):
+    return next(gas["steps"] for gas in history["gases"] if gas["formula"] == formula)
+
+
+def test_the_air_of_an_oxygenic_world_is_methane_before_the_rise_and_oxygen_after_it(world, monkeypatch):
+    _force_flux(monkeypatch, 1.0e12)
+    monkeypatch.setattr(bo, "profile_of", lambda body: bo.Profile(1.0, 0.0, 1.0, 1.0, 1.0, 0.3))
+    assert bo.apply(world, 2.0e19)
+    history = life_air.air_history(world, _class(1), STAGES)
+    assert history["producers_gyr"] == 0.5 and history["rose_gyr"] == pytest.approx(0.8) and history["age_gyr"] == 3.0
+    oxygen, methane, carbon = (_steps(history, formula) for formula in ("O2", "CH4", "CO2"))
+    assert [age for age, _ in oxygen] == [0.0, 0.5, pytest.approx(0.8)]
+    assert oxygen[0][1] == 0.0 and oxygen[1][1] == 0.0
+    assert oxygen[2][1] == pytest.approx(atmosphere.partial_kpa(world, "o2"), rel=1e-3)
+    assert methane[0][1] == 0.0 and methane[1][1] > 0.0 and methane[2][1] == pytest.approx(0.0, abs=1e-6)
+    assert carbon[0][1] > carbon[1][1], "the methane's carbon was carbon dioxide before the producers"
+    assert [stage["key"] for stage in history["stages"]] == ["abiogenesis", "photosynthesis", "complex_cells", "multicellularity"]
+    assert history["speculative"] is None
+
+
+def test_a_stage_the_star_is_too_young_for_is_not_listed(world, monkeypatch):
+    _force_flux(monkeypatch, 1.0e12)
+    assert life_air.apply_gases(world, _class(2), False)
+    history = life_air.air_history(world, _class(2), {**STAGES, "multicellularity": 9.0})
+    assert "multicellularity" not in [stage["key"] for stage in history["stages"]]
+
+
+def test_a_class_that_keeps_its_methane_has_the_same_air_from_the_producers_on(world, monkeypatch):
+    _force_flux(monkeypatch, 1.0e12)
+    assert life_air.apply_gases(world, _class(2), False)
+    history = life_air.air_history(world, _class(2), STAGES)
+    assert history["rose_gyr"] is None and {gas["formula"] for gas in history["gases"]} == {"CO2", "CH4"}
+    methane = _steps(history, "CH4")
+    assert [age for age, _ in methane] == [0.0, 0.5]
+    assert methane[0][1] == 0.0 and methane[1][1] == pytest.approx(_methane(world), rel=1e-3)
+    ledger = life_air.row_of(_class(2))
+    assert history["speculative"] == ({"tier": ledger["tier"], "tweak": ledger["tweak"]} if ledger["tweak"] in ("L3", "L4") else None)
+
+
+@pytest.mark.parametrize("change", ["giant", "no_producers", "producers_after_now", "no_change"])
+def test_a_world_with_nothing_to_chart_has_no_history(world, change):
+    ages = dict(STAGES)
+    if change == "giant":
+        world.body_type = "g"
+    elif change == "no_producers":
+        ages["photosynthesis"] = None
+    elif change == "producers_after_now":
+        ages["photosynthesis"] = 5.0
+    assert life_air.air_history(world, _class(2), ages) is None

@@ -642,6 +642,11 @@ def test_the_skeleton_is_one_unit_whose_lines_the_starter_logs_and_whose_run_is_
     summary = run_plan._skeleton_on_queue(_skeleton_args(control_database))
     out = capsys.readouterr().out
     assert summary["shell_count"] > 0 and "Building skeleton:" in out and "Galaxy seed " in out and "Naming key " in out
+    skeleton = next(line for line in out.splitlines() if "Building skeleton:" in line)     # API.33: every number has its unit
+    assert " solar masses " in skeleton and " pc, " in skeleton and " degrees," in skeleton and "spiral arms" in skeleton
+    assert "k_norm" not in skeleton and "threshold_rho" not in skeleton and "_pc=" not in skeleton
+    drew = next(line for line in out.splitlines() if line.startswith("Drew ") or " Drew " in line)
+    assert drew.count(" systems") == 3
     conn = redisqueue.connect()
     run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and [stage["key"] for stage in run["stages"]] == ["skeleton"]

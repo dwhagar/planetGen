@@ -80,6 +80,33 @@ class Follower:
         self._held.__exit__(exc_type, exc, traceback)
 
 
+class Planned:
+    """
+    A run a verb is going to make, before it is started (PERF.203): the followers of its stages in order, the run's title, the
+    options `run_followed` takes besides them (`seed`, `kind`, `workers`, `galaxy`) and `result`, the callable that gives what the
+    verb returns once the run has ended (it reads the followers). `planetgen <verb>` starts its own with `run_planned`; the one
+    run of a whole Generate job (`planetgen run-job`) takes the followers of every selected verb from the same functions, so the
+    two cannot differ.
+
+    Attributes:
+        followers (list[Follower]): One for each stage, in order.
+        title (str): What the run is called.
+        options (dict): The keyword arguments of `run_followed`.
+        result (callable or None): `result()` is what the verb returns.
+    """
+
+    __slots__ = ("followers", "title", "options", "result")
+
+    def __init__(self, followers, title, result=None, **options):
+        self.followers, self.title, self.options, self.result = list(followers), title, options, result
+
+
+def run_planned(args, planned):
+    """Runs a `Planned` as one run (`run_followed`) and returns what its `result` gives, `None` without one."""
+    run_followed(args, planned.followers, planned.title, **planned.options)
+    return planned.result() if planned.result is not None else None
+
+
 def _enter(follower):
     """Enters the follower's stage for the run's numbering, as one whose row the queue stores unless it keeps its own."""
     key = follower.key
@@ -136,7 +163,8 @@ def run_followed(args, followers, title, seed=None, kind=runrecord.GENERATION, w
         followers[index].end(conclusion)
         open_ones.remove(followers[index])
 
-    with run_common._generation_progress() as progress:
+    # a document written to stdout (`--output -`) must start at its first line: the bar's display, even a finished one, writes a blank line
+    with run_common._generation_progress(disable=getattr(args, "output", None) == "-") as progress:
         log.set_console(progress.console)
         for follower in followers:
             follower.progress, follower.workers = progress, workers

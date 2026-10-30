@@ -215,3 +215,21 @@ def test_a_cloud_dims_the_ground_and_brightens_the_planet():
     assert visible(overcast) < visible(half) < visible(clear)
     assert overcast.direct_w_m2.sum() < 0.1 * clear.direct_w_m2.sum()
     assert overcast.outgoing_w_m2.sum() > clear.outgoing_w_m2.sum()
+
+
+def _body(**changes):
+    from types import SimpleNamespace
+    values = dict(is_moon=False, mass=5.97e24, radius=6371.0, distance=1.0, surface_temperature=288.0, atmospheric_pressure=101325.0,
+                  planet_class="M")
+    return SimpleNamespace(**{**values, **changes})
+
+
+def test_the_aerosol_stream_is_keyed_on_the_bodys_identity_and_conditions_never_its_class_letter():
+    """GEN.917, GEN.915: two bodies that differ only in their class letter draw the same aerosols; one that differs in a condition
+    the draws read (the air pressure here, the surface temperature there) draws from another stream."""
+    def first(body):
+        return aerosols.stream_of(body).random()
+
+    assert first(_body(planet_class="M")) == first(_body(planet_class="D")) == first(_body(planet_class=None))
+    assert first(_body()) != first(_body(atmospheric_pressure=5e5))
+    assert first(_body()) != first(_body(surface_temperature=250.0))

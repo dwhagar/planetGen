@@ -126,12 +126,12 @@ def open_readonly(config=None, statement_timeout_s=None):
 
 
 SECTOR_SORTS = {
-    "name": "sec.name", "systems": "system_count", "density": "(COALESCE(c.system_count, 0) / POW(sec.edge_mpc, 3))",
-    "position": "quadrant", "distance": "sec.galactic_radius_pc",
+    "name": "sec.name", "systems": "c.system_count", "density": "c.system_density",
+    "position": "c.quadrant", "distance": "sec.galactic_radius_pc",
 }
 """dict: The sort keys `list_sectors` accepts (the Sectors table's column
-keys) -> the SQL they order by. A sector with no value (unplaced) sorts last
-either way."""
+keys) -> the column they order by (`c` is `sector_system_counts`). A sector
+with no value (unplaced) sorts last either way."""
 
 SECTOR_QUADRANTS = ("I", "II", "III", "IV")
 """tuple[str]: The sector Quadrant labels `list_sectors` filters by, plus
@@ -155,16 +155,23 @@ def _sector_quadrant_filter(quadrants):
 
 def refresh_sector_system_counts(conn):
     """
-    Makes `sector_system_counts` match the systems now (PERF.74): one `GROUP BY` on the sector index, in one
-    transaction so a reader sees the old counts or the new ones. `list_sectors` asks for it through `countcache`,
-    which runs it in the background and not more often than every 30 seconds.
+    Makes `sector_system_counts` match the sectors and systems now (PERF.74, PERF.208): one row for each sector with its
+    system count, its density (systems per cubic milliparsec, `NULL` for a sector with no galaxy position) and its
+    Quadrant (`NULL` likewise), from one `GROUP BY` on the sector index, in one transaction so a reader sees the old
+    rows or the new ones. `list_sectors` asks for it through `countcache`, which runs it in the background and not
+    more often than every 30 seconds.
 
     Returns:
-        int: The sectors that hold at least one system.
+        int: The sectors that have a row.
     """
     conn.execute("DELETE FROM sector_system_counts")
-    cur = conn.execute("INSERT INTO sector_system_counts (sector_id, system_count) "
-                       "SELECT sector_id, COUNT(*) FROM star_systems WHERE sector_id IS NOT NULL GROUP BY sector_id")
+    cur = conn.execute(
+        "INSERT INTO sector_system_counts (sector_id, system_count, system_density, quadrant) "
+        "SELECT sec.id, COALESCE(n.system_count, 0), "
+        "CASE WHEN sec.center_x_pc IS NULL THEN NULL ELSE COALESCE(n.system_count, 0) / POW(sec.edge_mpc, 3) END, "
+        f"NULLIF({_SECTOR_QUADRANT_SQL}, 'unplaced') "
+        "FROM sectors sec LEFT JOIN (SELECT sector_id, COUNT(*) AS system_count FROM star_systems "
+        "WHERE sector_id IS NOT NULL GROUP BY sector_id) n ON n.sector_id = sec.id")
     conn.commit()
     return cur.rowcount
 
@@ -180,8 +187,9 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
     The default order and the `distance` and `name` sorts are read by key (PERF.137): the placed sectors by an index
     walk of `galactic_radius_pc` and the unplaced ones, after them, by the name index, so the first page and the last
     cost the same on a galaxy of a million sectors (a sort of the whole table took 1 to 8 s). Sectors at the same
-    distance follow the sort's direction by id. The other sorts compute their key from the counts and still need the
-    whole table sorted.
+    distance follow the sort's direction by id. The `systems`, `density` and `position` sorts read the same way from
+    `sector_system_counts` (PERF.208), each walk an index of it ending in the sector id; a sector made since the last
+    refresh has no row there yet and follows the others, by id.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -196,9 +204,8 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         descending (bool): Reverse `sort`.
         quadrants (iterable[str]): Keep only sectors in these Quadrants
             (`SECTOR_QUADRANTS`, or `"unplaced"`).
-        after (int, optional): The row id of the sector the previous page ended on. With the default order or the
-            `name` or `distance` sort (and a `limit`) the page starts after that sector and `offset` is ignored;
-            the other sorts ignore it.
+        after (int, optional): The row id of the sector the previous page ended on. With a `limit` the page starts
+            after that sector in every sort and `offset` is ignored.
 
     Returns:
         list[dict]: One row per sector, with `id`, `name`,
@@ -212,12 +219,7 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
     if sort in (None, "name", "distance"):
         rows = _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after)
     else:
-        where, params = _sector_quadrant_filter(quadrants)
-        column = SECTOR_SORTS[sort]
-        unplaced_last = "sec.center_x_pc IS NULL, " if sort in ("density", "distance", "position") else ""
-        order = (f"{unplaced_last}{column} {'DESC' if descending else 'ASC'}, "
-                 "sec.galactic_radius_pc IS NULL, sec.galactic_radius_pc, sec.name, sec.id")
-        rows = _read_sectors(conn, where, params, order, limit, offset or 0)
+        rows = _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after)
     return [
         {
             "id": r["id"], "name": r["name"], "edge_mpc": r["edge_mpc"], "edge_ly": milliparsecs_to_ly(r["edge_mpc"]),
@@ -298,6 +300,92 @@ def _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after):
             skip = max(0, skip - counted)
         else:
             skip = 0
+    return rows
+
+
+_SECTOR_COLUMNS = ("sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc, "
+                   "sec.galactic_radius_pc, sec.shell_index, sec.band_index, sec.wedge_index")
+
+
+_COUNTED_SECTORS = ("sector_system_counts c STRAIGHT_JOIN sectors sec ON sec.id = c.sector_id")
+
+
+def _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after):
+    """
+    The rows of `list_sectors` in the `systems`, `density` and `position` sorts (PERF.208), each walk in the order an
+    index of `sector_system_counts` serves, the sector id breaking ties in the sort's direction. `density` and
+    `position` are two walks, the sectors with a value and then the ones with none (no galaxy position), which come
+    last either way. A last walk reads the sectors made since the last refresh, which have no row yet, by id. `after`
+    starts the page after that sector instead of skipping `offset` rows.
+    """
+    column = SECTOR_SORTS[sort].removeprefix("c.")
+    direction = "DESC" if descending else "ASC"
+    placed_wanted = [quadrant for quadrant in quadrants if quadrant != "unplaced"]
+    placed_condition = ([f"c.quadrant IN ({', '.join('?' for _ in placed_wanted)})"], placed_wanted) if placed_wanted else ([], [])
+    newest = conn.execute("SELECT COALESCE(MAX(sector_id), 0) AS n FROM sector_system_counts").fetchone()["n"]
+    start = None                # the row the page starts after: its stored values, or {} for a sector with no row yet
+    if after is not None and limit is not None:
+        start = conn.execute("SELECT system_count, system_density, quadrant FROM sector_system_counts WHERE sector_id = ?",
+                             (after,)).fetchone()
+        if start is None and after > newest and conn.execute("SELECT 1 FROM sectors WHERE id = ?", (after,)).fetchone():
+            start = {}
+    skip = 0 if start is not None else offset or 0
+    in_tail = start == {}
+    started_unplaced = bool(start) and column != "system_count" and start[column] is None
+
+    walks = []      # (name, conditions, params, the column it orders by)
+    if column == "system_count":
+        parts = placed_condition[0] + (["c.quadrant IS NULL"] if "unplaced" in quadrants else [])
+        walks.append(("all", [f"({' OR '.join(parts)})"] if parts else [], placed_condition[1] if parts else [], column))
+    else:
+        if placed_wanted or not quadrants:
+            walks.append(("placed", [f"c.{column} IS NOT NULL"] + placed_condition[0], placed_condition[1], column))
+        if not quadrants or "unplaced" in quadrants:
+            walks.append(("unplaced", [f"c.{column} IS NULL"], [], None))
+    rows = []
+    for phase, conditions, params, key_column in walks:
+        if in_tail or (started_unplaced and phase != "unplaced"):
+            continue
+        conditions, params = list(conditions), list(params)
+        if start and not (phase == "unplaced" and not started_unplaced):
+            if key_column is None:
+                conditions.append("c.sector_id < ?" if descending else "c.sector_id > ?")
+                params.append(after)
+            else:
+                condition, keyset_params = _keyset_condition(
+                    [f"c.{key_column}"], [start[key_column]], descending, "c.sector_id", after)
+                conditions.append(condition)
+                params += keyset_params
+        where = " WHERE " + " AND ".join(conditions) if conditions else ""
+        order = f"c.{key_column} {direction}, c.sector_id {direction}" if key_column else f"c.sector_id {direction}"
+        want = None if limit is None else limit - len(rows)
+        query = (f"SELECT {_SECTOR_COLUMNS}, c.system_count AS system_count FROM {_COUNTED_SECTORS}{where} ORDER BY {order}")
+        page_params = list(params)
+        if want is not None:
+            query += " LIMIT ? OFFSET ?"
+            page_params += [want, skip]
+        page = conn.execute(query, page_params).fetchall()
+        rows.extend(page)
+        if want is not None and len(page) >= want:
+            return rows
+        if skip and not page:       # the offset lies past this walk: what is left of it counts in the next
+            counted = conn.execute(f"SELECT COUNT(*) AS n FROM sector_system_counts c{where}", params).fetchone()["n"]
+            skip = max(0, skip - counted)
+        else:
+            skip = 0
+    conditions, params = ["sec.id > ?"], [newest]
+    if quadrants:
+        conditions.append(_sector_quadrant_filter(quadrants)[0].removeprefix(" WHERE "))
+        params += list(quadrants)
+    if in_tail:
+        conditions.append("sec.id < ?" if descending else "sec.id > ?")
+        params.append(after)
+    query = (f"SELECT {_SECTOR_COLUMNS}, 0 AS system_count FROM sectors sec WHERE {' AND '.join(conditions)} "
+             f"ORDER BY sec.id {direction}")
+    if limit is not None:
+        query += " LIMIT ? OFFSET ?"
+        params += [limit - len(rows), skip]
+    rows.extend(conn.execute(query, params).fetchall())
     return rows
 
 
@@ -523,9 +611,9 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         octants (iterable[str]): Keep only systems in these sector octants.
         in_sector (bool, optional): Keep only systems in a sector (True) or
             standalone ones (False).
-        after (int, optional): A system's row ID: with `sort="name"` the page starts after that system (a
-            keyset page, PERF.75: the rows before it are not read and `offset` is ignored). Other sorts, and a
-            system that is gone, use `offset`.
+        after (int, optional): A system's row ID: with `sort="name"`, `"sector"`, `"octant"` or `"binary"` the page starts
+            after that system (a keyset page, PERF.75, PERF.206: the rows before it are not read and `offset` is
+            ignored). Other sorts, a system that is gone and a list filtered by star type or sector use `offset`.
         start (str, optional): The jump-by-value box (PERF.75): the list begins at the first name (`sort="name"`) or
             the first sector (`sort="sector"`) from this text on, in the sort's direction, and `offset` counts from
             there. Ignored for the other sorts.
@@ -557,7 +645,7 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
             params = params + keyset_params
             offset = 0
     if walked:
-        rows = _systems_by_group(conn, sort, descending, where_sql, params, limit, offset or 0, start)
+        rows = _systems_by_group(conn, sort, descending, where_sql, params, limit, offset or 0, start, after)
         return _system_rows(conn, rows)
     nulls_last = f"{column} IS NULL, " if sort in ("sector", "octant") else ""
     # The name sort's ties follow its direction, so one walk of the name index serves either way round (PERF.75).
@@ -650,7 +738,7 @@ def _read_group(conn, where_sql, params, condition, group_params, need, offset):
         f"ORDER BY ss.name, ss.id LIMIT ? OFFSET ?", list(params) + group_params + [need, offset]).fetchall()
 
 
-def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset, start=None):
+def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset, start=None, after=None):
     """
     One page of `list_systems` sorted by sector, octant or binary, without sorting the table (PERF.70): the
     sort is `<group>, name, id` with the systems that have no sector or octant last, so the page is found by
@@ -659,33 +747,67 @@ def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset, 
     and the groups after it. The sectors are taken in chunks, counted by one query per chunk. A `start` (the
     jump-by-value box) begins the sector sort at the first sector from that name on.
 
+    With `after` (the id of the system the previous page ended on, PERF.206) the page is read from that system on:
+    the groups before its own are not counted, and its own group continues after its name and id (the names
+    within a group always run upward), so any page costs one group's index range and the groups after it, however
+    deep. A system that is gone, or whose group the filters leave out, falls back to `offset`.
+
     Returns:
         list: `star_systems` rows, `limit` at most.
     """
     rows = []
+    resume = None       # (condition, params) that continues the group the previous page ended in
+    if after is not None:
+        found = conn.execute("SELECT name, sector_id, quadrant, is_binary FROM star_systems WHERE id = ?",
+                             (after,)).fetchone()
+        if found is not None:
+            resume = _keyset_condition(["ss.name"], [found["name"]], False, "ss.id", after)
 
-    def take(condition, group_params):
+    def take(condition, group_params, continuing=False):
         nonlocal offset
+        if continuing:
+            condition, group_params = f"{condition} AND {resume[0]}", group_params + resume[1]
         rows.extend(_read_group(conn, where_sql, params, condition, group_params, limit - len(rows), offset))
         offset = 0
         return len(rows) >= limit
 
     if sort != "sector":
-        for condition, group_params in _simple_groups(sort, descending):
+        groups = _simple_groups(sort, descending)
+        begin = 0
+        if resume is not None:
+            own = (("ss.is_binary = ?", [int(bool(found["is_binary"]))]) if sort == "binary" else
+                   ("ss.quadrant = ?", [found["quadrant"]]) if found["quadrant"] is not None else
+                   ("ss.quadrant IS NULL", []))
+            if own in groups:
+                begin, offset = groups.index(own), 0
+            else:
+                resume = None
+        for number, (condition, group_params) in enumerate(groups):
+            if number < begin:
+                continue
             if offset:
                 n = conn.execute(f"SELECT COUNT(*) AS n FROM star_systems ss{_and_where(where_sql, condition)}",
                                  list(params) + group_params).fetchone()["n"]
                 if n <= offset:
                     offset -= n
                     continue
-            if take(condition, group_params):
+            if take(condition, group_params, continuing=resume is not None and number == begin):
                 break
         return rows
 
     direction = "DESC" if descending else "ASC"
-    begun = _start_condition("sector", descending, start)
+    begun = None if resume is not None else _start_condition("sector", descending, start)
     first = _and_where("", f"name {'<' if descending else '>='} ?") if begun else ""
     first_params = [begun[1][0]] if begun else []
+    if resume is not None:
+        offset = 0
+        if found["sector_id"] is None:
+            take("ss.sector_id IS NULL", [], continuing=True)
+            return rows
+        name = conn.execute("SELECT name FROM sectors WHERE id = ?", (found["sector_id"],)).fetchone()["name"]
+        beyond, through = ("<", "<=") if descending else (">", ">=")
+        first = _and_where("", f"(name {beyond} ? OR (name = ? AND id {through} ?))")
+        first_params = [name, name, found["sector_id"]]
     taken, size = 0, 20
     while True:
         ids = [r["id"] for r in conn.execute(
@@ -699,10 +821,11 @@ def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset, 
             f"GROUP BY ss.sector_id", list(params) + ids).fetchall()}
         for sector in ids:
             n = counted.get(sector, 0)
-            if n <= offset:
+            continuing = resume is not None and sector == found["sector_id"]
+            if n <= offset and not continuing:
                 offset -= n
                 continue
-            if take("ss.sector_id = ?", [sector]):
+            if take("ss.sector_id = ?", [sector], continuing=continuing):
                 return rows
         taken += len(ids)
         size = min(size * 2, 500)
@@ -892,8 +1015,89 @@ def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km,
     return where_sql, params
 
 
+def _body_position(conn, kind, after):
+    """The sort values of the planet or moon (`kind` `"planet"` or `"moon"`) with row id `after`, as `(columns, values,
+    id_column, system_name, system_id)` for `_keyset_condition`, or `None` when there is no such body."""
+    if kind == "planet":
+        found = conn.execute(
+            "SELECT ss.name AS name, ss.id AS system_id, p.orbital_index AS orbit FROM planets p "
+            "JOIN star_systems ss ON ss.id = p.star_system_id WHERE p.id = ?", (after,)).fetchone()
+        if found is None:
+            return None
+        return (["ss.name", "ss.id", "p.orbital_index"], [found["name"], found["system_id"], found["orbit"]], "p.id",
+                found["name"], found["system_id"])
+    found = conn.execute(
+        "SELECT ss.name AS name, ss.id AS system_id, p.orbital_index AS planet_orbit, p.id AS planet_id, "
+        "m.orbital_index AS orbit FROM moons m JOIN planets p ON p.id = m.planet_id "
+        "JOIN star_systems ss ON ss.id = m.star_system_id WHERE m.id = ?", (after,)).fetchone()
+    if found is None:
+        return None
+    return (["ss.name", "ss.id", "p.orbital_index", "p.id", "m.orbital_index"],
+            [found["name"], found["system_id"], found["planet_orbit"], found["planet_id"], found["orbit"]], "m.id",
+            found["name"], found["system_id"])
+
+
+def _bodies_after(conn, kind, where_sql, params, after):
+    """
+    The keyset condition for `list_planets` and `list_moons` (PERF.207): the bodies after the one with row id `after` in
+    their order (`kind` `"planet"` or `"moon"`), as `(where_sql, params)` with it added; unchanged when `after` is `None`
+    or names nothing, so the page then starts at the top.
+
+    A planet's order is system name, system, orbit and id; a moon's is system name, system, its planet's orbit and id,
+    then its own orbit and id.
+    """
+    position = None if after is None else _body_position(conn, kind, after)
+    if position is None:
+        return where_sql, params
+    columns, values, id_column, _name, _system_id = position
+    condition, keyset_params = _keyset_condition(columns, values, False, id_column, after)
+    return _and_where(where_sql, condition), params + keyset_params
+
+
+BODY_CHUNK_SYSTEMS = 1000
+"""int: The most systems `_bodies_by_system` reads bodies of at once (PERF.215)."""
+
+
+def _bodies_by_system(conn, kind, where_sql, params, query_for, limit, after):
+    """
+    One page of the unfiltered planets or moons listing in the order of the systems' name index (PERF.215). The order
+    spans two tables (the system's name, then the body's orbit), which no index serves in a join: the join sorted every
+    body of the galaxy for a page (18 s for the first page with 6,000,000 planets). This walks the systems by name in
+    chunks and reads the bodies of each chunk, sorting only those, until the page is full.
+
+    Args:
+        query_for (callable): `query_for(where_sql)` is the listing's `SELECT` with that `WHERE` and its `ORDER BY`.
+        after (int, optional): The row id the page starts after, as `list_planets` takes it.
+    """
+    position = None if after is None else _body_position(conn, kind, after)
+    first_where, first_params = _bodies_after(conn, kind, where_sql, params, after)
+    rows = []
+    previous = None             # the (name, id) of the last system read; None before the first chunk
+    while len(rows) < limit:
+        want = limit - len(rows)
+        chunk = min(max(4 * want, 100), BODY_CHUNK_SYSTEMS)
+        if previous is not None:
+            condition, system_params = "(ss.name > ? OR (ss.name = ? AND ss.id > ?))", [previous[0], previous[0], previous[1]]
+        elif position is not None:      # the system the page starts in is read again, from the body after `after`
+            condition, system_params = "(ss.name > ? OR (ss.name = ? AND ss.id >= ?))", [position[3], position[3], position[4]]
+        else:
+            condition, system_params = "1", []
+        systems = conn.execute(f"SELECT ss.id, ss.name FROM star_systems ss WHERE {condition} ORDER BY ss.name, ss.id LIMIT ?",
+                               system_params + [chunk]).fetchall()
+        if not systems:
+            break
+        chunk_where = _and_where(first_where if previous is None else where_sql,
+                                 f"ss.id IN ({', '.join('?' for _ in systems)})")
+        chunk_params = (first_params if previous is None else params) + [row["id"] for row in systems]
+        rows.extend(conn.execute(query_for(chunk_where) + " LIMIT ?", chunk_params + [want]).fetchall())
+        previous = (systems[-1]["name"], systems[-1]["id"])
+        if len(systems) < chunk:
+            break
+    return rows
+
+
 def list_planets(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
-                  sector_id=None, system_id=None, limit=None, offset=None):
+                  sector_id=None, system_id=None, limit=None, offset=None, after=None):
     """
     Returns planets (never asteroid belts -- `body_type` is always `'t'`/
     `'g'` here, `schema.sql`'s `planets` table holds only those), optionally
@@ -913,7 +1117,9 @@ def list_planets(conn, planet_class=None, min_radius_km=None, max_radius_km=None
         limit (int, optional): Caps the number of rows returned. `None`
             (the default) returns every matching planet.
         offset (int, optional): Skips this many rows first. Ignored
-            unless `limit` is also given.
+            unless `limit` is also given, and when `after` is.
+        after (int, optional): The row id of the planet the previous page ended on: the page starts after it in the
+            order (system name, system, orbit, id) and `offset` is not used, so any page costs the same (PERF.207).
 
     Returns:
         list[dict]: One row per matching planet, with `id`, `name`,
@@ -921,22 +1127,29 @@ def list_planets(conn, planet_class=None, min_radius_km=None, max_radius_km=None
             `system_name`.
     """
     where_sql, params = _body_filter_clause("p", planet_class, min_radius_km, max_radius_km, sector_id, system_id)
-    query = f"""
-        SELECT p.id, p.name, p.planet_class, p.body_type, p.radius_km, p.star_system_id, ss.name AS system_name
-        FROM planets p
-        JOIN star_systems ss ON ss.id = p.star_system_id{where_sql}
-        ORDER BY ss.name, p.orbital_index
-        """
+
+    def query_for(where):
+        return f"""
+            SELECT p.id, p.name, p.planet_class, p.body_type, p.radius_km, p.star_system_id, ss.name AS system_name
+            FROM planets p
+            JOIN star_systems ss ON ss.id = p.star_system_id{where}
+            ORDER BY ss.name, ss.id, p.orbital_index, p.id
+            """
+
+    if limit is not None and not params and (after is not None or not offset):
+        return [dict(r) for r in _bodies_by_system(conn, "planet", where_sql, params, query_for, limit, after)]
+    where_sql, params = _bodies_after(conn, "planet", where_sql, params, after)
+    query = query_for(where_sql)
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
-        params = params + [limit, offset or 0]
+        params = params + [limit, 0 if after is not None else offset or 0]
 
     rows = conn.execute(query, params).fetchall()
     return [dict(r) for r in rows]
 
 
 def list_moons(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
-                sector_id=None, system_id=None, limit=None, offset=None):
+                sector_id=None, system_id=None, limit=None, offset=None, after=None):
     """
     Returns moons, optionally filtered by class, radius range, sector,
     and/or system -- the `moons` counterpart of `list_planets` above (see
@@ -952,7 +1165,9 @@ def list_moons(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
         limit (int, optional): Caps the number of rows returned. `None`
             (the default) returns every matching moon.
         offset (int, optional): Skips this many rows first. Ignored
-            unless `limit` is also given.
+            unless `limit` is also given, and when `after` is.
+        after (int, optional): The row id of the moon the previous page ended on: the page starts after it in the order
+            (system name, system, its planet's orbit and id, its orbit, id) and `offset` is not used (PERF.207).
 
     Returns:
         list[dict]: One row per matching moon, with `id`, `name`,
@@ -960,17 +1175,24 @@ def list_moons(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
             `system_name`, `planet_name` (its parent planet's name).
     """
     where_sql, params = _body_filter_clause("m", planet_class, min_radius_km, max_radius_km, sector_id, system_id)
-    query = f"""
-        SELECT m.id, m.name, m.planet_class, m.body_type, m.radius_km, m.star_system_id,
-               ss.name AS system_name, p.name AS planet_name
-        FROM moons m
-        JOIN planets p ON p.id = m.planet_id
-        JOIN star_systems ss ON ss.id = m.star_system_id{where_sql}
-        ORDER BY ss.name, p.orbital_index, m.orbital_index
-        """
+
+    def query_for(where):
+        return f"""
+            SELECT m.id, m.name, m.planet_class, m.body_type, m.radius_km, m.star_system_id,
+                   ss.name AS system_name, p.name AS planet_name
+            FROM moons m
+            JOIN planets p ON p.id = m.planet_id
+            JOIN star_systems ss ON ss.id = m.star_system_id{where}
+            ORDER BY ss.name, ss.id, p.orbital_index, p.id, m.orbital_index, m.id
+            """
+
+    if limit is not None and not params and (after is not None or not offset):
+        return [dict(r) for r in _bodies_by_system(conn, "moon", where_sql, params, query_for, limit, after)]
+    where_sql, params = _bodies_after(conn, "moon", where_sql, params, after)
+    query = query_for(where_sql)
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
-        params = params + [limit, offset or 0]
+        params = params + [limit, 0 if after is not None else offset or 0]
 
     rows = conn.execute(query, params).fetchall()
     return [dict(r) for r in rows]
@@ -2371,6 +2593,82 @@ def _phenomena_where(types=(), descriptors=(), placed=None):
     return (" WHERE " + " AND ".join(clauses)) if clauses else "", params
 
 
+def parse_built_cursor(text):
+    """`(type, row id)` from the `<type>:<id>` text a page of built phenomena hands to the next (PERF.205), or `None`
+    when `text` is a scatter id or is no cursor. The id is the row's database id, as `list_phenomena` returns it."""
+    type_label, _colon, row_id = str(text).partition(":")
+    if type_label in _PHENOMENON_TYPE_TO_TABLE and row_id.isdigit():
+        return type_label, int(row_id)
+    return None
+
+
+def _built_by_name(conn, limit, descending, types, descriptors, placed, after=None):
+    """
+    A page of the built phenomena by name, read in index order (PERF.205): from each phenomenon table the `limit` rows
+    that come next in `ORDER BY name, type, id`, found by walking that table's name index, and the best `limit` of
+    those together. The page costs the same at any depth, since no table is read or sorted past the rows it returns,
+    where the union of every table sorted whole for each page.
+
+    Args:
+        limit (int): Rows to return.
+        descending (bool): Whether the names, then the types and ids, sort downward.
+        types, descriptors, placed: The Phenomena table's filters (`_phenomena_where`).
+        after (tuple, optional): `(type, row id)` of the row the previous page ended on (`parse_built_cursor`); a row that
+            no longer exists starts at the top.
+
+    Returns:
+        list[dict]: The rows, as `list_phenomena` returns them.
+    """
+    direction = "DESC" if descending else "ASC"
+    operator = "<" if descending else ">"
+    start = None
+    if after is not None:
+        table = _PHENOMENON_TYPE_TO_TABLE[after[0]]
+        found = conn.execute(f"SELECT name FROM {table} WHERE id = ?", (after[1],)).fetchone()
+        start = None if found is None else (found["name"], after[0], after[1])
+    parts, params = [], []
+    for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES:
+        if types and type_label not in types:
+            continue
+        clauses, clause_params = [], []
+        if table in ("black_holes", "neutron_stars"):
+            clauses.append("t.star_id IS NULL")
+        if descriptors:
+            clauses.append(f"{descriptor_expr} IN ({', '.join('?' for _ in descriptors)})")
+            clause_params.extend(descriptors)
+        if placed is not None:
+            clauses.append("(t.center_x_pc IS NOT NULL) = ?")
+            clause_params.append(1 if placed else 0)
+        if start is not None:
+            name, start_type, start_id = start
+            clauses.append(f"(t.name {operator} ? OR (t.name = ? AND ? {operator} ?) OR (t.name = ? AND ? = ? AND t.id {operator} ?))")
+            clause_params.extend([name, name, type_label, start_type, name, type_label, start_type, start_id])
+        parts.append(
+            f"(SELECT '{type_label}' AS type, t.id AS id, t.name AS name, {descriptor_expr} AS descriptor, "
+            f"{radius_expr} AS radius_ly, t.sector_id AS sector_id, sec.name AS sector_name, "
+            f"(t.center_x_pc IS NOT NULL) AS placed, 0 AS scattered FROM {table} t "
+            f"LEFT JOIN sectors sec ON sec.id = t.sector_id "
+            f"{'WHERE ' + ' AND '.join(clauses) + ' ' if clauses else ''}"
+            f"ORDER BY t.name {direction}, t.id {direction} LIMIT ?)")
+        params.extend(clause_params + [limit])
+    if not parts:
+        return []
+    rows = conn.execute(
+        f"SELECT * FROM ({' UNION ALL '.join(parts)}) AS phenomena "
+        f"ORDER BY name {direction}, type {direction}, id {direction} LIMIT ?", params + [limit]).fetchall()
+    return [_built_item(row) for row in rows]
+
+
+def _built_item(row):
+    """One built phenomenon of the listing, from a row of the union."""
+    return {
+        "id": row["id"], "type": row["type"], "name": row["name"],
+        "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
+        "sector_id": row["sector_id"], "sector_name": row["sector_name"],
+        "placed": bool(row["placed"]), "scattered": bool(row["scattered"]),
+    }
+
+
 def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False, types=(), descriptors=(),
                    placed=None, after=None, start=None, last=False):
     """
@@ -2393,9 +2691,11 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
         types (iterable[str]): Keep only these types (any of).
         descriptors (iterable[str]): Keep only these descriptors (any of).
         placed (bool, optional): Keep only placed or only unplaced ones.
-        after (int, optional): A scattered row's `scatter_id`: the page starts after it in the tail of unbuilt
+        after (int or tuple, optional): A scattered row's `scatter_id`: the page starts after it in the tail of unbuilt
             scattered phenomena (they follow every built one, in id order), and the built ones and `offset` are
-            not read (a keyset page, PERF.75). Without `limit` it is not used.
+            not read (a keyset page, PERF.75). Or the `(type, row id)` of a built row (`parse_built_cursor`): the page
+            starts after it in the name order, then the tail (PERF.205; the built phenomena are read by name only, so
+            another `sort` is ignored with it). Without `limit` it is not used.
         start (str, optional): The jump-by-value box (PERF.135), a scatter id: the list is the tail of unbuilt
             scattered phenomena from that id on (the built ones are not listed), `offset` counting from there.
             Needs `limit`; text that is not an id raises `ValueError`.
@@ -2427,32 +2727,42 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
     if first is not None and limit is not None:
         return _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), limit, offset or 0,
                                after=after, first=None if last else first, last=last)
+    if isinstance(after, tuple) and limit is not None:
+        return _built_then_scattered(conn, limit, descending, types, descriptors, placed, after)
     if after is not None and limit is not None:
         return _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), limit, 0, after=after)
-    where, params = _phenomena_where(types, descriptors, placed)
+    begin = offset or 0
+    if sort == "name" and begin == 0 and limit is not None:
+        return _built_then_scattered(conn, limit, descending, types, descriptors, placed, None)
+    where, filter_params = _phenomena_where(types, descriptors, placed)
     column = PHENOMENON_SORTS[sort]
-    built_total = conn.execute(
-        f"SELECT COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where}", params).fetchone()["n"]
     query = (f"SELECT * FROM ({_phenomena_union()}) AS phenomena{where} "
              f"ORDER BY {column} IS NULL, {column} {'DESC' if descending else 'ASC'}, name, type, id")
-    start = offset or 0
+    params = list(filter_params)
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
-        params.extend([limit, start])
-    items = [
-        {
-            "id": row["id"], "type": row["type"], "name": row["name"],
-            "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
-            "sector_id": row["sector_id"], "sector_name": row["sector_name"],
-            "placed": bool(row["placed"]), "scattered": bool(row["scattered"]),
-        }
-        for row in conn.execute(query, params).fetchall()
-    ] if start < built_total or limit is None else []
-    # The unbuilt scattered phenomena come after the built ones, in id order.
+        params.extend([limit, begin])
+    items = [_built_item(row) for row in conn.execute(query, params).fetchall()]
+    # The unbuilt scattered phenomena come after the built ones, in id order. The built ones are counted only when the
+    # page starts past some of them, to know where in the tail it starts (PERF.205: not for the first page).
     room = None if limit is None else limit - len(items)
     if room is None or room > 0:
-        items += _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), room,
-                                 max(0, start - built_total))
+        into_tail = 0
+        if begin:
+            built_total = conn.execute(
+                f"SELECT COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where}", filter_params).fetchone()["n"]
+            into_tail = max(0, begin - built_total)
+        items += _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), room, into_tail)
+    return items
+
+
+def _built_then_scattered(conn, limit, descending, types, descriptors, placed, after):
+    """A page by name of the built phenomena after `after` (`(type, row id)`, or the top), and when the built ones end
+    inside it the start of the scattered tail that follows them (PERF.205)."""
+    items = _built_by_name(conn, limit, descending, types, descriptors, placed, after)
+    room = limit - len(items)
+    if room > 0:
+        items += _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), room, 0)
     return items
 
 
@@ -2716,7 +3026,7 @@ def resolve_object(conn, kind, object_id):
             pos["sector_ly"] = [milliparsecs_to_ly(v) for v in mpc]
             if row["center_x_pc"] is not None:
                 center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
-                pos["galaxy_pc"] = [c + mpc_to_pc(v) for c, v in zip(center, mpc)]
+                pos["galaxy_pc"] = list(local_to_galaxy_pc(center, tuple(mpc_to_pc(v) for v in mpc)))   # the sector frame is oriented (TEST.453)
         return chain, pos
 
     def star_offset(star_id):
@@ -3522,11 +3832,11 @@ def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None):
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
     it: `colonized` is that table's ids from `colonized_body_ids`, schema
-    v42), `life_class_id` (the class that lives on it as one id such as `"1a"`, or `None`) and `life_class_scores`
+    v42), `life_class_id` (the class that lives on it as one id such as `"1a"`, or `None`; none for a class the body suits but has no life stage yet, GEN.1001) and `life_class_scores`
     (`{class id: score 1 to 9}` for every class it supports, from `class_scores`, the body's
     `planet_life_class_scores` or `moon_life_class_scores` rows; empty when it supports none, API.37).
     """
-    body["life_class_id"] = life_classes.class_id(body.get("life_class"), body.get("life_class_variant"))
+    body["life_class_id"] = life_classes.living_class_id(body.get("life_class"), body.get("life_class_variant"), body.get("life_stage"))
     body["life_class_scores"] = dict(sorted((class_scores or {}).items()))
     body["habitable_class"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
     body["habitable"] = habitability.is_habitable(body.get("phi4"))
@@ -6176,7 +6486,7 @@ def _life_class_label(class_id):
 def _life_class_facet(conn, table):
     """The life classes living on the bodies of `table` (`planets` or `moons`), with how many bodies each is the class of."""
     rows = conn.execute(
-        f"SELECT CONCAT(life_class, COALESCE(life_class_variant, '')) AS v, COUNT(*) AS c FROM {table} WHERE life_class IS NOT NULL GROUP BY v ORDER BY v"
+        f"SELECT CONCAT(life_class, COALESCE(life_class_variant, '')) AS v, COUNT(*) AS c FROM {table} WHERE life_class IS NOT NULL AND life_stage IS NOT NULL GROUP BY v ORDER BY v"
     ).fetchall()
     return [{"value": row["v"], "label": _life_class_label(row["v"]), "count": row["c"], "tooltip": None} for row in rows]
 
@@ -6190,7 +6500,7 @@ def _life_class_clause(alias, class_ids, clauses, params):
         clauses.append("1 = 0")
         return
     pairs = sorted((int(class_id[:1]), class_id[1:]) for class_id in known)
-    clauses.append(f"({alias}.life_class, COALESCE({alias}.life_class_variant, '')) IN ({','.join('(?, ?)' for _ in pairs)})")
+    clauses.append(f"({alias}.life_class, COALESCE({alias}.life_class_variant, '')) IN ({','.join('(?, ?)' for _ in pairs)}) AND {alias}.life_stage IS NOT NULL")
     for number, variant in pairs:
         params.extend((number, variant))
 
@@ -6552,7 +6862,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     rows, page = _search_page(
         conn,
         f"""
-        SELECT p.id, p.name, p.planet_class, p.body_type, CONCAT(p.life_class, COALESCE(p.life_class_variant, '')) AS life_class_id, {_equipment_columns('p')}, {_tiers("p")}, p.radius_km,
+        SELECT p.id, p.name, p.planet_class, p.body_type, CASE WHEN p.life_stage IS NULL THEN NULL ELSE CONCAT(p.life_class, COALESCE(p.life_class_variant, '')) END AS life_class_id, {_equipment_columns('p')}, {_tiers("p")}, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
@@ -6583,7 +6893,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     rows, page = _search_page(
         conn,
         f"""
-        SELECT m.id, m.name, m.planet_class, m.body_type, CONCAT(m.life_class, COALESCE(m.life_class_variant, '')) AS life_class_id, {_equipment_columns('m')}, {_tiers("m")}, m.radius_km,
+        SELECT m.id, m.name, m.planet_class, m.body_type, CASE WHEN m.life_stage IS NULL THEN NULL ELSE CONCAT(m.life_class, COALESCE(m.life_class_variant, '')) END AS life_class_id, {_equipment_columns('m')}, {_tiers("m")}, m.radius_km,
                m.planet_id, m.rogue_planet_id, COALESCE(p.name, rp.name) AS planet_name, m.star_system_id,
                ss.name AS system_name, COALESCE(ss.sector_id, rp.sector_id) AS sector_id
         """,

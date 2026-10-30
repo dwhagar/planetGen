@@ -119,6 +119,41 @@ def test_states_by_temperature_and_pressure():
     assert all(getattr(giant, field) is None for field in hy.HYDROSPHERE_FIELDS if field != "water_mass_fraction")
 
 
+def test_a_liquid_surface_of_chloride_brine_is_a_brine_seep_not_a_sea():
+    """GEN.908: surface water under `BRINE_MAX_WATER_FRACTION` of the mass makes a concentrated brine, a puddle and not an ocean."""
+    draw.set_run_seed(908)
+    for temperature, pressure in ((288.0, 101325.0), (250.0, 30000.0), (265.0, 600.0)):
+        seep = _body("M", temperature, pressure, water_mass_fraction=3e-6)
+        _generate_hydrosphere(seep, 0.087)
+        if seep.ocean_depth_km:
+            assert seep.ocean_class == "chloride brine" and seep.hydrosphere == hy.BRINE_SEEP == "brine seep"
+    wet = _body("M", 288.0, 101325.0, water_mass_fraction=3e-4)
+    _generate_hydrosphere(wet, 0.087)
+    assert wet.hydrosphere == "surface ocean" and wet.ocean_class != "chloride brine"
+    warm_seep = _body("M", 288.0, 101325.0, water_mass_fraction=3e-6)
+    _generate_hydrosphere(warm_seep, 0.087)
+    assert warm_seep.hydrosphere == "brine seep" and warm_seep.ocean_depth_km
+
+
+def test_a_brine_seep_is_liquid_water_but_not_a_sunlit_sea_nor_a_wet_world_nor_an_induction_ocean():
+    from planetgen.physics import biogenic_oxygen, habitability_world, magnetism, planet_classes
+    assert "brine seep" not in biogenic_oxygen.LIVING_HYDROSPHERES
+    assert "brine seep" not in magnetism.INDUCTION_HYDROSPHERES
+    seep = types.SimpleNamespace(hydrosphere="brine seep")
+    assert magnetism.mobile_lid_chance(seep, 1.0) == 0.0
+    values = {"hydrosphere": "brine seep", "surface_temperature_k": 250.0, "water_mass_fraction": 3e-6}
+    assert habitability_world.solvent(values) == "water" and habitability_world.water_source(values) == "liquid"
+
+
+def test_a_brine_seep_has_no_light_class_but_keeps_the_chemical_ones():
+    """GEN.908: the sunlit classes (1a, 1b, 1c, 2) need an open sea; the chemical ones need liquid water over rock."""
+    from planetgen.physics import life_classes
+    from tests.test_life_classes import world
+    scores = life_classes.score_classes(world(hydrosphere="brine seep"))
+    assert all(scores[c].score == 0 for c in ("1a", "1b", "1c", "2"))
+    assert scores["3a"].score > 0 and scores["4b"].score > 0
+
+
 def test_ocean_worlds_are_mostly_ice_sealed():
     draw.set_run_seed(9)
     worlds = [_body("O", 290.0, 101325.0) for _ in range(100)]
@@ -149,7 +184,7 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
                 if body.water_mass_fraction == 0:
                     assert body.hydrosphere == "dry"
                 assert body.ocean_fraction + body.land_fraction == pytest.approx(1.0)
-                liquid = body.hydrosphere in ("ice-covered ocean", "surface ocean", "hycean")
+                liquid = body.hydrosphere in ("ice-covered ocean", "surface ocean", "brine seep", "hycean")
                 assert (body.ocean_depth_km is not None) == liquid == (body.ocean_class is not None)
                 if liquid:
                     (ph_lo, ph_hi), (aw_lo, aw_hi) = hy.OCEAN_CHEMISTRY[body.ocean_class]
@@ -186,3 +221,35 @@ def test_the_tide_is_in_the_chemical_energy_of_an_ocean_under_ice():
     heat = 0.002 + body.tidal_flux_w_m2
     assert hw.energy_flux_w_m2(values, None, None, heat) == pytest.approx(hw.CHEMICAL_SHARE * 0.006)
     assert hw.energy_flux_w_m2(values, None, None, heat) > 2.5 * hw.energy_flux_w_m2(values, None, None, 0.002)
+
+
+def test_gen833_a_small_icy_moon_that_holds_a_thick_ice_shell_is_covered_by_it():
+    """GEN.833: a cold moon of 200 km radius with a fifth of its mass as water is ice through its outer layers; the ground draw
+    reads its cover and it is all of the surface, not the toy cover of the water a liquid ocean would have had."""
+    for seed in range(8):
+        draw.set_run_seed(seed)
+        moon = _body("D", 70.0, 0.0, mass_earth=3.0e-6, radius_km=200.0, is_moon=True, water_mass_fraction=0.2,
+                     primary_mass_kg=constants.JUPITER_MASS_TO_KG, distance=0.01)
+        _generate_hydrosphere(moon, 0.002)
+        assert moon.hydrosphere in hy.FROZEN_COVER_STATES
+        assert moon.ocean_fraction == 1.0 and moon.land_fraction == 0.0
+
+
+def test_gen833_the_cover_follows_the_water_the_body_holds():
+    """GEN.833: a frozen body with little water is covered in part, and one with more water is covered more."""
+    covers = []
+    for water in (1e-5, 1e-4, 1e-3, 1e-2, 0.2):
+        body = types.SimpleNamespace(mass=3.0e-6 * EARTH, radius=200.0, water_mass_fraction=water)
+        gravity = 3.0e-6 / (200.0 / 6371.0) ** 2 * constants.EARTH_GRAVITY
+        covers.append(hy.frozen_cover(body, gravity))
+    assert covers == sorted(covers) and covers[0] < 0.5 and covers[-1] == 1.0
+    assert hy.frozen_cover(types.SimpleNamespace(mass=EARTH, radius=6371.0, water_mass_fraction=0.0), constants.EARTH_GRAVITY) == 0.0
+
+
+def test_gen833_below_earths_gravity_ice_relief_does_not_grow_but_a_rock_basins_does():
+    layer_km = 5.0
+    small = 0.05 * constants.EARTH_GRAVITY
+    assert hy.ocean_fraction(layer_km, small, icy=True) == pytest.approx(min(1.0, (2 * layer_km / hy.EARTH_RELIEF_KM) ** 0.5))
+    assert hy.ocean_fraction(layer_km, small, icy=True) > hy.ocean_fraction(layer_km, small)
+    heavy = 3.0 * constants.EARTH_GRAVITY
+    assert hy.ocean_fraction(layer_km, heavy, icy=True) == hy.ocean_fraction(layer_km, heavy)

@@ -1,5 +1,6 @@
 {
  "anomalies": {
+  "GEN.746": "an intended change, not a fault: the dose laws rebuilt from measured data (GEN.746, GEN.747, GEN.748) put the radiation of an airless moon in the Red tier, so a K5V moon that Temperature alone left Yellow (about 17 of 100) is now Red; the shares are the post-cut-over measurement and wait for the re-baseline after the train",
   "GEN.829": "class T (gas dwarf) is never drawn: no 2 to 20 Earth-mass sub-Neptune population exists (GEN.829); the pre-cut-over spine drew it almost never either"
  },
  "cells": {
@@ -2512,12 +2513,14 @@
      "source": "post-cut-over (GEN.646) share 0.000 of 481 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.746",
      "kind": "stand-in",
      "max": 0.9162,
      "min": 0.6181,
      "source": "post-cut-over (GEN.646) share 0.767 of 481 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.746",
      "kind": "stand-in",
      "max": 0.3819,
      "min": 0.0838,
@@ -2702,12 +2705,14 @@
      "source": "post-cut-over (GEN.646) share 0.000 of 445 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.746",
      "kind": "stand-in",
      "max": 0.9327,
      "min": 0.6313,
      "source": "post-cut-over (GEN.646) share 0.782 of 445 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.746",
      "kind": "stand-in",
      "max": 0.3687,
      "min": 0.0673,

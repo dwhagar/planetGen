@@ -184,7 +184,11 @@ _BODY_GROUPS = (
     *_rows("composition", ("mantle_redox", "Mantle oxidation", TEXT), ("mantle_delta_iw", "Mantle oxidation, log below iron-wüstite"),
            ("phosphorus", "Phosphorus supply", TEXT), ("born_beyond_snow_line", "Formed beyond the snow line", FLAG),
            ("metal_mass_fraction", "Metal (iron) mass fraction"), ("rock_mass_fraction", "Rock mass fraction"),
-           ("ice_mass_fraction", "Ice mass fraction"), ("envelope_mass_fraction", "Gas envelope mass fraction"),
+           ("ice_mass_fraction", "Ice mass fraction"), ("ice_co2_mass_fraction", "Carbon dioxide ice mass fraction"),
+           ("ice_ch4_mass_fraction", "Methane ice mass fraction"), ("ice_nh3_mass_fraction", "Ammonia ice mass fraction"),
+           ("ice_n2_mass_fraction", "Nitrogen ice mass fraction"), ("ice_so2_mass_fraction", "Sulfur dioxide ice mass fraction"),
+           ("ice_co_mass_fraction", "Carbon monoxide ice mass fraction"), ("ice_hcn_mass_fraction", "Hydrogen cyanide ice mass fraction"),
+           ("ice_other_mass_fraction", "Other ices mass fraction"), ("envelope_mass_fraction", "Gas envelope mass fraction"),
            ("envelope_helium_fraction", "Helium share of the envelope"), ("envelope_z_fraction", "Heavy-element share of the envelope"),
            ("rock_feo_fraction", "Iron oxide share of the rock"), ("rock_al2o3_fraction", "Alumina share of the rock"),
            ("rock_mg_si_ratio", "Magnesium to silicon ratio of the rock"), ("porosity", "Porosity"),
@@ -463,6 +467,8 @@ _BODY_NOT_SHOWN = {
                "ground_sulfur_fraction"),
               "the stored mix of ground types; it feeds the ground dose and the surface rendering, and the page does "
               "not list it as a row yet"),
+    **_excuse(tuple(column for column in regional_temperature.SWING_OF.values() if column != "temp_swing_k"),
+              "the day and night swing of a place; shown on the row of its temperature as a range, from the coldest hour to the hottest"),
     **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
@@ -594,6 +600,9 @@ def _plain_number(value, unit):
 NO_RANGE = "no day and night range stored for this place"
 """str: What a temperature row says when the body holds no swing for that place (GEN.796)."""
 
+NO_DAY = "the same through the day: a world that turns once an orbit has no day and night"
+"""str: What a temperature row of a tidally locked world says (GEN.848): its places are fixed and their swing is 0."""
+
 
 def _plus_minus(swing):
     """The swing as a clear range: the half of it either side, and the whole of it from the coldest hour to the hottest
@@ -615,8 +624,11 @@ def _range_value(spec, table, stored, row):
         return _plus_minus(stored)
     if column not in regional_temperature.TEMPERATURE_FIELDS:
         return value
-    span = regional_temperature.daily_range(stored, row["temp_swing_k"]) if column in regional_temperature.RANGE_FIELDS else None
+    swing = row.get(regional_temperature.SWING_OF[column]) if column in regional_temperature.RANGE_FIELDS else None
+    span = regional_temperature.daily_range(stored, swing)
     if span is None:
+        if swing == 0:    # GEN.848: a place on a locked world has no day
+            return value + [f" ({NO_DAY})"]
         return value + [f" ({NO_RANGE})"]
     return value + [", from ", model.qty("temperature", span[0], "K", companions=False), " to ",
                     model.qty("temperature", span[1], "K", companions=False), " over a day"]
@@ -728,7 +740,7 @@ _SURFACE = (
     "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", "phosphorus", "magnetopause_rp",
 )
 _OCEAN = ("ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "water_base_pressure_pa")
-OCEAN_STATES = ("surface ocean", "ice-covered ocean", "hycean")
+OCEAN_STATES = ("surface ocean", "brine seep", "ice-covered ocean", "hycean")
 """tuple: The hydrospheres that hold a liquid ocean, the ones the ocean columns describe."""
 _LIFE_DETAIL = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity",
                 "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
@@ -818,8 +830,6 @@ OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
         ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
-    **{("planet", key): "GEN.904" for key in ("solar_day_hours", "daylight_hours", "day_share_equator")},
-    **{("planet", key): "GEN.905" for key in ("mantle_redox", "mantle_delta_iw")},
     **{("star", key): item for key, item in (
         ("state", "GEN.786"), ("decay_age_yr", "GEN.785"), ("lethal_event_rate_per_gyr", "GEN.785"),
         ("disk_kind", "GEN.787"), ("disk_mass_solar", "GEN.787"), ("disk_inner_au", "GEN.787"), ("disk_outer_au", "GEN.787"),
@@ -917,7 +927,10 @@ def sheet(conn, kind, object_id):
     """
     specs = specs_for(kind)
     table = TABLES[kind]
-    columns = ", ".join(sorted({spec.stored_column() for spec in specs}))
+    wanted = {spec.stored_column() for spec in specs}
+    if table in ("planets", "moons"):
+        wanted.update(regional_temperature.SWING_OF.values())    # GEN.848: each temperature row shows the swing of its own place
+    columns = ", ".join(sorted(wanted))
     row = conn.execute(f"SELECT {columns} FROM {table} WHERE id = ?", (object_id,)).fetchone()
     if row is None:
         raise ValueError(f"no {table} row with id {object_id}")

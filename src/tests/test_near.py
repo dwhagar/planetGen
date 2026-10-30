@@ -468,6 +468,6 @@ def test_the_command_line_asks_for_the_nearest_few(galaxy, monkeypatch, capsys):
         return capsys.readouterr().out
 
     out = run("--nearest", "3", "--kinds", "system")
-    assert out.count("\n") == 4 and " found within " in out         # three rows and the summary line
+    assert out.count("\n") == 4 and " objects found within " in out    # three rows and the summary line (API.33: it counts objects)
     with pytest.raises(SystemExit, match="--distance"):
         run()

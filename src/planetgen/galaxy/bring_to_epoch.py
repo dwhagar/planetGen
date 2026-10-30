@@ -7,18 +7,26 @@ Bringing a stored galaxy to the current generator epoch without a full regenerat
 
 - A galaxy whose plan is behind (an epoch since changed the galaxy's shape) cannot be brought up in part: the run
   refuses and says a full regeneration is needed, naming the epochs.
-- Likewise a scatter that is behind: the sectors are filled from the scatters, so they are redrawn first, with
-  `planetgen clear-scatter` and `planetgen scatter` (this command does not redraw a scatter yet).
+- A scatter that is behind is drawn again (GEN.845), in the order the scatters depend on each other, with the settings
+  it was drawn with (`scatter_settings`: the luminosity floor, the stellar mass limit and the compact object limit,
+  read before the clear forgets them): the luminosity pass is split from the massive stars at the mass limit, so a
+  massive-star redraw clears and draws the bright stars after it. A scatter never adds to a sector already filled, so
+  the sectors to be generated again are emptied first (`queue.api_jobs.empty_sector`), then the scatters are cleared and
+  drawn (`planetgen clear-scatter` and `planetgen scatter`), then the emptied cells are generated again. A sector left
+  alone keeps the objects it was made with, and the redrawn scatter leaves it out.
 - Each galaxy-placed sector whose fill is behind is generated again under the current code, in address order
   (`queue.api_jobs.regenerate_sector`: the sector is deleted and made again from its address and the galaxy's seed, then
   the paths around it are settled). The sector records its epoch when it is saved, so an interrupted run is resumed
-  by running it again.
+  by running it again (one stopped between emptying the sectors and generating them leaves those cells empty, which
+  `planetgen sectors` fills).
 - A sector with admin edits is skipped and listed (Boss's choice, GEN.764): an edit has no row of its own, so a sector
   counts as edited when the admin audit log names an edit of the sector, one of its systems, bodies or facilities, or
   of a phenomenon filed in it. An edit of something since deleted cannot be traced to its sector.
 - The species made under an older population epoch outside the sectors redone are made again (a species edited by hand,
   `tech_source = 'admin'`, is kept), then the population pass runs.
 """
+
+import argparse
 
 import pymysql
 
@@ -92,6 +100,99 @@ def _numbers(epochs):
     return ", ".join(str(epoch) for epoch in epochs)
 
 
+def scatter_settings(conn):
+    """
+    What the scatters were drawn with, read before a clear forgets it (GEN.845): `floor` (the luminosity floor, solar
+    luminosities), `mass_limit` (the stellar mass limit, solar masses), `compact` (the lowest mass of a neutron star or
+    black hole the phenomena scatter places), each `None` when none is stored (the scatter then uses its own default).
+    """
+    stored = store.bright_star_scatter_settings(conn)
+    phenomena = store.phenomenon_scatter_settings(conn)
+    return {"floor": None if stored is None else float(stored[0]), "mass_limit": store.bright_star_mass_limit(conn),
+            "compact": None if phenomena is None or phenomena[1] is None else float(phenomena[1])}
+
+
+def redraw_order(stale, settings):
+    """
+    The scatters to draw again for the stale kinds `stale` (`scatter_epochs` kinds), in the order they are drawn: the
+    massive stars first (the bright stars are split from them at the mass limit, so a redraw of the massive stars redraws
+    the bright stars after it, and so does a galaxy with no mass limit stored); the band is part of the bright stars and
+    comes back with them; then the phenomena and the nebula field.
+    """
+    order = []
+    if "mass" in stale or (stale & {"luminosity", "band"} and settings["mass_limit"] is None):
+        order.append("mass")
+    if stale & {"mass", "luminosity", "band"}:
+        order.append("luminosity")
+    order.extend(kind for kind in ("phenomena", "nebula-field") if kind in stale)
+    return order
+
+
+class _Parser(argparse.ArgumentParser):
+    def error(self, message):
+        raise ValueError(message)
+
+
+def _connection_flags(config):
+    return ["--mysql-host", str(config.host), "--mysql-port", str(config.port), "--mysql-user", str(config.user),
+            "--mysql-password", str(config.password), "--mysql-database", str(config.database)]
+
+
+def scatter_args(config, kind, settings, clear=False):
+    """
+    The parsed arguments of `planetgen scatter --KIND` (or `clear-scatter --KIND` with `clear`) against `config`, with the
+    settings the scatter was drawn with (`scatter_settings`) for the options that kind takes.
+
+    Raises:
+        ValueError: A stored setting is not one the command accepts.
+    """
+    from planetgen.cli import generate as generate_cli
+    parser = _Parser(prefix_chars='-+')
+    if clear:
+        generate_cli.add_clear_scatter_arguments(parser)
+        return parser.parse_args([f"--{kind}", *_connection_flags(config)])
+    generate_cli.add_scatter_arguments(parser)
+    options = []
+    if kind in ("mass", "luminosity") and settings["floor"] is not None:
+        options += ["--bright-star-min-luminosity", repr(settings["floor"])]
+    if kind == "mass" and settings["mass_limit"] is not None:
+        options += ["--phenomenon-min-mass", repr(settings["mass_limit"])]
+    if kind == "phenomena" and settings["compact"] not in (None, settings["mass_limit"]):     # equal: it follows the stellar limit
+        options += ["--compact-min-mass", repr(settings["compact"])]
+    args = parser.parse_args([f"--{kind}", *options, *_connection_flags(config)])
+    generate_cli.validate_scatter_args(args, parser)
+    return args
+
+
+def _redraw(config, redraw, settings, say):
+    """
+    Clears and draws again each scatter of `redraw` (`redraw_order`), with the settings it was drawn with. The bright
+    stars are cleared before the massive stars they are split from.
+
+    Raises:
+        RuntimeError: A clear or a draw refused or failed.
+    """
+    from planetgen.generation import run_plan
+    for kind in reversed([kind for kind in redraw if kind in ("mass", "luminosity")]):
+        _clear_kind(config, kind, run_plan, say)
+    for kind in redraw:
+        if kind not in ("mass", "luminosity"):
+            _clear_kind(config, kind, run_plan, say)
+        say(f"Drawing the {kind} scatter again.")
+        run_plan.run_scatter(scatter_args(config, kind, settings))
+
+
+def _clear_kind(config, kind, run_plan, say):
+    conn = store.get_connection(config)
+    try:
+        stored = store.scatter_stored(conn, kind)
+    finally:
+        conn.close()
+    if stored:
+        say(f"Clearing the {kind} scatter.")
+        run_plan.run_clear_scatter(scatter_args(config, kind, None, clear=True))
+
+
 def survey(conn, control_conn=None, current=None):
     """
     What bringing the galaxy to epoch `current` (default the running one) would do.
@@ -100,7 +201,8 @@ def survey(conn, control_conn=None, current=None):
         dict: `current`; `behind` (`epoch_record.behind`); `refuse`, the reasons a run cannot go on (lines; empty
         when it can); `refill`, the galaxy-placed sectors to generate again (dicts of `id`, `label`, `epoch`), in
         address order; `skipped`, the sectors left alone (the same with `why`); `handmade`, how many stale sectors
-        have no grid address; `species`, the stale species to make again (`redo`) and those kept as edited (`kept`).
+        have no grid address; `species`, the stale species to make again (`redo`) and those kept as edited (`kept`);
+        `redraw`, the scatters to draw again (`redraw_order`) with the `settings` they are drawn with.
     """
     current = generator_epoch.generator_epoch() if current is None else current
     found = epoch_record.behind(conn, current)
@@ -109,10 +211,15 @@ def survey(conn, control_conn=None, current=None):
         epochs = generator_epoch.epochs_changing("plan", found["stale"]["plan"], current)
         refuse.append(f"The plan was made under epoch {found['stale']['plan']} and epoch {_numbers(epochs)} changed the "
                       "galaxy's shape: a full regeneration is needed, a part of the galaxy cannot be brought up.")
-    for kind, epoch in found["stale"]["scatter"].items():
-        epochs = generator_epoch.epochs_changing("scatter", 1 if epoch is None else epoch, current)
-        refuse.append(f"The {kind} scatter was made under epoch {epoch} and epoch {_numbers(epochs)} changed it: "
-                      f"draw it again (planetgen clear-scatter, then planetgen scatter) before bringing the sectors up.")
+    redraw, settings = [], scatter_settings(conn)
+    if found["stale"]["scatter"] and not refuse:
+        redraw = redraw_order(set(found["stale"]["scatter"]), settings)
+        for step in redraw:
+            try:
+                scatter_args(store.MySQLConfig(), step, settings)
+            except ValueError as exc:
+                refuse.append(f"The {step} scatter cannot be drawn again with the settings it was drawn with ({exc}): "
+                              f"draw it by hand (planetgen clear-scatter, then planetgen scatter).")
     edited = edited_sectors(conn, control_conn)
     refill, skipped, handmade = [], [], 0
     rows = conn.execute("SELECT id, shell_index, band_index, wedge_index, generator_epoch FROM sectors "
@@ -136,7 +243,7 @@ def survey(conn, control_conn=None, current=None):
                               f"FROM species WHERE {where}", values).fetchone()
         species = {"redo": int(counts["total"]) - int(counts["kept"]), "kept": int(counts["kept"])}
     return {"current": current, "behind": found, "refuse": refuse, "refill": refill, "skipped": skipped,
-            "handmade": handmade, "species": species}
+            "handmade": handmade, "species": species, "redraw": redraw, "settings": settings}
 
 
 def status(config, control_config=None):
@@ -172,7 +279,7 @@ def status(config, control_config=None):
 def _nothing_to_do(found):
     """Whether the galaxy has no record behind the epoch (so a run has nothing to say or to do)."""
     return not (found["refuse"] or found["refill"] or found["skipped"] or found["handmade"] or found["species"]["redo"]
-                or any(found["behind"]["stale"].values()))
+                or found["redraw"] or any(found["behind"]["stale"].values()))
 
 
 def report_lines(found, limit=None):
@@ -187,6 +294,15 @@ def report_lines(found, limit=None):
     if found["refuse"]:
         lines.append("Nothing was changed.")
         return lines
+    for kind in found["redraw"]:
+        epoch = found["behind"]["stale"]["scatter"].get(kind)
+        lines.append(f"{kind} scatter: " + ("" if epoch is None and kind not in found["behind"]["stale"]["scatter"]
+                                           else f"made under epoch {epoch}, ") + "to be cleared and drawn again.")
+    if found["redraw"] and found["refill"]:
+        lines.append(f"The {len(found['refill'])} sector(s) to be generated again are emptied before the scatter is drawn "
+                     "(a scatter leaves a filled sector out) and generated after it.")
+    if found["redraw"] and found["skipped"]:
+        lines.append("A sector left alone keeps the objects it was made with; the scatter drawn again leaves it out.")
     for item in found["refill"][:limit]:
         lines.append(f"sector {item['label']}: made under epoch {item['epoch']}, to be generated again.")
     if limit is not None and len(found["refill"]) > limit:
@@ -266,9 +382,26 @@ def run(config, control_config=None, dry_run=False, say=log.normal):
             return result
         if dry_run or _nothing_to_do(found):
             return result
+        emptied = {}
+        if found["redraw"]:
+            for item in found["refill"]:
+                emptied[item["id"]] = api_jobs.empty_sector(item["id"], config)
+            if emptied:
+                say(f"{len(emptied)} sector(s) emptied before the scatter is drawn again.")
+            try:
+                _redraw(config, found["redraw"], found["settings"], say)
+            except Exception as exc:  # noqa: BLE001 -- say what is left to do by hand
+                result["failed"].append(("scatter", str(exc)))
+                say(f"The scatter could not be drawn again: {exc}")
+                say("The emptied sectors were not generated again. Draw the scatter by hand (planetgen scatter --KIND "
+                    "for each kind cleared) and then generate the sectors with planetgen sectors.")
+                return result
         for number, item in enumerate(found["refill"], 1):
             try:
-                made = api_jobs.regenerate_sector(item["id"], config)
+                if item["id"] in emptied:
+                    made = api_jobs.fill_emptied_sector(emptied[item["id"]], config)
+                else:
+                    made = api_jobs.regenerate_sector(item["id"], config)
             except Exception as exc:  # noqa: BLE001 -- one sector failing must not stop the others
                 result["failed"].append((item["label"], str(exc)))
                 say(f"sector {item['label']} ({number} of {len(found['refill'])}): FAILED: {exc}")

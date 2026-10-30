@@ -424,9 +424,10 @@ def test_a_single_sector_run_leaves_the_backfill_to_the_end_of_the_run(mysql_con
     _seed_galaxy(mysql_config)
     calls = []
     monkeypatch.setattr(run_galaxy, "backfill_bright_stars", lambda *args, **kwargs: calls.append(args))
-    assert make_sector(4, 0, 5, config=mysql_config, backfill=False)["created"]
+    # shell 30, not the dense shell 4: the same two calls take two minutes there and fifteen near the centre (TEST.417)
+    assert make_sector(30, 0, 5, config=mysql_config, backfill=False)["created"]
     assert calls == []
-    assert make_sector(4, 0, 6, config=mysql_config)["created"]
+    assert make_sector(30, 0, 6, config=mysql_config)["created"]
     assert len(calls) == 1
 
 

@@ -69,8 +69,10 @@ HUMIDITY_TOP = 0.02
 (relative humidity linear in pressure from the surface value to zero here) is Earth's, applied to every world with water vapour in its air."""
 MAX_WATER_FRACTION = 0.5
 """float: STAND-IN (IR7, tier T7, L0): the most water vapour a layer holds, as a mole fraction (a steam air is not modelled by this profile)."""
-WATER_CRITICAL_K = 640.0
-"""float: Above this the vapour is taken as unable to condense (water's critical point is 647 K)."""
+WATER_TABLE_TOP_K = min(640.0, saturation.species("H2O").liquid.t_max_k)
+"""float: Where the water table ends and above which the vapour is taken as unable to condense: 640 K, just under water's critical temperature (the
+`saturation` module's, 647.1 K), so the latent heat, which diverges at the critical point, stays finite on the grid. A numerical limit of this
+table, not a saturation constant: the curve itself is `saturation`'s."""
 
 SUNLIGHT_WIDTH_LN_P = 1.0
 """float: STAND-IN (IR8, tier T7, L0): the width of the layer of sunlight deposited aloft, in ln P (a Gaussian: a haze or an upper methane band is a few
@@ -151,15 +153,15 @@ class Solution:
 
 @functools.lru_cache(maxsize=1)
 def _water_curve():
-    """`(temperature grid, ln of the saturation pressure, latent heat J/mol)` of water from 30 K to `WATER_CRITICAL_K`."""
-    grid = np.arange(30.0, WATER_CRITICAL_K + 0.25, 0.5)
+    """`(temperature grid, ln of the saturation pressure, latent heat J/mol)` of water from 30 K to `WATER_TABLE_TOP_K`."""
+    grid = np.arange(30.0, WATER_TABLE_TOP_K + 0.25, 0.5)
     log_pressure = np.log([saturation.pressure_pa("H2O", float(t)) for t in grid])
     latent = R * grid ** 2 * np.gradient(log_pressure, grid)
     return grid, log_pressure, latent
 
 
 def saturation_pressure_pa(temperature_k):
-    """Water's saturation pressure at `temperature_k` (scalar or array), Pa; infinite above `WATER_CRITICAL_K`."""
+    """Water's saturation pressure at `temperature_k` (scalar or array), Pa; infinite above `WATER_TABLE_TOP_K`."""
     grid, log_pressure, _latent = _water_curve()
     temperature = np.asarray(temperature_k, dtype=float)
     value = np.exp(np.interp(np.maximum(temperature, grid[0]), grid, log_pressure))

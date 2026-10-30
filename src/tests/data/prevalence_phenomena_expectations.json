@@ -1,7 +1,7 @@
 {
  "reference": {
   "kind": "norm: researched Milky Way totals; no generator run sets a range",
-  "galaxy": "the Milky Way's published shape (tests.test_satellites.SHAPE: disk scale length 2600 pc, thin disk height 300 pc, bulge 1580 pc, two arms) with the default sector edge; the scatter's own expectation summed over every shell of the outline, with no mass cut",
+  "galaxy": "a Milky Way-like galaxy drawn through the generator's shape chain (tests.audit.prevalence_phenomena.milky_way_like_shape: 5.2e10 solar masses of stars, disk scale length 2600 pc, thin disk height 300 pc, a fifth of the stars in the bulge, two arms) with the default sector edge; the scatter's own expectation summed over every shell of the outline, with no mass cut",
   "sources": {
    "Green2019": "Green, A revised catalogue of 294 Galactic supernova remnants (arXiv:1907.02638, read 2026-10-29): 294 catalogued",
    "McGill": "Olausen and Kaspi 2014, The McGill Magnetar Catalog (arXiv:1309.4167, read 2026-10-29): 26 known magnetars and candidates",
@@ -16,11 +16,7 @@
    "HuntReffert2023": "Hunt and Reffert 2023 (arXiv:2303.13424, read 2026-10-29): 7167 clusters in Gaia DR3, as many as a few thousand of them unbound moving groups"
   }
  },
- "anomalies": {
-  "GEN.900": "supernova remnants: the scatter expects 260 in the Galaxy, fewer than the 294 catalogued (Green 2019); the design target in tuning.py is 400 to 3000",
-  "GEN.902": "Wolf-Rayet stars: about 590 in the Galaxy against 1200 (+300, -100) estimated (Rosslowe and Crowther 2015); the binary-stripped channel is likely missing",
-  "GEN.901": "magnetars: the scatter expects 22 in the Galaxy, fewer than the 26 known; GEN.278 aims at about 100 active"
- },
+ "anomalies": {},
  "measures": {
   "stellar_black_holes": {
    "min": 10000000.0,
@@ -38,8 +34,7 @@
    "min": 26,
    "max": 600,
    "kind": "observed",
-   "source": "26 known (McGill catalog, a floor); 100 active with 30 to 600 estimated (Olausen and Kaspi 2014 as tuning.py quotes it, recalled and unverified)",
-   "anomaly": "GEN.901"
+   "source": "26 known (McGill catalog, a floor); 100 active with 30 to 600 estimated (Olausen and Kaspi 2014 as tuning.py quotes it, recalled and unverified)"
   },
   "intermediate_black_holes": {
    "min": 100,
@@ -57,15 +52,13 @@
    "min": 1100,
    "max": 1500,
    "kind": "observed",
-   "source": "Rosslowe and Crowther 2015 (arXiv:1412.0699): 1200, +300 and -100, Wolf-Rayet stars in the Galaxy (read 2026-10-29); 322 found since the VIIth catalogue",
-   "anomaly": "GEN.902"
+   "source": "Rosslowe and Crowther 2015 (arXiv:1412.0699): 1200, +300 and -100, Wolf-Rayet stars in the Galaxy (read 2026-10-29); 322 found since the VIIth catalogue"
   },
   "supernova_remnants": {
    "min": 294,
    "max": 3000,
    "kind": "observed",
-   "source": "294 catalogued (Green 2019, a floor); 400 to 3000 still visible from the supernova rate (GEN.203, tuning.py), recalled",
-   "anomaly": "GEN.900"
+   "source": "294 catalogued (Green 2019, a floor); 400 to 3000 still visible from the supernova rate (GEN.203, tuning.py), recalled"
   },
   "rogue_terrestrial_per_star": {
    "min": 2,

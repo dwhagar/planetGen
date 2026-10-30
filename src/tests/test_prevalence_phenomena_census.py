@@ -102,8 +102,28 @@ def test_every_range_has_a_kind_a_source_and_a_sane_width(expectations):
 
 def test_the_reference_says_which_galaxy_and_which_papers(expectations):
     reference = expectations["reference"]
-    assert reference["kind"].startswith("norm") and "SHAPE" in reference["galaxy"]
+    assert reference["kind"].startswith("norm") and "milky_way_like_shape" in reference["galaxy"]
     assert set(reference["sources"]) >= {"Green2019", "McGill", "FrewParker", "Rosslowe", "Mroz2017", "Kirkpatrick2021", "CantatGaudin2020"}
+
+
+def test_the_reference_galaxy_holds_the_stars_its_history_forms_and_forms_the_milky_ways_rate():
+    """GEN.900 to GEN.902: the totals of the remnants, magnetars and Wolf-Rayet stars follow the young stars, so the reference galaxy's
+    density, disk history and mass must agree, and its star formation must be the Milky Way's (1.65 +- 0.19 solar masses a year,
+    Licquia and Newman 2015, recalled): the old fixture held a bulge as heavy as its thin disk and ran its history on a larger galaxy."""
+    import numpy as np
+
+    from planetgen.galaxy import density, disk_history
+
+    shape = phenomena.milky_way_like_shape()
+    masses = density.component_masses(shape)
+    assert sum(masses.values()) == pytest.approx(phenomena.MILKY_WAY_STELLAR_MASS_SOLAR, rel=1.0e-6)
+    assert masses["bulge"] / sum(masses.values()) == pytest.approx(phenomena.MILKY_WAY_BULGE_TO_TOTAL, abs=0.02)
+    history = disk_history.history_of(shape)
+    radii = history.radius_scale_lengths
+    area = 2.0 * np.pi * radii * shape.disk_scale_length_pc * (radii[1] - radii[0]) * shape.disk_scale_length_pc
+    assert float((history.stars_now * area).sum()) == pytest.approx(masses["thin_disk"], rel=0.05)
+    rate = float((history.rate[:, -1] * area).sum()) / 1.0e9
+    assert 1.0 < rate < 3.0, rate
 
 
 # --- The census ------------------------------------------------------------------------------------------------------------

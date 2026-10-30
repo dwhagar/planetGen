@@ -34,13 +34,18 @@ OLD_REGIONS = ("halo", "globular-cluster", "intergalactic")
 """The regions of old stars with no cold gas: the halo, a cluster away from the disk, and the floor between galaxies."""
 
 
+FILLED_SECTORS = 30
+"""int: Sectors filled in each region: the rates are dialed up, so thirty show every kind the disk makes, and the fixture takes a third of the
+nine minutes a hundred took on four cores (TEST.464)."""
+
+
 @pytest.fixture(scope="module")
 def audit_run():
     """The boosted census of every region, with every hot star hosting a nebula (the rules' chances at 1)."""
     patch = pytest.MonkeyPatch()
     try:
         patch.setattr(tuning, "NEBULA_HOST_RULES", tuple((*rule[:4], 1.0) for rule in tuning.NEBULA_HOST_RULES))
-        yield rep.run(patch)
+        yield rep.run(patch, sectors=FILLED_SECTORS)
     finally:
         patch.undo()
 
@@ -59,7 +64,7 @@ def test_the_regions_are_the_populations_they_are_named_for():
 def test_a_halo_or_old_cluster_cell_makes_no_emission_reflection_or_core_collapse_remnant(audit_run, name):
     census, _fill, _names = audit_run
     region = census[name]
-    assert region.sectors == rep.SECTORS
+    assert region.sectors == FILLED_SECTORS
     for kind in GAS_AND_YOUNG_KINDS:
         assert region.observed(kind) == 0, (name, kind)
     factors = rep.factors_at(name)

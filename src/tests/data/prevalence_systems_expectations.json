@@ -2,7 +2,8 @@
  "anomalies": {
   "GEN.646": "the class cut-over (GEN.646) derives every class from the finished body and builds a moon from its mass: more bodies end in the classes that can carry life (Q, P, V, K), moons per planet rise, and the life shares follow the new air; the ranges are the pre-cut-over measurement and wait for Bug 2's re-baseline",
   "GEN.750": "an intended change, not a fault: the life timeline is five hard steps with the means Boss chose (epoch 119: 0.5, 1.5, 2.5, 3 and 60 Gyr), so photosynthesis comes later than the old pace tables gave and a civilization needs more time than an F star lives; the ranges wait for the re-baseline",
-  "GEN.889": "an intended change, not a fault: each life world stores one of the life classes (epoch 120). Chemical classes under ice reach complex cells more often than the old pace tables allowed, and a world counts as Blue or Green only with a sunlit sea for the Flora its food rung needs, which the cold air of GEN.909 and the frozen oceans of GEN.908 keep rare; the ranges wait for the re-baseline after the class cut-over (GEN.646)"
+  "GEN.889": "an intended change, not a fault: each life world stores one of the life classes (epoch 120). Chemical classes under ice reach complex cells more often than the old pace tables allowed, and a world counts as Blue or Green only with a sunlit sea for the Flora its food rung needs, which the cold air of GEN.909 and the frozen oceans of GEN.908 keep rare; the ranges wait for the re-baseline after the class cut-over (GEN.646)",
+  "GEN.911": "an intended change, not a fault (epoch 124): a habitable request is judged by conditions (273 to 323 K, at least 10 kPa, a surface ocean) and the orbit is aimed by the solved temperature, so a temperate sea world is present in 28 to 30 of 30 G2V and K5V systems (was 2 to 5); A stars that carry such a world reach complex cells more often; the ranges wait for the re-baseline"
  },
  "errors": {
   "anomaly": ""
@@ -61,6 +62,7 @@
      "source": "pre-cut-over 0.687 over 150 systems at 0b4d0ccef"
     },
     "habitable_class": {
+     "anomaly": "GEN.911",
      "kind": "stand-in",
      "max": 0.5866,
      "min": 0.0134,
@@ -73,6 +75,7 @@
      "source": "pre-cut-over 0.540 over 150 systems at 0b4d0ccef"
     },
     "life_complex_cells": {
+     "anomaly": "GEN.911",
      "kind": "stand-in",
      "max": 0.2326,
      "min": 0.01,
@@ -238,6 +241,7 @@
      "source": "pre-cut-over 0.460 over 150 systems at 0b4d0ccef"
     },
     "blue_green": {
+     "anomaly": "GEN.889",
      "kind": "stand-in",
      "max": 0.282,
      "min": 0.01,
@@ -392,6 +396,7 @@
      "source": "pre-cut-over 0.020 over 150 systems at 0b4d0ccef"
     },
     "moons_per_planet": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 1.938,
      "min": 0.4462,
@@ -433,6 +438,7 @@
      "source": "pre-cut-over 0.380 over 150 systems at 0b4d0ccef"
     },
     "blue_green": {
+     "anomaly": "GEN.889",
      "kind": "stand-in",
      "max": 0.2455,
      "min": 0.01,
@@ -478,6 +484,7 @@
      "source": "pre-cut-over 0.047 over 150 systems at 0b4d0ccef"
     },
     "life_photosynthesis": {
+     "anomaly": "GEN.889",
      "kind": "stand-in",
      "max": 0.8345,
      "min": 0.2188,
@@ -490,6 +497,7 @@
      "source": "pre-cut-over 0.047 over 150 systems at 0b4d0ccef"
     },
     "moons_per_planet": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 1.785,
      "min": 0.732,
@@ -549,6 +557,7 @@
      "source": "pre-cut-over 0.693 over 150 systems at 0b4d0ccef"
     },
     "habitable_class": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.7321,
      "min": 0.1213,
@@ -568,6 +577,7 @@
      "source": "pre-cut-over 0.140 over 150 systems at 0b4d0ccef"
     },
     "life_multicellularity": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 0.3692,
      "min": 0.01,
@@ -587,6 +597,7 @@
      "source": "pre-cut-over 0.140 over 150 systems at 0b4d0ccef"
     },
     "moons_per_planet": {
+     "anomaly": "GEN.646",
      "kind": "stand-in",
      "max": 1.44,
      "min": 0.5525,

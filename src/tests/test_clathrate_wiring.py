@@ -69,7 +69,7 @@ def test_a_cold_body_with_little_water_keeps_a_brine_ocean_below_the_ice_point()
         if body.ocean_depth_km:
             classes.add(body.ocean_class)
             activities.add(body.water_activity)
-            assert body.hydrosphere in ("ice-covered ocean", "surface ocean")
+            assert body.hydrosphere in ("ice-covered ocean", "brine seep")
     assert classes == {"chloride brine"}
     assert activities & {cb.water_activity("Ca(ClO4)2"), cb.water_activity("Mg(ClO4)2")}  # the drawn salt's own activity
 

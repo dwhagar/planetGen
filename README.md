@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 8.0.2616 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.2667 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -117,6 +117,176 @@ build order).
 
 [INSTALL.md](INSTALL.md) lists the full requirements and walks through
 the install.
+
+## External files
+
+The generator reads a few large published data sets that are not in this repository (raw data sets are never committed). `install.sh` and `update.sh` download them once at setup, as root, with `python3 -m planetgen.cli.datasets fetch`; nothing downloads while the site or the generator runs. Each file is requested over https, must have the exact size and sha256 the catalogue (`src/planetgen/datasets/catalogue.py`) states, and is kept by an atomic rename. They go in the cache folder `/var/cache/planetgen/datasets` (one sub-folder per set below), or in the folder `PLANETGEN_DATA_DIR` names. The licence and citation of each set are in [DATA-LICENSE.md](DATA-LICENSE.md).
+
+- **Fetched at setup:** every set listed below. **Provided by hand:** none; the program reads no other external file.
+- **See where each stands:** `python3 -m planetgen.cli.datasets status` fetches nothing, says which sets are present, prints the URL of every missing file, and exits 1 while one is missing. `fetch` prints one line per file with its URL and what happened to it (`fetched`, `kept` or `failed` with the reason), and `update.sh` and `install.sh` show those lines.
+- **When a file is missing:** a bulk run (`galaxy`, `plan`, `population`, `sector` with more than one sector, the Generate page's jobs and the Sector page's neighbourhood button) refuses to start, writes nothing, and names each missing set, why, every file with its URL and the setup command (`python3 -m planetgen.cli.datasets fetch KEY`). Unless it is told, in so many words, to disregard missing files (`--disregard-missing-data` on any subcommand, the "Disregard missing data files" box on the Generate page, or `"disregard_missing_data": true` in the neighbourhood request): it then starts, uses the labelled fallback listed under each set below, and prints the fallbacks in the run header. One system, one sector or one phenomenon is not gated.
+- **Installing a set by hand** (the host is down, or the machine has no network): download each URL listed under the set on a machine that can, check the file's size and sha256 against the catalogue entry, copy it into the folder `<cache folder>/<set key>/` under the name shown, make the folder readable for the web server's user, and run `python3 -m planetgen.cli.datasets fetch KEY`: a file already there with the right size and sha256 is kept and not requested again (one that fails the check is requested again), and a set that is reduced to a smaller file (the "kept after setup" file) is reduced from it.
+
+The list below is written from the catalogue by `scripts/readme_external_files.py --write`, and a test fails until it matches, so a new set cannot skip it.
+
+<!-- external-files:start (written by scripts/readme_external_files.py) -->
+
+### `isochrones`: MIST v1.2 isochrones, main sequence (v/vcrit 0.4, solar-scaled)
+
+- Source: Choi et al. 2016 (ApJ 823, 102) and Dotter 2016 (ApJS 222, 8), MIST v1.2, mist.science.
+- Download: 1 file, 221.5 MB. Kept after setup: `main_sequence.npz` (the download is deleted once it is reduced).
+- Fetch: `python3 -m planetgen.cli.datasets fetch isochrones`.
+- Replaces: the Baraffe et al. 2015 track at solar metallicity and the fitted relations of the stellar-composition note.
+- With `--disregard-missing-data`: No MIST point, so no luminosity, temperature, radius or lifetime for a main-sequence star (an open item on the star).
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://mist.science/data/tarballs_v1.2/MIST_v1.2_vvcrit0.4_basic_isos.txz> as `MIST_v1.2_vvcrit0.4_basic_isos.txz`
+
+### `white_dwarf_models`: Bédard et al. 2020 white-dwarf cooling sequences
+
+- Source: Bédard, Bergeron, Brassard and Fontaine 2020, ApJ 901, 93 (doi:10.3847/1538-4357/abafbe).
+- Download: 1 file, 2.5 MB. All kept as downloaded.
+- Fetch: `python3 -m planetgen.cli.datasets fetch white_dwarf_models`.
+- Replaces: the Chandrasekhar-type law of the stellar-composition note, an even carbon-oxygen split and a fixed layer split.
+- With `--disregard-missing-data`: The radius of the zero-temperature Chandrasekhar table (Sirius B check, no temperature or layers), no layer fractions, and the Mestel power law of the cooling (the stand-in that came before the sequences: luminosity of the cooling age, one radius per mass).
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://warwick.ac.uk/fac/sci/physics/research/astro/people/antoinebedard/models/sequences.tar> as `sequences.tar`
+
+### `neutron_star_matter`: Neutron-star equations of state (Malik et al. 2024) and outer-crust compositions (Servais and Chamel 2026)
+
+- Source: Malik, Pais and Providência 2024 (A&A 689, A242) and Servais and Chamel 2026 (A&A 710, A322), Zenodo.
+- Download: 22 files, 2.0 MB. All kept as downloaded.
+- Fetch: `python3 -m planetgen.cli.datasets fetch neutron_star_matter`.
+- Replaces: the nickel-to-krypton crust table and the 10 km radius floor of the stellar-composition note.
+- With `--disregard-missing-data`: The one outer-crust sequence of Chamel and Haensel 2008 Table 2, in place of the 20 nuclear mass models.
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://zenodo.org/records/20085135/files/compositions.zip?download=1> as `compositions.zip`
+  - <https://zenodo.org/records/10950421/files/EOS1.txt?download=1> as `EOS1.txt`
+  - <https://zenodo.org/records/10950421/files/EOS2.txt?download=1> as `EOS2.txt`
+  - <https://zenodo.org/records/10950421/files/EOS3.txt?download=1> as `EOS3.txt`
+  - <https://zenodo.org/records/10950421/files/EOS4.txt?download=1> as `EOS4.txt`
+  - <https://zenodo.org/records/10950421/files/EOS5.txt?download=1> as `EOS5.txt`
+  - <https://zenodo.org/records/10950421/files/EOS6.txt?download=1> as `EOS6.txt`
+  - <https://zenodo.org/records/10950421/files/EOS7.txt?download=1> as `EOS7.txt`
+  - <https://zenodo.org/records/10950421/files/EOS8.txt?download=1> as `EOS8.txt`
+  - <https://zenodo.org/records/10950421/files/EOS9.txt?download=1> as `EOS9.txt`
+  - <https://zenodo.org/records/10950421/files/EOS10.txt?download=1> as `EOS10.txt`
+  - <https://zenodo.org/records/10950421/files/EOS11.txt?download=1> as `EOS11.txt`
+  - <https://zenodo.org/records/10950421/files/EOS12.txt?download=1> as `EOS12.txt`
+  - <https://zenodo.org/records/10950421/files/EOS13.txt?download=1> as `EOS13.txt`
+  - <https://zenodo.org/records/10950421/files/EOS14.txt?download=1> as `EOS14.txt`
+  - <https://zenodo.org/records/10950421/files/EOS15.txt?download=1> as `EOS15.txt`
+  - <https://zenodo.org/records/10950421/files/EOS16.txt?download=1> as `EOS16.txt`
+  - <https://zenodo.org/records/10950421/files/EOS17.txt?download=1> as `EOS17.txt`
+  - <https://zenodo.org/records/10950421/files/EOS18.txt?download=1> as `EOS18.txt`
+  - <https://zenodo.org/records/10950421/files/EOS19.txt?download=1> as `EOS19.txt`
+  - <https://zenodo.org/records/10950421/files/EOS20.txt?download=1> as `EOS20.txt`
+  - <https://zenodo.org/records/10950421/files/EOS21.txt?download=1> as `EOS21.txt`
+
+### `ozone_uv`: Ozone absorption cross sections, 195 to 830 nm at 218, 243 and 295 K, and the Chappuis band at 220 to 298 K (Brion, Daumont, Malicet; Burkholder and Talukdar; MPI-Mainz atlas)
+
+- Source: Keller-Rudek et al. 2013 (ESSD 5, 365), MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo 10.5281/zenodo.6951, CC BY 4.0.
+- Download: 1 file, 126.3 MB. Kept after setup: `ozone_uv.npz` (the download is deleted once it is reduced).
+- Fetch: `python3 -m planetgen.cli.datasets fetch ozone_uv`.
+- Replaces: the 20 nm band means of the gas table for ozone, which understate the transmission in the UV-B and misplace the UV index.
+- With `--disregard-missing-data`: The 35 band means of the gas table (physics/data/gases.json) for ozone.
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://zenodo.org/records/6951/files/uv-vis-spectral-atlas-2013-06-24.zip?download=1> as `uv-vis-spectral-atlas-2013-06-24.zip`
+
+### `ir_ktables`: Infrared correlated-k tables of H2O, CO2 and CH4 (ExoMolOP, R1000, line lists POKAZATEL, UCL-4000 and YT34to10)
+
+- Source: Chubb et al. 2021 (A&A 646, A21), ExoMolOP R1000 ARCiS k-tables from exomol.com.
+- Download: 3 files, 1257.8 MB. Kept after setup: `ir_ktables.npz` (the download is deleted once it is reduced).
+- Fetch: `python3 -m planetgen.cli.datasets fetch ir_ktables`.
+- Replaces: the band-strength and wing stand-ins of the infrared opacity: plateau opacities per band centre of the gas table.
+- With `--disregard-missing-data`: The plateau-and-wing band stand-ins of physics/infrared_opacity.py for the three gases.
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_h2o.fits.gz`
+  - <https://exomol.com/db/CO2/12C-16O2/UCL-4000/12C-16O2__UCL-4000.R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_co2.fits.gz`
+  - <https://exomol.com/db/CH4/12C-1H4/YT34to10/12C-1H4__YT34to10.R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_ch4.fits.gz`
+
+### `ir_cia`: Collision-induced absorption of N2, O2, CO2, H2, He and CH4 pairs (HITRAN CIA, 2011 to 2024 releases)
+
+- Source: Karman et al. 2019 (Icarus 328, 160), HITRAN collision-induced absorption files from hitran.org.
+- Download: 11 files, 195.4 MB. Kept after setup: `ir_cia.npz` (the download is deleted once it is reduced).
+- Fetch: `python3 -m planetgen.cli.datasets fetch ir_cia`.
+- Replaces: the coarse pair coefficients of the infrared opacity (physics/infrared_opacity.CIA_PAIRS), read at six temperatures from a part-03 table.
+- With `--disregard-missing-data`: The band stand-ins of the infrared opacity (no pair absorption).
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://hitran.org/data/CIA/main/N2-N2_2021.cia> as `N2-N2_2021.cia`
+  - <https://hitran.org/data/CIA/main/O2-O2_2024.cia> as `O2-O2_2024.cia`
+  - <https://hitran.org/data/CIA/main/O2-N2_2024.cia> as `O2-N2_2024.cia`
+  - <https://hitran.org/data/CIA/main/CO2-CO2_2024.cia> as `CO2-CO2_2024.cia`
+  - <https://hitran.org/data/CIA/main/N2-CH4_2024.cia> as `N2-CH4_2024.cia`
+  - <https://hitran.org/data/CIA/main/N2-H2_2024.cia> as `N2-H2_2024.cia`
+  - <https://hitran.org/data/CIA/main/CO2-CH4_2024.cia> as `CO2-CH4_2024.cia`
+  - <https://hitran.org/data/CIA/main/CO2-H2_2024.cia> as `CO2-H2_2024.cia`
+  - <https://hitran.org/data/CIA/main/H2-H2_2011.cia> as `H2-H2_2011.cia`
+  - <https://hitran.org/data/CIA/main/H2-CH4_norm_2011.cia> as `H2-CH4_norm_2011.cia`
+  - <https://hitran.org/data/CIA/main/H2-He_2011.cia> as `H2-He_2011.cia`
+
+### `harris_clusters`: Harris catalog of parameters for Milky Way globular clusters (2010 edition)
+
+- Source: Harris 1996, AJ 112, 1487 (2010 edition), McMaster University.
+- Download: 1 file, 49 kB. All kept as downloaded.
+- Fetch: `python3 -m planetgen.cli.datasets fetch harris_clusters`.
+- Replaces: the globular cluster laws of tuning.py, recalled from Harris 1996.
+- With `--disregard-missing-data`: The recalled medians of the cluster laws in tuning.py.
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://physwww.mcmaster.ca/~harris/mwgc.dat> as `mwgc.dat`
+
+### `noaa_proton_events`: NOAA solar proton events above 10 MeV, 1976 to 2017
+
+- Source: NOAA Space Environment Services Center, Solar Proton Events Affecting the Earth Environment, via NASA SDAC.
+- Download: 1 file, 45 kB. All kept as downloaded.
+- Fetch: `python3 -m planetgen.cli.datasets fetch noaa_proton_events`.
+- Replaces: the one solar particle dose and the exponential in rigidity of the radiation model.
+- With `--disregard-missing-data`: The stand-in dose and rigidity law of physics/radiation.py.
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://umbra.nascom.nasa.gov/SEP/seps.html> as `seps.html`
+
+### `baraffe_isochrones`: Baraffe et al. 2015 (BHAC15) isochrones of low-mass stars and brown dwarfs
+
+- Source: Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42.
+- Download: 1 file, 65 kB. All kept as downloaded.
+- Fetch: `python3 -m planetgen.cli.datasets fetch baraffe_isochrones`.
+- Replaces: the three pre-main-sequence constants fitted to Baraffe 2015 and the nine brown dwarf radius points of tuning.py.
+- With `--disregard-missing-data`: The nine hard-coded brown dwarf points and the fitted pre-main-sequence constants of tuning.py.
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir/BHAC15_iso.2mass> as `BHAC15_iso.2mass`
+
+### `stellar_spectra`: Model-atmosphere spectra: Castelli and Kurucz ATLAS9 fluxes (3500 to 50000 K) and Husser et al. PHOENIX-ACES (2300 to 3500 K)
+
+- Source: Castelli and Kurucz 2003 (IAU Symp. 210, A20), Husser et al. 2013 (A&A 553, A6).
+- Download: 23 files, 156.4 MB. Kept after setup: `stellar_spectra.npz` (the download is deleted once it is reduced).
+- Fetch: `python3 -m planetgen.cli.datasets fetch stellar_spectra`.
+- Replaces: the blackbody of the stellar spectrum with a seeded UV-C share (GEN.443, R17) and the BT-Settl chromaticity offsets.
+- With `--disregard-missing-data`: The blackbody of the effective temperature with the seeded UV shares of physics/stellar_spectrum.py.
+- Files (URL, then the file name it is kept under in the dataset's folder):
+  - <https://wwwuser.oats.inaf.it/fiorella.castelli/grids/gridp00k2odfnew/fp00k2odfnew.pck> as `fp00k2odfnew.pck`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/WAVE_PHOENIX-ACES-AGSS-COND-2011.fits> as `WAVE_PHOENIX-ACES-AGSS-COND-2011.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02300-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02300-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02300-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02300-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02300-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02300-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02700-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02700-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02700-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02700-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02700-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02700-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02900-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02900-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02900-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02900-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte02900-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte02900-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03100-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03100-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03100-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03100-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03100-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03100-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03300-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03300-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03300-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03300-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03300-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03300-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03500-4.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03500-5.00-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+  - <https://ftp.gwdg.de/pub/misc/phoenix/HiResFITS/PHOENIX-ACES-AGSS-COND-2011/Z-0.0/lte03500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits> as `lte03500-5.50-0.0.PHOENIX-ACES-AGSS-COND-2011-HiRes.fits`
+
+<!-- external-files:end -->
 
 ## Usage
 

@@ -229,6 +229,16 @@ REQUEST_MAX_PLANET_ATTEMPTS = 40
 # gave a life class in none of 30 and an Earth-like mass in 20 of 30.
 HABITABLE_REQUEST_FREE_ATTEMPTS = 8
 HABITABLE_REQUEST_MASS_EARTH = (0.5, 2.0)
+# What a request for a habitable world asks of a finished planet or moon (GEN.916, `generation/habitable_request.py`): conditions, not a
+# class letter. The surface temperature range is the liquid-water range, the pressure floor is the air a world must hold to count as having
+# any (10 kPa), and the water a surface ocean; the target is the middle of the range, where a draw that missed by its temperature aims the
+# next (GEN.911).
+REQUEST_TEMPERATURE_K = (273.15, 323.15)
+REQUEST_MIN_PRESSURE_PA = 10000.0
+REQUEST_HYDROSPHERES = ("surface ocean",)
+REQUEST_TARGET_K = 298.15
+# A habitable request leaves its first draws at the distance it was given, then aims each next draw by the temperature the last one solved.
+HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS = 2
 
 # How many times a planet or moon is drawn again when its finished class is one that can carry life and the system bars habitable worlds
 # from its ecosphere (`HABITABLE_WORLD` False); the last draw is kept.
@@ -252,15 +262,16 @@ MOON_MIN_MASS_KG = 1.0e20
 MOON_GIANT_PARENT_MAX_MASS_RATIO = 1.0e-3
 MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO = 0.1
 
-# The water a terrestrial body is born with, by where it formed (GEN.682, GEN.685; `physics/bulk_draw`): log-uniform shares of
-# its whole mass. Inside the snow line the rock is dry (Earth's oceans are 2.3e-4; Mars 2e-4 to 1e-3; Venus and Mercury far
-# less), and `WATER_WORLD_SHARE` of the inner worlds hold an ocean world's 1 to 10 percent (the Marboeuf 2014 icy-body range
-# is the next line). Beyond the snow line the body is ice and rock (Europa 8 percent water, Ganymede about 45, Marboeuf
-# et al. 2014: 5 to 50 percent). Every value is a stand-in (tier "educated guess from physics", level L2) that took the old
-# class ranges and merged them into one table by origin.
-DRY_WATER_MASS_FRACTION = (1.0e-6, 1.0e-3)
-WATER_WORLD_WATER_MASS_FRACTION = (1.0e-2, 0.1)
-WATER_WORLD_SHARE = 0.03
+# The water a rocky terrestrial body is born with (GEN.849; `physics/delivered_water`): its class (dry, low, high, rich) comes from the Bern
+# population synthesis law the atmosphere recipes already read (`data/ngpps_formation_water.json`), by its mass and the snow lines it formed
+# at; inside a class the share of its whole mass is log-uniform. The class edges are the model's. The dry class reaches down to
+# `DELIVERED_WATER_DRY_MIN` (Venus and Mercury hold far less than Earth's 2.3e-4 in the oceans), the rich class up to
+# `DELIVERED_WATER_RICH_MAX`, the largest water share a rocky body keeps and still has the rock to be a planet (Thiabaud et al. 2014
+# find at most about 0.5 for the bodies the model formed). Both ends are stand-ins (registry rows DW2 and DW3, tier "educated guess
+# from physics", level L1). A body that formed beyond the snow line of a class that is not rocky is ice and rock: its share is
+# `ICY_WATER_MASS_FRACTION` (Europa 8 percent water, Ganymede about 45, Marboeuf et al. 2014: 5 to 50 percent).
+DELIVERED_WATER_DRY_MIN = 1.0e-6
+DELIVERED_WATER_RICH_MAX = 0.5
 ICY_WATER_MASS_FRACTION = (0.05, 0.5)
 
 # A terrestrial body's Bond albedo, drawn before its air is solved so it can only read what the body is made of and the starlight
@@ -600,8 +611,6 @@ SECTOR_OCTANT_LABELS = [
 SECTOR_LOCATION_DECIMAL_PLACES = 2
 
 # --- Display / Formatting Parameters ---
-HABITABLE_ZONE_BUFFER_AU = 0.2
-ROUND_RADIUS_KM = 2
 SCIENTIFIC_NOTATION_DECIMAL_PLACES = 2
 ROUND_TEMPERATURE_NEAREST_HUNDRED = -2
 
@@ -690,7 +699,6 @@ SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
 # so 100 attempts leaves effectively zero chance of exhausting this for any
 # class it's actually applied to.
 EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS = 100
-RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD = 100000
 SPECTRAL_PROBABILITIES_LARGE_STAR = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
 SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
 
@@ -1260,7 +1268,6 @@ STELLAR_SOLAR_LOG_EPS = {
     "K": 5.07, "Ca": 6.30, "Fe": 7.46, "Ni": 6.20, "Eu": 0.52, "Th": 0.03, "U": -0.54}
 """dict: Element symbol to A21 photospheric log eps (H = 12); the 14 elements that make 99.7 percent of Z, and Eu, Th and U."""
 STELLAR_PROTO_METAL_OFFSET_DEX = 0.064
-STELLAR_PROTO_HELIUM_OFFSET_DEX = 0.070
 STELLAR_PROTO_X = 0.7121
 STELLAR_PROTO_Z = 0.0154
 STELLAR_PRIMORDIAL_Y = 0.24672
@@ -1313,9 +1320,6 @@ elsewhere is inferred through Eu."""
 STELLAR_SOLAR_SYSTEM_AGE_GY = 4.568
 """float: How far back the solar scale's Th and U are decayed to give their birth abundances (the age of the oldest solids;
 the photospheric Th and U of A21 are meteoritic)."""
-STELLAR_U_TH_UNCERTAINTY = 0.06
-"""float: The relative spread on the birth U/Th (0.572 for the solar scale): the 2003 Palme and O'Neill cross-check, decayed
-back, sits 6 percent from it (stellar-composition.md step 10). Carried as the uncertainty, not applied."""
 # Surface changes of the first dredge-up on the red-giant branch (Boothroyd and Sackmann 1999, arXiv:astro-ph/9512121 Tables 2 and
 # 4): per initial mass, the rise in helium mass fraction and the C/Z and N/Z at the end, for Z = 0.02 (initial Y 0.28, C/Z
 # 0.1733, N/Z 0.0531) and Z = 0.001 (initial Y 0.24, C/Z 0.0765; N not extracted at low Z).
@@ -1724,6 +1728,13 @@ below it, by Knuth's method (PERF.60)."""
 # Binary mass ratio q = M2/M1, uniform (Moe & Di Stefano 2017, ApJS 230:15,
 # find it close to flat); the secondary shares the primary's age.
 BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
+
+BROWN_DWARF_COMPANION_CHANCE = 0.03
+"""float: The chance a star heavier than the hydrogen-burning limit has a brown dwarf companion besides its stars (GEN.899).
+The `star-count` table counts stars, so a companion drawn under the limit used up one of its places (an M2V primary lost
+nearly half of them); the brown dwarfs are an extra member in this share of the systems instead. Stand-in tier
+"Unverified" (second-hand: Metchev and Hillenbrand 2009 find 3.2% (+3.1, -2.7) of solar-type stars with a companion of
+0.013 to 0.075 solar masses at 28 to 1590 AU, the "brown dwarf desert"), tweak scale L0."""
 
 # --- Close-binary types (GEN.270, `generation/multistar.py`, docs/design/multi-star-systems.md 13.2) ---
 SPECTROSCOPIC_MAX_AXIS_AU = 0.26
@@ -2260,7 +2271,6 @@ the R4 chance T4); set from the first census, not fixed.
 FLAVOR_CHANCE_SYSTEM = 0.05 # The chance flavor text will be added to a system.
 FLAVOR_CHANCE_PLANET = 0.05 # The chance flavor text will be added to a planet.
 MAX_FLAVOR_TOTAL = 3 # The maximum flavor items total in a system.
-MAX_FLAVOR_PLANET = 1 # The maximum flavor text for a single planet.
 MAX_RECENT_FLAVOR_TEXTS = 5 # Maximum number of recent flavor texts to keep track of.
 
 SYSTEM_FLAVOR = [ # System-only flavor text.
@@ -2897,9 +2907,6 @@ CLOUD_ENRICHMENT_SIGMA_DEX = 0.5
 
 CLOUD_ENRICHMENT_RICH_CHANCE = {"D": 0.15, "E": 0.3, "R": 0.5, "S": 0.5, "U": 0.5}
 """dict: The chance a system in a cloud of the class has the rich median rather than the field one (design values)."""
-
-CLOUD_ENRICHMENT_REFERENCE_RATIO = 5.0e-5
-"""float: The 26Al/27Al ratio `k = 1` stands for (the solar ratio at CAI formation, 5.25e-5, rounded; design note)."""
 
 PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
 """tuple: The central star a planetary nebula is generated around (GEN.10):
@@ -3974,11 +3981,6 @@ FOLD_FACTOR_LIMIT = 10
 """
 The unreachable top of the fold scale: the fold curve divides by
 `(FOLD_FACTOR_LIMIT - F)`, so a fold factor must be below this.
-"""
-
-NAV_COURSE_DECIMAL_PLACES = 2
-"""
-Decimal places used when formatting NAV distance/azimuth/altitude output.
 """
 
 NAV_ADJACENCY_K = 6

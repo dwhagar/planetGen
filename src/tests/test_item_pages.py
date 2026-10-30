@@ -109,6 +109,7 @@ def client(monkeypatch):
     monkeypatch.setattr(apiclient, "get_system", lambda db, system_id: _detail())
     monkeypatch.setattr(apiclient, "get_system_facilities", lambda db, system_id: [])
     monkeypatch.setattr(apiclient, "get_object_sheet", lambda db, ref: _sheet(ref))
+    monkeypatch.setattr(apiclient, "get_life_air", lambda db, kind, body_id: {"id": body_id, "life_class_id": None, "life_air": None})
     monkeypatch.setattr(apiclient, "get_object_children", lambda db, ref, limit=None, after=None: _children(ref))
     app = create_app(_FakeConfig)
     app.testing = True
@@ -126,7 +127,7 @@ def test_a_planet_has_a_page_with_its_sheet_text_places_and_tree(client):
     assert response.status_code == 200
     page = response.get_data(as_text=True)
     assert "<title>" in page and "Kepler b" in page
-    assert 'class="summary"' in page and "Kepler b is a world" in page      # UX.220: the summary is written from the data
+    assert 'class="summary inline-links"' in page and "Kepler b is a world" in page      # UX.220: the summary is written from the data
     assert "A rocky world." not in page                  # and the stored class description no longer opens the page
     assert 'id="item-properties"' in page and "Mass" in page and "Ocean depth" not in page   # the sheet; a value never stored is not listed (UX.199)
     assert 'href="/sector/4"' in page and 'href="/system/9"' in page          # the places it is in
@@ -236,6 +237,7 @@ def test_a_life_worlds_page_names_its_dominant_species(client, monkeypatch):
     """UX.176: the dominant species of a life world is on the world's own page; a lifeless body never looks one up."""
     detail = _detail()
     detail["planets"][0]["life_class"] = 1
+    detail["planets"][0]["life_class_id"] = "1a"
     asked = []
 
     def get_planet_species(db, planet_id):
@@ -438,7 +440,7 @@ def test_a_planet_page_is_laid_out_about_habitability_atmosphere_composition_the
     positions = [names.index(name) for name in wanted]
     assert positions == sorted(positions), names
     assert "Rendered example" not in page
-    assert page.index('id="location"') < page.index("hab-symbols") < page.index('class="summary"')
+    assert page.index('id="location"') < page.index("hab-symbols") < page.index('class="summary inline-links"')
     assert page.index("Life based on carbon") < page.index('id="habitability"') < page.index('id="sheet-atmosphere"') \
         < page.index('id="sheet-composition"') < page.index('id="item-properties"')
     assert 'id="location"' in page.split('id="item-facts"')[1].split("</section>")[0]     # the Location row is inside About
@@ -472,3 +474,44 @@ def test_a_planet_with_life_lists_the_classes_it_supports_and_what_the_class_liv
     assert "eats, drinks, breathes and gives off" in page and "<dt>Drinks</dt><dd>water</dd>" in block
     assert re.search(r'<details[^>]*id="life-class-words"(?![^>]*\bopen\b)', page), "the block starts collapsed"
     assert 'class="hab-life-class"' in page
+
+
+def _planet_with_life(monkeypatch, history):
+    detail = _detail()
+    detail["planets"][0].update(planet_class="M", zone="e", body_type="t", phi4=0.8, tier_suitability=1, life_microbial=2, life_flora=3,
+                                life_fauna=1, life_sentient=0, life_class=1, life_class_variant="a", life_class_id="1a",
+                                life_class_best="1a", life_class_best_score=7, life_class_scores={"1a": 7},
+                                life_stage="multicellularity", life_animal_grade=2)
+    monkeypatch.setattr(apiclient, "get_system", lambda db, system_id: detail)
+    asked = []
+
+    def get_life_air(db, kind, body_id):
+        asked.append((kind, body_id))
+        return {"id": body_id, "life_class_id": "1a", "life_air": history}
+
+    monkeypatch.setattr(apiclient, "get_life_air", get_life_air)
+    return asked
+
+
+def test_a_planet_whose_life_changed_its_air_has_a_collapsed_life_and_air_chart_in_the_life_section(client, monkeypatch):
+    from tests.test_life_air_chart import HISTORY
+    asked = _planet_with_life(monkeypatch, {**HISTORY, "speculative": {"tier": "T7", "tweak": "L4"}})
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert asked == [("planet", "FE81000A2B-0000005-001")]
+    assert re.search(r'<details[^>]*id="life-and-air"(?![^>]*\bopen\b)', page), "the chart starts collapsed"
+    block = page.split('id="life-and-air"')[1].split("</details>")[0]
+    assert "Life and air through the ages" in page and '<svg class="life-air-chart"' in block and block.count("<polyline") == 3
+    assert '<li value="1">' in block and "Speculative chemistry" in block and 'class="life-air-table"' in block and "29 kPa" in block
+    assert page.index('id="life-paragraph-heading"') < page.index('id="life-and-air"') < page.index('id="item-properties"')
+
+
+def test_a_living_planet_whose_air_the_life_did_not_change_has_no_chart(client, monkeypatch):
+    asked = _planet_with_life(monkeypatch, None)
+    assert 'id="life-and-air"' not in client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert asked == [("planet", "FE81000A2B-0000005-001")]
+
+
+def test_a_planet_with_no_living_class_does_not_ask_for_a_chart(client, monkeypatch):
+    monkeypatch.setattr(apiclient, "get_life_air", lambda *args: pytest.fail("the chart is asked for only for a body with a living class"))
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert 'id="life-and-air"' not in page

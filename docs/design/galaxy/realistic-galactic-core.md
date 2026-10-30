@@ -230,7 +230,7 @@ Boss: each control a slider, clearly labelled, with a text box at the end of the
 | Dense cells | cell star ceiling (5,000), fill luminosity cap (100, raised per cell) |
 
 - **Linked defaults.** The core sliders start at 110% of the galaxy-wide ones and follow them until the user moves a core slider (then `data-touched` stops the following). A "Reset" link per segment returns it to the defaults. The page warns beside the core floor if it is set below the galaxy-wide floor (more rows in the densest region), and beside the ceiling with the PERF.3 estimate of the Sgr A* ball's cost.
-- **Server side.** `generate_page.py` parses each field like `mass_limit_argv` does today (a number, within the range, else a form error naming the field) and passes it as a `planetgen plan` option; the settings are stored with the galaxy and shown on the Stats page beside the existing floor and limit.
+- **Server side.** `generate_page.py` parses each field like the mass-limit field does today (a number, within the range, else a form error naming the field) and passes it as a `planetgen plan` option; the settings are stored with the galaxy and shown on the Stats page beside the existing floor and limit.
 - **Tests.** The macro renders the slider, the datalist and the box with matching ids; a typed value reaches the form and snaps; the defaults come from `tuning`; the server refuses out-of-range values and a core floor above 4 million; the options round-trip through the plan to `galaxy_shape` and back to the page; the existing mass slider and floor tests change to the new macro.
 
 ### 5.3 Horizontal-branch and AGB stars

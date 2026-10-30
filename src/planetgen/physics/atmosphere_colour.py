@@ -73,11 +73,28 @@ _STEP = 5.0
 
 
 @functools.lru_cache(maxsize=None)
-def chappuis_cross_section_cm2():
-    """The ozone cross section on `WAVELENGTHS_NM`, cm2 per molecule (295 K, Brion-team data of the MPI-Mainz atlas; DATA-LICENSE.md)."""
+def _chappuis_document():
     with open(CHAPPUIS_FILE, encoding="utf-8") as handle:
-        document = json.load(handle)
+        return json.load(handle)
+
+
+@functools.lru_cache(maxsize=None)
+def _chappuis_295k_cm2():
+    document = _chappuis_document()
     return np.interp(WAVELENGTHS_NM, document["wavelength_nm"], document["sigma_cm2"])
+
+
+def chappuis_cross_section_cm2(temperature_k=None):
+    """
+    The ozone cross section on `WAVELENGTHS_NM` at `temperature_k` (`radiation.DEFAULT_OZONE_TEMPERATURE_K` when `None`), cm2 per molecule: the
+    295 K table of the Brion-team data of the MPI-Mainz atlas (DATA-LICENSE.md) times the ratio of Burkholder and Talukdar (1994) at that
+    temperature, linear between 220, 240, 260, 280 and 298 K and held outside (GEN.748).
+    """
+    document = _chappuis_document()
+    temperatures = document["ratio_temperatures_k"]
+    t = min(max(radiation.DEFAULT_OZONE_TEMPERATURE_K if temperature_k is None else temperature_k, temperatures[0]), temperatures[-1])
+    ratio = np.array([np.interp(t, temperatures, column) for column in zip(*document["ratio"])])
+    return _chappuis_295k_cm2() * np.interp(WAVELENGTHS_NM, document["wavelength_nm"], ratio)
 
 
 @dataclass(frozen=True)
@@ -287,12 +304,12 @@ def _case(tau_rayleigh, tau_absorption, tau_ozone, above, aerosols, ground_albed
     return diffuse, diffuse * correction, full.beam_transmission, weight, np.maximum(leaving, 0.0)
 
 
-def _colour_of(column, star, ozone_du, ground_albedo, mu0, haze, dust, cloud, cloud_cover):
+def _colour_of(column, star, ozone_du, ground_albedo, mu0, haze, dust, cloud, cloud_cover, ozone_temperature_k=None):
     tau_rayleigh, tau_absorption = radiation.gas_layers(column, WAVELENGTHS_NM, EDGES_NM)
     tau_ozone = np.zeros_like(WAVELENGTHS_NM)
     above = 0.0
     if ozone_du > 0.0:
-        tau_ozone = ozone_du * DOBSON_CM2 * chappuis_cross_section_cm2()
+        tau_ozone = ozone_du * DOBSON_CM2 * chappuis_cross_section_cm2(ozone_temperature_k)
         above = min(max(radiation.ozone_peak_pressure_pa(column, ozone_du) / column.pressure_pa, 0.0), 1.0)
     always = [layer for layer in (haze, dust) if layer is not None and layer.tau_550 > 0.0]
     clear = _case(tau_rayleigh, tau_absorption, tau_ozone, above, always, ground_albedo, mu0)
@@ -337,7 +354,7 @@ def _sky_colour(star, hue, reflected):
 
 
 def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ground_albedo=0.0, mu0=DEFAULT_MU0,
-                      haze=None, dust=None, cloud=None, cloud_cover=1.0, spread_x=0.0, spread_y=0.0):
+                      haze=None, dust=None, cloud=None, cloud_cover=1.0, spread_x=0.0, spread_y=0.0, ozone_temperature_k=None):
     """
     The atmosphere colour of a world with a ground.
 
@@ -353,6 +370,7 @@ def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ground_albedo=0.0,
         cloud (Aerosol, optional): Cloud near the ground (GEN.414), covering `cloud_cover` of the sky.
         cloud_cover (float, optional): The share of the sky the cloud covers; the rest is clear.
         spread_x, spread_y (float, optional): A cool star's seeded chromaticity draws, -1 to 1 (`photometry.star_colour`).
+        ozone_temperature_k (float, optional): The temperature of the ozone layer, K (`radiation.ozone_layer_temperature_k`, GEN.748); 220 when `None`.
 
     Returns:
         AtmosphereColour
@@ -365,10 +383,10 @@ def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ground_albedo=0.0,
     star = star_spectrum(temperature_k, spread_x, spread_y)
     albedo = np.broadcast_to(np.asarray(ground_albedo, dtype=float), WAVELENGTHS_NM.shape)
     sky, ratio, sun, sun_ratio, tau_550, tau_rayleigh_550, regime = _colour_of(
-        column, star, ozone_du, albedo, mu0, haze, dust, cloud, cloud_cover)
+        column, star, ozone_du, albedo, mu0, haze, dust, cloud, cloud_cover, ozone_temperature_k)
     shift = 0.0
     if any(layer is not None and layer.tau_550 > 0.0 for layer in (haze, dust, cloud)):
-        bare = _colour_of(column, star, ozone_du, albedo, mu0, None, None, None, 1.0)[0]
+        bare = _colour_of(column, star, ozone_du, albedo, mu0, None, None, None, 1.0, ozone_temperature_k)[0]
         shift = detmath.hypot(sky.x - bare.x, sky.y - bare.y)
     return AtmosphereColour(sky, colour_word(sky.rgb8), ratio, sun, sun_ratio, tau_550, tau_rayleigh_550, regime, shift,
                             shift >= AEROSOL_DOMINATES_SHIFT)
@@ -395,8 +413,11 @@ def body_atmosphere_colour(body):
     column = air_column.column_of(body)
     if column is None:
         return None
+    from planetgen.physics import body_radiation
+    lit = body_radiation._star_flux_w_m2(body, body_radiation._star_distance_au(body))
+    ozone_temperature = None if lit is None else radiation.ozone_layer_temperature_k(lit[1], getattr(body, "bond_albedo", None))
     try:
         return atmosphere_colour(column, temperature_k=temperature, ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
-                                 ground_albedo=STAND_IN_GROUND_ALBEDO)
+                                 ground_albedo=STAND_IN_GROUND_ALBEDO, ozone_temperature_k=ozone_temperature)
     except ValueError:
         return None

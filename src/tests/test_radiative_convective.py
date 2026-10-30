@@ -38,7 +38,7 @@ def test_water_boils_at_a_bar_and_freezes_near_its_triple_point():
 def test_the_saturation_curve_rises_with_temperature_takes_arrays_and_is_infinite_past_the_critical_point():
     values = rc.saturation_pressure_pa(np.array([250.0, 300.0, 350.0, 400.0]))
     assert values.shape == (4,) and np.all(np.diff(values) > 0.0)
-    assert math.isinf(float(rc.saturation_pressure_pa(rc.WATER_CRITICAL_K + 10.0)))
+    assert math.isinf(float(rc.saturation_pressure_pa(rc.WATER_TABLE_TOP_K + 10.0)))
     assert np.isfinite(float(rc.saturation_pressure_pa(5.0)))
 
 
