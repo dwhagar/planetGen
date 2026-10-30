@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 643 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 646 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,8 +36,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 87 | 2 | 6 | 1 | 0 | 96 |
-| T2 | 92 | 9 | 0 | 1 | 0 | 102 |
+| T1 | 89 | 2 | 6 | 1 | 0 | 98 |
+| T2 | 92 | 10 | 0 | 1 | 0 | 103 |
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
 | T4 | 31 | 1 | 0 | 14 | 6 | 52 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 402 | 89 | 33 | 92 | 27 | 643 |
+| All | 404 | 90 | 33 | 92 | 27 | 646 |
 
 ## How the labels were given
 
@@ -1085,3 +1085,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | HC1 | B | T4 | L0 | hycean_candidate.HYCEAN_MASS_EARTH (1, 10), HYCEAN_RADIUS_EARTH (1.4, 2.6), HYCEAN_TEMPERATURE_K (150, 500) and HYCEAN_DENSITY_G_CM3 (1.5, 3.0): the box | the radius edge 2.6 puts K2-18 b (2.61, measured) just outside | sub-Neptunes of 1 to 10 Earth masses | the ranges of the defining paper, once read | Madhusudhan et al. 2021 (to be read) | the item GEN.963 and its re-read (2026-10-30); not read from the paper | GEN.1047 | - |
+
+## 6.94 Stand-ins of the irregular zone
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IZ1 | P | T2 | L1 | irregular_zone.PROGRADE_STABLE_FRACTION 0.4, the share of the Hill radius out to which a prograde orbit is stable | 0.4 to 0.5 | prograde irregulars of the four giants | a stable prograde body found beyond 0.5 of the Hill radius | an integration-fitted limit by planet, star mass and eccentricity (Nesvorny et al. 2003) | numerical surveys quoted by Jewitt and Haghighipour 2007 give about 0.4; the 0.4895 of the moon code is Hamilton and Burns 1991 for a circular regular moon | GEN.1076 | - |
+| IZ2 | P | T1 | L0 | irregular_zone.RETROGRADE_STABLE_FRACTION 0.55, the share of the Hill radius out to which a retrograde orbit is stable | 0.5 to 0.6 | retrograde irregulars of the four giants | a stable retrograde body found beyond 0.6 of the Hill radius | the same integration-fitted limit | Vokrouhlicky, Nesvorny and Levison 2008, quoting Nesvorny et al. 2003: 0.5 to 0.6 depending on the mean eccentricity; 0.55 is the middle | GEN.1076 | - |
+| IZ3 | P | T1 | L0 | irregular_zone.INNER_EDGE_FACTOR 1.0, the multiple of the outermost regular moon's distance a pericentre must exceed | 1.0 to 1.5 | the giants with regular moons | an irregular with a pericentre inside Callisto's, Iapetus's or Oberon's orbit that has survived | a collision-rate cut against the regular moon's size | Vokrouhlicky, Nesvorny and Levison 2008: q greater than 0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus | GEN.1076 | - |
