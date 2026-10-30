@@ -2,6 +2,22 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2689] - 2026-10-30
+
+**Headline:** Stars now follow the published mass function at every mass: a Chabrier curve for single stars, a derived curve for the stars that begin a system, and white dwarfs, neutron stars and black holes drawn from the same curve.
+
+### Changed
+- **One mass function for every star-like object (GEN.927).** The two-segment function (1.3 below half a solar mass, 2.3 above) is replaced by Chabrier (2003): a log-normal below one solar mass (it turns over at 0.079, as the counts of M dwarfs do) and a 2.3 power law above. G dwarfs are now 3.4% of stars (3.1% before; observed 4.1% to 5.0%), and the massive stars (8 solar masses and up) are 0.71% of the stars born (0.64% before).
+- **The star a system is built around comes from its own curve (GEN.928).** A system's companions are stars too, so the stars born at each mass are the primaries of that mass plus the companions of heavier primaries. The primary curve is worked out from the single-star curve and the companion draw (`generation/primary_mass_function.py`), not set: 0.70 systems per star born, 1.43 stars to a system. The stars of all systems together follow the single-star curve, which the old draw did not do (it counted every massive star twice, once as a primary and again as a companion). Documented in `docs/design/galaxy/stellar-mass-function.md`; stand-in rows MF1 to MF3.
+- **Systems per solar mass and the galaxy's star count are one number (GEN.929).** The placed systems' mean mass at birth is 1 over the systems per solar mass of the primary curve (0.887 solar masses), so the galaxy's system count follows its own star formation history and no second anchor is left.
+- **White dwarfs, neutron stars and black holes follow the curve (GEN.930).** One white dwarf initial-final mass relation (Cummings et al. 2018, from MIST) for the star model, the member draw, the disk history and the mass return (0.384 returned, 0.371 before); neutron star masses from the Gaussian of the slow pulsars (1.49 +- 0.19, Ozel and Freire 2016) held to 1.1 to 2.2 solar masses. The neutron stars' bound count is fixed by the census, so the share of the massive stars left to fail grows with the massive share: the middle failed share is 17.5% (13.6% before) and a busy shell holds 1.6 neutron stars to a black hole (2.1 before); a galaxy of 5e10 solar masses of stars holds 1.0e8 black holes.
+- **A planet's host ratios and the star's own makeup read one draw (GEN.984).** The key of a star's abundance draws no longer holds the star's age. The age rises once after a star's planets are made, and every planet's bulk draw had read the draw of the younger age, so a planet's host ratios did not match the star's own composition.
+- **Census:** Wolf-Rayet stars are counted in the systems built around a massive primary, companions included (890 against 1100 to 1500 observed; tagged GEN.995). White dwarf mean mass is 0.703 solar masses (0.55 to 0.70; tagged GEN.996). The primaries at 0.6 to 0.8 solar masses are 6.8% against 7.7% to 12% (tagged GEN.951). The G dwarf tag is cleared.
+
+generation-output: changed
+
+TODO items resolved: GEN.927, GEN.928, GEN.929, GEN.930, GEN.984.
+
 ## [8.0.2688] - 2026-10-30
 
 **Headline:** A neutron star's radius now comes from 21 modelled equations of state, weighted by the NICER measurements, not from a normal band.
