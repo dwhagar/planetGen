@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 646 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 650 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 89 | 2 | 6 | 1 | 0 | 98 |
-| T2 | 92 | 10 | 0 | 1 | 0 | 103 |
+| T2 | 92 | 11 | 0 | 1 | 0 | 104 |
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
-| T4 | 31 | 1 | 0 | 14 | 6 | 52 |
+| T4 | 31 | 1 | 0 | 15 | 6 | 53 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
 | T6 | 52 | 30 | 12 | 33 | 0 | 127 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
-| T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 404 | 90 | 33 | 92 | 27 | 646 |
+| T9 | 2 | 0 | 3 | 26 | 19 | 50 |
+| All | 404 | 91 | 34 | 94 | 27 | 650 |
 
 ## How the labels were given
 
@@ -1093,3 +1093,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | IZ1 | P | T2 | L1 | irregular_zone.PROGRADE_STABLE_FRACTION 0.4, the share of the Hill radius out to which a prograde orbit is stable | 0.4 to 0.5 | prograde irregulars of the four giants | a stable prograde body found beyond 0.5 of the Hill radius | an integration-fitted limit by planet, star mass and eccentricity (Nesvorny et al. 2003) | numerical surveys quoted by Jewitt and Haghighipour 2007 give about 0.4; the 0.4895 of the moon code is Hamilton and Burns 1991 for a circular regular moon | GEN.1076 | - |
 | IZ2 | P | T1 | L0 | irregular_zone.RETROGRADE_STABLE_FRACTION 0.55, the share of the Hill radius out to which a retrograde orbit is stable | 0.5 to 0.6 | retrograde irregulars of the four giants | a stable retrograde body found beyond 0.6 of the Hill radius | the same integration-fitted limit | Vokrouhlicky, Nesvorny and Levison 2008, quoting Nesvorny et al. 2003: 0.5 to 0.6 depending on the mean eccentricity; 0.55 is the middle | GEN.1076 | - |
 | IZ3 | P | T1 | L0 | irregular_zone.INNER_EDGE_FACTOR 1.0, the multiple of the outermost regular moon's distance a pericentre must exceed | 1.0 to 1.5 | the giants with regular moons | an irregular with a pericentre inside Callisto's, Iapetus's or Oberon's orbit that has survived | a collision-rate cut against the regular moon's size | Vokrouhlicky, Nesvorny and Levison 2008: q greater than 0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus | GEN.1076 | - |
+
+## 6.95 Stand-ins of the irregular orbits
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IO1 | P | T9 | L2 | irregular_orbits.MEDIAN_BEFORE_SURVIVAL, the median a / r_H before the stable limits cut, by planet distance: 1.1, 0.33, 0.17, 0.19 at 5.2, 9.5, 19.2, 30.1 AU | each value within 30 percent | the four giants | a capture simulation whose pre-survival a / r_H differs from the table | a capture-simulation distribution by planet mass, distance and mechanism (Nesvorny, Vokrouhlicky and Deienno 2014) | fitted so the survivors have the observed medians of 0.44, 0.29, 0.17 and 0.19 of the Hill radius (Jewitt and Haghighipour 2007) | GEN.1078 | - |
+| IO2 | P | T9 | L3 | irregular_orbits.SIGMA_LN 0.44, the natural-log width of the a / r_H draw | 0.3 to 0.6 | the four giants | a survivor spread of a / r_H that differs from the observed one at three giants | the width of a capture simulation | fitted with the Jupiter row to the retrograde to prograde split of 4.5 | GEN.1078 | no data |
+| IO3 | P | T2 | L1 | irregular_orbits.ECCENTRICITY_MAX 0.7, the upper end of the uniform eccentricity draw | 0.6 to 0.8 | the four giants | a survivor with an eccentricity well over 0.7 | the eccentricity distribution of a capture simulation | the known irregulars run from 0.1 to 0.7 (Jewitt and Haghighipour 2007) | GEN.1078 | - |
+| IO4 | P | T4 | L3 | irregular_orbits.FAMILY_SPEED_M_S (20, 300), the log-uniform ejection speed of a family's fragments | tens to a few hundred | the families of Jupiter and Saturn | a family whose spread needs speeds outside the range | the velocity fields of the Himalia, Gallic and Inuit families (Nesvorny et al. 2003) | Nesvorny et al. 2003, recalled: tens to hundreds of m/s | GEN.1078 | no data |

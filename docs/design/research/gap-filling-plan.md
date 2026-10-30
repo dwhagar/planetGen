@@ -1608,6 +1608,17 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | IZ2 | P | T1 | L0 | irregular_zone.RETROGRADE_STABLE_FRACTION 0.55, the share of the Hill radius out to which a retrograde orbit is stable | 0.5 to 0.6 | retrograde irregulars of the four giants | a stable retrograde body found beyond 0.6 of the Hill radius | the same integration-fitted limit | Vokrouhlicky, Nesvorny and Levison 2008, quoting Nesvorny et al. 2003: 0.5 to 0.6 depending on the mean eccentricity; 0.55 is the middle |
 | IZ3 | P | T1 | L0 | irregular_zone.INNER_EDGE_FACTOR 1.0, the multiple of the outermost regular moon's distance a pericentre must exceed | 1.0 to 1.5 | the giants with regular moons | an irregular with a pericentre inside Callisto's, Iapetus's or Oberon's orbit that has survived | a collision-rate cut against the regular moon's size | Vokrouhlicky, Nesvorny and Levison 2008: q greater than 0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus |
 
+### 6.95 Stand-ins of the irregular orbits (GEN.1078)
+
+`physics/irregular_orbits.py` draws the orbits of captured small bodies before the irregular zone (6.94) cuts them: the size of the orbit over the Hill radius, its eccentricity, its inclination, and the fragments of a family. Design `docs/design/systems/captured-asteroid-moons.md` 2.1, 2.4 and 4.3. The module is not read by the generator until the captured-moon wiring. By stability alone the survivors split 4.5 retrograde to 1 prograde at a Jupiter-like planet (the known irregulars: 88 to 19) and about 1 to 1 at the far giants, so the excess retrograde moons of Uranus (8 to 1) are not modelled.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| IO1 | P | T9 | L2 | irregular_orbits.MEDIAN_BEFORE_SURVIVAL, the median a / r_H before the stable limits cut, by planet distance: 1.1, 0.33, 0.17, 0.19 at 5.2, 9.5, 19.2, 30.1 AU | each value within 30 percent | the four giants | a capture simulation whose pre-survival a / r_H differs from the table | a capture-simulation distribution by planet mass, distance and mechanism (Nesvorny, Vokrouhlicky and Deienno 2014) | fitted so the survivors have the observed medians of 0.44, 0.29, 0.17 and 0.19 of the Hill radius (Jewitt and Haghighipour 2007) |
+| IO2 | P | T9 | L3 | irregular_orbits.SIGMA_LN 0.44, the natural-log width of the a / r_H draw | 0.3 to 0.6 | the four giants | a survivor spread of a / r_H that differs from the observed one at three giants | the width of a capture simulation | fitted with the Jupiter row to the retrograde to prograde split of 4.5 |
+| IO3 | P | T2 | L1 | irregular_orbits.ECCENTRICITY_MAX 0.7, the upper end of the uniform eccentricity draw | 0.6 to 0.8 | the four giants | a survivor with an eccentricity well over 0.7 | the eccentricity distribution of a capture simulation | the known irregulars run from 0.1 to 0.7 (Jewitt and Haghighipour 2007) |
+| IO4 | P | T4 | L3 | irregular_orbits.FAMILY_SPEED_M_S (20, 300), the log-uniform ejection speed of a family's fragments | tens to a few hundred | the families of Jupiter and Saturn | a family whose spread needs speeds outside the range | the velocity fields of the Himalia, Gallic and Inuit families (Nesvorny et al. 2003) | Nesvorny et al. 2003, recalled: tens to hundreds of m/s |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
