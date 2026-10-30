@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 815 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 825 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 127 | 10 | 7 | 1 | 0 | 145 |
-| T2 | 107 | 24 | 0 | 1 | 0 | 132 |
+| T1 | 128 | 10 | 7 | 1 | 0 | 146 |
+| T2 | 107 | 27 | 1 | 1 | 0 | 136 |
 | T3 | 77 | 31 | 5 | 10 | 0 | 123 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 41 | 13 | 0 | 0 | 0 | 54 |
-| T6 | 69 | 51 | 13 | 36 | 0 | 169 |
+| T6 | 69 | 53 | 13 | 38 | 0 | 173 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
-| T9 | 8 | 3 | 4 | 39 | 19 | 73 |
-| All | 491 | 144 | 38 | 115 | 27 | 815 |
+| T9 | 8 | 4 | 4 | 39 | 19 | 74 |
+| All | 492 | 150 | 39 | 117 | 27 | 825 |
 
 ## How the labels were given
 
@@ -1341,6 +1341,21 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BHS3 | P | T9 | L3 | belt_history.MASS_LOSS_SCATTER_SHARE 0.5: the share of a belt thrown inward per unit fraction of the star's mass lost, if giants remain | 0.1 to 1 | belts beyond a few au of a star that becomes a white dwarf, with giants left | an N-body run of a giant system losing 80 percent of its mass whose belt scatters a share far from the law | an N-body population synthesis of belts round mass-losing stars (Debes and Sigurdsson 2002 for planets only) | educated guess from needed output (the observed 27 to 50 percent of white dwarfs accreting) | GEN.1069 | no data |
 | BHS4 | P | T6 | L1 | belt_history.DELIVERY_MYR 100: how long the scattered rock takes to fall on the white dwarf | 20 to 200 Myr (the cooling ages surveyed) | white dwarfs of 20 to 200 Myr cooling age | polluted white dwarfs showing accretion that stops as the delivery time runs out | a delivery time from the scattering rate of the system's own giants | the cooling-age range of Koester et al. 2014 (READ), the middle in the log | GEN.1069 | - |
 | BHS5 | P | T2 | L0 | belt_history.MIN_POLLUTION_RATE_G_S 1e5: the lowest accretion rate seen on a polluted white dwarf | none (measured) | DA white dwarfs of 17 000 to 27 000 K | a white dwarf polluted at a rate well below | a larger survey with a lower detection limit | Koester, Gaensicke and Farihi 2014 (arXiv:1404.2617, READ): a few 1e5 to a few 1e8 g/s | GEN.1069 | - |
+
+## 6.118 Stand-ins of the irregular moon population
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CP1 | P | T2 | L1 | irregular_population.ENCOUNTER_YIELD 1.8e-10: stable captures per particle of the reservoir per planetary encounter at a gas giant | 1.3e-10 to 2.6e-10 | a giant in an instability with a second giant, 49 to 280 encounters | a capture run whose yield per encounter is outside 1e-10 to 3e-10 for the same sphere and particle number | per-encounter yield by planet pair, mass ratio and encounter distance from a capture run on the generated architecture | CM1 (Nesvorny, Vokrouhlicky and Deienno 2014 Table 1, READ): the geometric middle | - | - |
+| CP2 | P | T6 | L3 | irregular_population.GAS_WINDOW_SHARE 0.2 and irregular_population.GAS_REFERENCE_ENCOUNTERS 129: the gas-drag channel as a share of the encounter channel of 129 encounters (the mean of 59, 280 and 49) | share 0.1 to 0.3; encounters 49 to 280 | giants with a massive primordial envelope | a capture run with gas drag whose yield differs from the encounter channel by over a factor of 10 | a gas-drag capture run on the generated envelope (Pollack et al. 1979; Cuk and Burns 2004, not reached) | CM14: design guess, no paper reached gives the share | - | - |
+| CP3 | P | T6 | L1 | irregular_population.GAS_MIN_ENVELOPE_EARTH 10: the least envelope, earth masses, for the gas channel | 3 to 30 | giants | a captured irregular family at an ice giant that needs gas drag, or a gas giant of 100 earth masses of envelope without it | the envelope and disc of the generated planet (GEN.1005 flip) | CM18: Jupiter about 300 and Saturn 100 earth masses of gas, the ice giants about 1; the threshold between them is argued | - | - |
+| CP4 | P | T6 | L1 | irregular_population.CAPTURE_HILL_AU 0.35: below this Hill radius the yield per encounter falls as the Hill volume, `(r_H / 0.35 au)^3`; above it, Jupiter's | 0.2 to 0.6 | giants of 0.01 to 3 Jupiter masses at 0.1 to 30 au | a capture run at a warm giant whose yield differs from the Hill volume law by over a factor of 5 | per-planet yields from a capture run of the generated architecture | CM1 was run for Jupiter (r_H 0.35 au); CM2 gives Uranus and Neptune (r_H 0.47 and 0.77 au) no more than Jupiter; the design's Hill-volume target (section 4.2) | - | - |
+| CP5 | P | T2 | L1 | irregular_population.TRITON_EXCHANGE_PROBABILITY 0.0084: the chance an ice giant captures a Triton-class body from a binary when every planetesimal is one | 0.002 to 0.035 | ice giants in an instability | a binary-exchange run at an ice giant outside the range | the binary fraction and spacing of the generated reservoir | CM11 (Vokrouhlicky and Nesvorny, READ): the geometric middle | - | - |
+| CP6 | P | T6 | L3 | irregular_population.GRIND_REFERENCE_KM 5 and irregular_population.GRIND_REFERENCE_YR 1e9: a body of radius 5 km is ground in 1 Gyr, so bodies below 33 km are ground at 4.5 Gyr | time 3e8 to 3e9 yr | irregular zones of the giants | a Jupiter-like planet with the mean history that does not hold 5 to 12 irregulars above 5 km at 4.5 Gyr | the collision time from the Hill volume, speeds and size-dependent strength of the generated zone (GEN.1079) | fitted to CM4 and CM6 (8 above 5 km at Jupiter, 8 above 5 km at the other three); CM9's mean times to be hit, 3e9 to 1.3e10 yr for R 1 to 5 km, are for the ground population | - | - |
+| CP7 | P | T2 | L2 | irregular_population.GRIND_SIZE_EXPONENT 0.8: the collision time grows as R^0.8, so the cumulative index 1.8 of the reservoir becomes the survivors' 1.0 | 0.5 to 1.3 | irregulars below 30 km | a survey with a cumulative index outside 0.7 to 1.3 for irregulars of 5 to 30 km | the size-dependent strength cascade of the generated population (GEN.1079) | CM3 (1.8) less CM5 and CM17 (about 1.0) | - | - |
+| CP8 | P | T9 | L1 | irregular_population.STORAGE_FLOOR_KG 1e16, STORAGE_COVERAGE 0.9, STORAGE_MAX_BODIES 100: every irregular of 1e16 kg or more is stored, then the next heaviest until 90 percent of the mass, at most 100 | floor 3e15 to 3e16; share 0.8 to 0.95; cap 50 to 200 | every planet's irregular list | as CM15 | the belt design's storage rule when it merges | CM15 (Boss 4:34 PM EDT 2026-10-30) | - | - |
+| CP9 | P | T2 | L1 | irregular_population.STORAGE_MIN_MASS_KG 1e12: no stored irregular is lighter | 3e11 to 1e13 | planets whose captures are few | a survey of a giant with irregulars lighter than this on its list | the smallest body the observed size law is complete to | CM5: Jupiter's irregulars reach R 400 m (4e11 kg at 1500 kg/m3) | - | - |
+| CP10 | P | T1 | L0 | irregular_population.OUTER_DISC_ANCHOR_COUNT 3.5e7 above a radius of 40 km, OUTER_DISC_LAW cumulative 1.8 below a radius of 70 km and 5 above at 2000 kg/m3, REFERENCE_DISC_MASS_EARTH 27.5 | count 3e7 to 4e7; break 70 to 100 km; upper index 4.25 to 5.5; lower 1.75 to 2.75; disc 20 to 35 earth masses | outer planetesimal discs of 20 to 35 au at the instability | a disc census of a young system outside the ranges | the size law of the generator's own reservoir (belt design GEN.1061) | CM3 (Nesvorny, Vokrouhlicky and Deienno 2014 section 3.3, READ); the law at 2000 kg/m3 holds 24.6 earth masses, inside CM3's 20 to 35 | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 

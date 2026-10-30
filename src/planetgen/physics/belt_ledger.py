@@ -131,6 +131,38 @@ def top_count(law, belt_mass_kg):
 
 
 @finite_domain()
+def mass_for_top_count(law, count):
+    """The mass of a belt that has `count` bodies above the law's top break (the inverse of `top_count`)."""
+    if not count > 0.0:
+        raise ValueError("the count must be positive")
+    return count * _table(law)[3]
+
+
+@finite_domain()
+def mass_below(law, belt_mass_kg, mass_kg):
+    """The mass of the bodies lighter than `mass_kg` in a belt of this mass: the law's tail below it."""
+    if not mass_kg > 0.0:
+        raise ValueError("the mass must be positive")
+    masses, exponents, relative, _ = _table(law)
+    top = len(masses) - 1
+    above = 0.0
+    for j in range(len(exponents)):
+        low = max(masses[j - 1] if j > 0 else 0.0, mass_kg)
+        high = masses[j] if j < len(masses) else math.inf
+        if low >= high:
+            continue
+        b = exponents[j]
+        anchor = relative[j] * masses[j] ** b if j < len(masses) else masses[top] ** b
+        if high == math.inf:
+            above += anchor * b / (b - 1.0) * low ** (1.0 - b)
+        elif abs(b - 1.0) < 1e-12:
+            above += anchor * b * math.log(high / low)
+        else:
+            above += anchor * b / (1.0 - b) * (high ** (1.0 - b) - low ** (1.0 - b))
+    return max(0.0, belt_mass_kg - above * top_count(law, belt_mass_kg))
+
+
+@finite_domain()
 def count_above(law, belt_mass_kg, mass_kg):
     """`N(>m)`: the expected number of bodies heavier than `mass_kg` in a belt of this mass."""
     if not mass_kg > 0.0:
@@ -176,7 +208,7 @@ class Ledger:
         masses_kg (tuple): The stored bodies' masses, heaviest first; the index is the rank, stable for a stream whatever the belt's mass.
         belt_mass_kg (float): The belt's mass, the budget.
         remainder_kg (float): The mass of everything not stored (belt mass minus the bodies); at least `1 - LEDGER_MAX_SHARE` of the belt.
-        above_cut (int): How many bodies are above `L1_MASS_KG` before any scaling.
+        above_cut (int): How many bodies are above the floor (`L1_MASS_KG` for a belt) before any scaling.
         scaled (bool): Whether the bodies had to be scaled down to stay inside `LEDGER_MAX_SHARE`.
         law (SizeLaw): The size law the draw followed.
     """
@@ -199,22 +231,37 @@ class Ledger:
         return diameter_km(self.masses_kg[0], self.law.density_kg_m3)
 
 
-def draw_exponentials(stream):
-    """The belt's `LEDGER_MAX_BODIES` unit exponential draws, the same number from `stream` whatever the belt (so a run's stream does not depend on the belt's mass)."""
-    return [-math.log(1.0 - stream.random()) for _ in range(LEDGER_MAX_BODIES)]
+def draw_exponentials(stream, count=LEDGER_MAX_BODIES):
+    """The belt's `count` unit exponential draws (`LEDGER_MAX_BODIES` unless a population keeps fewer), the same number from `stream` whatever the belt (so a run's stream does not depend on the belt's mass)."""
+    return [-math.log(1.0 - stream.random()) for _ in range(count)]
 
 
 @finite_domain()
-def ledger_from(law, belt_mass_kg, exponentials):
-    """The ledger of a belt of this mass from the `draw_exponentials` of a stream (the heaviest body is rank 0)."""
+def ledger_from(law, belt_mass_kg, exponentials, floor_kg=L1_MASS_KG, coverage=LEDGER_COVERAGE, max_bodies=LEDGER_MAX_BODIES, min_mass_kg=0.0, realised=False):
+    """
+    The ledger of a belt of this mass from the `draw_exponentials` of a stream (the heaviest body is rank 0).
+
+    The storage rule is the arguments': every body of `floor_kg` or more, then the next heaviest until they hold `coverage` of the mass, at most `max_bodies`, and none lighter than `min_mass_kg`. The
+    defaults are a belt's (`L1_MASS_KG`, `LEDGER_COVERAGE`, `LEDGER_MAX_BODIES`, no minimum, the mass a budget the stored bodies are scaled to stay within); `exponentials` must be at least `max_bodies` long.
+
+    A population of a handful of bodies has no budget to scale to, its mass is what its bodies add up to (the irregular moons of a planet, `irregular_population`): with `realised` the bodies are kept as drawn,
+    the coverage is of the stored mass and the law's mass below the lightest stored body (`mass_below`), `remainder_kg` is that tail and `belt_mass_kg` of the result is their sum.
+    """
     raw, gap = [], 0.0
     for e in exponentials:
         gap += e
         raw.append(mass_at_count(law, belt_mass_kg, gap))
-    above = sum(1 for m in raw if m >= L1_MASS_KG)
-    n = min(above, LEDGER_MAX_BODIES)
+    above = sum(1 for m in raw if m >= floor_kg)
+    n = min(above, max_bodies)
     held = sum(raw[:n])
-    while n < LEDGER_MAX_BODIES and held < LEDGER_COVERAGE * belt_mass_kg:
+    if realised:
+        while n < max_bodies and raw[n] >= min_mass_kg and held < coverage * (held + (mass_below(law, belt_mass_kg, raw[n - 1]) if n else belt_mass_kg)):
+            held += raw[n]
+            n += 1
+        masses = tuple(raw[:n])
+        tail = mass_below(law, belt_mass_kg, raw[n - 1]) if n else belt_mass_kg
+        return Ledger(masses, held + tail, tail, above, False, law)
+    while n < max_bodies and held < coverage * belt_mass_kg and raw[n] >= min_mass_kg:
         held += raw[n]
         n += 1
     scale = min(1.0, LEDGER_MAX_SHARE * belt_mass_kg / held) if held > 0.0 else 1.0
