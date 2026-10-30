@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 553 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 555 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 65 | 20 | 5 | 9 | 0 | 99 |
 | T4 | 27 | 0 | 0 | 4 | 4 | 35 |
 | T5 | 37 | 10 | 1 | 0 | 0 | 48 |
-| T6 | 41 | 26 | 10 | 32 | 0 | 109 |
+| T6 | 43 | 26 | 10 | 32 | 0 | 111 |
 | T7 | 26 | 7 | 8 | 7 | 0 | 48 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 1 | 25 | 19 | 46 |
-| All | 346 | 72 | 30 | 80 | 25 | 553 |
+| All | 348 | 72 | 30 | 80 | 25 | 555 |
 
 ## How the labels were given
 
@@ -905,3 +905,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | WF4 | P | T6 | L0 | radiation.FLARE_ENERGY_SPAN 1000: the flare energies the SEP dose weights run over 1e33 to 1e36 erg | 1e2 to 1e4 | flaring stars | test_radiation::test_a_shallow_flare_slope_puts_more_energy_in_the_big_flares_and_raises_the_particle_dose | the energy range of the star's own flare statistics (Davenport 2016; Gunther et al. 2020) | RECALLED (the largest superflares seen are of order 1e36 erg; 1e33 is the table's N33 unit) | - | - |
 | WF5 | P | T7 | L0 | radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and LETHAL_EVENT_LIMIT_PER_GYR 10: the flag that flares or galactic events keep the ozone down | limit 100 to 1000 | worlds with an ozone column | test_radiation::test_proxima_b_without_a_field_loses_its_ozone_and_earth_does_not | a photochemistry run of the flare fluence on the air (Tilley et al. 2019; Segura et al. 2010) | design (the design note section 2.3: Proxima b about 2,100, Earth 0.003, on either side of the limit) | - | - |
 | WF6 | P | T3 | L1 | radiation.OZONE_LOSS_REMAINING 0.1: the share of its ozone a flagged world keeps | 0.06 to 0.2 | worlds the flares hold at the flag | test_radiation::test_a_world_whose_ozone_is_lost_keeps_a_tenth_of_it_and_takes_more_ultraviolet | the ozone column of the photochemistry run | RECALLED (Segura et al. 2010: 94 percent removed; Howard et al. 2018: 90 percent) | - | - |
+
+## 6.68 Stand-ins of the oddity table and the weirdness dial
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| OD1 | P | T6 | L0 | tuning.WEIRDNESS_DIAL 1.0, the multiplier on every oddity rate (0 turns every oddity off) | 0 to 3 | every oddity row | Boss finds the default sky too plain or too strange | Boss's setting in the settings page (GEN.1047) | design: Boss asked for a dial (4:15 PM EDT 2026-10-30), design section 4.4; 1 gives the literature rates of each row | GEN.1047 | - |
+| OD2 | P | T6 | L0 | tuning.WEIRDNESS_RATE_SCALE {}, a multiplier per oddity id (1.0 for any id not named) | 0 to 10 | one oddity row | a row whose census share is outside its literature range at the default | the census re-baseline item (rates re-fitted, not scaled) | design section 4.4; empty by default so no row is moved | GEN.1047 | - |

@@ -133,3 +133,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | quadruple_stability_3p1_weights.json | GEN.1016 | the 8,301 numbers of the authors' network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
 | module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple; the stability margin and quadruple fit (P10) will call it |
 | module | planetgen.generation.member_record | GEN.1009 | the frozen member record (one evolution of a member); the tree, the build and the stored tree will read it once GEN.1009's wiring merges on its train |
+| module | planetgen.physics.oddities | GEN.1047 | the oddity table and its rolls (candidates, probability, roll, limit_failures); the planet and moon builds call it once GEN.1047 wires the table, with the effects the modules of GEN.1040 and its siblings define |
+| data | oddities.json | GEN.1047 | the oddity table (empty until the modules add their rows); read by physics/oddities.py, which nothing calls yet |
+| row | 6.68:OD1 | GEN.1047 | `tuning.WEIRDNESS_DIAL`, read by `oddities.probability` once the table is wired; the dial also goes in the settings page |
+| row | 6.68:OD2 | GEN.1047 | `tuning.WEIRDNESS_RATE_SCALE`, read by `oddities.probability` once the table is wired |

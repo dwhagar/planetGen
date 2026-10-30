@@ -1468,6 +1468,15 @@ The multi-star design (`design-drafts/overlap-free-systems-gen1006-2026-10-30.md
 | QS3 | P | T3 | L0 | the documented range: `q_mid_max` 3 and `q_out_max` 2 from the help text of the authors' script ("best if < ~3", "< ~2"), `q_in_min` 0.1 and `eccentricity_max` 0.95 from the paper | q_mid up to 5 by the paper's masses | 3+1 systems inside the range | a system outside it that the network classifies against an N-body run | the range of a bigger training set | classify_quad_3p1.py help text and paper section 3.1, read |
 | QS4 | P | T6 | L0 | the training distribution: orbital angles isotropic, arguments of periapsis and mean anomalies not inputs, systems kept near the Mardling-Aarseth boundary of the two nested triples, 20 percent of the MA01-unstable draws kept | none | the verdict of a system near the boundary; far from it (very wide or very tight) the network extrapolates | a very hierarchical system (alpha under 0.05) called unstable by the network with all else benign | the nested triple test far from the boundary | paper section 3.1, read |
 
+### 6.68 Stand-ins of the oddity table and the weirdness dial (GEN.1036)
+
+`physics/oddities.py` reads the rows of `physics/data/oddities.json` (docs/design/systems/weird-worlds.md): rare, physically plausible outcomes that enter the chain as a cause at one input, each a rate on a gated population. The table ships empty; the module that implements an oddity adds its row and its rate here, one registry row per rate, with the paper the rate comes from (secondary sources accepted) or, where it is recalled, as a stand-in with the falsifier that replaces it. The two rows below are the values the table itself holds.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| OD1 | P | T6 | L0 | tuning.WEIRDNESS_DIAL 1.0, the multiplier on every oddity rate (0 turns every oddity off) | 0 to 3 | every oddity row | Boss finds the default sky too plain or too strange | Boss's setting in the settings page (GEN.1047) | design: Boss asked for a dial (4:15 PM EDT 2026-10-30), design section 4.4; 1 gives the literature rates of each row |
+| OD2 | P | T6 | L0 | tuning.WEIRDNESS_RATE_SCALE {}, a multiplier per oddity id (1.0 for any id not named) | 0 to 10 | one oddity row | a row whose census share is outside its literature range at the default | the census re-baseline item (rates re-fitted, not scaled) | design section 4.4; empty by default so no row is moved |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
