@@ -196,3 +196,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.70:RO6 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO7 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO8 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| module | planetgen.physics.super_puff | GEN.1048 | the super-puff radius, fade and gate (W15); the bulk step reads it when the wiring step lands |
+| row | 6.76:PF1 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| row | 6.76:PF2 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| row | 6.76:PF3 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| row | 6.76:PF4 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |

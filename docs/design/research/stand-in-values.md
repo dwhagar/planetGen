@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 612 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 616 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 79 | 1 | 5 | 1 | 0 | 86 |
 | T2 | 89 | 8 | 0 | 1 | 0 | 98 |
-| T3 | 70 | 23 | 5 | 9 | 0 | 107 |
-| T4 | 28 | 0 | 0 | 13 | 6 | 47 |
+| T3 | 71 | 24 | 5 | 9 | 0 | 109 |
+| T4 | 29 | 0 | 0 | 13 | 6 | 48 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
 | T6 | 49 | 29 | 12 | 33 | 0 | 123 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
-| T8 | 0 | 0 | 0 | 1 | 2 | 3 |
+| T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 381 | 81 | 32 | 91 | 27 | 612 |
+| All | 383 | 83 | 32 | 91 | 27 | 616 |
 
 ## How the labels were given
 
@@ -1019,3 +1019,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SS1 | P | T4 | L0 | seasonal_swing.OCEAN_MIXED_LAYER_M 50, the depth of the sea that follows the seasons | 20 to 100 | worlds with a liquid water ocean | a global ocean model whose seasonal mixed layer averages under 30 m or over 80 m at 45 degrees | the mixed-layer depth by latitude and wind stress, or the ocean's own heat uptake from the hydrosphere | the 50 m mixed layer of the simple climate models of Williams and Kasting 1997 and Spiegel et al. 2009, recalled (not opened); the Earth's seasonal mixed layer is 20 to 100 m | GEN.1048 | - |
 | SS2 | D | T1 | L0 | seasonal_swing.WATER_HEAT_CAPACITY_J_M3_K 4.1e6, the volumetric heat capacity of liquid water | none | water oceans | a brine or a non-water ocean (ammonia-water, hydrocarbons) | the heat capacity of the surface liquid table (GEN.1035) | water: 4,186 J per kg per K at 1,000 to 1,025 kg per m3 | GEN.1048 | - |
 | SS3 | D | T5 | L1 | seasonal_swing.MAX_SHARE 0.999, the transport share is cut here; the seasonal damping is the mean state's own, `B_t = B s / (1 - s)` | 0.99 to 0.9999 | air columns up to Venus's | a general circulation model of a thick-air planet whose seasonal swing is not damped like its pole-to-equator contrast | a diffusion coefficient for the seasonal anomalies from the circulation (the seasonal cycle of a 90 bar air) | extends `regional_temperature.TRANSPORT_X0` (DESIGN) from the means to the cycle; the energy balance form is that of North and Coakley 1979, recalled | GEN.1048 | - |
+
+## 6.76 Stand-ins of the super-puff radius
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| PF1 | B | T4 | L0 | super_puff.MAX_AGE_GY 1, with MAX_MASS_EARTH 10, PERIOD_RANGE_D (10, 100) and DENSITY_RANGE_G_CM3 (0.03, 0.1): the gate | Lee and Chiang's class is 2 to 6 Earth masses and under 50 days; the design table is 10 Earth masses and 10 to 100 days | rocky and gas-dwarf planets with an envelope | a super-puff older than 1 Gyr or heavier than 10 Earth masses | the age-dependent radius of a measured sample | the design table (weird-worlds.md W15), Lee and Chiang 2016 Introduction and Sec. 4 (read), Kepler-51 d 0.038 g/cc (read) | GEN.1048 | - |
+| PF2 | D | T3 | L0 | super_puff.PUFF_ENVELOPE (0.07, 0.45): the envelope fractions | Kepler-51 b 0.07 to 0.28, Kepler-79 d 0.33 to 0.40 (Lee and Chiang Sec. 4, after Lopez and Fortney); the module solves 0.16 for Kepler-51 b and 0.41 for Kepler-51 d | planets of 2 to 10 Earth masses | a super-puff with an envelope outside it | the formation model of Lee and Chiang (dust-free accretion in the outer disk) | Lee and Chiang 2016 Sec. 4 (read), Libby-Roberts et al. 2025 abstract (read) | GEN.1048 | - |
+| PF3 | P | T8 | L1 | super_puff.OCCURRENCE_SHARE 0.005: the share of sub-Neptunes that are super-puffs | under 1 percent (the design table, [R]); Lee and Chiang bound the planets over 4 Earth radii inside 50 days to under a tenth of the smaller ones, so the true share is under about 9 percent | sub-Neptunes | a survey statistic of planets under 0.1 g/cc | a measured occurrence from Kepler or TESS | design table; Lee and Chiang 2016 Sec. 4 (read). The [R] rate is not confirmed: no occurrence statistic was found | GEN.1048 | - |
+| PF4 | T | T3 | L1 | super_puff.TIDAL_MIN_FLUX_EARTH 20, TIDAL_MIN_LUMINOSITY_RATIO 1e-5, TIDAL_MAX_RATIO 2 and the fit of eq. 14: the tidal inflation | her fit is of her own radii and its exponents are not the quotient of eqs. 12 and 13; here it multiplies the radius of Lopez and Fortney | flux over 20 Earth fluxes, planets of 1 to 30 Earth masses | a planet whose radius is measured against its obliquity | the full structure model with the tidal heat in the core | Millholland 2019 eqs. 11, 14 and Sec. 4.1 (read) | GEN.1048 | - |
