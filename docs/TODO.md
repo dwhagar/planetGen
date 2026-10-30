@@ -13936,29 +13936,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1060.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
-- [ ] **GEN.1065 Belt member designation: a pure function designation(belt_id, rank) printing the belt ID plus the rank in hex (no name, no salad name, no codec name), and its round trip through parse_id**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Do: design section 9 and Boss decision
-  1 (the member number is a sub-number inside the belt ID, `<belt
-  ID>.<rank hex>`), in galaxy/object_uid.py beside format_id; naming_key
-  leaves belt members out. Done: tests show it is a pure function, rank
-  above the individual count addresses an on-demand body, and parse_id
-  round-trips it. Lock-free; the display and storage are the lock items
-  below. Where we think it belongs (best guess, can move): Core 1 (ids
-  and tests; after the oddity harness, separate branch).
-  Prerequisites: none.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
 - [ ] **GEN.1066 Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
   so belts evolve and say where we think each belongs; design
@@ -14089,7 +14066,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter tag once the scatter phase is wired (GEN.1092).
   Belt page (Boss 4:37 PM EDT) (2026-10-30 4:38 PM EDT): Each stored
   member is linked from the asteroid belt information page UX.241.
-  Prerequisites: GEN.1061, GEN.1063, GEN.1065, GEN.1067, GEN.1069.
+  Prerequisites: GEN.1061, GEN.1063, GEN.1067, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **GEN.1071 Outer (Kuiper-type) disc built as a belt from the same chain, linked to the debris descriptor so the descriptor and the belt are one thing**
@@ -14218,23 +14195,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1075. Related: GEN.1061.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
-- [ ] **GEN.1078 physics/irregular_orbits.py: a/r_H, e, i, survival and families (parent breakup with a velocity spread)**
-  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
-  many moons because a lot of them are former asteroids from the belt,
-  if gravitational bodies are near a belt, they should pick up
-  asteroidal moons"; design
-  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
-  designation function with the belt evolution items (goal #4130).
-  Stand-ins accepted when registered in GEN.725 with tier and tweak
-  level; [R] numbers are read from the source by the lane that builds
-  it. Do: design section 4. Pure function. Done: tests show the
-  retrograde to prograde split near 4.5:1 from stability alone, no body
-  in the Kozai band, no periapsis inside the outermost regular moon.
-  Lock-free. Where we think it belongs (best guess, can move): Tides 1
-  (after the irregular zone).
-  Prerequisites: GEN.1076.
-  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
-
 - [ ] **GEN.1079 Collisional-saturation check for the irregular zone: reuse belt_mass_earth and show the invariance across the four giants, or replace the guess with a fitted scalar per planet registered at L3**
   Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
   many moons because a lot of them are former asteroids from the belt,
@@ -14314,7 +14274,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests, census share of giants with irregulars and the head counts per
   giant. Where we think it belongs (best guess, can move): Core 3 (owns
   the moon draw lock), train 17.
-  Prerequisites: GEN.1078, GEN.1081, GEN.1082, GEN.1079, GEN.1080.
+  Prerequisites: GEN.1081, GEN.1082, GEN.1079, GEN.1080.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
 - [ ] **GEN.1084 Store the individual irregular moons and the new moon columns (migration, API version), and call the stability test for irregulars in drop_unstable_moons and in bring-to-epoch when a planet moves**
@@ -14704,7 +14664,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (belt member storage and designation). API version bump. Done: tests,
   pages. Where we think it belongs (best guess, can move): Core 2 with
   Aux 4, train 21.
-  Prerequisites: GEN.1103, GEN.1065, GEN.1070.
+  Prerequisites: GEN.1103, GEN.1070.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
 - [ ] **GEN.1106 Field render: a 3D view for the field page (today _NO_VIEW), the sector map drawing the cloud or annulus plus the individual points at v x age, the render seed from the uid not the database id**
@@ -14871,6 +14831,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research thread is on it. The home-sector default above is only a
   placeholder; build nothing that depends on where a rogue is stored
   until the research decision is merged.
+  Drift research (D4, 5:12 PM EDT) (2026-10-30 5:11 PM EDT): Research
+  result: storage by virtual donors. The sector draws its own ejection
+  events from donor records (class, seed, distance, age, speed, slot; no
+  donor system is stored or enumerated), applies the kick in the host's
+  own frame, then the host's motion, then the closed form for position
+  and velocity (GEN.1114, the drift function), and the rogue is placed
+  in the sector where it lands; its object ID is built from the present
+  galactic position, so it needs no change. This replaces "counted with
+  the sector's stars" and "ejection speed is escape speed plus the
+  host's velocity". HELD until Boss answers two questions: (1) virtual
+  donors, recommended, or real donors only (wrong positions); (2) kick
+  isotropic in the star's frame, recommended, or perpendicular to the
+  galactic motion as he first proposed (that keeps rogues within a few
+  hundred pc of the donor, the research shows the along-orbit component
+  is what causes the long drift). The earlier home-sector default is
+  superseded.
   Prerequisites: GEN.1109, GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -14895,6 +14871,80 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train as the rogue rows.
   Prerequisites: GEN.1109. Related: GEN.557.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+
+- [ ] **GEN.1113 Rogue ejection kick research (D1): read the full texts, extract ejection speed against perturber mass and orbit, direction statistics and moon survival, replace the kick stand-in, test against Sayed et al.**
+  Rogue planet drift and storage (Boss, 5:06 PM EDT 2026-10-30, ejection
+  vector research; design docs/design/systems/rogue-planet-drift.md,
+  goal #4130). Finding: a rogue ejected with a few km/s spreads along
+  the galactic orbit by roughly 1 kpc per 0.5 Gyr, so almost none is
+  near its donor; the recommended storage is virtual donors (each sector
+  draws its own ejection events and runs a closed-form drift, so the
+  rogue lands in the sector where it is, with no real donor needed).
+  Done: report and GEN.725 rows. Lock-free. Where we think it belongs
+  (best guess, can move): Planets 1 (with the rogue review GEN.1109),
+  separate branch.
+  Prerequisites: none. Related: GEN.1111, GEN.1109.
+  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
+
+- [ ] **GEN.1114 physics/rogue_drift.py (D2): the closed-form drift of an ejected planet (the wrap rule and the velocity), checked against a direct orbit integration to 1 kpc and against hill_drift.py**
+  Rogue planet drift and storage (Boss, 5:06 PM EDT 2026-10-30, ejection
+  vector research; design docs/design/systems/rogue-planet-drift.md,
+  goal #4130). Finding: a rogue ejected with a few km/s spreads along
+  the galactic orbit by roughly 1 kpc per 0.5 Gyr, so almost none is
+  near its donor; the recommended storage is virtual donors (each sector
+  draws its own ejection events and runs a closed-form drift, so the
+  rogue lands in the sector where it is, with no real donor needed).
+  Done: tests, stand-ins registered. Pure function, lock-free. Where we
+  think it belongs (best guess, can move): Aux 7 (orbit dynamics;
+  separate branch), after its weird worlds queue.
+  Drift (2026-10-30 5:11 PM EDT): This is D2; D4 is the GEN.1111 change
+  above (held).
+  Prerequisites: none. Related: GEN.1111, GEN.1109.
+  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
+
+- [ ] **GEN.1115 Smoothed star-density function for rogues (D3): ring average plus radial smoothing, shared by the sector draw and the low-zoom map**
+  Rogue planet drift and storage (Boss, 5:06 PM EDT 2026-10-30, ejection
+  vector research; design docs/design/systems/rogue-planet-drift.md,
+  goal #4130). Finding: a rogue ejected with a few km/s spreads along
+  the galactic orbit by roughly 1 kpc per 0.5 Gyr, so almost none is
+  near its donor; the recommended storage is virtual donors (each sector
+  draws its own ejection events and runs a closed-form drift, so the
+  rogue lands in the sector where it is, with no real donor needed).
+  Done: function and tests. Lock-free. Where we think it belongs (best
+  guess, can move): Sources 2 (separate branch), after the belt ledger.
+  Map (D6) (2026-10-30 5:11 PM EDT): The low-zoom map reads this
+  smoothed density instead of drawing rogues one by one far out; the map
+  lane (Core 2) takes that step after this function merges.
+  Prerequisites: none. Related: GEN.1111, GEN.1109.
+  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
+
+- [ ] **GEN.1116 Regenerate a rogue's donor on demand from its seed (D5): the history sentence and the parent record shown on the object page**
+  Rogue planet drift and storage (Boss, 5:06 PM EDT 2026-10-30, ejection
+  vector research; design docs/design/systems/rogue-planet-drift.md,
+  goal #4130). Finding: a rogue ejected with a few km/s spreads along
+  the galactic orbit by roughly 1 kpc per 0.5 Gyr, so almost none is
+  near its donor; the recommended storage is virtual donors (each sector
+  draws its own ejection events and runs a closed-form drift, so the
+  rogue lands in the sector where it is, with no real donor needed).
+  Done: tests; the page line is wired with the rogue rows (GEN.1111).
+  Lock-free module. Where we think it belongs (best guess, can move):
+  Planets 1, after GEN.1111 design is settled.
+  Prerequisites: GEN.1114. Related: GEN.1111, GEN.1109.
+  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
+
+- [ ] **GEN.1117 Register the rogue drift and kick stand-ins in GEN.725 (D7): the rows of design section 8, each with tier and tweak level and a burn-down line where L3 or L4**
+  Rogue planet drift and storage (Boss, 5:06 PM EDT 2026-10-30, ejection
+  vector research; design docs/design/systems/rogue-planet-drift.md,
+  goal #4130). Finding: a rogue ejected with a few km/s spreads along
+  the galactic orbit by roughly 1 kpc per 0.5 Gyr, so almost none is
+  near its donor; the recommended storage is virtual donors (each sector
+  draws its own ejection events and runs a closed-form drift, so the
+  rogue lands in the sector where it is, with no real donor needed).
+  Done: registry rows and burn-down lines merged. Lock-free (docs).
+  Where we think it belongs (best guess, can move): Whoever builds D1
+  and D2, in the same PRs.
+  Prerequisites: none. Related: GEN.1111, GEN.1109.
+  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19717,35 +19767,12 @@ clears each one.
   Prerequisites: GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
-- [ ] **TEST.495 Designation for captured bodies: the belt-member designation `<belt ID>.<rank hex>` is kept with a parent link, outside-reservoir bodies print `<planet ID>.<rank hex>`; both pure and round-trip through parse_id**
-  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
-  many moons because a lot of them are former asteroids from the belt,
-  if gravitational bodies are near a belt, they should pick up
-  asteroidal moons"; design
-  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
-  designation function with the belt evolution items (goal #4130).
-  Stand-ins accepted when registered in GEN.725 with tier and tweak
-  level; [R] numbers are read from the source by the lane that builds
-  it. Do: extend the member designation function (GEN.1065). Done:
-  tests. Lock-free. Where we think it belongs (best guess, can move):
-  Core 1 (same lane as GEN.1065).
-  Prerequisites: GEN.1065.
-  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
-
 - [ ] **TEST.496 test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug)**
   Found by Core 2 after MAP.337 step 1 (PR #4119, 4:41 PM EDT as the
   lane reported). Core 2 leaves it for MAP.337 steps 2 and 3, which
   remove the stage URLs; it closes when they merge and the test passes.
   Owner: Core 2. Version 8.1.
   Prerequisites: MAP.337.
-
-- [ ] **TEST.497 test_planet_physical_properties e-3 fails on an unseeded star (air pressure 0.99999 Pa against a floor of 1.0), the same cause as TEST.486 (bug)**
-  Found by Aux 2 (4:42 PM EDT 2026-10-30): the trace trim of the
-  thin-air regime stores 0.99999 Pa; TEST.485 already widened the floor
-  for one test, this is another test with the same floor. Fix: seed the
-  star and allow the designed trim. Lock-free. Where we think it belongs
-  (best guess): Core 1.
-  Prerequisites: none.
 
 - [ ] **TEST.498 A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star**
   Boss, 4:57 PM EDT 2026-10-30. Test: draw matched planets with and
