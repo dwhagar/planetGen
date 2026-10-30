@@ -48,7 +48,7 @@ from planetgen.util.random import log_uniform
 from planetgen.generation import phenomenon_scatter
 from planetgen.generation.phenomena import registry
 from planetgen.generation.star_labels import describe_types, star_label
-from planetgen.generation import run_common
+from planetgen.generation import followed, run_common
 from planetgen.generation import run_phenomenon
 from planetgen.generation import run_system
 from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
@@ -987,6 +987,40 @@ def sector_generation_summary_lines(sector, args_used):
     return "\n".join(lines)
 
 
+class UnplacedSectorsFollower(followed.Follower):
+    """
+    The sectors of a `sector` run as its one stage (PERF.119, PERF.202): the `generate-unplaced-sector` command's units
+    generate and save them, and this side logs each as it is saved and keeps the run's counts.
+    """
+
+    key = "unplaced"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.label = commands.build_steps("sector", args)[0].label
+
+    def params(self):
+        return commands.build_steps("sector", self.args)[0].params
+
+    def on_result(self, unit, result):
+        args = self.args
+        mysql_config = store.mysql_config_from_args(args)
+        elsewhere = result["pid"] != os.getpid()     # a worker's own RUN_COUNTS die with it; the run's are here
+        for saved in result["sectors"]:
+            if elsewhere:
+                run_common.RUN_COUNTS["sectors"] += 1
+                run_common.RUN_COUNTS["systems"] += saved["systems"]
+                run_common.RUN_COUNTS["phenomena"] += saved["phenomena"]
+            run_common._record_sector(args, saved, saved["seconds"])
+            phenomena_note = f", {saved['phenomena']} phenomena" if saved["phenomena"] else ""
+            log.normal(
+                f"Saved sector '{saved['name']}' to the database (sector_id={saved['sector_id']}, "
+                f"{saved['systems']} systems{phenomena_note}, "
+                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port})."
+            )
+            _log_summary(saved["summary"])
+
+
 def run_sector(args):
     """
     Generates `args.num_sectors` sectors (1 by default), each one a
@@ -1019,35 +1053,14 @@ def run_sector(args):
         run_common._print_estimate(exc)
         return
 
-    workers = run_common._worker_count(args)
     args.database = wrapper.database_args(mysql_config)
     args.run_seed = draw.getrandbits(128)
-    steps = wrapper.steps_for("sector", args)
-
-    def on_result(_index, _unit, result):
-        elsewhere = result["pid"] != os.getpid()     # a worker's own RUN_COUNTS die with it; the run's are here
-        for saved in result["sectors"]:
-            if elsewhere:
-                run_common.RUN_COUNTS["sectors"] += 1
-                run_common.RUN_COUNTS["systems"] += saved["systems"]
-                run_common.RUN_COUNTS["phenomena"] += saved["phenomena"]
-            run_common._record_sector(args, saved, saved["seconds"])
-            phenomena_note = f", {saved['phenomena']} phenomena" if saved["phenomena"] else ""
-            log.normal(
-                f"Saved sector '{saved['name']}' to the database (sector_id={saved['sector_id']}, "
-                f"{saved['systems']} systems{phenomena_note}, "
-                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port})."
-            )
-            _log_summary(saved["summary"])
-
+    follower = UnplacedSectorsFollower(args)
     try:
-        wrapper.run(steps[0].label, steps, lambda _index, plan: None, on_result, workers_count=workers,
-                    who=getattr(args, "who", None), database=mysql_config.database, argv=getattr(args, "argv", None))
+        followed.run_followed(args, [follower], follower.label, galaxy=False)
     except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
         log.error(f"error: the sectors could not be generated: {exc}")
         raise SystemExit(1) from exc
-    finally:
-        run_common._finish_stats(args)
 
     if args.num_sectors > 1:
         log.normal(f"Generated {args.num_sectors} sectors.")
