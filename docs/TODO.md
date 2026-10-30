@@ -13552,6 +13552,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (carried in GEN.1014); the repo white-dwarf engulfment constants sit
   below Mustill and Villaver 2012 (GEN.725 row in GEN.1012). GEN.1007
   and GEN.1008 stay dropped, P0 replaces the first.
+  Design note (2026-10-30 2:45 PM EDT): The overlap-free design is
+  merged as docs/design/systems/overlap-free-systems.md (#4085, as the
+  research thread reported 2:45 PM EDT): Domingos 2006 coefficients and
+  the Veras 2011 adiabatic mass loss are read and Verified, the mutual
+  Hill separation of 10 is consistent with Obertas 2017, Roche (Eggleton
+  1983) and Mardling and Aarseth 2001 Equation 90 match the repo (the
+  MA01 q_out <= 5 range is GEN.1028). Registry rows GM5 (T1), GM9 to
+  GM12 added. Only Jeans/Hadjidemetriou remain second-hand.
   Prerequisites: TEST.476, GEN.1017, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016.
 
 - [ ] **GEN.1009 Overlap-free stars P3: evolve each star once into a frozen MemberRecord that the tree, the build and the planets all read (replaces GEN.1007 and GEN.1008)**
