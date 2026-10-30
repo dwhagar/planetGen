@@ -398,11 +398,14 @@ def test_a_surface_exactly_at_the_liquidus_is_that_body_too():
 
 
 def test_a_molten_body_under_a_hot_surface_is_flexed_as_a_molten_one():
+    """A magma ocean has the fluid Love number and almost no loss (GEN.955): the tide it feels is the rheology's at its surface's temperature."""
     from planetgen.physics import tidal_heating
     forcing = tidal_heating.Forcing(1.9e27, 4.2e8, 0.05)
-    found = _earth_under(EARTH_CEILING_K + 300.0, ih.STAGNANT, forcing)
-    dry_m = ih.dry_radius_km(EARTH, 6371.0, EARTH_ROCK) * 1000.0
-    assert found.tidal_w == pytest.approx(tidal_heating.molten_power_w(forcing, dry_m)) and found.tidal_w > 0.0
+    surface_k = EARTH_CEILING_K + 300.0
+    found = _earth_under(surface_k, ih.STAGNANT, forcing)
+    mantle = ih.mantle_of(EARTH, 6371.0, EARTH_ROCK)
+    assert found.tidal_w == pytest.approx(ih._tide_w(forcing, mantle, surface_k, MID)) and found.tidal_w > 0.0
+    assert found.tidal_w < 1.0e-2 * tidal_heating.peale_power_w(1.5, forcing, mantle.dry_m)
     assert found.total_w == pytest.approx(found.radiogenic_w + found.tidal_w) and found.primordial_w == 0.0
 
 

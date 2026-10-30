@@ -16,14 +16,16 @@ not depend on how fast it turns,
     d(omega)/dt = -3 k2 G M^2 R^5 / (I a^6 Q)         with I = alpha m R^2,
 
 `M` the mass of the host, `m`, `R`, `alpha` the body's mass, radius and moment-of-inertia factor, `a` the semi-major axis, and `k2` and `Q`
-its tidal Love number and quality factor (`tidal_heating.response`, per body). So the spin after `t` is `omega0 - rate t`, down to where the tide stops
+its tidal Love number and quality factor (`interior_heat.tidal_response`, per body). So the spin after `t` is `omega0 - rate t`, down to where the tide stops
 (`final_ratio`, `evolve`), and the time to get there is `(omega0 - target) / rate` (`locking_time_s`). A body that spins slower than it orbits is
 spun up the same way.
 
-**The rheology** (`tidal_heating.response`, the `k2` and `Q` of the body):
+**The rheology** (`interior_heat.tidal_response`, the `k2` and `Q` of the body):
 
-* A rocky body: `k2` of a homogeneous rigid sphere of its own mass and radius (`tidal_heating.rigid_k2`, GEN.737: the Moon's 0.021, Mars's
-  0.1, an Earth-sized planet 0.5), `Q` of 100 (Goldreich and Soter 1966; the Moon's 38 to 100, Mars's 88 to 100).
+* A rocky body (GEN.955): `tidal_rheology.rock_response`, the Andrade `k2` and `Q` of a homogeneous sphere of its own mass and radius at the orbital
+  frequency, with its mantle's temperature (`interior_heat.tide_temperature_k`) and the viscosity it drew: a cold stiff body has a Q of hundreds
+  (up to 1,000), a warm one tens (the Moon's 38 to 60), and `k2` is the rigid sphere's (`tidal_heating.rigid_k2`: the Moon's 0.021, Mars's 0.1, an
+  Earth-sized planet 0.5) until the mantle melts.
 * An icy body (a water mass fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more): `k2` of 0.03 and `Q` of 100, the `k2/Q` of 3e-4 that
   gives Europa's tide (GEN.737).
 * A gas giant: `k2` of 0.3 and `Q` of 1e5 (Jupiter's `k2` 0.49 and `Q` of 3e4 to 1e6, Saturn's 0.39 and 1.8e4 from the motions of their
@@ -49,7 +51,7 @@ fallen to its final state, and is zero after. These are stand-ins and approximat
 
 import math
 
-from planetgen.physics import constants, tidal_heating
+from planetgen.physics import constants, interior_heat
 
 ROCKY_MOMENT_FACTOR = 0.33
 """float: The moment-of-inertia factor `alpha = I / (m R^2)` of a rocky planet (Earth 0.331, Venus 0.33, Mars 0.365, Mercury 0.346, the Moon
@@ -71,7 +73,7 @@ def moment_factor(body):
 
 def despin_rate_rad_s2(body, host_mass_kg, semi_major_axis_m):
     """How fast the tide the host raises slows (or speeds) the body's spin, rad/s^2 (the module's formula)."""
-    k2, q = tidal_heating.response(body)
+    k2, q = interior_heat.tidal_response(body, math.sqrt(constants.G * host_mass_kg / semi_major_axis_m ** 3))
     radius_m = body.radius * 1000.0
     return (3.0 * k2 * constants.G * host_mass_kg ** 2 * radius_m ** 3
             / (moment_factor(body) * body.mass * semi_major_axis_m ** 6 * q))

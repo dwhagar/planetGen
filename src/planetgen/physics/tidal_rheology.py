@@ -63,6 +63,10 @@ from planetgen.physics import constants
 
 GAS_CONSTANT = 8.314462618
 """float: J/(mol K)."""
+MAX_VISCOSITY_EXPONENT = 200.0
+"""float: The largest `Ea / R T` the viscosity law is evaluated at (a viscosity of 1e87 times the prefactor): a mantle colder than that does not relax in any
+tide, its response is the elastic one with the cold ceiling on `Q`, and the exponential would overflow at about 700 (a body at 50 K with a mantle drawn at
+300 kJ/mol). Source tier T7 (a numerical cutoff), tweak level L0."""
 LIQUID_VISCOSITY_PA_S = 1.0
 """float: A silicate liquid's viscosity, Pa s (komatiite to basalt melt, 0.1 to 10). Source tier T2, tweak level L0."""
 MELT_VISCOSITY_FACTOR = 26.0
@@ -153,7 +157,7 @@ def viscosity_pa_s(temperature_k, eta0_pa_s, activation_j_mol, melt=0.0):
     then a straight line in `log10 eta` from there to `LIQUID_VISCOSITY_PA_S` at a melt share of 1. The solid's value is taken at the
     temperature given, so a body above its solidus must be asked about with the temperature it has.
     """
-    solid = eta0_pa_s * math.exp(activation_j_mol / (GAS_CONSTANT * temperature_k))
+    solid = eta0_pa_s * math.exp(min(activation_j_mol / (GAS_CONSTANT * temperature_k), MAX_VISCOSITY_EXPONENT))
     if melt <= 0.0:
         return solid
     if melt <= CRITICAL_MELT_FRACTION:

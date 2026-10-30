@@ -22,8 +22,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.10:RV2 | no data | - | the radius valley follow-up (GEN.722) is retired; the widths are fitted to the Kepler occurrence tables (Fulton 2017, Van Eylen 2018 as second-hand widths) and any measured mass-loss width replaces them |
 | 6.10:RV3 | no data | - | the radius valley follow-up (GEN.722) is retired; the widths are fitted to the Kepler occurrence tables (Fulton 2017, Van Eylen 2018 as second-hand widths) and any measured mass-loss width replaces them |
 | 6.9:SP1 | no data | - | a display choice (how fast a rendered body turns on screen), not a physical quantity; tier T9 stays |
-| 6.13:TH5 | replace | GEN.842 | Io is the one measured body; the Maxwell rheology of the tides chain (GEN.954 and GEN.955) replaces both fitted constants |
-| 6.13:TH7 | replace | GEN.842 | Io is the one measured body; the Maxwell rheology of the tides chain (GEN.954 and GEN.955) replaces both fitted constants |
 | 6.15:RB6 | no data | - | AP-9, AE-9 and the Divine-Garrett model are not held and the Galileo and Juno dose records are figures; the shapes stay recalled stand-ins |
 | 6.15:RB7 | no data | - | AP-9, AE-9 and the Divine-Garrett model are not held and the Galileo and Juno dose records are figures; the shapes stay recalled stand-ins |
 | 6.18:LF5 | no data | - | the pace timelines are scaled by hand from one history; the hard-step life timeline (GEN.750, closed) supersedes them for life and the table goes when the civilization check stops reading it |

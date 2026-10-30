@@ -14,10 +14,11 @@ from planetgen.generation import validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.system import StarSystem
-from planetgen.physics import tidal_heating
+from planetgen.physics import interior_heat, tidal_heating
 from planetgen.physics import constants, insolation, kepler, orbit_elements as oe
 from planetgen.physics import planets as planet_physics
 from planetgen.util import draw
+from tests.tide_support import rocky
 
 SAMPLES = 4000
 
@@ -195,7 +196,9 @@ def test_the_orbits_swing_is_the_seasons_of_a_lone_star_and_adds_to_a_companions
 
 
 def _body(mass_kg, radius_km, body_type="t"):
-    return types.SimpleNamespace(mass=mass_kg, radius=radius_km, body_type=body_type)
+    if body_type == "g" or mass_kg is None:
+        return types.SimpleNamespace(mass=mass_kg, radius=radius_km, body_type=body_type)
+    return rocky(mass_kg, radius_km)
 
 
 def test_a_hot_earth_is_circularised_in_a_billion_years_and_a_far_one_keeps_its_orbit():
@@ -206,7 +209,7 @@ def test_a_hot_earth_is_circularised_in_a_billion_years_and_a_far_one_keeps_its_
     assert 1e5 < near < 1e8
     assert far > 1e15
     assert oe.circularised(0.3, 5e9, near) < 1e-6
-    assert oe.circularised(0.3, 5e9, far) == pytest.approx(0.3, rel=1e-6)
+    assert oe.circularised(0.3, 5e9, far) == pytest.approx(0.3, rel=1e-5)
     # tau goes as a^(13/2): the fifth power of a/R and the 1/n of the period
     assert oe.circularisation_time_yr(earth, sun, 0.04) / near == pytest.approx(2.0 ** 6.5, rel=1e-9)
     assert oe.circularised(0.3, 1e9, 0.0) == 0.0
@@ -215,11 +218,12 @@ def test_a_hot_earth_is_circularised_in_a_billion_years_and_a_far_one_keeps_its_
 
 def test_a_gas_giant_dissipates_less_than_a_rock_of_its_size():
     giant = _body(1.9e27, 70_000.0, "g")
-    assert tidal_heating.response(giant) == (tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
-    k2, q = tidal_heating.response(_body(5.972e24, 6371.0))
-    assert q == tidal_heating.ROCK_TIDAL_Q and k2 == pytest.approx(tidal_heating.rigid_k2(5.972e24, 6.371e6))
+    n = 1.0e-7
+    assert interior_heat.tidal_response(giant, n) == (tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
+    k2, q = interior_heat.tidal_response(_body(5.972e24, 6371.0), n)
+    assert q < tidal_heating.GIANT_TIDAL_Q and 0.1 < k2 < 1.5
     icy = types.SimpleNamespace(mass=1.0e22, radius=1000.0, body_type="t", water_mass_fraction=0.4)
-    assert tidal_heating.response(icy) == (tidal_heating.ICY_K2, tidal_heating.ROCK_TIDAL_Q)
+    assert interior_heat.tidal_response(icy, n) == (tidal_heating.ICY_K2, tidal_heating.ICE_TIDAL_Q)
 
 
 # --- Generated systems -------------------------------------------------------------------------------------------------

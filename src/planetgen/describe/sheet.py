@@ -773,6 +773,8 @@ _BODY_RULES = [
      "a dead world, a small icy body and an airless super-Earth, and any body whose air has gone to nothing, have no air column to give a density, scale height or haze"),
     (("lid_regime",), lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no lid: only a rocky or icy body has a crust over a mantle"),
+    (("tidal_flux_w_m2",), lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant has no solid mantle or ice shell for a tide to heat: only a rocky or icy body has a tidal heat flow (0.0 on a circular orbit)"),
     (_DAYLIGHT, lambda klass, row: _locked(row) is not True,
      "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight or day share to give"),
     (("shelter_column_g_cm2",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0 or (row.get("eq_shelter_rec") or 0) > 0,
@@ -828,7 +830,7 @@ generation pathway, not a rule."""
 
 OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
-        ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
+        ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
     **{("star", key): item for key, item in (
         ("state", "GEN.786"), ("decay_age_yr", "GEN.785"), ("lethal_event_rate_per_gyr", "GEN.785"),
