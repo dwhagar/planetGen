@@ -4653,8 +4653,9 @@ CREATE TABLE IF NOT EXISTS species (
     UNIQUE KEY uq_species_name (name),
     UNIQUE KEY uq_species_homeworld (homeworld_planet_id),
     KEY idx_species_system (star_system_id),
-    KEY idx_species_spacefaring (spacefaring),
-    KEY idx_species_tech_level (tech_level),
+    KEY idx_species_spacefaring_name (spacefaring, name),     -- v177 (PERF.205): the Species table's sorts read in index order
+    KEY idx_species_tech_level_name (tech_level, name),       -- (the tech level search by range uses the leading column)
+    KEY idx_species_era_name (era, name),
     CONSTRAINT chk_species_life_stage CHECK (life_stage IN ('multicellularity', 'technological_civilization')),
     CONSTRAINT fk_species_planet
         FOREIGN KEY (homeworld_planet_id) REFERENCES planets(id) ON DELETE CASCADE,

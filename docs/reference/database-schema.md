@@ -1960,7 +1960,7 @@ Added in v44, filled only by the population pass
 above and `docs/design/habitability/population-and-politics.md`.
 
 **`species`**: one dominant species per life world.
-`generator_epoch` (v161, GEN.764) is the epoch the population pass made it under.
+`generator_epoch` (v161, GEN.764) is the epoch the population pass made it under. Its indexes: the unique `name` and homeworld, `idx_species_system`, and since v177 `idx_species_spacefaring_name`, `idx_species_tech_level_name` and `idx_species_era_name`, each a sort column followed by the name, so the Species table pages by key in index order (PERF.205).
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -1974,7 +1974,7 @@ above and `docs/design/habitability/population-and-politics.md`.
 | `civilization_age_years`, `era` | DOUBLE, VARCHAR(16) | nullable | NULL without a civilization. |
 | `spacefaring` | TINYINT(1) | NOT NULL, default 0 | Era Interstellar or later. Indexed. |
 | `energy_index`, `materials_index`, `information_index`, `medical_index`, `propulsion_index`, `defense_index` | TINYINT UNSIGNED | nullable, CHECK 0 to 7 | Added in v88 (POP.9). The six tech indexes; NULL until drawn. |
-| `tech_level` | DECIMAL(3,2) | nullable | Added in v88 (POP.9). The weighted sum of the indexes. Indexed (`idx_species_tech_level`) for range search. |
+| `tech_level` | DECIMAL(3,2) | nullable | Added in v88 (POP.9). The weighted sum of the indexes. Indexed (`idx_species_tech_level_name`, with the name) for range search and the Species table's tech sort. |
 | `tech_source` | VARCHAR(16) | nullable, CHECK IN ('generated','admin') | Added in v88 (POP.9). 'admin' marks a hand-edited species so a pass never redraws it. |
 | `created_at` | TIMESTAMP | NOT NULL | |
 
@@ -2236,6 +2236,10 @@ Migration 0167 adds no column. It fills `system_interests` with the reason `inha
 ### v166 (MAP.321): two more interest reasons
 
 Migration 0166 adds no column. It fills `system_interests` with the reasons `uninhabitable` (a scored terrestrial planet or moon under `habitability.YELLOW_FLOOR`, with the count and the best score) and `asteroid-field` (the count of belts) from the planets, moons and belts already stored. Nothing a generator draws changes, so there is no epoch.
+
+### v177 (PERF.205): the Species table's sort indexes
+
+Migration 0177 adds `idx_species_spacefaring_name (spacefaring, name)`, `idx_species_tech_level_name (tech_level, name)` and `idx_species_era_name (era, name)` to `species`, online, and drops `idx_species_spacefaring` and `idx_species_tech_level`, which were their first columns. No column and no stored value changes.
 
 ### v165 (MAP.305, MAP.303): `system_interests` replaces `habitable_systems`
 

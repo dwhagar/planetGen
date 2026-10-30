@@ -711,21 +711,66 @@ def _species_where(spacefaring=None, eras=(), tech_ranges=None):
     return ("WHERE " + " AND ".join(clauses) + " ") if clauses else "", params
 
 
+def _and(where, *clauses):
+    """`where` (empty or `WHERE ... ` with its trailing space) with more conditions ANDed on."""
+    clauses = [clause for clause in clauses if clause]
+    if not clauses:
+        return where
+    return (where + "AND " if where else "WHERE ") + " AND ".join(clauses) + " "
+
+
 def list_species(conn, spacefaring=None, limit=50, offset=0, sort="name", descending=False, eras=(),
-                 tech_ranges=None):
-    """A page of species, by `sort` (a key of `SPECIES_SORTS`; ties fall back
-    to name, then id), optionally only (non-)spacefaring ones or those in
-    one of the `eras`. A species with no polity sorts last by `"polity"`."""
+                 tech_ranges=None, after=None):
+    """A page of species, by `sort` (a key of `SPECIES_SORTS`; ties fall back to name, in the same direction), optionally
+    only (non-)spacefaring ones or those in one of the `eras`. A species with no polity, era or tech level sorts last by
+    that sort.
+
+    `after` is the id of the species the previous page ended on: the page starts after it in the same order and `offset`
+    is not used, so a deep page costs what the first does (PERF.205). The `name`, `era`, `tech` and `spacefaring` sorts
+    are read in index order (`idx_species_*_name`), the species with a value and then the ones with none, as two walks;
+    the `polity` sort walks the few species that have a polity, and the `homeworld` and `system` sorts order by a name in another table and still sort what they match. An id
+    that is not a species starts at the top.
+    """
     if sort not in SPECIES_SORTS:
         raise ValueError(f"unknown species sort {sort!r}")
+    from planetgen.db import query     # not at the top: the query module reads this package's other modules
     where, params = _species_where(spacefaring, eras, tech_ranges)
     column = SPECIES_SORTS[sort]
-    nulls_last = f"{column} IS NULL, " if sort in ("polity", "era", "tech") else ""
-    rows = conn.execute(
-        f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} {where}"
-        f"ORDER BY {nulls_last}{column} {'DESC' if descending else 'ASC'}, s.name, s.id LIMIT ? OFFSET ?",
-        params + [limit, offset],
-    ).fetchall()
+    nullable = sort in ("polity", "era", "tech")
+    keys = ["s.name"] if sort == "name" else [column, "s.name"]
+    walks = [(f"{column} IS NOT NULL", keys), (f"{column} IS NULL", ["s.name"])] if nullable else [("", keys)]
+    direction = "DESC" if descending else "ASC"
+    first_walk, start = 0, None
+    if after is not None:
+        found = conn.execute(f"SELECT {column} AS value, s.name AS name {_SPECIES_FROM} WHERE s.id = ?", (after,)).fetchone()
+        if found is not None:
+            first_walk = 1 if nullable and found["value"] is None else 0
+            start = found
+            offset = 0
+    rows = []
+    for number, (clause, walk_keys) in enumerate(walks):
+        if number < first_walk:
+            continue
+        walk_where = _and(where, clause)
+        walk_params = list(params)
+        if start is not None and number == first_walk:
+            values = [start["name"]] if len(walk_keys) == 1 else [start["value"], start["name"]]
+            condition, found_params = query._keyset_condition(walk_keys, values, descending, "s.id", after)
+            walk_where = _and(walk_where, condition)
+            walk_params += found_params
+        if offset and number < len(walks) - 1:
+            size = conn.execute(f"SELECT COUNT(*) AS n {_SPECIES_FROM} {walk_where}", walk_params).fetchone()["n"]
+            if offset >= size:
+                offset -= size
+                continue
+        order = ", ".join(f"{key} {direction}" for key in walk_keys) + f", s.id {direction}"
+        room = limit - len(rows)
+        rows += conn.execute(
+            f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} {walk_where}ORDER BY {order} LIMIT ? OFFSET ?",
+            walk_params + [room, offset]).fetchall()
+        offset = 0
+        if len(rows) >= limit:
+            break
     return [_species_dict(row) for row in rows]
 
 
