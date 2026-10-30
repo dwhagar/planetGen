@@ -192,6 +192,8 @@ def for_command(command, args):
         return scatter_stages(args)
     if command == "clear-scatter":
         return clear_stages(args)
+    if command == "fill-map-luminosity":
+        return [SINGLE_STAGE_COMMANDS[command], BLOCK_LIGHTS_STAGE]
     if command in SINGLE_STAGE_COMMANDS:
         return [SINGLE_STAGE_COMMANDS[command]]
     return []
