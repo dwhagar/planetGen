@@ -515,3 +515,5 @@ CORE 3 LOCK-FREE ITEM (11:49 PM EDT 2026-10-28): MAP.339 (black hole near-field 
 2026-10-30 5:10 AM EDT (TODO): Aux 3 merged TEST.215 (#3954, tests only, no golden, no epoch): the possibility-table row carries a calibration_only flag, the registry refuses a table that holds one, and a new test requires any registered row resting on a Solar System body to be a flagged stand-in with a replacement item. The rows still unflagged became GEN.1002 (Aux 3, rides a train).
 
 2026-10-30 5:15 AM EDT (TODO): Aux 3 owns TEST.161 (fill-stage and system-pass tests) as its lock-free item, then TEST.201 (block_stats order independence); tests only. GEN.1002 queued for Aux 3 on a train.
+
+2026-10-30 5:17 AM EDT (TODO): Core 5 merged the rest of API.33 (#3958, 5:16 AM EDT as the lane reported; no epoch, no stored value): CLI help, printed lines and run logs state units. API.33 stays open for DOC.15, which now carries the requirement that every number on its pages states its unit. Core 5 starts PERF.211.
