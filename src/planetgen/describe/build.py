@@ -37,6 +37,7 @@ from planetgen.physics import (
     giant_interior,
     habitability,
     habitability_explain,
+    outside_hours,
     pre_main_sequence,
     protection,
     regional_temperature,
@@ -489,6 +490,10 @@ def _equipment_block(planet):
         rows.append(fact("shelter-shielding", "Shelter shielding", f"{round(levels['shelter_column_g_cm2']):,} g/cm2"))
     if levels.get("outside_hours") is not None:
         rows.append(fact("outside-hours", "Hours outside a year", f"{round(levels['outside_hours']):,} hours"))
+    day, limit = getattr(planet, "outside_hours_day", None), getattr(planet, "outside_hours_limit", None)
+    if day is not None:
+        cause = outside_hours.LIMIT_WORDS.get(limit, limit)
+        rows.append(fact("outside-hours-day", "Hours outside in a day", f"{day:.1f} hours", f", set by {cause}"))
     return facts("Survival equipment", rows) if rows else None
 
 
