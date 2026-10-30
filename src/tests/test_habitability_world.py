@@ -16,7 +16,8 @@ from planetgen.generation.system import StarSystem
 from planetgen import tuning
 from planetgen.physics import atmosphere, body_radiation, constants, equipment
 from planetgen.physics import habitability_world as hw
-from planetgen.physics import life_scores
+from planetgen.physics import habitability, life_scores
+from planetgen.physics.protection_limits import limit
 from planetgen.util import draw
 
 from tests.air_support import fold_air
@@ -175,7 +176,13 @@ def test_every_generated_body_is_scored_consistently():
                 assert 0 <= getattr(body, name) <= tuning.LIFE_SCORE_MAX
             assert body.phi_cpx <= body.phi_bio + 1e-9
             if body.tier_radiation == 3:
-                assert body.eq_rad_suit or body.eq_shelter  # a Red dose needs radiation gear
+                world = hw.world_from(hw.values_from_body(body))
+                if world.dose_sv_yr > habitability.HUMAN.dose[6]:
+                    assert body.eq_rad_suit or body.eq_shelter  # a Red dose needs radiation gear
+                else:
+                    # Red from the ultraviolet alone (GEN.445): the body ladder covers it, not the dose gear
+                    assert world.uv_index > limit("uv_cover_index")
+                    assert body.eq_body >= (2 if world.uv_index > limit("uv_suit_index") else 1)
     assert seen["rocky"] > 10 and seen["giant"] > 0
 
 
