@@ -21,8 +21,8 @@ the mass-radius curve of one equation of state (`integrated_curve`) and the heav
 What generation reads is the reduced table those make (`scripts/build_neutron_star_table.py` writes `data/neutron_star_curves.json`: 25
 stars of each equation of state): the largest mass an equation of state supports (`maximum_mass_solar`), the radius and the crust of a
 star of a given mass (`radius_km`, `crust_thickness_km`), the equations of state that hold a star (`supporting`) and the band the
-twenty-one span at a mass (`radius_band_km`). Nothing in generation calls them yet: the wiring that replaces the Miller et al. 2021
-radius band of `physics.neutron_star` is GEN.969.
+twenty-one span at a mass (`radius_band_km`). `physics.neutron_star` (GEN.969) draws a star's radius from them, weighted by the NICER
+and Miller et al. 2021 constraints; the crust thickness (`crust_thickness_km`) is not read by generation yet.
 
 Layers. The crust ends at the density where the matter is uniform (crust-core transition, `CRUST_CORE_DENSITY_FM3`,
 a stand-in: the tables do not mark it, the literature range is 0.07 to 0.10 fm^-3) and its outer part ends at neutron
