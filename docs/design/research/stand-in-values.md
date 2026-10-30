@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 633 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 635 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 82 | 1 | 5 | 1 | 0 | 89 |
+| T1 | 83 | 1 | 5 | 1 | 0 | 90 |
 | T2 | 92 | 9 | 0 | 1 | 0 | 102 |
-| T3 | 73 | 26 | 5 | 9 | 0 | 113 |
+| T3 | 74 | 26 | 5 | 9 | 0 | 114 |
 | T4 | 30 | 1 | 0 | 14 | 6 | 51 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
 | T6 | 51 | 30 | 12 | 33 | 0 | 126 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 394 | 88 | 32 | 92 | 27 | 633 |
+| All | 396 | 88 | 32 | 92 | 27 | 635 |
 
 ## How the labels were given
 
@@ -856,6 +856,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | WR5 | D | T2 | L1 | share of FGK stars with a progenitor of a disintegrating planet (a rocky body of about 0.02 to 0.1 Earth mass at under 1 day): log-uniform 0.0002 to 0.003, middle 0.0008 | 0.0002 (planet lifetime 370 Myr) to 0.003 (21 Myr) | FGK dwarfs; the active share is the existing lifetime over the age | a transit survey of 1e6 stars with a count of disintegrators outside 2 to 20 | a rate from the TESS and PLATO samples | Schlawin and others 2021 (arXiv 2106.07648, read): 2 in 116,537 stars observed, transit probability 0.25, active share 21 Myr per Gyr; Sanchis-Ojeda and others 2015 (arXiv 1504.04379, read): K2-22 b in 21,647 stars and 106 Kepler ultra-short-period candidates | - | - |
 | WR6 | D | T3 | L0 | share of transiting planets of 4 to 10 Earth radii at P under 100 d that are super-puffs: 0.095 with mass at most 10 Earth masses (20 of 211) and 0.019 with density under 0.1 g/cc (4 of 211); 6 of the 20 under 1 Gyr; they are 0.8 to 1.2 percent of small Neptunes | the density and mass cuts | planets with a measured mass; biased to systems with transit timing | the same count on the archive 5 years from now outside the quoted shares | the share from an occurrence-corrected survey | NASA Exoplanet Archive composite table, public query of 10-30 (`/mnt/project-files/data/gen1037-oddity-rates/`); Fressin and others 2013 (arXiv 1301.0842, read) table 3: 4 to 6 Earth radii 1.97 +/- 0.23 percent of stars at P under 85 d, small Neptunes 23.5 percent; Lee and Chiang 2016 (arXiv 1510.08855, read) and Gao and Zhang 2020 (arXiv 2001.00055, read) for the definition (R above 4, M under 6 to 10 Earth masses) | - | - |
 | WR7 | D | T1 | L0 | width of the bistable (snowball or warm) window as a share of the flux S/S0 for an Earth-like planet: F stars 0.99 to 1.14, G stars 0.92 to 1.06, K stars 0.88 to 0.98 (widths 0.15, 0.14, 0.10); no window for a tidally locked planet, for a solar day over about 100 Earth days, or for eccentricity 0.2 or more | window edges 0.1 flux either side by the model; gates T3 | rapidly rotating ocean planets with a circular orbit | a GCM of an Earth twin in which the window falls outside 0.08 to 0.20 | windows from the generator's own energy-balance climate (GEN.972) | Wolf and others 2017 (arXiv 1702.03315, read); Abbot and others 2018 (arXiv 1801.10551, read) for the solar-day gate; arXiv 2509.08994 (read): snowball exit flux 0.99 S0 at e 0 and 0.89 S0 at e 0.2, bistability gone at e 0.2 to 0.3 | - | - |
+| WR8 | D | T3 | L0 | share of near-resonant first-order pairs that librate (heating-capable, W5): 0.21 (22 of 105 pairs with the offset from exact resonance under 0.006), so at most 0.033 of all neighbouring pairs; only 2 of the 22 near 2:1 | 0.006 boundary; strict resonance below about 0.001 for two 10 Earth-mass planets | Kepler pairs with transit-timing fits | a TTV census that includes weak-TTV pairs with a librating share outside 0.1 to 0.3 | the share from the generator's own migration and instability model | Goldberg and Batygin 2023 (arXiv 2211.16725, read): 105 pairs, section 3.2, Figure 1, section 5.1; biased to measurable TTVs; Izidoro and others 2021 as quoted there: at most 5 percent of systems stay stable and resonant | - | - |
+| WR9 | D | T1 | L0 | forced eccentricity of a resonant pair: sigma_eq = 4 (m1+m2) / (5 Delta M_star) (about 0.008 for two 10 Earth-mass planets at offset 0.006), a factor about 2 smaller at 2:1; resonance exists only where Delta is below (3/2)(4/15)^(2/3) ((m1+m2)/M_star)^(2/3) k^(1/3) | none | first-order resonances, compact limit | an N-body run of a captured pair whose eccentricity differs from the formula by more than 30 percent | the full Hamiltonian equilibrium | Goldberg and Batygin 2023 (arXiv 2211.16725, read) equations 12 and 13, after Lithwick, Xie and Wu 2012 | - | - |
 
 ## 6.64 Stand-ins of the NH3 active-Sun factor
 
