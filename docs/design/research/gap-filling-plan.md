@@ -1178,6 +1178,18 @@ The atmosphere recipe rows of GEN.480 (occurrence of water-rich and H/He worlds)
 | MG2 | P | T9 | L4 | meteorite_groups.AXIS_SCALES (10, 15, 5, 30) and NEAREST_LIMIT 1.5 (the width of each axis and the distance past which a body is labelled none) | scales 0.5 to 2 times; near 1 to 3 | all bodies | the share of drawn bodies labelled none outside what the groups are meant to cover | the spread of each group in the collection (the table has only ranges) | test_meteorite_groups::test_the_ordinary_chondrites_are_told_apart_by_their_oxidation |
 <!-- meteorite-group-standins:end -->
 
+### 6.45 Stand-ins of the rock types from bulk oxides (GEN.474)
+
+`physics/rock_types.py` works out the ground type of a body from the oxides of its rock: the CIPW norm, the melt of a mantle by stages, and the silica bands of the total alkali-silica diagram. The Earth's oxide analyses (bulk silicate Earth, the three crust layers) and a lunar highland anorthosite are test points, never inputs.
+
+<!-- rock-type-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| RT1 | P | T5 | L1 | rock_types.MELT_STAGES (the norm's minerals grouped by when they melt: the low-melting feldspars, quartz and pyroxene together in the proportions the rock holds them, then orthopyroxene, then olivine) | the grouping; stage order fixed by the eutectic | silicate rocks at crustal and upper-mantle pressure | a phase-equilibrium melt (MELTS or pMELTS) of the same rock more than 10 percent in SiO2 or MgO from the staged melt | a MELTS or pMELTS fit of the first melts of peridotite as a function of pressure | test_rock_types::test_the_melt_of_a_mantle_is_a_basalt_at_the_degrees_of_melting_a_mantle_reaches; test_rock_types::test_a_great_degree_of_melting_makes_a_magnesian_liquid_of_komatiite_kind |
+| RT2 | P | T2 | L0 | rock_types.ANORTHOSITE_PLAGIOCLASE 0.90, ULTRABASIC_SILICA 45, KOMATIITE_MAGNESIA 18, BASIC_SILICA 52, ACID_SILICA 63 (the IUGS limit of anorthosite and the silica bands of the total alkali-silica diagram, Le Bas et al. 1986) | none: classification limits | volcanic and plutonic silicate rocks | a rock the diagram names against its band | none | test_rock_types::test_the_earths_crusts_and_the_moons_highlands_get_their_ground_types |
+| RT3 | P | T5 | L0 | rock_types.INCOMPATIBLE_D 0 (the bulk partition coefficient of K, Th and U between peridotite and its melt) | 0 to 0.01 | batch melting of peridotite | a measured partition coefficient above 0.01 | measured bulk partition coefficients (Hofmann 1988, not read) | test_rock_types::test_the_heat_producers_of_the_earths_basalt_and_mantle_agree_with_one_degree_of_melting |
+<!-- rock-type-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
