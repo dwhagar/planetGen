@@ -12982,6 +12982,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
+  From GEN.740 (closed done by GEN.855 and GEN.891, Aux 2 check)
+  (2026-10-29 10:55 PM EDT): the air effects of life classes 4 (sulfur),
+  5, 7 and 9 are the `pending` rows of physics/data/life_ledger.json;
+  they ride this item, with the same tier and tweak level fields. Trace
+  biosignature gases beyond oxygen, methane and hydrogen (nitrous oxide,
+  organosulfur gases) are not filed: nothing reads them and no
+  source-backed row exists; file them only if Boss wants those gases
+  shown.
   Prerequisites: GEN.888.
 
 - [ ] **GEN.897 K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug)**
