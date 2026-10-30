@@ -13636,6 +13636,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   description text) is lock work, planned for train 9, before the
   non-water parts of GEN.1034 (train 10 or later). The water-ocean tide
   columns of GEN.1034 ride train 7 unchanged.
+  Part 1 merged (PR #4123) (4:24 PM EDT 2026-10-30): Aux 4 (as the lane
+  reported): physics/surface_liquids.py and
+  physics/data/surface_liquids.json, 51 liquids (19 species with
+  saturation curves, hydrocarbons, brines, sulfuric acid, sulfur, molten
+  salts, metals including mercury, sulfide melts, lavas,
+  natrocarbonatite) each with window, density, viscosity, surface
+  tension, tier, tweak and source; the supply rule and the ideal
+  methane-ethane-nitrogen sea; registry rows LQ1 to LQ10 (section 6.69).
+  No output change. Wiring turn (train 9) is next, Aux 4.
   Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
 
 - [ ] **GEN.1036 Oddity table and loader: physics/oddities.py, physics/data/oddities.json, the row schema (requires, rate with source, tier and tweak, named input effect, limits, text) and the GEN.725 registry rows, no wiring**
@@ -13864,6 +13873,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and liquid metals in the GEN.1035 liquid table with a source or a
   stand-in. Lock-free module, rows after GEN.1035. Owner: none yet
   (pool). Version 8.1.
+  Mercury rows (4:24 PM EDT 2026-10-30): Mercury and the other liquid
+  metals are rows of the GEN.1035 table already (PR #4123). What is left
+  here is the deep global heavy-liquid path with the fluid Love number.
   Prerequisites: GEN.1035, GEN.955. Related: GEN.1034, GEN.1035.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
@@ -13881,22 +13893,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the wiring items. Owner: Core 4 (giants chain, after W16). Version
   8.1.
   Prerequisites: GEN.1036. Related: GEN.1033, GEN.732.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **GEN.1054 Ring origin from history: a ring comes from a moon decayed inside the Roche limit (R1, Canup 2010, Hesselbrock and Minton 2017) or a comet passing inside it (R2, Dones 1991), pure function; the always-a-ring rule for giants is what it replaces**
-  Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md sections 8 and 9).
-  Secondary and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Do: physics/ring_origin.py: from
-  the moon-decay result of moon_orbits (GEN.959 already makes rings from
-  fallen moons: reuse it) and a comet-passage rate, whether a ring
-  exists, its mass and origin; Saturn and Phobos as tests. The stand-ins
-  BC20 to BC23 of GEN.732 are re-registered (T4, L3) until Cassini ring
-  age and disruption rates replace them. Lock-free module. Owner: Tides
-  1 (after the GEN.1034 module; separate branch, merge it yourself).
-  Version 8.1.
-  Prerequisites: GEN.1036. Related: GEN.732, GEN.959.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1055 Ring age and pollution darkening: a ring stores its age and its ice share and darkness follow from pollution over time (R6); ring shadow climate hook (R8)**
@@ -13935,7 +13931,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   W14 and W9 wiring). Done: tests, harness, the census ring shares.
   Owner: Tides 1 (ring origin), with Core 2 (age and painter). Version
   8.1.
-  Prerequisites: GEN.1054, GEN.1055, GEN.1056, GEN.1047. Related:
+  Prerequisites: GEN.1055, GEN.1056, GEN.1047. Related:
   GEN.732, GEN.959.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
@@ -13949,6 +13945,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.1.
   Prerequisites: GEN.1053, GEN.1047. Related: GEN.1033.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
+
+- [ ] **GEN.1059 The GEN.412 inversion of a stored giant row ignores the giant's own heat, so its stored albedo and greenhouse factor no longer reproduce its temperature from starlight alone (bug)**
+  Found by Aux 5 on TEST.484 (relayed 4:20 PM EDT 2026-10-30 as the lane
+  reported). Since GEN.816 a giant carries its own internal heat; the
+  inversion that recovers the albedo or the greenhouse factor from a
+  stored giant row (GEN.412) does not include it. Do: include the
+  internal heat in the inversion (or store the factors it needs), with a
+  round-trip test (draw a giant, invert, reproduce its temperature).
+  Done: the round trip holds for giants of every mass; it may change
+  outputs, so a lock turn if so. Owner: Air 1 (assigned by TODO, while
+  in the giant column with GEN.1030/1033). Version 8.1.
+  Prerequisites: none. Related: GEN.1030, GEN.1033, GEN.412, GEN.816.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18717,23 +18725,6 @@ clears each one.
   TEST.481) or any free lane. Version 8.1.
   Prerequisites: none. Related: PERF.203.
 
-- [ ] **TEST.484 Four tests red on clean main: climate draws [c], habitability world scored consistently, life sweep class D "supports 3b, drew no life", and the moon-helper Hill sphere test (bug)**
-  Found by Air 1 comparing a 94 file run against clean main (relayed
-  3:16 PM EDT 2026-10-30 as the lane reported). Red on main too, not Air
-  1's: test_climate_draws[c]; test_habitability_world
-  scored_consistently; test_sweep_life class D "supports 3b, drew no
-  life"; and test_gen_moon_helpers shrinking_the_hill_sphere (already
-  named in TEST.481, fix there). Do: triage each (stale expectation
-  after the star epoch, a real regression, or a moved seed) and fix the
-  right side without skipping or loosening beyond the property. Done:
-  all pass on main. Owner: Bug 2 (after TEST.483) or any free lane.
-  Version 8.1.
-  Owner (idle lanes) (3:21 PM EDT 2026-10-30): Aux 5 (assigned by TODO
-  after TEST.481 merged as PR #4096; test-only, lock-free, separate
-  branch, merge it yourself). The Hill sphere moon test is done in
-  TEST.481, so only the other three remain.
-  Prerequisites: none. Related: TEST.481, TEST.483.
-
 - [ ] **TEST.485 test_planets h-0: atmospheric_pressure 0.99999999993 sits under the 1.0 floor (bug)**
   Found by Bug 2's train 4 merge (PR #4105; relayed 3:37 PM EDT
   2026-10-30 as the lane reported), red after the merge. The drawn
@@ -18793,6 +18784,9 @@ clears each one.
   to fix at the cause) and test_moon_composition disk moon ice (the
   sample now holds only two disk moons: widen the sample), both red on
   clean main c563ce591 (as the lane reported).
+  Owner (4:20 PM EDT 2026-10-30): Aux 5 (assigned by TODO after TEST.484
+  merged as PR #4120; test-only unless a cause is a real bug, separate
+  branch, merge it yourself).
   Prerequisites: none. Related: TEST.391, TEST.472, TEST.484.
 
 - [ ] **TEST.490 Oddity plausibility harness (src/tests/oddity_plausibility_cli.py): force each oddity on 200 bodies with a fixed seed and assert the general invariants (energy, structure, stability, air, class derived, no NaN) and each row's own**
