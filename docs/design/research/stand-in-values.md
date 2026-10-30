@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 487 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 488 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 60 | 0 | 5 | 0 | 0 | 65 |
 | T2 | 79 | 8 | 0 | 1 | 0 | 88 |
 | T3 | 59 | 14 | 3 | 10 | 0 | 86 |
-| T4 | 25 | 0 | 0 | 4 | 4 | 33 |
+| T4 | 26 | 0 | 0 | 4 | 4 | 34 |
 | T5 | 28 | 7 | 1 | 0 | 0 | 36 |
 | T6 | 40 | 18 | 9 | 30 | 0 | 97 |
 | T7 | 18 | 6 | 1 | 7 | 0 | 32 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 310 | 53 | 21 | 78 | 25 | 487 |
+| All | 311 | 53 | 21 | 78 | 25 | 488 |
 
 ## How the labels were given
 
@@ -312,6 +312,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OE12 | T | T6 | L0 | giant_draw.draw_giant | 300 times Earth's light and e 0.3, fixed | the provisional radius of a table-sized giant | the settle pass (GEN.961) | the table radius of a giant is read at the light of its semi-major axis, not at the mean light of its orbit (`orbit_elements.mean_flux_factor`), because the eccentricity is drawn after the radius; measured against the mean light the radius moves under 1% unless the giant gets more than 300 times Earth's light and an eccentricity over 0.3 together (a 300 Earth-mass giant at 300 times Earth's light and e 0.3: 1.3%; the 790 systems of reports/gen842-eccentricity-first-2026-10-29.md put the brightest giant at 0.7 times Earth's light), guarded by test_giant_light_and_eccentricity (GEN.977); since GEN.961 the settle pass takes the radius again at the mean light (row OE13), so the bound limits only the provisional radius | - | - |
 | OE13 | P | T4 | L0 | giant_draw.SETTLE_TOLERANCE | 0.001, fixed | table-sized giants | none needed | design: the table radius is good to a few percent, and a giant that the final age and the mean light move by less than a tenth of a percent keeps its radius and interior, so that a system whose giants the star's age did not move is unchanged (GEN.961); measured on 138 table-sized giants, 28 percent were off by more than 1 percent before the settle | - | - |
 | OE14 | P | T4 | L0 | planets.ECCENTRICITY_SETTLE_TOLERANCE | 1e-4, fixed | planets and captured moons | none needed | design: a planet or captured moon whose eccentricity at the star's final age is within 1e-4 of the drawn one keeps its orbit; the circularisation time (OE10) is read again from the body's radius as it then is, so GEN.985 changes a body only where the age of the star rose enough to matter (measured: 134 of 327 planets move at all, 53 by more than 0.01 or 5 percent) | - | - |
+| OE15 | P | T4 | L0 | planets.AGE_SETTLE_TOLERANCE | 0.02, fixed | rocky planets and moons | none needed | design: a rocky planet or moon made when the star's age was within 2 percent of its final age keeps its air, class, spin and dose (GEN.992); above that the decay clock and the heat history it read are off by more than the 2 percent, and the body is made again from a stream of its own; measured (GEN.986): the age rises by a median 4.3 Gyr in about 63 percent of rocky planets, and the class letter moves in 8 to 12 percent of those made again | - | - |
 
 ## 6.13 Stand-ins of the tidal heating
 

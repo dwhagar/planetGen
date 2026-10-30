@@ -451,6 +451,7 @@ class StarSystem:
                 self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
             for member, bodies in self.member_hosts():
                 self._trim_to_orbit_ceiling(bodies, self._orbit_ceiling_au(member))
+            self._settle_to_final_age()
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
             class_satisfied = self._forced_class_present()
@@ -525,19 +526,6 @@ class StarSystem:
                        f"MAX_FLAVOR_TOTAL ({tuning.MAX_FLAVOR_TOTAL})")
         else:
             log.debug("System flavor text: none (roll failed FLAVOR_CHANCE_SYSTEM or MAX_FLAVOR_TOTAL reached)")
-
-        # A giant sized from the radius tables was drawn at the star's provisional age, which rose with the planets in (GEN.961): it is
-        # sized again at the final age and the light of its orbit, and its interior and air are drawn again to the new radius. The
-        # tides of every planet's and captured moon's orbit are taken again at that age (GEN.985).
-        with log.timed_phase("settle pass"):
-            for obj in self.all_planets:
-                if obj.body_type == 'a':  # a belt is not a body
-                    continue
-                if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
-                    log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr")
-                for body in (obj, *obj.moons):
-                    if planetPhysics.settle_orbit(body):
-                        log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
 
         # All planets and moons are generated without life data (see physics.planets's
         # module docstring). Apply it now, in one pass over the finished system, so
@@ -2107,6 +2095,29 @@ class StarSystem:
                 if result == "fallback":
                     best = "fallback"
         return best
+
+    def _settle_to_final_age(self):
+        """
+        Makes what the star's age touches again, now that it is final (GEN.961, GEN.985, GEN.992; the age only ever rises, once, after the
+        planets are in, `Star.adjust_age_for_planets`). For every planet, in order: a giant sized from the radius tables is sized again at
+        that age and the mean light of its orbit and its interior and air are drawn again (`planets.settle_giant`); the tides of its orbit
+        and its captured moons' are taken again (`planets.settle_orbit`); a rocky planet and the moons of any planet made at a younger age
+        have their air, class, spin and what follows them made again (`planets.refinish_rocky`). Every draw is from a stream of the body's
+        own, so the run's stream does not move, and a body whose star's age did not move is left as drawn. It runs before the forced
+        habitable world, belt and class are judged, so they are judged on the finished classes.
+        """
+        with log.timed_phase("settle pass"):
+            for obj in self.all_planets:
+                if obj.body_type == 'a':  # a belt is not a body
+                    continue
+                if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
+                    log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr")
+                for body in (obj, *obj.moons):
+                    if planetPhysics.settle_orbit(body):
+                        log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+                made = planetPhysics.refinish_rocky(obj)
+                if made:
+                    log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
 
     def count_habitable_class_worlds(self, planets=None):
         """
