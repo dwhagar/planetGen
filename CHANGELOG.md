@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2603] - 2026-10-30
+
+**Headline:** A rock's kind (basalt, granite, anorthosite and so on) can now be worked out from the oxides of the rock and how much of it melted, instead of copied from the Earth's crust (not yet used by the generator).
+
+### Changed
+
+- New library `physics/rock_types.py`: the CIPW norm of a set of oxides, the melt of a rock by stages with the enrichment of K, Th and U, and the ground type of the result by the standard silica bands. Nothing in generation reads it yet; the wiring step (the surface draw taking its crust from the stored mantle) follows with the epoch train.
+
 ## [8.0.2602] - 2026-10-30
 
 **Headline:** The meteorite groups (CI, CM, ordinary, enstatite and the rest) can now be told apart from a body's own composition instead of being fixed inputs (not yet used by the generator).
