@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 432 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 428 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 53 | 8 | 3 | 10 | 0 | 74 |
 | T4 | 22 | 0 | 0 | 3 | 4 | 29 |
 | T5 | 24 | 6 | 1 | 0 | 0 | 31 |
-| T6 | 39 | 13 | 7 | 28 | 0 | 87 |
-| T7 | 17 | 3 | 1 | 7 | 0 | 28 |
+| T6 | 38 | 13 | 7 | 28 | 0 | 86 |
+| T7 | 15 | 3 | 1 | 7 | 0 | 26 |
 | T8 | 0 | 0 | 0 | 1 | 1 | 2 |
-| T9 | 1 | 0 | 2 | 24 | 19 | 46 |
-| All | 283 | 34 | 17 | 74 | 24 | 432 |
+| T9 | 1 | 0 | 1 | 24 | 19 | 45 |
+| All | 280 | 34 | 16 | 74 | 24 | 428 |
 
 ## How the labels were given
 
@@ -159,8 +159,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SC2 | D | T1 | L0 | the D13 radius law and a fixed layer split | the sequence download (`white_dwarf_models.py`) | Bédard et al. 2020 | - | - |
 | SC3 | D | T1 | L0 | the nickel-to-krypton crust table and the D13 radius floor | the equation-of-state and crust download (`neutron_star_matter.py`) | Malik et al. 2024; Servais and Chamel 2026 | - | - |
 | AD9 | D | T1 | L0 | the 35 band means of the gas table for ozone (20 nm bins; the UV index they give is off by a large factor in the UV-B) | the ozone download (`ozone_uv.py`, read by `physics/uv_cross_sections.py`, GEN.443) | Keller-Rudek et al. 2013 (ESSD 5, 365); Daumont et al. 1992; Malicet et al. 1995; Brion et al. 1998 | - | - |
-| AD10 | D | T1 | L0 | the plateau-and-wing band stand-ins of `infrared_opacity` for the three gases (GEN.703) | the table download (`ir_ktables.py`, read by `physics/infrared_opacity.py`, GEN.715) | Chubb et al. 2021 (A&A 646, A21); Polyansky et al. 2018; Yurchenko et al. 2020; Yurchenko et al. 2014 | - | - |
-| AD11 | D | T1 | L0 | the collision-induced pairs of GEN.703 (one table value per pair) | the CIA download (`hitran_cia.py`, read by `physics/infrared_opacity.py`, GEN.715) | Karman et al. 2019 (Icarus 328, 160) | - | - |
+| AD10 | D | T1 | L0 | the plateau-and-wing band stand-ins of the grey closure for the three gases (GEN.703, removed with the closure in GEN.850) | the table download (`ir_ktables.py`, read by `physics/line_opacity.py`; its answer reaches the generator through the fitted `physics/greenhouse_table.py`, GEN.850) | Chubb et al. 2021 (A&A 646, A21); Polyansky et al. 2018; Yurchenko et al. 2020; Yurchenko et al. 2014 | - | - |
+| AD11 | D | T1 | L0 | the collision-induced pairs of GEN.703 (one table value per pair, removed with the closure in GEN.850) | the CIA download (`hitran_cia.py`, read by `physics/line_opacity.py`; its answer reaches the generator through the fitted `physics/greenhouse_table.py`, GEN.850) | Karman et al. 2019 (Icarus 328, 160) | - | - |
 | SC4 | D | T1 | L0 | the cluster laws of `tuning.py` recalled from Harris 1996 | the catalog download (`harris_clusters.py`; read by GEN.297) | Harris 1996 (AJ 112, 1487), 2010 edition | - | - |
 | SC5 | D | T1 | L0 | the single solar particle dose and the exponential in rigidity of `physics/radiation.py` | the event list download (`noaa_proton_events.py`; read by GEN.747) | NOAA Space Environment Services Center listing, via NASA SDAC (umbra.nascom.nasa.gov) | - | - |
 | SC6 | D | T1 | L0 | the three pre-main-sequence constants fitted to it and the nine brown dwarf radius points of `tuning.BROWN_DWARF_TRACKS` | the isochrone download (`baraffe_isochrones.py`; read by GEN.936 and GEN.948) | Baraffe, Homeier, Allard and Chabrier 2015 (A&A 577, A42) | - | - |
@@ -362,15 +362,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | IH4 | P | T5 | L0 | interior_heat._flux_w_m2: zero heat flux when `Ea / R T` exceeds 600 (a mantle too cold to convect warms on its radiogenic heat until it does) | none | cold small bodies far from their star | a conductive heat loss that matters at that size | a conduction term added to the flux | design (a viscosity of 1e260 times the prefactor is a rigid body; the conduction through it is below the radiogenic heat by orders of magnitude) | - | - |
 | RP1 | P | T4 | L0 | rprocess_enrichment.TAU_MIN_GY 0.03 and the 1/tau delay-time law of the r-process sources (the slope 1 and the 30 Myr floor are RECALLED) | slope 0.8 to 1.2, floor 10 to 100 Myr | the Th/U factor of a disc star | a delay-time law measured from the neutron star merger rate (Hotokezaka 2018, Simonetti 2019 read in full) | the measured law | RECALLED (Hotokezaka 2018 and Simonetti 2019 as remembered; not opened) | - | - |
 | RP2 | P | T2 | L0 | rprocess_enrichment.PRODUCTION_RATIO_RANGE 1.667 to 2.0 (the Th/U production ratio of the r-process, drawn uniform) | the range itself | the uranium of every rocky body | a production ratio outside the range from a nucleosynthesis model | a drawn ratio from a model | Frebel 2007 (second hand; the paper not opened) | - | - |
-
-## 6.17 Stand-ins of the water vapour profile and the cloud of the greenhouse
-
-| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| GH1 | P | T7 | L0 | infrared_opacity.HUMIDITY_TOP, vapour_profile | the 0.02 top and the linear fall: 0.01 to 0.05 | a temperate air with water below its critical temperature; a supercritical surface keeps its vapour mixed until the cold condenses it | test_the_vapour_thins_with_height_and_holds_about_the_measured_column_for_the_earth | a convective-adjustment humidity from the lapse rate itself (a moist-adiabat model) | READ for the Earth (Manabe and Wetherald 1967: relative humidity h = h_s (p/p_s - 0.02)/0.98, h_s 0.77); carried to other gases, pressures and gravities from the Earth, which is the inference | - | - |
-| GH2 | D | T6 | L0 | infrared_opacity.LAPSE_SCALING_CONDENSABLE used by vapour_profile | alpha 0.5 to 0.7 | a troposphere under the radiative-convective boundary | test_the_layered_continuum_converges_with_the_number_of_layers | a moist adiabat that follows the latent heat of the vapour | COMPUTED (the troposphere of Robinson and Catling 2012: T = T_s (p/p_s)^beta, beta = alpha (gamma - 1)/gamma, with alpha 0.6 for an air whose opacity is condensable vapour) | - | - |
-| GH3 | P | T9 | L2 | infrared_opacity.CLOUD_LONGWAVE_TAU0 | 0.2 to 0.6 | an air with water vapour below its critical temperature | test_an_earth_twin_at_its_own_fixed_point_lands_within_two_kelvin_of_the_measured_288 | a cloud model (condensate path from the saturation excess, particle size, cloud top) | none for the value: set so the Earth twin (1 bar N2, 400 ppm CO2, 239 W/m2) at its own fixed point sits at the measured 288 K; the published statistic is the cloud longwave effect, 26.5 W/m2 (CERES EBAF, recalled, not opened), of which the module needs 17 W/m2 because its clear-sky greenhouse is a little thick (256 W/m2 absorbed holds 288 K, against the measured clear-sky 266) | - | - |
-| GH4 | P | T7 | L0 | infrared_opacity.EARTH_HUMIDITY, Vapour.cloud_cover | linear to square root of the humidity | a temperate air with water | test_the_cloud_scales_with_the_surface_humidity_and_adds_its_depth_to_the_rest | a cloud model | design (the cloud scales with the surface humidity over the Earth's 0.77, and is nil where the surface is above water's critical temperature) | - | - |
 
 ## 6.18 Stand-ins of the life constants
 

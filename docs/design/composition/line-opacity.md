@@ -60,7 +60,7 @@ fixed for a step and the step is cut at the crossing (`test_the_adiabat_is_conti
 |---|---|---|
 | Doubling CO2 from 280 ppm, vapour held (GEN.717) | +1.04 K | about 1.2 K (3.7 W/m2 forcing over 3.2 W/m2/K) |
 | Same, vapour free | +1.72 K | larger than held, as water vapour feedback is |
-| Earth, F = 240 W/m2, 410 ppm, clear sky | 275.6 K, tropopause 20 kPa | 288 K with clouds; clear-sky models 275 to 280 K |
+| Earth, F = 240 W/m2, 410 ppm, 1 kPa of vapour, with the cloud share (IR9) | about 284 K, tropopause 13 kPa (275.6 K and 20 kPa clear sky); 288 K at its own fixed point | 288 K with clouds; clear-sky models 275 to 280 K |
 | Mars, 600 Pa, F = 110 W/m2 | 214.6 K | 210 to 215 K |
 | Venus, 92 bar, F = 160 W/m2 (needs IR3) | 711 K | 735 K |
 | Titan, 1.47 bar, F = 2.61 W/m2, no haze (GEN.718) | 106.8 K | 94 K: a clear sky is too warm |
@@ -69,15 +69,18 @@ fixed for a step and the step is cut at the crossing (`test_the_adiabat_is_conti
 GEN.717's miss (the old model gave 0.3 to 0.6 K for a doubling) was the missing line structure; GEN.718's (Titan twice too warm) was the missing absorption of sunlight
 by the haze, which the old closure had no way to say. Earth's clear-sky target is rebased: the old `0.625` for G assumed a closure tuned to a cloudy 288 K.
 
-## Limits (registry rows IR1 to IR8, `gap-filling-plan.md` 6.6b)
+## Limits (registry rows IR1 to IR11, `gap-filling-plan.md` 6.6b)
 
-- No clouds in the infrared and no condensation but water. The humidity profile is Earth's. Sunlight is deposited by the caller, never absorbed by the gases here.
+- The cloud is a share of the outgoing flux (IR9), not a layer, and there is no condensation but water. The humidity profile is Earth's. Sunlight is deposited by the caller, never absorbed by the gases here.
 - The stratosphere is clear-sky radiative equilibrium without ozone heating. A gas without a table has stand-in bands.
 - The tables hold 100 K as the lowest temperature and 100 bar as the highest pressure (edge value beyond); H2 and He broadening is under-represented for H2O and CO2.
 - Venus passes only with the carbon dioxide far-wing stand-in. Very dense or pure-steam airs take 20 to 30 seconds.
-- Speed: one to several seconds a call. The generator needs it for few bodies; a lookup table over (pressure, composition, flux) is the way to many (a follow-up).
+- Speed: one to several seconds a call; the generator reads the fitted table (GEN.850).
 - A drier Earth (1000 Pa of vapour against 400 Pa) gives a noisier doubling (1.5 to 2.0 K held) because the tropopause moves one layer at a time (a follow-up).
 
 ## Wiring
 
-`radiative_convective.warming` is the entry point, in the variable `atmosphere_state.greenhouse_warming` gives. It is not on the generation path: the surface-air iteration calls the grey closure of `infrared_opacity.py` (GEN.703) several times per planet, and this model takes one to several seconds a call (up to half a minute for a dense steam or carbon dioxide air). The wiring needs a lookup table of the model's answers in front of it (filed with TODO); when it lands, `infrared_opacity.py`, `greenhouse.py`'s closure and the duplicated band stand-ins in `line_opacity.py` go. No generated value moves with this change.
+`radiative_convective.warming` takes one to several seconds a call (up to half a minute for a dense steam or carbon dioxide air), too slow for the several
+calls a planet's fixed point makes. GEN.850 puts a fitted table in front of it (`greenhouse_table.py`, `greenhouse-table.md`): the generator reads the table, the
+model is what the table is fitted to, and `infrared_opacity.py` and the grey closure of `greenhouse.py` are deleted. This module's band stand-ins for gases
+without a table (IR1, IR2) stay in `line_opacity.py` alone. The cloud of the Earth's longwave effect is IR9 and the haze's sunlight is IR8 and IR10.
