@@ -1915,3 +1915,4 @@ Baseline: PR #1817.
 | TEST.165 | 8.1 | Whole-sphere audits |
 | PERF.213 | 8.1 | Queue, caches and performance |
 | MAP.348 | 8.1 | Fly-through map |
+| PERF.216 | 8.1 | The headline closes |
