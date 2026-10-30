@@ -78,6 +78,9 @@ def tally(config):
         for kind, (table, class_column) in CLASS_COLUMNS.items():
             for row in conn.execute(f"SELECT * FROM {table}").fetchall():
                 row = dict(row)
+                if kind == "star":    # GEN.789: a rule reads the star's system, a close pair's stars have no companion limit
+                    row["binary_configuration"] = conn.execute(
+                        "SELECT binary_configuration FROM star_systems WHERE id = ?", (row["star_system_id"],)).fetchone()["binary_configuration"]
                 klass = class_of(kind, row.get(class_column) if class_column else None)
                 entry = result.setdefault((kind, klass), {"bodies": 0, "columns": collections.OrderedDict()})
                 entry["bodies"] += 1
