@@ -309,3 +309,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.86:TU3 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
 | row | 6.86:TU4 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
 | row | 6.86:TU5 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
+| module | planetgen.galaxy.resident_mass | GEN.1120 | the stage 0 budget of a sector once its residents are off, and the stage 3 shortfall; the generation phases read it |
