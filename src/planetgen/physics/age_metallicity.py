@@ -20,7 +20,7 @@ and the thin disc's lower limit near -0.7 (Bensby et al. 2014).
 distributions and the bins of GEN.651 all stand on that order), and the age follows it: `tilted_age` draws `AGE_CANDIDATES` ages the way the
 caller draws one and keeps one in proportion to the density of the relation at the star's [Fe/H] (`log_density`: the thin disc, and the
 thick disc beside it for ages past 8 Gyr, mixed by `thick_share`). So a metal-poor star of the old disc is older than a metal-rich one,
-and the population's [Fe/H] and the age window stay what they were. Only the disc's populations take it (`takes`); the halo, the bulge, the
+and the population's [Fe/H] and the age window stay what they were. Only the disc's three populations take it (`takes`: each one's [Fe/H] distribution is about the relation's mix over its window, so the tilt moves the ages with the metals and leaves the population's mean age where it was, to 0.05 Gyr); the halo, the bulge, the
 clusters and the satellites have their own histories. The relation is that of the solar neighbourhood, and the radial gradient is not taken
 out of the star's [Fe/H], so a metal-poor place tilts its stars older, as an inside-out disc does.
 """
@@ -65,8 +65,10 @@ the relation more closely."""
 
 
 def takes(population):
-    """Whether a star of this population (None: the whole disc) follows the relation: one of the disc's (`tuning.DISK_AGE_LAW_POPULATIONS`)."""
-    return population is None or population in tuning.DISK_AGE_LAW_POPULATIONS
+    """Whether a star of this population follows the relation: one of the disc's (`tuning.DISK_AGE_LAW_POPULATIONS`). A star of no population
+    (the whole disc, ages from 0 to 13 Gyr with the intermediate disc's [Fe/H]) does not: its [Fe/H] is not the mix of the relation over
+    those ages, so a tilt would crowd it toward the young."""
+    return population in tuning.DISK_AGE_LAW_POPULATIONS
 
 
 def thick_share(age_gy):

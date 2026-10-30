@@ -57,9 +57,9 @@ def test_the_relation_matches_the_populations_the_generator_has_today():
 
 
 def test_only_the_discs_populations_follow_the_relation():
-    for population in (None, "young", "intermediate", "old"):
+    for population in ("young", "intermediate", "old"):
         assert age_metallicity.takes(population)
-    for population in ("halo", "bulge", "cluster", "satellite", "open_cluster_03"):
+    for population in (None, "halo", "bulge", "cluster", "satellite", "open_cluster_03"):
         assert not age_metallicity.takes(population)
 
 
@@ -120,3 +120,17 @@ def test_a_drawn_old_disc_star_is_older_the_poorer_it_is():
         return sum(ages) / len(ages)
 
     assert mean_age(-0.5) - mean_age(0.1) > 1.5
+
+
+def test_the_tilt_leaves_a_population_s_mean_age_where_it_was():
+    """Each disc population's [Fe/H] is about the relation's mix over its window, so tilting the ages moves them with the metals and not as a whole."""
+    from planetgen.physics import stellar_evolution
+    rng = random.Random(11)
+    for population in ("intermediate", "old"):
+        low, high = stellar_evolution.population_age_range_gy(population)
+        plain, tilted = [], []
+        for _ in range(6000):
+            fe_h = stellar_evolution.birth_fe_h(rng, population)
+            plain.append(rng.uniform(low, high))
+            tilted.append(age_metallicity.tilted_age(fe_h, population, lambda: rng.uniform(low, high), rng))
+        assert sum(tilted) / len(tilted) == pytest.approx(sum(plain) / len(plain), abs=0.15)
