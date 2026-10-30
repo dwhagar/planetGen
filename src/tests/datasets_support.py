@@ -14,7 +14,8 @@ import zipfile
 
 import numpy as np
 
-from planetgen.datasets import (baraffe_isochrones, catalogue, fetch, harris_clusters, hitran_cia, ir_ktables, isochrones, neutron_star_matter,
+from planetgen.datasets import (baraffe_isochrones, catalogue, fetch, harris_clusters, hitran_cia, ir_ktables, isochrones, mamajek_sequence,
+                                neutron_star_matter,
                                 noaa_proton_events, ozone_uv, white_dwarf_models)
 from tests import ir_datasets_support
 
@@ -38,7 +39,8 @@ def reset_caches(cache_folder, monkeypatch):
     isochrones.forget()
     for loader in (isochrones._load, white_dwarf_models._load, neutron_star_matter._load_compositions,
                    neutron_star_matter._load_eos, ozone_uv._load, ir_ktables.load, hitran_cia.load, harris_clusters._load,
-                   noaa_proton_events._load, baraffe_isochrones._load):
+                   noaa_proton_events._load, baraffe_isochrones._load, mamajek_sequence._load, mamajek_sequence._edges,
+                   mamajek_sequence._luminosity_curve):
         loader.cache_clear()
 
 
@@ -56,6 +58,10 @@ def install(monkeypatch, module, dataset, payloads):
 
 # ---- MIST ----
 
+PRE_EDGE_MASSES = {8.0: 0.9, 9.0: 0.35, 10.0: 0.15}
+"""dict: The heaviest contracting star (phase -1) of each fixture isochrone age."""
+
+
 def _iso_text(fe_h, y=0.27, z=0.014):
     """A MIST-format file: 3 ages; main-sequence masses 0.2 to the turn-off mass, then two evolved rows."""
     lines = ["# MIST version number  = 1.2", "# ---", "#  Yinit        Zinit   [Fe/H]   [a/Fe]  v/vcrit",
@@ -67,6 +73,8 @@ def _iso_text(fe_h, y=0.27, z=0.014):
             lines.append(_iso_row(eep, log_age, mass, fe_h, 0))
         for extra in range(2):
             lines.append(_iso_row(500 + extra, log_age, turn_off * (1 + 0.001 * extra), fe_h, 2))
+        for step, mass in enumerate((PRE_EDGE_MASSES[log_age] * 0.5, PRE_EDGE_MASSES[log_age])):
+            lines.append(_iso_row(5 + step, log_age, mass, fe_h, -1))
         lines.append("")
     return "\n".join(lines).encode()
 
@@ -159,6 +167,17 @@ def ozone_fixture_sigma(nm, temperature_k):
             + 5e-21 * np.exp(-((nm - 600.0) / 60.0) ** 2)) * (1.0 + (temperature_k - 218.0) / 770.0)
 
 
+def ozone_fixture_chappuis_ratio(nm, temperature_k):
+    """The fixture's Chappuis band at `temperature_k` over its 298 K self: colder is weaker, most at the blue edge (as Burkholder and Talukdar)."""
+    return 1.0 - (298.0 - temperature_k) / 298.0 * 1.2 * np.exp(-(nm - 407.0) / 60.0)
+
+
+def _ozone_chappuis_text(temperature_k):
+    grid = np.arange(407.0, 762.0 + 1e-9, 1.0)
+    values = ozone_fixture_sigma(grid, 295.0) * ozone_fixture_chappuis_ratio(grid, temperature_k)
+    return ("\n".join(f"{nm:.1f}    {value:.5e}" for nm, value in zip(grid, values)) + "\n\n").encode()
+
+
 def _ozone_text(low, high, step, temperature_k):
     grid = np.arange(low, high + 1e-9, step)
     return ("\n".join(f"{nm:.2f}    {ozone_fixture_sigma(nm, temperature_k):.5e}" for nm in grid) + "\n\n").encode()
@@ -170,6 +189,8 @@ def _ozone_archive():
         for key, member in ozone_uv.MEMBERS.items():
             if key == "vis":
                 archive.writestr(member, _ozone_text(195.0, 830.0, 1.0, 295.0))
+            elif key.startswith("bt"):
+                archive.writestr(member, _ozone_chappuis_text(float(key[2:])))
             else:
                 archive.writestr(member, _ozone_text(195.0, 345.0, 0.05, float(key)))
         archive.writestr("cross_sections/Ozone/readme.txt", b"not read\n")
@@ -294,10 +315,24 @@ def install_baraffe(monkeypatch):
     return install(monkeypatch, baraffe_isochrones, baraffe_isochrones.DATASET, {baraffe_isochrones.FILE: BARAFFE_TEXT.encode()})
 
 
+def _mamajek_text():
+    """67 whole-number types O3V to M9V, each 600 K cooler than the one before it down from 44,900 K (not the real table)."""
+    types = [f"{letter}{sub}V" for letter, first in zip("OBAFGKM", (3, 0, 0, 0, 0, 0, 0)) for sub in range(first, 10)]
+    lines = ["#SpT   Teff  logT   BCv    logL   Mbol R_Rsun   Mv    B-V"]
+    for i, name in enumerate(types):
+        kelvin = 44900 - 600 * i
+        lines.append(f"{name:<6} {kelvin} 4.0 -1.0 {2.0 - 0.05 * i:.2f} 0.0 1.0 1.0 0.0")
+    return "\n".join(lines) + "\n"
+
+
+def install_mamajek(monkeypatch):
+    return install(monkeypatch, mamajek_sequence, mamajek_sequence.DATASET, {mamajek_sequence.FILE: _mamajek_text().encode()})
+
+
 def install_all(monkeypatch):
     """All the datasets, on the fixtures, in the cache folder `reset_caches` set; the catalogue lists the fixtures' copies."""
     installed = [install_isochrones(monkeypatch), install_white_dwarfs(monkeypatch), install_neutron_stars(monkeypatch),
                  install_ozone(monkeypatch), *ir_datasets_support.install(monkeypatch, os.environ[fetch.CACHE_DIR_ENV]),
-                 install_harris(monkeypatch), install_noaa(monkeypatch), install_baraffe(monkeypatch)]
+                 install_harris(monkeypatch), install_noaa(monkeypatch), install_baraffe(monkeypatch), install_mamajek(monkeypatch)]
     monkeypatch.setattr(catalogue, "ALL", tuple(installed))
     return installed

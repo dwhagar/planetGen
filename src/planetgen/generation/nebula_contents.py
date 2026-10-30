@@ -24,6 +24,12 @@ or the star alone, never on the order a sector is filled in:
   those whose points fall in its cube (`run_sector.add_emission_members`); a sector finds the regions of its neighbours'
   pre-placed hot stars from their rows (`row_host`, `emission_reach_pc`), whether or not that neighbour was filled.
   Only the ionizing members are real: the rest of the cluster stays the sector's ordinary background density.
+* **Young groups (GEN.328).** A member that is an O or early-B star younger than `YOUNG_GROUP_AGE_MAX_YR` rolls the
+  `young-group` share (5%) on a stream of its own seed (`member_group`), so every sector that reaches it draws the same
+  group: one that has not decayed is the member and its group mates, each at an offset from it, built by the sector whose
+  cube holds the point (`run_sector.add_group_stars`); one older than its decay age is the remnant tree the member's
+  system is built from. The protostars of a core are all under `PRE_MAIN_SEQUENCE_MAX_MASS_SOL`, so only the ionizing
+  members of an emission region can be eligible.
 * Supernova remnants keep their neutron star or black hole through `SupernovaRemnant` itself.
 """
 
@@ -35,9 +41,10 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.galaxy import seed as galaxySeed
+from planetgen.generation import multistar
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula, choose_weighted_class
-from planetgen.physics import component_profiles, hii, imf, stellar_evolution
+from planetgen.physics import component_profiles, constants, hii, imf, stellar_evolution
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 
@@ -188,7 +195,15 @@ def emission_reach_pc():
     """How far from its seed star a member of any emission region can lie, parsecs: the Plummer table's cut radius for
     the widest class."""
     table = _plummer_table()
-    return max(tuning.NEBULA_CLUSTER_HALF_MASS_PC.values()) / table.half_mass_x * table.tidal_x
+    plummer_pc = max(tuning.NEBULA_CLUSTER_HALF_MASS_PC.values()) / table.half_mass_x * table.tidal_x
+    return plummer_pc + group_reach_pc()
+
+
+def group_reach_pc():
+    """How far a young group's mate can lie from the member that rolled the group (GEN.328), parsecs: two radii of the
+    widest group (the offsets are drawn inside a sphere of that radius about the group's centre, the member being one of
+    them)."""
+    return 2.0 * tuning.YOUNG_GROUP_RADIUS_AU_RANGE[1] / constants.AU_PER_PARSEC
 
 
 def host_name_of(star):
@@ -271,6 +286,32 @@ def emission_members(galaxy_seed, nebula, host_name, host_position_pc):
             members.append(CloudMember(tuple(host_position_pc[i] + offset[i] for i in range(3)), mass,
                                        nebula.age_myr * 1.0e6, f"{base}:{len(members)}"))
     return members
+
+
+def member_group(member):
+    """
+    The young group a member of a field cloud or emission region is born in (GEN.328), or None: `multistar.draw_young_group`
+    on a stream of the member's own seed, so the same member draws the same group wherever it is asked. Only a massive star
+    (an O or early B, 9 solar masses and up) younger than `tuning.YOUNG_GROUP_AGE_MAX_YR` can be in one, at the
+    `young-group` share of `SYSTEM_TYPE_RATES`.
+
+    Args:
+        member (CloudMember): The member; its mass is its birth mass (the age is under a megayear).
+
+    Returns:
+        multistar.MemberTree or None: A tree with a `group` node (the group has not decayed: member 0 is `member`, the others
+        its group mates with an `offset_au` from the group's centre), or the hierarchy the group left (older than its decay
+        age: the member and its companions, no `group` node), or None for a member that is in no group.
+    """
+    if member.age_yr >= tuning.YOUNG_GROUP_AGE_MAX_YR:
+        return None
+    placed = multistar.Placed("star", member.mass_sol, member.mass_sol)
+    return multistar.draw_young_group(placed, member.age_yr, rng=draw.Stream(f"young-group:{member.seed}"))
+
+
+def is_live_group(tree):
+    """Whether `tree` (from `member_group`) is a group that has not decayed, a `group` node and its members."""
+    return tree is not None and any(node.kind == "group" for node in tree.nodes)
 
 
 def row_star(row):

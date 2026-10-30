@@ -102,7 +102,7 @@ def _water_activity(water_pa, temperature_k):
     return min(1.0, water_pa / saturation)
 
 
-def _skin_k(values, surface_k):
+def skin_k(values, surface_k):
     """The temperature the air turns isothermal at: 2^-1/4 of the airless grey temperature of the absorbed flux (`energy_flux_w_m2`, the
     reference albedo); the surface temperature's own skin factor when the body gives no flux."""
     flux = values.get("energy_flux_w_m2")
@@ -127,7 +127,7 @@ def medium(values):
     if share.get("SO2", 0.0) < number("so2_min_share") or share.get("O2", 0.0) + share.get("CO2", 0.0) < number("oxidant_min_share") \
             or share.get("H2O", 0.0) < number("water_min_share"):
         return AcidMedium()
-    column = air_column.from_partials(gas, gravity)
+    column = air_column.from_partials(air_column.partials_pa(values), gravity)
     mixing = share.get("H2O", 0.0)
     low, high = number("liquid_low_k"), number("liquid_high_k")
     strong = number("concentrated_wt_percent")
@@ -144,7 +144,7 @@ def medium(values):
         wt = acid_at(total, temperature)
         if wt >= strong:
             return AcidMedium(POOL, "pool", temperature, total, wt)
-    pressure, levels = aerosols.profile(column, temperature, skin_k=_skin_k(values, temperature))
+    pressure, levels = aerosols.profile(column, temperature, skin_k=skin_k(values, temperature))
     best = None
     for p, t in zip(pressure, levels):
         if not (low <= t <= high and number("cloud_min_pa") <= p <= number("cloud_max_pa")):

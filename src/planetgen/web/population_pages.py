@@ -141,15 +141,17 @@ def _options(options, labels=None):
              "count": option["count"]} for option in options]
 
 
-def _species_load(state, limit, offset, want_facets):
+def _species_load(state, limit, offset, want_facets, after=None):
     envelope = apiclient.get_species_list(
-        db_name(), spacefaring=_one_flag(state.filters["spacefaring"]), limit=limit, offset=offset,
+        db_name(), spacefaring=_one_flag(state.filters["spacefaring"]), limit=limit, offset=offset, after=after,
         sort=state.sort, descending=state.descending, eras=state.filters["era"], facets=want_facets)
     facets = None
     if want_facets:
         facets = {"spacefaring": _options(envelope["facets"]["spacefaring"], _SPACEFARING_LABELS),
                   "era": _options(envelope["facets"]["era"])}
-    return Result([_species_cells(item) for item in envelope["items"]], envelope["total"], facets)
+    items = envelope["items"]
+    return Result([_species_cells(item) for item in items], envelope["total"], facets, False,
+                  items[-1]["id"] if items else None)
 
 
 SPECIES_TABLE = tables.register(Table(
@@ -157,7 +159,7 @@ SPECIES_TABLE = tables.register(Table(
     [Column("name", "Name"), Column("homeworld", "Homeworld"), Column("system", "System"), Column("era", "Era"),
      Column("tech", "Tech level"), Column("spacefaring", "Spacefaring"), Column("polity", "Polity")],
     _species_load, facets=[Facet("spacefaring", "Spacefaring"), Facet("era", "Era")], prefix="species_",
-    noun=("species", "species"),
+    noun=("species", "species"), keyset=True,
 ))
 
 

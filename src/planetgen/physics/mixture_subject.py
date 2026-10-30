@@ -26,7 +26,7 @@ import math
 
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import activity, bulk_structure, climate_draws, constants, giant_draw, giant_interior, mixture_draw, orbits
+from planetgen.physics import activity, bulk_structure, climate_draws, constants, giant_draw, giant_interior, mixture_draw, orbit_elements, orbits
 from planetgen.physics.mixture_base import MixtureError
 
 PHOTOSPHERE_BAR = 0.1
@@ -89,8 +89,9 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         ocean_present (bool): True when an ocean can condense (`surface_pressure.can_weather` of the climate loop).
         long_lived_geology (bool): True for a tectonic or long-lived body.
         water_lost (bool): True when the water was lost.
-        star_distance_au (float or None): The distance of the body (a moon: of its parent) from the star; the body's own `distance` when
-            it is a planet.
+        star_distance_au (float or None): The distance of the body (a moon: of its parent) from the star, as the circle that gives the same
+            mean light as its orbit (`orbit_elements.flux_distance_au`, GEN.727); for a planet the same circle for its own `distance` and
+            `eccentricity` when not given (GEN.842).
     """
     star = getattr(body, "star", None)
     mass_earth = body.mass / constants.EARTH_MASS_TO_KG
@@ -116,7 +117,8 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     quantities["host_type"] = host_type_of(star)
     quantities["host_mass_solar"] = star.mass / constants.SOLAR_MASS_TO_KG
     quantities["luminosity_solar"] = star.luminosity / constants.SOLAR_LUMINOSITY
-    distance_au = star_distance_au if star_distance_au is not None else (None if quantities["is_moon"] else body.distance)
+    distance_au = star_distance_au if star_distance_au is not None else (
+        None if quantities["is_moon"] else orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", None)))
     if not distance_au:
         return quantities
     insolation = quantities["luminosity_solar"] / distance_au ** 2
@@ -129,9 +131,15 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     if zone_edges:
         inner, outer = zone_edges
         quantities["zone"] = "h" if distance_au < inner else ("c" if distance_au > outer else "e")
-    index = activity.exposure_index(star, distance_au)
+    # GEN.806: the index `magnetism.update_exposure` stored for the distance the body sits at; the one implementation (`activity.exposure_index`) answers
+    # for a distance it was not stored for (the mantle's redox is read at another)
+    stored = getattr(body, "xuv_exposure_index", None)
+    same_distance = getattr(body, "_star_distance_au", None) == distance_au
+    index = stored if stored is not None and same_distance else activity.exposure_index(star, distance_au)
     if index is not None:
         quantities["xuv_index"] = index
+    if getattr(star, "log_lx_lbol", None) is not None:
+        quantities["log_lx_lbol"] = star.log_lx_lbol
     flux = climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM)
     albedo = getattr(body, "bond_albedo", None)
     if albedo is not None:
@@ -139,10 +147,16 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["teq_k"] = teq
         quantities["tday_k"] = teq * DAYSIDE_OVER_EQUILIBRIUM
         quantities["tp_k"] = teq * DAYSIDE_OVER_EQUILIBRIUM
-    effective = giant_draw.effective_temperature_k(flux, mass_earth)
+    effective = giant_draw.effective_temperature_k(flux, giant_draw.own_flux_w_m2(body))
     quantities["teff_k"] = effective
     quantities["t_layer_k"] = giant_draw.ONE_BAR_OVER_EFFECTIVE * effective
     return quantities
+
+
+OPTIONAL_INPUTS = ("log_lx_lbol",)
+"""tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
+(the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
+field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others."""
 
 
 KIND_OF_BODY_TYPE = {"t": "terrestrial", "g": "giant"}
@@ -178,4 +192,5 @@ def subject_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_lived
     if missing:
         raise MixtureError(f"the mixture draw of a {kind} reads {', '.join(missing)}, which cannot be built for this body"
                            f" (no star, no distance from the star, no Bond albedo or no stored interior)")
-    return Subject(kind, {name: built[name] for name in needed})
+    optional = {name: built[name] for name in OPTIONAL_INPUTS if built.get(name) is not None}
+    return Subject(kind, {**{name: built[name] for name in needed}, **optional})

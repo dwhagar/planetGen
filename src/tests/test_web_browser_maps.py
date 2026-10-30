@@ -107,6 +107,13 @@ def _click_body(marker):
     marker.locator("circle.sysmap-body-fill").click()
 
 
+def _expand_info(page):
+    """Presses Expand on the info card (MAP.347) when it has one that is closed: what is behind it is drawn only then."""
+    button = page.locator("#sysmap-info .map-info-expand")
+    if button.count() and button.is_visible() and button.get_attribute("aria-expanded") != "true":
+        button.click()
+
+
 @pytest.mark.viewport(1280, 900)  # the planet's info card (MAP.332 sizes it to its content) covers the moons in a window of 800x600
 def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     client = site_app.test_client()
@@ -143,10 +150,12 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     _click_body(planet)
     assert _active_scene(page) == moons
     assert "Moons of" in page.locator("#sysmap-crumb").inner_text()
-    # MAP.92: the planet and its moons show their radius and mass.
+    # MAP.92: the planet and its moons show their radius and mass (behind Expand, MAP.347).
+    _expand_info(page)
     info = page.locator("#sysmap-info").inner_text()
     assert "Radius" in info and "Mass" in info, info
     _click_body(page.locator(f'#sysmap-root .sysmap-svg[data-scene="{moons}"] [data-kind="moon"]').first)
+    _expand_info(page)
     info = page.locator("#sysmap-info").inner_text()
     assert "Orbits" in info and "Radius" in info and "Mass" in info, info
     # NAV.50: a moon can start or end a course.
@@ -804,6 +813,40 @@ def test_system_page_3d_view_paints_its_bodies_from_the_look_record(page, base_u
         shown = next(b for b in page.evaluate("document.querySelector('#sysview3d-canvas').systemBodies()")
                      if b["ref"] == body["ref"])
         assert shown["texture"].split(":")[0] == str(body["look"]["seed"]), (body["ref"], shown)
+
+
+def test_system_page_3d_view_draws_a_triple_with_every_star_clear_of_the_others(page, base_url, site_app):
+    """MAP.213: a system of three stars is drawn node by node: the scene's tree puts the inner pair about its centre and the
+    third star about the whole, each on its own scale, so the three stars sit apart (none at the middle, on top of another)."""
+    import json
+    import math
+
+    from tests.test_body_positions import triple_scene
+
+    system_id, scene = _system_with_planets(site_app.test_client())
+    tree = triple_scene()["tree"]
+    refs = {"star:1": "star:9001", "star:2": "star:9002", "star:3": "star:9003"}
+    scene["tree"] = {"nodes": tree["nodes"], "origin": None,
+                     "members": [dict(member, ref=refs[member["ref"]]) for member in tree["members"]]}
+    stars = []
+    for number, ref in enumerate(refs.values(), start=1):
+        star = dict(scene["stars"][0], ref=ref, id=9000 + number, name=f"Triple {number}", role="member" if number == 3 else "primary",
+                    orbit=None, position_km=[0.0, 0.0, 0.0])
+        stars.append(star)
+    scene["stars"] = stars
+    scene["epoch_unix"] = tree["nodes"][0]["epoch_unix"]
+    for planet in scene["planets"]:
+        planet["orbit"]["around"] = "barycenter"
+    body = json.dumps(scene)
+    page.route(re.compile(r"/system/[^/?]+/scene"),
+               lambda route: route.fulfill(status=200, content_type="application/json", body=body))
+    _open(page, f"{base_url}/system/{system_id}?view=3d", '#sysview3d[data-ready="true"]')
+    page.wait_for_timeout(500)
+    placed = {b["ref"]: b for b in page.evaluate("document.querySelector('#sysview3d-canvas').systemView.placed()")}
+    assert set(refs.values()) <= set(placed)
+    for a, b in (("star:9001", "star:9002"), ("star:9001", "star:9003"), ("star:9002", "star:9003")):
+        gap = math.dist([placed[a][axis] for axis in "xyz"], [placed[b][axis] for axis in "xyz"])
+        assert gap > placed[a]["radius"] + placed[b]["radius"], (a, b, gap)
 
 
 def _system_with_moons(client):

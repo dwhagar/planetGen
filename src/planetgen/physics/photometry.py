@@ -108,6 +108,12 @@ def planck_relative(wavelength_nm, temperature_k):
     return 1.0 / (lam_um ** 5 * math.expm1(x))
 
 
+def gives_visible_light(temperature_k):
+    """Whether a blackbody this hot gives any light between 380 and 780 nm (a black hole's temperature gives none, and a spectrum
+    with no light has no colour); the long end of the range is the last to go dark."""
+    return temperature_k > 0 and math.isfinite(temperature_k) and planck_relative(780.0, temperature_k) > 0.0
+
+
 def _lobe(lam, mu, sigma_low, sigma_high):
     t = (lam - mu) / (sigma_low if lam < mu else sigma_high)
     return math.exp(-0.5 * t * t)

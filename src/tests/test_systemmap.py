@@ -45,7 +45,8 @@ def _planet(id_, star_id, x_km, y_km, distance_km=None, radius_km=6371.0, planet
         "distance_km": distance_km if distance_km is not None else math.hypot(x_km, y_km),
         "radius_km": radius_km, "planet_class": planet_class, "body_type": body_type,
         "zone": zone, "period_years": period_years, "gravity_g": gravity_g,
-        "life_stage": life_stage, "life_class": 1 if life_stage else None, "life_class_variant": "a" if life_stage else None, "moons": moons or [],
+        "life_stage": life_stage, "life_class": 1 if life_stage else None, "life_class_variant": "a" if life_stage else None,
+        "life_class_id": "1a" if life_stage else None, "moons": moons or [],
         "atmosphere": atmosphere, "composition": composition, "surface_temperature_k": surface_temperature_k,
         "atmospheric_pressure_pa": atmospheric_pressure_pa,
     }
@@ -846,6 +847,33 @@ def test_the_further_stars_markers_clear_each_other_and_the_planets_labels():
         attrs = _marker_attrs(whole, "star", member_id)
         assert float(attrs["data-xkm"]) == pytest.approx(400.0 * sm.AU_TO_KM)
     assert math.hypot(positions[0][0] - positions[1][0], positions[0][1] - positions[1][1]) > 2 * sm._STAR_MIN_R
+
+
+def _markers_of(whole, ids):
+    out = []
+    for member_id in ids:
+        marker = re.search(r'<g class="sysmap-body sysmap-star"[^>]*data-id="%d"[^>]*>\s*<circle[^>]*cx="([\d.]+)" cy="([\d.]+)"' % member_id, whole)
+        assert marker, member_id
+        out.append((float(marker.group(1)), float(marker.group(2))))
+    return out
+
+
+@pytest.mark.parametrize("directions", ["spread", "one direction"])
+def test_a_seven_star_system_draws_all_six_further_stars_clear_of_each_other(directions):
+    """MAP.213 slice B: six stars beyond the pair, however the tree puts them, are six markers that do not stack, each opening a scene."""
+    system = {"name": "Seven", "binary_configuration": "wide", "binary_mutual_position_x_km": 30.0 * AU_KM,
+              "binary_mutual_position_y_km": 0.0, "binary_mutual_position_z_km": 0.0}
+    members = [_member(40 + n, 10000.0 * math.cos(n * 1.0 if directions == "spread" else 0.01 * n),
+                       10000.0 * math.sin(n * 1.0 if directions == "spread" else 0.01 * n), mass_kg=0.3e30) for n in range(6)]
+    html = sm.render_system_map_panel(system, [_star(30), _star(31)] + members, [], [])
+    whole = _scene_html(html, "system")
+    ids = [40 + n for n in range(6)]
+    positions = _markers_of(whole, ids)
+    for number, member_id in enumerate(ids):
+        assert _marker_attrs(whole, "star", member_id)["data-scene"] == f"star-{member_id}"
+        assert f'data-scene="star-{member_id}"' in html
+        for other in positions[number + 1:]:
+            assert math.hypot(positions[number][0] - other[0], positions[number][1] - other[1]) > sm._STAR_MIN_R
 
 
 def test_a_member_with_no_stored_offset_still_gets_a_marker():

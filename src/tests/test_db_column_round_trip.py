@@ -53,6 +53,9 @@ NULL_IN_THIS_GALAXY = {
     # DB.66: the bar and the thick disk were never stored, so a spiral leaves them NULL ("as the structure draw gives them").
     **{("galaxy_shape", column): "NULL means as the structure draw gives it from the seed (DB.66)" for column in (
         "bar_present", "bar_axis_ratio_b", "bar_axis_ratio_c", "bar_angle_rad", "thick_disk_amplitude")},
+    # TEST.461: a planet is never a heap of grains (it starts at the mass a body stops being one), so the heap porosity is moons' only;
+    # GEN.780 fills the surface and crust porosity of rocky and icy planets, and drops this entry.
+    ("planets", "porosity"): "filled for a planet by GEN.780 (surface and crust porosity); a planet is never a heap of grains (TEST.461)",
     # DB.61: nothing writes the cluster link until the cluster membership of a star is generated (GEN.209).
     ("stars", "cluster_id"): "written when a star's cluster is known (DB.61 adds the column only)",
     # GEN.267: only `planetgen system --stars N` stores a forced star count; sector and galaxy runs refuse it.
@@ -83,6 +86,9 @@ NULL_IN_THIS_GALAXY = {
     **{("moons", column): CHANCE for column in ("envelope_helium_fraction", "envelope_z_fraction")},
     # Only a world with no liquid at its surface can hold an aquifer, and whether any of this small galaxy's does is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("aquifer_depth_km", "aquifer_thickness_km")},
+    ("planets", "moon_origin"): "a planet has no origin as a moon (DB.70)",
+    **{("moons", column): "a moon has no circumplanetary disk of its own (DB.70)" for column in (
+        "moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")},
     # Facilities on stars, moons and asteroid fields, and the field's galaxy position.
     **{("facilities", column): "facility hosts used" for column in
        ("star_id", "moon_id", "asteroid_field_id", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc",
@@ -143,8 +149,7 @@ NULL_IN_THIS_GALAXY = {
        for column in ("formed_at", "origin_event_id")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
-        "decay_age_yr", "epoch_unix",
-        "state", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
+        "epoch_unix", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
     ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
     # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
     **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
@@ -220,7 +225,7 @@ NEVER_READ = {
     # DB.55 and DB.53 columns nothing loads yet (the gravity sum, GEN.109 and the DB.53 chain read them).
     ("facilities", "mass_kg"): "read by the gravity sum (GEN.294 chain)",
     **{("sectors", column): "read by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
-    **{("stars", column): "read by the DB.53 chain" for column in ("decay_age_yr", "epoch_unix", "state")},
+    **{("stars", column): "read by the DB.53 chain" for column in ("epoch_unix",)},
     **{("stars", column): CHANCE for column in ("parent_node_id", "slot")},    # read back for a system of 3 stars or more
     # DB.73: the link is stored for the readers of 8.4 (the unified object); a system loader rebuilds the tree from parent_node_id.
     **{("stars", column): "stored for the parent-link readers (DB.73)" for column in ("parent_type", "parent_id")},

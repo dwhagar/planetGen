@@ -381,8 +381,8 @@ def _reference_checks():
               "71.5 nGy/h in air over the upper continental crust (Rudnick and Gao 2014 Table 11: U 2.7, Th 10.5 ppm, K2O 2.80 weight "
               "percent; UNSCEAR coefficients)", unit="nGy/h"),
         Check("snow_line_1_lsun", "reference", "formation.snow_line_au(L_sun)",
-              lambda: formation.snow_line_au(pc.SOLAR_LUMINOSITY), 2.68, 0.005,
-              "blackbody snow line at 170 K, 2.68 AU for 1 L_sun (Kennedy and Kenyon 2008)", unit="AU"),
+              lambda: formation.snow_line_au(pc.SOLAR_LUMINOSITY), 2.339, 0.005,
+              "blackbody snow line at 182 K, 2.34 AU for 1 L_sun (Lodders 2003 Table 10: water ice condenses at 182 K)", unit="AU"),
         Check("white_dwarf_0_6_msun_radius", "reference", "stellar_evolution.white_dwarf_radius_km(0.6)",
               lambda: stellar_evolution.white_dwarf_radius_km(0.6), pc.EARTH_RADIUS_KM, 0.15,
               "a typical 0.6 M_sun white dwarf is about Earth-sized (Shapiro & Teukolsky 1983)", unit="km"),
@@ -889,31 +889,46 @@ def _invariant_checks():
 # TEST.66: distributions
 # ---------------------------------------------------------------------------
 
-KROUPA_BREAKS_SOL = (0.08, 0.5, 150.0)
-"""tuple: Kroupa (2001) IMF segment edges, M_sun -- written out here, not
-read from `program_constants`, so a changed constant fails the check."""
+CHABRIER_CENTRE_SOL = 0.079
+"""float: Chabrier (2003) Table 2, Galactic disk, individual stars: the solar mass at which the log-normal peaks -- written out
+here, not read from `tuning`, so a changed constant fails the check."""
 
-KROUPA_SLOPES = (1.3, 2.3)
-"""tuple: Kroupa (2001) slope alpha of each segment (dN/dM ~ M^-alpha)."""
+CHABRIER_WIDTH_DEX = 0.69
+"""float: Chabrier (2003): the width of the log-normal in dex of mass."""
+
+CHABRIER_TOP_SOL = 1.0
+"""float: Chabrier (2003): the log-normal gives way to a power law above this mass, `dN/dM ~ M^-2.3`."""
+
+CHABRIER_HIGH_SLOPE = 2.3
+"""float: Chabrier (2003): the slope of that power law (`x` = 1.3 per logarithm of mass)."""
 
 
-def _kroupa_cdf(m):
-    """The fraction of Kroupa IMF stars below `m` M_sun."""
-    def integral(a, b, alpha):
-        return (b ** (1 - alpha) - a ** (1 - alpha)) / (1 - alpha)
-    (lo, mid, hi), (a1, a2) = KROUPA_BREAKS_SOL, KROUPA_SLOPES
-    k2 = mid ** (a2 - a1)  # continuity at the break
-    total = integral(lo, mid, a1) + k2 * integral(mid, hi, a2)
-    if m <= mid:
-        return integral(lo, m, a1) / total
-    return (integral(lo, mid, a1) + k2 * integral(mid, m, a2)) / total
+def _chabrier_cdf(m):
+    """The fraction of Chabrier (2003) individual stars between 0.08 and 150 M_sun that lie below `m` M_sun."""
+    u_c, sigma = math.log10(CHABRIER_CENTRE_SOL), CHABRIER_WIDTH_DEX
+
+    def bell(a, b):
+        # integral of exp(-(log10 M - u_c)^2 / (2 sigma^2)) dM / M
+        return math.log(10.0) * sigma * math.sqrt(math.pi / 2.0) * (
+            math.erf((math.log10(b) - u_c) / (sigma * math.sqrt(2.0))) - math.erf((math.log10(a) - u_c) / (sigma * math.sqrt(2.0))))
+
+    top_value = math.exp(-(math.log10(CHABRIER_TOP_SOL) - u_c) ** 2 / (2.0 * sigma ** 2)) / CHABRIER_TOP_SOL
+
+    def tail(a, b):
+        p = 1.0 - CHABRIER_HIGH_SLOPE
+        return top_value * CHABRIER_TOP_SOL ** CHABRIER_HIGH_SLOPE * (b ** p - a ** p) / p
+
+    total = bell(0.08, CHABRIER_TOP_SOL) + tail(CHABRIER_TOP_SOL, 150.0)
+    if m <= CHABRIER_TOP_SOL:
+        return bell(0.08, m) / total
+    return (bell(0.08, CHABRIER_TOP_SOL) + tail(CHABRIER_TOP_SOL, m)) / total
 
 
 def _imf_p_value():
     rng = draw.Stream(SEED + 1)
     draws = [imf.sample(rng=rng) for _ in range(4000)]
     edges = [0.08, 0.15, 0.3, 0.5, 0.8, 1.5, 3.0, 8.0, 150.0]
-    shares = [_kroupa_cdf(b) - _kroupa_cdf(a) for a, b in zip(edges, edges[1:])]
+    shares = [_chabrier_cdf(b) - _chabrier_cdf(a) for a, b in zip(edges, edges[1:])]
     return chi_square_p_value(_bin_counts(draws, edges), shares)
 
 
@@ -994,9 +1009,9 @@ def _moon_mass_p_value():
 def _distribution_checks():
     chi = f"chi-square goodness of fit, p >= {CHI_SQUARE_P_MIN:g}"
     return [
-        Check("imf_matches_kroupa", "distribution", "imf.sample",
+        Check("imf_matches_chabrier", "distribution", "imf.sample",
               _imf_p_value, CHI_SQUARE_P_MIN, 0.0,
-              f"Kroupa 2001, MNRAS 322:231 (alpha 1.3 below 0.5 M_sun, 2.3 above); {chi}", mode="min",
+              f"Chabrier 2003, PASP 115:763, Table 2 (log-normal below 1 M_sun, alpha 2.3 above); {chi}", mode="min",
               unit="p"),
         Check("star_ages_uniform", "distribution", "stellar_evolution.sample_star_age_gy",
               _star_age_p_value, CHI_SQUARE_P_MIN, 0.0,

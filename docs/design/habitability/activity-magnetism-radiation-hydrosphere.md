@@ -499,6 +499,13 @@ the 0.2 percent threshold.
 | 1e-3 | 1.00 | 1.00 | 0.75 |
 | 2e-3 | 1.00 | 1.00 | 1.00 |
 
+**Frozen bodies (GEN.833).** A body whose surface is ice holds its water as ice through its outer layers, so the share of it the ice
+covers (`hydrosphere.frozen_cover`, stored as `ocean_fraction` for the states `ice` and `ice-covered ocean`) is this law applied to
+all the water it holds at ice's density (917 kg/m3), not to the part a liquid ocean would have had after the mantle buffer. Its relief
+is `L = 10.5 km` at most: observed icy relief is a few to 20 km on bodies of any gravity (Enceladus, Callisto, Iapetus), because ice
+is strength-limited, so below Earth's gravity it does not grow as 1 / g the way a rock basin's does. A 200 km moon with a fifth of its
+mass as water is all ice-covered; with a thousandth it is covered in part.
+
 Generator: `f_land = 1 - f_ocean` with a buffer log-uniform 1 to 8; a
 stagnant-lid planet takes buffer 1. `ROGUE_WATER_MASS_FRACTION_RANGE` (1e-4 to
 0.1, log-uniform) makes about 68 percent of water-rich rogues exceed Earth by 4x

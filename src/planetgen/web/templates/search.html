@@ -18,8 +18,18 @@
         {{ ui_input("q", "Name", state.q, type="search", autocomplete="off", enterkeyhint="search",
                     placeholder="Any sector, system, star, planet, moon") }}
       </div>
+      <label class="search-field search-field-stars">Stars
+        <select name="stars" id="search-star-count">
+          <option value="">Any number</option>
+          {%- for value, label in star_choices %}
+          <option value="{{ value }}"{% if state.texts['stars'] == value %} selected{% endif %}>{{ label }}</option>
+          {%- endfor %}
+        </select>
+      </label>
       <button type="submit" class="btn">Search</button>
     </div>
+    <p class="hint">Stars is how many stars the system holds. In the search box, <code>stars:3</code> finds triples, <code>stars:3+</code> three or more,
+      and <code>stars:binary</code>, <code>trinary</code>, <code>quaternary</code> or <code>quintenary</code> work too.</p>
     <details class="search-more"{% if state.advanced_open() %} open{% endif %}>
       <summary>Search by object and size</summary>
       <div class="search-fields">

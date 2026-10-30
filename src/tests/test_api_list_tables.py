@@ -86,7 +86,7 @@ def test_sectors_reject_a_bad_sort(client, seeded_sector):
 
 # --- systems -----------------------------------------------------------------------
 
-def test_systems_sort_by_name_sector_and_binary(client, seeded_sector):
+def test_systems_sort_by_name_and_sector(client, seeded_sector):
     mysql_config, _sector_id, system_ids = seeded_sector
     _standalone(mysql_config, "Aardvark")
     _standalone(mysql_config, "Zebra", binary=True)
@@ -96,8 +96,10 @@ def test_systems_sort_by_name_sector_and_binary(client, seeded_sector):
     assert by_sector[-2:] == ["Aardvark", "Zebra"]  # standalone ones last
     by_sector_desc = _names(client.get("/api/systems?sort=sector&order=desc"))
     assert by_sector_desc[-2:] == ["Aardvark", "Zebra"]
-    binary_first = client.get("/api/systems?sort=binary&order=desc").get_json()["items"][0]
-    assert binary_first["name"] == "Zebra" and binary_first["is_binary"]
+    # The Binary column is gone from the Systems tables (UX.242), and with it its sort.
+    assert client.get("/api/systems?sort=binary&order=desc").status_code == 400
+    item = client.get("/api/systems?sort=name&order=desc").get_json()["items"][0]
+    assert item["name"] == "Zebra" and item["is_binary"] and item["star_count"] >= 1 and item["object_count"] >= item["star_count"]
 
 
 def test_systems_filters(client, seeded_sector):

@@ -54,6 +54,7 @@ export function infoSpec(entry, data, navPick) {
   }
   var picking = !!(navPick && navPick.active());
   var spec = { title: entry.name || "Unknown", nav: [], links: [], view: null };
+  if (!entry.kind && !entry.typeLabel) spec.kind = "Star";
   if (entry.uncharted) {
     // Left by a scatter in a sector nothing was generated in (MAP.162): it has no
     // bookmark or NAV endpoint until the sector is made.
@@ -97,7 +98,7 @@ function neighborSpec(entry, data, navPick) {
     var more = entry.brightStarCount - entry.brightStars.length;
     fields.push(["Bright stars waiting", entry.brightStars.join("; ") + (more > 0 ? "; and " + more + " more" : "")]);
   }
-  var spec = { title: entry.exists ? entry.name || "Unnamed sector" : "Uncharted", fields: fields };
+  var spec = { title: entry.exists ? entry.name || "Unnamed sector" : "Uncharted", kind: entry.exists ? "Neighboring sector" : "Neighboring sector, uncharted", fields: fields };
   if (entry.exists) {
     spec.bookmark = {
       kind: "sector", value: entry.designation, name: entry.name || entry.designation, url: entry.href || null,

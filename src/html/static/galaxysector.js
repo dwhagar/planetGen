@@ -90,6 +90,8 @@ export function createSectorStage(host) {
       enabled: function () { return state.fade >= PICKABLE_SHARE && (!layer.enabled || layer.enabled()); },
       tooltip: tooltipText,
       hover: function (entry) {
+        // MAP.348: the hover preview says the card's first view of what is under the pointer.
+        if (host.preview) host.preview(entry ? function () { return infoSpec(entry, state.data, null); } : null, entry);
         if (!entry) {
           hoverRing.hide();
           state.hovered = null;
@@ -388,6 +390,8 @@ export function createSectorStage(host) {
     deselect: deselect,
     // The open sector's entry with this key ("rogue_planet:12"), or null.
     entryByKey: function (key) { return live() ? open.sector.entryByKey.get(key) || null : null; },
+    // The kind (one of KINDS' keys) of an entry of the scene.
+    kindOf: kindOf,
     // The kinds of object in the open sector, [{kind, label, count}] (MAP.79).
     kinds: function () { return live() ? open.sector.kinds() : []; },
     setKindHidden: setKindHidden,

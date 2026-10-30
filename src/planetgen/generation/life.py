@@ -63,13 +63,7 @@ def _apply(planet, keep_stored):
     scores = life_classes.score_classes(planet)
     chosen, kept = _choose(planet, scores, keep_stored)
     if chosen is None:
-        _set_best(planet, scores)
-        _set_class(planet, None)
-        _set_schedule(planet, None, None)
-        _set_evolutionary_state(planet, None)
-        planet.life_animal_grade = planet.life_complexity = None
-        habitability_world.rescore(planet)  # GEN.217: the score of a lifeless world is still redone once everything is final
-        log.debug("Life class: none, no class is supported")
+        _lifeless(planet, scores, "no class is supported")
         return
     row = life_classes.describe(chosen.id)
     if kept:
@@ -81,6 +75,9 @@ def _apply(planet, keep_stored):
     # The schedule is drawn once; the life sentence, the timeline and the stored columns all read it.
     if not (kept and all(getattr(planet, field, None) is not None for field in evolution.SCHEDULE_FIELDS[:2]) and planet.evolutionary_pace):
         _draw_schedule(planet, row)
+    if not _life_has_begun(planet):
+        _lifeless(planet, scores, f"class {row.id} is supported but its first step comes after the star's age")
+        return
     _build_air(planet, row)
     final = life_classes.score_classes(planet)             # the conditions after the oxygen the life has made
     _set_best(planet, final)
@@ -92,9 +89,30 @@ def _apply(planet, keep_stored):
     planet.life_complexity = complexity.index
     animals = planet.life_stage in ("multicellularity", "technological_civilization")
     planet.life_animal_grade = complexity.grade if animals else 0
-    log.choice("Life complexity", f"{complexity.index:.3g}", f"yield {complexity.oxidant_yield:.2f}, rate factor {complexity.rate_factor:.2f}, "
-               f"animal grade {complexity.grade}, highest stage {complexity.top_stage}")
+    log.choice("Life complexity", f"{complexity.index:.3g} x Earth's net primary production",
+               f"oxidant yield {complexity.oxidant_yield:.2f} of 1, temperature rate factor {complexity.rate_factor:.2f}, "
+               f"animal grade {complexity.grade} of 3, highest stage {complexity.top_stage}")
     habitability_world.rescore(planet)  # GEN.207: Suitability reads the life that was just drawn
+
+
+def _lifeless(planet, scores, why):
+    """A world with no life: no class, no schedule, no stage, no complexity, and the score of a lifeless world redone once everything is final
+    (GEN.217). `scores` are still stored as the classes the conditions support."""
+    _set_best(planet, scores)
+    _set_class(planet, None)
+    _set_schedule(planet, None, None)
+    _set_evolutionary_state(planet, None)
+    planet.life_animal_grade = planet.life_complexity = None
+    habitability_world.rescore(planet)
+    log.debug(f"Life class: none, {why}")
+
+
+def _life_has_begun(planet):
+    """Whether the first step of the body's schedule (abiogenesis) is at or before its star's age. A world that has not reached it has no life
+    yet, whatever its conditions support, so it is given no class (GEN.1001); a forced civilization is always reached."""
+    first = evolution.get_evolutionary_state(planet.star, tuple(getattr(planet, field) for field in evolution.SCHEDULE_FIELDS),
+                                             max_stage=evolution.MILESTONE_KEYS[0])
+    return first["stage"] is not None
 
 
 def _choose(planet, scores, keep_stored):
@@ -123,7 +141,7 @@ def _anoxic_animals(planet, row, keep_stored):
 def _set_best(planet, scores):
     """Stores the classes the body supports: the best one (the largest likelihood), its score and the score of every class at or above the line."""
     top = life_classes.best(scores)
-    setattr(planet, life_classes.SCORES_FIELD, {class_id: result.score for class_id, result in scores.items() if result.score > 0} if scores else None)
+    setattr(planet, life_classes.SCORES_FIELD, {class_id: result.score for class_id, result in scores.items() if result.score > 0} or None)
     planet.life_class_best = top.id if top else None
     planet.life_class_best_score = (top.score if top else 0) if scores else None
 
@@ -154,7 +172,8 @@ def _draw_schedule(planet, row):
         waits = life_timeline.unit_waits()
     waits = (waits[0], waits[1] * row.life["first_step_scale"], *waits[2:])
     ages = life_timeline.schedule(waits, factor, delay, at_start)
-    log.choice("Evolutionary schedule", ages, f"hard steps at rate factor {factor:.3g}, oxygen "
+    log.choice("Evolutionary schedule", ", ".join("never" if age is None else f"{age:.3g} Gyr" for age in ages),
+               f"hard steps at temperature rate factor {factor:.3g}, oxygen "
                f"{'not needed' if not needs_oxygen else 'from the start' if at_start else 'after ' + str(delay) + ' Gyr of photosynthesis'}")
     _set_schedule(planet, ages, life_timeline.pace_of(factor))
 
@@ -199,13 +218,14 @@ def _build_oxygen(planet, row):
 
 def _rebuild(planet):
     """What reads the air, made again after life has changed it: the cloud, haze and dust (on the body's own stream), the ozone and doses (on a
-    stream of the body's own, so the run's draws do not move), the colour of the atmosphere and the habitability score."""
+    stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the habitability score and the class (derived from the air as it is now, GEN.980)."""
     from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
     aerosols.generate_aerosols(planet)
     with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
         radiation.generate_dose(planet)
     body_colour.generate(planet)
     habitability_world.generate(planet, physics_planets.internal_heat_flux_w_m2(planet))
+    physics_planets.apply_class(planet)               # GEN.980: the class is an output of the finished conditions, and the air has changed them
 
 
 def _set_class(planet, row):

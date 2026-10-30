@@ -72,7 +72,7 @@ class CloudEffects:
         g0 (float): The far-ultraviolet flux of the cloud's hosts at the system, Habing units (0 without hosts).
         radiation_tier (int): The tier the habitability index adds to the system's dose tier, 0 to 3: the larger of
             the class's own tier (`tuning.CLOUD_CLASS_RADIATION_TIER`) and the G0 tier (`g0_tier`).
-        enrichment_k (float or None): 26Al/27Al in units of `tuning.CLOUD_ENRICHMENT_REFERENCE_RATIO`, drawn for
+        enrichment_k (float or None): 26Al/27Al in units of 5.0e-5 (the solar ratio at CAI formation, 5.25e-5, rounded; design note), drawn for
             the classes in `tuning.CLOUD_ENRICHMENT_CLASSES`; `None` for the rest.
     """
 

@@ -48,7 +48,7 @@ r_BH(place) = IMF_SHARE x RETAIN x sum over populations p [ w_p(place) x C_p x F
 
 | Term | Meaning | Value | Source state |
 |---|---|---|---|
-| IMF_SHARE | stars born with 8 to 150 Msun, per star born, from the generator's own IMF (`tuning.IMF_BREAKS_SOL` 0.08/0.5/150, `IMF_SLOPES` 1.3/2.3) | 0.6372% (9 to 120: 0.540%; 20 to 100: 0.174%) | derived (own computation; reproduces GEN.560's 0.637%) |
+| IMF_SHARE | stars born with 8 to 150 Msun, per star born, from the generator's own IMF (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`: the Chabrier 2003 function of `galaxy/stellar-mass-function.md`) | 0.7127% (0.6372% on the Kroupa function before GEN.927) | derived (own computation; reproduces GEN.560's 0.637%) |
 | w_p | the population's share of the stars at the place: `galaxy.density.population_densities` (young, intermediate, old, bulge, halo, cluster, satellite and its two young windows, nuclear) | from the galaxy | existing code |
 | F_p | the mean of f(Z) over population p's [Fe/H] distribution at the place (section 3) | 0 to 45% | verified range, see 2 |
 | C_p | share of the population's window in which its remnants have formed: 1 for every window that starts after 100 Myr (an 8 Msun star lives 45 Myr), **0.79** for the young window (0 to 0.1 Gyr, uniform birth, IMF-weighted lifetimes from `stellar_evolution.main_sequence_lifetime_gy` times `remnant_age_fraction`); also divide by (1 - IMF_SHARE) = 1.0064 because the generator's star counts leave out stars already collapsed (`evolve_star` returns None for them) | 0.79 young, 1.0064 others | derived (own computation) |
@@ -190,7 +190,7 @@ The islands (which progenitor masses fail: from about 20 Msun, mostly failure ab
 
 | Number | State |
 |---|---|
-| IMF_SHARE 0.637% | derived from the generator's IMF |
+| IMF_SHARE 0.713% | derived from the generator's IMF |
 | f_sun range 0 to 45%, f_low range 15 to 32% | verified ranges; the uniform shape across them is a stand-in (only the range is sourced) |
 | f_low >= f_sun ordering, f_low up to 45% | bracket (consistency with a verified solar value; no low-Z source above 32%) |
 | linear in Z between the anchors, held above solar | stand-in (anchors verified, shape and the above-solar hold not) |

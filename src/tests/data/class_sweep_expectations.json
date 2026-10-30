@@ -1,5 +1,6 @@
 {
  "anomalies": {
+  "class-from-conditions": "GEN.980 (bug): a few bodies (4 to 8 of the sweep) store a class the final body does not give (P, Q, K or N stored, D or P derived); it appeared after the epoch 121 cut-over and is on the train without Bug 1's branch, so the likely cause is the class being derived before the air is final (epoch 122 gas ledger and haze, Core 1)",
   "habitable-request": "GEN.909 (with GEN.853, GEN.854 and GEN.916): the class is derived since the cut-over (epoch 121), but a request for a habitable world is still unmet in 11 of 12 seeded systems: temperate liquid-water worlds are rare (the cold air of GEN.909 and the frozen oceans of GEN.908) and the request is still steered by the class letter (GEN.916)"
  },
  "habitable_request_minimum_met_share": 1.0

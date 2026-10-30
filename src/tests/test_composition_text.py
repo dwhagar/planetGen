@@ -81,6 +81,8 @@ def test_a_giants_page_lists_its_layers_and_a_rocky_worlds_does_not():
     else:
         pytest.fail("no giant in 60 seeds")
     page = markdown.render(build.describe(system))
-    for sentence in giant_interior.describe_interior(giant_interior.interior_of(giants[0])):
+    interior = giant_interior.interior_of(giants[0])
+    assert giant_interior.summarize_interior(interior) in page
+    for sentence in giant_interior.describe_interior(interior):
         assert sentence in page
     assert "bar down to" in page or "GPa down to" in page

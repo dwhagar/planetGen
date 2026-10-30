@@ -58,7 +58,8 @@ const {
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { createSectorFrame } = await import(`./sectorframe.js${VERSION_QUERY}`);
-const { cellEdgePoints, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
+const { cellEdgePoints, parseSectorDesignation, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
+const { objectIdOf } = await import(`./findplace.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
 const superbubble = await import(`./superbubble.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
@@ -112,7 +113,7 @@ const { blockGenerateButtons, generateButtons } = await import(`./generatebutton
 const {
   NEBULA_MESH_MIN_PX, buildNebulaMesh, createShapeLoader, disposeNebulaMesh,
 } = await import(`./nebulamesh.js${VERSION_QUERY}`);
-const { createPicker, createRing, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
+const { createPicker, createRing, createHoverPreview, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createNavPick } = await import(`./navpick.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
@@ -231,41 +232,52 @@ var REGION_BLOCK_MAX = 9;
 var regionLookup = null;
 var regionOpener = null;
 
-// A line "Region: <name> (in <parent>)" for the point (x, y, z) pc, each name a button that flies to its block. It
-// stays hidden until the region is known, and for a point in no charted region (a 9-block with no generated sector has
-// no name on the wire).
+// MAP.349: a Go to button for a line of a card that names a container or a place: it flies the camera there as the find box, the crumbs
+// and the results list do (the map's one goTo), and is named for what it goes to.
+function goToButton(name, go) {
+  var button = document.createElement("button");
+  button.type = "button";
+  button.className = "btn btn-small btn-secondary map-info-go";
+  button.textContent = "Go to";
+  button.setAttribute("aria-label", "Go to " + name);
+  button.addEventListener("click", go);
+  return button;
+}
+
+// A line of a card, "<label> <name>" with its Go to button.
+function placeLine(label, name, go) {
+  var line = document.createElement("p");
+  line.className = "map-info-place";
+  line.append(label + " ", name, " ", goToButton(name, go));
+  return line;
+}
+
+// MAP.315, MAP.349: the lines "Region: <name>" and "In: <parent>" for the point (x, y, z) pc, each with its own Go to that flies to its
+// block (the region framed by its extent, MAP.319; its family by its 81-block). They stay hidden until the region is known, and for a
+// point in no charted region (a 9-block with no generated sector has no name on the wire).
 function regionNode(position) {
   if (!regionLookup || !position) {
     return null;
   }
-  var line = document.createElement("p");
-  line.className = "map-info-region";
-  line.hidden = true;
+  var box = document.createElement("div");
+  box.className = "map-info-region";
+  box.hidden = true;
   regionLookup(position[0], position[1], position[2]).then(function (region) {
     if (!region || !region.name) {
       return;
     }
-    function opener(label, fly) {
-      var button = document.createElement("button");
-      button.type = "button";
-      button.className = "map-info-region-link";
-      button.textContent = label;
-      button.addEventListener("click", fly);
-      return button;
-    }
-    // The region is framed by its extent, the sphere of its charted sectors (MAP.319); its family by its 81-block.
-    line.append("Region: ", opener(region.name, function () { regionOpener.region(region); }));
+    box.appendChild(placeLine("Region:", region.name, function () { regionOpener.region(region); }));
     if (region.parent) {
-      line.append(" (in ", opener(region.parent, function () { regionOpener.block(region.parentBlock); }), ")");
+      box.appendChild(placeLine("In:", region.parent, function () { regionOpener.block(region.parentBlock); }));
     }
-    line.hidden = false;
-    if (line.isConnected && infoPanel()) {
+    box.hidden = false;
+    if (box.isConnected && infoPanel()) {
       infoPanel().refit();
     }
   }, function () {
     // A region that could not be looked up is a line left out.
   });
-  return line;
+  return box;
 }
 
 // `spec` with the region line (MAP.315) under its rows, for the point `position` ([x, y, z] pc).
@@ -300,6 +312,7 @@ function showPlacedInfo(entry) {
   var relativeDensity = placedRelativeDensity(entry, sceneData.referenceDensityPerLy3);
   showInfo(withRegion({
     title: entry.name || "Unnamed sector",
+    kind: "Sector",
     fields: [
       ["Systems", entry.system_count != null ? entry.system_count : 0],
       ["Density", relativeDensity != null ? relativeDensity.toFixed(2) + "× local average" : null],
@@ -495,9 +508,11 @@ function phenomenonActions(item) {
 }
 
 // MAP.316: a charted region picked on the map: how much of it is charted, its family, and a button that flies to it.
-function showRegionInfo(blob) {
-  showInfo({
+// MAP.348: what a card says first of each kind of thing (its name, kind and values), also what the hover preview shows of it.
+function regionFacts(blob) {
+  return {
     title: blob.name || "Charted region",
+    kind: "Region",
     fields: [
       ["Charted", chartedText(blob.share)],
       ["Sectors generated", blob.sectorCount + " of " + blob.capacity],
@@ -505,9 +520,14 @@ function showRegionInfo(blob) {
       ["Family", blob.parent],
       ["Distance from core", formatDistancePc(Math.hypot(blob.x, blob.y, blob.z))],
     ],
+  };
+}
+
+function showRegionInfo(blob) {
+  showInfo(withRegion(Object.assign(regionFacts(blob), {
     more: [["Radius", formatDistancePc(blob.radiusPc)], ["Region cell", blob.key]],
     buttons: [{ label: "Go to region", onClick: function () { openRegionBlob(blob); } }],
-  });
+  }), [blob.x, blob.y, blob.z]));
 }
 
 // Flies to a charted region of the regions layer: its window, the camera framing its extent (MAP.319).
@@ -516,8 +536,8 @@ function openRegionBlob(blob) {
   regionOpener.region({ block: blob.block, name: blob.name, extent: { centre: [blob.x, blob.y, blob.z], radius: blob.radiusPc } });
 }
 
-function showCloudInfo(cloud) {
-  showInfo(withRegion(Object.assign({
+function cloudFacts(cloud) {
+  return {
     title: cloud.name || cloudTypeLabel(cloud),
     fields: [
       ["Type", cloudTypeLabel(cloud)],
@@ -525,6 +545,11 @@ function showCloudInfo(cloud) {
       ["Radius", formatDistancePc(cloud.radius_pc)],
       ["Distance from core", formatDistancePc(Math.hypot(cloud.x, cloud.y, cloud.z))],
     ],
+  };
+}
+
+function showCloudInfo(cloud) {
+  showInfo(withRegion(Object.assign(cloudFacts(cloud), {
     more: [["Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   }, phenomenonActions(cloud)), [cloud.x, cloud.y, cloud.z]));
 }
@@ -556,8 +581,8 @@ function pointTypeLabel(point) {
 
 // A black hole, neutron star or quasar on the map (MAP.80,
 // queryDb.galaxy_point_phenomena_in_box): what it is, and its page.
-function showPointInfo(point) {
-  showInfo(withRegion(Object.assign({
+function pointFacts(point) {
+  return {
     title: point.name || POINT_TYPE_LABELS[point.type] || "Phenomenon",
     fields: [
       ["Type", pointTypeLabel(point)],
@@ -565,6 +590,11 @@ function showPointInfo(point) {
     ].concat(point.mass_solar != null ? [["Mass", formatMassSolar(point.mass_solar)]] : [], [
       ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
     ]),
+  };
+}
+
+function showPointInfo(point) {
+  showInfo(withRegion(Object.assign(pointFacts(point), {
     more: [["Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   }, phenomenonActions(point)), [point.x, point.y, point.z]));
 }
@@ -615,6 +645,13 @@ function nearestSystemsNode(systemId) {
       away.className = "map-info-nearest-distance";
       away.textContent = " " + threeFigures(system.distance_ly) + " ly";
       item.append(link, away);
+      // MAP.349: each listed system has its Go to, which opens its sector in place and the system itself, as the find box does.
+      var found = objectIdOf(system.id, parseSectorDesignation);
+      if (found && regionOpener) {
+        item.append(" ", goToButton(system.name || "the system", function () {
+          regionOpener.place({ sector: found.sector, open: true, system: found.system, label: system.name || null });
+        }));
+      }
       list.appendChild(item);
     });
     settle("", list);
@@ -626,14 +663,20 @@ function nearestSystemsNode(systemId) {
 
 // A star system worth a mark on the map (MAP.220, MAP.305: a habitable world, a gas giant): every reason it has, where it is,
 // its nearest systems (MAP.296), and its page.
-function showInterestSystemInfo(system) {
-  var spec = {
+function interestFacts(system) {
+  return {
     title: system.name || "Star system",
+    kind: "Star system",
     fields: interestLines(system).map(function (line) { return [line.label, line.text]; }).concat([
       ["Distance from core", formatDistancePc(Math.hypot(system.x, system.y, system.z))],
     ]),
-    more: [["Position x, y, z", [system.x, system.y, system.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   };
+}
+
+function showInterestSystemInfo(system) {
+  var spec = Object.assign(interestFacts(system), {
+    more: [["Position x, y, z", [system.x, system.y, system.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
+  });
   var nearest = nearestSystemsNode(system.id);
   if (nearest) {
     spec.after = [nearest];
@@ -647,17 +690,23 @@ function showInterestSystemInfo(system) {
 // MAP.243: a star beyond the galaxy's outline (the halo, a satellite galaxy), where no block or sector of the
 // whole-galaxy view holds it: what is known of it and where it is.
 // A star of the map (MAP.304): what the node lists of it, and its system's page when it has one.
-function showStarInfo(star, nearby) {
-  var spec = {
+function starFacts(star) {
+  return {
     title: star.name || "Star",
+    kind: "Star",
     fields: [
       ["Luminosity", formatLuminositySol(star.luminosity_sol)],
       ["Temperature", star.temperature_k != null ? formatNumber(star.temperature_k) + " K" : null],
       ["Class", star.star_type || null],
       ["Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z))],
     ],
-    more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   };
+}
+
+function showStarInfo(star, nearby) {
+  var spec = Object.assign(starFacts(star), {
+    more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
+  });
   if (star.system_id != null && sceneData.systemUrl) {
     var systemPage = String(sceneData.systemUrl).replace("{id}", encodeURIComponent(star.system_id));
     spec.view = { href: systemPage, label: "View system →" };
@@ -670,8 +719,8 @@ function showStarInfo(star, nearby) {
   showInfo(withRegion(spec, [star.x, star.y, star.z]));
 }
 
-function showHaloStarInfo(star) {
-  showInfo({
+function haloStarFacts(star) {
+  return {
     title: "Star beyond the galaxy's outline",
     fields: [
       ["Luminosity", formatLuminositySol(star.luminosity_sol)],
@@ -679,8 +728,13 @@ function showHaloStarInfo(star) {
       ["Class", star.star_type || null],
       ["Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z))],
     ],
+  };
+}
+
+function showHaloStarInfo(star) {
+  showInfo(Object.assign(haloStarFacts(star), {
     more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
-  });
+  }));
 }
 
 function rgba(hex, alpha) {
@@ -3620,6 +3674,8 @@ function initGalaxyMap3d(canvasEl, data) {
     pixelRatio: function () { return renderer.getPixelRatio(); },
     showInfo: showInfo,
     hideCell: hideCell,
+    // MAP.348: what the opened sector's things say first when hovered.
+    preview: function (facts, entry) { previewHover(entry, facts, entry); },
     viewport: viewport,
     // The sector page's "Show on map" buttons (MAP.46) are there once the
     // sector is.
@@ -3660,7 +3716,9 @@ function initGalaxyMap3d(canvasEl, data) {
   rebuildKinds();
   // MAP.217: the layers' legend lines, over the map; the browser tests register a layer on the canvas's registry.
   var layerLegendEl = document.getElementById("galaxymap3d-layer-legend");
-  if (layerLegendEl) stageView.layers.renderLegend(layerLegendEl);
+  if (layerLegendEl) stageView.layers.renderLegend(layerLegendEl, { collapsible: true });
+  // The wheel over the Key's fold zooms the map as it does over the other controls (MAP.234).
+  if (layerLegendEl) layerLegendEl.addEventListener("wheel", function (event) { if (stageView.onWheel(event)) event.preventDefault(); }, { passive: false });
   canvasEl.__mapLayers = stageView.layers;
   // MAP.219: the marker layer (galaxymarkers.js): glyphs over the notable things, a toggle and a legend line per kind.
   var markerKinds = createMarkerKinds();
@@ -3812,7 +3870,7 @@ function initGalaxyMap3d(canvasEl, data) {
     id: "spin", label: "Spin", modes: ["galaxy"], group: "Show on the map", data: { setting: "spin" },
     defaultOn: stageView.spinSwitch.on(), fadedWithSectors: false,
     title: "Let the stars and bodies of an opened system turn slowly on their axes, or hold them still",
-    legend: null,
+    legend: null, keyless: "a setting: it draws nothing of its own",
   });
   stageView.layers.refresh();
   stageView.layers.onChange(function (id, on) {
@@ -3887,6 +3945,7 @@ function initGalaxyMap3d(canvasEl, data) {
         return best ? { entry: best.blob, distance: best.distance } : null;
       },
       tooltip: function (blob) { return (blob.name || "Charted region") + ", " + chartedText(blob.share); },
+      hover: function (blob) { previewHover(blob, blob ? function () { return regionFacts(blob); } : null); },
       select: function (blob) {
         highlightPosition(blob.x, blob.y, blob.z);
         showRegionInfo(blob);
@@ -3904,6 +3963,7 @@ function initGalaxyMap3d(canvasEl, data) {
       }
     },
     block: function (block) { stageView.goTo({ block: block }); },
+    place: function (target) { stageView.goTo(target); },
   };
   canvasEl.__mapInfo = infoPanel();    // the browser tests put long cards in it (MAP.295)
   // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
@@ -3935,6 +3995,9 @@ function initGalaxyMap3d(canvasEl, data) {
         });
       }
       line.appendChild(button);
+      // MAP.349: and a Go to of its own, which flies to it and leaves the card as it is.
+      line.appendChild(document.createTextNode(" "));
+      line.appendChild(goToButton(system.name || (crowd.holes ? "the black hole" : "the system"), function () { stageView.goTo({ entry: system }); }));
       list.appendChild(line);
     });
     var reach = 0;
@@ -3967,7 +4030,8 @@ function initGalaxyMap3d(canvasEl, data) {
         var belt = entry.item.follow.body;     // a belt is not a body to pick: its card says where it is
         showInfo({
           title: entry.item.name || "Asteroid belt",
-          fields: [["Kind", "Asteroid belt"], ["Inner edge", formatDistanceKm(belt.inner_km)], ["Outer edge", formatDistanceKm(belt.outer_km)]],
+          kind: "Asteroid belt",
+          fields: [["Inner edge", formatDistanceKm(belt.inner_km)], ["Outer edge", formatDistanceKm(belt.outer_km)]],
         });
       } else {
         stageView.selectBodyRef(entry.item.bodyRef);   // a body's own symbol picks the body (MAP.321)
@@ -3978,6 +4042,71 @@ function initGalaxyMap3d(canvasEl, data) {
     if (entry.item.type) showPointInfo(entry.item);
     else showInterestSystemInfo(entry.item);
   }
+  // MAP.234: the key. Each thing the map draws has a line in the on-map Key (and in the help dialog's Key section) while it is drawn:
+  // a layer's own legend line (a marker kind, a nebula family, the framed region), or a line registered here. The sector scene's kinds
+  // have one each here; a kind with no line is a layer the key says nothing about, which `registry.unkeyed()` lists and the browser test
+  // holds empty, so a new layer cannot be added without one.
+  var KIND_KEYS = {
+    star: null,    // the stars' line below stands for it
+    nebula: ["cloud", "Clouds: nebulae"],
+    supernovaRemnant: ["cloud", "Shells: supernova remnants"],
+    asteroidField: ["cloud", "Clouds: asteroid fields"],
+    blackHole: ["point", "Bright points and dark spheres: black holes"],
+    neutronStar: ["point", "Bright points: neutron stars"],
+    quasar: ["point", "Bright points: quasars"],
+    roguePlanet: ["point", "Faint points: rogue planets"],
+    interstellarComet: ["point", "Small spheres: interstellar comets"],
+    neighbor: ["outline", "Outlines: the neighboring sectors"],
+  };
+  (function registerKeyLines() {
+    var layers = stageView.layers;
+    layers.layers().filter(function (layer) { return layer.data && layer.data.kind; }).forEach(function (layer) {
+      var entry = KIND_KEYS[layer.id];
+      if (!entry) return;    // the stars', or left for `unkeyed()` to name
+      layers.registerKey({
+        id: "key-" + layer.id, layer: layer.id, text: entry[1], swatchClass: "map-key-" + entry[0],
+        modes: ["galaxy", "sector"], drawn: function () { return layers.isOn(layer.id) && (!layer.available || layer.available()); },
+      });
+    });
+    var starLayer = layers.get("star");
+    layers.registerKey({
+      id: "key-stars", layer: "star", text: "Points of light: stars, colored by temperature, brighter the more luminous", swatchClass: "map-key-point",
+      modes: ["galaxy", "sector"],
+      drawn: function () { return data.pinned ? !!starLayer && layers.isOn("star") && (!starLayer.available || starLayer.available()) : starList.length > 0; },
+    });
+    // The legend follows what is drawn as the view changes.
+    window.setInterval(function () { layers.refreshKey(); }, 400);
+    if (data.pinned) return;
+    var lines = function () { return canvasEl.galaxyLines ? canvasEl.galaxyLines() : null; };
+    layers.registerKey({
+      id: "key-blocks", text: "Blocks: predicted density, brighter is denser; more solid the more of their sectors are generated",
+      swatchClass: "map-key-blocks", drawn: function () { var l = lines(); return !!l && l.blocksDrawn > 0; },
+    });
+    layers.registerKey({
+      id: "key-charted", text: "Outlines: the blocks that hold generated sectors", swatchClass: "map-key-outline",
+      drawn: function () { var l = lines(); return !!l && l.chartedLines > 0; },
+    });
+    layers.registerKey({
+      id: "key-glow", layer: "glow", text: "Haze: stars too faint and close together to tell apart", swatchClass: "map-key-cloud",
+      drawn: function () { return layers.isOn("glow") && starList.length > 0; },
+    });
+    layers.registerKey({
+      id: "key-bubbles", text: "Faint blue spheres with a rim: superbubbles, cavities the supernovae of young star groups blew in the gas",
+      swatchClass: "map-key-sphere", drawn: function () { return bubbles.length > 0; },
+    });
+    if (regionLayer) {
+      layers.registerKey({
+        id: "key-regions", layer: "regions", text: "Soft spheres: regions with generated sectors, colored by how much is charted",
+        swatchClass: "map-key-cloud", drawn: function () { return regionsOn && !hiddenCell && regionLayer.drawn() > 0; },
+      });
+    }
+    if (course) {
+      layers.registerKey({ id: "key-course", text: "Line: the course, through every stop", swatchClass: "map-key-course", drawn: function () { return true; } });
+      if (course.direct && course.direct.length === 2) {
+        layers.registerKey({ id: "key-direct", text: "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return true; } });
+      }
+    }
+  })();
   // MAP.268: the names (galaxylabels.js, through the label engine maplabels.js): sectors, the open sector's systems and
   // nebulae, a layer each in the Menu's Labels group.
   var galaxyLabels = null;
@@ -3986,6 +4115,7 @@ function initGalaxyMap3d(canvasEl, data) {
       stageView.layers.register({
         id: kind.id, label: kind.label, modes: ["galaxy", "sector"], group: "Labels", data: { label: kind.kind },
         defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: kind.title,
+        keyless: "names laid over the map, not a thing it draws",
       });
     });
     stageView.readLayersFromLocation();
@@ -4167,6 +4297,46 @@ function initGalaxyMap3d(canvasEl, data) {
     else hoverRing.hide();
   }
 
+  // MAP.348: a thing hovered shows a small preview (its card's first view) in a corner of the map that is clear of the pointer, of the thing
+  // and of the open card. It takes no pointer event, and a touch screen has no hover to show it.
+  var hoverPreview = createHoverPreview(canvasEl.closest(".galaxy-map-main") || viewport);
+  var lastPointer = null;
+  canvasEl.addEventListener("pointermove", function (event) { lastPointer = { x: event.clientX, y: event.clientY }; });
+  ["pointerleave", "pointerdown", "wheel", "keydown"].forEach(function (type) { canvasEl.addEventListener(type, function () { hoverPreview.hide(); }); });
+  canvasEl.__mapHoverPreview = hoverPreview;    // the browser tests read what it shows
+  var previewSpot = new THREE.Vector3();
+  function previewPoints(entry) {
+    var points = lastPointer ? [lastPointer] : [];
+    previewSpot.set(entry.x, entry.y, entry.z).project(camera);
+    if (previewSpot.z > -1 && previewSpot.z < 1) {
+      var rect = canvasEl.getBoundingClientRect();
+      points.push({ x: rect.left + (previewSpot.x + 1) / 2 * rect.width, y: rect.top + (1 - previewSpot.y) / 2 * rect.height });
+    }
+    return points;
+  }
+  // `thing` is what is under the pointer (null when nothing), `facts()` its card's spec; `at` is the entry with the thing's x, y, z.
+  function previewHover(thing, facts, at) {
+    if (!thing) hoverPreview.hide();
+    else hoverPreview.show(thing, facts, function () { return previewPoints(at || thing); });
+  }
+  // The hover of a layer whose things have a card: the ring (phenomenonHover) and the preview.
+  function hoverWith(facts) {
+    return function (entry) {
+      phenomenonHover(entry);
+      previewHover(entry, entry ? function () { return facts(entry); } : null);
+    };
+  }
+  // A marker is a star system, a black hole, neutron star or quasar, or a region's token; a crowd or a body has no first view of its own.
+  function markerFacts(marker) {
+    var item = marker.item;
+    if (item.merged || item.bodyRef) return null;
+    if (item.regionKey) {
+      var region = regionByKey.get(item.regionKey);
+      return region ? regionFacts(region) : null;
+    }
+    return item.type ? pointFacts(item) : interestFacts(item);
+  }
+
   picker.addLayer({
     name: "clouds",
     enabled: function () { return stageView.inContainer(); },
@@ -4175,7 +4345,7 @@ function initGalaxyMap3d(canvasEl, data) {
       return found && found.core ? { entry: found.cloud, distance: found.distance } : null;
     },
     tooltip: function (cloud) { return (cloud.name ? cloud.name + ", " : "") + cloudTypeLabel(cloud); },
-    hover: phenomenonHover,
+    hover: hoverWith(cloudFacts),
     select: function (cloud) {
       highlightPosition(cloud.x, cloud.y, cloud.z);
       showCloudInfo(cloud);
@@ -4190,7 +4360,7 @@ function initGalaxyMap3d(canvasEl, data) {
     accept: function (star) { return star.phenomenon && drawnByTheGalaxy(star.x, star.y, star.z); },
     lastWins: true,
     tooltip: function (point) { return (point.name ? point.name + ", " : "") + pointTypeLabel(point); },
-    hover: phenomenonHover,
+    hover: hoverWith(pointFacts),
     select: function (point) {
       highlightPosition(point.x, point.y, point.z);
       showPointInfo(point);
@@ -4430,7 +4600,7 @@ function initGalaxyMap3d(canvasEl, data) {
     reach: starReach,
     lastWins: true,
     tooltip: function (star) { return (star.name ? star.name + ", " : "") + "star" + (star.star_type && star.star_type !== "fixture" ? " " + star.star_type : ""); },
-    hover: phenomenonHover,
+    hover: hoverWith(starFacts),
     select: function (star) {
       highlightPosition(star.x, star.y, star.z);
       var crowd = starsNearPointer();
@@ -4451,7 +4621,7 @@ function initGalaxyMap3d(canvasEl, data) {
     tooltip: function (point) {
       return point.phenomenon ? (point.name ? point.name + ", " : "") + pointTypeLabel(point) : "Star beyond the galaxy's outline";
     },
-    hover: phenomenonHover,
+    hover: hoverWith(function (point) { return point.phenomenon ? pointFacts(point) : haloStarFacts(point); }),
     select: function (point) {
       highlightPosition(point.x, point.y, point.z);
       if (point.phenomenon) showPointInfo(point);
@@ -4469,7 +4639,11 @@ function initGalaxyMap3d(canvasEl, data) {
       points: function () { return markerLayer.entries(); },
       reach: function () { return MARKER_PX / 2 + 3; },
       tooltip: function (entry) { return entry.kind.describe(entry.item); },
-      hover: function (entry) { phenomenonHover(entry); },
+      hover: function (entry) {
+        phenomenonHover(entry);
+        var facts = entry && markerFacts(entry);
+        previewHover(facts ? entry.item : null, function () { return facts; }, entry);
+      },
       select: function (entry) { chooseMarker(entry); },
     });
   }
@@ -4548,7 +4722,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // --- Resize/render loop ----------------------------------------------
 
   // MAP.291: the window is as wide as its column and as tall as the browser window leaves room for.
-  watchWindowFit(viewport, viewport.closest(".starmap-layout").querySelector(".starmap-side"));
+  // MAP.350: the Galaxy Map is as tall as the browser window less 20 pixels above and below, and the page rests with it there; a sector page's
+  // map (pinned) is one thing among the page's others and keeps the room the page leaves it.
+  if (data.pinned) watchWindowFit(viewport, viewport.closest(".starmap-layout").querySelector(".starmap-side"));
+  else watchWindowFit(viewport, null, { fill: true });
 
   watchResize(viewport, function () {
     fitRendererToCanvas(renderer, camera, canvasEl);

@@ -56,6 +56,13 @@ def family_of(component):
     return components.family_of(component)
 
 
+def fe_h_peaks_of(component):
+    """The [Fe/H] distribution of one component's stars, `((weight, mean, sigma), ...)`: its own value (a globular cluster's,
+    a young cluster's or a satellite's) with the scatter of its family (`tuning.COMPONENT_FE_H_SIGMA`). A satellite's three
+    populations share it (GEN.662)."""
+    return ((1.0, component.metallicity_fe_h, tuning.COMPONENT_FE_H_SIGMA[family_of(component)]),)
+
+
 def population_shares(component):
     """
     The shares of a component's stars by population, `{population: share}` adding up to 1: a globular cluster's are all

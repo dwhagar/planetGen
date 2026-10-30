@@ -40,6 +40,7 @@ this API instead.
 
 Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here and a row in [api-compatibility.md](api-compatibility.md) (API.4: each version, the release that first carried it, the routes and payload formats it changed, and which clients speak it), which is built from `docs/reference/api-versions.json`.
 
+- **11** (API.33): `GET /api/admin/backups` and `GET /api/admin/backups/<name>`: an archive and each of its parts have `size_bytes` where they had `size`.
 - **10** (API.37): `GET /api/systems/<id>`: a planet and a moon no longer have `life_chemical`. They have `life_class` (the number of the class that lives on them), `life_class_variant` (its letter), `life_class_best` and `life_class_best_score` (the class they support best and its score, 0 to 9), `life_animal_grade` (0 none to 3 large and active) and `life_complexity`, and `life_class_id` (the class and variant as one id such as `1a`, or `null`) and `life_class_scores` (`{class id: score 1 to 9}` for every class the body supports, empty for none). A species has `life_class` where it had `life_chemical`.
 - **9** (MAP.287): `GET /api/systems/<id>/scene`: a star, planet and moon no longer has `color`; it has `look`, the body look record (`bodylook.py`), which holds its `color` and everything the painters need. A comet keeps `color`.
 - **8** (MAP.262): `GET /api/galaxy/tiles` is gone: the map's data is read by sector-block node (`GET /api/galaxy/nodes`), and `GET /api/galaxy/changes` no longer has `tiles` (it has `nodes`).
@@ -55,7 +56,7 @@ The sector grid changed to shells, bands and wedges on 2026-10-15 (the spherical
 
 ## Units of the numbers
 
-Every number the API takes or returns says what it measures. A response field named after a stored column carries its unit as the name's suffix (`radius_km`, `age_gy`, `position_x_mpc`, `period_years`), the same unit the column registry declares (`db/column_units.py`, DB.76). A request body field either has the suffix too (`distance_km`, `phase_deg`, `offset_ly`, `radius_ly`, `edge_ly`, `expires_days`) or a description starting "Unit:" in its schema: a count (`num_orbits`, the worker `count`), an id (`type_id`, `affiliation_polity_id`), an index (`sort_order`), `position` in light-years from the sector's centre, and the facility type field values, whose unit is the one the field itself declares (`unit`). `tests/test_api_field_units.py` fails for a request field that is a number and names no unit.
+Every number the API takes or returns says what it measures. A response field named after a stored column carries its unit as the name's suffix (`radius_km`, `age_gy`, `position_x_mpc`, `period_years`), the same unit the column registry declares (`db/column_units.py`, DB.76). A request body field either has the suffix too (`distance_km`, `phase_deg`, `offset_ly`, `radius_ly`, `edge_ly`, `expires_days`) or a description starting "Unit:" in its schema: a count (`num_orbits`, the worker `count`), an id (`type_id`, `affiliation_polity_id`), an index (`sort_order`), `position` in light-years from the sector's centre, and the facility type field values, whose unit is the one the field itself declares (`unit`). `tests/test_api_field_units.py` fails for a request field that is a number and names no unit. For answers, `tests/test_api_response_units.py` reads the real answers of the sector, system, search and galaxy routes and fails for a number whose key (or the key of the map holding it) neither ends in a unit suffix, nor is a column the registry gives a unit that says what it is (a fraction, a score of 9, an optical depth, a pH), nor is listed in the test with the thing it counts or names (a count, an id, a grid address, an eccentricity, a spin-axis part).
 
 ## The User-Agent and the version header
 
@@ -112,16 +113,17 @@ connectivity to that specific schema rather than the default one.
   (`queryDb.list_sectors`/`count_sectors`). The Sectors table (UX.41) also
   takes `sort` (`name`, `systems`, `density`, `position`, `distance`) with
   `order=asc|desc` (unplaced sectors sort last for `density`, `distance` and
-  `position`; ties keep the default order), the repeatable filter
+  `position`; ties follow the sort's direction by sector ID), the repeatable filter
   `quadrant` (`I`-`IV`, or `unplaced`) and `facets=1`, which adds
   `facets: {"quadrant": [{"value", "count"}]}` (the menu ignores its own
   filter). `total` counts the sectors that pass the filter; a bad `sort` or
-  `order` is a 400. `after=<sector ID>` (PERF.137) starts the page after that
-  sector in the default order and the `name` and `distance` sorts and ignores
-  `offset`: the placed sectors are read by the distance index and the unplaced ones
-  after them by name, so a page costs the same at any depth (sectors at the same
-  distance follow the sort's direction by id); the other sorts ignore `after`. An
-  `after` that is not a sector ID is a 400.
+  `order` is a 400. `after=<sector ID>` (PERF.137, PERF.208) starts the page after that
+  sector in every sort and ignores `offset`, so a page costs the same at any depth: the
+  placed sectors are read by the distance index and the unplaced ones after them by name; the
+  systems, density and position sorts read the stored count, density and Quadrant
+  (`sector_system_counts`) by index, with the sectors that have no galaxy position last, and
+  sectors that tie follow the sort's direction by id; a sector made since the last refresh of
+  those figures follows the others. An `after` that is not a sector ID is a 400.
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
@@ -175,8 +177,8 @@ connectivity to that specific schema rather than the default one.
   but not its own). `total` counts the systems that pass the filters; where
   no stored count exists yet it stops at 10,000 and `total_capped` is `true`
   (the exact figure follows once the background count finishes). `after=<system
-  ID>` starts the page after that system in the name sort and ignores
-  `offset`, so page 40,000 costs what page 1 does (an unknown ID is a 400);
+  ID>` starts the page after that system in the name, sector, octant and binary sorts and ignores
+  `offset`, so page 40,000 costs what page 1 does (PERF.75, PERF.206; an unknown ID is a 400);
   `from=<text>` (PERF.75, the Systems table's jump-by-value box) begins the
   list at the first name from that text on under the name sort (`M` starts
   at the first name from M; under `order=desc` the names that begin with M
@@ -215,13 +217,13 @@ connectivity to that specific schema rather than the default one.
   kind, sort or order, a `limit` or `sector_id` that is not a number, a `from` under another sort, or an `after` that is not an object ID
   (`objectlist.list_objects`).
 - `GET /api/uncharted-systems/<bright star id>` — one scattered star (UX.114): the fields of a list item,
-  `system_id` (the system built around it, `null` while it is uncharted), `hosted_nebula` (the nebula the star lights, the one
+  `rotation_period_hours` (GEN.846: its spin period; `null` on a row made before schema v185), `system_id` (the system built around it, `null` while it is uncharted), `hosted_nebula` (the nebula the star lights, the one
   its sector builds: `name`, `nebula_class`, `nebula_type`, `class_name`, `radius_ly`, `age_myr`; `null` for a star that
-  lights none or is built, GEN.530) and, for a star with company that is not built, `members` (`member_no`, `kind`, `state`, `mass_solar`, `parent_node_no`, `flags`) and `nodes` (`node_no`,
+  lights none or is built, GEN.530) and, for a star with company that is not built, `members` (`member_no`, `kind`, `state`, `mass_solar`, `parent_node_no`, `flags`, `radius_au`: GEN.952, `null` on a row made before schema v184) and `nodes` (`node_no`,
   `parent_node_no`, `kind` of `close`, `wide`, `compact` or `group`, `mass_solar`, `separation_au`,
   `period_years`, `eccentricity`, `interaction`, `flags`) and `compact_pairs` (UX.186: one per accreting neutron star or black hole
   with a companion or ablating pulsar with its companion: `node_no`, `kind` of `high-mass-xray-binary`, `be-xray-binary`,
-  `low-mass-xray-binary`, `black-widow` or `redback`, `compact` and `companion` (member numbers) and `microquasar`). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
+  `low-mass-xray-binary`, `black-widow` or `redback`, `compact` and `companion` (member numbers), `microquasar` and `x_ray_luminosity_w`: GEN.952, the watts an accreting pair radiates, worked out on read from the stored masses, radii and orbit, `null` for a spider pair and for a tree stored before v184). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `binary_configuration` (`"close"`/`"wide"`/`null`),
@@ -229,10 +231,11 @@ connectivity to that specific schema rather than the default one.
   the primary — `null` for a single star; the System Map's own real
   binary-star placement is derived from this plus each star's `mass_kg`),
   `runaway_class` (`"runaway"`/`"hypervelocity"`/`null`) and
-  `runaway_speed_kms`, `stars`, `planets` (each with
+  `runaway_speed_kms`, `stars` (each with `parent_node_no` and `slot`, the node of the orbit tree it hangs in and which of its two places it holds), `orbits` (MAP.213: the
+  system's tree of orbits, one entry per node with `node_no`, `parent_node_no`, `slot`, `kind`, `mass_solar`, `separation_km`, `eccentricity`, `inclination_deg`, `period_years`, `interaction` and `flags`; empty for a single star), `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable` (its overall PHI-6 colour is Blue or Green, GEN.643),
-  `habitable_class` (its class can carry life), `life_class_id` and `life_class_scores` (API.37: the life class that lives on it, such as `1a`, and `{class id: score}` for each class it supports), `life_stage` — the furthest evolutionary milestone its timeline reached,
-  or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 H3 [R2]`, `required_line` and `recommended_line` (UX.163; a line with nothing in it is empty), the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` and `regions` (GEN.656: the regional temperatures in kelvin by short name — `polar`, `north`, `equator`, `south` and the day and night `swing` for a world that turns on its own, `day_side`, `terminator` and `night_side` for a tidally locked one; `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
+  `habitable_class` (its class can carry life), `life_class_id` and `life_class_scores` (API.37: the life class that lives on it, such as `1a`, and `{class id: score}` for each class it supports; `life_class_id` is `null` for a world that suits a class but whose life has not started, a star younger than the first step of its schedule, GEN.1001, where the stored `life_class` stays), `life_stage` — the furthest evolutionary milestone its timeline reached,
+  or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 H3 [R2]`, `required_line` and `recommended_line` (UX.163; a line with nothing in it is empty), the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` and `regions` (GEN.656: the regional temperatures in kelvin by short name — `polar`, `north`, `equator`, `south` and the day and night `swing` for a world that turns on its own, `day_side`, `terminator` and `night_side` for a tidally locked one; GEN.848 adds the swing of every other place by the same short name with `_swing`: `polar_swing`, `north_swing`, `south_swing`, `mean_swing` and, for a locked world, `day_side_swing`, `terminator_swing`, `night_side_swing` (0, it has no day); `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
   `{component, concentration}` largest share first), `comets`, `sector_siblings`
   (`{id, name}` for every system in the same sector), and
   `nearest_neighbors` (`{id, name, distance_ly}` for the up-to-3 closest
@@ -268,6 +271,19 @@ connectivity to that specific schema rather than the default one.
   description written out on request, `{"id", "format", "content"}`
   (`planetgen/db/render.py`; no page text is stored since schema v29).
   `format` defaults to `markdown`; any other value is a `400`.
+- `GET /api/planets/<id>/life-air` and `GET /api/moons/<id>/life-air` — the data of
+  the Life and air chart on a planet's or moon's page (UX.237,
+  `physics.life_air.air_history`): the air through the age of its star as far as the
+  life class that lives on it changed it, worked out on request from the stored air and
+  stored nowhere. `{"id", "life_class_id", "life_air"}`. `life_air` is `null` for a world
+  with no living class, a giant, a class that changed nothing, or an air the life did not
+  change; otherwise `age_gyr` (the star's age), `producers_gyr` (when the producers began),
+  `rose_gyr` (when the oxygen rose, `null` for a class that makes none), `gases` (`{"formula",
+  "name", "steps": [[age_gyr, partial_pressure_kpa], ...]}` for oxygen, carbon dioxide and methane,
+  each value holding until the next age; a gas that is never above 0.1 Pa is left out),
+  `stages` (`{"key", "age_gyr"}` for each milestone the star is old enough for) and
+  `speculative` (the ledger's `{"tier", "tweak"}` for a class whose numbers are tuned, else
+  `null`). An unknown planet or moon is a `404`. Additive: the API version does not change.
 - `GET /api/systems/<id>/scene` — the 3D system view's data (MAP.69):
   `system`, `epoch`/`epoch_unix` (when the stored phases were last
   advanced, `null` if never), `stars`, `planets` (each with `moons`),
@@ -535,8 +551,12 @@ connectivity to that specific schema rather than the default one.
   `../src/planetgen/web/lib/tilecache.py` (the web layer's disk cache) calls it
   about once a minute and deletes only the listed nodes, and passes the
   list on to the map's browser cache.
-- `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
-  row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; a non-number is a 400;
+- `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>|<type>:<ID>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
+  row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; `after=<type>:<ID>`, the `type` and `id` of a
+  built row, starts it after that row in the order of `sort` and then the tail, PERF.205, PERF.211: the first page of every sort (`name`, `type`,
+  `descriptor`, `radius`, `placed`, `sector`) and every page after a built row cost the same at any depth, each table read on an index ending in
+  `name` and the best rows of all taken, a tie settling by name, type and id in the direction of the sort; a page by `offset` past the first still
+  sorts the whole union of built rows; anything else is a 400;
   `from=<scatter id>`, PERF.135, lists that tail from the row with that id on, `total` counting from there; a value that is not a whole number from 1 up
   is a 400, and one past the end answers the last page of the tail, `past_end` true and `total` its length),
   across every sector and regardless of galaxy placement (unlike
@@ -621,7 +641,9 @@ connectivity to that specific schema rather than the default one.
   `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/`moon_`),
   in km, either bound optional (a size range is a continuous quantity,
   not a discrete facet value, so it's its own pair of query parameters
-  rather than a tag). Returns `facets` (one `{value, label, count,
+  rather than a tag). `stars` (UX.239) keeps the systems with that many stars: a count (`stars=3`, exactly three), a count and a plus (`stars=3+`, three or
+  more) or a name (`single`, `binary`, `trinary`, `quaternary`: exactly that many; `quintenary`: five or more); the Systems panel then runs with or without
+  a name, every system row carries `star_count`, and anything else is a `400`. Returns `facets` (one `{value, label, count,
   tooltip}` list per facet, built from the distinct values actually
   present), `autocomplete` (`sectors`/`systems`/`stars`/`planets`/`moons`
   name lists), `facet_labels` (`"facet:value"` -> label, for an
@@ -682,8 +704,9 @@ connectivity to that specific schema rather than the default one.
   any species, polity or owned system exists (all `false` on a database
   without them). Pages that show population data hide themselves when
   the matching flag is false (`population.population_status`).
-- `GET /api/species?spacefaring=true|false&limit=<n>&offset=<n>` — the
-  dominant species of every life world, by name, paginated (see
+- `GET /api/species?spacefaring=true|false&limit=<n>&offset=<n>&after=<species id>` — the
+  dominant species of every life world, by name, paginated (`after`, the `id` of the last species of the page before, starts the page after it in
+  the same order and ignores `offset`, PERF.205; see
   docs/design/habitability/population-and-politics.md). Each item has its homeworld
   (`homeworld_planet_id`, `homeworld_name`, `star_system_id`,
   `system_name`), `life_class` (the id of its life class), `life_stage` (`multicellularity` or
@@ -968,8 +991,8 @@ forced credential change. They back the admin stats page
   `config.update` audit row per changed option. The Owner's and the command
   line's options are refused with their reason until accounts (8.2).
 - `GET /api/admin/backups` — the backup archives (ADM.85): `{"problem",
-  "archives": [{"name", "taken_at", "taken_by", "reason", "version", "size",
-  "complete", "readable", "parts": [{"name", "label", "size", "files",
+  "archives": [{"name", "taken_at", "taken_by", "reason", "version", "size_bytes",
+  "complete", "readable", "parts": [{"name", "label", "size_bytes", "files",
   "known"}]}], "kept", "parts": [{"name", "label"}], "can_download",
   "file_hash"}`. `POST /api/admin/backups` (`{}`) makes one now, of every
   part (`backup.take` audit row; 409 when the folder can't be written).

@@ -16,11 +16,13 @@ of the body moves them with the rest:
   redox state;
 * `nitrate_supply` and `perchlorate_supply`: the oxidants of Classes 4b and 4c, from the nitrogen in the air and the oxygen,
   and the chloride of the ocean;
-* `hydrogen_acetylene_supply`: the haze organics and hydrogen of a methane sea's air (Class 7), from the methane share.
+* `hydrogen_acetylene_supply`: the haze organics and hydrogen of a methane sea's air (Class 7), from the methane share;
+* `sulfur_supply`: the reduced sulfur of the acid eaters (Classes 5 and 9), from the air's sulfur dioxide share (GEN.894); it needs no water
+  in contact with rock, since the acid is the medium.
 
 Every number is in `physics/data/life_supply.json` with its tier (T1 to T9) and tweak level (L0 to L4). A body with no liquid water
 in contact with rock gets 0 of the rock's supplies. Carbon dioxide's phase (Class 6) is read from the temperature and pressure by
-`life_classes.co2_phase`, and the ammonia of the water and the acid of Classes 5, 8 and 9 are not modelled yet (GEN.888, GEN.894).
+`life_classes.co2_phase`; the acid of Classes 5 and 9 is `physics/acid_medium.py` and the ammonia of Class 8 `physics/strange_solvents.py`.
 
 Use:
 
@@ -34,7 +36,7 @@ from planetgen.physics import atmosphere, elements, habitability, habitability_w
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_supply.json")
 
-QUANTITIES = ("h2_supply", "radiolytic_h2_supply", "donor_supply", "nitrate_supply", "perchlorate_supply", "hydrogen_acetylene_supply")
+QUANTITIES = ("h2_supply", "radiolytic_h2_supply", "donor_supply", "nitrate_supply", "perchlorate_supply", "hydrogen_acetylene_supply", "sulfur_supply")
 """tuple: The names of the supplies, as the rule file of the classes reads them."""
 
 REDOXES = ("reduced", "intermediate", "oxidized")
@@ -74,11 +76,11 @@ def redox_factor(name, redox):
 
 def contact(values):
     """
-    How much of the rock's chemistry the water reaches, 0 to 1: the whole of it under a surface, ice-covered or hycean ocean, less for
+    How much of the rock's chemistry the water reaches, 0 to 1: the whole of it under a surface, brine-seep, ice-covered or hycean ocean, less for
     an aquifer (by how deep it is) and 0 with no liquid water. A world with a very deep ocean (`deep_water_fraction`) has ice on its floor.
     """
     state = values.get("hydrosphere")
-    if state in ("surface ocean", "hycean", "ice-covered ocean"):
+    if state in ("surface ocean", "brine seep", "hycean", "ice-covered ocean"):
         if (values.get("water_mass_fraction") or 0.0) >= number("deep_water_fraction"):
             return number("contact_deep_water")
         return number("contact_ocean")
@@ -123,6 +125,7 @@ def supplies(values):
     pressure_kpa = (values.get("atmospheric_pressure_pa") or 0.0) / 1000.0
     o2_kpa = atmosphere.partial_kpa(values, "o2")
     ch4_share = atmosphere.partial_kpa(values, "ch4") / pressure_kpa if pressure_kpa > 0.0 else 0.0
+    so2_share = atmosphere.partial_kpa(values, "so2") / pressure_kpa if pressure_kpa > 0.0 else 0.0
     nitrogen = habitability_world.inventories(values)["N"] if values.get("surface_temperature_k") is not None else 0.0
     nitrogen_term = min(1.0, nitrogen / habitability.X_REF_EARTH)
     nitrate = number("nitrate_abiotic") * (1.0 + 2.0 * min(1.0, o2_kpa / number("nitrate_oxygen_kpa")))
@@ -134,4 +137,5 @@ def supplies(values):
         "nitrate_supply": reach * nitrogen_term * min(1.0, nitrate),
         "perchlorate_supply": reach * number("perchlorate_base") * perchlorate_ocean,
         "hydrogen_acetylene_supply": min(1.0, ch4_share / number("haze_methane_share")),
+        "sulfur_supply": min(1.0, so2_share / number("sulfur_so2_ref_share")),
     }

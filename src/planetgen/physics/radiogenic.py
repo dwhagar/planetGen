@@ -296,26 +296,26 @@ def host_offset_dex(fe_h, age_gy, key):
 @functools.cache
 def _solar_th_over_mg():
     """Th/Mg by mass of the solar-scale star: [Fe/H] 0 on the thin branch with every residual and scatter at its mean."""
-    star = sa.composition(0.0, sa.abundance_offsets(0.0, sa.BRANCH_THIN, (0.0, 0.0, 0.0, 0.0)))
+    star = sa.composition(0.0, sa.abundance_offsets(0.0, sa.BRANCH_THIN, (0.0,) * len(sa.RESIDUAL_ELEMENTS)))
     found = sa.birth_radiogenic(star, sa.BRANCH_THIN)
     return found["mass_fractions"]["Th"] / star.elements["Mg"]
 
 
 def _star_key(star):
-    """The key a star's streams are named by (its mass, age and distance from the centre; `stellar_composition.abundance_key`), or `None` when it has no [Fe/H] or no age."""
+    """The key a star's streams are named by (its mass and distance from the centre; `stellar_composition.abundance_key`), or `None` when it has no [Fe/H] or no age."""
     fe_h = getattr(star, "metallicity_fe_h", None)
     age = getattr(star, "age", None)
     if fe_h is None or age is None:
         return None
     mass, distance = getattr(star, "mass", None), getattr(star, "galactic_center_dist_ly", None)
     # a star made with no place in the galaxy (a single system) has no distance; its [Fe/H] stream is keyed on `None` there
-    return f"{mass!r}:{age!r}:{distance!r}" if distance is None else sc.abundance_key(mass=mass, age_gy=age, distance_ly=distance)
+    return f"{mass!r}:{distance!r}" if distance is None else sc.abundance_key(mass=mass, distance_ly=distance)
 
 
 def star_offset_dex(star):
     """`host_offset_dex` for a star object (`generation.star.Star`, a binary's proxy), or `None` when it has no [Fe/H] or no age to
-    read it from. The key is the one the star's [Fe/H] stream uses (its mass, age and distance from the centre), so every planet of
-    a star gets the same offset."""
+    read it from. The key is the star's (`stellar_composition.abundance_key`: its mass and distance from the centre), so every planet
+    of a star gets the same offset."""
     key = _star_key(star)
     return None if key is None else host_offset_dex(float(star.metallicity_fe_h), float(star.age), key)
 

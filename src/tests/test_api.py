@@ -829,12 +829,32 @@ def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
     assert [c["id"] for c in capped] == [nebula_id]
 
 
+_BRIGHT_STAR_DEFAULTS = {"population": "young", "star_type": "B", "yerkes_class": "III", "mass_kg": 1e31, "radius_km": 1e7,
+                         "temperature_k": 15000.0, "luminosity_w": 1e28, "age_gy": 0.05, "lifespan_gy": 0.1, "initial_mass_sol": 8.0,
+                         "phase_end_age_gy": None, "seed": 1, "metallicity_fe_h": None, "rotation_period_hours": None}
+"""dict: A scattered star's values by `store.BRIGHT_STAR_COLUMNS` name, less its address and position; `_star_row` fills the rest from it."""
+
+
+def _star_row(address, position_milli, **values):
+    """A `bright_stars` row in `store.BRIGHT_STAR_COLUMNS` order (TEST.478: built by column name, so a column added to the table cannot leave a row short)."""
+    columns = _db.BRIGHT_STAR_COLUMNS
+    unknown = set(values) - set(columns)
+    assert not unknown, f"not bright_stars columns: {sorted(unknown)}"
+    row = {**dict(zip(columns[:3], address)), **dict(zip(columns[3:6], position_milli)), **_BRIGHT_STAR_DEFAULTS, **values}
+    return tuple(row[name] for name in columns)
+
+
+def _b2v_row(luminosity_sol, seed=42):
+    """A B2V star of ring 3 layer 0 slot 1, as the tests of the bright-star routes place them."""
+    return _star_row((3, 0, 1), (12000, 3000, 0), star_type="B2V", yerkes_class="V", mass_kg=1.4e31, radius_km=3.0e6, temperature_k=22000.0,
+                     luminosity_w=luminosity_sol * 3.828e26, age_gy=0.02, lifespan_gy=0.03, initial_mass_sol=7.0, phase_end_age_gy=0.03, seed=seed)
+
+
 def _bright_row(position_pc, luminosity_sol, edge_pc):
     from planetgen.galaxy.spherical import sector_address_at
 
-    shell, band, wedge = sector_address_at(position_pc, edge_pc)
-    return (shell, band, wedge, *(int(round(v * 1000)) for v in position_pc), "young", "B", "III", 1e31, 1e7,
-            15000.0, luminosity_sol * SOLAR_LUMINOSITY_W, 0.05, 0.1, 8.0, None, 1, None)
+    return _star_row(sector_address_at(position_pc, edge_pc), tuple(int(round(v * 1000)) for v in position_pc),
+                     luminosity_w=luminosity_sol * SOLAR_LUMINOSITY_W)
 
 
 @pytest.mark.parametrize("outline, ranges_per_ring", [(False, False), (True, False), (True, True)])
@@ -1113,12 +1133,10 @@ def test_galaxy_bright_stars_in_one_cell(client, mysql_config):
     """`GET /api/galaxy/bright-stars`: one cell's waiting bright stars,
     brightest first; `all=1` adds the filled ones; bad addresses are 400."""
     assert client.get("/api/galaxy/bright-stars?shell=3&band=0&wedge=1").get_json() == {"items": []}
-    row = (3, 0, 1, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0)
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_bright_stars(conn, [row + (800 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None),
-                                           row + (600 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None)])
+            _db.insert_bright_stars(conn, [_b2v_row(800), _b2v_row(600)])
     finally:
         conn.close()
     items = client.get("/api/galaxy/bright-stars?shell=3&band=0&wedge=1").get_json()["items"]
@@ -1488,8 +1506,9 @@ def test_galaxy_changes_is_busy_when_a_run_changes_too_much_at_once(client, mysq
     settled = client.get("/api/galaxy/stamp").get_json()
     conn = _db.get_connection(mysql_config)
     try:
-        _db.insert_bright_stars(conn, [(1, 0, 0, 1.0, 2.0, 3.0, "old", "G2", "V", 2e30, 7e5, 5772.0, 4e26,
-                                        4.0, 10.0, 1.0, 9.0, 123, None)])
+        _db.insert_bright_stars(conn, [_star_row((1, 0, 0), (1.0, 2.0, 3.0), population="old", star_type="G2", yerkes_class="V", mass_kg=2e30,
+                                                 radius_km=7e5, temperature_k=5772.0, luminosity_w=4e26, age_gy=4.0, lifespan_gy=10.0,
+                                                 initial_mass_sol=1.0, phase_end_age_gy=9.0, seed=123)])
         conn.commit()
     finally:
         conn.close()
@@ -2315,11 +2334,10 @@ def test_galaxy_uncharted_sector_lists_what_the_scatters_left_in_a_cell(client, 
     empty = client.get("/api/galaxy/uncharted?shell=3&band=0&wedge=1").get_json()
     assert empty["stars"] == [] and empty["scattered"] == [] and empty["sector_id"] is None
     assert empty["designation"] and len(empty["center_pc"]) == 3 and empty["edge_pc"] > 0
-    star = (3, 0, 1, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0)
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_bright_stars(conn, [star + (800 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None)])
+            _db.insert_bright_stars(conn, [_b2v_row(800)])
             for kind, subtype, built in (("black-hole", "stellar", False), ("planetary-nebula", None, False),
                                          ("neutron-star", None, True)):
                 conn.execute("INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, subtype,"
@@ -2341,12 +2359,10 @@ def test_galaxy_uncharted_sector_lists_what_the_scatters_left_in_a_cell(client, 
 def _scatter_stars(mysql_config, luminosities=(800, 600, 900)):
     """Scattered stars (B2V, ring 3 layer 0 slot 1) of these luminosities in solar units; returns their ids."""
     _db.get_connection(mysql_config).close()  # the schema
-    base = (3, 0, 1, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0)
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_bright_stars(conn, [base + (lum * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42 + n, None)
-                                           for n, lum in enumerate(luminosities)])
+            _db.insert_bright_stars(conn, [_b2v_row(lum, 42 + n) for n, lum in enumerate(luminosities)])
         return [row["id"] for row in conn.execute("SELECT id FROM bright_stars ORDER BY id").fetchall()]
     finally:
         conn.close()
@@ -2442,10 +2458,10 @@ def test_a_planet_and_a_moon_name_their_life_class_and_the_scores_of_every_class
                               (system_id,)).fetchone()["id"]
         moon = conn.execute("SELECT id FROM moons WHERE star_system_id = ? ORDER BY id LIMIT 1", (system_id,)).fetchone()["id"]
         conn.execute("UPDATE planets SET life_class = 1, life_class_variant = 'a', life_class_best = '1a', life_class_best_score = 7,"
-                     " life_animal_grade = 2, life_complexity = 0.4 WHERE id = ?", (planet,))
+                     " life_animal_grade = 2, life_complexity = 0.4, life_stage = 'abiogenesis' WHERE id = ?", (planet,))
         conn.execute("DELETE FROM planet_life_class_scores WHERE planet_id = ?", (planet,))
         conn.execute("INSERT INTO planet_life_class_scores (planet_id, life_class, score) VALUES (?, '1a', 7), (?, '2', 3)", (planet, planet))
-        conn.execute("UPDATE moons SET life_class = 6, life_class_variant = NULL WHERE id = ?", (moon,))
+        conn.execute("UPDATE moons SET life_class = 6, life_class_variant = NULL, life_stage = 'abiogenesis' WHERE id = ?", (moon,))
         conn.execute("DELETE FROM moon_life_class_scores WHERE moon_id = ?", (moon,))
         conn.execute("INSERT INTO moon_life_class_scores (moon_id, life_class, score) VALUES (?, '6', 2)", (moon,))
         conn.commit()
@@ -2462,3 +2478,14 @@ def test_a_planet_and_a_moon_name_their_life_class_and_the_scores_of_every_class
     assert seen["life_class_id"] == "6" and seen["life_class_scores"] == {"6": 2}
     for body in [*detail["planets"], *(m for p in detail["planets"] for m in p["moons"])]:
         assert {"life_class_id", "life_class_scores"} <= set(body) and isinstance(body["life_class_scores"], dict)
+
+    # GEN.1001: a class the moon suits but that has no life stage yet is stored, but it is not the class that lives there
+    conn = _db.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE moons SET life_stage = NULL WHERE id = ?", (moon,))
+        conn.commit()
+    finally:
+        conn.close()
+    detail = client.get(f"/api/systems/{pid('system', system_id)}").get_json()
+    seen = next(m for p in detail["planets"] for m in p["moons"] if m["id"] == pid("moon", moon))
+    assert seen["life_class"] == 6 and seen["life_class_id"] is None and seen["life_class_scores"] == {"6": 2}

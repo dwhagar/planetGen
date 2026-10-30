@@ -17,7 +17,7 @@ import pytest
 
 from planetgen.physics import constants as phys_c, imf, main_sequence
 from planetgen import tuning as prog_c
-from planetgen.physics import stellar_evolution as se
+from planetgen.physics import stellar_abundances, stellar_evolution as se
 from planetgen.generation import star_population as sp
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import STAR_TYPE_PATTERN, Star
@@ -58,7 +58,9 @@ def population():
 # sampling noise and later tuning of the letter boundaries.
 EXPECTED_SHARES = [
     ("M dwarf", 68.0, 80.0),
-    ("K dwarf", 11.0, 18.0),
+    # GEN.897 and GEN.943: the K/M edge is 3,890 to 3,900 K (M0V), so K is the observed 12% of the main-sequence stars, 8.6% of this sample,
+    # which also holds the pre-main-sequence stars, white dwarfs and giants (K was 11 to 18% with the edge at 3700 K, where it ran to 19%)
+    ("K dwarf", 7.0, 12.0),
     ("G dwarf", 2.0, 6.0),
     ("F dwarf", 1.2, 3.0),
     # GEN.652: on the MIST main sequence a star is A-type (7500 to 10000 K) between about 1.75 and 2.4 solar masses and
@@ -108,10 +110,13 @@ def test_white_dwarfs_are_earth_sized_and_dim(population):
     _, states = population
     white_dwarfs = [state for _, _, state in states if state["yerkes_class"] == "VII"]
     assert white_dwarfs
+    low, high = prog_c.WD_MASS_RANGE_SOL
+    # The heaviest the initial-final mass relation makes (1.33 solar masses, Cummings et al. 2018) is smaller than the
+    # zero-temperature radius at the top of the range (2,700 km); a cold star is never smaller than that.
+    smallest = stellar_abundances.white_dwarf_radius_solar(high) * phys_c.SOLAR_RADIUS_M / 1000.0
     for state in white_dwarfs:
-        low, high = prog_c.WD_MASS_RANGE_SOL
         assert low <= state["mass_sol"] <= high
-        assert 3000 < state["radius_km"] < 15000          # a hot 0.2 solar-mass white dwarf of the cooling sequences is 10,100 km (GEN.742)
+        assert smallest < state["radius_km"] < 15000          # a hot 0.2 solar-mass white dwarf of the cooling sequences is 10,100 km (GEN.742)
         assert state["luminosity_sol"] <= prog_c.WD_LUMINOSITY_RANGE_SOL[1]
 
 
@@ -266,12 +271,26 @@ def test_a_bright_star_is_drawn_at_any_composition_that_can_make_one(fe_h):
     assert kept == 5
 
 
-def test_a_metal_poor_place_has_no_giant_that_bright_in_its_window_and_its_metal_rich_tail_makes_them_all():
-    """GEN.651: a place's bright stars are its prior times each composition's bright share, so a halo-poor place with a
-    metal-rich tail gets its 2500 Lsun giants from the tail."""
+def test_a_metal_rich_place_has_no_giant_that_bright_in_its_window_and_its_metal_poor_tail_makes_them_all():
+    """GEN.651: a place's bright stars are its prior times each composition's bright share, so a metal-rich place with a
+    metal-poor tail gets its 6000 Lsun giants from the tail (the MIST thermal pulses of a metal-poor star reach higher than a
+    metal-rich one's: none of the latter in an old window does)."""
     rng = random.Random(8)
-    fe_hs = [-1.4] * 3 + [0.1]
+    fe_hs = [0.1] * 3 + [-1.4]
     seen = iter(range(10 ** 6))
-    drawn = [sp.sample_bright_stars(1, 2500.0, "old", rng, fe_h_source=lambda index: fe_hs[next(seen) % 4])[0]
+    drawn = [sp.sample_bright_stars(1, 6000.0, "old", rng, fe_h_source=lambda index: fe_hs[next(seen) % 4])[0]
              for _ in range(5)]
-    assert all(params["metallicity_fe_h"] == 0.1 for params in drawn)
+    assert all(params["metallicity_fe_h"] == -1.4 for params in drawn)
+
+
+def test_a_populations_counts_are_worked_out_at_its_own_composition_not_the_suns():
+    """GEN.661: a metal-poor population's old stars keep more of their giants bright, so its share of bright stars is not
+    the solar composition's."""
+    assert sp.reference_fe_h("halo") < -1.0 and sp.reference_fe_h("young") == pytest.approx(0.0, abs=0.1)
+    assert sp.reference_fe_h("cluster") < -0.5 and sp.reference_fe_h(None) == sp.reference_fe_h("intermediate")
+    # GEN.935: on the MIST tracks the halo's own-composition gain in bright stars is 1.09 (it was over 1.2 on the hand-set giants)
+    for population, least in (("old", 1.02), ("halo", 1.05)):
+        solar = sp._bright_table(500.0, population, None, sp._law(population, None), 0.0, True)["fraction"]
+        own = sp.bright_star_fraction(500.0, population)
+        assert own > least * solar, (population, own, solar)
+    assert sp.massive_star_fraction(8.0, "young") > 0.0

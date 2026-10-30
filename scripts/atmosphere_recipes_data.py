@@ -113,7 +113,7 @@ _SHORE = {"delta": _DELTA, "p_atm": _P_ATM}
 
 MACHINE = {
     # ---- a. mantle redox ----
-    "a1": dict(state="partly verified", kind="param", classes=ROCKY, sets="redox_diw",
+    "a1": dict(state="stand-in", replacement="GEN.1005", kind="param", classes=ROCKY, sets="redox_diw",
                limit="the mean is inside the first-hand ranges at three Solar System anchors (Moon, Mars, Earth) and the width follows their published "
                      "half-ranges (0.5 at 0.1 Earth masses to 0.9 at 1); above 1 Earth mass the rise of 1.0 per dex up to 5.4 Earth masses (where the "
                      "base pressure passes the 140 GPa of the calculations, assuming the base pressure scales as M^0.55) is a stand-in with the "
@@ -129,7 +129,7 @@ MACHINE = {
                      "mu": "clamp(-2 + 1.25*(log10(mass_earth) + 2), -2, 0.5) + clamp(log10(mass_earth), 0, 0.7324)",
                      "sigma": "0.5 + 0.4*clamp(log10(mass_earth) + 1, 0, 1)"}),
     "a2": dict(kind="param", classes=AIR, when=[c("long_lived_geology", equals=True)], sets="redox_diw_later",
-               state="partly verified",
+               state="stand-in", replacement="GEN.1005",
                limit="a straight-line fit to three Solar System anchors (Earth IW+3.5, Mars IW to IW+1, Moon IW to IW-2), each inside one standard "
                      "deviation; no source above 1 Earth mass, so the mean is held at the Earth value there; the later mantle is never below the magma-ocean "
                      "surface of the same body (the sources give a gap of 0 to 3 that grows with mass) (GEN.482, GEN.482b)",
@@ -159,7 +159,7 @@ MACHINE = {
     "a7": dict(kind="option", group="a", classes=ROCKY, weight="phi((redox_diw - 2.5)/0.5)"),
 
     # ---- b. delivered volatile inventory ----
-    "b1": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY + GIANT, when=BELOW_ICE_GIANT, weight="1 - nd", lets=WATER_LETS,
+    "b1": dict(state="stand-in", replacement="GEN.1005", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY + GIANT, when=BELOW_ICE_GIANT, weight="1 - nd", lets=WATER_LETS,
                correction=WATER_CORRECTION),
     "b2": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY + GIANT, when=BELOW_ICE_GIANT, weight="nd - hi", lets=WATER_LETS),
     "b3": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY + GIANT, when=BELOW_ICE_GIANT, weight="hi - ri + (1 - c_b4)*ri", lets=WATER_LETS),
@@ -329,7 +329,7 @@ MACHINE = {
                dists={"CH3OH": {"kind": "loguniform", "lo": 0.002, "hi": 0.026},
                       "NH3": {"kind": "loguniform", "lo": 0.001, "hi": 0.0073},
                       "HCN": {"kind": "loguniform", "lo": 0.0009, "hi": 0.0029}}),
-    "k7": dict(kind="param", classes=["comet", "asteroid"], state="partly verified", tunable=True,
+    "k7": dict(kind="param", classes=["comet", "asteroid"], state="stand-in", replacement="GEN.1005", tunable=True,
                limit="CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, Rubin 2019) with a design width of 0.6 dex and stay stand-in values (GEN.520)",
                dists={**{name: {"kind": "normal", "log10": True, "mu": f"log10({v})", "sigma": sd}
                          for name, v, sd in (("CH4", 6.8e-3, 0.33), ("C2H6", 4.1e-3, 0.33), ("H2CO", 2.5e-3, 0.35), ("H2S", 7.1e-3, 0.39))},

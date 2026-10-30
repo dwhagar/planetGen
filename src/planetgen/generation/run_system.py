@@ -128,14 +128,14 @@ def build_system_config(args):
     (intelligent life implies a habitable world; a habitable world plus
     an asteroid belt implies a large star) are applied last.
 
-    Shared by the `system` and `sector` subcommands (`build_sector_configs`
+    Shared by the `system` and `sector` subcommands (`iter_sector_configs`
     calls this once per system in the sector), so the two can never
     silently drift apart on what a given set of options actually means.
 
     Args:
         args (argparse.Namespace): Parsed arguments (from the `system`
             subcommand, or a namespace shaped the same way, as
-            `build_sector_configs` builds for each system in a sector).
+            `iter_sector_configs` builds for each system in a sector).
 
     Returns:
         SystemConfig: The resolved configuration.

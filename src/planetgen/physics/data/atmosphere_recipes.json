@@ -233,15 +233,17 @@
    "status": "DERIVED",
    "research": [],
    "notes": "sets the first atmosphere; Fe3+/sumFe 0.037+-0.005; GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): the mean is inside the first-hand ranges at the Moon, Mars and Earth, the width and the clamp above 1 Me are not sourced Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses (a class A to Q world of 500 to 1500 km radius) with no redox row at all, and the mean's own clamp already holds -2 below 0.01.",
+   "replacement": "GEN.1005",
    "labels": [
     "READ",
     "COMPUTED",
     "DESIGN"
    ],
-   "state": "partly verified",
+   "state": "stand-in",
    "limit": "the mean is inside the first-hand ranges at three Solar System anchors (Moon, Mars, Earth) and the width follows their published half-ranges (0.5 at 0.1 Earth masses to 0.9 at 1); above 1 Earth mass the rise of 1.0 per dex up to 5.4 Earth masses (where the base pressure passes the 140 GPa of the calculations, assuming the base pressure scales as M^0.55) is a stand-in with the bracket 0 to 2 per dex; the graphite-flotation alternative of Gaillard 2022 is not drawn (GEN.482, GEN.482b)",
-   "replacement": "",
-   "items": [],
+   "items": [
+    "GEN.1005"
+   ],
    "classes": [
     "terrestrial"
    ],
@@ -264,15 +266,17 @@
    "status": "DERIVED",
    "research": [],
    "notes": "far above meteoritic building blocks (part 05 s3.2); GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): inside one standard deviation of the three first-hand anchors, no source above 1 Me A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2); checked against first-hand anchors by GEN.482; GEN.482b holds the mean at the Earth value above 1 Earth mass and takes the larger of a2 and a1 in `draw_redox`.",
+   "replacement": "GEN.1005",
    "labels": [
     "READ",
     "COMPUTED",
     "DESIGN"
    ],
-   "state": "partly verified",
+   "state": "stand-in",
    "limit": "a straight-line fit to three Solar System anchors (Earth IW+3.5, Mars IW to IW+1, Moon IW to IW-2), each inside one standard deviation; no source above 1 Earth mass, so the mean is held at the Earth value there; the later mantle is never below the magma-ocean surface of the same body (the sources give a gap of 0 to 3 that grows with mass) (GEN.482, GEN.482b)",
-   "replacement": "",
-   "items": [],
+   "items": [
+    "GEN.1005"
+   ],
    "classes": [
     "terrestrial"
    ],
@@ -454,15 +458,17 @@
    "status": "DERIVED",
    "research": [],
    "notes": "a_snow ranges 1.8 to 3.4 AU over the bracket Replaced 2026-10-25 (GEN.802): the weights (1-s)^2, 2s(1-s), s^2 with s = 1/(1 + exp(-ln x/0.4)) and the water-rich mass logistic of GEN.510 (centre 6.1 Earth masses) with the gate x >= 1 are one law now: the planets of the population that formed inside the snow line are 26 to 60 percent water-rich at x = 0.55 to 0.75, and the mass dependence at fixed x is weak (the mass law was a migration effect, counted once here).",
+   "replacement": "GEN.1005",
    "labels": [
     "READ",
     "COMPUTED",
     "DESIGN"
    ],
-   "state": "partly verified",
+   "state": "stand-in",
    "limit": "a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because published water-rich shares run from at most 3 percent (Rogers 2025) to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)",
-   "replacement": "",
-   "items": [],
+   "items": [
+    "GEN.1005"
+   ],
    "classes": [
     "terrestrial",
     "giant"
@@ -2541,14 +2547,16 @@
     "R9"
    ],
    "notes": "O2 presence probability unsourced N2, O2, OCS, SO2, Ar, Kr and Xe are built from one measured comet (67P, Rubin 2019) and stay flagged stand-in values; O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) and is not drawn.",
+   "replacement": "GEN.1005",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "partly verified",
+   "state": "stand-in",
    "limit": "CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, Rubin 2019) with a design width of 0.6 dex and stay stand-in values (GEN.520)",
-   "replacement": "",
-   "items": [],
+   "items": [
+    "GEN.1005"
+   ],
    "classes": [
     "comet",
     "asteroid"

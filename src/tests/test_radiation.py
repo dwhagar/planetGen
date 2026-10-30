@@ -15,7 +15,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
-from planetgen.physics import activity, atmosphere, constants, proton_range, radiation as rad, radiogenic, surface_composition
+from planetgen.physics import activity, atmosphere, constants, proton_range, radiation as rad, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -23,7 +23,7 @@ from tests.test_db_persistence import _placed_nebula, _system_point_pc
 
 
 @pytest.mark.parametrize("column, expected", [
-    (0.0, 500.0), (21.0, 232.0), (100.0, 553.0), (200.0, 263.0), (500.0, 17.2), (700.0, 3.02), (1036.0, 0.65)])
+    (0.0, 500.0), (22.6, 232.0), (100.0, 553.0), (200.0, 263.0), (500.0, 17.2), (700.0, 3.02), (1036.0, 0.65)])
 def test_the_no_field_curve_passes_through_the_read_points(column, expected):
     """The Moon (Chang'E-4), Mars (Hassler 2014) and the proton-primary showers of Atri 2013, as read."""
     assert rad.no_field_dose_msv_yr(column) == pytest.approx(expected, rel=1e-9)
@@ -37,8 +37,45 @@ def test_the_curve_reproduces_the_aviation_point_and_sea_level_and_keeps_mars_in
     assert rad.gcr_dose_msv_yr(122.7) == pytest.approx(444.0, rel=0.01)  # the Pfotzer maximum, log interpolation
 
 
-def test_below_the_runs_the_curve_is_the_moon_to_mars_stand_in_and_above_them_it_keeps_falling_to_a_muon_floor():
+def test_a_mountain_station_takes_the_dose_the_aircraft_rule_gives_between_it_and_the_flight_levels():
+    """The dose doubles for every 1800 m of altitude in the aircraft range (PMC7968484, read); from 6.1 km (450 g/cm2) to 12.2 km (190 g/cm2) that
+    is 2^3.4 = 10.5 times, and the runs with Earth's field give it within a third."""
+    earth = rad.EARTH_CUTOFF_GV
+    ratio = rad.gcr_dose_msv_yr(190.0, earth) / rad.gcr_dose_msv_yr(450.0, earth)
+    assert ratio == pytest.approx(10.5, rel=0.35)
+    sea_level = rad.gcr_dose_msv_yr(rad.GCR_SEA_LEVEL_G_CM2, earth)
+    assert sea_level < rad.gcr_dose_msv_yr(700.0, earth) < rad.gcr_dose_msv_yr(450.0, earth)  # 0, 3 and 6 km rise
+
+
+def test_the_thin_air_curve_passes_through_the_moon_and_mars_and_joins_the_runs_at_their_peak():
+    """GEN.746: the value and the measured fall at Mars and the peak at the first run are the three conditions the curve is fitted to."""
+    assert rad.thin_air_dose_msv_yr(0.0) == rad.GCR_MOON_MSV_YR
+    assert rad.thin_air_dose_msv_yr(rad.GCR_MARS_G_CM2) == pytest.approx(rad.GCR_MARS_MSV_YR, rel=1e-6)
+    step = 1e-4
+    slope = ((math.log(rad.thin_air_dose_msv_yr(rad.GCR_MARS_G_CM2 + step)) - math.log(rad.thin_air_dose_msv_yr(rad.GCR_MARS_G_CM2 - step)))
+             / (2 * step))
+    assert slope == pytest.approx(rad.GCR_MARS_LOG_SLOPE_PER_G_CM2, rel=1e-4)
+    first = rad.GCR_SHOWER_POINTS[0]
+    assert rad.thin_air_dose_msv_yr(first[0]) == pytest.approx(first[1], rel=1e-9)
+    assert rad.thin_air_dose_msv_yr(first[0] - 1.0) < first[1] and rad.thin_air_dose_msv_yr(first[0] - 10.0) < first[1]
+    assert rad.thin_air_dose_msv_yr(first[0] + 50.0) == rad.thin_air_dose_msv_yr(first[0])  # held at the join; the runs take over
+
+
+def test_the_thin_air_curve_falls_through_a_minimum_and_rises_to_the_runs_with_the_primaries_length_of_a_heavy_nucleus():
+    """The primaries thin with a length near the collision length of carbon-to-oxygen nuclei (25 g/cm2; the protons' is 90): that length is not
+    a free number but falls out of the Mars value and slope."""
+    columns = [i * 0.5 for i in range(0, 201)]
+    doses = [rad.thin_air_dose_msv_yr(x) for x in columns]
+    low = doses.index(min(doses))
+    assert 20.0 < columns[low] < 50.0 and min(doses) < rad.GCR_MARS_MSV_YR
+    assert doses[:low + 1] == sorted(doses[:low + 1], reverse=True) and doses[low:] == sorted(doses[low:])
+    assert 20.0 < rad.GCR_PRIMARY_LENGTH_G_CM2 < 35.0
+    assert rad.GCR_BUILD_UP_EXPONENT > 1.0 and rad.GCR_SHOWER_LENGTH_G_CM2 > 0.0
+
+
+def test_below_the_runs_the_curve_is_the_thin_air_one_and_above_them_it_keeps_falling_to_a_muon_floor():
     assert 232.0 < rad.no_field_dose_msv_yr(10.0) < 500.0 and 232.0 < rad.no_field_dose_msv_yr(60.0) < 553.0
+    assert rad.no_field_dose_msv_yr(60.0) == rad.thin_air_dose_msv_yr(60.0)
     assert rad.no_field_dose_msv_yr(3000.0) < rad.no_field_dose_msv_yr(1036.0)
     assert rad.no_field_dose_msv_yr(10850.0) == pytest.approx(3.4e-7 * 1e3, rel=0.1)  # Crouch at Titan's column, mSv/yr
     assert rad.no_field_dose_msv_yr(1e6) == pytest.approx(rad._muon_dose_msv_yr(1e6))
@@ -89,13 +126,31 @@ def test_the_modulation_scales_the_dose():
 
 
 def test_proxima_bs_thin_air_breaks_the_flare_shield():
+    """GEN.747: the measured events give the Sun 265 mSv/yr in free space; Proxima's flares scale it by the square root of their rate and the
+    inverse square of the distance. A tenth of a bar lets 11 Sv a year through (Atri 2017: 5 to 10 Sv from one hard event at 700 g/cm2 or less),
+    and a bar of air stops all but a few mSv."""
     free = rad.free_sep_msv_yr(2100.0 * 0.0485 ** 2, 0.0485)
     column = rad.column_g_cm2(10132.5, 1.07)
     assert rad.gcr_dose_msv_yr(column) == pytest.approx(540, rel=0.1)
-    assert rad.sep_dose_msv_yr(free, column, 0.0) == pytest.approx(2300, rel=0.5)
+    assert rad.sep_dose_msv_yr(free, column, 0.0) == pytest.approx(1.06e4, rel=0.1)
+    assert rad.sep_dose_msv_yr(free, column, 0.0) > 5000.0
     dense = rad.column_g_cm2(101325.0, 1.07)
-    assert rad.sep_dose_msv_yr(free, dense, 0.0) < 10.0
-    assert rad.sep_dose_msv_yr(free, dense, 2.2) < rad.sep_dose_msv_yr(free, dense, 0.0)
+    assert rad.sep_dose_msv_yr(free, dense, 0.0) < 20.0
+    assert rad.sep_dose_msv_yr(free, dense, 2.2) <= rad.sep_dose_msv_yr(free, dense, 0.0)
+    assert rad.sep_dose_msv_yr(free, dense, 20.0) < rad.sep_dose_msv_yr(free, dense, 0.0)
+
+
+def test_the_suns_free_space_particle_dose_is_the_measured_events_and_scales_with_the_flares_and_distance():
+    assert rad.free_sep_msv_yr(rad.N33_SUN_PER_YR, 1.0) == solar_particles.FREE_MSV_YR
+    assert rad.free_sep_msv_yr(4 * rad.N33_SUN_PER_YR, 1.0) == pytest.approx(2 * solar_particles.FREE_MSV_YR)
+    assert rad.free_sep_msv_yr(rad.N33_SUN_PER_YR, 2.0) == pytest.approx(solar_particles.FREE_MSV_YR / 4.0)
+    assert rad.free_sep_msv_yr(None, 1.0) == 0.0 and rad.free_sep_msv_yr(0.0, 1.0) == 0.0 and rad.free_sep_msv_yr(1.0, None) == 0.0
+    # Earth's air and field leave the particles of the events nothing: the earth is spared all but 1e-4 mSv/yr
+    earth = rad.sep_dose_msv_yr(solar_particles.FREE_MSV_YR, rad.column_g_cm2(101325.0, 1.0), rad.EARTH_CUTOFF_GV)
+    assert earth < 1e-3
+    # Mars's 22.6 g/cm2 stops the protons below 172 MeV; with no field about a fifteenth of the dose reaches the ground
+    mars = rad.sep_dose_msv_yr(solar_particles.FREE_MSV_YR, 22.6, 0.0)
+    assert mars == pytest.approx(solar_particles.FREE_MSV_YR * 0.072, rel=0.15)
 
 
 def test_the_stellar_particle_cutoff_is_the_pstar_proton_energy():
@@ -151,8 +206,8 @@ def test_the_uv_proxies_are_gone():
 def test_the_stored_uv_index_is_the_dna_dose_of_the_spectrum_below_the_bodys_air():
     from planetgen.physics import body_radiation
 
-    with deterministic_entropy(3):
-        draw.set_run_seed(3)
+    with deterministic_entropy(2):    # a seed whose system holds several rocky planets (the architecture leaves some systems bare)
+        draw.set_run_seed(2)
         system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
     checked = 0
     for body in _bodies(system):
@@ -215,7 +270,7 @@ def _bodies(system):
 
 def test_every_generated_body_has_a_consistent_dose():
     seen = {"rocky": 0, "giant": 0, "ozone": 0}
-    for seed in range(12):
+    for seed in range(24):    # the planet architecture (GEN.728) makes a giant in about 1 system of 10, so 12 seeds held none
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
@@ -275,6 +330,7 @@ def test_a_real_world_gets_a_finite_ground_dose_that_follows_the_rock_of_its_gro
 def test_a_planet_that_loses_half_its_air_keeps_half_its_ozone_and_its_ultraviolet_rises(monkeypatch):
     """GEN.668: a loss event scales the stored ozone column by the share of the air kept, and the UV index follows."""
     body = _rocky_world_with_air()
+    monkeypatch.setattr(rad, "ozone_lost", lambda body: False)       # GEN.808 is tested on its own: here the flares do not hold the ozone down
     monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
     with deterministic_entropy(1):
         rad.generate_dose(body)
@@ -287,6 +343,7 @@ def test_a_planet_that_loses_half_its_air_keeps_half_its_ozone_and_its_ultraviol
 
 def test_an_air_loss_that_keeps_all_of_the_air_changes_nothing_and_one_that_keeps_none_leaves_no_ozone(monkeypatch):
     body = _rocky_world_with_air()
+    monkeypatch.setattr(rad, "ozone_lost", lambda body: False)       # GEN.808 is tested on its own: here the flares do not hold the ozone down
     monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
     with deterministic_entropy(1):
         rad.generate_dose(body)
@@ -358,3 +415,73 @@ def test_entering_and_leaving_a_cloud_moves_the_cosmic_ray_multiplier(mysql_conf
                    for row in rows)
     finally:
         conn.close()
+
+
+def test_a_shallow_flare_slope_puts_more_energy_in_the_big_flares_and_raises_the_particle_dose():
+    """GEN.805: the energy weight of the flare distribution (`flare_alpha`) over 1e33 to 1e36 erg, taken to the square root in the dose."""
+    assert rad.flare_energy_weight(2.0) == 1.0 and rad.flare_energy_weight(None) == 1.0
+    assert rad.flare_energy_weight(1.8) == pytest.approx(2.16, abs=0.02)
+    assert rad.flare_energy_weight(2.2) == pytest.approx(0.54, abs=0.02)
+    assert rad.flare_energy_weight(1.8) > rad.flare_energy_weight(2.0) > rad.flare_energy_weight(2.2)
+    shallow, steep = rad.free_sep_msv_yr(1.0, 0.1, 1.8), rad.free_sep_msv_yr(1.0, 0.1, 2.2)
+    assert shallow > rad.free_sep_msv_yr(1.0, 0.1, 2.0) > steep
+    assert shallow / steep == pytest.approx(math.sqrt(rad.flare_energy_weight(1.8) / rad.flare_energy_weight(2.2)))
+    assert rad.free_sep_msv_yr(1.0, 0.1) == rad.free_sep_msv_yr(1.0, 0.1, 2.0)
+
+
+def test_the_fields_shielding_of_the_flares_is_one_without_a_dipole_and_less_for_a_wider_magnetopause():
+    assert rad.field_shielding(None, "none") == rad.SHIELD_NO_FIELD == 1.0
+    assert rad.field_shielding(10.0, "none") == 1.0 and rad.field_shielding(0.0, "weak") == 1.0
+    assert rad.field_shielding(2.0, "earth-like") == rad.SHIELD_WEAK_FIELD == 0.3
+    assert rad.field_shielding(9.75, "earth-like") == rad.SHIELD_STRONG_FIELD == 0.1
+
+
+def _flared(index, magnetopause_rp, dipole_class, column=1.0, hazard=None):
+    star = types.SimpleNamespace(lethal_event_rate_per_gyr=hazard)
+    return types.SimpleNamespace(star=star, ozone_column_du=column, flare_irradiation_index=index, magnetopause_rp=magnetopause_rp,
+                                 dipole_class=dipole_class)
+
+
+def test_proxima_b_without_a_field_loses_its_ozone_and_earth_does_not():
+    """The design note section 2.3: flare irradiation index times f_B at 300; Proxima b about 2,100 and Earth 0.003."""
+    assert rad.ozone_lost(_flared(2100.0, None, "none"))
+    assert rad.ozone_lost(_flared(2100.0, 2.0, "earth-like"))                 # 630 even through a squeezed field
+    assert not rad.ozone_lost(_flared(2100.0, 9.0, "earth-like"))               # 210 through a wide one
+    assert not rad.ozone_lost(_flared(0.003, None, "none"))
+    assert rad.ozone_lost(_flared(300.0, None, "none")) and not rad.ozone_lost(_flared(299.0, None, "none"))
+    assert not rad.ozone_lost(_flared(2100.0, None, "none", column=0.0))        # nothing to lose
+    assert rad.ozone_lost(_flared(0.0, None, "none", hazard=rad.LETHAL_EVENT_LIMIT_PER_GYR * 2))      # the galaxy's events
+    assert not rad.ozone_lost(_flared(None, None, None))
+
+
+def _world_with_air():
+    for seed in range(80):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for body in _bodies(system):
+            if body.body_type == "t" and (body.atmospheric_pressure or 0.0) > 0.0 and (body.atmosphere or {}) and not body.is_moon:
+                body.draw_seed = seed
+                if atmosphere.partial_kpa(body, "o2") > 0.0 and body.star.temperature:
+                    return body
+    raise AssertionError("no seed gave a rocky world with oxygen")
+
+
+def test_a_world_whose_ozone_is_lost_keeps_a_tenth_of_it_and_takes_more_ultraviolet():
+    """GEN.808: the flag lowers the stored column and the DNA-weighted UV index of the surface follows it."""
+    body = _world_with_air()
+    body.star.lethal_event_rate_per_gyr = 0.0
+
+    body.magnetic_moment_a_m2, body.magnetopause_rp, body.dipole_class = 0.0, None, "none"
+
+    def run(index):
+        body.flare_irradiation_index = index
+        draw.set_run_seed(808)
+        rad.generate_dose(body)
+        return body.ozone_loss_flag, body.ozone_column_du, body.uv_surface_index
+
+    quiet = run(0.0)
+    flared = run(2100.0)
+    assert quiet[0] is False and flared[0] is True
+    assert flared[1] == pytest.approx(quiet[1] * rad.OZONE_LOSS_REMAINING)
+    assert flared[2] > quiet[2]

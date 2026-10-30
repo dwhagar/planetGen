@@ -89,9 +89,11 @@ The mean over a population's ages weights each by the star formation there (the 
 `galaxy.age_law`; the others uniformly over their windows), and the mean over a galaxy or a cell weights each population by
 its systems (`density.population_units`: the thin disk shared among its populations, the thick disk in `old`, the bulge, the
 nuclear cluster and disc, the halo). By systems and not by mass because the density counts systems. For the reference
-galaxy: young 0.71, intermediate 0.54, old 0.48, bulge 0.47, halo 0.47, so **0.483 solar masses** a system overall, a
-placed star of 0.35 (what Kroupa's function gives) times 1.42 stars a system. The reference galaxy holds 1.03e11 systems (it
-held 1.25e11 at 0.4) and its density at the reference radius is 0.62 of the pinned local density (0.750 at 0.4): the gap
+galaxy: young 0.72, intermediate 0.57, old 0.51, bulge 0.50, halo 0.49, so **0.508 solar masses** a system overall, a
+primary drawn from the primary mass function (GEN.928: the Chabrier function less the companions of heavier primaries; the
+Kroupa function gave 0.483 with these words: a placed star of 0.35 times 1.42 stars a system) times 1.43 stars a system. The
+reference galaxy holds 0.98e11 systems (1.03e11 on the Kroupa function, 1.25e11 at 0.4) and its density at the reference
+radius is 0.59 of the pinned local density (0.62 on the Kroupa function, 0.750 at 0.4): the gap
 that remains is real if the pinned density (Mamajek's 0.0984 stars per pc^3) counts the stars of a system singly, as it
 probably does, since a system here holds 1.42 of them. The compact companions of massive stars' trees add under 0.2% (not
 counted), and so do the companions of the remnants the scatter places (a few percent of those systems). A test draws the
@@ -176,7 +178,10 @@ thick disk is old. The cluster population (10 to 13 Gyr) is 0 until the cluster 
 density. The thin disk is shared by each population's share of star
 formation, its own scale height (`structure.population_height_ratios`, GEN.532: the squared vertical
 dispersion of the population over the old disc's, thinner for younger stars) and its own arm contrast
-(`STELLAR_POPULATION_ARM_AMPLITUDE`, strongest for young stars). The parts
+(`STELLAR_POPULATION_ARM_AMPLITUDE`, strongest for young stars: 0.75, 0.42 and 0.10 for the young, intermediate and old,
+GEN.931; the old disk is the observed contrast of about 10% (Eilers et al. 2020; Drimmel and Spergel 2001), the young one the
+gas ratio of 4 to the Kennicutt-Schmidt index 1.4, and the intermediate one falls with the log of the age between them;
+registry 6.65). The parts
 always sum to `relative_density`. Each system in a galaxy sector draws its
 star's population from this mix, so O and B stars and supergiants gather in
 the arms near the plane (CHANGELOG 7.38.0).

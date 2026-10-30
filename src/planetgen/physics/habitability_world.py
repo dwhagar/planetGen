@@ -157,6 +157,8 @@ def values_from_body(body):
         "water_activity": getattr(body, "water_activity", None),
         "phosphorus": getattr(body, "phosphorus", None),
         "water_mass_fraction": getattr(body, "water_mass_fraction", None),
+        "ice_mass_fraction": getattr(body, "ice_mass_fraction", None),
+        "rock_mg_si_ratio": getattr(body, "rock_mg_si_ratio", None),
         "aquifer_depth_km": getattr(body, "aquifer_depth_km", None),
         "aquifer_thickness_km": getattr(body, "aquifer_thickness_km", None),
         "surface_dose_msv_yr": getattr(body, "surface_dose_msv_yr", None),
@@ -240,7 +242,7 @@ def groundwater(values):
 
 def solvent(values):
     """"water", "hydrocarbon" or `None`: the stable liquid life would use."""
-    if values.get("hydrosphere") in ("surface ocean", "hycean", "ice-covered ocean") or groundwater(values) != "none":
+    if values.get("hydrosphere") in ("surface ocean", "brine seep", "hycean", "ice-covered ocean") or groundwater(values) != "none":
         return "water"
     temperature = values["surface_temperature_k"]
     methane = atmosphere.partial_kpa(values, "ch4")
@@ -253,7 +255,7 @@ def solvent(values):
 def water_source(values):
     """What a base can draw water from (`habitability.WATER_SOURCE_FACTOR`)."""
     state = values.get("hydrosphere")
-    if state in ("surface ocean", "hycean"):
+    if state in ("surface ocean", "brine seep", "hycean"):
         return "liquid"
     if state in ("ice", "ice-covered ocean"):
         return "ice"

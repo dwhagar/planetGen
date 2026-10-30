@@ -167,6 +167,11 @@ def _makeup(kind, components, porosity, albedo=None, detail=None, densities=None
                            albedo, detail or {}, dict(densities or {}))
 
 
+def makeup_from_components(kind, components, porosity, detail=None):
+    """The makeup of a body whose grains are the rows `components` of the shared materials table (mass fractions, normalised here) at the porosity `porosity`; `kind` and `detail` as stored."""
+    return _makeup(kind, components, porosity, detail=detail)
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # The taxa of a belt or field
 

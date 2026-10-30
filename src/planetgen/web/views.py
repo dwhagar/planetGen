@@ -14,7 +14,8 @@ from planetgen.web.lib import apiclient
 from planetgen.web.lib.slowroute import slow_route
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, plain, read_from_start
 from planetgen.web.lib.fmt import (
-    format_density, format_distance_ly, format_luminosity_sol, format_members, format_number, format_mass_solar)
+    format_density, format_distance_ly, format_luminosity_sol, format_members, format_number, format_mass_solar,
+    measured_html)
 from planetgen.web.scatter_members_view import members_view
 from planetgen.web.maps.galaxymap import sector_quadrant
 
@@ -78,7 +79,9 @@ def _system_row(system, with_sector):
         row.append({"text": system["sector_name"], "href": page_url("sector", sector_id=system["sector_id"])}
                    if system.get("sector_id") else {"text": "Standalone"})
         row.append({"text": system.get("quadrant") or "\u2013"})
-    row.append({"text": "Yes" if system["is_binary"] else "No"})
+    row.append({"text": str(system["star_count"])})
+    row.append({"text": str(system["object_count"])})
+    row.append({"text": "Yes" if system["has_habitable_world"] else "No"})
     row.append({"text": system["star_summary"] or "\u2013"})
     return row
 
@@ -109,8 +112,9 @@ def _all_systems_load(state, limit, offset, want_facets, after=None):
 
 ALL_SYSTEMS_TABLE = tables.register(Table(
     "systems", "All systems",
-    [Column("name", "Name"), Column("sector", "Sector"), Column("octant", "Octant"), Column("binary", "Binary"),
-     Column("star_type", "Star type", sortable=False)],
+    [Column("name", "Name"), Column("sector", "Sector"), Column("octant", "Octant"),
+     Column("stars", "Stars", sortable=False), Column("objects", "Objects", sortable=False),
+     Column("habitable", "Habitable world", sortable=False), Column("star_type", "Star type", sortable=False)],
     _all_systems_load,
     facets=[Facet("placement", "Where"), Facet("binary", "Stars"), Facet("octant", "Octant")],
     prefix="systems_", noun=("system", "systems"), keyset=True, jump={"name": "A letter or the start of a name", "sector": "A sector name or its first letters"},
@@ -276,6 +280,8 @@ def uncharted_star(bright_star_id):
         ("Temperature", f"{format_number(round(detail['temperature_k']))} K"),
         ("Mass", format_mass_solar(detail["mass_solar"])),
         ("Age", f"{detail['age_gy']:.2f} Gyr"),
+        *([("Rotation period", measured_html("h", detail["rotation_period_hours"]))]
+          if detail.get("rotation_period_hours") is not None else []),
         ("Sector cell", f"{detail['designation']} (shell {detail['shell_index']}, band {detail['band_index']}, "
                         f"wedge {detail['wedge_index']})"),
         ("Position x, y, z", ", ".join(f"{detail[axis]:.2f}" for axis in ("x", "y", "z")) + " pc"),
@@ -350,6 +356,7 @@ def search():
         state=state,
         name_fields=searchpage.NAME_FIELDS,
         size_entities=searchpage.SIZE_ENTITIES,
+        star_choices=searchpage.STAR_COUNT_CHOICES,
         autocomplete=data["autocomplete"],
         tag_groups=searchpage.tag_groups(state, data["facets"]),
         chips=searchpage.active_filters(state, data["facet_labels"]),

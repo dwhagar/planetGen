@@ -14,7 +14,7 @@ import random
 
 import pytest
 
-from planetgen.generation import star as starData, star_population
+from planetgen.generation import star_population
 from planetgen.physics import constants, imf, main_sequence, stellar_evolution
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
@@ -157,7 +157,7 @@ def test_star_params_shape_and_units():
     assert set(params) == {"type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
                            "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "metallicity_fe_h"}
     assert params["temperature_k"] % 100 == 0
-    assert params["mass_kg"] == pytest.approx(constants.SOLAR_MASS_TO_KG)
+    assert params["mass_kg"] == pytest.approx(constants.SOLAR_MASS_TO_KG, rel=1e-3)      # MIST: the Sun has lost 1e-4 by now
     assert params["type"].endswith("Main Sequence Star")
 
 
@@ -171,11 +171,12 @@ def test_white_dwarf_params_keep_the_radius_of_the_cooling_sequences():
 
 @pytest.mark.parametrize("mass, ms_fraction, yerkes", [
     (1.0, 0.1, "V"), (1.0, 1.04, "IV"), (1.0, 1.09, "III"), (1.0, 1.25, "VII"),
-    (6.0, 1.15, "II"), (6.0, 1.25, "VII"),
+    (6.0, 1.05, "II"), (6.0, 1.2, "VII"),
 ])
 def test_evolve_star_phases_follow_age(mass, ms_fraction, yerkes):
     """Phase boundaries are multiples of the main-sequence lifetime: a solar-mass star leaves the subgiant phase at 1.05
-    of it and its giant branch ends at 1.12 (GEN.502, Hurley, Pols and Tout 2000); a 6 solar mass star keeps 1.1 and 1.2."""
+    of it and its giant branch ends at 1.12 (GEN.502, Hurley, Pols and Tout 2000); a 6 solar mass star is a bright giant
+    burning helium in its core until 1.13 of it (the MIST track, GEN.935) and a white dwarf after."""
     age = stellar_evolution.main_sequence_lifetime_gy(mass) * ms_fraction
     rng = random.Random(7)
     state = stellar_evolution.evolve_star(mass, age, rng, fe_h=0.0)
@@ -183,14 +184,13 @@ def test_evolve_star_phases_follow_age(mass, ms_fraction, yerkes):
     assert age < state["phase_end_gy"]
 
 
-def test_evolve_star_supergiant_luminosity_honours_a_minimum():
+def test_evolve_star_supergiant_luminosity_follows_the_track_from_the_end_of_the_main_sequence():
     mass = 20.0
     t_ms = stellar_evolution.main_sequence_lifetime_gy(mass)
     rng = random.Random(11)
-    growth_low, growth_high = PC.SUPERGIANT_LUMINOSITY_GROWTH_RANGE
-    floor = stellar_evolution.main_sequence_end_luminosity_sol(mass, 0.0) * (growth_low + growth_high) / 2
+    floor = stellar_evolution.main_sequence_end_luminosity_sol(mass, 0.0) * 0.9
     for _ in range(20):
-        state = stellar_evolution.evolve_star(mass, t_ms * 1.05, rng, min_luminosity_sol=floor, fe_h=0.0)
+        state = stellar_evolution.evolve_star(mass, t_ms * 1.01, rng, min_luminosity_sol=floor, fe_h=0.0)
         assert state["luminosity_sol"] >= floor
         assert state["yerkes_class"] in ("IB", "IAB", "IA", "0")
 
@@ -296,17 +296,33 @@ def test_effective_temperature_rejects_a_zero_radius():
 
 
 def test_spectral_letter_clamps_outside_the_table():
-    ranges = constants.TEMP_RANGES
-    assert stellar_evolution.spectral_letter_and_subclass(ranges["O"][1] * 10) == ("O", 0)
+    assert stellar_evolution.spectral_letter_and_subclass(1.0e6) == ("O", 0)
     assert stellar_evolution.spectral_letter_and_subclass(1.0) == ("M", constants.SUBCLASS_MAX_VALUE)
 
 
+@pytest.mark.parametrize("temperature, expected", [
+    (44900, ("O", 3)), (33300, ("O", 9)), (20600, ("B", 2)), (9700, ("A", 0)), (6550, ("F", 5)), (5770, ("G", 2)),
+    (5270, ("K", 0)), (3930, ("K", 9)), (3850, ("M", 0)), (3060, ("M", 5)), (2380, ("M", 9)),
+])
+def test_spectral_types_are_the_mamajek_sequence(temperature, expected):
+    """GEN.943: the Sun is G2, K0 is 5,270 K and the K/M edge is near 3,900 K (the types of the Pecaut and Mamajek table)."""
+    assert stellar_evolution.spectral_letter_and_subclass(temperature) == expected
+
+
+def test_the_k_m_boundary_is_near_3900_k():
+    assert stellar_evolution.spectral_letter_and_subclass(3900)[0] == "K"
+    assert stellar_evolution.spectral_letter_and_subclass(3880)[0] == "M"
+
+
 def test_spectral_subclass_runs_hot_to_cool_within_a_letter():
-    low, high = constants.TEMP_RANGES["G"]
-    hot = stellar_evolution.spectral_letter_and_subclass(high - 1)
-    cool = stellar_evolution.spectral_letter_and_subclass(low + 1)
-    assert hot[0] == cool[0] == "G"
-    assert hot[1] == 0 and cool[1] == constants.SUBCLASS_MAX_VALUE
+    previous = (-1, -1)
+    for kelvin in range(5980, 5330, -10):
+        letter, subclass = stellar_evolution.spectral_letter_and_subclass(kelvin)
+        assert letter == "G"
+        assert subclass >= previous[1] or previous[0] != letter
+        previous = (letter, subclass)
+    assert stellar_evolution.spectral_letter_and_subclass(5980) == ("G", 0)
+    assert stellar_evolution.spectral_letter_and_subclass(5330) == ("G", 9)
 
 
 # --- white dwarf radius ---------------------------------------------------
@@ -390,18 +406,6 @@ def test_no_living_star_raises_after_max_redraws(monkeypatch):
         stellar_evolution.sample_living_star(rng=random.Random(1))
 
 
-def test_evolved_mass_sampler_raises_for_a_range_too_light_to_have_evolved():
-    with pytest.raises(ValueError, match=r"Could not sample a mass in \[0.1, 0.2\] Msun"):
-        starData._sample_evolved_star_mass_sol(0.1, 0.2)
-
-
-def test_evolved_mass_sampler_accepts_only_masses_that_have_evolved():
-    for _ in range(50):
-        mass = starData._sample_evolved_star_mass_sol(0.5, 3.0)
-        assert 0.5 <= mass <= 3.0
-        assert stellar_evolution.main_sequence_lifetime_gy(mass) <= PC.UNIVERSE_AGE_GY
-
-
 @pytest.mark.parametrize("threshold", [math.nan, math.inf, "10", None])
 def test_bright_threshold_must_be_finite(threshold):
     with pytest.raises(ValueError, match="luminosity threshold must be a finite number"):
@@ -463,33 +467,26 @@ def test_map_luminosity_is_within_a_factor_of_the_star_generators_main_sequence(
 # --- planetary-nebula central stars (GEN.149) ------------------------------
 
 @pytest.mark.parametrize("star_type", list(tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES))
-def test_hot_white_dwarf_central_stars_match_observed_cores(star_type):
-    """Real central stars are 0.5 to 0.7 Msun and 1e2 to 1e4 Lsun, no hotter than 2e5 K."""
-    low_mass, high_mass = constants.HOT_WHITE_DWARF_MASS_RANGE_SOL
-    low_lum, high_lum = constants.HOT_WHITE_DWARF_LUMINOSITY_RANGE_SOL
-    masses = []
-    for _ in range(60):
+def test_hot_white_dwarf_central_stars_are_the_models_hot_white_dwarfs(star_type):
+    """A central star is a white dwarf the star model makes at that temperature (GEN.941): a remnant of 0.5 to 1.3 Msun
+    whose luminosity and radius follow from its cooling and mass, as hot as its letter says."""
+    for _ in range(20):
         star = make_star(star_type)
         mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
-        luminosity_sol = star.luminosity / constants.SOLAR_LUMINOSITY
-        assert low_mass <= mass_sol <= high_mass
-        assert low_lum * 0.999 <= luminosity_sol <= high_lum * 1.001
-        assert 30000 <= star.temperature <= 200000
-        masses.append(mass_sol)
-    assert sum(masses) / len(masses) == pytest.approx(constants.HOT_WHITE_DWARF_MEDIAN_MASS_SOL, abs=0.02)
+        assert star.yerkes_class == "VII"
+        assert 0.5 <= mass_sol <= 1.3
+        assert star.temperature >= constants.COOL_WHITE_DWARF_BELOW_K
+        assert star.lifespan == float("inf")
 
 
-def test_hot_white_dwarf_temperature_follows_the_subclass_up_to_200000_k():
-    hottest = make_star("O0VII").temperature
-    assert hottest == 200000
-    assert make_star("O3VII").temperature > constants.TEMP_RANGES["O"][1]
-    assert make_star("B0VII").temperature == 30000
+def test_hot_white_dwarf_temperature_follows_the_subclass():
     assert make_star("O3VII").temperature > make_star("O9VII").temperature >= make_star("B0VII").temperature
+    assert make_star("B0VII").temperature >= constants.TEMP_RANGES["B"][1] * 0.9
 
 
 def test_cool_white_dwarfs_keep_their_own_mass_and_temperature_ranges():
     star = make_star("M2VII")
-    assert star.mass / constants.SOLAR_MASS_TO_KG <= constants.COOL_WHITE_DWARF_MAX_MASS_SOL
+    assert star.mass / constants.SOLAR_MASS_TO_KG <= 1.3
     assert star.temperature <= constants.TEMP_RANGES["M"][1]
 
 

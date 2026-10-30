@@ -7,7 +7,7 @@ the fill places them when it builds the row's system, and the page says so.
 """
 
 from planetgen.db.compact_pairs import KINDS as PAIR_KINDS
-from planetgen.web.lib.fmt import format_distance_au, format_mass_solar, format_number, format_period_years
+from planetgen.web.lib.fmt import format_distance_au, format_mass_solar, format_number, format_period_years, format_power_w
 
 _KIND_LABELS = {
     "main-sequence": "Main-sequence star", "giant": "Giant", "white-dwarf": "White dwarf",
@@ -17,7 +17,7 @@ _KIND_LABELS = {
 }
 """dict: `scatter_members.kind` -> its label."""
 
-_ORBIT_LABELS = {"close": "Close pair", "wide": "Wide pair", "compact": "Compact pair", "group": "Young group"}
+ORBIT_LABELS = {"close": "Close pair", "wide": "Wide pair", "compact": "Compact pair", "group": "Young group"}
 """dict: `scatter_nodes.kind` -> its label."""
 
 
@@ -32,7 +32,7 @@ def _member_label(row):
 def _orbit_label(row, members, age_gy):
     """The node kind's label; a young group's also says how long it has left (GEN.327): its members' decay age less the
     star's age, "Young group, about 21 thousand years left" (a group is only stored while that is positive)."""
-    label = _ORBIT_LABELS.get(row["kind"], row["kind"].capitalize())
+    label = ORBIT_LABELS.get(row["kind"], row["kind"].capitalize())
     if row["kind"] != "group" or age_gy is None:
         return label
     decay = next((m["decay_age_yr"] for m in members if m["parent_node_no"] == row["node_no"]
@@ -45,14 +45,16 @@ def _orbit_label(row, members, age_gy):
 
 def _pair_rows(tree):
     """The compact binaries of a tree as page rows (UX.186): the node, the kind of pair, the compact object, its companion and
-    whether it is a microquasar. A spider's flag is the pair's kind, so it has none."""
+    whether it is a microquasar and its X-ray luminosity (GEN.952). A spider's flag is the pair's kind, so it has none, and a
+    dash stands for a luminosity that is not worked out (a spider, or a tree stored before its members kept a radius)."""
     labels = {row["member_no"]: _member_label(row) for row in tree.get("members") or []}
     rows = []
     for pair in tree.get("compact_pairs") or []:
         microquasar = "\u2013" if pair["kind"] in ("black-widow", "redback") else "Yes" if pair["microquasar"] else "No"
         rows.append([str(pair["node_no"] + 1), PAIR_KINDS[pair["kind"]],
                      f"{pair['compact'] + 1}: {labels[pair['compact']]}",
-                     f"{pair['companion'] + 1}: {labels[pair['companion']]}", microquasar])
+                     f"{pair['companion'] + 1}: {labels[pair['companion']]}", microquasar,
+                     "\u2013" if pair.get("x_ray_luminosity_w") is None else format_power_w(pair["x_ray_luminosity_w"])])
     return rows
 
 

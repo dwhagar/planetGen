@@ -93,10 +93,12 @@ def collisional_constant(lower_au, upper_au, star_mass_solar, largest_km, densit
 
 @finite_domain()
 def belt_mass_earth(primordial_earth, lower_au, upper_au, star_mass_solar, age_myr, largest_km):
-    """What is left of a belt of `primordial_earth` Earth masses after `age_myr`: `1 / (1 / M0 + t / A)` (Wyatt et al. 2007, Eq. 14 with the mass-dependent lifetime)."""
+    """What is left of a belt of `primordial_earth` Earth masses after `age_myr`: `1 / (1 / M0 + t / A)` (Wyatt et al. 2007, Eq. 14 with the mass-dependent lifetime); all of it if `Dc` is so large that `A` has no meaning (`Xc` over 1)."""
     if not (primordial_earth > 0.0 and age_myr >= 0.0):
         raise ValueError("the primordial mass must be positive and the age zero or more")
     a = collisional_constant(lower_au, upper_au, star_mass_solar, largest_km)
+    if a <= 0.0:       # G(Xc) <= 0 past Xc = 1: the largest bodies are too strong for the belt's collisions to disrupt, the cascade never starts and the belt keeps what formed (GEN.1061)
+        return primordial_earth
     return 1.0 / (1.0 / primordial_earth + age_myr / a)
 
 

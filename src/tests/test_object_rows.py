@@ -5,7 +5,7 @@ import types
 import pytest
 
 from planetgen.db import models, object_rows, store
-from planetgen.physics import atmosphere, constants
+from planetgen.physics import atmosphere, constants, life_classes
 
 KIND_FIELDS = {
     "stars": store.STAR_FIELDS, "planets": store.PLANET_FIELDS, "moons": store.MOON_FIELDS, "asteroid_belts": store.BELT_FIELDS, "comets": store.COMET_FIELDS,
@@ -127,7 +127,7 @@ def _system(seed):
 
 @_pytest.mark.parametrize("seed", [1, 2, 3])
 def test_a_star_is_read_back_as_the_dict_it_was_written_from(seed):
-    star = _system(seed).star
+    star = _system(seed).primary_star       # a binary pair is saved as its two stars, not as the proxy that stands for both
     row = _stored(store.STAR_FIELDS, star, _STAR_CONTEXT)
     loaded = store._star_row_to_dict(row, 12.5)
     assert loaded["galactic_orbital_speed_kms"] == 12.5
@@ -165,9 +165,10 @@ class _Rows(list):
 
 
 class _SpectrumConnection:
-    def __init__(self, layers=None, gases=None):
+    def __init__(self, layers=None, gases=None, scores=None):
         self.layers = layers or []
         self.gases = gases or {}
+        self.scores = scores or {}
 
     def execute(self, sql, params=()):
         if "_interior_layers" in sql:
@@ -175,6 +176,9 @@ class _SpectrumConnection:
         if "_gases" in sql:  # DB.71: the air is read from planet_gases or moon_gases, one row a gas
             column = "moon_id" if "moon_gases" in sql else "planet_id"
             return _Rows([{column: params[0], "gas": gas, "partial_pa": pa} for gas, pa in self.gases.items()])
+        if "_life_class_scores" in sql:  # GEN.889: the class scores are read from planet_life_class_scores or moon_life_class_scores
+            column = "moon_id" if "moon_life_class_scores" in sql else "planet_id"
+            return _Rows([{column: params[0], "life_class": name, "score": score} for name, score in self.scores.items()])
         return _Rows([{"spectrum_type": "visible", "value": 1.5}, {"spectrum_type": "non_visible", "value": 3.5}])
 
 
@@ -191,7 +195,7 @@ def _check_bodies(system, checked):
         if hasattr(body, "moons"):
             row = _stored(store.PLANET_FIELDS, body, context)
             row["id"] = 7
-            loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(body.interior_layers, getattr(body, atmosphere.GAS_FIELD, None)), row, False)
+            loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(body.interior_layers, getattr(body, atmosphere.GAS_FIELD, None), getattr(body, life_classes.SCORES_FIELD, None)), row, False)
             original = body.to_dict()
             for key in set(loaded) - {"moons", "reflection_spectrum_visible", "reflection_spectrum_non_visible"}:
                 _same(original[key], loaded[key])
@@ -200,7 +204,7 @@ def _check_bodies(system, checked):
             for moon in body.moons:
                 row = _stored(store.MOON_FIELDS, moon, dict(context, planet_id=7))
                 row["id"] = 8
-                loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(moon.interior_layers, getattr(moon, atmosphere.GAS_FIELD, None)), row, True)
+                loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(moon.interior_layers, getattr(moon, atmosphere.GAS_FIELD, None), getattr(moon, life_classes.SCORES_FIELD, None)), row, True)
                 assert "reflex_offset_x" not in loaded and loaded["is_moon"] is True
                 original = moon.to_dict()
                 for key in set(loaded) - {"moons", "reflection_spectrum_visible", "reflection_spectrum_non_visible",

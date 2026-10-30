@@ -51,6 +51,13 @@ def _pass(floor=FLOOR):
     return fractions, [scatter_limits.PassBand(floor, None, None)]
 
 
+SMALL_SATELLITE_MASS = 2.0e7
+"""A Cloud a tenth the default's mass: it still places ten thousand stars, and a test that draws it five times takes a minute and not twelve."""
+
+YOUNG_SATELLITE_MASS = 5.0e7
+"""The least Cloud mass at which the gas-rich Cloud places young massive stars at this floor (2e7 draws none of them)."""
+
+
 def _stars(found, seed=SEED, floor=FLOOR, **kwargs):
     fractions, bands = _pass(floor)
     return list(component_pass.scatter_stars(found, EDGE, seed, fractions, bands, **kwargs))
@@ -89,7 +96,7 @@ def test_the_count_is_the_systems_times_the_share_the_population_keeps():
 
 
 def test_a_stars_row_sits_in_its_cell_and_is_a_star_of_its_components_population():
-    rows = _stars([_cluster(), _satellite()])
+    rows = _stars([_cluster(), _satellite(mass=YOUNG_SATELLITE_MASS)])
     assert len(rows) > 100
     columns = dict(zip(store.BRIGHT_STAR_COLUMNS, rows[0]))
     assert columns["population"] in component_field.POPULATIONS_IN_THE_GATE
@@ -103,7 +110,7 @@ def test_a_stars_row_sits_in_its_cell_and_is_a_star_of_its_components_population
 
 
 def test_the_same_seed_gives_the_same_stars_and_a_component_does_not_depend_on_the_others():
-    first, second = _cluster(), _satellite()
+    first, second = _cluster(), _satellite(mass=SMALL_SATELLITE_MASS)
     both = _stars([first, second])
     assert both == _stars([first, second]) and both != _stars([first, second], seed=SEED + 1)
     by_population = lambda rows, population: [row for row in rows if row[6] == population]
@@ -375,7 +382,8 @@ def test_a_large_components_phenomena_are_a_unit_per_slice_that_add_up_at_any_or
     params = {"database": wrapper.database_args(mysql_config), "min_mass_solar": 8.0, "seed": 77}
     expansion = run_plan.expand_scatter_phenomena(params)
     shape = run_plan._PhenomenaShape.from_json(expansion.plan)
-    plan = {key: value for key, value in expansion.plan.items() if key != "filled"}
+    # The plan also says how many outline shells and what mass limit the stage's clock reads (PERF.212, `outline_shells`, `min_mass_solar`): not the shape's.
+    plan = {key: value for key, value in expansion.plan.items() if key not in ("filled", "outline_shells", "min_mass_solar")}
     assert shape.to_json() == plan == json.loads(json.dumps(plan))
     assert len(shape.component_parts) > 2
     assert all(shape.tasks[key][0][2] <= 40000.0 * 1.0001 for key in shape.component_parts)

@@ -226,7 +226,7 @@ def _phenomenon(name, scattered, scatter_id=None):
             "radius_ly": 0.0, "sector_id": None, "sector_name": None, "placed": True, "scattered": scattered}
 
 
-def test_the_phenomena_table_gives_a_next_key_only_when_a_page_ends_in_the_scattered_tail(site):
+def test_the_phenomena_table_gives_a_next_key_for_a_scattered_row_and_for_a_built_row_in_every_sort(site):
     client, patch, apiclient = site
     seen = {}
 
@@ -239,4 +239,5 @@ def test_the_phenomena_table_gives_a_next_key_only_when_a_page_ends_in_the_scatt
     fake.rows = [_phenomenon("Built", False), _phenomenon("Uncharted black hole 1", True, 77)]
     assert client.get("/table/phenomena?after=70&limit=2").get_json()["next"] == 77 and seen["after"] == "70"
     fake.rows = [_phenomenon("Built", False)]
-    assert client.get("/table/phenomena?limit=2").get_json()["next"] is None
+    assert client.get("/table/phenomena?limit=2").get_json()["next"] == "black_hole:5"       # by name: PERF.205
+    assert client.get("/table/phenomena?limit=2&sort=type").get_json()["next"] == "black_hole:5"     # and in every sort: PERF.211

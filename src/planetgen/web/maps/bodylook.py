@@ -25,7 +25,7 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     pkpa        surface pressure, kPa
     tempK       mean surface temperature, K (a star's effective temperature)
     radiusKm    radius
-    hydro       `hydrosphere` (dry, vapour, ice, ice-covered ocean, surface ocean, hycean)
+    hydro       `hydrosphere` (dry, vapour, ice, ice-covered ocean, surface ocean, brine seep, hycean)
     ocean       fraction of the surface under ocean, 0 to 1
     land        fraction of the surface above sea level, 0 to 1
     oceanClass  ice-sealed, chloride brine, acid sulfate, soda or neutral
@@ -49,7 +49,7 @@ import json
 import math
 from types import SimpleNamespace
 
-from planetgen.physics import atmosphere, atmosphere_colour, giant_colour, photometry
+from planetgen.physics import atmosphere, atmosphere_colour, giant_colour, photometry, stellar_library
 from planetgen.web.maps.starmap import star_color
 from planetgen.physics import unit_registry as units
 
@@ -192,12 +192,14 @@ def planet_look(planet, kind="planet"):
 
 
 def star_surface_color(star):
-    """The colour of a star's disc: the blackbody-based `photometry.star_colour` of its effective temperature (the
-    same function the sky colour assumes for the star, so the two agree), else the spectral-letter colour."""
+    """The colour of a star's disc: that of its model atmosphere (`stellar_library.star_colour`, GEN.971: the spectrum the sky colour
+    assumes for the star, so the two agree) at its effective temperature and surface gravity, else the spectral-letter colour."""
     temperature_k = star.get("temperature_k")
     if temperature_k and temperature_k > 0:
+        mass_kg, radius_km = star.get("mass_kg"), star.get("radius_km")
+        logg = stellar_library.surface_logg(mass_kg, radius_km) if mass_kg and radius_km else stellar_library.DEFAULT_LOGG
         try:
-            return photometry.star_colour(float(temperature_k)).hex
+            return stellar_library.star_colour(float(temperature_k), logg).hex
         except ValueError:
             pass
     return star_color(star["star_type"], temperature_k, star["luminosity_w"])[0]

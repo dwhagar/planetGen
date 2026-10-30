@@ -323,9 +323,13 @@ def _fill_context(args, address):
             return None
         profile = sector_profile(address, skeleton)
         limits, backfill_seed = run_plan._scatter_limits_and_seed(conn, skeleton)
-        resolution = galaxyResolution.cell_resolution(
-            profile, skeleton.cell_star_ceiling, skeleton.fill_luminosity_cap_sol,
-            limits.mass_limit_at(address[0], address[1]))
+        # The resolution reads the reference metallicity, which depends on the galaxy's own disk scale length: bind the
+        # galaxy as the fill will, so the cell is aimed at the number its stored stats then record.
+        with galaxySeed.seeded(skeleton.galaxy_seed, "sector", address,
+                               disk_scale_length_pc=skeleton.shape.disk_scale_length_pc, shape=skeleton.shape):
+            resolution = galaxyResolution.cell_resolution(
+                profile, skeleton.cell_star_ceiling, skeleton.fill_luminosity_cap_sol,
+                limits.mass_limit_at(address[0], address[1]))
         if resolution.capped:
             # GEN.281: a cell above the ceiling is taken down to the cap and no further.
             run_plan._draw_sector_bands(conn, skeleton, [tuple(address)], resolution.luminosity_cap_sol,
@@ -609,8 +613,8 @@ class BackfillFollower(followed.Follower):
     given, and the unit that completes the stage stores the stage's row.
 
     Args:
-        started_at (datetime): The database's clock when the run started: the backfill goes out from the sectors
-            created since.
+        started_at (datetime): The database's clock when the run started (or the deferred clock of the sectors stage,
+            `wrapper.opened_by`): the backfill goes out from the sectors created since.
         center_pc (tuple, optional): Backfill around this one point instead (an API job's requested sector, GEN.30).
 
     Attributes:
@@ -628,7 +632,7 @@ class BackfillFollower(followed.Follower):
         self.bar = None
 
     def params(self):
-        return {"since": self.started_at.isoformat(sep=" "),
+        return {"since": since_param(self.started_at),
                 **({} if self.center_pc is None else {"center_pc": list(self.center_pc)})}
 
     def on_plan(self, plan):
@@ -662,9 +666,19 @@ class BackfillFollower(followed.Follower):
 def _backfill_on_queue(args, started_at, center_pc=None):
     """The backfill as a run of its own (`BackfillFollower`). Returns its `summary`: `sectors` (drawn) and `stars`
     (placed)."""
+    return followed.run_planned(args, planned_backfill(args, started_at, center_pc))
+
+
+def planned_backfill(args, started_at, center_pc=None):
+    """The bright-star backfill as a `followed.Planned`; its result is the `summary`."""
     follower = BackfillFollower(args, started_at, center_pc)
-    followed.run_followed(args, [follower], "Bright-star backfill")
-    return follower.summary
+    return followed.Planned([follower], "Bright-star backfill", lambda: follower.summary)
+
+
+def since_param(started_at):
+    """The `since` parameter of a stage that works on the sectors a run saved: the clock as text, or (PERF.213) the deferred
+    parameter `wrapper.opened_by` that a run takes the clock of the sectors stage from when the stage opens."""
+    return started_at if wrapper.is_deferred(started_at) else started_at.isoformat(sep=" ")
 
 
 def _sectors_since(params):
@@ -755,7 +769,7 @@ class LinkFollower(followed.Follower):
         self.bar = None
 
     def params(self):
-        return {"since": self.started_at.isoformat(sep=" ")}
+        return {"since": since_param(self.started_at)}
 
     def on_plan(self, plan):
         if plan["detail"].get("skip"):
@@ -779,9 +793,13 @@ class LinkFollower(followed.Follower):
 
 def _link_on_queue(args, started_at):
     """The link stage as a run of its own (`LinkFollower`). Returns how many sectors were linked."""
+    return followed.run_planned(args, planned_link(args, started_at))
+
+
+def planned_link(args, started_at):
+    """The link stage as a `followed.Planned`; its result is how many sectors were linked."""
     follower = LinkFollower(args, started_at)
-    followed.run_followed(args, [follower], "Neighbours")
-    return follower.linked
+    return followed.Planned([follower], "Neighbours", lambda: follower.linked)
 
 
 def expand_refresh_run_blocks(params):
@@ -840,7 +858,7 @@ class RunBlocksFollower(followed.Follower):
         self.started_at = started_at
 
     def params(self):
-        return {"since": self.started_at.isoformat(sep=" ")}
+        return {"since": since_param(self.started_at)}
 
     def on_result(self, unit, result):
         if result["nebulae"]:
@@ -928,7 +946,7 @@ class SettleFollower(followed.Follower):
         self.bar = None
 
     def params(self):
-        return {"since": self.started_at.isoformat(sep=" "), **self.extra}
+        return {"since": since_param(self.started_at), **self.extra}
 
     def on_plan(self, plan):
         if plan["detail"].get("skip"):
@@ -952,9 +970,13 @@ class SettleFollower(followed.Follower):
 
 def _settle_on_queue(args, started_at, extra=None):
     """The settle stage as a run of its own (`SettleFollower`). Returns how many paths were saved."""
+    return followed.run_planned(args, planned_settle(args, started_at, extra))
+
+
+def planned_settle(args, started_at, extra=None):
+    """The settle stage as a `followed.Planned`; its result is how many paths were saved."""
     follower = SettleFollower(args, started_at, extra)
-    followed.run_followed(args, [follower], "Sector paths")
-    return follower.saved
+    return followed.Planned([follower], "Sector paths", lambda: follower.saved)
 
 
 def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=None):
@@ -1401,6 +1423,44 @@ def _planned_around_centers(args, centers, edge_pc, config, batch_density):
     return [index for address, _suffix in located for index in address], [suffix for _address, suffix in located]
 
 
+def _planned_single(address, config, batch_density):
+    """The sector of a "single" stage (PERF.214), `[shell, band, wedge]`, or `[]` when it exists: the `address` `--shell --band --wedge` names
+    (the stage's own arguments are the defaults of `sector`, not the run's), anywhere in the grid's reach (GEN.235). The part of
+    `_plan_single_sector` that reads the database, at the time the stage opens."""
+    _require_in_reach(batch_density.bounds, address[0], address[1], _format_address(address))
+    conn = store.get_connection(config)
+    try:
+        exists = store.get_sector_id_at(conn, *address) is not None
+    finally:
+        conn.close()
+    return [] if exists else list(address)
+
+
+def _planned_starts(args, edge_pc, config, batch_density, run_seed):
+    """The starts of a "random-start" stage (PERF.214), as flat `shell, band, wedge` triples: the places `_plan_random_start` picks, from the
+    run seed the starter drew, so the same seed gives the same starts wherever it is asked. Fewer than `--neighborhoods` is said; none
+    fails the stage."""
+    radius_pc = _random_start_radius(args)
+    conn = store.get_connection(config)
+    starts, drawn = [], {}
+    try:
+        for index in range(args.neighborhoods):
+            start = _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, [position for _address, position, _args in starts],
+                                       drawn, run_seed=run_seed, index=index)
+            if start is None:
+                break
+            starts.append(start)
+    finally:
+        conn.close()
+    if not starts:
+        raise RuntimeError(f"no unoccupied sector address was found after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts "
+                           f"(this galaxy may already be almost entirely generated within the range asked, or hold too little stellar density)")
+    if len(starts) < args.neighborhoods:
+        log.normal(f"Found room for only {len(starts)} of {args.neighborhoods} neighborhoods (each whole inside the galaxy, at least "
+                   f"{2 * radius_pc:g} pc apart).")
+    return [index for address, _position, _args in starts for index in address]
+
+
 def planned_items(params):
     """
     The sectors a `planned` sector stage generates (PERF.123), as `(items, suffixes)`: `items` are flat `shell, band,
@@ -1409,12 +1469,18 @@ def planned_items(params):
     arguments name (`_address_plan`); "neighborhood", the sectors within `--radius-pc` of `--center-sector` in the fill
     order (`_neighborhood_candidates`), or around the `centers` the stage before it made (`_planned_around_centers`). Either way, less
     the sectors that exist now, up to `--limit`. The starter has
-    counted, estimated and asked about them already.
+    counted, estimated and asked about them already; a run planned with `_plan_sectors(deferred=True)` (PERF.214) has not, and two more
+    modes are for it: "single", the one sector `--shell --band --wedge` names (none when it exists), and "random-start", the starts
+    drawn from `params["run_seed"]` (the neighborhood after them reads their addresses from this stage's plan, `centers`).
     """
     args = _sector_args_of(params)
     edge_pc = params["edge_pc"]
     config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(config)
+    if params["planned"] == "single":
+        return _planned_single(tuple(params["address"]), config, batch_density), []
+    if params["planned"] == "random-start":
+        return _planned_starts(args, edge_pc, config, batch_density, params["run_seed"]), []
     if params["planned"] == "neighborhood" and params.get("centers") is not None:
         return _planned_around_centers(args, params["centers"], edge_pc, config, batch_density)
     if params["planned"] == "neighborhood":
@@ -1437,6 +1503,11 @@ def expand_generate_sectors(params):
     generate them; for a stage that is `planned`, the ones `planned_items` works out when the stage opens) in about `SECTOR_UNITS_MAX` static chunks of consecutive sectors, the same at any worker count.
     A unit's cost is its sectors.
     """
+    warning = None
+    if params.get("check_plan"):        # the stage of a run that plans the galaxy first (PERF.203) finds the plan when it opens
+        problem, warning = _plan_check(store.mysql_config_from_args(_sector_args_of(params)), params["edge_pc"])
+        if problem:
+            raise RuntimeError(problem)
     items, suffixes = planned_items(params) if params.get("planned") else (params["items"], [])
     count = len(items) // 3
     size = max(1, -(-count // SECTOR_UNITS_MAX))
@@ -1449,7 +1520,12 @@ def expand_generate_sectors(params):
         if suffixes:
             unit["suffixes"] = suffixes[start:start + size]
         units.append((unit, float(len(chunk) // 3)))
-    return commands.Expansion(units, {"sectors": count})
+    detail = {"sectors": count}
+    if warning:
+        detail["warning"] = warning
+    if params.get("planned") == "random-start":
+        detail["centers"] = [list(items[place:place + 3]) for place in range(0, len(items), 3)]       # the neighborhood stage reads them
+    return commands.Expansion(units, detail)
 
 
 def _saved_addresses(args):
@@ -1549,6 +1625,7 @@ class SectorsFollower(followed.Follower):
         self.planned, self.extra = planned, extra or {}
         self.announce, self.finish = announce or _log_saved, finish
         self.reported = []
+        self.generated = 0
         self.bar = None
         self.items = []
         self.suffixes = {}
@@ -1563,6 +1640,8 @@ class SectorsFollower(followed.Follower):
 
     def on_plan(self, plan):
         sectors = plan["detail"]["sectors"]
+        if plan["detail"].get("warning"):
+            log.normal(f"Warning: {plan['detail']['warning']}")
         if not self.collect:
             log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); each is reported below as "
                        f"it is saved, so the first report can take a while in a dense region.")
@@ -1579,6 +1658,7 @@ class SectorsFollower(followed.Follower):
                 run_common.RUN_COUNTS["systems"] += saved["systems"]
                 run_common.RUN_COUNTS["phenomena"] += saved["phenomena"]
             run_common._record_sector(sector_args, saved, saved["seconds"])
+            self.generated += 1
             if self.bar is not None:
                 self.bar.update(advance=1)
             if self.collect:
@@ -2643,28 +2723,35 @@ def course_cells(config, from_ref, to_ref, border=False):
         conn.close()
 
 
-def _check_plan(args, edge_pc):
-    """Refuses a run of a galaxy that was never planned (at the standard sector edge, with shells); warns when it would
-    extend a mixed-version galaxy."""
-    conn = store.get_connection(store.mysql_config_from_args(args))
+def _plan_check(config, edge_pc):
+    """What the stored plan says to a run of sectors: `(problem, warning)`, the words that refuse a galaxy that was never planned (at
+    the standard sector edge, with shells) or `None`, and the heads-up about extending a mixed-version galaxy (DB.7) or `None`."""
+    conn = store.get_connection(config)
     try:
         bounds = store.get_galaxy_bounds(conn)
         warning = version_check.galaxy_warning(conn, compute_battery=True)
     finally:
         conn.close()
+    if bounds is None:
+        return ("The galaxy has never been planned -- run 'planetgen plan' first, so every sector "
+                "can be checked against the galaxy's bounds before it is generated."), warning
+    if not math.isclose(bounds.edge_pc, edge_pc):
+        return (f"The stored plan was built with {bounds.edge_pc:g} pc sectors, not the standard "
+                f"{edge_pc:g} pc -- re-run 'planetgen plan'."), warning
+    if not bounds:
+        return ("The stored plan has no shells at all (nothing in this galaxy shape expects a star "
+                "per sector) -- re-run 'planetgen plan' with a different shape."), warning
+    return None, warning
+
+
+def _check_plan(args, edge_pc):
+    """Refuses a run of a galaxy that was never planned (at the standard sector edge, with shells); warns when it would
+    extend a mixed-version galaxy."""
+    problem, warning = _plan_check(store.mysql_config_from_args(args), edge_pc)
     if warning:
         log.normal(f"Warning: {warning}")  # DB.7: a heads-up before it extends a mixed-version galaxy
-    if bounds is None:
-        log.error("The galaxy has never been planned -- run 'planetgen plan' first, so every sector "
-                  "can be checked against the galaxy's bounds before it is generated.")
-        raise SystemExit(1)
-    if not math.isclose(bounds.edge_pc, edge_pc):
-        log.error(f"The stored plan was built with {bounds.edge_pc:g} pc sectors, not the standard "
-                  f"{edge_pc:g} pc -- re-run 'planetgen plan'.")
-        raise SystemExit(1)
-    if not bounds:
-        log.error("The stored plan has no shells at all (nothing in this galaxy shape expects a star "
-                  "per sector) -- re-run 'planetgen plan' with a different shape.")
+    if problem:
+        log.error(problem)
         raise SystemExit(1)
 
 
@@ -2682,11 +2769,91 @@ def _start_clock(args):
     return started_at
 
 
-def _plan_sectors(args, edge_pc):
+def _deferred_sectors(args, edge_pc):
+    """
+    The sector stages of a run whose plan cannot be made yet (PERF.214): the same stages `_plan_sectors` gives (`stages.sectors_stages`), each
+    told only the arguments that name its sectors. Nothing is read from the database, counted, estimated or asked: the stage works its
+    sectors out when it opens, in a worker (`planned_items`), and a stage after it reads what it planned (`wrapper.plan_detail`). The sectors
+    are the ones the starter's plan makes. A run built this way is for a caller that has its own estimate (the Generate page's job).
+
+    Returns:
+        list[SectorsFollower]: One for each of `stages.sectors_stages`.
+
+    Raises:
+        SystemExit: A wedge out of range for its band (said).
+    """
+    def generated_in(what):
+        def finished(follower):
+            log.normal(f"Generated {follower.generated} new sector(s) in {what}.")
+        return finished
+
+    if any(getattr(args, name, None) is not None for name in ("span", "course", "block")) or (
+            args.wedge is None and args.shell is not None):
+        return [SectorsFollower(args, "sectors", "Sectors", edge_pc, count=0, bar_description="Sectors", planned="addresses",
+                                finish=generated_in("the sectors asked for"))]
+    if args.wedge is not None:
+        address = (args.shell, args.band, args.wedge)
+        try:
+            total_wedges = spherical.wedge_count(args.shell, args.band)
+        except ValueError as error:
+            log.error(f"{_format_address(address)} -- {error}.")
+            raise SystemExit(1) from error
+        if not (0 <= args.wedge < total_wedges):
+            log.error(f"--wedge {args.wedge} is out of range for shell {args.shell} band {args.band} (holds {total_wedges} "
+                      f"wedges, 0..{total_wedges - 1}).")
+            raise SystemExit(1)
+        single = _default_generation_args(config=store.mysql_config_from_args(args))
+        single.density = single.num_systems = None
+        single.link_later = True            # the run links its sectors at its end
+        label = f"Sector ({_format_address(address)})"
+
+        def saved_line(follower):
+            designation = provisional_sector_designation(*address)
+            if not follower.reported:
+                log.normal(f"Sector [{designation}] at {_format_address(address)} already existed.")
+                return
+            [saved] = follower.reported
+            log.normal(f"Saved sector '{saved['name']}' [{designation}] at {_format_address(address)} (sector_id={saved['sector_id']}).")
+            run_sector._log_summary(saved["summary"])
+
+        followers = [SectorsFollower(args, "sectors", label, edge_pc, count=0, bar_description=label, base_args=single, collect=True,
+                                     planned="single", extra={"address": list(address)}, finish=saved_line)]
+        if args.radius_pc is not None:
+            followers.append(_deferred_neighborhood(args, edge_pc, [list(address)]))
+        return followers
+    if args.center_sector is not None:
+        region = _region_text(args)
+        return [SectorsFollower(args, "sectors", f"Sectors ({region} of sector {args.center_sector})", edge_pc, count=0,
+                                bar_description="Sectors (local neighborhood)", planned="neighborhood",
+                                finish=generated_in(f"{region} of sector_id={args.center_sector}"))]
+    radius_pc = _random_start_radius(args)
+    args.radius_pc = radius_pc
+    run_seed = draw.getrandbits(128)        # the one draw the starter's plan makes, so the draws after it are the same
+    log.debug(f"Random starts are drawn from the run seed {run_seed}.")
+    return [SectorsFollower(args, "start", "Starting sector", edge_pc, count=0, planned="random-start", extra={"run_seed": run_seed},
+                            announce=_log_start),
+            _deferred_neighborhood(args, edge_pc, wrapper.plan_detail("start", "centers"))]
+
+
+def _deferred_neighborhood(args, edge_pc, centers):
+    """The "neighborhood" stage after the stage that makes the sectors at `centers` (a list of addresses, or the deferred parameter that
+    reads them from the plan of the stage before it): their `args.radius_pc` neighborhoods, cut when the stage opens."""
+    def finished(follower):
+        log.normal(f"Generated {follower.generated} new sector(s) within {args.radius_pc:g} pc of the starting sector(s).")
+
+    return SectorsFollower(args, "neighborhood", "Neighborhood", edge_pc, count=0, bar_description="Sectors (local neighborhood)",
+                           planned="neighborhood", extra={"centers": centers}, finish=finished)
+
+
+def _plan_sectors(args, edge_pc, deferred=False):
     """
     The sector stages of a `galaxy` or `sectors` run, in the mode the arguments ask for (span, course, block, single
     address, shell, local neighborhood or random start), as followers: the plan is made, counted, estimated and asked about
     here, under a short display of its own, and nothing is generated.
+
+    Args:
+        deferred (bool): Plan nothing here (PERF.214): the stages work their sectors out when they open (`_deferred_sectors`), for a run
+            that is built before the galaxy it reads is, or that has its own estimate. It cannot be only estimated.
 
     Returns:
         list[SectorsFollower]: One for each of `stages.sectors_stages`.
@@ -2694,6 +2861,10 @@ def _plan_sectors(args, edge_pc):
     Raises:
         run_common._EstimateOnly: The run was asked only for its estimate (`--estimate-only`).
     """
+    if deferred:
+        if getattr(args, "estimate_only", False):
+            raise ValueError("a run whose sectors are planned when its stage opens cannot be estimated beforehand")
+        return _deferred_sectors(args, edge_pc)
     with run_common._generation_progress(disable=getattr(args, "estimate_only", False)) as progress:
         log.set_console(progress.console)
         try:
@@ -2746,13 +2917,15 @@ def _snap_to_region(args, edge_pc):
 
 def _run_stages(args, title, tail):
     """
-    One `galaxy` or `sectors` run: the sector stages (`_plan_sectors`) and the stages of `tail(started_at)` (followers),
+    One `galaxy` or `sectors` run: the sector stages (`_plan_sectors`) and the stages of `tail(since)` (followers),
     all as one run in the queue (PERF.172), numbered as `stages.begin` is told.
 
     Args:
         args (argparse.Namespace): Validated arguments.
         title (str): What the run is called.
-        tail (callable): `tail(started_at)` gives the followers that come after the sectors.
+        tail (callable): `tail(since)` gives the followers that come after the sectors; `since` is the deferred
+            `wrapper.opened_by` parameter of the first sectors stage (PERF.213): the stages that work on the run's sectors
+            take the database's clock when it opens, not the moment the run was built.
 
     Returns:
         datetime: The database's clock when the run started, or `None` when the run only estimated.
@@ -2769,7 +2942,7 @@ def _run_stages(args, title, tail):
         run_common._print_estimate(exc)
         run_common._finish_stats(args)
         return None
-    followers = sectors + tail(started_at)
+    followers = sectors + tail(wrapper.opened_by(sectors[0].key))
     listed = stages.galaxy_stages(args) if title == "galaxy" else stages.sectors_stages(args)
     assert [f.key for f in followers] == [stage.key for stage in listed], "the followers are the stage list"
     stages.begin(listed, args, title)
@@ -2806,12 +2979,12 @@ def run_galaxy(args):
     Args:
         args (argparse.Namespace): Validated arguments (`command == "galaxy"`).
     """
-    def tail(started_at):
+    def tail(since):
         stars, _book = run_plan.bright_star_followers(args)
         phenomena, _book = run_plan.phenomena_followers(args)
-        return [LinkFollower(args, started_at), *stars, *phenomena, run_plan.BlockLightsFollower(args),
-                BackfillFollower(args, started_at), run_population.population_follower(args),
-                run_population.territories_follower(args), SettleFollower(args, started_at),
-                RunBlocksFollower(args, started_at)]
+        return [LinkFollower(args, since), *stars, *phenomena, run_plan.BlockLightsFollower(args),
+                BackfillFollower(args, since), run_population.population_follower(args),
+                run_population.territories_follower(args), SettleFollower(args, since),
+                RunBlocksFollower(args, since)]
 
     _run_stages(args, "galaxy", tail)

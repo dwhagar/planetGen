@@ -6,7 +6,7 @@ Sector generation performance benchmark
 
 Not a correctness test -- profiles how long `generate.generate_sector`
 (the `sector` subcommand's actual, DB-free, in-memory generation path:
-`build_sector_configs` + one `StarSystem` per config + `SpaceSector`
+`iter_sector_configs` + one `StarSystem` per config + `SpaceSector`
 placement + `generate_sector_phenomena`) takes, broken down by phase.
 
 The phase breakdown comes from `--debug`'s own logging, not a separate

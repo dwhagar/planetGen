@@ -8,15 +8,17 @@ the mean mass of a system is the divisor of every galaxy's star count. It used t
 masses, "within a factor of 1.5"); here it is worked out from the draws the generator makes, for stars formed at a given
 age:
 
-1. **The placed star.** An initial mass from the initial mass function (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`), taken to
+1. **The placed star.** An initial mass from the primary mass function (`imf.PRIMARY`, GEN.928: the single-star function
+   less the companions of the heavier primaries, so the stars of the systems together follow the single-star function), taken to
    its state at the age: still on the main sequence at its birth mass, a white dwarf by the initial-final relation, a
    neutron star or a black hole at the mean of the kind's mass range (`present_day_moments`). The remnants are systems
    too: a remnant is the placed object of the system it left.
 2. **The other stars.** The number of stars of its system is the `star-count` table's, by the placed star's class and
    with the 8 to 12 tail (`multistar.expected_star_count`); each further star has a birth mass of the placed star's
-   times a uniform 0.1 to 1 (`multistar.companion_ratio_range`) and is taken to its own state at the same age.
+   times a uniform 0.1 to 1, no lower than 0.08 solar masses (`multistar.companion_ratio_range`), and is taken to its own state at the same age.
 
-Not counted: a compact companion added to a massive star's tree (1% of the stars of 2 to 14 solar masses a white dwarf,
+Not counted: a brown dwarf companion (3% of the drawn trees, GEN.899, about 0.04 solar masses: under 0.1% of a system's
+mass), a compact companion added to a massive star's tree (1% of the stars of 2 to 14 solar masses a white dwarf,
 0.03% a neutron star, 0.02% a black hole: under 0.2% of a system's mass, `COMPACT_COMPANION_SHARE_BOUND`), the companions
 of the remnants the scatter places (a few percent of systems whose remnant has a companion at all), planets, and the
 mass the giant branch's wind takes (a living star is at its birth mass, which `present_day_moments` has always done).
@@ -82,7 +84,7 @@ def present_day_moments(age_gy, remnants=True):
     for kind in remnant_progenitors.KINDS:
         number = sum(imf.integral(0.0, max(low, wd_high, turn_off), high)
                      for low, high in remnant_progenitors.kind_windows(kind) if max(low, wd_high, turn_off) < high)
-        first, second = remnant_mass.uniform_moments(kind)
+        first, second = remnant_mass.moments(kind)
         mass += number * first
         square += number * second
     return mass, square
@@ -110,8 +112,8 @@ def _remnant_states(initial):
     for low, high in remnant_progenitors.kind_windows(remnant_progenitors.BLACK_HOLE):
         fails |= (initial >= low) & (initial <= high)
     remnant = np.where(initial < wd_high, remnant_mass.white_dwarf_mass_sol(np.minimum(initial, wd_high)),
-                       np.where(~fails, remnant_mass.uniform_moments("neutron-star")[0],
-                                remnant_mass.uniform_moments("black-hole")[0]))
+                       np.where(~fails, remnant_mass.moments("neutron-star")[0],
+                                remnant_mass.moments("black-hole")[0]))
     return initial, remnant
 
 
@@ -150,10 +152,12 @@ def _placed_bins():
     class_edges = [lower for _letter, lower in mass_boundaries.SPECTRAL_CLASS_LOWER_MASS_SOL]
     class_edges += [lower for _name, lower in mass_boundaries.B_SUBCLASS_LOWER_MASS_SOL]
     low, top = imf.lowest_mass_sol(), imf.highest_mass_sol()
-    edges = np.concatenate([np.geomspace(low, top, MASS_BINS + 1), tuning.IMF_BREAKS_SOL, class_edges])
+    nodes = [segment[0] for segment in imf.segments(imf.PRIMARY)]
+    edges = np.concatenate([np.geomspace(low, top, MASS_BINS + 1), nodes, class_edges])
     edges = np.unique(edges[(edges >= low) & (edges <= top)])
-    number = np.array([imf.integral(0.0, a, b) for a, b in zip(edges[:-1], edges[1:])])
-    first = np.array([imf.integral(1.0, a, b) for a, b in zip(edges[:-1], edges[1:])])
+    edges = edges[np.concatenate([[True], edges[1:] > edges[:-1] * (1.0 + 1.0e-9)])]
+    number = np.array([imf.integral(0.0, a, b, imf.PRIMARY) for a, b in zip(edges[:-1], edges[1:])])
+    first = np.array([imf.integral(1.0, a, b, imf.PRIMARY) for a, b in zip(edges[:-1], edges[1:])])
     mean_mass = first / number
     others = np.array([multistar.expected_star_count(m) - 1.0 for m in mean_mass])
     return number, mean_mass, others

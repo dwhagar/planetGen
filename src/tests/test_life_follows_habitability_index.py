@@ -62,6 +62,34 @@ def test_a_star_too_young_for_a_crust_and_oceans_has_no_life_anywhere(host_star,
         assert moon.life_class is None
 
 
+def _living_planet(host_star):
+    for seed in range(60):
+        planet = _planet(host_star, seed)
+        planetLife.apply_life_data(planet)
+        if planet.life_class is not None:
+            return planet
+    pytest.skip("no world of the first 60 seeds is alive around this star")
+
+
+def test_a_world_whose_first_step_comes_after_its_stars_age_has_no_class(host_star, monkeypatch):
+    """GEN.1001: abiogenesis not yet reached means no life yet, so no class, schedule or stage is stored (a class with no stage showed life that had not started)."""
+    planet = _living_planet(host_star)
+    late = tuple(host_star.age + 1.0 + step for step in range(5))
+    monkeypatch.setattr(planetLife.life_timeline, "schedule", lambda *args, **kwargs: late)
+    planetLife.apply_life_data(planet)
+    assert planet.life_class is None and planet.life_stage is None and planet.evolutionary_pace is None
+    assert not planet.has_timeline and planet.life_complexity is None
+    assert planet.reflection_spectrum_visible is None
+
+
+def test_a_world_whose_first_step_is_at_its_stars_age_has_its_class_and_its_first_stage(host_star, monkeypatch):
+    planet = _living_planet(host_star)
+    first = tuple(host_star.age + 1.0 + step for step in range(5))
+    monkeypatch.setattr(planetLife.life_timeline, "schedule", lambda *args, **kwargs: (host_star.age, *first[1:]))
+    planetLife.apply_life_data(planet)
+    assert planet.life_class is not None and planet.life_stage == "abiogenesis"
+
+
 @pytest.mark.parametrize("seed", ECOSPHERE_SEEDS)
 def test_a_world_no_class_supports_makes_no_claim_of_life(host_star, seed, monkeypatch):
     monkeypatch.setattr(planetLife.life_classes, "score_classes", lambda *args, **kwargs: {})

@@ -42,8 +42,8 @@ def test_phenomena_sort_by_type_breaks_ties_by_name(client, mysql_config):
     _seed(mysql_config)
     assert _names(client.get("/api/phenomena?sort=type")) == [
         "Alpha Cloud", "Zeta Cloud", "Beta Wanderer", "Gamma Wanderer"]
-    assert _names(client.get("/api/phenomena?sort=type&order=desc")) == [
-        "Beta Wanderer", "Gamma Wanderer", "Alpha Cloud", "Zeta Cloud"]
+    assert _names(client.get("/api/phenomena?sort=type&order=desc")) == [      # PERF.211: a tie follows the direction of the sort
+        "Gamma Wanderer", "Beta Wanderer", "Zeta Cloud", "Alpha Cloud"]
 
 
 def test_phenomena_filter_by_type_and_descriptor(client, mysql_config):
@@ -150,3 +150,79 @@ def test_scattered_phenomena_are_paged_after_the_built_ones_without_scanning(cli
     conn.commit()
     assert client.get("/api/phenomena").get_json()["total"] == 8
     assert client.get("/api/phenomena?type=neutron_star").get_json()["total"] == 4
+
+
+def _seed_with_a_tied_name(mysql_config):
+    """`_seed`, and one more nebula and rogue planet renamed (by SQL: the naming rules keep names apart) to a name the
+    rogue planet "Beta Wanderer" already has, to settle by type (PERF.205)."""
+    _seed(mysql_config)
+    cfg = SystemConfig()
+    _save(mysql_config, Nebula(cfg), "nebula", "Delta Cloud")
+    _save(mysql_config, RoguePlanet(cfg), "rogue-planet", "Delta Wanderer")
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            conn.execute("UPDATE nebulae SET name = 'Beta Wanderer' WHERE name = 'Delta Cloud'")
+            conn.execute("UPDATE rogue_planets SET name = 'Beta Wanderer' WHERE name = 'Delta Wanderer'")
+    finally:
+        conn.close()
+
+
+def _paged(client, query, limit, descending):
+    """Every item of `/api/phenomena` read `limit` at a time by key, each page after the last item of the page before."""
+    items, after = [], None
+    for _ in range(50):
+        url = f"/api/phenomena?{query}limit={limit}&order={'desc' if descending else 'asc'}"
+        body = client.get(url + (f"&offset=9&after={after}" if after else "")).get_json()
+        if not body["items"]:
+            return items
+        items += body["items"]
+        after = f"{items[-1]['type']}:{items[-1]['id']}"
+    raise AssertionError("the pages never ended")
+
+
+def test_the_built_phenomena_page_by_key_in_name_order_either_way(client, mysql_config):
+    """PERF.205: the first page and each page after a built row (`after=<type>:<ID>`) are the pages of one long read, over
+    two tables, names that tie across them settled by type, and the filters."""
+    _seed_with_a_tied_name(mysql_config)
+    for descending in (False, True):
+        whole = client.get(f"/api/phenomena?limit=100&order={'desc' if descending else 'asc'}").get_json()["items"]
+        assert len(whole) == 6
+        names = [item["name"] for item in whole]
+        assert names == sorted(names, reverse=descending)
+        for limit in (1, 2, 4):
+            assert [(i["type"], i["id"]) for i in _paged(client, "", limit, descending)] == [
+                (i["type"], i["id"]) for i in whole], (limit, descending)
+        wanted = [(i["type"], i["id"]) for i in whole if i["type"] == "rogue_planet"]
+        assert [(i["type"], i["id"]) for i in _paged(client, "type=rogue_planet&", 1, descending)] == wanted
+    tied = [i["type"] for i in client.get("/api/phenomena?limit=100").get_json()["items"] if i["name"] == "Beta Wanderer"]
+    assert len(tied) == 3 and tied == sorted(tied), "names that tie settle by type"
+
+
+def test_a_built_cursor_that_names_nothing_is_a_400_and_a_deleted_row_starts_at_the_top(client, mysql_config):
+    _seed(mysql_config)
+    assert client.get("/api/phenomena?after=nebula:not-an-id").status_code == 400
+    assert client.get("/api/phenomena?after=nothing:0008000000-3000000-000").status_code == 400
+    assert client.get("/api/phenomena?after=nebula:FFFFFFFFFFFFFF-FFFFFFF-FFF").status_code == 400
+
+
+def test_the_first_page_of_any_sort_needs_no_count_of_the_built_phenomena(client, mysql_config, monkeypatch):
+    """PERF.205: the first page reads its rows and never counts the whole union of the tables (`offset` past the built rows
+    still has to, to know where the scattered tail starts)."""
+    from planetgen.db import query
+
+    _seed(mysql_config)
+    counted = []
+    real = query._phenomena_union
+
+    def spy():
+        counted.append(1)
+        return real()
+
+    monkeypatch.setattr(query, "_phenomena_union", spy)
+    for sort in ("name", "type", "radius"):
+        assert client.get(f"/api/phenomena?sort={sort}&limit=2").status_code == 200
+    # the API's own total (`count_phenomena`) counts once for each request; the page itself adds none
+    per_request = len(counted) / 3
+    assert client.get("/api/phenomena?sort=type&limit=2&offset=1").status_code == 200
+    assert len(counted) > 3 * per_request

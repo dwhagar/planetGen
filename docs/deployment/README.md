@@ -23,6 +23,8 @@ addresses that keep guessing admin passwords.
 
 ## What every setup has in common
 
+- **The downloaded data sets.** Setup downloads the published data the generator reads into `/var/cache/planetgen/datasets` (or `PLANETGEN_DATA_DIR`), and a bulk run refuses to start without them. Every set, its URLs and how to install it by hand are in the [External files](../../README.md#external-files) section of the README.
+
 - **One process, five threads.** Apache's `WSGIDaemonProcess
   processes=1 threads=5`, gunicorn `--workers 1 --threads 5`. The rate limits and login lockouts count on
   Redis (`ratelimit.storage_uri` empty = the server in `redis.url`), so

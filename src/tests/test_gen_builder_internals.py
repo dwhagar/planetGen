@@ -13,7 +13,8 @@ import pytest
 
 from planetgen.generation import system as systemData
 from planetgen import tuning
-from planetgen.physics import constants, planet_classes, planets as planetPhysics
+from planetgen.physics import constants, daylight, planet_classes, planets as planetPhysics
+from planetgen.physics import unit_registry as units
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
@@ -281,6 +282,34 @@ def test_reconcile_reruns_spin_dose_and_score_for_each_moon_of_a_moved_planet(sy
     planet.distance *= 2
     system._reconcile_moved_planet(planet)
     assert all(any(body is moon for body in reran) for moon in planet.moons)
+
+
+def _assert_solar_day_follows_the_motion(planet):
+    """GEN.904: the stored solar day is the one the planet's rotation and its orbit round the star give now."""
+    expected = daylight.solar_day_hours(planet.rotation_period_hours, units.converter("yr", "h")(planet.period),
+                                        prograde=planet.axial_tilt_deg <= 90.0)
+    assert planet.solar_day_hours == (pytest.approx(expected) if expected is not None else None)
+
+
+@pytest.mark.parametrize("mass_earth, move", [(GIANT_EARTH, 2.0), (EARTH, 4.0)], ids=["giant", "rocky"])
+def test_reconcile_leaves_the_daylight_of_a_moved_planet_and_its_moons_in_step_with_its_spin(system, mass_earth, move):
+    """GEN.904: `generate_spin` runs again for a moved planet (and a reclassified one is regenerated), so its solar day and
+    daylight follow the new rotation and orbit, on the planet and on each moon."""
+    inner, outer = system.star.habitable_zone
+    for _ in range(12):
+        giant = mass_earth == GIANT_EARTH
+        distance = outer * 3.0 if giant else (inner + outer) / 2
+        planet = planet_at(system, distance, mass_earth, moon_count=2)
+        planet.distance = distance * move if giant else outer * move
+        system._reconcile_moved_planet(planet)
+        if planet.rotation_period_hours:
+            assert planet.day_share_mean is not None
+            assert planet.polar_circle_deg is not None
+            _assert_solar_day_follows_the_motion(planet)
+        for moon in planet.moons:
+            if moon.rotation_period_hours:
+                assert moon.day_share_mean is not None
+                assert moon.parent_shadow_share is not None
 
 
 # --- _clear_circumbinary_floor --------------------------------------------

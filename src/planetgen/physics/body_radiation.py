@@ -24,12 +24,14 @@ import functools
 
 import numpy as np
 
-from planetgen.physics import aerosols, air_column, atmospheric_radiation, constants, stellar_spectrum, uv_cross_sections
+from planetgen.physics import activity, aerosols, air_column, atmospheric_radiation, constants, stellar_spectrum, uv_cross_sections
 
 DEFAULT_GROUND_ALBEDO = 0.15
 """float: The ground reflectance used until GEN.462 gives it by band (stand-in: the Earth-like land mean)."""
 EARTH_OZONE_DU = 300.0
 """float: The ozone column of the reference Earth, DU (measured: 279 to 313 DU in the models and 300 DU in the record)."""
+EARTH_BOND_ALBEDO = 0.306
+"""float: The Earth's Bond albedo (measured), for the temperature of its ozone layer in the reference dose."""
 SUN_EFFECTIVE_K = 5772.0
 """float: The Sun's effective temperature, K (IAU 2015)."""
 EARTH_AIR_PA = {"N2": 79100.0, "O2": 21200.0, "Ar": 950.0}
@@ -71,8 +73,10 @@ def surface_spectrum(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distanc
     centres = uv_cross_sections.centres(uv_cross_sections.standard_edges())
     haze, cloud = aerosols.layers(stored, centres)
     return atmospheric_radiation.surface_radiation(
-        column, temperature_k=temperature, flux_w_m2=flux, uv_c_share=1.0 if share is None else share,
-        ozone_du=getattr(body, "ozone_column_du", None) or 0.0, mu0=mu0, ground_albedo=ground_albedo,
+        column, temperature_k=temperature, flux_w_m2=flux, uv_c_share=1.0 if share is None else share, uv_shares=activity.uv_shares_of(star),
+        ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
+        ozone_temperature_k=atmospheric_radiation.ozone_layer_temperature_k(flux, getattr(body, "bond_albedo", None)), mu0=mu0,
+        ground_albedo=ground_albedo,
         haze=haze, low_aerosol=cloud, cloud_cover=stored.cloud_cover)
 
 
@@ -97,7 +101,7 @@ def bare_dna_dose_w_m2(body, mu0=1.0, distance_au=None):
     temperature, flux = lit
     share = getattr(body.star, "uv_c_share", None)
     edges = uv_cross_sections.standard_edges()
-    top = stellar_spectrum.irradiance_w_m2(edges, temperature, flux, 1.0 if share is None else share)
+    top = stellar_spectrum.irradiance_w_m2(edges, temperature, flux, 1.0 if share is None else share, activity.uv_shares_of(body.star))
     return float(mu0 * np.sum(top * atmospheric_radiation.setlow_weight(uv_cross_sections.centres(edges))))
 
 
@@ -106,9 +110,10 @@ def earth_dna_dose_w_m2():
     """The DNA dose at the ground of the reference Earth, W/m2: the Sun at 1 au (blackbody UV-C), `EARTH_AIR_PA` at 1 g, `EARTH_OZONE_DU`, a clear sky,
     the default ground and the Sun overhead. The unit of `dna_dose_index`."""
     column = air_column.from_partials(EARTH_AIR_PA, constants.EARTH_GRAVITY)
+    flux = stellar_spectrum.bolometric_flux_w_m2(constants.SOLAR_LUMINOSITY, 1.0)
     spectrum = atmospheric_radiation.surface_radiation(
-        column, temperature_k=SUN_EFFECTIVE_K,
-        flux_w_m2=stellar_spectrum.bolometric_flux_w_m2(constants.SOLAR_LUMINOSITY, 1.0), ozone_du=EARTH_OZONE_DU)
+        column, temperature_k=SUN_EFFECTIVE_K, flux_w_m2=flux, ozone_du=EARTH_OZONE_DU,
+        ozone_temperature_k=atmospheric_radiation.ozone_layer_temperature_k(flux, EARTH_BOND_ALBEDO))
     return spectrum.dna_dose_w_m2()
 
 

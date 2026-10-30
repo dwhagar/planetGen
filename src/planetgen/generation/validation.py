@@ -26,8 +26,9 @@ import math
 from collections import namedtuple
 
 from planetgen.generation import life as planetLife
-from planetgen.physics import constants, orbit_elements, planet_classes, planets as planetPhysics, rings
+from planetgen.physics import constants, daylight, orbit_elements, planet_classes, planets as planetPhysics, rings
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
 from planetgen.physics import unit_registry as units
 
@@ -256,6 +257,12 @@ def reconcile_moved_planet(planet):
     # the same "cheap, always recompute from current state" treatment store.advance_orbital_phases gives this same value.
     refresh_planet_reflex(planet)
 
+    # GEN.904: the spin, the orbital period or the class above can be new, and the day and night shares were worked out from the
+    # old ones (or went with a regenerated body): they follow the geometry the planet and its moons have now (no draws).
+    daylight.generate(planet)
+    for moon in planet.moons:
+        daylight.generate(moon, planet)
+
 
 def refresh_planet_reflex(planet, force=False):
     """Recomputes a planet's wobble from its moons (`reflex_offset_*`);
@@ -337,8 +344,10 @@ def space_orbits(planets):
             if last_planet.body_type == 'a':
                 if _below(distance_to_last, tuning.MIN_ASTEROID_BELT_SEPARATION):
                     _shift_belt(planet, tuning.MIN_ASTEROID_BELT_SEPARATION + additional_correction)
+                    draw.redrawn("belt.spacing_push")
             elif _below(distance_to_last, last_planet.min_orbit_distance):
                 _shift_belt(planet, last_planet.min_orbit_distance + additional_correction)
+                draw.redrawn("belt.spacing_push")
         else:
             if last_planet.body_type == 'a':
                 min_distance = min_distance_past_belt_au(planet, last_planet)
@@ -347,6 +356,7 @@ def space_orbits(planets):
             if _below(planet.distance, min_distance):
                 planet.distance = min_distance
                 reconcile_moved_planet(planet)
+                draw.redrawn("planet.hill_spacing_push" if last_planet.body_type != 'a' else "planet.belt_spacing_push")
         if planet.distance != before:
             moved.append(planet)
     return moved
@@ -379,6 +389,7 @@ def trim_to_orbit_ceiling(planets, ceiling_au):
     removed = []
     while planets and exceeds_orbit_ceiling(planets[-1], ceiling_au):
         removed.append(planets.pop())
+        draw.redrawn("planet.orbit_ceiling_trim")
     return removed
 
 
@@ -458,6 +469,7 @@ def cross_star_clearance(system):
         worst_case_gap_au = closest_au - edge_au(outer_p) - edge_au(outer_s)
         if worst_case_gap_au >= _cross_star_threshold_au(system, outer_p, outer_s):
             break
+        draw.redrawn("planet.cross_star_trim")
         primary_room = system.primary_star.a_crit_au - edge_au(outer_p)
         secondary_room = system.secondary_star.a_crit_au - edge_au(outer_s)
         if primary_room <= secondary_room:

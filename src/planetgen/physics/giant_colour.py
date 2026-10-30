@@ -27,7 +27,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import air_column, atmosphere_colour as colour_model, constants, two_stream
+from planetgen.physics import air_column, atmosphere_colour as colour_model, constants, photometry, two_stream
 
 REFERENCE_BAR_PA = 1.0e5
 """float: The radius level of a giant (decision 9), Pa; the reference level is never deeper."""
@@ -101,7 +101,8 @@ def sudarsky_class(equilibrium_temperature_k):
 
 
 def giant_atmosphere_colour(partials_pa, gravity_m_s2, *, temperature_k, p_ref_pa=REFERENCE_BAR_PA, cloud_deck=None,
-                            mu0=colour_model.DEFAULT_MU0, haze=None, spread_x=0.0, spread_y=0.0):
+                            mu0=colour_model.DEFAULT_MU0, haze=None, spread_x=0.0, spread_y=0.0,
+                            light=None):
     """
     The colour of a giant's air at its reference level.
 
@@ -114,6 +115,7 @@ def giant_atmosphere_colour(partials_pa, gravity_m_s2, *, temperature_k, p_ref_p
         mu0 (float, optional): The cosine of the star's zenith angle.
         haze (Aerosol, optional): Haze above the level.
         spread_x, spread_y (float, optional): A cool star's seeded chromaticity draws.
+        light (ndarray, optional): The star's relative spectral power (`atmosphere_colour.body_light`); the blackbody when `None`.
 
     Returns:
         GiantColour
@@ -130,7 +132,7 @@ def giant_atmosphere_colour(partials_pa, gravity_m_s2, *, temperature_k, p_ref_p
     column = air_column.from_partials({gas: value / total * p_ref_pa for gas, value in partials_pa.items()}, gravity_m_s2)
     albedo = deck_albedo(cloud_deck, mu0) if cloud_deck is not None and cloud_deck.tau_550 > 0.0 else DEEP_ALBEDO
     result = colour_model.atmosphere_colour(column, temperature_k=temperature_k, ground_albedo=albedo, mu0=mu0, haze=haze,
-                                            spread_x=spread_x, spread_y=spread_y)
+                                            spread_x=spread_x, spread_y=spread_y, light=light)
     bands = any(column.fraction(gas) > PARTIAL_ABOVE for gas in BAND_GASES)
     return GiantColour(result, float(p_ref_pa), "partial" if bands else "full", isinstance(albedo, np.ndarray))
 
@@ -143,9 +145,9 @@ def body_giant_colour(body):
     """
     temperature = getattr(getattr(body, "star", None), "temperature", None)
     gravity = (getattr(body, "gravity", None) or 0.0) * constants.EARTH_GRAVITY
-    if not temperature or temperature <= 0.0 or gravity <= 0.0:
+    if not temperature or not photometry.gives_visible_light(temperature) or gravity <= 0.0:
         return None
     mixture = air_column.partials_pa(body)
     if sum(mixture.values()) <= 0.0:
         return None
-    return giant_atmosphere_colour(mixture, gravity, temperature_k=temperature)
+    return giant_atmosphere_colour(mixture, gravity, temperature_k=temperature, light=colour_model.body_light(body.star))

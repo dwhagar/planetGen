@@ -44,7 +44,7 @@
     },
     "hydrosphere": {
       "label": "water state",
-      "note": "the stored water state: dry, vapour, ice, ice-covered ocean, surface ocean, hycean"
+      "note": "the stored water state: dry, vapour, ice, ice-covered ocean, surface ocean, brine seep, hycean"
     },
     "flux_variation": {
       "label": "variation of starlight over the orbit",
@@ -171,7 +171,7 @@
           "min": 1000000.0
         }
       ],
-      "sentence": "A hot world with an air column of 10 bar or more, carbon dioxide and sulfur dominated.",
+      "sentence": "A world with an air column of 10 bar or more: the pressure is its mark, whatever the air is made of and however hot the surface is.",
       "basis": "design: 10 bar, between every temperate world (under 4 bar) and the dense runaway-greenhouse worlds (over 50 bar)"
     },
     {
@@ -184,7 +184,7 @@
           "min": 0.25
         }
       ],
-      "sentence": "A world whose starlight varies by a quarter or more over its orbit, so its climate swings between extremes.",
+      "sentence": "A world whose starlight varies by a quarter or more over its orbit (an eccentricity of about 0.06 or more, or a close companion), so its seasons are strong.",
       "basis": "design: 0.25 peak to peak, from an eccentric orbit or a close companion"
     },
     {
@@ -235,7 +235,7 @@
           "lt": 273.15
         }
       ],
-      "sentence": "A cold world with air thinner than 3 kPa and little oxygen: a cold desert below freezing.",
+      "sentence": "A cold world with air thinner than 3 kPa and little oxygen: a mean surface below freezing, usually under ice.",
       "basis": "design: 3 kPa and the freezing point of water"
     },
     {

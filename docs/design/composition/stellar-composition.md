@@ -145,7 +145,7 @@ Inputs are illustrative, not presets and not copied from the Solar System. Keys 
 
 | Kind and inputs | Steps | Outputs |
 |---|---|---|
-| **A, main sequence, thin.** F -0.20, age 2.0 Gy, key `example-A1` | age 2.0 < 8.0: thin. Normals -0.15, 1.30, 0.005, 0.42; residuals C -0.007, O 0.052, Mg -0.009, Si 0.004; [X/Fe] C -0.004, O 0.115, Mg 0.076, Si 0.043, Ca 0.06, Ne 0.115 | X 0.7222, Y 0.2662, Z 0.01164 (Z/(Z0 10^F) 1.198). Mass fractions: O 5.35e-3, C 1.80e-3, Ne 1.58e-3, Fe 8.4e-4, Mg 5.4e-4, Si 5.3e-4, N 5.0e-4. Fe/Si 1.606, Mg/Si 1.024, C/O 0.336 (mass). CMF 0.281. Fuel factor 1.014 |
+| **A, main sequence, thin.** F -0.20, age 2.0 Gy, key `example-A1` | age 2.0 < 8.0: thin. Normals -0.15, 1.30, 0.005, 0.42, 0.0; residuals C -0.014, O 0.110, Mg -0.004, Si 0.026, Ca 0.012; [X/Fe] C -0.012, O 0.194, Mg 0.003, Si 0.017, Ca 0.072, Ne 0.194 (refitted to Brewer and Fischer 2016, GEN.988 to GEN.991; the first fit gave C -0.004, O 0.115, Mg 0.076, Si 0.043, Ca 0.06) | X 0.7190, Y 0.2682, Z 0.01282 (Z/(Z0 10^F) 1.319). Mass fractions: O 6.38e-3, C 1.76e-3, Ne 1.89e-3, Fe 8.4e-4, Mg 4.5e-4, Si 4.9e-4, N 4.9e-4. Fe/Si 1.703, Mg/Si 0.917, C/O 0.276 (mass). CMF and fuel factor not recomputed |
 | **B, old, high-alpha.** F -0.80, age 9.0 Gy, key `example-B2` | age 9.0 >= 8.0 passes the gate; P(F) 0.968, u 0.533: high. O +0.503, Mg +0.312, Si +0.175, C +0.131 | X 0.7375, Y 0.2566, Z 0.00591 (Z/(Z0 10^F) 2.42). Fe/Si 1.186, Mg/Si 1.303, C/O 0.188. CMF 0.205. Tip 2432 Lsun |
 | **C, halo.** F -1.60, age 12 Gy, key `example-C1` | P 0.9999, high. O +0.681, Mg +0.424, Si +0.240, C +0.216 | X 0.7497, Y 0.2490, Z 0.00135 (3.49). Fe/Si 1.019, Mg/Si 1.448, C/O 0.152. CMF 0.175. Tip 2183 |
 | **D, carbon-enhanced metal-poor.** F -3.0, age 12.5, key `example-D8` | F < -2: CEMP draw 0.069 < 0.25, [C/Fe] = 0.7 + 1.3 x 0.396 = 1.215 (a key suffix that gives a CEMP star; most keys do not) | X 0.7530, Y 0.2469, Z 9e-5. C/O 1.80 mass (2.40 number), Fe/Si 0.99. A rocky planet here could be carbon-rich |
@@ -164,13 +164,13 @@ Inputs are illustrative, not presets and not copied from the Solar System. Keys 
 | Target | Expected | Tolerance | State |
 |---|---|---|---|
 | Scale reproduces itself: F = 0, all [X/Fe] = 0 gives (X, Y, Z) = (0.7121, 0.2725, 0.0154) | exact | 1e-6 with g derived from the reference; 1e-4 with 1.68 | verified |
-| Thin branch means only at F = 0 (the Sun's role as a target) | X 0.7129, Y 0.2720, Z 0.01511 | Z within 3 percent of 0.0154 | verified |
+| Thin branch means only at F = 0 (the Sun's role as a target) | X 0.7128, Y 0.2720, Z 0.01512 | Z within 3 percent of 0.0154 | verified |
 | Z/Z0 against 10^F at F 0, -0.5, -1, -2 for thin and high-alpha | table of section 3 | 0.01 | verified (GEN.464) |
 | X + Y + Z = 1; Y >= Y_P; Z monotone in F on a branch for fixed residuals; branch flips at most once | invariants | 1e-9 | verified (checked in the session) |
-| 1e5 draws, mix N(-0.10, 0.22): Fe/Si 1.62 [1.08, 2.02], Mg/Si 1.02 [0.80, 1.36], C/O 0.40 [0.25, 0.54], high share 0.216 (age gate off, as part A 2.8 drew it) | reproduces part A 2.8 | 5 percent of width | verified |
+| 6e3 draws, mix N(-0.10, 0.22): Fe/Si 1.82, Mg/Si 0.98, C/O 0.38, high share 0.224 (age gate off, as part A 2.8 drew it; part A had Fe/Si 1.62, Mg/Si 1.02 and C/O 0.40 before the refit to Brewer and Fischer, GEN.988 to GEN.991) | the Brewer and Fischer medians below | as stated | verified |
 | Age gate: no star younger than `THICK_START_GY` is high-alpha; old disc (ages uniform 3 to 10 Gy, [Fe/H] N(-0.20, 0.25), 3e5 draws) high-alpha share 0.095 at 8.0 Gy (0.329 at 3.0) | invariant; 0.095 | exact; 0.01 | stand-in (the share depends on the open age-resolved fraction, Q3) |
-| Against BF16 medians (Fe/Si 1.81, Mg/Si 0.93, C/O 0.385) | within 0.2, 0.1, 0.05 | as stated | partly verified (the draw sits 0.19 below on Fe/Si) |
-| Mg-Si residual correlation 0.77, thin Mg/Si ratio residual 0.041 dex | within 0.03 and 20 percent | | verified |
+| Against BF16 medians (Fe/Si 1.81, Mg/Si 0.93, C/O 0.385) | within 0.2, 0.1, 0.05 | as stated | verified (the draw sat 0.19 below on Fe/Si before the thin Mg and Si refit, GEN.989; the table's C/O median over all its stars is 0.368) |
+| Mg-Si residual correlation 0.68 (0.77 of the 844-dwarf table), thin Mg/Si ratio residual 0.054 dex | within 0.03 and 20 percent | | verified |
 | Sun's central hydrogen at 4.57 Gy, 1 Msun | 0.340 | 0.03 | verified |
 | First dredge-up, 1 Msun, Z 0.02: Y +0.0225, C/Z x0.88, N/Z x1.45 | | 10 percent | verified |
 | White-dwarf radius at 1.018 Msun | 0.00803 Rsun | 5 percent | verified |

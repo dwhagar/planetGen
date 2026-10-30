@@ -16,8 +16,8 @@ because the limit mass has cooled below it. The table runs 0.5 Myr to 10 Gyr; ou
 Limits. The limit mass is the paper's round 0.07 (the grid has 0.07 and 0.072, and the temperature of 0.072 is 0 to 8 percent higher:
 2954 K at 10 Myr and 1790 K at 10 Gyr, so the true limit at old ages is a little above 0.07 and the ceiling is a lower bound there). Solar
 metallicity only; the boundary moves with [Fe/H] (GEN.936). `cap_k(mass, age)` is what generation reads (GEN.494's wiring, Sources 2): `brown_dwarf` and `rogue_surface` cap the temperature of a body below the limit mass at `hottest_k(age)` and of one at or above it at `HOTTEST_K`,
-in place of the 2800 K clip every age shared, and the hot edge of the atmosphere row g1 is `HOTTEST_K`. The tracks of `tuning.BROWN_DWARF_TRACKS` are themselves BHAC15, so the cap acts only at the peak
-and where a sub-limit track runs a few kelvin over the limit mass's (Baraffe tracks proper are GEN.948).
+in place of the 2800 K clip every age shared, and the hot edge of the atmosphere row g1 is `HOTTEST_K`. The cooling tracks (`baraffe_isochrones.cooling_track`, GEN.948) are themselves BHAC15, so the cap acts only at the peak
+and where a sub-limit track runs a few kelvin over the limit mass's.
 """
 
 import math
