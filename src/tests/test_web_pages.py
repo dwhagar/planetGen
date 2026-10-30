@@ -614,7 +614,7 @@ def test_table_route_serves_the_sectors_and_systems_tables(client, fake):
     assert ("sectors", "systems", True, []) in fake.asked
 
     body = client.get("/table/systems?facets=1&placement=standalone").get_json()
-    assert [cell["text"] for cell in body["rows"][0]] == ["System 000", "Standalone", "–", "No", "G2V"]
+    assert [cell["text"] for cell in body["rows"][0]] == ["System 000", "Standalone", "–", "1", "4", "No", "G2V"]
     assert {o["value"]: o["label"] for o in body["facets"]["binary"]} == {"yes": "Binary", "no": "Single star"}
     assert client.get("/table/standalone-systems").status_code == 404
 
