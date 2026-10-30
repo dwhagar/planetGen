@@ -14856,6 +14856,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects, migration, golden refresh through Bug 2. The fields
   (GEN.1103 and GEN.1104) move to train 20 and GEN.1105 to GEN.1107 to
   train 21.
+  Boss idea, 5:03 PM EDT (each star donates rogues) (2026-10-30 5:04 PM
+  EDT): Boss: have each star system in a sector donate rogue planets:
+  they are generated as part of the system, with a slot and a full
+  history (formation, migration, moons, composition, age), then ejected,
+  and the rogue keeps that history. This item is exactly that: the donor
+  system builds the planet in its architecture slot, the ejection event
+  is recorded in the system history, and the rogue row is the same
+  planet with the rogue note, its kept moons and the ejection speed and
+  age. Open question for Boss, taken as the default until he answers: an
+  ejected planet drifts (speed times age: a few km/s over Gyr is
+  kiloparsecs, far larger than a sector), so which sector holds it?
+  Default (recommended): the rogue is stored in its donor system's
+  sector, its object ID carries the parent system ID and a rank, and its
+  drawn position is the parent position (young ejections) or the parent
+  position displaced by the drift clamped to the sector (old ones);
+  nothing moves between sectors and every sector stays independent. The
+  alternative is to place it where it actually drifted, which needs the
+  donors of every sector within the drift radius and breaks sector
+  independence (not recommended).
   Prerequisites: GEN.1109, GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
