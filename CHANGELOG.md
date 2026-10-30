@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2791] - 2026-10-30
+
+**Headline:** A body now has a status worked out from its mass, composition, orbit and neighbours (planet, dwarf planet, minor body or moon), kept with the numbers behind it; nothing in the generator uses it yet.
+
+### Added
+- **Body status (GEN.1063).** A new `physics/body_status` module gives a body its IAU word and the numbers: how round it is (the compaction taper shifted by composition, 1e20 kg of ice and 1e21 kg of rock are half way to round), Soter's mu against the mass of the others in its zone, Margot's Pi and Stern and Levison's Lambda. Earth, Mars and Jupiter come out planets, Ceres, Pluto and Eris dwarf planets and a Trojan a minor body, as test targets and never as inputs. The registry has new rows (BR22 to BR24). The belt wiring (GEN.1069 and later) calls it on a later generation train.
+
+generation-output: unchanged
+
+## [8.0.2790] - 2026-10-30
+
+**Headline:** A belt's biggest bodies can now be said to be dwarf planets, planets or minor bodies, and the icy ones Class D, from the belt's mass and size law (not used by the generator yet).
+
+### Changed
+- **Dwarf planet population (GEN.1090).** New `physics/dwarf_population.py`: how many bodies of a size a belt holds, the order-statistic largest body, the mass above which a body is round for its ice share, Soter's and Margot's orbit-clearing numbers, and the Class D tag by the class conditions. The dwarf planet count follows from the belt's mass and is not typed in. Nothing calls it yet.
+
+generation-output: unchanged
+
 ## [8.0.2789] - 2026-10-30
 
 **Headline:** The gas-drag capture of moons now has a gate (gas giants only) and a size window (a few km to a few hundred km) from papers, but its strength is still a guess.
