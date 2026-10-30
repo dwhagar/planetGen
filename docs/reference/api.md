@@ -176,8 +176,8 @@ connectivity to that specific schema rather than the default one.
   but not its own). `total` counts the systems that pass the filters; where
   no stored count exists yet it stops at 10,000 and `total_capped` is `true`
   (the exact figure follows once the background count finishes). `after=<system
-  ID>` starts the page after that system in the name sort and ignores
-  `offset`, so page 40,000 costs what page 1 does (an unknown ID is a 400);
+  ID>` starts the page after that system in the name, sector, octant and binary sorts and ignores
+  `offset`, so page 40,000 costs what page 1 does (PERF.75, PERF.206; an unknown ID is a 400);
   `from=<text>` (PERF.75, the Systems table's jump-by-value box) begins the
   list at the first name from that text on under the name sort (`M` starts
   at the first name from M; under `order=desc` the names that begin with M
