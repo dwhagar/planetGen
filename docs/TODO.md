@@ -1678,6 +1678,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  Progress (2026-10-30 1:34 PM EDT): Core 3 (as the lane reported 1:36
+  PM EDT): slice A merged in #4065: the 3D system view draws a triple or
+  deeper tree of stars node by node, each star about the centre of its
+  own pair and each pair about its parent, on the real eccentric tilted
+  ellipse from the stored tree; in the compressed view each pair is
+  drawn wide enough for its stars to clear each other at closest
+  approach. A browser test loads a triple. Next: slice B (System Map
+  diagram, systemmap.py), slice C (system page lists the tree), then
+  TEST.477.
   Prerequisites: none. Related: GEN.129.
 
 - [ ] **MAP.215 Nebulae tint the stars seen through them, with soft translucent boundaries**
@@ -14277,6 +14286,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (or keep the table across processes), with the generated output and
   golden digest identical and peak memory no higher than main. Related:
   PERF.188, TEST.464.
+  Also seen (2026-10-30 1:34 PM EDT): Core 3 (as the lane reported 1:36
+  PM EDT): the site database set-up behind the site_app browser tests
+  took 3 to 45 minutes between identical runs; py-spy shows it inside
+  star_population._bright_measure_bound and _bright_windows (isochrone
+  lookups for each sector bright-star table), the same table build. Aux
+  5 owns the redesign.
   Prerequisites: none. Related: PERF.188, TEST.475.
 
 ## DB: Database and schema
