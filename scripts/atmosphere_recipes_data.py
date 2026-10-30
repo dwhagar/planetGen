@@ -429,12 +429,13 @@ MACHINE = {
                           "solar masses, 0.6 at 0.2 to 0.3, 2.3 at 0.1 to 0.2), interpolated in log mass, and replaces "
                           "LU[0.162, 2]."),
     "p5": dict(kind="option", group="p", classes=ANY, when=[c("age_gy", maximum=0.1)], weight=1),
-    "p6": dict(state="partly verified", limit="the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range Johnstone 2021 offers); the saturation time against mass is read off Johnstone 2021 Fig. 10 (`saturation_time.py`, registry RS1, GEN.493); the draw does not yet read it (wiring step)", kind="param", classes=ANY, when=[drawn("p", "p4", "p5")],
+    "p6": dict(state="partly verified", limit="the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range Johnstone 2021 offers); the saturation time against mass is read off Johnstone 2021 Fig. 10 (`saturation_time.py`, registry RS1, GEN.493) and is held to 0.1 to 1.2 solar masses; the generator's own star draws its percentile in `activity.generate_activity`, and this row does not yet read that star's value", kind="param", classes=ANY, when=[drawn("p", "p4", "p5")],
                dist={"kind": "uniform", "lo": 0.02, "hi": 0.98}, sets="rotation_percentile",
-               values={"t_sat_myr": "5.7*(23/5.7)**((value - 0.1)/0.4) if value < 0.5 else 23*(226/23)**((value - 0.5)/0.4)"},
-               source="Tu et al. 2015 (arXiv:1504.04546, READ): the 10th, 50th and 90th percentile tracks of the initial rotation "
-                      "distribution with saturation times 5.7, 23 and 226 Myr; Johnstone et al. 2021 (READ): tracks at every "
-                      "integer percentile 2 to 98; the 150 Myr rotation distribution of the clusters is the observed one"),
+               values={"t_sat_myr": "saturation_time_myr(host_mass_solar, 100*value)"},
+               source="Johnstone, Bartel and Guedel 2021 (arXiv:2009.07695, READ): the saturation age against mass for the 5th, 50th and 95th "
+                      "percentiles of the 150 Myr rotation distribution of the clusters (Fig. 10, read off by pixel position), which is the "
+                      "observed distribution, so the percentile is uniform; at one solar mass the curves agree with Tu et al. 2015 "
+                      "(arXiv:1504.04546, READ: 5.7, 23 and 226 Myr at the 10th, 50th and 90th percentiles)"),
 }
 
 # The group a row belongs to carries its fallback; these rows sit in no group (independent draws).

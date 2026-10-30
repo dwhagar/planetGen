@@ -1215,6 +1215,16 @@ The atmosphere recipe rows of GEN.480 (occurrence of water-rich and H/He worlds)
 | AL1 | P | T5 | L1 | radiogenic._depletion_time_yr: the thin disc's gas over its star formation now (the rings weighted by area), standing for the host's depletion time at its birth | the star formation law's index and a low-density threshold; 1.0 to 4.2 Gy for a Milky Way mass disc | spiral discs of the generator | the Milky Way mass shape's depletion time outside 2.5 to 6 Gy, or a measured 26Al/27Al of the Galaxy's gas more than a factor of 3 from the mean | a star formation law with a threshold in GEN.469 (Kennicutt 1998 and Bigiel et al. 2008, not read) and the host's local gas at its birth radius and time | test_radiogenic::test_the_aluminium_26_of_a_star_is_a_spiky_sum_of_decayed_additions_about_its_regions_mean |
 <!-- al26-wiring-standins:end -->
 
+### 6.50 Stand-ins of the decay exponent after X-ray saturation (GEN.493 wiring)
+
+`activity.generate_activity` takes a star's saturation age from `saturation_time` (RS1, Johnstone et al. 2021) by its mass and its own uniform draw of the initial-rotation percentile, in place of the old table's age and the 0.3 dex scatter. The old table's decay exponents were calibrated with the old ages (an exponent of 2.0 with 0.10 Gyr gives the Sun 1.4e27 erg/s today); with the median age of 23 Myr the same exponent would give the Sun a twentieth of that. The exponents from 0.45 solar masses up are therefore the ones that hold each mass's `L_X/L_bol` at 5 Gyr where the earlier table put it. At one solar mass that is 1.45, inside the Skumanich band of 1.35 to 1.5, and the Sun comes out at 1.3e27 erg/s; Hyades-age G stars come out at 6.5e-6, against about 1e-5 observed (the earlier table gave 2.1e-5).
+
+<!-- decay-exponent-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| AB1 | P | T9 | L3 | activity.DECAY_EXPONENTS: the exponent b of `L_X/L_bol` after saturation by mass (1.0 up to 0.3 solar masses, 1.35 at 0.45, 1.8 at 0.6, 1.45 at 0.8 and 1.0), tuned so each mass keeps its `L_X/L_bol` at 5 Gyr from the earlier table | each value within 0.3 of the one that reproduces the earlier level; the solar-mass 1.45 inside the Skumanich band | 0.45 to 1.2 solar masses and ages past the saturation age | a measured `L_X/L_bol` of field stars at 1 to 10 Gyr by mass differing from the model's by more than 0.5 dex, or a decay slope of the Johnstone et al. 2021 model for the same masses outside 1.0 to 2.0 | the decay of the rotation and X-ray model of Johnstone, Bartel and Guedel 2021 (the spin-down torque of Johnstone 2015, not read) | test_activity::test_the_decay_exponents_hold_the_old_table_level_at_the_reference_age |
+<!-- decay-exponent-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

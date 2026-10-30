@@ -3876,7 +3876,7 @@
    "option": "Rotation track (L2 on p4, p5, solar mass): slow / median / fast",
    "gate_text": "any",
    "weight_text": "percentile of the initial rotation distribution uniform 0.02 to 0.98",
-   "source": "Tu et al. 2015 (arXiv:1504.04546, READ): the 10th, 50th and 90th percentile tracks of the initial rotation distribution with saturation times 5.7, 23 and 226 Myr; Johnstone et al. 2021 (READ): tracks at every integer percentile 2 to 98; the 150 Myr rotation distribution of the clusters is the observed one",
+   "source": "Johnstone, Bartel and Guedel 2021 (arXiv:2009.07695, READ): the saturation age against mass for the 5th, 50th and 95th percentiles of the 150 Myr rotation distribution of the clusters (Fig. 10, read off by pixel position), which is the observed distribution, so the percentile is uniform; at one solar mass the curves agree with Tu et al. 2015 (arXiv:1504.04546, READ: 5.7, 23 and 226 Myr at the 10th, 50th and 90th percentiles)",
    "status": "DERIVED",
    "research": [
     "R14"
@@ -3886,7 +3886,7 @@
     "READ"
    ],
    "state": "partly verified",
-   "limit": "the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range Johnstone 2021 offers); the saturation time against mass is read off Johnstone 2021 Fig. 10 (`saturation_time.py`, registry RS1, GEN.493); the draw does not yet read it (wiring step)",
+   "limit": "the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range Johnstone 2021 offers); the saturation time against mass is read off Johnstone 2021 Fig. 10 (`saturation_time.py`, registry RS1, GEN.493) and is held to 0.1 to 1.2 solar masses; the generator's own star draws its percentile in `activity.generate_activity`, and this row does not yet read that star's value",
    "replacement": "",
    "items": [],
    "classes": [
@@ -3908,7 +3908,7 @@
    },
    "sets": "rotation_percentile",
    "values": {
-    "t_sat_myr": "5.7*(23/5.7)**((value - 0.1)/0.4) if value < 0.5 else 23*(226/23)**((value - 0.5)/0.4)"
+    "t_sat_myr": "saturation_time_myr(host_mass_solar, 100*value)"
    }
   }
  ]

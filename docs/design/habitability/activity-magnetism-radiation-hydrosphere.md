@@ -81,7 +81,7 @@ the [R] items are listed under Evidence notes.
   `L_XUV ~ t^-1.29`, matching the -1.2 to -1.3 band exponents of Ribas et al.
   2005 [S].
 
-Defaults [C: design defaults calibrated as above]:
+Defaults [C: design defaults calibrated as above; the `t_sat` column is the design's first estimate: generation takes the saturation age from Johnstone et al. 2021 by mass and rotation percentile (GEN.493, [host-activity-tuning.md](../composition/host-activity-tuning.md) section 4) and retunes the exponents from 0.45 Msun up (1.35, 1.8, 1.45, 1.45) to keep the same present-day level]:
 
 | Mass (Msun) | Type | `L_X/L_bol` saturated | `t_sat` (Gyr) | Decay exponent | `L_XUV/L_bol` saturated |
 |---|---|---|---|---|---|

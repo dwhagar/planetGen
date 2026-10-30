@@ -100,8 +100,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.36:PA10 | GEN.728 | `GIANT_INWARD_MIGRATION_SIGMA_LN, GIANT_CLEARING_SPACING`, read by `planet_architecture`, which `system.py` calls at the wiring |
 | row | 6.36:PA11 | GEN.728 | `PLANET_MIN_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
 | row | 6.36:PA12 | GEN.728 | `DISC_SOLIDS_SCATTER_DEX, INNER_SYSTEM_FRACTION_ANCHORS`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| module | planetgen.physics.saturation_time | GEN.493 | the X-ray saturation time by stellar mass and initial rotation percentile from Johnstone et al. 2021 (lock-free); the wiring step has row p6 and the activity table's `t_sat` read it with the star's own mass |
-| row | 6.39:RS1 | GEN.493 | `saturation_time.ANCHORS_MYR`, read when the wiring step lands |
 | module | planetgen.physics.belt_mass | GEN.477 | the mass left in a planetesimal belt after collisional grinding (Wyatt et al. 2007; lock-free); the wiring step gives `AsteroidBelt` its mass and its density word from it |
 | row | 6.43:BM1 | GEN.477 | `belt_mass.GRAIN_DENSITY_KG_M3, STRENGTH_FLOOR_J_PER_KG`, read when the wiring step lands |
 | row | 6.43:BM2 | GEN.477 | `belt_mass.DENSE_FACTOR`, read when the wiring step lands |

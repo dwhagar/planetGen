@@ -1,7 +1,7 @@
 # planetgen/physics/saturation_time.py
 
 """
-How long a star stays saturated in X-rays, by mass and by initial rotation (GEN.493, part 1; docs/design/composition/host-activity-tuning.md section 4).
+How long a star stays saturated in X-rays, by mass and by initial rotation (GEN.493; docs/design/composition/host-activity-tuning.md section 4).
 
 Row p6 of the atmosphere recipes draws a star's initial-rotation percentile and takes the saturation time from three solar-mass points of
 Tu et al. 2015 (5.7, 23 and 226 Myr at the 10th, 50th and 90th percentile); the mass dependence was missing (every mass used the solar one, GEN.523).
@@ -19,8 +19,8 @@ by construction, so the row's draw is a uniform percentile and carries no weight
 
 Limits. The anchors are figure read-offs (tier T3, tweak L0 as read; a few percent from the pixel scale, more on the steep 1.1 to 1.2 solar mass edge of
 the fast track); the model is for solar metallicity and the percentiles of the 150 Myr distribution observed in clusters; fully convective stars at
-0.1 solar masses carry the least certain spin-down. Nothing in generation calls this yet: the wiring step replaces row p6's single set of solar-mass
-times in the draw (the star's own mass and percentile) and rides a merge train with the activity table.
+0.1 solar masses carry the least certain spin-down. Wired (GEN.493): `activity.generate_activity` draws each star's percentile and takes its saturation age here, and row p6 of the atmosphere
+recipes reads it through the recipe function `saturation_time_myr`.
 """
 
 import math

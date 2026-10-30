@@ -58,7 +58,7 @@ def _light(mass_sol, age_yr, now):
 
 def _xuv_w(mass_sol, age_yr, luminosity_w, temperature_k, activity_scale):
     """The star's `L_XUV` at this age: coronal (saturated, then decaying) plus the photosphere above 13.6 eV."""
-    t_sat, decay = activity._interp(activity.ACTIVITY_TABLE, mass_sol)
+    t_sat, decay = activity.saturation_age_gy(mass_sol), activity.decay_exponent(mass_sol)
     ratio = activity.lx_lbol_at(age_yr / 1e9, activity.saturated_lx_lbol(mass_sol), t_sat, decay)
     if age_yr / 1e9 > t_sat:
         ratio *= activity_scale
@@ -72,7 +72,7 @@ def _activity_scale(star, mass_sol, age_yr):
     stored = getattr(star, "log_lx_lbol", None)
     if stored is None:
         return 1.0
-    t_sat, decay = activity._interp(activity.ACTIVITY_TABLE, mass_sol)
+    t_sat, decay = activity.saturation_age_gy(mass_sol), activity.decay_exponent(mass_sol)
     age_gy = age_yr / 1e9
     if age_gy <= t_sat:
         return 1.0
