@@ -67,7 +67,7 @@ def test_a_star_built_from_a_stored_row_keeps_the_rows_period():
     row = _row_dict(_scatter()[0])
     star = Star.from_params(brightStars.star_params(row), SystemConfig(), name="Test")
     assert star.rotation_period_hours == row["rotation_period_hours"]
-    old_row = dict(row, rotation_period_hours=None)           # a row made before v176 draws its own
+    old_row = dict(row, rotation_period_hours=None)           # a row made before v185 draws its own
     star = Star.from_params(brightStars.star_params(old_row), SystemConfig(), name="Test")
     assert star.rotation_period_hours > 0.0
 

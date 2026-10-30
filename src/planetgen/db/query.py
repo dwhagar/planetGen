@@ -4743,7 +4743,7 @@ def _uncharted_item(row, edge_pc):
 def uncharted_system_detail(conn, bright_star_id):
     """
     One scattered star as its page needs it (UX.114): `list_uncharted_systems`'s item, plus `system_id` (the system
-    built around it, or `None` while it is uncharted), `rotation_period_hours` (GEN.846; `None` on a row made before v176), `hosted_nebula` (the nebula it lights, as
+    built around it, or `None` while it is uncharted), `rotation_period_hours` (GEN.846; `None` on a row made before v185), `hosted_nebula` (the nebula it lights, as
     `hostednebula.summary`, or `None`: the one its sector builds, GEN.530) and, for a star with company, its `members` and `nodes`
     (`scatter_member_tree`). A star already built into a system lists no members: its members are the system's stars.
 
