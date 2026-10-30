@@ -6141,7 +6141,15 @@ def _score_options(conn, table, facet):
     """UX.214: the ticks of one score filter facet (`score_filters.FACETS`) with how many bodies of `table` each holds
     for; the ones none hold for are left out."""
     ticks = score_filters.FACETS[facet][1]
-    row = conn.execute(f"SELECT {score_filters.counts_select(facet, 't')} FROM {table} t WHERE t.phi4 IS NOT NULL").fetchone()
+    kind = table[:-1]
+    if facet == "supports":
+        found = {(row["life_class"], least): int(row[f"t{least}"]) for row in conn.execute(
+            score_filters.supports_counts_sql(kind)).fetchall() for least, _word in score_filters.SUPPORTS_LEVELS}
+        return [{"value": value, "label": label, "count": found[tuple_], "tooltip": label}
+                for value, label, _sql in ticks
+                for tuple_ in [(value.split(":")[0], int(value.split(":")[1]))] if found.get(tuple_)]
+    row = conn.execute(
+        f"SELECT {score_filters.counts_select(facet, 't', kind)} FROM {table} t WHERE t.phi4 IS NOT NULL").fetchone()
     return [{"value": value, "label": label, "count": int(row[f"t{i}"]), "tooltip": label}
             for i, (value, label, _sql) in enumerate(ticks) if row[f"t{i}"]]
 
@@ -6155,10 +6163,11 @@ def _score_facet_defs(conn):
 def _score_clauses(alias, tags, prefix, clauses):
     """Adds one condition for each score filter facet ticked (`score_filters.condition`; a stray value is dropped, which
     leaves a facet of only strays matching nothing). `prefix` is `""` for planets and `"moon_"` for moons."""
+    kind = "moon" if prefix else "planet"
     for facet in score_filters.FACETS:
         selected = tags.get(f"{prefix}{facet}", set())
         if selected:
-            clauses.append(score_filters.condition(facet, alias, selected) or "1 = 0")
+            clauses.append(score_filters.condition(facet, alias, selected, kind) or "1 = 0")
 
 
 def _score_order(alias, sort, default):

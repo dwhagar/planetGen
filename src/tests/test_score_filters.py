@@ -25,6 +25,20 @@ def _bodies(config, table):
         conn.close()
 
 
+def _class_scores(config, table):
+    """`{body name: {class id: score}}` from the body's life class score table (MAP.345)."""
+    kind = table[:-1]
+    scores, owner = score_filters.SCORE_TABLES[kind]
+    conn = store.get_connection(config)
+    try:
+        found = {}
+        for row in conn.execute(f"SELECT b.name, s.life_class, s.score FROM {scores} s JOIN {table} b ON b.id = s.{owner}").fetchall():
+            found.setdefault(row["name"], {})[row["life_class"]] = row["score"]
+        return found
+    finally:
+        conn.close()
+
+
 def _found(config, panel, facet, value, sort=None):
     conn = query.open_readonly(config)
     try:
@@ -36,7 +50,10 @@ def _found(config, panel, facet, value, sort=None):
         conn.close()
 
 
-def _expected(row, facet, value):
+def _expected(row, facet, value, class_scores=None):
+    if facet == "supports":
+        class_id, least = value.split(":")
+        return (class_scores or {}).get(row["name"], {}).get(class_id, 0) >= int(least)
     life = {name: row[f"life_{name}"] for name in LIFE}
     if facet == "habitability":
         return habitability.tier(row["phi4"]).lower() == value
@@ -53,10 +70,11 @@ def _expected(row, facet, value):
 @pytest.mark.parametrize("table,panel,prefix", (("planets", "planets", ""), ("moons", "moons", "moon_")))
 def test_every_filter_returns_the_bodies_the_stored_scores_pick(scored_galaxy, table, panel, prefix):
     bodies = _bodies(scored_galaxy.config, table)
+    class_scores = _class_scores(scored_galaxy.config, table)
     assert len(bodies) > 3
     for facet, (_title, ticks) in score_filters.FACETS.items():
         for value, _label, _sql in ticks:
-            want = {row["name"] for row in bodies if _expected(row, facet, value)}
+            want = {row["name"] for row in bodies if _expected(row, facet, value, class_scores)}
             got = {row["name"] for row in _found(scored_galaxy.config, panel, prefix + facet, value)}
             assert got == want, (facet, value, got ^ want)
 
@@ -110,3 +128,31 @@ def test_the_chips_are_named_in_words(scored_galaxy):
             assert labels[key] == label
     assert all(not label.startswith(("blue", "green")) for key, label in labels.items() if key.startswith("habitability:"))
     assert any(key.startswith("habitability:") and "PHI-6" in label for key, label in labels.items())
+
+
+@pytest.mark.parametrize("table,prefix", (("planets", ""), ("moons", "moon_")))
+def test_the_supports_options_count_the_bodies_at_each_class_and_threshold(scored_galaxy, table, prefix):
+    class_scores = _class_scores(scored_galaxy.config, table)
+    conn = query.open_readonly(scored_galaxy.config)
+    try:
+        facets = query.search(conn, {}, {name: set() for name in query.SEARCH_TAG_FACETS})["facets"]
+    finally:
+        conn.close()
+    offered = {option["value"]: option["count"] for option in facets[prefix + "supports"]}
+    for value, _label, _sql in score_filters.FACETS["supports"][1]:
+        class_id, least = value.split(":")
+        want = sum(1 for scores in class_scores.values() if scores.get(class_id, 0) >= int(least))
+        assert offered.get(value, 0) == want, value
+    assert (class_scores and offered) or table == "moons", "the sample galaxy stored no class scores, or none is offered"
+
+
+def test_a_body_that_supports_a_class_is_found_by_the_class_and_not_by_another(scored_galaxy):
+    class_scores = _class_scores(scored_galaxy.config, "planets")
+    supported = {(name, class_id) for name, scores in class_scores.items() for class_id in scores}
+    if not supported:
+        pytest.skip("the sample galaxy stored no planet class scores")
+    name, class_id = sorted(supported)[0]
+    assert name in {row["name"] for row in _found(scored_galaxy.config, "planets", "supports", f"{class_id}:1")}
+    others = [c.id for c in __import__("planetgen.physics.life_classes", fromlist=["CLASSES"]).CLASSES
+              if (name, c.id) not in supported]
+    assert others and name not in {row["name"] for row in _found(scored_galaxy.config, "planets", "supports", f"{others[0]}:1")}
