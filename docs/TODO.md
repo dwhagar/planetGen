@@ -14896,7 +14896,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch; new tests/test_planned_runs.py. Next: step 2 (start-time checks
   into prepare hooks); the item stays open for the later steps
   Scope split (Aux 2 finding, 2:47 AM EDT, TODO decision) (2026-10-30
-  2:52 AM EDT): step 2 composes only the verbs whose params are static
+  2:48 AM EDT): step 2 composes only the verbs whose params are static
   (fills, habitability, nebula field, population) into one run; the
   data-dependent chains are split into PERF.212 (scatters), PERF.213
   (link and settle) and PERF.214 (sectors planner), each a prerequisite
