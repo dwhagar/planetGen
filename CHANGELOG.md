@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2580] - 2026-10-30
+
+**Headline:** The generator can now read an alpha-enhanced star off a solar-scaled track and tie a disc star's metallicity to its age.
+
+### Added
+- **Alpha-enhanced equivalent metallicity and the age-metallicity relation (GEN.744, lock-free step).** `physics/alpha_tracks.py` gives the [Fe/H] a high-alpha star reads on the solar-scaled MIST grid (Salaris et al. 1993: about +0.29 dex at [alpha/Fe] +0.4) and `physics/age_metallicity.py` the disc's mean [Fe/H] by age on the thin and thick branches (0.025 and 0.15 dex per Gyr, Haywood et al. 2013). Nothing in generation calls them yet; the wiring rides the star epoch. Stand-ins AL1, AR1 to AR3 registered.
+
 ## [8.0.2579] - 2026-10-30
 
 **Headline:** The light of a star can now be looked up from model-atmosphere spectra by temperature and gravity, with the corona's far ultraviolet added from the MUSCLES stars.
