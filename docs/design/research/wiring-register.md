@@ -74,9 +74,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.26:GS4 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | row | 6.26:GS5 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | row | 6.26:GS6 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
-| module | planetgen.physics.planet_occurrence | GEN.728 | the reader of the observed occurrence bands; the architecture and the census read it |
-| module | planetgen.physics.kepler_multiplicity | GEN.728 | the Kepler transit multiplicity harness, read by the tuning tests until the wiring |
-| data | planet_occurrence.json | GEN.728 | read by `physics/planet_occurrence.py` only |
+| module | planetgen.physics.planet_occurrence | by design | the reader of the observed occurrence bands; the architecture and the census read it (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
+| module | planetgen.physics.kepler_multiplicity | by design | the Kepler transit multiplicity harness, read by the tuning tests until the wiring (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
+| data | planet_occurrence.json | by design | read by `physics/planet_occurrence.py` only (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
 | module | planetgen.physics.substellar_ceiling | GEN.494 | the Baraffe 2015 hydrogen-burning limit temperature by age (lock-free); the wiring step replaces the 2800 K clip of `brown_dwarf` and the hot edge of the atmosphere row g1 with it, riding the Baraffe brown dwarf tracks of GEN.948 |
 | row | 6.37:SB1 | GEN.494 | `substellar_ceiling.LIMIT_MASS_SOLAR`, read when the wiring step lands |
 | row | 6.37:SB2 | GEN.494 | `substellar_ceiling.HOTTEST_K`, read when the wiring step lands |
@@ -123,11 +123,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.clearance | GEN.1016 | the independent overlap checker (audit of a stored system, TEST.477); read by tests/test_clearance.py now and by the stability gate of GEN.1016 once it lands |
 | data | sulfuric_cloud.json | GEN.1019 | the sulfuric acid cloud rules (base temperature, published depth and radius brackets, cover); `aerosols.draw_cloud` will read them in the wiring step |
 | module | planetgen.physics.sulfuric_cloud | GEN.1019 | the acid cloud of an air with sulfur; `aerosols.draw_cloud` will add it to the condensate cloud once wired |
-| data | acid_cloud_optics.json | GEN.850 | the acid droplets' infrared optics per band (made by `scripts/build_acid_cloud_optics.py`); `radiative_convective` will read it through `cloud_infrared` in the wiring step |
-| module | planetgen.physics.cloud_infrared | GEN.850 | the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired |
+| data | acid_cloud_optics.json | by design | the acid droplets' infrared optics per band (made by `scripts/build_acid_cloud_optics.py`); `radiative_convective` will read it through `cloud_infrared` in the wiring step (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
+| module | planetgen.physics.cloud_infrared | by design | the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
 | module | planetgen.physics.mie | by design | Mie spheres, used by the optics builder script only; the generator reads the table it makes, so this stays unread by the app (delete when the builder moves out of the repo) |
 | module | planetgen.physics.pair_history | GEN.1012 | the history rule of a pair of members; `multistar.classify_pair` will read it once the member record (GEN.1009) provides each member's largest mass and radius |
-| row | 6.63:CF3 | GEN.850 | `cloud_infrared.TOP_OVER_BASE_PRESSURE`, read when the column solver calls the cloud |
+| row | 6.63:CF3 | by design | `cloud_infrared.TOP_OVER_BASE_PRESSURE`, read when the column solver calls the cloud (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
 | module | planetgen.physics.clearance_ledger | GEN.1014 | the spans where a planet, moon or belt may sit; replaces `_orbit_floor_au`, the per-star `a_crit_au` reads and the spacing and `min_orbit_distance` pushes of `space_orbits` once the system build draws from it (train 10, after GEN.1009 and GEN.1011) |
 | data | quadruple_stability_3p1.json | GEN.1016 | the 3+1 quadruple stability rules (validity ranges, the stability definition); `multistar` limits will read them through `quadruple_stability` in the wiring step |
 | data | quadruple_stability_3p1_weights.json | GEN.1016 | the 8,301 numbers of the authors' network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
