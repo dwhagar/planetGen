@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2716] - 2026-10-30
+
+**Headline:** The 3D system view draws a triple or a deeper tree of stars node by node, each star on the real orbit the tree gives it.
+
+### Changed
+- **A tree of stars is drawn orbit by orbit (MAP.213, slice A).** The browser now places every star about the centre of mass of the node it hangs from, and each node's centre about its parent node's, as the server's `positions_at` does. A star's path is the real eccentric, tilted ellipse of its node and no longer a circle. In the compressed view each node is drawn on its own scale, wide enough for its two sides to clear each other at periapsis (a star with planets going round it needs their whole span, a sub-pair the reach of its own orbit), so a 10,000 AU outer pair and a 0.1 AU inner pair both read; a wide pair with planets round its stars no longer has its second star inside the first star's planets. True scale draws the real distances. A triple's third star is drawn where the tree puts it and is no longer on the first star.
+- `positionsAt` and the checks in `tests/test_js_unit.py` still equal the server's positions; the browser test `test_system_page_3d_view_draws_a_triple_with_every_star_clear_of_the_others` loads a triple scene.
+
 ## [8.0.2715] - 2026-10-30
 
 **Headline:** The infrared model's carbon dioxide far wing is now the sourced Perrin and Hartmann one, and the column takes an acid cloud; no stored world changes.
