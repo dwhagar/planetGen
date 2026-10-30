@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2650] - 2026-10-30
+
+**Headline:** A giant's page opens its interior section with one sentence that says what the interior is.
+
+### Changed
+
+- GEN.811: the interior section of a giant's page now starts with a sentence in the voice of the pages that names the kind (gas giant, ice giant, brown dwarf) and the layers it has: the metallic hydrogen where a gas giant's field is made, the dilute core, the helium shell and the helium rain, or an ice giant's conducting water mantle. Three giants read differently, and a test pins the wording keys so a layer kind added later has to be worded. The sentence reads the layers already stored; no generated value changes. The sentences for each layer follow as before.
+
 ## [8.0.2649] - 2026-10-30
 
 **Headline:** A planet's or moon's Life section now has a Life and air chart: how its oxygen, carbon dioxide and methane changed as the life took hold.
