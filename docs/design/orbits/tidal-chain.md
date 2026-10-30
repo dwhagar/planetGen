@@ -23,7 +23,9 @@ One branch, a commit per stage, because the stages edit the same functions (`tid
 
 Checked on (`src/tests/test_tidal_rheology.py`): the Moon (k2 0.022 against 0.0242 observed, Q 61 at 1,450 K against 38 to 60), the solid Earth (semi-diurnal Q a few hundred), Io (k2/Q a few hundredths at the heat-pipe melt share 0.3 with no fitted number, against 0.015 from its orbital acceleration, Lainey et al. 2009), a magma ocean (k2 to 3/2, no dissipation) and cold ice (Europa's 3e-4 to a factor of 2, a hundred times more near melting).
 
-Stand-ins: registry rows TR1 to TR9 (`docs/design/research/gap-filling-plan.md` section 6.23). The two numbers the Moon and Io tests do not pin are the Andrade timescale ratio (1) and the rigidity floor of a mush (1e-3).
+Census check (800 systems from seed 1000, 743 with planets, 8,822 rocky planets and moons; screening, the same caveat as the 10-29 report: the mantle temperature is the one the built model stores and the birth spin of a locked planet is taken as 3 h, of a locked moon 20 h; `/mnt/project-files/reports/tides1/census-q-of-t-2026-10-30.txt`): with Q from the rheology instead of 100, 18.9 percent of free rocky planets and 5.9 percent of free moons would be locked within their age, 0.1 percent of locked ones would stay free, 6.1 percent of planets and 3.4 percent of moons flip between a tide that is at least their own heat and one that is not, and the tide's power changes by more than a factor of 3 for 51 and 57 percent. The median Q comes out 155 (5th to 95th percentile 17 to 1,000). Without the cold ceiling (TR10) a quarter of planets had Q above 6e4 and magma-ocean planets never locked, so the ceiling is a finding as well as a stand-in.
+
+Stand-ins: registry rows TR1 to TR10 (`docs/design/research/gap-filling-plan.md` section 6.23). The two numbers the Moon and Io tests do not pin are the Andrade timescale ratio (1) and the rigidity floor of a mush (1e-3).
 
 ## What GEN.955 does with it
 

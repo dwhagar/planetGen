@@ -35,6 +35,8 @@ Guimond et al. 2022), so the heat flow of the one-box mantle and the tide read t
 * Viscosity: `exp(-B phi)` with `B = 26` below the disaggregation fraction `CRITICAL_MELT_FRACTION` (Hirth and Kohlstedt 2003, for
   diffusion creep; Mei et al. 2002 find 26 to 31), then a straight line in `log10 eta` down to a silicate liquid's 1 Pa s at
   `phi = 1`: above the critical fraction the crystals no longer touch and the mush flows as a suspension.
+* Cold ceiling: the Andrade `Q` of a mantle far below its solidus is capped at `COLD_Q_CEILING` (1,000), a mantle that is all melt included (a magma ocean keeps the loss of its solid lid and core): the lag of a stiff mantle goes to zero
+  in the model but not in rock (the Maxwell form, kept as the reference, is not capped).
 * Rigidity: `mu0 (1 - phi / phi_c)^2` down to a floor of `MELT_RIGIDITY_FLOOR` of `mu0` (the share the mush keeps when the matrix is gone;
   seismic mushes lose half or more of their shear modulus by a few tens of percent melt).
 
@@ -72,6 +74,10 @@ Arzi 1978, 0.4 in Henning et al. 2009; recalled). Source tier T3, tweak level L1
 MELT_RIGIDITY_FLOOR = 1.0e-3
 """float: The share of its rigidity a mush keeps once the crystal matrix is gone. Source tier T6 (physics fixes the form: a suspension has no
 static rigidity; the size is argued), tweak level L3 (chosen so the Io state's `k2` stays under 1.5)."""
+COLD_Q_CEILING = 1000.0
+"""float: The largest `Q` the Andrade form is allowed to give. A mantle far below its solidus is infinitely stiff in this model and its `Q` runs to 1e14, and a mantle that is all melt dissipates nothing; real cold rock
+keeps a loss of its own (frictional and extrinsic, Q of 500 to a few thousand in the Earth's lithosphere and the Moon's cold interior; Dziewonski and Anderson 1981,
+Nakamura 1982, recalled). Source tier T6, tweak level L3 (chosen so that a cold small planet is not frictionless)."""
 ANDRADE_EXPONENT = 0.3
 """float: The Andrade exponent `a` (laboratory olivine 0.2 to 0.4; 0.3 in Jackson and Faul 2010 and Castillo-Rogez et al. 2011; recalled).
 Source tier T2, tweak level L0."""
@@ -191,7 +197,8 @@ def response(mass_kg, radius_m, frequency_rad_s, temperature_k, eta0_pa_s, activ
     k2 = love_number(mass_kg, radius_m, frequency_rad_s, rigidity_pa(melt, material),
                      viscosity_pa_s(temperature_k, eta0_pa_s, activation_j_mol, melt), material, maxwell)
     lag = -k2.imag
-    return Response(abs(k2), abs(k2) / lag if lag > 0.0 else math.inf)
+    q = abs(k2) / lag if lag > 0.0 else math.inf
+    return Response(abs(k2), q if maxwell else min(q, COLD_Q_CEILING))
 
 
 def tidal_frequency_rad_s(orbital_rate, spin_rate=None):

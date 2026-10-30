@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 326 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 327 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 48 | 4 | 2 | 10 | 0 | 64 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
 | T5 | 14 | 5 | 1 | 0 | 0 | 20 |
-| T6 | 31 | 7 | 2 | 13 | 0 | 53 |
+| T6 | 31 | 7 | 2 | 14 | 0 | 54 |
 | T7 | 16 | 3 | 0 | 7 | 0 | 26 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 223 | 19 | 10 | 57 | 17 | 326 |
+| All | 223 | 19 | 10 | 58 | 17 | 327 |
 
 ## How the labels were given
 
@@ -488,3 +488,4 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TR7 | T | T6 | L0 | tidal_rheology.viscosity_pa_s above CRITICAL_MELT_FRACTION (a straight line in log10 viscosity to a liquid's 1 Pa s at full melt) | none | a mush above the critical melt fraction | test_tidal_rheology::test_a_magma_ocean_tends_to_the_fluid_love_number_and_no_dissipation | a suspension law (Roscoe-Einstein) | the form is chosen to be continuous at phi_c; the end points are the solid's value there and a silicate liquid |
 | TR8 | P | T2 | L0 | tidal_rheology.LIQUID_VISCOSITY_PA_S 1 (a silicate liquid) | 0.1 to 10 | a fully molten mantle | test_tidal_rheology::test_viscosity_is_arrhenius_then_weakened_by_melt_then_a_liquid_at_full_melt | a liquid viscosity from the melt's composition | komatiite to basalt melt, 0.1 to 10 Pa s, recalled |
 | TR9 | P | T2 | L0 | tidal_rheology.ICE (rigidity 3.3e9 Pa), ICE_ACTIVATION_J_MOL 4.9e4, ICE_MELTING_VISCOSITY_PA_S 1e14 (ice I) | rigidity 3.3 to 3.5 GPa; activation 40 to 60 kJ/mol; viscosity 1e13 to 1e15 | an ice body or shell | test_tidal_rheology::test_cold_ice_gives_europa_the_k2_over_q_that_tidal_heating_uses_and_a_warm_shell_far_more | the shell treatment of GEN.960 (grain size, a shell on an ocean) | Gammon et al. 1983 (rigidity), Goldsby and Kohlstedt 2001 and McCarthy and Castillo-Rogez 2013 (creep), Ojakangas and Stevenson 1989 (viscosity), all second-hand |
+| TR10 | P | T6 | L3 | tidal_rheology.COLD_Q_CEILING 1000 (the largest Q the Andrade form gives: a cold mantle and a magma ocean both keep the loss of rock's own friction and of a solid lid and core) | 300 to 5000 | every rocky body | test_tidal_rheology::test_a_very_cold_mantle_keeps_the_loss_of_cold_rock | a frictional and extrinsic loss law with temperature | Q of 500 to a few thousand in the Earth's lithosphere and the Moon's cold interior (Dziewonski and Anderson 1981, Nakamura 1982, recalled); without it 25 percent of generated planets get a Q above 6e4 and close-in magma-ocean planets never lock |

@@ -56,6 +56,12 @@ def test_the_solid_earth_has_the_semidiurnal_tide_of_a_q_of_a_few_hundred():
     assert earth.k2 == pytest.approx(tidal_heating.rigid_k2(*EARTH), rel=0.1)
 
 
+def test_a_very_cold_mantle_keeps_the_loss_of_cold_rock():
+    """Andrade `Q` grows without limit as a mantle cools; the ceiling keeps a cold small planet from being frictionless."""
+    assert _rock(MOON, MONTH_RATE, 200.0).q == tidal_rheology.COLD_Q_CEILING
+    assert _rock(MOON, MONTH_RATE, 200.0, maxwell=True).q > 1.0e6
+
+
 def test_q_falls_as_the_mantle_warms_toward_the_solidus():
     """The signature of a real rheology and the thing constant Q cannot show: the same body dissipates more as it warms."""
     qs = [_rock(MOON, MONTH_RATE, t).q for t in (1000.0, 1200.0, 1400.0, 1600.0, 1700.0)]
@@ -82,13 +88,13 @@ def test_dissipation_peaks_in_the_partial_melt_and_falls_at_both_ends():
     """k2/Q (the tide's power) rises from the solid mantle into the mush and falls again in a liquid, where the body no longer dissipates."""
     ratios = {t: _rock(IO, IO_RATE, t).k2_over_q for t in (1500.0, 1700.0, 1850.0, 2000.0, 2150.0)}
     assert ratios[1850.0] > ratios[1700.0] > ratios[1500.0]
-    assert ratios[2150.0] < 0.01 * ratios[1850.0]
+    assert ratios[2150.0] < 0.05 * ratios[1850.0]
 
 
 def test_a_magma_ocean_tends_to_the_fluid_love_number_and_no_dissipation():
     liquid = _rock(IO, IO_RATE, 2200.0)
     assert liquid.k2 == pytest.approx(1.5, rel=0.01)
-    assert liquid.k2_over_q < 1.0e-3
+    assert liquid.k2_over_q <= 1.5 / tidal_rheology.COLD_Q_CEILING
 
 
 def test_the_maxwell_form_reproduces_henning_peak_and_the_andrade_form_fixes_its_cold_end():
