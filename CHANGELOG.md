@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2806] - 2026-10-30
+
+**Headline:** A belt's gaps can now be worked out from its giants: where the resonances and chaotic zones are, how small the bodies must be to have drifted out, and how stirred it is (not used by the generator yet).
+
+### Changed
+- **Resonance and chaotic-zone map (GEN.1062).** New `physics/resonance_gaps.py`: resonance positions and widths (Jupiter gives the Kirkwood gaps at 2.50, 2.82, 2.96 and 3.27 AU), the chaotic zone round each giant, the belt left outside them, the Yarkovsky size cut that grows with age, and the eccentricity the giants force. Nothing calls it yet.
+
+generation-output: unchanged
+
 ## [8.0.2805] - 2026-10-30
 
 **Headline:** The generator can now say what each stored asteroid in a belt is made of, changing with its distance from the star instead of one mix for the whole belt.
