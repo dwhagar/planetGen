@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.240 |
 | MAP | MAP.353 |
 | NAV | NAV.65 |
-| GEN | GEN.1030 |
+| GEN | GEN.1031 |
 | PERF | PERF.219 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.483 |
+| TEST | TEST.485 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -1780,6 +1780,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1027 | Ap and Am stars: a chemically peculiar branch of the A-star draw with rotation and magnetic field | none | open |
 | GEN.1028 | The Mardling and Aarseth 2001 stability criterion holds only for an outer mass ratio q_out of 5 or less and the code does not enforce it (bug) | none | open |
 | GEN.1029 | Research: port a 3+1 quadruple stability criterion without a machine-learning dependency (Vynatheya, Mardling and Hamers 2023 model files) | none | open |
+| GEN.1030 | Methane pseudo-adiabat in the giant planet column, so Uranus-like and Neptune-like one-bar temperatures match Voyager (GEN.852 tropopause and condensables family) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3428,8 +3429,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.478 | tests/test_api.py _bright_row (and its row near line 1491) is one value short since GEN.846 added bright_stars.rotation_period_hours (bug) | none | done, PR #4056 |
 | TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) | none | open |
 | TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) | none | open |
-| TEST.481 | Three tests red on clean main: the Hill sphere moon drop, the halo evolutionary flux counts and the large component phenomena unit (bug) | none | open |
-| TEST.482 | test_stages::test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own is red on main: fill-map-luminosity lists the block-lights stage (bug) | none | open |
+| TEST.481 | Three tests red on clean main: the Hill sphere moon drop, the halo evolutionary flux counts and the large component phenomena unit (bug) | none | done, PR #4096 |
+| TEST.482 | test_stages::test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own is red on main: fill-map-luminosity lists the block-lights stage (bug) | none | done, PR #4093 |
+| TEST.483 | test_disregard_missing_data (6 tests) and test_rq_time_limits::test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorded_to_take (3 params) are red on clean main (bug) | none | open |
+| TEST.484 | Four tests red on clean main: climate draws [c], habitability world scored consistently, life sweep class D "supports 3b, drew no life", and the moon-helper Hill sphere test (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

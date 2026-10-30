@@ -14032,6 +14032,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1006. Related: GEN.1006, GEN.1016, GEN.725,
   GEN.1028.
 
+- [ ] **GEN.1030 Methane pseudo-adiabat in the giant planet column, so Uranus-like and Neptune-like one-bar temperatures match Voyager (GEN.852 tropopause and condensables family)**
+  Found by Air 1 (relayed 3:16 PM EDT 2026-10-30 as the lane reported).
+  test_giant_one_bar_temperature: Uranus-like 95 K and Neptune-like 84 K
+  against Voyager 76 K and 72 K (tolerance 10 to 12 percent; Jupiter
+  passes). Cause is the model, not the fit: with the real Uranus inputs
+  the column gives 89.5 K (table 83), +18 percent, because the column
+  has only a dry or water adiabat while methane condenses near 1.3 bar
+  and halves the real lapse rate. The drawn internal heat of the test
+  giants (0.33 to 0.37 W/m2 against near zero for Uranus) adds about 5
+  percent. Do: a methane pseudo-adiabat in the column and a refit of the
+  table (about a day of lane compute); the two tolerances are not
+  loosened and the test is not skipped. Done:
+  test_giant_one_bar_temperature passes at its tolerances. Owner: Air 1
+  (rides train 6, lock work). Version 8.1.
+  Prerequisites: none. Related: GEN.852, TEST.479.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14497,6 +14513,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter or clear and redraw; lock-free, no epoch; the Generate page
   still runs its steps one by one. Next: step 4 (page and API build the
   spec, job_runner follows one process), then step 5.
+  Step 4 merged (3:06 PM EDT 2026-10-30): PR #4093 (as the lane
+  reported): a Generate job's generating commands run as one run-job
+  step with one stage list and one estimate; Review page, size estimate
+  and numbering unchanged. Step 5 (Finish the last run from the stored
+  run, retire the later list) is next, Aux 2.
 
 - [ ] **PERF.204 An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2)**
   Boss (1:19 PM EDT 2026-10-29), asked by Core 5 what a visit to an
@@ -18829,35 +18850,31 @@ clears each one.
   with the property it checks kept. Owner: Planets 1. Version 8.1.
   Prerequisites: none. Related: GEN.728.
 
-- [ ] **TEST.481 Three tests red on clean main: the Hill sphere moon drop, the halo evolutionary flux counts and the large component phenomena unit (bug)**
-  Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
-  lane reported), red on clean main too:
-  test_moon_helpers::test_shrinking_the_hill_sphere_drops_the_outer_moons_first;
-  the halo flux test
-  test_the_halo_counts_match_the_evolutionary_flux_of_an_old_population[100,500];
-  test_gen_component_pass::test_a_large_components_phenomena_are_a_unit_per_slice.
-  Do: triage each (stale expectation after the star epoch, a real
-  regression, or a seed that moved) and fix the right side without
-  skipping or loosening beyond the property. Done: all three pass on
-  main. Owner: Bug 2 (after TEST.468 to TEST.472) or any free lane.
-  Version 8.1.
-  Owner (idle lanes) (2026-10-30 2:51 PM EDT): Aux 5 (assigned by TODO;
-  test-only, lock-free, separate branch, merge it yourself). Triage each
-  of the three tests: stale expectation after the star epoch, real
-  regression, or moved seed; never skip or loosen beyond the property.
-  Prerequisites: none. Related: TEST.463.
-
-- [ ] **TEST.482 test_stages::test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own is red on main: fill-map-luminosity lists the block-lights stage (bug)**
-  Found by Aux 2 on PERF.203 step 3 (relayed 2:31 PM EDT 2026-10-30 as
-  the lane reported): the test is red on main; the fill-map-luminosity
-  command now lists a block-lights stage that the test's expected stage
-  list does not name. Do: decide whether the expectation is stale (the
-  block light totals are a repeatable stage several commands end with)
-  or the stage list is wrong, fix the right side, keep the property the
-  test checks (each scatter and fill is one stage of its own, the plan
-  is the skeleton). Done: the test passes on main. Owner: Aux 2 (it is
-  in PERF.203's files) or any free lane.
+- [ ] **TEST.483 test_disregard_missing_data (6 tests) and test_rq_time_limits::test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorded_to_take (3 params) are red on clean main (bug)**
+  Found by Aux 2 on PERF.203 step 4 (relayed 3:06 PM EDT 2026-10-30 as
+  the lane reported), red with the change stashed, so on clean main. Do:
+  triage each (stale expectation, a real regression, or a moved seed)
+  and fix the right side without skipping or loosening beyond the
+  property. Done: all of them pass on main. Owner: Bug 2 (after
+  TEST.481) or any free lane. Version 8.1.
   Prerequisites: none. Related: PERF.203.
+
+- [ ] **TEST.484 Four tests red on clean main: climate draws [c], habitability world scored consistently, life sweep class D "supports 3b, drew no life", and the moon-helper Hill sphere test (bug)**
+  Found by Air 1 comparing a 94 file run against clean main (relayed
+  3:16 PM EDT 2026-10-30 as the lane reported). Red on main too, not Air
+  1's: test_climate_draws[c]; test_habitability_world
+  scored_consistently; test_sweep_life class D "supports 3b, drew no
+  life"; and test_gen_moon_helpers shrinking_the_hill_sphere (already
+  named in TEST.481, fix there). Do: triage each (stale expectation
+  after the star epoch, a real regression, or a moved seed) and fix the
+  right side without skipping or loosening beyond the property. Done:
+  all pass on main. Owner: Bug 2 (after TEST.483) or any free lane.
+  Version 8.1.
+  Owner (idle lanes) (3:21 PM EDT 2026-10-30): Aux 5 (assigned by TODO
+  after TEST.481 merged as PR #4096; test-only, lock-free, separate
+  branch, merge it yourself). The Hill sphere moon test is done in
+  TEST.481, so only the other three remain.
+  Prerequisites: none. Related: TEST.481, TEST.483.
 
 ## USR: User accounts
 
