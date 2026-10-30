@@ -155,9 +155,9 @@ def test_a_run_empties_the_sectors_then_clears_and_draws_the_scatters_then_gener
     result = bring_to_epoch.run(mysql_config, None, say=said.append)
     assert not result["failed"] and result["redone"] == 2, said
     assert steps == [("empty", first), ("empty", second),
-                     ("clear", "luminosity"), ("clear", "mass"), ("clear", "phenomena"),
+                     ("clear", "luminosity"), ("clear", "mass"),
                      ("draw", "mass", 5000.0, 8.0, None), ("draw", "luminosity", 5000.0, None, None),
-                     ("draw", "phenomena", tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, None, None),
+                     ("clear", "phenomena"), ("draw", "phenomena", tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, None, None),
                      ("fill", first), ("fill", second)]
 
 
