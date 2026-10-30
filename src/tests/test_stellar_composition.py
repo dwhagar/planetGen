@@ -51,15 +51,16 @@ def test_the_key_prefers_the_group_then_the_bright_seed_then_the_uid_then_the_qu
 def test_the_draws_are_a_function_of_the_key_alone_and_all_are_always_drawn():
     one, two = sc.key_draws("42"), sc.key_draws("42")
     assert one == two and one != sc.key_draws("43")
-    assert 0.0 <= one.u_branch < 1.0 and len(one.normals) == 4 and 0.0 <= one.u_crust_model < 1.0
+    assert 0.0 <= one.u_branch < 1.0 and len(one.normals) == 5 and 0.0 <= one.u_crust_model < 1.0
     # The fixed order: changing only what is drawn last cannot move what is drawn first.
     stream = draw.Stream("abundance:42")
-    assert stream.random() == one.u_branch and tuple(stream.gauss(0.0, 1.0) for _ in range(4)) == one.normals
+    assert stream.random() == one.u_branch and tuple(stream.gauss(0.0, 1.0) for _ in range(4)) == one.normals[:4]
     assert stream.random() == one.u_enhanced and stream.random() == one.u_carbon
     assert stream.gauss(0.0, 1.0) == one.eu_normal and stream.gauss(0.0, 1.0) == one.th_eu_normal
     assert stream.random() == one.u_atmosphere and stream.random() == one.u_wolf_rayet
     assert stream.random() == one.u_crust_model, "the draw added before the pollution one (GEN.590) moved none before it"
-    assert stream.random() == one.u_pollution, "the draw added last (GEN.253) moved none before it"
+    assert stream.random() == one.u_pollution, "the draw added before the calcium one (GEN.253) moved none before it"
+    assert stream.gauss(0.0, 1.0) == one.normals[4], "the calcium residual (GEN.988) is the last draw and moved none before it"
 
 
 def test_the_draws_are_a_stream_of_their_own():
