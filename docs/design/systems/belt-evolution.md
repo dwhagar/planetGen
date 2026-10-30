@@ -119,6 +119,9 @@ Lock means it touches a lock (epoch, migration, golden, API version or shared ge
 | GEN.1072 | 13 | White dwarf and giant-branch events (lock) | Star 2 | train 16 |
 | GEN.1073 | 14 | Bring-to-epoch for belts (lock) | Bug 1 | train 16 after the GEN.1006 chain |
 | GEN.1074 | 15 | Captured asteroid moons: research, then a build plan | research thread | now |
+| GEN.1093 | belt_density.py: objects per square AU above a stated diameter, and mass per square AU | Aux 7 | after 2 |
+| UX.240 | Belt page data builder | Core 2 | after 2 and GEN.1093 |
+| UX.241 | Asteroid belt information page, route and API (lock) | Core 2 | train 16 |
 
 Order: 1, then 2 to 6 in parallel, then 9 to 11 as train 15; 12 to 14 as train 16. Item 15 (captured asteroid moons, Boss: "Jupiter has so many moons because a lot of them are former asteroids from the belt, if gravitational bodies are near a belt, they should pick up asteroidal moons") is a research item beside the belt chain: a belt feeds the moons of nearby giants, so a captured moon leaves the belt's mass in the ledger.
 
@@ -141,3 +144,7 @@ Diameter is for rock at 2,500 kg/m3 (m = rho pi D^3 / 6). The Solar System rows 
 Each row below the cut is still drawn on demand (tier L2) and is addressable, so nothing is lost by choosing a higher cut: the cut decides what is stored and listed, not what exists.
 
 **Chosen: E with a floor of 1e19 kg (B) as the bound for the unit of "individual".** In words: store every body above 1e19 kg, and if that is fewer than the bodies needed to reach 90 percent of the belt's mass, keep adding the next heaviest up to 300. The Solar System belt falls in 10 to 30 objects (Ceres, Vesta, Pallas, Hygiea and neighbours) which a reader can name; a rich outer disc is bounded at 300; mass is always accounted for.
+
+## 12. The asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30)
+
+A page per belt: (1) the individually tracked bodies by designation (no names), each linked to its member page; (2) the contents and sizes of the rest of the belt mass as diameter bins (count, mass share, typical composition) that sum with the listed bodies to the stored belt mass; (3) the density factor, objects per square astronomical unit above a stated diameter (1, 10 and 100 km), plus mass per square AU. The unit is registered in the unit registry so no number shows without it. Items: GEN.1093, UX.240, UX.241. Scatter placement: the scatter sweep runs after the giants are placed and before the belts are finalised (belt-origins.md).
