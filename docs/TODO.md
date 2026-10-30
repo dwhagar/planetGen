@@ -19584,6 +19584,17 @@ clears each one.
   5; Bug 2 takes it into train 6.
   Prerequisites: none.
 
+- [ ] **TEST.503 Four tests are red on a clean main: test_db_column_round_trip::test_every_column_is_written (moons.magnetopause_rp is NULL in every row), the test_object_rows star read-back (columns state and decay_age_yr), test_gen_hosting_wiring directed moon count, and test_reproducible_draws hypot/BLAS (bug)**
+  Aux 5 found these red on clean main, none from its own branches. Find
+  each cause. A column never written (moons.magnetopause_rp) or never
+  read back (state, decay_age_yr) is a wiring gap; fix it lock-free if
+  it changes no generated value, else say so and list it for the next
+  train window. The hypot/BLAS draw test may depend on the machine
+  library; say which, and make the test robust only if the draw itself
+  is not what differs. Report each as fixed, train-bound or
+  machine-bound.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
