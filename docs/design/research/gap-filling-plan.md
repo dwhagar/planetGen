@@ -1596,6 +1596,16 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | MT6 | P | T1 | L1 | mantle_stripping.MAX_CORE_MASS_FRACTION 0.85, the core fraction no remnant passes (held to the float under it) | 0.8 to 0.9 | rocky planets | a rocky planet measured above 0.85 | the iron-rich limit of a larger sample | Plotnykov and Valencia 2020 (arXiv:2010.06480, abstract read): the most iron enrichment rocky planets reach is a core fraction of about 0.8; the design's limit is 0.85, nudged inside the printed "about" |
 | MT7 | P | T1 | L0 | mantle_stripping.IMPACT_ANGLE_DEG 30, the angle from head-on beyond which an impact is a hit-and-run and strips nothing | 30 to 45 | similar-sized bodies | an SPH run of a 40 degree impact between embryos that strips more than a tenth of the mantle | the angle at which the disruption energy doubles, by mass ratio | Marcus 2010 section 3 (read): the onset of hit-and-run is at 30 to 45 degrees (Asphaug 2009); all their 45 degree cases were merging or hit-and-run; the share of impacts inside it is `sin^2` |
 
+### 6.94 Stand-ins of the irregular zone (GEN.1076)
+
+`physics/irregular_zone.py` gives where a captured small body can stay round a planet: the Hill radius (Jewitt and Haghighipour 2007 equation 1, 0.35, 0.43, 0.47 and 0.77 AU for the four giants), the time-averaged stable limits of a prograde and a retrograde orbit as shares of it, the Kozai band (`moon_composition.KOZAI_FORBIDDEN_DEG`) and the inner edge set by the outermost regular moon (Vokrouhlicky, Nesvorny and Levison 2008). Design `docs/design/systems/captured-asteroid-moons.md` 2.1 and 4.3. The module is not read by the generator until the captured-moon wiring.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| IZ1 | P | T2 | L1 | irregular_zone.PROGRADE_STABLE_FRACTION 0.4, the share of the Hill radius out to which a prograde orbit is stable | 0.4 to 0.5 | prograde irregulars of the four giants | a stable prograde body found beyond 0.5 of the Hill radius | an integration-fitted limit by planet, star mass and eccentricity (Nesvorny et al. 2003) | numerical surveys quoted by Jewitt and Haghighipour 2007 give about 0.4; the 0.4895 of the moon code is Hamilton and Burns 1991 for a circular regular moon |
+| IZ2 | P | T1 | L0 | irregular_zone.RETROGRADE_STABLE_FRACTION 0.55, the share of the Hill radius out to which a retrograde orbit is stable | 0.5 to 0.6 | retrograde irregulars of the four giants | a stable retrograde body found beyond 0.6 of the Hill radius | the same integration-fitted limit | Vokrouhlicky, Nesvorny and Levison 2008, quoting Nesvorny et al. 2003: 0.5 to 0.6 depending on the mean eccentricity; 0.55 is the middle |
+| IZ3 | P | T1 | L0 | irregular_zone.INNER_EDGE_FACTOR 1.0, the multiple of the outermost regular moon's distance a pericentre must exceed | 1.0 to 1.5 | the giants with regular moons | an irregular with a pericentre inside Callisto's, Iapetus's or Oberon's orbit that has survived | a collision-rate cut against the regular moon's size | Vokrouhlicky, Nesvorny and Levison 2008: q greater than 0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
