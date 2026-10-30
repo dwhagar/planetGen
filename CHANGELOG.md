@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2739] - 2026-10-30
+
+**Headline:** A system page now lists the orbits of its stars, so a triple or larger system shows what each orbit joins.
+
+### Added
+- **"Orbits of the stars" on the system page (MAP.213, slice C).** A system with two or more stars gets a table below its tree of bodies with one row per orbit in the stored tree of stars: what the orbit joins (two stars, or a star and the pair hung below it, named by its orbit number), whether it is a close, wide or compact pair, its mass, separation, period, eccentricity and how close the pair is (detached, semi-detached, contact and so on). A single star has no panel. `GET /api/systems/<id>` carries the same tree as `orbits` and each star's `parent_node_no` and `slot`; the API version does not change, since nothing was removed.
+
 ## [8.0.2738] - 2026-10-30
 
 **Headline:** A star's own spin sets how active it is, flares reach a world's dose by their size and the field's shield, and a world the flares scour loses its ozone, so UV, sky and life follow.
