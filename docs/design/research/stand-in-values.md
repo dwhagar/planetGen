@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 423 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 426 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 54 | 0 | 3 | 0 | 0 | 57 |
-| T2 | 70 | 3 | 0 | 1 | 0 | 74 |
+| T2 | 71 | 3 | 0 | 1 | 0 | 75 |
 | T3 | 53 | 8 | 3 | 10 | 0 | 74 |
 | T4 | 22 | 0 | 0 | 3 | 4 | 29 |
-| T5 | 22 | 5 | 1 | 0 | 0 | 28 |
+| T5 | 23 | 6 | 1 | 0 | 0 | 30 |
 | T6 | 39 | 12 | 7 | 28 | 0 | 86 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 19 | 46 |
-| All | 278 | 31 | 17 | 73 | 24 | 423 |
+| All | 280 | 32 | 17 | 73 | 24 | 426 |
 
 ## How the labels were given
 
@@ -675,3 +675,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | MG1 | P | T1 | L0 | meteorite_groups.CHONDRITE_GROUPS (the group averages of Weisberg, McCoy and Krot 2006 Table 1: fayalite mol percent, metal, refractory inclusions and matrix volume percent; a range is taken at its midpoint, CO and CV have no olivine average) | per group, the table's own ranges | chondrite groups of the Solar System's collection | a group average outside the table's range | the oxygen-isotope and chondrule-size axes, which the table holds and the map leaves out | test_meteorite_groups::test_every_group_is_its_own_nearest_group_except_the_pair_the_table_cannot_tell_apart | GEN.475 | - |
 | MG2 | P | T9 | L4 | meteorite_groups.AXIS_SCALES (10, 15, 5, 30) and NEAREST_LIMIT 1.5 (the width of each axis and the distance past which a body is labelled none) | scales 0.5 to 2 times; near 1 to 3 | all bodies | the share of drawn bodies labelled none outside what the groups are meant to cover | the spread of each group in the collection (the table has only ranges) | test_meteorite_groups::test_the_ordinary_chondrites_are_told_apart_by_their_oxidation | GEN.475 | no data |
+
+## 6.45 Stand-ins of the rock types from bulk oxides
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RT1 | P | T5 | L1 | rock_types.MELT_STAGES (the norm's minerals grouped by when they melt: the low-melting feldspars, quartz and pyroxene together in the proportions the rock holds them, then orthopyroxene, then olivine) | the grouping; stage order fixed by the eutectic | silicate rocks at crustal and upper-mantle pressure | a phase-equilibrium melt (MELTS or pMELTS) of the same rock more than 10 percent in SiO2 or MgO from the staged melt | a MELTS or pMELTS fit of the first melts of peridotite as a function of pressure | test_rock_types::test_the_melt_of_a_mantle_is_a_basalt_at_the_degrees_of_melting_a_mantle_reaches; test_rock_types::test_a_great_degree_of_melting_makes_a_magnesian_liquid_of_komatiite_kind | GEN.474 | - |
+| RT2 | P | T2 | L0 | rock_types.ANORTHOSITE_PLAGIOCLASE 0.90, ULTRABASIC_SILICA 45, KOMATIITE_MAGNESIA 18, BASIC_SILICA 52, ACID_SILICA 63 (the IUGS limit of anorthosite and the silica bands of the total alkali-silica diagram, Le Bas et al. 1986) | none: classification limits | volcanic and plutonic silicate rocks | a rock the diagram names against its band | none | test_rock_types::test_the_earths_crusts_and_the_moons_highlands_get_their_ground_types | GEN.474 | - |
+| RT3 | P | T5 | L0 | rock_types.INCOMPATIBLE_D 0 (the bulk partition coefficient of K, Th and U between peridotite and its melt) | 0 to 0.01 | batch melting of peridotite | a measured partition coefficient above 0.01 | measured bulk partition coefficients (Hofmann 1988, not read) | test_rock_types::test_the_heat_producers_of_the_earths_basalt_and_mantle_agree_with_one_degree_of_melting | GEN.474 | - |
