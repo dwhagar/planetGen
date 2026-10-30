@@ -11,7 +11,9 @@ import types
 
 import pytest
 
-from planetgen.physics import constants, spin_torques, tidal_heating, tidal_rheology, tidal_spin
+from planetgen.physics import constants, interior_heat, spin_torques, tidal_heating, tidal_rheology, tidal_spin
+
+from tests.tide_support import rocky
 
 EARTH_MASS, EARTH_RADIUS = 5.972e24, 6.371e6
 MOON_MASS, MOON_A = 7.342e22, 3.844e8
@@ -21,11 +23,11 @@ YEAR = constants.SECONDS_PER_YEAR
 
 
 def _body(mass, radius):
-    return types.SimpleNamespace(body_type="t", mass=mass, radius=radius / 1000.0, water_mass_fraction=0.0)
+    return rocky(mass, radius / 1000.0)
 
 
 def _star_only(body, host_mass, a, factor=spin_torques.GRAVITATIONAL_TORQUE_FACTOR):
-    k2, q = tidal_heating.response(body)
+    k2, q = interior_heat.tidal_response(body, spin_torques.orbital_rate(host_mass, a))
     planet = spin_torques.Planet(body.mass, body.radius * 1000.0)
     star = spin_torques.Raiser(host_mass, a, spin_torques.orbital_rate(host_mass, a))
     return spin_torques.Torques(planet, (star,), spin_torques.constant_dissipation(k2, q), None, factor)
@@ -64,10 +66,10 @@ def test_a_far_planet_keeps_its_spin():
     body = _body(EARTH_MASS, EARTH_RADIUS)
     a = AU
     n = spin_torques.orbital_rate(SUN, a)
-    spin = 2.0 * math.pi / 86400.0
+    spin = 2.0 * math.pi / (5.0 * 3600.0)
     result = spin_torques.evolve(_star_only(body, SUN, a), spin, 4.5e9 * YEAR, 0.0167)
     assert result.kind == "free" and result.ratio is None
-    assert 0.8 * spin < result.rate < spin     # the built rock Q of 100 takes a tenth of an Earth day-rate off in 4.5 Gy
+    assert 0.3 * spin < result.rate < spin     # the Andrade Q of tens takes between a tenth and two thirds of a five-hour spin off in 4.5 Gy
 
 
 def test_the_moon_slows_the_earth_by_the_measured_two_milliseconds_a_century():
@@ -82,10 +84,11 @@ def test_the_moon_slows_the_earth_by_the_measured_two_milliseconds_a_century():
     assert lengthening_s_per_century == pytest.approx(2.0e-3, rel=0.3)
 
 
-def test_the_code_rock_q_barely_moves_the_earth_in_the_age_of_the_system():
-    """At the built rock k2 and Q of 100 the Moon changes the Earth's day by well under an hour in 4.5 Gy (the spin report's 0.1 h)."""
-    body = _body(EARTH_MASS, EARTH_RADIUS)
-    k2, q = tidal_heating.response(body)
+def test_a_high_q_barely_moves_the_earth_in_the_age_of_the_system():
+    """At a k2 of 0.3 and a Q of 100 (the rock Q the code had before GEN.955) the Moon changes the Earth's day by well under an hour in 4.5 Gy (the spin
+    report's 0.1 h); at the Q of tens that the Andrade mantle gives, a Moon that stays where it is would lock the Earth, which is why the moon's
+    recession (GEN.959) goes with the moon's torque."""
+    k2, q = 0.3, 100.0
     planet = spin_torques.Planet(EARTH_MASS, EARTH_RADIUS)
     moon = spin_torques.Raiser(MOON_MASS, MOON_A, spin_torques.orbital_rate(EARTH_MASS, MOON_A))
     sun = spin_torques.Raiser(SUN, AU, spin_torques.orbital_rate(SUN, AU))
@@ -208,7 +211,7 @@ def test_the_rheology_makes_the_torque_depend_on_the_tide_frequency():
     planet = spin_torques.Planet(EARTH_MASS, EARTH_RADIUS)
     a = 0.3 * AU
     star = spin_torques.Raiser(SUN, a, spin_torques.orbital_rate(SUN, a))
-    solidus, liquidus = tidal_heating.SOLIDUS_K, tidal_heating.LIQUIDUS_K
+    solidus, liquidus = 1700.0, 2150.0
     dissipation = spin_torques.rheology_dissipation(planet, 1700.0, 1.0e12, 2.5e5, solidus, liquidus)
     relaxation = tidal_rheology.rigidity_pa(0.0) / tidal_rheology.viscosity_pa_s(1700.0, 1.0e12, 2.5e5)
     floor = tidal_rheology.rock_response(EARTH_MASS, EARTH_RADIUS, 1.0, 1000.0, 1.0e12, 2.5e5, solidus, liquidus).k2_over_q

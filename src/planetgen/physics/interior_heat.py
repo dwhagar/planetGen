@@ -55,7 +55,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, bulk_structure, constants, magnetism, radiogenic, tidal_heating
+from planetgen.physics import atmosphere, bulk_structure, constants, magnetism, radiogenic, tidal_heating, tidal_rheology
 from planetgen.util import draw
 
 BODY_FIELDS = ("mantle_eta0_pa_s", "mantle_activation_kj_mol")
@@ -111,6 +111,11 @@ carries heat out of a mantle that does not convect is not modelled."""
 TIDE_NEGLIGIBLE_SHARE = 1.0e-3
 """float: A tide under this share of the body's own heat is added to the output without running the box again (it moves the mantle's
 temperature by under a part in a thousand of the heat)."""
+TIDE_STEP_LIMIT_K = 10.0
+"""float: The most a step may change the mantle's temperature when a tide heats it, K: the tide's `k2/Q` changes by a factor of several over a few tens of kelvin
+near the solidus, so the step follows it (GEN.955)."""
+TIDE_SAMPLES = 8
+"""int: The temperatures between the mantle's and the heat pipe's at which the tide is sampled to see whether it matters at all (GEN.955)."""
 STEP_LIMIT_GY = 0.05
 """float: The longest time step, Gy."""
 FIRST_STEP_GY = 1.0e-4
@@ -232,6 +237,55 @@ def mantle_ceiling_k(gravity, thickness_m):
     return liquidus_k(MANTLE_DENSITY * gravity * thickness_m / 2.0e9)
 
 
+@dataclass(frozen=True)
+class Mantle:
+    """
+    The body's rock as the box sees it (`mantle_of`).
+
+    Attributes:
+        dry_kg (float): The silicate and metal.
+        dry_m (float): Its radius with the water taken off.
+        thickness_m (float): The mantle's, `dry_m` less the core.
+        gravity (float): At the dry surface, m/s2.
+        ceiling_k (float): `mantle_ceiling_k`, the hottest the box lets the mantle be.
+        pressure_gpa (float): In the middle of the mantle, where the melt is read.
+    """
+
+    dry_kg: float
+    dry_m: float
+    thickness_m: float
+    gravity: float
+    ceiling_k: float
+    pressure_gpa: float
+
+    @property
+    def solidus_k(self):
+        return tidal_heating.solidus_k(self.pressure_gpa)
+
+    @property
+    def liquidus_k(self):
+        """All melt at and above it (`tidal_heating.liquidus_k`)."""
+        return tidal_heating.liquidus_k(self.pressure_gpa)
+
+    @property
+    def heat_pipe_k(self):
+        """The mantle temperature that holds the critical melt fraction (`tidal_heating.heat_pipe_temperature_k`)."""
+        return tidal_heating.heat_pipe_temperature_k(self.pressure_gpa)
+
+
+def mantle_of(mass_kg, radius_km, rock):
+    """The `Mantle` of a body of `mass_kg` and `radius_km` made of `rock`; `None` for a body with no silicate."""
+    silicate_kg, metal_kg = mass_kg * rock.silicate, mass_kg * rock.metal
+    if silicate_kg <= 0.0:
+        return None
+    dry_m = dry_radius_km(mass_kg, radius_km, rock) * 1000.0
+    dry_kg = silicate_kg + metal_kg
+    thickness_m = dry_m - dry_m * (metal_kg / dry_kg) ** 0.5
+    gravity = constants.G * dry_kg / dry_m ** 2
+    pressure_gpa = MANTLE_DENSITY * gravity * thickness_m / 2.0e9
+    return Mantle(dry_kg, dry_m, thickness_m, gravity, mantle_ceiling_k(gravity, thickness_m), pressure_gpa)
+
+
 def _flux_w_m2(temperature_k, interior, gravity, thickness_m, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
     """`qu`, W/m2, at the mantle temperature. A stagnant lid loses heat across the boundary layer's viscous temperature scale `dT = a_rh R
     Tm^2 / Ea` (the lid is cold and rigid, the convection under it only has that drop to work with); a mobile lid's plates carry the
@@ -253,18 +307,26 @@ def _flux_w_m2(temperature_k, interior, gravity, thickness_m, lid=STAGNANT, surf
     return MANTLE_CONDUCTIVITY * drop / layer
 
 
-def _under_a_magma_ocean(terms, silicate_kg, area_m2, age_gy, surface_k, forcing, dry_m):
+def _tide_w(forcing, mantle, kelvin, interior):
+    """The eccentricity tide's power, W, in a body of this `mantle` (its rock, with the water taken off) with the mantle at `kelvin`: `tidal_rheology`'s
+    `k2/Q` at the tide's frequency (the orbital rate), the melt `kelvin` makes between the solidus and the liquidus, and the body's drawn viscosity."""
+    found = tidal_rheology.rock_response(mantle.dry_kg, mantle.dry_m, tidal_heating.mean_motion_rad_s(forcing), kelvin, interior.eta0_pa_s,
+                                         interior.activation_kj_mol * 1000.0, mantle.solidus_k, mantle.liquidus_k)
+    return tidal_heating.peale_power_w(found.k2_over_q, forcing, mantle.dry_m)
+
+
+def _under_a_magma_ocean(terms, silicate_kg, area_m2, age_gy, surface_k, tide_w):
     """
     The `Heat` of a body whose surface is at or above its mantle's liquidus (`mantle_ceiling_k`): a magma ocean under a hot air. The
     mantle can be no cooler than the surface it lies under and cannot be hotter than its ceiling, so it sits at the surface's temperature
     with no drop to carry heat across; the melt carries out what the body makes, the decay of its silicate and a tide that flexes a
-    molten body (`tidal_heating.molten_power_w`, as for a melt-limited body), and nothing is left over from the heat it was born with.
-    The heat released over its age is what it made (GEN.856: the box's flux laws have no meaning without a drop, and ran to a zero
-    divisor on a mobile lid and to a mantle cooler than its surface on a stagnant one).
+    molten body (`tide_w`, the tide's power at the mantle's temperature, `None` for no tide; a molten mantle dissipates little), and nothing is
+    left over from the heat it was born with. The heat released over its age is what it made (GEN.856: the box's flux laws have no
+    meaning without a drop, and ran to a zero divisor on a mobile lid and to a mantle cooler than its surface on a stagnant one).
     """
     now_w = silicate_kg * math.fsum(a * math.exp(-rate * age_gy) for a, rate in terms)
     made_w_gy = silicate_kg * math.fsum(a * (age_gy if rate == 0.0 else (1.0 - math.exp(-rate * age_gy)) / rate) for a, rate in terms)
-    molten_w = tidal_heating.molten_power_w(forcing, dry_m) if forcing is not None else 0.0
+    molten_w = tide_w(surface_k) if tide_w is not None else 0.0
     total_w = now_w + molten_w
     return Heat(total_w, now_w, 0.0, surface_k, total_w / area_m2, made_w_gy * GY_S + molten_w * age_gy * GY_S, molten_w)
 
@@ -294,11 +356,9 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
     silicate_kg, metal_kg = mass_kg * rock.silicate, mass_kg * rock.metal
     if silicate_kg <= 0.0:
         return Heat(0.0, 0.0, 0.0, SURFACE_TEMPERATURE_K, 0.0, 0.0)
-    dry_m = dry_radius_km(mass_kg, radius_km, rock) * 1000.0
-    dry_kg = silicate_kg + metal_kg
+    mantle = mantle_of(mass_kg, radius_km, rock)
+    dry_m, dry_kg, thickness_m, gravity, cap_k = mantle.dry_m, mantle.dry_kg, mantle.thickness_m, mantle.gravity, mantle.ceiling_k
     core_m = dry_m * (metal_kg / dry_kg) ** 0.5
-    thickness_m = dry_m - core_m
-    gravity = constants.G * dry_kg / dry_m ** 2
     area_dry_m2 = 4.0 * math.pi * dry_m ** 2
     capacity = silicate_kg * MANTLE_SPECIFIC_HEAT + metal_kg * CORE_SPECIFIC_HEAT
 
@@ -307,25 +367,40 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
 
     energy_j = binding_energy_j(dry_kg, dry_m, metal_kg, core_m)
     activation = interior.activation_kj_mol * 1000.0
-    cap_k = mantle_ceiling_k(gravity, thickness_m)
+
+    def tide_w(kelvin):
+        """The tide's power with the mantle at `kelvin`: the Peale formula with the rheology's `k2/Q` there (GEN.955)."""
+        return _tide_w(forcing, mantle, kelvin, interior)
+
     if surface_k >= cap_k:
-        return _under_a_magma_ocean(terms, silicate_kg, area_m2, age_gy, surface_k, forcing, dry_m)
+        return _under_a_magma_ocean(terms, silicate_kg, area_m2, age_gy, surface_k, tide_w if forcing is not None else None)
 
     def conduction_w(kelvin):
         return _flux_w_m2(kelvin, interior, gravity, thickness_m, lid, surface_k) * area_dry_m2
 
-    def cool(source_w):
-        """The temperature and released heat at `age_gy` with `source_w` of constant heat added to the radiogenic."""
-        temperature = min(surface_k + energy_j / capacity, cap_k)
+    def cool(tide=None, ceiling_k=cap_k):
+        """
+        The temperature and released heat at `age_gy`, with `tide` (the tide's power at the mantle's temperature, W) added to the radiogenic. The mantle is
+        never hotter than `ceiling_k`: above `cap_k` the melt is radiated away and is not counted, but under it (the heat pipe, `Mantle.heat_pipe_k`) the
+        melt erupts and the heat it carries out is released heat. Returns the temperature, the heat released and whether the last step ended on the
+        ceiling with more heat made than it could carry (the melt-limited state).
+        """
+        top_k = min(ceiling_k, cap_k)
 
-        def rate(radiogenic, conduction):
-            return GY_S * (radiogenic + source_w - conduction) / capacity
-
-        def conduction_at(kelvin):
+        def clipped(kelvin):
             # a strong tide moves the temperature past the cap within one step, and a stage beyond the range of the viscosity law makes no sense
-            return conduction_w(min(max(kelvin, surface_k), cap_k))
+            return min(max(kelvin, surface_k), top_k)
 
-        t, step, released_j = 0.0, FIRST_STEP_GY, 0.0
+        def rate(radiogenic, kelvin, conduction=None):
+            if conduction is None:
+                conduction = conduction_w(clipped(kelvin))
+            return GY_S * (radiogenic + (tide(clipped(kelvin)) if tide is not None else 0.0) - conduction) / capacity
+
+        start_k = surface_k + energy_j / capacity
+        temperature = min(start_k, top_k)
+        t, step, released_j, held = 0.0, FIRST_STEP_GY, 0.0, False
+        if top_k < cap_k and start_k > top_k:
+            released_j += capacity * (start_k - top_k)
         # the radiogenic power at the start of a step is that at the end of the one before, and the two middle stages share one time;
         # the flux at the start is the one the last step ended with (PERF.201: the same values, each worked out once)
         radiogenic_start = radiogenic_w(0.0)
@@ -334,22 +409,28 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
             # the cooling rate's own time scale: the flux changes by Ea / (R T^2) per kelvin (an overestimate by about three)
             stiffness = GY_S * flux * area_dry_m2 / capacity * activation / (GAS_CONSTANT * temperature ** 2)
             h = min(step, age_gy - t, 1.0 / stiffness if stiffness > 0.0 else step)
+            k1 = rate(radiogenic_start, temperature, flux * area_dry_m2 if surface_k <= temperature <= top_k else None)
+            if tide is not None and k1 != 0.0 and not (temperature >= top_k and k1 > 0.0):   # a mantle held on its ceiling goes no further
+                h = min(h, TIDE_STEP_LIMIT_K / abs(k1))
             radiogenic_middle = radiogenic_w(t + 0.5 * h)
             radiogenic_end = radiogenic_w(t + h)
-            k1 = rate(radiogenic_start, flux * area_dry_m2 if surface_k <= temperature <= cap_k else conduction_at(temperature))
-            k2 = rate(radiogenic_middle, conduction_at(temperature + 0.5 * h * k1))
-            k3 = rate(radiogenic_middle, conduction_at(temperature + 0.5 * h * k2))
-            k4 = rate(radiogenic_end, conduction_at(temperature + h * k3))
+            k2 = rate(radiogenic_middle, temperature + 0.5 * h * k1)
+            k3 = rate(radiogenic_middle, temperature + 0.5 * h * k2)
+            k4 = rate(radiogenic_end, temperature + h * k3)
             # a step can overshoot the cold end as well as the cap: below the surface the viscosity law runs on a negative or tiny exponent
             # and the flux (and so the stiffness) is astronomical, which collapses the step to nothing (GEN.866)
-            temperature = min(max(temperature + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0, surface_k), cap_k)
+            raw_k = temperature + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0
+            temperature = clipped(raw_k)
+            held = raw_k > top_k
+            if held and top_k < cap_k:
+                released_j += capacity * (raw_k - top_k)
             flux_end = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)
             released_j += 0.5 * (flux + flux_end) * area_dry_m2 * h * GY_S
             flux = flux_end
             radiogenic_start = radiogenic_end
             t += h
             step = min(step * STEP_GROWTH, STEP_LIMIT_GY)
-        return temperature, released_j
+        return temperature, released_j, held
 
     now_w = radiogenic_w(age_gy)
 
@@ -360,27 +441,65 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
             total_w = max(total_w, now_w + tidal_w)
         return Heat(total_w, now_w, total_w - now_w - tidal_w, temperature, total_w / area_m2, released_j, tidal_w)
 
-    temperature, released_j = cool(0.0)
+    temperature, released_j, _ = cool()
     if forcing is None:
         return result(temperature, released_j, 0.0)
     own_w = conduction_w(temperature)
-    solid_w = tidal_heating.solid_power_w(forcing, dry_kg, dry_m)
-    if solid_w <= TIDE_NEGLIGIBLE_SHARE * max(own_w, now_w):
-        return result(temperature, released_j, solid_w, unrun_tidal_w=solid_w)
-    warm, warm_released_j = cool(solid_w)
-    if solid_w < own_w or warm < tidal_heating.HEAT_PIPE_TEMPERATURE_K:
-        return result(warm, warm_released_j, solid_w)
-    # melt-limited: the mantle holds the heat-pipe temperature, the melt carries out the tide's heat and the rest
-    molten_w = tidal_heating.molten_power_w(forcing, dry_m)
-    pipe_k = tidal_heating.HEAT_PIPE_TEMPERATURE_K
-    total_w = max(now_w + molten_w, conduction_w(pipe_k))
-    released_j = max(warm_released_j, total_w * age_gy * GY_S)
-    return Heat(total_w, now_w, total_w - now_w - molten_w, pipe_k, total_w / area_m2, released_j, molten_w)
+    pipe_k = min(mantle.heat_pipe_k, cap_k)
+    reach_k = max(pipe_k, temperature)
+    biggest_w = max(tide_w(temperature + (reach_k - temperature) * i / TIDE_SAMPLES) for i in range(TIDE_SAMPLES + 1))
+    if biggest_w <= TIDE_NEGLIGIBLE_SHARE * max(own_w, now_w):
+        unrun_w = tide_w(temperature)
+        return result(temperature, released_j, unrun_w, unrun_tidal_w=unrun_w)
+    # a tide that at some temperature up to the heat-pipe temperature is at least the body's own heat can melt the mantle to the critical melt
+    # fraction, where it erupts and carries the heat out: the mantle is never hotter than that, and holds it if it makes more heat there than it
+    # can conduct (melt-limited; the heat pipe of Io). A weaker tide is a small heat source of the box.
+    warm, warm_released_j, held = cool(tide_w, pipe_k if biggest_w >= max(own_w, now_w) else cap_k)
+    if held:
+        tidal_w = tide_w(warm)
+        total_w = max(now_w + tidal_w, conduction_w(warm))
+        released_j = max(warm_released_j, total_w * age_gy * GY_S)
+        return Heat(total_w, now_w, total_w - now_w - tidal_w, warm, total_w / area_m2, released_j, tidal_w)
+    return result(warm, warm_released_j, tide_w(warm))
 
 
 def heat_flow(content, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
     """`heat` for a body's stored `radiogenic.Content`: the decay terms of its concentrations and aluminium."""
     return heat(radiogenic.heat_terms(content, rock.aluminium), interior, mass_kg, radius_km, age_gy, rock, forcing, lid, surface_k)
+
+
+def tide_temperature_k(body):
+    """
+    The mantle temperature that sets a body's tidal `k2` and `Q`, K (GEN.955): the box run to the star's age with no tide, a stagnant lid and a surface of
+    `SURFACE_TEMPERATURE_K`, so it is a function of the body's stored content, mass, radius and age alone and the spin, the circularisation and the heat
+    agree whenever each is worked out. The tide warms the real mantle (the box in `heat` runs with it); this is the temperature it starts from. No draws.
+    """
+    content, interior = radiogenic.content_of(body), interior_of(body)
+    age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
+    return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), None, STAGNANT,
+                     SURFACE_TEMPERATURE_K).mantle_temperature_k
+
+
+def tidal_response(body, frequency_rad_s):
+    """
+    `(k2, Q)` of a body, its tidal Love number and quality factor, at a tide of `frequency_rad_s` (GEN.955): a gas giant's or an icy body's fixed pair
+    (`tidal_heating`), or for rock `tidal_rheology.rock_response` of its mass and radius at `tide_temperature_k` with the viscosity it drew, the melt that
+    temperature makes in its mantle, and the tide's frequency. A cold small body is stiff (Q up to `tidal_rheology.COLD_Q_CEILING`), a mantle near its
+    solidus dissipates most, a molten one is weak.
+    """
+    if getattr(body, "body_type", None) == "g":
+        return tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q
+    if tidal_heating.is_icy(body):
+        return tidal_heating.ICY_K2, tidal_heating.ICE_TIDAL_Q
+    interior = interior_of(body)
+    if interior is None or radiogenic.content_of(body) is None:
+        raise InteriorHeatError("a rocky body's tidal response needs its stored content and mantle draws")
+    mantle = mantle_of(body.mass, body.radius, radiogenic.rock_of(body))
+    if mantle is None:
+        raise InteriorHeatError("a body with no silicate has no mantle to flex")
+    found = tidal_rheology.rock_response(body.mass, body.radius * 1000.0, frequency_rad_s, tide_temperature_k(body), interior.eta0_pa_s,
+                                         interior.activation_kj_mol * 1000.0, mantle.solidus_k, mantle.liquidus_k)
+    return found.k2, found.q
 
 
 def generate_interior(body):
@@ -454,8 +573,7 @@ def update_heat(body):
                       lid_of(body), surface_of(body))
     body.urey_ratio, body.internal_heat_flux_w_m2 = found.urey_ratio, found.own_flux_w_m2
     if icy:
-        icy_w_m2 = tidal_heating.icy_flux_w_m2(forcing, body.radius) if forcing else 0.0
-        body.tidal_flux_w_m2 = icy_w_m2 if icy_w_m2 > 0.0 else None   # an orbit so round the tide underflows to 0.0 has none (GEN.906)
+        body.tidal_flux_w_m2 = tidal_heating.icy_flux_w_m2(forcing, body.radius) if forcing else 0.0
     else:
-        body.tidal_flux_w_m2 = found.tidal_w / (4.0 * math.pi * (body.radius * 1000.0) ** 2) if found.tidal_w > 0.0 else None
+        body.tidal_flux_w_m2 = found.tidal_w / (4.0 * math.pi * (body.radius * 1000.0) ** 2)
     return found

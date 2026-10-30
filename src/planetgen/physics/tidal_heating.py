@@ -18,51 +18,69 @@ the eccentricity was larger for a planet that has since circularised, so its pas
 Rheology of an icy body (a water mass fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more): one `k2/Q` of 3e-4, the figure that
 gives Europa's 1.4e11 W (`ICY_K2_OVER_Q`); the heat goes into its ice shell (`hydrosphere`), over its surface.
 
-Rheology of a rocky body, in two states:
+Rheology of a rocky body (GEN.955): its Love number and quality factor are `tidal_rheology.rock_response` of its own mass and radius, the
+tide's frequency, its mantle's temperature and the viscosity it drew (`interior_heat.Interior`), so a cold mantle is stiff and barely
+dissipates (Q up to `tidal_rheology.COLD_Q_CEILING`), a warm one near the solidus is flexed close to its relaxation time and dissipates
+most, and a partly molten one is weak (`k2` rises toward the fluid 3/2). The Moon comes out at the lunar laser ranging's Q of 38 to 60 and the
+solid Earth's tide at a few hundred, with no number fitted to either. The heat of the tide is the Peale formula with that `k2/Q` at the
+mantle's temperature, so it is a function of the temperature and the box (`interior_heat.heat`) integrates it with the cooling: heat and
+temperature feed back, and the box is bistable (a warmer mantle is tidally weaker once its melt passes the peak).
 
-* Solid: `k2` from the rigid-body formula for a homogeneous sphere (Love 1911; `rigid_k2`), `k2 = (3/2) / (1 + 19 mu / (2 rho g R))` with the
-  rigidity `mu` of rock, which gives the Moon's 0.021 (observed 0.024); `Q` of 100 (`constants.MOON_TIDAL_DISSIPATION_Q`, Goldreich and Soter
-  1966, the same used to circularise it). The Moon comes out at 2e8 W (about 6e8 W at the Moon's own Q of 38).
-* Melt-limited: when that solid-state heat is at least the body's own heat flow and would warm its mantle (the one-box model of
-  `interior_heat`) to the temperature at which a share `HEAT_PIPE_MELT_FRACTION` of it is melt, the melt erupts and carries the heat out (the
-  heat pipe of Io, O'Reilly and Davies 1981: a resurfacing of centimetres a year takes about 2 W/m2). The mantle stays at that temperature
-  (`HEAT_PIPE_TEMPERATURE_K`) and the partly molten body flexes far more, `MOLTEN_K2_OVER_Q` (Io's: about 1e14 W at its 0.0041
-  eccentricity, Peale et al. 1979, Moore 2003). No solid-state model gets there, because the heat leaves by volcanism, not conduction,
-  which a one-box conduction model does not hold: this state and its two numbers are stand-ins (see `docs/design/research/gap-filling-plan.md`
-  section 6.13).
+The **heat pipe**. A mantle whose melt reaches `tidal_rheology.CRITICAL_MELT_FRACTION` (the crystals no longer touch: the mush is a
+suspension and the melt segregates) erupts: the melt carries the heat out at the surface as fast as the interior makes it (the heat pipe of
+Io, O'Reilly and Davies 1981, about 2 W/m2 for centimetres a year of resurfacing; Moore 2001). The mantle then stays at
+`heat_pipe_temperature_k`, the temperature of that melt fraction, and the heat it radiates is the radiogenic heat plus the tide it is flexed with
+there. The pipe takes over where the radiogenic heat plus the tide at that temperature is more than the mantle's conduction can carry away
+(the box would otherwise pass it), so no tidal power is chosen: the melt state and the fitted `k2/Q` of Io are no longer numbers of ours.
 """
 
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, hydrosphere
+from planetgen.physics import constants, hydrosphere, tidal_rheology
 
 ROCK_RIGIDITY_PA = 7.0e10
 """float: The shear modulus of the solid mantle, Pa (PREM mantle average: 65 to 80 GPa). Source tier T2."""
-ROCK_TIDAL_Q = constants.MOON_TIDAL_DISSIPATION_Q
-"""float: The tidal quality factor of a solid rocky body (the same one that circularises it)."""
+ICE_TIDAL_Q = constants.MOON_TIDAL_DISSIPATION_Q
+"""float: The tidal quality factor of an icy body's shell (GEN.960 replaces it with the ice rheology); rock has none: its Q follows its temperature
+(`interior_heat.tidal_response`). Source tier T3, tweak level L2."""
 ICY_K2 = 0.03
-"""float: An icy body's Love number; with `ROCK_TIDAL_Q` it gives `ICY_K2_OVER_Q`."""
-ICY_K2_OVER_Q = ICY_K2 / ROCK_TIDAL_Q
+"""float: An icy body's Love number; with `ICE_TIDAL_Q` it gives `ICY_K2_OVER_Q`."""
+ICY_K2_OVER_Q = ICY_K2 / ICE_TIDAL_Q
 """float: An icy body's `k2/Q` of 3e-4: Europa's 1.4e11 W at its eccentricity of 0.009 (Peale, Cassen and Reynolds 1979 for Io, applied to the
 ice shell by Ojakangas and Stevenson 1989). Source tier T3, tweak level L2 (tuned to the published figure)."""
 GIANT_TIDAL_Q = 1.0e5
 """float: A gas giant's tidal quality factor (Jupiter's 3e4 to 1e6, Saturn's 1.8e4 from the motions of their moons). Source tier T3, tweak L0."""
 GIANT_K2 = 0.3
 """float: And its Love number (Jupiter 0.49, Saturn 0.39, Neptune 0.13, Uranus 0.1). Source tier T3, tweak level L0."""
-MOLTEN_K2_OVER_Q = 0.015
-"""float: A partly molten rocky body's `k2/Q`: the value that gives Io the 1e14 W it radiates (Peale et al. 1979; Io's observed 0.9 to 1.5e14 W
-over `k2 = 1.5`, `Q = 100`). Source tier T8 (fitted to the one body that shows it), tweak level L4."""
-SOLIDUS_K = 1700.0
-"""float: The mantle's temperature at which melt begins in the one-box model, K (the peridotite solidus, 1394 K at the surface and 1750 K at
-3 GPa, Hirschmann 2000). Source tier T2."""
-LIQUIDUS_K = 2200.0
-"""float: And at which it is all melt, K (a peridotite liquidus 400 to 500 K over its solidus). Source tier T2."""
-HEAT_PIPE_MELT_FRACTION = 0.3
-"""float: The melt share at which the melt segregates and erupts fast enough to carry the heat out (the rheological transition lies at 0.3 to 0.4,
-Arzi 1978; Moore 2003 puts Io's mantle near 0.2 to 0.3). Source tier T3, tweak level L3."""
-HEAT_PIPE_TEMPERATURE_K = SOLIDUS_K + HEAT_PIPE_MELT_FRACTION * (LIQUIDUS_K - SOLIDUS_K)
-"""float: The mantle temperature a melt-limited body holds, K."""
+SOLIDUS_SURFACE_K = 1393.0
+"""float: The peridotite solidus at the surface, K (Hirschmann 2000, recalled). Source tier T2, tweak level L0."""
+SOLIDUS_PRESSURE_SCALE_GPA = 2.2
+"""float: The pressure scale of the Simon-Glatzel curve `T_s = T_0 (1 + p / a)^b` that carries the solidus up from the surface to the core-mantle
+boundary. Source tier T3, tweak level L2: fitted through two recalled points, 2,200 K at 10 GPa (Hirschmann 2000) and 4,180 K at 135 GPa (Fiquet et
+al. 2010), where it gives Hirschmann's 1,750 K at 3 GPa without being fitted to it."""
+SOLIDUS_EXPONENT = 0.267
+"""float: And its exponent (see `SOLIDUS_PRESSURE_SCALE_GPA`). Source tier T3, tweak level L2."""
+MELT_RANGE_K = 450.0
+"""float: How far a mantle's liquidus lies above its solidus, K (a peridotite liquidus 400 to 500 K over its solidus, Hirschmann 2000, recalled).
+Source tier T2, tweak level L0."""
+
+
+def solidus_k(pressure_gpa):
+    """The mantle's solidus at `pressure_gpa`, K: `SOLIDUS_SURFACE_K (1 + p / a)^b`, 1,750 K at 3 GPa, about 3,400 K at the middle of an Earth's mantle."""
+    return SOLIDUS_SURFACE_K * (1.0 + pressure_gpa / SOLIDUS_PRESSURE_SCALE_GPA) ** SOLIDUS_EXPONENT
+
+
+def liquidus_k(pressure_gpa):
+    """The melt's liquidus there: all melt (`MELT_RANGE_K` over the solidus)."""
+    return solidus_k(pressure_gpa) + MELT_RANGE_K
+
+
+def heat_pipe_temperature_k(pressure_gpa):
+    """The mantle temperature a melt-limited body holds, K: that of the melt fraction `tidal_rheology.CRITICAL_MELT_FRACTION` at which the crystals stop
+    touching and the melt segregates and erupts (Arzi 1978; the heat pipe of Moore 2001). Derived from TR2, which replaces the chosen melt share of
+    0.3 (TH7)."""
+    return solidus_k(pressure_gpa) + tidal_rheology.CRITICAL_MELT_FRACTION * MELT_RANGE_K
 
 
 @dataclass(frozen=True)
@@ -96,19 +114,14 @@ def is_icy(body):
     return (getattr(body, "water_mass_fraction", None) or 0.0) >= hydrosphere.ICY_MIN_WATER_FRACTION
 
 
-def response(body):
-    """`(k2, Q)` of a body, its tidal Love number and quality factor: a gas giant's, an icy body's or, for rock, `rigid_k2` of its own mass and
-    radius with `ROCK_TIDAL_Q` (the solid state; the melt-limited state of GEN.737 is a heat-flow state, not one of the spin's)."""
-    if getattr(body, "body_type", None) == "g":
-        return GIANT_K2, GIANT_TIDAL_Q
-    if is_icy(body):
-        return ICY_K2, ROCK_TIDAL_Q
-    return rigid_k2(body.mass, body.radius * 1000.0), ROCK_TIDAL_Q
+def mean_motion_rad_s(forcing):
+    """The orbital rate of a body on `forcing`'s orbit, rad/s: the frequency of its eccentricity tide."""
+    return math.sqrt(constants.G * forcing.host_mass_kg / forcing.semi_major_axis_m ** 3)
 
 
 def peale_power_w(k2_over_q, forcing, radius_m):
     """The eccentricity tide's power, W, in a body of radius `radius_m` with the given `k2/Q` (the formula in the module's docstring)."""
-    n = math.sqrt(constants.G * forcing.host_mass_kg / forcing.semi_major_axis_m ** 3)
+    n = mean_motion_rad_s(forcing)
     return (10.5 * k2_over_q * constants.G * forcing.host_mass_kg ** 2 * n * radius_m ** 5
             * forcing.eccentricity ** 2 / forcing.semi_major_axis_m ** 6)
 
@@ -118,16 +131,6 @@ def rigid_k2(mass_kg, radius_m):
     being `3 G M^2 / (4 pi R^4)`."""
     pressure = 3.0 * constants.G * mass_kg ** 2 / (4.0 * math.pi * radius_m ** 4)
     return 1.5 / (1.0 + 9.5 * ROCK_RIGIDITY_PA / pressure)
-
-
-def solid_power_w(forcing, mass_kg, radius_m):
-    """A solid rocky body's tide, W."""
-    return peale_power_w(rigid_k2(mass_kg, radius_m) / ROCK_TIDAL_Q, forcing, radius_m)
-
-
-def molten_power_w(forcing, radius_m):
-    """A melt-limited rocky body's tide, W."""
-    return peale_power_w(MOLTEN_K2_OVER_Q, forcing, radius_m)
 
 
 def icy_flux_w_m2(forcing, radius_km):

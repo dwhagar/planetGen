@@ -15,10 +15,11 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants as pc
-from planetgen.physics import spin, tidal_heating, tidal_spin
+from planetgen.physics import interior_heat, spin, tidal_heating, tidal_spin
 from planetgen.physics.planets import generate_spin
 from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
+from tests.tide_support import rocky
 
 SUN = 1.989e30
 EARTH_KG = 5.972e24
@@ -28,7 +29,10 @@ BIRTH = 2.0 * math.pi / (5.0 * 3600.0)
 
 
 def _body(mass_kg, radius_km, body_type="t", **fields):
-    return types.SimpleNamespace(mass=mass_kg, radius=radius_km, body_type=body_type, **fields)
+    """A giant, or a rocky body with the content of the bulk silicate Earth and a mantle of the middle of the drawn viscosities (GEN.955)."""
+    if body_type == "g":
+        return types.SimpleNamespace(mass=mass_kg, radius=radius_km, body_type=body_type, **fields)
+    return rocky(mass_kg, radius_km, **fields)
 
 
 MERCURY = _body(3.30e23, 2439.7)
@@ -95,13 +99,25 @@ def test_the_small_planet_factor_is_one_above_its_mass_and_falls_in_proportion_b
 
 
 def test_the_rheology_is_each_bodys_own():
-    k2, q = tidal_heating.response(EARTH)
-    assert (q, k2) == (100.0, pytest.approx(tidal_heating.rigid_k2(EARTH_KG, 6.371e6)))
-    assert tidal_heating.response(MERCURY)[0] < tidal_heating.response(EARTH)[0]  # a small body is stiffer
-    assert tidal_heating.response(MOON)[0] == pytest.approx(0.021, rel=0.2)
-    assert tidal_heating.response(JUPITER) == (tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
+    """`interior_heat.tidal_response`: the Andrade `k2` and `Q` of the body's mantle at the orbital frequency (GEN.955); the fixed pairs of the giant
+    and the ice; a stiffer small body, the Moon's `k2` of 0.024 and a `Q` of tens."""
+    n = 2.0e-7
+    k2, q = interior_heat.tidal_response(EARTH, n)
+    assert k2 == pytest.approx(tidal_heating.rigid_k2(EARTH_KG, 6.371e6), rel=0.3) and 1.0 < q < 100.0
+    assert interior_heat.tidal_response(MERCURY, n)[0] < interior_heat.tidal_response(EARTH, n)[0]  # a small body is stiffer
+    moon_k2, moon_q = interior_heat.tidal_response(MOON, n)
+    assert moon_k2 == pytest.approx(0.0242, rel=0.2) and 10.0 < moon_q < 100.0
+    assert interior_heat.tidal_response(JUPITER, n) == (tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
     icy = _body(1.0e22, 1000.0, water_mass_fraction=0.5)
-    assert tidal_heating.response(icy) == (tidal_heating.ICY_K2, 100.0)
+    assert interior_heat.tidal_response(icy, n) == (tidal_heating.ICY_K2, tidal_heating.ICE_TIDAL_Q)
+
+
+def test_a_hotter_mantle_dissipates_more_and_a_fast_tide_less():
+    cool = rocky(EARTH_KG, 6371.0, eta0_pa_s=1.0e13, activation_kj_mol=300.0)
+    warm = rocky(EARTH_KG, 6371.0, eta0_pa_s=2.6e10, activation_kj_mol=200.0)
+    assert interior_heat.tide_temperature_k(cool) != interior_heat.tide_temperature_k(warm)
+    slow, fast = 1.0e-8, 1.0e-4
+    assert interior_heat.tidal_response(cool, fast)[1] > interior_heat.tidal_response(cool, slow)[1]
 
 
 def test_mercury_is_caught_in_the_three_halves_resonance():
@@ -118,21 +134,20 @@ def test_mercury_is_caught_in_the_three_halves_resonance():
 
 def test_the_resonance_needs_the_time_to_reach_it():
     """Younger than the tide takes, Mercury is still on its way down and has been caught by nothing."""
-    young_rate, young_ratio = _evolve(MERCURY, SUN, 0.387, 0.2056, age_gyr=0.5)
+    young_rate, young_ratio = _evolve(MERCURY, SUN, 0.387, 0.2056, age_gyr=0.1)
     assert young_ratio is None
     assert young_rate < BIRTH and _hours(young_rate) < 87.969 * 24.0 / 1.5
-    assert tidal_spin.locking_time_s(MERCURY, SUN, 0.387 * pc.AU_TO_M, BIRTH, 0.2056) / GYR_S == pytest.approx(3.8, rel=0.25)
+    assert 0.1 < tidal_spin.locking_time_s(MERCURY, SUN, 0.387 * pc.AU_TO_M, BIRTH, 0.2056) / GYR_S < 2.0
 
 
-def test_venus_and_earth_are_not_locked_by_the_sun():
-    """Their locking times against the sun's tide alone are tens to hundreds of Gyr: they keep their spin (Venus's 243 days is the
-    atmospheric tide, not in this model)."""
-    for body, au, e in ((VENUS, 0.723, 0.0068), (EARTH, 1.0, 0.0167)):
-        rate, ratio = _evolve(body, SUN, au, e)
-        assert ratio is None
-        assert tidal_spin.locking_time_s(body, SUN, au * pc.AU_TO_M, BIRTH, e) > 10.0 * GYR_S
-        assert 0.8 * BIRTH < rate <= BIRTH  # worn down by a few percent to a tenth, no more
-        assert spin.spin_state(_hours(rate), au ** 1.5)[0] == "free"
+def test_earth_is_not_locked_by_the_sun():
+    """Its locking time against the sun's tide alone is tens of Gyr: it keeps its spin. (Venus's, with the Q of a hot mantle, is a few Gyr, which its
+    243-day retrograde spin shows is too short: the atmospheric tide that holds it away is the spin torque sum, GEN.957.)"""
+    rate, ratio = _evolve(EARTH, SUN, 1.0, 0.0167)
+    assert ratio is None
+    assert tidal_spin.locking_time_s(EARTH, SUN, pc.AU_TO_M, BIRTH, 0.0167) > 5.0 * GYR_S
+    assert 0.5 * BIRTH < rate <= BIRTH  # worn down by a tenth to a half, no more
+    assert spin.spin_state(_hours(rate), 1.0)[0] == "free"
 
 
 def test_a_hot_jupiter_is_locked_within_a_few_million_years():
@@ -171,10 +186,10 @@ def test_spin_state_reads_the_two_stored_periods():
 
 
 def _planet(body, au, period_years, eccentricity, age_gyr, is_moon=False):
-    planet = types.SimpleNamespace(
+    fields = {**vars(body), "star": types.SimpleNamespace(age=age_gyr)}
+    return types.SimpleNamespace(
         is_moon=is_moon, distance=au, period=period_years, eccentricity=eccentricity, orbital_inclination_deg=1.0,
-        orbital_ascending_node_deg=30.0, star=types.SimpleNamespace(age=age_gyr), **vars(body))
-    return planet
+        orbital_ascending_node_deg=30.0, **fields)
 
 
 def test_generate_spin_stores_the_state_the_tide_leaves(monkeypatch):
@@ -191,11 +206,11 @@ def test_generate_spin_stores_the_state_the_tide_leaves(monkeypatch):
     assert mercury.axial_tilt_deg == 0.0
     assert spin.spin_state(mercury.rotation_period_hours, mercury.period) == ("resonant", 1.5)
     assert mercury.axial_tilt_deg == 0.0
-    venus = _planet(VENUS, 0.723, 224.7 / 365.25, 0.0068, 4.5)
-    generate_spin(venus, SUN)
-    assert spin.spin_state(venus.rotation_period_hours, venus.period)[0] == "free"
-    assert venus.axial_tilt_deg == pytest.approx(40.0, abs=1e-6)  # the impacts' tilt, kept: the tide has not finished
-    assert _hours(spin.critical_spin_rad_s(VENUS.mass, VENUS.radius)) / spin.BREAKUP_FRACTION <= venus.rotation_period_hours
+    earth = _planet(EARTH, 1.0, 1.0, 0.0167, 4.5)
+    generate_spin(earth, SUN)
+    assert spin.spin_state(earth.rotation_period_hours, earth.period)[0] == "free"
+    assert earth.axial_tilt_deg == pytest.approx(40.0, abs=1e-6)  # the impacts' tilt, kept: the tide has not finished
+    assert _hours(spin.critical_spin_rad_s(EARTH.mass, EARTH.radius)) / spin.BREAKUP_FRACTION <= earth.rotation_period_hours
     hot = _planet(HOT_JUPITER, 0.05, 0.05 ** 1.5, 0.0, 4.5)
     generate_spin(hot, SUN)
     assert spin.spin_state(hot.rotation_period_hours, hot.period) == ("locked", 1.0)
