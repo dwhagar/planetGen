@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 643 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 647 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 87 | 2 | 6 | 1 | 0 | 96 |
+| T1 | 89 | 2 | 6 | 1 | 0 | 98 |
 | T2 | 92 | 9 | 0 | 1 | 0 | 102 |
-| T3 | 74 | 26 | 5 | 9 | 0 | 114 |
+| T3 | 75 | 26 | 5 | 9 | 0 | 115 |
 | T4 | 31 | 1 | 0 | 14 | 6 | 52 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
-| T6 | 52 | 30 | 12 | 33 | 0 | 127 |
+| T6 | 53 | 30 | 12 | 33 | 0 | 128 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 402 | 89 | 33 | 92 | 27 | 643 |
+| All | 406 | 89 | 33 | 92 | 27 | 647 |
 
 ## How the labels were given
 
@@ -1085,3 +1085,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | HC1 | B | T4 | L0 | hycean_candidate.HYCEAN_MASS_EARTH (1, 10), HYCEAN_RADIUS_EARTH (1.4, 2.6), HYCEAN_TEMPERATURE_K (150, 500) and HYCEAN_DENSITY_G_CM3 (1.5, 3.0): the box | the radius edge 2.6 puts K2-18 b (2.61, measured) just outside | sub-Neptunes of 1 to 10 Earth masses | the ranges of the defining paper, once read | Madhusudhan et al. 2021 (to be read) | the item GEN.963 and its re-read (2026-10-30); not read from the paper | GEN.1047 | - |
+
+## 6.80 Stand-ins of the belt sources
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| QS1 | D | T1 | L0 | the 8,301 weights and biases of `quadruple_stability_3p1_weights.json`, the authors' own trained network, to nine significant digits | none | 3+1 quadruples with masses within a factor 10, eccentricities to 0.95, near the Mardling-Aarseth boundary | an N-body sample of the same kind whose classification score falls more than 10 points below the paper's 93 percent | a network or table fitted to our own N-body runs | the forward pass equals scikit-learn on five stored cases and 2000 random ones (read 10-30); my REBOUND check of 331 systems with the paper's labelling rule: network right 95 percent against 49 percent for nested MA01, but precision for stable only 0.57 on the near-boundary sample (paper 0.91; the sample is small and labelled differently); the repository of the authors has no licence file (Boss handles DATA-LICENSE.md) | - | - |
+| QS2 | P | T1 | L0 | the meaning of "stable": bound and not chaotic over 100 outer orbits (a twin with the inner axis larger by 1e-6 au diverging by under 1 percent in the inner axis), `outer_orbits` 100 and `divergence_limit` 0.01 | none | systems that are stable for a stellar lifetime only if nothing slower acts | a system stable at 100 outer orbits that the N-body code breaks at 10^4 outer orbits | a long-integration label | paper section 2, read | - | - |
+| QS3 | P | T3 | L0 | the documented range: `q_mid_max` 3 and `q_out_max` 2 from the help text of the authors' script ("best if < ~3", "< ~2"), `q_in_min` 0.1 and `eccentricity_max` 0.95 from the paper | q_mid up to 5 by the paper's masses | 3+1 systems inside the range | a system outside it that the network classifies against an N-body run | the range of a bigger training set | classify_quad_3p1.py help text and paper section 3.1, read | - | - |
+| QS4 | P | T6 | L0 | the training distribution: orbital angles isotropic, arguments of periapsis and mean anomalies not inputs, systems kept near the Mardling-Aarseth boundary of the two nested triples, 20 percent of the MA01-unstable draws kept | none | the verdict of a system near the boundary; far from it (very wide or very tight) the network extrapolates | a very hierarchical system (alpha under 0.05) called unstable by the network with all else benign | the nested triple test far from the boundary | paper section 3.1, read | - | - |
