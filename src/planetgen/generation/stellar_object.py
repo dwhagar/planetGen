@@ -123,6 +123,7 @@ class StellarObject(LazySaladName, MassObject):
 
     _model_age_lifespan = None
     _model_fe_h = None
+    _model_rotation_hours = None
 
     reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
     """

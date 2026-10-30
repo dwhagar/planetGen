@@ -320,8 +320,11 @@ class Star(StellarObject):
         self.heliosphere_radius = self.calculate_heliosphere()
         self.set_galactic_motion(self.galactic_center_dist_ly, kwargs.get('galactic_orbital_phase_deg'))
         # GEN.104: the spin, last so nothing above draws differently.
-        self.rotation_period_hours = spin.star_rotation_period_hours(
-            self.mass, self.radius, self.temperature, self.age, self.yerkes_class)
+        # GEN.846: a stored star keeps the period its row has, so the row and the star agree.
+        self.rotation_period_hours = self._model_rotation_hours
+        if self.rotation_period_hours is None:
+            self.rotation_period_hours = spin.star_rotation_period_hours(
+                self.mass, self.radius, self.temperature, self.age, self.yerkes_class)
         spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
         # GEN.86: coronal X-rays, XUV and flares, from mass and age.
         activity.generate_activity(self)
@@ -432,6 +435,7 @@ class Star(StellarObject):
         self.phase_end_age_gy = params["phase_end_age_gy"]
         self._model_age_lifespan = (params["age_gy"], params["lifespan_gy"])
         self._model_fe_h = params.get("metallicity_fe_h")
+        self._model_rotation_hours = params.get("rotation_period_hours")
 
     @classmethod
     def from_params(cls, params, system_config, name=None, **kwargs):
