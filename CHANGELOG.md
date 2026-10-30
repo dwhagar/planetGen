@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2639] - 2026-10-30
+
+**Headline:** `planetgen query near` rejects a missing distance before it opens the database, a document written to standard output starts at its first line, and ten tests that were red on main are green.
+
+### Fixed
+
+- **`planetgen query near` with neither `--distance` nor `--nearest` is a command-line error (TEST.465).** It exits 2 with the usage text whatever the state of the database; before, it opened the database first and exited 1 when it could not.
+- **`planetgen system --output -` starts at the first line of the document (TEST.466).** The finished progress display wrote a blank line to standard output ahead of the text; a run that writes the document to standard output draws no bar.
+- **Two saves of the same names at once no longer fail with "Transaction characteristics can't be changed while a transaction is in progress" (TEST.463).** The save ends the connection's open transaction before it sets READ COMMITTED.
+- **The radiative-convective water table names its own limit (TEST.463).** The 640 K top of the table is `WATER_TABLE_TOP_K`, a numerical limit just under the critical temperature that `physics/saturation.py` holds; no vapour-pressure constant lives outside the saturation module. The cosmic-ray thin-air curve reads `GCR_PEAK_G_CM2` where it joins the first shower run (the same 100 g/cm2), so the registry row CR4 has a reader.
+- **Tests that were red on main (TEST.463).** The step-kind registry test no longer reads a queue command's name as a progress step kind; the SQL portability list names the interest-count migrations that already use `VALUES()`; the object-row round trip reads a binary pair's stars, not the proxy that stands for both; `/api/auth/me` has an avatar field; the map-rebuild test stubs the sliced warm stages; the sector page test expects a second neighbourhood job to wait in the one waiting list (PERF.154); the wiring register no longer names `surface_dose`, which the code reads now.
+
 ## [8.0.2638] - 2026-10-30
 
 **Headline:** Drawing the nebula field can now follow another stage in the same run, the part of one run per Generate job that needs no other change.
