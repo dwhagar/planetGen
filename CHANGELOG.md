@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2715] - 2026-10-30
+
+**Headline:** The infrared model's carbon dioxide far wing is now the sourced Perrin and Hartmann one, and the column takes an acid cloud; no stored world changes.
+
+### Changed
+
+- **Sourced far wing and acid cloud in the infrared column (GEN.1019, GEN.1020).** `line_opacity` drops the flat carbon dioxide wing of stand-in IR3 (`CO2_FAR_WING_M2_KG`) and adds the `co2_far_wing` wings of carbon dioxide and, in a carbon dioxide air, of water, sulfur dioxide and carbon monoxide (skipped under 1 kPa of carbon dioxide). `radiative_convective.solve` takes `cloud=(tau_550, radius_um)` and adds the acid cloud's infrared opacity between the level that is 367 K and a top at 0.0192 of that pressure. The clear-sky Venus-like air comes to 757 K with a 1 micron cloud of depth 25 (measured 735 K; the wing alone 539 K). Nothing in generation calls the infrared model yet, so no stored value moves.
+
 ## [8.0.2714] - 2026-10-30
 
 **Headline:** The sulfuric acid cloud has an infrared opacity (Mie droplets from the HITRAN acid indices) and the minor gases have a far wing in carbon dioxide air, built and tested; no world changes yet.
