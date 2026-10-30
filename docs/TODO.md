@@ -10955,6 +10955,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MPI-Mainz ozone cross sections are downloaded; the class census
   expectations are in src/tests/data/prevalence_expectations.json.
   Catalog sections 2 and 4.
+  Ready for train 6 (4:06 PM EDT 2026-10-30): Aux 2 (as the lane
+  reported): branch claude/gen768-outside-hours, one migration
+  (provisional 0187_outside_hours_day, schema v187, v186 fixture), epoch
+  --affects fill, no draw changes, does not move life, air or class
+  shares. Bug 2 renumbers and re-tags golden and census on the train.
 
 - [ ] **GEN.774 Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows**
   Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
@@ -18381,6 +18386,11 @@ clears each one.
   source or a GEN.725 row. Done: all pass on main. Owner: Bug 2 (after
   TEST.483 and TEST.484) or any free lane; lock-free unless a cause is a
   generator change. Version 8.1.
+  Also red on main (4:06 PM EDT 2026-10-30): Aux 2 found
+  test_property_sheet moon_disk columns (5 unlisted columns) and 5
+  test_db_persistence bright-star tests (column count mismatch, the same
+  cause as the cache warmup reds) on a clean main (as the lane
+  reported).
   Prerequisites: none. Related: TEST.391, TEST.472, TEST.484.
 
 ## USR: User accounts
