@@ -1190,6 +1190,20 @@ The atmosphere recipe rows of GEN.480 (occurrence of water-rich and H/He worlds)
 | RT3 | P | T5 | L0 | rock_types.INCOMPATIBLE_D 0 (the bulk partition coefficient of K, Th and U between peridotite and its melt) | 0 to 0.01 | batch melting of peridotite | a measured partition coefficient above 0.01 | measured bulk partition coefficients (Hofmann 1988, not read) | test_rock_types::test_the_heat_producers_of_the_earths_basalt_and_mantle_agree_with_one_degree_of_melting |
 <!-- rock-type-standins:end -->
 
+### 6.46 Stand-ins of the comet ice budget (GEN.595)
+
+`physics/comet_ice_budget.py` gives the CO2/H2O and CO/H2O of a comet's ice from the zone of the disc it formed in (the snow lines and the carbon and oxygen budget of Oberg, Murray-Clay and Bergin 2011), in place of the Solar System's measured population as the within-system shape. 2I/Borisov's CO/H2O (1.30 to 1.55) is a test of the CO zone; the Solar System's median comet and 3I/ATLAS's CO2/H2O of 7.6 are not reproduced and stay stand-ins in `comet_population`.
+
+<!-- comet-ice-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| CI1 | P | T2 | L0 | comet_ice_budget.ICE_LINES_K (H2O 135, CO2 47, CO 20) and DISK_T0_K 200, DISK_INDEX 0.62 (Oberg et al. 2011 Table 1 and Andrews and Williams 2007, average disc) | lines 120-150, 42-52, 18-22 K; T0 100 to 300 K; index 0.4 to 0.75 | protoplanetary discs round FGK stars | a disc whose CO snow line is measured outside 20 to 80 AU round a Sun-like star | a disc model with the star's accretion and age | test_comet_ice_budget::test_the_snow_lines_of_a_sun_like_star_are_those_oberg_et_al_give |
+| CI2 | P | T5 | L0 | comet_ice_budget.LUMINOSITY_EXPONENT 0.25 (radiative equilibrium, T goes as L to the quarter) | 0.2 to 0.3 | discs heated by the star | a measured line distance against luminosity with another slope | a disc model with the star's luminosity | test_comet_ice_budget::test_a_more_luminous_star_pushes_every_line_out_by_the_same_factor |
+| CI3 | P | T2 | L0 | comet_ice_budget.NEBULA_PER_1E4_H (H2O 0.9, CO2 0.3, CO 1.5 molecules per 10^4 H; Pontoppidan 2006 via Oberg et al.) | O in CO 0.9 to 2; CO2 and H2O as printed | one disc's ice and gas | a second disc's ice inventory differing by a factor of 3 | an ice survey of discs (Pontoppidan 2006 not read) | test_comet_ice_budget::test_the_nebula_holds_a_third_as_much_co2_and_one_and_two_thirds_as_much_co_as_water |
+| CI4 | P | T2 | L1 | comet_ice_budget.TRAPPED_FRACTION 0.075 (the share of CO above its snow line trapped in water ice, Fayolle et al. 2011 via Oberg et al.; the same value for CO2 above its line is an assumption) | 0.05 to 0.10 | amorphous water ice | a lab trapping fraction outside 5 to 10 percent for the temperatures of the disc | Fayolle et al. 2011 (not read) and a CO2 trapping measurement | test_comet_ice_budget::test_each_zone_keeps_what_its_temperature_lets_it |
+| CI5 | P | T6 | L1 | comet_ice_budget.zone_shares: equal masses of planetesimals form in equal intervals of ln r (a solids surface density as 1 / r) | surface density index 0.5 to 1.5 | planetesimal discs | a measured planetesimal mass distribution with distance | the disc model of the solids (GEN.950 wiring) | test_comet_ice_budget::test_equal_masses_form_in_equal_intervals_of_ln_r |
+<!-- comet-ice-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
