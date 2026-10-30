@@ -13,10 +13,10 @@ brightest channel is always full); the brightness is kept separately, as the sky
 | Input | Where it comes from |
 |---|---|
 | The star's spectrum | A blackbody of the star's effective temperature from 4500 K up; cooler stars are bent until their colour matches the BT-Settl atmosphere offset (`physics/photometry.py`, `physics/atmosphere_colour.py`) |
-| The air | The stored mixture of the planet or moon (ten stored partial pressures plus the balance gas of its class) and its gravity (`physics/air_column.py`) |
+| The air | The stored mixture of the planet or moon (one row for each gas in `planet_gases` or `moon_gases`, the balance gas of its class included; see [atmosphere-data-model.md](atmosphere-data-model.md)) and its gravity (`physics/air_column.py`) |
 | Rayleigh scattering | The mixture's molecular cross sections at each wavelength (`physics/rayleigh.py`); about 0.097 optical depth at 550 nm for 1 bar of Earth-like air |
 | Ozone | The stored ozone column in Dobson units (`ozone_column_du`) and the Chappuis band cross section (`physics/data/ozone_chappuis.json`) |
-| Haze, dust, cloud | Optical depth at 550 nm, single-scattering albedo, asymmetry and wavelength law of each layer (`atmosphere_colour.Aerosol`); **not stored yet**, so descriptions and maps use clear air |
+| Haze, dust, cloud | Optical depth at 550 nm, single-scattering albedo, asymmetry and wavelength law of each layer (`atmosphere_colour.Aerosol`); stored with the body (`tau_haze`, `tau_dust`, `tau_cloud`, `cloud_cover`, `aerosol_draw`, `physics/aerosols.py`); the colour is worked out once at generation from them and stored as `atmosphere_colour` (`physics/body_colour.py`) |
 | The ground | Its reflectance per wavelength; a stand-in albedo of 0.15 until the ground colour is stored |
 
 ## The method
