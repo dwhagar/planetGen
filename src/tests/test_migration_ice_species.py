@@ -1,7 +1,7 @@
 # tests/test_migration_ice_species.py
 
 """
-GEN.834: migration 0182 gives a v181 galaxy the eight ice species columns, empty, on both bodies tables.
+GEN.834: migration 0183 gives a v182 galaxy the eight ice species columns, empty, on both bodies tables.
 """
 
 import pytest

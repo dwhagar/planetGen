@@ -1,7 +1,7 @@
 # tests/test_migration_temperature_swings.py
 
 """
-GEN.848: every place with a temperature has a day and night swing of its own. A system saved and loaded keeps them; migration 0181 gives
+GEN.848: every place with a temperature has a day and night swing of its own. A system saved and loaded keeps them; migration 0182 gives
 a v177 galaxy the seven columns, empty.
 """
 
