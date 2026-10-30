@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2789] - 2026-10-30
+
+**Headline:** The gas-drag capture of moons now has a gate (gas giants only) and a size window (a few km to a few hundred km) from papers, but its strength is still a guess.
+
+### Changed
+- `docs/design/research/captured-moon-sources.md` (GEN.1122): a section on gas-drag capture read through two reviews (Pollack 1979 only as an abstract, Cuk and Burns 2004 not reachable). Registry rows CM18 (gate and size window), CM19 (pull-down thresholds) and CM20 (quasi-satellite flag); CM14 keeps its guess with its evidence updated. No code changes and no generated world changes.
+
+generation-output: unchanged
+
+## [8.0.2788] - 2026-10-30
+
+**Headline:** The numbers behind future asteroid fields left by colliding rogue planets are now read from the papers and written down; no world changes.
+
+### Changed
+- **Interstellar asteroid field sources (GEN.1098).** A research report (`docs/design/research/interstellar-field-sources.md`) and twelve registry rows (6.103, IF1 to IF12) record the collision law of Leinhardt and Stewart 2012, the debris belts of young stars from Su et al. 2006 and the interstellar background from Do et al. 2018. It finds that the speed window for rubble depends on the pair's mass (22.6 to 30.3 km/s for two Earths, lower for lighter pairs) and that only about a tenth of the mass leaves a collision as an unbound field. Nothing in the generator reads it yet: the collision, dispersal, rate and composition modules (GEN.1099 to GEN.1102) follow.
+
+generation-output: unchanged
+
 ## [8.0.2787] - 2026-10-30
 
 **Headline:** The star density that rogue planets are drawn from can now be smoothed along the galactic orbit, so a rogue is no longer tied to the spiral arm or cluster of the star it left (not used by the generator yet).

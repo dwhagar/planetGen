@@ -14316,20 +14316,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 2 (owns GEN.768 hours outside), train 7.
   Prerequisites: none. Related: GEN.768, GEN.957.
 
-- [ ] **GEN.1098 Interstellar fields research read: the sources of design section 10 (LS12 and the rest), one GEN.725 row per number used**
-  Interstellar asteroid fields from rogue-planet collisions and the
-  other sources (Boss, 4:40 PM EDT 2026-10-30; design
-  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
-  choice and two small questions (retire past 1 ly versus keep a record
-  row; the remnant planet) are with Boss; the lane builds the modules
-  with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Do: read each source, write the numbers the field modules
-  need. Done: report and registry rows. Lock-free. Where we think it
-  belongs (best guess, can move): Aux 4 (one lane for the F chain,
-  separate branch), after GEN.1035.
-  Prerequisites: none.
-  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
-
 - [ ] **GEN.1099 physics/rogue_collision.py: rogue-rogue collision rate (cross-section with focusing), Maxwellian speed window, Q_R against Q*_RD, shock pressure, unbound mass and ejecta dispersion**
   Interstellar asteroid fields from rogue-planet collisions and the
   other sources (Boss, 4:40 PM EDT 2026-10-30; design
