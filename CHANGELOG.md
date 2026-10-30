@@ -2,6 +2,22 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2671] - 2026-10-30
+
+**Headline:** The test for `planetgen query near` with no distance now checks the exit code and the usage message the way the command-line parser reports them.
+
+### Changed
+
+- TEST.471: `test_the_command_line_asks_for_the_nearest_few` expected the message in the exit value; the parser exits with code 2 and writes the reason ("give --distance ...") to stderr, so the test failed on main. It now asserts the exit code and reads the message from captured stderr, as TEST.465 does. Test only.
+
+## [8.0.2670] - 2026-10-30
+
+**Headline:** The "what is near here" search works out each candidate's distance once instead of twice with the subtraction repeated, so a 50 pc count is about 2.4 times faster.
+
+### Changed
+
+- PERF.216: `planetgen.db.region.region_statement` computes the squared distance as `POW(axis - c, 2)` once per candidate and tests it with `HAVING d2 <= r²`; `capped_count` (the early stop count of NAV.61) no longer computes a distance it does not use (`with_distance=False`). On a 3 million row table the count of a 50 pc sphere (62,000 systems) takes 178 ms instead of 428, the same sphere with the rows returned 425 instead of 600, and 25 pc 32 instead of 65. The systems returned and the counts are the same as before, a system exactly on the radius included; the plan is the same. The design note `docs/design/galaxy/spherical-region-queries.md` section 8.2 has the profile. No stored value changes.
+
 ## [8.0.2669] - 2026-10-30
 
 **Headline:** Hovering a star, system, region or nebula on the Galaxy Map now shows a small preview of it.
