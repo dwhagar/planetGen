@@ -1230,7 +1230,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.477 | The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug) | none | open |
 | GEN.478 | The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket | none | done, PR #2587 |
 | GEN.479 | The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug) | none | done, PR #3729 |
-| GEN.480 | Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1) | none | open |
+| GEN.480 | Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1) | none | done, PR #3853 |
 | GEN.481 | Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2) | none | done, PR #3220 |
 | GEN.482 | Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3) | none | done, PR #3220 |
 | GEN.483 | Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4) | none | open |
@@ -1239,9 +1239,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.486 | Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7) | none | done, PR #3840 |
 | GEN.487 | Source the evolved and frost atmospheres: cold vapour pressures, the habitable-zone coefficients, the occurrence of Titan-, Pluto- and Venus-like bodies and the abiotic O2 frequency (AR8) | none | done, PR #3848 |
 | GEN.488 | Source the comet coma classes and their volatile ratios (AR9) | none | done, PR #3840 |
-| GEN.489 | Source the white-dwarf and pulsar planet options (AR10) | none | open |
-| GEN.490 | Source the trace-gas presence weights (AR11) | none | open |
-| GEN.491 | Source the cloud and haze windows and yields (AR12) | none | open |
+| GEN.489 | Source the white-dwarf and pulsar planet options (AR10) | none | done, PR #3853 |
+| GEN.490 | Source the trace-gas presence weights (AR11) | none | done, PR #3853 |
+| GEN.491 | Source the cloud and haze windows and yields (AR12) | none | done, PR #3853 |
 | GEN.492 | Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13) | none | open |
 | GEN.493 | Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14) | none | open |
 | GEN.494 | Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15) | none | open |

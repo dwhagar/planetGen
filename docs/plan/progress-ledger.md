@@ -1839,3 +1839,7 @@ Baseline: PR #1817.
 | GEN.775 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.776 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.777 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.480 | 8.1 | Weight research (atmosphere) |
+| GEN.489 | 8.1 | Weight research (atmosphere) |
+| GEN.490 | 8.1 | Weight research (atmosphere) |
+| GEN.491 | 8.1 | Weight research (atmosphere) |

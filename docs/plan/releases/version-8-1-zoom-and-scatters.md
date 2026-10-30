@@ -524,11 +524,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.480 | Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1) |  | Atmosphere lane research need R1 (rows b4, e3, e4, e5); replaces the seeded bracket of the DESIGN rows. |
 | GEN.483 | Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4) |  | Atmosphere lane research need R4 (rows d6); replaces the seeded bracket of the DESIGN rows. |
-| GEN.489 | Source the white-dwarf and pulsar planet options (AR10) |  | Atmosphere lane research need R10 (rows a4, l1, l2, l3); replaces the seeded bracket of the DESIGN rows. |
-| GEN.490 | Source the trace-gas presence weights (AR11) |  | Atmosphere lane research need R11 (rows m2 to m6, m11); replaces the seeded bracket of the DESIGN rows. |
-| GEN.491 | Source the cloud and haze windows and yields (AR12) |  | Atmosphere lane research need R12 (rows n6, n7); replaces the seeded bracket of the DESIGN rows. |
 | GEN.492 | Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13) |  | Atmosphere lane research need R13 (rows o2, o3, o4, o6); replaces the seeded bracket of the DESIGN rows. |
 | GEN.493 | Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14) |  | Atmosphere lane research need R14 (rows p6); replaces the seeded bracket of the DESIGN rows. |
 | GEN.494 | Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15) |  | Atmosphere lane research need R15 (rows g1, g4); replaces the seeded bracket of the DESIGN rows. |
