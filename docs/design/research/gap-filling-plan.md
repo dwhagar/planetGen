@@ -1072,6 +1072,17 @@ The planet architecture (`physics/planet_architecture.py`, `docs/design/composit
 | PA12 | P | T7 | L0 | planet_occurrence.json `disc_dust_scatter` 0.7 dex and tuning.DISC_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_ANCHORS ((0.15, 0.85), (0.6, 0.75), (1.0, 0.30), (1.4, 0.30)) (the scatter of the solids and the share of stars with an inner system by mass) | scatter 0.5 to 0.9; shares inside the bands | all hosts | test_planet_architecture::test_the_share_of_stars_with_an_inner_system_follows_the_observed_anchors | the formation model that gives the share from the disc (GEN.729 follow-up) | Andrews et al. 2013 (arXiv:1305.5262, READ: 0.7 dex); Zhu 2018 (30 percent Sun-like); Yang 2020 (75 percent under 5000 K, 35 percent over 6500 K) |
 <!-- planet-architecture-standins:end -->
 
+### 6.37 Stand-ins of the brown dwarf ceiling (GEN.494)
+
+`physics/substellar_ceiling.py` reads the Baraffe et al. 2015 (BHAC15) isochrones for the temperature of the hydrogen-burning limit mass at each age: the hottest a brown dwarf can be, about 2950 K at 10 Myr and falling to 2047 K at 1 Gyr and 1626 K at 10 Gyr. It gives the young late-M-like row (g1) of the atmosphere recipes its hot edge from a table instead of the 2800 K clip of the rogue bodies. The temperature map of Kirkpatrick et al. 2021 (Table 13) already gives the other edges (GEN.517, GEN.760).
+
+<!-- substellar-ceiling-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SB1 | P | T1 | L0 | substellar_ceiling.LIMIT_MASS_SOLAR 0.07 (the hydrogen-burning limit of the solar-metallicity models; the table also holds 0.072) | none | solar metallicity | a model whose limit lies more than 0.005 solar masses from 0.07 (the limit rises at low [Fe/H], GEN.936) | the limit as a function of [Fe/H] from the Baraffe table (GEN.936) | test_substellar_ceiling::test_the_limit_mass_is_hottest_at_ten_million_years_as_the_paper_says |
+| SB2 | P | T1 | L0 | substellar_ceiling.HOTTEST_K 2950 (the highest temperature the limit mass reaches; the table has 2946 K at 10 Myr) | none | any age from 0.5 Myr to 10 Gyr | an isochrone set whose limit mass peaks more than 100 K from 2950 K | a later set of models | test_substellar_ceiling::test_the_limit_mass_is_hottest_at_ten_million_years_as_the_paper_says |
+<!-- substellar-ceiling-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
