@@ -2211,6 +2211,10 @@ Migration 0179 adds no column. `planets.hydrosphere` and `moons.hydrosphere` tak
 
 Migration 0176 adds no column. It fills `system_interests` with one reason for each life class, `lifeclass-1a` to `lifeclass-9` (`interests.LIFE_CLASS_REASONS`): a system has a row for each life class that lives on one of its planets or moons (`life_class` and `life_class_variant`), `n` how many, no score. It is filled from the planets and moons already stored; a body whose life class is NULL gives none. Nothing a generator draws changes, so there is no epoch. Since GEN.1001 a body counts only when it also has a `life_stage` (a world that suits a class but whose life has not started gives none); a database migrated before that keeps the rows of such bodies until its systems are saved again.
 
+### v189 (GEN.1009): the largest radius and mass of a member
+
+Migration 0189 adds two nullable DOUBLE columns to `scatter_members`: `radius_max_au`, the largest radius the member has had (a white dwarf's red-giant or asymptotic-branch tip; the present radius for a member that has not left its main sequence), and `mass_max_solar`, the largest mass it has had (its birth mass). Both come from the member record (`generation/member_record.py`) that the tree and the build read. NULL on a row made before v187; nothing is backfilled, a row gets them when the galaxy is regenerated. A column already there is skipped, so a stopped run can be started again.
+
 ### v188 (GEN.1035): the liquid at the surface
 
 Migration 0188 adds `surface_liquid` (VARCHAR(32)), `surface_liquid_fraction` and `surface_liquid_depth_km` (DOUBLE, all nullable) to `planets` and `moons`, skipping a column already there. All NULL after the migration: the liquid is found with the ground, so a regenerated galaxy fills them.

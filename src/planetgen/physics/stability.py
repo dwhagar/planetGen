@@ -131,9 +131,9 @@ def required_axis_ratio(m1, m2, m3, e_in, e_out, i, method="auto", alpha=None):
     return eggleton_kiseleva_ycrit(q_out, q_in) * (1.0 + e_in) / (1.0 - e_out)
 
 
-def is_triple_stable(m1, m2, m3, a_in, a_out, e_in, e_out, i, method="auto"):
-    """Whether the triple is stable: `a_out / a_in` exceeds `required_axis_ratio`."""
-    return a_out / a_in > required_axis_ratio(m1, m2, m3, e_in, e_out, i, method, alpha=a_in / a_out)
+def is_triple_stable(m1, m2, m3, a_in, a_out, e_in, e_out, i, method="auto", safety=1.0):
+    """Whether the triple is stable: `a_out / a_in` exceeds `required_axis_ratio` times `safety`."""
+    return a_out / a_in > safety * required_axis_ratio(m1, m2, m3, e_in, e_out, i, method, alpha=a_in / a_out)
 
 
 def max_inner_axis(m1, m2, m3, a_out, e_in, e_out, i, method="auto", safety=1.0):
