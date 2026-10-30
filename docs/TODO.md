@@ -15084,6 +15084,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fill, rides train 7 (sources, last). Owner: Sources 1. Version 8.1.
   Prerequisites: none. Related: GEN.777, GEN.725.
 
+- [ ] **GEN.994 Wire the hot-giant regime edges (equilibrium_edges) into the atmosphere row for hot giants**
+  Found by the wiring guard (Sources 1, as the lane reported 10:39 PM
+  EDT 2026-10-29): the module equilibrium_edges (the hot-giant regime
+  edges) is read by nothing, and the item the wiring register named for
+  it, GEN.485, is retired (its research was built by
+  GEN.511/516/518/519/520). Do: the hot-giant atmosphere row reads the
+  edges from the module instead of its own constants, and the
+  wiring-register line for equilibrium_edges is removed. Changes
+  generated output for hot giants: epoch, --affects fill, rides train 7
+  (sources, last). Every stand-in it adds gets a GEN.725 registry row.
+  Owner: Sources 1. Version 8.1.
+  Prerequisites: none. Related: GEN.485, GEN.754, GEN.511.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**

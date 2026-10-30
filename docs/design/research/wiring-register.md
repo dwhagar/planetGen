@@ -36,7 +36,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.mixture_trace | GEN.524 | the trace gases of an air drawn after the life stage; no caller yet |
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
-| module | planetgen.physics.equilibrium_edges | GEN.485 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
+| module | planetgen.physics.equilibrium_edges | GEN.994 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
 | module | planetgen.physics.ground_albedo | GEN.462 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.physics.outside_hours | GEN.768 | the hours a person can be outside in a day, stored per planet by the item |
 | module | planetgen.physics.surface_dose | GEN.444 | the ground-level dose kernels, wired by the surface radiation item |
