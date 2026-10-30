@@ -5702,6 +5702,80 @@ p.hint a {
   margin: 0 0 0.4rem;
 }
 
+/* UX.237: the Life and air chart. */
+.life-air-chart {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  display: block;
+  margin: 0.5rem 0;
+}
+
+.life-air-chart .life-air-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.life-air-chart .life-air-label,
+.life-air-chart .life-air-stage-number {
+  fill: var(--text-muted);
+  font-size: 11px;
+}
+
+.life-air-chart .life-air-stage {
+  stroke: var(--line);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.life-air-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.life-air-o2 { stroke: var(--tier-blue); }
+.life-air-co2 { stroke: var(--text-muted); stroke-dasharray: 6 3; }
+.life-air-ch4 { stroke: var(--tier-yellow); stroke-dasharray: 2 3; }
+.life-air-other { stroke: var(--accent); }
+
+.life-air-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  list-style: none;
+  margin: 0.25rem 0;
+  padding: 0;
+}
+
+.life-air-key {
+  display: inline-block;
+  width: 1.5rem;
+  vertical-align: middle;
+  border-top: 2px solid currentColor;
+}
+
+.life-air-key.life-air-o2 { border-top-color: var(--tier-blue); }
+.life-air-key.life-air-co2 { border-top: 2px dashed var(--text-muted); }
+.life-air-key.life-air-ch4 { border-top: 2px dotted var(--tier-yellow); }
+
+.life-air-stages {
+  margin: 0.25rem 0 0.5rem 1.25rem;
+  padding: 0;
+}
+
+.life-air-table {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+
+.life-air-table th,
+.life-air-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.2rem 0.75rem 0.2rem 0;
+  text-align: left;
+}
+
 .sheet-missing {
   color: var(--text-muted);
   font-style: italic;
