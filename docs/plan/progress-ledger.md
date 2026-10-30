@@ -1896,3 +1896,5 @@ Baseline: PR #1817.
 | PERF.215 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.811 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.215 | 8.1 | Composition proofs |
+| TEST.161 | 8.1 | Whole-sphere audits |
+| TEST.201 | 8.3 | Positions as one object |

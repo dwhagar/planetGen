@@ -517,3 +517,5 @@ CORE 3 LOCK-FREE ITEM (11:49 PM EDT 2026-10-28): MAP.339 (black hole near-field 
 2026-10-30 5:15 AM EDT (TODO): Aux 3 owns TEST.161 (fill-stage and system-pass tests) as its lock-free item, then TEST.201 (block_stats order independence); tests only. GEN.1002 queued for Aux 3 on a train.
 
 2026-10-30 5:17 AM EDT (TODO): Core 5 merged the rest of API.33 (#3958, 5:16 AM EDT as the lane reported; no epoch, no stored value): CLI help, printed lines and run logs state units. API.33 stays open for DOC.15, which now carries the requirement that every number on its pages states its unit. Core 5 starts PERF.211.
+
+2026-10-30 5:20 AM EDT: Aux 3 merged TEST.161 (#3957) and TEST.201 (#3959), tests only, no generated or stored value, no epoch: fill-pass guards (system chance per kind within 4 Poisson sigma of the host tables, scatter rows carry no planet/moon/belt, a plan scatter writes none before the sector fills, a filled black-hole sector holds no planet, orbit-ceiling trim removes the outermost body first) and block_stats totals independent of row order. No fault found. Both retired. Aux 3 owns TEST.200 next.
