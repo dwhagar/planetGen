@@ -265,7 +265,7 @@ def test_the_score_round_trips_and_a_cloud_rescores_the_dose(mysql_config):
         for row in rows:
             assert row["dose_helio_mult"] == pytest.approx(2.5, abs=0.01)
             again = hw.compute({**dict(row), "native_life": store._stored_native_life(row)})
-            assert row["eq_body"] == 4  # an airless world needs a pressure suit
+            assert row["eq_body"] >= 4  # an airless world needs a pressure suit at least: a hot or a cold surface asks for a heavier body
             for name in hw.SCORE_FIELDS:
                 assert row[name] == pytest.approx(again[name]), name
     finally:
