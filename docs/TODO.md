@@ -1061,6 +1061,21 @@ with `clamp()`.
   for the adaptation traits (waits on GEN.875/876)
   Prerequisites: none. Related: UX.221.
 
+- [ ] **UX.239 Search for star systems by how many stars they hold: single, binary, trinary, quaternary and more**
+  Boss (2026-10-30, 9:33 AM EDT): we need a way to search for star
+  groups, such as binary, trinary, quaternary and so on. Do: a
+  multiplicity filter (exactly N stars, or N or more, with named choices
+  Single, Binary, Trinary, Quaternary, Quintenary and beyond) in the
+  search page, Nearby, /api/search (parameter `stars`) and the command
+  line, plus a sort key and the count shown in each result row; it reads
+  the stored star count of the system, so it needs no new column unless
+  the count is not stored on the system row (then the owner adds it with
+  its unit entry). It rides the same engine as the physical-value
+  filters (UX.226, UX.227). Done: a browser test finds a known binary
+  and a known triple by the filter, the API and command line agree, and
+  the help text names every choice.
+  Prerequisites: UX.226. Related: UX.227, GEN.728, TEST.162.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -13410,6 +13425,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before train 5.
   Prerequisites: none. Related: GEN.850, GEN.851, TEST.463, GEN.957.
 
+- [ ] **GEN.1004 A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug)**
+  Boss (2026-10-30, 9:33 AM EDT, live observation): found a three-star
+  system on the maps but could never find the third star; he thinks it
+  may have had an orbit or position inside one of the other stars, and
+  is not sure. Do: find which system it is (ask Boss, or scan every
+  stored triple for a member whose orbit lies inside a sibling star's
+  radius or whose position is not placed), then fix the cause in the
+  orbit tree draw (the stable range of an inner companion against its
+  parent's radius), the placement, or the map and system page, as it
+  turns out. The coordinator started a research thread on it. Done: a
+  test over generated triples and deeper trees finds no star inside
+  another star's radius and no star missing from the system page, the
+  system map and the 3D view; the fix says which of the three it was.
+  Owner: first free lane after the research thread reports.
+  Prerequisites: TEST.162. Related: TEST.162, GEN.728, MAP.255.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -13931,20 +13962,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that registry for the bright-star, phenomena and shell scatters; no
   stored value changes.
   Prerequisites: PERF.203. Related: PERF.203, PERF.213, PERF.214.
-
-- [ ] **PERF.217 The near list (near._systems_in_reach) reads the full row of every system in reach: list ids by the covering index and read names for the page only**
-  Reported by Aux 3 (as the lane reported, 7:17 AM EDT 2026-10-30) after
-  PERF.216 (#3992): near._systems_in_reach selects name and sector_id,
-  which are not in the covering index, so a 50 pc list reads the
-  clustered row of all 62,000 systems (1,170 ms against 360 ms for ids
-  only in the lane's profile). Do: list the ids through the covering
-  index with the distance, order and cap, then read names and sector ids
-  for the page only; keep the result and its order identical (a test
-  compares the old and new lists on the same data). Done: the 50 pc list
-  is within about the id-only time with an identical result. Related:
-  PERF.216, NAV.60. Owner: Aux 3 (assigned 7:18 AM EDT 2026-10-30; no
-  stored value).
-  Prerequisites: none. Related: PERF.216, NAV.60.
 
 ## DB: Database and schema
 
@@ -17601,18 +17618,6 @@ clears each one.
   phase on a loaded full run (the Done line).
   Prerequisites: none. Related: TEST.229, TEST.126, TEST.190.
 
-- [ ] **TEST.345 test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree fails on main on a lane machine (bug)**
-  Reported by Core 5 from its PERF.99 gate (#3030, 2:30 PM EDT
-  2026-10-24 as the lane reported): this test fails on main and not
-  because of PERF.99. TODO could not reproduce it (the test skips
-  without the database here). Kind: failing test on main. Likely related
-  to GEN.710 (a pre-placed row with a stored tree can have a member
-  heavier than the primary), which Core 3 is working. Do: reproduce on
-  main with the database, capture the failure text, and either fix it
-  with GEN.710 or file the cause. Done: the test passes on main. Owner:
-  Core 3 (it owns the stored-tree fill).
-  Prerequisites: none. Related: GEN.710.
-
 - [ ] **TEST.346 web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Core 3 and Core 5 but pass for Bug Hunt (bug)**
   Reported by Core 3 (1:50 PM EDT 2026-10-24, "link contrast and nested
   summary") and Core 5 (2:30 PM EDT, four variants), both as red on
@@ -18273,18 +18278,6 @@ clears each one.
   fix the orbit. Done: the file passes on main. Related: TEST.463,
   GEN.1003, GEN.957. Owner: Bug 2 (proposed), after TEST.417.
   Prerequisites: none. Related: TEST.463, GEN.1003, GEN.957.
-
-- [ ] **TEST.471 tests/test_near.py::test_the_command_line_asks_for_the_nearest_few fails: argparse exits with code 2 so the pytest.raises(SystemExit, match="--distance") never sees the text (bug)**
-  Reported by Aux 3 (as the lane reported, 7:17 AM EDT 2026-10-30), red
-  on main: the test fails at the pytest.raises(SystemExit,
-  match='--distance') line because argparse exits with code 2 and the
-  exception message is '2', so the match never sees the text. The same
-  kind of fix as TEST.465 (query_db exit code). Do: assert the exit code
-  and read the message from the captured stderr (capsys) instead of
-  matching the exception text. Done: the test passes and still fails if
-  the --distance error is lost. Related: TEST.465, PERF.217. Owner: Aux
-  3 (assigned 7:18 AM EDT 2026-10-30).
-  Prerequisites: none. Related: TEST.465, PERF.217.
 
 - [ ] **TEST.472 Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug)**
   Reported by Bug 2 (as the lane reported, 7:36 AM EDT 2026-10-30),
