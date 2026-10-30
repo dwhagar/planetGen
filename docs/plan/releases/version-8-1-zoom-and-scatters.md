@@ -153,6 +153,7 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws |  | Boss 7:15 PM EDT; the superbubble layer is its sibling item. |
 | DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute |  |  |
 | MAP.347 | Galaxy Map info popup redesign: it is hard to read and scrolls off the screen even on a maximized 1080p display (bug) |  |  |
+| MAP.352 | Back to a system in a different sector fails when pressed before the first Back has finished (bug) |  |  |
 | MAP.350 | The Galaxy Map window fills the screen with only about 20 pixels of buffer at the top and bottom, so the whole window shows with no page scrolling (bug) |  |  |
 | MAP.351 | Galaxy Map reason per life class: a point-of-interest reason for each of the 15 life classes with map menu entries, backfilled for stored worlds |  |  |
 | MAP.348 | Galaxy Map hover preview: pointing at a place shows a small preview before the click |  |  |
@@ -452,6 +453,7 @@ Moved into 8.1 from 8.4 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 |---|---|---|---|
 | DB.70 | Planets, moons and small bodies store the surface and small-body composition shares | GEN.462 | Boss 11:58 PM EDT; migration revision, in merge order. |
 | GEN.477 | The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug) | DB.70 | Body composition research lane finding F11 (tables E1 to E4): belt and field composition drawn from the star, distance and belt mass; generator epoch bump. Core 4 proposed. |
+| GEN.1000 | Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass) | GEN.477 |  |
 | GEN.471 | Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K |  | Body composition research lane part F item F4 (later); generator epoch bump. Core 4 proposed. |
 | GEN.462 | Ground albedo by band: the area-weighted colour of the ground, ice and ocean cover with space weathering, handed to the atmosphere colour once |  | Body composition research lane cluster 9 (part E sections 2.6 and 2.7, part D taxon albedo); generator epoch bump. Core 4 proposed. |
 
@@ -616,13 +618,11 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.876 | Adaptation traits built: drawn in the life pass, stored in a text column, listed on the object page (adapted to: radiation, sulfide) and read by the habitability scores |  | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
 | GEN.881 | Retinal becomes a photoheterotroph supplement that needs a carbon fixer, and Melanin becomes the radiotolerance adaptation with dose in its draw, not a radiation food | GEN.876 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
 | TEST.436 | Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges | TEST.430, GEN.879, GEN.880, GEN.876 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
-| TEST.450 | test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel is red on main: 80 wheel ticks at a sector centre no longer reach open=1 (bug) |  |  |
 | GEN.888 | The acid medium model: a sulfuric acid cloud layer and acid pools from the temperature profile and the SO2 and water shares, filling the dead solvent() sulfuric branch |  | Life class system (order final, Boss 9:20 PM EDT). |
 | UX.237 | Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists |  | Life class system (order final, Boss 9:20 PM EDT). |
 | UX.238 | The "On this page" table of contents on object pages goes under the tab bar, not off to the left (bug) |  |  |
-| API.37 | API fields for the life class: life_class, variant, best, best score, per-class scores and the animal grade, with an API version bump |  | Life class system (order final, Boss 9:20 PM EDT). |
 | GEN.894 | Strange-solvent life classes 5 to 9 (acid-world, dense CO2, cold hydrocarbon sea, ammonia-water, silicon-bearing in acid): windows, supplies, texts, stand-ins and tiers | GEN.888 | Life class system (second build). |
-| GEN.863 | Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters | GEN.862, UX.237, API.37 | A migration; moved to 8.1 by Boss, 9:10 PM EDT 2026-10-28. |
+| GEN.863 | Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters | GEN.862, UX.237 | A migration; moved to 8.1 by Boss, 9:10 PM EDT 2026-10-28. |
 | TEST.435 | Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges | GEN.863, TEST.430 | Extends the TEST.430 suite; moved to 8.1 (Boss 9:20 PM EDT); sentient the rarest rung, animals to civilizations at least 20 to 1. |
 | GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) |  |  |
 | GEN.852 | Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others) |  |  |
@@ -645,6 +645,9 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.992 | Re-finish every rocky planet and moon after the star's age is final, then re-judge the forced requests with the retry round | GEN.961, GEN.985, GEN.987 |  |
 | GEN.985 | Circularise a close-in planet's eccentricity again at the final star age | GEN.961 |  |
 | GEN.984 | Make the star's composition draw independent of its age so every planet reads the final composition (bug) |  |  |
+| GEN.998 | The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug) |  |  |
+| GEN.999 | Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy | GEN.932 |  |
+| GEN.997 | A moon of a planet around a very young star (under 0.06 Gy) holds a life class: test_planets_respect_their_stars_age_and_history is red on main (bug) |  |  |
 | GEN.996 | Draw binary-made low-mass white dwarfs so the white dwarf mean mass reaches the accepted range (bug) |  |  |
 | GEN.995 | Draw the binary-stripped Wolf-Rayet channel so the Galaxy Wolf-Rayet count reaches the observed range (bug) |  |  |
 | GEN.962 | Rocky planets hold 1.5 to 2.0 moons of 1e20 kg and over each (the Solar System has 1 for 4 rocky planets): ground the moon rate in giant-impact and capture frequency |  |  |
@@ -747,6 +750,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | PERF.190 | Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates |  |  |
 | PERF.188 | The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python |  |  |
 | PERF.209 | The generator battery digest costs about 30 s in every test process (its docstring says 3 to 5 s); the bright-star table build alone is 18 s |  |  |
+| PERF.210 | Cut the cost of GEN.992: re-finish only the bodies whose result can change after the star age is final | GEN.992 |  |
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
 | TEST.380 | First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp |  |  |
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |

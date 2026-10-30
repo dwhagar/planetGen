@@ -1845,3 +1845,5 @@ Baseline: PR #1817.
 | GEN.491 | 8.1 | Weight research (atmosphere) |
 | PERF.202 | 8.1 | Queue, caches and performance |
 | GEN.740 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| API.37 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.450 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

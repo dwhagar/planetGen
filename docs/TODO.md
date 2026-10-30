@@ -2371,6 +2371,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1.
   Prerequisites: none. Related: MAP.345, MAP.307, API.37.
 
+- [ ] **MAP.352 Back to a system in a different sector fails when pressed before the first Back has finished (bug)**
+  Core 2 report (as the lane reported 11:35 PM EDT 2026-10-29), found
+  while fixing TEST.450: pressing Back to a system in a different sector
+  before the previous Back has finished its move can fail (a timing
+  race, not reproduced reliably; Core 2's test now waits). Do: reproduce
+  with two quick Back presses across a sector change, find which load or
+  camera move the second press races with, queue or ignore the second
+  press until the first finishes, and add a test that presses twice
+  without waiting. Owner: Core 2. Version 8.1.
+  Prerequisites: none. Related: TEST.450, MAP.347.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -12744,7 +12755,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
-  Prerequisites: GEN.862, UX.237, API.37.
+  Prerequisites: GEN.862, UX.237.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
   Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for
@@ -13803,6 +13814,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
   are in the project files; Bedard white dwarf sequences and the neutron
   star tables are also held. Catalog sections 1 to 3.
+  Star 1 finding (as the lane reported 11:21 PM EDT) (2026-10-29 11:21
+  PM EDT): MIST tracks of Wolf-Rayet stars of 60 to 150 solar masses end
+  at 4e5 to 9e5 solar luminosities, so the audit's "code too low above
+  60" does not show in the tracks; GEN.939 is READY as PR #3873 (stacked
+  on #3858, registry row PS9) and rides train 3 after #3842 and #3858.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.940 Present mass for giants, horizontal-branch, asymptotic and massive stars: a Reimers-type loss for the red giant and asymptotic branches and a wind loss for massive stars**
@@ -14859,6 +14875,74 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1). Version 8.1.
   Prerequisites: none. Related: GEN.932, GEN.995.
 
+- [ ] **GEN.997 A moon of a planet around a very young star (under 0.06 Gy) holds a life class: test_planets_respect_their_stars_age_and_history is red on main (bug)**
+  Aux 4 report (as the lane reported 10:58 PM EDT 2026-10-29):
+  src/tests/test_star_population.py::test_planets_respect_their_stars_age_and_history
+  fails on main b8ad6a6ce because a moon of a planet around a
+  pre-main-sequence star under 0.06 Gy has a life class (example: planet
+  class Q with life 1, moon with life 3). Life must start only after the
+  life-stage schedule allows it (GEN.649, GEN.750 timeline), so a star
+  this young can hold none anywhere. Do: find which path gives the moon
+  a life class that the planet's own path withholds (the moon is
+  probably finished with the star's provisional age or without the stage
+  gate), fix it, and keep the test green with the same seed. Changes
+  generated output only if the gate moves a stored life class: epoch and
+  --affects fill if so. Owner: Aux 2 (life from conditions). Version
+  8.1.
+  Prerequisites: none. Related: GEN.992, GEN.750, TEST.463.
+
+- [ ] **GEN.998 The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug)**
+  Sources 2 finding (as the lane reported 11:22 PM EDT 2026-10-29),
+  found while wiring GEN.476: birth_radioisotopes reads the disc gas
+  depletion time, and the default galaxy's value is 0.85 Gy against the
+  Galaxy's measured 4.2 Gy, so the mean aluminium-26 ratio of rocky
+  bodies comes out five times what the lock-free note expected (GEN.469
+  gas content reads the same number). Do: trace where the 0.85 Gy comes
+  from (a unit, a different quantity such as a star formation timescale,
+  or a stand-in), say whether it is the right quantity for the disc gas
+  depletion, correct it or register it in GEN.725 with its tier and
+  tweak level, and list every reader that moves. Changes generated
+  output if the value moves: epoch and --affects fill. Owner: Sources 2.
+  Version 8.1.
+  Sources 2 answer (as the lane reported 11:33 PM EDT) (2026-10-29 11:33
+  PM EDT): the 0.85 Gy is the default small galaxy (5.8e9 solar masses,
+  772 pc); a Milky Way mass disc gives 1.46 Gy against 4.2 Gy measured
+  because the Kennicutt law has no low-density threshold. The quantity
+  is right and the value about 3 times short; it is registered as 6.49
+  AL1 and the fix is filed as GEN.999. Close this item when the registry
+  row AL1 lands with the train 7 wiring branch.
+  Prerequisites: none. Related: GEN.469, GEN.476, GEN.477.
+
+- [ ] **GEN.999 Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy**
+  Sources 2 answer on GEN.998 (as the lane reported 11:33 PM EDT
+  2026-10-29). The default small galaxy (5.8e9 solar masses, 772 pc)
+  gives a gas depletion time of 0.85 Gy, and a Milky Way mass disc gives
+  1.46 Gy against 4.2 Gy measured, because the Kennicutt law the
+  generator uses has no low-density threshold. The quantity is right,
+  the value is about 3 times short; it is registered as stand-in row
+  6.49 AL1 for now. Do: replace the law with a threshold law (a
+  Kennicutt-Schmidt law with a low-density cut) fitted to the measured
+  depletion time, then re-measure every reader of gas_now: radiogenic
+  aluminium-26 (GEN.476), star_formation.py and core_gas.py, which all
+  move. Changes generated output: epoch, --affects
+  plan,scatter,fill,population and a census re-baseline; rides the
+  star-side train after GEN.932 (Bug 1 owns star_formation.py). Owner:
+  Sources 2 with Bug 1. Version 8.1.
+  Prerequisites: GEN.932. Related: GEN.998, GEN.476, GEN.469.
+
+- [ ] **GEN.1000 Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass)**
+  Sources 2 finding (as the lane reported 11:53 PM EDT 2026-10-29): the
+  belt mass of GEN.477 needs the belt's largest body, which nothing in
+  the generator provides. The size law is researched (GEN.566, done) but
+  not built. GEN.477 wiring goes ahead with a registered stand-in
+  largest-body size (T9, L3, GEN.725). Do: build the size-frequency law
+  of GEN.566 as a pure module with tests, draw each belt's largest body
+  from it (own random stream, via draw.py), feed GEN.477 and the belt
+  detail, and retire the stand-in registry row. Changes generated output
+  (belt mass): epoch, --affects fill, rides the train after GEN.477
+  wiring. Owner: Sources 2. Version 8.1.
+  Prerequisites: GEN.477. Related: GEN.477, GEN.566, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15361,6 +15445,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it once per test session), and keep the digest identical. No output
   change. Owner: Aux 5. Version 8.1.
   Prerequisites: none. Related: TEST.403, PERF.188, GEN.935.
+
+- [ ] **PERF.210 Cut the cost of GEN.992: re-finish only the bodies whose result can change after the star age is final**
+  Aux 7 report (as the lane reported 11:12 PM EDT 2026-10-29). GEN.992
+  makes every rocky planet and moon again when it was made at an age
+  more than 2 percent younger than the final age; every re-run is a full
+  air solve, so system generation on a G2V takes 64 percent longer (12
+  systems: 28.8 s to 47.3 s, 232 bodies made again). Do: find which
+  bodies cannot change (for example an airless body, or one whose air,
+  class and field do not read the age) and skip them, reuse an unchanged
+  air solve, or cache what the re-run shares with the first pass; keep
+  every result identical to GEN.992 with the same seeds. Rides after
+  GEN.992 merges (it edits the same function). Owner: Aux 7. Version
+  8.1.
+  Prerequisites: GEN.992. Related: GEN.992, PERF.209.
 
 ## DB: Database and schema
 
@@ -16399,20 +16497,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   changed --resume.
   Prerequisites: API.35. Related: GEN.825, DB.107, GEN.826,
   API.35, MAP.314, MAP.315, UX.231.
-
-- [ ] **API.37 API fields for the life class: life_class, variant, best, best score, per-class scores and the animal grade, with an API version bump**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L10 part 1 (testing mode allows the bump); the
-  API compatibility page lists it.
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 1 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Prerequisites: none.
 
 ## ADM: Admin tools
 
@@ -19697,27 +19781,6 @@ clears each one.
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
 
-- [ ] **TEST.450 test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel is red on main: 80 wheel ticks at a sector centre no longer reach open=1 (bug)**
-  Found by Bug 1 (about 8:55 AM EDT 2026-10-29 as the lane reported). 80
-  wheel ticks at a sector's centre no longer reach open=1: the address
-  stays ?sector=...&cam=.... Probably MAP.335 (#3647) or the Z0 landing
-  changed what the wheel does. Do: the map lane says whether the wheel
-  is meant to open a sector now; if yes, find why it stops short and fix
-  the map; if no, update the test to the new way to open a sector.
-  Version 8.1. Owner: Core 2 (map and continuous zoom). Prerequisites:
-  none. Related: MAP.335, MAP.333.
-  Research (2026-10-09): Update (Core 2, about 9:07 AM EDT 2026-10-29 as
-  the lane reported): yes, the wheel is meant to open a sector (the
-  wheel handler opens it once the sector's scene is whole). Reproduced
-  on a clean checkout of the MAP.335 merge commit: 2 of 4 runs fail; in
-  a failed run the sector scene never loads (galaxyAmbient() stays null
-  with the camera inside the sector), so it is intermittent, not a
-  changed rule. Core 2 takes it after MAP.336 lands. The arrow-keys test
-  flakes the same way on that commit; Core 2 made it wait for a still
-  picture inside MAP.336's PR. The last test of TEST.418 (now retired)
-  is this one.
-  Prerequisites: none. Related: MAP.335, MAP.333.
-
 - [ ] **TEST.453 Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug)**
   Found by Aux 2 (about 3:02 PM EDT 2026-10-29 as the lane reported)
   running the epoch 120 gate (PR #3702); each fails identically on a
@@ -19805,6 +19868,13 @@ clears each one.
   owns the code; the Core 3 group goes to Core 3 first. Some may be this
   machine's MariaDB or the flaky class-mismatch (GEN.980, fixed on Core
   1's branch for train 2). Owner: Bug 2. Version 8.1.
+  More reds from Core 5 (as the lane reported 11:17 PM EDT) (2026-10-29
+  11:17 PM EDT): test_maintenance map rebuild and
+  test_db_column_round_trip test_every_column_is_written (the porosity
+  column, GEN.980/TEST.461 on train 2) are red on main; test_population
+  species setup hit one random failure in the gas solver
+  (gas_equilibrium np.diag) that passed alone: find the input that makes
+  np.diag fail and fix it or file it. Not Core 5's.
   Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
 
 - [ ] **TEST.464 Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug)**

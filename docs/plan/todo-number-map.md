@@ -14,10 +14,10 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.239 |
-| MAP | MAP.352 |
+| MAP | MAP.353 |
 | NAV | NAV.65 |
-| GEN | GEN.997 |
-| PERF | PERF.210 |
+| GEN | GEN.1001 |
+| PERF | PERF.211 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
@@ -559,7 +559,7 @@ Parents marked "new parent" had no old number of their own.
 | API.34 | API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them | none | open |
 | API.35 | Region names on the wire: a name on charted nodes and the stage and node endpoints, galaxy-map-wire-format.md (regions chain, step 2) | none | done, PR #3396 |
 | API.36 | Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6) | none | open |
-| API.37 | API fields for the life class: life_class, variant, best, best score, per-class scores and the animal grade, with an API version bump | none | open |
+| API.37 | API fields for the life class: life_class, variant, best, best score, per-class scores and the animal grade, with an API version bump | none | done, PR #3871 |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -1747,6 +1747,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.994 | Wire the hot-giant regime edges (equilibrium_edges) into the atmosphere row for hot giants | none | open |
 | GEN.995 | Draw the binary-stripped Wolf-Rayet channel so the Galaxy Wolf-Rayet count reaches the observed range (bug) | none | open |
 | GEN.996 | Draw binary-made low-mass white dwarfs so the white dwarf mean mass reaches the accepted range (bug) | none | open |
+| GEN.997 | A moon of a planet around a very young star (under 0.06 Gy) holds a life class: test_planets_respect_their_stars_age_and_history is red on main (bug) | none | open |
+| GEN.998 | The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug) | none | open |
+| GEN.999 | Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy | none | open |
+| GEN.1000 | Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2098,6 +2102,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.349 | Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place)  | none | open |
 | MAP.350 | The Galaxy Map window fills the screen with only about 20 pixels of buffer at the top and bottom, so the whole window shows with no page scrolling (bug) | none | open |
 | MAP.351 | Galaxy Map reason per life class: a point-of-interest reason for each of the 15 life classes with map menu entries, backfilled for stored worlds | none | open |
+| MAP.352 | Back to a system in a different sector fails when pressed before the first Back has finished (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2448,6 +2453,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.207 | planetgen planets and moons take --limit and --after (keyset), replacing OFFSET listing (slice 4 of the PERF.137 OFFSET audit) | none | open |
 | PERF.208 | A stored, indexed sector system count, density and quadrant so the remaining Sectors list sorts page by key (slice 5 of the PERF.137 OFFSET audit) | none | open |
 | PERF.209 | The generator battery digest costs about 30 s in every test process (its docstring says 3 to 5 s); the bright-star table build alone is 18 s | none | open |
+| PERF.210 | Cut the cost of GEN.992: re-finish only the bodies whose result can change after the star age is final | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -3353,7 +3359,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.446 | Two tests red on main: the generated config.schema.json out of date, and the batch-fill units listing rescore-habitability first (bug) | none | done, PR #3665 |
 | TEST.448 | test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count is red on main: blocks show no tint in the new sector view (bug) | none | done, PR #3672 |
 | TEST.449 | test_sheet_fill "no empty column that applies" is red on main: life_age_complex_cells_gyr is empty (bug) | none | done, PR #3681 |
-| TEST.450 | test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel is red on main: 80 wheel ticks at a sector centre no longer reach open=1 (bug) | none | open |
+| TEST.450 | test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel is red on main: 80 wheel ticks at a sector centre no longer reach open=1 (bug) | none | done, PR #3879 |
 | TEST.451 | Ten reds Core 5 saw on main at its PERF.172 merge (9:59 AM EDT 2026-10-29): re-run each on current main, close the ones already fixed, file the real ones (bug) | none | done, PR #3707 |
 | TEST.452 | A sweep finds the life-capable conditions on every planet class and proves the generator lets life evolve there (a class-blind life test) | none | done, PR #3728 |
 | TEST.453 | Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug) | none | open |

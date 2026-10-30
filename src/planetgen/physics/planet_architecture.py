@@ -120,11 +120,11 @@ def period_to_au(period_d, star_mass_kg):
 def inner_system_fraction(star_mass_kg):
     """
     The share of stars of this mass with a Kepler-like inner system (a planet of an Earth radius or more with a period under 400 days):
-    log-linear in the star's mass between `INNER_SYSTEM_FRACTION_ANCHORS`, held at the ends. Zhu et al. 2018 find 30 percent of Sun-like stars
-    and Yang et al. 2020 about 75 percent of stars under 5000 K and 35 percent over 6500 K.
+    log-linear in the star's mass between `INNER_SYSTEM_FRACTION_MASSES` and `INNER_SYSTEM_FRACTION_SHARES`, held at the ends. Zhu et al. 2018
+    find 30 percent of Sun-like stars and Yang et al. 2020 about 75 percent of stars under 5000 K and 35 percent over 6500 K.
     """
     mass = star_mass_kg / constants.SOLAR_MASS_TO_KG
-    anchors = tuning.INNER_SYSTEM_FRACTION_ANCHORS
+    anchors = list(zip(tuning.INNER_SYSTEM_FRACTION_MASSES, tuning.INNER_SYSTEM_FRACTION_SHARES))
     if mass <= anchors[0][0]:
         return anchors[0][1]
     for (m0, f0), (m1, f1) in zip(anchors, anchors[1:]):

@@ -2,6 +2,43 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2610] - 2026-10-30
+
+**Headline:** The inner-system share anchors of the planet architecture are two ordered tuples, so the constants test passes again.
+
+### Fixed
+- **`test_fuzz_utils_and_config` failed on `INNER_SYSTEM_FRACTION_ANCHORS`.** The `(mass, share)` pairs were not in ascending order; the masses and the shares are now separate tuples with the same values. No generated output changes.
+
+## [8.0.2609] - 2026-10-30
+
+**Headline:** Zooming into a sector at the galaxy's core no longer gets stuck when the wheel points at a neighbouring empty cell.
+
+### Changed
+- **The wheel opens the sector again (TEST.450).** At the core the cells are small and close, so the wheel could land on a neighbouring cell nothing was generated in. The map asked the server for that cell's scene on every tick (a 404 each time), and each ask took the place of the real sector's scene load, which was then given up for good: the sector never opened and the zoom stopped about 1.4 parsecs out. An empty cell is now asked once, and a scene load that was only pushed aside is asked again.
+
+## [8.0.2608] - 2026-10-30
+
+**Headline:** The API names the life class of a planet or moon and the score of every class it supports.
+
+### Changed
+- **A planet or moon in `GET /api/systems/<id>` names its life by class.** `life_chemical` is gone (the life class switch replaced it); a body has `life_class`, `life_class_variant`, `life_class_best`, `life_class_best_score`, `life_animal_grade` and `life_complexity`, plus two fields made for readers: `life_class_id` (class and variant as one id such as `1a`) and `life_class_scores` (the score, 1 to 9, of every class the body supports). The API version is now 10.
+
+api-version: changed
+
+## [8.0.2607] - 2026-10-30
+
+**Headline:** The mass boundary table no longer shows a TODO item code in the text it prints.
+
+### Fixed
+- **Two mass boundary notes named an item code (GEN.936).** The notes on the hydrogen-burning limit and the brown dwarf upper limit said which item will close the gap between them; the words are plain now, so `test_no_todo_codes_shown` passes again.
+
+## [8.0.2606] - 2026-10-30
+
+**Headline:** The one-line sources under the values of a body's page no longer name internal item numbers.
+
+### Fixed
+- **Item numbers in the sheet source lines.** The source line under a physics value on a planet, moon or star page (and in the API's `source`) ended with an internal item number such as GEN.727. Those are for the people who keep the code, so they are gone; the line still says how the value is worked out and from which paper.
+
 ## [8.0.2605] - 2026-10-30
 
 **Headline:** What ices a comet holds (carbon dioxide, carbon monoxide) can now be worked out from where in its star's disc it formed (not yet used by the generator).
