@@ -2,6 +2,53 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2771] - 2026-10-30
+
+**Headline:** The numbers behind the new belt model (drift, resonance gaps, depletion, planet tests, white dwarf pollution) are now read from their papers and listed with sources.
+
+### Changed
+- **Belt research read (GEN.1060).** A new note (`docs/design/systems/belt-sources.md`) lists what was read for the belt items and the numbers taken, with 18 registered stand-ins (section 6.95 of the registry). No generator code changes.
+
+generation-output: unchanged
+
+## [8.0.2770] - 2026-10-30
+
+**Headline:** A member of an asteroid belt now has a designation, the belt's ID, a point and the member's rank in hex, that is a pure function with a round trip.
+
+### Added
+- **Belt member designation (GEN.1065).** `galaxy/object_uid.designation(belt_id, rank)` prints `<belt ID>.<rank hex>` (rank 1 is the heaviest member by the mass drawn at birth; at least four hex digits), `parse_designation(text)` reads it back through `parse_id`, and `is_on_demand(rank, individual_count)` says whether a rank names a body drawn on demand and never stored. It reads no stream and no naming key, so a member has no name, only its designation, and one text. Nothing is stored or shown yet; the display and storage are the lock items of the belt evolution chain.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.1065.
+
+## [8.0.2769] - 2026-10-30
+
+**Headline:** The code now has the rule that says what a giant does to an outer disc: how much it sweeps, captures in resonance, scatters and throws out.
+
+### Changed
+- **The scatter module (GEN.1089).** `physics/scatter.py` takes the outermost giant (mass, radius, orbit, how far it moved outward), the disc and whether the system had an instability, and gives the share of the disc's mass that stays cold, is excited, sits in the 3:2 and 2:1 resonances, becomes scattered disc, centaurs, detached or trojan bodies, is thrown out, is implanted in the inner belt or captured by a moon system, and one sentence for the belt page. A disc with no giant keeps all its mass cold; a Neptune-sized giant that moved from 18 to 30 AU through a disc of 15 to 35 AU scatters 84 percent of it. It is a rule with no N-body run. No generated world changes: the belt and outer-disc wiring is a later step (GEN.1092).
+- **Stand-ins recorded.** Rows SX1 to SX5 in the stand-in registry (GEN.725): the chaotic zone and disc slope, and four shares at tier educated guess from physics, tweak L3 (each with a burn-down line).
+
+## [8.0.2768] - 2026-10-30
+
+**Headline:** The rule for where a captured asteroid can stay in orbit round a planet now exists as a tested calculation, with the Hill radii and the inner edges of the four giants as checks.
+
+### Changed
+- **The irregular zone (GEN.1076, first part).** A new module (`physics/irregular_zone`) gives, for a planet and its star, the Hill radius (0.35, 0.43, 0.47 and 0.77 AU for Jupiter, Saturn, Uranus and Neptune), the distance out to which a prograde orbit (0.4 of it) and a retrograde one (0.55 of it) stay, the inclination band where the star drives a body into the planet, and the inner edge set by the outermost regular moon (0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus). A hot giant's zone comes out empty. This is the first of the pieces for moons that were once asteroids; nothing reads it yet.
+
+generation-output: unchanged
+
+## [8.0.2767] - 2026-10-30
+
+**Headline:** The code can now say which small planets fall in the Hycean box, the sub-Neptunes that could hold a liquid ocean under a hydrogen envelope.
+
+### Changed
+- **The Hycean box (GEN.963).** `physics/hycean_candidate.py` flags a gas dwarf, ice giant or high-gravity world of 1 to 10 Earth masses, 1.4 to 2.6 Earth radii, an equilibrium temperature of 150 to 500 K and a density of 1.5 to 3 g/cc. The audit found the state `hycean` and the envelope survival (`envelope_escape`, the retention library) already in the code; only the box was missing. No class and no stored value moves, so no generated world changes.
+- **Stand-in recorded.** Row HC1 in the stand-in registry (GEN.725): the four ranges, as the item quotes them (Madhusudhan et al. 2021 was not read).
+
 ## [8.0.2766] - 2026-10-30
 
 **Headline:** How many near-resonant planet pairs actually librate, and so can keep a forced eccentricity, is now sourced.

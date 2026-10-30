@@ -17,7 +17,7 @@ What a captured small body's orbit looks like, drawn before the stable zone (`ir
 * **Families.** An irregular moon that was broken by a collision after its capture leaves a family: fragments on orbits that differ from the parent's by the velocity they were thrown with (`family`), tens to hundreds of metres per second
   (Nesvorny et al. 2003; Bottke et al. 2010, recalled), through the Gauss equations of a velocity change on an elliptic orbit. Fragments that no longer stay are lost like any other.
 
-All draws are from the unit's stream (`util.draw`). Stand-ins are IO1 to IO4 of `docs/design/research/gap-filling-plan.md` section 6.95. Nothing reads the module yet; the captured-moon wiring will.
+All draws are from the unit's stream (`util.draw`). Stand-ins are IO1 to IO4 of `docs/design/research/gap-filling-plan.md` section 6.96. Nothing reads the module yet; the captured-moon wiring will.
 """
 
 import math
