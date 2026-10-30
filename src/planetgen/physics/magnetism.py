@@ -53,7 +53,7 @@ Earth's) or multipolar (`f_dip` under 0.5).
 import math
 
 from planetgen import tuning
-from planetgen.physics import activity, constants
+from planetgen.physics import activity, constants, dynamo
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -141,8 +141,7 @@ def dipole_share(rotation_period_hours):
     rotators (rule 2)."""
     if not rotation_period_hours:
         return 1.0
-    rossby = 0.09 * (rotation_period_hours / 24.0) ** 1.23
-    return 0.15 + 0.85 / (1.0 + (rossby / 0.12) ** 4)
+    return dynamo.dipole_fraction(0.09 * (rotation_period_hours / 24.0) ** 1.23)      # the Rossby number at Earth's power: `dynamo.local_rossby`
 
 
 def body_dipole_share(body):

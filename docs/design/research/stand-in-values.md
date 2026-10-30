@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 333 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 337 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 38 | 0 | 3 | 0 | 0 | 41 |
-| T2 | 60 | 1 | 0 | 1 | 0 | 62 |
+| T2 | 61 | 2 | 0 | 1 | 0 | 64 |
 | T3 | 49 | 4 | 2 | 10 | 0 | 65 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
-| T5 | 15 | 5 | 1 | 0 | 0 | 21 |
+| T5 | 16 | 5 | 1 | 0 | 0 | 22 |
 | T6 | 33 | 7 | 3 | 14 | 0 | 57 |
-| T7 | 16 | 3 | 0 | 7 | 0 | 26 |
+| T7 | 16 | 3 | 1 | 7 | 0 | 27 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 227 | 20 | 11 | 58 | 17 | 333 |
+| All | 229 | 21 | 12 | 58 | 17 | 337 |
 
 ## How the labels were given
 
@@ -500,3 +500,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TQ4 | P | T5 | L0 | spin_torques.THERMAL_SMALL_PRESSURE_SLOPE 1 (below 1 bar q0 goes with the surface pressure; the thermal time loses 6 percent of its surface part) | 0.8 to 1.2 | air under 1 bar | test_spin_torques::test_thin_air_has_a_proportionally_smaller_thermal_tide | a climate run for thin air | the paper's argument that the amplitude goes as the pressure over the scale height |
 | TQ5 | T | T6 | L0 | spin_torques.Torques.atmospheric (the convective-atmosphere Debye torque, N_a = F K_a q0 x / (1 + x^2); a stably stratified air, which flattens it, is not modelled) | none | a thick air with a convective troposphere | test_spin_torques::test_the_asynchronous_equilibria_are_leconte_equation_13 | the stratified-air torque of Auclair-Desrotour, Mathis and Laskar 2017 | Leconte et al. 2015 equations 1 to 3; Auclair-Desrotour et al. 2017 equation 72 gives the same shape and say a stable stratification sends the torque to zero |
 | TQ6 | T | T6 | L0 | spin_torques.evolve (a one-dimensional flow; a resonance whose window holds the eccentricity captures for sure, a sign flip of the torque at a raiser's orbital rate or a smooth zero stops it; obliquity zero, circular torques) | none | a planet with one star and up to a few moons | test_spin_torques::test_one_star_with_constant_q_is_the_built_despinning | a spin-orbit integration with obliquity and eccentricity | the same simplifications as SP10 of 6.14 |
+
+## 6.30 Stand-ins of the dynamo field
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| DY1 | D | T2 | L0 | dynamo.DIPOLE_COEFFICIENT 0.2: the dipole's equatorial field at the top of the region is 0.2 sqrt(rho mu0 / 2) (F D)^(1/3) | 0.15 to 0.25 | a dynamo that is dipolar as Earth's is (a local Rossby number under 0.12) | test_dynamo::test_earth_gives_its_own_moment_rossby_number_and_surface_field and the Jupiter and Ganymede tests; a solar-system moment more than a factor of three from the scaling at its own power | the scaling re-fitted to the dynamo simulations of Davies et al. 2022 or the energy-flux law of Christensen 2010 | RECALLED (Olson and Christensen 2006, 145 numerical dynamos, gamma 0.2, solar-system moments to about 15 percent; second-hand through citing papers) |
+| DY2 | P | T7 | L2 | dynamo.GIANT_POWER_SHARE 0.1: the share of a giant's radiated heat that drives its dynamo | 0.05 to 0.3 | gas and ice giants with a metallic or ionic layer | test_dynamo::test_jupiter_is_driven_by_a_tenth_of_its_heat_and_gives_its_moment_and_four_gauss; Saturn comes out six times too strong | the dissipated power of the layer from the giant's own structure and heat (GEN.733, GEN.810) | design (tuned so that Jupiter's 3.35e17 W gives its 1.5e27 A m2; a thermodynamic efficiency of the heat engine is of this size) |
+| DY3 | D | T2 | L1 | dynamo.EARTH_FLUX_DEPTH_M2_S2 1.4e-6: Earth's F D, the unit of the Rossby number and of the power (1.15 TW in the outer core) | power 0.2 to 3 TW | Earth, the unit | test_dynamo::test_earth_gives_its_own_moment_rossby_number_and_surface_field | the core's own thermal history (GEN.838) | COMPUTED (the design note section 3.1: gamma 0.2 and F D 1.4e-6 give 7.8e22 A m2; the published range of the power is 0.2 to 3 TW) |
+| DY4 | D | T5 | L0 | dynamo.MIN_DIPOLE_FRACTION 0.15, DIPOLE_ROSSBY 0.12, EARTH_ROSSBY 0.09 and FLUX_RAYLEIGH_EXPONENT 0.41: the dipole's share falls through a local Rossby number of 0.12 to 0.15 | share 0.05 to 0.2; Rossby 0.1 to 0.12 | all rotating dynamos | test_dynamo::test_the_share_of_the_dipole_is_the_rule_the_magnetism_module_uses and the Ganymede test | a dipole fraction from the dynamo simulation database | RECALLED (Christensen and Aubert 2006 for 0.41 and 0.12; Olson and Christensen 2006 for Earth's 0.09; the soft switch and 0.15 are the design note rule 3.5) |
