@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2565] - 2026-10-29
+
+**Headline:** A new Properties page in the Help menu explains where every value on a planet, moon or star page comes from.
+
+### Changed
+- **Properties help page (UX.187).** The Help menu has a Properties page that lists each value shown on a planet, moon or star page with its unit and the step of the generation that fixes it. A planet, moon or star page links to it from "Where these values come from".
+
 ## [8.0.2564] - 2026-10-29
 
 **Headline:** Worlds with life now hold the gases their kind of life makes at their stage: methane and hydrogen drawdown for the hydrogen, donor and anoxygenic classes, a methane haze that follows it, and no methane once the oxygen has risen.

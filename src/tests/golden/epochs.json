@@ -729,6 +729,13 @@
       "first_release": "8.0.2564",
       "reason": "Class gas ledger: methane and hydrogen drawdown of the built life classes at their stage, the haze, dose and colour redone from the air life leaves (GEN.891, GEN.857, GEN.858, GEN.859); an icy body whose tide underflows stores none (GEN.906); the magnetopause in radii of the body (GEN.843)",
       "affects": ["fill", "population"]
+    },
+    {
+      "epoch": 123,
+      "first_release": null,
+      "pending": true,
+      "reason": "Train 1: GEN.746, GEN.747, GEN.748 dose and ozone-UV laws from measured data; GEN.908 brine seep state; GEN.328 young groups at fill; GEN.816 giant 1 bar temperature with its own heat; GEN.462 ground albedo wired; DB.70 moon origin and giant disk stored; GEN.662 and GEN.661 star composition from each component's own [Fe/H]; GEN.917 ground and aerosols from conditions; GEN.897 star class edges, GEN.899 M dwarf companions, GEN.904 daylight after an orbit move, GEN.905 envelope mantle redox",
+      "affects": ["fill", "scatter", "population"]
     }
   ]
 }

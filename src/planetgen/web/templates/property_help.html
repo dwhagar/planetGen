@@ -1,0 +1,22 @@
+{#- Where the physics values of a star, planet or moon page come from (/help/properties, web/class_pages.py, UX.187); the rows are
+    `web/lib/property_help.py`'s, read from the property sheet and its source table. -#}
+{% extends "base.html" %}
+{% block content %}
+<section class="panel" aria-labelledby="properties-heading">
+  <div class="panel-header"><h2 id="properties-heading">Where the values come from</h2></div>
+  <p>A star, planet or moon page lists what is stored about it. Under each value listed here the page gives the one-line source below: how the value is worked out and the generator item that does it. A value with no line here has no rule written down yet, and the page gives it none.</p>
+</section>
+{%- for group in groups %}
+<section class="panel" aria-labelledby="properties-{{ loop.index }}-heading">
+  <div class="panel-header"><h2 id="properties-{{ loop.index }}-heading">{{ group.label }}</h2></div>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Value</th><th scope="col">Unit</th><th scope="col">Has it</th><th scope="col">How it is worked out</th></tr></thead>
+    <tbody>
+      {%- for row in group.rows %}
+      <tr><th scope="row">{{ row.label }}</th><td>{{ row.unit }}</td><td>{{ row.applies }}</td><td>{{ row.source }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endfor %}
+{% endblock %}
