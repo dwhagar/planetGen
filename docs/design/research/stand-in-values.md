@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 582 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 587 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 68 | 1 | 5 | 1 | 0 | 75 |
-| T2 | 87 | 8 | 0 | 1 | 0 | 96 |
-| T3 | 65 | 20 | 5 | 9 | 0 | 99 |
+| T2 | 89 | 8 | 0 | 1 | 0 | 98 |
+| T3 | 68 | 20 | 5 | 9 | 0 | 102 |
 | T4 | 27 | 0 | 0 | 13 | 6 | 46 |
 | T5 | 39 | 11 | 0 | 0 | 0 | 50 |
 | T6 | 47 | 28 | 11 | 33 | 0 | 119 |
 | T7 | 26 | 7 | 8 | 7 | 0 | 48 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 1 | 25 | 19 | 46 |
-| All | 360 | 75 | 30 | 90 | 27 | 582 |
+| All | 365 | 75 | 30 | 90 | 27 | 587 |
 
 ## How the labels were given
 
@@ -959,3 +959,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | OD1 | P | T6 | L0 | tuning.WEIRDNESS_DIAL 1.0, the multiplier on every oddity rate (0 turns every oddity off) | 0 to 3 | every oddity row | Boss finds the default sky too plain or too strange | Boss's setting in the settings page (GEN.1047) | design: Boss asked for a dial (4:15 PM EDT 2026-10-30), design section 4.4; 1 gives the literature rates of each row | GEN.1047 | - |
 | OD2 | P | T6 | L0 | tuning.WEIRDNESS_RATE_SCALE {}, a multiplier per oddity id (1.0 for any id not named) | 0 to 10 | one oddity row | a row whose census share is outside its literature range at the default | the census re-baseline item (rates re-fitted, not scaled) | design section 4.4; empty by default so no row is moved | GEN.1047 | - |
+
+## 6.73 Stand-ins of the disintegrating rocky planet
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| DP1 | D | T2 | L0 | disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOUR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7 | olivine or pyroxene (60 m_H, 9.61e10, 3.13e11); iron is 50 times higher at 2145 K | a dayside of 1800 to 2400 K | a measured vapour pressure of the planet's real crust | the surface composition of the planet read from its stored bulk | Perez-Becker and Chiang 2013, eq. 7 and section 2.1 (read) | GEN.1050 | - |
+| DP2 | D | T2 | L0 | disintegrating_planet.VAPOUR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius | gamma 1.0 halves the mass that survives 10 Gyr | silicate vapour | the paper's wind with its own radiative transfer | the vapour of the planet's own mixture | Perez-Becker and Chiang 2013, eq. 8 (read); the radius is the repository's own small-body relation | GEN.1050 | - |
+| DP3 | T | T3 | L0 | disintegrating_planet.NON_ISOTHERMAL_FACTOR 1/40 and SOLID_ANGLE_SR 1: the full model's maximum rate over the isothermal one, and the wind's solid angle (eq. 27) | 1/40 (section 3.2: "about 40 times lower"); the factor depends on mass in the paper | planets of 0.01 to 0.1 Earth mass | the paper's own non-isothermal solution at other masses | a wind with radiative cooling | Perez-Becker and Chiang 2013, sections 3.2 and 4 (read) | GEN.1050 | - |
+| DP4 | P | T3 | L0 | disintegrating_planet.DUTY_CYCLE 0.5: the share of the time the planet loses mass at its maximum rate | 0.5 | KIC 12557548 b | a measured duty cycle | the cycle of the dust tail's transits | Perez-Becker and Chiang 2013, section 3.3 (read) | GEN.1050 | - |
+| DP5 | B | T3 | L0 | disintegrating_planet.DIVIDING_MASS_EARTH 0.11, MIN_DAYSIDE_TEMPERATURE_K 2000 and MAX_PERIOD_D 1.0: the gate of the oddity | 0.1 to 0.11 Earth mass; the full model's divide is about 0.08 | rocky bodies | a disintegrating planet over 0.11 Earth mass or under 2000 K | the module's own lifetime (a body whose lifetime is under its age) | the abstract and section 3.3 (read); the period gate is the design note's | GEN.1050 | - |
