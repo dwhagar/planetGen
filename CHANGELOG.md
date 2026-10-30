@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2622] - 2026-10-30
+
+**Headline:** The docs now have a page on the bulk composition data model: what a planet or moon is made of and how its mass, radius, density and gravity follow.
+
+### Changed
+
+- **The bulk composition page (DOC.65).** A new reference page names every stored value of a body's bulk composition (the metal, rock, water, ice and envelope shares, the rock and envelope details, porosity, the giant interior summary, mass, radius, density and gravity) with its unit, and describes the order of the work, the draw from the host star's abundances, the structure model that gives the radius, the giant radius law, the materials table, the composition words, the migration and the consistency sweep, with the sources of every number.
+
 ## [8.0.2621] - 2026-10-30
 
 **Headline:** Bringing a galaxy to the running generator epoch now draws a scatter that is behind again, instead of stopping and telling you to do it by hand.
