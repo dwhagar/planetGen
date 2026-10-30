@@ -17184,6 +17184,11 @@ clears each one.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  OWNER Aux 3 (assigned 5:28 AM EDT 2026-10-30 by TODO as the lane's one
+  lock-free item; measurement and a recorded result only, separate
+  branch, change no stored value) (2026-10-30 5:28 AM EDT): If the
+  measurement shows a query too slow, file it with TODO as a PERF item
+  and do not fix it under this one.
   Prerequisites: none. Related: NAV.60, DOC.51.
   Design: [docs/design/galaxy/spherical-region-queries.md](design/galaxy/spherical-region-queries.md)
 
@@ -20270,83 +20275,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: GEN.576, DB.78, GEN.578. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
-
-- [ ] **DOC.72 The README lists every external file the program needs, with its URL and how to install it, and a check keeps the list complete**
-  Boss, 2026-10-21, 5:44 PM EDT: "Add DOCS item that the README will say
-  what URL's and how to install the external files that are needed to
-  run." Today the downloaded datasets, line lists and data files that
-  the setup step fetches (the shared download step GEN.548, `python3 -m
-  planetgen.cli.datasets fetch`, run by `install.sh` and `update.sh`) or
-  that must be provided by hand (files Boss supplies, papers or datasets
-  that cannot be fetched) are known only from the catalogue in
-  src/planetgen/datasets/catalogue.py. Do: add a README section
-  'External files' that lists every one, with its source URL, the
-  licence note, the cache folder it goes to (`PLANETGEN_DATA_DIR`, else
-  `/var/cache/planetgen/datasets`), the command that fetches it, how to
-  install it by hand when the host is down or the machine has no network
-  (download the URL, check the sha256, put it in the folder), and what
-  stops working while it is missing (the 'replaces' text the catalogue
-  already carries); say which files are fetched at setup and which must
-  be provided by hand; add the same table to docs/deployment/README.md
-  or link to it. Done: the README lists every dataset in the catalogue
-  with its URL and install step, and a test compares the README list
-  with the catalogue (every key and URL appears, nothing extra) so a new
-  dataset cannot skip it; a dataset added by an AD item (AD1 to AD8,
-  GEN.594) fails that test until its README row exists; the install
-  steps are followed once on a clean cache and work. Owner: TODO thread
-  proposes a docs lane or Core 5 after the 8.1 closing audits (not
-  urgent).
-  Update (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed):
-  the README section also says what happens when a file is missing: the
-  run refuses and names the file, its URL and the setup command, unless
-  it is told explicitly to disregard missing files (GEN.599), when it
-  uses the best possible fallback and prints it in the run header; and
-  it says the updater and downloader print the URL of every file they
-  load (GEN.600). The README check compares both statements with the
-  options in the code.
-  GEN.600 is merged as #2464 (relayed 9:01 AM EDT 2026-10-22: `fetch`
-  and `status` print each file's URL and update.sh and install.sh show
-  those lines, docs/reference/cli.md updated); this item still owns the README row
-  for it.
-  Owner: the TODO thread (docs-only change with its catalogue test; this
-  replaces any earlier owner line on this item).
-  GEN.599 is merged as #2560 (relayed 9:10 PM EDT 2026-10-22 as the lane
-  reported: the refusal names every missing file, its URL and the setup
-  command; `--disregard-missing-data` on every subcommand, the API
-  field, the Generate task and the Review pages; fallbacks SC1 none, SC2
-  Chandrasekhar radius, SC3 Chamel and Haensel 2008 crust; no
-  migration). The README row for the refusal, the flag and the printed
-  fallback is this item's, now unblocked; the TODO thread writes it with
-  the README section and its catalogue test (the coordinator, 9:10 PM
-  EDT 2026-10-22: record the DOC.72 README row as the TODO thread's).
-  The README check compares the flag name and the refusal text with the
-  code.
-  OWNER Aux 3 (assigned 5:25 AM EDT 2026-10-30 by TODO as the lane's one
-  lock-free item; docs and a check test only, separate branch; use
-  docs/design/research/data-catalog.md as the source list) (2026-10-30
-  5:25 AM EDT): If the check finds a file the program reads that no
-  document lists, list it; change no stored value.
-  Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
-
-- [ ] **DOC.73 INSTALL.md recommends a larger innodb_redo_log_capacity for a machine that runs the full test gate**
-  Suggested by Bug Hunt (about 7:03 AM EDT 2026-10-22 as the lane
-  reported), filed by the TODO thread. MySQL's
-  `innodb_redo_log_capacity` is the 100 MB default on the lane machines
-  and logs 'log_checkpointer lagging' (84 warnings in one gate) under
-  the parallel gate; it slows the gate and was seen with the Galaxy
-  dials lane's lost connections, but it was not the cause of the
-  lost-connection sightings (TEST.265, fixed). Do: add one line to
-  INSTALL.md's database setup (and to the test section) recommending a
-  larger value for a machine that runs `scripts/test.py full` (the lane
-  machine notes already ask for one), with the number the lanes found
-  enough. Done: INSTALL.md names the setting, the value and why. Owner:
-  not assigned (a docs line; any lane).
-  Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  OWNER Aux 3 (queued 5:25 AM EDT 2026-10-30 by TODO, after DOC.72; docs
-  only) (2026-10-30 5:25 AM EDT): Take it only after DOC.72 merges.
-  Prerequisites: none. Related: TEST.265.
 
 - [ ] **DOC.76 Docs for the condition-based classes: the rule table, the planet class pages and the help**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
