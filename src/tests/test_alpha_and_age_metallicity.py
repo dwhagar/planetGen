@@ -2,6 +2,8 @@
 
 """GEN.744: the alpha-enhanced equivalent metallicity (`physics/alpha_tracks.py`) and the age-metallicity relation (`physics/age_metallicity.py`)."""
 
+import random
+
 import pytest
 
 from planetgen import tuning
@@ -54,14 +56,67 @@ def test_the_relation_matches_the_populations_the_generator_has_today():
     assert age_metallicity.mean_fe_h(6.5, THIN) == pytest.approx(-0.2, abs=0.1)
 
 
-def test_a_draw_is_the_mean_plus_the_scatter_and_stays_in_range():
-    assert age_metallicity.sample_fe_h(4.0, THIN, 0.0) == age_metallicity.mean_fe_h(4.0, THIN)
-    assert age_metallicity.sample_fe_h(4.0, THIN, 1.0) == pytest.approx(age_metallicity.mean_fe_h(4.0, THIN) + 0.15)
-    assert age_metallicity.sample_fe_h(12.0, THICK, 1.0) - age_metallicity.sample_fe_h(12.0, THICK, 0.0) == pytest.approx(0.10)
-    assert age_metallicity.sample_fe_h(4.0, THIN, 100.0) == tuning.METALLICITY_RANGE_FE_H[1]
-    assert age_metallicity.sample_fe_h(4.0, THIN, -100.0) == tuning.METALLICITY_RANGE_FE_H[0]
+def test_only_the_discs_populations_follow_the_relation():
+    for population in (None, "young", "intermediate", "old"):
+        assert age_metallicity.takes(population)
+    for population in ("halo", "bulge", "cluster", "satellite", "open_cluster_03"):
+        assert not age_metallicity.takes(population)
+
+
+def test_the_thick_disc_exists_only_past_the_gate():
+    assert age_metallicity.thick_share(7.9) == 0.0
+    assert age_metallicity.thick_share(8.0) == age_metallicity.THICK_SHARE
+
+
+def test_a_metal_poor_star_is_likelier_old_and_a_metal_rich_one_young():
+    assert age_metallicity.log_density(-0.5, 9.0) > age_metallicity.log_density(-0.5, 1.0)
+    assert age_metallicity.log_density(0.1, 1.0) > age_metallicity.log_density(0.1, 9.0)
+
+
+def test_the_density_never_underflows_far_from_both_branches():
+    value = age_metallicity.log_density(-3.0, 10.0)
+    assert value < -100.0 and value > -1.0e6
+
+
+def test_a_population_outside_the_disc_draws_one_age_and_no_more():
+    rng = random.Random(1)
+    calls = []
+    age = age_metallicity.tilted_age(-1.5, "halo", lambda: calls.append(1) or 11.0, rng)
+    assert age == 11.0 and len(calls) == 1
+
+
+def test_the_tilt_moves_the_old_disc_ages_with_the_metallicity():
+    rng = random.Random(7)
+
+    def mean_age(fe_h):
+        ages = [age_metallicity.tilted_age(fe_h, "old", lambda: rng.uniform(3.0, 10.0), rng) for _ in range(4000)]
+        assert all(3.0 <= age <= 10.0 for age in ages)
+        return sum(ages) / len(ages)
+
+    poor, rich = mean_age(-0.5), mean_age(0.1)
+    assert poor > 6.5 > rich
+    assert poor - rich > 1.0
+
+
+def test_the_tilt_leaves_a_flat_window_alone_where_the_relation_is_flat():
+    """A 0.1 Gyr window changes the relation by 0.0025 dex: the mean stays at the window's middle."""
+    rng = random.Random(3)
+    ages = [age_metallicity.tilted_age(0.0, "young", lambda: rng.uniform(0.0, 0.1), rng) for _ in range(4000)]
+    assert sum(ages) / len(ages) == pytest.approx(0.05, abs=0.005)
 
 
 def test_an_unknown_branch_is_refused():
     with pytest.raises(ValueError):
         age_metallicity.mean_fe_h(4.0, "halo")
+
+
+def test_a_drawn_old_disc_star_is_older_the_poorer_it_is():
+    """The generator's own draw (`sample_living_star` with the birth [Fe/H] fixed) follows the tilt."""
+    from planetgen.physics import stellar_evolution
+    rng = random.Random(5)
+
+    def mean_age(fe_h):
+        ages = [stellar_evolution.sample_living_star(rng=rng, population="old", fe_h=fe_h)[1] for _ in range(150)]
+        return sum(ages) / len(ages)
+
+    assert mean_age(-0.5) - mean_age(0.1) > 1.5

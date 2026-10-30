@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 537 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 538 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 65 | 19 | 5 | 11 | 0 | 100 |
 | T4 | 27 | 0 | 0 | 4 | 4 | 35 |
 | T5 | 31 | 9 | 1 | 0 | 0 | 41 |
-| T6 | 41 | 26 | 10 | 32 | 0 | 109 |
+| T6 | 41 | 27 | 10 | 32 | 0 | 110 |
 | T7 | 24 | 7 | 7 | 7 | 0 | 45 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 331 | 70 | 30 | 81 | 25 | 537 |
+| All | 331 | 71 | 30 | 81 | 25 | 538 |
 
 ## How the labels were given
 
@@ -587,9 +587,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | AL1 | P | T2 | L0 | alpha_tracks.ALPHA_SHARE 0.638 (the alpha elements' share of the metals, so [M/H] = [Fe/H] + log10(0.638 f + 0.362), Salaris et al. 1993; read second-hand) | none | stars of [alpha/Fe] up to +0.5 on solar-scaled tracks | an alpha-enhanced track set whose turn-off differs from the shifted solar-scaled one by more than 0.05 dex | alpha-enhanced isochrones (Dartmouth, BaSTI-alpha) | test_alpha_and_age_metallicity::test_the_salaris_shift_for_plus_four_tenths_is_about_three_tenths_of_a_dex | GEN.744 | - |
-| AR1 | P | T6 | L1 | age_metallicity.THIN_BIRTH_FE_H 0.05 (the thin disc's mean [Fe/H] at age 0; the slope below it is Haywood's 0.025 dex per Gyr) | -0.05 to 0.15 | thin-disc stars | a thin disc whose young stars average more than 0.1 away | the Geneva-Copenhagen age-metallicity relation (Casagrande et al. 2011) | test_alpha_and_age_metallicity::test_the_relation_matches_the_populations_the_generator_has_today | GEN.744 | - |
-| AR2 | P | T6 | L1 | age_metallicity.THICK_ANCHOR_FE_H -0.10 (the thick disc's mean [Fe/H] at 8 Gyr where it ends; the slope below it is Haywood's 0.15 dex per Gyr) | -0.3 to 0.1 | thick-disc stars of 8 to 13 Gyr | a thick disc whose 8 Gyr stars average more than 0.2 away | the relation of Haywood et al. 2013 Fig. 9 fitted star by star | test_alpha_and_age_metallicity::test_the_thick_disc_ends_at_its_anchor_and_is_held_outside_its_window | GEN.744 | - |
-| AR3 | P | T6 | L1 | age_metallicity.SIGMA (0.15 thin, 0.10 thick; the scatter about the mean at one age) | each 0.05 | disc stars | a measured scatter at one age differing by more than 0.05 | the fitted scatters of the two relations | test_alpha_and_age_metallicity::test_a_draw_is_the_mean_plus_the_scatter_and_stays_in_range | GEN.744 | - |
+| AR1 | P | T6 | L1 | age_metallicity.THIN_BIRTH_FE_H 0.05 (the thin disc's mean [Fe/H] at age 0; the slope below it is Haywood's 0.025 dex per Gyr) | -0.05 to 0.15 | thin-disc stars | a thin disc whose young stars average more than 0.1 away | the Geneva-Copenhagen age-metallicity relation (Casagrande et al. 2011) | test_alpha_and_age_metallicity::test_the_relation_matches_the_populations_the_generator_has_today | - | - |
+| AR2 | P | T6 | L1 | age_metallicity.THICK_ANCHOR_FE_H -0.10 (the thick disc's mean [Fe/H] at 8 Gyr where it ends; the slope below it is Haywood's 0.15 dex per Gyr) | -0.3 to 0.1 | thick-disc stars of 8 to 13 Gyr | a thick disc whose 8 Gyr stars average more than 0.2 away | the relation of Haywood et al. 2013 Fig. 9 fitted star by star | test_alpha_and_age_metallicity::test_the_thick_disc_ends_at_its_anchor_and_is_held_outside_its_window | - | - |
+| AR3 | P | T6 | L1 | age_metallicity.SIGMA (0.15 thin, 0.10 thick; the scatter about the mean at one age) | each 0.05 | disc stars | a measured scatter at one age differing by more than 0.05 | the fitted scatters of the two relations | test_alpha_and_age_metallicity::test_a_metal_poor_star_is_likelier_old_and_a_metal_rich_one_young | - | - |
+| AR4 | P | T6 | L1 | age_metallicity.THICK_SHARE 0.8 (the share of the disc's stars older than 8 Gyr that are thick-disc; the thin disc starts forming 8 to 9 Gyr ago, Haywood et al. 2013) | 0.6 to 0.95 | disc stars older than 8 Gyr | a local sample of 8 to 10 Gyr stars whose thick-disc share differs from 0.8 by more than 0.2 | the thick/thin split of Casagrande et al. 2011 or of Bensby et al. 2014 by age | test_alpha_and_age_metallicity::test_the_thick_disc_exists_only_past_the_gate | - | - |
 
 ## 6.35 Stand-ins of the condensates by temperature
 
