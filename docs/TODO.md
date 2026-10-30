@@ -12576,6 +12576,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
   are in the project files; Bedard white dwarf sequences and the neutron
   star tables are also held. Catalog sections 1 to 3.
+  OWNER Bug 1 (confirmed 7:48 AM EDT 2026-10-30 as the lane reported;
+  first of its remaining star chain) (2026-10-30 7:48 AM EDT): Order Bug
+  1 gave: GEN.931, then GEN.936 with 937 and 938, then GEN.948, then
+  GEN.951 (GEN.995 and GEN.996 after). Separate branch from main; it
+  rides a train because it changes generated output.
   Prerequisites: none. Related: GEN.922, GEN.898.
 
 - [ ] **GEN.932 The star mass function epoch: golden, design docs, census targets and tags, retire the old tags; items 3 to 7 land as one merge in one lock turn**
