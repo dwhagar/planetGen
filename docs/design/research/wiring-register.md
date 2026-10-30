@@ -206,3 +206,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.76:PF2 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
 | row | 6.76:PF3 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
 | row | 6.76:PF4 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| module | planetgen.physics.helium_fractionation | GEN.1047 | the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands |
+| row | 6.77:HF1 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
+| row | 6.77:HF2 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
+| row | 6.77:HF3 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |

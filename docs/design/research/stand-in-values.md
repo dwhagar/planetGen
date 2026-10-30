@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 627 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 630 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 82 | 1 | 5 | 1 | 0 | 89 |
-| T2 | 90 | 9 | 0 | 1 | 0 | 100 |
-| T3 | 72 | 25 | 5 | 9 | 0 | 111 |
+| T2 | 91 | 9 | 0 | 1 | 0 | 101 |
+| T3 | 73 | 26 | 5 | 9 | 0 | 113 |
 | T4 | 30 | 0 | 0 | 13 | 6 | 49 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
 | T6 | 51 | 30 | 12 | 33 | 0 | 126 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 391 | 86 | 32 | 91 | 27 | 627 |
+| All | 393 | 87 | 32 | 91 | 27 | 630 |
 
 ## How the labels were given
 
@@ -1049,3 +1049,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PF2 | D | T3 | L0 | super_puff.PUFF_ENVELOPE (0.07, 0.45): the envelope fractions | Kepler-51 b 0.07 to 0.28, Kepler-79 d 0.33 to 0.40 (Lee and Chiang Sec. 4, after Lopez and Fortney); the module solves 0.16 for Kepler-51 b and 0.41 for Kepler-51 d | planets of 2 to 10 Earth masses | a super-puff with an envelope outside it | the formation model of Lee and Chiang (dust-free accretion in the outer disk) | Lee and Chiang 2016 Sec. 4 (read), Libby-Roberts et al. 2025 abstract (read) | GEN.1048 | - |
 | PF3 | P | T8 | L1 | super_puff.OCCURRENCE_SHARE 0.005: the share of sub-Neptunes that are super-puffs | under 1 percent (the design table, [R]); Lee and Chiang bound the planets over 4 Earth radii inside 50 days to under a tenth of the smaller ones, so the true share is under about 9 percent | sub-Neptunes | a survey statistic of planets under 0.1 g/cc | a measured occurrence from Kepler or TESS | design table; Lee and Chiang 2016 Sec. 4 (read). The [R] rate is not confirmed: no occurrence statistic was found | GEN.1048 | - |
 | PF4 | T | T3 | L1 | super_puff.TIDAL_MIN_FLUX_EARTH 20, TIDAL_MIN_LUMINOSITY_RATIO 1e-5, TIDAL_MAX_RATIO 2 and the fit of eq. 14: the tidal inflation | her fit is of her own radii and its exponents are not the quotient of eqs. 12 and 13; here it multiplies the radius of Lopez and Fortney | flux over 20 Earth fluxes, planets of 1 to 30 Earth masses | a planet whose radius is measured against its obliquity | the full structure model with the tidal heat in the core | Millholland 2019 eqs. 11, 14 and Sec. 4.1 (read) | GEN.1048 | - |
+
+## 6.77 Stand-ins of the helium enrichment of a thinning envelope
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HF1 | D | T2 | L0 | helium_fractionation.DIFFUSION_A_CM 1.04e18 and DIFFUSION_EXPONENT 0.732: the binary diffusion coefficient of hydrogen in helium | none (both papers quote Mason and Marrero 1970) | 3,000 to 10,000 K | a measured diffusion coefficient at the homopause | the table of Mason and Marrero 1970 | Hu et al. 2015 eq. 9, Malsky et al. 2023 A3 (read) | GEN.1047 | - |
+| HF2 | T | T3 | L1 | helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONISED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1 | T 3,000 to 10,000 K (the weaker fractionation is at the higher T); x 0 to 0.5 | planets of 4 to 20 Earth masses with a thin envelope | the ion-neutral frequency of Schunk and Nagy 1980 in the full b' | b' from the ionisation fraction at the homopause at each step (Malsky et al. 2023 A3) | Hu et al. 2015 Sec. 2.1; Malsky et al. 2023 A.1, A.4 (read); the form 1/(1 + x) is a fit to the one value of Hu | GEN.1047 | - |
+| HF3 | B | T3 | L0 | helium_fractionation.SOLAR_ENVELOPE_HELIUM 0.245 and MIN_HELIUM_FOR_ENHANCED 0.4: the starting helium share and the line of the enhanced planets | start 0.24 to 0.27 | hydrogen-helium envelopes | a measured primordial envelope helium | the solar mix of the star's own composition | Malsky et al. 2023 Introduction and A (X 0.74, Y 0.24) (read) | GEN.1047 | - |
