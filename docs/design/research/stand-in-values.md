@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 605 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 612 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 76 | 1 | 5 | 1 | 0 | 83 |
+| T1 | 79 | 1 | 5 | 1 | 0 | 86 |
 | T2 | 89 | 8 | 0 | 1 | 0 | 98 |
-| T3 | 71 | 21 | 5 | 9 | 0 | 106 |
-| T4 | 27 | 0 | 0 | 13 | 6 | 46 |
-| T5 | 37 | 11 | 0 | 0 | 0 | 48 |
-| T6 | 50 | 28 | 12 | 33 | 0 | 123 |
+| T3 | 70 | 23 | 5 | 9 | 0 | 107 |
+| T4 | 28 | 0 | 0 | 13 | 6 | 47 |
+| T5 | 38 | 12 | 0 | 0 | 0 | 50 |
+| T6 | 49 | 29 | 12 | 33 | 0 | 123 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 378 | 77 | 32 | 91 | 27 | 605 |
+| All | 381 | 81 | 32 | 91 | 27 | 612 |
 
 ## How the labels were given
 
@@ -999,11 +999,23 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | NC5 | P | T7 | L0 | nightside_collapse.collapse for a gas other than CO2: the same grey balance, not calibrated | none | N2 and other gases the paper leaves to later work | a 3D run of an N2 air whose collapse pressure differs from this by a factor over 3 | the N2 collapse pressures of a later Wordsworth or Leconte paper | the paper says N2 collapse is left to future work (Section 3.6); N2 freezes under 126 K so at Earth's flux it holds at any pressure here | - | - |
 | NC6 | P | T9 | L0 | nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed | 0.1 to 0.9 | any gas | a page text that reads wrongly at the cut | none (the retained share is the number to use) | needed output: the share, not the flag, is the physics | GEN.1044 | - |
 
-## 6.80 Stand-ins of the Venus-type spin
+## 6.90 Stand-ins of the Venus-type spin
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| QS1 | D | T1 | L0 | the 8,301 weights and biases of `quadruple_stability_3p1_weights.json`, the authors' own trained network, to nine significant digits | none | 3+1 quadruples with masses within a factor 10, eccentricities to 0.95, near the Mardling-Aarseth boundary | an N-body sample of the same kind whose classification score falls more than 10 points below the paper's 93 percent | a network or table fitted to our own N-body runs | the forward pass equals scikit-learn on five stored cases and 2000 random ones (read 10-30); my REBOUND check of 331 systems with the paper's labelling rule: network right 95 percent against 49 percent for nested MA01, but precision for stable only 0.57 on the near-boundary sample (paper 0.91; the sample is small and labelled differently); the repository of the authors has no licence file (Boss handles DATA-LICENSE.md) | - | - |
-| QS2 | P | T1 | L0 | the meaning of "stable": bound and not chaotic over 100 outer orbits (a twin with the inner axis larger by 1e-6 au diverging by under 1 percent in the inner axis), `outer_orbits` 100 and `divergence_limit` 0.01 | none | systems that are stable for a stellar lifetime only if nothing slower acts | a system stable at 100 outer orbits that the N-body code breaks at 10^4 outer orbits | a long-integration label | paper section 2, read | - | - |
-| QS3 | P | T3 | L0 | the documented range: `q_mid_max` 3 and `q_out_max` 2 from the help text of the authors' script ("best if < ~3", "< ~2"), `q_in_min` 0.1 and `eccentricity_max` 0.95 from the paper | q_mid up to 5 by the paper's masses | 3+1 systems inside the range | a system outside it that the network classifies against an N-body run | the range of a bigger training set | classify_quad_3p1.py help text and paper section 3.1, read | - | - |
-| QS4 | P | T6 | L0 | the training distribution: orbital angles isotropic, arguments of periapsis and mean anomalies not inputs, systems kept near the Mardling-Aarseth boundary of the two nested triples, 20 percent of the MA01-unstable draws kept | none | the verdict of a system near the boundary; far from it (very wide or very tight) the network extrapolates | a very hierarchical system (alpha under 0.05) called unstable by the network with all else benign | the nested triple test far from the boundary | paper section 3.1, read | - | - |
+| VS1 | D | T1 | L0 | venus_spin.VENUS_STRENGTH 1.9255, the thermal over gravitational tide of Venus in orbital rates (the coefficient of the scaling for every thick-air planet) | none | rocky planets with a thick air | Venus's spin measured to differ from 243.0 days retrograde (the table reproduces -242.9 from this) | the Love number, time lags, scale height and ground flux of each planet (their Table 1 assumes Venus's for all) | Cunha, Correia and Laskar 2015 Table 1, read in full | GEN.1048 | - |
+| VS2 | D | T1 | L0 | venus_spin.VENUS_DAMPING_TIME_GY 2.3, the e-folding time of Venus's slow-rotation tide | none | rocky planets with a thick air | a spin-down time of Venus computed from its Love number and time lag that differs by a factor of two | the planet's own `k2` and time lag from the interior model | the same Table 1 (tau_eq 2.3 Gyr) | GEN.1048 | - |
+| VS3 | D | T5 | L0 | venus_spin.strength_over_orbital_rate and damping_time_gy: ws/n goes as L R a^2.5 M^-1.5 / m and tau as m a^6 M^-2 R^-3, from Venus | none | masses 0.1 to 10 Earth, `e` under 0.3 | a 3D climate model of a planet at twice Venus's distance whose thermal torque departs from the law by more than a factor of two (Leconte et al. 2015 find its pressure dependence is not monotonic) | `spin_torques` thermal table (GEN.956) fitted to the same planets | their equations 48, 55 and 68, read; the Venus normalisation is ours | - | - |
+| VS4 | P | T6 | L1 | venus_spin.FULL_TIDE_PRESSURE_BAR 10, the surface pressure from which the thermal tide has its full strength, falling in proportion to the pressure below | 3 to 30 | rocky planets with a nitrogen or carbon dioxide air | a planet of 1 to 3 bar in the Leconte et al. 2015 runs whose thermal torque is not a tenth to a third of Venus's at equal strength | the thermal tide amplitude by pressure from `spin_torques.THERMAL_TABLE` | the design note's "air above about 10 bar"; the linear cut is ours | GEN.1048 | - |
+| VS5 | P | T1 | L0 | venus_spin.PAPER_MAX_ECCENTRICITY 0.3, the eccentricity the closed forms are valid to; above it the states are computed at it and flagged | none | orbits under 0.3 | an integration at e 0.4 whose states differ from the extrapolation by more than 10 percent | the full expansion in eccentricity of the tidal torques | the paper's "moderate eccentricity (e < 0.3)" | GEN.1048 | - |
+| VS6 | P | T3 | L1 | venus_spin.TWO_STATE_SPLIT_DEG 60, the birth tilt above which a planet with two end states reaches the slower | 40 to 90 | thick-air planets with two states | a run at another strength that splits the states at under 40 or over 90 degrees | the integrated spin and tilt flow of the paper's equations 10 and 19 with core-mantle friction | their Fig. 10j, circular orbit at 0.6 AU M, read from the text: tilts over 60 degrees reach the retrograde state | GEN.1048 | - |
+| VS7 | P | T3 | L1 | venus_spin.THREE_STATE_SPLITS_DEG 40 and 100, the birth tilts that divide three end states | 30 to 60 and 80 to 120 | thick-air planets with three states | the same | the same | their Fig. 10e and 10f (0.42 AU M, e 0.1 and 0.2): 40 degrees and under, to 100 degrees, over 100 | GEN.1048 | - |
+| VS8 | D | T1 | L0 | venus_spin.VENUS_MASS_KG, VENUS_RADIUS_M and VENUS_DISTANCE_AU, the reference body | none | the normalisation | none | none | NASA Venus fact sheet: 4.8675e24 kg, 6051.8 km, 0.723332 AU | GEN.1048 | - |
+
+## 6.91 Stand-ins of the seasonal swing
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SS1 | P | T4 | L0 | seasonal_swing.OCEAN_MIXED_LAYER_M 50, the depth of the sea that follows the seasons | 20 to 100 | worlds with a liquid water ocean | a global ocean model whose seasonal mixed layer averages under 30 m or over 80 m at 45 degrees | the mixed-layer depth by latitude and wind stress, or the ocean's own heat uptake from the hydrosphere | the 50 m mixed layer of the simple climate models of Williams and Kasting 1997 and Spiegel et al. 2009, recalled (not opened); the Earth's seasonal mixed layer is 20 to 100 m | GEN.1048 | - |
+| SS2 | D | T1 | L0 | seasonal_swing.WATER_HEAT_CAPACITY_J_M3_K 4.1e6, the volumetric heat capacity of liquid water | none | water oceans | a brine or a non-water ocean (ammonia-water, hydrocarbons) | the heat capacity of the surface liquid table (GEN.1035) | water: 4,186 J per kg per K at 1,000 to 1,025 kg per m3 | GEN.1048 | - |
+| SS3 | D | T5 | L1 | seasonal_swing.MAX_SHARE 0.999, the transport share is cut here; the seasonal damping is the mean state's own, `B_t = B s / (1 - s)` | 0.99 to 0.9999 | air columns up to Venus's | a general circulation model of a thick-air planet whose seasonal swing is not damped like its pole-to-equator contrast | a diffusion coefficient for the seasonal anomalies from the circulation (the seasonal cycle of a 90 bar air) | extends `regional_temperature.TRANSPORT_X0` (DESIGN) from the means to the cycle; the energy balance form is that of North and Coakley 1979, recalled | GEN.1048 | - |
