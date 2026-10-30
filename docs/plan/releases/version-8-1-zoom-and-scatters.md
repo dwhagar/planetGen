@@ -623,6 +623,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.502 | test_orbital_motion::test_moon_having_planet_reflex_offset_matches_manual_formula fails on a clean main: settle_orbit moves captured moons without refreshing the planet offset (bug) |  |  |
 | GEN.1119 | RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today |  |  |
 | GEN.1135 | Retire Class Q: remove the row from planet_classes.json, tuning.PLANET_CLASSES and HABITABLE_PLANET_CLASSES, and show the orbit swing as the stored flux_variation plus an "At a glance" flag when it is very high |  |  |
+| GEN.1136 | Move the Class V gravity line from 1.25 g to 2 g so Earth-sized and super-Earth temperate worlds can land in Class M, and register the line in GEN.725 |  |  |
 | GEN.1133 | Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree |  |  |
 | GEN.1130 | The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization |  |  |
 | GEN.1129 | Fingerprint split: a sector's digest (GEN.58) becomes "made here" and "arrived here" so rogues landing from other sectors do not change the sector's own digest |  |  |
