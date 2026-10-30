@@ -1508,13 +1508,13 @@
 --   (see `migrations/versions/0175_life_classes.py`); the rest comes when the galaxy is regenerated.
 -- v176 (MAP.351): `system_interests` also takes the reasons `lifeclass-1a` to `lifeclass-9`, one for each life class that lives on a planet or moon of the system (`life_class` and
 --   `life_class_variant`), no score kept; no column changes, the migration fills them from the planets and moons already stored.
--- v178 (GEN.848): `planets` and `moons` keep a day and night swing for every place that has a temperature: `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k` and
+-- v181 (GEN.848): `planets` and `moons` keep a day and night swing for every place that has a temperature: `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k` and
 --   `temp_mean_swing_k` for a world that turns on its own (the equator's is `temp_swing_k`), `temp_day_side_swing_k`, `temp_terminator_swing_k` and `temp_night_side_swing_k` (0, a locked
---   world has no day) for a tidally locked one; kelvin of difference, peak to peak. NULL for a body with no regional temperatures and a row made before v178, which gets them when the galaxy
+--   world has no day) for a tidally locked one; kelvin of difference, peak to peak. NULL for a body with no regional temperatures and a row made before v181, which gets them when the galaxy
 --   is regenerated.
--- v179 (GEN.834): `planets` and `moons` split `ice_mass_fraction` (every ice but water) by species: `ice_co2_mass_fraction`, `ice_ch4_mass_fraction`, `ice_nh3_mass_fraction`, `ice_n2_mass_fraction`,
+-- v182 (GEN.834): `planets` and `moons` split `ice_mass_fraction` (every ice but water) by species: `ice_co2_mass_fraction`, `ice_ch4_mass_fraction`, `ice_nh3_mass_fraction`, `ice_n2_mass_fraction`,
 --   `ice_so2_mass_fraction`, `ice_co_mass_fraction`, `ice_hcn_mass_fraction` and `ice_other_mass_fraction` (ethane, methanol, formaldehyde, hydrogen sulfide), shares of the whole body's mass that add up to
---   `ice_mass_fraction`. NULL for a row made before v179 and for a body with no composition; 0 for a body with no ice. Nothing is backfilled.
+--   `ice_mass_fraction`. NULL for a row made before v182 and for a body with no composition; 0 for a body with no ice. Nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2388,13 +2388,13 @@ CREATE TABLE IF NOT EXISTS planets (
     temp_day_side_k             DOUBLE,
     temp_terminator_k           DOUBLE,
     temp_night_side_k           DOUBLE,
-    temp_polar_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_north_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_south_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_mean_swing_k           DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_day_side_swing_k       DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_terminator_swing_k     DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_night_side_swing_k     DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_polar_swing_k          DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_north_swing_k          DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_south_swing_k          DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_mean_swing_k           DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_day_side_swing_k       DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_terminator_swing_k     DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_night_side_swing_k     DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2426,14 +2426,14 @@ CREATE TABLE IF NOT EXISTS planets (
     metal_mass_fraction         DOUBLE,  -- v144 (DB.69, GEN.428): the iron-rich core's share of the whole body's mass, light elements included
     rock_mass_fraction          DOUBLE,  -- v144: the silicate (or silicon carbide and graphite) share
     ice_mass_fraction           DOUBLE,  -- v144: every ice other than water, as one share
-    ice_co2_mass_fraction       DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is carbon dioxide ice
-    ice_ch4_mass_fraction       DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is methane ice
-    ice_nh3_mass_fraction       DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is ammonia ice
-    ice_n2_mass_fraction        DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is nitrogen ice
-    ice_so2_mass_fraction       DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is sulfur dioxide ice
-    ice_co_mass_fraction        DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is carbon monoxide ice
-    ice_hcn_mass_fraction       DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is hydrogen cyanide ice
-    ice_other_mass_fraction     DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is every other ice (ethane, methanol, formaldehyde, hydrogen sulfide) ice
+    ice_co2_mass_fraction       DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is carbon dioxide ice
+    ice_ch4_mass_fraction       DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is methane ice
+    ice_nh3_mass_fraction       DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is ammonia ice
+    ice_n2_mass_fraction        DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is nitrogen ice
+    ice_so2_mass_fraction       DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is sulfur dioxide ice
+    ice_co_mass_fraction        DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is carbon monoxide ice
+    ice_hcn_mass_fraction       DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is hydrogen cyanide ice
+    ice_other_mass_fraction     DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is every other ice (ethane, methanol, formaldehyde, hydrogen sulfide) ice
     envelope_mass_fraction      DOUBLE,  -- v144: the hydrogen and helium share
     rock_feo_fraction           DOUBLE,  -- v144: FeO, a mass fraction of the rock
     rock_al2o3_fraction         DOUBLE,  -- v144: Al2O3, a mass fraction of the rock
@@ -2741,13 +2741,13 @@ CREATE TABLE IF NOT EXISTS moons (
     temp_day_side_k             DOUBLE,
     temp_terminator_k           DOUBLE,
     temp_night_side_k           DOUBLE,
-    temp_polar_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_north_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_south_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_mean_swing_k           DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_day_side_swing_k       DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_terminator_swing_k     DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_night_side_swing_k     DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_polar_swing_k          DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_north_swing_k          DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_south_swing_k          DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_mean_swing_k           DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_day_side_swing_k       DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_terminator_swing_k     DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_night_side_swing_k     DOUBLE,  -- v181 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -2774,14 +2774,14 @@ CREATE TABLE IF NOT EXISTS moons (
     metal_mass_fraction         DOUBLE,  -- v144 (DB.69, GEN.428): the iron-rich core's share of the whole body's mass, light elements included
     rock_mass_fraction          DOUBLE,  -- v144: the silicate (or silicon carbide and graphite) share
     ice_mass_fraction           DOUBLE,  -- v144: every ice other than water, as one share
-    ice_co2_mass_fraction       DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is carbon dioxide ice
-    ice_ch4_mass_fraction       DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is methane ice
-    ice_nh3_mass_fraction       DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is ammonia ice
-    ice_n2_mass_fraction        DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is nitrogen ice
-    ice_so2_mass_fraction       DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is sulfur dioxide ice
-    ice_co_mass_fraction        DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is carbon monoxide ice
-    ice_hcn_mass_fraction       DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is hydrogen cyanide ice
-    ice_other_mass_fraction     DOUBLE,  -- v179 (GEN.834): the share of the whole body's mass that is every other ice (ethane, methanol, formaldehyde, hydrogen sulfide) ice
+    ice_co2_mass_fraction       DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is carbon dioxide ice
+    ice_ch4_mass_fraction       DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is methane ice
+    ice_nh3_mass_fraction       DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is ammonia ice
+    ice_n2_mass_fraction        DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is nitrogen ice
+    ice_so2_mass_fraction       DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is sulfur dioxide ice
+    ice_co_mass_fraction        DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is carbon monoxide ice
+    ice_hcn_mass_fraction       DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is hydrogen cyanide ice
+    ice_other_mass_fraction     DOUBLE,  -- v182 (GEN.834): the share of the whole body's mass that is every other ice (ethane, methanol, formaldehyde, hydrogen sulfide) ice
     envelope_mass_fraction      DOUBLE,  -- v144: the hydrogen and helium share
     rock_feo_fraction           DOUBLE,  -- v144: FeO, a mass fraction of the rock
     rock_al2o3_fraction         DOUBLE,  -- v144: Al2O3, a mass fraction of the rock
