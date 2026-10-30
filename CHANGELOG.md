@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2696] - 2026-10-30
+
+**Headline:** The browser test site builds again, so the map browser tests run.
+
+### Fixed
+- **Every `site_app` browser test errored in setup with "Column count doesn't match value count" (TEST.474).** The bright stars `tests/test_web_a11y.py` writes lacked the `rotation_period_hours` column GEN.846 added to `bright_stars`; the rows now carry it (no rotation). Test-only.
+
 ## [8.0.2695] - 2026-10-30
 
 **Headline:** Listing what is near a place reads each system's name only for the page shown, so a wide search in a dense area is about three times faster.
