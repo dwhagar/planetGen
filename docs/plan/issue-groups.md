@@ -15,7 +15,7 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
-| [#3790](https://github.com/dwhagar/planetGen/issues/3790) | open | Tides and spin built out in full: rheology, torque sum, moon orbits, ice, birth spin and the eccentricity-first order (8.1) | GEN.842, GEN.953, GEN.954, GEN.955, GEN.956, GEN.957, GEN.958, GEN.959, GEN.960, GEN.961, GEN.976, GEN.977, GEN.978, GEN.979, GEN.778, GEN.985, GEN.986, GEN.987 |
+| [#3790](https://github.com/dwhagar/planetGen/issues/3790) | open | Tides and spin built out in full: rheology, torque sum, moon orbits, ice, birth spin and the eccentricity-first order (8.1) | GEN.842, GEN.953, GEN.954, GEN.955, GEN.956, GEN.957, GEN.958, GEN.959, GEN.960, GEN.961, GEN.976, GEN.977, GEN.978, GEN.979, GEN.778, GEN.985, GEN.986, GEN.987, GEN.992 |
 | [#3244](https://github.com/dwhagar/planetGen/issues/3244) | open | Generator residuals and small stand-in fixes | GEN.634, GEN.635, GEN.669, GEN.673, GEN.705, GEN.706, GEN.708, GEN.716, GEN.720, GEN.721, GEN.722, GEN.723, DOC.79 |
 | [#3243](https://github.com/dwhagar/planetGen/issues/3243) | open | Day and night time shares and hours a person can be outside | GEN.767, GEN.768 |
 | [#3242](https://github.com/dwhagar/planetGen/issues/3242) | open | Physics gap fixes from the physics gaps report | GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.735, GEN.736, GEN.737, GEN.738, GEN.739, GEN.740, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.753, GEN.759, GEN.760, GEN.761, GEN.763, DB.101, UX.187, GEN.822, GEN.828, GEN.829, GEN.836, GEN.838, GEN.839, GEN.842, GEN.752, GEN.962, GEN.963, GEN.964, GEN.965, GEN.966, GEN.967, GEN.968, GEN.969, GEN.970, GEN.971, GEN.972, GEN.973, GEN.974, GEN.975 |

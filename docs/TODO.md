@@ -15306,24 +15306,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1.
   Prerequisites: GEN.961. Related: GEN.961, GEN.976, GEN.842.
 
-- [ ] **GEN.986 Measure how far the rocky planets' dose, surface ages and magnetism move when read at the final star age**
-  Aux 7's stale-age audit
-  /mnt/project-files/reports/gen961-stale-age-audit-2026-10-30.md (as
-  the lane reported 9:26 PM EDT 2026-10-29). The star's age is set when
-  the star is made and rises once after all planets exist, so everything
-  a planet draws in Planet.__init__ reads the provisional, younger age.
-  radiation.generate_dose (K, Th, U decay), surface_composition
-  (age_gy=) and magnetism.generate_field read star.age inside
-  calculate_atmospheric_conditions; interior_heat.update_heat is already
-  rerun at the final age in the life data pass (GEN.763). Do first,
-  lock-free: re-run calculate_atmospheric_conditions on a seeded sample
-  at the final age, report how many dose, surface-age and magnetic
-  moment values and how many classes move (HABITABLE_WORLD is judged on
-  them, so a re-run cannot just be added to the pass). Write the finding
-  in reports/; file the fix as its own item if the effect is larger than
-  1 percent. Owner: Aux 7. Version 8.1.
-  Prerequisites: GEN.961. Related: GEN.961, GEN.763, GEN.800.
-
 - [ ] **GEN.987 Read a moon's tidal heat from the settled giant's radius**
   Aux 7's stale-age audit
   /mnt/project-files/reports/gen961-stale-age-audit-2026-10-30.md (as
@@ -15389,6 +15371,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   constant it changes gets a GEN.725 registry row. Owner: Sources 1.
   Version 8.1.
   Prerequisites: none. Related: GEN.988, GEN.989, GEN.990, TEST.456.
+
+- [ ] **GEN.992 Re-finish every rocky planet and moon after the star's age is final, then re-judge the forced requests with the retry round**
+  Found by GEN.986 (Aux 7, report
+  /mnt/project-files/reports/gen986-final-age-rocky-planets-2026-10-30.md,
+  as the lane reported 9:56 PM EDT 2026-10-29): the star's age is raised
+  in about 63 percent of rocky planets (median +4.3 Gyr); re-reading
+  them at the final age moves the class letter in 8 to 12 percent, the
+  air pressure by over 1 percent in 25 to 58 percent, the ground dose in
+  essentially all (the decay clock) and the magnetic moment in 8 to 12
+  percent. A plain re-run cannot be added to the life pass, because the
+  HABITABLE_WORLD, belt and class requests are judged before the age
+  rises. Do (option A, chosen by TODO as the report's recommendation
+  under 'build all of it'): re-finish every rocky planet and moon after
+  the age is final from private streams (the run stream does not move),
+  then re-judge the forced requests with the retry round. Estimate 8 to
+  14 lane-hours; epoch, --affects fill; about 60 percent of rocky
+  planets re-roll their air, census re-baseline. Option B (draw the age
+  first, 20 to 30 hours, rewrite of system order) is not planned. Needs
+  GEN.961, GEN.985 and GEN.987 first. Owner: Aux 7. Version 8.1.
+  Prerequisites: GEN.961, GEN.985, GEN.987. Related: GEN.986, GEN.961,
+  GEN.985, GEN.987, GEN.763.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
