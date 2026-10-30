@@ -2369,16 +2369,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generated output. Owner: Core 2 (with MAP.347). Version 8.1.
   Prerequisites: none. Related: MAP.347, MAP.348, MAP.349.
 
-- [ ] **MAP.351 Galaxy Map reason per life class: a point-of-interest reason for each of the 15 life classes with map menu entries, backfilled for stored worlds**
-  Map half of MAP.345 (search half merged by Core 3 in #3829: the
-  'Supports a life class' filter on the search page and API). Do:
-  system_interests rows carry a reason per life class, backfilled for
-  worlds already stored (a migration, with the backfill in the
-  migration), and the Galaxy Map menu gets 15 class entries. Changes the
-  database, rides a train (train 3 or later). Owner: Core 3. Version
-  8.1.
-  Prerequisites: none. Related: MAP.345, MAP.307, API.37.
-
 - [ ] **MAP.352 Back to a system in a different sector fails when pressed before the first Back has finished (bug)**
   Core 2 report (as the lane reported 11:35 PM EDT 2026-10-29), found
   while fixing TEST.450: pressing Back to a system in a different sector
