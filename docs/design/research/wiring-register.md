@@ -210,3 +210,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.77:HF1 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF2 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF3 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
+| module | planetgen.physics.giant_tilt | GEN.1058 | the tilt a giant merger gives an ice giant and the ring and moon plane that follow the equator (G1); the spin draw reads it when the wiring lands |
+| row | 6.78:GT1 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
+| row | 6.78:GT2 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
+| row | 6.78:GT3 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
