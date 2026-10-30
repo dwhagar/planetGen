@@ -90,11 +90,16 @@ def orbit_positions():
     """MAP.70's `positions_at` over a hand-built scene at several times, for
     static/orbitpositions.js to match."""
     from planetgen.physics.body_positions import positions_at
-    from tests.test_body_positions import sample_scene
+    from tests.test_body_positions import eccentric_wide_scene, sample_scene, triple_scene
+
+    def cases(scene):
+        return [{"years": y, "positions": positions_at(scene, y)} for y in (0.0, 0.05, 1.8, 37.5, -2.2, 400.0, 3000.0, -2.7e4, 1.0e5)]
 
     scene = sample_scene()
-    return {"scene": scene, "cases": [{"years": y, "positions": positions_at(scene, y)}
-                                      for y in (0.0, 0.05, 1.8, 37.5, -2.2, 400.0, 3000.0, -2.7e4, 1.0e5)],
+    # MAP.255: the stars of a wide pair and of a triple sit where the tree's eccentric orbits put them.
+    trees = {name: {"scene": tree_scene, "cases": cases(tree_scene)}
+             for name, tree_scene in (("wide", eccentric_wide_scene()), ("triple", triple_scene()), ("triple without epoch", triple_scene(None)))}
+    return {"scene": scene, "cases": cases(scene), "trees": trees,
             "turns": wrapped_turns(), "stumpff": stumpff_values(),
             "steps": universal_steps()}
 

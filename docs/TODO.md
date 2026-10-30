@@ -1061,6 +1061,21 @@ with `clamp()`.
   for the adaptation traits (waits on GEN.875/876)
   Prerequisites: none. Related: UX.221.
 
+- [ ] **UX.239 Search for star systems by how many stars they hold: single, binary, trinary, quaternary and more**
+  Boss (2026-10-30, 9:33 AM EDT): we need a way to search for star
+  groups, such as binary, trinary, quaternary and so on. Do: a
+  multiplicity filter (exactly N stars, or N or more, with named choices
+  Single, Binary, Trinary, Quaternary, Quintenary and beyond) in the
+  search page, Nearby, /api/search (parameter `stars`) and the command
+  line, plus a sort key and the count shown in each result row; it reads
+  the stored star count of the system, so it needs no new column unless
+  the count is not stored on the system row (then the owner adds it with
+  its unit entry). It rides the same engine as the physical-value
+  filters (UX.226, UX.227). Done: a browser test finds a known binary
+  and a known triple by the filter, the API and command line agree, and
+  the help text names every choice.
+  Prerequisites: UX.226. Related: UX.227, GEN.728, TEST.162.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -1908,27 +1923,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.576, DB.78, GEN.577. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
-
-- [ ] **MAP.255 The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug)**
-  Found by Blocker 2 (relayed 12:12 PM EDT 2026-10-22 as the lane's
-  clock reads, when GEN.311 and GEN.269 merged as #2481), filed by the
-  TODO thread. Python now places a star from the stored orbit tree
-  (`positions_at` reads the orbit nodes, a wide pair on its eccentric
-  orbit), but the browser twin `html/static/orbitpositions.js` still
-  draws a wide pair as a circle, so the browser and Python disagree.
-  Fails on main: yes, in the browser only. Do: move `orbitpositions.js`
-  onto the tree the scene now carries (`tree` in the scene payload),
-  with the eccentric orbit, so it places every star the way
-  `positions_at` does; MAP.213 builds the full JavaScript twin for
-  trees, so this item is the narrow fix that item's owner can take first
-  or fold in. Done: the Python and JavaScript positions of a wide pair
-  agree in `tests/test_js_unit.py` at several phases, and the system map
-  shows the pair on its ellipse. Owner: none (the coordinator assigns;
-  MAP.213's owner is the natural one).
-  Owner: Core 3 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: MAP.213, MAP.253, GEN.311.
 
 - [ ] **MAP.257 Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug)**
   Boss's live observation (relayed 5:27 PM EDT 2026-10-23, typed in the
@@ -13431,6 +13425,66 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before train 5.
   Prerequisites: none. Related: GEN.850, GEN.851, TEST.463, GEN.957.
 
+- [ ] **GEN.1004 A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug)**
+  Boss (2026-10-30, 9:33 AM EDT, live observation): found a three-star
+  system on the maps but could never find the third star; he thinks it
+  may have had an orbit or position inside one of the other stars, and
+  is not sure. Do: find which system it is (ask Boss, or scan every
+  stored triple for a member whose orbit lies inside a sibling star's
+  radius or whose position is not placed), then fix the cause in the
+  orbit tree draw (the stable range of an inner companion against its
+  parent's radius), the placement, or the map and system page, as it
+  turns out. The coordinator started a research thread on it. Done: a
+  test over generated triples and deeper trees finds no star inside
+  another star's radius and no star missing from the system page, the
+  system map and the 3D view; the fix says which of the three it was.
+  Owner: first free lane after the research thread reports.
+  Core 3 (as the lane reported) (2026-10-30 9:52 AM EDT): Before MAP.255
+  (#4015) the browser put any star without a stored pair orbit, a
+  triple's third star included, at the barycenter on top of the other
+  stars (orbitpositions.js returned [0,0,0]); MAP.255 fixes that in the
+  3D view and MAP.213 slice A also draws each node's orbit. The Python
+  and System Map SVG side is MAP.213 slice B and is not yet checked.
+  This may be the whole cause; confirm with Boss on a rebuilt map before
+  closing.
+  Investigation thread (relayed by the coordinator, PR #4026, branch
+  claude/project-thread-xhsx5n) (2026-10-30 9:54 AM EDT): Cause found in
+  the generator: a drawn star tree is rebuilt from each member's birth
+  mass and the system age, and a member the tree had evolved (for
+  example a white dwarf of a post-common-envelope pair, born 1.38 Msun
+  at 4.39 Gy) is rebuilt as a still-living giant of 0.033 AU radius
+  while its orbit with its partner is 0.0088 AU, so the partner or a
+  third star sits inside it. Seen in about 1 of 150 forced triples and 1
+  of 50 forced quadruples. Fix: multistar.built_tree_clears runs the
+  Roche and extent screen on the built radii and masses and the draw
+  loop redraws a tree that fails. Changes what rare seeds generate:
+  needs an epoch (--affects fill) and a golden refresh, so it rides
+  train 4; do not merge before. The browser-side barycenter fault
+  (MAP.255) was a second, separate cause for stars with no stored pair
+  orbit.
+  Prerequisites: TEST.162. Related: TEST.162, GEN.728, MAP.255.
+
+- [ ] **GEN.1005 Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover)**
+  Found by Aux 3 while building GEN.1002 (relayed 9:48 AM EDT 2026-10-30
+  as the lane reported). Four registry rows still rest on the Solar
+  System: (1) atmosphere-a a1 and a2, the magma-ocean and later-mantle
+  oxygen fugacity, a mean and width tuned to Moon, Mars and Earth
+  anchors: replace with a Fe3+/Fe2+ and mantle-mass model; (2)
+  atmosphere-b b1, the dry-delivery carbon, a log bracket tuned to the
+  bulk silicate Earth's 100 ppm: replace with the accreted-material
+  budget (chondrite groups, with the GEN.595 belt and comet side); (3)
+  atmosphere-k k7, the N2, O2, OCS, SO2, Ar, Kr and Xe of comets:
+  replace with more than one comet (67P, Rubin 2019) or ice trapping at
+  the formation temperature. Each replacement is a registered stand-in
+  in GEN.725 (section 6.54 of gap-filling-plan.md as Aux 3 numbers it;
+  allocate_numbers renumbers) with its tier and tweak level, so a later
+  study can swap it. Secondary sources are accepted. Done: the three
+  rows are replaced or re-sourced and registered, the test that ties the
+  rows to the table passes, and no Solar System planet or comet is a
+  fixed input. Two steps: the model and rows (lock-free) and the digest
+  flip that rides a train. Owner: Aux 3 (after GEN.1002).
+  Prerequisites: GEN.474. Related: GEN.1002, GEN.474, GEN.595, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -13741,36 +13795,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   otherwise).
   Prerequisites: none. Related: TEST.344, GEN.394.
 
-- [ ] **PERF.190 Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates**
-  After the progress output of the block light rebuild exists, measure
-  how long the two phases take (the shell scan and the unit sums) on a
-  New galaxy with the scatter on (commands in
-  /mnt/project-files/reports/phenomena-stall-2026-10-24.md). If the scan
-  dominates, give bright_stars and phenomenon_scatter an index that lets
-  the shell scan and the shell sums run from the index alone, or build
-  the distinct shell list from the plan's own outline (the extents
-  scatter_phenomena already holds) instead of a DISTINCT scan of the
-  tables. Record the before and after times in the item. The progress
-  output exists (PERF.189), so the log lines show where the time goes.
-  Owner: Aux 16 (Performance).
-  OWNER Aux 5 (assigned 6:43 AM EDT 2026-10-30 by TODO as the lane's one
-  lock-free item; replaces the retired Aux 16 line; separate branch)
-  (2026-10-30 6:43 AM EDT): Measure first and record before and after
-  times. A speed-up that builds the shell list from the plan outline in
-  code is lock-free. An index on bright_stars or phenomenon_scatter
-  needs a migration, so stop and tell TODO before adding one: it rides a
-  train.
-  Aux 5 (built, lock-free, bundle handoffs/aux5-perf190.bundle, branch
-  lane-k-perf190) (2026-10-30 7:57 AM EDT): The shell scan is only 16 to
-  19 s of the rebuild (about 1.5 percent), so building the shell list
-  from the plan outline gains nothing; the cost is the 83 units (about
-  1,260 s of 1,322.7 s). Rows are now written as plain INSERT text
-  (store._row_literal via execute_literal): one unit 13.3 s to 10.7 s,
-  byte-identical table, whole rebuild 1,322.7 s to 1,191.1 s (10
-  percent, synthetic 3M stars + 1.5M points). Anything bigger needs an
-  index (a migration) or a SQL-side roll-up; stopped here.
-  Prerequisites: none. Related: MAP.259.
-
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
   Unused stored values audit (the "Find stored values nothing uses"
   thread, report reports/unused-stored-values-audit-2026-10-24.md,
@@ -13907,18 +13931,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.149.
   Prerequisites: none. Related: PERF.149.
 
-- [ ] **PERF.209 The generator battery digest costs about 30 s in every test process (its docstring says 3 to 5 s); the bright-star table build alone is 18 s**
-  Found by Aux 5 while building TEST.403 (as the lane reported 10:36 PM
-  EDT 2026-10-29): the generator battery digest costs about 30 s at the
-  start of every test process; its docstring says 3 to 5 s; the
-  bright-star scatter case alone takes 18 s
-  (star_population._bright_table). GEN.935 also makes the bright-star
-  tables slower (about 4 s against 1 s for the reference table, Star 1's
-  PR #3842). Do: profile it, cache the table across processes (or build
-  it once per test session), and keep the digest identical. No output
-  change. Owner: Aux 5. Version 8.1.
-  Prerequisites: none. Related: TEST.403, PERF.188, GEN.935.
-
 - [ ] **PERF.210 Cut the cost of GEN.992: re-finish only the bodies whose result can change after the star age is final**
   Aux 7 report (as the lane reported 11:12 PM EDT 2026-10-29). GEN.992
   makes every rocky planet and moon again when it was made at an age
@@ -13932,31 +13944,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.992 merges (it edits the same function). Owner: Aux 7. Version
   8.1.
   Prerequisites: GEN.992. Related: GEN.992, PERF.209.
-
-- [ ] **PERF.211 Phenomena and species list sorts that still sort the whole set per page: phenomena by type, descriptor, radius, sector and placed; species by homeworld and by system**
-  Core 5 (as the lane reported, 2:18 AM EDT 2026-10-30), after PERF.205
-  (#3909 species half, #3916 built phenomena half): the Phenomena list
-  sorted by name pages by key and is fast, but the type, descriptor,
-  radius, sector and placed sorts still sort the whole union of the
-  eight phenomenon tables on every page (no index serves them), and
-  Species sorted by homeworld or by system still sorts every species
-  because the names live in other tables. Do: for each sort, either add
-  a key (a stored sort column or an index per table with a merge across
-  the tables) or state in the interface why it stays slow; measure at
-  8,000,000 built phenomena and 1,000,000 species. Done: every sort on
-  the Phenomena and Species lists answers a page in under 100 ms at
-  those sizes, or the exception is stated on this item with the measure.
-  No generated value changes; indexes and keyset paging only. Size M.
-  Owner: Core 5 when its queue ends.
-  Core 5 audit list (PERF.208 and PERF.215 merged #3949) (2026-10-30
-  4:44 AM EDT): remaining slow spots: species by homeworld and system
-  sorts, phenomena by type, descriptor, radius, sector and placed, the
-  systems and sectors CLI subcommands, and a deep offset-form sectors
-  page (1 to 3 s; the table uses keys). PERF.215 closed without the
-  planets index: MySQL cannot serve a two-table ORDER BY from a join
-  index, so unfiltered planets and moons walk the systems by name in
-  chunks of up to 1000 (6M planets, first page 48 s to 20 ms)
-  Prerequisites: none. Related: PERF.206, PERF.210.
 
 - [ ] **PERF.212 The bright-star, phenomena and shell scatters take their params when their stage opens, not when the run is built**
   bright_star_followers needs the skeleton and the stored mass limit and
@@ -13977,36 +13964,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that registry for the bright-star, phenomena and shell scatters; no
   stored value changes.
   Prerequisites: PERF.203. Related: PERF.203, PERF.213, PERF.214.
-
-- [ ] **PERF.214 The sectors planner (_plan_sectors) runs in a worker inside the run, not in the starting process**
-  The sectors planner runs in the process that starts the run, so the
-  plan is fixed before the run exists. Found by Aux 2 (as the lane
-  reported, 2:47 AM EDT 2026-10-30) while planning PERF.203 step 2: a
-  Follower's params must be complete before the run starts, but several
-  verbs read the database when their followers are BUILT, so the whole
-  page job cannot be one run until each computes its params when its
-  stage opens (in its command's expand or prepare, in a worker). No
-  behaviour or stored-output change, no epoch. Lock-free. Do: run the
-  planner when the sectors stage opens and let the stages after it read
-  its result; test the same plan and stored output. Size M. Owner: pool
-  (a waiting lane, confirmed with TODO).
-  Owner (2026-10-30 2:54 AM EDT): Core 3 takes this after PERF.213
-  (TODO); lock-free, no stored-output change
-  Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
-
-- [ ] **PERF.217 The near list (near._systems_in_reach) reads the full row of every system in reach: list ids by the covering index and read names for the page only**
-  Reported by Aux 3 (as the lane reported, 7:17 AM EDT 2026-10-30) after
-  PERF.216 (#3992): near._systems_in_reach selects name and sector_id,
-  which are not in the covering index, so a 50 pc list reads the
-  clustered row of all 62,000 systems (1,170 ms against 360 ms for ids
-  only in the lane's profile). Do: list the ids through the covering
-  index with the distance, order and cap, then read names and sector ids
-  for the page only; keep the result and its order identical (a test
-  compares the old and new lists on the same data). Done: the 50 pc list
-  is within about the id-only time with an identical result. Related:
-  PERF.216, NAV.60. Owner: Aux 3 (assigned 7:18 AM EDT 2026-10-30; no
-  stored value).
-  Prerequisites: none. Related: PERF.216, NAV.60.
 
 ## DB: Database and schema
 
@@ -17663,18 +17620,6 @@ clears each one.
   phase on a loaded full run (the Done line).
   Prerequisites: none. Related: TEST.229, TEST.126, TEST.190.
 
-- [ ] **TEST.345 test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree fails on main on a lane machine (bug)**
-  Reported by Core 5 from its PERF.99 gate (#3030, 2:30 PM EDT
-  2026-10-24 as the lane reported): this test fails on main and not
-  because of PERF.99. TODO could not reproduce it (the test skips
-  without the database here). Kind: failing test on main. Likely related
-  to GEN.710 (a pre-placed row with a stored tree can have a member
-  heavier than the primary), which Core 3 is working. Do: reproduce on
-  main with the database, capture the failure text, and either fix it
-  with GEN.710 or file the cause. Done: the test passes on main. Owner:
-  Core 3 (it owns the stored-tree fill).
-  Prerequisites: none. Related: GEN.710.
-
 - [ ] **TEST.346 web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Core 3 and Core 5 but pass for Bug Hunt (bug)**
   Reported by Core 3 (1:50 PM EDT 2026-10-24, "link contrast and nested
   summary") and Core 5 (2:30 PM EDT, four variants), both as red on
@@ -18336,18 +18281,6 @@ clears each one.
   GEN.1003, GEN.957. Owner: Bug 2 (proposed), after TEST.417.
   Prerequisites: none. Related: TEST.463, GEN.1003, GEN.957.
 
-- [ ] **TEST.471 tests/test_near.py::test_the_command_line_asks_for_the_nearest_few fails: argparse exits with code 2 so the pytest.raises(SystemExit, match="--distance") never sees the text (bug)**
-  Reported by Aux 3 (as the lane reported, 7:17 AM EDT 2026-10-30), red
-  on main: the test fails at the pytest.raises(SystemExit,
-  match='--distance') line because argparse exits with code 2 and the
-  exception message is '2', so the match never sees the text. The same
-  kind of fix as TEST.465 (query_db exit code). Do: assert the exit code
-  and read the message from the captured stderr (capsys) instead of
-  matching the exception text. Done: the test passes and still fails if
-  the --distance error is lost. Related: TEST.465, PERF.217. Owner: Aux
-  3 (assigned 7:18 AM EDT 2026-10-30).
-  Prerequisites: none. Related: TEST.465, PERF.217.
-
 - [ ] **TEST.472 Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug)**
   Reported by Bug 2 (as the lane reported, 7:36 AM EDT 2026-10-30),
   checked on a worktree of origin/main after train 3 with ozone_uv
@@ -18369,6 +18302,33 @@ clears each one.
   TEST.463, TEST.468, TEST.469, TEST.470. Owner: Bug 2 (proposed), after
   TEST.417.
   Prerequisites: none. Related: TEST.463, TEST.468, TEST.469, TEST.470.
+
+- [ ] **TEST.473 test_star_census_raises_no_new_flag is red on main: G stars 2.90 percent against the 3.13 to 6.99 percent range, and the A0V companion rate 0.7456 against up to 0.7367 (bug)**
+  Found by Bug 1 (relayed 9:05 AM EDT 2026-10-30 as the lane reported):
+  the same numbers on main before Bug 1's GEN.931 branch, so they
+  arrived with the spectral-type items (GEN.941 and GEN.943, Star 1,
+  merged in train 3), not with the arm contrast. Fails on main: yes. Do:
+  retag the two census ranges to the new values if they are the intended
+  outcome of the spectral-type chain (with the tier and tweak level in
+  the registry), or fix the generator if G stars at 2.90 percent is a
+  defect; the owner decides from the Star 1 census audit
+  (reports/star-class-audit-2026-10-29.md). Done: the test passes on
+  main with the ranges or the code explained in the change note. Owner:
+  Bug 2 (census re-tag, with Star 2 for the companion rate).
+  Prerequisites: G, E, N, ., 9, 4, 1.
+
+- [ ] **TEST.475 tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug)**
+  Found by Aux 3 (relayed 9:46 AM EDT 2026-10-30 as the lane reported,
+  while landing PERF.217): the nav section, unknown place 404, crowded
+  sphere and page walk tests of test_web_nearby.py error in fixture
+  setup with the 900 s timeout on a loaded lane machine, not on an
+  assertion; the function-scoped client fixture generates two sectors
+  per test (over 15 minutes there). Not checked on main. Do: build the
+  sample galaxy once per module (module-scoped fixture, read only in the
+  tests that do not write), keeping the tests independent; run the file
+  once on a fast machine. Done: all 8 tests pass in a few minutes on a
+  lane machine. Owner: Aux 3 when free, or Bug 2 in the train gate.
+  Prerequisites: none. Related: PERF.217, TEST.417.
 
 ## USR: User accounts
 

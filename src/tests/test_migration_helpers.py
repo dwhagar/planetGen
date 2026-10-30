@@ -68,6 +68,23 @@ def test_an_index_builds_online_once(connection):
     assert helpers.drop_index_online(connection, "helper_probe", "idx_probe_a") is False
 
 
+def test_expression_indexes_build_together_once_with_writers_waiting(connection):
+    both = {"idx_probe_expr_b": ["(a IS NOT NULL)", "b"], "idx_probe_expr_a": ["(b + 1)", "a"]}
+    assert helpers.add_expression_indexes(connection, "helper_probe", both) is True
+    assert helpers.add_expression_indexes(connection, "helper_probe", both) is False
+    kinds = connection.execute(sa.text("SELECT COLUMN_NAME, EXPRESSION FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() "
+                                       "AND TABLE_NAME = 'helper_probe' AND INDEX_NAME = 'idx_probe_expr_b' ORDER BY SEQ_IN_INDEX")).fetchall()
+    assert kinds[0][0] is None and "is not null" in kinds[0][1].lower() and kinds[1][0] == "b"
+    assert helpers.drop_index_online(connection, "helper_probe", "idx_probe_expr_b") is True
+    # one is there and the other is not, in the order the server will not take in place: it is asked again and builds it
+    assert helpers.add_expression_indexes(connection, "helper_probe", {"idx_probe_expr_b": ["(a IS NOT NULL)", "b"]}) is True
+    assert helpers.drop_index_online(connection, "helper_probe", "idx_probe_expr_a") is True
+    assert helpers.add_expression_indexes(connection, "helper_probe", both) is True
+    for bad in ("(a); DROP TABLE x", "a b"):
+        with pytest.raises(ValueError):
+            helpers.add_expression_indexes(connection, "helper_probe", {"idx_probe_bad": [bad]})
+
+
 def test_a_unique_index_can_be_asked_for(connection):
     helpers.add_index_online(connection, "helper_probe", "uq_probe_a", ("a",), unique=True)
     with pytest.raises(sa.exc.IntegrityError):
