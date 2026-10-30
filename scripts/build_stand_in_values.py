@@ -71,8 +71,6 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
     ("6.16", "6.16 Stand-ins of the interior heat and the r-process uranium",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.17", "6.17 Stand-ins of the water vapour profile and the cloud of the greenhouse",
-     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.18", "6.18 Stand-ins of the life constants",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.19", "6.19 Stand-ins of the life class rules",

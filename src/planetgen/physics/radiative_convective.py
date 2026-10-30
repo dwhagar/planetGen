@@ -52,6 +52,7 @@ from planetgen.physics import (
     greenhouse,
     line_opacity,
     mixture,
+    radiative_kernel,
     saturation,
     species_thermo,
 )
@@ -76,6 +77,16 @@ table, not a saturation constant: the curve itself is `saturation`'s."""
 SUNLIGHT_WIDTH_LN_P = 1.0
 """float: STAND-IN (IR8, tier T7, L0): the width of the layer of sunlight deposited aloft, in ln P (a Gaussian: a haze or an upper methane band is a few
 scale heights deep). The share and the pressure are inputs the caller supplies; nothing here derives them from the aerosols."""
+CLOUD_LONGWAVE_SHARE = 0.13
+"""float: STAND-IN (IR9, tier T9, L3): the share of the clear-sky outgoing infrared flux the cloud of an air whose surface humidity is `EARTH_HUMIDITY` keeps in.
+The model is a clear-sky one and the albedo of a body is its all-sky one, so without this a world that keeps the Earth's cloud (and its cloud shortwave
+cooling) would lose the cloud's longwave warming: 26.5 W/m2 of the 266 W/m2 the clear-sky Earth sends out (CERES EBAF, 0.10; that leaves the Earth twin of the
+fixed point at 284.6 K, the clear-sky model's own bias of 3 K, and 0.13 puts it at 287.9 K, the measured 288 K, which is the value held). The sky sends out
+`(1 - share) * clear` and the cloud scales with the surface humidity (to 1.3 times at most, a saturated surface) and is nil without water vapour. A cloud
+that is a share of the flux, not a layer in the column, masks the carbon dioxide forcing and the vapour feedback by the same tenth, as the cloudy
+sky of the Earth does, and keeps the feedbacks of the clear column whole (a grey layer over the sky hid all of the vapour's)."""
+EARTH_HUMIDITY = 0.77
+"""float: The mean relative humidity of the Earth's surface air (Manabe and Wetherald 1967), the humidity at which `CLOUD_LONGWAVE_SHARE` holds (tier T1)."""
 FINITE_DIFFERENCE_K = 0.5
 """float: The step of the Jacobian of the stratosphere, K."""
 STRATOSPHERE_STEPS = 25
@@ -169,7 +180,7 @@ _CP_GRID = np.arange(100.0, 4001.0, 20.0)
 @functools.cache
 def _cp_over_r(formula):
     """The heat capacity at constant pressure over R of a gas on `_CP_GRID` (the cold end of its fit stands in below the fit)."""
-    thermo = species_thermo.species(formula)
+    thermo = species_thermo.gas(formula)
     low, high = thermo.range_k
     return np.array([thermo.cp_over_r(min(max(t, low), high)) for t in _CP_GRID])
 
@@ -297,7 +308,19 @@ class Column:
         water = self.water_profile(layer_temperature, level_temperature[-1])
         mean_molar_mass = (1.0 - water) * self.dry_molar_mass + water * WATER_MOLAR_MASS
         molecules_cm2 = self.layer_mass / mean_molar_mass * AVOGADRO * 1.0e-4
-        return line_opacity.layer_depth(self.prepared, layer_temperature, self.layer_pressure, water, molecules_cm2), water
+        depth = line_opacity.layer_depth(self.prepared, layer_temperature, self.layer_pressure, water, molecules_cm2)
+        return depth, water
+
+    def cloud_share(self, surface_temperature):
+        """The share of the clear-sky outgoing flux the cloud keeps in (stand-in IR9): `CLOUD_LONGWAVE_SHARE` at the humidity of the Earth, in proportion to the
+        surface humidity, nil where the air holds no water vapour."""
+        if self.water_surface <= 0.0:
+            return 0.0
+        if not self.dry:
+            return CLOUD_LONGWAVE_SHARE / EARTH_HUMIDITY
+        saturated = float(saturation_pressure_pa(surface_temperature))
+        humidity = min(1.0, self.water_surface * self.surface_pressure_pa / saturated) if math.isfinite(saturated) else 1.0
+        return CLOUD_LONGWAVE_SHARE * humidity / EARTH_HUMIDITY
 
 
 # ---- the flux ----
@@ -305,35 +328,13 @@ class Column:
 def sweep(level_temperature, depth, surface_temperature):
     """
     The upward and downward infrared flux at every level, W/m2: `level_temperature` is (profile, level), `depth` the layers' optical
-    depths (layer, band, g), `surface_temperature` (profile). The source is linear in optical depth between level temperatures.
+    depths (layer, band, g), `surface_temperature` (profile). The source is linear in optical depth between level temperatures. The
+    layer-by-layer sweep is `radiative_kernel.sweep`.
     """
-    count, levels = level_temperature.shape
-    layers = levels - 1
-    weights = line_opacity.G_WEIGHTS
     emission = line_opacity.band_emission(level_temperature)                  # (profile, level, band)
     ground = line_opacity.band_emission(surface_temperature)                  # (profile, band)
-    path = DIFFUSIVITY * depth
-    transmitted = np.exp(-path)
-    absorbed = -np.expm1(-path)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        slope = np.where(path > 1.0e-6, 1.0 - absorbed / np.maximum(path, 1.0e-300), path / 2.0)
-    bands, points = depth.shape[1], depth.shape[2]
-    down = np.zeros((count, bands, points))
-    flux_down = np.zeros((count, levels))
-    for layer in range(layers):
-        top = emission[:, layer, :, None]
-        bottom = emission[:, layer + 1, :, None]
-        down = down * transmitted[layer] + top * absorbed[layer] + (bottom - top) * slope[layer]
-        flux_down[:, layer + 1] = (down * weights).sum((1, 2))
-    up = np.broadcast_to(ground[:, :, None], (count, bands, points)).copy()
-    flux_up = np.zeros((count, levels))
-    flux_up[:, layers] = (up * weights).sum((1, 2))
-    for layer in range(layers - 1, -1, -1):
-        top = emission[:, layer, :, None]
-        bottom = emission[:, layer + 1, :, None]
-        up = up * transmitted[layer] + bottom * absorbed[layer] + (top - bottom) * slope[layer]
-        flux_up[:, layer] = (up * weights).sum((1, 2))
-    return flux_up, flux_down
+    return radiative_kernel.sweep(np.ascontiguousarray(emission), np.ascontiguousarray(ground), np.ascontiguousarray(depth),
+                                  line_opacity.G_WEIGHTS, DIFFUSIVITY)
 
 
 def _upper_levels(layer_temperature):
@@ -484,7 +485,7 @@ class _Solver:
         depth, water = column.optical_depth(levels)
         up, down = sweep(levels[None, :], depth, levels[None, -1])
         self.last = (surface_temperature, levels, m, water)
-        return float((up - down)[0, 0])
+        return float((up - down)[0, 0]) * (1.0 - column.cloud_share(surface_temperature))
 
     def residual(self, surface_temperature):
         return self.outgoing(surface_temperature) - self.absorbed

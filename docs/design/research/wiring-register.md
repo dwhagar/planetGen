@@ -11,8 +11,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | dataset | harris_clusters | GEN.297 | the Harris catalog of 157 globular clusters; the calibration of the cluster generator reads it |
 | dataset | noaa_proton_events | GEN.805 | the 265 NOAA solar proton events; the solar particle event model fits its rate and slope to them |
 | dataset | baraffe_isochrones | GEN.936 | the Baraffe 2015 isochrones; the 0.08 to 0.1 solar mass main sequence (GEN.936) and the brown dwarf radius by age (GEN.948) read them |
-| dataset | hitran_cia | GEN.850 | the HITRAN collision-induced absorption is reduced at setup and read by `line_opacity`, which the greenhouse step does not call yet |
-| dataset | ir_ktables | GEN.850 | the ExoMol correlated-k tables are reduced at setup and read by `line_opacity`, which the greenhouse step does not call yet |
 | dataset | stellar_spectra | GEN.971 | the ATLAS9 and PHOENIX-ACES spectra reduced to band shares; the star's UV shares and map colour will read them in place of the blackbody |
 | module | planetgen.physics.stellar_library | GEN.971 | the band lookup and the corona's far ultraviolet; replaces the seeded UV-C share of `activity.generate_activity` once wired |
 | row | 6.33:SL2 | GEN.971 | `stellar_library.FUV_OVER_XUV`, not read until the UV shares are wired |
@@ -24,8 +22,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.34:AR2 | GEN.744 | `age_metallicity.THICK_ANCHOR_FE_H`, not read until the [Fe/H] draw follows the age |
 | row | 6.34:AR3 | GEN.744 | `age_metallicity.SIGMA`, not read until the [Fe/H] draw follows the age |
 | module | planetgen.physics.stellar_state | GEN.786 | the state word of a star and the age since it stopped burning (GEN.785); `Star.__init__` fills `stars.state` and `stars.decay_age_yr` once Star 1's GEN.935 phases are in the star epoch |
-| module | planetgen.physics.line_opacity | GEN.850 | the band opacities of the greenhouse model, called only by `radiative_convective` |
-| module | planetgen.physics.radiative_convective | GEN.850 | the greenhouse column, replaces the `infrared_opacity.py` plateau code once wired |
+| module | planetgen.physics.line_opacity | by design | the band opacities of the radiative-convective model, which the greenhouse table is fitted to and the checks hold it to; the generator reads the table, never the model |
+| module | planetgen.physics.radiative_convective | by design | the model the greenhouse table (`greenhouse_table.py`) is fitted to by `scripts/fit_greenhouse_table.py`, too slow for the fixed point; run by the fit and the tests, not by generation |
+| module | planetgen.physics.radiative_kernel | by design | the numba sweep of `radiative_convective`; the web app must not load numba, so only the fit and the tests reach it |
 | module | planetgen.physics.photolysis | GEN.982 | the photolysis lifetime table for the exosphere and the coma losses; no caller yet |
 | data | photolysis_lifetimes.json | GEN.982 | read by `physics/photolysis.py` only |
 | module | planetgen.physics.mixture_trace | GEN.524 | the trace gases of an air drawn after the life stage; no caller yet |
