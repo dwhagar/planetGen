@@ -275,6 +275,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [gap-filling-plan.md](research/gap-filling-plan.md) | How the open gaps are filled where the public record is silent: the 57 gaps with a derived, bracketed, theory or placeholder fill, the stand-in registry convention, the first Gemini batch (unverified) and the work order | research |
+| [captured-moon-sources.md](research/captured-moon-sources.md) | The sourced head counts, size laws, capture probabilities and Kozai gap of the irregular moons of the four giants (GEN.1075), with the corrections to the captured asteroid moons design | built (report; registry rows CM1 to CM16) |
 | [oddity-rates.md](research/oddity-rates.md) | The sourced rates and thresholds of the weird worlds oddities W3, W4, W5, W10, W14, W15 and W20 (GEN.1037), with the three that changed and the gates | built (table; rates read from papers) |
 | [rogue-planet-review.md](research/rogue-planet-review.md) | GEN.1109: what each rogue-planet quantity is (physics, sourced stand-in or flat rate), what the architecture ejects per star against microlensing, and the replacement items | research |
 | [data-catalog.md](research/data-catalog.md) | Every dataset and table the project already holds, ranked by usefulness: the six setup downloads, the data held only in the project files, the repo tables and the stand-in registry, with the TODO items each could serve; required reading before hand-tuning a number | research |
