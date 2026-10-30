@@ -3,7 +3,7 @@
 """
 GEN.1011: a pair's period and eccentricity are drawn once from their laws cut to the room the pair has
 (`multistar._Builder.place`), so no draw is repeated because it overlaps a partner or breaks the stability of the triple above it.
-`multistar.REDRAWS` counts the redraws that are left, by kind.
+`draw.counting` counts the redraws that are left, by kind (`redraw_kinds.KINDS`).
 """
 
 import math
@@ -52,9 +52,9 @@ def test_the_apocentre_budget_is_the_extent_a_node_may_have():
 
 @pytest.mark.parametrize("count", [2, 3, 4, 5, 6])
 def test_no_draw_is_repeated_for_overlap_or_stability(count):
-    multistar.REDRAWS.clear()
-    trees = [_tree(count, seed) for seed in range(60)]
-    assert multistar.REDRAWS["overlap"] == 0 and multistar.REDRAWS["stability"] == 0, dict(multistar.REDRAWS)
+    with draw.counting() as redraws:
+        trees = [_tree(count, seed) for seed in range(60)]
+    assert all(redraws.get(kind, 0) == 0 for kind in ("pair.overlap", "pair.unstable_triple", "tree.restart_overlap")), redraws
     assert all(tree.member_count == count for tree in trees)
     for tree in trees:
         stars = [(m.parent_node_no, m.radius_au, m.mass_solar) for m in tree.members]
@@ -62,19 +62,18 @@ def test_no_draw_is_repeated_for_overlap_or_stability(count):
 
 
 def test_the_redraws_left_are_the_named_kinds():
-    multistar.REDRAWS.clear()
-    for seed in range(40):
-        _tree(4, seed)
-    kinds = set(multistar.REDRAWS)
-    assert kinds <= {"no-allowed-range", "tree-restart", "member-dropped", "screen:kozai", "screen:interaction",
-                     "screen:accretion", "screen:gravitational-waves", "screen:brown-dwarf-desert"}, kinds
+    with draw.counting() as redraws:
+        for seed in range(40):
+            _tree(4, seed)
+    assert set(redraws) <= {"pair.no_allowed_period", "pair.axis_out_of_range", "tree.restart_pair_failed", "tree.member_dropped",
+                            "pair.kozai", "pair.interaction_gate", "pair.gravitational_waves", "pair.brown_dwarf_desert"}, redraws
 
 
 def test_a_pair_with_no_room_is_reported_not_forced():
     builder = multistar._Builder([multistar._Leaf("main-sequence", "V", 1.0, 1.0, 0.1), multistar._Leaf("main-sequence", "V", 1.0, 1.0, 0.1)],
                                  1.0e9, draw.Stream(3), max_axis_au=0.01)
-    multistar.REDRAWS.clear()
-    with pytest.raises(multistar._Failed):
-        builder.place((0, 1), None, 0, None)
-    assert multistar.REDRAWS["no-allowed-range"] == multistar.PAIR_RETRIES
+    with draw.counting() as redraws:
+        with pytest.raises(multistar._Failed):
+            builder.place((0, 1), None, 0, None)
+    assert redraws.get("pair.no_allowed_period", 0) + redraws.get("pair.axis_out_of_range", 0) == multistar.PAIR_RETRIES, redraws
     assert not builder.nodes

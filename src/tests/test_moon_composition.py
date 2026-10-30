@@ -278,3 +278,36 @@ def test_the_same_seed_gives_the_same_moons():
                            for planet in system.planets if planet.body_type != "a" for moon in planet.moons)
         return out
     assert masses() == masses()
+
+
+# --- GEN.1081: the captured-origin weight depends on the moon's mass -----------------------------------------------------------
+
+def test_a_small_moon_keeps_the_open_weights():
+    assert mc.captured_weight(1e12) == 1.0 and mc.captured_weight(mc.CAPTURED_FULL_WEIGHT_MASS_KG) == 1.0
+    assert [p for _name, p in mc.origin_probabilities(mc.GIANT, 1e15)] == pytest.approx([0.5, 0.5])
+    assert [p for _name, p in mc.origin_probabilities(mc.GIANT, 1e15, has_ring=True, roche_ratio=2.0)] == pytest.approx([1 / 3] * 3)
+
+
+@pytest.mark.parametrize("mass_kg,weight", [(1e20, 0.0464), (1e22, 0.01), (2.14e22, 0.0078)])
+def test_a_heavy_moon_is_rarely_captured(mass_kg, weight):
+    assert mc.captured_weight(mass_kg) == pytest.approx(weight, rel=0.02)
+    shares = dict(mc.origin_probabilities(mc.GIANT, mass_kg))
+    assert shares["captured"] < 0.05 and shares["disk"] > 0.95 and sum(shares.values()) == pytest.approx(1.0)
+
+
+def test_the_weight_falls_with_mass_and_every_parent_kind_keeps_its_rows():
+    masses = [1e16, 1e17, 1e18, 1e19, 1e20, 1e21]
+    weights = [mc.captured_weight(m) for m in masses]
+    assert weights == sorted(weights, reverse=True) and weights[-1] < 0.1
+    for kind in mc.PARENT_KINDS:
+        names = [name for name, _p in mc.origin_probabilities(kind, 1e20)]
+        assert "captured" in names and sum(p for _name, p in mc.origin_probabilities(kind, 1e20)) == pytest.approx(1.0)
+    assert dict(mc.origin_probabilities(mc.TERRESTRIAL, 7.3e22))["impact"] > 0.99
+
+
+def test_the_weight_refuses_a_mass_that_is_not_positive():
+    for mass in (0.0, -1.0):
+        with pytest.raises(ValueError):
+            mc.captured_weight(mass)
+    with pytest.raises(ValueError):
+        mc.origin_probabilities("moon", 1e20)

@@ -12,7 +12,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, rings
+from planetgen.physics import condensate_shares, constants, rings
 from planetgen.util import draw
 
 
@@ -51,7 +51,7 @@ def test_a_cold_rogue_ring_keeps_its_ice_and_a_warm_one_has_none():
     for rogue in _rogues(300):
         if rogue.ring_kind is None:
             continue
-        cold = rogue.effective_temperature_k < constants.SNOW_LINE_TEMPERATURE_K
+        cold = rogue.effective_temperature_k < condensate_shares.ICE_CONDENSATION_K["H2O"]
         assert cold or rogue.ring_ice_fraction == 0.0
         seen.add(cold)
     assert True in seen

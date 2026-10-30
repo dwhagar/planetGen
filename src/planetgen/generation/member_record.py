@@ -17,7 +17,7 @@ and for a star the full `star_params` the build makes its star from.
 
 import dataclasses
 
-from planetgen.physics import brown_dwarf, constants, mass_boundaries, post_main_sequence, pre_main_sequence
+from planetgen.physics import brown_dwarf, constants, post_main_sequence, pre_main_sequence, stellar_abundances
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
@@ -103,14 +103,16 @@ def _largest_radius_au(initial_mass_solar, age_yr, fe_h, present_radius_au):
     return max(present_radius_au, _m_to_au(tip_sol * constants.SOLAR_RADIUS_M))
 
 
-def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True):
+def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True, substellar=False):
     """
     The record of the member born at `initial_mass_solar` and seen at `age_yr` with birth [Fe/H] `fe_h`, evolved under the stream of
     `seed`. A brown dwarf is below the hydrogen-burning limit. A star is `evolution.evolve_star`'s state (a contracting one's too);
     its radius is the one `star_params` gives, so the star made from the record has exactly the record's radius. A birth mass that has
-    collapsed by the age is cut by `LIGHTEN_FACTOR` until it is alive when `lighten`, and raises `ValueError` when not.
+    collapsed by the age is cut by `LIGHTEN_FACTOR` until it is alive when `lighten`, and raises `ValueError` when not. A `substellar`
+    member was drawn from the brown dwarf mass function and stays one at any mass (the objects of 0.074 to 0.08 solar masses among them
+    are the stable late-M and L dwarfs of the census); the limit is the one of the member's [Fe/H] (GEN.936).
     """
-    if initial_mass_solar < mass_boundaries.sol("hydrogen_burning_limit"):
+    if substellar or initial_mass_solar < stellar_abundances.hydrogen_burning_limit_for_fe_h(fe_h):
         return _brown_dwarf(initial_mass_solar, age_yr, fe_h, seed)
     rng = stream(seed)
     mass = initial_mass_solar
@@ -118,6 +120,7 @@ def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True):
         state = evolution.evolve_star(mass, age_yr / 1.0e9, rng, fe_h=fe_h)
         if state is not None or not lighten:
             break
+        draw.redrawn("star.mass_lightened")
         mass *= LIGHTEN_FACTOR
     if state is None:
         raise ValueError(f"a star of {initial_mass_solar:g} solar masses has collapsed by {age_yr:g} years")
