@@ -320,3 +320,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.86:TU4 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
 | row | 6.86:TU5 | GEN.1120 | a constant of the rogue top-up planner, read when the region run wires it |
 | module | planetgen.galaxy.resident_mass | GEN.1120 | the stage 0 budget of a sector once its residents are off, and the stage 3 shortfall; the generation phases read it |
+| module | planetgen.physics.field_composition | GEN.1103 | the layers, escaping shards, remnant core fraction, collision outcome and makeup of a collision field (lock-free, GEN.1102); the field generation (GEN.1103) calls `collision_field` and `field_makeup` in place of `draw_field("collisional")` |
+| row | 6.107:IF23 | GEN.1103 | `field_composition.CORE_LEAK_SHARE`, read when the field generation lands |
+| row | 6.107:IF24 | GEN.1103 | `field_composition.MANTLE_ROWS, CORE_ROW`, read when the field generation lands |
