@@ -69,3 +69,11 @@ def test_taking_the_haze_out_of_the_air_warms_the_ground_and_never_cools_it(hazy
     assert with_haze.converged and clear.converged
     assert clear.haze is aerosols.NO_HAZE
     assert clear.temperature_k >= with_haze.temperature_k - 0.5
+
+
+def test_an_air_of_gases_with_no_rayleigh_entry_has_no_haze():
+    """Sodium (class B's second balance gas) has no Rayleigh cross section: an air of it alone is an exosphere, not a column, and does not haze."""
+    from planetgen.physics import aerosols
+
+    draws = aerosols.HazeDraws(1.0e4, 0.1, 1.0e-7)
+    assert aerosols.haze_of({"Na": 1.0e-3}, 9.8, 300.0, draws, 5772.0) is aerosols.NO_HAZE

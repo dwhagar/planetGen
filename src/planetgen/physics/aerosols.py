@@ -389,7 +389,10 @@ def haze_of(partials_pa, gravity_m_s2, temperature_k, draws, star_temperature_k)
         draws (HazeDraws): The body's three haze draws.
         star_temperature_k (float or None): The star's effective temperature (`None`: no sunlight to absorb).
     """
-    column = air_column.from_partials({f: p for f, p in partials_pa.items() if gases.gas(f).rayleigh is not None}, gravity_m_s2)
+    try:
+        column = air_column.from_partials({f: p for f, p in partials_pa.items() if gases.gas(f).rayleigh is not None}, gravity_m_s2)
+    except air_column.EmptyColumn:
+        return NO_HAZE                  # an air of gases with no Rayleigh entry (sodium) is an exosphere, not a column that hazes
     return haze_in(column, temperature_k, draws, star_temperature_k)
 
 
