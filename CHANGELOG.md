@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2810] - 2026-10-30
+
+**Headline:** A rare failure of the example narrative test, on a subdwarf that rightly carries the main-sequence lifespan note, no longer happens.
+
+### Fixed
+- **The main-sequence note test (flake found while bisecting TEST.500).** `test_example_narrative_never_misapplies_main_sequence_notes` skipped class V stars only, so a Yerkes VI subdwarf companion in the van Maanen's star example (drawn rarely) failed it, though `describe/build.py` writes the main-sequence note for classes V and VI by design and the physics treats a subdwarf as main sequence. The test now skips both. No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none.
+
 ## [8.0.2809] - 2026-10-30
 
 **Headline:** The property sheet now lists a moon's origin and the disk it formed in, and eight test files that failed on a clean main pass again (all but one were stale tests).
