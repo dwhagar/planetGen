@@ -326,25 +326,6 @@ def compact_limit_argv(form):
     return ["--compact-min-mass", f"{value:g}"]
 
 
-def mass_limit_argv(form):
-    """`--phenomenon-min-mass` from the form's mass-limit slider (GEN.183:
-    one of `tuning.PHENOMENON_MIN_MASS_PRESETS`; blank leaves the galaxy's
-    stored limit, else 20), then the neutron star and black hole limit
-    (`compact_limit_argv`).
-
-    Raises:
-        FormError: A value that isn't one of the presets.
-    """
-    value = _number(form, "phenomenon_min_mass", MASS_LIMIT_LABEL, float)
-    if value is None:
-        return compact_limit_argv(form)
-    if not any(abs(value - preset) < 1e-9 for preset in tuning.PHENOMENON_MIN_MASS_PRESETS):
-        _problem(f"{MASS_LIMIT_LABEL} must be one of "
-                 + ", ".join(f"{preset:g}" for preset in tuning.PHENOMENON_MIN_MASS_PRESETS) + ".")
-        return []
-    return ["--phenomenon-min-mass", f"{value:g}"] + compact_limit_argv(form)
-
-
 LIMIT_OPTIONS = (
     (limit_sliders.CORE_FLOOR, "--core-min-luminosity"),
     (limit_sliders.CORE_MASS, "--core-mass-limit"),

@@ -43,7 +43,7 @@ is left (GEN.234, which replaced GEN.78's flat floor)."""
 
 HEAVIEST_SHELL = 8
 """The toy outline's shell with the most expected work, so the first task of a plan scatter (a task is a run of
-consecutive shells, heaviest first, `run_plan.shell_chunks`; each shell of the toy outline is its own task but the
+consecutive shells, heaviest first, `run_plan.static_shell_chunks`; each shell of the toy outline is its own task but the
 core and shell 1)."""
 
 FAILING_SHELL = 6
