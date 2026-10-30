@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 558 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 568 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 68 | 1 | 5 | 1 | 0 | 75 |
-| T2 | 83 | 8 | 0 | 1 | 0 | 92 |
-| T3 | 65 | 20 | 5 | 9 | 0 | 99 |
-| T4 | 27 | 0 | 0 | 4 | 4 | 35 |
-| T5 | 37 | 11 | 1 | 0 | 0 | 49 |
-| T6 | 43 | 26 | 10 | 32 | 0 | 111 |
+| T2 | 85 | 8 | 0 | 1 | 0 | 94 |
+| T3 | 66 | 20 | 5 | 9 | 0 | 100 |
+| T4 | 27 | 0 | 0 | 4 | 6 | 37 |
+| T5 | 39 | 11 | 1 | 0 | 0 | 51 |
+| T6 | 45 | 26 | 11 | 32 | 0 | 114 |
 | T7 | 26 | 7 | 8 | 7 | 0 | 48 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 1 | 25 | 19 | 46 |
-| All | 350 | 73 | 30 | 80 | 25 | 558 |
+| All | 357 | 73 | 31 | 80 | 27 | 568 |
 
 ## How the labels were given
 
@@ -915,3 +915,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OT6 | P | T5 | L1 | ocean_tides.H2_OVER_K2 5/3, the Love number h2 from the interior model's k2 when h2 is not given | 1.5 to 2.2 | homogeneous rocky or icy bodies with a stored k2 | the Earth: measured h2 0.61 and k2 0.30 give 2.0 and a floor share of 0.69; the rule gives 0.80 | the Love numbers h2 from the interior structure (GEN.842 tides) | Love 1909 for a homogeneous incompressible elastic sphere (h2 = 5/3 k2), recalled; checked against the Earth's measured pair | GEN.1034 | - |
 | OT7 | P | T6 | L0 | ocean_tides.LOCK_TOLERANCE 1e-3, how close to a raiser's orbital rate a body spins to count as locked to it (no oscillating tide from it) | 1e-4 to 1e-2 | bodies the tide chain (GEN.957) has locked | a body whose spin differs from a raiser's rate by 0.5 percent and whose ocean shows a tide of that period | the tide chain's own lock state, read from the stored spin kind | the same share as `moon_history.SYNCHRONOUS_TOLERANCE`; the choice is the project's | - | - |
 | OT8 | P | T6 | L0 | ocean_tides.ranges: the spring range is the sum of the oscillating raisers' ranges and the neap range the largest less the rest, never below zero | none | two or more raisers of different periods | a world with three raisers whose neap range is measured and differs from the largest less the rest | a harmonic synthesis of the raisers' periods (the constituents of the tide) | the Moon-and-Sun rule of Pugh and Woodworth 2014 (spring = M2 + S2, neap = M2 - S2), recalled; its extension to three raisers is ours | - | - |
+
+## 6.69 Stand-ins of the surface liquids
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| LQ1 | B | T2 | L0 | surface_liquids.json rows of kind cryogenic, hydrocarbon, molecular and aqueous: melting and boiling points, heat of vaporization, density, expansion, viscosity and surface tension of 22 liquids (helium to water) | each within 3 percent for density, 20 percent for viscosity | the liquid's own window | test_surface_liquids::test_the_window_of_a_species_with_a_saturation_curve_is_the_drafts_computed_one and the density tests; a NIST value more than 10 percent from the row | the NIST WebBook tables read in full, per species | RECALLED (CRC Handbook and NIST WebBook values; the ethane, ethylene and hydrogen sulfide low-temperature viscosities are the weakest, T3) | - | - |
+| LQ2 | B | T2 | L0 | surface_liquids.json rows of kind sulfur, salt, acid and metal: sulfur, sodium and potassium chloride, sulfuric acid, mercury, gallium, sodium, potassium, lithium, tin, lead, zinc, aluminium and iron | density 2 percent, viscosity 30 percent | hot rocky and metal-rich bodies | a CRC value more than 10 percent from the row | the CRC Handbook read in full; the lambda-transition viscosity curve of sulfur from a measurement | RECALLED (CRC Handbook; the 75 percent sulfuric acid-water freezing point and zinc's viscosity are T3) | - | - |
+| LQ3 | B | T4 | L4 | surface_liquids.json rows of kind brine and the ammonia-water eutectic: eutectic temperatures recalled (176, 198, 206, 223, 236, 252.1 and 268.4 K), with densities, viscosities and boiling points that are stand-ins | eutectic 3 K; density 15 percent; viscosity a factor of 5 | cold icy surfaces, Mars and the ocean worlds | a measured brine density or viscosity outside the stand-in by more than a factor of 2 | the brine property tables of the Mars and Europa literature (Kargel 1991; Hanley et al. 2012) | design (the eutectic points are RECALLED; the properties are argued from the salt strength) | - | - |
+| LQ4 | B | T3 | L0 | surface_liquids.json rows of kind silicate and carbonate: basaltic, komatiitic, peridotitic, rhyolitic and natrocarbonatite lavas, with their liquidus, density, and a viscosity curve that is steep in temperature | liquidus 100 K; viscosity two orders of magnitude | molten surfaces and magma oceans | a lava viscosity outside the row by more than three orders of magnitude | the melt viscosity model of Giordano et al. 2008 from the composition | RECALLED (textbook liquidus and viscosity of lavas; the boiling points are stand-ins at 3000 to 3600 K) | - | - |
+| LQ5 | B | T4 | L4 | surface_liquids.json rows of kind sulfide: molten iron sulfide and the iron-sulfur eutectic melt | density 20 percent; viscosity a factor of 3 | metal-sulfide melts | none better than a measurement | measured Fe-S melt properties (Terasaki et al.) | design (the melting points are RECALLED; the rest are stand-ins) | - | - |
+| LQ6 | P | T6 | L2 | surface_liquids.SOLUBILITY_FACTOR {N2: 0.3}: the share of Raoult's ideal mole fraction a permanent gas keeps in a cold hydrocarbon sea | 0.1 to 0.6 | Titan-like seas at 90 to 110 K | test_surface_liquids::test_a_titan_like_world_draws_a_hydrocarbon_sea; a sea nitrogen fraction outside 0.05 to 0.25 | the nitrogen solubility of a methane-ethane mixture from a real-fluid equation of state (Cordier et al. 2009; Glein and Shock 2013) | RECALLED (Cordier et al. 2009 give 0.1 to 0.2; 0.3 of the ideal value lands there) | GEN.1035 | - |
+| LQ7 | D | T5 | L0 | surface_liquids.ideal_sea: Raoult's law x = p / P_sat for every volatile, the involatile ethane taking the rest | none | a sea in equilibrium with its air | the ideal-mixing density test; a non-ideal mixture that differs by more than 30 percent | an activity-coefficient model of the methane-ethane-nitrogen system | COMPUTED (Raoult's law; the ideal-solution density) | - | - |
+| LQ8 | P | T6 | L0 | surface_liquids.candidates: a volatile in the air at saturation condenses and ranks first; otherwise the body's reservoir of the liquid ranks it by amount | none | any world | a world that the rule gives no liquid but that has a sea, or the reverse | a mass balance of the species between the air, the ice and the sea | design (the physics is condensation; the ranking by reservoir amount is argued) | - | - |
+| LQ9 | P | T5 | L0 | surface_liquids.boiling_k: Clausius-Clapeyron from the boiling point at one bar with a constant heat of vaporization, capped at the critical temperature, for every row with no saturation curve | none | pressures within a decade of one bar | the boiling point of a row at 10 bar more than 10 percent from its measured value | the Antoine or Wagner fit of the row | COMPUTED (the integrated Clausius-Clapeyron law) | - | - |
+| LQ10 | P | T6 | L0 | surface_liquids.density_kg_m3: linear in temperature from a reference point, held to 0.3 of it (MIN_DENSITY_SHARE) | expansion 30 percent | the liquid well under its critical point | a density at 1.3 reference range temperatures more than 10 percent from the NIST value | a saturated-liquid density equation of the row | design (a line; the floor is argued) | - | - |
