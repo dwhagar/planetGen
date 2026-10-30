@@ -319,7 +319,7 @@ def test_example_g_h_and_i_the_brown_dwarf_the_hot_jupiter_and_the_lava_windows(
     assert main(RECIPES.probabilities("h", Subject("giant", {"tday_k": 2500.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
         {"h2": 0.9983, "h3": 0.0017}, abs=1e-4)
     assert main(RECIPES.probabilities("h", Subject("giant", {"tday_k": 900.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
-        {"h1": 0.7454, "h2": 0.2546}, abs=1e-4), "the methane line at 0.1 bar is 966 K, not 1500 K"
+        {"h1": 0.7467, "h2": 0.2533}, abs=1e-4), "the methane line at 0.1 bar is 966 K, not 1500 K"
     s = Subject("giant", {"tday_k": 2150.0, "zone": "h", "teq_k": 2350.0, "drawn.h": "h2"})
     assert RECIPES.probability("h4", s) == 0.0, "TiO is not seen at 2350 K and below"
     assert RECIPES.probability("h4", Subject("giant", dict(s.quantities, teq_k=2641.0))) == 1.0, "and is seen at 2641 K"

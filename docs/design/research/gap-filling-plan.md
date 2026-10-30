@@ -1220,7 +1220,6 @@ The atmosphere recipe rows of GEN.480 (occurrence of water-rich and H/He worlds)
 | RT2 | P | T2 | L0 | rock_types.ANORTHOSITE_PLAGIOCLASE 0.90, ULTRABASIC_SILICA 45, KOMATIITE_MAGNESIA 18, BASIC_SILICA 52, ACID_SILICA 63 (the IUGS limit of anorthosite and the silica bands of the total alkali-silica diagram, Le Bas et al. 1986) | none: classification limits | volcanic and plutonic silicate rocks | a rock the diagram names against its band | none | test_rock_types::test_the_earths_crusts_and_the_moons_highlands_get_their_ground_types |
 | RT3 | P | T5 | L0 | rock_types.INCOMPATIBLE_D 0 (the bulk partition coefficient of K, Th and U between peridotite and its melt) | 0 to 0.01 | batch melting of peridotite | a measured partition coefficient above 0.01 | measured bulk partition coefficients (Hofmann 1988, not read) | test_rock_types::test_the_heat_producers_of_the_earths_basalt_and_mantle_agree_with_one_degree_of_melting |
 <!-- rock-type-standins:end -->
-
 ### 6.46 Stand-ins of the comet ice budget (GEN.595)
 
 `physics/comet_ice_budget.py` gives the CO2/H2O and CO/H2O of a comet's ice from the zone of the disc it formed in (the snow lines and the carbon and oxygen budget of Oberg, Murray-Clay and Bergin 2011), in place of the Solar System's measured population as the within-system shape. 2I/Borisov's CO/H2O (1.30 to 1.55) is a test of the CO zone; the Solar System's median comet and 3I/ATLAS's CO2/H2O of 7.6 are not reproduced and stay stand-ins in `comet_population`.
@@ -1255,6 +1254,17 @@ Rows SC1 and SC2. The star census (`tests/audit/prevalence_stars.py`, TEST.432) 
 | SC1 | P | T2 | L1 | constants.TEMP_RANGES: the A/F edge 7200 K and the K/M edge 3900 K (before, 7500 K and 3700 K); the F/G and G/K edges 6000 K and 5200 K are as they were | 100 K each | main-sequence stars of the solar neighbourhood | the star census mix of K, M and A against RECONS (`tests/audit/prevalence_stars.py`) | the spectral-type temperature table of Pecaut and Mamajek read in full | RECALLED (Pecaut and Mamajek 2013: F0V 7220 K, M0V 3850 K, rounded to 100 K; the luminosity ranges already put the K/M edge at 0.08 solar luminosities, about 3900 K) |
 | SC2 | P | T2 | L0 | tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars | 0.01 to 0.06 | stars heavier than 0.08 solar masses, trees a directive does not count | test_multistar.test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member | a brown dwarf companion survey of M dwarfs | RECALLED (Metchev and Hillenbrand 2009: 3.2 percent of solar-type stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU) |
 <!-- star-census-standins:end -->
+
+### 6.51 Stand-ins of the hot-Jupiter regime edges (GEN.994)
+
+The rows h1 to h3 of the atmosphere recipes were half open at the edges of three tables of temperature by pressure copied into the data. They now call `equilibrium_edges.regime_edge`, which finds each edge on the one equilibrium solver at the photosphere's pressure for the reference gas, so the numbers are the solver's own at any pressure and nothing is copied. The two constants the reference gas needs are registered here.
+
+<!-- hot-jupiter-edges-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| HE1 | P | T1 | L0 | equilibrium_edges.REFERENCE_C_TO_O 0.55 (the solar C/O; the reference gas has the solar metals) | none | a gas of solar metals and C/O | a hot giant whose measured regime edges lie more than the window width (100 K) from those of this gas at its own metallicity and C/O | the edges at the planet's own metallicity and C/O (the budget of `reference_budget` already takes both) | test_equilibrium_edges::test_the_hot_jupiter_regime_edges_of_the_recipes_are_the_computed_ones |
+| HE2 | P | T6 | L0 | equilibrium_edges.WATER_EDGE_SHARE 0.9 (the edge of "water destroyed" is where a tenth of the possible water is gone) | none | any pressure of the solver | a spectral survey showing water gone at a different share | the share a measured transition gives | test_equilibrium_edges::test_the_water_edge_is_where_a_tenth_of_the_water_is_gone |
+<!-- hot-jupiter-edges-standins:end -->
 
 ## 7. Gemini's first batch
 

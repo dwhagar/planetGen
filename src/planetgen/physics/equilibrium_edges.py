@@ -15,12 +15,16 @@ The budget is that of the independent computation the edges were checked against
 section 2.4): hydrogen, helium, carbon, nitrogen, oxygen, sulfur and argon at the solar ratios of `mixture_giant.SOLAR_PER_HYDROGEN`,
 the metals scaled by the metallicity and the carbon set to `c_to_o` times the oxygen (`reference_budget`).
 
+`regime_edge` is the one the recipe rows h1 to h3 read (GEN.994): the edge at a pressure for the reference gas of solar metals and a
+C/O of 0.55, cached by pressure.
+
 Use:
 
     budget = reference_budget(metallicity=1.0, c_to_o=0.55)
     ch4_co_temperature(0.1, budget)            # K at 0.1 bar
 """
 
+import functools
 import math
 
 from planetgen.physics import gas_equilibrium
@@ -29,6 +33,16 @@ from planetgen.physics.mixture_giant import SOLAR_PER_HYDROGEN
 
 BUDGET_METALS = ("C", "N", "O", "S", "Ar")
 """tuple: The elements scaled by the metallicity in `reference_budget`."""
+
+REFERENCE_C_TO_O = 0.55
+"""float: The C/O of the reference gas of the recipe rows h1 to h3 (the solar value, Asplund et al. 2009). [Stand-in HE1, tier T1, tweak L0.]"""
+
+WATER_EDGE_SHARE = 0.9
+"""float: The share of the possible water that survives at the edge row h3 and the hot side of row h2 call "water destroyed": a tenth is gone
+(a definition of the regime, GEN.518). [Stand-in HE2, tier "from needed output", tweak L0.]"""
+
+REGIMES = ("methane_carbon_monoxide", "water_destroyed")
+"""tuple: The regime edges `regime_edge` gives, the lower and the upper edge of the hot-Jupiter rows."""
 
 TOLERANCE_K = 0.5
 """float: The bisection stops when the bracket is this narrow."""
@@ -91,3 +105,20 @@ def h2o_survival_temperature(pressure_bar, budget, share=0.5):
 def h2_dissociation_temperature(pressure_bar, budget):
     """The temperature, K, where half of the hydrogen nuclei in H2 and H are atomic (`n(H) = 2 n(H2)`)."""
     return _bisect(lambda e: e.moles.get("H", 0.0) - 2.0 * e.moles.get("H2", 0.0), 1000.0, 6000.0, budget, pressure_bar)
+
+
+@functools.lru_cache(maxsize=256)
+def regime_edge(regime, pressure_bar):
+    """
+    The temperature, K, of the hot-Jupiter regime edge `regime` (one of `REGIMES`) at `pressure_bar`, for a gas of solar metals at
+    `REFERENCE_C_TO_O`; the edges the recipe rows h1 to h3 are half open at.
+
+    Raises:
+        ValueError: `regime` is not one of `REGIMES`.
+    """
+    budget = reference_budget(1.0, REFERENCE_C_TO_O)
+    if regime == "methane_carbon_monoxide":
+        return ch4_co_temperature(pressure_bar, budget)
+    if regime == "water_destroyed":
+        return h2o_survival_temperature(pressure_bar, budget, WATER_EDGE_SHARE)
+    raise ValueError(f"not a regime edge: {regime!r}")

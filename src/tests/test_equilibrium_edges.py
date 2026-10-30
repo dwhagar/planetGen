@@ -89,3 +89,19 @@ def test_the_solution_does_not_depend_on_the_order_of_the_species():
     forward = gas_equilibrium.solve(SOLAR, 1500.0, 0.1, species=names)
     backward = gas_equilibrium.solve(SOLAR, 1500.0, 0.1, species=names[::-1])
     assert forward.mole_fractions["CO"] == pytest.approx(backward.mole_fractions["CO"], rel=1e-8)
+
+
+def test_the_water_edge_is_where_a_tenth_of_the_water_is_gone():
+    for bar in (0.01, 0.1, 1.0):
+        edge = edges.regime_edge("water_destroyed", bar)
+        equilibrium = gas_equilibrium.solve(SOLAR, edge, bar)
+        available = SOLAR["O"] - SOLAR["C"]
+        assert equilibrium.moles["H2O"] / available == pytest.approx(edges.WATER_EDGE_SHARE, abs=0.02)
+        assert edge == pytest.approx(edges.h2o_survival_temperature(bar, SOLAR, 0.9))
+
+
+def test_the_regime_edge_is_cached_and_refuses_an_unknown_regime():
+    assert edges.regime_edge("methane_carbon_monoxide", 0.1) == edges.regime_edge("methane_carbon_monoxide", 0.1)
+    assert edges.regime_edge("methane_carbon_monoxide", 0.1) == pytest.approx(edges.ch4_co_temperature(0.1, SOLAR))
+    with pytest.raises(ValueError, match="not a regime edge"):
+        edges.regime_edge("nonsense", 0.1)

@@ -150,7 +150,7 @@ INPUTS = {
 }
 """dict: Every stored quantity a gate or a weight may read, with its meaning and unit. `body_class` is the class of the subject."""
 
-FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "envelope_lost_fraction", "w", "p", "pdist")
+FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "regime_edge", "envelope_lost_fraction", "w", "p", "pdist")
 SHAPES = ("log", "uniform")
 DIST_KINDS = ("normal", "uniform", "loguniform", "mixture")
 
@@ -193,8 +193,14 @@ def loglog(x, *anchors):
     raise ValueError("no anchor interval")
 
 
+def regime_edge(regime, pressure_bar):
+    """The temperature (K) of a hot-Jupiter regime edge at a pressure, from the equilibrium solver (`equilibrium_edges.regime_edge`; imported here because it reads this module through `mixture_giant`)."""
+    from planetgen.physics import equilibrium_edges
+    return equilibrium_edges.regime_edge(regime, pressure_bar)
+
+
 _PLAIN = {"phi": phi, "window": window, "exp": math.exp, "log": math.log, "log10": math.log10, "sqrt": math.sqrt,
-          "min": min, "max": max, "abs": abs, "clamp": clamp, "loglog": loglog, "envelope_lost_fraction": envelope_escape.lost_fraction}
+          "min": min, "max": max, "abs": abs, "clamp": clamp, "loglog": loglog, "regime_edge": regime_edge, "envelope_lost_fraction": envelope_escape.lost_fraction}
 
 
 class Expression:

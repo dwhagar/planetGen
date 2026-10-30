@@ -12,7 +12,7 @@ the constants a row draws within a bracket, and the corrections the later resear
 
 Expressions are Python arithmetic over the stored quantities of the subject (the names of `INPUTS` in
 `planetgen.physics.atmosphere_recipes`), the row's constants and these functions: `phi` (normal CDF), `window` (a soft
-window, lo and hi may be None), `exp log log10 sqrt min max abs clamp loglog`, `w('id')` (the gated weight of a sibling
+window, lo and hi may be None), `exp log log10 sqrt min max abs clamp loglog regime_edge`, `w('id')` (the gated weight of a sibling
 row), `p('id')` (the probability of a row in its own table at this subject) and `pdist('id', lo, hi)` (the probability a
 continuous row's value lies in [lo, hi]).
 """
@@ -269,14 +269,14 @@ MACHINE = {
 
     # ---- h. hot Jupiters ----
     "h1": dict(state="partly verified", limit="the edge is the equilibrium line of methane and carbon monoxide at the photospheric pressure, computed with the NASA polynomials at solar metals and C/O 0.55; the softness of 100 K is DESIGN (GEN.518)", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
-               lets={"edge": "loglog(photosphere_bar, 0.001, 726, 0.01, 830, 0.1, 966, 1, 1157, 10, 1439)"},
+               lets={"edge": "regime_edge('methane_carbon_monoxide', photosphere_bar)"},
                weight="window(tday_k, None, edge, 100)"),
     "h2": dict(state="partly verified", limit="the edges are computed equilibrium lines at the photospheric pressure (methane equal to carbon monoxide; water 10 percent destroyed) with the NASA polynomials at solar metals and C/O 0.55, gas only and no ions; the softness of 100 K is DESIGN (GEN.518)", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
-               lets={"low_edge": "loglog(photosphere_bar, 0.001, 726, 0.01, 830, 0.1, 966, 1, 1157, 10, 1439)",
-                     "high_edge": "loglog(photosphere_bar, 0.001, 2331, 0.01, 2542, 0.1, 2793, 1, 3096, 10, 3471)"},
+               lets={"low_edge": "regime_edge('methane_carbon_monoxide', photosphere_bar)",
+                     "high_edge": "regime_edge('water_destroyed', photosphere_bar)"},
                weight="window(tday_k, low_edge, high_edge, 100)"),
     "h3": dict(state="partly verified", limit="the edge is the computed temperature at which a tenth of the water is destroyed, at the photospheric pressure, gas only and no ions; the softness of 100 K is DESIGN (GEN.518)", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
-               lets={"edge": "loglog(photosphere_bar, 0.001, 2331, 0.01, 2542, 0.1, 2793, 1, 3096, 10, 3471)"},
+               lets={"edge": "regime_edge('water_destroyed', photosphere_bar)"},
                weight="window(tday_k, edge, None, 100)"),
     "h4": dict(state="partly verified", limit="a Ti threshold between 2350 and 2641 K from N=5 planets (TiO seen at 2641 K, not at 2210, 2250, 2260 and 2350 K); no population measures Kzz, so none is drawn (GEN.519)", kind="binary", classes=GIANT, when=[c("zone", equals="h"), drawn("h", "h2", "h3")],
                constants={"c_h4": [2350.0, 2641.0, "uniform"]}, weight="1 if teq_k >= c_h4 else 0"),
