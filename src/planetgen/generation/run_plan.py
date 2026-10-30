@@ -666,7 +666,7 @@ def resolve_scatter_settings(conn, run_id, marker):
     emptied what they were read from, and the stage's conclude, take the same.
     """
     work = _bright_star_settings if marker["scope"] == "bright-stars" else _phenomena_settings
-    return wrapper.cached(conn, run_id, marker["scope"] + marker.get("tag", ""), lambda: work(marker))[marker["stage"]]
+    return wrapper.cached(conn, run_id, wrapper.scatter_settings_name(marker), lambda: work(marker))[marker["stage"]]
 
 
 def prepare_scatter_pass(params):
