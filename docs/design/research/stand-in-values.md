@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 487 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 496 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 59 | 14 | 3 | 10 | 0 | 86 |
 | T4 | 25 | 0 | 0 | 4 | 4 | 33 |
 | T5 | 28 | 7 | 1 | 0 | 0 | 36 |
-| T6 | 40 | 18 | 9 | 30 | 0 | 97 |
-| T7 | 18 | 6 | 1 | 7 | 0 | 32 |
+| T6 | 40 | 18 | 10 | 30 | 0 | 98 |
+| T7 | 24 | 6 | 3 | 7 | 0 | 40 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 310 | 53 | 21 | 78 | 25 | 487 |
+| All | 316 | 53 | 24 | 78 | 25 | 496 |
 
 ## How the labels were given
 
@@ -784,3 +784,17 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DD3 | P | T6 | L2 | tuning.DEBRIS_DISK_TEMPERATURE_MEDIAN_K 58 and DEBRIS_DISK_TEMPERATURE_LOG_SIGMA 0.45: the dust temperature of a disk, log-normal | median 45 to 70 K, sigma 0.3 to 0.6 | stars of one solar luminosity | the 47 blackbody radii of Table 1 | the temperatures read from the table itself | median 23 AU and 7 to 40 AU for most, from the abstract and the table as counted | - | - |
 | DD4 | P | T6 | L1 | tuning.DEBRIS_RADIUS_OVER_BLACKBODY 1.74: the belt lies this far beyond its blackbody radius | 1.5 to 2.5 (the paper: a blackbody radius "can underestimate the true disc radius by up to a factor of 2.5") | realistic dust | resolved belt radii | resolved radii from the imaged discs | "scales to about 40 AU for realistic dust properties" over a median of 23 AU | - | - |
 | DD5 | P | T4 | L0 | tuning.DEBRIS_DISK_EDGES_OVER_RADIUS (0.7, 1.5): the ring spans 0.7 to 1.5 of the belt radius | width over radius 0.3 to 1.2 | every debris disk | resolved widths | measured fractional widths | design (a ring about as wide as it is far out) | - | - |
+
+## 6.56 Stand-ins of the registered rows that rest on a Solar System body
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SSR1 | T | T7 | L2 | atmosphere-a:a1: the oxygen fugacity of the magma-ocean stage, dIW ~ N(mu, sigma) with mu = clamp(-2 + 1.25 (log10 M + 2), -2, 0.5) + clamp(log10 M, 0, 0.7324) and sigma = 0.5 + 0.4 clamp(log10 M + 1, 0, 1), floor 0.22 | the slope 1.25 per dex, the width 0.5 to 0.9, the clamps | a rocky body of 0.01 to 10 Earth masses | a first-hand magma-ocean fO2 of a fourth body, or a Fe3+/Fe2+ and mantle-mass model whose mean lies outside the Moon, Mars or Earth range | GEN.1005 | Hirschmann 2022 Table 1: Earth -1.2 to +1.8, Mars -1.4 to +0.2, core-forming Moon -2.2 to -1.5; the mean sits within 0.3 of each range's middle and the width is tuned to the three half-ranges (GEN.482) | - | - |
+| SSR2 | T | T7 | L2 | atmosphere-a:a2: the later upper-mantle oxygen fugacity, dIW ~ N(3.5 + 2 clamp(log10 M, -3, 0), 1.0) clipped to -6 and 6, never below a1's draw | the line 3.5 + 2 log10 M, the width 1.0, the clip | a rocky body with long-lived geology | an upper-mantle fO2 measured on an exoplanet, or a mass dependence from mantle redox models that departs from the line by more than the width | GEN.1005 | Earth IW+3.5 (Deng 2020), Mars IW to IW+1 and Moon IW to IW-2 (Hirschmann 2022); a straight line through the three, the law and the width DESIGN (GEN.482) | - | - |
+| SSR3 | B | T6 | L2 | atmosphere-b:b1: the carbon of a dry delivery, a log bracket of 0.018 to 0.1 wt percent CO2 | the two ends of the bracket | a rocky body whose accreted material formed inside the snow line | a chondrite-group budget of accreted carbon that falls outside the bracket for a body of that formation distance | GEN.1005 | the stored 0.018 wt percent (Ortenzi 2020 Table 1 reduced) to the High case's 0.1 wt percent, tuned to the bulk silicate Earth's 100 ppm carbon (GEN.813, volatile-inventory-against-planet-totals.md) | - | - |
+| SSR4 | P | T7 | L0 | atmosphere-k:k7: N2, O2, OCS, SO2, Ar, Kr and Xe of a comet or asteroid, LN(67P value, 0.6 dex) | the 0.6 dex width; O2 presence | comets and asteroids of any formation temperature | the same species measured in a second comet that differ from 67P by more than 0.6 dex, or an ice-trapping model at the formation temperature | GEN.1005 | one comet, 67P (Rubin 2019); the width is DESIGN (GEN.520). CH4, C2H6, H2CO and H2S of the same row are the mean of 9 to 18 comets and are not stand-ins | - | - |
+| SSR5 | P | T7 | L0 | surface-ground-types:ultramafic: olivine 0.60 and enstatite 0.40, the primary crust after mantle overturn | the two proportions | a rocky body whose mantle overturned | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts | - | - |
+| SSR6 | P | T7 | L0 | surface-ground-types:anorthositic: plagioclase 0.97 and diopside 0.03, the primary flotation crust | the two proportions | a rocky body with a flotation crust and no overturn | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts | - | - |
+| SSR7 | P | T7 | L0 | surface-ground-types:basaltic: plagioclase 0.76, diopside 0.08, enstatite 0.06, basalt powder 0.05, olivine 0.01, the crust of decompression melting | the five proportions | a rocky body that still resurfaces by melting | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts | - | - |
+| SSR8 | P | T7 | L0 | surface-ground-types:felsic: orthoclase 0.40, quartz 0.35, plagioclase 0.20, biotite 0.05, the granitoid crust | the four proportions | a rocky body with a differentiated crust | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts | - | - |
+| SSR9 | P | T7 | L0 | surface-ground-types:oxidised: nanophase hematite 0.50, plagioclase 0.38, diopside 0.04, enstatite 0.03, basalt powder 0.03, olivine 0.02 | the six proportions | a rocky body with an oxidised surface | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts | - | - |
