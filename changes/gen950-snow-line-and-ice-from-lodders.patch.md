@@ -1,5 +1,0 @@
-**Headline:** The snow line, the ice boost of the solids and the most water an icy body can hold now come from Lodders's condensation table: the Sun's snow line moves from 2.68 to 2.34 AU.
-
-### Changed
-
-- **Snow line and ice from the condensation table (GEN.950).** Water ice condenses at 182 K (Lodders 2003, chosen by Boss over the 170 K first used), so every star's snow line sits closer by a factor of 1.15 in distance (the Sun's goes from 2.68 to 2.34 AU), more bodies form beyond it and are icy, and a cold ring or rogue planet keeps its ice below 182 K. The jump of the solids beyond the snow line is 2.17 times the rock (water ice over rock in Lodders's Table 11) instead of Hayashi's 4.3, which lowers the isolation masses of the cores beyond the line. An icy body's water is drawn from 5 percent of its mass up to the share of its solids that is water at the disk temperature where it formed: 0.54 between 182 and 131 K, 0.49 down to 41 K and 0.38 below. The constants `SNOW_LINE_TEMPERATURE_K` and `SNOW_LINE_ICE_BOOST_FACTOR` and the range `ICY_WATER_MASS_FRACTION` are gone. Registry rows CS1 to CS3 are now read.
