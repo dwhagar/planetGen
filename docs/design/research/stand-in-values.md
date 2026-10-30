@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 395 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 396 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 51 | 0 | 3 | 0 | 0 | 54 |
 | T2 | 70 | 3 | 0 | 1 | 0 | 74 |
-| T3 | 52 | 5 | 2 | 10 | 0 | 69 |
+| T3 | 53 | 5 | 2 | 10 | 0 | 70 |
 | T4 | 16 | 0 | 0 | 2 | 0 | 18 |
 | T5 | 21 | 5 | 1 | 0 | 0 | 27 |
 | T6 | 39 | 10 | 5 | 27 | 0 | 81 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 267 | 26 | 14 | 71 | 17 | 395 |
+| All | 268 | 26 | 14 | 71 | 17 | 396 |
 
 ## How the labels were given
 
@@ -617,3 +617,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BR3 | P | T1 | L0 | birth_radioisotopes.GALAXY_STAR_FORMATION_SOLAR_MASSES_PER_YR 1.65 (the Galaxy's star formation rate, +-0.19) | 1.46 to 1.84 | the rate the gamma-ray masses are divided by | a rate differing by more than 20 percent | a later meta-analysis | test_birth_radioisotopes::test_the_yields_per_mass_formed_are_the_gamma_ray_mass_over_rate_and_mean_life | GEN.476 | - |
 | BR4 | P | T2 | L0 | birth_radioisotopes.RECURRENCE_RANGE_YR 5 to 10 Myr (the time between core-collapse additions to a region's gas, as Meyer and Clayton give it, read second-hand in Lugaro et al. 2018) | 5 to 10 Myr | a region with cluster formation at the Galactic rate | a cluster formation rate that puts the recurrence outside 3 to 15 Myr | a recurrence from the region's own cluster formation rate | test_birth_radioisotopes::test_the_draws_keep_the_mean_and_are_spiky_for_the_short_lived_isotope | GEN.476 | - |
 | BR5 | P | T6 | L2 | birth_radioisotopes.EVENT_YIELD_SIGMA_LN 1.0 (the log-normal spread of the yield of one addition, the richness of the cluster) | 0.5 to 1.5 | all regions | a Solar System ratio outside the 90th to 99.9th percentile of the draws, or a share of stars with more than a tenth of it outside 4 to 66 percent (row o6) | a cluster mass function and its yields (GEN.476 follow-up) | test_birth_radioisotopes::test_the_solar_system_ratio_is_in_the_upper_tail_of_the_distribution | GEN.476 | - |
+
+## 6.39 Stand-ins of the X-ray saturation time by mass
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RS1 | P | T3 | L0 | saturation_time.ANCHORS_MYR (thirteen masses by three percentiles, read off the published figure by pixel position; the fast curve at 0.1 solar masses by eye) | each value within about 10 percent; the steep 1.1 to 1.2 solar mass edge of the fast curve within 30 percent | solar metallicity, 0.1 to 1.2 solar masses | a star sample with a saturated fraction against age and mass differing from the model's by more than a third (Medina 2022 gives 2.4 +- 0.3 Gyr for 0.1 to 0.3 solar masses, and the tests keep the median curve near it) | the tracks of the model itself (Johnstone's MIT-licensed code) or a measured saturated fraction against mass | test_saturation_time::test_the_published_curves_are_reproduced_at_their_anchors; test_saturation_time::test_the_mid_to_late_m_dwarfs_stay_saturated_for_gigayears_as_medina_2022_finds | GEN.493 | - |

@@ -1097,6 +1097,16 @@ The planet architecture (`physics/planet_architecture.py`, `docs/design/composit
 | BR5 | P | T6 | L2 | birth_radioisotopes.EVENT_YIELD_SIGMA_LN 1.0 (the log-normal spread of the yield of one addition, the richness of the cluster) | 0.5 to 1.5 | all regions | a Solar System ratio outside the 90th to 99.9th percentile of the draws, or a share of stars with more than a tenth of it outside 4 to 66 percent (row o6) | a cluster mass function and its yields (GEN.476 follow-up) | test_birth_radioisotopes::test_the_solar_system_ratio_is_in_the_upper_tail_of_the_distribution |
 <!-- birth-radioisotopes-standins:end -->
 
+### 6.39 Stand-ins of the X-ray saturation time by mass (GEN.493)
+
+`physics/saturation_time.py` gives the age at which a star falls out of X-ray saturation by mass (0.1 to 1.2 solar masses) and initial rotation percentile (the 5th, 50th and 95th of the 150 Myr distribution), read off Fig. 10 of Johnstone, Bartel and Guedel 2021. At one solar mass it matches Tu et al. 2015 (5.2, 22.8 and 297 Myr against 5.7, 23 and 226). It replaces the one set of solar-mass times that row p6 used for every mass.
+
+<!-- saturation-time-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| RS1 | P | T3 | L0 | saturation_time.ANCHORS_MYR (thirteen masses by three percentiles, read off the published figure by pixel position; the fast curve at 0.1 solar masses by eye) | each value within about 10 percent; the steep 1.1 to 1.2 solar mass edge of the fast curve within 30 percent | solar metallicity, 0.1 to 1.2 solar masses | a star sample with a saturated fraction against age and mass differing from the model's by more than a third (Medina 2022 gives 2.4 +- 0.3 Gyr for 0.1 to 0.3 solar masses, and the tests keep the median curve near it) | the tracks of the model itself (Johnstone's MIT-licensed code) or a measured saturated fraction against mass | test_saturation_time::test_the_published_curves_are_reproduced_at_their_anchors; test_saturation_time::test_the_mid_to_late_m_dwarfs_stay_saturated_for_gigayears_as_medina_2022_finds |
+<!-- saturation-time-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
