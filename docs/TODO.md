@@ -4816,7 +4816,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.752, GEN.753, GEN.754.
+  Prerequisites: SEC.33, TEST.261, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.752, GEN.753.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -8134,6 +8134,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
+  Wiring item for mixture_trace.py and design_flags.json (2026-10-29
+  9:20 PM EDT): The guard found no open item wiring mixture_trace.py and
+  design_flags.json (GEN.479 is closed); this item (B16: halogens and
+  trace gases) is the wiring item. Owner is Sources 1's call with Air 1.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
@@ -11438,43 +11442,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
   Prerequisites: none. Related: GEN.509, GEN.510.
 
-- [ ] **GEN.724 Register the GEN.272 stand-ins in the gap plan registry and correct the registry row millisecond-pulsar-companion (5 percent) to the 0.2 percent the code keeps**
-  Found by Core 4 in GEN.272 (relayed 3:37 PM EDT 2026-10-24 as the lane
-  reported; report reports/core4-gen272-report-2026-10-24.md; filed by
-  the TODO thread). Kind: documentation of stand-ins. Do: add registry
-  rows (what each rests on, validity range, checking test, replacing
-  item) for the tuning.py stand-ins SUPERGIANT_XRAY_PERIOD_DAYS,
-  BE_XRAY_PERIOD_DAYS, LOW_MASS_XRAY_PERIOD_DAYS,
-  LOW_MASS_XRAY_DONOR_MASS_RANGE_SOL, XRAY_SPAN_ROOM,
-  SPIDER_PERIOD_DAYS, MICROQUASAR_SHARE_OF_XRAY_BINARIES and the
-  accretion efficiency for black holes; correct the registry row
-  millisecond-pulsar-companion from neutron star 5 percent to 0.2
-  percent of recycled pulsars (the gravitational-wave rate allows about
-  0.04 percent of neutron stars; 5 percent would be about ten times too
-  many). Decided (Boss, 4:01 PM EDT 2026-10-24, decision card, option 1): keep
-  0.2 percent. Done: every stand-in
-  listed, a test that no tuning constant of the item is missing from the
-  registry. Owner: pool (first free lane with gap-registry experience,
-  Lane L did GEN.675).
-  Research (2026-10-09, Tier and tweak level): Update 3:41 PM EDT
-  2026-10-24 (Boss, via the coordinator): every registry row now also
-  records a source tier (Verified down to Educated guess based on needed
-  output) and a tweak level; see GEN.725. Record both here when
-  registering.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Sources 1 (new lane,
-  proposed by TODO). This replaces any earlier owner line (pool,
-  unowned, retired lane or 'after 8.1'). If it is already started
-  elsewhere, the lane tells TODO before taking it. Lock-free parts
-  first; the part that changes generated output rides a train.
-  Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
-  design-drafts/gen465-second-pass; the stand-in registry
-  (stand-in-values.md, 316 rows) lists every constant with its source.
-  Catalog sections 3 and 4.
-  Prerequisites: none. Related: GEN.272, GEN.675.
-
 - [ ] **GEN.728 Planet count from the observed multiplicity and occurrence distributions by star mass and metallicity**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   F1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -11988,36 +11955,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   synthesis binned fit is ngpps_formation_water.json. No occurrence
   dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
   Prerequisites: GEN.503, GEN.504. Related: GEN.725, GEN.711.
-
-- [ ] **GEN.754 Wiring guard: the stand-in registry says what the generator reads, and a test fails for a table or module nothing reads**
-  Add a 'read by the generator' column to the stand-in and table
-  registry (GEN.725) and a test that fails when a registered table, law
-  or module has no caller in the generation path and no open wiring item
-  named in the registry. The physics grounding assessment found built
-  tables and modules that main does not read (for example the 161-row
-  materials table, the 104 atmosphere recipes, the interior heat
-  output); this keeps that from recurring. No shim: an unread module is
-  either wired, filed, or deleted. Found by the physics fix plan thread.
-  Owner: the registry owner (Lane L, with GEN.725).
-  Research (2026-10-09): Data-use audit (10-29,
-  /mnt/project-files/reports/data-use-audit-2026-10-29.md): extend the
-  guard to datasets as well as modules: a downloaded dataset with no
-  caller must fail a test and be named in the registry with an open
-  wiring item. It would have caught ExoMol and HITRAN (1,453 MB of the
-  1,806 MB setup downloads, read by nothing) on the day they merged.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Sources 1 (new lane,
-  proposed by TODO). This replaces any earlier owner line (pool,
-  unowned, retired lane or 'after 8.1'). If it is already started
-  elsewhere, the lane tells TODO before taking it. Lock-free parts
-  first; the part that changes generated output rides a train.
-  Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
-  design-drafts/gen465-second-pass; the stand-in registry
-  (stand-in-values.md, 316 rows) lists every constant with its source.
-  Catalog sections 3 and 4.
-  Prerequisites: GEN.725. Related: GEN.711, GEN.699, GEN.428, GEN.478.
 
 - [ ] **GEN.768 Hours a person can be outside in a day: daylight hours limited by heat, cold, pressure, air supply and radiation dose, computed and stored per planet and moon**
   Boss, 8:22 PM EDT 2026-10-24 (message
@@ -14754,6 +14691,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held dataset could replace (planet formation PM1, PM2, PM6, PM7,
   radius valley RV2, RV3, SEP rows, neutron star anchors, cluster laws).
   Catalog sections 1 and 4.
+  Step 1 done (2026-10-29 9:20 PM EDT): Sources 1 merged step 1 (#3808,
+  as the lane reported 9:18 PM EDT):
+  docs/design/research/burn-down-register.md has a disposition for each
+  of the 73 L3 and L4 registry rows and test_burn_down_register.py; the
+  per-area replace items it names are GEN.804, GEN.722, GEN.842,
+  GEN.728, GEN.684, GEN.878, GEN.894 and GEN.962 (for CC1 and CC2). The
+  replace steps stay open.
   Prerequisites: GEN.945. Related: GEN.725, GEN.945.
 
 - [ ] **GEN.947 Pre-main-sequence contraction times are calibrated to MIST (about 2 times too short at 1.5 solar masses and up and at 0.2 solar masses) (low priority)**
@@ -14926,29 +14870,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (NO FIXED CONTENT). Catalog section 3.
   Prerequisites: GEN.954. Related: GEN.842, GEN.778, GEN.737.
 
-- [ ] **GEN.956 Tides stage 2a (lock-free): a torque-sum module for planet spin: star, moon and atmospheric thermal torques with floors and an attractor**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Tides plan /mnt/project-files/reports/gen842-tides-2026-10-29.md
-  section 9, stage 2 (parts a1 and b, one function). Today
-  tidal_spin.evolve sees the star's tide only. Do: a pure module that
-  sums the torques on a planet's spin (star's gravitational tide, each
-  moon's tide, the thermal atmospheric tide of Leconte et al. 2015) with
-  floors and the choice of attractor (locked, 3:2 or 2:1, or a free
-  spin), with tests on the Earth-Moon day change, Venus, and Mercury's
-  3:2 resonance (today Mercury reaches it in only 12 percent of draws;
-  at the code's rock Q of 100 a real Moon changes Earth's day by 0.1
-  hour: both are test targets). Changes no generated output. Every
-  stand-in it adds gets a GEN.725 registry row with tier and tweak level
-  (L0 to L4). Owner: Tides 1. Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: GEN.954. Related: GEN.842, GEN.731.
-
 - [ ] **GEN.957 Tides stage 2b: wire the torque sum into planet spin, with the moon-on-planet tide after the moons exist**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
   secondary sources accepted by default; registered stand-ins allowed).
@@ -14968,7 +14889,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage 1 if both are ready. Every stand-in it adds gets a GEN.725
   registry row with tier and tweak level (L0 to L4). Owner: Tides 1.
   Version 8.1.
-  Prerequisites: GEN.955, GEN.956, GEN.953. Related: GEN.842, GEN.731,, GEN.979.
+  Prerequisites: GEN.955, GEN.953. Related: GEN.842, GEN.731,, GEN.979.
   GEN.904.
   Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
   rotations or tides is held (none exists); the measurement scripts and
@@ -14976,26 +14897,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
-
-- [ ] **GEN.958 Tides stage 3a (lock-free): a moon orbit evolution module: outward drift, spiral-in and the Roche fall**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Tides plan /mnt/project-files/reports/gen842-tides-2026-10-29.md
-  section 9, stage 3 (parts a2 and a3). Do: a pure module for a moon's
-  orbit history under the planet's tide (outward drift when the planet
-  spins faster than the orbit, spiral-in for locked planets and
-  retrograde moons, Roche limit and fall), with tests on the Earth-Moon
-  system, Phobos and Triton and a mass of ring material from a fallen
-  moon. Changes no generated output. Every stand-in it adds gets a
-  GEN.725 registry row with tier and tweak level (L0 to L4). Owner:
-  Tides 1. Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: GEN.956. Related: GEN.842, GEN.727.
 
 - [ ] **GEN.959 Tides stage 3b: wire moon orbit history, rings from fallen moons and the moons' tide into the planet's heat**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
@@ -15015,7 +14916,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: GEN.957, GEN.958. Related: GEN.842, GEN.739.
+  Prerequisites: GEN.957. Related: GEN.842, GEN.739.
 
 - [ ] **GEN.960 Tides side thread: ice rheology for the hydrosphere ice shell and the icy branch of tidal_heating (c-ice)**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
@@ -15411,6 +15312,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a GEN.725 registry row with tier and tweak level. Owner: Aux 4.
   Version 8.1.
   Prerequisites: GEN.967. Related: GEN.779, GEN.967, GEN.838.
+
+- [ ] **GEN.982 Wire the photolysis lifetimes (physics/photolysis.py and photolysis_lifetimes.json) into the atmosphere chemistry**
+  Found by Sources 1 with the wiring guard GEN.754 (as the lane reported
+  9:18 PM EDT 2026-10-29): physics/photolysis.py and
+  photolysis_lifetimes.json have no caller, and no open item wires them
+  (GEN.496 is closed). Do: the lifetimes of the photolysed species (the
+  JPL 19-5 and Leiden rates held in the second-hand citation files) set
+  the loss term of the gas inventory in the atmosphere mixture, with the
+  star's UV spectrum; add the wiring-register line when it merges.
+  Changes generated output: epoch with --affects fill, rides train 6.
+  Every stand-in it adds gets a GEN.725 registry row with tier and tweak
+  level. Owner: Air 1. Version 8.1.
+  Prerequisites: none. Related: GEN.754, GEN.794, GEN.748.
+
+- [ ] **GEN.983 Wire the radiation belts (physics/radiation_belts.py) into the surface dose and the habitability radiation score**
+  Found by Sources 1 with the wiring guard GEN.754 (9:18 PM EDT
+  2026-10-29): physics/radiation_belts.py has no caller and GEN.749 is
+  closed. Do: a planet or moon with a magnetosphere carries
+  trapped-particle belts that raise the dose in the belt region (moons
+  of giants most of all), read by the dose and the habitability
+  radiation component together with the stored magnetopause (GEN.804,
+  GEN.805); no belt data is held (AP-8 and AE-8 would be needed), so a
+  labelled stand-in is fine. Changes generated output: epoch with
+  --affects fill, rides train 6. Owner: Aux 4 (with the magnetosphere
+  chain). Version 8.1.
+  Prerequisites: none. Related: GEN.754, GEN.804, GEN.805, GEN.800.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19582,7 +19509,7 @@ clears each one.
   Prerequisites: none.
 
 - [ ] **TEST.307 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug)**
-  Found by Habitability lane F (relayed 2026-10-23, 9:25 PM EDT): this
+  Found by Habitability lane F (relayed 2026-10-23, 9:20 PM EDT): this
   test fails about 1 run in 5 to 8 when run alone, unrelated to
   radiation or ozone. Done: the cause is found by reproducing it with
   the seed printed (the forced belt and the forced habitable world

@@ -12,11 +12,11 @@ Where things live: **S** = downloaded by `update.sh` into `/var/cache/planetgen/
 |---|---|---|---|---|
 | 1 | ExoMol correlated-k tables (H2O, CO2, CH4) and HITRAN collision-induced absorption | S, 1,453 MB downloaded, 6 MB kept | built, merged, **read by nothing** | GEN.850, GEN.851, GEN.852, GEN.972 to GEN.975, GEN.752 |
 | 2 | MIST v1.2 isochrones, all 25 columns and every phase (setup keeps 6 columns of the main sequence only) | S, 221.5 MB | post-main-sequence and pre-main-sequence rows are read and discarded at setup | GEN.935, GEN.940, GEN.947, GEN.939, GEN.941, GEN.943, GEN.744, GEN.922 and GEN.927 to GEN.931 (checks), GEN.942 |
-| 3 | Baraffe et al. 2015 (BHAC15) isochrone table | P, `data/gen549-baraffe2015/BHAC15_iso.2mass` | not read; three constants fitted by hand | GEN.936, GEN.948, GEN.947 |
+| 3 | Baraffe et al. 2015 (BHAC15) isochrone table | S, setup entry and reader `planetgen.datasets.baraffe_isochrones` (#3808) | reader built, not yet read by the generator; three constants still fitted by hand | GEN.936, GEN.948, GEN.947 |
 | 4 | Exoplanet occurrence and mass-radius data (Kepler DR25 and Exoplanet Archive fits, the 2,000-system class distribution check) | R (4 harness JSONs), P (`reports/data/planet-class-distribution`) | harness only | GEN.728, GEN.729, GEN.730, GEN.722, GEN.828, GEN.829, GEN.920, TEST.395, GEN.753 |
-| 5 | NOAA SWPC proton events above 10 MeV 1976 to 2017 (255) and 47 Tylka and Dietrich events, SEP band parameters (Vainio 2017) | P, `reports/best-guess-standins-2026-10-24-files/`, `reports/secondhand-citations-2026-10-24-files/` | not read | GEN.747, GEN.746, GEN.749 |
+| 5 | NOAA SWPC proton events above 10 MeV 1976 to 2017 (265 events by Sources 1's count) and 47 Tylka and Dietrich events, SEP band parameters (Vainio 2017) | S, setup entry and reader `planetgen.datasets.noaa_proton_events` (#3808); the SEP band file stays in `reports/secondhand-citations-2026-10-24-files/` | reader built, not yet read by the generator (GEN.747) | GEN.747, GEN.746, GEN.749 |
 | 6 | Neutron star matter: 21 equations of state (Malik 2024) and outer-crust compositions (Servais and Chamel 2026) | S, 2.0 MB | read by tests only | GEN.743, GEN.968, GEN.969, GEN.937 |
-| 7 | Harris 1996 (2010 edition) globular clusters, 157 clusters | P, `data/harris/mwgc.dat` | not read (GEN.297 text said otherwise; corrected) | GEN.297, GEN.209, GEN.531 family, cluster laws in `tuning.py` |
+| 7 | Harris 1996 (2010 edition) globular clusters, 157 clusters | S, setup entry and reader `planetgen.datasets.harris_clusters` (#3808) | reader built, not yet read by the generator (GEN.297) | GEN.297, GEN.209, GEN.531 family, cluster laws in `tuning.py` |
 | 8 | AD1 methane and ammonia tables: Karkoschka and Tomasko 2010 k-tables, PDS gbat_0001, NMSU planetary datasets | P, `data/ad1-methane/` (about 19 MB) | not read; licence entry is Boss's | GEN.949, GEN.594 |
 | 9 | Brewer and Fischer 2016 (1,615 stars, 15 elements) | P, `reports/gap-filling-plan-2026-10-17-files/brewer2016_vizier_J_ApJS_225_32.tsv` | fitted to trends and a 4 by 4 matrix only | TEST.456, GEN.465 family, star abundance items |
 | 10 | Lodders 2003 condensation tables (Table 11), Weisberg 2006 chondrite groups, UNSCEAR 2008 extracts | P, `design-drafts/gen465-second-pass/` | read once by a research pass | GEN.950, GEN.468, GEN.473 to GEN.477 |
@@ -41,7 +41,9 @@ All are in `src/planetgen/datasets/catalogue.py`, fetched by `planetgen datasets
 | ExoMolOP correlated-k tables | 1,257.8 MB | `ir_ktables.npz` about 6 MB | `datasets/ir_ktables.py` | `line_opacity.py`, only by `radiative_convective.py`, which nothing calls |
 | HITRAN CIA, 11 pair files | 195.4 MB | `ir_cia.npz` | `datasets/hitran_cia.py` | same chain, not wired |
 
-New setup entries being built by Sources 1 (8:33 PM EDT 10-29, as the lane reported): Harris (for GEN.297), NOAA proton events (for GEN.747), Baraffe 2015 (for GEN.936 and GEN.948).
+Setup entries built by Sources 1 (#3808, 9:18 PM EDT 10-29, as the lane reported): `planetgen.datasets.harris_clusters` (GEN.297), `noaa_proton_events` (GEN.747), `baraffe_isochrones` (GEN.936 and GEN.948); registry rows SC4 to SC6. Section 3 rows for these three are now S, not P.
+
+Wiring rule (Sources 1, GEN.754): a new lock-free module, dataset reader, data file or registry row that nothing reads yet needs one line in `docs/design/research/wiring-register.md` naming its open wiring item (`python scripts/wiring_guard.py --check`); a new L3 or L4 registry row needs a line in `docs/design/research/burn-down-register.md`.
 
 ## 3. Held in the project files (P)
 
