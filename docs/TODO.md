@@ -2096,28 +2096,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
   Prerequisites: VIEW.14.
 
-- [ ] **MAP.302 At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: as one gets to a
-  sector-level zoom all items should appear from comets, rogue planets,
-  etc etc. Do: list what the sector-level view draws today and fill the
-  gaps so that at that zoom every object kind in the sector is drawn and
-  pickable (stars, systems, bodies where size allows, comets, rogue
-  planets, asteroid fields, brown dwarfs, black holes and neutron stars,
-  nebulae, clusters, facilities), each from the node cut down to its own
-  record, with names by MAP.298. Done: a browser test on the fixture
-  sector at sector zoom finds one of every kind it holds. Part of one
-  chain filed from that message: TEST.368 (fixture galaxy), MAP.295 and
-  MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking, labels, zoom,
-  icons; Aux 10). Owner: Aux 10.
-  Research (2026-10-09): OWNER Aux 3 (assigned 7:20 PM EDT 2026-10-29
-  after Boss asked where the map labelling part stands; Aux 10 is
-  retired). Lock-free; separate branch from Aux 3's parked GEN.816
-  branch. Its MAP.299 label work (#3754) is merged, so names for every
-  kind come from that engine.
-  Prerequisites: TEST.368. Related: MAP.298, MAP.207, MAP.301.
-
 - [ ] **MAP.307 Stations and facilities become points of interest: interest reasons for the map mark and its menu filter**
   Boss, 7:37 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiWkyk1uvowuCjYSiP92Pofq, relayed by the
@@ -2324,17 +2302,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first time). Boss to say if the region and parent Go to lines should
   be in the first view instead
   Prerequisites: none. Related: MAP.336.
-
-- [ ] **MAP.352 Back to a system in a different sector fails when pressed before the first Back has finished (bug)**
-  Core 2 report (as the lane reported 11:35 PM EDT 2026-10-29), found
-  while fixing TEST.450: pressing Back to a system in a different sector
-  before the previous Back has finished its move can fail (a timing
-  race, not reproduced reliably; Core 2's test now waits). Do: reproduce
-  with two quick Back presses across a sector change, find which load or
-  camera move the second press races with, queue or ignore the second
-  press until the first finishes, and add a test that presses twice
-  without waiting. Owner: Core 2. Version 8.1.
-  Prerequisites: none. Related: TEST.450, MAP.347.
 
 ## NAV: Navigation and courses
 
