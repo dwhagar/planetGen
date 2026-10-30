@@ -1,6 +1,6 @@
 # Captured asteroid moons: what the papers and the satellite tables say (GEN.1075)
 
-Sources 1 lane, 10-30. This is the read list of [captured-asteroid-moons.md](../systems/captured-asteroid-moons.md) section 7 item 1: the papers opened, the head counts per giant read from the satellite tables, and what each changes in the design. The rows for GEN.725 are plan section 6.100 (CM1 to CM19). Docs only; no module reads these numbers yet.
+Sources 1 lane, 10-30. This is the read list of [captured-asteroid-moons.md](../systems/captured-asteroid-moons.md) section 7 item 1: the papers opened, the head counts per giant read from the satellite tables, and what each changes in the design. The rows for GEN.725 are plan section 6.100 (CM1 to CM20). Docs only; no module reads these numbers yet.
 
 ## Result in one paragraph
 
@@ -82,7 +82,7 @@ Size counts need the radii; these are Wikipedia's mean radii (from JPL and Shepp
 
 ## GEN.1122: gas-drag capture (Pollack 1979, Cuk and Burns 2004)
 
-Sources 1 lane, 10-30. **Result: neither paper could be opened and no source reached gives a drag share against the encounter channel, so CM14 stays a guess (T6, L3); what the second-hand reading does give is a gate and a size window for the drag channel, now rows CM17 to CM19.**
+Sources 1 lane, 10-30. **Result: neither paper could be opened and no source reached gives a drag share against the encounter channel, so CM14 stays a guess (T6, L3); what the second-hand reading does give is a gate and a size window for the drag channel, now rows CM18 to CM20.**
 
 What was reached: the abstract of Pollack, Burns and Tauber 1979 (Icarus 37, 587; NTRS, the full text is not on the server); Cuk and Burns 2004 (AJ 128, 2518) not on arXiv and its publisher page is refused, so read only through its two summaries: Jewitt and Haghighipour 2007 section 6.2 (read in full) and Sheppard 2006, IAU 229, arXiv astro-ph/0605041 section 3.1 (read in full). Also searched for a numeric capture efficiency in Philpott, Hamilton and Agnor 2010 (fetched, not read beyond its title: it is the three-body channel).
 

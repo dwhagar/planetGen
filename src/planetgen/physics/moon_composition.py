@@ -55,6 +55,12 @@ between them the Kozai resonance stretches the eccentricity until the moon escap
 130). Partly verified: the bounds are a recalled range, not a measured edge."""
 RING_MAX_ROCHE_RATIO = 3.0
 """float: A moon forms from a ring only within this many Roche radii (a parametrisation)."""
+CAPTURED_FULL_WEIGHT_MASS_KG = 1e16
+"""float: STAND-IN CM17 (tier T9, L1): a moon of this mass or less keeps the full weight of the `captured` row. The storage floor of the irregular list (CM15), the
+size from which the irregular moons of the four giants are all known."""
+CAPTURED_SIZE_INDEX = 1.0
+"""float: STAND-IN CM17 (tier T1, L0): the cumulative size index of the irregular moons that survive, N(>R) proportional to R^-1 (differential index 1.9 +/- 0.3 at Jupiter and
+Saturn above 5 km, CM5; JH07). A mass M goes as R^3, so the weight of a captured moon of mass M falls as (M / floor)^(-index / 3)."""
 
 
 def parent_kind(envelope_fraction, mass_kg):
@@ -96,6 +102,41 @@ def draw_origin(kind, has_ring=False, roche_ratio=math.inf):
     if kind not in PARENT_KINDS:
         raise ValueError(f"the parent kind {kind!r} is none of {PARENT_KINDS}")
     return ORIGIN_TABLE.draw(kind, {"has_ring": 1 if has_ring else 0, "roche_ratio": roche_ratio})
+
+
+def captured_weight(mass_kg):
+    """
+    How much the `captured` row weighs against a row of weight 1 for a moon of `mass_kg` (GEN.1081, a pure function; the moon generator weights the row with it).
+
+    Captured bodies are small: the survivors follow a size law N(>R) ~ R^-1 (`CAPTURED_SIZE_INDEX`), so the share of captured bodies above a mass falls as that mass
+    to the power of -1/3. A moon of `CAPTURED_FULL_WEIGHT_MASS_KG` or less weighs 1 (no change from the open weights); one of 1e20 kg (R about 200 km) weighs 0.046, one
+    of 1e22 kg 0.010 and Triton's 2.1e22 kg 0.0078: rarely captured, with the exchange route of a Triton a separate window (design section 2.2).
+
+    Raises:
+        ValueError: The mass is not positive.
+    """
+    if not mass_kg > 0.0:
+        raise ValueError(f"the moon mass {mass_kg!r} is not positive")
+    if mass_kg <= CAPTURED_FULL_WEIGHT_MASS_KG:
+        return 1.0
+    return (mass_kg / CAPTURED_FULL_WEIGHT_MASS_KG) ** (-CAPTURED_SIZE_INDEX / 3.0)
+
+
+def origin_probabilities(kind, mass_kg, has_ring=False, roche_ratio=math.inf):
+    """
+    `[(origin name, probability)]` of a moon of `mass_kg` of a parent of `kind`: the origin table's probabilities (`draw_origin`) with the `captured` row multiplied by
+    `captured_weight(mass_kg)` and the rest renormalised, in the table's row order. The probabilities add up to 1. Pure: no draw.
+
+    Raises:
+        ValueError: The parent kind is not one of `PARENT_KINDS` or the mass is not positive.
+    """
+    if kind not in PARENT_KINDS:
+        raise ValueError(f"the parent kind {kind!r} is none of {PARENT_KINDS}")
+    weight = captured_weight(mass_kg)
+    table = ORIGIN_TABLE.probabilities(pt.Subject(kind, {"has_ring": 1 if has_ring else 0, "roche_ratio": roche_ratio}))
+    scaled = [(row.name, p * weight if row.name == "captured" else p) for row, p in table]
+    total = math.fsum(p for _name, p in scaled)
+    return [(name, p / total) for name, p in scaled]
 
 
 def draw_inclination_deg(origin):

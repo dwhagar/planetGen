@@ -107,7 +107,7 @@ The step is a rule over the architecture's own events; it needs no N-body run. A
 | GEN.1088 | belt_origin.py | Planets 1 |
 | GEN.1089 | scatter.py | Core 4 |
 | GEN.1090 | dwarf_population.py | Sources 2 |
-| GEN.1091 | Class D wording (docs only) | Aux 2 |
+| GEN.1091 | Class D wording (docs only) | Aux 2, done: the wording is a conditions rule, stated in mass-object-class.md, small-bodies-composition.md, D-small-bodies-moons.md, unified-system-barycentre.md and the comment on `tuning.PLANET_CLASSES["D"]` |
 | GEN.1068, GEN.1069 | Belt birth and storage carry the origin (lock) | Planets 1 and Sources 2, train 15 |
 | GEN.1092 | Wire scatter and origin (lock) | Sources 2 with Planets 1, train 16 |
 | GEN.1082 | Captured moons from the scatter step wait for the census | with GEN.921 |
