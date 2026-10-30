@@ -2,6 +2,68 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2697] - 2026-10-30
+
+**Headline:** The nine registered rows that rest on a Solar System body now have rows in the stand-in list, with their source tier, tweak level and the item that will replace them.
+
+### Changed
+
+- GEN.1002 (the registry half): `docs/design/research/gap-filling-plan.md` section 6.56 holds one stand-in row for each of the nine rows `tests/data/solar_system_rows.json` lists as pending: `atmosphere-a` a1 and a2 (oxygen fugacity tuned to Moon, Mars and Earth), `atmosphere-b` b1 (dry carbon tuned to the bulk silicate Earth), `atmosphere-k` k7 (the species of one comet), and the five ground types of `surface-ground-types` (the crust assemblages of Hu, Ehlmann and Seager 2012). Redox, carbon and comet rows name GEN.1005 as their replacement, the ground types GEN.474. `docs/design/research/stand-in-values.md` is rebuilt, and `tests/test_solar_system_standin_rows.py` requires a registry row for every pending row. The state flips on the table rows (which change their digests) ride a merge train. No stored value changes.
+
+## [8.0.2696] - 2026-10-30
+
+**Headline:** The browser test site builds again, so the map browser tests run.
+
+### Fixed
+- **Every `site_app` browser test errored in setup with "Column count doesn't match value count" (TEST.474).** The bright stars `tests/test_web_a11y.py` writes lacked the `rotation_period_hours` column GEN.846 added to `bright_stars`; the rows now carry it (no rotation). Test-only.
+
+## [8.0.2695] - 2026-10-30
+
+**Headline:** Listing what is near a place reads each system's name only for the page shown, so a wide search in a dense area is about three times faster.
+
+### Changed
+
+- PERF.217: `planetgen.db.near` lists the systems of a sphere from the covering cell index (id and position) and reads the name and sector of a system only for the systems on the page (`_system_labels`, a read by id), instead of reading the table row of every system in the sphere. At 50 pc around the Sun's density (62,000 systems) the list took 1,170 ms with the name and 360 ms for the ids alone in the profile of PERF.216. The rows, their order, names, parents and counts are the same; a test compares every page of a sphere with the names read directly and checks that the system list asks for no name. No stored value changes.
+
+## [8.0.2694] - 2026-10-30
+
+**Headline:** The stored-tree pair tests build the placed star the way a scatter row does, so they pass again.
+
+### Fixed
+- **Three `test_gen_stored_trees` tests failed on main (TEST.345).** The tests drew the tree of the placed star at its birth mass and the reference [Fe/H] but built the star at [Fe/H] 0.1, where the star model gives it slightly less than its birth mass on the main sequence, so the built primary and the built companion were not the stored members and the pair was left out. The tests now draw the tree for the placed star's present mass and [Fe/H], as a scatter row stores it. Test-only; the named test of the item, `test_a_fill_builds_each_row_from_its_stored_tree`, passes on main.
+
+## [8.0.2693] - 2026-10-30
+
+**Headline:** The system map places a wide pair's second star on its real eccentric orbit and not on a circle.
+
+### Fixed
+- **The browser drew a wide pair on a circle while the server placed it on its stored ellipse (MAP.255).** `orbitpositions.js` now places every star where the scene's tree of orbits puts it, as `body_positions.positions_at` does: each node is the Kepler orbit (eccentric, tilted, from the node's own epoch) of its slot-1 child about its slot-0 child, the two children either side of the node's centre by the other's mass, and a wide pair's frame has its first star at the origin. A triple or a deeper tree is placed the same way. `tests/test_js_unit.py` checks the Python and JavaScript positions of an eccentric wide pair and of a triple at nine times each.
+
+## [8.0.2692] - 2026-10-30
+
+**Headline:** A generation run can now plan its sectors when the sectors stage opens, so a whole job can be one run.
+
+### Changed
+
+- **Sectors planned inside the run (PERF.214).** The sector planner counted, estimated and asked about the sectors in the process that started the run, so the run could only be built once the galaxy it reads existed. It can now be left to the stage: for the shell, band, span, course and block modes, a single sector (and its neighborhood), a neighborhood round a centre sector and random starts, the stage works its sectors out in a worker when it opens, and the neighborhood after a random start reads the starts the stage before it chose. The sectors saved are the ones the old plan makes; nothing the commands do today changes (the planner is used the old way until the one-run Generate job asks for the new one). A run carried on with finish-run keeps the random starts it picked.
+
+## [8.0.2691] - 2026-10-30
+
+**Headline:** Every sort of the Phenomena table and the Species table now answers a page in milliseconds, however many rows there are.
+
+### Changed
+- **The Phenomena table** sorted by type, descriptor, radius, placed or sector used to sort every phenomenon of all eight kinds for each page (the first page by type took 56 s with 8,000,000 phenomena). Each kind now has indexes for these sorts, built when you run ./update.sh (migration 0186: expression indexes make the database hold writes to that table while they build, so run it with generation stopped), and the first page and every page after a row take 3 to 41 ms. The sector sort reads the sectors by name and sorts only their phenomena. Where two rows tie in a sort, the order now follows the direction of the sort (name, then type, then ID); before, a descending sort listed ties from A to Z.
+- **The Species table** sorted by homeworld or system now walks the planets or systems by name and sorts only their species (1,000,000 species: 8 to 13 ms for a page deep in the list).
+- **`GET /api/phenomena?after=<type>:<ID>`** carries on in the order of `sort`, not only by name; the table's Next link does so in every sort.
+- **`planetgen sectors` and `planetgen systems`** list 100 rows at a time like `planets` and `moons`: `--limit N` (0 lists all) and `--after ID`, and the last line prints the `--after` to carry on with.
+
+## [8.0.2690] - 2026-10-30
+
+**Headline:** Every line of a Galaxy Map card that names a place now has its own Go to button.
+
+### Added
+- **A Go to on every container and place line of a card (MAP.349).** The "Region:" and "In:" lines on a card (and on a region's own card) each have their own Go to, which flies the camera to that region or to its larger family. Each system in a card's list of nearest systems has a Go to that opens its sector and the system, and each member of a crowd of marks has one that flies to it. They use the same Go to as the find box and the crumbs. The name on these lines is plain text now; the Go to button is what goes.
+
 ## [8.0.2689] - 2026-10-30
 
 **Headline:** Stars now follow the published mass function at every mass: a Chabrier curve for single stars, a derived curve for the stars that begin a system, and white dwarfs, neutron stars and black holes drawn from the same curve.

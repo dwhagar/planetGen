@@ -20,7 +20,7 @@ from planetgen.db.store import add_mysql_connection_args, mysql_config_from_args
 
 
 DEFAULT_PAGE = 100
-"""int: How many planets or moons a listing shows unless `--limit` says otherwise (PERF.207)."""
+"""int: How many sectors, systems, planets or moons a listing shows unless `--limit` says otherwise (PERF.207, PERF.211)."""
 
 
 def _add_paging(parser, kind):
@@ -48,8 +48,7 @@ def _show(conn, kind, rows, shown):
 
 def process_args():
     """
-    Parses command-line arguments for the three subcommands: `sectors`,
-    `systems`, and `near`.
+    Parses command-line arguments for the subcommands: `sectors`, `systems`, `near`, `planets` and `moons`.
 
     Returns:
         argparse.Namespace: The parsed arguments, including `command`
@@ -63,13 +62,15 @@ def process_args():
 
     subparsers = parser.add_subparsers(dest='command', required=True)
 
-    subparsers.add_parser('sectors', help="List every sector, with its size and system count.")
+    sectors_parser = subparsers.add_parser('sectors', help="List sectors, with their size and system count.")
+    _add_paging(sectors_parser, "sector")
 
     systems_parser = subparsers.add_parser('systems', help="List systems, optionally filtered.")
     systems_parser.add_argument('--star-type', type=str,
                                 help="Only systems with a star whose type starts with this "
                                      "(e.g. 'G' for every G-type system, 'G2V' for an exact match).")
     systems_parser.add_argument('--sector-id', help="Only systems in this sector.")
+    _add_paging(systems_parser, "system")
 
     near_parser = subparsers.add_parser(
         'near', help="Find everything generated within a distance of a place.",
@@ -139,24 +140,33 @@ def main():
     conn = open_readonly(mysql_config_from_args(args))
     try:
         if args.command == 'sectors':
-            sectors = list_sectors(conn)
+            ask, shown = _page(args)
+            sectors = list_sectors(conn, limit=ask, after=_row(conn, "sector", args.after))
             if not sectors:
-                print("No sectors stored.")
+                print("No sectors stored." if args.after is None else "No more sectors.")
                 return
+            sectors, carry_on = _show(conn, "sector", sectors, shown)
             for sector in sectors:
                 print(f"[{_printed(conn, 'sector', sector['id'])}] {sector['name']} "
                       f"(edge {format_distance_ly(sector['edge_ly'])}, {sector['system_count']} systems)")
+            if carry_on:
+                print(f"{len(sectors):,} sectors shown; more follow: carry on with --after {carry_on}")
 
         elif args.command == 'systems':
-            systems = list_systems(conn, star_type_prefix=args.star_type, sector_id=_row(conn, "sector", args.sector_id))
+            ask, shown = _page(args)
+            systems = list_systems(conn, star_type_prefix=args.star_type, sector_id=_row(conn, "sector", args.sector_id),
+                                   limit=ask, after=_row(conn, "system", args.after))
             if not systems:
-                print("No matching systems.")
+                print("No matching systems." if args.after is None else "No more systems.")
                 return
+            systems, carry_on = _show(conn, "system", systems, shown)
             for system in systems:
                 kind = "binary" if system["is_binary"] else "single"
                 sector_note = (f"sector {_printed(conn, 'sector', system['sector_id'])}"
                                if system["sector_id"] is not None else "standalone")
                 print(f"[{_printed(conn, 'system', system['id'])}] {system['name']} ({kind}, {sector_note})")
+            if carry_on:
+                print(f"{len(systems):,} systems shown; more follow: carry on with --after {carry_on}")
 
         elif args.command == 'near':
             try:

@@ -385,8 +385,8 @@ def _title_case(value):
 
 def _phenomena_load(state, limit, offset, want_facets, after=None):
     """The Phenomena table's page of rows (`lib/datatable.Result`); `next` is the last scattered row's id when the
-    page ends inside the scattered tail, which every page after it is read from by key (PERF.75), and for the name
-    sort the `<type>:<id>` of the last built row (PERF.205)."""
+    page ends inside the scattered tail, which every page after it is read from by key (PERF.75), and otherwise the
+    `<type>:<id>` of the last built row, whatever the sort (PERF.205, PERF.211)."""
     filters = {"types": state.filters["type"], "descriptors": state.filters["descriptor"]}
     envelope, note = read_from_start(
         lambda start: apiclient.get_phenomena(
@@ -417,7 +417,7 @@ def _phenomena_load(state, limit, offset, want_facets, after=None):
     following = None
     if last and last["scattered"]:
         following = last["scatter_id"]
-    elif last and state.sort in (None, "", "name"):     # by name the built rows page by key too (PERF.205)
+    elif last:      # the built rows page by key too, in the order of any sort (PERF.205, PERF.211)
         following = f"{last['type']}:{last['id']}"
     return Result(rows, envelope["total"], facets, envelope.get("total_capped", False), following, note)
 

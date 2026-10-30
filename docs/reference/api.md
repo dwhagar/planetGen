@@ -552,8 +552,10 @@ connectivity to that specific schema rather than the default one.
   list on to the map's browser cache.
 - `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>|<type>:<ID>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
   row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; `after=<type>:<ID>`, the `type` and `id` of a
-  built row, starts it after that row in the name order and then the tail, PERF.205: the first page by name and every page after a built row cost the
-  same at any depth, and the other sorts read the whole union as before; anything else is a 400;
+  built row, starts it after that row in the order of `sort` and then the tail, PERF.205, PERF.211: the first page of every sort (`name`, `type`,
+  `descriptor`, `radius`, `placed`, `sector`) and every page after a built row cost the same at any depth, each table read on an index ending in
+  `name` and the best rows of all taken, a tie settling by name, type and id in the direction of the sort; a page by `offset` past the first still
+  sorts the whole union of built rows; anything else is a 400;
   `from=<scatter id>`, PERF.135, lists that tail from the row with that id on, `total` counting from there; a value that is not a whole number from 1 up
   is a 400, and one past the end answers the last page of the tail, `past_end` true and `total` its length),
   across every sector and regardless of galaxy placement (unlike
