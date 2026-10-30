@@ -251,19 +251,43 @@ def _staged_command(argv):
         return None
 
 
-def _stage_estimates(conn, argv):
-    """The expected seconds of each stage of a `galaxy` or `plan` command line (`generation.stages.stage_estimates`),
-    `[]` for any other."""
-    from planetgen.generation import stages
+def _job_entries(argv):
+    """`[(command, args)]` of a `planetgen run-job` command line (`generation.job.parse_entries`), else `None`."""
+    from planetgen.cli import generate as generate_cli
+    from planetgen.generation import job
+    from planetgen.web import jobs
 
+    start = len(jobs.GENERATE_COMMAND) + 1
+    if len(argv) <= start or argv[1:start] != list(jobs.GENERATE_COMMAND) or argv[start] != "run-job":
+        return None
+    try:
+        _parser, parsers = generate_cli.build_parser()
+        shared = parsers["run-job"].parse_args(argv[start + 1:])
+        return job.parse_entries(shared.spec, shared, parsers, generate_cli.validate_command)
+    except (SystemExit, Exception):  # noqa: BLE001 -- the step then uses its recorded time
+        return None
+
+
+def _stage_estimates(conn, argv):
+    """The expected seconds of each stage of a `galaxy`, `plan` or `run-job` command line (`generation.stages.stage_estimates`,
+    `generation.job.stage_estimates`), `[]` for any other."""
+    from planetgen.generation import job, stages
+
+    entries = _job_entries(argv)
+    if entries is not None:
+        return job.stage_estimates(conn, entries)
     parsed = _staged_command(argv)
     return stages.stage_estimates(conn, *parsed) if parsed else []
 
 
 def _stage_estimate(conn, argv):
-    """The summed stage times of a `galaxy` or `plan` command line (`generation.stages.estimate_seconds`), or `None`."""
+    """The summed stage times of a `galaxy`, `plan` or `run-job` command line (`generation.stages.estimate_seconds`), or `None`
+    unless every stage has one."""
     from planetgen.generation import stages
 
+    if _job_entries(argv) is not None:
+        found = _stage_estimates(conn, argv)
+        return None if not found or any(seconds is None for seconds in found) else sum(found)
     parsed = _staged_command(argv)
     return stages.estimate_seconds(conn, *parsed) if parsed else None
 

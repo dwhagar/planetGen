@@ -84,9 +84,9 @@ def test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own(
         assert [s.key for s in stages.scatter_stages(_scatter(flag))] == keys, flag
         assert [s.key for s in stages.for_command("scatter", _scatter(flag))] == keys
     assert stages.scatter_stages(_scatter("--mass")) != stages.scatter_stages(_scatter("--luminosity"))
-    for command, key in (("fill-map-luminosity", "map-luminosity"), ("rescore-habitability", "habitability"),
-                         ("clean-nebula-field", "nebula-field")):
-        assert [s.key for s in stages.for_command(command, None)] == [key]
+    for command, keys in (("fill-map-luminosity", ["map-luminosity", "block-lights"]), ("rescore-habitability", ["habitability"]),
+                          ("clean-nebula-field", ["nebula-field"])):
+        assert [s.key for s in stages.for_command(command, None)] == keys
     for kind in stages.CLEAR_KINDS:
         found = stages.clear_stages(types.SimpleNamespace(**{k.replace("-", "_"): k == kind for k in stages.CLEAR_KINDS}))
         assert [s.key for s in found] == [f"clear-{kind}"]
