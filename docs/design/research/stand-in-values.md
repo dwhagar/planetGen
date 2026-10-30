@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 771 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 775 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 123 | 7 | 6 | 1 | 0 | 137 |
-| T2 | 103 | 19 | 0 | 1 | 0 | 123 |
-| T3 | 77 | 28 | 5 | 9 | 0 | 119 |
+| T2 | 104 | 20 | 0 | 1 | 0 | 125 |
+| T3 | 77 | 29 | 5 | 9 | 0 | 120 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 40 | 12 | 0 | 0 | 0 | 52 |
-| T6 | 65 | 42 | 12 | 34 | 0 | 153 |
+| T6 | 65 | 43 | 12 | 34 | 0 | 154 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 6 | 2 | 10 |
 | T9 | 7 | 3 | 4 | 34 | 19 | 67 |
-| All | 477 | 123 | 36 | 108 | 27 | 771 |
+| All | 478 | 126 | 36 | 108 | 27 | 775 |
 
 ## How the labels were given
 
@@ -1242,6 +1242,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | IF16 | B | T2 | L0 | field_dispersal.OORT_A_KMS_KPC 15.0 km/s/kpc, with SHEAR_VALID_YEARS 2.6e7: the galactic shear of the field along the orbit, 2 A x t for an offset x, applied to the bodies of a field only while the epicyclic approximation holds | A 14 to 16 | a field under about 26 Myr (a field retires at about 30 kyr at 10 km/s, 3 Myr at 0.1 km/s, so the shear is rarely above 0.3 pc) | a field older than 26 Myr that is still inside 1 ly | the epicyclic orbit of each body | Oort constant A from the Hipparcos and Gaia rotation curve (recalled, not opened) | GEN.1105 | - |
 | IF17 | P | T6 | L0 | field_dispersal.DEFAULT_DENSITY_KG_M3 3000: the bulk density of a rocky piece, used for the freeze-out radius sqrt(3 M / (2 pi rho D)) at which a column of pieces of diameter D stops colliding (one collision per piece when the optical depth is 1) | 1000 to 8000 | rocky pieces, mass M spread over a disc, optical depth of 1 | a measured collision time of a debris cloud outside a factor of 3 of the formula | an N-body run of a cloud | derived here from the optical depth | GEN.1105 | - |
 | IF18 | P | T6 | L1 | the rms radius of a field as sqrt(R0^2 + (v t)^2) (quadrature of the initial size and the ballistic spread), the velocity of a body a normal draw of dispersion v / sqrt(3) per component for a ball, and for the ring of a supernova belt the tangential speed at the body's azimuth with the speed at infinity sqrt(G (M0 - 2 M_rem) / a); bodies are a pure function of (seed, rank, age) | none | ballistic bodies, no gas, collisions ignored after freeze-out | an N-body run of an unbound belt whose rms radius leaves the formula by more than 20 percent in 30 kyr | an N-body run of the unbound belt | derived here (Maxwellian ball, ring after the half-mass rule of row IF10) | - | - |
+
+## 6.106 Stand-ins of the field rates
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IF19 | D | T2 | L0 | field_rates.GALAXY_CORE_COLLAPSE_RATE_PER_YEAR 0.02: core-collapse supernovae in the Galaxy per year, 2 per century | 1 to 3 per century | the present Galaxy; scaled by the star formation history for other epochs | a supernova rate measured outside 1 to 3 per century | the rate from the star formation history of the galaxy model (`galaxy/disk_history.py`) | Diehl et al. 2006 (26Al, 1.9 +/- 1.1 per century; recalled, not opened) | GEN.1104 | - |
+| IF20 | P | T2 | L1 | field_rates.TRUNCATION_FRACTION 0.3: a flyby of periastron q truncates a disc at about 0.3 q, so a belt of radius a is stripped by q under a / 0.3, with the focusing 1 + 2 G M / (q v^2) of the pair | 0.28 to 0.35, mass ratio dependence ignored | equal-mass stellar flybys, coplanar and prograde worst case | an N-body flyby that truncates a disc at under 0.2 q or over 0.4 q | the fit of Breslau et al. 2014 with its mass-ratio term | Holman and Wiegert 1999 and Breslau et al. 2014 (recalled, not opened) | GEN.1104 | - |
+| IF21 | D | T3 | L1 | field_rates.CLUSTER_BELT_SHARE 0.32: the share of the stars of a young cluster that hold a debris belt, the overall 32 +/- 5 percent of the A-star sample of row IF9 used for stars of every mass | 0.2 to 0.4 | A stars used as stand-ins for solar-type stars | a Herschel or Spitzer sample of solar-type stars of a young cluster outside 0.2 to 0.4 | the debris fractions of solar-type stars by age (Herschel DEBRIS) | Su et al. 2006 (READ, see IF9) | GEN.1104 | - |
+| IF22 | P | T6 | L1 | a stripped swarm spreads at the orbital speed sqrt(G M / a) it had round its star (4.2 km/s for 50 AU round the Sun-mass star) from the belt radius, so it is a field for the time it needs to pass the retirement radius (70 kyr); the stripping rate is n pi q^2 (1 + focusing) v and the standing swarms are the stripping rate times that life | none | belts on circular orbits, stripped whole | an N-body flyby of a belt whose bodies disperse at under half or over twice the orbital speed | an N-body flyby run | derived here (Breslau et al. 2014 give the truncation, not the bodies' velocities) | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 
