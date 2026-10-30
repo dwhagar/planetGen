@@ -39,7 +39,7 @@ import zlib
 import pymysql
 
 from planetgen.db.store import (
-    STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, body_class_scores, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
 from planetgen.db import compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns
@@ -169,13 +169,19 @@ def refresh_sector_system_counts(conn):
     return cur.rowcount
 
 
-def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, quadrants=()):
+def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, quadrants=(), after=None):
     """
     Returns every sector, with its edge length (converted to light-years)
     and how many systems it contains (as of the last refresh of
     `sector_system_counts`, `refresh_sector_system_counts`), nearest the galactic core first
     (`galactic_radius_pc`); sectors never placed in a galaxy have no
     distance and come last, by name.
+
+    The default order and the `distance` and `name` sorts are read by key (PERF.137): the placed sectors by an index
+    walk of `galactic_radius_pc` and the unplaced ones, after them, by the name index, so the first page and the last
+    cost the same on a galaxy of a million sectors (a sort of the whole table took 1 to 8 s). Sectors at the same
+    distance follow the sort's direction by id. The other sorts compute their key from the counts and still need the
+    whole table sorted.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -190,6 +196,9 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         descending (bool): Reverse `sort`.
         quadrants (iterable[str]): Keep only sectors in these Quadrants
             (`SECTOR_QUADRANTS`, or `"unplaced"`).
+        after (int, optional): The row id of the sector the previous page ended on. With the default order or the
+            `name` or `distance` sort (and a `limit`) the page starts after that sector and `offset` is ignored;
+            the other sorts ignore it.
 
     Returns:
         list[dict]: One row per sector, with `id`, `name`,
@@ -199,26 +208,16 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
     """
     if sort is not None and sort not in SECTOR_SORTS:
         raise ValueError(f"unknown sector sort {sort!r}")
-    where, params = _sector_quadrant_filter(quadrants)
-    order = "sec.galactic_radius_pc IS NULL, sec.galactic_radius_pc, sec.name, sec.id"
-    if sort is not None:
+    _counted(conn, ["sector_system_counts"], refresh_sector_system_counts, lambda c: 0)
+    if sort in (None, "name", "distance"):
+        rows = _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after)
+    else:
+        where, params = _sector_quadrant_filter(quadrants)
         column = SECTOR_SORTS[sort]
         unplaced_last = "sec.center_x_pc IS NULL, " if sort in ("density", "distance", "position") else ""
-        order = f"{unplaced_last}{column} {'DESC' if descending else 'ASC'}, " + order
-    _counted(conn, ["sector_system_counts"], refresh_sector_system_counts, lambda c: 0)
-    query = f"""
-        SELECT sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.shell_index, sec.band_index, sec.wedge_index,
-               COALESCE(c.system_count, 0) AS system_count, {_SECTOR_QUADRANT_SQL} AS quadrant
-        FROM sectors sec
-        LEFT JOIN sector_system_counts c ON c.sector_id = sec.id{where}
-        ORDER BY {order}
-        """
-    if limit is not None:
-        query += " LIMIT ? OFFSET ?"
-        params.extend([limit, offset or 0])
-
-    rows = conn.execute(query, params).fetchall()
+        order = (f"{unplaced_last}{column} {'DESC' if descending else 'ASC'}, "
+                 "sec.galactic_radius_pc IS NULL, sec.galactic_radius_pc, sec.name, sec.id")
+        rows = _read_sectors(conn, where, params, order, limit, offset or 0)
     return [
         {
             "id": r["id"], "name": r["name"], "edge_mpc": r["edge_mpc"], "edge_ly": milliparsecs_to_ly(r["edge_mpc"]),
@@ -234,6 +233,72 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         }
         for r in rows
     ]
+
+
+def _read_sectors(conn, where, params, order, limit, offset):
+    """The rows of `list_sectors` for `where` (empty or ` WHERE ...`, with its `params`) in `order`."""
+    query = f"""
+        SELECT sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
+               sec.galactic_radius_pc, sec.shell_index, sec.band_index, sec.wedge_index,
+               COALESCE(c.system_count, 0) AS system_count, {_SECTOR_QUADRANT_SQL} AS quadrant
+        FROM sectors sec
+        LEFT JOIN sector_system_counts c ON c.sector_id = sec.id{where}
+        ORDER BY {order}
+        """
+    params = list(params)
+    if limit is not None:
+        query += " LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
+    return conn.execute(query, params).fetchall()
+
+
+def _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after):
+    """
+    The rows of `list_sectors` in the default order or the `name` or `distance` sort, each walk in the order an index
+    serves (PERF.137). The `name` sort is one walk of `idx_sectors_name`. The others are two: the placed sectors by
+    `idx_sectors_galactic_radius_pc` (backward for a descending `distance`), then the unplaced ones by name. `after`
+    starts the page after that sector instead of skipping `offset` rows.
+    """
+    wanted = set(quadrants)
+    backward = descending and sort in ("name", "distance")
+    walks = [("all", None, "sec.name", descending)] if sort == "name" else []
+    if sort != "name":
+        if not wanted or wanted - {"unplaced"}:
+            walks.append(("placed", "sec.galactic_radius_pc IS NOT NULL", "sec.galactic_radius_pc", backward))
+        if not wanted or "unplaced" in wanted:
+            walks.append(("unplaced", "sec.galactic_radius_pc IS NULL", "sec.name", False))
+    where_quadrant, quadrant_params = _sector_quadrant_filter(quadrants)
+    start = None
+    if after is not None and limit is not None:
+        start = conn.execute("SELECT name, galactic_radius_pc FROM sectors WHERE id = ?", (after,)).fetchone()
+    skip = 0 if start is not None else offset or 0
+    rows = []
+    for phase, phase_condition, column, walk_backward in walks:
+        conditions = [phase_condition] if phase_condition else []
+        if where_quadrant:
+            conditions.append(where_quadrant.removeprefix(" WHERE "))
+        params = list(quadrant_params)
+        placed_start = start is not None and start["galactic_radius_pc"] is not None
+        if start is not None and not (phase == "unplaced" and placed_start):
+            if phase == "placed" and not placed_start:
+                continue        # the page began among the unplaced sectors: every placed one is behind it
+            key = start["galactic_radius_pc"] if phase == "placed" else start["name"]
+            condition, keyset_params = _keyset_condition([column], [key], walk_backward, "sec.id", after)
+            conditions.append(condition)
+            params += keyset_params
+        where = " WHERE " + " AND ".join(conditions) if conditions else ""
+        direction = "DESC" if walk_backward else "ASC"
+        want = None if limit is None else limit - len(rows)
+        page = _read_sectors(conn, where, params, f"{column} {direction}, sec.id {direction}", want, skip)
+        rows.extend(page)
+        if want is not None and len(page) >= want:
+            break
+        if skip and not page:       # the offset lies past this walk: what is left of it counts in the next
+            counted = conn.execute(f"SELECT COUNT(*) AS n FROM sectors sec{where}", params).fetchone()["n"]
+            skip = max(0, skip - counted)
+        else:
+            skip = 0
+    return rows
 
 
 COUNT_FALLBACK_CAP = 10001
@@ -3367,10 +3432,13 @@ def system_detail(conn, system_id):
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
     ).fetchall(), False)
     colonized = colonized_body_ids(conn, system_id)
-    moons_by_planet = {}
-    for moon in with_gases(conn, conn.execute(
+    moon_rows = with_gases(conn, conn.execute(
         "SELECT * FROM moons WHERE star_system_id = ? ORDER BY planet_id, orbital_index", (system_id,)
-    ).fetchall(), True):
+    ).fetchall(), True)
+    planet_scores = body_class_scores(conn, [planet["id"] for planet in planet_rows], False)
+    moon_scores = body_class_scores(conn, [moon["id"] for moon in moon_rows], True)
+    moons_by_planet = {}
+    for moon in moon_rows:
         moons_by_planet.setdefault(moon["planet_id"], []).append(moon)
     planets = []
     hosts = {}  # one lookup per host star, not per planet
@@ -3378,8 +3446,8 @@ def system_detail(conn, system_id):
         if planet["star_id"] not in hosts:
             hosts[planet["star_id"]] = compact_host_of_star(conn, planet["star_id"])
         host = hosts[planet["star_id"]]
-        planet_dict = _with_life_fields(_with_printed_uid(planet), colonized["planets"], host)
-        planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), colonized["moons"], host)
+        planet_dict = _with_life_fields(_with_printed_uid(planet), colonized["planets"], host, planet_scores.get(planet["id"]))
+        planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), colonized["moons"], host, moon_scores.get(m["id"]))
                                 for m in moons_by_planet.get(planet["id"], [])]
         planets.append(planet_dict)
 
@@ -3443,7 +3511,7 @@ def system_detail(conn, system_id):
     }
 
 
-def _with_life_fields(body, colonized=(), compact_host=None):
+def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None):
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
     row dict: `habitable` (its overall PHI-6 colour is Blue or Green, `habitability.is_habitable`, the same test
@@ -3454,8 +3522,12 @@ def _with_life_fields(body, colonized=(), compact_host=None):
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
     it: `colonized` is that table's ids from `colonized_body_ids`, schema
-    v42).
+    v42), `life_class_id` (the class that lives on it as one id such as `"1a"`, or `None`) and `life_class_scores`
+    (`{class id: score 1 to 9}` for every class it supports, from `class_scores`, the body's
+    `planet_life_class_scores` or `moon_life_class_scores` rows; empty when it supports none, API.37).
     """
+    body["life_class_id"] = life_classes.class_id(body.get("life_class"), body.get("life_class_variant"))
+    body["life_class_scores"] = dict(sorted((class_scores or {}).items()))
     body["habitable_class"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
     body["habitable"] = habitability.is_habitable(body.get("phi4"))
     body["life_stage"] = body["life_stage"] if body["habitable_class"] else None
@@ -4881,7 +4953,7 @@ def galaxy_system_interests_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
     """
     The star systems worth a mark on the map (a habitable world, a gas giant: `interests.REASONS`) whose position lies in the box
     `[lo, hi)` (MAP.305), at most `limit`, those with the most bodies behind their reasons first (ties by id), read from
-    `system_interests` by its position key. The class reasons (`interests.CLASS_REASONS`) are not read here, `galaxy_class_interests_in_box` does.
+    `system_interests` by its position key. The planet and life class reasons (`interests.PER_CLASS_PREFIXES`) are not read here, `galaxy_class_interests_in_box` does.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -4900,19 +4972,21 @@ def galaxy_system_interests_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
         FROM system_interests i FORCE INDEX (idx_system_interests_position)
         WHERE i.galaxy_x_pc >= ? AND i.galaxy_x_pc < ? AND i.galaxy_y_pc >= ? AND i.galaxy_y_pc < ?
           AND i.galaxy_z_pc >= ? AND i.galaxy_z_pc < ?
-          AND i.reason NOT LIKE ?
+          AND i.reason NOT LIKE ? AND i.reason NOT LIKE ?
         ORDER BY i.n DESC, i.star_system_id, i.reason
         LIMIT ?
         """,
-        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], interests.CLASS_PREFIX + "%", max(0, int(limit)) * len(interests.BASE_REASONS)),
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], *(prefix + "%" for prefix in interests.PER_CLASS_PREFIXES),
+         max(0, int(limit)) * len(interests.BASE_REASONS)),
     ).fetchall()
     return _interest_systems(conn, rows, limit)
 
 
 def galaxy_class_interests_in_box(conn, lo, hi, per_class):
     """
-    The star systems with a planet or moon of each planet class (the `class-` reasons of `interests.REASONS`, MAP.220) whose position lies
-    in the box `[lo, hi)`: for each class at most `per_class` systems, those with the most bodies of it first (ties by id). The base
+    The star systems with a planet or moon of each planet class and with each life class living on one (the `class-` and `lifeclass-` reasons of
+    `interests.REASONS`, MAP.220, MAP.351) whose position lies in the box `[lo, hi)`: for each class at most `per_class` systems, those with
+    the most bodies of it first (ties by id). The base
     reasons are `galaxy_system_interests_in_box`'s; a system is listed here with only its class reasons.
 
     Args:
@@ -4922,7 +4996,7 @@ def galaxy_class_interests_in_box(conn, lo, hi, per_class):
         per_class (int): The most systems listed for one class.
 
     Returns:
-        list[dict]: As `galaxy_system_interests_in_box`, with only `class-` reasons in `reasons`.
+        list[dict]: As `galaxy_system_interests_in_box`, with only class reasons (`class-` and `lifeclass-`) in `reasons`.
     """
     if int(per_class) <= 0:
         return []
@@ -4933,11 +5007,11 @@ def galaxy_class_interests_in_box(conn, lo, hi, per_class):
                    ROW_NUMBER() OVER (PARTITION BY i.reason ORDER BY i.n DESC, i.star_system_id) AS rk
             FROM system_interests i FORCE INDEX (idx_system_interests_position)
             WHERE i.galaxy_x_pc >= ? AND i.galaxy_x_pc < ? AND i.galaxy_y_pc >= ? AND i.galaxy_y_pc < ?
-              AND i.galaxy_z_pc >= ? AND i.galaxy_z_pc < ? AND i.reason LIKE ?
+              AND i.galaxy_z_pc >= ? AND i.galaxy_z_pc < ? AND (i.reason LIKE ? OR i.reason LIKE ?)
         ) ranked WHERE rk <= ?
         ORDER BY n DESC, star_system_id, reason
         """,
-        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], interests.CLASS_PREFIX + "%", int(per_class)),
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], *(prefix + "%" for prefix in interests.PER_CLASS_PREFIXES), int(per_class)),
     ).fetchall()
     return _interest_systems(conn, rows, None)
 
@@ -6111,7 +6185,11 @@ def _life_class_clause(alias, class_ids, clauses, params):
     """Adds the filter on the life classes `class_ids` (ids such as `"1a"`, `"6"`) of the table `alias`."""
     if not class_ids:
         return
-    pairs = sorted((int(class_id[:1]), class_id[1:]) for class_id in class_ids)
+    known = [class_id for class_id in class_ids if class_id in life_classes.BY_ID]   # a stray value matches nothing
+    if not known:
+        clauses.append("1 = 0")
+        return
+    pairs = sorted((int(class_id[:1]), class_id[1:]) for class_id in known)
     clauses.append(f"({alias}.life_class, COALESCE({alias}.life_class_variant, '')) IN ({','.join('(?, ?)' for _ in pairs)})")
     for number, variant in pairs:
         params.extend((number, variant))
@@ -6141,7 +6219,15 @@ def _score_options(conn, table, facet):
     """UX.214: the ticks of one score filter facet (`score_filters.FACETS`) with how many bodies of `table` each holds
     for; the ones none hold for are left out."""
     ticks = score_filters.FACETS[facet][1]
-    row = conn.execute(f"SELECT {score_filters.counts_select(facet, 't')} FROM {table} t WHERE t.phi4 IS NOT NULL").fetchone()
+    kind = table[:-1]
+    if facet == "supports":
+        found = {(row["life_class"], least): int(row[f"t{least}"]) for row in conn.execute(
+            score_filters.supports_counts_sql(kind)).fetchall() for least, _word in score_filters.SUPPORTS_LEVELS}
+        return [{"value": value, "label": label, "count": found[tuple_], "tooltip": label}
+                for value, label, _sql in ticks
+                for tuple_ in [(value.split(":")[0], int(value.split(":")[1]))] if found.get(tuple_)]
+    row = conn.execute(
+        f"SELECT {score_filters.counts_select(facet, 't', kind)} FROM {table} t WHERE t.phi4 IS NOT NULL").fetchone()
     return [{"value": value, "label": label, "count": int(row[f"t{i}"]), "tooltip": label}
             for i, (value, label, _sql) in enumerate(ticks) if row[f"t{i}"]]
 
@@ -6155,10 +6241,11 @@ def _score_facet_defs(conn):
 def _score_clauses(alias, tags, prefix, clauses):
     """Adds one condition for each score filter facet ticked (`score_filters.condition`; a stray value is dropped, which
     leaves a facet of only strays matching nothing). `prefix` is `""` for planets and `"moon_"` for moons."""
+    kind = "moon" if prefix else "planet"
     for facet in score_filters.FACETS:
         selected = tags.get(f"{prefix}{facet}", set())
         if selected:
-            clauses.append(score_filters.condition(facet, alias, selected) or "1 = 0")
+            clauses.append(score_filters.condition(facet, alias, selected, kind) or "1 = 0")
 
 
 def _score_order(alias, sort, default):

@@ -55,7 +55,7 @@ class FakePopulation:
         return dict(self.status)
 
     def get_species_list(self, db, spacefaring=None, limit=None, offset=None, sort=None, descending=False,
-                         eras=(), facets=False):
+                         eras=(), facets=False, after=None):
         self.calls.append(("species", spacefaring))
         self.asked.append(("species", sort, descending, list(eras)))
         items = [SPECIES] if spacefaring in (None, True) and (not eras or SPECIES["era"] in eras) else []

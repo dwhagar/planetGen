@@ -18,7 +18,7 @@ from planetgen.db import store
 OLD_SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "old_schemas")
 
 ROWS_BEFORE = (
-    (176, ("UPDATE planets SET hydrosphere = 'surface ocean' WHERE hydrosphere = 'brine seep'",
+    (178, ("UPDATE planets SET hydrosphere = 'surface ocean' WHERE hydrosphere = 'brine seep'",
            "UPDATE moons SET hydrosphere = 'surface ocean' WHERE hydrosphere = 'brine seep'")),
 )
 """tuple: `(version, statements)`: what a row must hold to be kept in a schema older than `version`, when the migration of `version`

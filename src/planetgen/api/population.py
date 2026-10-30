@@ -70,7 +70,8 @@ def species_list():
     `GET /api/species` -- a page of species; `?spacefaring=` filters to
     (non-)spacefaring ones. The Species table (UX.41) also takes `sort`
     (`name` -- the default --, `homeworld`, `system`, `era`, `spacefaring`,
-    `polity`) with `order=asc|desc`, the repeatable filter `era`, and
+    `polity`) with `order=asc|desc`, `after=<species id>` to start the page after that species in the same order
+    (PERF.205: any page costs the same, and `offset` is ignored), the repeatable filter `era`, and
     `facets=1` for the option counts of its two menus (`facets`:
     `spacefaring` `yes`/`no`, `era`). `total` counts what passes the filters.
     Tech (POP.9): each species carries its six indices, `tech_level`,
@@ -84,10 +85,16 @@ def species_list():
     eras = [v for v in request.args.getlist("era") if v]
     ranges = _tech_ranges(request.args)
     limit, offset = _paginate(request.args)
+    after = None
+    if request.args.get("after"):
+        try:
+            after = int(request.args["after"])
+        except ValueError:
+            raise ApiError(f"after must be a species id, got {request.args['after']!r}") from None
     db = get_db()
     body = {
         "items": model.list_species(db, spacefaring=spacefaring, limit=limit, offset=offset, sort=sort,
-                                    descending=descending, eras=eras, tech_ranges=ranges),
+                                    descending=descending, eras=eras, tech_ranges=ranges, after=after),
         "total": model.count_species(db, spacefaring=spacefaring, eras=eras, tech_ranges=ranges),
         "limit": limit,
         "offset": offset,

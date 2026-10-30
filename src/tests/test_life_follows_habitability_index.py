@@ -44,6 +44,24 @@ def _description_and_life_text(planet):
     return render_support.prose_text(describe_build._planet_section(planet))
 
 
+def test_a_star_too_young_for_a_crust_and_oceans_has_no_life_anywhere(host_star, monkeypatch):
+    """GEN.997: the class letter no longer bars the young star's worlds, so the life pass does: under `LIFE_MIN_STAR_AGE_GY` no body holds a class,
+    though the same world around an old star does."""
+    for seed in range(60):
+        planet = _planet(host_star, seed)
+        planetLife.apply_life_data(planet)
+        if planet.life_class is not None:
+            break
+    else:
+        pytest.skip("no world of the first 60 seeds is alive around this star")
+    monkeypatch.setattr(host_star, "age", tuning.LIFE_MIN_STAR_AGE_GY * 0.5)
+    planetLife.apply_life_data(planet)
+    assert planet.life_class is None and not planet.has_timeline
+    for moon in planet.moons:
+        planetLife.apply_life_data(moon)
+        assert moon.life_class is None
+
+
 @pytest.mark.parametrize("seed", ECOSPHERE_SEEDS)
 def test_a_world_no_class_supports_makes_no_claim_of_life(host_star, seed, monkeypatch):
     monkeypatch.setattr(planetLife.life_classes, "score_classes", lambda *args, **kwargs: {})

@@ -35,6 +35,21 @@ _EARTH_KG = constants.EARTH_MASS_TO_KG
 _BROWN_DWARF_LIMIT_KG = mass_boundaries.kg("deuterium_burning_limit")
 
 
+def solids_surface_density_gcm2(distance_au, star_mass_kg, snow_line_au, metal_ratio=1.0, scatter=1.0, enhancement=None):
+    """
+    The disc's solid surface density at `distance_au`, in g/cm^2: the minimum-mass nebula scaled for the star's mass
+    (`PLANET_SOLIDS_STELLAR_MASS_EXPONENT`), its [Fe/H] (`metal_ratio`) and `PLANET_DISC_SOLIDS_ENHANCEMENT`, boosted beyond
+    the snow line and steeper inside 1 AU (`PLANET_INNER_DISC_STEEPENING`); `scatter` multiplies it (a disc heavier or lighter than
+    the median of its star's mass, 1 for the median); `enhancement` replaces `PLANET_DISC_SOLIDS_ENHANCEMENT` when given.
+    """
+    solar_masses = star_mass_kg / constants.SOLAR_MASS_TO_KG
+    scale = solar_masses ** tuning.PLANET_SOLIDS_STELLAR_MASS_EXPONENT * metal_ratio * (tuning.PLANET_DISC_SOLIDS_ENHANCEMENT if enhancement is None else enhancement) * scatter
+    density = formation.mmsn_surface_density_gcm2(distance_au, snow_line_au, scale)
+    if distance_au < 1.0:
+        density *= distance_au ** -tuning.PLANET_INNER_DISC_STEEPENING
+    return density
+
+
 def assembled_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio=1.0, stream=None):
     """
     The mass of the planet the disc's solids build at `distance_au` before any gas runaway: the isolation mass times the
@@ -51,11 +66,7 @@ def assembled_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio=1.0, 
         float: The assembled solid mass, in kilograms.
     """
     source = stream or draw
-    solar_masses = star_mass_kg / constants.SOLAR_MASS_TO_KG
-    scale = solar_masses ** tuning.PLANET_SOLIDS_STELLAR_MASS_EXPONENT * metal_ratio * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
-    density = formation.mmsn_surface_density_gcm2(distance_au, snow_line_au, scale)
-    if distance_au < 1.0:
-        density *= distance_au ** -tuning.PLANET_INNER_DISC_STEEPENING
+    density = solids_surface_density_gcm2(distance_au, star_mass_kg, snow_line_au, metal_ratio)
     isolation = formation.isolation_mass_kg(distance_au, density, star_mass_kg)
     scatter = 10.0 ** (tuning.PLANET_ASSEMBLY_SCATTER_DEX * source.gauss(0.0, 1.0))
     mass = isolation * scatter / tuning.GIANT_IMPACT_SURVIVAL_FRACTION
@@ -102,11 +113,26 @@ def planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_ratio=1
     """
     source = stream or draw
     core = assembled_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, source)
+    return gas_outcome(core, distance_au, star_mass_kg, snow_line_au, fe_h, source)
+
+
+def gas_outcome(core_kg, distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stream=None, share=None, cut_au=None):
+    """
+    What a solid core of `core_kg` formed at `distance_au` becomes: a gas giant when it reaches the critical mass beyond the snow
+    line and finds gas left (one draw, then the runaway mass), else a solid or ice-giant core pressed under its cap. Draws, only
+    for a core past the critical mass beyond the snow line, the gas-survival draw and then the runaway mass. `share` and `cut_au`
+    replace `GIANT_GAS_SURVIVAL_SHARE` and `GIANT_GAS_SURVIVAL_CUT_AU` when given.
+
+    Returns:
+        PlanetMass: The mass, the core it grew from and whether it ran away.
+    """
+    source = stream or draw
+    core = core_kg
     critical = tuning.GIANT_CORE_CRITICAL_MASS_EARTH * _EARTH_KG
     if distance_au >= snow_line_au and core >= critical:
-        share = tuning.GIANT_GAS_SURVIVAL_SHARE * metallicity.giant_occurrence_factor(fe_h)
-        share *= min(1.0, (tuning.GIANT_GAS_SURVIVAL_CUT_AU / distance_au) ** 2)
-        if source.random() < share:
+        found = (tuning.GIANT_GAS_SURVIVAL_SHARE if share is None else share) * metallicity.giant_occurrence_factor(fe_h)
+        found *= min(1.0, ((tuning.GIANT_GAS_SURVIVAL_CUT_AU if cut_au is None else cut_au) / distance_au) ** 2)
+        if source.random() < found:
             return PlanetMass(max(runaway_mass_kg(star_mass_kg, source), core), core, True)
     cap = tuning.GIANT_NO_GAS_CORE_MAX_EARTH if distance_au >= snow_line_au else tuning.PLANET_INNER_CORE_MAX_EARTH
     core = saturate_kg(core, cap * _EARTH_KG)

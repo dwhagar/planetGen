@@ -2213,6 +2213,15 @@ a.btn.btn-secondary.btn-active:visited {
   color: var(--text-muted);
 }
 
+/* UX.237: the class of the life that lives on a body, after its four scores. */
+.hab-life-class {
+  font-size: 0.75em;
+  line-height: 1;
+  padding: 0.1em 0.35em;
+  border: 1px solid currentColor;
+  border-radius: 0.6em;
+}
+
 /* UX.181: a symbol, life score or chip that opens its section of the habitability page. The link adds nothing to
    the shape's own look (no underline, no link colour); a hover or keyboard focus rings it. */
 a.help-link,
@@ -5615,7 +5624,8 @@ p.hint a {
   border-bottom: 1px solid var(--border);
 }
 
-.sheet-group > summary h3 {
+.sheet-group > summary h3,
+.sheet-group > summary h4 {
   display: inline;
   font-size: 1rem;
   margin: 0;
@@ -5623,6 +5633,19 @@ p.hint a {
 
 .sheet-table {
   margin: 0.25rem 0 0.5rem;
+}
+
+/* UX.237: the four lines of what a life class drinks, eats, breathes and gives off. */
+.life-class-lines {
+  margin: 0.5rem 0;
+}
+
+.life-class-lines dt {
+  font-weight: 600;
+}
+
+.life-class-lines dd {
+  margin: 0 0 0.4rem;
 }
 
 .sheet-missing {
@@ -5715,7 +5738,7 @@ p.hint a {
 }
 
 @media (min-width: 64rem) {
-  .app .app-main.has-page-toc {
+  .app .app-main.has-page-toc:not(.toc-top) {
     display: grid;
     grid-template-columns: 13.5rem minmax(0, 1fr);
     column-gap: 1.5rem;
@@ -5723,12 +5746,12 @@ p.hint a {
     max-width: 84rem;
   }
 
-  .app .app-main.has-page-toc > * {
+  .app .app-main.has-page-toc:not(.toc-top) > * {
     grid-column: 2;
     min-width: 0;
   }
 
-  .app .app-main.has-page-toc > .page-toc {
+  .app .app-main.has-page-toc:not(.toc-top) > .page-toc {
     grid-column: 1;
     grid-row: 1 / span 60;
     position: sticky;
@@ -5752,6 +5775,69 @@ p.hint a {
     display: block;
     padding: 0.15rem 0;
   }
+}
+
+/* UX.238: on the pages of one object (class `toc-top` on <main>) the contents list is a single row of links under the tab bar, at
+   every width, and stays there as the page scrolls; a long row scrolls sideways. The link of the section in view is marked
+   (aria-current="location", pagetoc.js). pagetoc.js sets --site-header-height and --page-toc-height so a jump leaves the heading
+   below both bars. */
+.app .app-main.toc-top [id] {
+  scroll-margin-top: calc(var(--site-header-height, 3.5rem) + var(--page-toc-height, 2.5rem) + 0.5rem);
+}
+
+.app-main.toc-top > .page-toc {
+  position: sticky;
+  top: var(--site-header-height, 3.5rem);
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0 0 1rem;
+  padding: 0.3rem 0.5rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  background: var(--bg-elevated);
+}
+
+.app-main.toc-top > .page-toc .page-toc-title {
+  flex: none;
+  margin: 0 0.4rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.app-main.toc-top > .page-toc ul,
+.app-main.toc-top > .page-toc li,
+.app-main.toc-top > .page-toc li ul {
+  display: contents;
+}
+
+.app-main.toc-top > .page-toc a {
+  flex: none;
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.app-main.toc-top > .page-toc li li > a {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.app-main.toc-top > .page-toc a:hover,
+.app-main.toc-top > .page-toc a:focus-visible {
+  background: var(--bg-subtle);
+  text-decoration: underline;
+}
+
+.app-main.toc-top > .page-toc a[aria-current="location"] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
 }
 
 /* UX.215: the Location row of the at-a-glance table: the places above the object, then the cloud it sits inside. */

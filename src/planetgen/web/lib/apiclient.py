@@ -408,12 +408,13 @@ def list_databases():
     return _request("/databases")["items"]
 
 
-def get_sectors(db, limit=None, offset=None, sort=None, descending=False, quadrants=(), facets=False):
+def get_sectors(db, limit=None, offset=None, sort=None, descending=False, quadrants=(), facets=False, after=None):
     """Returns `GET /api/sectors`'s full paginated envelope
     (`items`/`total`/`limit`/`offset`, plus `facets` when asked). `sort`,
-    `quadrants` and `facets` are the Sectors table's sort and filter (UX.41)."""
+    `quadrants` and `facets` are the Sectors table's sort and filter (UX.41); `after` is the sector ID the previous
+    page ended on (PERF.137)."""
     _require_db(db)
-    params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
+    params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("sort", sort),
               ("order", "desc" if descending else None)]
     params += [("quadrant", value) for value in quadrants] + [("facets", "1" if facets else None)]
     return _request("/sectors", [(key, value) for key, value in params if value is not None])
@@ -711,15 +712,15 @@ def get_polity(db, polity_id, limit=None, offset=None, sort=None, descending=Fal
 
 
 def get_species_list(db, spacefaring=None, limit=None, offset=None, sort=None, descending=False, eras=(),
-                     facets=False, tech_ranges=None):
+                     facets=False, tech_ranges=None, after=None):
     """Returns `GET /api/species`' paginated envelope, species by name unless
     `sort`ed; `spacefaring` (`True`/`False`) and `eras` filter, `None` lists
     every one (the Species table, UX.41). `tech_ranges` maps a range name
     (`tech` or a domain such as `energy`) to `(low, high)`, either end
-    `None` for open (POP.9)."""
+    `None` for open (POP.9). `after` is the id of the species the previous page ended on (PERF.205)."""
     _require_db(db)
     flag = None if spacefaring is None else ("1" if spacefaring else "0")
-    params = [("db", db), ("spacefaring", flag), ("limit", limit), ("offset", offset), ("sort", sort),
+    params = [("db", db), ("spacefaring", flag), ("limit", limit), ("offset", offset), ("after", after), ("sort", sort),
               ("order", "desc" if descending else None)]
     params += [("era", value) for value in eras] + [("facets", "1" if facets else None)]
     for name, (low, high) in (tech_ranges or {}).items():

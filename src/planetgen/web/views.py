@@ -44,9 +44,9 @@ def _sector_row(sector):
     ]
 
 
-def _sectors_load(state, limit, offset, want_facets):
+def _sectors_load(state, limit, offset, want_facets, after=None):
     envelope = apiclient.get_sectors(
-        db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
+        db_name(), limit=limit, offset=offset, after=after, sort=state.sort, descending=state.descending,
         quadrants=state.filters["quadrant"], facets=want_facets)
     facets = None
     if want_facets:
@@ -54,8 +54,9 @@ def _sectors_load(state, limit, offset, want_facets):
             {"value": option["value"],
              "label": "Unplaced" if option["value"] == "unplaced" else f"Quadrant {option['value']}",
              "count": option["count"]} for option in envelope["facets"]["quadrant"]]}
-    return Result([_sector_row(sector) for sector in envelope["items"]], envelope["total"], facets,
-                  envelope.get("total_capped", False))
+    items = envelope["items"]
+    return Result([_sector_row(sector) for sector in items], envelope["total"], facets,
+                  envelope.get("total_capped", False), items[-1]["id"] if items else None)
 
 
 SECTORS_TABLE = tables.register(Table(
@@ -63,7 +64,7 @@ SECTORS_TABLE = tables.register(Table(
     [Column("name", "Name"), Column("systems", "Systems"), Column("density", "Density"),
      Column("position", "Galaxy Position"), Column("distance", "Distance from core")],
     _sectors_load, facets=[Facet("quadrant", "Quadrant")], prefix="sectors_", default_sort="distance",
-    noun=("sector", "sectors"),
+    noun=("sector", "sectors"), keyset=True,
 ))
 
 _BINARY_LABELS = {"yes": "Binary", "no": "Single star"}

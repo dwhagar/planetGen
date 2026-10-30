@@ -14,7 +14,8 @@ import zipfile
 
 import numpy as np
 
-from planetgen.datasets import catalogue, fetch, hitran_cia, ir_ktables, isochrones, neutron_star_matter, ozone_uv, white_dwarf_models
+from planetgen.datasets import (baraffe_isochrones, catalogue, fetch, harris_clusters, hitran_cia, ir_ktables, isochrones, neutron_star_matter,
+                                noaa_proton_events, ozone_uv, white_dwarf_models)
 from tests import ir_datasets_support
 
 
@@ -36,7 +37,8 @@ def reset_caches(cache_folder, monkeypatch):
     fetch._VERIFIED.clear()
     isochrones.forget()
     for loader in (isochrones._load, white_dwarf_models._load, neutron_star_matter._load_compositions,
-                   neutron_star_matter._load_eos, ozone_uv._load, ir_ktables.load, hitran_cia.load):
+                   neutron_star_matter._load_eos, ozone_uv._load, ir_ktables.load, hitran_cia.load, harris_clusters._load,
+                   noaa_proton_events._load, baraffe_isochrones._load):
         loader.cache_clear()
 
 
@@ -206,9 +208,109 @@ def install_neutron_stars(monkeypatch):
     return install(monkeypatch, neutron_star_matter, neutron_star_matter.DATASET, payloads)
 
 
+# ---- Harris, NOAA proton events, Baraffe ----
+
+HARRIS_TEXT = """\
+            Part I:  Identifications and Positional Data
+
+   ID        Name           RA   (2000)   DEC         L       B     R_Sun  R_gc    X     Y     Z
+
+ NGC 104    47 Tuc       00 24 05.67  -72 04 52.6   305.89  -44.89    4.5   7.4   1.9  -2.6  -3.1
+ NGC 362                 01 03 14.26  -70 50 55.6   301.53  -46.25    8.6   9.4   3.1  -5.1  -6.2
+ Whiting 1               02 02 57     -03 15 10     161.22  -60.76   30.1  34.5 -13.9   4.7 -26.3
+
+_________________________________________________________________________________________________
+
+
+                    Part II:  Metallicity and Photometry
+
+   ID       [Fe/H] wt  E(B-V) V_HB (m-M)V V_t   M_V,t   U-B   B-V   V-R   V-I  spt   ellip
+
+ NGC 104     -0.72 10   0.04 14.06 13.37  3.95  -9.42   0.37  0.88  0.53  1.14  G4    0.09
+ NGC 362     -1.26  5   0.05 15.44 14.83  6.40  -8.43   0.16  0.77  0.49  1.01  F9    0.01
+ Whiting 1   -0.70  1   0.03 18.18 17.49 15.03  -2.46                         
+
+_________________________________________________________________________________________________
+
+
+            Part III:  Velocities and Structural Parameters
+
+    ID         v_r   +/-    v_LSR    sig_v  +/-    c        r_c   r_h    mu_V   rho_0 lg(tc) lg(th)
+
+ NGC 104      -18.0   0.1   -26.7    11.0   0.3   2.07      0.36  3.17   14.38   4.88   7.84  9.55
+ NGC 362      223.5   0.5   214.0     6.4   0.3   1.76  c:  0.18  0.82   14.80   4.74   7.76  8.93
+ Whiting 1   -130.6   1.8  -138.1                 0.55      0.25  0.22                        7.93
+
+__________________________________________________________________________________________________
+"""
+
+NOAA_TEXT = """\
+<table border = all>
+<tr><th>Start<br>(Day/UT)<th>Maximum<br>(Day/UT)<th>Proton Flux<br>(pfu @ <br>>10 MeV)<th>Year<th>CME<th>Maximum<br>(Day/UT)
+<th>Importance<br>(X ray/Opt)<th>Location<th>NOAA SEC<br>Region No.
+
+<tr><td><td><td><td><strong>1976</strong><td><td><td><td><td>
+
+<tr><td>Apr 30/2120<td>May 01/1700<td align = right>    12<td><td><td>Apr 30/2114<td>X2/2B
+    <td>S09W47<td align = right> 700
+
+<tr><td><td><td><td><strong>1989</strong><td><td><td><td><td>
+
+<tr><td>Dec 31/2310<td>Jan 01/0400<td align = right>   100<td><td><td>Dec 31/2200<td>M1
+    <td>N10W10<td align = right> 1000
+
+<tr><td><td><td><td><strong>2017</strong><td><td><td><td><td>
+
+<tr><td>Aug 10/0115<td>Aug/10 0435<td align = right>    57<td><td><td>Aug 07/1916<td>M4/2B
+    <td>S10E2<td align = right>3257
+
+<tr><td>Jun 18/2050<td>June 19/0450<td align = right>    24<td><td>Halo /17 2230<td>Jun 17/2255<td>M6
+    <td>S08E61<td align = right>10386
+
+<tr><td>Sep 05/0040<td>Sep&nbsp;08/0035<td align = right>   844<td><td><td>04/2033<td>M5
+    <td>S11W16<td align = right>12673
+</table>
+"""
+
+BARAFFE_TEXT = """\
+BHAC15 models
+
+!  t (Gyr) =   0.0010
+!-----------------------------------------------------------------------------------------------
+! M/Ms  Teff     L/Ls   g    R/Rs   Li/Li0    Mj     Mh     Mk
+!-----------------------------------------------------------------------------------------------
+ 0.010  2400.   -2.40  3.40  0.400    1.000   8.80   8.26   7.85
+ 0.100  2900.   -1.00  3.40  1.100    1.000   5.60   5.02   4.77
+ 1.000  4400.    0.60  3.40  3.100    1.000   2.01   1.35   1.22
+!-----------------------------------------------------------------------------------------------
+
+!  t (Gyr) =   1.0000
+!-----------------------------------------------------------------------------------------------
+! M/Ms  Teff     L/Ls   g    R/Rs   Li/Li0    Mj     Mh     Mk
+!-----------------------------------------------------------------------------------------------
+ 0.050  2600.   -3.50  5.00  0.100    0.000   9.00   8.50   8.10
+ 0.100  2900.   -3.00  5.10  0.130    0.000   8.00   7.50   7.10
+ 1.000  5700.    0.00  4.40  0.900    0.000   3.00   2.50   2.40
+!-----------------------------------------------------------------------------------------------
+"""
+
+
+def install_harris(monkeypatch):
+    return install(monkeypatch, harris_clusters, harris_clusters.DATASET, {harris_clusters.FILE: HARRIS_TEXT.encode()})
+
+
+def install_noaa(monkeypatch):
+    return install(monkeypatch, noaa_proton_events, noaa_proton_events.DATASET, {noaa_proton_events.FILE: NOAA_TEXT.encode()})
+
+
+def install_baraffe(monkeypatch):
+    return install(monkeypatch, baraffe_isochrones, baraffe_isochrones.DATASET, {baraffe_isochrones.FILE: BARAFFE_TEXT.encode()})
+
+
 def install_all(monkeypatch):
     """All the datasets, on the fixtures, in the cache folder `reset_caches` set; the catalogue lists the fixtures' copies."""
     installed = [install_isochrones(monkeypatch), install_white_dwarfs(monkeypatch), install_neutron_stars(monkeypatch),
-                 install_ozone(monkeypatch), *ir_datasets_support.install(monkeypatch, os.environ[fetch.CACHE_DIR_ENV])]
+                 install_ozone(monkeypatch), *ir_datasets_support.install(monkeypatch, os.environ[fetch.CACHE_DIR_ENV]),
+                 install_harris(monkeypatch), install_noaa(monkeypatch), install_baraffe(monkeypatch)]
     monkeypatch.setattr(catalogue, "ALL", tuple(installed))
     return installed

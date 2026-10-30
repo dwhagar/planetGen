@@ -169,6 +169,8 @@ def _planet(planet, around, kind="planet", parent=None):
         "life_microbial": planet.get("life_microbial"), "life_flora": planet.get("life_flora"),
         "life_fauna": planet.get("life_fauna"), "life_sentient": planet.get("life_sentient"),
         "life_stage": planet.get("life_stage"),
+        # The life class that lives on the body, as one id such as "1a" or None (MAP.351, `interests.LIFE_CLASS_PREFIX`).
+        "life_class_id": planet.get("life_class_id"),
     }
     if parent is not None:
         item["parent"] = parent

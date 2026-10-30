@@ -1,21 +1,22 @@
 # tests/test_bring_to_epoch.py
 
 """
-GEN.764: `galaxy/bring_to_epoch.py` brings a stored galaxy to the running epoch in part. It refuses a galaxy whose plan or
-scatter is behind, generates again (in address order) the galaxy-placed sectors whose fill is behind, leaves a sector the
+GEN.764: `galaxy/bring_to_epoch.py` brings a stored galaxy to the running epoch in part. It refuses a galaxy whose plan
+is behind, draws a scatter that is behind again (GEN.845), generates again (in address order) the galaxy-placed sectors whose fill is behind, leaves a sector the
 admin audit log names as edited, makes the species of an older population epoch again, and says each step. The epochs
 are a made-up history here, so the tests do not move when a real epoch is added.
 """
 
 import pytest
 
+from planetgen import tuning
 from planetgen.db import store
 from planetgen.galaxy import bring_to_epoch
 from planetgen.population import model as population
 from planetgen.queue import api_jobs
 from planetgen.util import generator_epoch
 
-from tests.test_bright_star_scatter import _seed_galaxy
+from tests.test_bright_star_scatter import _scatter_args, _seed_galaxy, light_steps  # noqa: F401 -- a fixture
 from tests.test_migration_stage_epochs import _make_species, _system
 from tests.sector_support import make_sector
 
@@ -80,14 +81,106 @@ def test_a_plan_behind_is_refused_with_the_epochs_that_changed_it(galaxy, monkey
     assert not any("to be generated again" in line for line in lines)
 
 
-def test_a_scatter_behind_is_refused_and_says_how_to_draw_it_again(galaxy, monkeypatch):
+def test_a_scatter_behind_is_drawn_again_with_the_settings_it_was_drawn_with(galaxy, monkeypatch):
     _history(monkeypatch, ["scatter"], ["fill"])
-    store.record_scatter_epoch(galaxy, ("phenomena",))
+    store.record_scatter_epoch(galaxy, ("phenomena", "nebula-field"))
     galaxy.execute("UPDATE scatter_epochs SET generator_epoch = 1")
+    galaxy.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = 7, phenomenon_min_mass_solar = 4.0 WHERE id = 1")
     found = bring_to_epoch.survey(galaxy)
-    assert len(found["refuse"]) == 1
-    assert "phenomena scatter" in found["refuse"][0] and "epoch 2 changed it" in found["refuse"][0]
-    assert "planetgen clear-scatter" in found["refuse"][0]
+    assert found["refuse"] == [] and found["redraw"] == ["phenomena", "nebula-field"]
+    assert found["settings"]["compact"] == 4.0
+    lines = bring_to_epoch.report_lines(found)
+    assert "phenomena scatter: made under epoch 1, to be cleared and drawn again." in lines
+    assert not bring_to_epoch._nothing_to_do(found)
+
+
+def test_the_scatters_are_drawn_in_the_order_they_depend_on_each_other():
+    none = {"mass_limit": 8.0}
+    assert bring_to_epoch.redraw_order({"phenomena"}, none) == ["phenomena"]
+    assert bring_to_epoch.redraw_order({"nebula-field", "phenomena"}, none) == ["phenomena", "nebula-field"]
+    assert bring_to_epoch.redraw_order({"luminosity"}, none) == ["luminosity"]
+    assert bring_to_epoch.redraw_order({"band"}, none) == ["luminosity"], "the band is part of the bright stars"
+    assert bring_to_epoch.redraw_order({"mass"}, none) == ["mass", "luminosity"], "the bright stars are split from the massive ones"
+    assert bring_to_epoch.redraw_order({"phenomena", "mass", "band"}, none) == ["mass", "luminosity", "phenomena"]
+    assert bring_to_epoch.redraw_order({"luminosity"}, {"mass_limit": None}) == ["mass", "luminosity"], \
+        "with no mass limit stored the bright stars cannot be drawn alone"
+
+
+def test_a_scatter_command_gets_the_stored_settings_and_a_setting_it_refuses_stops_the_run(galaxy, mysql_config, monkeypatch):
+    settings = {"floor": 5000.0, "mass_limit": 8.0, "compact": 2.0}
+    mass = bring_to_epoch.scatter_args(mysql_config, "mass", settings)
+    assert mass.mass and mass.bright_star_min_luminosity == 5000.0 and mass.phenomenon_min_mass == 8.0
+    assert bring_to_epoch.scatter_args(mysql_config, "luminosity", settings).bright_star_min_luminosity == 5000.0
+    assert bring_to_epoch.scatter_args(mysql_config, "phenomena", settings).compact_min_mass == 2.0
+    assert bring_to_epoch.scatter_args(mysql_config, "phenomena", {**settings, "compact": 8.0}).compact_min_mass is None
+    assert bring_to_epoch.scatter_args(mysql_config, "luminosity", {"floor": None, "mass_limit": None, "compact": None}).luminosity
+    assert bring_to_epoch.scatter_args(mysql_config, "mass", None, clear=True).mass
+    with pytest.raises(ValueError):
+        bring_to_epoch.scatter_args(mysql_config, "mass", {**settings, "mass_limit": 7.5})
+    _history(monkeypatch, ["scatter"], ["fill"])
+    store.record_scatter_epoch(galaxy, ("mass", "luminosity"))
+    galaxy.execute("UPDATE scatter_epochs SET generator_epoch = 1")
+    galaxy.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = 5000, bright_star_seed = 1,"
+                   " bright_star_mass_limit_sol = 7.5 WHERE id = 1")
+    found = bring_to_epoch.survey(galaxy)
+    assert len(found["refuse"]) == 1 and "mass scatter cannot be drawn again" in found["refuse"][0]
+    assert bring_to_epoch.report_lines(found)[-1] == "Nothing was changed."
+
+
+def test_a_run_empties_the_sectors_then_clears_and_draws_the_scatters_then_generates_the_sectors(galaxy, mysql_config, monkeypatch):
+    from planetgen.generation import run_plan
+    _history(monkeypatch, ["scatter", "fill"])
+    with galaxy:
+        first = _sector(galaxy, "First", (2, 0, 1), 1)
+        second = _sector(galaxy, "Second", (2, 0, 2), 1)
+    store.record_scatter_epoch(galaxy, ("mass", "luminosity", "phenomena"))
+    galaxy.execute("UPDATE scatter_epochs SET generator_epoch = 1")
+    galaxy.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = 5000, bright_star_seed = 1, bright_star_mass_limit_sol = 8,"
+                   " phenomenon_scatter_seed = 7, phenomenon_min_mass_solar = 8 WHERE id = 1")
+    galaxy.commit()
+    steps = []
+    stored = {"mass": True, "luminosity": True, "phenomena": True}
+    monkeypatch.setattr(api_jobs, "empty_sector", lambda sector_id, config: steps.append(("empty", sector_id)) or
+                        {"address": (2, 0, sector_id), "around": [], "deleted": {}})
+    monkeypatch.setattr(api_jobs, "fill_emptied_sector", lambda emptied, config: steps.append(("fill", emptied["address"][2])) or
+                        {"sector_id": emptied["address"][2], "sector_name": "New"})
+    monkeypatch.setattr(api_jobs, "regenerate_sector", lambda *_: pytest.fail("a sector was deleted and made in one step"))
+    monkeypatch.setattr(store, "scatter_stored", lambda conn, kind: stored[kind])
+    monkeypatch.setattr(run_plan, "run_clear_scatter", lambda args: steps.append(("clear", run_plan.stages.clear_kind(args))))
+    monkeypatch.setattr(run_plan, "run_scatter", lambda args: steps.append(
+        ("draw", run_plan.stages.scatter_kind(args), args.bright_star_min_luminosity, args.phenomenon_min_mass, args.compact_min_mass)))
+    monkeypatch.setattr(population, "run_population", lambda conn: {"new_species": 0, "species": 0})
+    monkeypatch.setattr(population, "run_territories", lambda conn: {"polities": 0, "owned_systems": 0})
+    said = []
+    result = bring_to_epoch.run(mysql_config, None, say=said.append)
+    assert not result["failed"] and result["redone"] == 2, said
+    assert steps == [("empty", first), ("empty", second),
+                     ("clear", "luminosity"), ("clear", "mass"),
+                     ("draw", "mass", 5000.0, 8.0, None), ("draw", "luminosity", 5000.0, None, None),
+                     ("clear", "phenomena"), ("draw", "phenomena", tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, None, None),
+                     ("fill", first), ("fill", second)]
+
+
+def test_a_scatter_that_fails_leaves_the_emptied_sectors_and_says_what_to_do_by_hand(galaxy, mysql_config, monkeypatch):
+    from planetgen.generation import run_plan
+    _history(monkeypatch, ["scatter", "fill"])
+    with galaxy:
+        _sector(galaxy, "First", (2, 0, 1), 1)
+    store.record_scatter_epoch(galaxy, ("nebula-field",))
+    galaxy.execute("UPDATE scatter_epochs SET generator_epoch = 1")
+    galaxy.commit()
+    monkeypatch.setattr(api_jobs, "empty_sector", lambda sector_id, config: {"address": (2, 0, 1), "around": [], "deleted": {}})
+    monkeypatch.setattr(api_jobs, "fill_emptied_sector", lambda *_: pytest.fail("a sector was generated from a broken scatter"))
+    monkeypatch.setattr(store, "scatter_stored", lambda conn, kind: False)
+
+    def broken(args):
+        raise RuntimeError("no room on the disk")
+
+    monkeypatch.setattr(run_plan, "run_scatter", broken)
+    said = []
+    result = bring_to_epoch.run(mysql_config, None, say=said.append)
+    assert result["failed"] == [("scatter", "no room on the disk")] and result["redone"] == 0
+    assert any("planetgen scatter --KIND" in line and "planetgen sectors" in line for line in said)
 
 
 def test_the_sectors_behind_are_listed_in_address_order_and_the_edited_one_is_left(galaxy, monkeypatch):
@@ -257,3 +350,37 @@ def test_the_status_for_the_generate_page_changes_nothing_and_says_what_a_run_wo
         galaxy.execute("UPDATE sectors SET generator_epoch = 2")
     again = bring_to_epoch.status(mysql_config)
     assert again["nothing"] and again["lines"] == ["The galaxy is at epoch 2: nothing to bring up."]
+
+
+def test_every_scatter_behind_is_really_drawn_again_with_the_same_settings(galaxy, mysql_config, monkeypatch):
+    """The whole path with nothing replaced: the scatters drawn under epoch 1 are cleared and drawn again under epoch 2 from the
+    settings they were drawn with, and (the code did not change) hold the same rows."""
+    from planetgen.generation import run_plan
+    _history(monkeypatch, ["scatter"])
+    for kind in ("--mass", "--luminosity", "--phenomena", "--nebula-field"):
+        run_plan.run_scatter(_scatter_args(mysql_config, kind))
+
+    def snapshot():
+        conn = store.get_connection(mysql_config)
+        try:
+            return {"stars": conn.execute("SELECT COUNT(*) AS n, COALESCE(ROUND(SUM(position_x_mpc), 3), 0) AS s FROM bright_stars").fetchone(),
+                    "phenomena": conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter").fetchone()["n"],
+                    "field": conn.execute("SELECT COUNT(*) AS n FROM nebula_field").fetchone()["n"],
+                    "settings": bring_to_epoch.scatter_settings(conn), "epochs": store.scatter_epochs(conn)}
+        finally:
+            conn.close()
+
+    before = snapshot()
+    assert before["stars"]["n"] > 0 and before["epochs"] == {"mass": 2, "luminosity": 2, "phenomena": 2, "nebula-field": 2}
+    galaxy.execute("UPDATE scatter_epochs SET generator_epoch = 1")
+    galaxy.commit()
+    said = []
+    result = bring_to_epoch.run(mysql_config, None, say=said.append)
+    assert not result["failed"] and not result["refused"], said
+    after = snapshot()
+    assert after["epochs"] == before["epochs"], said
+    assert {key: after[key] for key in ("stars", "phenomena", "field", "settings")} == \
+        {key: before[key] for key in ("stars", "phenomena", "field", "settings")}
+    again = []
+    assert bring_to_epoch.run(mysql_config, None, say=again.append)["redone"] == 0
+    assert again == ["The galaxy is at epoch 2: nothing to bring up."]
