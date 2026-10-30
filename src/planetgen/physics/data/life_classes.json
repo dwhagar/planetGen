@@ -778,7 +778,7 @@
      "min": 1.0,
      "tier": "T6",
      "tweak": "L4",
-     "basis": "A liquid sulfuric acid layer is present: nothing in the generator models it yet (GEN.888), so this class scores 0 until then"
+     "basis": "A liquid sulfuric acid cloud layer (acid_medium level 1) or a pool (level 2): physics/acid_medium.py (GEN.888) reads the sulfur dioxide, oxidiser and water of the air and the temperature profile"
     }
    ],
    "windows": [],
@@ -793,7 +793,14 @@
     "tweak": "L4",
     "basis": "The acid itself is the oxidant: the anaerobic yield 0.11 (the climates report's own bookkeeping, no source gives rates)"
    },
-   "supply": null,
+   "supply": {
+    "quantity": "sulfur_supply",
+    "ref": 0.1,
+    "placeholder": 0.5,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "Reduced sulfur (GEN.894): the air's sulfur dioxide over Venus's 150 ppm (physics/life_supply.py sulfur_supply); full score at a tenth of Venus's"
+   },
    "note": ""
   },
   {
@@ -823,10 +830,10 @@
    "gates": [
     {
      "quantity": "acid_medium",
-     "min": 1.0,
+     "min": 2.0,
      "tier": "T6",
      "tweak": "L4",
-     "basis": "A liquid sulfuric acid pool is present: not modelled yet (GEN.888)"
+     "basis": "A liquid sulfuric acid pool at the ground (acid_medium level 2, physics/acid_medium.py, GEN.888); a cloud layer alone is Class 5a's"
     }
    ],
    "windows": [
@@ -852,7 +859,14 @@
     "tweak": "L4",
     "basis": "As 5a"
    },
-   "supply": null,
+   "supply": {
+    "quantity": "sulfur_supply",
+    "ref": 0.1,
+    "placeholder": 0.5,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "As Class 5a"
+   },
    "note": ""
   },
   {
@@ -1036,7 +1050,7 @@
      "min": 0.1,
      "tier": "T8",
      "tweak": "L3",
-     "basis": "Ammonia at least 10 percent of the water mass (life-classes.md 3.1, Class 8 window); the ammonia inventory is not stored yet (GEN.887), so this class scores 0 until then"
+     "basis": "Ammonia at least 10 percent of the water mass (life-classes.md 3.1, Class 8 window); physics/strange_solvents.py works it out from the body's ice and water shares (GEN.894)"
     }
    ],
    "windows": [
@@ -1099,17 +1113,17 @@
    "gates": [
     {
      "quantity": "acid_medium",
-     "min": 1.0,
+     "min": 2.0,
      "tier": "T6",
      "tweak": "L4",
-     "basis": "A liquid sulfuric acid layer or pool is present: not modelled yet (GEN.888)"
+     "basis": "A liquid sulfuric acid pool at the ground (acid_medium level 2): the silica deposits need a surface in contact with the acid"
     },
     {
      "quantity": "silicon_rich_crust",
      "min": 1.0,
      "tier": "T9",
      "tweak": "L4",
-     "basis": "A silicon-rich crust (GEN.441 crust composition); not exposed as a quantity yet"
+     "basis": "A silicon-rich crust: the rock's molar Mg/Si at or under 1 (physics/strange_solvents.py, GEN.894)"
     }
    ],
    "windows": [
@@ -1135,7 +1149,14 @@
     "tweak": "L4",
     "basis": "As Class 5"
    },
-   "supply": null,
+   "supply": {
+    "quantity": "sulfur_supply",
+    "ref": 0.1,
+    "placeholder": 0.5,
+    "tier": "T9",
+    "tweak": "L4",
+    "basis": "As Class 5a"
+   },
    "note": ""
   }
  ],

@@ -39,9 +39,21 @@ _s_to_h = units.converter("s", "h")
 FIELDS = (
     "temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k",
     "temp_day_side_k", "temp_terminator_k", "temp_night_side_k",
+    "temp_polar_swing_k", "temp_north_swing_k", "temp_south_swing_k", "temp_mean_swing_k",
+    "temp_day_side_swing_k", "temp_terminator_swing_k", "temp_night_side_swing_k",
 )
 """tuple: The stored columns on `planets` and `moons`: the four latitude bands and the swing for a world that turns on
-its own, the three zones for a tidally locked one (the other group is `None`), all in kelvin."""
+its own, the three zones for a tidally locked one (the other group is `None`), all in kelvin. The swings (GEN.848) are
+differences, not places: `temp_swing_k` is the equator's, the other bands, the mean of the world and the three zones have
+a swing of their own."""
+
+SWING_OF = {
+    "temp_polar_k": "temp_polar_swing_k", "temp_north_k": "temp_north_swing_k", "temp_equator_k": "temp_swing_k",
+    "temp_south_k": "temp_south_swing_k", "surface_temperature_k": "temp_mean_swing_k",
+    "temp_day_side_k": "temp_day_side_swing_k", "temp_terminator_k": "temp_terminator_swing_k",
+    "temp_night_side_k": "temp_night_side_swing_k",
+}
+"""dict: For each stored temperature, the column of its day and night swing, peak to peak (GEN.848)."""
 
 BANDS = (("polar", 60.0, 90.0), ("north", 20.0, 60.0), ("equator", -20.0, 20.0), ("south", -60.0, -20.0))
 """tuple: `(name, from latitude, to latitude)` of the bands, degrees. Polar is the cap above 60 degrees at either pole
@@ -127,6 +139,23 @@ def _band_insolation(tilt_deg):
     return out
 
 
+@functools.lru_cache(maxsize=1)
+def _band_swing_ratios():
+    """
+    `{band: its day and night swing over the equator's}` (GEN.848). The day and night swing of a place is driven by the daily
+    variation of its insolation, whose first harmonic is proportional to the cosine of the latitude (the Sun's elevation swings by
+    `cos(latitude) cos(declination)` of a degree-turn a day) and which the thermal response of the ground and air carries
+    linearly, so a band's swing over the equator band's is the area-weighted mean of `cos(latitude)` over the band over the
+    equator band's. A pole has no day to speak of; the equator band is 1 by construction.
+    """
+    out = {}
+    for name, low, high in BANDS:
+        latitude = np.radians(low + (np.arange(_LATITUDE_STEPS) + 0.5) / _LATITUDE_STEPS * (high - low))
+        weight = np.cos(latitude)
+        out[name] = float(np.sum(weight * np.cos(latitude)) / np.sum(weight))
+    return {name: value / out["equator"] for name, value in out.items()}
+
+
 def band_areas():
     """`{band: share of the surface}`: the Polar cap counts both poles (13 percent)."""
     shares = {}
@@ -174,9 +203,9 @@ TEMPERATURE_FIELDS = ("surface_temperature_k", "temp_polar_k", "temp_north_k", "
                       "temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
 """tuple: The stored temperatures of a planet or moon that are places on the scale (the swing is a difference)."""
 
-RANGE_FIELDS = ("temp_equator_k",)
-"""tuple: The stored temperatures the stored swing is a day and night range of (GEN.796). The swing is the peak to peak of
-the equator (`swing_k`); no other region has a swing of its own yet, so the others say that no range is stored."""
+RANGE_FIELDS = tuple(SWING_OF)
+"""tuple: The stored temperatures that have a day and night range (GEN.796, GEN.848): each has a swing column of its own
+(`SWING_OF`), the peak to peak of its place (the equator's is `swing_k`)."""
 
 
 def daily_range(value_k, swing_k):
@@ -213,6 +242,8 @@ def compute(values):
         for name, radiative in zones.items():
             temperature = mean + (radiative * mean - mean) * (1.0 - share)
             out[f"temp_{name}_k"] = max(temperature, NIGHT_FLOOR_K)
+            out[f"temp_{name}_swing_k"] = 0.0    # GEN.848: a locked world turns once an orbit, so no place on it has a day
+        out["temp_mean_swing_k"] = 0.0
         return out
     insolation = band_insolation(values.get("axial_tilt_deg"))
     areas = band_areas()
@@ -221,7 +252,12 @@ def compute(values):
     for name in ratios:
         radiative = ratios[name] / scale
         out[f"temp_{name}_k"] = mean + (radiative * mean - mean) * (1.0 - share)
-    out["temp_swing_k"] = swing_k(mean, pressure, gravity, rotation) * (1.0 - share)
+    equator_swing = swing_k(mean, pressure, gravity, rotation) * (1.0 - share)
+    out["temp_swing_k"] = equator_swing
+    swing_ratios = _band_swing_ratios()
+    for name in ("polar", "north", "south"):
+        out[f"temp_{name}_swing_k"] = equator_swing * swing_ratios[name]    # GEN.848
+    out["temp_mean_swing_k"] = sum(areas[name] * equator_swing * swing_ratios[name] for name in swing_ratios) / sum(areas.values())
     return out
 
 

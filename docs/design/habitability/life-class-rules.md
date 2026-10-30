@@ -37,12 +37,12 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 | 4a | water (factor 1) | chemical (internal and tidal heat) | share_o2 >= 0.001 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | donor_supply (full at 0.05 of Earth's, placeholder 1) |
 | 4b | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | nitrate_supply (full at 0.3 of Earth's, placeholder 0.3); donor_supply (full at 0.05 of Earth's, placeholder 1) |
 | 4c | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | perchlorate_supply (full at 0.1 of Earth's, placeholder 0.1); donor_supply (full at 0.05 of Earth's, placeholder 1) |
-| 5a | sulfuric (factor 0.1) | chemical (internal and tidal heat) | acid_medium >= 1.0 | none | none |
-| 5b | sulfuric (factor 0.1) | chemical (internal and tidal heat) | acid_medium >= 1.0 | temperature_k 283 to 373 (falls off over 15 below, 15 above) | none |
+| 5a | sulfuric (factor 0.1) | chemical (internal and tidal heat) | acid_medium >= 1.0 | none | sulfur_supply (full at 0.1 of Earth's, placeholder 0.5) |
+| 5b | sulfuric (factor 0.1) | chemical (internal and tidal heat) | acid_medium >= 2.0 | temperature_k 283 to 373 (falls off over 15 below, 15 above) | sulfur_supply (full at 0.1 of Earth's, placeholder 0.5) |
 | 6 | co2 (factor 0.1) | chemical (internal and tidal heat) | share_co2 >= 0.5; pressure_pa >= 518000.0; co2_phase in liquid, supercritical | temperature_k 217 to 400 (falls off over 20 below, 40 above) | h2_supply (full at 0.3 of Earth's, placeholder 0.5) |
 | 7 | hydrocarbon (factor 0.2) | chemical (internal and tidal heat) | none | temperature_k 90 to 190 (falls off over 10 below, 10 above); pressure_pa 50000 to 500000 (falls off over 30000 below, 300000 above) | hydrogen_acetylene_supply (full at 0.3 of Earth's, placeholder 0.5) |
 | 8 | ammonia_water (factor 0.1) | chemical (internal and tidal heat) | ammonia_water_mass_fraction >= 0.1 | habitat_temperature_k 176 to 273 (falls off over 10 below, 10 above) | h2_supply (full at 0.3 of Earth's, placeholder 0.5) |
-| 9 | sulfuric (factor 0.1) | chemical (internal and tidal heat) | acid_medium >= 1.0; silicon_rich_crust >= 1.0 | temperature_k 283 to 363 (falls off over 15 below, 10 above) | none |
+| 9 | sulfuric (factor 0.1) | chemical (internal and tidal heat) | acid_medium >= 2.0; silicon_rich_crust >= 1.0 | temperature_k 283 to 363 (falls off over 15 below, 10 above) | sulfur_supply (full at 0.1 of Earth's, placeholder 0.5) |
 
 ## What each class lives on
 
@@ -164,15 +164,17 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 
 - solvent sulfuric: T9, L3. Concentrated sulfuric acid as the liquid; the existing SOLVENT_FACTOR of sulfuric acid, 0.1 (planetGen's choice)
 - energy chemical: T9, L3. Chemical energy of the acid medium; light too in the cloud layer
-- gate acid_medium: T6, L4. A liquid sulfuric acid layer is present: nothing in the generator models it yet (GEN.888), so this class scores 0 until then
+- gate acid_medium: T6, L4. A liquid sulfuric acid cloud layer (acid_medium level 1) or a pool (level 2): physics/acid_medium.py (GEN.888) reads the sulfur dioxide, oxidiser and water of the air and the temperature profile
+- supply sulfur_supply: T9, L4. Reduced sulfur (GEN.894): the air's sulfur dioxide over Venus's 150 ppm (physics/life_supply.py sulfur_supply); full score at a tenth of Venus's
 - life acidophile: T6, L4. The acid itself is the oxidant: the anaerobic yield 0.11 (the climates report's own bookkeeping, no source gives rates)
 
 ### Class 5b: Acid-world life: pool and crust mats
 
 - solvent sulfuric: T9, L3. Concentrated sulfuric acid as the liquid; SOLVENT_FACTOR 0.1
 - energy chemical: T9, L3. Chemical energy of the acid medium
-- gate acid_medium: T6, L4. A liquid sulfuric acid pool is present: not modelled yet (GEN.888)
+- gate acid_medium: T6, L4. A liquid sulfuric acid pool at the ground (acid_medium level 2, physics/acid_medium.py, GEN.888); a cloud layer alone is Class 5a's
 - window temperature_k: T6, L3. Warm dry ground, acid pools 283 to 373 K (life-classes.md 3.1, Class 5b window)
+- supply sulfur_supply: T9, L4. As Class 5a
 - life acidophile: T6, L4. As 5a
 
 ### Class 6: Dense-CO2 life
@@ -199,7 +201,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 
 - solvent ammonia_water: T9, L3. Water with ammonia as the liquid; 0.1 like the other strange solvents (planetGen's choice)
 - energy chemical: T9, L3. Chemical energy of hydrogen and gradients, scored on the share of the heat flow life can use
-- gate ammonia_water_mass_fraction: T8, L3. Ammonia at least 10 percent of the water mass (life-classes.md 3.1, Class 8 window); the ammonia inventory is not stored yet (GEN.887), so this class scores 0 until then
+- gate ammonia_water_mass_fraction: T8, L3. Ammonia at least 10 percent of the water mass (life-classes.md 3.1, Class 8 window); physics/strange_solvents.py works it out from the body's ice and water shares (GEN.894)
 - window habitat_temperature_k: T8, L3. 176 to 273 K: the water-ammonia eutectic is about 176 K (recalled)
 - supply h2_supply: T9, L4. Hydrogen (GEN.887): enough at 0.3 of Earth's
 - life hydrogenotroph: T8, L4. Carbonate or carbon dioxide as the oxidant: the anaerobic yield 0.11
@@ -208,9 +210,10 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 
 - solvent sulfuric: T9, L3. Concentrated sulfuric acid as the liquid; SOLVENT_FACTOR 0.1
 - energy chemical: T9, L3. Chemical energy of the acid medium
-- gate acid_medium: T6, L4. A liquid sulfuric acid layer or pool is present: not modelled yet (GEN.888)
-- gate silicon_rich_crust: T9, L4. A silicon-rich crust (GEN.441 crust composition); not exposed as a quantity yet
+- gate acid_medium: T6, L4. A liquid sulfuric acid pool at the ground (acid_medium level 2): the silica deposits need a surface in contact with the acid
+- gate silicon_rich_crust: T9, L4. A silicon-rich crust: the rock's molar Mg/Si at or under 1 (physics/strange_solvents.py, GEN.894)
 - window temperature_k: T9, L3. As Class 5; silicones resist 98 percent acid at 90 C (life-classes.md 3.1, read in the climates report)
+- supply sulfur_supply: T9, L4. As Class 5a
 - life acidophile: T9, L4. As Class 5
 
 ## Classes that do not drink water

@@ -68,6 +68,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.19:LF59 | no data | - | chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them |
 | 6.19:LF60 | no data | - | chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them |
 | 6.19:LF61 | no data | - | the gates and the liquid window of the acid cloud are chosen limits and the acid strength line is fitted through two Venus cloud levels; no second acid world exists to calibrate against, and the Zeleznik 1991 curve is not in the reachable papers |
+| 6.19:LF62 | no data | - | the ammonia share of an icy body's ices is a choice between the comet value and the cosmic cap; no survey measures the ammonia of the ocean of any world but a few plume spectra, and the Mg/Si line is the textbook one |
 | 6.19:LF53 | no data | - | chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them |
 | 6.20:PM1 | replace | GEN.728 | the observed occurrence rates (Fulton 2021, Petigura 2018, Dressing and Charbonneau 2015) enter as bands the planet count and spacing items (GEN.728, GEN.729, GEN.828, GEN.829) fit to |
 | 6.20:PM2 | replace | GEN.728 | the observed occurrence rates (Fulton 2021, Petigura 2018, Dressing and Charbonneau 2015) enter as bands the planet count and spacing items (GEN.728, GEN.729, GEN.828, GEN.829) fit to |
@@ -108,3 +109,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.41:TK6 | replace | GEN.475 | the within-family shares are fixed fractions; the meteorite-group map of GEN.475 gives the groups reachable from the bulk composition and replaces them |
 | 6.43:BM2 | no data | - | the words dense, sparse and typical are labels for the spread of belt masses at one age; no survey resolves the masses of belts of asteroids, and the factor of 3 is a choice of where the words change |
 | 6.44:MG2 | no data | - | the widths of the axes and the distance past which a body is called none are choices; the collection's spread inside each group is not in the table, which gives averages and ranges only |
+| 6.47:SE4 | no data | - | the tail slope of the largest solar particle events is fitted to one Carrington-class event in 500 years; a longer proxy record of the largest events (nitrates, cosmogenic isotopes) would replace it |
+| 6.14:SP11 | replace | GEN.979 | Kokubo and Genda 2010 equation 4 with the distribution of the last impacts' mass ratio (GEN.978, `impact_spin`) replaces the interim scale |
+| 6.14:SP12 | replace | GEN.979 | the chance of a giant impact by planet mass (`impact_spin.giant_impact_probability`, GEN.978) replaces the interim small-planet factor |

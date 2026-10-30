@@ -11,7 +11,7 @@ pass
 from planetgen.util import draw
 from planetgen import tuning
 from planetgen.generation.system import StarSystem
-from planetgen.generation import run_system
+from planetgen.generation import habitable_request, run_system
 from tests.bughunt_support import run_cli
 
 
@@ -78,7 +78,7 @@ def test_a_hot_star_with_a_forced_habitable_world_has_one_or_fails(tmp_path, mon
             continue
         assert out.exists()
         assert kept[-1].unmet_requirements == []
-        assert kept[-1].count_habitable_class_worlds(kept[-1].planets) > 0
+        assert habitable_request.count(kept[-1].planets) > 0
 
 
 @pytest.mark.parametrize("spec", [

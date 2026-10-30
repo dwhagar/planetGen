@@ -181,12 +181,13 @@ Rates for Classes 5 to 9 are the climates report's redox bookkeeping, tier T6 to
 
 The gas ledger of section 4 is `physics/data/life_ledger.json`, read by `physics/life_air.py` and applied in the life pass after the oxygen (`generation/life.py`, `_build_air`):
 
-- **Keyed by class number.** One row per class (1 to 9) with a status. Classes 1, 2, 3, 6 and 8 are `built`; 4, 5, 7 and 9 are `pending` (the sulfur ledger and the acid classes, GEN.888 and GEN.894) and change nothing yet. Every number and row carries its tier and tweak level, with a summary row LF60 in the registry.
+- **Keyed by class number.** One row per class (1 to 9) with a status. All nine are `built` (GEN.894 built 4, 5, 7 and 9). Every number and row carries its tier and tweak level, with summary rows LF60 and, for the sulfur and acid rows, the same file.
 - **Methane.** The flux is the class's fuel supply (Class 1: the organic carbon its photosynthesis buries, half a methane each; Class 2: `donor_supply` times Earth's 10 Tmol a year; Classes 3, 6, 8: `h2_supply` times Earth's 2.3 Tmol a year of hydrogen over 4 H2 per CH4) over the world's area. The air holds the flux times the 30,000 year life of methane in an oxygen-free air, at most 3.5 percent of its molecules, and the methane's carbon comes out of the air's own carbon dioxide (10 percent of the carbon stays carbon dioxide), so no world makes methane from carbon it does not have. A gain under 1 Pa (`biogenic_oxygen.MINIMUM_PA`) leaves the air as it was.
-- **Hydrogen.** The classes that eat hydrogen (2, 3, 6, 8) draw it down to 1e-4 of the molecules.
+- **Hydrogen.** The classes that eat hydrogen (2, 3, 6, 7, 8) draw it down to 1e-4 of the molecules; Class 7 turns each mole it takes into two thirds of a mole of methane (C2H2 + 3 H2 -> 2 CH4; the acetylene itself is not an air gas).
+- **Hydrogen sulfide (GEN.894).** The sulfur eaters (4) and the acid eaters (5, 9) draw hydrogen sulfide down to 1e-8 of the molecules (a design floor, T9 L4); Class 4 makes sulfate in the water, not a gas, while Classes 5 and 9 give back the same moles as sulfur dioxide, so the air shifts from H2S to SO2. The caps are taken before the products, so a gas never ends above its cap.
 - **Stage.** Nothing before the second step of the schedule (the producers) and, for Class 1, nothing once the oxygen has risen or while the air holds free oxygen (more than 0.001 of its molecules): the oxygen has burned the methane (`biogenic_oxygen.burn`). A world with no life keeps its abiotic air.
 - **Redone from the new air.** The haze (`aerosols`), the ultraviolet shield and dose (`radiation`), the colour and the habitability score are generated again from the air the life left. The stored surface temperature follows the new greenhouse (`biogenic_oxygen.store_air`).
-- **Not modelled.** The cooling of the ground by the haze, the hydrosphere of a world the new air moves across the freezing point (its stored state of water stays, as after the oxygen), and Classes 4, 5, 7 and 9.
+- **Not modelled.** The cooling of the ground by the haze, the hydrosphere of a world the new air moves across the freezing point (its stored state of water stays, as after the oxygen), the sulfate, sulfur and silica the sulfur and acid classes leave in the water and rock, and the acetylene of Class 7.
 
 ---
 
@@ -244,9 +245,11 @@ New derived and stored numbers are the main build cost of the chemical classes. 
 | `h2_supply` | hydrogen from serpentinisation and from radiolysis | Classes 3, 6, 7, 8 | from rock type (GEN.441 crust composition), water, interior heat and radiogenic heat; tier T6 |
 | `donor_supply` | H2S and Fe2+ delivered | Classes 2, 4 | from volcanism, ocean chemistry and the existing H2S and iron stand-ins |
 | `oxidant_supply` | O2, nitrate, radiolytic oxidants, perchlorate | Class 4 and animals on aphotic worlds | the cap of GEN.880; no Europa O2 flux number from second-hand sources |
-| `acid_medium` | liquid sulfuric acid present, which layer, concentration | Classes 5, 9 | nothing in the generator models sulfuric clouds or pools today (the aerosol module has no H2SO4 row); the review confirms the `solvent()` sulfuric branch is dead. Needs a small model (a cloud layer from the temperature profile and the SO2 and water shares) |
+| `acid_medium` | liquid sulfuric acid present: 0 none, 1 a cloud layer, 2 a pool | Classes 5, 9 | built (GEN.888): `physics/acid_medium.py`, the supply of sulfur dioxide, an oxidiser and water, the water activity against the acid strength (81 percent and up) and the liquid window of 283 to 373 K; Class 5a reads 1 or more, 5b and 9 a pool (2). Registry row LF61 |
+| `sulfur_supply` | reduced sulfur for the acid eaters | Classes 5, 9 | the air's sulfur dioxide over Venus's 150 ppm, at most 1 (GEN.894, `physics/life_supply.py`); needs no water in contact with rock |
+| `silicon_rich_crust` | the rock's molar Mg/Si at or under 1 | Class 9 | `physics/strange_solvents.py` (GEN.894), registry row LF62 |
 | `co2_phase` | liquid or supercritical CO2 at the surface | Class 6 | from temperature and pressure against the CO2 phase diagram |
-| `nh3_inventory` | ammonia share of the water | Class 8 | not stored today; from bulk composition (GEN.441) |
+| `ammonia_water_mass_fraction` | ammonia as a share of the water's mass | Class 8 | built (GEN.894): a tenth of the non-water ice over the water (`physics/strange_solvents.py`, registry row LF62); the weakest number of the class |
 
 ---
 
