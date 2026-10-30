@@ -42,6 +42,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.db import edits as db_edits
 from planetgen.db import query
 
+from tests.bright_star_rows import star_row as _star_row
 from tests.publicids import pid, pids
 
 TEST_ADMIN_PASSWORD = "a-strong-test-password-123"
@@ -827,21 +828,6 @@ def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
     # The near corner is 25*sqrt(3) ~ 43 pc away: out of reach.
     assert corner == []
     assert [c["id"] for c in capped] == [nebula_id]
-
-
-_BRIGHT_STAR_DEFAULTS = {"population": "young", "star_type": "B", "yerkes_class": "III", "mass_kg": 1e31, "radius_km": 1e7,
-                         "temperature_k": 15000.0, "luminosity_w": 1e28, "age_gy": 0.05, "lifespan_gy": 0.1, "initial_mass_sol": 8.0,
-                         "phase_end_age_gy": None, "seed": 1, "metallicity_fe_h": None, "rotation_period_hours": None}
-"""dict: A scattered star's values by `store.BRIGHT_STAR_COLUMNS` name, less its address and position; `_star_row` fills the rest from it."""
-
-
-def _star_row(address, position_milli, **values):
-    """A `bright_stars` row in `store.BRIGHT_STAR_COLUMNS` order (TEST.478: built by column name, so a column added to the table cannot leave a row short)."""
-    columns = _db.BRIGHT_STAR_COLUMNS
-    unknown = set(values) - set(columns)
-    assert not unknown, f"not bright_stars columns: {sorted(unknown)}"
-    row = {**dict(zip(columns[:3], address)), **dict(zip(columns[3:6], position_milli)), **_BRIGHT_STAR_DEFAULTS, **values}
-    return tuple(row[name] for name in columns)
 
 
 def _b2v_row(luminosity_sol, seed=42):
