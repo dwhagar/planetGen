@@ -11,6 +11,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import atmosphere, biogenic_oxygen as bo, life_air, life_classes
 
+from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
 
 
@@ -211,3 +212,22 @@ def test_a_world_scored_again_after_life_changed_its_air_keeps_its_flux_swing(wo
     world.flux_variation = 0.37
     habitability_world.generate(world, 0.0)
     assert world.flux_variation == 0.37
+
+
+def test_the_stored_class_is_the_class_of_the_air_life_left():
+    """GEN.980: the gases of the ledger change the air after the class was derived; the class is derived again, so a stored class is the one
+    its stored conditions give (these seeds held worlds of a hydrogen-eating class whose class stayed that of the air before life)."""
+    from planetgen.physics import planet_classes
+    seen = 0
+    for seed in (1, 8, 9, 14):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.all_planets:
+            if planet.body_type == "a":
+                continue
+            for body in (planet, *planet.moons):
+                if body.body_type != "g" and body.planet_class is not None:
+                    seen += 1
+                    assert planet_classes.classify(body) == body.planet_class, (seed, body.name)
+    assert seen > 0

@@ -19,6 +19,7 @@ import pytest
 
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
+from planetgen.generation import habitable_request
 from planetgen.generation.system import StarSystem
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.physics import constants
@@ -386,7 +387,7 @@ def test_each_tristate_flag_forced(star_type, value, attr):
         assert_positions_and_speeds_are_consistent(system)
 
         if attr == "HABITABLE_WORLD" and value is True:
-            assert system.habitable_class_count >= 1 or system.habitable_request == "unmet", \
+            assert habitable_request.count(system.all_planets) >= 1 or "a habitable world" in system.unmet_requirements, \
                 f"{star_type}: HABITABLE_WORLD=True produced no habitable world and did not say so"
         if attr == "ASTEROID_BELT" and value is True:
             assert system.belt_count >= 1, f"{star_type}: ASTEROID_BELT=True produced no belt"
@@ -462,7 +463,7 @@ def test_asteroid_belt_and_habitable_world_forced_together_both_succeed(star_typ
         system = StarSystem(system_config=make_config(star_type, ASTEROID_BELT=True, HABITABLE_WORLD=True))
         if system.belt_count == 0:
             failures_belt += 1
-        if system.habitable_class_count == 0 and system.habitable_request != "unmet":
+        if habitable_request.count(system.all_planets) == 0 and "a habitable world" not in system.unmet_requirements:
             failures_hab += 1
         assert_no_belt_overlap_all_pairs(system)
     assert failures_belt == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a belt in {failures_belt}/{trials} trials"
