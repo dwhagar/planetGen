@@ -750,8 +750,7 @@ def test_conversion_constants_are_mutually_consistent():
 
 def test_probability_tables_are_well_formed():
     pg = tuning
-    for name in ("SPECTRAL_PROBABILITIES_LARGE_STAR", "SPECTRAL_PROBABILITIES_NORMAL",
-                 "PHENOMENON_DENSITY_PC3", "PHENOMENON_RATE_SCALE"):
+    for name in ("PHENOMENON_DENSITY_PC3", "PHENOMENON_RATE_SCALE"):
         weights = getattr(pg, name)
         assert weights and all(w >= 0 for w in weights.values()), name
         assert sum(weights.values()) > 0, name
@@ -766,10 +765,7 @@ def test_lookup_tables_reference_each_other_consistently():
     for letter, spec in pg.PLANET_CLASSES.items():
         assert spec["type"] in pc.PLANET_DENSITY, (letter, spec["type"])
     spectral = set(pc.TEMP_RANGES)
-    for table in (pc.SPECTRAL_LUMINOSITY_RANGES, pc.SPECTRAL_MASS_RANGES):
-        assert set(table) == spectral
-    assert set(pg.SPECTRAL_PROBABILITIES_NORMAL) <= spectral
-    assert set(pg.SPECTRAL_PROBABILITIES_LARGE_STAR) <= spectral
+    assert set(pc.SPECTRAL_MASS_RANGES) == spectral
     for scale in ("fast", "normal", "slow"):
         assert pg.EVOLUTIONARY_TIMELINES[scale]["technological_civilization"] > 0
     fast, normal, slow = (pg.EVOLUTIONARY_TIMELINES[s]["technological_civilization"] for s in ("fast", "normal", "slow"))

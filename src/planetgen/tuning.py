@@ -606,46 +606,14 @@ ROUND_TEMPERATURE_NEAREST_HUNDRED = -2
 
 # --- Star Generation Parameters ---
 # The current age of the universe (~13.8 Gy, standard cosmological
-# consensus) -- an absolute ceiling on any star's age, regardless of how
-# long its own spectral class could theoretically keep burning. Without
-# this, extremely long-lived classes (M dwarfs: STAR_EVOLUTION["M"]'s
-# lifespan_gy runs up to 5500 Gy, a real theoretical figure -- no red dwarf
-# has ever actually died of old age) could roll an "age" of hundreds of
-# billions of years. That age is still less than the star's own enormous
-# lifespan (the existing age <= lifespan invariant holds), but far older
-# than any star that could actually exist yet, since the universe itself
-# isn't old enough. White dwarfs already have their own bounded cooling-age
-# range (WHITE_DWARF_MIN/MAX_AGE_GY) and don't need this cap.
+# consensus) -- an absolute ceiling on any star's age: no star is older, however
+# long its own track could keep it shining (an M dwarf's runs to trillions of years).
 UNIVERSE_AGE_GY = 13.8
-MIN_INITIAL_STAR_AGE_GY = 0.1
-MIN_INITIAL_STAR_AGE_LIFESPAN_RATIO = 0.01
-MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO = 0.9
 UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO = 0.85
 OLD_STAR_AGE_LIFESPAN_RATIO = 1/3
 YOUNG_STAR_AGE_LIFESPAN_RATIO = 1/3
 MAX_PLANET_AGE_ADJUSTMENT_FACTOR = 0.95
 WHITE_DWARF_AGE_ADDITION_GY = 5
-# White dwarf cooling-age bounds: a WD's spectral letter reflects its current
-# temperature, not its progenitor's mass, so its age can't be drawn as a
-# fraction of a STAR_EVOLUTION main-sequence lifespan the way other classes
-# are. The oldest known white dwarfs (e.g. in globular cluster M4) have
-# cooling ages of ~12-13 Gy, close to the age of the universe.
-WHITE_DWARF_MIN_AGE_GY = 0.1
-WHITE_DWARF_MAX_AGE_GY = 12.0
-# For any evolved-star Yerkes class other than main-sequence (V), white
-# dwarf (VII/D), or subdwarf (VI, see below) -- giants, subgiants, bright
-# giants, supergiants, hypergiants -- the current spectral letter reflects
-# only present-day temperature, not a lifespan (see
-# get_star_evolutionary_profile in utils.py for the same issue on the
-# planet-life side). Instead, the star's own already-generated mass is run
-# through the main-sequence lifetime of physics/ms_lifetime.py (the fit of
-# Hurley, Pols and Tout 2000 to detailed models, GEN.467; the STAR_EVOLUTION
-# table above was derived from the older t = 10 Gy * (M/Msun)^-2.5 law),
-# then extended by the standard rule-of-thumb that a star spends about 90%
-# of its total lifetime on the main sequence -- so the star must already be
-# at least as old as that main-sequence lifespan (it has to have finished
-# that phase to be observed as an evolved class), and at most its total
-# (MS + post-MS) lifespan.
 # The heavy-element mass fraction the lifetime's [Fe/H] is measured from:
 # the proto-solar Z of the composition scale, Asplund 2021 (stellar-
 # composition.md D1). A solar mass lasts 10.2 Gy at it.
@@ -653,45 +621,31 @@ MS_LIFETIME_REFERENCE_Z = 0.0154
 MS_LIFETIME_Z_RANGE = (1.0e-4, 0.03)
 """tuple: The metallicities (mass fraction of metals, Z) Hurley, Pols and Tout 2000 fitted their formulae over (the
 paper's abstract: 0.0001 to 0.03); `ms_lifetime.zeta` holds a star's to it (GEN.651)."""
-MS_LIFESPAN_FRACTION_OF_TOTAL = 0.9
-# Subdwarfs (Yerkes VI, e.g. real sdB/sdO stars) are excluded from the
-# mass-derived model above -- not just from its mass-sampling rejection
-# check (_sample_evolved_star_mass_sol), but from the model itself. Real
-# subdwarfs are thought to form via binary mass-stripping near the tip of a
-# lower/intermediate-mass progenitor's red-giant branch, not through
-# ordinary single-star post-main-sequence evolution, so a star's *current*
-# (post-strip) mass has no direct relationship to its progenitor's own
-# main-sequence lifespan the way it does for an ordinary giant/supergiant --
-# using it that way is what let a generated subdwarf's age come out older
-# than the universe (formerly tracked in TODO.md's Future Ideas). Real
-# subdwarf progenitors are typically old, low-mass population stars (a
-# short-lived, higher-mass star wouldn't have had time to reach the RGB
-# tip and get stripped), so age is instead drawn directly from an
-# old-population-biased range, independent of this star's own mass. The
-# core-helium-burning subdwarf phase itself is short relative to that age
-# (real sdB stars: roughly 0.05-0.3 Gy) -- see
-# Star._calculate_initial_star_age_and_lifespan's Yerkes-VI branch.
-SUBDWARF_MIN_AGE_GY = 1.0
-SUBDWARF_MAX_AGE_GY = 13.5
-SUBDWARF_REMAINING_PHASE_MIN_GY = 0.05
-SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
-# A sub-solar-mass progenitor (roughly under ~0.93 Msun, per the
-# ms_lifetime.py lifetime above) already has
-# a main-sequence lifespan longer than the universe itself -- it couldn't
-# possibly have evolved off the main sequence yet, so it must never be
-# accepted as an evolved-class star's progenitor mass in the first place
-# (see Star._sample_evolved_star_mass_sol, used by Star.generate_star).
-# This caps the reject-and-resample loop that enforces that, the same way
-# SECTOR_MAX_PLACEMENT_ATTEMPTS caps SpaceSector's own reject-and-resample
-# loop: most classes' allowed mass range sits entirely clear of the cutoff
-# (so the very first draw is accepted) and only the class III (Giant) low
-# end (0.8-~0.93 Msun, out of an 0.8-8 Msun range) ever needs a resample,
-# so 100 attempts leaves effectively zero chance of exhausting this for any
-# class it's actually applied to.
-EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS = 100
+# A forced star type (GEN.941, generation/forced_star.py) is a star the model
+# makes. A subdwarf (Yerkes VI) is a metal-poor halo star on the main sequence
+# (Gizis 1997 define the sd classes as metal-poor dwarfs, [Fe/H] below about -1;
+# the range runs to the halo's lower edge) at least SUBDWARF_MIN_AGE_GY old, or,
+# for the hot letters, a hot horizontal-branch star (sdB and sdO stars are
+# helium-burning cores, Heber 2016) from SUBDWARF_HOT_MIN_TEMPERATURE_K, the
+# extreme horizontal branch's floor (HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K).
+# The halo and thick disk are old, 8 Gy and more (SUBDWARF_MIN_AGE_GY).
+# GEN.943 decides what the class means beyond that.
+SUBDWARF_MIN_AGE_GY = 8.0
+SUBDWARF_FE_H_RANGE = (-2.0, -1.0)
+SUBDWARF_HOT_MIN_TEMPERATURE_K = 20000.0
+# The scan the forced-type table is built from: masses log-spaced across the
+# mass function, and per mass the ages of the main sequence, of the stretch
+# after it and the white dwarf cooling (log-spaced), each count a resolution of
+# the scan, not a physical value. A cell is jittered by up to half its size
+# before the star is evolved, tried FORCED_STAR_JITTER_TRIES times before the
+# cell's own star is taken. A type the model never makes takes the nearest
+# model star of its Yerkes class by temperature, among those within
+# FORCED_STAR_NEAREST_SLACK (in ln T) of the nearest.
+FORCED_STAR_MASS_STEPS = 140
+FORCED_STAR_AGE_STEPS = (60, 300, 80)
+FORCED_STAR_JITTER_TRIES = 40
+FORCED_STAR_NEAREST_SLACK = 0.03
 RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD = 100000
-SPECTRAL_PROBABILITIES_LARGE_STAR = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
-SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
 
 # Real stellar-multiplicity surveys consistently find binary/multiple
 # companionship rising with primary mass, not a single flat rate: low-mass

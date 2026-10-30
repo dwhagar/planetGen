@@ -14,7 +14,7 @@ import random
 
 import pytest
 
-from planetgen.generation import star as starData, star_population
+from planetgen.generation import star_population
 from planetgen.physics import constants, imf, main_sequence, stellar_evolution
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
@@ -390,18 +390,6 @@ def test_no_living_star_raises_after_max_redraws(monkeypatch):
         stellar_evolution.sample_living_star(rng=random.Random(1))
 
 
-def test_evolved_mass_sampler_raises_for_a_range_too_light_to_have_evolved():
-    with pytest.raises(ValueError, match=r"Could not sample a mass in \[0.1, 0.2\] Msun"):
-        starData._sample_evolved_star_mass_sol(0.1, 0.2)
-
-
-def test_evolved_mass_sampler_accepts_only_masses_that_have_evolved():
-    for _ in range(50):
-        mass = starData._sample_evolved_star_mass_sol(0.5, 3.0)
-        assert 0.5 <= mass <= 3.0
-        assert stellar_evolution.main_sequence_lifetime_gy(mass) <= PC.UNIVERSE_AGE_GY
-
-
 @pytest.mark.parametrize("threshold", [math.nan, math.inf, "10", None])
 def test_bright_threshold_must_be_finite(threshold):
     with pytest.raises(ValueError, match="luminosity threshold must be a finite number"):
@@ -463,33 +451,26 @@ def test_map_luminosity_is_within_a_factor_of_the_star_generators_main_sequence(
 # --- planetary-nebula central stars (GEN.149) ------------------------------
 
 @pytest.mark.parametrize("star_type", list(tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES))
-def test_hot_white_dwarf_central_stars_match_observed_cores(star_type):
-    """Real central stars are 0.5 to 0.7 Msun and 1e2 to 1e4 Lsun, no hotter than 2e5 K."""
-    low_mass, high_mass = constants.HOT_WHITE_DWARF_MASS_RANGE_SOL
-    low_lum, high_lum = constants.HOT_WHITE_DWARF_LUMINOSITY_RANGE_SOL
-    masses = []
-    for _ in range(60):
+def test_hot_white_dwarf_central_stars_are_the_models_hot_white_dwarfs(star_type):
+    """A central star is a white dwarf the star model makes at that temperature (GEN.941): a remnant of 0.5 to 1.3 Msun
+    whose luminosity and radius follow from its cooling and mass, as hot as its letter says."""
+    for _ in range(20):
         star = make_star(star_type)
         mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
-        luminosity_sol = star.luminosity / constants.SOLAR_LUMINOSITY
-        assert low_mass <= mass_sol <= high_mass
-        assert low_lum * 0.999 <= luminosity_sol <= high_lum * 1.001
-        assert 30000 <= star.temperature <= 200000
-        masses.append(mass_sol)
-    assert sum(masses) / len(masses) == pytest.approx(constants.HOT_WHITE_DWARF_MEDIAN_MASS_SOL, abs=0.02)
+        assert star.yerkes_class == "VII"
+        assert 0.5 <= mass_sol <= 1.3
+        assert star.temperature >= constants.COOL_WHITE_DWARF_BELOW_K
+        assert star.lifespan == float("inf")
 
 
-def test_hot_white_dwarf_temperature_follows_the_subclass_up_to_200000_k():
-    hottest = make_star("O0VII").temperature
-    assert hottest == 200000
-    assert make_star("O3VII").temperature > constants.TEMP_RANGES["O"][1]
-    assert make_star("B0VII").temperature == 30000
+def test_hot_white_dwarf_temperature_follows_the_subclass():
     assert make_star("O3VII").temperature > make_star("O9VII").temperature >= make_star("B0VII").temperature
+    assert make_star("B0VII").temperature >= constants.TEMP_RANGES["B"][1] * 0.95
 
 
 def test_cool_white_dwarfs_keep_their_own_mass_and_temperature_ranges():
     star = make_star("M2VII")
-    assert star.mass / constants.SOLAR_MASS_TO_KG <= constants.COOL_WHITE_DWARF_MAX_MASS_SOL
+    assert star.mass / constants.SOLAR_MASS_TO_KG <= 1.3
     assert star.temperature <= constants.TEMP_RANGES["M"][1]
 
 

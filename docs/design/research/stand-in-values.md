@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 405 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 407 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 52 | 0 | 3 | 0 | 0 | 55 |
 | T2 | 70 | 4 | 0 | 1 | 0 | 75 |
-| T3 | 55 | 9 | 2 | 10 | 0 | 76 |
+| T3 | 55 | 10 | 2 | 10 | 0 | 77 |
 | T4 | 16 | 0 | 0 | 2 | 0 | 18 |
-| T5 | 21 | 6 | 1 | 0 | 0 | 28 |
+| T5 | 22 | 6 | 1 | 0 | 0 | 29 |
 | T6 | 39 | 10 | 5 | 27 | 0 | 81 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 271 | 32 | 14 | 71 | 17 | 405 |
+| All | 272 | 33 | 14 | 71 | 17 | 407 |
 
 ## How the labels were given
 
@@ -637,3 +637,5 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PS7 | P | T5 | L1 | evolved_tracks.MASS_NODES_SOL (130 log-spaced masses from 0.8 to 300) and the linear mapping of each generator window onto a stretch of the track's equivalent evolutionary points (and, for GEN.940, the straight-line fall of the mass of a star of 6.5 solar masses and more, whose track stops before the thermal pulses, over its asymptotic window to the white dwarf mass) | none | all post-main-sequence stars | test_evolved_tracks (track construction against synthetic isochrones); test_gen_horizontal_branch::test_the_time_a_star_spends_above_a_luminosity_on_the_mist_branch_follows_the_hurley_branch | the generator's own time-in-phase formulas fitted to MIST at setup | design (the node count only sets how finely the tracks are rebuilt; the time mapping keeps the Hurley, Pols and Tout base of the giant branch and helium ignition) | - | - |
 | PS8 | P | T2 | L1 | tuning.RED_GIANT_BRANCH_REIMERS_ETA 0.477 and tuning.MIST_REIMERS_ETA 0.1 (a star lighter than SUPERGIANT_MIN_MASS_SOL loses on the first ascent the track's loss times 0.477 over 0.1; the number of the track is MIST's own, read from Choi et al. 2016) | 0.407 to 0.547 (McDonald and Zijlstra's error) | stars of 0.8 to 8 solar masses | test_post_main_sequence::test_the_red_giant_branch_loses_the_mass_of_a_reimers_wind_at_the_fitted_efficiency_not_mists; a horizontal-branch mass of a cluster of 0.85 to 0.9 solar mass turn-off outside 0.55 to 0.7 | a mass-loss law with metallicity and the observed tip masses (asteroseismic masses of red clump stars) | READ (McDonald and Zijlstra 2015, MNRAS 446, 2226: 0.477 +- 0.070 from the horizontal-branch morphology of 22 clusters; Choi et al. 2016 section 3.7.1: eta_R = 0.1 in the tracks) | - | - |
 | PS9 | P | T1 | L0 | tuning.WR_LUMINOSITY_RANGE_SOL (1e5, 3e6) (the range the class holds a Wolf-Rayet luminosity to; the luminosity itself is the helium-star relation of the present mass fitted at setup to MIST's Wolf-Rayet rows, log L = 4.31 + 1.16 log M with 0.064 dex scatter over all [Fe/H]) | none (the relation is data); the range edges a factor of 2 | Wolf-Rayet stars | test_wolf_rayet::test_the_luminosity_of_a_wolf_rayet_star_follows_its_present_mass_by_the_mist_helium_star_relation; a measured Wolf-Rayet luminosity outside the range, or a scatter wider than MIST's 0.064 dex (observed stars scatter more) | a stripped-star evolution model (binary and single) with the observed spread | READ (MIST v1.2 phase-9 rows, Choi et al. 2016; the relation is fitted, not published) | - | - |
+| PS10 | P | T3 | L1 | tuning.SUBDWARF_MIN_AGE_GY 8, tuning.SUBDWARF_FE_H_RANGE (-2.0, -1.0) and tuning.SUBDWARF_HOT_MIN_TEMPERATURE_K 20000 (a forced Yerkes VI star is a halo main-sequence star of that metallicity and age, or a horizontal-branch star at least that hot) | age 6 to 10 Gy; [Fe/H] edges 0.3 dex; temperature 15000 to 25000 K | forced subdwarf types | test_star_matrix::test_subdwarf_age_never_exceeds_universe_age; a subdwarf class that the survey colour-magnitude classification (GEN.943) places differently | the Yerkes VI calibration of GEN.943 | RECALLED (Gizis 1997: sd stars are metal-poor dwarfs below about -1 dex; Heber 2016: sdB and sdO stars are helium-burning cores hotter than the horizontal branch's 20000 K) | - | - |
+| PS11 | P | T5 | L0 | tuning.FORCED_STAR_MASS_STEPS 140, FORCED_STAR_AGE_STEPS (60, 300, 80), FORCED_STAR_JITTER_TRIES 40 and FORCED_STAR_NEAREST_SLACK 0.03 (the resolution of the scan a forced star type is drawn from, and the tolerance for the nearest star when the model makes none) | any finer scan; slack 0.01 to 0.1 in ln T | forced star types | test_star_matrix (every type builds a valid star) | none needed (a resolution, not a physical value) | design | - | - |

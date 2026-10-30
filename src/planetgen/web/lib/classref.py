@@ -34,6 +34,7 @@ from markupsafe import Markup, escape
 
 from planetgen.physics import brown_dwarf_types, constants as phys, planet_classes, small_body_composition
 from planetgen import tuning as pc
+from planetgen.generation import forced_star
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
 from planetgen.generation.star import STAR_TYPE_PATTERN
@@ -136,18 +137,17 @@ def _entry(code, name, summary, facts):
 
 
 def _star_spectral():
-    total = sum(pc.SPECTRAL_PROBABILITIES_NORMAL.values())
     classes = {}
     for letter, color in phys.SPECTRAL_CLASS_COLORS.items():
         low_k, high_k = phys.TEMP_RANGES[letter]
-        share = pc.SPECTRAL_PROBABILITIES_NORMAL.get(letter, 0) / total
+        found = forced_star.letter_summary(letter)
         classes[letter] = _entry(letter, f"{color} {letter}-type star",
                                  f"{color} stars with surfaces at {number_range(low_k, high_k, 'K')}.", [
             ("Color", color),
             ("Surface temperature", number_range(low_k, high_k, "K")),
-            ("Mass (main sequence)", number_range(*phys.SPECTRAL_MASS_RANGES[letter], "solar masses")),
-            ("Luminosity (main sequence)", number_range(*phys.SPECTRAL_LUMINOSITY_RANGES[letter], "times the Sun")),
-            ("Share of ordinary stars", percent(share)),
+            ("Mass (main sequence)", number_range(*found.mass_sol, "solar masses")),
+            ("Luminosity (main sequence)", number_range(*found.luminosity_sol, "times the Sun")),
+            ("Share of ordinary stars", percent(found.share)),
             ("Subclasses", f"{letter}0 (hottest) to {letter}9 (coolest)"),
         ])
     return {
@@ -169,11 +169,14 @@ def _star_luminosity():
     for code, name in YERKES_CLASS_NAMES.items():
         if code in LUMINOSITY_CLASS_ALIASES:
             continue
+        found = forced_star.class_summary(code)
         facts = [
             ("Name", name),
-            ("Luminosity", number_range(*phys.YERKES_LUMINOSITY_RANGES[code], "times the Sun")),
-            ("Mass", number_range(*phys.YERKES_MASS_CONSTRAINTS[code], "solar masses")),
+            ("Luminosity", number_range(*found.luminosity_sol, "times the Sun")),
+            ("Mass", number_range(*found.mass_sol, "solar masses")),
         ]
+        if found.share is not None:
+            facts.append(("Share of ordinary stars", percent(found.share)))
         aliases = [alias for alias, target in LUMINOSITY_CLASS_ALIASES.items() if target == code]
         if aliases:
             facts.append(("Also written", ", ".join(aliases)))

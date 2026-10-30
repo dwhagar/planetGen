@@ -252,9 +252,10 @@ def test_a_wolf_rayet_star_older_than_the_limit_lights_nothing_and_neither_does_
 
 def test_the_class_tables_hold_the_wolf_rayet_class():
     from planetgen.generation import star_labels
-    from planetgen.physics import constants
-    assert constants.YERKES_LUMINOSITY_RANGES["W"] == tuple(int(v) for v in tuning.WR_LUMINOSITY_RANGE_SOL)
-    low, high = constants.YERKES_MASS_CONSTRAINTS["W"]
+    from planetgen.generation import forced_star
+    found = forced_star.class_summary("W")
+    assert found.luminosity_sol == tuning.WR_LUMINOSITY_RANGE_SOL
+    low, high = found.mass_sol
     for initial in (tuning.WR_MIN_INITIAL_MASS_SOL, 40.0, 60.0, 100.0, tuning.IMF_BREAKS_SOL[-1]):
         line = post_main_sequence.timeline(initial, 0.0)
         assert low <= line.state(line.end_gy - 1.0e-9).mass_sol <= high, initial
