@@ -14880,6 +14880,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1.
   Prerequisites: none. Related: GEN.992, GEN.750, TEST.463.
 
+- [ ] **GEN.998 The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug)**
+  Sources 2 finding (as the lane reported 11:22 PM EDT 2026-10-29),
+  found while wiring GEN.476: birth_radioisotopes reads the disc gas
+  depletion time, and the default galaxy's value is 0.85 Gy against the
+  Galaxy's measured 4.2 Gy, so the mean aluminium-26 ratio of rocky
+  bodies comes out five times what the lock-free note expected (GEN.469
+  gas content reads the same number). Do: trace where the 0.85 Gy comes
+  from (a unit, a different quantity such as a star formation timescale,
+  or a stand-in), say whether it is the right quantity for the disc gas
+  depletion, correct it or register it in GEN.725 with its tier and
+  tweak level, and list every reader that moves. Changes generated
+  output if the value moves: epoch and --affects fill. Owner: Sources 2.
+  Version 8.1.
+  Prerequisites: none. Related: GEN.469, GEN.476, GEN.477.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
