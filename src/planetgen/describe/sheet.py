@@ -474,9 +474,6 @@ _BODY_NOT_SHOWN = {
               "not list it as a row yet"),
     **_excuse(tuple(column for column in regional_temperature.SWING_OF.values() if column != "temp_swing_k"),
               "the day and night swing of a place; shown on the row of its temperature as a range, from the coldest hour to the hottest"),
-    **_excuse(("moon_origin", "moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km"),
-              "how a moon formed and the circumplanetary disk of its giant parent (DB.70): they set the moon's makeup, which the composition "
-              "rows already show, and the page does not list them as rows yet"),
     **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
