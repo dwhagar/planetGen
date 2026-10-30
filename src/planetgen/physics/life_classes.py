@@ -557,3 +557,9 @@ def class_id(number, variant=None):
     if number is None:
         return None
     return f"{int(number)}{variant or ''}"
+
+
+def living_class_id(number, variant, stage):
+    """The id of the class that lives on a body, from its stored class number, variant letter and life stage: `None` for no class and for a class
+    with no stage (GEN.1001: a world whose star is younger than the first step of its schedule suits a class but has no life yet)."""
+    return None if stage is None else class_id(number, variant)

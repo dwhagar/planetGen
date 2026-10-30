@@ -611,8 +611,6 @@ SECTOR_OCTANT_LABELS = [
 SECTOR_LOCATION_DECIMAL_PLACES = 2
 
 # --- Display / Formatting Parameters ---
-HABITABLE_ZONE_BUFFER_AU = 0.2
-ROUND_RADIUS_KM = 2
 SCIENTIFIC_NOTATION_DECIMAL_PLACES = 2
 ROUND_TEMPERATURE_NEAREST_HUNDRED = -2
 
@@ -701,7 +699,6 @@ SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
 # so 100 attempts leaves effectively zero chance of exhausting this for any
 # class it's actually applied to.
 EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS = 100
-RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD = 100000
 SPECTRAL_PROBABILITIES_LARGE_STAR = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
 SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
 
@@ -1271,7 +1268,6 @@ STELLAR_SOLAR_LOG_EPS = {
     "K": 5.07, "Ca": 6.30, "Fe": 7.46, "Ni": 6.20, "Eu": 0.52, "Th": 0.03, "U": -0.54}
 """dict: Element symbol to A21 photospheric log eps (H = 12); the 14 elements that make 99.7 percent of Z, and Eu, Th and U."""
 STELLAR_PROTO_METAL_OFFSET_DEX = 0.064
-STELLAR_PROTO_HELIUM_OFFSET_DEX = 0.070
 STELLAR_PROTO_X = 0.7121
 STELLAR_PROTO_Z = 0.0154
 STELLAR_PRIMORDIAL_Y = 0.24672
@@ -1324,9 +1320,6 @@ elsewhere is inferred through Eu."""
 STELLAR_SOLAR_SYSTEM_AGE_GY = 4.568
 """float: How far back the solar scale's Th and U are decayed to give their birth abundances (the age of the oldest solids;
 the photospheric Th and U of A21 are meteoritic)."""
-STELLAR_U_TH_UNCERTAINTY = 0.06
-"""float: The relative spread on the birth U/Th (0.572 for the solar scale): the 2003 Palme and O'Neill cross-check, decayed
-back, sits 6 percent from it (stellar-composition.md step 10). Carried as the uncertainty, not applied."""
 # Surface changes of the first dredge-up on the red-giant branch (Boothroyd and Sackmann 1999, arXiv:astro-ph/9512121 Tables 2 and
 # 4): per initial mass, the rise in helium mass fraction and the C/Z and N/Z at the end, for Z = 0.02 (initial Y 0.28, C/Z
 # 0.1733, N/Z 0.0531) and Z = 0.001 (initial Y 0.24, C/Z 0.0765; N not extracted at low Z).
@@ -2278,7 +2271,6 @@ the R4 chance T4); set from the first census, not fixed.
 FLAVOR_CHANCE_SYSTEM = 0.05 # The chance flavor text will be added to a system.
 FLAVOR_CHANCE_PLANET = 0.05 # The chance flavor text will be added to a planet.
 MAX_FLAVOR_TOTAL = 3 # The maximum flavor items total in a system.
-MAX_FLAVOR_PLANET = 1 # The maximum flavor text for a single planet.
 MAX_RECENT_FLAVOR_TEXTS = 5 # Maximum number of recent flavor texts to keep track of.
 
 SYSTEM_FLAVOR = [ # System-only flavor text.
@@ -2915,9 +2907,6 @@ CLOUD_ENRICHMENT_SIGMA_DEX = 0.5
 
 CLOUD_ENRICHMENT_RICH_CHANCE = {"D": 0.15, "E": 0.3, "R": 0.5, "S": 0.5, "U": 0.5}
 """dict: The chance a system in a cloud of the class has the rich median rather than the field one (design values)."""
-
-CLOUD_ENRICHMENT_REFERENCE_RATIO = 5.0e-5
-"""float: The 26Al/27Al ratio `k = 1` stands for (the solar ratio at CAI formation, 5.25e-5, rounded; design note)."""
 
 PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
 """tuple: The central star a planetary nebula is generated around (GEN.10):
@@ -3992,11 +3981,6 @@ FOLD_FACTOR_LIMIT = 10
 """
 The unreachable top of the fold scale: the fold curve divides by
 `(FOLD_FACTOR_LIMIT - F)`, so a fold factor must be below this.
-"""
-
-NAV_COURSE_DECIMAL_PLACES = 2
-"""
-Decimal places used when formatting NAV distance/azimuth/altitude output.
 """
 
 NAV_ADJACENCY_K = 6

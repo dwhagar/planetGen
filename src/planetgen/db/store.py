@@ -8755,11 +8755,13 @@ def _save_with_retries(config, names, insert):
         conn = get_connection(config)
         claim = None
         try:
+            conn.commit()       # a connection that just checked the schema has a transaction open, and MySQL refuses the next line inside one
             conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
             # PERF.49: names are claimed on a connection of their own that
             # commits at once, so other writers wait for a claim, not for
             # this whole save.
             claim = get_connection(config)
+            claim.commit()
             claim.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
             conn.claim_connection = claim
             draw.setstate(state)

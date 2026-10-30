@@ -570,14 +570,6 @@ def get_galaxy_made(db, since, until=None):
     return _request("/galaxy/made", params)
 
 
-def get_galaxy_phenomena(db):
-    """Returns `GET /api/galaxy/phenomena`'s `items` list (every
-    galaxy-placed nebula/asteroid field) -- see `db.query.
-    galaxy_placed_phenomena`'s docstring for the shape."""
-    _require_db(db)
-    return _request("/galaxy/phenomena", {"db": db})["items"]
-
-
 def get_galaxy_shape(db):
     """Returns `GET /api/galaxy/shape`'s `shape` dict -- the galaxy's
     stored density-skeleton shape (`planetgen plan`'s output), or

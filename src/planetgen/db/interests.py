@@ -116,7 +116,7 @@ del _letter
 
 LIFE_CLASS_PREFIX = "lifeclass-"
 """str: A life class's reason is this and the class id ("lifeclass-1a", "lifeclass-6"): a system with a planet or moon on which that life class
-lives (`life_class` and `life_class_variant`, the class the `life` facet of the search reads, MAP.351). Like the planet classes, the visitor
+lives (`life_class` and `life_class_variant` on a body that has a `life_stage`, the class the `life` facet of the search reads, MAP.351, GEN.1001). Like the planet classes, the visitor
 chooses which of them the map shows, and they come after every reason above."""
 
 
@@ -127,8 +127,8 @@ def life_class_reason(class_id):
 
 for _definition in life_classes.CLASSES:
     REASONS[life_class_reason(_definition.id)] = {
-        "planets": "p.life_class = ? AND COALESCE(p.life_class_variant, '') = ?",
-        "moons": "m.life_class = ? AND COALESCE(m.life_class_variant, '') = ?", "score": None,
+        "planets": "p.life_class = ? AND COALESCE(p.life_class_variant, '') = ? AND p.life_stage IS NOT NULL",
+        "moons": "m.life_class = ? AND COALESCE(m.life_class_variant, '') = ? AND m.life_stage IS NOT NULL", "score": None,
         "params": (_definition.number, _definition.variant or ""),
     }
 del _definition

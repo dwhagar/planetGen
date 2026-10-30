@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 456 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 457 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 56 | 9 | 3 | 10 | 0 | 78 |
 | T4 | 22 | 0 | 0 | 3 | 4 | 29 |
 | T5 | 25 | 6 | 1 | 0 | 0 | 32 |
-| T6 | 39 | 15 | 8 | 30 | 0 | 92 |
+| T6 | 40 | 15 | 8 | 30 | 0 | 93 |
 | T7 | 18 | 6 | 1 | 7 | 0 | 32 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 294 | 42 | 18 | 77 | 25 | 456 |
+| All | 295 | 42 | 18 | 77 | 25 | 457 |
 
 ## How the labels were given
 
@@ -264,6 +264,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OH8 | P | T6 | L0 | protection_limits.GARMENTS insulation_clo | half to double | Body Protection levels 0 to 5 | test_every_garment_row_is_a_listed_body_name_and_has_a_power_only_where_it_is_active | the equipment items of the sheet (UX.199) | design (insulation of each Body Protection garment, 0.5 to 10 clo: ISO 9920 clothing values for cold-weather, insulated and thermal suits) | GEN.768 | - |
 | OH9 | P | T6 | L0 | protection_limits.GARMENTS cooling_w, heating_w | half to double | Body Protection levels 1 to 5 | test_the_hotter_the_afternoon_the_fewer_the_hours_in_the_same_suit | the equipment items of the sheet (UX.199) | design (cooling 100 to 600 W of a cooling vest, a liquid cooling garment and a suit's thermal control, recalled from NASA's EMU at about 586 W; heating 200 to 300 W of a heated suit) | GEN.768 | - |
 | OH10 | P | T6 | L0 | protection_limits.shift_hours, SUPPLY_SHIFT_SHARE | half to double | Air Supply levels 1 to 4 | test_the_supply_hours_follow_the_shift_and_ambient_air_has_none | per-item supply durations in the equipment items (UX.199) | design (a work shift of 8 hours; one charge of the breathing gas lasts a share of it: mask 1, own gas 0.5, mixed gas 0.75, isolated air 1) | - | - |
+| OH11 | P | T6 | L0 | outside_hours.LOCKED_BELT_LIGHT_HOURS | 12 to 24 hours | a world that turns once an orbit | test_a_locked_world_works_the_terminator_belt_for_a_whole_shift_at_the_belts_temperature | a libration and limb-darkening model of the belt's light (GEN.767 follow-up) | design (the terminator belt of a tidally locked world has the star on the horizon for the whole shift, so a person who works there has light for all 24 hours; the belt is at its stored terminator temperature, with no daily cycle) | GEN.768 | - |
 
 ## 6.9 Stand-ins of how a rendered body is drawn
 

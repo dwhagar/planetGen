@@ -107,6 +107,13 @@ def _click_body(marker):
     marker.locator("circle.sysmap-body-fill").click()
 
 
+def _expand_info(page):
+    """Presses Expand on the info card (MAP.347) when it has one that is closed: what is behind it is drawn only then."""
+    button = page.locator("#sysmap-info .map-info-expand")
+    if button.count() and button.is_visible() and button.get_attribute("aria-expanded") != "true":
+        button.click()
+
+
 @pytest.mark.viewport(1280, 900)  # the planet's info card (MAP.332 sizes it to its content) covers the moons in a window of 800x600
 def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     client = site_app.test_client()
@@ -143,10 +150,12 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     _click_body(planet)
     assert _active_scene(page) == moons
     assert "Moons of" in page.locator("#sysmap-crumb").inner_text()
-    # MAP.92: the planet and its moons show their radius and mass.
+    # MAP.92: the planet and its moons show their radius and mass (behind Expand, MAP.347).
+    _expand_info(page)
     info = page.locator("#sysmap-info").inner_text()
     assert "Radius" in info and "Mass" in info, info
     _click_body(page.locator(f'#sysmap-root .sysmap-svg[data-scene="{moons}"] [data-kind="moon"]').first)
+    _expand_info(page)
     info = page.locator("#sysmap-info").inner_text()
     assert "Orbits" in info and "Radius" in info and "Mass" in info, info
     # NAV.50: a moon can start or end a course.

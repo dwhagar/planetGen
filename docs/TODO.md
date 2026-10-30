@@ -2293,33 +2293,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.347 Galaxy Map info popup redesign: it is hard to read and scrolls off the screen even on a maximized 1080p display (bug)**
-  Boss, 7:22 PM EDT 2026-10-29 (relayed by the coordinator): "we HAVE to
-  redesign the info popup, it is not working at all, it's difficult to
-  read, it scrolls off the screen even on my large 1080p display
-  maximized because the galactic map is so short but if it isn't so
-  short then we lose needed UX." A live observation, so a bug, and a
-  real redesign rather than a patch: the layout, how much shows at once,
-  where it sits, and how it scrolls. The map area is short because the
-  surrounding page chrome takes the height, and making the map taller
-  would lose needed UX, so the popup must work in the space the map has:
-  for example a compact summary that fits without scrolling, with a
-  clearly marked way to expand, a placement that does not cover the
-  thing selected, and a size that follows the map window (MAP.295).
-  Earlier fixes are patches on the same box: MAP.332 (card cut off at
-  the bottom), MAP.315 (region and parent line), MAP.296 (nearest
-  systems list). Do: measure the popup at 1080p maximized and at phone
-  width for a star, a system, a region, a nebula and a black hole;
-  design the card so its first view (name, kind, the Go to buttons, the
-  three most useful values) fits in a quarter of the map height without
-  scrolling; the rest is reached by an Expand control or a side panel
-  that scrolls on its own, never the whole card; a browser test per kind
-  at 1080p and at phone width checks that the first view is fully
-  visible and the card never leaves the viewport. Owner: Core 2 (owns
-  the map code; after MAP.336, TEST.450 and MAP.329). Version 8.1.
-  Prerequisites: none. Related: MAP.332, MAP.315, MAP.295, MAP.296,
-  MAP.336.
-
 - [ ] **MAP.348 Galaxy Map hover preview: pointing at a place shows a small preview before the click**
   Left unbuilt by MAP.336 (zoom redesign Z3, #3778, as Core 2 reported
   7:11 PM EDT 2026-10-29) and approved by Boss (7:22 PM EDT): hovering a
@@ -2331,6 +2304,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: a browser test hovers one of each kind and finds the preview,
   and a touch screen (no hover) shows nothing extra. Owner: Core 2
   (after the info popup redesign). Version 8.1.
+  Core 2 (MAP.347 merged #3940) (2026-10-30 4:00 AM EDT): reuse the
+  first view of the new info popup (name, kind, three values, main
+  buttons) for the hover preview
   Prerequisites: none. Related: MAP.336.
 
 - [ ] **MAP.349 Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place) **
@@ -2342,6 +2318,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   crumbs and the results list. Done: a browser test clicks the Go to on
   a region line, a parent line and a listed place and the camera lands
   on each. Owner: Core 2 (with the info popup redesign). Version 8.1.
+  Core 2 (MAP.347 merged #3940) (2026-10-30 4:00 AM EDT): Go to on the
+  region and parent lines now lives inside the Expand part of the popup;
+  Start Here and End Here also moved behind Expand (one extra click the
+  first time). Boss to say if the region and parent Go to lines should
+  be in the first view instead
   Prerequisites: none. Related: MAP.336.
 
 - [ ] **MAP.352 Back to a system in a different sector fails when pressed before the first Back has finished (bug)**
@@ -2801,57 +2782,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## GEN: Generation and physics
 
-- [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
-  Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
-  appears in the habitable zone and adjust so that it fits there." P is
-  already ecosphere-only (`h` False, `e` True, `c` False in
-  `program_constants.PLANET_CLASSES`) and placed at `zone_position_mode`
-  0.90; sampled P worlds run 198-211 K. Done: no path (generation,
-  `reconcile_zone_and_class`, moon regeneration, admin overrides) can
-  put P outside the ecosphere, and its placement, albedo, greenhouse
-  and atmosphere are tuned so a glaciated world with life is
-  consistent at the outer edge of the habitable zone. Evidence: the
-  planet class gap report
-  (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
-  Prerequisites: GEN.411.
-  Plan (2026-10-07): Moved to phase 2 under GEN.90.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): a class contributes an albedo range, an atmosphere
-  mixture from the gas table and composition-fraction priors through the
-  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
-  greenhouse (the composition chain of the 9.0 headline; the planet
-  classes were built to land after it, so they wait for GEN.428 and
-  GEN.411).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): GEN.428 and GEN.411
-  are added to this item's Prerequisites line, so the build reads the
-  wait that the 2026-10-16, 11:58 PM EDT sweep text names.
-  Finding (2026-10-09): Aux 16's class distribution check (2:09 AM EDT
-  2026-10-25): class P (glaciated) is under 0.05 percent of planets and
-  0.3 percent in the ecosphere, Q never occurs, O is 0.1 percent; decide
-  after the cut-over (GEN.689) whether P has a target rate or only needs
-  to be possible when conditions allow it; the rule is part of TEST.395.
-  Research (2026-10-09): RE-SCOPE after the class cut-over (Aux 1
-  hand-off, about 5:04 PM EDT 2026-10-29 as the lane reported; GEN.646
-  merged in PR #3729, epoch 121): a planet's or moon's class is no
-  longer drawn, it is derived from the finished stored body (mass first,
-  then air), so this item is now the classifier rule for this class (and
-  its test through the classifier) and not a class draw or a zone rule
-  at generation. Check what is left against the classifier and what the
-  rule should say; retire it if the derived class already meets the Done
-  line. A change to the classifier moves stored classes (a generation
-  turn). Owner: Core 4 (proposed by TODO, with GEN.733/810/838/839 in
-  its lock turn).
-  Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): classes are conditions-based and derived from the
-  finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-  letters stay; new class letters are revoked (GEN.28 and its children).
-  Core 4: re-read this item against the derived classes, drop any clause
-  that asks for a fixed letter rule, and tell TODO which parts stand;
-  the physics clauses (retention, zones, sense of each class) stand.
-  Moved into 8.1. Owner: Core 4.
-  Related: GEN.412, GEN.423, GEN.428.
-
 - [ ] **GEN.29 Sweep every planet class for sense once the new ones are in (bug)**
   Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
   sure they all make sense logically once the new classes are in
@@ -2865,7 +2795,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10-16 Earth masses come out up to 17,600 km, past class S's
   11,468 km top, and get S as the nearest fit (PR #415); Boss to decide
   whether those sizes make sense or need their own range.
-  Prerequisites: GEN.27.
+  Prerequisites: none.
   Plan (2026-10-07): Under GEN.90: the refactor is the sweep, so it
   stays with it in phase 2.
   Research (2026-10-09, atmospheres-retention-and-classes.md): known
@@ -2895,6 +2825,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that asks for a fixed letter rule, and tell TODO which parts stand;
   the physics clauses (retention, zones, sense of each class) stand.
   Moved into 8.1. Owner: Core 4.
+  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT):
+  narrowed to a final sweep of the 20 derived class rows (descriptions,
+  sizes, temperatures, atmosphere) once GEN.355 lands; Q is no longer
+  never generated (7 to 9 percent in the census); GEN.27 and GEN.90 are
+  dropped; the rogue S size over 17,600 km still needs Boss. Report
+  reports/core4-classifier-reread-2026-10-30.md
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
@@ -2966,70 +2902,52 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   density is this item.
   Prerequisites: TEST.182.
 
-- [ ] **GEN.90 Refactor the planet classes around the habitability index**
-  Boss (2026-10-03 05:38Z): "Refactor all planetary classes to better
-  align with our habitability index system and the research for the
-  different kinds of life, etc." Known conflicts with the research: N
-  (Venus analog, about 737 K) carries life with no stage cap, E sits
-  above the 122 C ceiling, K and L are below the Armstrong limit while L
-  has land animals, P is uncapped, and no class is an Earth-size world
-  with air that life never touched (GEN.28's Z). Done when its subitems
-  are.
-  Prerequisites: GEN.27, GEN.29.
-  Design: [docs/design/habitability/habitability-index.md](design/habitability/habitability-index.md)
-  Research (2026-10-09, atmospheres-retention-and-classes.md): the
-  "Known conflicts" list gains: A and B atmospheres, S in non-hot zones,
-  N zone placement, N and Q life data hidden but stored.
-
-  - [ ] **GEN.91 Classes like S and V in the hot and cold zones**
-    Boss (2026-10-03 05:38Z): "We need a planet class for like Class S
-    and V but in the other zones, so that will require research on when
-    an atmosphere is possible and when it isn't." Candidates from the
-    research: a desiccated post-runaway super-Earth (hot), a
-    hydrogen-rich Hycean super-Earth (cold or outer). Done: atmosphere
-    retention rules (escape velocity, XUV, temperature) written down,
-    then the classes added one per PR under GEN.33's rule.
-    Research (2026-10-09, atmospheres-retention-and-classes.md): (1)
-    `planetgen/physics/atmosphere_retention.py` with the shoreline,
-    Jeans-species, condensation and energy-limited functions and a
-    solar-system plus exoplanet test table (design doc section 3.6); the
-    XUV history and exposure index come from GEN.86's activity module,
-    not the stand-in. (2) Classes follow in the PR order of section 5.2.
-    Record the answer to "when is an atmosphere possible": shoreline
-    ratio below 30, species by lambda (30 kept), the cold side by vapour
-    pressure, H2 and water by energy-limited XUV. "S and V in the other
-    zones" is mostly S itself with air plus a re-scoped N (hot) and an
-    extended X or an R Hycean flag (cold). Letters: none are free after
-    R, U, W, X, Y, Z; Q must not be reused until the database is checked
-    for Q rows. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
-    default Option A): re-scope N,
-    extend X, Hycean as an R flag and retire T, or two-character class
-    codes.
-    Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-    chunks and shared work): this item is now the umbrella and is done
-    when its subitems are: GEN.355, GEN.356. Its first deliverable (the
-    retention module) is a pure library that GEN.28's R and Y and
-    GEN.145 need, but it is bundled with class work and sits after
-    GEN.28 in the thread; the class work it describes (Hycean flag,
-    extended X, retire T) is already inside GEN.28's R and X.
+- [ ] **GEN.91 Classes like S and V in the hot and cold zones**
+  Boss (2026-10-03 05:38Z): "We need a planet class for like Class S
+  and V but in the other zones, so that will require research on when
+  an atmosphere is possible and when it isn't." Candidates from the
+  research: a desiccated post-runaway super-Earth (hot), a
+  hydrogen-rich Hycean super-Earth (cold or outer). Done: atmosphere
+  retention rules (escape velocity, XUV, temperature) written down,
+  then the classes added one per PR under GEN.33's rule.
+  Research (2026-10-09, atmospheres-retention-and-classes.md): (1)
+  `planetgen/physics/atmosphere_retention.py` with the shoreline,
+  Jeans-species, condensation and energy-limited functions and a
+  solar-system plus exoplanet test table (design doc section 3.6); the
+  XUV history and exposure index come from GEN.86's activity module,
+  not the stand-in. (2) Classes follow in the PR order of section 5.2.
+  Record the answer to "when is an atmosphere possible": shoreline
+  ratio below 30, species by lambda (30 kept), the cold side by vapour
+  pressure, H2 and water by energy-limited XUV. "S and V in the other
+  zones" is mostly S itself with air plus a re-scoped N (hot) and an
+  extended X or an R Hycean flag (cold). Letters: none are free after
+  R, U, W, X, Y, Z; Q must not be reused until the database is checked
+  for Q rows. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
+  default Option A): re-scope N,
+  extend X, Hycean as an R flag and retire T, or two-character class
+  codes.
+  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
+  chunks and shared work): this item is now the umbrella and is done
+  when its subitems are: GEN.355, GEN.356. Its first deliverable (the
+  retention module) is a pure library that GEN.28's R and Y and
+  GEN.145 need, but it is bundled with class work and sits after
+  GEN.28 in the thread; the class work it describes (Hycean flag,
+  extended X, retire T) is already inside GEN.28's R and X.
   Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
   build in 8.1): classes are conditions-based and derived from the
   finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-  letters stay; new class letters are revoked (GEN.28 and its children).
-  Core 4: re-read this item against the derived classes, drop any clause
-  that asks for a fixed letter rule, and tell TODO which parts stand;
-  the physics clauses (retention, zones, sense of each class) stand.
-  Moved into 8.1. Owner: Core 4.
-    Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-    build in 8.1): classes are conditions-based and derived from the
-    finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-    letters stay; new class letters are revoked (GEN.28 and its
-    children). Core 4: re-read this item against the derived classes,
-    drop any clause that asks for a fixed letter rule, and tell TODO
-    which parts stand; the physics clauses (retention, zones, sense of
-    each class) stand. Moved into 8.1. Owner: Core 4.
-    Prerequisites: GEN.355, GEN.356.
-    Design: [docs/design/habitability/habitability-index.md](design/habitability/habitability-index.md)
+  letters stay; new class letters are revoked (GEN.28 and its
+  children). Core 4: re-read this item against the derived classes,
+  drop any clause that asks for a fixed letter rule, and tell TODO
+  which parts stand; the physics clauses (retention, zones, sense of
+  each class) stand. Moved into 8.1. Owner: Core 4.
+  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT): now an
+  umbrella over GEN.355 and GEN.963 only (GEN.356 and GEN.145 dropped as
+  fixed letter rules; GEN.90 dropped). The physics answer stands:
+  shoreline ratio below 30, species by lambda, cold side by vapour
+  pressure, H2 and water by energy-limited XUV; that is GEN.355
+  Prerequisites: GEN.355, GEN.963.
+  Design: [docs/design/habitability/habitability-index.md](design/habitability/habitability-index.md)
 
 - [ ] **GEN.93 Nebula conditions in planet generation**
   Boss (2026-10-03 05:38Z): "Account for nebula temperature and
@@ -3636,48 +3554,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   branches; the table is DB.56.
   Prerequisites: GEN.347.
   Design: [docs/design/orbits/collisions-and-mergers.md](design/orbits/collisions-and-mergers.md)
-
-- [ ] **GEN.145 Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30**
-  Class S landed with `atmosphere = None` in the ecosphere and cold
-  zones, which breaks the shoreline by a factor of 50 or more. S is
-  airless only for shoreline ratio over 30 (T_eq above 650 to 1,200 K).
-  It changes existing output, so it needs GEN.92's "unchanged until
-  regenerated" guard.
-  Needs the shoreline functions (child a of GEN.91) and the
-  unchanged-until-regenerated guard of GEN.92 (2026-10-16 review).
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): a class contributes an albedo range, an atmosphere
-  mixture from the gas table and composition-fraction priors through the
-  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
-  greenhouse (the composition chain of the 9.0 headline; the planet
-  classes were built to land after it, so they wait for GEN.428 and
-  GEN.411).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): GEN.428 and GEN.411
-  are added to this item's Prerequisites line, so the build reads the
-  wait that the 2026-10-16, 11:58 PM EDT sweep text names.
-  Research (2026-10-09): RE-SCOPE after the class cut-over (Aux 1
-  hand-off, about 5:04 PM EDT 2026-10-29 as the lane reported; GEN.646
-  merged in PR #3729, epoch 121): a planet's or moon's class is no
-  longer drawn, it is derived from the finished stored body (mass first,
-  then air), so this item is now the classifier rule for this class (and
-  its test through the classifier) and not a class draw or a zone rule
-  at generation. Check what is left against the classifier and what the
-  rule should say; retire it if the derived class already meets the Done
-  line. A change to the classifier moves stored classes (a generation
-  turn). Owner: Core 4 (proposed by TODO, with GEN.733/810/838/839 in
-  its lock turn).
-  Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): classes are conditions-based and derived from the
-  finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-  letters stay; new class letters are revoked (GEN.28 and its children).
-  Core 4: re-read this item against the derived classes, drop any clause
-  that asks for a fixed letter rule, and tell TODO which parts stand;
-  the physics clauses (retention, zones, sense of each class) stand.
-  Moved into 8.1. Owner: Core 4.
-  Prerequisites: GEN.355.
-  Related: GEN.412, GEN.423, GEN.428.
-  Design: [docs/design/habitability/atmospheres-retention-and-classes.md](design/habitability/atmospheres-retention-and-classes.md)
 
 - [ ] **GEN.157 The `neighbor_galaxies` table and a verified data file of about 25 real galaxies**
   One Alembic revision, no change to existing tables, and the data file
@@ -5400,46 +5276,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that asks for a fixed letter rule, and tell TODO which parts stand;
   the physics clauses (retention, zones, sense of each class) stand.
   Moved into 8.1. Owner: Core 4.
-
-- [ ] **GEN.356 Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed**
-  Split from GEN.91 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). N (the Venus analog) sits in the
-  ecosphere at S about 1.05, below the runaway threshold, carries a life
-  chemical and a hidden uncapped timeline. Re-scope it to the hot zone
-  only, lifeless, up to 1.8 Earth radii, with no life data stored; a
-  1-bar 'dune world' is a 10 percent variant of N. It changes existing
-  output, so it uses GEN.92's 'unchanged until regenerated' guard. Done:
-  N is generated only above the runaway threshold with no life chemical
-  or timeline, the class page text matches, and existing galaxies are
-  unchanged until regenerated.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): a class contributes an albedo range, an atmosphere
-  mixture from the gas table and composition-fraction priors through the
-  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
-  greenhouse (the composition chain of the 9.0 headline; the planet
-  classes were built to land after it, so they wait for GEN.428 and
-  GEN.411).
-  Prerequisites: GEN.355. Related: GEN.91,
-  GEN.412, GEN.423, GEN.428.
-  Research (2026-10-09): RE-SCOPE after the class cut-over (Aux 1
-  hand-off, about 5:04 PM EDT 2026-10-29 as the lane reported; GEN.646
-  merged in PR #3729, epoch 121): a planet's or moon's class is no
-  longer drawn, it is derived from the finished stored body (mass first,
-  then air), so this item is now the classifier rule for this class (and
-  its test through the classifier) and not a class draw or a zone rule
-  at generation. Check what is left against the classifier and what the
-  rule should say; retire it if the derived class already meets the Done
-  line. A change to the classifier moves stored classes (a generation
-  turn). Owner: Core 4 (proposed by TODO, with GEN.733/810/838/839 in
-  its lock turn).
-  Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): classes are conditions-based and derived from the
-  finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-  letters stay; new class letters are revoked (GEN.28 and its children).
-  Core 4: re-read this item against the derived classes, drop any clause
-  that asks for a fixed letter rule, and tell TODO which parts stand;
-  the physics clauses (retention, zones, sense of each class) stand.
-  Moved into 8.1. Owner: Core 4.
+  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT): stands
+  whole: today the shoreline exists only as the Berta-Thompson logistic
+  inside the pressure stage, with no standalone module, no Jeans-species
+  or condensation functions and no 13-body table
 
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
   Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -12536,32 +12376,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 9.5 (life classes and sentient life).
   Prerequisites: GEN.864, TEST.435.
 
-- [ ] **GEN.873 Standing life chemistry tests: star weights match the star lists, every pace can reach complex cells inside the age of the universe, no life chemistry without a stage, no Flora under ice, no chemistry on a non-water solvent, every life constant is registered, an oxygenic world past photosynthesis has more O2**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 9.3 tests 1, 2,
-  4, 5, 6, 7 and 8 as standing tests in the suite (test 3, the
-  prevalence band per chemistry per star letter, goes into the TEST.430
-  chain). Each test must fail on today's main for the defect it names
-  and pass after its fix. Size S to M.
-  Prerequisites: none. Related:
-  TEST.430.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): extended: the
-  standing tests read classes in place of chemistries once GEN.889
-  lands.
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  Owner (2026-10-30 2:07 AM EDT): Core 3 takes this lock-free tests-only
-  item (TODO). Write the standing tests; the life classes replaced
-  chemistries, so read classes where GEN.889 has landed. A test that
-  exposes a real defect on main is reported to TODO as a (bug) item
-  rather than fixed here unless the fix changes no generated value
-
 - [ ] **GEN.876 Adaptation traits built: drawn in the life pass, stored in a text column, listed on the object page (adapted to: radiation, sulfide) and read by the habitability scores**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 6.2, fix 8
@@ -13932,6 +13746,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flag or the rule moves a class: epoch with --affects fill, rides a
   train. Every stand-in it adds gets a GEN.725 registry row with tier
   and tweak level (L0 to L4). Owner: Core 4. Version 8.1.
+  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT):
+  envelope survival is already in physics/envelope_escape.py (GEN.822,
+  hydro-based loss of Kubyshkina et al. 2018 over the star XUV history,
+  Lopez and Fortney 2014 radius) and Hycean is already a hydrosphere
+  state; what is missing is the box (1 to 10 Earth masses, 1.4 to 2.6
+  Earth radii, equilibrium temperature 150 to 500 K, density 1.5 to 3)
+  as a derived flag plus a GEN.725 row. Scope shrinks to that derived
+  flag and the registry row; it moves no class, so it can go lock-free
+  (no epoch). Owner: Core 4
   Prerequisites: none. Related: GEN.350, GEN.355, GEN.829.
 
 - [ ] **GEN.964 H-He equation of state tables (a): a setup catalogue entry and a reader with tests on Jupiter, Saturn, Uranus and Neptune**
@@ -14483,6 +14306,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects fill), then remove the xfail marker in the test. Done: no
   stored body has a life_class without a life_stage and the xfail is
   gone. Owner: step 1 Core 3, step 2 Aux 2 (life lane) or Bug 1.
+  Step 1 merged (Core 3, #3927, as the lane reported) (2026-10-30 2:54
+  AM EDT): a body that suits a life class but has no life stage yet is
+  left out of the Galaxy Map class marks, the class filter and its
+  count, search results, the habitability icons, the API life_class_id,
+  the dominant species line on the object page and the system map side
+  panel; two new tests; no migration, nothing drawn changes. Existing
+  databases keep the old lifeclass map rows of those bodies until their
+  systems are saved again (a small data migration would clear them; not
+  filed, optional). Step 2 remains (draw no class before the first step,
+  epoch, removes the xfail)
   Prerequisites: none. Related: GEN.873, GEN.894.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -14914,6 +14747,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   separate commands (reset, plan, sectors, link, scatters, settle...),
   each its own run; jobs.job_runs(job_id) lists several runs and
   job_runner follows the job's processes, not one run. Follows PERF.202.
+  Step 1 merged (Aux 2, #3923, as the lane reported) (2026-10-30 2:47 AM
+  EDT): each single-stage verb (skeleton, scatters, map luminosity,
+  habitability, nebula field, clear scatter, link, backfill, settle,
+  population, territories) builds its run as a followed.Planned and
+  starts it with run_planned; no behaviour or stored-output change, no
+  epoch; new tests/test_planned_runs.py. Next: step 2 (start-time checks
+  into prepare hooks); the item stays open for the later steps
+  Scope split (Aux 2 finding, 2:47 AM EDT, TODO decision) (2026-10-30
+  2:48 AM EDT): step 2 composes only the verbs whose params are static
+  (fills, habitability, nebula field, population) into one run; the
+  data-dependent chains are split into PERF.212 (scatters), PERF.213
+  (link and settle) and PERF.214 (sectors planner), each a prerequisite
+  of the final one-run step. Waiting lanes take PERF.213 and PERF.214;
+  Aux 2 takes PERF.212
 
 - [ ] **PERF.204 An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2)**
   Boss (1:19 PM EDT 2026-10-29), asked by Core 5 what a visit to an
@@ -14930,25 +14777,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.2. Owner: none yet (Core 5 is the natural owner); follows
   PERF.149.
   Prerequisites: none. Related: PERF.149.
-
-- [ ] **PERF.206 Keyset walk for the octant and binary system group queries (slice 3 of the PERF.137 OFFSET audit)**
-  Slice 3 of the PERF.137 audit (report
-  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
-  2026-10-29): the octant and binary system group walk uses LIMIT ?
-  OFFSET ?. Do: walk it by key (the last seen id of the group) so each
-  step costs the same, and measure at a large galaxy. No
-  generated-output change. Owner: Core 5. Version 8.1.
-  Prerequisites: none. Related: PERF.137.
-
-- [ ] **PERF.207 planetgen planets and moons take --limit and --after (keyset), replacing OFFSET listing (slice 4 of the PERF.137 OFFSET audit)**
-  Slice 4 of the PERF.137 audit (report
-  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
-  2026-10-29): the planetgen planets and moons list commands page with
-  OFFSET. Do: add --limit and --after (the last id seen) with keyset
-  paging and print the next --after value, update docs/reference/cli.md
-  and the command tests. No generated-output change. Owner: Core 5.
-  Version 8.1.
-  Prerequisites: none. Related: PERF.137.
 
 - [ ] **PERF.208 A stored, indexed sector system count, density and quadrant so the remaining Sectors list sorts page by key (slice 5 of the PERF.137 OFFSET audit)**
   Slice 5 of the PERF.137 audit (report
@@ -15007,6 +14835,65 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   No generated value changes; indexes and keyset paging only. Size M.
   Owner: Core 5 when its queue ends.
   Prerequisites: none. Related: PERF.206, PERF.210.
+
+- [ ] **PERF.212 The bright-star, phenomena and shell scatters take their params when their stage opens, not when the run is built**
+  bright_star_followers needs the skeleton and the stored mass limit and
+  settings, so plan then scatter in one run cannot build the scatter
+  followers up front. Found by Aux 2 (as the lane reported, 2:47 AM EDT
+  2026-10-30) while planning PERF.203 step 2: a Follower's params must
+  be complete before the run starts, but several verbs read the database
+  when their followers are BUILT, so the whole page job cannot be one
+  run until each computes its params when its stage opens (in its
+  command's expand or prepare, in a worker). No behaviour or
+  stored-output change, no epoch. Lock-free. Do: move the params into
+  the scatter command's expand or prepare hook; test that planning then
+  scattering in one planned run gives the same stored output as today.
+  Size M. Owner: Aux 2.
+  Prerequisites: PERF.203. Related: PERF.203, PERF.213, PERF.214.
+
+- [ ] **PERF.213 Link and settle take the started_at of the sectors stage when their stage opens**
+  The link and settle followers read the started_at of the sectors stage
+  when the run is built. Found by Aux 2 (as the lane reported, 2:47 AM
+  EDT 2026-10-30) while planning PERF.203 step 2: a Follower's params
+  must be complete before the run starts, but several verbs read the
+  database when their followers are BUILT, so the whole page job cannot
+  be one run until each computes its params when its stage opens (in its
+  command's expand or prepare, in a worker). No behaviour or
+  stored-output change, no epoch. Lock-free. Do: read it in the stage's
+  prepare hook inside the worker; test the same stored output. Size S to
+  M. Owner: pool (a waiting lane, confirmed with TODO).
+  Owner (2026-10-30 2:54 AM EDT): Core 3 takes this (TODO, 2:54 AM EDT);
+  lock-free, no stored-output change
+  Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.214.
+
+- [ ] **PERF.214 The sectors planner (_plan_sectors) runs in a worker inside the run, not in the starting process**
+  The sectors planner runs in the process that starts the run, so the
+  plan is fixed before the run exists. Found by Aux 2 (as the lane
+  reported, 2:47 AM EDT 2026-10-30) while planning PERF.203 step 2: a
+  Follower's params must be complete before the run starts, but several
+  verbs read the database when their followers are BUILT, so the whole
+  page job cannot be one run until each computes its params when its
+  stage opens (in its command's expand or prepare, in a worker). No
+  behaviour or stored-output change, no epoch. Lock-free. Do: run the
+  planner when the sectors stage opens and let the stages after it read
+  its result; test the same plan and stored output. Size M. Owner: pool
+  (a waiting lane, confirmed with TODO).
+  Owner (2026-10-30 2:54 AM EDT): Core 3 takes this after PERF.213
+  (TODO); lock-free, no stored-output change
+  Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
+
+- [ ] **PERF.215 An unfiltered planets or moons list pages by key: an index on planets (star_system_id, orbital_index) so the name-then-orbit order is served by the index**
+  Core 5 (as the lane reported, 3:17 AM EDT 2026-10-30), after PERF.207
+  (#3935; planetgen planets and moons take --limit and --after): at
+  6,000,000 planets a filtered list by system, sector or class costs
+  about 40 ms a page, but the unfiltered list still costs 18 s a page
+  because the name-then-orbit order has no index. Do: add the index (and
+  the moons equivalent), page the unfiltered list by key, and measure at
+  6,000,000 planets. Done: an unfiltered page answers in under 100 ms at
+  that size. An index only, no stored value, no epoch; it takes a
+  migration number, so build it with PERF.208's migration in the same
+  sitting. Size S. Owner: Core 5.
+  Prerequisites: PERF.208. Related: PERF.207, PERF.208.
 
 ## DB: Database and schema
 
@@ -19358,6 +19245,19 @@ clears each one.
   radiative_convective.py) is red on clean main; Aux 5 also saw
   test_aquifers and test_sweep_classes red on clean main. The query_db
   exit code red is filed as TEST.465
+  Bug 2 merged #3932 (about 3:15 AM EDT as the lane reported)
+  (2026-10-30 3:16 AM EDT): closes the step registry, SQL portability
+  (interest migrations), object-rows binary star, /api/auth/me avatar,
+  map-rebuild stubs (PERF.180 slices), sector page second job (waits in
+  the PERF.154 list, test updated), the save transaction error in
+  test_db_batching (store commits before SET TRANSACTION),
+  test_saturation_single_source (water table limit renamed, value
+  unchanged) and test_wiring_guard (CR4 read via GCR_PEAK_G_CM2;
+  surface_dose line dropped from the register).
+  test_star_composition_sweep and test_aquifers pass on a clean run.
+  Still open: the gas solver np.diag random failure (needs the failing
+  input), the habitability browser fixture 900 s timeouts on slow
+  machines, planets.porosity (TEST.461, Core 1)
   Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
 
 - [ ] **TEST.464 Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug)**
@@ -19369,35 +19269,17 @@ clears each one.
   calls (key on the inputs, no stale reads across epochs), time the two
   tests before and after, and keep every result identical. Owner: Bug 2.
   Version 8.1.
+  First part merged (Bug 2, #3943, about 3:50 AM EDT as the lane
+  reported) (2026-10-30 4:17 AM EDT): test_gen_component_pass same-seed
+  test 35 s instead of over 900 s (smaller test cloud, same properties);
+  the whole-sphere component census fixture fills 30 sectors a region
+  instead of 100 (all 14 tests pass in 7.7 min). Finding: band_fractions
+  is already cached inside a process; the cost is the first table build
+  and drawing 138,000 satellite stars five times, so the cache the item
+  asked for would not help (a memo of the per-cell terms saved 11
+  percent, not added). Still open: the single-sector backfill test
+  (test_bright_star_scatter) is being timed and shrunk next
   Prerequisites: none. Related: TEST.463, GEN.935.
-
-- [ ] **TEST.465 test_admin_script_cli: query_db exits 1 instead of 2 for an incomplete command line when the database is not reachable (bug)**
-  Bug 1 (as the lane reported, 1:53 AM EDT 2026-10-30) listed
-  test_admin_script_cli as red and not its own. Reproduced by the TODO
-  thread on a machine with no MySQL:
-  test_query_db_rejects_an_incomplete_command_line[argv1] fails with
-  assert 1 == 2 (tests/test_admin_script_cli.py line 200) because the
-  script prints 'could not open the database (2003, Connection refused)'
-  and exits 1 before it checks the command line. Do: check the arguments
-  before the script opens the database, so a bad command line exits 2
-  whatever the database state; if the cause is something else on a
-  machine that has MySQL, say so on this item. Done: the test passes
-  with and without a reachable database. Distinct from TEST.298 (a
-  finalizer flake). Owner: Bug 2. Version 8.1. Also noted by Bug 1:
-  test_saturation_single_source (WATER_CRITICAL_K) is already listed
-  under TEST.463.
-  Prerequisites: none. Related: TEST.298, TEST.463.
-
-- [ ] **TEST.466 test_generate_py_system_output_writes_a_file_and_no_database: the plain system output starts with a newline (bug)**
-  Core 3 (as the lane reported, 2:03 AM EDT 2026-10-30) found
-  test_generate_py_system_output_writes_a_file_and_no_database red on
-  clean main: the plain system output starts with a newline. Do: find
-  the commit that added the leading newline, fix the output or the test,
-  whichever the intended format says. Done: the test passes and the
-  cause is on this item. Owner: Bug 2. Version 8.1. The other red Core 3
-  named, the item code at stellar_spectra.py line 198 (GEN.443), is
-  fixed by Star 2's #3831 on train 3.
-  Prerequisites: none. Related: TEST.463.
 
 ## USR: User accounts
 
@@ -20064,86 +19946,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.72 Delete the dead tuning knobs and uncalled helpers the unused-values audit found (G7)**
-  Unused stored values audit (the "Find stored values nothing uses"
-  thread, report reports/unused-stored-values-audit-2026-10-24.md,
-  relayed 10:33 PM EDT 2026-10-24 as the thread reported), filed for
-  Boss's 10:16 PM EDT instruction to file every stored or calculated
-  value nothing uses that is not already in the works. None of it is a
-  wrong number on a page today. G7. Constants in tuning.py with no
-  reader: HABITABLE_ZONE_BUFFER_AU, ROUND_RADIUS_KM,
-  RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
-  STELLAR_PROTO_HELIUM_OFFSET_DEX, MAX_FLAVOR_PLANET,
-  NAV_COURSE_DECIMAL_PLACES (and STELLAR_U_TH_UNCERTAINTY, read only in
-  a docstring). Defined and never called:
-  generation/validation.class_allowed_in_zone,
-  generation/run_sector.build_sector_configs,
-  generation/run_plan.shell_chunks,
-  generation/phenomenon_scatter.draw_mass,
-  physics/surface_pressure.mantle_mass_kg,
-  web/lib/tileprefetch.build_nodes,
-  web/lib/apiclient.get_galaxy_phenomena,
-  web/seo_pages.register_card_renderer, util/settings.read_config and
-  settings_hash, web/generate_page.mass_limit_argv. Delete each (no
-  shims), or wire it where the knob says something a page should honour;
-  check first that no item still needs it. Done: the knobs and helpers
-  are gone, the tests pass, and a scan finds no tuning constant without
-  a reader. Version 8.1. Owner: any free pool lane (small, one gate).
-  Rules: no backward-compat shims; every number has a unit or scale
-  (GEN.772); draws through draw.py; a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`; stand-ins get
-  GEN.725 registry rows.
-  Research (2026-10-09): Lock-free item given to Aux 3 (6:14 PM EDT
-  2026-10-29) while it waits for its GEN.816 lock turn; MAP.299 merged
-  (#3754). Owner: Aux 3. No output change; tuning.py is also edited by
-  the star lanes, so rebase before the PR.
-  Prerequisites: OPS.73, OPS.74. Related: GEN.754, OPS.73, OPS.74.
-
-- [ ] **OPS.73 Delete the dead tuning knobs (HABITABLE_ZONE_BUFFER_AU, ROUND_RADIUS_KM, RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD, STELLAR_PROTO_HELIUM_OFFSET_DEX, MAX_FLAVOR_PLANET, NAV_COURSE_DECIMAL_PLACES, STELLAR_U_TH_UNCERTAINTY) (G7, step 1)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). Constants in tuning.py with no reader
-  (STELLAR_U_TH_UNCERTAINTY is read only in a docstring). Check no open
-  item needs each, delete it, and add a test that no tuning constant
-  lacks a reader. Done: the knobs are gone and the scan test passes.
-  Version 8.1. Owner: any free pool lane. Rules: no backward-compat
-  shims; every number has a unit or scale (GEN.772); a changed generated
-  value carries `tests.golden_update --reason ... --affects <stage>` and
-  the next epoch; tests are `scripts/test.py changed --resume`.
-  Research (2026-10-09): Lock-free item given to Aux 3 (6:14 PM EDT
-  2026-10-29) while it waits for its GEN.816 lock turn; MAP.299 merged
-  (#3754). Owner: Aux 3. No output change; tuning.py is also edited by
-  the star lanes, so rebase before the PR.
-  Prerequisites: none. Related: OPS.72.
-
-- [ ] **OPS.74 Delete the uncalled helpers (class_allowed_in_zone, build_sector_configs, shell_chunks, draw_mass, mantle_mass_kg, build_nodes, get_galaxy_phenomena, register_card_renderer, read_config, settings_hash, mass_limit_argv) (G7, step 2)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). Defined and never called:
-  generation/validation.class_allowed_in_zone,
-  generation/run_sector.build_sector_configs,
-  generation/run_plan.shell_chunks,
-  generation/phenomenon_scatter.draw_mass,
-  physics/surface_pressure.mantle_mass_kg,
-  web/lib/tileprefetch.build_nodes,
-  web/lib/apiclient.get_galaxy_phenomena,
-  web/seo_pages.register_card_renderer, util/settings.read_config and
-  settings_hash, web/generate_page.mass_limit_argv. Delete each, or wire
-  it where it says something a page should honour; check no open item
-  needs it. Done: gone, tests green. Version 8.1. Owner: any free pool
-  lane. Rules: no backward-compat shims; every number has a unit or
-  scale (GEN.772); a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`.
-  Research (2026-10-09): Lock-free item given to Aux 3 (6:14 PM EDT
-  2026-10-29) while it waits for its GEN.816 lock turn; MAP.299 merged
-  (#3754). Owner: Aux 3. No output change; tuning.py is also edited by
-  the star lanes, so rebase before the PR.
-  Prerequisites: none. Related: OPS.72.
 
 ## DOC: Documentation
 

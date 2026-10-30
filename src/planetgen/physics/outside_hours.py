@@ -25,12 +25,18 @@ its stored columns changing.
 Use:
 
     hours, limit = outside_hours.outside_hours_day(world, levels, daylight_hours, days_per_year, temperatures)
+
+A body's stored columns give the inputs (`for_body`): the equipment levels `equipment.compute` lists, the stored `daylight_hours`
+(GEN.767) and the day's coldest and hottest temperature from the cycle of the light (`habitability.temperature_extremes_c`)
+widened by half the stored day-night swing (`temp_swing_k`). A tidally locked world has no day of its own: a person stays in the
+terminator belt, where the star sits on the horizon for the whole 24-hour shift (`LOCKED_BELT_LIGHT_HOURS`) at the belt's stored
+temperature (`temp_terminator_k`).
 """
 
 import math
 from collections import namedtuple
 
-from planetgen.physics import constants, equipment
+from planetgen.physics import constants, equipment, habitability, regional_temperature
 from planetgen.physics.protection_limits import GARMENTS, limit, supply_hours
 
 LIMITS = ("daylight", "dose", "heat", "cold", "air", "uv", "vehicle")
@@ -38,6 +44,11 @@ LIMITS = ("daylight", "dose", "heat", "cold", "air", "uv", "vehicle")
 
 Temperatures = namedtuple("Temperatures", "cold_k hot_k")
 """The coldest and the hottest ambient temperature of the day outside, kelvin."""
+
+LOCKED_BELT_LIGHT_HOURS = 24.0
+"""float: The hours of light of a shift in the terminator belt of a tidally locked world, where the star stays near the horizon all the
+time (stand-in row OH11: a person who works there has the light the whole shift; the belt's glancing light and its temperature are the
+terminator's, not a daily cycle)."""
 
 HOURS_PER_DAY = 24.0
 HOURS_PER_YEAR = equipment.HOURS_PER_YEAR
@@ -186,3 +197,33 @@ def outside_hours_day(world, levels, daylight_hours, days_per_year, temperatures
         candidates.append(("uv", float(daylight_hours) * edge / index))
     name, hours = min(candidates, key=lambda item: (item[1], LIMITS.index(item[0])))
     return max(0.0, hours), name
+
+
+def for_body(world, levels, values):
+    """
+    `(hours, limit)` of a body from its stored columns, or `(None, None)` when they do not say enough (no rotation period, no
+    stored `daylight_hours` on a world that turns on its own, no terminator temperature on a locked one: a row made before
+    GEN.767 keeps `None`).
+
+    Args:
+        world (habitability.World): The body as `habitability_world.world_from` builds it.
+        levels (dict): The equipment levels `equipment.compute(world)` lists for it.
+        values (dict): Its column-named values: `rotation_period_hours`, `period_years`, `daylight_hours`, `temp_swing_k`,
+            `temp_terminator_k`.
+    """
+    rotation, period = values.get("rotation_period_hours"), values.get("period_years")
+    if not rotation or not period:
+        return None, None
+    if regional_temperature.is_locked(rotation, period):
+        belt = values.get("temp_terminator_k")
+        if not belt:
+            return None, None
+        days = work_days_per_year(rotation, period, locked=True)
+        return outside_hours_day(world, levels, LOCKED_BELT_LIGHT_HOURS, days, Temperatures(belt, belt))
+    daylight = values.get("daylight_hours")
+    if daylight is None:
+        return None, None
+    cold_c, hot_c = habitability.temperature_extremes_c(world)
+    half_swing = (values.get("temp_swing_k") or 0.0) / 2.0
+    temperatures = Temperatures(cold_c + constants.CELSIUS_ZERO_K - half_swing, hot_c + constants.CELSIUS_ZERO_K + half_swing)
+    return outside_hours_day(world, levels, daylight, work_days_per_year(rotation, period), temperatures)

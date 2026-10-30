@@ -476,16 +476,20 @@ def _skeleton_on_queue(args):
     Raises:
         SystemExit: The unit refused its parameters (the reach, or a seed that does not match a galaxy with sectors).
     """
-    follower = SkeletonFollower(args)
     try:
-        followed.run_followed(args, [follower], "Galaxy skeleton")
+        return followed.run_planned(args, planned_skeleton(args))
     except units.RunStopped as exc:
         marker = "ValueError: "
         if marker not in str(exc):
             raise
         log.error(str(exc).split(marker, 1)[1])
         raise SystemExit(1) from exc
-    return follower.summary
+
+
+def planned_skeleton(args):
+    """The skeleton build as a `followed.Planned`; its result is the build's summary."""
+    follower = SkeletonFollower(args)
+    return followed.Planned([follower], "Galaxy skeleton", lambda: follower.summary)
 
 
 def _draw_naming_key(mysql_config, galaxy_seed, new_seed):
@@ -666,10 +670,14 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
     Returns:
         dict: `counts` (per population), `total` and `elapsed_s`.
     """
+    return followed.run_planned(args, planned_bright_stars(args, passes))
+
+
+def planned_bright_stars(args, passes=("mass", "luminosity")):
+    """The bright-star passes of `scatter_bright_stars` as a `followed.Planned`; its result is `book.summary()`."""
     followers, book = bright_star_followers(args, passes)
-    followed.run_followed(args, followers + [BlockLightsFollower(args)], "Bright stars",
-                          seed=followers[0]._seed if len(followers) == 1 else None)
-    return book.summary()
+    return followed.Planned(followers + [BlockLightsFollower(args)], "Bright stars", book.summary,
+                            seed=followers[0]._seed if len(followers) == 1 else None)
 
 
 def _bright_star_seed(skeleton, address):
@@ -797,48 +805,16 @@ class _ShellTracker:
 CHANNEL_INTERVAL_SECONDS = 0.25
 """float: How often a worker drawing a task reports its stars (PERF.4)."""
 
-CHUNKS_PER_WORKER = 32
-"""int: About how many tasks of equal expected work a scatter is cut into for each worker, so that no worker is left
-with a big one at the end while the others sit idle."""
-
 MAX_SHELLS_PER_CHUNK = 64
 """int: The most consecutive shells one task draws, so the progress moves steadily at the thin edge of the galaxy,
 where thousands of shells hold almost nothing."""
-
-
-def shell_chunks(rows, workers):
-    """
-    Cuts the outline into tasks of consecutive shells with about equal
-    expected work. A shell draws from a stream of its own, so how the shells
-    are grouped changes nothing in what is drawn; only how well the workers
-    are kept busy.
-
-    Args:
-        rows (list): `(shell_index, high_band, weight)`, innermost shell first.
-        workers (int): How many workers share the run.
-
-    Returns:
-        list[list]: The rows of each task, the heaviest task first.
-    """
-    total = sum(weight for _shell, _high, weight in rows)
-    target = total / max(workers, 1) / CHUNKS_PER_WORKER
-    chunks, current, weight = [], [], 0.0
-    for row in rows:
-        current.append(row)
-        weight += row[2]
-        if weight >= target or len(current) >= MAX_SHELLS_PER_CHUNK:
-            chunks.append(current)
-            current, weight = [], 0.0
-    if current:
-        chunks.append(current)
-    return sorted(chunks, key=lambda chunk: -sum(row[2] for row in chunk))
 
 
 def static_shell_chunks(rows):
     """
     The units of a scatter on the new queue (PERF.97): the outline cut into runs of consecutive shells of about
     equal expected work, from the rows alone (`units.static_chunks`), so the same galaxy is the same units at any
-    worker count. The heaviest unit first, as `shell_chunks`.
+    worker count. The heaviest unit first.
 
     Args:
         rows (list): `(shell_index, high_band, weight)`, innermost shell first.
@@ -1465,9 +1441,13 @@ class ScatterFollower(followed.Follower):
 
 def _scatter_on_queue(args, key, label, params, seed, own_row=True):
     """A shell scatter pass as a run of its own (`ScatterFollower`). Returns the stars written per population."""
+    return followed.run_planned(args, planned_scatter(args, key, label, params, seed, own_row))
+
+
+def planned_scatter(args, key, label, params, seed, own_row=True):
+    """A shell scatter pass as a `followed.Planned`; its result is the stars written per population."""
     follower = ScatterFollower(args, key, label, params, seed, own_row=own_row)
-    followed.run_followed(args, [follower], label, seed=seed)
-    return follower.counts
+    return followed.Planned([follower], label, lambda: follower.counts, seed=seed)
 
 
 def add_bright_star_band(args):
@@ -2025,6 +2005,9 @@ def _nebula_field_task(payload):
     return {"written": written, "counts": counts, "shells": shells}
 
 
+SKELETON_NEVER_BUILT = "The galaxy's skeleton has never been built -- run 'planetgen plan' first."
+"""str: What a stage that needs the plan says when the galaxy has none (said when the stage opens, PERF.203)."""
+
 NEBULA_DRAW_KEY = "nebula-draw"
 """str: The key of the step that draws the nebula field: a step of a run of its own, not a stage the plan lists."""
 
@@ -2044,7 +2027,7 @@ def expand_draw_nebula_field(params):
     """
     The `draw-nebula-field` command's stage (PERF.106, DB.24): a unit per first-index slab of the field's cells (a run of
     consecutive slabs per unit in a galaxy with more than `units.MAX_UNITS` of them, PERF.192), from the stored galaxy
-    alone. `detail` holds the cell edge, so a follower can name a slab's extent.
+    alone. `detail` holds the cell edge, so a follower can name a slab's extent. A galaxy with no outline has no unit.
     """
     conn = store.get_connection(_mysql_config_of(params))
     try:
@@ -2052,6 +2035,10 @@ def expand_draw_nebula_field(params):
         extents = _outline(conn)
     finally:
         conn.close()
+    if skeleton is None:
+        raise RuntimeError(SKELETON_NEVER_BUILT)
+    if not extents:
+        return commands.Expansion([], {"cell_pc": program_constants.NEBULA_FIELD_CELL_PC, "slabs": 0})
     outer_shell = max(shell for shell, _high in extents)
     radius_pc, half_height_pc = nebulaField.field_extent_pc(skeleton.edge_pc, extents)
     edge = program_constants.NEBULA_FIELD_CELL_PC
@@ -2154,10 +2141,20 @@ class NebulaFieldFollower(followed.Follower):
 
 
 def prepare_draw_nebula_field(params):
-    """The `prepare` of the `draw-nebula-field` command (PERF.172), when its stage opens: empties the earlier table."""
+    """
+    The `prepare` of the `draw-nebula-field` command (PERF.172), when its stage opens: empties the earlier table. A galaxy with
+    no outline has nothing to draw and nothing is emptied (PERF.203, checked here and not when the run starts, because an
+    earlier stage of the same run may be what builds the plan).
+
+    Raises:
+        RuntimeError: The galaxy's skeleton has never been built.
+    """
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        store.clear_nebula_field(conn)
+        if store.get_galaxy_shape(conn) is None:
+            raise RuntimeError(SKELETON_NEVER_BUILT)
+        if _outline(conn):
+            store.clear_nebula_field(conn)
     finally:
         conn.close()
 
@@ -2171,6 +2168,8 @@ def conclude_draw_nebula_field(params, plan, results, seconds):
     Returns:
         dict: `linked` (nebulae linked) and `blocks` (block totals made).
     """
+    if not plan["slabs"]:
+        return {"linked": 0, "blocks": 0}
     conn = store.get_connection(_mysql_config_of(params))
     try:
         store.record_scatter_epoch(conn, "nebula-field", params.get("run_id"))
@@ -2303,9 +2302,13 @@ def fill_map_luminosity(args):
     Returns:
         int: The rows filled.
     """
+    return followed.run_planned(args, planned_map_luminosity(args))
+
+
+def planned_map_luminosity(args):
+    """The map luminosity fill and the block lights after it as a `followed.Planned`; its result is the rows filled."""
     follower = MapLuminosityFollower(args)
-    followed.run_followed(args, [follower, BlockLightsFollower(args)], "Map luminosity")
-    return follower.total
+    return followed.Planned([follower, BlockLightsFollower(args)], "Map luminosity", lambda: follower.total)
 
 
 HABITABILITY_BATCH_SYSTEMS = 500
@@ -2392,9 +2395,13 @@ def fill_habitability(args):
     Returns:
         int: The bodies updated.
     """
+    return followed.run_planned(args, planned_habitability(args))
+
+
+def planned_habitability(args):
+    """The habitability rescore as a `followed.Planned`; its result is the bodies updated."""
     follower = HabitabilityFollower(args)
-    followed.run_followed(args, [follower], "Habitability")
-    return follower.total
+    return followed.Planned([follower], "Habitability", lambda: follower.total)
 
 
 def refresh_block_lights(mysql_config, args=None):
@@ -2589,15 +2596,19 @@ def clean_nebula_field(args):
     Returns:
         dict: `stored` and `rejected` (per class, field clouds only) and `deleted` (the count removed).
     """
-    follower = CleanNebulaFieldFollower(args)
     try:
-        followed.run_followed(args, [follower], "Nebula field")
+        return followed.run_planned(args, planned_clean_nebula_field(args))
     except units.RunStopped as exc:
         marker = "RuntimeError: "
         if marker not in str(exc):
             raise
         raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
-    return {key: follower.result[key] for key in ("stored", "rejected", "deleted")}
+
+
+def planned_clean_nebula_field(args):
+    """The nebula field check (and clean) as a `followed.Planned`; its result is `stored`, `rejected` and `deleted`."""
+    follower = CleanNebulaFieldFollower(args)
+    return followed.Planned([follower], "Nebula field", lambda: {key: follower.result[key] for key in ("stored", "rejected", "deleted")})
 
 
 def redraw_nebula_field(args):
@@ -2608,17 +2619,19 @@ def redraw_nebula_field(args):
     Returns:
         int: The rows written (0 for a galaxy with no outline).
     """
-    conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        if store.get_galaxy_shape(conn) is None:
-            raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
-        if not _outline(conn):
-            return 0
-    finally:
-        conn.close()
+        return followed.run_planned(args, planned_nebula_field(args))
+    except units.RunStopped as exc:
+        marker = "RuntimeError: "
+        if marker not in str(exc):
+            raise
+        raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
+
+
+def planned_nebula_field(args):
+    """The nebula field table drawn again as a `followed.Planned`; its result is the rows written."""
     follower = NebulaFieldFollower(args)
-    followed.run_followed(args, [follower], "Nebula field")
-    return follower.written
+    return followed.Planned([follower], "Nebula field", lambda: follower.written)
 
 
 def expand_refresh_block_lights(params):
@@ -2841,9 +2854,13 @@ def scatter_phenomena(args):
     Returns:
         dict: `counts` (per kind), `total` and `elapsed_s`.
     """
+    return followed.run_planned(args, planned_phenomena(args))
+
+
+def planned_phenomena(args):
+    """The phenomena scatter and the block lights after it as a `followed.Planned`; its result is `book.summary()`."""
     followers, book = phenomena_followers(args)
-    followed.run_followed(args, followers + [BlockLightsFollower(args)], "Phenomena", seed=followers[0]._params["seed"])
-    return book.summary()
+    return followed.Planned(followers + [BlockLightsFollower(args)], "Phenomena", book.summary, seed=followers[0]._params["seed"])
 
 
 def prepare_scatter_phenomena(params):
@@ -3130,14 +3147,19 @@ class ClearScatterFollower(followed.Follower):
 
 def clear_scatter(args):
     """`planetgen clear-scatter`'s work on the new queue: the `clear-scatter` command, one unit, and its lines logged."""
-    follower = ClearScatterFollower(args)
     try:
-        followed.run_followed(args, [follower], follower.label)
+        followed.run_planned(args, planned_clear_scatter(args))
     except units.RunStopped as exc:
         marker = "RuntimeError: "
         if marker not in str(exc):
             raise
         raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
+
+
+def planned_clear_scatter(args):
+    """The scatter clear as a `followed.Planned`."""
+    follower = ClearScatterFollower(args)
+    return followed.Planned([follower], follower.label)
 
 
 def run_clear_scatter(args):
