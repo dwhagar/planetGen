@@ -735,6 +735,13 @@
       "first_release": "8.0.2624",
       "reason": "Train 1: GEN.746, GEN.747, GEN.748 dose and ozone-UV laws from measured data; GEN.908 brine seep state; GEN.328 young groups at fill; GEN.816 giant 1 bar temperature with its own heat; GEN.462 ground albedo wired; DB.70 moon origin and giant disk stored; GEN.662 and GEN.661 star composition from each component's own [Fe/H]; GEN.917 ground and aerosols from conditions; GEN.897 star class edges, GEN.899 M dwarf companions, GEN.904 daylight after an orbit move, GEN.905 envelope mantle redox",
       "affects": ["fill", "scatter", "population"]
+    },
+    {
+      "epoch": 124,
+      "first_release": null,
+      "pending": true,
+      "reason": "Train 2: GEN.916 and GEN.911 habitable requests judged by conditions and aimed by solved temperature; GEN.980 class derived after life; GEN.953 interim birth spin scale 0.4 and small-planet factor; GEN.894 strange-solvent life classes; GEN.833 frozen body covered by its ice; GEN.848 day and night swing for every temperature; GEN.849 rocky body bulk water from the Bern delivery law; GEN.834 non-water ice stored by species",
+      "affects": ["fill"]
     }
   ]
 }
