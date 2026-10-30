@@ -14752,10 +14752,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   choice and two small questions (retire past 1 ly versus keep a record
   row; the remnant planet) are with Boss; the lane builds the modules
   with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Lock work, train 19 (with the supernova host rule). Design
+  GEN.725. Lock work, train 20 (with the supernova host rule). Design
   L1. Epoch, migration, no backward-compat shim. Done: tests, golden,
-  census. Where we think it belongs (best guess, can move): Aux 4, train
-  19.
+  census. Where we think it belongs (best guess, can move): Aux 4, train 20.
   Boss decision (2026-10-30 4:55 PM EDT): Boss decided 4:54 PM EDT
   2026-10-30: option 1, physics only, no labelled game rate; fields come
   only from physical sources (supernova-unbound belts and the other
@@ -14772,9 +14771,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   choice and two small questions (retire past 1 ly versus keep a record
   row; the remnant planet) are with Boss; the lane builds the modules
   with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Lock work, train 19. Design L2. Done: tests, census share of
+  GEN.725. Lock work, train 20. Design L2. Done: tests, census share of
   remnants with a field. Where we think it belongs (best guess, can
-  move): Aux 4, train 19 (same train as the columns).
+  move): Aux 4, train 20 (same train as the columns).
   Prerequisites: GEN.1103.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -14785,10 +14784,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   choice and two small questions (retire past 1 ly versus keep a record
   row; the remnant planet) are with Boss; the lane builds the modules
   with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Lock work, train 20 after the belt ledger items are merged
+  GEN.725. Lock work, train 21 after the belt ledger items are merged
   (belt member storage and designation). API version bump. Done: tests,
   pages. Where we think it belongs (best guess, can move): Core 2 with
-  Aux 4, train 20.
+  Aux 4, train 21.
   Prerequisites: GEN.1103, GEN.1065, GEN.1070.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -14799,8 +14798,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   choice and two small questions (retire past 1 ly versus keep a record
   row; the remnant planet) are with Boss; the lane builds the modules
   with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Lock work, train 20. Design L4. Done: map and page checks.
-  Where we think it belongs (best guess, can move): Core 2, train 20.
+  GEN.725. Lock work, train 21. Design L4. Done: map and page checks.
+  Where we think it belongs (best guess, can move): Core 2, train 21.
   Prerequisites: GEN.1105.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -14811,9 +14810,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   choice and two small questions (retire past 1 ly versus keep a record
   row; the remnant planet) are with Boss; the lane builds the modules
   with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Lock work, train 20, after the GEN.1006 chain. Design L5.
+  GEN.725. Lock work, train 21, after the GEN.1006 chain. Design L5.
   Done: tests with a before and after epoch. Where we think it belongs
-  (best guess, can move): Bug 1 (GEN.1006 chain), train 20.
+  (best guess, can move): Bug 1 (GEN.1006 chain), train 21.
   Boss decision (2026-10-30 4:55 PM EDT): Boss decided 4:54 PM EDT
   2026-10-30: option 1, physics only, no labelled game rate; fields come
   only from physical sources (supernova-unbound belts and the other
@@ -14877,6 +14876,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research; the output also checks the ejection yield per star against
   microlensing rates. Replacement modules are the R3 item and the rows
   created from architecture ejections are the R2 item.
+  Rogue train 19 (Boss, 4:57 PM EDT) (2026-10-30 4:59 PM EDT): Boss,
+  4:57 PM EDT 2026-10-30: rogue planets are all physics, each has its
+  own moon system and moon compositions, and a rogue planet is
+  functionally and programmatically identical to a planet in a system
+  except that it carries a note that it is rogue and is not orbiting a
+  star. So the rogue path calls the same planet and moon generation (the
+  one body chain of GEN.557), not a simplified one; the flat-rate rogue
+  tables are deleted. The review states, for each quantity, how the
+  bound-planet chain already computes it, so the rogue path reuses it.
   Prerequisites: none. Related: GEN.557, GEN.1089, GEN.110.
 
 - [ ] **GEN.1110 Average wind speeds by day and by night in each of the seven latitude bands: the day-to-night thermal wind from the pressure difference, zonal jets and trade winds from the equator-to-pole temperature difference and the Rossby number, faded out below about 1 kPa**
@@ -14907,6 +14915,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   migration, API field), after the architecture slot loop and the
   clearance ledger. Where we think it belongs (best guess, can move):
   Planets 1, train 19.
+  Rogue train 19 (Boss, 4:57 PM EDT) (2026-10-30 4:59 PM EDT): Boss,
+  4:57 PM EDT 2026-10-30: rogue planets are all physics, each has its
+  own moon system and moon compositions, and a rogue planet is
+  functionally and programmatically identical to a planet in a system
+  except that it carries a note that it is rogue and is not orbiting a
+  star. So the rogue path calls the same planet and moon generation (the
+  one body chain of GEN.557), not a simplified one; the flat-rate rogue
+  tables are deleted. This item is the core of train 19: epoch with
+  --affects, migration, golden refresh through Bug 2. The fields
+  (GEN.1103 and GEN.1104) move to train 20 and GEN.1105 to GEN.1107 to
+  train 21.
   Prerequisites: GEN.1109, GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -14920,6 +14939,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tuning.py. Lock-free for the modules; their wiring rides the
   rogue-rows item. Where we think it belongs (best guess, can move):
   Sources 1 (idle, separate branch), after the review report.
+  Rogue train 19 (Boss, 4:57 PM EDT) (2026-10-30 4:59 PM EDT): Boss,
+  4:57 PM EDT 2026-10-30: rogue planets are all physics, each has its
+  own moon system and moon compositions, and a rogue planet is
+  functionally and programmatically identical to a planet in a system
+  except that it carries a note that it is rogue and is not orbiting a
+  star. So the rogue path calls the same planet and moon generation (the
+  one body chain of GEN.557), not a simplified one; the flat-rate rogue
+  tables are deleted. The replaced defaults are removed in the same
+  train as the rogue rows.
   Prerequisites: GEN.1109. Related: GEN.557.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -19798,6 +19826,18 @@ clears each one.
   star and allow the designed trim. Lock-free. Where we think it belongs
   (best guess): Core 1.
   Prerequisites: none.
+
+- [ ] **TEST.498 A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star**
+  Boss, 4:57 PM EDT 2026-10-30. Test: draw matched planets with and
+  without a host (same seed inputs where possible) and assert the rogue
+  and bound versions go through the same code path (no rogue-only
+  generator), carry the same columns and moon-system fields, and differ
+  only in the rogue note, the missing host and the quantities that
+  depend on starlight (the equilibrium temperature is the internal and
+  ambient value). Lock-free (test). Where we think it belongs (best
+  guess, can move): Core 1, built with train 19 so the train gate
+  carries it.
+  Prerequisites: GEN.1111.
 
 ## USR: User accounts
 
