@@ -1505,6 +1505,7 @@
 --   complexity index of the class, `physics/life_complexity.py`); the classes a body supports are the child tables `planet_life_class_scores` and `moon_life_class_scores` (one row for each class
 --   with a score of 1 or more); `species.life_chemical` becomes `species.life_class` (the id). A row made before v175 keeps the class its chemistry stood for and nothing else
 --   (see `migrations/versions/0175_life_classes.py`); the rest comes when the galaxy is regenerated.
+-- v176 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v176, nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -3992,6 +3993,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     system_mass_solar    DOUBLE,
     metallicity_fe_h     DOUBLE,  -- v95 (GEN.158): [Fe/H] in dex, NULL for a cluster star until GEN.159 and for older rows
     cluster_id           BIGINT UNSIGNED,  -- v127 (DB.61): the cluster this star belongs to, NULL for a field star
+    rotation_period_hours DOUBLE,  -- v176 (GEN.846): the spin period in hours, NULL on a row made before v176
 
     KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),

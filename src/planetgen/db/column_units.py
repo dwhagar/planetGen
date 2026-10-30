@@ -195,6 +195,7 @@ TABLES = {
         "unix_s": ("epoch_unix", "next_update_due"),
         "count": ("member_count",),
         "dex": ("metallicity_fe_h",),
+        "h": ("rotation_period_hours",),
     },
     "change_plan_ops": {
         "id": ("id", "plan_id"),
