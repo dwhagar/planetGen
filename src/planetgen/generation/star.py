@@ -464,6 +464,20 @@ class Star(StellarObject):
         star._finish_init(kwargs)
         return star
 
+    @classmethod
+    def from_record(cls, record, system_config, name=None, **kwargs):
+        """
+        Builds the `Star` of a member record (`member_record.MemberRecord`, GEN.1009) without evolving it: the state the tree drew the
+        member from is the state the star has, so its mass, radius and temperature are the record's. Takes `from_params`'s keywords.
+
+        Raises:
+            ValueError: If the record is not a star (a brown dwarf or a compact remnant has no `star_params`).
+        """
+        params = record.star_params()
+        if params is None:
+            raise ValueError(f"a {record.kind} member has no star to build")
+        return cls.from_params(params, system_config, name=name, **kwargs)
+
     def generate_star(self, initial_mass_sol=None, age_gy=None, fe_h=None):
         """
         Generates the physical properties of the star from the population

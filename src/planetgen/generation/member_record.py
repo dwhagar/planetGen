@@ -77,7 +77,12 @@ def _radius_au_of_km(radius_km):
 
 
 def _kind_of(yerkes):
-    return "main-sequence" if yerkes == "V" else "white-dwarf" if yerkes == "VII" else "giant"
+    """The member kind of a star of this Yerkes class (a contracting star's is its stage)."""
+    if yerkes == pre_main_sequence.PROTOSTAR:
+        return "protostar"
+    if yerkes in pre_main_sequence.STAGE_CLASSES:
+        return "pre-main-sequence"
+    return "main-sequence" if yerkes in ("V", "VI") else "white-dwarf" if yerkes == "VII" else "giant"
 
 
 def _brown_dwarf(initial_mass_solar, age_yr, fe_h, seed):
@@ -118,12 +123,7 @@ def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True):
         raise ValueError(f"a star of {initial_mass_solar:g} solar masses has collapsed by {age_yr:g} years")
     params = evolution.star_params(mass, age_yr / 1.0e9, state)
     yerkes = params["yerkes_class"]
-    if yerkes == pre_main_sequence.PROTOSTAR:
-        kind = "protostar"
-    elif yerkes in pre_main_sequence.STAGE_CLASSES:
-        kind = "pre-main-sequence"
-    else:
-        kind = _kind_of(yerkes)
+    kind = _kind_of(yerkes)
     radius = _radius_au_of_km(params["radius_km"])
     largest = radius if kind in YOUNG_KINDS else _largest_radius_au(mass, age_yr, fe_h, radius)
     return MemberRecord(kind, yerkes, state["mass_sol"], mass, radius, largest, mass, params["temperature_k"],
@@ -136,3 +136,20 @@ def compact(kind, seed, mass_solar, progenitor_solar, radius_au, age_yr, fe_h):
     rule's, GEN.1012)."""
     return MemberRecord(kind, None, mass_solar, progenitor_solar, radius_au, radius_au, max(progenitor_solar, mass_solar), None,
                         None, age_yr, fe_h, seed)
+
+
+def of_star(star, seed=0):
+    """
+    The record of a `Star` that already exists (the primary of a system, which the tree is drawn around): its present values, its
+    birth mass as the star holds it, and the largest radius its birth mass and age give. Its `params` are None, as the star is
+    built and nothing is built from this record.
+    """
+    mass = star.mass / constants.SOLAR_MASS_TO_KG
+    initial = getattr(star, "initial_mass_sol", None) or mass
+    kind = _kind_of(star.yerkes_class)
+    radius = _radius_au_of_km(star.radius)
+    age_yr = star.age * 1.0e9
+    fe_h = star.metallicity_fe_h
+    largest = radius if kind in YOUNG_KINDS else _largest_radius_au(initial, age_yr, fe_h, radius)
+    return MemberRecord(kind, star.yerkes_class, mass, initial, radius, largest, max(initial, mass), star.temperature,
+                        star.luminosity / constants.SOLAR_LUMINOSITY, age_yr, fe_h, seed)

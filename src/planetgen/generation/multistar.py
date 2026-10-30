@@ -52,9 +52,10 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
+from planetgen.generation import member_record
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, brown_dwarf, constants, imf, mass_boundaries, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
+    accretion, brown_dwarf, constants, imf, mass_boundaries, mass_loss, ms_lifetime, neutron_star, remnant_mass, remnant_progenitors, roche,
     stability, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
@@ -223,13 +224,16 @@ it. The low-mass X-ray binaries are part of a neutron star's and a black hole's 
 class Placed:
     """The object a tree is drawn for. `mass_solar` is its present mass; `initial_mass_solar` its birth mass
     (defaults to the present mass). `recycled` marks a millisecond pulsar; `planetary_nebula` a
-    planetary-nebula central star (a white dwarf). `fe_h` is the placed star's birth [Fe/H], when known."""
+    planetary-nebula central star (a white dwarf). `fe_h` is the placed star's birth [Fe/H], when known. `record` is the
+    `member_record.MemberRecord` of a placed star that is already built (a system's primary): the tree reads its radius
+    and mass, so it clears the star the build has; None for a scattered object, whose tree is drawn from its birth mass."""
     kind: str
     mass_solar: float
     initial_mass_solar: float | None = None
     recycled: bool = False
     planetary_nebula: bool = False
     fe_h: float | None = None
+    record: "member_record.MemberRecord | None" = None
 
     @property
     def birth_mass_solar(self):
@@ -249,7 +253,9 @@ class Member:
     Yerkes class of a star (`V`, `III`, `VII`, ...), `PMS` or `protostar` for a young one, the spectral type of a brown
     dwarf (`M8`, `L5`, `T2`, `Y0`; `physics/brown_dwarf.py`, GEN.252), and None for a remnant; it is stored in
     `scatter_members.state`, a VARCHAR(16). A member of a `group` node carries its `offset_au` from the group's centre, its
-    `velocity_kms` and the group's `decay_age_yr` (GEN.327); every other member has none of the three."""
+    `velocity_kms` and the group's `decay_age_yr` (GEN.327); every other member has none of the three. `radius_max_au` and
+    `mass_max_solar` are the largest radius and mass the member has had (GEN.1009, `member_record`); a tree draws them for
+    every member."""
     member_no: int
     parent_node_no: int | None
     slot: int
@@ -264,6 +270,8 @@ class Member:
     offset_au: tuple | None = None
     velocity_kms: tuple | None = None
     decay_age_yr: float | None = None
+    radius_max_au: float | None = None
+    mass_max_solar: float | None = None
 
 
 @dataclass(frozen=True)
@@ -413,6 +421,23 @@ class _Leaf:
     accretes: str | None = None
     """str or None: `wind`, `disc` or `overflow` on the neutron star or black hole of a pair that accretes (GEN.272): the
     pair is `accreting` whatever its geometry says, and a pair of a neutron star or black hole with no such leaf never is."""
+    radius_max_au: float | None = None
+    mass_max_solar: float | None = None
+    """float or None: The largest radius and mass the member has had (`member_record.MemberRecord`); None for a leaf with no
+    larger past than its present, which reads as the present radius and the larger of its birth and present mass."""
+    seed: int | None = None
+    """int or None: The seed the member's record was made under, which its `Member` keeps; None draws one from the tree's source."""
+
+    @property
+    def largest_radius_au(self):
+        return self.radius_au if self.radius_max_au is None else max(self.radius_max_au, self.radius_au)
+
+    @property
+    def largest_mass_solar(self):
+        return max(self.initial, self.mass) if self.mass_max_solar is None else max(self.mass_max_solar, self.mass)
+
+    def member_seed(self, rng):
+        return rng.getrandbits(63) if self.seed is None else self.seed
 
     @property
     def compact(self):
@@ -592,29 +617,16 @@ def _radius_au(state):
     return _m_to_au(radius_sol * constants.SOLAR_RADIUS_M)
 
 
+def _leaf_of(record):
+    """The roster leaf of a member record: what the tree draws the orbits from."""
+    return _Leaf(record.kind, record.state, record.mass_solar, record.initial_mass_solar, record.radius_au,
+                 radius_max_au=record.radius_max_au, mass_max_solar=record.mass_max_solar, seed=record.seed)
+
+
 def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0):
-    """A star-like member of this birth mass at the system's age."""
-    if initial_mass < mass_boundaries.sol("hydrogen_burning_limit"):
-        # GEN.252: the L, T or Y type its cooling gives at the system's age, and the radius the same laws fix.
-        dwarf = brown_dwarf.state(initial_mass, age_yr / 1.0e9)
-        return _Leaf("brown-dwarf", dwarf["spectral_type"], initial_mass, initial_mass,
-                     _m_to_au(dwarf["radius_sol"] * constants.SOLAR_RADIUS_M))
-    young = pre_main_sequence.state(initial_mass, age_yr, fe_h)
-    if young is not None:
-        # GEN.242: still contracting; the radius follows from the track's luminosity and temperature.
-        kind = "protostar" if young["yerkes_class"] == pre_main_sequence.PROTOSTAR else "pre-main-sequence"
-        return _Leaf(kind, young["yerkes_class"], initial_mass, initial_mass, _radius_au(young))
-    mass = initial_mass
-    while True:
-        state = evolution.evolve_star(mass, age_yr / 1.0e9, rng, fe_h=fe_h)
-        if state is not None or not lighten:
-            break
-        mass *= 0.8
-    if state is None:
-        raise ValueError(f"a star of {initial_mass:g} solar masses has collapsed by {age_yr:g} years")
-    yerkes = state["yerkes_class"]
-    kind = "main-sequence" if yerkes == "V" else "white-dwarf" if yerkes == "VII" else "giant"
-    return _Leaf(kind, yerkes, state["mass_sol"], mass, _radius_au(state))
+    """A star-like member of this birth mass at the system's age: its record (`member_record.make`, under a seed drawn here, which
+    the member keeps, so the build makes the same star)."""
+    return _leaf_of(member_record.make(rng.getrandbits(63), initial_mass, age_yr, fe_h, lighten))
 
 
 def _schwarzschild_au(mass_solar):
@@ -642,7 +654,8 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None, fe_h=0.0):
         if low >= high:
             return None
         progenitor = imf.sample(low, high, rng)
-        return _remnant_leaf(kind, progenitor, remnant_mass.white_dwarf_mass_sol(progenitor))
+        record = member_record.make(rng.getrandbits(63), progenitor, age_yr, fe_h, lighten=False)
+        return _leaf_of(record) if record.kind == "white-dwarf" else None
     progenitor = remnant_progenitors.sample_mass_sol(kind, max(lowest, evolution.youngest_progenitor_sol(age_yr, fe_h)),
                                                      rng)
     if progenitor is None:
@@ -1389,8 +1402,11 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         be, stripped = draw_be_star(birth, age_yr, types[1], types[2])
         effective_age = age_yr * (REJUVENATION_FRACTION_RANGE[0] + types[5] * (
             REJUVENATION_FRACTION_RANGE[1] - REJUVENATION_FRACTION_RANGE[0])) if merger else None
-        leaf = _star_leaf(birth, effective_age or age_yr, rng, lighten=False, fe_h=placed.tree_fe_h)
+        leaf = (_star_leaf(birth, effective_age or age_yr, rng, lighten=False, fe_h=placed.tree_fe_h) if placed.record is None
+                else _leaf_of(placed.record))
         leaf.mass = placed.mass_solar if leaf.kind != "white-dwarf" else leaf.mass
+        if placed.record is not None:
+            leaf.seed = None                 # the built primary needs no seed of its own: the member draws one
         leaf.effective_age_yr = effective_age
         if merger:
             leaf.flags |= MEMBER_MERGER_PRODUCT
@@ -1560,8 +1576,9 @@ def _assemble(leaves, builder, age_yr, dropped, rng):
         node_no, slot = where[leaf_index]
         members.append(Member(member_no=number[leaf_index], parent_node_no=node_no, slot=slot, kind=leaf.kind,
                               state=leaf.state, flags=leaf.flags | builder.extra_flags.get(leaf_index, 0), mass_solar=leaf.mass,
-                              initial_mass_solar=leaf.initial, radius_au=leaf.radius_au, seed=rng.getrandbits(63),
-                              effective_age_yr=leaf.effective_age_yr))
+                              initial_mass_solar=leaf.initial, radius_au=leaf.radius_au, seed=leaf.member_seed(rng),
+                              effective_age_yr=leaf.effective_age_yr, radius_max_au=leaf.largest_radius_au,
+                              mass_max_solar=leaf.largest_mass_solar))
     return MemberTree(tuple(members), tuple(nodes), age_yr, dropped)
 
 
@@ -1622,7 +1639,8 @@ def _group_member(number, leaf, rng, parent_node_no, slot, flags, **extra):
     """A `Member` of a young group's tree from a roster leaf."""
     return Member(member_no=number, parent_node_no=parent_node_no, slot=slot, kind=leaf.kind, state=leaf.state,
                   flags=leaf.flags | flags, mass_solar=leaf.mass, initial_mass_solar=leaf.initial,
-                  radius_au=leaf.radius_au, seed=rng.getrandbits(63), effective_age_yr=leaf.effective_age_yr, **extra)
+                  radius_au=leaf.radius_au, seed=leaf.member_seed(rng), effective_age_yr=leaf.effective_age_yr,
+                  radius_max_au=leaf.largest_radius_au, mass_max_solar=leaf.largest_mass_solar, **extra)
 
 
 def _group_tree(leaves, age_yr, decay_age_yr, rng):
@@ -1709,7 +1727,8 @@ def draw_young_group(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, prevalence
 
 def _single(leaf, age_yr, dropped, rng):
     member = Member(0, None, 0, leaf.kind, leaf.state, leaf.flags, leaf.mass, leaf.initial, leaf.radius_au,
-                    rng.getrandbits(63), leaf.effective_age_yr)
+                    leaf.member_seed(rng), leaf.effective_age_yr, radius_max_au=leaf.largest_radius_au,
+                    mass_max_solar=leaf.largest_mass_solar)
     return MemberTree((member,), (), age_yr, dropped)
 
 
