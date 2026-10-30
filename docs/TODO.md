@@ -14229,26 +14229,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1084. Related: GEN.1014.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
-- [ ] **GEN.1087 Census of Class D and dwarf-size bodies, moons of 50 to 500 km, and belts per system from the current generator, per star type**
-  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
-  we think it came from, we know because we made it; design
-  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
-  Boss, taken until he changes them: Class D stays "small, airless, at
-  least 1 percent ice" and covers belt members and dwarf planets; dwarf
-  planets are listed on the system page as members of their belt, not in
-  the planet list; the scatter phase is a rule over the architecture's
-  events with stored mass shares, no N-body run. Stand-ins accepted when
-  registered in GEN.725 with tier and tweak level; the Solar System is a
-  test target, never an input. Do: measure the current generator (needs
-  `datasets fetch isochrones` on the lane machine) and write the report;
-  it seeds the test targets of the dwarf population and scatter modules
-  and says whether the system needs more Class D bodies than it makes.
-  Done: report with per-star-type numbers. Lock-free. Where we think it
-  belongs (best guess, can move): Aux 3 (audit lane, separate branch),
-  now.
-  Prerequisites: none.
-  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
-
 - [ ] **GEN.1090 physics/dwarf_population.py: N(>D) from belt mass and size law, the order-statistic top body, the dwarf-planet line and Class D tagging**
   Belt origins (Boss, 2026-10-30, plan the items so each belt says where
   we think it came from, we know because we made it; design
@@ -14270,6 +14250,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   detached) are generated from the cold outer disc and swept by the
   scatter step, with dwarf planets drawn from the size law (GEN.1090),
   the outer disc being the belt of GEN.1071.
+  Census result (Aux 3, 5:35 PM EDT) (2026-10-30 5:33 PM EDT): GEN.1087
+  merged (#4185, report reports/dwarf-census-2026-10-30.md): in 700
+  systems Class D is 5 to 9 per system for F, G, K and 3.5 to 4 for M
+  but 79 to 98 percent are moons; no free-orbiting dwarf planet exists
+  (smallest planet 2,950 km, smallest moon 215 km, nothing of 50 to 200
+  km); belts are annuli with no members in 14 percent of G2V systems
+  (0.03 for M5V, 0.30 for K0III), a third short of the roughly 20
+  percent debris rate the design cites for Sun-like hosts. So the belt
+  and outer-disc members are the only source of free dwarf-sized Class D
+  bodies and this module is needed; the M-dwarf and G-dwarf belt rate is
+  checked against the design rate when GEN.1068 is built.
   Prerequisites: GEN.1087.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
@@ -14328,15 +14319,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and a GEN.725 row. Lock-free. Where we think it belongs (best guess):
   Sources 1 (separate branch, merge it yourself), version 8.1.
   Prerequisites: none. Related: GEN.1043.
-
-- [ ] **GEN.1095 Confirm the remaining [R] oddity rates (W6, W7, W9, W12, W16, W21 to W26, G1, G7) against papers and register the stand-ins**
-  Weird worlds (goal #4117), the follow-on to GEN.1037
-  (docs/design/research/oddity-rates.md): same method, secondary sources
-  accepted, each unconfirmed number a GEN.725 row with tier and tweak.
-  Done: table rows and registry rows merged. Lock-free. Where we think
-  it belongs (best guess): Sources 1 after the Goldberg and Batygin
-  read, version 8.1.
-  Prerequisites: GEN.1094.
 
 - [ ] **GEN.1096 planet_mass.gas_outcome returns max(runaway, core) and the core is capped at 0.01 of the star, not at the 13 Jupiter-mass edge: a 1.5 to 2 solar-mass host at twice solar metals draws 15 to 21 Jupiter masses (4 in 3,000 draws) (bug)**
   Found by Aux 3 in TEST.493 (PR #4138): the case is a strict xfail in
@@ -14663,6 +14645,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item is RP8: the rogue rows are built from the ejection records of
   GEN.1119 and the RP2 to RP6 modules of GEN.1112; the storage sector
   stays held. The yield calibration is TEST.499.
+  Boss answers (5:29 PM EDT) (2026-10-30 5:31 PM EDT): Boss, 5:28 to
+  5:29 PM EDT 2026-10-30: (1) rogues come only from generated systems
+  (each donor system builds the planet in its architecture slot, then
+  ejects it) and a rogue is stored as a full object in the sector where
+  it lands, that sector flagged uncharted when it is new; no
+  landing-phase placement and no virtual donors that are never
+  generated; (2) the physics-based spread gets a tweak into the expected
+  range leaning to the low side, and a None, Few, Normal, Many option in
+  the galaxy and sector options (GEN.1120); (3) the kick is isotropic,
+  but its direction is computed from the origin planet's actual movement
+  vector (its orbital velocity in the system plus the system's motion
+  through the galaxy), not assumed perpendicular. This supersedes the
+  "virtual donors" and "home sector" paragraphs above. Held now only
+  until the region-store study (GEN.1118) is read and final; then it is
+  released. Object names and IDs may change with a stored history
+  (GEN.1121).
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -14698,6 +14696,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   which module: Aux 7 takes RP5 (age and time since ejection) and RP6
   (ejection speed plus host velocity, using the merged rogue_drift.py);
   Sources 1 takes RP2, RP3, RP4 and RP7.
+  Kick direction answered (5:29 PM EDT) (2026-10-30 5:31 PM EDT): RP6
+  kick direction is Boss's answer: isotropic, computed from the origin
+  planet's actual velocity (its orbit in the system plus the system's
+  Galactic motion), so the held input of rogue_kick.py is resolved; Aux
+  7 merged RP5 (#4182, rogue_age.py) and RP6 (#4186, rogue_kick.py).
+  Remaining RP2, RP3, RP4, RP7.
   Prerequisites: GEN.1109. Related: GEN.557.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -14712,6 +14716,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: report and GEN.725 rows. Lock-free. Where we think it belongs
   (best guess, can move): Planets 1 (with the rogue review GEN.1109),
   separate branch.
+  Boss answer (5:29 PM EDT) (2026-10-30 5:31 PM EDT): The kick direction
+  question is answered: isotropic in the origin planet's frame, using
+  the planet's actual movement vector plus the system's motion; check
+  the research for the speed against the perturber and moon survival
+  only.
   Prerequisites: none. Related: GEN.1111, GEN.1109.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
@@ -14728,6 +14737,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Map (D6) (2026-10-30 5:11 PM EDT): The low-zoom map reads this
   smoothed density instead of drawing rogues one by one far out; the map
   lane (Core 2) takes that step after this function merges.
+  Boss answer (5:29 PM EDT) (2026-10-30 5:31 PM EDT): Rogues are
+  generated only by real donor systems and stored where they land, so
+  this smoothed density no longer feeds a virtual-donor draw; it stays
+  for the low-zoom map and for the expected-count check of the abundance
+  option (GEN.1120). Re-scope after the region-store study (GEN.1118) is
+  read.
   Prerequisites: none. Related: GEN.1111, GEN.1109.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
@@ -14742,6 +14757,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: tests; the page line is wired with the rogue rows (GEN.1111).
   Lock-free module. Where we think it belongs (best guess, can move):
   Planets 1, after GEN.1111 design is settled.
+  Boss answer (5:29 PM EDT) (2026-10-30 5:31 PM EDT): With donors
+  generated for real the rogue keeps its own history record (the
+  ejection event in the donor system history), so the on-demand
+  regeneration of a donor is needed only for rogues whose donor lay in a
+  region not yet charted; re-scope after GEN.1118 is read.
   Prerequisites: GEN.1114. Related: GEN.1111, GEN.1109.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
@@ -14803,6 +14823,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1111 questions (virtual versus real donors; isotropic versus
   perpendicular kick) unless the study shows it settles them; ask him if
   unclear.
+  Boss answers (5:29 PM EDT) (2026-10-30 5:31 PM EDT): Boss, 5:23 to
+  5:29 PM EDT 2026-10-30 (region-store thread): the landing-phase
+  placement is cut; rogues come only from generated systems and are
+  stored as full objects in the sector where they land, uncharted if
+  that sector is new. The study folds these in: one galaxy-wide store
+  with sectors as navigation, the rogue density option (GEN.1120), and
+  designation history (GEN.1121). The study may now settle the GEN.1111
+  storage question; build items are filed by TODO after the study is
+  read.
   Prerequisites: none. Related: GEN.1111, GEN.1115, PERF.123.
 
 - [ ] **GEN.1119 RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today**
@@ -14825,6 +14854,70 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   waits for the GEN.1014 wiring), separate branch.
   Prerequisites: none. Related: GEN.1111, GEN.1112.
   Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
+
+- [ ] **GEN.1120 Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range**
+  Boss, 5:28 PM EDT 2026-10-30: add a tweak to bring our physics-based
+  spread into the expected range, leaning toward the low side of the
+  expected values; also make it a value in the galaxy and sector
+  generation options, as a dropdown of None, Few, Normal and Many, where
+  Normal is our target, None means no rogue planets, and Many is the top
+  end of the observed expected rogues. Do: one option (a multiplier on
+  the ejection yield of the donor systems, never a game rate; the
+  physics still decides each rogue) with the four values: None = 0,
+  Normal = the calibrated low-leaning value against microlensing (Sumi
+  2023, Mroz 2017, Barclay 2017 as in
+  docs/design/research/rogue-planet-review.md), Few between None and
+  Normal, Many = the top of the observed range; the option reaches the
+  CLI (planetgen galaxy and sector), the web create forms and the API,
+  is stored with the galaxy and sector parameters, and the dropdown
+  value is part of the seed contract. The calibration of Normal is the
+  yield test TEST.499 and the tweak is registered in GEN.725 with tier
+  and tweak level (L2 if tuned to the published statistic). Done: tests
+  that None yields no rogue, Many exceeds Normal exceeds Few, the
+  dropdown in both forms, the option stored and shown on the sector
+  page. Lock work (new option in the generation parameters, epoch with
+  --affects, API version bump), after GEN.1111. Where we think it
+  belongs (best guess, can move): Planets 1 for the yield and the option
+  plumbing in the rogue rows (train 19), Core 5 for the web form fields.
+  Prerequisites: none. Related: GEN.1111, GEN.1119, TEST.499.
+  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
+
+- [ ] **GEN.1121 Designation history: an object may change its name and ID, keeps a stored history of its previous designations, and its current ID is always completely unique across the whole galaxy**
+  Boss, 5:28 PM EDT 2026-10-30: objects can change name and ID, but each
+  stores a history of its previous designations, and it must always have
+  a completely unique ID. Do: a designation history per object (a table
+  of object, old ID, old name, the change and when, in order), a rule
+  that a new ID must not equal any current or any past ID of any object
+  (a retired ID is never reused, so an old link can always resolve to
+  the object that held it), lookups by an old ID or name redirect to the
+  current object, belt and field members (`<belt ID>.<rank hex>`) and
+  moons follow when a parent changes ID, and the object page shows
+  "formerly" lines. The 96-bit Object ID stays the position-and-seed ID;
+  a renumbering produces an alias row rather than rewriting the ID in
+  place. Done: tests for rename, ID change, collision refused, redirect
+  from an old ID, history shown on the page, members following a parent
+  ID change, and the edit-everything flow of version 8.6 writing the
+  history; unit-less data. Lock work (migration, API field), the design
+  note first. Where we think it belongs (best guess, can move): Core 1
+  (IDs and reproducible galaxies), version 8.2 with the object pages;
+  the edit flow of 8.6 uses it.
+  Prerequisites: none. Related: GEN.1070, GEN.1105, GEN.1118.
+
+- [ ] **GEN.1122 Read Pollack 1979 and Cuk and Burns 2004 for the gas-drag capture window strength and register the number (CM14)**
+  Sources 1 offered this read after the GEN.1081 note: the gas-drag
+  window strength of captured-asteroid-moons.md section 5 is a design
+  guess (stand-in CM14, T6, L3, 0.1 to 0.3 of the encounter channel,
+  burn-down line) because Cuk and Burns 2004 was not reached. Do: open
+  Pollack et al. 1979 and Cuk and Burns 2004 (second-hand citations
+  accepted, Boss cannot reach some papers), extract the drag capture
+  share against the encounter channel for a planet with a gas disc,
+  replace the guess or confirm it, update the GEN.725 row CM14 with tier
+  and tweak level, and remove its burn-down line when it is no longer
+  L3. Done: the row changed, the research note section added. Lock-free
+  (docs). Where we think it belongs (best guess, can move): Sources 1
+  (idle, separate branch).
+  Prerequisites: none. Related: GEN.1082, GEN.1084.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19667,6 +19760,18 @@ clears each one.
   move): Bug 2 (census) after train 19.
   Prerequisites: GEN.1111.
   Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
+
+- [ ] **TEST.500 test_moon_composition::test_a_disk_moon_gains_ice_past_its_disks_ice_line fails on a clean main (reported by Aux 4 on PR #4184) (bug)**
+  Aux 4, 5:28 PM EDT 2026-10-30: the test fails on main without the
+  change of PR #4184 (GEN.1081); my lane run of the single test gave a
+  collection error (the nltk data step), so the failure text is Aux 4's
+  to attach. Do: reproduce on a lane machine with the datasets fetched,
+  find which merge broke it (the ice line of a disk moon), and fix the
+  test or the code, whichever is wrong; if the generated moon
+  composition is wrong, say so and it becomes a GEN bug. Lock-free
+  unless the code changes output. Where we think it belongs (best guess,
+  can move): Core 1 (test owner), separate branch.
+  Prerequisites: none.
 
 ## USR: User accounts
 
