@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2832] - 2026-10-30
+
+**Headline:** The "On this page" menu goes across the top when everything fits without scrolling
+
+### Changed
+
+If all the section and subsection links fit in one row at the current window width, the menu is a single row under the title. If they would need scrolling, it stays the grouped list of sections and subsections. It never scrolls sideways.
+
 ## [8.0.2831] - 2026-10-30
 
 **Headline:** The rules for bodies at the Lagrange points L4 and L5 exist as a pure module, so trojan swarms and whole bodies can be wired later.
