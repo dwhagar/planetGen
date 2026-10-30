@@ -725,6 +725,8 @@ export function createSystemView(options) {
     // MAP.328, for the browser tests: how far each body has turned, its rate (radians a second) and its axis.
     spins: () => built.entries.map((e) => ({ ref: e.ref, angle: Spin.angleAt(e.body.look, Spin.seconds()),
       rate: Spin.rateOf(e.body.look), axis: Spin.axisOf(e.body.look), at: Spin.seconds(), quaternion: built.objects[e.ref].quaternion.toArray() })),
+    // MAP.213, for the browser tests: where each body is drawn now, in world units, and how large.
+    placed: () => built.entries.map((e) => ({ ref: e.ref, kind: e.kind, x: e.x, y: e.y, z: e.z, radius: e.radius })),
     // The bodies by name, for the screen-reader list.
     list: () => built.entries.map((e) => ({ ref: e.ref, name: e.name, kind: e.kind })),
     camera: camera,
