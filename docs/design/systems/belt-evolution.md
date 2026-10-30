@@ -48,7 +48,7 @@ Rule: mass is conserved. `M_belt = sum(L1) + integral(L2) + L3`, and the belt's 
 
 ### 3.1 The L1 draw
 1. Belt mass `M_belt(t)` from `belt_mass_earth` with `Dc` fixed by step 2.
-2. Number above mass `m`: `N(>m) = N0 m^(-b)` from the size law (main belt q 4 above ~40 km, tapered, Ivezic 2001 [REPO]; Kuiper hot/cold Fraser 2014 [REPO]). The top body is the one with `N(>m) = 1` (order statistic), jittered; the Solar System's Ceres (9.4e20 kg) is a test target, not an input.
+2. Number above mass `m`: `N(>m) = N0 m^(-b)` from the size law (main belt cumulative q 3.0 from 5 to 40 km, steeper above (stand-in BR20), Ivezic 2001 [REPO]; Kuiper hot/cold Fraser 2014 [REPO]; built as `physics/belt_ledger.py`, GEN.1061). The top body is the one with `N(>m) = 1` (order statistic), jittered; the Solar System's Ceres (9.4e20 kg) is a test target, not an input.
 3. Resolve `Dc` and the mass: iterate once (Dc changes `M_belt`, which changes the top end), as `belt_mass.py` notes.
 4. Sample L1 bodies from the order statistics; assign orbits inside the belt, **excluding resonant gaps** and size-dependent Yarkovsky depletion; assign eccentricity and inclination from the stirring (`e = (upper - lower) / (upper + lower)` already used).
 5. Compositions: the belt's taxon shares at the body's own `a` (the kernel makes a gradient, not one belt value), differentiated bodies (V, A, M) only if the system's 26Al ratio says so (GEN.473 step 4). Density from `compaction` (existing taper 1e19 to 1e21 kg).
