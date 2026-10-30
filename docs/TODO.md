@@ -18329,6 +18329,20 @@ clears each one.
   TEST.417.
   Prerequisites: none. Related: TEST.463, TEST.468, TEST.469, TEST.470.
 
+- [ ] **TEST.473 test_star_census_raises_no_new_flag is red on main: G stars 2.90 percent against the 3.13 to 6.99 percent range, and the A0V companion rate 0.7456 against up to 0.7367 (bug)**
+  Found by Bug 1 (relayed 9:05 AM EDT 2026-10-30 as the lane reported):
+  the same numbers on main before Bug 1's GEN.931 branch, so they
+  arrived with the spectral-type items (GEN.941 and GEN.943, Star 1,
+  merged in train 3), not with the arm contrast. Fails on main: yes. Do:
+  retag the two census ranges to the new values if they are the intended
+  outcome of the spectral-type chain (with the tier and tweak level in
+  the registry), or fix the generator if G stars at 2.90 percent is a
+  defect; the owner decides from the Star 1 census audit
+  (reports/star-class-audit-2026-10-29.md). Done: the test passes on
+  main with the ranges or the code explained in the change note. Owner:
+  Bug 2 (census re-tag, with Star 2 for the companion rate).
+  Prerequisites: G, E, N, ., 9, 4, 1.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
