@@ -1097,6 +1097,43 @@ with `clamp()`.
   the help text names every choice.
   Prerequisites: UX.226. Related: UX.227, GEN.728, TEST.162.
 
+- [ ] **UX.240 Belt page data builder: the designated individual bodies (designation, mass, size, status, composition), the size table of the rest of the belt mass (counts, mass share and typical composition by diameter bin), and the density factor, as one pure structure**
+  Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
+  asteroid belt information page that will show the bodies in the
+  asteroid belt that are named and the contents and sizes of the rest of
+  the mass of the asteroid belt, as well as a density factor in
+  object/square (something, not sure which unit)"; design
+  docs/design/systems/belt-evolution.md section 12, goal #4130). Belt
+  members have a designation, not a name (Boss 4:21 PM EDT), so the list
+  is the individually tracked bodies by designation. Do:
+  describe/belt_page.py over the ledger and belt record: three blocks
+  the page and the API read. The remaining mass is shown as bins from
+  the on-demand tier and the population tier (design section 3), summing
+  to the belt mass. Done: tests (mass of listed bodies plus bins equals
+  the stored belt mass, the unit text accompanies every number).
+  Lock-free until the page route. Where we think it belongs (best guess,
+  can move): Core 2 (map and pages lane, separate branch), after the
+  ledger and the density module.
+  Prerequisites: GEN.1061, GEN.1093.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **UX.241 Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row**
+  Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
+  asteroid belt information page that will show the bodies in the
+  asteroid belt that are named and the contents and sizes of the rest of
+  the mass of the asteroid belt, as well as a density factor in
+  object/square (something, not sure which unit)"; design
+  docs/design/systems/belt-evolution.md section 12, goal #4130). Belt
+  members have a designation, not a name (Boss 4:21 PM EDT), so the list
+  is the individually tracked bodies by designation. Lock work (route
+  and API field, API version bump with the change note). Done: page and
+  API tests, the web a11y and link checks, the unit shown beside every
+  number, a link from the system page. No backward-compat shim. Where we
+  think it belongs (best guess, can move): Core 2, train 16 (after the
+  members are stored on train 15).
+  Prerequisites: UX.240, GEN.1070, GEN.1069.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2884,7 +2921,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fixed letter rules; GEN.90 dropped). The physics answer stands:
   shoreline ratio below 30, species by lambda, cold side by vapour
   pressure, H2 and water by energy-limited XUV; that is GEN.355
-  Prerequisites: GEN.355, GEN.963.
+  Prerequisites: GEN.963.
   Design: [docs/design/habitability/habitability-index.md](design/habitability/habitability-index.md)
 
 - [ ] **GEN.93 Nebula conditions in planet generation**
@@ -5189,38 +5226,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   none for now, returned to the pool (Boss, 7:44 PM EDT 2026-10-22: work
   outside 8.1 is paused until 8.1 is complete).
   Prerequisites: UX.128. Related: GEN.300.
-
-- [ ] **GEN.355 Atmosphere retention module with its test table**
-  Split from GEN.91 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work).
-  `planetgen/physics/atmosphere_retention.py`: the shoreline,
-  Jeans-species, condensation and energy-limited functions of design
-  section 3.6, XUV history and exposure from GEN.86's activity module
-  (not the stand-in), no class change. It answers 'when is an atmosphere
-  possible' in the docs: shoreline ratio below 30, species by lambda (30
-  kept), the cold side by vapour pressure, H2 and water by
-  energy-limited XUV. Done: unit tests on the 13-body table (Earth 0.17
-  dense, Venus 0.43, Mars 1.77 tenuous, Mercury 53.7 none, Moon 81.6
-  none, Titan 0.59) and the answer written in the design note.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): its species list reads the gas table of GEN.410.
-  Prerequisites: none. Related: GEN.91.
-  Pipeline report 6:33 PM EDT 2026-10-23: the atmosphere retention in
-  use is a linear placeholder; this module is an input of the
-  condition-based classes (GEN.645, GEN.647), which use the placeholder
-  labelled as a stand-in until this lands.
-  Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): classes are conditions-based and derived from the
-  finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-  letters stay; new class letters are revoked (GEN.28 and its children).
-  Core 4: re-read this item against the derived classes, drop any clause
-  that asks for a fixed letter rule, and tell TODO which parts stand;
-  the physics clauses (retention, zones, sense of each class) stand.
-  Moved into 8.1. Owner: Core 4.
-  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT): stands
-  whole: today the shoreline exists only as the Berta-Thompson logistic
-  inside the pressure stage, with no standalone module, no Jeans-species
-  or condensation functions and no 13-body table
 
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
   Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -13476,20 +13481,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (rides train 6, lock work). Version 8.1.
   Prerequisites: none. Related: GEN.852, TEST.479.
 
-- [ ] **GEN.1031 Port the 2+2 quadruple stability network of Vynatheya, Mardling and Hamers 2023 the same way as the 3+1 one (about 8,300 numbers, plain numpy forward pass, no machine-learning dependency)**
-  Offered by Sources 1 (relayed 3:28 PM EDT 2026-10-30 as the lane
-  reported) after GEN.1029 (PR #4098) ported the 3+1 network exactly
-  (physics/quadruple_stability.py, scripts/build_quadruple_stability.py,
-  docs/design/systems/quadruple-stability-3p1.md, registry rows QS1 to
-  QS4). Do: the same script and unpickler that cannot run code, a
-  forward pass check against scikit-learn to 1e-8, registry rows with
-  tier and tweak level, a design note section, an N-body spot check as
-  for 3+1. Lock-free: nothing calls it until GEN.1016 wires the
-  stability screen. Done: the 2+2 network gives the same answers as the
-  paper's model on a sample and the registry rows are in. Owner: Sources
-  1 (lock-free, separate branch, merge it yourself). Version 8.1.
-  Prerequisites: none. Related: GEN.1006, GEN.1016.
-
 - [ ] **GEN.1032 Refit the greenhouse table on the far-wing and acid-cloud model that GEN.1019 and GEN.1020 landed, and move the tropopause-jump sweep (GEN.852 family)**
   Found by Bug 2's train 4 merge (PR #4105; relayed 3:37 PM EDT
   2026-10-30 as the lane reported), red after the merge.
@@ -13647,22 +13638,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   No output change. Wiring turn (train 9) is next, Aux 4.
   Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
 
-- [ ] **GEN.1036 Oddity table and loader: physics/oddities.py, physics/data/oddities.json, the row schema (requires, rate with source, tier and tweak, named input effect, limits, text) and the GEN.725 registry rows, no wiring**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: the loader and schema of
-  design section 4.1 (rows like planet_classes.json), refusing a row
-  without a source, a gate, limits or a tier and tweak; one sub-stream
-  per oddity id through util.draw so adding a row changes no other draw
-  (4.4); the weirdness dial constant (default 1.0, per-oddity override).
-  Done: schema and loader tests pass, an empty table loads, the registry
-  rows exist. Lock-free. Owner: Planets 1 (assigned by TODO; separate
-  branch, merge it yourself). Version 8.1.
-  Prerequisites: none.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **GEN.1037 Confirm the oddity rates and thresholds marked [R] (W3, W4, W5, W10, W14, W15, W20 first) against papers, write the literature table with sources, register the stand-ins**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -13676,21 +13651,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   row; registry rows in. Lock-free. Owner: Sources 1 (after GEN.1031;
   separate branch, merge it yourself). Version 8.1.
   Prerequisites: none.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **GEN.1038 W2 module: the Venus-type retrograde slow rotator, the spin equilibrium of a thick-air planet from the thermal tide against core-mantle friction (Correia and Laskar 2001, 2003), pure function**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: physics/venus_spin.py as a
-  pure function of mass, radius, air pressure, orbit, star and age that
-  returns the spin equilibria and whether a not-locked body reaches the
-  retrograde one, with the share that does registered as a stand-in (T4,
-  L3). Done: tests give Venus (243 d retrograde), Earth and Mercury.
-  Lock-free. Owner: Aux 7 (assigned by TODO; separate branch, merge it
-  yourself). Version 8.1.
-  Prerequisites: GEN.1036. Related: GEN.842.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1039 W1 module: a seasonal temperature swing from the stored obliquity in the regional temperature (tilt-driven climate), polar summer hotter than the equator, ice and wet-bulb limits by season**
@@ -13719,20 +13679,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   core mass fraction under 0.85, with Mercury, Kepler-107 b and c as
   tests. Done: tests pass, registry rows in. Lock-free. Owner: Planets 1
   (after the oddity table). Version 8.1.
-  Prerequisites: GEN.1036.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **GEN.1041 W14 module: mass loss and lifetime of a disintegrating rocky planet (Perez-Becker and Chiang 2013), pure function**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do:
-  physics/disintegrating_planet.py: mass-loss rate, tail and remaining
-  life for a rocky body under about 0.1 Earth mass at under 1 d with a
-  magma ocean, tests on Kepler-1520 b; mass loss rate times age under
-  the body's mass. Lock-free. Owner: Core 4 (while it waits for train
-  6). Version 8.1.
   Prerequisites: GEN.1036.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
@@ -13812,7 +13758,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   forced oddity shows on the page with its cause sentence and in the
   API; dial 0 changes no other draw (isolation test); the census
   re-baselined by the census item. Owner: Planets 1. Version 8.1.
-  Prerequisites: GEN.1036, TEST.490.
+  Prerequisites: TEST.490.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1048 Wire W1 (tilt-driven seasonal climate), W2 (Venus-type spin), W10 (iron-rich cores) and W15 (super-puffs) into the bulk, spin and climate inputs**
@@ -13825,7 +13771,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1 integrates. Done: tests per oddity, the harness passes, the census
   shares sit in the literature ranges. Owner: Aux 7 (W1, W2), Planets 1
   (W10), Core 4 (W15). Version 8.1.
-  Prerequisites: GEN.1038, GEN.1039, GEN.1040, GEN.1042, GEN.1047.
+  Prerequisites: GEN.1039, GEN.1040, GEN.1042, GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1049 Wire W5 resonance heating and the W3 high-eccentricity and W4 misaligned-orbit tails in planet_architecture**
@@ -13847,7 +13793,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   confirmed by the lane that builds it. Lock work, train 14. Done:
   tests, harness, census. Owner: Core 4 (W14) with Tides 1 (W9 rings
   from moon_orbits). Version 8.1.
-  Prerequisites: GEN.1041, GEN.1047.
+  Prerequisites: GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1051 Wire the W19 nightside collapse and the W20 bistable branches (the history draw between branches)**
@@ -13909,19 +13855,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1036. Related: GEN.732, MAP.275.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
-- [ ] **GEN.1056 Resonance rings of small bodies: rings beyond the Roche limit held by a spin-orbit resonance with a satellite or fast spin (Quaoar 7.4 radii, Haumea, Chariklo, Chiron; R4), pure function, plus R9 (no ring inside about 0.1 AU)**
-  Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md sections 8 and 9).
-  Secondary and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Do: physics/small_body_rings.py:
-  the resonance condition and a stand-in rate (T4, L3, no survey rate),
-  the R9 lifetime gate (Schlichting and Chang 2011); tests on Quaoar and
-  Haumea. Lock-free module. Owner: Sources 2 (separate branch). Version
-  8.1.
-  Prerequisites: GEN.1036. Related: GEN.732.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **GEN.1057 Wire conditional rings: a ring follows from moon decay or comet passage and a giant with neither has none, so Saturn-like broad rings are the tail (epoch, replaces the BC20 draw), plus ring age, R4 and R9**
   Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md sections 8 and 9).
@@ -13931,7 +13864,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   W14 and W9 wiring). Done: tests, harness, the census ring shares.
   Owner: Tides 1 (ring origin), with Core 2 (age and painter). Version
   8.1.
-  Prerequisites: GEN.1055, GEN.1056, GEN.1047. Related:
+  Prerequisites: GEN.1055, GEN.1047. Related:
   GEN.732, GEN.959.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
@@ -14182,6 +14115,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   think it came from (the cause from physics/belt_origin.py) and a
   one-sentence text; stored with the origin and formation columns of
   GEN.1069.
+  Scatter placement (Boss confirmed 4:37 PM EDT) (2026-10-30 4:40 PM
+  EDT): The scatter sweep (GEN.1089) runs after the giants are placed
+  and before the belts are finalised; this item calls it at that point.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **GEN.1069 Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words**
@@ -14231,6 +14167,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (storage), train 15.
   Belt origins (2026-10-30 4:35 PM EDT): Stored members carry the
   scatter tag once the scatter phase is wired (GEN.1092).
+  Belt page (Boss 4:37 PM EDT) (2026-10-30 4:38 PM EDT): Each stored
+  member is linked from the asteroid belt information page UX.241.
   Prerequisites: GEN.1061, GEN.1063, GEN.1065, GEN.1067, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -14255,6 +14193,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   belongs (best guess, can move): Sources 2, train 16 (after train 15).
   Belt origins (2026-10-30 4:35 PM EDT): The outer disc is fed by the
   scatter step (GEN.1092).
+  Kuiper-type objects in the sweep (2026-10-30 4:39 PM EDT): Boss asked
+  4:38 PM EDT whether Kuiper belt objects belong in the sweep: yes.
+  Kuiper-type objects (classical cold and hot, resonant, scattered,
+  detached) are generated from the cold outer disc and swept by the
+  scatter step, with dwarf planets drawn from the size law (GEN.1090),
+  the outer disc being the belt of GEN.1071.
   Prerequisites: GEN.1068, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -14556,6 +14500,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   moons. Done: tests with giant-free and giant-rich inputs, Sol not an
   input. Lock-free. Where we think it belongs (best guess, can move):
   Core 4 (giants lane, separate branch), after its giants items.
+  Kuiper-type objects in the sweep (2026-10-30 4:39 PM EDT): Boss asked
+  4:38 PM EDT whether Kuiper belt objects belong in the sweep: yes.
+  Kuiper-type objects (classical cold and hot, resonant, scattered,
+  detached) are generated from the cold outer disc and swept by the
+  scatter step, with dwarf planets drawn from the size law (GEN.1090),
+  the outer disc being the belt of GEN.1071.
   Prerequisites: GEN.1060.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
@@ -14574,6 +14524,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and up, a Kuiper-type disc 15 to 20 dwarf candidates. Done: tests,
   stand-ins registered. Lock-free. Where we think it belongs (best
   guess, can move): Sources 2 (with the belt ledger), separate branch.
+  Kuiper-type objects in the sweep (2026-10-30 4:39 PM EDT): Boss asked
+  4:38 PM EDT whether Kuiper belt objects belong in the sweep: yes.
+  Kuiper-type objects (classical cold and hot, resonant, scattered,
+  detached) are generated from the cold outer disc and swept by the
+  scatter step, with dwarf planets drawn from the size law (GEN.1090),
+  the outer disc being the belt of GEN.1071.
   Prerequisites: GEN.1061, GEN.1087.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
@@ -14610,8 +14566,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   API bump with the change note. Done: tests, harness, census
   re-baseline; every belt page says where it came from. Where we think
   it belongs (best guess, can move): Sources 2 with Planets 1, train 16.
+  Scatter placement (Boss confirmed 4:37 PM EDT) (2026-10-30 4:40 PM
+  EDT): Boss confirmed the origins, scatter and Class D defaults and the
+  build. The scatter sweep sits in generation after the giants are
+  placed and before the belts are finalised (the belt birth item
+  GEN.1068 reads its result).
+  Kuiper-type objects in the sweep (2026-10-30 4:39 PM EDT): Boss asked
+  4:38 PM EDT whether Kuiper belt objects belong in the sweep: yes.
+  Kuiper-type objects (classical cold and hot, resonant, scattered,
+  detached) are generated from the cold outer disc and swept by the
+  scatter step, with dwarf planets drawn from the size law (GEN.1090),
+  the outer disc being the belt of GEN.1071.
   Prerequisites: GEN.1088, GEN.1089, GEN.1090, GEN.1070, GEN.1071.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
+- [ ] **GEN.1093 physics/belt_density.py: the belt density factor (objects per square AU above a stated diameter, plus mass per square AU) from the size law, the belt annulus and the ledger**
+  Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
+  asteroid belt information page that will show the bodies in the
+  asteroid belt that are named and the contents and sizes of the rest of
+  the mass of the asteroid belt, as well as a density factor in
+  object/square (something, not sure which unit)"; design
+  docs/design/systems/belt-evolution.md section 12, goal #4130). Belt
+  members have a designation, not a name (Boss 4:21 PM EDT), so the list
+  is the individually tracked bodies by designation. Do: pure function
+  returning N(>D) per AU squared for the diameters 1, 10 and 100 km and
+  the mass per AU squared in Earth masses, from the annulus area (pi
+  (a_out^2 - a_in^2), or the radial profile when the gap map exists) and
+  the size-law slope and cut. The unit is objects per square
+  astronomical unit (stated with the diameter limit); register it and
+  the mass-per-area unit in the unit registry (GEN.568,
+  db/column_units.py) so no number shows without its unit. Done: tests
+  (a belt twice as wide at the same mass has half the factor), unit rows
+  registered, no wiring. Lock-free. Where we think it belongs (best
+  guess, can move): Aux 7 (separate branch, merge it yourself), after
+  the belt ledger.
+  Prerequisites: GEN.1061. Related: GEN.568.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
