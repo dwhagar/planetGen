@@ -315,6 +315,7 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
     start_gy = min(tuning.RUNAWAY_HISTORY_START_YR / 1e9, 0.5 * age_gy)
     ratio_step = (age_gy / start_gy) ** (1.0 / HISTORY_STEPS)
     t0 = start_gy
+    limit_key, limits = None, {}
     for _ in range(HISTORY_STEPS):
         t1 = t0 * ratio_step
         alive = {formula: n for formula, n in column.items() if n > 1e-12 * column0[formula]}
@@ -328,8 +329,18 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
         temperature = exobase_temperature_k(flux, meso, now.get("CO2", 0.0))
         r_exo, density, _ = exobase(radius_m, gravity, mean_now, temperature, meso)
         area_ratio = (r_exo / radius_m) ** 2
-        rate = {formula: min(jeans_flux(share * density, masses[formula], temperature, gm, r_exo) * area_ratio,
-                             diffusion_limited_flux(formula, now, gravity, meso, mean_now)) for formula, share in now.items()}
+        key = (tuple(now.items()), mean_now)
+        if key != limit_key:                                                      # a heavy gas that loses nothing leaves the air as it was
+            limit_key, limits = key, {}
+        rate = {}
+        for formula, share in now.items():
+            jeans = jeans_flux(share * density, masses[formula], temperature, gm, r_exo) * area_ratio
+            if jeans > 0.0:                                                       # `min(0, limit)` is 0 for any limit that is not negative
+                limit = limits.get(formula)
+                if limit is None:
+                    limit = limits[formula] = diffusion_limited_flux(formula, now, gravity, meso, mean_now)
+                jeans = min(jeans, limit)
+            rate[formula] = jeans
         budget = energy_limited_mass_loss_kg_s(min(flux, XUV_FLUX_MAX_EARTH) * constants.EARTH_XUV_FLUX_W_M2, r_exo, mass_kg)
         demanded = 4.0 * math.pi * radius_m ** 2 * sum(rate[f] * masses[f] for f in rate)
         scale = min(1.0, budget / demanded) if demanded > 0.0 else 1.0
