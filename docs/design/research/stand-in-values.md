@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 432 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 437 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 54 | 0 | 3 | 0 | 0 | 57 |
+| T1 | 55 | 0 | 3 | 0 | 0 | 58 |
 | T2 | 73 | 4 | 0 | 1 | 0 | 78 |
-| T3 | 53 | 8 | 3 | 10 | 0 | 74 |
-| T4 | 22 | 0 | 0 | 3 | 4 | 29 |
+| T3 | 54 | 8 | 3 | 10 | 0 | 75 |
+| T4 | 23 | 0 | 0 | 3 | 4 | 30 |
 | T5 | 24 | 6 | 1 | 0 | 0 | 31 |
-| T6 | 39 | 13 | 7 | 28 | 0 | 87 |
+| T6 | 39 | 14 | 8 | 28 | 0 | 89 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 1 | 1 | 2 |
 | T9 | 1 | 0 | 2 | 24 | 19 | 46 |
-| All | 283 | 34 | 17 | 74 | 24 | 432 |
+| All | 286 | 35 | 18 | 74 | 24 | 437 |
 
 ## How the labels were given
 
@@ -694,3 +694,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CI3 | P | T2 | L0 | comet_ice_budget.NEBULA_PER_1E4_H (H2O 0.9, CO2 0.3, CO 1.5 molecules per 10^4 H; Pontoppidan 2006 via Oberg et al.) | O in CO 0.9 to 2; CO2 and H2O as printed | one disc's ice and gas | a second disc's ice inventory differing by a factor of 3 | an ice survey of discs (Pontoppidan 2006 not read) | test_comet_ice_budget::test_the_nebula_holds_a_third_as_much_co2_and_one_and_two_thirds_as_much_co_as_water | GEN.595 | - |
 | CI4 | P | T2 | L1 | comet_ice_budget.TRAPPED_FRACTION 0.075 (the share of CO above its snow line trapped in water ice, Fayolle et al. 2011 via Oberg et al.; the same value for CO2 above its line is an assumption) | 0.05 to 0.10 | amorphous water ice | a lab trapping fraction outside 5 to 10 percent for the temperatures of the disc | Fayolle et al. 2011 (not read) and a CO2 trapping measurement | test_comet_ice_budget::test_each_zone_keeps_what_its_temperature_lets_it | GEN.595 | - |
 | CI5 | P | T6 | L1 | comet_ice_budget.zone_shares: equal masses of planetesimals form in equal intervals of ln r (a solids surface density as 1 / r) | surface density index 0.5 to 1.5 | planetesimal discs | a measured planetesimal mass distribution with distance | the disc model of the solids (GEN.950 wiring) | test_comet_ice_budget::test_equal_masses_form_in_equal_intervals_of_ln_r | - | - |
+
+## 6.47 Stand-ins of the debris disks
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| DD1 | B | T1 | L0 | tuning.DEBRIS_DISK_INCIDENCE ((0.45, 0.022), (0.8, 0.130), (1.04, 0.143), (1.4, 0.239), (None, 0.24)): the share of stars of each mass that hold a cold disk | M 0.5 to 6 percent, K 9 to 17, G 10 to 19, F 19 to 29, A 20 to 33 (the published errors; Su et al. 2006 give 33 percent for A) | detected discs, so the count of a survey with a median sensitivity of 2e-5 in fractional luminosity | a completeness-corrected incidence (27.7 percent of FGK stars) | the survey's volume-limited incidence by type | READ (Sibthorpe 2018 section 3 and Table 2) | - | - |
+| DD2 | B | T3 | L0 | tuning.DEBRIS_DISK_INCIDENCE (None, 0.24): a star above 1.4 solar masses takes the A figure | B stars unmeasured here | stars up to the Herschel sample's hottest | a B-star survey | a measured B-star incidence | Matthews et al. 2014, no clear dependence of the dust on type from late B to M (read in the summary part of the fetched copy) | - | - |
+| DD3 | P | T6 | L2 | tuning.DEBRIS_DISK_TEMPERATURE_MEDIAN_K 58 and DEBRIS_DISK_TEMPERATURE_LOG_SIGMA 0.45: the dust temperature of a disk, log-normal | median 45 to 70 K, sigma 0.3 to 0.6 | stars of one solar luminosity | the 47 blackbody radii of Table 1 | the temperatures read from the table itself | median 23 AU and 7 to 40 AU for most, from the abstract and the table as counted | - | - |
+| DD4 | P | T6 | L1 | tuning.DEBRIS_RADIUS_OVER_BLACKBODY 1.74: the belt lies this far beyond its blackbody radius | 1.5 to 2.5 (the paper: a blackbody radius "can underestimate the true disc radius by up to a factor of 2.5") | realistic dust | resolved belt radii | resolved radii from the imaged discs | "scales to about 40 AU for realistic dust properties" over a median of 23 AU | - | - |
+| DD5 | P | T4 | L0 | tuning.DEBRIS_DISK_EDGES_OVER_RADIUS (0.7, 1.5): the ring spans 0.7 to 1.5 of the belt radius | width over radius 0.3 to 1.2 | every debris disk | resolved widths | measured fractional widths | design (a ring about as wide as it is far out) | - | - |

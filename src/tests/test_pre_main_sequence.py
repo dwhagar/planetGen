@@ -126,7 +126,7 @@ def test_the_inner_edge_is_where_a_blackbody_grain_sublimates():
     assert pms.sublimation_radius_au(100.0) == pytest.approx(10 * pms.sublimation_radius_au(1.0))
 
 
-def test_a_protostar_star_holds_a_disk_and_a_main_sequence_one_does_not():
+def test_a_protostar_star_holds_a_disk_and_a_main_sequence_one_holds_no_young_one():
     draw.set_run_seed(5)
     config = SystemConfig()
     protostar = Star.from_params(evolution.star_params(1.0, 0.0003, evolution.evolve_star(1.0, 0.0003)), config,
@@ -140,7 +140,7 @@ def test_a_protostar_star_holds_a_disk_and_a_main_sequence_one_does_not():
     again = Star.from_params(evolution.star_params(1.0, 0.0003, evolution.evolve_star(1.0, 0.0003)), config, name="Young")
     assert again.disk_outer_au == protostar.disk_outer_au  # a stream of its own: the same star, the same disk
     old = Star.from_params(evolution.star_params(1.0, 4.6, evolution.evolve_star(1.0, 4.6)), config, name="Old")
-    assert old.disk_kind is None and old.disk_mass_solar is None
+    assert old.disk_kind in (None, "debris") and old.disk_mass_solar is None    # at most the cold belt of GEN.787, which has no mass
 
 
 def test_the_star_page_says_the_star_is_contracting_and_shows_the_disk():

@@ -22,7 +22,7 @@ import re
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import activity, formation, imf, metallicity, ms_lifetime, pre_main_sequence, spin
+from planetgen.physics import activity, debris_disk, formation, imf, metallicity, ms_lifetime, pre_main_sequence, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -627,6 +627,12 @@ class Star(StellarObject):
             disk = pre_main_sequence.draw_disk(
                 self.mass / constants.SOLAR_MASS_TO_KG, self.age * 1.0e9, self.luminosity / constants.SOLAR_LUMINOSITY,
                 draw.Stream(f"disk:{self.mass!r}:{self.age!r}"))
+            for name, value in (disk or {}).items():
+                setattr(self, name, value)
+        elif self.yerkes_class in debris_disk.DEBRIS_CLASSES:
+            # GEN.787: the cold belt of a main-sequence star, from a stream of its own like the disk above.
+            disk = debris_disk.draw_disk(self.mass / constants.SOLAR_MASS_TO_KG, self.luminosity / constants.SOLAR_LUMINOSITY,
+                                         draw.Stream(f"debris:{self.mass!r}:{self.age!r}"))
             for name, value in (disk or {}).items():
                 setattr(self, name, value)
 
