@@ -1040,6 +1040,14 @@ with `clamp()`.
   class page goes to a Core lane), when the class data is ready (GEN.889
   and GEN.891). Aux 6 (old Aux 11) finishes UX.215 to UX.222 and
   retires.
+  Part 1 merged (#3885, Core 5, 12:15 AM EDT as the lane reported)
+  (2026-10-30 12:15 AM EDT): the planet and moon Life section names the
+  supported classes with scores, the class that lives there, its stage,
+  and a collapsed drinks, eats, breathes, gives-off block; class number
+  follows the life icons. Still open: part 2 (air-through-the-ages
+  chart, an additive route, no API version bump) and the adaptation
+  traits, which wait on GEN.875 and GEN.876 because no trait data is
+  stored.
   Prerequisites: none. Related: UX.221.
 
 - [ ] **UX.238 The "On this page" table of contents on object pages goes under the tab bar, not off to the left (bug)**
@@ -19892,6 +19900,11 @@ clears each one.
   fails on main with KeyError score in the life_class loader (the
   life-class fields were reshaped by API.37 #3871 or the earlier class
   work); find the commit and fix it or hand it to its owner.
+  Gate-finish note (Core 5, as the lane reported 12:15 AM EDT)
+  (2026-10-30 12:15 AM EDT): the 8 test_habitability_end_to_end_browser
+  tests error in the habitable_galaxy fixture on a slow machine (900 s
+  setup timeout in the gas solver), so they did not run to assertions
+  there; the train gate or a fast machine must run them.
   Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
 
 - [ ] **TEST.464 Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug)**
