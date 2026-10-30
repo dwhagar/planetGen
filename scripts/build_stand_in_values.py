@@ -71,8 +71,6 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
     ("6.16", "6.16 Stand-ins of the interior heat and the r-process uranium",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.17", "6.17 Stand-ins of the water vapour profile and the cloud of the greenhouse",
-     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.18", "6.18 Stand-ins of the life constants",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.19", "6.19 Stand-ins of the life class rules",
@@ -156,6 +154,12 @@ SECTIONS = (
     ("6.57", "6.57 Stand-ins of the magma-ocean redox model",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.58", "6.58 Stand-ins of the dry-body carbon",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.65", "6.65 Stand-ins of the arm contrast of each stellar population",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.66", "6.66 Stand-ins of the low-mass main sequence and the star/brown-dwarf boundary",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.67", "6.67 Stand-ins of the stellar wind and flares at a world",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""

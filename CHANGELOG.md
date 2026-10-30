@@ -2,6 +2,108 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2739] - 2026-10-30
+
+**Headline:** A system page now lists the orbits of its stars, so a triple or larger system shows what each orbit joins.
+
+### Added
+- **"Orbits of the stars" on the system page (MAP.213, slice C).** A system with two or more stars gets a table below its tree of bodies with one row per orbit in the stored tree of stars: what the orbit joins (two stars, or a star and the pair hung below it, named by its orbit number), whether it is a close, wide or compact pair, its mass, separation, period, eccentricity and how close the pair is (detached, semi-detached, contact and so on). A single star has no panel. `GET /api/systems/<id>` carries the same tree as `orbits` and each star's `parent_node_no` and `slot`; the API version does not change, since nothing was removed.
+
+## [8.0.2738] - 2026-10-30
+
+**Headline:** A star's own spin sets how active it is, flares reach a world's dose by their size and the field's shield, and a world the flares scour loses its ozone, so UV, sky and life follow.
+
+### Changed
+- **A star's activity follows its own rotation (GEN.807).** A fast spinner keeps its saturated X-ray output longer and flares more, a slow one leaves saturation sooner (unsaturated activity falls as the Rossby number to the minus 2.7, Wright et al. 2011); the star's spin about the gyrochronology median is now drawn once and read by the activity, not only by the sheet.
+- **The mixture draw reads the XUV exposure stored for the body's distance (GEN.806).** The exposure the atmosphere draw sees is the one `magnetism.update_exposure` stored, not a second computation.
+- **The particle dose reads the flare slope and the magnetopause (GEN.805).** A shallow flare-energy slope puts more energy in the big flares and raises the dose; a field cuts it by its standoff.
+- **A world the flares scour keeps a tenth of its ozone (GEN.808).** Where the flare irradiation index times the field's shield reaches 300, or the galaxy's lethal events pass 10 a gigayear, the ozone column is cut to 10 percent and the DNA-weighted UV at the ground follows (`ozone_loss_flag`, `uv_surface_index`).
+- **The loss history follows the star's own activity (GEN.804).** The XUV decay the thermal escape integrates runs through the star's stored `log_lx_lbol` instead of the table's nominal decay.
+- generation-output: changed
+
+### Added
+- **`physics/ion_escape.py` (GEN.804).** The stellar wind's ion loss through the open share of a dipole (`1 - sqrt(1 - 1/r_mp)`), tuned to the Venus Express and MAVEN rates, and `thermosphere.kept_shares(magnetopause_rp=...)` to follow it. Nothing passes the magnetopause yet: the field is drawn after the air until GEN.967 orders it first.
+- **Stand-in rows WF1 to WF6** in the gap-filling plan (section 6.32) and the stand-in list.
+
+## [8.0.2737] - 2026-10-30
+
+**Headline:** Every star now has an evolutionary state, and a white dwarf the age since it stopped burning.
+
+### Added
+- **Star state and age since it stopped burning (GEN.786, GEN.785).** The star sheet's State row now reads main-sequence, subgiant, red-giant, helium-burning, asymptotic-giant, cepheid, supergiant, hypergiant, wolf-rayet, white-dwarf, pre-main-seq or protostar, from the star's class and phase. A white dwarf's "Age since it stopped burning" is its cooling age; no other star has the row.
+
+## [8.0.2736] - 2026-10-30
+
+**Headline:** A star's ultraviolet and colour now come from model-atmosphere spectra and measured chromospheres instead of a seeded share and a blackbody.
+
+### Changed
+- **Ultraviolet and colour from the stellar spectra library (GEN.971).** A star's UV-C power (its stored `uv_c_share`, now a multiple of its blackbody's) and the UV-B and UV-A seen at a planet come from its ATLAS9 or PHOENIX-ACES spectrum plus the far ultraviolet of its corona (France et al. 2016), in place of a seeded share between 0.1 and 1; cool active stars now have a large chromospheric UV-C. The disc colour of a star on the system map and the light behind every atmosphere and sky colour come from the same spectra. Every star and every sky colour changes. The sheet row reads "UV-C power against its blackbody's".
+
+## [8.0.2735] - 2026-10-30
+
+**Headline:** Planets now come from a model of how real planetary systems are built, with hot Jupiters, cold giants and compact inner systems in the shares the surveys find.
+
+### Changed
+
+- **A star's planets come from the planet architecture (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920).** Instead of a uniform planet count at uniform spacing, a star now has a compact inner system (a planet of an Earth radius or more with a period under 400 days) at the share the Kepler surveys find (about 30 percent of Sun-like stars, 75 percent of red dwarfs), a chain of planets built at the mass its feeding zone holds, thinned by the instability of crowded orbits, and gas giants that form beyond the snow line, more often round metal-rich stars. About 1 percent of giants migrate in to a hot Jupiter orbit and sweep their inner planets away. A Sun-like star now holds about 7 planets and a red dwarf about 3 or 4, fewer sit close in than before, and the planets of the same seed differ; no planet forms where its rock would be vapour (a 1500 K dust sublimation limit). The old constants `PLANET_SPACING_RATIO_RANGE`, `FIRST_PLANET_HZ_FRACTION_RANGE`, `GIANT_IMPACT_SURVIVAL_FRACTION` and `PLANET_ASSEMBLY_SCATTER_DEX` are gone. generation-output: changed
+
+## [8.0.2734] - 2026-10-30
+
+**Headline:** The faintest red dwarfs and the brown dwarfs next to them now follow the published Baraffe models, and what burns hydrogen depends on how metal-rich its place is.
+
+### Changed
+- **The main sequence from 0.07 to 0.1 solar masses is the Baraffe et al. 2015 table's (GEN.936).** It was a straight line carried down from the MIST grid, which made a star of 0.08 solar masses 2.3 times too bright and 430 K too hot (6.1e-4 against 2.7e-4 solar luminosities, 2,774 K against 2,356 K at 5 Gy). The star arrives on its main sequence at the age its radius settles in the table (0.6 to 3 Gy), and the two tables are joined smoothly at 0.1 solar masses. Because these stars arrive later, the longest a star contracts is 4.5 Gy, not 1.
+- **One boundary between a star and a brown dwarf (GEN.936).** The brown dwarfs' mass function now ends where the stars' begins (0.08 solar masses; it ended at 80 Jupiter masses, 0.0764, and left the stretch to 0.08 empty). Whether an object burns hydrogen depends on its place: 0.074 solar masses at the Sun's metal content up to 0.092 with none. A system is never built around a brown dwarf, so a primary drawn under its place's limit is drawn again, and a companion under it is a brown dwarf member of its system.
+- **Brown dwarfs read the whole Baraffe table (GEN.948).** Temperature and radius at a mass and age come from 30 ages of the table, not eleven thinned rows, and a brown dwarf's radius at its age (not at 1 Gy) shows in its makeup. A free-floating brown dwarf may now be as heavy as 0.08 solar masses.
+
+generation-output: changed
+
+TODO items resolved: GEN.936, GEN.948.
+
+## [8.0.2733] - 2026-10-30
+
+**Headline:** The surface temperature of every world with an air now comes from a radiative-convective model of its gases and haze, not from a grey closure.
+
+### Changed
+- **GEN.850: the greenhouse is read from a table fitted to the radiative-convective model.** `surface_air.solve` asks `greenhouse_table.warming` (a network fitted to `radiative_convective.warming`, which reads the ExoMolOP k-tables of water, carbon dioxide and methane, the HITRAN collision-induced pairs and the MT_CKD continuum) for the warming of each air. The grey closure `infrared_opacity.py` is deleted. The line data are still downloaded at setup because the table is fitted and checked against them (its file carries a digest of them). Dense, hot airs shift most (by 60 to 190 K, the closure was too cold); 28 percent of airs shift by more than 5 K. A cloud longwave stand-in (IR9, tweak L3) keeps the Earth twin at 288 K; guards for very thin and noble-gas airs are registry row IR11.
+- **GEN.851: the haze is part of the air.** The haze's depth, its share of the absorbed sunlight and the pressure that sunlight is taken at are found at each step of the fixed point from the haze's own random stream, so a hazy world is cooler at the ground (the anti-greenhouse of Titan) and its temperature, class and life follow.
+- generation-output: changed
+
+## [8.0.2732] - 2026-10-30
+
+**Headline:** Rocky planets and moons are made again at their star's final age, so their air, class, spin and radiation agree with the age the star ends up with.
+
+### Changed
+- **Rocky planets and moons are settled once the star's age is final (GEN.992).** Their air, class, spin, magnetic field and radiation dose were drawn at the star's provisional, younger age, but the star's age rises by billions of years in most systems when the planets need time. After the age is final each rocky planet and moon whose age moved is made again at that age, so about one in ten has another class letter and a quarter another air pressure. A request for a habitable world, a belt or a class is judged after this. A system whose planets the age did not move is unchanged.
+
+generation-output: changed
+
+## [8.0.2731] - 2026-10-30
+
+**Headline:** The snow line, the ice boost of the solids and the most water an icy body can hold now come from Lodders's condensation table: the Sun's snow line moves from 2.68 to 2.34 AU.
+
+### Changed
+
+- **Snow line and ice from the condensation table (GEN.950).** Water ice condenses at 182 K (Lodders 2003, chosen by Boss over the 170 K first used), so every star's snow line sits closer by a factor of 1.15 in distance (the Sun's goes from 2.68 to 2.34 AU), more bodies form beyond it and are icy, and a cold ring or rogue planet keeps its ice below 182 K. The jump of the solids beyond the snow line is 2.17 times the rock (water ice over rock in Lodders's Table 11) instead of Hayashi's 4.3, which lowers the isolation masses of the cores beyond the line. An icy body's water is drawn from 5 percent of its mass up to the share of its solids that is water at the disk temperature where it formed: 0.54 between 182 and 131 K, 0.49 down to 41 K and 0.38 below. The constants `SNOW_LINE_TEMPERATURE_K` and `SNOW_LINE_ICE_BOOST_FACTOR` and the range `ICY_WATER_MASS_FRACTION` are gone. Registry rows CS1 to CS3 are now read.
+
+## [8.0.2730] - 2026-10-30
+
+**Headline:** The gas equilibrium solver no longer gives up on near-stoichiometric water with a trace of argon.
+
+### Fixed
+- **GEN.1003: the equilibrium solver could stall with "no convergence" on a mixture of hydrogen and oxygen at the proportion of water with a trace noble gas.** The last row of its scaled Newton system was rounding noise, so the step to a trace element jittered for ever. A solve that does not converge now retries with that row scaled by the total; a solve that converges the first time is unchanged.
+
+## [8.0.2729] - 2026-10-30
+
+**Headline:** The spiral arms now crowd young stars and barely touch old ones, with each population's contrast taken from the observations instead of hand values.
+
+### Changed
+- **Arm contrast of each stellar population (GEN.931).** The old disk's contrast is 0.10 (a surface density contrast of about 10% between arm and inter-arm at the solar radius: Eilers et al. 2020, Drimmel and Spergel 2001), where it was 0. The young population's is 0.75 (the arm gas ratio of 4 raised to the star formation law's 1.4), where it was 0.9. The intermediate population's is 0.42 (it falls with the log of the age between the two), where it was 0.4. A place's total density does not move; its mix does: between the arms the young share of the stars is about 2.7 times what it was (0.12% to 0.32% at the reference place) and the old share about 1.6% lower. A stars go from 0.087% to 0.103% and B stars from 0.013% to 0.020% there; the A-star deficit against the nearby counts is the disk's star formation history, not the arms (GEN.898). Registry section 6.65 (rows ARM1 to ARM4).
+
+generation-output: changed
+
+TODO items resolved: GEN.931.
+
 ## [8.0.2728] - 2026-10-30
 
 **Headline:** "Finish the last run" now carries on a stopped Generate job as the one run it is, including the stages that never started.

@@ -17,7 +17,7 @@ _KIND_LABELS = {
 }
 """dict: `scatter_members.kind` -> its label."""
 
-_ORBIT_LABELS = {"close": "Close pair", "wide": "Wide pair", "compact": "Compact pair", "group": "Young group"}
+ORBIT_LABELS = {"close": "Close pair", "wide": "Wide pair", "compact": "Compact pair", "group": "Young group"}
 """dict: `scatter_nodes.kind` -> its label."""
 
 
@@ -32,7 +32,7 @@ def _member_label(row):
 def _orbit_label(row, members, age_gy):
     """The node kind's label; a young group's also says how long it has left (GEN.327): its members' decay age less the
     star's age, "Young group, about 21 thousand years left" (a group is only stored while that is positive)."""
-    label = _ORBIT_LABELS.get(row["kind"], row["kind"].capitalize())
+    label = ORBIT_LABELS.get(row["kind"], row["kind"].capitalize())
     if row["kind"] != "group" or age_gy is None:
         return label
     decay = next((m["decay_age_yr"] for m in members if m["parent_node_no"] == row["node_no"]

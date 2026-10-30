@@ -143,10 +143,11 @@ def _band_fraction(temperature_k, low_nm, high_nm):
 
 def band_fraction(temperature_k, band_nm):
     """The share of a blackbody star's photons that fall in the band `(low, high)` nm: the star's light a pigment can use. 0 for a
-    body with no star temperature."""
-    if not temperature_k or temperature_k <= 0.0:
+    body with no star temperature (or under half a kelvin, a black hole's, which rounds to none)."""
+    rounded = round(float(temperature_k or 0.0), 0)
+    if rounded <= 0.0:
         return 0.0
-    return _band_fraction(round(float(temperature_k), 0), float(band_nm[0]), float(band_nm[1]))
+    return _band_fraction(rounded, float(band_nm[0]), float(band_nm[1]))
 
 
 # --- The phase of carbon dioxide -------------------------------------------------------------

@@ -3893,9 +3893,12 @@ def system_detail(conn, system_id):
             `schema.sql`'s "v14"/"v15" notes), `stars` (id/role/name/
             star_type/mass_kg/radius_km/temperature_k/luminosity_w/
             heliosphere_radius_km/offset_x_au/offset_y_au/offset_z_au, the
-            offsets set for a `member` star only --
+            offsets set for a `member` star only, and `parent_node_no`/`slot`, the node of the orbit tree the star hangs in and which of its
+            two places it holds, `None` for a single star --
             `id` matches a `'wide'` binary's `planets`/`belts` rows' own
-            `star_id`, disambiguating which star each orbits), `planets`
+            `star_id`, disambiguating which star each orbits), `orbits` (the system's `orbit_nodes` rows in node order, MAP.213:
+            `node_no`, `parent_node_no`, `slot`, `kind`, `mass_solar`, `separation_km`, `eccentricity`, `inclination_deg`,
+            `period_years`, `interaction` and `flags`; empty for a single star), `planets`
             (each a `planets` row, including its own `star_id`, plus its
             own `moons` list; every planet and moon also carries
             `habitable`, `life_stage` and `inhabited` (a colony counts --
@@ -3923,11 +3926,14 @@ def system_detail(conn, system_id):
 
     stars = conn.execute(
         "SELECT id, role, name, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km,"
-        " offset_x_au, offset_y_au, offset_z_au"
+        " offset_x_au, offset_y_au, offset_z_au, parent_node_id AS parent_node_no, slot"
         " FROM stars WHERE star_system_id = ?"
         " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 WHEN 'secondary' THEN 1 ELSE 2 END, id",
         (system_id,),
     ).fetchall()
+    orbits = [dict(r) for r in conn.execute(
+        "SELECT node_no, parent_node_no, slot, kind, mass_solar, separation_km, eccentricity, inclination_deg, period_years,"
+        " interaction, flags FROM orbit_nodes WHERE star_system_id = ? ORDER BY node_no", (system_id,)).fetchall()]
     # mass_kg (already selected above) is what lets planetgen/web/maps/systemmap.py
     # split binary_mutual_position_x/y/z_km below into each star's own
     # mass-weighted offset from the system's barycenter, rather than
@@ -4005,6 +4011,7 @@ def system_detail(conn, system_id):
         "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],
         "runaway_class": system["runaway_class"], "runaway_speed_kms": system["runaway_speed_kms"],
         "stars": [dict(s) for s in stars],
+        "orbits": orbits,
         "planets": planets,
         "belts": belts,
         "comets": [_with_printed_uid(c) for c in comets],

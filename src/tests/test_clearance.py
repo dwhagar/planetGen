@@ -179,10 +179,7 @@ SCALE = int(os.environ.get("PLANETGEN_CLEARANCE_SCALE", "1"))
 SWEEP = {"single": (None, 12 * SCALE), "pair": (2, 12 * SCALE), "triple": (3, 24 * SCALE), "quadruple": (4, 16 * SCALE), "five": (5, 8 * SCALE)}
 """dict: Systems per kind of star count (`SystemConfig.STARS`, None for the generator's own mix) and how many seeds each."""
 
-KNOWN = {
-    ("triple", 208): "planet-spacing: planets 3 and 4 of a close pair with a wide third star stand 9.93 mutual Hill radii apart, "
-                     "under the generator's own MUTUAL_HILL_RADII_SEPARATION of 10 (found by the 864-system sweep of 2026-10-30)",
-}
+KNOWN = {}
 """dict: `(kind, seed) -> what the verifier finds` in the systems that are not clear today (GEN.1006 P8 is what removes them). A seed
 here is always swept, and expected to fail: when it passes, leave the list."""
 
