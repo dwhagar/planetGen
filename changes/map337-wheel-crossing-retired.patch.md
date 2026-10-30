@@ -1,0 +1,4 @@
+**Headline:** The Galaxy Map's wheel no longer hops from one block window to the next; the camera's zoom carries it, and the picture does not change.
+
+### Changed
+- **The wheel's stage-crossing code is gone from the Galaxy Map (MAP.337, step 1 of 4).** `galaxystageview.js` no longer finds the block under the wheel, asks for the next window ahead of the camera, or swaps the displayed window as the wheel nears the end of a stage's range (`acrossAtMiddle`, `blockUnderWheel`, `windowAcrossFrom`, `prefetchAcross`). Since the zoom range became global (MAP.334) and the sector and system scenes come up from the camera's place (MAP.335), the wheel only zooms, opens the sector and the system where the camera is, and goes back out of them; a wheel turned in the whole-galaxy view zooms the camera straight in.
