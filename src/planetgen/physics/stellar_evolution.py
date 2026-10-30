@@ -35,7 +35,7 @@ import math
 from planetgen.datasets import fetch, mamajek_sequence, white_dwarf_models
 from planetgen.galaxy import scales
 from planetgen.physics import (
-    constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass, wolf_rayet)
+    age_metallicity, constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass, wolf_rayet)
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -550,14 +550,15 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
             if high <= low:
                 continue  # an old population has no living star this massive
             low, high = age_window_gy(low, high, age_bias)
-            age = rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng)
+            age = age_metallicity.tilted_age(
+                birth, population, lambda: rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng), rng)
         else:
             mass = imf.sample(rng=rng, curve=imf.PRIMARY)
             if large_star is False and mass >= pc.LARGE_STAR_MIN_MASS_SOL:
                 continue
             if max_mass_sol is not None and mass >= max_mass_sol:
                 continue
-            age = sample_star_age_gy(age_bias, rng, population, age_law)
+            age = age_metallicity.tilted_age(birth, population, lambda: sample_star_age_gy(age_bias, rng, population, age_law), rng)
         if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY:
             continue
         state = evolve_star(mass, age, rng, fe_h=birth, population=population, fe_h_peaks=fe_h_peaks)

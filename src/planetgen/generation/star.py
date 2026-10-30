@@ -23,7 +23,8 @@ import re
 from planetgen.generation import forced_star
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import activity, debris_disk, formation, imf, metallicity, pre_main_sequence, spin
+from planetgen.physics import (activity, age_metallicity, debris_disk, formation, imf, metallicity, pre_main_sequence,
+                              spin)
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, birth_fe_h, evolve_star, sample_living_star,
@@ -384,9 +385,10 @@ class Star(StellarObject):
         state = None
         if initial_mass_sol is not None:
             initial_mass_sol = max(initial_mass_sol, imf.lowest_mass_sol())
-            age = age_gy if age_gy is not None else sample_star_age_gy(age_bias)
             if fe_h is None:
                 fe_h = birth_fe_h(draw, population, fe_h_peaks, self.galactic_center_dist_ly)
+            age = age_gy if age_gy is not None else age_metallicity.tilted_age(
+                fe_h, population, lambda: sample_star_age_gy(age_bias), draw)
             state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
                                 galactic_center_dist_ly=self.galactic_center_dist_ly)
             # A companion of a specified-type primary takes a fraction of

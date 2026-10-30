@@ -68,7 +68,7 @@ import math
 from planetgen.galaxy import scales
 from planetgen.galaxy.age_law import AgeLaw
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
-from planetgen.physics import constants, imf, metallicity, post_main_sequence, wolf_rayet
+from planetgen.physics import age_metallicity, constants, imf, metallicity, post_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
     birth_fe_h, evolve_star, horizontal_branch_bright_chance,
@@ -466,7 +466,7 @@ def _sample_one_bright(min_luminosity_sol, population, mass_range, window, rng, 
             if pick < weight:
                 break
             pick -= weight
-        age = law.sample(start, end, rng)
+        age = age_metallicity.tilted_age(fe_h, table["population"], lambda: law.sample(start, end, rng), rng)
         state = evolve_star(mass, age, rng, min_luminosity_sol=min_luminosity_sol, fe_h=fe_h,
                             population=table["population"])
         # Guards the window edges against rounding (an age landing exactly
@@ -634,7 +634,7 @@ def _sample_one_in_mass_band(band, population, law, max_luminosity_sol, rng, sou
         oldest = window[1]
         if mass >= tuning.SUPERGIANT_MIN_MASS_SOL:
             oldest = min(oldest, remnant_formation_time_gy(mass, fe_h))
-        age = law.sample(window[0], oldest, rng)
+        age = age_metallicity.tilted_age(fe_h, table["population"], lambda: law.sample(window[0], oldest, rng), rng)
         state = evolve_star(mass, age, rng, fe_h=fe_h, population=table["population"])
         if state is None:
             continue
