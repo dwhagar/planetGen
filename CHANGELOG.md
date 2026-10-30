@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2674] - 2026-10-30
+
+**Headline:** A rocky rogue planet now turns at the rate its building impacts left it, and the mixture draw's default light is the orbit's mean light.
+
+### Changed
+- **Rogue rocky planets use the spin law (GEN.842, GEN.731).** A rocky free planet drew a day log-uniform over 8 to 48 hours; it now has the birth spin the giant impacts that built a planet leave (`spin.accretion_spin`: a rate scaled to its breakup rate and held under the breakup fraction, and an angle from the galactic pole that is isotropic), with no tide since there is no star. A rogue giant keeps the gas-giant day.
+- **The mixture draw's default distance is the circle that gives the orbit's mean light (GEN.842, GEN.727).** `mixture_subject` took a planet's semi-major axis when no distance was handed in; the live generation path already hands in the mean-light circle, so only a direct call changes.
+
+generation-output: changed
+
 ## [8.0.2673] - 2026-10-30
 
 **Headline:** About one main-sequence star in six or seven now holds a cold debris belt, like the Kuiper belt but bigger, and the star page says where it lies.
