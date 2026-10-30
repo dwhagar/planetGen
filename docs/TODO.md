@@ -17084,35 +17084,6 @@ clears each one.
   loaded the machine). Closes after its clean runs.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
-- [ ] **TEST.161 Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table**
-  Tests beside the fill-stages item (catalogue sections 3 and 5): adding
-  a kind to a stage moves no draw of another stage; the same object
-  gives the same system in any sector fill order; each kind's system
-  share matches the table within Poisson bounds; a scatter row carries
-  no planet or moon before its sector fills; no room drops the outermost
-  body first. Done: each test exists and runs in the normal suite.
-  Owner: Quality (all TEST items are Quality's), written beside the
-  build step.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: TEST.186 (Core 3). Core 4 takes it when it unblocks.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): TEST.186 is the named blocker and is already done, so it is not listed as a prerequisite (the named blocker of the 2026-10-16
-  owner line; TEST.186 is merged, PR #2040).
-  Owner: Core 3 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Research (2026-10-09, Update): OWNER Aux 3 (assigned 5:15 AM EDT
-  2026-10-30 by TODO as the lane's one lock-free item while it waits for
-  Core 4's structure work; tests only, separate branch, change no table
-  value or stored output; if a test finds a real fault, file it with
-  TODO as a bug and do not fix it under this item).
-  Prerequisites: none. Related: TEST.159.
-  Design: [docs/design/systems/phenomena-catalogue-and-fill.md](design/systems/phenomena-catalogue-and-fill.md)
-
 - [ ] **TEST.162 Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors**
   Step 9 (design note section 9, tests 1 to 9). Companion states within
   four Poisson sigma over a seeded scatter of 1e6 rows; object density
@@ -17457,23 +17428,12 @@ clears each one.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
   held it before; this replaces any earlier owner line).
+  OWNER Aux 3 (assigned 5:20 AM EDT 2026-10-30 by TODO as the lane's one
+  lock-free item; tests and documentation only, separate branch, change
+  no stored value) (2026-10-30 5:20 AM EDT): If the test shows a real
+  offset error, file it with TODO as a bug and do not fix it under this
+  item.
   Prerequisites: none. Related: GEN.372, GEN.223, GEN.294.
-
-- [ ] **TEST.201 `block_stats` totals do not depend on the order of the rows: a test**
-  From the GEN.372 precision audit (Core 1,
-  docs/design/architecture/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
-  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
-  stored value. Done: a test sums the block statistics (`block_stats`)
-  of the same rows in several random orders and requires identical
-  totals (or totals within a stated bound), failing if the sum is order
-  dependent. Compensated sums for the long accumulations wait for
-  GEN.109 (Boss card): see the note on GEN.109. Owner: Core 1.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  Research (2026-10-09, Update): OWNER Aux 3 (queued 5:15 AM EDT
-  2026-10-30 by TODO, after TEST.161; tests only, same rules).
-  Prerequisites: none. Related: GEN.372, GEN.109.
 
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for

@@ -3077,7 +3077,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.158 | The math check tests the spherical shell, band and wedge grid | none | done, PR #1697 |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | none | done, PR #2504 |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | none | done, PR #2504 |
-| TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | none | open |
+| TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | none | done, PR #3957 |
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | none | open |
 | TEST.163 | test_nav_ends_picked_from_bookmarks_on_every_page fails: #course-heading count is 0 on the nav route page (bug) | none | done, PR #1801 |
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | none | open |
@@ -3117,7 +3117,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.198 | `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug) | none | open |
 | TEST.199 | `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug) | none | done, PR #2124 |
 | TEST.200 | The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` | none | open |
-| TEST.201 | `block_stats` totals do not depend on the order of the rows: a test | none | open |
+| TEST.201 | `block_stats` totals do not depend on the order of the rows: a test | none | done, PR #3959 |
 | TEST.202 | `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug) | none | merged into TEST.172 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.203 | `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug) | none | done, PR #2124 |
 | TEST.204 | Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges | none | open |
