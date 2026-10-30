@@ -1901,3 +1901,4 @@ Baseline: PR #1817.
 | TEST.200 | 8.3 | Positions as one object |
 | DOC.72 | 8.1 | Docs |
 | DOC.73 | 8.1 | Docs |
+| TEST.467 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

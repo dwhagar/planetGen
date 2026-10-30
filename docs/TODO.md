@@ -18903,6 +18903,11 @@ clears each one.
   his ask at 5:18 PM EDT; separate branch, no generated-output change;
   if the lane already holds a lock-free item it finishes that first). If
   this step turns out to change a stored value, stop and tell TODO.
+  Update (Bug 2, #3971, as the lane reported 5:47 AM EDT) (2026-10-30
+  5:48 AM EDT): The pulsar fill test went from 5586 s to 73 s and the
+  single-sector backfill test from 897 s to 115 s, no check loosened.
+  Remaining targets test_gen_resume, test_work_queue and test_galaxy_gen
+  run the CLI in subprocesses; Bug 2 takes them next.
   Prerequisites: none. Related: TEST.408, TEST.410.
 
 - [ ] **TEST.430 Class census: a standing seeded report of every planet and moon class share and overall colour per star type and zone, with stored expected ranges and anomaly flags**
@@ -19175,22 +19180,6 @@ clears each one.
   percent, not added). Still open: the single-sector backfill test
   (test_bright_star_scatter) is being timed and shrunk next
   Prerequisites: none. Related: TEST.463, GEN.935.
-
-- [ ] **TEST.467 Two tests red on the base branch seen by Star 1: the wide-binary planet-class check and the planet serialization allowlist (formation_distance_au, host_eccentricity) (bug)**
-  Reported by Star 1 (as the lane reported, 5:39 AM EDT 2026-10-30)
-  while readying GEN.941, GEN.943 and GEN.947: these fail on the base
-  and are not from those PRs: the wide-binary planet-class check, and
-  the planet serialization allowlist test, which does not list
-  formation_distance_au and host_eccentricity (columns added by the
-  tides and eccentricity work). Do: recheck both on current main first
-  (train 1 and #3932 fixed other reds); for the allowlist, add the two
-  fields to the allowlist with their unit entries if they are real
-  stored fields; for the wide-binary check, find whether the product or
-  the test is wrong and fix the right one with the reason recorded.
-  Done: both pass on main. Related: TEST.463, TEST.461. Owner: Bug 2
-  (proposed). Redis/MySQL test failures Star 1 also saw are the lane
-  machine setup (check MySQL, Redis, test env vars) and not an item.
-  Prerequisites: none. Related: TEST.463, TEST.461.
 
 ## USR: User accounts
 
