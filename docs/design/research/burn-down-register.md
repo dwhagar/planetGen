@@ -147,6 +147,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.86:TU2 | no data | - | uniform placement is the neutral choice; the smoothed rogue field (GEN.1115) is the only thing that could change it |
 | 6.86:TU3 | replace | GEN.1119 | the ejection records give the scatterer's distance, so the drawn range is replaced by the architecture's own |
 | 6.108:TF1 | replace | GEN.1103 | a physical source for the mass the Rogues level cannot hold (the unbound remnants of the channels of section 6.103) replaces the stand-in origin |
-| 6.108:TF2 | replace | GEN.1102 | the size-frequency law of the collisional fields sets the largest body and the density of the pieces |
+| 6.108:TF2 | replace | GEN.1105 | the size-frequency law of the collisional fields sets the largest body and the density of the pieces |
 | 6.108:TF3 | no data | - | nothing measures the spread of a field that was never observed; the dispersion of a real source (IF12) is the only thing that could replace it |
 | 6.108:TF4 | no data | - | the counts and masses are chosen to keep a sector's top-up to a dozen clouds; no measurement exists to replace them |

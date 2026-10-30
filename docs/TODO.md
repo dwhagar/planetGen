@@ -14645,28 +14645,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   now, separate branch.
   Prerequisites: none. Related: GEN.1118.
 
-- [ ] **GEN.1126 Top-up asteroid field kind: lighter interstellar asteroid fields made when the Rogues cap leaves sector mass unmatched, smaller bodies, lower density, a larger volume, no full body history, origin a registered stand-in "unbound remnant"**
-  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
-  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
-  #4130). Defaults taken until Boss changes them: whole sectors are the
-  unit of randomness and a region is rounded up to whole sectors (no
-  partial sectors); work units are the galaxy's own (shell, band) arcs;
-  a moved rogue keeps the ID of its birth position, with history; the
-  top-up fills the shortfall only up to the Rogues level. Boss, 5:41 and
-  5:42 PM EDT: the remainder goes to interstellar asteroid fields in the
-  same last pass, using the field machinery (ledger, mass cut rule,
-  `<parent ID>.<rank hex>` designation, field radius from age, retire
-  past 1 ly) but a distinct lighter kind with no collision event
-  claimed; placed inside the sector, then given a realistic origin and
-  velocity as if from elsewhere (apparent origin, marked). Stand-in
-  origin registered in GEN.725 (accepted). Do: the pure module with
-  sizes, density and spread as tuning values, tests that mass is
-  conserved to the remainder. Lock-free. Wiring rides GEN.1120 and the
-  field items GEN.1103 to GEN.1107. Where we think it belongs (best
-  guess, can move): Aux 4 (interstellar fields chain), after GEN.1100 to
-  GEN.1102.
-  Prerequisites: none. Related: GEN.1118, GEN.1120, GEN.1103.
-
 - [ ] **GEN.1127 chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is**
   Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
   GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
