@@ -14722,6 +14722,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   text updated, covered by the same epoch re-derivation of every class.
   Lock work, same epoch as GEN.1135. Where we think it belongs (best
   guess, can move): Core 4, train 6.
+  Boss, 6:57 PM EDT 2026-10-30, SUPERSEDES the K rule above and widens
+  the patch (2026-10-30 7:00 PM EDT): class decisions: (1) E and F are
+  near duplicates whose lore purpose (stages on the chain to an
+  Earth-like world) Boss dislikes: retire one and keep one, or make each
+  more distinct, our choice. (2) Class K: above freezing, thin
+  atmosphere and LOW atmospheric pressure, near-Earth temperature,
+  pretty close to Earth-like but not quite; below freezing goes to Class
+  P (glaciated) at the top end of what P accepts. (3) Class L:
+  Earth-like except high CO2 and low oxygen, difficult to breathe
+  without a mask but not toxic (the original description fits),
+  near-Earth temperature. (4) Class H: desert world, less than about 20
+  percent available surface water (Boss: if I recall correctly, check
+  the source). (5) Class O: ocean world, about 80 percent of the surface
+  ocean. (6) CONDITIONS ONLY, no zone (hot, eco, cold) in any class
+  rule: a K or L world may sit closer to or farther from its star if
+  that is what the temperature needs. H and L are unreached today (zero
+  bodies) and must be fixed in this epoch; O (1 to 3 bodies) must be
+  checked against the 80 percent rule. The class index thread's result
+  sets the exact lines; this item and the train 6 epoch scope follow it.
+  Still one epoch for every class re-derivation.
   Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1143.
 
 - [ ] **GEN.1143 Class count script: temperate-ocean bodies per class, hydrogen-rich N bodies under 15 Earth masses, and the E, H and L reach (prints only)**
@@ -14750,6 +14770,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physics question about Venus and Mars type worlds, not a class-row
   problem until measured). Boss's call on the decisions. Lock-free
   report. Where we think it belongs (best guess, can move): Aux 2.
+  Boss, 6:57 PM EDT 2026-10-30 (2026-10-30 7:00 PM EDT): E and F, H, L
+  and O are no longer decided after the re-sweep: Boss told us to retire
+  or differentiate E and F and to fix H, L, K and O by conditions only,
+  inside the train 6 epoch (GEN.1142). This re-sweep now checks that H,
+  L, O and K reach bodies with their new lines, and reports the
+  temperate-ocean count per class.
   Prerequisites: GEN.1135, GEN.1136, GEN.1143. Related: GEN.1142.
 
 ## PERF: Speed, caching, bulk generation and parallel work
