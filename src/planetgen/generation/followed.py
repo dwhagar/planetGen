@@ -19,7 +19,7 @@ import contextlib
 
 from planetgen.db import store
 from planetgen.generation import finish_run, run_common, stages
-from planetgen.queue import wrapper
+from planetgen.queue import runrecord, wrapper
 from planetgen.util import log
 
 
@@ -91,7 +91,7 @@ def _enter(follower):
         stages.enter(key, queued=True)
 
 
-def run_followed(args, followers, title, seed=None):
+def run_followed(args, followers, title, seed=None, kind=runrecord.GENERATION, workers=None, galaxy=True):
     """
     Runs the stages of `followers` as one run in the queue and follows it to its end: the steps are the followers'
     (`wrapper.plan_steps`, each with its parameters), the stage rows are handed to the queue up front
@@ -102,6 +102,10 @@ def run_followed(args, followers, title, seed=None):
         followers (list[Follower]): One for each stage, in order.
         title (str): What the run is called.
         seed (int, optional): The seed to record with the run.
+        kind (str): The kind of run (`runrecord.GENERATION`, or `runrecord.MAINTENANCE` for one that saves nothing).
+        workers (int, optional): The workers to use, the run's `--workers` when not given.
+        galaxy (bool): Whether to record the stored galaxy's seed and build with the run, so `planetgen finish-run` can
+            carry it on (false for a run that belongs to no galaxy: one sector or one system).
 
     Raises:
         redisqueue.Unavailable: No Redis server answers.
@@ -109,9 +113,9 @@ def run_followed(args, followers, title, seed=None):
         units.RunStopped: A unit failed or the run was cancelled.
     """
     mysql_config = store.mysql_config_from_args(args)
-    workers = run_common._worker_count(args)
+    workers = workers or run_common._worker_count(args)
     database = wrapper.database_args(mysql_config)
-    galaxy_seed, build = finish_run.current_galaxy(args)
+    galaxy_seed, build = finish_run.current_galaxy(args) if galaxy else (None, None)
     steps, listing = wrapper.plan_steps(
         args, [(f.key, f.label, {"database": database, "workers": workers, **f.params()}) for f in followers])
     rows = {f.key: row for f in followers if f.own_row and (row := stages.row_for(f.key)) is not None}
@@ -139,7 +143,7 @@ def run_followed(args, followers, title, seed=None):
         try:
             wrapper.run(title, steps, on_plan, on_result, on_progress, workers_count=workers,
                         who=getattr(args, "who", None), database=mysql_config.database,
-                        argv=getattr(args, "argv", None), seed=seed, listing=listing, rows=rows or None,
+                        argv=getattr(args, "argv", None), seed=seed, listing=listing, rows=rows or None, kind=kind,
                         on_stage_done=on_stage_done, galaxy_seed=galaxy_seed, build=build)
         except BaseException as exc:
             for follower in open_ones:

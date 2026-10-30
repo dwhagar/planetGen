@@ -303,6 +303,7 @@ KIND_OF_STAGE = {
     "sectors": "generate-sectors", "link": "link-neighbours", "population": "run-population",
     "territories": "run-territories", "settle": "settle-sector-paths", "phenomena-index": "finish-phenomena",
     "block-lights": "refresh-block-lights", "run-blocks": "refresh-run-blocks",
+    "unplaced": "generate-unplaced-sector", "system": "generate-system",
 }
 """dict: The command that does each stage of `generation/stages.py`."""
 
