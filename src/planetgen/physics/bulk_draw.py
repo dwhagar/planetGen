@@ -17,8 +17,8 @@ body's origin (`origin_of`: formed beyond its star's snow line or not) and its s
    draw, and an iron-rich or iron-poor star moves it, which is the observed trend (Dorn et al. 2015; Santos et al. 2015).
 2. **What is drawn** is only what the star cannot say, in this order: the kind of rock (`ROCK_KIND_TABLE`, a gated possibility
    table: silicate, or silicon carbide and graphite for a star with C/O of 0.8 or more, Bond et al. 2010; Unterborn et al.
-   2014), the water share (log-uniform over the range of its origin, `tuning.DRY_WATER_MASS_FRACTION`, `WATER_WORLD_*` and
-   `ICY_WATER_MASS_FRACTION`), for an icy body the other ices (`comet_population`'s volatiles against the water), the mantle's FeO, the core's
+   2014), the water share (a rocky body's from the Bern delivery law by its mass and the snow lines it formed at, `delivered_water`, GEN.849; an
+   icy body's log-uniform over `tuning.ICY_WATER_MASS_FRACTION`), for an icy body the other ices (`comet_population`'s volatiles against the water), the mantle's FeO, the core's
    light elements, a small icy body's porosity, a carbon body's graphite, and then the iron branch of a rocky planet (`IRON_BRANCH_TABLE`: its
    iron follows the star's with a scatter, or is enriched, GEN.512). Every range is in `RANGES` with where it comes from.
 3. **Radius from mass.** The mass is fixed and `bulk_structure.structure` gives the radius the composition holds it at. A caller that
@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, constants, elements,
+from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, constants, delivered_water, elements,
                                hydrosphere, moon_composition, stellar_abundances, stellar_composition)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
@@ -303,15 +303,29 @@ def _subject(body, ratios):
     return pt.Subject(origin_of(body), {"c_over_o": ratios.c_over_o})
 
 
+def _snow_ratio(body):
+    """The distance `body` formed at in its star's snow lines, or `None` when it has no star line or distance to say."""
+    line = getattr(getattr(body, "star", None), "snow_line_au", None)
+    distance = getattr(body, "formation_distance_au", None)
+    if distance is None:
+        distance = getattr(body, "distance", None)
+    return None if not line or distance is None else distance / line
+
+
+def _rocky_water(body):
+    """A rocky body's water share from the Bern delivery law (`delivered_water`); a body with no mass yet is taken at the middle of the model's masses."""
+    mass = getattr(body, "mass", None)
+    mass_earth = mass / constants.EARTH_MASS_TO_KG if mass else math.sqrt(math.prod(delivered_water.MASS_RANGE_EARTH))
+    ratio = _snow_ratio(body)
+    return delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio)
+
+
 def _water_and_ice(body):
-    """Water as a share of the whole body from the range of its origin, and the other ices beside it for an icy body."""
+    """Water as a share of the whole body: the Bern delivery law for a rocky body, the icy range for one beyond the snow line, and the other ices beside it for an icy body."""
     if origin_of(body) == ICY:
-        low, high = tuning.ICY_WATER_MASS_FRACTION
-    elif draw.random() < tuning.WATER_WORLD_SHARE:
-        low, high = tuning.WATER_WORLD_WATER_MASS_FRACTION
+        water = log_uniform(*tuning.ICY_WATER_MASS_FRACTION)
     else:
-        low, high = tuning.DRY_WATER_MASS_FRACTION
-    water = log_uniform(low, high)
+        water = _rocky_water(body)
     ice = 0.0
     if origin_of(body) == ICY:
         volatiles = comet_population.draw_volatiles(RANGES["other_ice_comet_class"])

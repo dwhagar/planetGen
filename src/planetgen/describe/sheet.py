@@ -463,6 +463,8 @@ _BODY_NOT_SHOWN = {
                "ground_sulfur_fraction"),
               "the stored mix of ground types; it feeds the ground dose and the surface rendering, and the page does "
               "not list it as a row yet"),
+    **_excuse(tuple(column for column in regional_temperature.SWING_OF.values() if column != "temp_swing_k"),
+              "the day and night swing of a place; shown on the row of its temperature as a range, from the coldest hour to the hottest (GEN.848)"),
     **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
@@ -594,6 +596,9 @@ def _plain_number(value, unit):
 NO_RANGE = "no day and night range stored for this place"
 """str: What a temperature row says when the body holds no swing for that place (GEN.796)."""
 
+NO_DAY = "the same through the day: a world that turns once an orbit has no day and night"
+"""str: What a temperature row of a tidally locked world says (GEN.848): its places are fixed and their swing is 0."""
+
 
 def _plus_minus(swing):
     """The swing as a clear range: the half of it either side, and the whole of it from the coldest hour to the hottest
@@ -615,8 +620,11 @@ def _range_value(spec, table, stored, row):
         return _plus_minus(stored)
     if column not in regional_temperature.TEMPERATURE_FIELDS:
         return value
-    span = regional_temperature.daily_range(stored, row["temp_swing_k"]) if column in regional_temperature.RANGE_FIELDS else None
+    swing = row.get(regional_temperature.SWING_OF[column]) if column in regional_temperature.RANGE_FIELDS else None
+    span = regional_temperature.daily_range(stored, swing)
     if span is None:
+        if swing == 0:    # GEN.848: a place on a locked world has no day
+            return value + [f" ({NO_DAY})"]
         return value + [f" ({NO_RANGE})"]
     return value + [", from ", model.qty("temperature", span[0], "K", companions=False), " to ",
                     model.qty("temperature", span[1], "K", companions=False), " over a day"]
@@ -915,7 +923,10 @@ def sheet(conn, kind, object_id):
     """
     specs = specs_for(kind)
     table = TABLES[kind]
-    columns = ", ".join(sorted({spec.stored_column() for spec in specs}))
+    wanted = {spec.stored_column() for spec in specs}
+    if table in ("planets", "moons"):
+        wanted.update(regional_temperature.SWING_OF.values())    # GEN.848: each temperature row shows the swing of its own place
+    columns = ", ".join(sorted(wanted))
     row = conn.execute(f"SELECT {columns} FROM {table} WHERE id = ?", (object_id,)).fetchone()
     if row is None:
         raise ValueError(f"no {table} row with id {object_id}")
