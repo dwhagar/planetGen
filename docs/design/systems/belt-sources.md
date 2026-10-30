@@ -1,6 +1,6 @@
 # Belt sources: the numbers the belt items need (GEN.1060)
 
-Status: read 2026-10-30 (Sources 2). This is the research read of `belt-evolution.md` section 8 and `belt-origins.md`. Every number the belt items use is here with the paper it came from and a row in the stand-in registry (`gap-filling-plan.md` section 6.80, rows BR1 to BR18). The Solar System belt, the Kuiper belt, Ceres, Pluto and Eris are test targets, never inputs.
+Status: read 2026-10-30 (Sources 2). This is the research read of `belt-evolution.md` section 8 and `belt-origins.md`. Every number the belt items use is here with the paper it came from and a row in the stand-in registry (`gap-filling-plan.md` section 6.95, rows BR1 to BR18). The Solar System belt, the Kuiper belt, Ceres, Pluto and Eris are test targets, never inputs.
 
 Evidence tags: READ = the paper (arXiv text) was opened and the number is in it; 2ND-HAND = the number comes from a paper that cites the original, which was not reachable; NOT REACHED = no copy found, nothing taken from it.
 

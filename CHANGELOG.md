@@ -2,6 +2,23 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2768] - 2026-10-30
+
+**Headline:** The rule for where a captured asteroid can stay in orbit round a planet now exists as a tested calculation, with the Hill radii and the inner edges of the four giants as checks.
+
+### Changed
+- **The irregular zone (GEN.1076, first part).** A new module (`physics/irregular_zone`) gives, for a planet and its star, the Hill radius (0.35, 0.43, 0.47 and 0.77 AU for Jupiter, Saturn, Uranus and Neptune), the distance out to which a prograde orbit (0.4 of it) and a retrograde one (0.55 of it) stay, the inclination band where the star drives a body into the planet, and the inner edge set by the outermost regular moon (0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus). A hot giant's zone comes out empty. This is the first of the pieces for moons that were once asteroids; nothing reads it yet.
+
+generation-output: unchanged
+
+## [8.0.2767] - 2026-10-30
+
+**Headline:** The code can now say which small planets fall in the Hycean box, the sub-Neptunes that could hold a liquid ocean under a hydrogen envelope.
+
+### Changed
+- **The Hycean box (GEN.963).** `physics/hycean_candidate.py` flags a gas dwarf, ice giant or high-gravity world of 1 to 10 Earth masses, 1.4 to 2.6 Earth radii, an equilibrium temperature of 150 to 500 K and a density of 1.5 to 3 g/cc. The audit found the state `hycean` and the envelope survival (`envelope_escape`, the retention library) already in the code; only the box was missing. No class and no stored value moves, so no generated world changes.
+- **Stand-in recorded.** Row HC1 in the stand-in registry (GEN.725): the four ranges, as the item quotes them (Madhusudhan et al. 2021 was not read).
+
 ## [8.0.2766] - 2026-10-30
 
 **Headline:** How many near-resonant planet pairs actually librate, and so can keep a forced eccentricity, is now sourced.

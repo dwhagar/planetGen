@@ -14875,6 +14875,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   alternative is to place it where it actually drifted, which needs the
   donors of every sector within the drift radius and breaks sector
   independence (not recommended).
+  Storage sector OPEN, research first (Boss, 5:06 PM EDT) (2026-10-30
+  5:07 PM EDT): Boss wants the storage question researched before it is
+  decided. His proposal: compute the planet's true galactic velocity
+  (its orbital velocity in the system relative to the star plus the
+  system's own motion through the galaxy), eject it along a random
+  direction normal to that motion vector, choose the ejection time, and
+  run time forward from there to get its present position and sector. A
+  research thread is on it. The home-sector default above is only a
+  placeholder; build nothing that depends on where a rogue is stored
+  until the research decision is merged.
   Prerequisites: GEN.1109, GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 

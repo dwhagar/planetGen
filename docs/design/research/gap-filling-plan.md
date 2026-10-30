@@ -1598,6 +1598,16 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | MT6 | P | T1 | L1 | mantle_stripping.MAX_CORE_MASS_FRACTION 0.85, the core fraction no remnant passes (held to the float under it) | 0.8 to 0.9 | rocky planets | a rocky planet measured above 0.85 | the iron-rich limit of a larger sample | Plotnykov and Valencia 2020 (arXiv:2010.06480, abstract read): the most iron enrichment rocky planets reach is a core fraction of about 0.8; the design's limit is 0.85, nudged inside the printed "about" |
 | MT7 | P | T1 | L0 | mantle_stripping.IMPACT_ANGLE_DEG 30, the angle from head-on beyond which an impact is a hit-and-run and strips nothing | 30 to 45 | similar-sized bodies | an SPH run of a 40 degree impact between embryos that strips more than a tenth of the mantle | the angle at which the disruption energy doubles, by mass ratio | Marcus 2010 section 3 (read): the onset of hit-and-run is at 30 to 45 degrees (Asphaug 2009); all their 45 degree cases were merging or hit-and-run; the share of impacts inside it is `sin^2` |
 
+### 6.94 Stand-ins of the irregular zone (GEN.1076)
+
+`physics/irregular_zone.py` gives where a captured small body can stay round a planet: the Hill radius (Jewitt and Haghighipour 2007 equation 1, 0.35, 0.43, 0.47 and 0.77 AU for the four giants), the time-averaged stable limits of a prograde and a retrograde orbit as shares of it, the Kozai band (`moon_composition.KOZAI_FORBIDDEN_DEG`) and the inner edge set by the outermost regular moon (Vokrouhlicky, Nesvorny and Levison 2008). Design `docs/design/systems/captured-asteroid-moons.md` 2.1 and 4.3. The module is not read by the generator until the captured-moon wiring.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| IZ1 | P | T2 | L1 | irregular_zone.PROGRADE_STABLE_FRACTION 0.4, the share of the Hill radius out to which a prograde orbit is stable | 0.4 to 0.5 | prograde irregulars of the four giants | a stable prograde body found beyond 0.5 of the Hill radius | an integration-fitted limit by planet, star mass and eccentricity (Nesvorny et al. 2003) | numerical surveys quoted by Jewitt and Haghighipour 2007 give about 0.4; the 0.4895 of the moon code is Hamilton and Burns 1991 for a circular regular moon |
+| IZ2 | P | T1 | L0 | irregular_zone.RETROGRADE_STABLE_FRACTION 0.55, the share of the Hill radius out to which a retrograde orbit is stable | 0.5 to 0.6 | retrograde irregulars of the four giants | a stable retrograde body found beyond 0.6 of the Hill radius | the same integration-fitted limit | Vokrouhlicky, Nesvorny and Levison 2008, quoting Nesvorny et al. 2003: 0.5 to 0.6 depending on the mean eccentricity; 0.55 is the middle |
+| IZ3 | P | T1 | L0 | irregular_zone.INNER_EDGE_FACTOR 1.0, the multiple of the outermost regular moon's distance a pericentre must exceed | 1.0 to 1.5 | the giants with regular moons | an irregular with a pericentre inside Callisto's, Iapetus's or Oberon's orbit that has survived | a collision-rate cut against the regular moon's size | Vokrouhlicky, Nesvorny and Levison 2008: q greater than 0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
@@ -1804,7 +1814,18 @@ The four ranges of a Hycean candidate (`physics/hycean_candidate.py`), a flag de
 |---|---|---|---|---|---|---|---|---|---|
 | HC1 | B | T4 | L0 | hycean_candidate.HYCEAN_MASS_EARTH (1, 10), HYCEAN_RADIUS_EARTH (1.4, 2.6), HYCEAN_TEMPERATURE_K (150, 500) and HYCEAN_DENSITY_G_CM3 (1.5, 3.0): the box | the radius edge 2.6 puts K2-18 b (2.61, measured) just outside | sub-Neptunes of 1 to 10 Earth masses | the ranges of the defining paper, once read | Madhusudhan et al. 2021 (to be read) | the item GEN.963 and its re-read (2026-10-30); not read from the paper |
 
-### 6.80 Stand-ins of the belt sources (GEN.1060)
+### 6.83 Stand-ins of the scatter step of an outer disc (GEN.1089)
+
+The rule that shares an outer disc's mass between the cold, hot, resonant, scattered, centaur, detached, trojan, ejected, implanted and captured-moon populations (`physics/scatter.py`; design `belt-origins.md` section 6). No source was opened for this module: the design's own [R] numbers (the chaotic zone of Wisdom 1980, the minimum-mass nebula, Malhotra resonance sweeping, Safronov ejection) are recalled, and every share is a stand-in, as the design says (tier educated guess from physics, L1 to L3, one registered row each). Not found: any measured share of a disc scattered, ejected or implanted by a given giant; the test line "scattered 82 percent of the disc" is the design's sentence for an 18 to 30 AU migration, not a source. The Solar System is a test target only.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SX1 | D | T6 | L0 | scatter.ZONE_COEFFICIENT 1.3 and DISC_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5 | zone 1.3 (Wisdom 1980) to 1.8 (Mustill and Wyatt 2012, recalled); slope 1 to 2 | one giant, a disc of planetesimals | an N-body clearing of a disc by one giant | the resonance map of GEN.1062 | the design table (belt-origins.md section 3) [R]; not opened |
+| SX2 | P | T9 | L3 | scatter.RESONANCE_CAPTURE 0.25 with the 3:2 and 2:1 resonances: the share of the mass in a swept resonance span that is captured | 0.1 to 0.5 | outward migration through a disc | a migration run that counts the captured mass | a population synthesis with Neptune migration (Levison et al. 2008, arXiv:0712.0553) | educated guess from physics |
+| SX3 | P | T9 | L3 | scatter.THETA_EJECT 10: the Safronov number at which 63 percent of the swept mass is ejected | 3 to 30 | giants of Safronov number 1 to 20 | the ejected share of a scattering run at a given giant | Levison et al. 2008 | educated guess from physics (Safronov 1972 ejection by planets of high escape speed) |
+| SX4 | P | T9 | L3 | scatter.HOT_SHARE 0.4: the share of the unswept cold disc that is excited after a full instability | 0.1 to 0.7 | systems with an instability | an observed hot-to-cold ratio from a survey | OSSOS (arXiv:2107.06120) hot and cold populations | educated guess from physics |
+| SX5 | P | T9 | L3 | scatter.SWEPT_SPLIT (scattered 0.62, centaurs 0.25, detached 0.10, trojans 0.002, implanted 0.02, moons 0.008): how the swept mass that stays bound is shared | each within a factor of 3 | the swept mass | a population synthesis | Levison et al. 2008 | educated guess from needed output |
+### 6.95 Stand-ins of the belt sources (GEN.1060)
 
 The numbers the belt items (GEN.1061, 1069, 1071, 1085, 1090, 1092) take from papers; `belt-sources.md` lists what was read, what was not reachable and where each number sits. The Solar System belt, the Kuiper belt, Ceres, Pluto and Eris are test targets, never inputs. The constants are named when the module that reads them is built (GEN.1061); until then the rows describe the value.
 
