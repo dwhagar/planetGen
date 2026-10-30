@@ -39,6 +39,7 @@ sections 2.1 to 2.4; every rate here is a design default good to about
 
 import math
 
+from planetgen.galaxy import scales
 from planetgen.physics import constants, spin, stellar_library, stellar_spectrum, unit_registry as units
 from planetgen.util import draw
 
@@ -311,8 +312,10 @@ def lethal_event_rate_per_gyr(galactic_distance_ly):
 
 
 def set_galactic_hazard(star):
-    """Sets `lethal_event_rate_per_gyr` from the star's galaxy placement."""
-    star.lethal_event_rate_per_gyr = lethal_event_rate_per_gyr(getattr(star, "galactic_center_dist_ly", None))
+    """Sets `lethal_event_rate_per_gyr` from the star's galaxy placement; a star with none is rated where a system with no place in the galaxy
+    is taken to be (`scales.default_galactocentric_ly`, where its metallicity and orbit are also taken), so the column is filled for every star."""
+    distance = getattr(star, "galactic_center_dist_ly", None)
+    star.lethal_event_rate_per_gyr = lethal_event_rate_per_gyr(scales.default_galactocentric_ly() if distance is None else distance)
 
 
 def rotation_saturation_scale(nominal_period_hours, period_hours, decay):
