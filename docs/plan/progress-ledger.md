@@ -2043,3 +2043,4 @@ Baseline: PR #1817.
 | GEN.1099 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.1100 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.476 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.29 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
