@@ -13552,7 +13552,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (carried in GEN.1014); the repo white-dwarf engulfment constants sit
   below Mustill and Villaver 2012 (GEN.725 row in GEN.1012). GEN.1007
   and GEN.1008 stay dropped, P0 replaces the first.
-  Prerequisites: TEST.476, TEST.477, GEN.1017, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016.
+  Prerequisites: TEST.476, GEN.1017, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016.
 
 - [ ] **GEN.1009 Overlap-free stars P3: evolve each star once into a frozen MemberRecord that the tree, the build and the planets all read (replaces GEN.1007 and GEN.1008)**
   Add `MemberRecord` and `Star.from_record`; the tree and the build read
@@ -13566,7 +13566,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   below Verified until a lane checks them). Changes generated output:
   --affects star and planet suites, epoch, golden and census re-tag on a
   merge train. No shim.
-  Prerequisites: TEST.476, TEST.477. Related: GEN.1006, GEN.1004,
+  Prerequisites: TEST.476. Related: GEN.1006, GEN.1004,
   TEST.476.
 
 - [ ] **GEN.1010 Overlap-free stars P4: one keep-out rule at every depth of the star tree, replacing the Roche-or-extent split**
@@ -13668,7 +13668,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   below Verified until a lane checks them). Changes generated output:
   --affects star and planet suites, epoch, golden and census re-tag on a
   merge train. No shim.
-  Prerequisites: TEST.477, GEN.1011. Related: GEN.1006, GEN.1004,
+  Prerequisites: GEN.1011. Related: GEN.1006, GEN.1004,
   TEST.476.
   Sources 1 (GEN.1018 report, as the lane reported) (2026-10-30 11:36 AM
   EDT): Port the 2023 3+1 network of Vynatheya, Mardling and Hamers (11
@@ -13793,6 +13793,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free research and module first. Owner: Sources 1 (after
   GEN.1021).
   Prerequisites: GEN.1021. Related: GEN.1021, GEN.1005, GEN.725.
+
+- [ ] **GEN.1023 Two planets of a close pair in triple seed 208 sit 9.93 mutual Hill radii apart where the generator promises 10 (bug)**
+  Found by Core 3's overlap audit (TEST.477, #4071; relayed 2:04 PM EDT
+  2026-10-30 as the lane reported): a sweep of 864 stored systems (144
+  single, 144 pairs, 288 triples, 192 quadruples, 96 five-star) found no
+  star overlap, stability or Roche failure, and exactly one failure:
+  triple seed 208, two planets of a close pair 9.93 mutual Hill radii
+  apart where the generator promises 10. It is the one expected-fail
+  entry of tests/test_clearance.py. Do: find why the placement lets the
+  pair land under its promised separation (a rounding of the Hill
+  radius, the mass used, or a later change to a planet's mass or orbit
+  after placement), fix the placement, and remove the expected-fail
+  entry. Done: seed 208 passes the audit and the sweep shows no new
+  failure. Note GEN.1014 (P8, the clearance ledger) may fix this by
+  design; if it is done first, close this with it. Owner: none yet; any
+  free lane (Bug 1 is the natural owner). Version 8.1.
+  Prerequisites: none. Related: TEST.477, GEN.1014, GEN.1006.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18556,18 +18573,6 @@ clears each one.
   measurement); the test reproduces these numbers as its baseline and
   then pins ceilings.
   Prerequisites: none. Related: GEN.1004, TEST.430, TEST.162.
-
-- [ ] **TEST.477 The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2)**
-  Independent check that no star, planet, moon or belt of a generated
-  system overlaps another, reading only stored geometry (radii, orbits,
-  Roche and Hill extents), not the generator's own screens. Run it
-  against today's code with the known failures listed as expected-fail
-  with their seeds (the GEN.1004 cases should already pass). Design:
-  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
-  section 10 P2. Done: the sweep over many seeds with STARS=3 and
-  STARS=4 forced runs and reports the failures by class. Lock-free (a
-  test and a module, no output change). Owner: Bug 2 or any free lane.
-  Prerequisites: none. Related: GEN.1006, GEN.1004, TEST.476.
 
 ## USR: User accounts
 
