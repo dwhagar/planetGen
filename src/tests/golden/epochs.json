@@ -744,8 +744,7 @@
     },
     {
       "epoch": 125,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2673",
       "reason": "Train 3: GEN.927 GEN.928 GEN.929 GEN.930 GEN.984 (star mass function: Chabrier single-star IMF, derived primary curve, Cummings white dwarf relation, neutron star Gaussian, age-free star composition), GEN.935 GEN.939 GEN.940 GEN.941 GEN.943 GEN.947 (MIST post-main-sequence tracks, Wolf-Rayet luminosity, present masses, forced star types, Mamajek spectral subclasses, pre-main-sequence arrival), GEN.969 (neutron star radius from 21 equations of state), GEN.988 GEN.989 GEN.990 GEN.991 (stellar [X/Fe] refit to Brewer and Fischer), GEN.961 GEN.976 GEN.985 GEN.987 (giants settled at the final age and orbit), GEN.842 (rogue planet spin and mean-light distance), GEN.952 GEN.846 (scatter member radius and star rotation period columns), GEN.787 (cold debris disks), GEN.1001 (no life class before the first life step)",
       "affects": ["plan", "scatter", "fill", "population"]
     }
