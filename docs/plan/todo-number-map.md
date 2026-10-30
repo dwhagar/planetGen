@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.247 |
+| UX | UX.248 |
 | MAP | MAP.354 |
 | NAV | NAV.65 |
 | GEN | GEN.1148 |
@@ -2971,6 +2971,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.244 | Slow and tidally locked bodies look frozen on screen: spin.js clamps every period over 1000 h to one turn per 600 s (stand-in SP1, L4), so Eakkar IV (class V, rotation 46.8 days, locked to its orbit) never visibly turns (bug) | none | done, PR #4254 |
 | UX.245 | Tidally locked moon faces its planet in the System Map, and the locked label is drawn on the sensor view picture itself (follow-up to UX.244) (bug) | none | open |
 | UX.246 | Search page Star: Spectral Class and Star: Luminosity Class tags list only the types already stored, so a small database offered 2 types; list every class the generator produces with a count of 0 for a type no star holds yet (bug) | none | done, PR #4261 |
+| UX.247 | The "On this page" menu on object pages is a single sideways-scrolling row (UX.238); restore the grouped list of sections and subsections (left column on wide windows, list under the title on narrow ones) (bug) | none | done, PR #4263 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
