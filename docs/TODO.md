@@ -13585,6 +13585,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Mercury is left out (no generated composition carries it). Other
   liquids need the surface liquid inventory, GEN.1035. Stand-in rows OT1
   to OT5 go in GEN.725 when built, as the draft lists.
+  Boss decision (4:13 PM EDT) (4:13 PM EDT 2026-10-30): Mercury is left
+  out of the tide module and moves to the weird-conditions research
+  thread ("Research plausible weird planet conditions"). The tide module
+  for non-water liquids waits for GEN.1035 (surface liquid inventory,
+  Aux 4), planned train 10 or later; the water columns stay on train 7.
+  The weird-conditions thread inherits: mercury and other liquid metals,
+  deep global heavy-liquid layers (fluid Love-number path), and exotic
+  liquids not in GEN.1035's first table.
   Prerequisites: none. Related: GEN.957, GEN.959, GEN.842.
 
 - [ ] **GEN.1035 Surface liquid inventory: which liquid a cold or hot world holds as a sea (methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water, sulfur) from its temperature, pressure, ice and air, so non-water oceans can have tides**
@@ -13610,6 +13618,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test sweep shows each liquid in its window, and the registry rows are
   in. Owner: none yet (pool; Tides 1 after GEN.1034, or any free lane).
   Version 8.1 or later, Boss to say.
+  Boss decision, scope and owner (4:13 PM EDT 2026-10-30): Boss, 4:13 PM
+  EDT 2026-10-30: build it, and cover ALL possible and plausible surface
+  liquids, not only the 18 species in saturation.py: lava and silicate
+  melts, molten salts, sulfur, metal melts where the physics allows,
+  hydrocarbons, ammonia mixes, brines, acids, cryogenic liquids; each
+  with a source or a stand-in registered in GEN.725 with tier and tweak
+  level (secondary and tertiary sources accepted). Mercury and the very
+  exotic cases are carried by the weird-conditions research thread; this
+  item builds the table and rules so they can be added as rows. Owner:
+  Aux 4 (assigned by TODO, free after GEN.800). Plan: the lock-free
+  module and the liquid data table (physics/surface_liquids.py,
+  physics/data/surface_liquids.json: name, phase window or
+  melting/boiling curve, density, viscosity, surface tension where
+  known, source or stand-in) first, in small parts, merged by Aux 4; the
+  wiring (stored surface_liquid, coverage, hydrosphere interplay,
+  description text) is lock work, planned for train 9, before the
+  non-water parts of GEN.1034 (train 10 or later). The water-ocean tide
+  columns of GEN.1034 ride train 7 unchanged.
   Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
 
 ## PERF: Speed, caching, bulk generation and parallel work
