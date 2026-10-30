@@ -105,7 +105,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 | f4 | Hot, Teq>=1300 K (go to table h; BD to table g) | GIANT zone h | Phi-window | same | DERIVED | |
 | f5 | Metallicity m (PARAM) | GIANT | log10 m ~ N(log10[9.7 (M/MJ)^-0.45], 0.3), range [-0.5, 2.0] | centre: Thorngren 2016 Zpl/Zstar relation (READ); 0.26 dex scatter of the Mz fit (READ) is the bracket for 0.3 (0.3 RECALLED design) | DERIVED | Chachan 2025 gives lower Z for sub-Saturns |
 | f6 | Metallicity bins of f5 (BINS) | same | edges log10 m = -0.5, 0, 0.5, 1.0, 1.5, 2.0 | same | DERIVED | |
-| f7 | C/O (PARAM, mixture) | GIANT, BD | (1-f_tail) core + f_tail tail; core log10(C/O) ~ N(log10 0.55, 0.15) truncated to [0.2, 0.8]; tail U[0.8, 1.5]; f_tail = LU[0.0013, 0.34], default 0.03 | core centre: Line 2021 WASP-77Ab 0.59+-0.08 (READ); Asplund 2021 solar 0.589; tail: Delgado Mena 2010 34 % C/O>0.8 (READ) vs Brewer and Fischer 2016 <0.13 % (SNIPPET) | DESIGN R5 | bins <0.35, 0.35-0.7, 0.7-0.8, 0.8-1.0, >1.0 |
+| f7 | C/O (PARAM, mixture) | GIANT, BD | (1-f_tail) core + f_tail tail; core log10(C/O) ~ N(log10 0.55, 0.15) truncated to [0.2, 0.8]; tail U[0.8, 1.5]; f_tail = LU[0.0013, 0.34], default 0.03 | stellar C/O median 0.47 with no star above 0.8 (N=849; recounted on the full 1,592-star Brewer and Fischer table on the Asplund 2021 scale: median 0.49, 0.9 percent above 0.8, 97.5th percentile 0.68); planets (LExACoM, 69): median 0.57, tail 0.043 to 0.087 above 0.8 (tunable-gaps 3.4, COMPUTED from READ tables); core width 0.21 dex reproduces the 12 of 69 planets below 0.35 (GEN.516; the single planet WASP-77Ab 0.59 +/- 0.08, Line 2021, READ, gave 0.15) (READ, COMPUTED) | DERIVED R5 | bins <0.35, 0.35-0.7, 0.7-0.8, 0.8-1.0, >1.0 |
 | f8 | Carbon carrier CH4 vs CO | GIANT, BD | CH4: Phi((T_trans-T)/100); T_trans 500 (planets), 1100 (BD) | Zahnle and Marley 2014 (READ); generator should evaluate the quench formula t_q with its own g, m, Kzz instead | DERIVED | HCN, C2H2 appear at C/O>=1 (Madhusudhan 2012 READ) |
 
 **Example f (COMPUTED).** Giant M=0.3 MJ, Teq=950 K. L1: f2 warm 0.0062, f3 T-like 0.9936, f4 hot (to h) 0.0002. Zpl/Zstar = 16.7 (log10 = 1.222). Metallicity bins (sigma 0.3): 0.000, 0.008, 0.223, 0.596, 0.173; with sigma 0.26: 0.000, 0.003, 0.194, 0.662, 0.141. C/O bins with f_tail 0.03: 0.2-0.35: 0.106, 0.35-0.7: 0.747, 0.7-0.8: 0.117, 0.8-1.0: 0.009, 1.0-1.5: 0.021. An unmodified log-normal (0.55, 0.15 dex) would put 0.139 above 0.8; see conflicts.
@@ -128,9 +128,9 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 | id | option | gate | weight w (symbols above) | weight source | status | notes |
 |---|---|---|---|---|---|---|
 | h1 | Warm-like, quench-enhanced CH4, NH3, HCN | GIANT zone h; Tday<1500 K | Phi-window (s 100 K) | part 05 s8 recipe; Moses 2011 (READ) | DERIVED | |
-| h2 | CO + H2O + H2; CO2 rises with m | Tday 1500 to 2200 K | Phi-window | part 05 s8 (design edges) | DESIGN R6 | |
-| h3 | Thermally dissociated: H, OH, H-, Na, K, Fe, Mg, SiO, ions | Tday>2200 K | Phi-window | Arcangeli 2018 WASP-18b (READ); edge DESIGN | DESIGN R6 | no mole fractions without FastChem or GGchem |
-| h4 | TiO/VO gas kept (leaky cold trap) | h2 or h3; grain radius a (um) | P(log Kzz >= Kmin(a)); Kzz ~ LU[1e7, 1e11]; log Kmin = 7.48 + 3.52 (log10 a + 1)/2 | Spiegel 2009: few 1e7 for 0.1 um to 1e11 for 10 um grains (READ); Kzz prior DESIGN (TEST: WASP-107b 10^11.6, READ) | DESIGN R6 | TiO above 2000 to 2300 K, VO above 1700 to 1900 K |
+| h2 | CO + H2O + H2; CO2 rises with m | Tday 1500 to 2200 K | Phi-window | the edges are computed equilibrium lines at the photospheric pressure (methane equal to carbon monoxide; water 10 percent destroyed) with the NASA polynomials at solar metals and C/O 0.55, gas only and no ions; the softness of 100 K is DESIGN (GEN.518) (COMPUTED, DESIGN softness) | DERIVED R6 | |
+| h3 | Thermally dissociated: H, OH, H-, Na, K, Fe, Mg, SiO, ions | Tday>2200 K | Phi-window | the edge is the computed temperature at which a tenth of the water is destroyed, at the photospheric pressure, gas only and no ions; the softness of 100 K is DESIGN (GEN.518) (COMPUTED, DESIGN softness) | DERIVED R6 | no mole fractions without FastChem or GGchem |
+| h4 | TiO/VO gas kept (leaky cold trap) | h2 or h3; grain radius a (um) | P(log Kzz >= Kmin(a)); Kzz ~ LU[1e7, 1e11]; log Kmin = 7.48 + 3.52 (log10 a + 1)/2 | a Ti threshold between 2350 and 2641 K from N=5 planets (TiO seen at 2641 K, not at 2210, 2250, 2260 and 2350 K); no population measures Kzz, so none is drawn (GEN.519) (READ, COMPUTED) | DERIVED R6 | TiO above 2000 to 2300 K, VO above 1700 to 1900 K |
 | h5 | C/O>=1 branch (HCN, C2H2; TiO, VO depleted) | all h | p[f7 bins >=1.0] | Madhusudhan 2012 (READ) | DERIVED | |
 
 **Example h (COMPUTED).** Tday=2500 K: h2 CO-H2O 0.0013, h3 dissociated 0.9987. Tday=2150 K: h2 CO-H2O 0.6915, h3 dissociated 0.3085. TiO/VO kept for 1 um grains: log Kmin = 9.24, p = 0.440.
@@ -144,7 +144,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 | i3 | Type III: O2, O, SiO columns equal | 2588 to 2890 K | Phi-window | same | SOURCED | 0 of 193 |
 | i4 | Type IV: SiO > O2 | 2890 to 3168 K | Phi-window | same | SOURCED | 1 of 193 (0.005) |
 | i5 | Type V: SiO, O, O2, Na | Tp>3168 K | Phi-window | same | SOURCED | 0 of 193 |
-| i6 | Bare silicate vapour (volatile-free melt) vs volatile-bearing CO2/CO | ROCKY zone h, 1<=M<=10 | volatile-bearing c[0.1,0.9], bare 1-c | TEST 55 Cnc e CO2/CO, 0.01 to 100 bar (Hu 2024 READ); weight DESIGN | DESIGN R7 | P_eq: log10 P = k1 exp(k2 Ts), small vapour fraction k1=-34.7, k2=-0.00112 (Kite 2016, 1400 to 2800 K, READ) |
+| i6 | Bare silicate vapour (volatile-free melt) vs volatile-bearing CO2/CO | ROCKY zone h, 1<=M<=10 | volatile-bearing c[0.1,0.9], bare 1-c | 2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2): the bracket is the 95 percent interval 0.29 to 0.99 of Beta(3, 1) (GEN.511) (READ, COMPUTED) | DERIVED R7 | P_eq: log10 P = k1 exp(k2 Ts), small vapour fraction k1=-34.7, k2=-0.00112 (Kite 2016, 1400 to 2800 K, READ) |
 
 **Example i (COMPUTED).** Tp=2060 K: i1 I 0.326, i2 II 0.674; P_eq = 3.5e-04 bar. Tp=2500 K: i2 II 0.929, i3 III 0.071; P_eq = 7.8e-03 bar.
 
@@ -164,13 +164,13 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 
 | id | option | gate | weight w (symbols above) | weight source | status | notes |
 |---|---|---|---|---|---|---|
-| k1 | CO2-dominated coma | COMET active (perihelion<3 AU, repo threshold), icy AST | 0.5 | 25-comet sample, about half CO2-dominated (Harrington Pinto 2022, SNIPPET) | DESIGN R9 | |
-| k2 | CO-dominated coma | same | 1/3 | same (SNIPPET) | DESIGN R9 | Hale-Bopp CO 23 %, Hyakutake 18.2 % of H2O (READ) |
-| k3 | Comparable CO2 and CO | same | 0.1 | same (SNIPPET) | DESIGN R9 | the three weights sum to 0.93; normalised |
-| k4 | CO2/H2O (PARAM) | all k | LN(0.12, 0.5 dex) | median about 12 % (SNIPPET); TEST 67P 4.7+-1.4 % (Rubin 2019 READ); sigma by eye | DESIGN R9 | |
-| k5 | CO/H2O (PARAM) | all k | LN(0.03, 0.6 dex), range 0.005 to 0.23 | Willacy 2025 Tables 2, 3 range 0.5 to 23 % (READ); median SNIPPET; TEST 67P 3.1+-0.9 % | DESIGN R9 | |
+| k1 | CO2-dominated coma | COMET active (perihelion<3 AU, repo threshold), icy AST | 0.5 | 13 of 25 comets (HP22 Table 2); the class depends on the heliocentric distance (every coma beyond about 3.5 AU is CO-dominated) and 9 of the 13 rest on an upper limit on CO, so the share is inflated by an amount that cannot be corrected (GEN.520) (READ) | DERIVED R9 | |
+| k2 | CO-dominated coma | same | 1/3 | 9 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520) (READ) | DERIVED R9 | Hale-Bopp CO 23 %, Hyakutake 18.2 % of H2O (READ) |
+| k3 | Comparable CO2 and CO | same | 0.1 | 3 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520) (READ) | DERIVED R9 | the three weights sum to 0.93; normalised |
+| k4 | CO2/H2O (PARAM) | all k | LN(0.12, 0.5 dex) | geometric mean 10.9 percent and 0.51 dex of 21 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520) (READ, COMPUTED) | DERIVED R9 | |
+| k5 | CO/H2O (PARAM) | all k | LN(0.03, 0.6 dex), range 0.005 to 0.23 | geometric mean 2.5 percent and 0.65 dex of 16 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520) (READ, COMPUTED) | DERIVED R9 | |
 | k6 | CH3OH, NH3, HCN to H2O (PARAM) | all k | LU[0.002, 0.026], LU[0.001, 0.0073], LU[0.0009, 0.0029] | Willacy 2025 cross-comet ranges (READ) | SOURCED | log-uniform shape DESIGN |
-| k7 | Single-comet species: CH4 3.4e-3, C2H6 2.9e-3, H2CO 3.2e-3, H2S 1.1e-2, N2 8.9e-4, O2 3.1e-2, OCS 4.1e-4, SO2 1.3e-3, Ar 5.8e-6, Kr 4.9e-7, Xe 2.4e-7, Ne <5e-8 | all k | LN(67P value, 0.6 dex) | Rubin 2019 (READ), one comet only; 0.6 dex = spread of CO | DESIGN R9 | O2 presence probability unsourced |
+| k7 | Single-comet species: CH4 3.4e-3, C2H6 2.9e-3, H2CO 3.2e-3, H2S 1.1e-2, N2 8.9e-4, O2 3.1e-2, OCS 4.1e-4, SO2 1.3e-3, Ar 5.8e-6, Kr 4.9e-7, Xe 2.4e-7, Ne <5e-8 | all k | LN(67P value, 0.6 dex) | CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, Rubin 2019) with a design width of 0.6 dex and stay stand-in values (GEN.520) (READ, DESIGN width) | DERIVED R9 | O2 presence probability unsourced |
 
 **Example k (COMPUTED).** Class table normalised: k1 CO2-dominated 0.536, k2 CO-dominated 0.357, k3 comparable 0.107. CO2/H2O bins (<0.03, 0.03-0.1, 0.1-0.3, >0.3): 0.114, 0.323, 0.350, 0.213.
 

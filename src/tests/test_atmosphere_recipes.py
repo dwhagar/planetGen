@@ -83,8 +83,8 @@ def test_the_status_of_each_row_is_the_parts_except_the_rows_the_later_decisions
     statuses = {}
     for entry in RECIPES.entries:
         statuses[entry.status] = statuses.get(entry.status, 0) + 1
-    # the part: SOURCED 8, DERIVED 54, DESIGN 42 (b1 to b4 moved by GEN.802; a1 and a2 by GEN.482); Boss's fork 7 (2026-10-18) makes j2 to j4 outputs of the retention physics
-    assert statuses == {"SOURCED": 8, "DERIVED": 57, "DESIGN": 39}
+    # the part: SOURCED 8, DERIVED 65, DESIGN 31 (b1 to b4 moved by GEN.802; a1 and a2 by GEN.482; f7, h2 to h4, i6 and k1 to k7 by GEN.484 to GEN.488); Boss's fork 7 (2026-10-18) makes j2 to j4 outputs of the retention physics
+    assert statuses == {"SOURCED": 8, "DERIVED": 68, "DESIGN": 28}
     assert {e.id for e in RECIPES.entries if e.status == "DERIVED"} >= {"j2", "j3", "j4"}
 
 
