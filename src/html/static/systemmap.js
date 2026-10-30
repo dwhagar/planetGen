@@ -308,17 +308,18 @@ function initSphereField(canvasEl) {
     }
   }
 
-  // UX.244: the direction in the picture (x right, y up) from marker `i` to the nearest star marker, for a tidally locked planet to keep its
-  // day side toward. A moon is locked to its planet, which this picture does not name, so a moon is left to the display law; null when there is no star.
-  function towardStar(i) {
+  // UX.244, UX.245: the direction in the picture (x right, y up) from marker `i` to what a tidally locked body keeps its day side toward: the
+  // nearest star marker for a planet, the moon scene's own planet (the marker marked `data-self`) for a moon; null when the scene has none.
+  function towardParent(i) {
     var rect = rects[i];
-    if (!rect || markers[i].look.kind === "moon") {
+    if (!rect) {
       return null;
     }
+    var moon = markers[i].look.kind === "moon";
     var best = null;
     var nearest = Infinity;
     for (var j = 0; j < markers.length; j++) {
-      if (!markers[j].isStar || !rects[j]) {
+      if (j === i || !rects[j] || (moon ? !markers[j].isSelf : !markers[j].isStar)) {
         continue;
       }
       var d = Math.hypot(rects[j].cx - rect.cx, rects[j].cy - rect.cy);
@@ -358,7 +359,8 @@ function initSphereField(canvasEl) {
       }
       // MAP.328: the body turns about its own axis at the rate its stored rotation period gives (spin.js), the
       // flat picture's axis leaned by its axial tilt; the glow and ring stay put, the lighting is the scene's.
-      Spin.turn(THREE, sphere, marker.look, spinSeconds, marker.axis, Spin.isLocked(marker.look) ? towardStar(i) : null);
+      marker.toward = Spin.isLocked(marker.look) ? towardParent(i) : null;
+      Spin.turn(THREE, sphere, marker.look, spinSeconds, marker.axis, marker.toward);
       configureBody(marker);
 
       // `setViewport`/`setScissor` both take the rect's bottom-left
@@ -381,9 +383,11 @@ function initSphereField(canvasEl) {
 
   // For the browser tests: how far each current marker's body has turned and at what rate (radians, radians a second).
   function spins() {
-    return markers.map(function (marker) {
+    return markers.map(function (marker, i) {
       return { name: marker.circle.parentNode.dataset.name, angle: Spin.angleAt(marker.look, Spin.seconds()),
-        rate: Spin.rateOf(marker.look), spinH: marker.look.spinH, axis: marker.axis, at: Spin.seconds() };
+        rate: Spin.rateOf(marker.look), spinH: marker.look.spinH, axis: marker.axis, at: Spin.seconds(),
+        kind: marker.look.kind, locked: Spin.isLocked(marker.look), isSelf: marker.isSelf, toward: marker.toward || null,
+        cx: rects[i] ? rects[i].cx : null, cy: rects[i] ? rects[i].cy : null };
     });
   }
 
@@ -428,6 +432,7 @@ function gatherSphereMarkers(sceneEl) {
       circle: circle,
       look: look,
       isStar: isStar,
+      isSelf: !!(circle.parentNode && circle.parentNode.dataset && circle.parentNode.dataset.self === "true"),
       isGasGiant: isGasGiant,
       paintable: look.body === "solid" || isStar,
       glowScale: glowFor(look.lumSolar).scale,

@@ -225,7 +225,7 @@ def test_a_slow_rotator_turns_visibly_not_at_the_floor_of_the_scale(browser, url
 
 
 def test_a_locked_world_holds_its_day_side_toward_the_star_and_says_so(browser, url):
-    """UX.244: a tidally locked world is drawn still with its star-facing point at the lit limb, has no Spin switch, and its caption says it is locked."""
+    """UX.244, UX.245: a tidally locked world is drawn still with its star-facing point at the lit limb, has no Spin switch, says it is locked in its caption and on the picture."""
     page, errors = _opened(browser, url, "locked")
     try:
         first = _sample(page)
@@ -236,6 +236,13 @@ def test_a_locked_world_holds_its_day_side_toward_the_star_and_says_so(browser, 
         assert again["angle"] == first["angle"] and again["row"] == first["row"]
         assert page.evaluate("document.querySelector('canvas').dataset.locked") == "1"
         assert not page.is_visible("[data-spin]")
+        # UX.245: the picture itself carries the label (the strip under the disc is opaque where the label is) and the arrow on the left.
+        marks = page.evaluate("""() => {
+            const d = document.querySelector('canvas').getContext('2d').getImageData(0, 0, 320, 320).data;
+            const at = (x, y) => d[(y * 320 + x) * 4 + 3];
+            return {label: at(160, 304), arrow: at(10, 160), free: at(2, 2)};
+        }""")
+        assert marks["label"] > 100 and marks["arrow"] > 100 and marks["free"] == 0, marks
     finally:
         page.context.close()
     assert not errors, errors
