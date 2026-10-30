@@ -60,3 +60,4 @@ Commit each file came from:
 - v174: 95652091e (MAP.344 civilization technology, before GEN.889 life class switch)
 - v175: cfe198c05 (MAP.351 life class interests, after GEN.889 life class switch)
 - v176: d57091a5 (DOC.63 atmosphere data model, before PERF.205 species sort indexes)
+- v177: 9d3661ea1 (PERF.205 species sort indexes, before GEN.848 temperature swings)

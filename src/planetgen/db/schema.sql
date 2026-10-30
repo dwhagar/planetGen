@@ -1507,6 +1507,10 @@
 --   (see `migrations/versions/0175_life_classes.py`); the rest comes when the galaxy is regenerated.
 -- v176 (MAP.351): `system_interests` also takes the reasons `lifeclass-1a` to `lifeclass-9`, one for each life class that lives on a planet or moon of the system (`life_class` and
 --   `life_class_variant`), no score kept; no column changes, the migration fills them from the planets and moons already stored.
+-- v178 (GEN.848): `planets` and `moons` keep a day and night swing for every place that has a temperature: `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k` and
+--   `temp_mean_swing_k` for a world that turns on its own (the equator's is `temp_swing_k`), `temp_day_side_swing_k`, `temp_terminator_swing_k` and `temp_night_side_swing_k` (0, a locked
+--   world has no day) for a tidally locked one; kelvin of difference, peak to peak. NULL for a body with no regional temperatures and a row made before v178, which gets them when the galaxy
+--   is regenerated.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2380,6 +2384,13 @@ CREATE TABLE IF NOT EXISTS planets (
     temp_day_side_k             DOUBLE,
     temp_terminator_k           DOUBLE,
     temp_night_side_k           DOUBLE,
+    temp_polar_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_north_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_south_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_mean_swing_k           DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_day_side_swing_k       DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_terminator_swing_k     DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_night_side_swing_k     DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2713,6 +2724,13 @@ CREATE TABLE IF NOT EXISTS moons (
     temp_day_side_k             DOUBLE,
     temp_terminator_k           DOUBLE,
     temp_night_side_k           DOUBLE,
+    temp_polar_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_north_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_south_swing_k          DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_mean_swing_k           DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_day_side_swing_k       DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_terminator_swing_k     DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_night_side_swing_k     DOUBLE,  -- v178 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
