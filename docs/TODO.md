@@ -20423,6 +20423,22 @@ clears each one.
   diagnosis while it waits for its second turn). Version 8.1.
   Prerequisites: none. Related: DB.70.
 
+- [ ] **TEST.463 Reds on main reported by Core 5 at 10:33 PM EDT 2026-10-29: triage each one and fix or assign it (bug)**
+  Core 5 (as the lane reported) hit these failing tests on main, none
+  from its own change: test_api search facets (the new 'supports'
+  facets), the four search browser tests and test_fuzz_web_routes
+  /api/search returning 500 (all look like the MAP.345 search half,
+  #3829, Core 3), test_sql_portability (VALUES in migrations 0165 to
+  0167), test_saturation_single_source (WATER_CRITICAL_K in
+  radiative_convective), test_step_registry, test_fuzz_api_auth avatar,
+  test_star_composition_sweep, test_db_batching and test_web_sector_nav
+  neighbourhood. Do: for each, say whether it fails on a clean main,
+  name the commit that broke it, and fix it or hand it to the lane that
+  owns the code; the Core 3 group goes to Core 3 first. Some may be this
+  machine's MariaDB or the flaky class-mismatch (GEN.980, fixed on Core
+  1's branch for train 2). Owner: Bug 2. Version 8.1.
+  Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
