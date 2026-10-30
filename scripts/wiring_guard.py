@@ -238,15 +238,16 @@ def problems(found, entries, todo_text):
     opened = open_items(todo_text)
     messages = []
     for key in sorted(found - set(entries)):
-        messages.append(f"{key[0]} {key[1]} is built and nothing reads it: wire it, file an open item for it and name it in the "
-                        f"register, or delete it")
+        messages.append(f"{key[0]} {key[1]} is built and nothing reads it: add a line `| {key[0]} | {key[1]} | <open item> | <reason> |` to "
+                        f"docs/design/research/wiring-register.md (the item that will wire it, or `by design`), wire it, or delete it")
     for key in sorted(set(entries) - found):
-        messages.append(f"the register names {key[0]} {key[1]} but it is read now (or gone): delete the line")
+        messages.append(f"docs/design/research/wiring-register.md names {key[0]} {key[1]} but it is read now (or gone): delete that line")
     for key, (item, reason) in sorted(entries.items()):
         if not reason:
-            messages.append(f"{key[0]} {key[1]}: the register line gives no reason")
+            messages.append(f"{key[0]} {key[1]}: the line in docs/design/research/wiring-register.md gives no reason")
         if item != BY_DESIGN and not (set(re.findall(r"[A-Z]+\.\d+[a-z]?", item)) & opened):
-            messages.append(f"{key[0]} {key[1]}: item {item!r} is not an open item of docs/TODO.md")
+            messages.append(f"{key[0]} {key[1]}: item {item!r} in docs/design/research/wiring-register.md is not an open item of docs/TODO.md "
+                            f"(name the open item that now wires it, or `by design`)")
     return messages
 
 
