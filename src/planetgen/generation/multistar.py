@@ -1008,7 +1008,7 @@ class _Builder:
             if fixed is None and span is not None:
                 low, high = max(a_lo, span[0]), min(a_hi, span[1])
                 if not low < high:
-                    draw.redrawn("pair.no_allowed_period")
+                    draw.redrawn("pair.axis_out_of_range")
                     continue
                 axis = 10.0 ** (math.log10(low) + rng.random() * (math.log10(high) - math.log10(low)))
                 period_d = 365.25 * math.sqrt(axis ** 3 / total)
@@ -1021,7 +1021,7 @@ class _Builder:
             else:
                 period_d, axis, e = fixed
                 if axis > a_hi:
-                    draw.redrawn("pair.no_allowed_period")
+                    draw.redrawn("pair.axis_out_of_range")
                     continue
             if fixed is None:
                 limit = self._eccentricity_limit(axis, peri_floor, apocentre_limit, stable_at)
