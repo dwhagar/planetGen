@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.248 |
 | MAP | MAP.354 |
 | NAV | NAV.65 |
-| GEN | GEN.1148 |
+| GEN | GEN.1149 |
 | PERF | PERF.219 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1898,6 +1898,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1145 | Ocean-fraction spread of temperate air-bearing bodies, printed before the train 6 epoch (decides whether the H line can fill) | none | done, PR #4247 |
 | GEN.1146 | Upstream water inventory and land share: temperate bodies with air nearly always keep their water, so no desert world (Class H) exists; decide whether the generator should produce dry temperate planets (only if GEN.1145 shows H stays empty) | none | done, PR #report-ocean-fraction-physics-gen1146 |
 | GEN.1147 | Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch (BOSS DECIDES before any code) | none | open |
+| GEN.1148 | Asteroid belt share fell from 55 percent of systems to 3 percent and binary share rose from 24 percent to 31.5 percent between the census before trains 3 and 4 and current main (Bug 2 census); find out whether each is the intended change or a bug (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2969,7 +2970,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.242 | Systems tables: Stars, Objects and Habitable world columns replace the Binary column (All systems table and the search Systems panel) | none | done, PR #4216 |
 | UX.243 | Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4) | none | open |
 | UX.244 | Slow and tidally locked bodies look frozen on screen: spin.js clamps every period over 1000 h to one turn per 600 s (stand-in SP1, L4), so Eakkar IV (class V, rotation 46.8 days, locked to its orbit) never visibly turns (bug) | none | done, PR #4254 |
-| UX.245 | Tidally locked moon faces its planet in the System Map, and the locked label is drawn on the sensor view picture itself (follow-up to UX.244) (bug) | none | open |
+| UX.245 | Tidally locked moon faces its planet in the System Map, and the locked label is drawn on the sensor view picture itself (follow-up to UX.244) (bug) | none | done, PR #4266 |
 | UX.246 | Search page Star: Spectral Class and Star: Luminosity Class tags list only the types already stored, so a small database offered 2 types; list every class the generator produces with a count of 0 for a type no star holds yet (bug) | none | done, PR #4261 |
 | UX.247 | The "On this page" menu on object pages is a single sideways-scrolling row (UX.238); restore the grouped list of sections and subsections (left column on wide windows, list under the title on narrow ones) (bug) | none | done, PR #4263 |
 | VIEW.1 | View from a planet | none | open |

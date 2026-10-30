@@ -2077,3 +2077,4 @@ Baseline: PR #1817.
 | OPS.79 | 8.2 | Robust tile caching |
 | UX.246 | 8.2 | Search by physical values |
 | UX.247 | 8.2 | Search by physical values |
+| UX.245 | 8.2 | Search by physical values |

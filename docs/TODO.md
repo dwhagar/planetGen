@@ -1138,19 +1138,6 @@ with `clamp()`.
   locked bodies is UX.244.
   Prerequisites: GEN.1097. Related: MAP.277, VIEW.14.
 
-- [ ] **UX.245 Tidally locked moon faces its planet in the System Map, and the locked label is drawn on the sensor view picture itself (follow-up to UX.244) (bug)**
-  Tides 1, 7:11 PM EDT 2026-10-30 (as the lane reported), after UX.244
-  merged (#4254): a tidally locked planet now faces its star in the
-  System Map and in the 3D views, and the sensor view carries a locked
-  caption, but a locked moon in the System Map is not yet turned to face
-  its planet, and the label "locked" is in the caption only, not drawn
-  on the picture. Do: turn a locked moon to face its planet in the
-  System Map and draw the locked label on the sensor view picture. Done:
-  browser checks for a locked moon and for the label on the picture.
-  Lock-free (display only). Where we think it belongs (best guess, can
-  move): Tides 1.
-  Prerequisites: none. Related: UX.244.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14770,6 +14757,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train window.
   Prerequisites: none. Related: GEN.1146, GEN.1142, GEN.909.
 
+- [ ] **GEN.1148 Asteroid belt share fell from 55 percent of systems to 3 percent and binary share rose from 24 percent to 31.5 percent between the census before trains 3 and 4 and current main (Bug 2 census); find out whether each is the intended change or a bug (bug)**
+  Bug 2 measured these in the prevalence suite (PREVALENCE_BASE_SHARES,
+  #4251). A belt cut was decided (belt mass cut is the rule) but 55 to 3
+  percent is far larger than a mass cut should do unless the cut removes
+  small belts the old rule counted. For each shift name the change that
+  caused it (bisect by merge), say whether the new value is what the
+  physics and the belt rule give, and if not file the fix. Binary share:
+  the star mass function epoch changed the draw, so say whether 31.5
+  percent matches the multiplicity sources. Report numbers per version
+  of main, no fix without the cause. Source: prevalence census
+  (TEST.430).
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19593,6 +19593,9 @@ clears each one.
   library; say which, and make the test robust only if the draw itself
   is not what differs. Report each as fixed, train-bound or
   machine-bound.
+  Bug 2 (2026-10-09): Bug 2 (10-30 gate pass) also reports red on main:
+  the climate sweep (2 tests), aquifers, and the deploy_scripts path
+  test. Include them in the diagnosis.
   Prerequisites: none.
 
 ## USR: User accounts
