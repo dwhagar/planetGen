@@ -42,14 +42,14 @@ BOUNDARIES = (
              "Confident Unverified (recalled: Chabrier and Baraffe 2000 give 0.072 solar masses at solar metallicity, Burrows et al. 1997 "
              "about 0.075; the 0.08 is the round figure the mass function uses)",
              "disagrees with the brown dwarf upper limit below (80 Jupiter masses is 0.0764 solar masses): the stretch between is empty. "
-             "GEN.936 makes the edge depend on [Fe/H] and closes it."),
+             "The edge will depend on [Fe/H], which closes it."),
     Boundary("deuterium_burning_limit", 13.0, "Mjup",
              "the edge between a planet and a brown dwarf: the working definition of the IAU Working Group on Extrasolar Planets",
              "Confident Unverified (recalled: Spiegel, Burrows and Milsom 2011 give 11 to 16 Jupiter masses with composition)"),
     Boundary("brown_dwarf_upper_limit", 80.0, "Mjup",
              "the heaviest rogue brown dwarf the generator makes (the rogue planet mass bins)",
              "Marginal Unverified (a round figure for the hydrogen-burning limit)",
-             "see `hydrogen_burning_limit`: 80 Jupiter masses is 0.0764 solar masses, under the 0.08 of the mass function. GEN.936."),
+             "see `hydrogen_burning_limit`: 80 Jupiter masses is 0.0764 solar masses, under the 0.08 of the mass function; the edge will depend on [Fe/H]."),
     Boundary("core_collapse_limit", 8.0, "Msun",
              "the initial mass above which a star ends its life in a core collapse (a neutron star or a black hole) and below which it "
              "ends as a white dwarf; also where the giant branch gives way to the supergiants",
