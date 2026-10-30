@@ -13925,21 +13925,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1069, GEN.1006.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
-- [ ] **GEN.1079 Collisional-saturation check for the irregular zone: reuse belt_mass_earth and show the invariance across the four giants, or replace the guess with a fitted scalar per planet registered at L3**
-  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
-  many moons because a lot of them are former asteroids from the belt,
-  if gravitational bodies are near a belt, they should pick up
-  asteroidal moons"; design
-  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
-  designation function with the belt evolution items (goal #4130).
-  Stand-ins accepted when registered in GEN.725 with tier and tweak
-  level; [R] numbers are read from the source by the lane that builds
-  it. Do: design section 2.3. Done: the check or the registered scalar,
-  with a test. Lock-free. Where we think it belongs (best guess, can
-  move): Aux 5 (after the population module).
-  Prerequisites: GEN.1077.
-  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
-
 - [ ] **GEN.1080 Composition of captured bodies from the reservoir (the GEN.473 taxon kernel at the source belt or disc) and a heterogeneous parent**
   Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
   many moons because a lot of them are former asteroids from the belt,
@@ -13989,7 +13974,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests, census share of giants with irregulars and the head counts per
   giant. Where we think it belongs (best guess, can move): Core 3 (owns
   the moon draw lock), train 7.
-  Prerequisites: GEN.1082, GEN.1079, GEN.1080.
+  Prerequisites: GEN.1082, GEN.1080.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
 - [ ] **GEN.1084 Store the individual irregular moons and the new moon columns (migration, API version), and call the stability test for irregulars in drop_unstable_moons and in bring-to-epoch when a planet moves**
@@ -14763,20 +14748,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   their water): see GEN.1145 and GEN.1146.
   Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1143.
 
-- [ ] **GEN.1143 Class count script: temperate-ocean bodies per class, hydrogen-rich N bodies under 15 Earth masses, and the E, H and L reach (prints only)**
-  Class index patch
-  (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
-  at 6:48 PM EDT 2026-10-30 to patching the class lines in the same
-  train 6 epoch as the Class Q retirement GEN.1135 and the Class V line
-  GEN.1136). Do: a script (audit/ or scripts/) run on main that prints,
-  per current class, the count of bodies at 250 to 330 K with a liquid
-  ocean; the count of hydrogen-rich N bodies under 15 Earth masses; and
-  how many bodies each of E, H and L reaches. Lock-free (prints only, no
-  output change). Run it on main before the train 6 epoch and again
-  after, so Boss sees what M yields. Where we think it belongs (best
-  guess, can move): Aux 2 (class sweeps).
-  Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1142.
-
 - [ ] **GEN.1144 Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach**
   Class index patch
   (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
@@ -14795,7 +14766,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   inside the train 6 epoch (GEN.1142). This re-sweep now checks that H,
   L, O and K reach bodies with their new lines, and reports the
   temperate-ocean count per class.
-  Prerequisites: GEN.1135, GEN.1136, GEN.1143. Related: GEN.1142.
+  Prerequisites: GEN.1135, GEN.1136. Related: GEN.1142.
 
 - [ ] **GEN.1145 Ocean-fraction spread of temperate air-bearing bodies, printed before the train 6 epoch (decides whether the H line can fill)**
   Class index thread, 7:05 PM EDT 2026-10-30: H (desert, under 20
