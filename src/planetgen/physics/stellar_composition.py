@@ -106,7 +106,8 @@ class StarDraws:
 
     Attributes:
         u_branch (float): Decides the branch (`stellar_abundances.branch_from_uniform`).
-        normals (tuple): Four standard normals for the C, O, Mg and Si residuals.
+        normals (tuple): Five standard normals for the C, O, Mg, Si and Ca residuals (the calcium one is drawn last of all, so no earlier draw moved
+            when calcium gained its scatter, GEN.988).
         u_enhanced (float): Decides a carbon-enhanced metal-poor star.
         u_carbon (float): The size of its carbon excess.
         eu_normal (float): The [Eu/Fe] residual in units of its scatter.
@@ -160,8 +161,9 @@ def key_draws(key):
     stream = draw.Stream(f"abundance:{key}")
     u_branch = stream.random()
     normals = tuple(stream.gauss(0.0, 1.0) for _ in range(4))
-    return StarDraws(u_branch, normals, stream.random(), stream.random(), stream.gauss(0.0, 1.0), stream.gauss(0.0, 1.0),
-                     stream.random(), stream.random(), stream.random(), stream.random())
+    rest = (stream.random(), stream.random(), stream.gauss(0.0, 1.0), stream.gauss(0.0, 1.0),
+            stream.random(), stream.random(), stream.random(), stream.random())
+    return StarDraws(u_branch, normals + (stream.gauss(0.0, 1.0),), *rest)
 
 
 def white_dwarf_polluted(teff_k, u_pollution, share=POLLUTED_SHARE):

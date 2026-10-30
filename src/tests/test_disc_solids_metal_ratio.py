@@ -9,7 +9,7 @@ from planetgen.physics import bulk_draw, constants, formation, stellar_abundance
 
 
 def _ratio(fe_h, branch):
-    offsets = sa.abundance_offsets(fe_h, branch, np.zeros(4), 1.0, 0.0)
+    offsets = sa.abundance_offsets(fe_h, branch, np.zeros(5), 1.0, 0.0)
     return sa.metal_ratio_to_solar(sa.composition(fe_h, offsets).z)
 
 

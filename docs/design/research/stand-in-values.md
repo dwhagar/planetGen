@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 457 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 462 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 56 | 0 | 3 | 0 | 0 | 59 |
+| T1 | 57 | 0 | 5 | 0 | 0 | 62 |
 | T2 | 77 | 6 | 0 | 1 | 0 | 84 |
 | T3 | 56 | 9 | 3 | 10 | 0 | 78 |
 | T4 | 22 | 0 | 0 | 3 | 4 | 29 |
-| T5 | 25 | 6 | 1 | 0 | 0 | 32 |
-| T6 | 40 | 15 | 8 | 30 | 0 | 93 |
+| T5 | 26 | 6 | 1 | 0 | 0 | 33 |
+| T6 | 40 | 16 | 8 | 30 | 0 | 94 |
 | T7 | 18 | 6 | 1 | 7 | 0 | 32 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 295 | 42 | 18 | 77 | 25 | 457 |
+| All | 297 | 43 | 20 | 77 | 25 | 462 |
 
 ## How the labels were given
 
@@ -734,3 +734,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SC1 | P | T2 | L1 | constants.TEMP_RANGES: the A/F edge 7200 K and the K/M edge 3900 K (before, 7500 K and 3700 K); the F/G and G/K edges 6000 K and 5200 K are as they were | 100 K each | main-sequence stars of the solar neighbourhood | the star census mix of K, M and A against RECONS (`tests/audit/prevalence_stars.py`) | the spectral-type temperature table of Pecaut and Mamajek read in full | RECALLED (Pecaut and Mamajek 2013: F0V 7220 K, M0V 3850 K, rounded to 100 K; the luminosity ranges already put the K/M edge at 0.08 solar luminosities, about 3900 K) | - | - |
 | SC2 | P | T2 | L0 | tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars | 0.01 to 0.06 | stars heavier than 0.08 solar masses, trees a directive does not count | test_multistar.test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member | a brown dwarf companion survey of M dwarfs | RECALLED (Metchev and Hillenbrand 2009: 3.2 percent of solar-type stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU) | - | - |
+
+## 6.50 Stand-ins of the stellar [X/Fe] refit to Brewer and Fischer
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| XF1 | P | T1 | L2 | tuning.STELLAR_XFE_FITS thin Mg ("min", -0.067, -0.284, 0.06), Si ("min", -0.047, -0.298, -0.07) and O ("min", -0.028, -0.414, 0.07; GEN.991), robust least squares to the 805 (803 for O) Brewer and Fischer stars younger than 8 Gyr at [Fe/H] -0.6 and up | the soft-L1 scale 0.05 dex | thin-disc stars of [Fe/H] -0.6 to 0.5 | a second survey of solar-metallicity thin-disc stars whose median [Mg/Fe] differs from -0.06 by more than 0.04 (the Bensby plateau at the Sun was +0.006) | an abundance survey on one scale with the Sun (GALAH DR4, APOGEE DR17) | test_stellar_xfe_brewer_fischer::test_the_thin_disc_oxygen_magnesium_and_silicon_medians_are_within_a_twentieth_of_a_dex_of_the_table | - | - |
+| XF2 | P | T1 | L2 | tuning.STELLAR_XFE_SIGMA C 0.095/0.108, O 0.102/0.128, Mg 0.046/0.051, Si 0.072/0.126, Ca 0.032/0.035 (thin/high-alpha, dex; Ca new) | the scale per element, solved so the generated variance of each populous bin is the table's robust one | stars of [Fe/H] -0.4 to 0.4 | a bin whose generated scatter is more than 1.5 times, or less than 0.67 of, the table's robust spread | the scatter of a survey that corrects for measurement error (the table's includes about 0.03 to 0.06 dex of it) | test_stellar_xfe_brewer_fischer::test_the_generated_scatter_is_within_half_again_of_the_tables_robust_scatter_in_every_bin | - | - |
+| XF3 | P | T1 | L0 | tuning.STELLAR_XFE_CORRELATION (the correlation of the C, O, Mg, Si and Ca residuals of 1,558 stars, residual = [X/Fe] less its median in the 0.1 dex bin) | none | FGK dwarfs near the Sun | a residual correlation of Mg and Si that differs by more than 0.1 in a second survey | the same from a survey that removes the age-metallicity trend star by star | test_stellar_abundances::test_the_residuals_have_the_stated_scatter_and_correlation | - | - |
+| XF4 | P | T5 | L0 | stellar_abundances.abundance_offsets S and Ar take calcium's whole offset, residual included (neither is in the table: S is not among its 15 elements and Ar cannot be measured in a dwarf's photosphere) | none | alpha-element production in the stars of the thin and thick discs | a survey of S whose [S/Fe] scatter or trend differs from Ca's by more than 0.05 dex | measured S (Duffau 2017, Perdigon 2021) | test_stellar_xfe_brewer_fischer::test_calcium_sulfur_and_argon_move_together_and_calcium_is_correlated_with_the_others | - | - |
+| XF5 | P | T6 | L1 | tuning.STELLAR_XFE_SIGMA Ca high-alpha over thin 1.10 (Mg's old ratio 0.073/0.066; the table holds too few thick-disc dwarfs for its own) | 1.0 to 1.4 | thick-disc stars | a thick-disc [Ca/Fe] scatter more than 0.02 dex from the thin-disc one times 1.1 | the thick-disc scatter of a survey with ages | test_stellar_xfe_brewer_fischer::test_the_generated_scatter_is_within_half_again_of_the_tables_robust_scatter_in_every_bin | - | - |
