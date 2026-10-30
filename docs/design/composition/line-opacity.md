@@ -37,6 +37,7 @@ is 0 to 200 cm-1, below the tables) by 10 g points:
 5. **Gases without a table** (stand-ins IR1, IR2): a plateau at each band of the gas table with exponential wings, sorted into a distribution.
 6. **The far wing of carbon dioxide** (stand-in IR3): the tables cut every line at 25 cm-1, and a Venus-like air needs what lies beyond.
    `physics/co2_far_wing.py` (GEN.1019, rows FW1 to FW5) is the sourced replacement, built and tested but not yet called: each carbon dioxide band's Lorentz tail beyond 25 cm-1 times the Perrin and Hartmann 1989 sub-Lorentzian factor, out to 500 cm-1, with the band strengths taken from the carbon dioxide table at its lowest pressure. IR3 stays in `line_opacity` until the wiring step.
+   GEN.1020 adds the acid cloud's infrared opacity (`cloud_infrared`, Mie droplets from the HITRAN sulfuric acid indices, rows CF1 to CF5) and the far wings of water, sulfur dioxide and carbon monoxide in a carbon dioxide air (rows FW6, FW7). With both, the clear-sky Venus-like test air reaches 757 K (measured 735 K); the wing alone gave 539 K.
 
 ## The column
 

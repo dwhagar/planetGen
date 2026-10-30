@@ -111,13 +111,38 @@ def _second_integral(distance, tail, step):
     return np.concatenate([[0.0], np.cumsum(0.5 * (first[1:] + first[:-1]) * step)])
 
 
+def _pair_matrix(edges_cm1, tail_of_distance):
+    """
+    The weight of every band pair, shape (band i, band j): the strength of band `j` spread evenly over its width and the wing averaged evenly
+    over band `i`, so the weight is the double integral of the tail `f(d)` over the two intervals, `F2(b - c) - F2(a - c) - F2(b - d) + F2(a - d)`
+    (`F2` the second integral of `f`, even) over both widths. It does not depend on how the bands are sampled.
+
+    Args:
+        edges_cm1 (ndarray): The band edges.
+        tail_of_distance (callable): `f(distance_cm1)`, the line-shape tail per cm-1 on an array of distances (0 inside the cutoff and past the reach).
+    """
+    edges = np.asarray(edges_cm1, dtype=float)
+    width = np.diff(edges)
+    step = GRID_STEP_CM1
+    distance = np.arange(0.0, edges[-1] - edges[0] + 2.0 * step, step)
+    f2 = _second_integral(distance, tail_of_distance(distance), step)
+    lower, upper = edges[:-1], edges[1:]
+
+    def at(u):
+        return np.interp(np.abs(u), distance, f2)
+
+    pair = at(upper[:, None] - lower[None, :]) - at(lower[:, None] - lower[None, :]) \
+        - at(upper[:, None] - upper[None, :]) + at(lower[:, None] - upper[None, :])
+    return pair / (width[:, None] * width[None, :])
+
+
+def _window(distance):
+    return (distance >= number("cutoff_cm1")) & (distance <= number("reach_cm1"))
+
+
 def cross_section_cm2(strengths, edges_cm1, temperature_k, pressure_pa, co2_fraction):
     """
     The far-wing cross section of carbon dioxide, cm2 per molecule, in each band, for a stack of layers.
-
-    The strength of band `j` is spread evenly over its width and the wing is averaged evenly over band `i`, so the weight of the pair is
-    the double integral of the tail `f(d)` over the two intervals, `F2(b - c) - F2(a - c) - F2(b - d) + F2(a - d)` divided by both widths
-    (`F2` the second integral of `f`, even), which does not depend on how the bands are sampled.
 
     Args:
         strengths (ndarray): Each layer's band strengths (layers, bands), cm per molecule (`band_strengths`).
@@ -131,13 +156,6 @@ def cross_section_cm2(strengths, edges_cm1, temperature_k, pressure_pa, co2_frac
     temperature = np.atleast_1d(np.asarray(temperature_k, dtype=float))
     pressure = np.atleast_1d(np.asarray(pressure_pa, dtype=float))
     fraction = np.atleast_1d(np.asarray(co2_fraction, dtype=float))
-    edges = np.asarray(edges_cm1, dtype=float)
-    width = np.diff(edges)
-    cutoff, reach = number("cutoff_cm1"), number("reach_cm1")
-    step = GRID_STEP_CM1
-    distance = np.arange(0.0, edges[-1] - edges[0] + 2.0 * step, step)
-    inside = (distance >= cutoff) & (distance <= reach)
-    lower, upper = edges[:-1], edges[1:]
     result = np.zeros(strengths.shape)
     for layer in range(len(temperature)):
         if fraction[layer] <= 0.0 or pressure[layer] <= 0.0:
@@ -145,14 +163,39 @@ def cross_section_cm2(strengths, edges_cm1, temperature_k, pressure_pa, co2_frac
         x, t = fraction[layer], temperature[layer]
         gamma = half_width_cm1(t, pressure[layer], x)
         scale = (pressure[layer] / ATMOSPHERE_PA) * (REFERENCE_K / t) ** number("gamma_exponent")
-        weight = x * number("gamma_self_cm1_atm") * chi(distance, t, "co2_co2") + (1.0 - x) * number("gamma_foreign_cm1_atm") * chi(distance, t, "co2_n2")
-        tail = np.where(inside, scale * weight / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
-        f2 = _second_integral(distance, tail, step)
 
-        def at(u):
-            return np.interp(np.abs(u), distance, f2)
+        def tail(distance):
+            weight = x * number("gamma_self_cm1_atm") * chi(distance, t, "co2_co2") \
+                + (1.0 - x) * number("gamma_foreign_cm1_atm") * chi(distance, t, "co2_n2")
+            return np.where(_window(distance), scale * weight / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
 
-        pair = at(upper[:, None] - lower[None, :]) - at(lower[:, None] - lower[None, :]) \
-            - at(upper[:, None] - upper[None, :]) + at(lower[:, None] - upper[None, :])
-        result[layer] = (pair / (width[:, None] * width[None, :])) @ strengths[layer]
+        result[layer] = _pair_matrix(edges_cm1, tail) @ strengths[layer]
+    return np.maximum(result, 0.0)
+
+
+def minor_gas_cross_section_cm2(gas, strengths, edges_cm1, temperature_k, pressure_pa, co2_fraction):
+    """
+    The far-wing cross section, cm2 per molecule, of a minor absorber (`"H2O"`, `"SO2"`, `"CO"`) broadened by a carbon dioxide air, in each
+    band: its Lorentz tail beyond the cutoff with the half width `minor_gamma_cm1_atm` and the carbon dioxide self factor (or none, when
+    `minor_uses_chi` is 0), weighted by the carbon dioxide share of the air so that an air without carbon dioxide adds nothing (its water
+    far wing is the continuum of `line_opacity`). Arguments as `cross_section_cm2`.
+    """
+    strengths = np.atleast_2d(np.asarray(strengths, dtype=float))
+    temperature = np.atleast_1d(np.asarray(temperature_k, dtype=float))
+    pressure = np.atleast_1d(np.asarray(pressure_pa, dtype=float))
+    fraction = np.atleast_1d(np.asarray(co2_fraction, dtype=float))
+    gamma0 = number("minor_gamma_cm1_atm")[gas]
+    result = np.zeros(strengths.shape)
+    for layer in range(len(temperature)):
+        if fraction[layer] <= 0.0 or pressure[layer] <= 0.0:
+            continue
+        t = temperature[layer]
+        scale = (pressure[layer] / ATMOSPHERE_PA) * (REFERENCE_K / t) ** number("gamma_exponent")
+        gamma = gamma0 * scale
+
+        def tail(distance):
+            shape = chi(distance, t, "co2_co2") if number("minor_uses_chi") else 1.0
+            return np.where(_window(distance), fraction[layer] * gamma * shape / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
+
+        result[layer] = _pair_matrix(edges_cm1, tail) @ strengths[layer]
     return np.maximum(result, 0.0)

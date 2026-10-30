@@ -45,6 +45,18 @@
    "tweak": "L0",
    "basis": "The width goes as (296 K / T) to this power (the HITRAN air exponent of the strong carbon dioxide lines is near 0.7, recalled, not read)"
   },
+  "minor_gamma_cm1_atm": {
+   "value": {"H2O": 0.13, "SO2": 0.10, "CO": 0.065},
+   "tier": "T4",
+   "tweak": "L0",
+   "basis": "The Lorentz half width at 296 K and one atmosphere of a line of a minor gas broadened by carbon dioxide: water 0.13 (HITRAN's CO2 broadening of water lines is above its air value of about 0.09, recalled), sulfur dioxide 0.10, carbon monoxide 0.065 (recalled, not read); none was found in an open source. The widest range of the two in doubt is the knob of its registry row"
+  },
+  "minor_uses_chi": {
+   "value": 1,
+   "tier": "T6",
+   "tweak": "L1",
+   "basis": "Whether the minor gases take the carbon dioxide self factor chi: 1 yes (the same collision partner, no minor-gas factor was found), 0 for a pure Lorentz tail. Real water wings are stronger than Lorentz in windows (the continuum), so 1 is a lower bound"
+  },
   "chi_co2_co2": {
    "value": {"sigma_cm1": [3.0, 30.0, 120.0], "alpha": [0.0888, 0.0, 0.0232], "beta": [-0.160, 0.0526, 0.0], "epsilon": [0.00410, 0.00152, 0.0]},
    "tier": "T2",
