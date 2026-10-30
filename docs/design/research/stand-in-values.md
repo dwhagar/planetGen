@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 580 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 582 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 65 | 20 | 5 | 9 | 0 | 99 |
 | T4 | 27 | 0 | 0 | 13 | 6 | 46 |
 | T5 | 39 | 11 | 0 | 0 | 0 | 50 |
-| T6 | 45 | 28 | 11 | 33 | 0 | 117 |
+| T6 | 47 | 28 | 11 | 33 | 0 | 119 |
 | T7 | 26 | 7 | 8 | 7 | 0 | 48 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 1 | 25 | 19 | 46 |
-| All | 358 | 75 | 30 | 90 | 27 | 580 |
+| All | 360 | 75 | 30 | 90 | 27 | 582 |
 
 ## How the labels were given
 
@@ -952,3 +952,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RR2 | P | T3 | L0 | small_body_rings.INNER_RING_LIMIT_AU 0.1 (no ring inside this distance from the star; Schlichting and Chang 2011 via the design note, 2ND-HAND, 'about 0.1 AU') | 0.05 to 0.3 | planets and small bodies round Sun-like stars | a ring measured round a planet inside 0.05 AU, or the lifetime calculation putting the limit outside 0.3 AU | the lifetime of a ring against the star's tides and heat, scaled with the star's luminosity | test_small_body_rings::test_no_ring_survives_inside_a_tenth_of_an_au | GEN.1057 | - |
 | RR3 | P | T2 | L0 | small_body_rings.HILL_FRACTION_MAX 0.5 (the widest circular prograde orbit round a small body that stays bound, in Hill radii; Hamilton and Burns 1991, Domingos et al. 2006: 0.49) | 0.3 to 0.5 | prograde circular orbits | a stable prograde orbit measured outside 0.5 Hill radii | an N-body stability limit for the body's eccentricity | test_small_body_rings::test_a_resonance_outside_the_stable_zone_is_no_ring | GEN.1057 | - |
 | RR4 | P | T6 | L3 | small_body_rings.RESONANCE_RING_MASS_KG (1e10, 1e14) and RESONANCE_WIDTH_FRACTION (0.002, 0.05) (the ring's mass and its width over its radius, log-uniform; the range gives a mean optical depth from 0.001 to 10 over a thin ring at a few thousand km) | mass one decade each way; width 0.001 to 0.1 | narrow rings of small bodies | an optical depth and a width measured for Quaoar's ring outside the range | the mass from the ring's optical depth and width as measured by occultations | test_small_body_rings::test_the_ring_is_thin_light_and_dense_enough_to_see | GEN.1057 | no data |
+
+## 6.72 Stand-ins of the oddity table and the weirdness dial
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| OD1 | P | T6 | L0 | tuning.WEIRDNESS_DIAL 1.0, the multiplier on every oddity rate (0 turns every oddity off) | 0 to 3 | every oddity row | Boss finds the default sky too plain or too strange | Boss's setting in the settings page (GEN.1047) | design: Boss asked for a dial (4:15 PM EDT 2026-10-30), design section 4.4; 1 gives the literature rates of each row | GEN.1047 | - |
+| OD2 | P | T6 | L0 | tuning.WEIRDNESS_RATE_SCALE {}, a multiplier per oddity id (1.0 for any id not named) | 0 to 10 | one oddity row | a row whose census share is outside its literature range at the default | the census re-baseline item (rates re-fitted, not scaled) | design section 4.4; empty by default so no row is moved | GEN.1047 | - |

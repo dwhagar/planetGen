@@ -154,3 +154,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.70:RO6 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO7 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO8 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| module | planetgen.physics.oddities | GEN.1047 | the oddity table and its rolls (candidates, probability, roll, limit_failures); the planet and moon builds call it once GEN.1047 wires the table, with the effects the modules of GEN.1040 and its siblings define |
+| data | oddities.json | GEN.1047 | the oddity table (empty until the modules add their rows); read by physics/oddities.py, which nothing calls yet |
+| row | 6.72:OD1 | GEN.1047 | `tuning.WEIRDNESS_DIAL`, read by `oddities.probability` once the table is wired; the dial also goes in the settings page |
+| row | 6.72:OD2 | GEN.1047 | `tuning.WEIRDNESS_RATE_SCALE`, read by `oddities.probability` once the table is wired |

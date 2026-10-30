@@ -1513,6 +1513,15 @@ The table of the liquids a surface can hold (`physics/data/surface_liquids.json`
 | RO7 | P | T2 | L0 | ring_origin.RING_MIN_DISTANCE_AU 0.1, inside which a planet holds no ring | 0.05 to 0.2 | planets of Sun-like stars | a ring found around a planet inside 0.05 AU | the ring lifetime against the star's heating and the particle size (Schlichting and Chang 2011) | Schlichting and Chang 2011, recalled: rings of close planets are short lived |
 | RO8 | P | T6 | L0 | ring_origin.MIN_RING_MASS_KG 1e7, the least ring that counts | 1e6 to 1e8 | dust rings | a ring of dust seen below 1e6 kg | the smallest ring the painter and the sheet can show | Jupiter's dust ring holds 1e7 to 1e9 kg |
 
+### 6.72 Stand-ins of the oddity table and the weirdness dial (GEN.1036)
+
+`physics/oddities.py` reads the rows of `physics/data/oddities.json` (docs/design/systems/weird-worlds.md): rare, physically plausible outcomes that enter the chain as a cause at one input, each a rate on a gated population. The table ships empty; the module that implements an oddity adds its row and its rate here, one registry row per rate, with the paper the rate comes from (secondary sources accepted) or, where it is recalled, as a stand-in with the falsifier that replaces it. The two rows below are the values the table itself holds.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| OD1 | P | T6 | L0 | tuning.WEIRDNESS_DIAL 1.0, the multiplier on every oddity rate (0 turns every oddity off) | 0 to 3 | every oddity row | Boss finds the default sky too plain or too strange | Boss's setting in the settings page (GEN.1047) | design: Boss asked for a dial (4:15 PM EDT 2026-10-30), design section 4.4; 1 gives the literature rates of each row |
+| OD2 | P | T6 | L0 | tuning.WEIRDNESS_RATE_SCALE {}, a multiplier per oddity id (1.0 for any id not named) | 0 to 10 | one oddity row | a row whose census share is outside its literature range at the default | the census re-baseline item (rates re-fitted, not scaled) | design section 4.4; empty by default so no row is moved |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
