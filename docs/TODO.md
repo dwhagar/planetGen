@@ -11589,6 +11589,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   compaction_table.json, clathrate_brine.json, decay_series.json and
   isotopes.json are in the repo for interior heat and ices. Catalog
   section 4.
+  Order (TODO, 12:24 AM EDT) (2026-10-30 12:24 AM EDT): Core 1's
+  TEST.461 (train 2) removes the planets.porosity column because nothing
+  writes it. GEN.780 still wants porosity filled for planets and moons,
+  so it stays whole: if it stores a value it adds the column back on its
+  own migration, or writes it where the sheet reads it. Aux 5 starts
+  GEN.780 after train 2 has merged so the column state is known.
   Prerequisites: none. Related: UX.208, GEN.725, GEN.642.
 
 - [ ] **GEN.781 Fill hp_ice_km: the thickness of the high-pressure ice layer under an ocean (never filled)**
@@ -19889,6 +19895,14 @@ clears each one.
   tests error in the habitable_galaxy fixture on a slow machine (900 s
   setup timeout in the gas solver), so they did not run to assertions
   there; the train gate or a fast machine must run them.
+  Two more reds (Aux 5, as the lane reported 12:24 AM EDT) (2026-10-30
+  12:24 AM EDT):
+  test_aquifers::test_a_reachable_aquifer_is_a_yellow_water_rung_and_lets_microbes_score_but_not_flora
+  is red on main (flora 0, fauna 2): find the commit and fix or hand it
+  on;
+  test_star_population::test_planets_respect_their_stars_age_and_history
+  takes over 500 s on a slow machine and times out under load (it passes
+  alone, GEN.997 #3887 fixed its logic).
   Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
 
 - [ ] **TEST.464 Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug)**
