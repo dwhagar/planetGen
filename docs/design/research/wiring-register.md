@@ -194,6 +194,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.92:RC2 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | row | 6.92:RC3 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | row | 6.92:RC4 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
+| module | planetgen.physics.belt_density | UX.240 | the objects per square AU above a diameter, the mass per square AU and the size-table bins of a belt; the belt page data builder reads it |
+| row | 6.99:BD1 | UX.240 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD2 | UX.240 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD3 | UX.240 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD4 | UX.240 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD5 | UX.240 | a constant of the belt density module, read when its wiring step lands |
 | row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |

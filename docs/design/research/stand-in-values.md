@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 686 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 691 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
 | T4 | 36 | 2 | 0 | 15 | 6 | 59 |
 | T5 | 39 | 12 | 0 | 0 | 0 | 51 |
-| T6 | 58 | 31 | 12 | 33 | 0 | 134 |
+| T6 | 61 | 32 | 12 | 33 | 0 | 138 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
-| T9 | 4 | 0 | 3 | 30 | 19 | 56 |
-| All | 430 | 97 | 34 | 98 | 27 | 686 |
+| T9 | 5 | 0 | 3 | 30 | 19 | 57 |
+| All | 434 | 98 | 34 | 98 | 27 | 691 |
 
 ## How the labels were given
 
@@ -1042,6 +1042,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RC2 | P | T6 | L0 | resonant_chains.RESONANCE_TOLERANCE 0.05, how near a ratio must be to a target | 0.02 to 0.08 | the same | a population whose period-ratio excess near resonance extends past 5 percent | the observed distribution of `Delta` of resonant pairs (Goldberg and Batygin 2022) | the design note's 5 percent gate; the Kepler multis cluster at +0.01 to +0.02, recalled | GEN.1049 | - |
 | RC3 | P | T4 | L0 | resonant_chains.WIDTH_EXPONENT 2/3, the detuning is held at `mu ** (2/3)` or more | 0.5 to 0.8 | first-order resonances of planets | an N-body run in resonance whose eccentricity exceeds the capped value by more than a factor of two | the libration width of the resonance computed from the pendulum model | Lithwick, Xie and Wu 2012: the near-resonance formula holds for `Delta` above `mu^(2/3)`, recalled | GEN.1049 | - |
 | RC4 | P | T6 | L1 | resonant_chains.CROSSING_SHARE 0.5, the share of the orbit-crossing limit the forced eccentricity is held to | 0.3 to 0.9 | chains of heavy planets | a stable chain with forced eccentricities over half the crossing limit | a stability integration of the chain (the overlap-free systems chain) | the necessary condition for non-crossing orbits; the share is ours | GEN.1049 | - |
+
+## 6.99 Stand-ins of the belt density factor
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BD1 | P | T6 | L0 | belt_density.MAIN_BELT cumulative exponents 1.3 (0.4 to 5 km) and 3.0 (5 km up) | 2.3 and 4.0 (the cumulative reading) to 1.3 and 3.0 | main belts | section 6 of Ivezic et al. 2001 defining the index for the cumulative distribution, or counts above 40 km that the law misses by more than a factor of three | the exponents read verbatim from section 6, and a law fitted to the debiased counts (Bottke et al. 2005) | the abstract states D^-2.3 and D^-4 and the 530,000 above 1 km; a summary of the PDF says section 6 defines the differential index; the cumulative reading leaves 3 asteroids above 40 km | UX.240 | - |
+| BD2 | P | T6 | L0 | belt_density.KUIPER_HOT breaks 1, 121 and 2500 km, exponents 1.0 and 4.35 | faint exponent 0.75 to 1.0 | hot Kuiper belt objects | a debiased count of hot KBOs above 100 km off by more than a factor of three | the DEEP tapered fit parameters (arXiv:2309.09478) | Fraser et al. 2014, alpha 0.87 bright, H_B 7.7 at albedo 0.10; faint side about 1.0 | UX.240 | - |
+| BD3 | P | T6 | L0 | belt_density.KUIPER_COLD breaks 1, 175 and 1500 km, exponents 1.0 and 7.5 | bright exponent 6 to 8 | cold classical belts | the same for the cold population | the DEEP tapered fit parameters | Fraser et al. 2014, alpha 1.5, H_B 6.9 at albedo 0.10 | UX.240 | - |
+| BD4 | P | T9 | L0 | belt_density.DEFAULT_DIAMETERS_KM 1, 10, 100 | any set | the information page | Boss asks for another set | the page's own choice | Boss, 4:37 PM EDT 2026-10-30 | UX.240 | - |
+| BD5 | P | T6 | L1 | belt_density.BULK_DENSITY_KG_M3 2500 | 1000 (ice) to 3500 | the diameter of a mass, where no density is given | a belt whose bodies have a measured mean density far from this | the density of the belt's own composition (the compaction taper) | belt-evolution.md section 11.1 | UX.240 | - |
 
 ## 6.76 Stand-ins of the super-puff radius
 
