@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 342 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 349 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 38 | 0 | 3 | 0 | 0 | 41 |
+| T1 | 39 | 0 | 3 | 0 | 0 | 42 |
 | T2 | 62 | 3 | 0 | 1 | 0 | 66 |
 | T3 | 49 | 4 | 2 | 10 | 0 | 65 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
-| T5 | 16 | 5 | 1 | 0 | 0 | 22 |
-| T6 | 36 | 7 | 3 | 14 | 0 | 60 |
+| T5 | 17 | 5 | 1 | 0 | 0 | 23 |
+| T6 | 37 | 7 | 4 | 17 | 0 | 65 |
 | T7 | 16 | 3 | 1 | 7 | 0 | 27 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 233 | 22 | 12 | 58 | 17 | 342 |
+| All | 236 | 22 | 13 | 61 | 17 | 349 |
 
 ## How the labels were given
 
@@ -510,6 +510,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TM2 | P | T2 | L1 | moon_orbits.HILL_ESCAPE_FRACTION 0.4 (a moon pushed beyond this share of the planet's Hill radius is lost) | 0.3 to 0.5 | prograde moons | test_moon_orbit_evolution::test_a_moon_pushed_past_the_hill_sphere_escapes | an orbit-stability fit with eccentricity and the moon's mass | stable prograde orbits reach about half the Hill radius (Hamilton and Burns 1991; Domingos et al. 2006; recalled); the 0.4 is a little under |
 | TM3 | T | T6 | L0 | moon_orbits.evolve (a moon that reaches the fluid Roche limit becomes ring material and the planet takes the angular momentum it has there; none is kept in the ring) | none | a moon falling in | test_moon_orbit_evolution::test_a_moon_of_a_locked_planet_falls_into_a_ring_and_the_spin_takes_its_momentum | a ring that keeps part of the angular momentum and spreads (viscous spreading, Crida and Charnoz 2012) | angular momentum is conserved; the share the ring keeps is argued, not read |
 | TM4 | T | T6 | L0 | moon_orbits.evolve (moons act on the planet's spin and on their own orbit only; no moon-moon resonance or collision, orbits circular and coplanar) | none | up to a few moons | test_moon_orbit_evolution::test_several_moons_are_followed_together | an N-body or secular integration | the same simplifications as the built spin (SP10 of 6.14) |
+
+## 6.26 Stand-ins of the birth spin from the last impacts
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| GS1 | T | T1 | L0 | impact_spin.g_function and spin_constant (omega_rms / omega_cr = (5 / sqrt 2) <sin^2 theta>^(1/2) nu_rms g(gamma), g = gamma (1 - gamma) [gamma^(1/3) + (1 - gamma)^(1/3)]^(1/2)) | none | the spin left by the last one or few collisions of a rocky planet | test_impact_spin::test_g_is_symmetric_and_has_the_values_of_the_paper | the paper's N-body statistics | Kokubo and Genda 2010 (ApJ 714:L21, arXiv:1003.4384) equation 4, read in full text |
+| GS2 | P | T5 | L0 | impact_spin.MEAN_SIN2_THETA 0.5 (impact parameter uniform in area) | none | collisions in a disc | test_impact_spin::test_the_equation_reproduces_the_paper_s_own_rms_at_its_mass_ratio | the paper's measured angle distribution | geometry |
+| GS3 | P | T6 | L2 | impact_spin.IMPACT_SPEED_RATIO 1.1 (the rms of impact speed over escape speed) | 1.0 to 1.3 | the last impacts of protoplanets | test_impact_spin::test_the_equation_reproduces_the_paper_s_own_rms_at_its_mass_ratio | the paper's mean of nu^2 | physics fixes the floor at 1 (a fall from rest at infinity); 1.1 gives the paper's rms 0.71 breakup at gamma 0.28 |
+| GS4 | P | T6 | L3 | impact_spin.ISOLATION_MASS_EARTH 0.1 and ISOLATION_STEEPNESS 2 (the chance of a giant impact is 1 / (1 + (M_iso / M)^2)) | mass 0.05 to 0.2; steepness 1 to 4 | rocky planets of 0.01 to 10 Earth masses | test_impact_spin::test_mars_is_reachable_and_an_earth_mass_planet_seldom_turns_that_slowly | the distribution of the last impactor by planet mass from Kokubo and Ida 2007 or Agnor et al. 1999 | the isolation mass of oligarchic growth is 0.1 to 0.2 Earth masses at 1 AU (Kokubo and Ida 2000, recalled); the steepness is chosen so that Mars is as likely to have had a giant impact as not |
+| GS5 | P | T6 | L3 | impact_spin.GIANT_GAMMA_RANGE (0.02, 0.5) (log-uniform mass ratio of the last giant impact) | lower end 0.01 to 0.1 | planets made by giant impacts | test_impact_spin::test_the_median_free_day_is_in_the_range_of_vesta_ceres_and_the_earth_moon_system | the N-body distribution of the last impactor | the last impactors run from a few percent of the planet to its own size (Agnor et al. 1999, Kokubo and Ida 2007, recalled); the lower end is chosen so the median day of 0.1 to 5 Earth masses is 7 hours |
+| GS6 | P | T6 | L3 | impact_spin.PLANETESIMAL_GAMMA_RANGE (0.001, 0.03) (log-uniform effective mass ratio of an embryo built by planetesimals) | upper end 0.01 to 0.05 | embryos below the isolation mass | test_impact_spin::test_mars_is_reachable_and_an_earth_mass_planet_seldom_turns_that_slowly | a planetesimal-accretion spin law | the upper end is Mars (0.07 of breakup needs gamma 0.022); the lower end gives the slow spins of Miguel and Brunini 2010 (ordered accretion about 150 h at 1 AU) |
+| GS7 | T | T6 | L0 | the widest range: spins from 1.3 hours (the breakup cap) to some thousand hours | none | a rocky planet before tides | test_impact_spin::test_the_range_is_the_widest_of_the_two_sources_in_question | a measured rotation of a rocky exoplanet or a sample of terrestrial planets (none exists) | Boss's rule for two sources in question: the widest range; Kokubo and Genda 2 to 3 hours, Miguel and Brunini 2010 (arXiv:1004.1406, read in full) 10 to 10,000 hours |
 
 ## 6.30 Stand-ins of the dynamo field
 
