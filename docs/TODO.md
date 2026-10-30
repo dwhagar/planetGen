@@ -2350,6 +2350,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on each. Owner: Core 2 (with the info popup redesign). Version 8.1.
   Prerequisites: none. Related: MAP.336.
 
+- [ ] **MAP.350 The Galaxy Map window fills the screen with only about 20 pixels of buffer at the top and bottom, so the whole window shows with no page scrolling (bug)**
+  Boss, 8:58 PM EDT 2026-10-29 (live observation): make the top and
+  bottom of the map window buffered by only about 20 pixels so the whole
+  window is visible with no page scrolling; the controls now live on the
+  map itself, so the window can expand to fill the screen. Do: size the
+  map window to the viewport height minus about 20 pixels above and
+  below (no page scroll at 1080p maximized, and a sensible minimum on
+  short windows), check every layer and the Go to box and the key still
+  fit, and keep it working with the info popup redesign MAP.347 (the
+  popup was scrolling off the screen for the same reason). Lock-free: no
+  generated output. Owner: Core 2 (with MAP.347). Version 8.1.
+  Prerequisites: none. Related: MAP.347, MAP.348, MAP.349.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -15305,24 +15318,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
   Prerequisites: none. Related: GEN.961, GEN.763, GEN.839.
-
-- [ ] **GEN.977 Guard test: a seeded sweep fails if the generator ever makes a table-sized giant with light over 300 times Earth's and eccentricity over 0.3**
-  From the eccentricity-first research
-  (/mnt/project-files/reports/gen842-eccentricity-first-2026-10-29.md
-  section 7, relayed 8:27 PM EDT 2026-10-29): the eccentricity error
-  stays under 0.05 percent for every giant the generator can make today
-  and passes 1 percent only for a giant over 300 times Earth's light
-  with eccentricity over 0.3. Do: a seeded sweep test that fails the day
-  hot giants are added, and write the bound into the GEN.727 design
-  note. About 0.25 lane-hours, no epoch, merges freely. Owner: Aux 7.
-  Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: none. Related: GEN.961, GEN.842.
 
 - [ ] **GEN.978 Birth spin derivation (a): a module for the last-impact mass ratio gamma by planet mass, from the N-body impact statistics**
   Boss, 8:48 PM EDT 2026-10-29 ('Yes, build it': build the birth-spin
