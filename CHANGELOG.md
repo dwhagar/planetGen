@@ -2,6 +2,27 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2803] - 2026-10-30
+
+**Headline:** The Systems tables show how many stars and objects a system holds and whether it has a Yellow-or-better world.
+
+### Changed
+- **The Systems tables' Binary column is now Stars.** It counts every star-like object in the system (stars, brown dwarfs, white dwarfs, neutron stars, black holes). The Binary / Single star filter stays. The Binary sort goes with the column (the new columns are not sortable). Two columns follow: Objects (stars, planets, moons and asteroid belts) and Habitable world (a planet or moon with an overall habitability score of Yellow or better). The search page's Systems panel shows the same columns. The figures are read from the stored rows; nothing generated changes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.242.
+
+## [8.0.2802] - 2026-10-30
+
+**Headline:** The generator can now give a thrown-out planet the long-lived radioactive heat of the star it left, the same way it does for a bound planet of that star.
+
+### Added
+- **`physics/rogue_radiogenic.py` (GEN.1134).** A rogue rock's thorium, uranium, potassium and aluminium-26 come from the ejecting star's iron content, age and galaxy (the offset and the r-process enrichment a bound planet of that star uses), so a rogue and a bound rocky planet of one star have the same content. Its heat at its age is the interior model's. The "geologically active" cut stays a heat flow (0.04 W/m2) but is now registered: the interior model's mantle temperature does not tell bodies apart.
+- **Stand-in row RY1** in the gap-filling plan (section 6.114), the stand-in list, the burn-down register and the wiring register. Nothing reads the module yet; the rogue rows (GEN.1111) wire it and remove the placeholder draw.
+
+generation-output: unchanged
+
 ## [8.0.2801] - 2026-10-30
 
 **Headline:** The sentences of classes N, K and Q now say what their rules select.
