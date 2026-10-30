@@ -33,12 +33,14 @@ TUNED = hand_tuned_rows(builder.registry_tables(PLAN))
 
 
 def test_every_hand_tuned_row_has_a_line():
-    assert not TUNED - set(LINES), "rows at L3 or L4 without a line in burn-down-register.md: " + ", ".join(sorted(TUNED - set(LINES)))
+    assert not TUNED - set(LINES), (
+        "rows at L3 or L4 without a line in docs/design/research/burn-down-register.md (add `| <section>:<fill_id> | no data | - | <why> |` "
+        "or `| <section>:<fill_id> | replace | <open item> | <why> |`): " + ", ".join(sorted(TUNED - set(LINES))))
 
 
 def test_a_line_names_a_row_that_is_still_hand_tuned_or_says_it_was_replaced():
     stale = [key for key, (disposition, _, _) in LINES.items() if key not in TUNED and disposition != "replaced"]
-    assert not stale, "lines for rows that are no longer at L3 or L4 (delete them, or mark them replaced): " + ", ".join(stale)
+    assert not stale, "lines in docs/design/research/burn-down-register.md for rows that are no longer at L3 or L4 (delete them, or mark them replaced): " + ", ".join(stale)
 
 
 def test_a_replace_line_names_an_item_that_is_open():
