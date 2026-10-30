@@ -2,6 +2,31 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2724] - 2026-10-30
+
+**Headline:** A Generate job's generating steps now run as one run in the work queue, with one stage list and one estimate.
+
+### Changed
+
+- PERF.203 step 4: when a Generate job starts, its generation commands (plan, sectors, link, the scatters, clear-scatter, backfill, settle) become the single step `planetgen run-job` (`web/job_steps.py`), so a New galaxy, Plan, Redo scatters or Add sectors job is one run in the queue instead of one run for each command. The Review page, the size estimate and the form still work on the list of commands; the data check, the reset and anything that is not a stage of a run (the bright-star band, Finish the last run, a database check) stay steps of their own. The page's stage list, its numbering ("Stage 4 of 12") and the time left read the one step's stages: the block light totals appear once, after the last scatter, and each stage's expected time is the one stored for the settings its own command was given. A stage's checks (a scatter of a kind that is stored, sectors with no plan) are made when the stage opens. Nothing stored changes, no epoch.
+- TEST.482: the stage test expected fill-map-luminosity to be one stage; it ends with the block light totals.
+
+## [8.0.2723] - 2026-10-30
+
+**Headline:** Internal: a star's evolved state is now one frozen record that the system tree and the build will both read (GEN.1009, first piece).
+
+### Changed
+- **Member record (GEN.1009).** A new record holds a member's present and largest radius and mass from one evolution under its own seed, so the tree that draws the orbits and the build that makes the star cannot disagree. Nothing reads it yet; the wiring is the next change, so generated systems do not change here.
+
+## [8.0.2722] - 2026-10-30
+
+**Headline:** The rule that tells whether two stars went through a common envelope in the past now exists as a tested module, ready to replace the white-dwarf-only test.
+
+### Changed
+- **The history of a pair (GEN.1012, first part).** A new rule (`physics/pair_history`) finds the orbit a pair had when its members were at their heaviest, from the mass they lost, and sets each member's largest radius against its Roche lobe at that orbit's closest approach. A pair whose member filled its lobe or swallowed its partner can only be a post-common-envelope pair, for any member and any tree depth, not for white dwarfs only. Nothing reads it yet; it is wired into `classify_pair` on the generation train with the member record (GEN.1009).
+
+generation-output: unchanged
+
 ## [8.0.2721] - 2026-10-30
 
 **Headline:** `planetgen run-job` runs a whole list of generation commands as one run, the first step towards a Generate job that is one run with one estimate.
