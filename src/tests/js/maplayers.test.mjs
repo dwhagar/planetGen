@@ -278,3 +278,40 @@ test("the Menu gives a forward layer a second button and the group one row that 
   container.querySelector('button[data-bulk="shown"]').click();
   assert.deepEqual(["poi-a", "poi-b", "plain"].map((id) => reg.stateOf(id)), ["shown", "shown", "shown"]);
 });
+
+test("a key line shows while its thing is drawn, and a layer with no line, legend or reason is named by unkeyed() (MAP.234)", () => {
+  const reg = L.createLayerRegistry("galaxy");
+  reg.register({ id: "glow", label: "Glow" });
+  reg.register({ id: "spin", label: "Spin", keyless: "a setting" });
+  reg.register({ id: "star", label: "Stars", legend: "Stars" });
+  assert.deepEqual(reg.unkeyed(), ["glow"]);
+  let drawn = false;
+  reg.registerKey({ id: "key-glow", layer: "glow", text: "Haze", swatchClass: "map-key-cloud", drawn: () => drawn });
+  assert.deepEqual(reg.unkeyed(), [], "a key line standing for the layer is enough");
+  assert.deepEqual(reg.keys(), [{ id: "key-glow", layer: "glow", drawn: false }]);
+  assert.deepEqual(reg.legend().map((line) => line.id), ["star"], "not drawn: no line");
+  drawn = true;
+  assert.deepEqual(reg.legend().map((line) => line.id), ["star", "key-glow"]);
+  assert.throws(() => reg.registerKey({ id: "key-glow", text: "again", drawn: () => true }), /already registered/);
+  assert.throws(() => reg.registerKey({ id: "x", text: "no drawn" }), /drawn/);
+});
+
+test("the key follows what is drawn, and a collapsible legend is a Key that folds away (MAP.234)", () => {
+  installDom("http://localhost/galaxy");
+  const reg = L.createLayerRegistry("galaxy");
+  let drawn = false;
+  reg.registerKey({ id: "key-bubbles", text: "Faint spheres: superbubbles", swatchClass: "map-key-sphere", drawn: () => drawn });
+  const container = h("div", {});
+  reg.renderLegend(container, { collapsible: true, storageKey: "test.key" });
+  assert.equal(container.hidden, true, "nothing drawn: no key");
+  assert.equal(reg.refreshKey(), true);
+  assert.equal(reg.refreshKey(), false, "nothing changed");
+  drawn = true;
+  assert.equal(reg.refreshKey(), true);
+  assert.equal(container.hidden, false);
+  const fold = container.querySelector("details.map-key");
+  assert.ok(fold, "the lines sit in a Key");
+  assert.equal(fold.querySelector("summary").textContent, "Key");
+  assert.deepEqual(fold.querySelectorAll(".map-layer-legend-line").map((row) => row.dataset.layer), ["key-bubbles"]);
+  assert.equal(fold.open, true, "open to start");
+});

@@ -1,0 +1,4 @@
+**Headline:** The Galaxy Map now has a Key that names everything it draws, on the map and in the help.
+
+### Added
+- **A Key on the Galaxy Map and in its help (MAP.234).** The lower left of the map has a Key with a line for each kind of thing drawn at the view you are looking at: the blocks and their outlines, the stars, the haze, the regions, the superbubbles, the nebulae and remnants, the black holes and the other marks, the kinds in an opened sector, and the course lines when a course is shown. A line appears only while its thing is drawn and goes when it is not. Press the Key's heading to fold it away; it stays folded on your next visit. The help dialog has a Key section that says the same in words. A layer that has no line in the Key now fails a test, so a new layer cannot be added without one.

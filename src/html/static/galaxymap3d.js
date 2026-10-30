@@ -3664,7 +3664,9 @@ function initGalaxyMap3d(canvasEl, data) {
   rebuildKinds();
   // MAP.217: the layers' legend lines, over the map; the browser tests register a layer on the canvas's registry.
   var layerLegendEl = document.getElementById("galaxymap3d-layer-legend");
-  if (layerLegendEl) stageView.layers.renderLegend(layerLegendEl);
+  if (layerLegendEl) stageView.layers.renderLegend(layerLegendEl, { collapsible: true });
+  // The wheel over the Key's fold zooms the map as it does over the other controls (MAP.234).
+  if (layerLegendEl) layerLegendEl.addEventListener("wheel", function (event) { if (stageView.onWheel(event)) event.preventDefault(); }, { passive: false });
   canvasEl.__mapLayers = stageView.layers;
   // MAP.219: the marker layer (galaxymarkers.js): glyphs over the notable things, a toggle and a legend line per kind.
   var markerKinds = createMarkerKinds();
@@ -3816,7 +3818,7 @@ function initGalaxyMap3d(canvasEl, data) {
     id: "spin", label: "Spin", modes: ["galaxy"], group: "Show on the map", data: { setting: "spin" },
     defaultOn: stageView.spinSwitch.on(), fadedWithSectors: false,
     title: "Let the stars and bodies of an opened system turn slowly on their axes, or hold them still",
-    legend: null,
+    legend: null, keyless: "a setting: it draws nothing of its own",
   });
   stageView.layers.refresh();
   stageView.layers.onChange(function (id, on) {
@@ -3983,6 +3985,71 @@ function initGalaxyMap3d(canvasEl, data) {
     if (entry.item.type) showPointInfo(entry.item);
     else showInterestSystemInfo(entry.item);
   }
+  // MAP.234: the key. Each thing the map draws has a line in the on-map Key (and in the help dialog's Key section) while it is drawn:
+  // a layer's own legend line (a marker kind, a nebula family, the framed region), or a line registered here. The sector scene's kinds
+  // have one each here; a kind with no line is a layer the key says nothing about, which `registry.unkeyed()` lists and the browser test
+  // holds empty, so a new layer cannot be added without one.
+  var KIND_KEYS = {
+    star: null,    // the stars' line below stands for it
+    nebula: ["cloud", "Clouds: nebulae"],
+    supernovaRemnant: ["cloud", "Shells: supernova remnants"],
+    asteroidField: ["cloud", "Clouds: asteroid fields"],
+    blackHole: ["point", "Bright points and dark spheres: black holes"],
+    neutronStar: ["point", "Bright points: neutron stars"],
+    quasar: ["point", "Bright points: quasars"],
+    roguePlanet: ["point", "Faint points: rogue planets"],
+    interstellarComet: ["point", "Small spheres: interstellar comets"],
+    neighbor: ["outline", "Outlines: the neighboring sectors"],
+  };
+  (function registerKeyLines() {
+    var layers = stageView.layers;
+    layers.layers().filter(function (layer) { return layer.data && layer.data.kind; }).forEach(function (layer) {
+      var entry = KIND_KEYS[layer.id];
+      if (!entry) return;    // the stars', or left for `unkeyed()` to name
+      layers.registerKey({
+        id: "key-" + layer.id, layer: layer.id, text: entry[1], swatchClass: "map-key-" + entry[0],
+        modes: ["galaxy", "sector"], drawn: function () { return layers.isOn(layer.id) && (!layer.available || layer.available()); },
+      });
+    });
+    var starLayer = layers.get("star");
+    layers.registerKey({
+      id: "key-stars", layer: "star", text: "Points of light: stars, colored by temperature, brighter the more luminous", swatchClass: "map-key-point",
+      modes: ["galaxy", "sector"],
+      drawn: function () { return data.pinned ? !!starLayer && layers.isOn("star") && (!starLayer.available || starLayer.available()) : starList.length > 0; },
+    });
+    // The legend follows what is drawn as the view changes.
+    window.setInterval(function () { layers.refreshKey(); }, 400);
+    if (data.pinned) return;
+    var lines = function () { return canvasEl.galaxyLines ? canvasEl.galaxyLines() : null; };
+    layers.registerKey({
+      id: "key-blocks", text: "Blocks: predicted density, brighter is denser; more solid the more of their sectors are generated",
+      swatchClass: "map-key-blocks", drawn: function () { var l = lines(); return !!l && l.blocksDrawn > 0; },
+    });
+    layers.registerKey({
+      id: "key-charted", text: "Outlines: the blocks that hold generated sectors", swatchClass: "map-key-outline",
+      drawn: function () { var l = lines(); return !!l && l.chartedLines > 0; },
+    });
+    layers.registerKey({
+      id: "key-glow", layer: "glow", text: "Haze: stars too faint and close together to tell apart", swatchClass: "map-key-cloud",
+      drawn: function () { return layers.isOn("glow") && starList.length > 0; },
+    });
+    layers.registerKey({
+      id: "key-bubbles", text: "Faint blue spheres with a rim: superbubbles, cavities the supernovae of young star groups blew in the gas",
+      swatchClass: "map-key-sphere", drawn: function () { return bubbles.length > 0; },
+    });
+    if (regionLayer) {
+      layers.registerKey({
+        id: "key-regions", layer: "regions", text: "Soft spheres: regions with generated sectors, colored by how much is charted",
+        swatchClass: "map-key-cloud", drawn: function () { return regionsOn && !hiddenCell && regionLayer.drawn() > 0; },
+      });
+    }
+    if (course) {
+      layers.registerKey({ id: "key-course", text: "Line: the course, through every stop", swatchClass: "map-key-course", drawn: function () { return true; } });
+      if (course.direct && course.direct.length === 2) {
+        layers.registerKey({ id: "key-direct", text: "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return true; } });
+      }
+    }
+  })();
   // MAP.268: the names (galaxylabels.js, through the label engine maplabels.js): sectors, the open sector's systems and
   // nebulae, a layer each in the Menu's Labels group.
   var galaxyLabels = null;
@@ -3991,6 +4058,7 @@ function initGalaxyMap3d(canvasEl, data) {
       stageView.layers.register({
         id: kind.id, label: kind.label, modes: ["galaxy", "sector"], group: "Labels", data: { label: kind.kind },
         defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: kind.title,
+        keyless: "names laid over the map, not a thing it draws",
       });
     });
     stageView.readLayersFromLocation();

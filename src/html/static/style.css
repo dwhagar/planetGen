@@ -2700,6 +2700,60 @@ code {
   background: var(--bg-subtle);
   pointer-events: none;
 }
+/* MAP.234: the Key can be folded away; its summary takes the pointer though the legend does not. */
+.map-key > summary {
+  cursor: pointer;
+  pointer-events: auto;
+  font-weight: 600;
+  list-style: revert;
+}
+
+.map-key-lines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin-top: 0.25rem;
+}
+
+/* The marks of the key lines for what the map draws as shapes. */
+.map-layer-legend-swatch.map-key-point {
+  border-radius: 50%;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin: 0 0.5rem 0 0.2rem;
+  background: #f3efe2;
+  box-shadow: 0 0 0.35rem 0.1rem rgba(243, 239, 226, 0.7);
+}
+.map-layer-legend-swatch.map-key-cloud {
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--text-muted) 0%, transparent 70%);
+}
+.map-layer-legend-swatch.map-key-sphere {
+  border-radius: 50%;
+  background: none;
+  border: 2px solid #6fb3d8;
+}
+.map-layer-legend-swatch.map-key-outline {
+  border: 2px solid var(--text-muted, currentColor);
+  background: none;
+  border-radius: 0;
+}
+.map-layer-legend-swatch.map-key-blocks {
+  background: linear-gradient(to right, transparent, var(--accent));
+  border: 1px solid var(--border);
+}
+.map-layer-legend-swatch.map-key-course {
+  height: 0;
+  border-top: 2px solid var(--accent);
+  border-radius: 0;
+  vertical-align: 0.2rem;
+}
+.map-layer-legend-swatch.map-key-direct {
+  height: 0;
+  border-top: 2px dashed var(--text-muted);
+  border-radius: 0;
+  vertical-align: 0.2rem;
+}
 .map-layer-legend-swatch {
   display: inline-block;
   width: 0.75rem;
