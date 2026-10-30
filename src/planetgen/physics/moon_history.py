@@ -123,7 +123,7 @@ def apply(planet, primary_mass_kg):
     survivors, dragged_kg = _settle(planet, survivors)
     for moon in survivors:
         if abs(moon.distance / entry[id(moon)] - 1.0) >= RESPIN_FRACTION:
-            planets.generate_spin(moon, planet.mass, birth=moon._birth_spin)
+            planets.generate_spin(moon, planet.mass, birth=getattr(moon, "_birth_spin", None))
     planet.moons[:] = survivors
     planet.fallen_moon_mass_kg = result.ring_mass_kg + dragged_kg
     if survivors:
