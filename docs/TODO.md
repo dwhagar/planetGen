@@ -14590,26 +14590,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TODO); lock-free, no stored-output change
   Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
 
-- [ ] **PERF.216 Find where the 50 pc spherical region count spends its time: the key statement is 3x to 10x slower than the research figure**
-  Reported by Aux 3 (as the lane reported, 6:15 AM EDT 2026-10-30) after
-  TEST.165 (#3980, scripts/bench_region_queries.py, results in
-  docs/design/galaxy/spherical-region-queries.md section 8.1). On 3M
-  real-shaped star_systems rows (0.12 systems/pc3) the key statement
-  COUNT(*) takes warm 5.8 ms at 1 pc, 13.6 ms at 10 pc, 64.5 ms at 25 pc
-  and 427.5 ms at 50 pc (62,336 systems), against the research's 42 ms
-  at 50 pc and 3 ms at 10 pc (6.9 us per system inside against the
-  note's 0.5 us). NAV.60's own loaded-machine figure is 260 ms at 50 pc.
-  The ranking holds (key fastest at every radius, box 1.3x slower at 50
-  pc, sector walk worst from 5 pc up), so only the absolute cost is in
-  question. Do: on a quiet machine find where the 50 pc count spends its
-  time (256 range-checked probes against per-row cost; the plan uses the
-  covering index and the pinned join order), and whether Boss's server
-  shows the same; fix it if a cheaper form returns the same set, with
-  the identical-set check of the benchmark as the test. Done: a recorded
-  cause and either a faster statement with an identical set or a stated
-  reason it stays. Related: NAV.60, TEST.165. Owner: Aux 3 (assigned
-  6:15 AM EDT 2026-10-30 as its lock-free item; no stored value).
-  Prerequisites: none. Related: NAV.60, TEST.165.
+- [ ] **PERF.217 The near list (near._systems_in_reach) reads the full row of every system in reach: list ids by the covering index and read names for the page only**
+  Reported by Aux 3 (as the lane reported, 7:17 AM EDT 2026-10-30) after
+  PERF.216 (#3992): near._systems_in_reach selects name and sector_id,
+  which are not in the covering index, so a 50 pc list reads the
+  clustered row of all 62,000 systems (1,170 ms against 360 ms for ids
+  only in the lane's profile). Do: list the ids through the covering
+  index with the distance, order and cap, then read names and sector ids
+  for the page only; keep the result and its order identical (a test
+  compares the old and new lists on the same data). Done: the 50 pc list
+  is within about the id-only time with an identical result. Related:
+  PERF.216, NAV.60. Owner: Aux 3 (assigned 7:18 AM EDT 2026-10-30; no
+  stored value).
+  Prerequisites: none. Related: PERF.216, NAV.60.
 
 ## DB: Database and schema
 
@@ -18938,6 +18931,18 @@ clears each one.
   fix the orbit. Done: the file passes on main. Related: TEST.463,
   GEN.1003, GEN.957. Owner: Bug 2 (proposed), after TEST.417.
   Prerequisites: none. Related: TEST.463, GEN.1003, GEN.957.
+
+- [ ] **TEST.471 tests/test_near.py::test_the_command_line_asks_for_the_nearest_few fails: argparse exits with code 2 so the pytest.raises(SystemExit, match="--distance") never sees the text (bug)**
+  Reported by Aux 3 (as the lane reported, 7:17 AM EDT 2026-10-30), red
+  on main: the test fails at the pytest.raises(SystemExit,
+  match='--distance') line because argparse exits with code 2 and the
+  exception message is '2', so the match never sees the text. The same
+  kind of fix as TEST.465 (query_db exit code). Do: assert the exit code
+  and read the message from the captured stderr (capsys) instead of
+  matching the exception text. Done: the test passes and still fails if
+  the --distance error is lost. Related: TEST.465, PERF.217. Owner: Aux
+  3 (assigned 7:18 AM EDT 2026-10-30).
+  Prerequisites: none. Related: TEST.465, PERF.217.
 
 ## USR: User accounts
 
