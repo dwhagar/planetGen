@@ -1158,27 +1158,18 @@ with `clamp()`.
   locked bodies is UX.244.
   Prerequisites: GEN.1097. Related: MAP.277, VIEW.14.
 
-- [ ] **UX.244 Slow and tidally locked bodies look frozen on screen: spin.js clamps every period over 1000 h to one turn per 600 s (stand-in SP1, L4), so Eakkar IV (class V, rotation 46.8 days, locked to its orbit) never visibly turns (bug)**
-  Boss, 4:47 PM EDT 2026-10-30 (live observation). Fix: draw a locked
-  body turning relative to the star so the day side visibly moves (the
-  sphere is fixed to the star direction and the stars drift), revisit
-  the clamp for slow rotators so a 46.8 day rotation visibly turns, and
-  label the spin as faster than real. The display speed stays a labelled
-  display choice kept separate from the real-time day counter (UX.243).
-  Done: browser checks for a fast, a slow and a locked body; SP1 row
-  updated. Lock-free (display only). Where we think it belongs (best
-  guess, can move): Core 2 (map and body views), separate branch, merge
-  it yourself, version 8.1.
-  Boss addition, 4:55 PM EDT (2026-10-30 4:57 PM EDT): On the object
-  page's rotating picture (the sensor display, bodyview.js) EVERY planet
-  is drawn viewed at the terminator: the day and night line down the
-  middle, the axial tilt shown by how the terminator and the poles lean,
-  the body still turning about its own axis at the labelled display
-  speed. A tidally locked body is labelled as locked on the picture and
-  in the text and is drawn the same way with the day side fixed toward
-  the star. Done adds: browser checks for a tilted body (Uranus-like),
-  an untilted one and a locked one.
-  Prerequisites: none. Related: MAP.277.
+- [ ] **UX.245 Tidally locked moon faces its planet in the System Map, and the locked label is drawn on the sensor view picture itself (follow-up to UX.244) (bug)**
+  Tides 1, 7:11 PM EDT 2026-10-30 (as the lane reported), after UX.244
+  merged (#4254): a tidally locked planet now faces its star in the
+  System Map and in the 3D views, and the sensor view carries a locked
+  caption, but a locked moon in the System Map is not yet turned to face
+  its planet, and the label "locked" is in the caption only, not drawn
+  on the picture. Do: turn a locked moon to face its planet in the
+  System Map and draw the locked label on the sensor view picture. Done:
+  browser checks for a locked moon and for the label on the picture.
+  Lock-free (display only). Where we think it belongs (best guess, can
+  move): Tides 1.
+  Prerequisites: none. Related: UX.244.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
