@@ -1,0 +1,5 @@
+**Headline:** The Galaxy Map can mark the star systems where each of the 15 life classes lives: the Menu has a Life classes group with a marker for each class.
+
+### Changed
+
+- **A marker for each life class (MAP.351).** The Menu has a new Life classes group with one marker for each of the 15 life classes (1a, 1b, 1c, 2, 3a, 3b, 4a, 4b, 4c, 5a, 5b, 6, 7, 8 and 9), off until chosen and kept in the address as `show=marker-lifeclass-1a` and so on. A class's marker shows the star systems with a planet or moon on which that class of life lives, as a green disc with the class id; the card names how many worlds have it, and in an open system each world carries the marker of its class. The marks come from the same stored `life_class` that the life filter of the search page reads. Migration 0176 fills the new `lifeclass-` rows of `system_interests` from the planets and moons already stored, and the sector nodes list them next to the planet class rows. Nothing a generator draws changes, so there is no epoch.

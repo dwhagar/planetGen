@@ -138,13 +138,14 @@ test("a system with two reasons is drawn once, by the first reason that is on, a
 });
 
 test("the reasons are in the order of the best world's symbol and a barren world or a belt is a reason of its own (MAP.321)", () => {
-  const worlds = M.INTEREST_KINDS.filter((k) => k.family !== "class");
+  const worlds = M.INTEREST_KINDS.filter((k) => k.family !== "class" && k.family !== "lifeclass");
   assert.deepEqual(worlds.map((k) => k.interest), ["inhabited", "civilization", "sentient", "life", "habitable", "uninhabitable", "gas-giant", "asteroid-field"]);
   assert.deepEqual(worlds.map((k) => k.icon), ["inhabited-world", undefined, undefined, undefined, "habitable-world", "uninhabitable-world", "gas-giant", "asteroid-field"]);
   assert.deepEqual(worlds.map((k) => k.glyph), [undefined, "civilization", "sentient", "life", undefined, undefined, undefined, undefined]);
   assert.deepEqual(M.INTEREST_KINDS.filter((k) => k.defaultOn).map((k) => k.interest), ["inhabited", "habitable", "gas-giant"]);
-  assert.deepEqual(M.INTEREST_KINDS.slice(worlds.length).map((k) => k.family), M.PLANET_CLASS_LETTERS.map(() => "class"),
-    "the planet classes come after every other reason");
+  assert.deepEqual(M.INTEREST_KINDS.slice(worlds.length).map((k) => k.family),
+    M.PLANET_CLASS_LETTERS.map(() => "class").concat(M.LIFE_CLASS_IDS.map(() => "lifeclass")),
+    "the planet classes and then the life classes come after every other reason");
   const systems = [
     { id: 1, name: "Rock", x: 0, y: 0, z: 0, reasons: { uninhabitable: { n: 2, score: 0.1, tier: "Red" } } },
     { id: 2, name: "Belt", x: 1, y: 0, z: 0, reasons: { "asteroid-field": { n: 1 } } },
@@ -163,6 +164,30 @@ test("the reasons are in the order of the best world's symbol and a barren world
     .map((c) => c.kind.id), ["marker-inhabited"], "an inhabited world's symbol comes before a habitable one's");
   assert.equal(M.interestLines(settled).map((l) => l.text).join("; "), "1 inhabited world, best Green; 2 habitable worlds, best Green");
   assert.equal(M.interestLines(systems[2]).map((l) => l.text).join("; "), "1 uninhabitable world; 1 gas giant; 1 asteroid belt");
+});
+
+test("each life class is an optional marker kind of its own: a glyph with its id, off until chosen, listed only by small blocks (MAP.351)", () => {
+  const classes = M.INTEREST_KINDS.filter((k) => k.family === "lifeclass");
+  assert.deepEqual(classes.map((k) => k.interest), M.LIFE_CLASS_IDS.map((id) => "lifeclass-" + id));
+  assert.equal(classes.length, 15);
+  assert.ok(classes.every((k) => k.defaultOn === false && !k.icon && M.GLYPHS[k.glyph] && k.maxBlock === M.CLASS_MAX_BLOCK));
+  assert.equal(classes[0].id, "marker-lifeclass-1a");
+  assert.equal(classes[0].label, "Class 1a life");
+  assert.equal(classes[0].describe({ name: "Rho", n: 1 }), "Rho, 1 world with class 1a life");
+  assert.equal(classes[3].describe({ n: 3 }), "3 worlds with class 2 life");
+  const registry = M.createMarkerKinds();
+  M.INTEREST_KINDS.forEach((kind) => registry.register(kind));
+  const systems = [
+    { id: 1, name: "Green", x: 0, y: 0, z: 0, reasons: { "lifeclass-1a": { n: 2 }, "lifeclass-3a": { n: 1 }, "class-M": { n: 1 } } },
+    { id: 2, name: "Vent", x: 1, y: 0, z: 0, reasons: { "lifeclass-3a": { n: 1 } } },
+  ];
+  const small = [{ key: "1.0.0.0", node: { interests: systems } }];
+  const big = [{ key: "9.0.0.0", node: { interests: systems } }];
+  const only = (id, nodes) => M.selectMarkers({ kinds: registry.kinds(), isOn: (kindId) => kindId === "marker-lifeclass-" + id, nodes });
+  assert.deepEqual(only("3a", small).map((c) => [c.kind.id, c.item.name]).sort(), [["marker-lifeclass-3a", "Green"], ["marker-lifeclass-3a", "Vent"]]);
+  assert.deepEqual(only("1a", small).map((c) => c.item.name), ["Green"]);
+  assert.deepEqual(only("3a", big), [], "a block bigger than the classes' limit does not list them");
+  assert.equal(M.interestLines(systems[0]).map((l) => l.text).join("; "), "1 class M world; 2 worlds with class 1a life; 1 world with class 3a life");
 });
 
 test("each planet class is an optional marker kind of its own: a glyph with its letter, off until chosen, listed only by small blocks (MAP.220)", () => {
