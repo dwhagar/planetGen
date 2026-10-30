@@ -367,11 +367,9 @@ def _dose_parts_sv(values):
 
 
 def cutoff_gv(values):
-    """The equatorial cutoff rigidity of the body's dipole, GV (0 without a field): the moment, times the dipole's
-    share for a slow-rotating planet (a moon keeps its dipole), over the radius squared (`radiation.cutoff_rigidity_gv`)."""
-    share = 1.0 if values.get("is_moon") or values.get("body_type") == "g" else magnetism.dipole_share(
-        values.get("rotation_period_hours"))
-    return radiation.cutoff_rigidity_gv((values.get("magnetic_moment_a_m2") or 0.0) * share, values.get("radius_km") or 0.0)
+    """The equatorial cutoff rigidity of the body's dipole, GV (0 without a field): the stored dipole moment over the radius squared
+    (`radiation.cutoff_rigidity_gv`)."""
+    return radiation.cutoff_rigidity_gv(values.get("magnetic_moment_a_m2") or 0.0, values.get("radius_km") or 0.0)
 
 
 def compute(values, compact_host=None):

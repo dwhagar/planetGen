@@ -273,3 +273,14 @@ def test_without_the_tables_a_run_that_disregards_it_takes_the_polytrope_and_any
             body.validate(spec["heavy_mass_earth"], spec["helium_share"])
         assert ("hhe_eos", gi.STAND_IN_POLYTROPE) in fetch.stand_ins_used()
         assert isinstance(gi._structure(_subject(JUPITER), 1.0), gi.Polytrope)
+
+
+def test_an_ice_giants_layers_carry_nested_radii_from_the_structure():
+    """GEN.967: the layers of an ice giant are placed by the structure (they no longer keep the radii they are born with), outside in without a gap."""
+    for seed in range(1, 8):
+        body = interior(NEPTUNE, seed)
+        assert body.layers[0].top_radius_fraction == pytest.approx(1.0) and body.layers[-1].bottom_radius_fraction == 0.0
+        for upper, lower in zip(body.layers, body.layers[1:]):
+            assert upper.bottom_radius_fraction == pytest.approx(lower.top_radius_fraction, abs=1e-9)
+        for layer in body.layers:
+            assert 0.0 <= layer.bottom_radius_fraction < layer.top_radius_fraction <= 1.0

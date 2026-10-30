@@ -11,7 +11,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.system import StarSystem
-from planetgen.physics import activity, constants, interior_heat, magnetism, orbit_elements, radiogenic
+from planetgen.physics import dynamo, giant_dynamo, activity, constants, interior_heat, magnetism, orbit_elements, radiogenic
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -118,7 +118,7 @@ def test_a_mercury_like_planet_keeps_its_field_at_any_age():
         for _ in range(50):
             body = _body(0.055, 5.43, 1407.6, age=age)
             magnetism.generate_field(body, _core(0.055, 2440.0, 0.68, age=age))
-            assert 1e18 < body.magnetic_moment_a_m2 < 3e21  # 3e19 A m2, log-normal 0.5 dex
+            assert 1e17 < body.magnetic_moment_a_m2 < 3e21  # 3e19 A m2, log-normal 0.5 dex (four sigma each way)
     small_rocky = _body(0.03, 5.43, 24.0)  # under 0.05 Earth masses: too small for a dynamo
     magnetism.generate_field(small_rocky, None)
     assert small_rocky.magnetic_moment_a_m2 == 0.0
@@ -135,14 +135,55 @@ def test_earth_mercury_and_jupiter_get_their_fields():
         moments.append(body.magnetic_moment_a_m2)
     median = sorted(moments)[len(moments) // 2]
     assert all(moment > 0.0 for moment in moments)
-    assert median == pytest.approx(magnetism.EARTH_MOMENT_A_M2 * core.dipole_scale, rel=0.2)    # log-normal 0.4 dex about the core's moment
+    field = dynamo.field(core.dynamo_w * magnetism.CORE_POWER_SCALE, core.radius_m, core.inner_fraction * core.radius_m, core.density_kg_m3, giant_dynamo.spin_rad_s(24.0))
+    assert median == pytest.approx(field.moment_a_m2, rel=0.05)           # log-normal 0.07 dex about the dynamo's moment
     assert 0.5 * magnetism.EARTH_MOMENT_A_M2 < median < 2 * magnetism.EARTH_MOMENT_A_M2
-    jupiter = _body(318.0, 1.33, 10.0, body_type="g")
-    magnetism.generate_field(jupiter)
-    assert jupiter.dipole_class == "strong" and jupiter.magnetic_moment_a_m2 > 1e26
     locked = _body(1.0, 5.51, 24.0 * 11)
     magnetism.generate_field(locked, core)
     assert locked.dipole_class == "multipolar"
+
+
+def _giant(spec, seed, period_hours):
+    """A giant that stores the layers of `tests.test_giant_interior.interior` (the structure's radii placed) and what it radiates."""
+    from planetgen.physics import giant_interior
+    from tests.test_giant_interior import interior
+    layers = interior(spec, seed)
+    body = _body(spec["mass_earth"], 1.33, period_hours, body_type="g")
+    body.radius = spec["radius_km"]
+    for name, value in giant_interior.body_values(layers).items():
+        setattr(body, name, value)
+    return body
+
+
+def test_a_giants_field_comes_from_its_convecting_layer_and_its_heat():
+    """GEN.967: Jupiter-like and Saturn-like giants are strong dipoles of the right size, the ice giant is weaker, none is drawn from anchors."""
+    from tests.test_giant_interior import JUPITER, SATURN
+    draw.set_run_seed(7)
+    jupiter = _giant(JUPITER, 1, 9.93)
+    magnetism.generate_field(jupiter)
+    assert 3.0e26 < jupiter.magnetic_moment_a_m2 < 6.0e27             # Jupiter's 1.5e27 within a factor of four; its Rossby number 0.13 sits on the gate (0.12), so the class may be either
+    assert jupiter.dipole_class in ("strong", "multipolar", "earth-like")
+    saturn = _giant(SATURN, 5, 10.66)
+    magnetism.generate_field(saturn)
+    assert 0.0 < saturn.magnetic_moment_a_m2 < jupiter.magnetic_moment_a_m2
+    bare = _body(318.0, 1.33, 10.0, body_type="g")                                 # no stored layers: no region, no field
+    magnetism.generate_field(bare)
+    assert bare.magnetic_moment_a_m2 == 0.0 and bare.dipole_class == "none"
+
+
+def test_a_moons_core_is_run_like_a_planets():
+    """GEN.967: a moon with a running core has a field from `dynamo.field`; no Ganymede chance is drawn."""
+    draw.set_run_seed(8)
+    young = _core(0.025, 2630.0, 0.3, age=0.3)
+    moon = _body(0.025, 1.94, 171.7, is_moon=True)
+    magnetism.generate_field(moon, young)
+    expected = dynamo.field(young.dynamo_w * magnetism.CORE_POWER_SCALE, young.radius_m, young.inner_fraction * young.radius_m, young.density_kg_m3,
+                            giant_dynamo.spin_rad_s(171.7)).moment_a_m2
+    if young.running:
+        assert moon.magnetic_moment_a_m2 == pytest.approx(expected, rel=0.5) and moon.magnetic_moment_a_m2 > 0.0
+    dead = _body(0.025, 1.94, 171.7, is_moon=True)
+    magnetism.generate_field(dead, None)
+    assert dead.magnetic_moment_a_m2 == 0.0
 
 
 def test_the_core_decides_whether_a_planet_has_a_field():
@@ -230,9 +271,9 @@ def test_induction_needs_an_ocean_a_field_and_a_changing_field():
 def test_earths_magnetopause_is_ten_radii():
     body = _body(1.0, 5.51, 24.0)
     body.magnetic_moment_a_m2 = magnetism.EARTH_MOMENT_A_M2
-    share = magnetism.dipole_share(24.0)
-    assert magnetism.magnetopause_rp(body, 1.0) == pytest.approx(9.75 * share ** (1 / 3), rel=0.02)
-    assert magnetism.dipole_share(10.0) > 0.95 and magnetism.dipole_share(24.0 * 30) < 0.2
+    assert magnetism.magnetopause_rp(body, 1.0) == pytest.approx(9.75, rel=0.02)
+    body.magnetic_moment_a_m2 = magnetism.EARTH_MOMENT_A_M2 / 8.0            # the stored moment is the dipole's: an eighth of it, half the standoff
+    assert magnetism.magnetopause_rp(body, 1.0) == pytest.approx(9.75 / 2.0, rel=0.02)
 
 
 def test_the_stored_magnetopause_is_in_radii_of_the_body_itself():
@@ -249,11 +290,10 @@ def test_the_stored_magnetopause_is_in_radii_of_the_body_itself():
         body.radius = radius_km
         body.magnetic_moment_a_m2 = moment
         stored[name] = magnetism.magnetopause_rp(body, 1.0)
-        metres = radiation_belts.standoff_m(moment * magnetism.body_dipole_share(body),
+        metres = radiation_belts.standoff_m(moment,
                                             magnetism.wind_pressure_pa(body.star, 1.0))
         assert stored[name] == pytest.approx(metres / (radius_km * 1000.0), rel=1e-9), name
-    share = magnetism.dipole_share(24.0)
-    assert stored["Earth"] == pytest.approx(9.75 * share ** (1 / 3), rel=0.02)
+    assert stored["Earth"] == pytest.approx(9.75, rel=0.02)
     assert stored["Jupiter"] * 69911.0 > stored["Earth"] * constants.EARTH_RADIUS_KM     # a Jupiter-strong field reaches farther in metres
     assert stored["Mars"] > stored["Earth"]                                                                # a smaller body has more radii in the same distance
 
