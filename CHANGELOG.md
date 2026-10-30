@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2579] - 2026-10-30
+
+**Headline:** The light of a star can now be looked up from model-atmosphere spectra by temperature and gravity, with the corona's far ultraviolet added from the MUSCLES stars.
+
+### Added
+- **A stellar spectra library (GEN.970).** Setup now also downloads the Castelli and Kurucz ATLAS9 flux grid and the Husser et al. PHOENIX-ACES M-dwarf spectra (130 MB, reduced to a 2.5 MB table of power shares). `physics/stellar_library.py` gives the share of a star's power in each band from its effective temperature and gravity, and adds the chromosphere's far ultraviolet from its XUV power. It reproduces the Sun's measured ultraviolet shares to 15 percent and the near-ultraviolet of the eleven MUSCLES stars to 0.33 dex. Nothing in generation calls it yet; the wiring that replaces the seeded UV-C share is GEN.971. Four stand-ins registered (SL1 to SL4). Setup needs the new dataset (`python3 -m planetgen.cli.datasets fetch`, which `update.sh` runs).
+
 ## [8.0.2578] - 2026-10-30
 
 **Headline:** A neutron star's radius and layers can now be computed from the 21 equation-of-state tables by integrating the general-relativity structure equations.
