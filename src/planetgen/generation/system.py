@@ -39,11 +39,8 @@ from planetgen.util import log
 from planetgen.generation import habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, planet_zones
+from planetgen.physics import bulk_draw, planet_architecture, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
-from planetgen.physics.formation import (
-    disk_surface_density_scale, isolation_mass_kg, mmsn_surface_density_gcm2,
-)
 from planetgen.physics.orbits import calculate_reflex_offset, holman_wiegert_circumbinary_a_crit_au
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.physics import unit_registry as units
@@ -1038,28 +1035,13 @@ class StarSystem:
                                     period_years=math.sqrt(_km_to_au(node.separation_km) ** 3
                                                            / total[node.node_no])) for node in plan.nodes]
 
-    @staticmethod
-    def _first_slot_distance_au(habitable_zone):
-        """
-        Where the innermost slot starts (GEN.37): a random fraction
-        (`FIRST_PLANET_HZ_FRACTION_RANGE`) of the habitable zone's inner
-        edge, so it scales with the star's light the way the zone does
-        (about 0.1-0.6 AU for the Sun, a few hundredths of an AU for a
-        red dwarf, where real compact systems like TRAPPIST-1 sit).
-        Scaling by the star's mass instead put a red dwarf's first planet
-        beyond its whole habitable zone, so nearly every planet came out
-        cold.
-        """
-        return habitable_zone[0] * draw.uniform(*tuning.FIRST_PLANET_HZ_FRACTION_RANGE)
-
     def _disk_outer_edge_au(self, star):
         """
         How far out `_generate_planets` places random slots around `star`:
         its protoplanetary disk's outer edge, the same
         `DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` times the snow line
-        `_estimate_max_objects_from_disk_physics` counts objects out to
-        (GEN.37). Placement is geometric, so without this edge the slot
-        count from that walk ran planets far past the disk (a red dwarf's
+        `_plan_architecture` builds its oligarch chain out to (GEN.37).
+        Without this edge the slots would run planets far past the disk (a red dwarf's
         out to hundreds of times its habitable zone). An evolved star or
         remnant whose present light puts that edge inside its orbit floor
         (`_orbit_floor_au`) no longer describes its disk, so it gets no
@@ -1160,7 +1142,7 @@ class StarSystem:
             return []  # a planetary nebula's close pair holds a circumbinary disk and no planets (GEN.318)
 
         planets = []
-        system_objects = self.estimate_num_objects(star)
+        plan, system_objects = self._plan_architecture(star, orbit_ceiling_au)
 
         required_objects = 0
         if apply_guarantees and self.system_config.HABITABLE_WORLD is True:
@@ -1198,19 +1180,19 @@ class StarSystem:
                 slot_spec = slots[i] if i < len(slots) else None
                 prev_slot_explicit = i > 0 and (i - 1) < len(slots) and slots[i - 1] is not None
 
+                seed = plan.seed(i)
                 if i > 0:
                     last_planet = planets[i - 1]
-                    # Geometric spacing (GEN.37): real neighbors sit a roughly
-                    # constant *ratio* apart, not a constant number of AU, so a
-                    # dim star's planets stay as close-packed as its habitable
-                    # zone is small instead of marching out into the cold.
-                    spacing_ratio = draw.uniform(*tuning.PLANET_SPACING_RATIO_RANGE)
+                    # The planet architecture (GEN.728, GEN.729, GEN.730) gives each slot its distance and mass: oligarchs
+                    # spaced in mutual Hill radii and thinned by instability, so the gaps are what the disc built
+                    # (`validate_system` keeps the stable spacing of the whole). A belt takes the place of a light planet
+                    # in its slot (`BELT_REPLACES_BELOW_EARTH`).
                     if last_planet.body_type == 'a':
-                        estimated_distance = last_planet.upper_limit * spacing_ratio
+                        estimated_distance = max(seed.distance_au,
+                                                 last_planet.upper_limit * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN)
                         last_asteroid = True
                     else:
-                        estimated_distance = max(last_planet.distance + last_planet.min_orbit_distance,
-                                                 last_planet.distance * spacing_ratio)
+                        estimated_distance = max(last_planet.distance, seed.distance_au)
 
                     # Each successive slot's minimum spacing scales with the
                     # previous object's own Hill radius, which itself scales
@@ -1241,8 +1223,7 @@ class StarSystem:
                 else:
                     # A close binary's first slot starts no closer than its
                     # circumbinary stability limit (0 for any other star).
-                    estimated_distance = max(self._first_slot_distance_au(habitable_zone),
-                                             self._orbit_floor_au(star))
+                    estimated_distance = max(seed.distance_au, self._orbit_floor_au(star))
 
                 hz = habitable_zone[0] < estimated_distance < habitable_zone[1]
 
@@ -1319,8 +1300,10 @@ class StarSystem:
                 belt_fallback_index = (system_objects - 2) if hab_still_pending else (system_objects - 1)
                 force_belt = apply_guarantees and self.system_config.ASTEROID_BELT is True and not found_belt and i >= belt_fallback_index
 
+                belt_fits_slot = not seed.runaway and seed.mass_kg < tuning.BELT_REPLACES_BELOW_EARTH * constants.EARTH_MASS_TO_KG
                 if self.system_config.ASTEROID_BELT is not False and (
-                    force_belt or (not last_asteroid and not hz and (draw.random() < tuning.ASTEROID_BELT_PROBABILITY or i == belt_index))
+                    force_belt or i == belt_index
+                    or (belt_fits_slot and not last_asteroid and not hz and draw.random() < tuning.ASTEROID_BELT_PROBABILITY)
                 ):
                     if force_belt:
                         belt_reason = "forced (last-resort fallback: ASTEROID_BELT required but not yet placed)"
@@ -1335,7 +1318,7 @@ class StarSystem:
                     found_belt = True
                 else:
                     planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
-                                    planned_objects=system_objects)
+                                    planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au)
                     if habitable_request.meets_with_moons(planet):
                         found_hab = True
                     planets.append(planet)
@@ -2157,148 +2140,59 @@ class StarSystem:
             comets = self.comets + self.secondary_comets
         return len(comets)
 
-    def estimate_num_objects(self, star):
+    def _plan_architecture(self, star, orbit_ceiling_au):
         """
-        Estimates the number of objects in a star system from real
-        protoplanetary-disk physics, rather than an arbitrary curve fit to
-        the star's mass alone.
+        The planets `star` is to hold and how many bodies the system is to have (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920,
+        `physics/planet_architecture.py`): an inner system drawn at the observed share, a chain of oligarchs thinned by dynamical instability,
+        gas giants and migration, all from the star and its disc. The planets of the chain are the system's slots, in order, each with its
+        distance and mass; a system asked to hold more has the next oligarchs out added (`planet_architecture.Plan.seed`).
 
-        `_estimate_max_objects_from_disk_physics` derives a ceiling from
-        the star's own disk-mass budget (scaled from the Sun's own
-        Minimum Mass Solar Nebula -- see that method's docstring) rather
-        than a logarithmic fudge factor. The final number is a random
-        value between the minimum and that ceiling, or the ceiling/minimum
-        itself if `MAX_PLANETS` is True/False -- this part of the
-        contract is unchanged from before.
-
-        `NUM_ORBITS`, when set, bypasses this estimate entirely and is
-        returned as-is. `PLANETS` set to False forces zero objects; set to
-        True, it raises the minimum considered to 1.
+        `PLANETS` False gives no object, `NUM_ORBITS` exactly that many (the first of the chain, then more oligarchs). `MAX_PLANETS` True
+        gives the star an inner system and a starting count two widths of its spread above the mean (the most its disc holds), False the
+        fewest (none, or one when `PLANETS` is True); a `max_planets` prevalence (GEN.52) scales the chance of the most. Planets inside
+        the star's orbit floor (`_orbit_floor_au`) are left out.
 
         Args:
-            star (Star): The star to estimate object count for -- `self.star`
-                for a single star or P-type binary, or individually
-                `self.primary_star`/`self.secondary_star` for an S-type
-                binary (see `_generate_planets`, this method's only caller).
+            star (Star): The star -- `self.star` for a single star or P-type binary, or individually `self.primary_star` or
+                `self.secondary_star` for an S-type binary (see `_generate_planets`, this method's only caller).
+            orbit_ceiling_au (float): The orbit ceiling of the star (`_orbit_ceiling_au`).
 
         Returns:
-            int: The estimated number of objects to be generated in the system.
+            tuple: The `planet_architecture.Plan` and the number of bodies the system holds.
         """
-        if self.system_config.PLANETS is False:
-            return 0
-
-        if self.system_config.NUM_ORBITS is not None:
-            return self.system_config.NUM_ORBITS
-
-        max_objects = self._estimate_max_objects_from_disk_physics(star)
+        config = self.system_config
         fe_h = getattr(star, "metallicity_fe_h", None)
-        occurrence = 1.0 if fe_h is None else metallicity.planet_occurrence_factor(fe_h)
-        if occurrence < 1.0:
-            # GEN.236: a metal-poor star's disk makes fewer planets than the disk's stars do. The ceiling above is far
-            # over what fits, so the cap is a share of the objects a metal-rich system holds in practice; at and above
-            # `metallicity.floor_fe_h()` nothing changes.
-            max_objects = min(max_objects, math.ceil(tuning.PLANET_OCCURRENCE_REFERENCE_OBJECTS * occurrence - 1e-9))
+        fe_h = 0.0 if fe_h is None else fe_h
+        metal_ratio = bulk_draw.metal_ratio_to_solar(star)
+        disk_edge_au = self._disk_outer_edge_au(star)
+        if math.isinf(disk_edge_au):
+            disk_edge_au = tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * star.snow_line_au
+        outer_au = min(orbit_ceiling_au, disk_edge_au)
 
-        min_objects = 1 if self.system_config.PLANETS is True else 0
-        max_objects = max(max_objects, min_objects)
+        sublimation_au = planet_architecture.sublimation_au(star.luminosity or 0.0)
 
-        if self.system_config.MAX_PLANETS is True:
-            return max_objects
-        if self.system_config.MAX_PLANETS is False:
-            return min_objects
-        # Every count is equally likely; a max_planets prevalence (GEN.52)
-        # scales the chance of the most.
-        if max_objects > min_objects and prevalence.percent(self.system_config, "max_planets"):
-            if draw.random() < prevalence.scaled_chance(self.system_config, "max_planets",
-                                                          1.0 / (max_objects - min_objects + 1)):
-                return max_objects
-            return draw.randint(min_objects, max_objects - 1)
-        return draw.randint(min_objects, max_objects)
+        def plan_of(architecture, limit=None):
+            floor_au = self._orbit_floor_au(star)
+            if floor_au > 0.0:
+                architecture = architecture._replace(planets=tuple(s for s in architecture.planets if s.distance_au >= floor_au))
+            return planet_architecture.Plan(architecture, star.mass, star.snow_line_au, metal_ratio, fe_h, limit, sublimation_au)
 
-    def _estimate_max_objects_from_disk_physics(self, star):
-        """
-        Derives a physically-grounded ceiling on planet/belt count from
-        `star`'s own protoplanetary disk, instead of an arbitrary curve
-        fit to stellar mass.
+        def built(maximum=False):
+            return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au)
 
-        Real planet formation gives a natural way to turn "how much solid
-        material did this star's disk have" into "how many planets could
-        that have made": embryos grow by clearing their own feeding zone
-        until they reach their oligarchic-growth *isolation mass*
-        (`formation.isolation_mass_kg` -- Lissauer 1993; Kokubo & Ida 2000,
-        2002), then space apart from their neighbors by the same *mutual*
-        Hill radius `_mutual_min_distance_au` already enforces during
-        placement (`tuning.MUTUAL_HILL_RADII_SEPARATION`) --
-        so this walk and that spacing rule are provably consistent with
-        each other, unlike the old log-mass formula, which had no
-        relationship to it at all.
-
-        The walk starts at `tuning.INITIAL_PLANET_DISTANCE_FACTOR
-        * star_factor` (where `_generate_planets` seeded its first slot
-        before GEN.37 scaled that with the habitable zone instead) and
-        steps outward -- at each step, computing the local isolation
-        mass from the disk's surface density there (scaled for this star
-        via `formation.disk_surface_density_scale`, boosted beyond the snow
-        line via `formation.snow_line_au`), then advancing by that embryo's
-        own mutual-Hill-radius feeding zone -- until reaching the disk's
-        outer edge, at
-        `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` times
-        the snow line (real disks are truncated far short of `star`'s own
-        `system_perimeter`'s galactic-tidal scale; see that constant's
-        docstring), or `ABSOLUTE_MAX_SYSTEM_OBJECTS` isolation-mass
-        slots, whichever comes first.
-
-        Not every one of those oligarchs survives as a final planet --
-        real N-body integrations of the subsequent giant-impact phase
-        (Chambers 2001) show most merge or get ejected -- so the raw slot
-        count is scaled down by
-        `tuning.GIANT_IMPACT_SURVIVAL_FRACTION` before being
-        returned.
-
-        Args:
-            star (Star): The star whose disk this estimate is derived
-                from -- `self.star` for a single star or a P-type binary,
-                or individually `self.primary_star`/`self.secondary_star`
-                for an S-type binary (see `estimate_num_objects`, this
-                method's only caller).
-
-        Returns:
-            int: The physically-derived ceiling on this star's object
-                count (`max_objects`, as `estimate_num_objects` already
-                names it).
-        """
-        star_mass_kg = star.mass
-        star_factor = star_mass_kg / constants.SOLAR_MASS_TO_KG
-        snow_line = star.snow_line_au
-        density_scale = disk_surface_density_scale(star_mass_kg, bulk_draw.metal_ratio_to_solar(star))
-        outer_edge_au = min(
-            tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line,
-            star.system_perimeter,
-        )
-
-        distance_au = tuning.INITIAL_PLANET_DISTANCE_FACTOR * star_factor
-        oligarch_count = 0
-        while (
-            distance_au < outer_edge_au
-            and oligarch_count < tuning.ABSOLUTE_MAX_SYSTEM_OBJECTS
-        ):
-            surface_density = mmsn_surface_density_gcm2(distance_au, snow_line, density_scale)
-            embryo_mass_kg = isolation_mass_kg(distance_au, surface_density, star_mass_kg)
-
-            # Two neighboring oligarchs of roughly the same isolation mass
-            # (2 * embryo_mass_kg is the pair's combined mass) -- the same
-            # kappa/clamp `_mutual_min_distance_au` uses, so this step and
-            # that later spacing check agree on how far apart is "enough."
-            kappa = tuning.MUTUAL_HILL_RADII_SEPARATION * (
-                (2 * embryo_mass_kg) / (3 * star_mass_kg)
-            ) ** (1 / 3)
-            kappa = min(kappa, 1.8)
-
-            distance_au *= (1 + kappa / 2) / (1 - kappa / 2)
-            oligarch_count += 1
-
-        max_objects = math.ceil(oligarch_count * tuning.GIANT_IMPACT_SURVIVAL_FRACTION)
-        return min(max_objects, tuning.ABSOLUTE_MAX_SYSTEM_OBJECTS)
+        if config.PLANETS is False:
+            return plan_of(planet_architecture.Architecture((), 1.0, tuning.OLIGARCH_SEPARATION_MEDIAN, 0), 0), 0
+        minimum = 1 if config.PLANETS is True else 0
+        if config.NUM_ORBITS is not None:
+            return plan_of(built(), config.NUM_ORBITS), config.NUM_ORBITS
+        if config.MAX_PLANETS is False:
+            return plan_of(built(), minimum), minimum
+        architecture = built(maximum=True) if config.MAX_PLANETS is True else built()
+        if config.MAX_PLANETS is not True and prevalence.percent(config, "max_planets"):
+            if draw.random() < prevalence.scaled_chance(config, "max_planets", 1.0 / (len(architecture.planets) + 1)):
+                architecture = built(maximum=True)
+        plan = plan_of(architecture)
+        return plan, max(len(plan), minimum)
 
     def validate_system(self, planets=None):
         """
