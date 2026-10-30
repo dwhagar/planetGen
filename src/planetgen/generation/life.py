@@ -99,7 +99,10 @@ def _apply(planet, keep_stored):
 
 def _choose(planet, scores, keep_stored):
     """`(ClassScore or None, kept)`: the class that lives on the body. With `keep_stored` the class it has is kept while it is still supported; else
-    the dominant one (`life_classes.dominant`)."""
+    the dominant one (`life_classes.dominant`). None whatever the scores when the star is younger than `tuning.LIFE_MIN_STAR_AGE_GY`."""
+    age = getattr(getattr(planet, "star", None), "age", None)
+    if age is not None and age < tuning.LIFE_MIN_STAR_AGE_GY:
+        return None, False      # a crust and oceans take about 0.1 Gyr: a star younger than that has no life anywhere (GEN.997)
     if keep_stored:
         stored = life_classes.class_id(getattr(planet, "life_class", None), getattr(planet, "life_class_variant", None))
         if stored in scores and scores[stored].score > 0:

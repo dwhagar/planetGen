@@ -451,3 +451,24 @@ def test_a_planet_page_is_laid_out_about_habitability_atmosphere_composition_the
 def test_a_planet_with_no_life_or_people_has_no_life_or_civilization_section(client):
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
     assert 'id="life-paragraph-heading"' not in page and 'id="civilization-heading"' not in page
+
+
+def test_a_planet_with_life_lists_the_classes_it_supports_and_what_the_class_lives_on(client, monkeypatch):
+    detail = _detail()
+    detail["planets"][0].update(planet_class="M", zone="e", body_type="t", phi4=0.8, tier_suitability=1, life_microbial=2, life_flora=3,
+                                life_fauna=1, life_sentient=0, life_class=1, life_class_variant="a", life_class_id="1a",
+                                life_class_best="1a", life_class_best_score=7, life_class_scores={"1a": 7, "2": 4},
+                                life_stage="multicellularity", life_animal_grade=2)
+    monkeypatch.setattr(apiclient, "get_system", lambda db, system_id: detail)
+    found = apiclient.get_object
+    monkeypatch.setattr(apiclient, "get_object", lambda db, ref: {**found(db, ref), "life_microbial": 2, "life_flora": 3,
+                                                                  "life_fauna": 1, "life_sentient": 0})
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert "Supports Class 1a life (oxygenic light-eaters), score 7 of 9." in page
+    assert re.search(r"Also supports Class 2 \(anoxygenic light-eaters[^<]*, 4 of 9\)\.", page)
+    assert "Has Class 1a life, at the stage of small mobile animals (animal grade A2)." in page
+    assert page.index('id="life-paragraph-heading"') < page.index("Supports Class 1a") < page.index('id="life-class-words"')
+    block = page.split('id="life-class-words"')[1].split("</details>")[0]
+    assert "eats, drinks, breathes and gives off" in page and "<dt>Drinks</dt><dd>water</dd>" in block
+    assert re.search(r'<details[^>]*id="life-class-words"(?![^>]*\bopen\b)', page), "the block starts collapsed"
+    assert 'class="hab-life-class"' in page

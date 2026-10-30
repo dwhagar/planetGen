@@ -437,6 +437,11 @@ def test_api(mysql_config, galaxy, client):
     spacefaring = client.get("/api/species?spacefaring=true").get_json()
     assert spacefaring["total"] >= 1 and all(item["spacefaring"] for item in spacefaring["items"])
     assert client.get("/api/species?spacefaring=maybe").status_code == 400
+    # PERF.205: `after` is the id the previous page ended on, `offset` is not used with it
+    first = client.get("/api/species?limit=1").get_json()["items"][0]
+    second = client.get(f"/api/species?limit=1&offset=5&after={first['id']}").get_json()["items"]
+    assert second and second[0]["id"] != first["id"]
+    assert client.get("/api/species?after=not-an-id").status_code == 400
 
     one = listing["items"][0]
     assert client.get(f"/api/species/{one['id']}").get_json()["name"] == one["name"]
@@ -493,6 +498,42 @@ def test_population_status_after_a_pass(mysql_config, galaxy, client):
 
 
 # --- The Species and Polities tables (UX.41) ---------------------------------------------
+
+def test_species_page_by_key_in_every_sort_gives_the_same_order_as_one_long_page(mysql_config, galaxy):
+    """PERF.205: `after` (the id of the last species on the page before) starts the next page in the same order, for every
+    sort, both ways, with the species that have no polity, era or tech level last; `offset` is not used with it."""
+    conn = store.get_connection(mysql_config)
+    try:
+        populate(conn)
+        with conn:
+            _set_age(conn, galaxy["a"], 1e6)
+        populate(conn)
+        with conn:      # more species, with no era, tech level or polity, so the null-last sorts have rows to place
+            conn.execute(
+                "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_stage, build, climate, size) "
+                "SELECT CONCAT('Wild ', p.id), p.id, p.star_system_id, 'multicellularity', 'plain', 'temperate', 'medium' "
+                "FROM planets p WHERE NOT EXISTS (SELECT 1 FROM species x WHERE x.homeworld_planet_id = p.id) LIMIT 4")
+        total = population.count_species(conn)
+        assert total >= 4, "the fixture has species to page over"
+        for sort in population.SPECIES_SORTS:
+            for descending in (False, True):
+                whole = [row["id"] for row in population.list_species(conn, sort=sort, descending=descending, limit=100)]
+                paged, after = [], None
+                for _ in range(total + 1):          # a page that never moves on would loop forever
+                    page = population.list_species(conn, sort=sort, descending=descending, limit=2, after=after,
+                                                   offset=7 if after else 0)
+                    if not page:
+                        break
+                    paged += [row["id"] for row in page]
+                    after = page[-1]["id"]
+                assert paged == whole, (sort, descending)
+        some = population.list_species(conn, limit=100)[1]["id"]
+        assert [row["id"] for row in population.list_species(conn, after=987654321, limit=100)] == [
+            row["id"] for row in population.list_species(conn, limit=100)], "an unknown id starts at the top"
+        assert population.list_species(conn, after=some, limit=100)[0]["id"] != some
+    finally:
+        conn.close()
+
 
 def test_species_and_polities_sort_filter_and_count(mysql_config, galaxy):
     conn = store.get_connection(mysql_config)

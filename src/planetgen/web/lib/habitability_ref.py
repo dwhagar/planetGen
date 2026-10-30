@@ -279,6 +279,11 @@ MAP_ROWS = (
                               "one on (kept in the address as show=marker-class-K for class K). A system with a world of "
                               "the class gets a disc with the class letter, once the map is close enough to have its "
                               "sector; hovering names the system and how many worlds of the class it holds."),
+    ("Marker: Life classes", "The Menu's Life classes group has a marker for each of the 15 life classes (1a, 1b, 1c, 2, 3a and "
+                             "so on), all off until you turn one on (kept in the address as show=marker-lifeclass-1a for "
+                             "class 1a). A system with a world on which that class of life lives gets a green disc with the "
+                             "class id, once the map is close enough to have its sector; hovering names the system and how "
+                             "many worlds have the class."),
 )
 """tuple: `(control, what it does)` for the habitable-world views of the Galaxy Map (MAP.143, MAP.220)."""
 

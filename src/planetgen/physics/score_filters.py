@@ -12,6 +12,7 @@ The overall colour reads the stored `phi4` through the same cut-offs as `habitab
 `tier_<domain>` numbers (0 Blue to 3 Red); the life scores are whole numbers 0 to 9 (`life_scores`).
 """
 
+from planetgen.physics import life_classes
 from planetgen.physics.habitability_world import DOMAINS, TIER_NAMES
 
 HABITABILITY_TICKS = (
@@ -46,13 +47,33 @@ LIVING_TICKS = (
 )
 """tuple: The plain life questions. `food` follows `habitability.food_score`: flora, fauna or a civilization is food."""
 
+SUPPORTS_LEVELS = ((1, "supported"), (5, "well supported"))
+"""tuple: The class score thresholds offered: 1 or more of 9 (the body supports the class at all) and 5 or more of 9."""
+
+SUPPORTS_SQL = ("EXISTS (SELECT 1 FROM {scores} s WHERE s.{owner} = {a}.id AND s.life_class = '%(class_id)s' AND s.score >= %(least)d)")
+"""str: The test of one "supports Class N" tick on a `planets` or `moons` row with the alias in `{a}`: the body has a row for the class in
+its life class score table (`{scores}`, keyed by `{owner}`) at the least score. Only classes that reach the line have a row
+(`life_class_scores`, GEN.889), so the tick reads the index on the class and the score."""
+
+SUPPORTS_TICKS = tuple(
+    (f"{definition.id}:{least}", f"Supports Class {definition.id}: {definition.name}, score {least} or more of 9 ({word})",
+     SUPPORTS_SQL % {"class_id": definition.id, "least": least})
+    for definition in life_classes.CLASSES for least, word in SUPPORTS_LEVELS)
+"""tuple: One tick per life class and threshold, `<class id>:<least score>` (for example `1a:5`), "this body supports Class N life" with
+the score the class got from the body's conditions (docs/design/habitability/life-classes.md section 10, MAP.345). The class that
+lives on a body is the `life` facet."""
+
 FACETS = {
     "habitability": ("Habitability colour", HABITABILITY_TICKS),
     "domain": ("Habitability domain colour", DOMAIN_TICKS),
     "life_level": ("Life score", LIFE_LEVEL_TICKS),
     "living": ("Life", LIVING_TICKS),
+    "supports": ("Supports a life class", SUPPORTS_TICKS),
 }
 """dict: Each facet (the search tag facet name without a `moon_` prefix) to its title and ticks."""
+
+SCORE_TABLES = {"planet": ("planet_life_class_scores", "planet_id"), "moon": ("moon_life_class_scores", "moon_id")}
+"""dict: The kind of a body to the table of its life class scores and the column that names the body there."""
 
 SORT_COLUMNS = {
     "phi4": "phi4", "suitability": "tier_suitability", "microbial": "life_microbial", "flora": "life_flora",
@@ -71,14 +92,28 @@ def values(facet):
     return frozenset(value for value, _label, _sql in FACETS[facet][1])
 
 
-def condition(facet, alias, selected):
+def _owner(kind):
+    scores, owner = SCORE_TABLES[kind]
+    return {"scores": scores, "owner": owner}
+
+
+def condition(facet, alias, selected, kind="planet"):
     """The SQL condition (a parenthesised `OR` of the selected ticks of `facet` on the table `alias`; unknown values are
-    dropped) or `None` when none of `selected` is a tick."""
-    conditions = [sql.format(a=alias) for value, _label, sql in FACETS[facet][1] if value in selected]
+    dropped) or `None` when none of `selected` is a tick. `kind` (`planet` or `moon`) names the body's life class score table
+    for the `supports` facet."""
+    conditions = [sql.format(a=alias, **_owner(kind)) for value, _label, sql in FACETS[facet][1] if value in selected]
     return "(" + " OR ".join(conditions) + ")" if conditions else None
 
 
-def counts_select(facet, alias):
+def counts_select(facet, alias, kind="planet"):
     """The select list that counts the bodies of table `alias` each tick of `facet` holds for (`t0`, `t1`, ...)."""
-    return ", ".join(f"COALESCE(SUM({sql.format(a=alias)}), 0) AS t{i}" for i, (_v, _l, sql) in enumerate(FACETS[facet][1]))
+    return ", ".join(f"COALESCE(SUM({sql.format(a=alias, **_owner(kind))}), 0) AS t{i}"
+                     for i, (_v, _l, sql) in enumerate(FACETS[facet][1]))
 
+
+def supports_counts_sql(kind):
+    """The query that counts, for every class in the score table of `kind`, the bodies at each threshold of `SUPPORTS_LEVELS`
+    (columns `life_class`, `t<least>`). One pass over the index on the class and the score, not a test for each body and tick."""
+    scores, _owner_column = SCORE_TABLES[kind]
+    sums = ", ".join(f"COALESCE(SUM(score >= {least}), 0) AS t{least}" for least, _word in SUPPORTS_LEVELS)
+    return f"SELECT life_class, {sums} FROM {scores} GROUP BY life_class"

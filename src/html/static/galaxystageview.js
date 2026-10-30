@@ -59,6 +59,7 @@ const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
 const { KINDS } = await import(`./sectorscene.js${VERSION_QUERY}`);
 const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
 const { nearestInDirection } = await import(`./systemstep.js${VERSION_QUERY}`);
+const CROSS = await import(`./crossstars.js${VERSION_QUERY}`);
 const NF = await import(`./nearfield.js${VERSION_QUERY}`);
 const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 const SR = await import(`./sectorreach.js${VERSION_QUERY}`);
@@ -195,6 +196,8 @@ export function createStageView(host) {
   let enterSystemToken = 0;
   // A system to open once its sector has (a reload or Back to its URL).
   let pendingSystem = null;
+  // MAP.329: how to open that system (history entry and scale) when a step to it crossed a sector's edge.
+  let pendingSystemOptions = null;
   // The body of that system the URL named (?object=planet:12).
   let pendingObject = null;
   // The body of the open system the camera rides along with (a moving target).
@@ -1436,8 +1439,9 @@ export function createStageView(host) {
     if (pinned) return null;
     if (enteredSystem) {
       // MAP.121: from the open system, the nearest system of the open sector that lies that way (systemstep.js).
+      // MAP.329: the systems across the sector's edge are candidates too (crossStars), once their sectors' scenes are read.
       const here = sectorStage.entries().find(function (e) { return e.endpoint === "system:" + enteredSystem.id; });
-      const to = here ? nearestInDirection(here, sectorStars(true), direction, function (e) { return e === here; }) : null;
+      const to = here ? nearestInDirection(here, sectorStars(true).concat(crossStars()), direction, function (e) { return e === here; }) : null;
       return to ? { system: to } : null;
     }
     if (entered) {
@@ -1463,6 +1467,13 @@ export function createStageView(host) {
     if (next.system) {
       const mode = systemStage.mode();
       closeSystem();
+      if (next.system.sector) {
+        // MAP.329: a system across the sector's edge: its sector opens beside this one (as the wall icon's step does) and its system with it,
+        // each its own history entry.
+        pendingSystem = next.system.endpoint.slice("system:".length);
+        pendingSystemOptions = { push: true, mode: mode };
+        return openSector(next.system.sector);
+      }
       enterSystem(next.system, { push: true, mode: mode });
       return true;
     }
@@ -1865,7 +1876,7 @@ export function createStageView(host) {
         if (!entered || entered.id !== record.id) enterSector(block, record, { push: true, fly: !(how && how.keepCamera) });
         return;
       }
-      if (!record && host.fetchUnchartedScene) {
+      if (!record && host.fetchUnchartedScene && !unchartedNone.has(cellKey(block))) {
         // Nothing generated here: what the scatters left in it still opens
         // (MAP.162); an empty cell is only selected, as below.
         if (!isEnteredCell(block)) enterSector(block, null, { push: true, fly: !(how && how.keepCamera) });
@@ -2096,6 +2107,12 @@ export function createStageView(host) {
     };
     sectorStage.open(candidate.record.id, candidate.block.bounds, null, true).then(function (geo) {
       if (!active || token !== ambientToken || ambient !== mine) return;
+      if (geo === undefined) {
+        // TEST.450: another open took the scene stage's place meanwhile (a cell the wheel tried): not a failure of this sector, which is
+        // asked for again.
+        ambient = null;
+        return;
+      }
       if (!geo) {
         failed();
         return;
@@ -2160,6 +2177,12 @@ export function createStageView(host) {
     return ambient && !ambient.loading ? { id: ambient.id, key: ambient.key, share: ambientShare } : null;
   };
 
+  // For the browser tests (MAP.329): the name of the system a step in `direction` goes to from the open system, or null.
+  canvasEl.galaxyStepTo = function (direction) {
+    const next = stepTarget(direction);
+    return next && next.system ? next.system.name : null;
+  };
+
   // For the browser tests (TEST.442): the sector opened in place once its scene is up and takes clicks, {id, share}, or null
   // (the panel names the sector from its address before the scene has been fetched, and a click then falls on a cell).
   canvasEl.galaxyOpenSector = function () {
@@ -2185,6 +2208,10 @@ export function createStageView(host) {
   // one is. `block` is its cell, `record` the stage's sector record; with no
   // record the cell is one nothing was generated in, which opens (as
   // "Uncharted") only when the scatters left objects in it (MAP.162).
+  // TEST.450: the cells nothing was generated in that the server has said hold nothing to open (a 404, or a scene with no objects), so the
+  // wheel is not left asking for the same cell on every tick.
+  const unchartedNone = new Set();
+
   function enterSector(block, record, options) {
     const token = ++enterToken;
     const at = { shell: block.shell, band: block.band, wedge: block.wedge };
@@ -2196,6 +2223,7 @@ export function createStageView(host) {
       notice("");
       selectedSector = at;
       if (!geo) {
+        if (!record && geo === null) unchartedNone.add(cellKey(block));
         if (!record && entered) closeSector();
         const index = sectorOption(at);
         if (index >= 0) setHover({ option: index, sticky: true });
@@ -2236,6 +2264,7 @@ export function createStageView(host) {
       entering = false;
       if (!record) {
         // Only a bonus on a cell nothing was generated in: it is just selected.
+        unchartedNone.add(cellKey(block));
         notice("");
         if (entered) closeSector();
         selectedSector = at;
@@ -2319,6 +2348,12 @@ export function createStageView(host) {
     };
     systemStage.open(candidate.entry.href, candidate.entry.name, [candidate.entry.x, candidate.entry.y, candidate.entry.z], undefined, true).then(function (geo) {
       if (!active || token !== systemToken || systemAmbient !== mine) return;
+      if (geo === undefined) {
+        // TEST.450: another open took the scene stage's place meanwhile (a cell the wheel tried): not a failure of this sector, which is
+        // asked for again.
+        ambient = null;
+        return;
+      }
       if (!geo) {
         failed();
         return;
@@ -2434,7 +2469,9 @@ export function createStageView(host) {
     const wanted = pendingSystem;
     pendingSystem = null;
     const entry = sectorStage.entries().find(function (e) { return e.endpoint === "system:" + wanted; });
-    if (entry) enterSystem(entry, { push: false });
+    const options = pendingSystemOptions || { push: false };
+    pendingSystemOptions = null;
+    if (entry) enterSystem(entry, options);
   }
 
   // The map's scale of the open system, true or compressed.
@@ -2492,6 +2529,39 @@ export function createStageView(host) {
     return sectorStage.sceneEntries().filter(function (e) {
       return e.href && e.endpoint && e.endpoint.indexOf("system:") === 0 && !sectorStage.sceneHides(e);
     });
+  }
+
+  // MAP.329: the systems of the sectors round the open one, for stepping from an open system across the sector's edge: the generated sectors
+  // near the system are asked of the server (`host.fetchNear`, as the ambient scenes are) and each one's scene read for its systems
+  // (crossstars.js), nothing drawn. Read once for each system opened; the step buttons come on when it is in (renderTravel).
+  let cross = null;
+  function crossStars() {
+    if (!enteredSystem || !entered || !host.fetchNear || !host.fetchSectorScene) return [];
+    if (!cross || cross.id !== enteredSystem.id) loadCross();
+    return cross.stars;
+  }
+
+  function loadCross() {
+    const mine = cross = { id: enteredSystem.id, stars: [] };
+    const here = sectorStage.entries().find(function (e) { return e.endpoint === "system:" + enteredSystem.id; });
+    if (!here) return;
+    const centreOf = function (record) {
+      const block = { m: 1, shell: record.shell, band: record.band, wedge: record.wedge };
+      return P.cellCenter(P.drillBlockBounds(block, edgePc));
+    };
+    const query = "?x=" + here.x.toFixed(3) + "&y=" + here.y.toFixed(3) + "&z=" + here.z.toFixed(3) + "&r=" + (2 * edgePc).toFixed(3);
+    const openId = entered.id;
+    host.fetchNear(query).then(function (payload) {
+      if (!active || cross !== mine) return null;
+      const records = CROSS.neighbourRecords((payload && payload.sectors) || [], centreOf, [here.x, here.y, here.z], edgePc, openId);
+      return Promise.all(records.map(function (record) {
+        return host.fetchSectorScene(record.id).then(function (data) { return CROSS.starsOfScene(data, record); }, function () { return []; });
+      }));
+    }).then(function (lists) {
+      if (!lists || !active || cross !== mine) return;
+      mine.stars = [].concat.apply([], lists);
+      renderTravel();
+    }, function () { /* the neighbours are only a bonus: the step stays to the open sector */ });
   }
 
   // MAP.245: the star of the open sector under a screen point (within STAR_ANCHOR_PX of it on the screen), as

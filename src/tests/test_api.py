@@ -1561,7 +1561,8 @@ def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):
     assert set(body["facets"]) == {
         "type", "spectral", "luminosity", "class", "body", "life", "equipment",
         "moon_class", "moon_body", "moon_life", "moon_equipment", "density", "phenomenon", "phenomenon_class",
-        "habitability", "domain", "life_level", "living", "moon_habitability", "moon_domain", "moon_life_level", "moon_living",
+        "habitability", "domain", "life_level", "living", "supports", "moon_habitability", "moon_domain", "moon_life_level",
+        "moon_living", "moon_supports",
     }
     assert body["results"]["stars"] is None  # no filter active yet -- no reason to run
 
@@ -2422,3 +2423,42 @@ def test_galaxy_superbubbles_list_the_cavities_and_a_sector_inside_one_names_it(
     assert client.get(f"/api/sectors/{pid('sector', outside)}").get_json()["superbubble"] is None
 
 
+
+
+def test_a_planet_and_a_moon_name_their_life_class_and_the_scores_of_every_class_they_support(client, mysql_config):
+    """API.37: `life_class_id` (class and variant as one id) and `life_class_scores` next to the stored columns."""
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.MOONS = True
+    cfg.BINARY_SYSTEM = False
+    for _ in range(50):
+        system = StarSystem(system_config=cfg)
+        if any(getattr(b, "moons", None) for b in (system.planets or [])):
+            break
+    system_id = _db.save_system(system, cfg, config=mysql_config)
+    conn = _db.get_connection(mysql_config)
+    try:
+        planet = conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY orbital_index LIMIT 1",
+                              (system_id,)).fetchone()["id"]
+        moon = conn.execute("SELECT id FROM moons WHERE star_system_id = ? ORDER BY id LIMIT 1", (system_id,)).fetchone()["id"]
+        conn.execute("UPDATE planets SET life_class = 1, life_class_variant = 'a', life_class_best = '1a', life_class_best_score = 7,"
+                     " life_animal_grade = 2, life_complexity = 0.4 WHERE id = ?", (planet,))
+        conn.execute("DELETE FROM planet_life_class_scores WHERE planet_id = ?", (planet,))
+        conn.execute("INSERT INTO planet_life_class_scores (planet_id, life_class, score) VALUES (?, '1a', 7), (?, '2', 3)", (planet, planet))
+        conn.execute("UPDATE moons SET life_class = 6, life_class_variant = NULL WHERE id = ?", (moon,))
+        conn.execute("DELETE FROM moon_life_class_scores WHERE moon_id = ?", (moon,))
+        conn.execute("INSERT INTO moon_life_class_scores (moon_id, life_class, score) VALUES (?, '6', 2)", (moon,))
+        conn.commit()
+    finally:
+        conn.close()
+
+    detail = client.get(f"/api/systems/{pid('system', system_id)}").get_json()
+    first = next(p for p in detail["planets"] if p["id"] == pid("planet", planet))
+    assert first["life_class"] == 1 and first["life_class_variant"] == "a" and first["life_class_id"] == "1a"
+    assert first["life_class_best"] == "1a" and first["life_class_best_score"] == 7 and first["life_animal_grade"] == 2
+    assert first["life_class_scores"] == {"1a": 7, "2": 3}
+    assert "life_chemical" not in first
+    seen = next(m for p in detail["planets"] for m in p["moons"] if m["id"] == pid("moon", moon))
+    assert seen["life_class_id"] == "6" and seen["life_class_scores"] == {"6": 2}
+    for body in [*detail["planets"], *(m for p in detail["planets"] for m in p["moons"])]:
+        assert {"life_class_id", "life_class_scores"} <= set(body) and isinstance(body["life_class_scores"], dict)

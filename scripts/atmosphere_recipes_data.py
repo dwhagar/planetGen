@@ -263,7 +263,7 @@ MACHINE = {
     "g1": dict(state="partly verified", limit="late M is the extension of the map above L0 (2238 K); the map has no M-type fit (Table 13) and the 2800 K cap is the repo's rogue maximum (GEN.517)", kind="option", group="g", classes=BD, weight="phi((2800 - teff_k)/100) - phi((2238 - teff_k)/134)"),
     "g2": dict(kind="option", group="g", classes=BD, weight="phi((2238 - teff_k)/134) - phi((1273 - teff_k)/79)"),
     "g3": dict(kind="option", group="g", classes=BD, weight="phi((1273 - teff_k)/79) - phi((686 - teff_k)/79)"),
-    "g4": dict(state="partly verified", limit="late T (T8 and later) is a subclass of T, not a type of its own; its edge at T8 (686 K) is a design choice on the map (GEN.517)", kind="option", group="g", classes=BD, weight="phi((686 - teff_k)/79) - phi((460 - teff_k)/79)"),
+    "g4": dict(state="partly verified", limit="late T (T8 to T9) is a subclass of T, not a type of its own; its edges are the map's T8 and Y0 values (Kirkpatrick 2021 Table 13, GEN.494)", kind="option", group="g", classes=BD, weight="phi((686 - teff_k)/79) - phi((460 - teff_k)/79)"),
     "g5": dict(kind="option", group="g", classes=BD, weight="phi((460 - teff_k)/79)"),
     "g6": dict(kind="binary", classes=BD, weight="phi((1100 - teff_k)/100)"),
 
@@ -429,7 +429,7 @@ MACHINE = {
                           "solar masses, 0.6 at 0.2 to 0.3, 2.3 at 0.1 to 0.2), interpolated in log mass, and replaces "
                           "LU[0.162, 2]."),
     "p5": dict(kind="option", group="p", classes=ANY, when=[c("age_gy", maximum=0.1)], weight=1),
-    "p6": dict(state="partly verified", limit="the three percentile tracks of Tu 2015 (10, 50 and 90; saturation ends at 5.7, 23 and 226 Myr, solar mass only) interpolated in the logarithm of the saturation time between them; no paper weights the tracks, so the percentile is drawn uniform from 0.02 to 0.98 as Johnstone 2021 offers; the dependence on mass needs the Mors tracks (GEN.523)", kind="param", classes=ANY, when=[drawn("p", "p4", "p5")],
+    "p6": dict(state="partly verified", limit="the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range Johnstone 2021 offers); the saturation time against mass is read off Johnstone 2021 Fig. 10 (`saturation_time.py`, registry RS1, GEN.493); the draw does not yet read it (wiring step)", kind="param", classes=ANY, when=[drawn("p", "p4", "p5")],
                dist={"kind": "uniform", "lo": 0.02, "hi": 0.98}, sets="rotation_percentile",
                values={"t_sat_myr": "5.7*(23/5.7)**((value - 0.1)/0.4) if value < 0.5 else 23*(226/23)**((value - 0.5)/0.4)"},
                source="Tu et al. 2015 (arXiv:1504.04546, READ): the 10th, 50th and 90th percentile tracks of the initial rotation "

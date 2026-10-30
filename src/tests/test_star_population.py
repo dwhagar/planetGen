@@ -178,7 +178,6 @@ def test_binary_companions_share_the_primarys_age_and_are_dimmer():
 
 
 def test_planets_respect_their_stars_age_and_history():
-    habitable = set(prog_c.HABITABLE_PLANET_CLASSES)
     for _ in range(400):
         system = StarSystem(system_config=SystemConfig())
         hosts = [(system.star, system.planets)]
@@ -192,8 +191,9 @@ def test_planets_respect_their_stars_age_and_history():
                 if star.age < prog_c.PLANET_MIN_STAR_AGE_GY:
                     assert body.body_type == "a"
                 if star.age < prog_c.LIFE_MIN_STAR_AGE_GY and body.body_type != "a":
-                    assert body.planet_class not in habitable
-                    assert all(moon.planet_class not in habitable for moon in body.moons)
+                    # the class letter is derived from the conditions and says nothing of life (GEN.915); a star this young has none
+                    assert body.life_class is None
+                    assert all(moon.life_class is None for moon in body.moons)
 
 
 def test_a_required_habitable_world_gets_an_old_enough_living_star():

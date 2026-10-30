@@ -37,8 +37,8 @@
         <th scope="row">{{ utc_time(archive.taken_at) }}<br><code class="setting-path">{{ archive.name }}</code></th>
         <td>{{ archive.taken_by or '(unknown)' }}</td>
         <td>{{ archive.reason or '(unknown)' }}</td>
-        <td>{% if not archive.readable %}<span class="error">Can't be read</span>{% else %}{% for part in archive.parts %}{{ part.label }} ({{ num(part.size / 1024, ',.1f') }} KB){% if not loop.last %}, {% endif %}{% endfor %}{% if not archive.complete %} <span class="setting-tag">not every part</span>{% endif %}{% endif %}</td>
-        <td>{{ num(archive.size / 1024, ',.1f') }} KB</td>
+        <td>{% if not archive.readable %}<span class="error">Can't be read</span>{% else %}{% for part in archive.parts %}{{ part.label }} ({{ num(part.size_bytes / 1024, ',.1f') }} KB){% if not loop.last %}, {% endif %}{% endfor %}{% if not archive.complete %} <span class="setting-tag">not every part</span>{% endif %}{% endif %}</td>
+        <td>{{ num(archive.size_bytes / 1024, ',.1f') }} KB</td>
         <td><a href="{{ page_url('admin_backup', archive=archive.name) }}">Compare and restore</a>
           {%- if data.can_download %} · <a href="/api/admin/backups/{{ archive.name }}/download">Download</a>{% else %} · <span class="hint">Download is for the Owner</span>{% endif %}</td>
       </tr>

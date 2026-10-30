@@ -1,5 +1,0 @@
-**Headline:** The phenomena census now measures a galaxy that is Milky Way-like, so the supernova remnant, magnetar and Wolf-Rayet counts it reported as too low were the test galaxy's, not the generator's.
-
-### Changed
-
-- **The phenomena census reads a Milky Way-like galaxy (GEN.900, GEN.901, GEN.902).** The old reference galaxy had a bulge as heavy as its thin disk and no mass chain, so its star formation history ran on a galaxy a half larger than the stars its density held: it held 0.46 of the young and massive stars that history implied, and the supernova remnants (260), magnetars (22) and Wolf-Rayet stars (590) all fell short of their surveys. The census now draws its galaxy through the generator's own shape chain (5.2 billion solar masses of stars, a fifth of them in the bulge, a 2.6 kpc disk), where the density, the history and the mass agree and star formation is 1.9 solar masses a year (the Milky Way's 1.65). It finds 411 supernova remnants, 42 magnetars and 985 Wolf-Rayet stars, all inside their ranges, and the three known-anomaly tags are removed. Tests and test data only: no generated galaxy, system or planet changes.

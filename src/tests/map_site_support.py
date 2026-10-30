@@ -41,6 +41,9 @@ SUN_RADIUS_KM = 695700.0
 
 SECTOR_ID = 7
 """The sector `/sector/<id>` shows: shell 1, band 0, wedge 1."""
+BESIDE_ID = 11
+"""The sector beside Fixture Prime (the next wedge of the same shell and band), with two systems, one of them across the edge from
+Fixture Prime's Middling Sun to its east (MAP.329)."""
 
 # (id, shell, band, wedge, name): generated sectors, all in the core so a
 # walk down the drill-down from the whole galaxy reaches them.
@@ -49,6 +52,7 @@ SECTORS = [
     (8, 8, 0, 3, "Fixture Second"),
     (9, 9, 0, 5, "Fixture Shell Nine"),
     (10, 9, 1, 4, "Fixture High"),
+    (BESIDE_ID, 1, 0, 2, "Fixture Beside"),
 ]
 
 
@@ -69,6 +73,18 @@ SYSTEMS = [
     (705, "Twin Lamps", 100.0, 1100.0, 100.0,
      [_star("F5V", 6500.0, 1.4, 3.0), _star("M2V", 3500.0, 0.4, 0.03)]),
 ]
+
+BESIDE_SYSTEMS = [
+    (711, "Across The Edge", -80.0, -2150.0, 300.0, [_star("K5V", 4400.0, 0.7, 0.2)]),
+    (712, "Far Corner", -1500.0, 1400.0, -900.0, [_star("G8V", 5300.0, 0.9, 0.6)]),
+]
+"""(id, name, x, y, z in mpc from Fixture Beside's center, stars). The first is 0.6 pc east of Fixture Prime's Middling Sun."""
+
+
+def systems_of(sector_id):
+    """The fixture systems of a sector."""
+    return SYSTEMS if sector_id == SECTOR_ID else BESIDE_SYSTEMS if sector_id == BESIDE_ID else []
+
 
 PHENOMENA = [
     {"id": 31, "type": "nebula", "name": "Fixture Veil", "descriptor": "emission", "radius_ly": 1.2,
@@ -297,10 +313,13 @@ CLASS_FIELD = [
     {"id": 9002, "name": "Fixture Rest", "letter": "K", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
     {"id": 9004, "name": "Fixture Rock", "letter": "G", "n": 2, "x": STAR_FIELD_CENTER_PC[0] - 2.0, "y": 5.0, "z": -1.0},
     {"id": 9003, "name": "Fixture Jove", "letter": "J", "n": 3, "x": STAR_FIELD_CENTER_PC[0] + 1.0, "y": 8.0, "z": 1.0},
+    {"id": 9007, "name": "Fixture Dawn", "reason": "lifeclass-2", "n": 2, "x": STAR_FIELD_CENTER_PC[0] + 8.0, "y": 3.0, "z": -2.0},
+    {"id": 9008, "name": "Fixture Ember", "reason": "lifeclass-6", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 8.0, "y": 2.0, "z": 3.0},
 ]
 """The fixture systems with a planet or moon of a class (the `class-` reasons, MAP.220), listed only by the nodes of 3 shells or fewer as the
 server does: Fixture Eden holds two class K worlds and a class O one, Fixture Rest a class K one, Fixture Rock two class G, Fixture Jove
-three class J (gas giants)."""
+three class J (gas giants). An entry with a `reason` and no `letter` is a life class one (`lifeclass-`, MAP.351): two worlds with class 2
+life in Fixture Dawn, one with class 6 life in Fixture Ember."""
 
 
 LIFE_FIELD = [
@@ -347,7 +366,7 @@ def interests_of(worlds, giants, barren=(), classes=(), life=()):
     for world in classes:
         entry = systems.setdefault(world["id"], {"id": world["id"], "name": world["name"], "x": world["x"], "y": world["y"],
                                                  "z": world["z"], "reasons": {}})
-        entry["reasons"]["class-" + world["letter"]] = {"n": world["n"]}
+        entry["reasons"][world.get("reason") or "class-" + world["letter"]] = {"n": world["n"]}
     for other in life:
         entry = systems.setdefault(other["id"], {"id": other["id"], "name": other["name"], "x": other["x"], "y": other["y"],
                                                  "z": other["z"], "reasons": {}})
@@ -473,7 +492,7 @@ def sector_detail(sector_id=SECTOR_ID):
     _id, shell, band, wedge, name = next(s for s in SECTORS if s[0] == sector_id)
     cx, cy, cz = _sector_center_pc(shell, band, wedge)
     systems = []
-    for system_id, system_name, x, y, z, stars in (SYSTEMS if sector_id == SECTOR_ID else []):
+    for system_id, system_name, x, y, z, stars in systems_of(sector_id):
         systems.append({
             "id": system_id, "name": system_name, "is_binary": int(len(stars) > 1), "binary_type": None,
             "stars": stars, "quadrant": "+x+y+z", "location": f"{name} -- near the middle",
@@ -530,6 +549,7 @@ SECTOR_STATS = {
     8: (40, 60, 0.5, 900.0, 3, 1.2e32),
     9: (0, 0, None, 0.0, 0, 0.0),
     10: (6, 8, 11.0, 4.0, 1, 3.0e31),
+    BESIDE_ID: (2, 2, 3.0, 5.0, 0, 1.0e29),
 }
 """Each fixture sector's stored systems, stars, mean star age (Gy), summed
 luminosity (DB.14), habitable worlds (MAP.143) and total mass in kilograms (DB.108, MAP.322): a dense average one, a young
@@ -554,7 +574,7 @@ def galaxy_stage(at=None):
     sectors = None
     if child_m == 1:
         sectors = [{"shell": s[1], "band": s[2], "wedge": s[3], "id": s[0], "name": s[4],
-                    "system_count": len(SYSTEMS) if s[0] == SECTOR_ID else 0, "stats": _stats([s[0]])}
+                    "system_count": len(systems_of(s[0])), "stats": _stats([s[0]])}
                    for s, _chain in inside]
     return {"at": format_drill_key(block), "child_m": child_m, "children": _children(counts), "sectors": sectors}
 
@@ -580,7 +600,7 @@ def system_scene_payload(system_id):
     comets, built from the hand-made scene of `test_body_positions.py`."""
     from tests.test_body_positions import AU_KM, sample_scene
 
-    name = next((n for sid, n, *_rest in SYSTEMS if sid == int(system_id)), None)
+    name = next((n for sid, n, *_rest in SYSTEMS + BESIDE_SYSTEMS if sid == int(system_id)), None)
     if name is None:
         raise apiclient.NotFoundError(f"No such system: {system_id}")
     scene = sample_scene()
@@ -719,7 +739,7 @@ class FixtureApi:
             cx, cy, cz = _sector_center_pc(shell, band, wedge)
             out.append({"id": sector_id, "name": name, "x": cx, "y": cy, "z": cz,
                         "galactic_radius_pc": math.hypot(cx, cy, cz), "shell_index": shell,
-                        "system_count": len(SYSTEMS) if sector_id == SECTOR_ID else 0})
+                        "system_count": len(systems_of(sector_id))})
         return out
 
     def get_galaxy_shape(self, db):
@@ -1040,4 +1060,4 @@ def large_site(request, tmp_path_factory):
     yield from _serve("large", {"large": True}, request, tmp_path_factory)
 
 
-__all__ = ["map_site", "holes_site", "HOLE_FIELD", "halo_site", "dense_site", "large_site", "LARGE_CENTRE_PC", "dense_region_query", "DENSE_STARS", "DENSE_POINTS", "DENSE_WORLDS", "DENSE_CENTER_PC", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]
+__all__ = ["map_site", "holes_site", "HOLE_FIELD", "halo_site", "dense_site", "large_site", "LARGE_CENTRE_PC", "dense_region_query", "DENSE_STARS", "DENSE_POINTS", "DENSE_WORLDS", "DENSE_CENTER_PC", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "BESIDE_ID", "BESIDE_SYSTEMS", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]

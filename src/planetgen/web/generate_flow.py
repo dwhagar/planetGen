@@ -58,8 +58,8 @@ TASKS = (
          "Plan again, redo some scatters, or add a dimmer step of bright stars. Sectors already generated are left alone.",
          "rewrites", ("plan", "redo_scatters", "bright_band")),
     Task("bring-to-epoch", "Bring the galaxy to the running generator epoch",
-         "After the generator changed, generate again only the sectors it altered, leave edited sectors alone, and keep "
-         "the rest of the galaxy as it is.", "rewrites", ("bring_to_epoch",)),
+         "After the generator changed, draw again the scatters it altered, generate again only the sectors it altered, "
+         "leave edited sectors alone, and keep the rest of the galaxy as it is.", "rewrites", ("bring_to_epoch",)),
     Task("finish-run", "Finish the last run",
          "A run that stopped partway (a killed process, a database that ran out of memory, a cancel) carries on from the "
          "first stage that did not finish, on the same galaxy, instead of wiping and starting again.", "rewrites",

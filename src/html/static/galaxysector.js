@@ -275,7 +275,10 @@ export function createSectorStage(host) {
     }
     const fetched = at ? host.fetchUnchartedScene(at) : host.fetchScene(id);
     return fetched.then(function (data) {
-      if (mine !== token || !data || !data.centerPc || !(data.halfEdgePc > 0)) return null;
+      // TEST.450: another open or a close that came while this was being fetched has taken its place: that is not a failure of this sector,
+      // so it is `undefined` and `null` is left for a scene that is not usable.
+      if (mine !== token) return undefined;
+      if (!data || !data.centerPc || !(data.halfEdgePc > 0)) return null;
       if (data.uncharted && !(data.stars.length || data.clouds.length)) return null;
       if (open) {
         const keep = token;

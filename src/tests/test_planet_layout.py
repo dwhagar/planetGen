@@ -120,3 +120,34 @@ def test_a_body_with_no_day_and_night_says_nothing_of_them():
     """A star, or a free body with no rotation stored, has no shares: nothing is said."""
     text = " ".join(planet_summary.summary_sentences("Bare", ROW, VALUES))
     assert "star is up" not in text and "one face" not in text and "shadow" not in text
+
+
+# --- the life class lines (UX.237) ----------------------------------------------------------------------------------
+
+LIVING = {"life_class": 1, "life_class_variant": "a", "life_class_id": "1a", "life_class_best": "1a", "life_class_best_score": 7,
+          "life_class_scores": {"1a": 7, "3a": 2, "2": 4}, "life_stage": "multicellularity", "life_animal_grade": 2}
+
+
+def test_a_world_with_life_says_what_it_supports_what_else_and_the_stage_it_has_reached():
+    view = planet_layout.life_class_view(LIVING)
+    assert view["supports"] == "Supports Class 1a life (oxygenic light-eaters), score 7 of 9."
+    assert [text.split(" (")[0] for text in view["also"]] == ["Class 2", "Class 3a"]      # best score first
+    assert view["also"][0].endswith(", 4 of 9)") and view["also"][1].endswith(", 2 of 9)")
+    assert view["has"] == "Has Class 1a life, at the stage of small mobile animals (animal grade A2)."
+    assert view["words"]["class"] == "1a" and view["words"]["lives"]
+    assert [label for label, _text in view["words"]["rows"]] == ["Drinks", "Eats", "Breathes", "Gives off"]
+    assert dict(view["words"]["rows"])["Drinks"] == "water"
+
+
+def test_a_world_that_supports_a_class_but_has_none_still_says_what_that_class_lives_on():
+    row = {**LIVING, "life_class": None, "life_class_id": None, "life_stage": None, "life_class_scores": {"1a": 7}}
+    view = planet_layout.life_class_view(row)
+    assert view["supports"].startswith("Supports Class 1a life") and view["also"] == [] and view["has"] is None
+    assert view["words"]["class"] == "1a" and not view["words"]["lives"]
+
+
+def test_a_stage_without_animals_names_no_grade_and_a_world_without_classes_has_no_lines():
+    view = planet_layout.life_class_view({**LIVING, "life_stage": "photosynthesis", "life_animal_grade": 0})
+    assert view["has"] == "Has Class 1a life, at the stage of oxygenating mats."
+    assert planet_layout.life_class_view({"life_class_scores": {}, "life_class_id": None}) is None
+    assert planet_layout.life_class_view(None) is None

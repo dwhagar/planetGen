@@ -484,6 +484,8 @@ def sectors():
     `position` or `distance`) with `order=asc|desc`, the repeatable filter
     `quadrant` (`I`-`IV`, `unplaced`) and `facets=1` for the Quadrant menu's
     option counts (`facets`). `total` counts the sectors that pass the filter (`total_capped`: it stopped at 10,000, PERF.77).
+    `after=<sector ID>` starts the page after that sector in the default order and the `name` and `distance` sorts
+    (PERF.137: any page costs the same, and `offset` is ignored); the other sorts ignore it.
     """
     limit, offset = _paginate(request.args)
     sort = None
@@ -492,10 +494,15 @@ def sectors():
         sort, descending = _parse_sort(request.args, SECTOR_SORTS)
     quadrants = [v for v in request.args.getlist("quadrant") if v]
     db = get_db()
+    after = None
+    if request.args.get("after"):
+        after = ids.row_id(db, "sector", request.args["after"])
+        if after is None:
+            raise ApiError(f"after must be a sector ID, got {request.args['after']!r}")
     total = count_sectors(db, quadrants=quadrants)
     body = {
         "items": list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending,
-                              quadrants=quadrants),
+                              quadrants=quadrants, after=after),
         "total": total,
         "total_capped": is_capped(total),
         "limit": limit,
@@ -1423,7 +1430,10 @@ def phenomena():
     for the type and descriptor filter menus (`db.query.phenomena_facets`).
     `total` counts the rows that pass the filters (`total_capped`: it stopped at 10,000, PERF.69).
     `after=<scatter id>` (the `scatter_id` of a scattered row) starts the page after that row in the tail of
-    unbuilt scattered phenomena instead of skipping `offset` rows (PERF.75). `from=<scatter id>` (PERF.135, the
+    unbuilt scattered phenomena instead of skipping `offset` rows (PERF.75). `after=<type>:<ID>` (the `type` and `id`
+    of a built row, such as `nebula:0008000000-3000000-000`) starts it after that row in the name order, then the
+    tail (PERF.205: any page costs the same, `offset` and `sort` are ignored with it; the first page by name needs no
+    `after` and costs the same too). `from=<scatter id>` (PERF.135, the
     jump-by-value box) lists that tail from the row with that id on (the built phenomena come before it and are not
     listed); a value that is not a whole number from 1 up is a 400, and one past the last scattered row answers the last
     page of the tail, `total` its length and `past_end` true.
@@ -1435,14 +1445,21 @@ def phenomena():
         "descriptors": [v for v in request.args.getlist("descriptor") if v],
         "placed": _parse_yes_no(request.args.get("placed"), "placed"),
     }
+    db = get_db()
     after = None
     if request.args.get("after"):
-        try:
-            after = int(request.args["after"])
-        except ValueError:
-            raise ApiError(f"after must be a scatter id, got {request.args['after']!r}")
+        type_label, colon, printed = request.args["after"].partition(":")
+        if colon:
+            row = ids.row_id(db, type_label, printed) if type_label in ids.PHENOMENON_KINDS else None
+            if row is None:
+                raise ApiError(f"after must be a scatter id or <type>:<ID> of a phenomenon, got {request.args['after']!r}")
+            after = (type_label, row)
+        else:
+            try:
+                after = int(request.args["after"])
+            except ValueError:
+                raise ApiError(f"after must be a scatter id or <type>:<ID> of a phenomenon, got {request.args['after']!r}")
     start = (request.args.get("from") or "").strip()[:MAX_START_LENGTH] or None
-    db = get_db()
     try:
         total = count_phenomena(db, start=start, **filters)
         items = list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after,

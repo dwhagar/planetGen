@@ -11,6 +11,7 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from tests.test_api import client, seeded_sector  # noqa: F401
+from tests.test_query_db_list_order import _galaxy_of_sectors
 
 
 def _standalone(mysql_config, name, binary=False):
@@ -54,6 +55,15 @@ def test_sectors_without_a_sort_keep_the_core_first_order(client, seeded_sector)
     body = client.get("/api/sectors").get_json()
     assert [item["name"] for item in body["items"]] == ["Another Sector", "Test Sector"]  # unplaced: by name
     assert "facets" not in body
+
+
+def test_the_sectors_endpoint_pages_by_the_printed_id_of_the_last_sector(client, seeded_sector):
+    _galaxy_of_sectors(seeded_sector[0])
+    first = client.get("/api/sectors?limit=3&sort=distance").get_json()["items"]
+    second = client.get(f"/api/sectors?limit=3&sort=distance&after={first[-1]['id']}").get_json()["items"]
+    whole = client.get("/api/sectors?limit=100&sort=distance").get_json()["items"]
+    assert [row["id"] for row in first + second] == [row["id"] for row in whole][:6]
+    assert client.get("/api/sectors?after=not-an-id").status_code == 400
 
 
 def test_sectors_quadrant_filter_and_facets(client, seeded_sector):

@@ -230,10 +230,14 @@ def life_html(name, score, sprite_url, help_url=None, page=None):
 def life_row(body, sprite_url, help_url=None, page=None):
     """
     The four life scores of a body's row (`life_<name>`, whole numbers 0 to 9) as a cluster, in the order of
-    `LIFE_NAMES`; an empty string for a body with no scores.
+    `LIFE_NAMES`, then the class of the life that lives there when the row has one (`life_class_id`, such as "1a", UX.237); an
+    empty string for a body with no scores.
     """
     scores = [body.get(f"life_{name}") for name in LIFE_NAMES]
     if any(score is None for score in scores):
         return ""
     cells = "".join(life_html(name, score, sprite_url, help_url, page) for name, score in zip(LIFE_NAMES, scores))
+    if body.get("life_class_id"):
+        words = escape(f"Life class {body['life_class_id']}")
+        cells += f'<span class="hab-life-class" role="img" aria-label="{words}" title="{words}">{escape(str(body["life_class_id"]))}</span>'
     return f'<span class="hab-life-cluster">{cells}</span>'

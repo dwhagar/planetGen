@@ -126,7 +126,7 @@ def mmsn_surface_density_gcm2(distance_au, snow_line_au, density_scale=1.0):
 
 
 @finite_domain()
-def isolation_mass_kg(distance_au, surface_density_gcm2, star_mass_kg):
+def isolation_mass_kg(distance_au, surface_density_gcm2, star_mass_kg, separation=None):
     """
     The oligarchic-growth isolation mass (Lissauer 1993; Kokubo & Ida
     2000, 2002): the mass a growing embryo reaches once it has cleared its
@@ -150,12 +150,14 @@ def isolation_mass_kg(distance_au, surface_density_gcm2, star_mass_kg):
                                       `mmsn_surface_density_gcm2`), in
                                       g/cm^2.
         star_mass_kg (float): The star's mass, in kilograms.
+        separation (float, optional): The feeding zone's width `b` in mutual Hill radii; `tuning.MUTUAL_HILL_RADII_SEPARATION`
+                                      when omitted.
 
     Returns:
         float: The isolation mass, in kilograms.
     """
     distance_m = _au_to_m(distance_au)
     surface_density_kgm2 = surface_density_gcm2 * 10  # 1 g/cm^2 = 10 kg/m^2
-    b = tuning.MUTUAL_HILL_RADII_SEPARATION
+    b = tuning.MUTUAL_HILL_RADII_SEPARATION if separation is None else separation
     base = 2 * math.pi * b * surface_density_kgm2 * distance_m ** 2
     return base ** (3 / 2) / (3 * star_mass_kg) ** 0.5
