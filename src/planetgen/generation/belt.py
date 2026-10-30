@@ -18,7 +18,7 @@ this module's logic.
 
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import radiogenic, small_body_composition
+from planetgen.physics import belt_mass, bulk_draw, radiogenic, small_body_composition
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
@@ -78,7 +78,8 @@ class AsteroidBelt:
         lower_limit (float): The inner boundary of the asteroid belt in AU.
         upper_limit (float): The outer boundary of the asteroid belt in AU.
         body_type (str): Always 'a' for an asteroid belt.
-        density (str): The density of the asteroid belt ('dense', 'sparse', 'typical').
+        density (str): The density of the asteroid belt ('dense', 'sparse', 'typical'): its mass per area against the median belt of its age (GEN.477).
+        mass_kg (float): What its disc's solids leave after the star's age of collisions (`belt_mass.belt_state`, Wyatt et al. 2007).
         composition (list): A list of (component, concentration) tuples -- contrast
                             `Planet.composition`, a descriptive string (same name,
                             unrelated shape, on the two classes). The words of the
@@ -88,7 +89,7 @@ class AsteroidBelt:
                             None for a belt read back from a store that predates it.
     """
 
-    SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density"]
+    SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density", "mass_kg"]
     """
     Every attribute set by `__init__`, excluding `system_config` (a shared
     back-reference), `composition` (handled separately in `to_dict`/
@@ -111,8 +112,9 @@ class AsteroidBelt:
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
         self.body_type = 'a'
-        self.density = draw.choice(["dense", "sparse", "typical"])
-        log.choice("Asteroid belt density", self.density, "uniform draw among dense/sparse/typical")
+        largest_km = belt_mass.draw_largest_km(draw.Stream(f"belt-largest:{distance!r}:{lower_limit!r}:{upper_limit!r}:{star.mass!r}"))
+        self.mass_kg, self.density = belt_mass.belt_state(lower_limit, upper_limit, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), star.age, largest_km)
+        log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disc's solids after {star.age:.4g} Gy, its largest body {largest_km:.4g} km (stand-in)")
         self.makeup = small_body_composition.draw_belt(distance, star.luminosity, _star_al26_ratio(system_config, star))
         self.composition = small_body_composition.describe(self.makeup)
 

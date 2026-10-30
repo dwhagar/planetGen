@@ -3278,12 +3278,12 @@ BELT_FIELDS = (
                          lambda belt, context: planet_parent(context["star_id"], context["star_system_id"])),
     object_rows.scaled("distance_km", "distance", _AU_KM), object_rows.scaled("lower_limit_km", "lower_limit", _AU_KM),
     object_rows.scaled("upper_limit_km", "upper_limit", _AU_KM),
-    object_rows.attr("density"),
+    object_rows.attr("density"), object_rows.attr("mass_kg"),
     object_rows.computed("composition_summary", lambda belt, context: belt.get_composition_summary()),
     # GEN.337: a belt is a ring about its star, so its point is the star's (the system centre) and it carries no vector
-    # of its own; its bulk has no mass model yet, a stated zero the gravity sum skips.
+    # of its own.
     object_rows.computed(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
-                          "velocity_z_kms", "mass_kg"), lambda belt, context: (0.0,) * 7),
+                          "velocity_z_kms"), lambda belt, context: (0.0,) * 6),
 )
 """tuple: The `Field`s of an `asteroid_belts` row."""
 

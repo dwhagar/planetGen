@@ -521,6 +521,7 @@ def _belt_section(belt):
         fact("inner", "Inner Edge", _au(belt.lower_limit)),
         fact("outer", "Outer Edge", _au(belt.upper_limit)),
         fact("density", "Density", belt.density),
+        fact("mass", "Mass", _mass(belt.mass_kg)),
     ]
     parts = [{"name": component, "level": level} for component, level in belt.composition]
     return section("belt", _ref("belt", belt), "Asteroid Belt",

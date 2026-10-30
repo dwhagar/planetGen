@@ -104,9 +104,9 @@ def _save_belt(conn, system_id, star_id, index, belt):
         return
     conn.execute(
         "UPDATE asteroid_belts SET star_id = ?, orbital_index = ?, distance_km = ?, lower_limit_km = ?,"
-        " upper_limit_km = ?, density = ?, composition_summary = ?"
+        " upper_limit_km = ?, density = ?, mass_kg = ?, composition_summary = ?"
         " WHERE id = ?",
-        (star_id, index, distance_km, lower_km, upper_km, belt.density, belt.get_composition_summary(),
+        (star_id, index, distance_km, lower_km, upper_km, belt.density, belt.mass_kg, belt.get_composition_summary(),
          belt.db_id),
     )
     conn.execute("DELETE FROM asteroid_belt_composition WHERE belt_id = ?", (belt.db_id,))
