@@ -61,7 +61,7 @@ from planetgen.galaxy import bring_to_epoch as bringToEpoch, drill, seed as gala
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
-from planetgen.galaxy import scatter_limits
+from planetgen.galaxy import region_run, scatter_limits
 from planetgen.galaxy import dials
 from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.galaxy.skeleton import DEFAULT_REACH_SHELL
@@ -692,6 +692,12 @@ def add_sectors_arguments(parser):
                                  "(size.shell.band.wedge, as in the map's stage links; the size is 243, "
                                  "81, 27, 9 or 3). Sectors are generated shell by shell outward, with "
                                  "the same progress and cancel as the other modes.")
+    mode_group.add_argument('--around', type=finite_float, nargs=3, metavar=('X', 'Y', 'Z'),
+                            help="Region mode (GEN.1128): generate every not-yet-generated sector a sphere of --radius-pc touches, "
+                                 "centred on this point (parsecs from the galactic centre), nearest first, in units of at most "
+                                 "--unit-sectors consecutive wedges of one shell and band. The same seed gives the same sectors "
+                                 "whatever the point, the radius or the order regions are run in. Rerun it after a stop: charted "
+                                 "sectors are skipped.")
     mode_group.add_argument('--center-sector', type=int, metavar='SECTOR_ID',
                             help="Local-neighborhood mode: generate every not-yet-generated sector "
                                  "within --radius-pc of the given, already galaxy-placed sector's own "
@@ -754,6 +760,12 @@ def add_sectors_arguments(parser):
                              "neither --shell nor --center-sector (random-start mode): overrides the "
                              "default 12 pc neighborhood radius around the randomly chosen starting "
                              "sector.")
+    parser.add_argument('--grow-shells', type=int, metavar='K',
+                        help="With --around: grow the sphere by K whole shells of one sector edge (about the surface times K "
+                             "more sectors).")
+    parser.add_argument('--unit-sectors', type=int, metavar='N',
+                        help="With --around: the most sectors in a unit of work, the retry and resume grain (default "
+                             f"{region_run.BLOCK_SECTORS}).")
     parser.add_argument('--max-shell', type=int,
                         help="With neither --shell nor --center-sector (random-start mode): the highest "
                              "shell the randomly chosen starting sector may land in. Default: anywhere "
@@ -833,6 +845,13 @@ def validate_sectors_args(args, parser):
     problem found, then shapes `args` into the namespace `generate_sector()`/`iter_sector_configs()` expect. Doesn't
     include `add_shared_generation_options`'s own validation (`validate_shared_generation_args`).
     """
+    if getattr(args, "around", None) is not None:
+        _validate_around(args, parser)
+        return
+    for flag, value in (("--grow-shells", getattr(args, "grow_shells", None)), ("--unit-sectors", getattr(args, "unit_sectors", None))):
+        if value is not None:
+            parser.error(f"{flag} requires --around.")
+
     if getattr(args, "block", None) is not None:
         _validate_block(args, parser)
         return
@@ -948,6 +967,29 @@ def _validate_course(args, parser):
     ) if value is not None]
     if others:
         parser.error(f"--course can't be combined with {', '.join(others)}.")
+    args.sector_name = args.system_file = args.num_orbits = args.name = None
+
+
+def _validate_around(args, parser):
+    """Checks `--around` (GEN.1128): a start point, a positive `--radius-pc`, whole non-negative `--grow-shells` and a positive `--unit-sectors`,
+    nothing that names another region; shapes `args` like the other modes."""
+    others = [flag for flag, value in (
+        ("--shell", args.shell), ("--band", args.band), ("--wedge", args.wedge), ("--center-sector", args.center_sector),
+        ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density), ("--limit", args.limit),
+        ("--shells", args.shells), ("--bands", args.bands), ("--wedges", args.wedges), ("--region", args.region or None),
+    ) if value is not None]
+    if others:
+        parser.error(f"--around can't be combined with {', '.join(others)}.")
+    if args.radius_pc is None:
+        parser.error("--around requires --radius-pc.")
+    if args.radius_pc <= 0:
+        parser.error("--radius-pc must be a positive number.")
+    if args.radius_pc > limits.MAX_GENERATE_RADIUS_PC:
+        parser.error(f"--radius-pc must be at most {limits.MAX_GENERATE_RADIUS_PC:g}.")
+    if args.grow_shells is not None and args.grow_shells < 0:
+        parser.error("--grow-shells must be >= 0.")
+    if args.unit_sectors is not None and args.unit_sectors < 1:
+        parser.error("--unit-sectors must be >= 1.")
     args.sector_name = args.system_file = args.num_orbits = args.name = None
 
 

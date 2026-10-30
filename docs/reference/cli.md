@@ -178,6 +178,7 @@ planetgen galaxy --shell I [--band J [--wedge K [--radius-pc R]]] [--limit N | -
 planetgen galaxy [--shells A:B] [--bands C:D] [--wedges E:F] [--limit N | --yes] [options]
 planetgen galaxy --block M.SHELL.BAND.WEDGE [--limit N | --yes] [options]
 planetgen galaxy --center-sector ID --radius-pc R [options]
+planetgen sectors --around X Y Z --radius-pc R [--grow-shells K] [--unit-sectors N] [options]
 planetgen galaxy (--center-sector ID | --shell I --band J --wedge K) --region [options]
 planetgen galaxy --course FROM TO [--course-border] [--yes] [options]
 planetgen galaxy [--radius-pc R] [--max-shell I] [--neighborhoods N] [options]   # random start
@@ -236,6 +237,12 @@ as a shell or a span, and `--limit` and `--yes` as for them. The map starts the
 same fill through `POST /api/galaxy/blocks/<key>/generate`. A block the
 outline does not reach holds nothing to generate. It cannot be combined with
 `--shell`, `--band`, `--wedge`, a span, `--radius-pc` or `--center-sector`.
+`--around X Y Z --radius-pc R` (GEN.1128, region mode) generates every not-yet-generated sector a sphere of R parsecs around the point
+(parsecs from the galactic centre) touches: a sector is in when its centre is within R plus three quarters of a sector edge. `--grow-shells K`
+adds K whole shells of one edge. The sectors are cut into units of at most `--unit-sectors` (default 27) consecutive wedges of one shell and
+band, the nearest unit first; a unit is the retry and resume grain, and a rerun after a stop builds only the sectors not saved. The same seed
+gives the same sectors whatever the point, the radius, the unit size or the order regions are run in. It cannot be combined with another mode,
+`--limit` or the random-start options.
 `--center-sector ID --radius-pc R` generates every not-yet-generated sector
 within R parsecs of an already placed sector's own center, the sector at the
 center first and the rest outward (GEN.101): the sectors are laid on a lattice
