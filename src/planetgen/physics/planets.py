@@ -480,7 +480,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
     # The range of the body's regime (a frozen or a wet world reflects more than dry rock): it reads only what the body is made of and
     # the starlight, so it can be drawn before the air it will be solved with.
-    albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit))
+    albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit,
+                                                      getattr(planet.star, "temperature", None)))
     # Floored at the cosmic microwave background: starlight alone can put a
     # body around a very dim star (or far out) below ~2.7 K, but nothing in
     # space is colder than the background it sits in.

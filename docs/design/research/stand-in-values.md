@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 842 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 845 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 131 | 11 | 7 | 1 | 0 | 150 |
-| T2 | 109 | 25 | 0 | 1 | 0 | 135 |
-| T3 | 77 | 31 | 5 | 10 | 0 | 123 |
+| T2 | 109 | 26 | 0 | 1 | 0 | 136 |
+| T3 | 78 | 31 | 5 | 10 | 0 | 124 |
 | T4 | 36 | 4 | 0 | 15 | 8 | 63 |
 | T5 | 42 | 13 | 0 | 0 | 0 | 55 |
-| T6 | 70 | 53 | 13 | 40 | 0 | 176 |
+| T6 | 70 | 54 | 13 | 40 | 0 | 177 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 13 | 6 | 4 | 39 | 19 | 81 |
-| All | 504 | 152 | 38 | 119 | 29 | 842 |
+| All | 505 | 154 | 38 | 119 | 29 | 845 |
 
 ## How the labels were given
 
@@ -1308,6 +1308,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TJ3 | D | T2 | L0 | trojans.libration_period, trojans.TADPOLE_LIMIT_DEG 23.9: the slow libration period of the linearised problem and the tadpole to horseshoe limit | limit 23 to 25 | small-mass trojans | a librating body whose period differs from the law by over 10 percent | none | Murray and Dermott 1999 ch. 3 (recalled, not opened) | GEN.1149 | - |
 | TJ4 | P | T4 | L4 | trojans.LEADING_SHARE_RANGE (0.5, 0.62): the share of a swarm in L4 | 0.5 to 0.7 | swarms of giants | a swarm whose leading share is outside the range | the capture history of the generated giant | none read; Jupiter's L4 outnumbers its L5 by about 1.6 to 1 (recalled) | GEN.1149 | no data |
 | TJ5 | P | T4 | L4 | trojans.ECC_MAX 0.2 and INCLINATION_MAX_DEG 35: the largest eccentricity and inclination of a trojan's orbit | e 0.1 to 0.3; i 30 to 40 | every trojan | an N-body run of a trojan inside the limits that leaves in 1 Gyr | an N-body map of the trojan region by mass ratio | none read for a limit; Earth Trojans (arXiv 1812.01244, abstract READ) are stable under 15 degrees and between 24 and 37 degrees | GEN.1149 | no data |
+
+## 6.122 Stand-ins of the albedo colour of the star
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SAB1 | D | T2 | L1 | albedo_color.SPECTRAL_FACTOR: frozen 0.79 (M3V), 0.935 (K2V), 1.0 (G2V), 1.05 (F2V); wet (ocean row of Table 2 over its G entry) 0.73, 0.95, 1.0, 1.03; ratios to the G star's Bond albedo | M frozen 0.62 to 0.93 (the three measures) | ice-covered and ocean worlds with an Earth-like air; a thick CO2 air (3 to 10 bar) masks the effect (Shields et al.) | the Bond albedo of a modelled M or K dwarf planet with the generator's air, from a spectral radiative-transfer run | the ratio computed from the air the generator solves (clouds, gases) and the star's spectrum | Shields et al. 2013 Table 2 (read from extracted text), Sec. 4.2.1 (0.51, 0.55, 0.58 and the 19 percent), abstract | - | - |
+| SAB2 | P | T6 | L1 | albedo_color.WET_SHARE 0.5: the share of the ocean row's shift the wet range (ocean under cloud) takes | 0.5 to 1 (clouds are grey, the sea is not) | ocean worlds | a cloud-resolving model of an M dwarf ocean planet's Bond albedo | the cloud albedo drawn before the temperature (GEN.414) | the ocean row of Shields et al. Table 2 is the surface under an Earth-like cloud deck; snow is the surface that loses most | - | - |
+| SAB3 | D | T3 | L0 | albedo_color.SPECTRAL_TEMPERATURES_K 3410, 5040, 5770, 6900: the effective temperatures of the M3V, K2V, G2V and F2V stars | the types' range (about 100 K) | any star | the temperatures of HD128167, HD22049 and AD Leo | the stars' own catalogue temperatures | main-sequence values of the types, recalled; the paper gives none | - | - |
 
 ## 6.94 Stand-ins of the irregular zone
 
