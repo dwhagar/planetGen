@@ -14345,26 +14345,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
-- [ ] **GEN.1088 physics/belt_origin.py: the cause table (gap, unfinished tail, snow-line bump, giant stirring, instability depletion, collisional debris, destroyed planet), the survival factors, the origin and formation record and the one-sentence text**
-  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
-  we think it came from, we know because we made it; design
-  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
-  Boss, taken until he changes them: Class D stays "small, airless, at
-  least 1 percent ice" and covers belt members and dwarf planets; dwarf
-  planets are listed on the system page as members of their belt, not in
-  the planet list; the scatter phase is a rule over the architecture's
-  events with stored mass shares, no N-body run. Stand-ins accepted when
-  registered in GEN.725 with tier and tweak level; the Solar System is a
-  test target, never an input. Do: design belt-origins section 3 to 5.
-  Pure functions; every belt gets an origin and a sentence saying where
-  it came from (we know, because the generator made it). Done: tests
-  that each cause fires on its input and mass is conserved; stand-ins
-  registered (educated guess from physics, L1). Lock-free. Where we
-  think it belongs (best guess, can move): Planets 1 (owns the
-  architecture), separate branch, after the research read.
-  Prerequisites: GEN.1060. Related: GEN.1061.
-  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
-
 - [ ] **GEN.1089 physics/scatter.py: the scatter step as pure functions of the giants and the disc (a rule over the architecture's events with stored mass shares, no N-body run)**
   Belt origins (Boss, 2026-10-30, plan the items so each belt says where
   we think it came from, we know because we made it; design
@@ -14457,7 +14437,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   detached) are generated from the cold outer disc and swept by the
   scatter step, with dwarf planets drawn from the size law (GEN.1090),
   the outer disc being the belt of GEN.1071.
-  Prerequisites: GEN.1088, GEN.1089, GEN.1090, GEN.1070, GEN.1071.
+  Prerequisites: GEN.1089, GEN.1090, GEN.1070, GEN.1071.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
 - [ ] **GEN.1094 Read Goldberg and Batygin 2023 for the librating share of near-resonant pairs (the share of pairs that are heating-capable, W5), and register the number**

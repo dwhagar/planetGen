@@ -2021,3 +2021,4 @@ Baseline: PR #1817.
 | GEN.1078 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | PERF.210 | 8.1 | The headline closes |
 | GEN.1093 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1088 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
