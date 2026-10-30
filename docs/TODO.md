@@ -13958,6 +13958,661 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the giant column with GEN.1030/1033). Version 8.1.
   Prerequisites: none. Related: GEN.1030, GEN.1033, GEN.412, GEN.816.
 
+- [ ] **GEN.1060 Belt research read: open the nine sources of design section 8 (Bottke 2006, Wisdom 1980 and 1982, Moons and Morbidelli 1995, Walsh 2011, Raymond and Izidoro 2017, Stern and Levison 2002, Soter 2006, Margot 2015, Thomas 2010, Kenyon and Bromley 2008, Debes and Sigurdsson 2002, Zuckerman 2010, Koester 2014, Ida and Guillot 2016, Gladman and Volk 2021), one register row per number used**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Do: read each source (second-hand
+  where Boss cannot access it, via reports/secondhand-citations), write
+  a report with the numbers the belt items need (Yarkovsky da/dt,
+  chaotic zone half-width, resonance loss times, instability survival
+  fraction, roundness masses, Soter mu and Margot Pi thresholds, white
+  dwarf pollution rates) and register every stand-in in GEN.725 (T2 or
+  T3, L0 to L1). Done: report and registry rows merged; no [R] left in
+  the design without a row. Lock-free. Where we think it belongs (best
+  guess, can move): Sources 2 (belt owner, GEN.473 and GEN.477),
+  separate branch, merge it yourself, version 8.1, starts now.
+  Added reads (belt-origins design) (2026-10-30 4:35 PM EDT): Also read
+  Bottke and Morbidelli on the belt size distribution, Fraser 2014 and
+  Bernstein 2004 totals, Grundy 2019 roundness, Levison 2008, Sibthorpe
+  2018 and Marshall 2014 (arXiv:1403.6186); register every number used.
+  Prerequisites: none.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1061 physics/belt_ledger.py: the size-law top-end order statistic, the individual-object draw by the cut rule with mass conserved, and the Dc iteration with belt_mass**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Do: design section 3.1 steps 1 to 4
+  and 11.1 rule: N(>m) from the size laws (Ivezic 2001, Fraser 2014),
+  the top body as the order statistic, M_belt(t) from belt_mass_earth
+  with Dc iterated once, the L1 list by the rule, ranks stable (sorted
+  on a mass drawn once at birth). Pure function, no wiring. Done: tests
+  with the Solar System main belt and Kuiper belt as targets (about 10
+  to 30 objects above 1e19 kg in the main belt), mass sums to the
+  budget, rank stability across calls. Lock-free. Where we think it
+  belongs (best guess, can move): Sources 2, after the research read
+  (separate branch).
+  Prerequisites: GEN.1060. Related: GEN.477.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1062 physics/resonance_gaps.py: the resonance and chaotic-zone map from the giants' orbits and the size-dependent Yarkovsky cut**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Do: design section 2.3 and 2.4:
+  mean-motion resonance radii a_res = a_giant (q/p)^(2/3), chaotic zone
+  half-width about 1.3 a_p (m_p/M*)^(2/7), the Yarkovsky size cut that
+  grows with age, returning the gap list, the cut diameter and the
+  stirring of the survivors. Pure function. Done: tests give the
+  Kirkwood gaps (3:1 at 2.50 AU, 5:2, 7:3, 2:1) from Jupiter and the
+  empty zone inside Neptune's chaotic zone. Lock-free. Where we think it
+  belongs (best guess, can move): Core 3 (stability lane, waits for
+  train 11; separate branch), after the research read.
+  Prerequisites: GEN.1060. Related: GEN.1016.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1063 physics/body_status.py: roundness mass by composition, Soter mu, Stern-Levison Lambda, Margot Pi, and the status words (planet, dwarf planet, minor body, moon), both words and numbers stored**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Do: design section 3.2 and Boss
+  decision 2 (store both the IAU word and the numbers). Pure function of
+  mass, composition, orbit and the neighbours in the ledger. Reuse the
+  compaction taper (1e19 to 1e21 kg) for roundness. Done: tests on
+  Earth, Mars, Ceres, Pluto, Eris, Jupiter and the Trojans. Lock-free.
+  Where we think it belongs (best guess, can move): Aux 2 (waits for
+  train 6 on GEN.768; separate branch), after the research read.
+  Prerequisites: GEN.1060.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1064 physics/belt_history.py: early-depletion survival, instability sweep, and the star events (engulf partly, mass-loss destabilise share, companion truncation, white dwarf pollution link)**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Do: design section 4 steps 3 and 6 and
+  2.5: a drawn survival after a giant instability (stand-in lognormal,
+  widest range until read), the corrected rule that a belt overlapping
+  an engulfment radius keeps its surviving outer part, the scattered
+  share on a mass drop feeding the white dwarf pollution rate, and a
+  text history line per event the page can show. Pure function. Done:
+  tests on white dwarf, red giant and binary-truncation cases.
+  Lock-free. Where we think it belongs (best guess, can move): Star 2
+  (owns the post-main-sequence epoch work, after its train 9 items;
+  separate branch), or Sources 2 if Star 2 stays busy.
+  Prerequisites: GEN.1060.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1065 Belt member designation: a pure function designation(belt_id, rank) printing the belt ID plus the rank in hex (no name, no salad name, no codec name), and its round trip through parse_id**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Do: design section 9 and Boss decision
+  1 (the member number is a sub-number inside the belt ID, `<belt
+  ID>.<rank hex>`), in galaxy/object_uid.py beside format_id; naming_key
+  leaves belt members out. Done: tests show it is a pure function, rank
+  above the individual count addresses an on-demand body, and parse_id
+  round-trips it. Lock-free; the display and storage are the lock items
+  below. Where we think it belongs (best guess, can move): Core 1 (ids
+  and tests; after the oddity harness, separate branch).
+  Prerequisites: none.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1066 Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Do: design section 5: a generated
+  index over planets, moons, asteroid_belts, comets, rings and the
+  individual belt members, recommended as a view first (no new storage),
+  with the mass-conservation sum and the barycentre test (the star's
+  wobble from the belts). Output: a design note under
+  docs/design/systems/ and the pure barycentre function. Done: note
+  merged, function tested. Lock-free. Where we think it belongs (best
+  guess, can move): Planets 1 (owns the clearance ledger GEN.1014 the
+  belt gap map plugs into), after the GEN.1014 wiring; separate branch.
+  Prerequisites: GEN.1014. Related: GEN.1006.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1067 Per-member composition from the finished taxon kernel at the body's own a, differentiated bodies only if the 26Al ratio says so, density from the compaction taper**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Do: design section 3.1 step 5: a
+  member's taxon shares come from physics/taxon_kernel.py at its own
+  semi-major axis (a gradient, not one belt value), V, A and M types
+  only for a differentiated belt, density from compaction. Pure function
+  over the ledger draw. Done: tests show the gradient across a belt and
+  the undifferentiated case. Lock-free. The belt-wide taxa wiring is
+  GEN.473 (train 7); this is the per-member step. Where we think it
+  belongs (best guess, can move): Sources 1 (composition and sources
+  lane; separate branch), after the ledger draw.
+  Prerequisites: GEN.1061.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1068 Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py)**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Lock work, train 15. Design section
+  2.1 and 4 steps 1 to 3: the annulus from the architecture gap or tail,
+  M0 from the disc solids, the formation snow line stored, the giants'
+  chaotic zones and resonance gaps removed, the early-depletion draw.
+  The belt gap map is a clearance entry in the GEN.1014 ledger. Done:
+  tests, a new epoch with --affects, the census re-baselined by the
+  census item. Replaces the slot roll; no backward-compat shim. Where we
+  think it belongs (best guess, can move): Planets 1, train 15 (after
+  the GEN.1014 wiring on train 10 and the ledger, gaps and history
+  modules).
+  Prerequisites: GEN.1014, GEN.1061, GEN.1062, GEN.1064. Related:
+  GEN.728.
+  Belt origins (2026-10-30 4:35 PM EDT): Each belt also stores where we
+  think it came from (the cause from physics/belt_origin.py) and a
+  one-sentence text; stored with the origin and formation columns of
+  GEN.1069.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1069 Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Lock work, train 15. Design section 10
+  item 10: the belt's stored mass is the budget the ledger spends; the
+  density word is derived from mass per area, no shim. New columns
+  registered in db/column_units.py. Done: migration, tests, golden, the
+  page shows the mass and its history. Builds on the GEN.477 wiring
+  (train 7). Where we think it belongs (best guess, can move): Sources
+  2, train 15 (same train as the belt birth).
+  Belt origins (2026-10-30 4:35 PM EDT): Adds the origin, formation and
+  history text columns to the belt record (design belt-origins section
+  4).
+  Prerequisites: GEN.477, GEN.1068. Related: GEN.477.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1070 Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Lock work, train 15. Design section 3,
+  5 and 10 item 11: members stored by the cut rule (at most 300 per
+  belt), L2 bodies addressable by (belt id, rank) and rebuilt, never
+  stored; each page shows status, mass, composition and the belt
+  history. Done: migration, API version bump with the change note,
+  tests, map and page checks. No backward-compat shim. Where we think it
+  belongs (best guess, can move): Core 2 (map and pages) with Sources 2
+  (storage), train 15.
+  Belt origins (2026-10-30 4:35 PM EDT): Stored members carry the
+  scatter tag once the scatter phase is wired (GEN.1092).
+  Prerequisites: GEN.1061, GEN.1063, GEN.1065, GEN.1067, GEN.1069.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1071 Outer (Kuiper-type) disc built as a belt from the same chain, linked to the debris descriptor so the descriptor and the belt are one thing**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Lock work, train 16. Design section
+  2.1 and 10 item 12: the outer disc beyond the last giant, its mass and
+  size law (hot and cold populations, Fraser 2014), the cold-disc
+  occurrence from Sibthorpe 2018, one belt record replacing the separate
+  descriptor. New epoch. Done: tests, census share of systems with an
+  outer disc matches the descriptor's occurrence. Where we think it
+  belongs (best guess, can move): Sources 2, train 16 (after train 15).
+  Belt origins (2026-10-30 4:35 PM EDT): The outer disc is fed by the
+  scatter step (GEN.1092).
+  Prerequisites: GEN.1068, GEN.1069.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1072 White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Lock work, train 16. Design section
+  2.5 and 10 item 13: the belt history module (engulf partly,
+  destabilise a share on mass loss, scatter inward) applied when a star
+  becomes a remnant, with the pollution rate linked to whether a belt or
+  planet survives. New epoch. Done: tests, white dwarf pollution share
+  within the observed 25 to 50 percent band as a census check. Where we
+  think it belongs (best guess, can move): Star 2, train 16.
+  Prerequisites: GEN.1064, GEN.1068.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1073 Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept**
+  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
+  so belts evolve and say where we think each belongs; design
+  docs/design/systems/belt-evolution.md). The mass cut for an individual
+  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
+  the rule"): store every body above 1e19 kg; if that is fewer than the
+  bodies needed to cover 90 percent of the belt mass, add the next
+  heaviest up to 300 per belt; bodies below are drawn on demand and
+  never stored. The cut values are stand-ins registered in GEN.725.
+  Stand-ins accepted when registered with tier and tweak level; a number
+  marked [R] in the design is read from its source by the lane that
+  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
+  are test targets, never inputs. Lock work, train 16. Design section 4
+  closing note and 10 item 14: when the star changes epoch (GEN.1006)
+  the belt mass is recomputed from the new age without redrawing the
+  individual members above the grinding scale; the tail changes, the top
+  bodies do not. Done: tests with a before and after epoch, stable
+  ranks. Where we think it belongs (best guess, can move): Bug 1
+  (GEN.1006 chain, GEN.1017 on train 8), train 16 after the GEN.1006
+  chain has merged.
+  Prerequisites: GEN.1069, GEN.1006.
+  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
+
+- [ ] **GEN.1075 Captured moons read list and register rows: Nesvorny et al. 2003 and 2007, Hamilton and Burns 1991, Agnor and Hamilton 2006, Vokrouhlicky 2008, Bottke 2010, Sheppard and Jewitt 2003 and 2005, Nicholson 2008, Granvik 2012, Rosenblatt 2016**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Do: read each source (second-hand where Boss cannot access it),
+  take the head counts per giant from tables and write the register rows
+  of design section 5. Done: short report and GEN.725 rows merged.
+  Lock-free. Where we think it belongs (best guess, can move): Sources 1
+  (separate branch, merge it yourself), starts now.
+  Prerequisites: none.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1076 physics/irregular_zone.py: Hill radius, stable limits (prograde and retrograde), the inner edge from the outermost regular moon, the Kozai exclusion**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Do: design 4 step 1, reusing KOZAI_FORBIDDEN_DEG. Pure function.
+  Done: tests give the Jupiter, Saturn, Uranus and Neptune values of
+  design section 2.1. Lock-free. Where we think it belongs (best guess,
+  can move): Tides 1 (moon orbit lane, separate branch), after the Tides
+  1 train 5 items.
+  Prerequisites: none.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1077 physics/irregular_population.py: capture windows, the cumulative count N0(>R), grinding, and the order-statistic draw into individual, on-demand and population tiers**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Do: design section 4. Pure function. Done: a Jupiter-like giant
+  gives about one body above 40 km and ten to twenty above 5 km, the
+  four giants come out the same order, terrestrial planets get zero.
+  Lock-free. Where we think it belongs (best guess, can move): Aux 5
+  (separate branch), after the captured moons read list.
+  Prerequisites: GEN.1075. Related: GEN.1061.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1078 physics/irregular_orbits.py: a/r_H, e, i, survival and families (parent breakup with a velocity spread)**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Do: design section 4. Pure function. Done: tests show the
+  retrograde to prograde split near 4.5:1 from stability alone, no body
+  in the Kozai band, no periapsis inside the outermost regular moon.
+  Lock-free. Where we think it belongs (best guess, can move): Tides 1
+  (after the irregular zone).
+  Prerequisites: GEN.1076.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1079 Collisional-saturation check for the irregular zone: reuse belt_mass_earth and show the invariance across the four giants, or replace the guess with a fitted scalar per planet registered at L3**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Do: design section 2.3. Done: the check or the registered scalar,
+  with a test. Lock-free. Where we think it belongs (best guess, can
+  move): Aux 5 (after the population module).
+  Prerequisites: GEN.1077.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1080 Composition of captured bodies from the reservoir (the GEN.473 taxon kernel at the source belt or disc) and a heterogeneous parent**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Do: design section 4: a captured body takes the composition of the
+  reservoir it came from, and family members share a parent. Pure
+  function. Done: tests. Lock-free. Needs the GEN.473 wiring (train 7)
+  merged first. Where we think it belongs (best guess, can move):
+  Sources 1 (with the per-member composition item GEN.1067).
+  Prerequisites: GEN.1077, GEN.1067.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1081 Captured-origin weight depends on moon mass: the ORIGIN_TABLE row `captured` becomes a function of mass so a 1e20 kg or heavier moon is rarely captured, as a pure helper**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Do: design 3 and 4; wiring is the lock item below. Done: tests.
+  Lock-free. Where we think it belongs (best guess, can move): Aux 4
+  (separate branch, after GEN.1035).
+  Prerequisites: none.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1082 The architecture records its capture windows (the instability event, the number of giant-giant close encounters, the gas-disc lifetime already kept in DiskSystem) as a field on the system**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Lock work, train 15 with the belt birth item. One epoch with the
+  GEN.728 wiring, --affects plan. Done: tests, golden, census
+  re-baseline. Where we think it belongs (best guess, can move): Planets
+  1, train 15.
+  Belt origins (2026-10-30 4:35 PM EDT): Captured moons from the scatter
+  step wait for the census (GEN.1087) to show a moon deficit, with
+  GEN.921.
+  Prerequisites: GEN.1077. Related: GEN.728.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1083 Wire irregular moons into generate_moons as a second tier above the regular moons (MOON_MIN_MASS_KG left alone for the regular list) with the captured-origin weight**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Lock work, train 17. New epoch, --affects plan, golden. Done:
+  tests, census share of giants with irregulars and the head counts per
+  giant. Where we think it belongs (best guess, can move): Core 3 (owns
+  the moon draw lock), train 17.
+  Prerequisites: GEN.1078, GEN.1081, GEN.1082, GEN.1079, GEN.1080.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1084 Store the individual irregular moons and the new moon columns (migration, API version), and call the stability test for irregulars in drop_unstable_moons and in bring-to-epoch when a planet moves**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Lock work, train 17. Replaces the open weights, no backward-compat
+  shim. Done: migration, API version bump with the change note, tests,
+  columns in db/column_units.py. Where we think it belongs (best guess,
+  can move): Core 3 with Sources 2 (storage), train 17.
+  Prerequisites: GEN.1083, GEN.1070. Related: GEN.1006.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1085 Belt ledger link: a captured member leaves its belt's mass total; until then captured bodies come from the outer-disc reservoir only**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Lock work, train 18 (with the belt storage already merged). Epoch
+  with the belt storage. Done: tests show belt mass minus captured mass
+  is conserved. Where we think it belongs (best guess, can move):
+  Sources 2, train 18.
+  Prerequisites: GEN.1084, GEN.1069.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1086 System map and pages for irregular moons (eccentric, inclined, retrograde orbits on the moon-orbit view, a body page per irregular) and the clearance ledger taking the irregular zone as occupied space**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Lock work, train 18, part of the 8.2 object pages.
+  web/maps/moonorbits.py, GEN.1014 clearance entry. Done: tests and map
+  checks. Where we think it belongs (best guess, can move): Core 2,
+  train 18.
+  Prerequisites: GEN.1084. Related: GEN.1014.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+
+- [ ] **GEN.1087 Census of Class D and dwarf-size bodies, moons of 50 to 500 km, and belts per system from the current generator, per star type**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Do: measure the current generator (needs
+  `datasets fetch isochrones` on the lane machine) and write the report;
+  it seeds the test targets of the dwarf population and scatter modules
+  and says whether the system needs more Class D bodies than it makes.
+  Done: report with per-star-type numbers. Lock-free. Where we think it
+  belongs (best guess, can move): Aux 3 (audit lane, separate branch),
+  now.
+  Prerequisites: none.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
+- [ ] **GEN.1088 physics/belt_origin.py: the cause table (gap, unfinished tail, snow-line bump, giant stirring, instability depletion, collisional debris, destroyed planet), the survival factors, the origin and formation record and the one-sentence text**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Do: design belt-origins section 3 to 5.
+  Pure functions; every belt gets an origin and a sentence saying where
+  it came from (we know, because the generator made it). Done: tests
+  that each cause fires on its input and mass is conserved; stand-ins
+  registered (educated guess from physics, L1). Lock-free. Where we
+  think it belongs (best guess, can move): Planets 1 (owns the
+  architecture), separate branch, after the research read.
+  Prerequisites: GEN.1060. Related: GEN.1061.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
+- [ ] **GEN.1089 physics/scatter.py: the scatter step as pure functions of the giants and the disc (a rule over the architecture's events with stored mass shares, no N-body run)**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Do: design belt-origins section 6: what
+  fraction of the disc solids ends scattered, in the outer disc, or onto
+  moons. Done: tests with giant-free and giant-rich inputs, Sol not an
+  input. Lock-free. Where we think it belongs (best guess, can move):
+  Core 4 (giants lane, separate branch), after its giants items.
+  Prerequisites: GEN.1060.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
+- [ ] **GEN.1090 physics/dwarf_population.py: N(>D) from belt mass and size law, the order-statistic top body, the dwarf-planet line and Class D tagging**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Do: design belt-origins section 5.
+  Targets only (never inputs): the main belt 200 to 250 bodies of 100 km
+  and up, a Kuiper-type disc 15 to 20 dwarf candidates. Done: tests,
+  stand-ins registered. Lock-free. Where we think it belongs (best
+  guess, can move): Sources 2 (with the belt ledger), separate branch.
+  Prerequisites: GEN.1061, GEN.1087.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
+- [ ] **GEN.1091 Rewrite the Class D wording in tuning.PLANET_CLASSES["D"] and the docs to match the conditions rule plus the ledger scope (docs only)**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Do: Class D stays small, airless and at
+  least 1 percent ice, and applies to belt members and dwarf planets as
+  well as moons (Boss default; changes if he says so). Done: wording and
+  docs agree, tests green. Docs-only, lock-free. Where we think it
+  belongs (best guess, can move): Aux 2 (class lane), separate branch.
+  Prerequisites: none.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
+- [ ] **GEN.1092 Wire the scatter phase and the belt origin: scatter tag on stored members, the outer disc fed from the scatter step, origin and formation shown on the belt page**
+  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
+  we think it came from, we know because we made it; design
+  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
+  Boss, taken until he changes them: Class D stays "small, airless, at
+  least 1 percent ice" and covers belt members and dwarf planets; dwarf
+  planets are listed on the system page as members of their belt, not in
+  the planet list; the scatter phase is a rule over the architecture's
+  events with stored mass shares, no N-body run. Stand-ins accepted when
+  registered in GEN.725 with tier and tweak level; the Solar System is a
+  test target, never an input. Lock work, train 16 with the outer-disc
+  item (it extends the member storage and the outer disc). New epoch,
+  API bump with the change note. Done: tests, harness, census
+  re-baseline; every belt page says where it came from. Where we think
+  it belongs (best guess, can move): Sources 2 with Planets 1, train 16.
+  Prerequisites: GEN.1088, GEN.1089, GEN.1090, GEN.1070, GEN.1071.
+  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18855,6 +19510,21 @@ clears each one.
   harness item). Version 8.1.
   Prerequisites: TEST.490. Related: GEN.732.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
+
+- [ ] **TEST.495 Designation for captured bodies: the belt-member designation `<belt ID>.<rank hex>` is kept with a parent link, outside-reservoir bodies print `<planet ID>.<rank hex>`; both pure and round-trip through parse_id**
+  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
+  many moons because a lot of them are former asteroids from the belt,
+  if gravitational bodies are near a belt, they should pick up
+  asteroidal moons"; design
+  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
+  designation function with the belt evolution items (goal #4130).
+  Stand-ins accepted when registered in GEN.725 with tier and tweak
+  level; [R] numbers are read from the source by the lane that builds
+  it. Do: extend the member designation function (GEN.1065). Done:
+  tests. Lock-free. Where we think it belongs (best guess, can move):
+  Core 1 (same lane as GEN.1065).
+  Prerequisites: GEN.1065.
+  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
 ## USR: User accounts
 
