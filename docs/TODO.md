@@ -6464,7 +6464,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are quiet-Sun values and the active Sun shortens H2O by 1.7 and CO2 by
   2.35 (items GEN.495 and GEN.496).
   Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  lane (about 2:54 AM EDT as the lane reported; findings 21 to 30, part
   10A to 10D of atmosphere-composition.md): NH3 photolysis lifetime at 1 AU: default 1.5e-4 per s (6.7e3 s), range 1.3e-4 to 1.8e-4 per s (5.6e3 to 7.7e3 s), settled by the two lanes in part 10E (GEN.496 stores the quiet-Sun rate and an activity factor of 1.05 to 1.10); comet CO2 ratios confirmed, other comet ranges
   per finding 27.
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
@@ -6526,7 +6526,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4.494 MPa; the deliquescence relative humidity sources (Gough 2011,
   Nuding 2014) and the JPL copyright page were not reached.
   Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  lane (about 2:54 AM EDT as the lane reported; findings 21 to 30, part
   10A to 10D of atmosphere-composition.md): the CO2 hydrate quadruple
   point Q1 271.60 K at 1.044 MPa is confirmed; the brine and H2SO4-H2O
   remarks carry no constants and stay unadopted until Tabazadeh 1997,
@@ -14325,6 +14325,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects fill), then remove the xfail marker in the test. Done: no
   stored body has a life_class without a life_stage and the xfail is
   gone. Owner: step 1 Core 3, step 2 Aux 2 (life lane) or Bug 1.
+  Step 1 merged (Core 3, #3927, as the lane reported) (2026-10-30 2:54
+  AM EDT): a body that suits a life class but has no life stage yet is
+  left out of the Galaxy Map class marks, the class filter and its
+  count, search results, the habitability icons, the API life_class_id,
+  the dominant species line on the object page and the system map side
+  panel; two new tests; no migration, nothing drawn changes. Existing
+  databases keep the old lifeclass map rows of those bodies until their
+  systems are saved again (a small data migration would clear them; not
+  filed, optional). Step 2 remains (draw no class before the first step,
+  epoch, removes the xfail)
   Prerequisites: none. Related: GEN.873, GEN.894.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -14890,6 +14900,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stored-output change, no epoch. Lock-free. Do: read it in the stage's
   prepare hook inside the worker; test the same stored output. Size S to
   M. Owner: pool (a waiting lane, confirmed with TODO).
+  Owner (2026-10-30 2:54 AM EDT): Core 3 takes this (TODO, 2:54 AM EDT);
+  lock-free, no stored-output change
   Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.214.
 
 - [ ] **PERF.214 The sectors planner (_plan_sectors) runs in a worker inside the run, not in the starting process**
@@ -14904,6 +14916,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planner when the sectors stage opens and let the stages after it read
   its result; test the same plan and stored output. Size M. Owner: pool
   (a waiting lane, confirmed with TODO).
+  Owner (2026-10-30 2:54 AM EDT): Core 3 takes this after PERF.213
+  (TODO); lock-free, no stored-output change
   Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
 
 ## DB: Database and schema
