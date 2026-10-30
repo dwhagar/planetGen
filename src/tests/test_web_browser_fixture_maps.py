@@ -4329,6 +4329,35 @@ def test_a_step_across_the_sector_edge_opens_the_system_beside_in_its_own_sector
                            arg=[was], timeout=30000)
 
 
+@pytest.mark.parametrize("gap", [-1, 0, 30, 60, 90, 150, 400, 1000])
+def test_two_quick_presses_of_back_across_a_sector_change_land_on_the_system_the_second_one_asks_for(page, map_site, gap):
+    """MAP.352: Back pressed twice with no wait, from Middling Sun reached by stepping west from Across The Edge (the sector beside),
+    goes to the first sector's own entry and then to Across The Edge in the sector beside: the second press, a system in a different
+    sector, is not lost to the first one's move, and the map ends on that system."""
+    _open_system_in_place(page, map_site)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStepTo('east') === 'Across The Edge'", timeout=20000)
+    page.click("#galaxymap3d-menu > summary")
+    for direction, name in (("east", "Across The Edge"), ("west", "Middling Sun")):
+        page.wait_for_function("([d, n]) => document.querySelector('#galaxymap3d-canvas').galaxyStepTo(d) === n", arg=[direction, name], timeout=30000)
+        before = _galaxy_system(page)["id"]
+        page.click(f'#galaxymap3d-controls [data-step="{direction}"]')
+        page.wait_for_function("([was]) => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); return !!s && s.id !== was && !s.flying; }",
+                               arg=[before], timeout=30000)
+        _settle(page)
+        assert _galaxy_system(page)["name"] == name
+    beside = next(i for i, n, *_r in BESIDE_SYSTEMS if n == "Across The Edge")
+    if gap < 0:
+        page.go_back()
+        page.go_back()
+    else:
+        page.evaluate("(gap) => new Promise((done) => { const back = document.querySelector('#galaxymap3d-controls [data-action=back]'); back.click(); setTimeout(() => { back.click(); done(); }, gap); })", gap)
+    page.wait_for_function("([wanted]) => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); return !!s && s.id === wanted && !s.flying; }",
+                           arg=[beside], timeout=40000)
+    _settle(page)
+    assert _galaxy_system(page)["id"] == beside
+    assert f"system={beside}" in _query(page) and f"sector={BESIDE_CODE}" in _query(page), _query(page)
+
+
 def test_a_close_pairs_two_orbits_are_drawn_each_at_its_share(page, map_site):
     """MAP.136: both stars of a close pair circle the barycenter on their own
     line, the lighter one on the wider (the fixture pair's mass fraction is
