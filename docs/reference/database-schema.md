@@ -2237,6 +2237,10 @@ Migration 0167 adds no column. It fills `system_interests` with the reason `inha
 
 Migration 0166 adds no column. It fills `system_interests` with the reasons `uninhabitable` (a scored terrestrial planet or moon under `habitability.YELLOW_FLOOR`, with the count and the best score) and `asteroid-field` (the count of belts) from the planets, moons and belts already stored. Nothing a generator draws changes, so there is no epoch.
 
+### v178 (PERF.205): name indexes on the last two phenomenon tables
+
+Migration 0178 adds `idx_asteroid_fields_name` and `idx_interstellar_comets_name` (a `name` index, built online), so every phenomenon table has one and the Phenomena table pages by name in index order. No column and no stored value changes.
+
 ### v177 (PERF.205): the Species table's sort indexes
 
 Migration 0177 adds `idx_species_spacefaring_name (spacefaring, name)`, `idx_species_tech_level_name (tech_level, name)` and `idx_species_era_name (era, name)` to `species`, online, and drops `idx_species_spacefaring` and `idx_species_tech_level`, which were their first columns. No column and no stored value changes.
