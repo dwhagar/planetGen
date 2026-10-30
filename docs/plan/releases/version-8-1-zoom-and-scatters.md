@@ -654,7 +654,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.736 | Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model | GEN.967 |  |
 | GEN.967 | Dynamo field (b): the stored field strength, moment and lifetime come from the dynamo module and feed the radiation shielding |  |  |
 | GEN.981 | Induced magnetic moment part (b): conducting cores and planets in the star's field (the part of GEN.779 that remains) | GEN.967 |  |
-| GEN.740 | Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere) |  |  |
 | GEN.743 | Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs | GEN.968, GEN.969 |  |
 | GEN.968 | Neutron star structure (a): a TOV integration over the equation-of-state tables held on disk, tested against NICER radii |  |  |
 | GEN.969 | Neutron star structure (b): wire the integrated radius and layers into the neutron star model, and add helium-core and oxygen-neon white dwarf layers | GEN.968 |  |
@@ -748,4 +747,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
 | TEST.380 | First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp |  |  |
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, TEST.300, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.752, GEN.753 |  |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, TEST.300, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.752, GEN.753 |  |

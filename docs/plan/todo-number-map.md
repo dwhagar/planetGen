@@ -1490,7 +1490,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.737 | Tidal heating from the orbit's real eccentricity for rocky bodies and planets, with the random 1 to 50 boost removed | none | done, PR #3380 |
 | GEN.738 | Atmospheric escape: a thermosphere model, hydrodynamic escape and time-integrated XUV loss | none | done, PR #3260 |
 | GEN.739 | Impact erosion and late delivery of atmospheres, with history | none | done, PR #3246 |
-| GEN.740 | Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere) | none | open |
+| GEN.740 | Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere) | none | done, PR #3862 |
 | GEN.741 | Post-main-sequence stellar tracks: subgiant, red giant, horizontal branch, asymptotic giant and supergiant from mass and age instead of random draws | none | dropped (revoked by the full-build sweep 8:16 PM EDT 10-29: superseded by GEN.935, which reads the MIST post-main-sequence rows; its synthetic-cluster test moved to GEN.935) |
 | GEN.742 | White dwarf cooling sequences by mass and atmosphere, including crystallisation and spectral type against temperature | none | done, PR #3493 |
 | GEN.743 | Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs | none | open |

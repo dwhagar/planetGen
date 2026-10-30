@@ -4812,7 +4812,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.752, GEN.753.
+  Prerequisites: SEC.33, TEST.261, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.752, GEN.753.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -11130,37 +11130,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   section 4.
   Prerequisites: none. Related: GEN.699, GEN.444, GEN.731, GEN.966, GEN.967.
 
-- [ ] **GEN.740 Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere)**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  A12; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: n/a (left
-  out). Today: Oxygen comes from abiotic rows with placeholder
-  fractions; there is no model of oxygen building up with a biosphere.
-  Real physics: a coupling between the life stage and the atmosphere's
-  gases. Do: add a biosphere term to the mixture draw for oxygen,
-  methane and other biosignature gases, gated by the life stage
-  (GEN.649), with the abiotic baseline kept. Done: an inhabited world's
-  air shows the life-driven gases, with tests across life stages and an
-  abiotic control. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Overlap (2026-10-29 8:30 PM EDT): Epoch 122 (Core 1, #3783) already
-  gives worlds with life classes 1, 2, 3, 6 or 8 the methane and
-  hydrogen life makes at its stage (GEN.891, GEN.857 to GEN.859). Aux 2:
-  check what is left (oxygen from a biosphere, other biosignature gases,
-  the abiotic control), tell TODO, and trim this item to that. Owner:
-  Aux 2.
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  Prerequisites: none. Related: GEN.649, GEN.525, GEN.750.
-
 - [ ] **GEN.743 Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   S4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -12982,6 +12951,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
+  From GEN.740 (closed done by GEN.855 and GEN.891, Aux 2 check)
+  (2026-10-29 10:55 PM EDT): the air effects of life classes 4 (sulfur),
+  5, 7 and 9 are the `pending` rows of physics/data/life_ledger.json;
+  they ride this item, with the same tier and tweak level fields. Trace
+  biosignature gases beyond oxygen, methane and hydrogen (nitrous oxide,
+  organosulfur gases) are not filed: nothing reads them and no
+  source-backed row exists; file them only if Boss wants those gases
+  shown.
   Prerequisites: GEN.888.
 
 - [ ] **GEN.897 K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug)**
