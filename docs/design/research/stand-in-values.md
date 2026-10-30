@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 620 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 627 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 79 | 1 | 5 | 1 | 0 | 86 |
-| T2 | 89 | 8 | 0 | 1 | 0 | 98 |
-| T3 | 71 | 24 | 5 | 9 | 0 | 109 |
+| T1 | 82 | 1 | 5 | 1 | 0 | 89 |
+| T2 | 90 | 9 | 0 | 1 | 0 | 100 |
+| T3 | 72 | 25 | 5 | 9 | 0 | 111 |
 | T4 | 30 | 0 | 0 | 13 | 6 | 49 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
 | T6 | 51 | 30 | 12 | 33 | 0 | 126 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 386 | 84 | 32 | 91 | 27 | 620 |
+| All | 391 | 86 | 32 | 91 | 27 | 627 |
 
 ## How the labels were given
 
@@ -844,6 +844,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | QT2 | P | T1 | L0 | the meaning of "stable": bound and not chaotic over 100 outer orbits (a twin with the inner axis of the lighter binary larger by 1e-6 au diverging by under 1 percent in that axis), `outer_orbits` 100 and `divergence_limit` 0.01 | none | systems that are stable for a stellar lifetime only if nothing slower acts | a system stable at 100 outer orbits that the N-body code breaks at 10^4 outer orbits | a long-integration label | paper section 2, read | - | - |
 | QT3 | P | T1 | L0 | the documented range: `q_in_min` 0.1, `q_out_max` 1 (first binary the heavier), `eccentricity_max` 0.95 | none | 2+2 systems inside the range | a system outside it that the network classifies against an N-body run | the range of a bigger training set | paper sections 2 and 3.1 and classify_quad_2p2.py help text, read | - | - |
 | QT4 | P | T6 | L0 | the training distribution: orbital angles isotropic, arguments of periapsis and mean anomalies not inputs, systems kept near the Mardling-Aarseth boundary of the two nested triples, 30 percent of the MA01-unstable draws kept | none | the verdict of a system near the boundary; far from it the network extrapolates | a very hierarchical system (both alphas under 0.05) called unstable by the network with all else benign | the nested triple test far from the boundary | paper section 3.1, read | - | - |
+
+## 6.82 Stand-ins of the oddity rates confirmed against papers
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| WR1 | D | T2 | L0 | eccentricity of a giant planet seen by radial velocity drawn from Beta(a 0.867, b 3.03): P(e > 0.5) 0.101, P(e > 0.8) 0.006, P(e > 0.9) 0.0007 | a 0.82 to 0.91, b 2.87 to 3.20 (68 percent) | giant planets of RV surveys, all periods | a split by period showing P(e > 0.5) beyond 1 AU outside 0.08 to 0.15 | a period-dependent fit | Kipping 2013 (arXiv 1306.4982, read): 396 RV planets with K/sigma_K above 5; Winn and Fabrycky 2015 (arXiv 1410.4199, read) for lower e of small planets and multis | - | - |
+| WR2 | D | T1 | L0 | share of close-in giants (a/R under 10) with a stellar obliquity above 10 degrees at 3 sigma: 0.08 (3 of 39) for hosts under 6,250 K, 0.63 (22 of 35) for 6,250 to 7,000 K, 0.80 (12 of 15) above 7,000 K; the misaligned true angle between 80 and 125 degrees (18 of 19) | boundaries 6,250 and 7,000 K | hot Jupiters measured by the Rossiter-McLaughlin effect | an RM census of 100 more hot hosts with a share outside the binomial 1 sigma of these | the share by host temperature from a larger sample | Albrecht, Dawson and Winn 2022 (arXiv 2203.05460, read): sections 3.1, 3.7 and Figure 8 | - | - |
+| WR3 | D | T1 | L0 | share of neighbouring planet pairs within the window of a first-order resonance (2:1, 3:2, 4:3, 5:4, 6:5; offset -0.015 to +0.03 in period ratio) or second-order (3:1, 5:3, 7:5, 9:7; plus or minus 0.015): 0.70 for systems under 100 Myr, 0.24 for 0.1 to 1 Gyr, 0.15 for over 1 Gyr; 0.156 first-order and 0.058 second-order over all ages | 70 +/- 15, 24 +/- 8, 15 +/- 2 percent | Kepler, K2 and TESS multi-planet systems | a larger young sample (under 100 Myr, now 7 systems) with a share outside the quoted errors | the same fractions from the planets generated by `planet_architecture` once migration is modelled | Dai and others 2024 (arXiv 2406.06885, read): abstract, tables 1 and 2, sections 3 and 4; the share of such pairs that librate (offset under 0.006) is not given | - | - |
+| WR4 | P | T3 | L1 | share of rocky planets under 10 Earth masses that are iron-rich (core fraction above about 0.6): log-uniform 0.01 to 0.23, middle 0.05 | 0 to 0.23 | rocky planets of measured mass and radius | a homogeneous sample of 100 or more planets whose iron-rich share falls outside the bracket | the share from a census with mass-radius scatter forward-modelled | Adibekyan and others 2021 as in arXiv 2112.14512 (read): 5 of 22, 6 of 28; Plotnykov and others 2025 (arXiv 2511.17717, read): 4 fall to 1 of 21, mock populations give the outliers 15 percent of the time; Brinkman and others 2024 (arXiv 2409.08361, read): none distinct | - | - |
+| WR5 | D | T2 | L1 | share of FGK stars with a progenitor of a disintegrating planet (a rocky body of about 0.02 to 0.1 Earth mass at under 1 day): log-uniform 0.0002 to 0.003, middle 0.0008 | 0.0002 (planet lifetime 370 Myr) to 0.003 (21 Myr) | FGK dwarfs; the active share is the existing lifetime over the age | a transit survey of 1e6 stars with a count of disintegrators outside 2 to 20 | a rate from the TESS and PLATO samples | Schlawin and others 2021 (arXiv 2106.07648, read): 2 in 116,537 stars observed, transit probability 0.25, active share 21 Myr per Gyr; Sanchis-Ojeda and others 2015 (arXiv 1504.04379, read): K2-22 b in 21,647 stars and 106 Kepler ultra-short-period candidates | - | - |
+| WR6 | D | T3 | L0 | share of transiting planets of 4 to 10 Earth radii at P under 100 d that are super-puffs: 0.095 with mass at most 10 Earth masses (20 of 211) and 0.019 with density under 0.1 g/cc (4 of 211); 6 of the 20 under 1 Gyr; they are 0.8 to 1.2 percent of small Neptunes | the density and mass cuts | planets with a measured mass; biased to systems with transit timing | the same count on the archive 5 years from now outside the quoted shares | the share from an occurrence-corrected survey | NASA Exoplanet Archive composite table, public query of 10-30 (`/mnt/project-files/data/gen1037-oddity-rates/`); Fressin and others 2013 (arXiv 1301.0842, read) table 3: 4 to 6 Earth radii 1.97 +/- 0.23 percent of stars at P under 85 d, small Neptunes 23.5 percent; Lee and Chiang 2016 (arXiv 1510.08855, read) and Gao and Zhang 2020 (arXiv 2001.00055, read) for the definition (R above 4, M under 6 to 10 Earth masses) | - | - |
+| WR7 | D | T1 | L0 | width of the bistable (snowball or warm) window as a share of the flux S/S0 for an Earth-like planet: F stars 0.99 to 1.14, G stars 0.92 to 1.06, K stars 0.88 to 0.98 (widths 0.15, 0.14, 0.10); no window for a tidally locked planet, for a solar day over about 100 Earth days, or for eccentricity 0.2 or more | window edges 0.1 flux either side by the model; gates T3 | rapidly rotating ocean planets with a circular orbit | a GCM of an Earth twin in which the window falls outside 0.08 to 0.20 | windows from the generator's own energy-balance climate (GEN.972) | Wolf and others 2017 (arXiv 1702.03315, read); Abbot and others 2018 (arXiv 1801.10551, read) for the solar-day gate; arXiv 2509.08994 (read): snowball exit flux 0.99 S0 at e 0 and 0.89 S0 at e 0.2, bistability gone at e 0.2 to 0.3 | - | - |
 
 ## 6.64 Stand-ins of the NH3 active-Sun factor
 
