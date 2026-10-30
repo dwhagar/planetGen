@@ -2037,6 +2037,9 @@ def _nebula_field_task(payload):
     return {"written": written, "counts": counts, "shells": shells}
 
 
+SKELETON_NEVER_BUILT = "The galaxy's skeleton has never been built -- run 'planetgen plan' first."
+"""str: What a stage that needs the plan says when the galaxy has none (said when the stage opens, PERF.203)."""
+
 NEBULA_DRAW_KEY = "nebula-draw"
 """str: The key of the step that draws the nebula field: a step of a run of its own, not a stage the plan lists."""
 
@@ -2056,7 +2059,7 @@ def expand_draw_nebula_field(params):
     """
     The `draw-nebula-field` command's stage (PERF.106, DB.24): a unit per first-index slab of the field's cells (a run of
     consecutive slabs per unit in a galaxy with more than `units.MAX_UNITS` of them, PERF.192), from the stored galaxy
-    alone. `detail` holds the cell edge, so a follower can name a slab's extent.
+    alone. `detail` holds the cell edge, so a follower can name a slab's extent. A galaxy with no outline has no unit.
     """
     conn = store.get_connection(_mysql_config_of(params))
     try:
@@ -2064,6 +2067,10 @@ def expand_draw_nebula_field(params):
         extents = _outline(conn)
     finally:
         conn.close()
+    if skeleton is None:
+        raise RuntimeError(SKELETON_NEVER_BUILT)
+    if not extents:
+        return commands.Expansion([], {"cell_pc": program_constants.NEBULA_FIELD_CELL_PC, "slabs": 0})
     outer_shell = max(shell for shell, _high in extents)
     radius_pc, half_height_pc = nebulaField.field_extent_pc(skeleton.edge_pc, extents)
     edge = program_constants.NEBULA_FIELD_CELL_PC
@@ -2166,10 +2173,20 @@ class NebulaFieldFollower(followed.Follower):
 
 
 def prepare_draw_nebula_field(params):
-    """The `prepare` of the `draw-nebula-field` command (PERF.172), when its stage opens: empties the earlier table."""
+    """
+    The `prepare` of the `draw-nebula-field` command (PERF.172), when its stage opens: empties the earlier table. A galaxy with
+    no outline has nothing to draw and nothing is emptied (PERF.203, checked here and not when the run starts, because an
+    earlier stage of the same run may be what builds the plan).
+
+    Raises:
+        RuntimeError: The galaxy's skeleton has never been built.
+    """
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        store.clear_nebula_field(conn)
+        if store.get_galaxy_shape(conn) is None:
+            raise RuntimeError(SKELETON_NEVER_BUILT)
+        if _outline(conn):
+            store.clear_nebula_field(conn)
     finally:
         conn.close()
 
@@ -2183,6 +2200,8 @@ def conclude_draw_nebula_field(params, plan, results, seconds):
     Returns:
         dict: `linked` (nebulae linked) and `blocks` (block totals made).
     """
+    if not plan["slabs"]:
+        return {"linked": 0, "blocks": 0}
     conn = store.get_connection(_mysql_config_of(params))
     try:
         store.record_scatter_epoch(conn, "nebula-field", params.get("run_id"))
@@ -2632,15 +2651,13 @@ def redraw_nebula_field(args):
     Returns:
         int: The rows written (0 for a galaxy with no outline).
     """
-    conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        if store.get_galaxy_shape(conn) is None:
-            raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
-        if not _outline(conn):
-            return 0
-    finally:
-        conn.close()
-    return followed.run_planned(args, planned_nebula_field(args))
+        return followed.run_planned(args, planned_nebula_field(args))
+    except units.RunStopped as exc:
+        marker = "RuntimeError: "
+        if marker not in str(exc):
+            raise
+        raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
 
 
 def planned_nebula_field(args):
