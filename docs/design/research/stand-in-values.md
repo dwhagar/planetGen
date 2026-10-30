@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 595 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 601 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 72 | 1 | 5 | 1 | 0 | 79 |
+| T1 | 74 | 1 | 5 | 1 | 0 | 81 |
 | T2 | 89 | 8 | 0 | 1 | 0 | 98 |
 | T3 | 70 | 21 | 5 | 9 | 0 | 105 |
 | T4 | 27 | 0 | 0 | 13 | 6 | 46 |
 | T5 | 37 | 11 | 0 | 0 | 0 | 48 |
 | T6 | 49 | 28 | 12 | 33 | 0 | 122 |
-| T7 | 25 | 7 | 8 | 8 | 0 | 48 |
+| T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
-| T9 | 1 | 0 | 1 | 25 | 19 | 46 |
-| All | 370 | 76 | 31 | 91 | 27 | 595 |
+| T9 | 2 | 0 | 2 | 25 | 19 | 48 |
+| All | 374 | 77 | 32 | 91 | 27 | 601 |
 
 ## How the labels were given
 
@@ -836,6 +836,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | QS3 | P | T3 | L0 | the documented range: `q_mid_max` 3 and `q_out_max` 2 from the help text of the authors' script ("best if < ~3", "< ~2"), `q_in_min` 0.1 and `eccentricity_max` 0.95 from the paper | q_mid up to 5 by the paper's masses | 3+1 systems inside the range | a system outside it that the network classifies against an N-body run | the range of a bigger training set | classify_quad_3p1.py help text and paper section 3.1, read | - | - |
 | QS4 | P | T6 | L0 | the training distribution: orbital angles isotropic, arguments of periapsis and mean anomalies not inputs, systems kept near the Mardling-Aarseth boundary of the two nested triples, 20 percent of the MA01-unstable draws kept | none | the verdict of a system near the boundary; far from it (very wide or very tight) the network extrapolates | a very hierarchical system (alpha under 0.05) called unstable by the network with all else benign | the nested triple test far from the boundary | paper section 3.1, read | - | - |
 
+## 6.81 Stand-ins of the 2+2 quadruple stability network
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| QT1 | D | T1 | L0 | the 8,301 weights and biases of `quadruple_stability_2p2_weights.json`, the authors' own trained network, to nine significant digits | none | 2+2 quadruples with masses within a factor 10, eccentricities to 0.95, near the Mardling-Aarseth boundary | an N-body sample of the same kind whose classification score falls more than 10 points below the paper's 94 percent | a network or table fitted to our own N-body runs | the forward pass equals an MLPClassifier set to the state of the pickle on five stored cases (read 10-30); my REBOUND check: 185 systems drawn like the paper's, network right 91 percent against 82 percent for nested MA01 (paper 94 and 83), precision for stable 0.62 (paper 0.94); on 787 near-boundary systems 69 against 40 percent, precision for stable 0.33, no stable system missed; the false stables are weakly chaotic (twin divergence 1 to 5 percent, 3 percent limit gives 95 percent right); the repository of the authors has no licence file (Boss handles DATA-LICENSE.md) | - | - |
+| QT2 | P | T1 | L0 | the meaning of "stable": bound and not chaotic over 100 outer orbits (a twin with the inner axis of the lighter binary larger by 1e-6 au diverging by under 1 percent in that axis), `outer_orbits` 100 and `divergence_limit` 0.01 | none | systems that are stable for a stellar lifetime only if nothing slower acts | a system stable at 100 outer orbits that the N-body code breaks at 10^4 outer orbits | a long-integration label | paper section 2, read | - | - |
+| QT3 | P | T1 | L0 | the documented range: `q_in_min` 0.1, `q_out_max` 1 (first binary the heavier), `eccentricity_max` 0.95 | none | 2+2 systems inside the range | a system outside it that the network classifies against an N-body run | the range of a bigger training set | paper sections 2 and 3.1 and classify_quad_2p2.py help text, read | - | - |
+| QT4 | P | T6 | L0 | the training distribution: orbital angles isotropic, arguments of periapsis and mean anomalies not inputs, systems kept near the Mardling-Aarseth boundary of the two nested triples, 30 percent of the MA01-unstable draws kept | none | the verdict of a system near the boundary; far from it the network extrapolates | a very hierarchical system (both alphas under 0.05) called unstable by the network with all else benign | the nested triple test far from the boundary | paper section 3.1, read | - | - |
+
 ## 6.64 Stand-ins of the NH3 active-Sun factor
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -979,11 +988,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SH3 | P | T7 | L3 | atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar | none | pressure caps of a body of one star | a measured pressure over its cap | the supply-limited pressure of the pressure stage | design: Mars holds 6 mbar at a ratio of 1.8 and Pluto 10 micro-bar at 0.78 (the pressure is capped, supply and vapour set the rest) | GEN.963 | no data |
 | SH4 | D | T3 | L0 | atmosphere_retention.JEANS_KEEP 30: a gas of this Jeans parameter or more at the exobase stays for the age of a body | 15 (lost in about 1 Gyr) to 30 | a thermal escape of a gas at the exobase | a gas of 30 or more that is lost | the lifetime integral of `thermosphere.kept_shares` | Catling and Kasting 2017 (second-hand, from the design note) | GEN.963 | - |
 
-## 6.81 Stand-ins of the 2+2 quadruple stability network
+## 6.75 Stand-ins of the nightside collapse of a locked planet's air
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| QT1 | D | T1 | L0 | the 8,301 weights and biases of `quadruple_stability_2p2_weights.json`, the authors' own trained network, to nine significant digits | none | 2+2 quadruples with masses within a factor 10, eccentricities to 0.95, near the Mardling-Aarseth boundary | an N-body sample of the same kind whose classification score falls more than 10 points below the paper's 94 percent | a network or table fitted to our own N-body runs | the forward pass equals an MLPClassifier set to the state of the pickle on five stored cases (read 10-30); my REBOUND check: 185 systems drawn like the paper's, network right 91 percent against 82 percent for nested MA01 (paper 94 and 83), precision for stable 0.62 (paper 0.94); on 787 near-boundary systems 69 against 40 percent, precision for stable 0.33, no stable system missed; the false stables are weakly chaotic (twin divergence 1 to 5 percent, 3 percent limit gives 95 percent right); the repository of the authors has no licence file (Boss handles DATA-LICENSE.md) | - | - |
-| QT2 | P | T1 | L0 | the meaning of "stable": bound and not chaotic over 100 outer orbits (a twin with the inner axis of the lighter binary larger by 1e-6 au diverging by under 1 percent in that axis), `outer_orbits` 100 and `divergence_limit` 0.01 | none | systems that are stable for a stellar lifetime only if nothing slower acts | a system stable at 100 outer orbits that the N-body code breaks at 10^4 outer orbits | a long-integration label | paper section 2, read | - | - |
-| QT3 | P | T1 | L0 | the documented range: `q_in_min` 0.1, `q_out_max` 1 (first binary the heavier), `eccentricity_max` 0.95 | none | 2+2 systems inside the range | a system outside it that the network classifies against an N-body run | the range of a bigger training set | paper sections 2 and 3.1 and classify_quad_2p2.py help text, read | - | - |
-| QT4 | P | T6 | L0 | the training distribution: orbital angles isotropic, arguments of periapsis and mean anomalies not inputs, systems kept near the Mardling-Aarseth boundary of the two nested triples, 30 percent of the MA01-unstable draws kept | none | the verdict of a system near the boundary; far from it the network extrapolates | a very hierarchical system (both alphas under 0.05) called unstable by the network with all else benign | the nested triple test far from the boundary | paper section 3.1, read | - | - |
+| NC1 | P | T1 | L0 | nightside_collapse.FIT_COEFFICIENTS (c1 to c4 for 1 and 10 Earth masses), FIT_FLUX_RANGE_W_M2 273.2 to 4098 and FIT_ALBEDO 0.2 | the paper's own least-squares scatter | a pure CO2 air on a flat rocky locked planet with no ocean or cloud, 0.01 to 10 bar, flux 0.2 to 3.0 times 1366 W/m2 | a 3D run of a locked planet with a non-condensing background gas whose critical pressure lies below the fit by more than a factor of three | a fit that includes N2 and the ocean (Wordsworth's later work, not yet read) | Wordsworth 2015 (arXiv 1412.5575), Table 2 and Eq. 43, READ in full text: Earth-flux, Earth-mass value 0.14 bar as the abstract says; the paper calls the fit a conservative upper limit; its own text says collapse at all pressures at the lowest flux while the fit gives 2.9 bar there; test_nightside_collapse::test_the_fit_gives_the_paper_s_critical_pressure_at_earth_s_flux | GEN.1044 | - |
+| NC2 | P | T7 | L1 | nightside_collapse._fit_coefficients: the coefficients linear in the log of the mass between 1 and 10 Earth masses, held outside | none | planets from 1 to 10 Earth masses | a run at 3 Earth masses whose critical pressure is not between the two | fits at more masses | the paper gives two masses only; the 10 Earth-mass fit is higher than the 1 (more collapse), as the text says | - | - |
+| NC3 | P | T1 | L0 | nightside_collapse.KAPPA_M2_KG 5e-5 and COS_ALPHA 0.5 (the grey optical depth of the thin-air night side) | none | CO2 air under about 1 bar | the paper's 125.2 K at 0.1 bar, Earth's flux, albedo 0.2 (our Eq. 25 gives 126.9 K) | a correlated-k night-side temperature | Wordsworth 2015 Eq. 10, 25 and 27, READ; test_nightside_collapse::test_the_night_side_of_a_tenth_of_a_bar_is_the_paper_s_125_k | GEN.1044 | - |
+| NC4 | P | T9 | L2 | nightside_collapse._calibration: the factor (about 1.24 at Earth's flux) on the grey night-side temperature that makes the balance first lose CO2 at the fit's critical pressure | none | CO2 below the fit's critical pressure | the fit's own critical pressure disagreeing with the balance by a factor over 2 in pressure at another flux | the night-side temperature from the 3D runs | tuned to the published threshold (NC1), so the two agree there and the retained share rises continuously to 1 at it | - | - |
+| NC5 | P | T7 | L0 | nightside_collapse.collapse for a gas other than CO2: the same grey balance, not calibrated | none | N2 and other gases the paper leaves to later work | a 3D run of an N2 air whose collapse pressure differs from this by a factor over 3 | the N2 collapse pressures of a later Wordsworth or Leconte paper | the paper says N2 collapse is left to future work (Section 3.6); N2 freezes under 126 K so at Earth's flux it holds at any pressure here | - | - |
+| NC6 | P | T9 | L0 | nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed | 0.1 to 0.9 | any gas | a page text that reads wrongly at the cut | none (the retained share is the number to use) | needed output: the share, not the flag, is the physics | GEN.1044 | - |

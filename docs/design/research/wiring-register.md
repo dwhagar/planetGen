@@ -171,3 +171,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.74:SH2 | GEN.963 | `atmosphere_retention.VERDICT_EDGES`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH3 | GEN.963 | `atmosphere_retention.PRESSURE_CAPS_PA`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH4 | GEN.963 | `atmosphere_retention.JEANS_KEEP`, not read until the pressure stage takes its cap from the module |
+| module | planetgen.physics.nightside_collapse | GEN.1044 | whether a locked planet's air freezes onto its night side and how much stays; the oddity wiring (GEN.1051) will call it after the climate solver |
+| row | 6.75:NC1 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.75:NC3 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.75:NC6 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
