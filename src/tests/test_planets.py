@@ -18,7 +18,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
-from planetgen.physics import constants, planet_classes
+from planetgen.physics import constants, gases, planet_classes, surface_air
 from planetgen.generation import habitable_request, life as planetLife
 from tests import class_support
 
@@ -30,6 +30,11 @@ ZONE_SEED_IDS = [f"{zone}-{seed}" for zone, seed in ZONE_SEEDS]
 # GEN.830: the mass share of a body that its air can hold beyond its water: the carbon, nitrogen and sulfur a mantle degasses, bounded by
 # the 9 percent that CI chondrites carry of them in all (Lodders); the degassed share of that is far smaller.
 VOLATILE_ALLOWANCE = 0.09
+
+# TEST.485: the least pressure a stored air has. A thin regime caps the air at `surface_air.VACUUM_PRESSURE_PA` (1 Pa) and the solve then drops every
+# gas whose partial is under `STORE_MIN_FRACTION` of the total, so the stored sum sits below the cap by that share of each gas dropped, at most
+# all the gases the registry knows (a draw of 1 Pa stored as 0.99999999993 Pa).
+THIN_AIR_FLOOR_PA = surface_air.VACUUM_PRESSURE_PA * (1.0 - surface_air.STORE_MIN_FRACTION * len(gases.GASES))
 
 @pytest.fixture(scope="module")
 def host_star():
@@ -61,6 +66,11 @@ def test_planet_is_in_its_zone_with_a_known_class_and_the_type_of_that_class(hos
     assert planet.planet_class == planet_classes.classify(planet)
 
 
+def test_the_thin_air_floor_allows_the_trace_trim_and_no_more():
+    assert THIN_AIR_FLOOR_PA < 0.99999999993 < surface_air.VACUUM_PRESSURE_PA
+    assert THIN_AIR_FLOOR_PA > surface_air.VACUUM_PRESSURE_PA * (1.0 - 1.0e-6)
+
+
 @pytest.mark.parametrize("zone,seed", ZONE_SEEDS, ids=ZONE_SEED_IDS)
 def test_planet_physical_properties_are_finite_and_sane(host_star, zone, seed):
     planet = make_planet(host_star, zone, seed)
@@ -84,7 +94,10 @@ def test_planet_physical_properties_are_finite_and_sane(host_star, zone, seed):
         # GEN.830: the weight of the air on the surface (g * m / area) is its mass, which cannot exceed the water the body has plus the
         # degassed share of its other volatiles. This replaces the flat ceiling: a sealed ocean world that crosses the critical point of
         # water holds all its surface water as steam (several GPa), which is its own inventory and no more.
-        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure
+        # The floor is the 1 Pa a thin regime caps the air at (`surface_air.VACUUM_PRESSURE_PA`); the solve then drops every gas whose partial is
+        # under `STORE_MIN_FRACTION` of the total, so the stored sum can sit below the cap by that share of each gas dropped (TEST.485:
+        # 0.99999999993 Pa), at most all the gases the registry knows.
+        assert math.isfinite(planet.atmospheric_pressure) and THIN_AIR_FLOOR_PA <= planet.atmospheric_pressure
         air_kg = planet.atmospheric_pressure * 4.0 * math.pi * (planet.radius * 1000.0) ** 2 / (planet.gravity * constants.EARTH_GRAVITY)
         assert air_kg <= planet.mass * ((planet.water_mass_fraction or 0.0) + VOLATILE_ALLOWANCE)
         assert math.isfinite(planet.atm_density) and planet.atm_density > 0
