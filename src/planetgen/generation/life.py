@@ -80,8 +80,12 @@ def _apply(planet, keep_stored):
         return
     _build_air(planet, row)
     final = life_classes.score_classes(planet)             # the conditions after the oxygen the life has made
+    if not (final.get(row.id) and final[row.id].score > 0):
+        # The life has used up what it lived on (the donor or hydrogen it drew down, the air it changed): the class that lives here is still one
+        # the world supports, at the score it was chosen at, so the stored classes always hold the one that lives (TEST.486).
+        final = {**final, row.id: chosen}
     _set_best(planet, final)
-    result = final[row.id] if final.get(row.id) and final[row.id].score > 0 else chosen
+    result = final[row.id]
     anoxic = _anoxic_animals(planet, row, keep_stored)
     complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), planet.surface_temperature, anoxic)
     _set_evolutionary_state(planet, evolution.get_evolutionary_state(
