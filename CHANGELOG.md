@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2593] - 2026-10-30
+
+**Headline:** The ammonia photolysis activity factor now has a second-hand cross-check in the stand-in registry text.
+
+### Changed
+
+- **NH3 photolysis activity factor, evidence (GEN.794).** The stand-in 1.078 (quiet 1.80e-4 and active 1.94e-4 per second at 1 AU) stays a labelled stand-in; the plan text now records what two later papers say about the Huebner et al. 1992 and Huebner and Mukherjee 2015 rate (Drozdovskaya et al. 2023, Biver et al. 2012) and that neither contradicts the 1.05 to 1.10 bracket. The table itself (phidrates.space.swri.edu) is not reachable from the lane machines. Nothing generated changes.
+
 ## [8.0.2592] - 2026-10-30
 
 **Headline:** How long a star stays X-ray saturated is now tabulated by mass and initial rotation from Johnstone et al. 2021 (not yet used by the generator).
