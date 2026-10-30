@@ -214,7 +214,9 @@ def test_the_forced_star_groups_come_out_with_the_stars_they_were_forced_to():
 
 def test_no_redraw_rate_is_above_its_registered_ceiling(sample):
     """TEST.476: a change that suddenly redraws more is caught. Ceilings are twice the baseline measured before the overlap-free build;
-    the run's own sampling error is held against them."""
+    the run's own sampling error is held against them. A change that moves a rate on purpose re-measures the baseline in the same change:
+    `python -m tests.audit.redraw_rates measure --count 600 --out records.json` (per group, see `--groups`), then `build records.json --commit <sha>
+    --label <why>`, and says so in its change note."""
     broken = rr.ceilings_broken(sample, rr.load_expectations())
     assert not broken, "\n".join(f"{g} {k}: {e} events in {n} systems = {rate:.4f} per system, ceiling {c:.4f}" for g, k, e, n, rate, c in broken)
 
