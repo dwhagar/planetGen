@@ -14230,22 +14230,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 2 (owns GEN.768 hours outside), train 7.
   Prerequisites: none. Related: GEN.768, GEN.957.
 
-- [ ] **GEN.1102 Field composition from two differentiated parents (iron, silicate, ice shards) replacing draw_field("collisional")**
-  Interstellar asteroid fields from rogue-planet collisions and the
-  other sources (Boss, 4:40 PM EDT 2026-10-30; design
-  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
-  choice and two small questions (retire past 1 ly versus keep a record
-  row; the remnant planet) are with Boss; the lane builds the modules
-  with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Do: design F3, using the finished taxon kernel and the member
-  composition step. Lock-free. Where we think it belongs (best guess,
-  can move): Aux 4 (or Sources 1), after F1 and F2.
-  Rogue parents (R4) (2026-10-30 4:57 PM EDT): The field parents and the
-  collision speed window are drawn from the rogue ejection population of
-  GEN.1111, not from a flat table.
-  Prerequisites: GEN.1100.
-  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
-
 - [ ] **GEN.1103 AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed**
   Interstellar asteroid fields from rogue-planet collisions and the
   other sources (Boss, 4:40 PM EDT 2026-10-30; design
@@ -14486,48 +14470,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Released from hold. Order: GEN.1127 (train 19a) first, this item with
   GEN.1129 on train 19, the abundance level and top-up GEN.1120 on train
   19b.
+  Removal of defaults (5:59 PM EDT) (2026-10-30 5:59 PM EDT): GEN.1112
+  is retired (RP2 to RP7 modules merged: rogue_mass_function,
+  rogue_volatiles, rogue_moons, rogue_age, rogue_kick,
+  cluster_unbinding). This item wires them from the GEN.1119 record
+  (scatterer, closest approach, formation distance, ejection delay),
+  wires GEN.1134 (radiogenic inputs), and removes the ROGUE_* tuning
+  defaults that rogue.py and rogue_surface.py still read, with no
+  compatibility shim.
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
-  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
-
-- [ ] **GEN.1112 Replace the rogue-planet defaults one by one with their physical derivations (mass function from ejection, gas-giant threshold from the envelope fraction, age from the ejecting system, envelope and water share from formation, tidal flux from kept moons, radiogenic inputs from the parent star), each a small pure module**
-  Boss, 4:54 PM EDT 2026-10-30. Design section 13.1 right-hand column is
-  the list; each replacement registers its stand-ins in GEN.725 and
-  removes the tuning default it replaces (no shim). The heat-law anchors
-  (Jupiter flux, Neptune temperature, cooling t^-1.3, photosphere
-  pressures) and the escape parameter 15 are sourced and stay. Done: a
-  module and tests per replaced default; the defaults gone from
-  tuning.py. Lock-free for the modules; their wiring rides the
-  rogue-rows item. Where we think it belongs (best guess, can move):
-  Sources 1 (idle, separate branch), after the review report.
-  Rogue train 19 (Boss, 4:57 PM EDT) (2026-10-30 4:59 PM EDT): Boss,
-  4:57 PM EDT 2026-10-30: rogue planets are all physics, each has its
-  own moon system and moon compositions, and a rogue planet is
-  functionally and programmatically identical to a planet in a system
-  except that it carries a note that it is rogue and is not orbiting a
-  star. So the rogue path calls the same planet and moon generation (the
-  one body chain of GEN.557), not a simplified one; the flat-rate rogue
-  tables are deleted. The replaced defaults are removed in the same
-  train as the rogue rows.
-  RP2 to RP7 (Planets 1 review, 5:20 PM EDT) (2026-10-30 5:21 PM EDT):
-  This item's modules, from the review report: RP2 ejection mass
-  function (test: Sumi slope -0.96); RP3 photoevaporation and volatile
-  loss before ejection; RP4 moon survival through the ejection
-  encounter; RP5 age and time since ejection from the star-formation
-  history, feeding the heat law; RP6 ejection speed plus host velocity
-  (the kick direction is held on Boss's answer); RP7 cluster unbinding
-  (GEN.291). Also fix the tuning.py comment that says 6.5 rogues per
-  star while the mass bins sum to 5.8. Needs GEN.1119 first.
-  Split (5:23 PM EDT) (2026-10-30 5:22 PM EDT): Best guess on who builds
-  which module: Aux 7 takes RP5 (age and time since ejection) and RP6
-  (ejection speed plus host velocity, using the merged rogue_drift.py);
-  Sources 1 takes RP2, RP3, RP4 and RP7.
-  Kick direction answered (5:29 PM EDT) (2026-10-30 5:31 PM EDT): RP6
-  kick direction is Boss's answer: isotropic, computed from the origin
-  planet's actual velocity (its orbit in the system plus the system's
-  Galactic motion), so the held input of rogue_kick.py is resolved; Aux
-  7 merged RP5 (#4182, rogue_age.py) and RP6 (#4186, rogue_kick.py).
-  Remaining RP2, RP3, RP4, RP7.
-  Prerequisites: GEN.1109. Related: GEN.557.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
 - [ ] **GEN.1113 Rogue ejection kick research (D1): read the full texts, extract ejection speed against perturber mass and orbit, direction statistics and moon survival, replace the kick stand-in, test against Sayed et al.**
@@ -14860,6 +14811,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (epoch with --affects, golden). Where we think it belongs (best guess,
   can move): Core 4, a later train.
   Prerequisites: none. Related: GEN.29, GEN.1111.
+
+- [ ] **GEN.1134 Rogue radiogenic inputs from the ejecting star's composition: the long-lived heat (Th, U, K) and 26Al of an ejected planet from the parent star's stored composition, replacing the sigma 0.22 dex offsets and ROGUE_ACTIVE_HEAT_FLUX_W_M2**
+  Row 12 of the rogue review
+  (docs/design/research/rogue-planet-review.md) was in nobody's RP list,
+  found by Sources 1 after GEN.1112 RP2 to RP7 merged. Do: a pure module
+  that takes the ejecting star's stored composition ([Fe/H] and the
+  alpha and r-process proxies it holds) and the planet's age since
+  formation and gives the radiogenic heat production and the 26Al
+  contribution, using the same source values the bound planets use (so a
+  rogue stays identical to a bound planet); register the stand-ins in
+  GEN.725 and remove the placeholder offsets by the wiring in GEN.1111.
+  Done: tests against the bound-planet value for the same star and a
+  spread within the sourced uncertainty. Lock-free (pure module). Where
+  we think it belongs (best guess, can move): Sources 1, separate
+  branch.
+  Prerequisites: none. Related: GEN.1111, GEN.1119.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
