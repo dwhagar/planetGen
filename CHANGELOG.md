@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2584] - 2026-10-30
+
+**Headline:** The water share of a disk's solids by temperature is now computed from Lodders 2003 (not yet used by the generator).
+
+### Changed
+
+- New library `physics/condensate_shares.py`: the condensation temperatures of water, ammonia and methane ice and the mass each condensate makes (Lodders 2003 Tables 10 and 11), the water share of the solids by disk temperature and by distance, and the ice lines of a star. Nothing in generation reads it yet; the wiring step (snow line temperature, ice boost, water range of an icy body) follows with the epoch train.
+
 ## [8.0.2583] - 2026-10-30
 
 **Headline:** The generator can now name a star's evolutionary state and the age since a white dwarf stopped burning.
