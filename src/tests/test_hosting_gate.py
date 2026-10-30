@@ -61,7 +61,7 @@ def test_the_stable_zone_is_the_hill_fraction_and_the_radius_plus_floor():
     inner, outer = hg.stable_zone_m(host)
     assert inner == pytest.approx((20_000.0 + 10.0) / 2.0)
     hill = relations.hill_radius(host.orbit_radius_m, host.mass_kg, SUN)
-    assert outer == pytest.approx(tuning.MOON_PROGRADE_STABLE_HILL_FRACTION * hill)
+    assert outer == pytest.approx(0.4895 * hill)
     assert hg.hill_radius_m(body(20_000.0, eccentricity=0.5)) == pytest.approx(0.5 * hill)
 
 

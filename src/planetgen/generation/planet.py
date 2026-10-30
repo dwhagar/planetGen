@@ -105,7 +105,7 @@ class Planet(PlanetaryObject):
                                    Two real planets' minimum separation
                                    from each other uses their *mutual*
                                    Hill radius instead -- see
-                                   `StarSystem._mutual_min_separation_au`
+                                   `validation.min_distance_after_au`
                                    -- not this single-body value.
         name (str): The generated name of the planet or moon.
         life_class, life_class_variant (int, str or None): The life class that lives on the body, its number and its pigment or
