@@ -15246,46 +15246,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shims; keep the benchmark limits as the guard.
   Prerequisites: none. Related: MAP.249, MAP.267.
 
-- [ ] **PERF.202 Move each generating verb's starter handlers and start-time checks into the step units, so a verb is expressible as units in one run**
-  Split from PERF.119 by Aux 2 (2:36 AM EDT 2026-10-29 as the lane
-  reported). Every generating verb (plan, sectors, link, scatter,
-  backfill, settle, population and the rest) still has its own starter
-  with step-specific handlers around a one-step wrapper.run (about 15
-  call sites in run_galaxy, run_plan, run_sector and run_population),
-  plus prework and refusals that read earlier steps' results (for
-  example a redo list that does clear-scatter then scatter, and the
-  check that refuses to draw over stored rows, which would fire at run
-  start). Do: move each starter's handlers and start-time checks into
-  the units and expansions, one verb family at a time (Aux 2 may file or
-  tackle them as sub-parts), so a verb's work is a list of units a
-  single run can follow, with the same refusals and results as today.
-  Done: no verb has a starter outside the units; the existing verb tests
-  pass unchanged; a test runs two verbs in one run and finds both
-  refusals still fire in order. Version 8.1. Owner: Aux 2 (lock-free;
-  park any step that changes generated output). Prerequisites: PERF.119.
-  Related: PERF.119, PERF.203, PERF.154, PERF.118.
-  Prerequisites: PERF.119. Related: PERF.119, PERF.203, PERF.154,
-  PERF.118.
-  Research (2026-10-09): Re-scoped (Core 5, 3:17 PM EDT 2026-10-29 as
-  the lane reported, read from main at 2:50 PM EDT): PERF.172 and
-  PERF.182 built the shape (generation/followed.py, `planetgen galaxy`
-  as one wrapper run over one step list, finish-run) but this item is
-  NOT done. Still missing: the one-step wrapper.run starters in
-  run_plan.py (skeleton plan, the scatter family at about line 2243,
-  nebula field about 2518, fill/clean about 3058), run_sector.py
-  (sector) and run_system.py (system); a verb run on its own is still
-  its own starter with handlers around a one-step run; the test of two
-  verbs in one run with both refusals firing in order does not exist.
-  The one-unit maintenance commands (checkdb, datasets check, math
-  check, reset, warm) may stay as they are if they are not generating
-  verbs. Convert verb by verb, steps are data (Step(key, kind, label,
-  params), wrapper.plan_steps builds them from followers); scatter
-  prepare hooks (prepare_scatter_pass, prepare_scatter_phenomena,
-  prepare_draw_nebula_field) already empty what a stage rewrites, so a
-  verb moved into a shared run keeps its refusal by putting the check in
-  its prepare hook, as finish-run does. Aux 2's older parked branch
-  (47943db72) is superseded; start fresh from main.
-
 - [ ] **PERF.203 The Generate page and job_runner follow one wrapper run: one command list, one run, with the page's progress, state and log files kept**
   Split from PERF.119 by Aux 2 (2:36 AM EDT 2026-10-29 as the lane
   reported). Once PERF.202 makes every verb a list of units, the
