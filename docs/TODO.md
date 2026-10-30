@@ -13714,6 +13714,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changes stored output rides a train. Owner: Sources 1.
   Prerequisites: GEN.852. Related: GEN.715, GEN.852, GEN.725.
 
+- [ ] **GEN.1020 Infrared opacity of the acid cloud and the SO2, CO and H2O line wings, so a Venus-like air reaches its published surface temperature once the sourced CO2 far wing replaces IR3**
+  Follow-on of GEN.1019, asked for by Sources 1 (relayed 12:50 PM EDT
+  2026-10-30 as the lane reported). The sourced Perrin and Hartmann CO2
+  far wing alone takes the clear-sky Venus-like test air to 539 K (no
+  wing 489 K), where the flat IR3 stand-in gave about 735 K; the gap
+  needs the infrared opacity of the sulfuric-acid cloud and the SO2, CO
+  and H2O wings, which the model lacks. Do: (1) give the acid cloud of
+  GEN.1019 an infrared opacity from published Venus cloud optical models
+  (mode radii, refractive indices of sulfuric acid, column optical
+  depth), (2) add the SO2, CO and H2O far-wing terms from published
+  line-shape work (second-hand is fine, widest range when two are in
+  question), (3) register every stand-in in GEN.725 with tier and tweak
+  level. Done: the Venus-like test air with the sourced wing, the acid
+  cloud and the added wings lands inside the published
+  surface-temperature range for the model, and an air with no sulfur and
+  no dense CO2 is unchanged. Decision (TODO, 12:51 PM EDT 2026-10-30;
+  physics found in research wins): IR3 is replaced by the sourced wing,
+  and the wiring of GEN.1019 and this item ride one train together so
+  the worse intermediate never ships. Lock-free module and tests first;
+  the wiring that moves output (new epoch, --affects the aerosols and
+  greenhouse stages, no migration) rides a train. Owner: Sources 1.
+  Prerequisites: GEN.1019. Related: GEN.1019, GEN.852, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
