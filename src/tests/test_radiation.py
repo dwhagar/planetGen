@@ -12,6 +12,7 @@ import pytest
 
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
+from planetgen.galaxy import scales
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
@@ -289,6 +290,17 @@ def test_every_generated_body_has_a_consistent_dose():
             seen["ozone"] += body.ozone_loss_flag
             assert body.uv_surface_index is None or body.uv_surface_index > 0
     assert seen["rocky"] > 10 and seen["giant"] > 0
+
+
+def test_a_star_with_no_galaxy_placement_is_rated_where_a_system_with_no_place_is_taken():
+    """GEN.785: the column is filled for every star; one placed nowhere takes the distance a system with no place is taken at."""
+    class Unplaced:
+        galactic_center_dist_ly = None
+
+    star = Unplaced()
+    activity.set_galactic_hazard(star)
+    assert star.lethal_event_rate_per_gyr == pytest.approx(activity.lethal_event_rate_per_gyr(scales.default_galactocentric_ly()))
+    assert star.lethal_event_rate_per_gyr > 0.0
 
 
 def test_a_star_nearer_the_centre_flags_ozone_loss_on_a_world_with_air():
