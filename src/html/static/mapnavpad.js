@@ -1,12 +1,21 @@
 // static/mapnavpad.js
 //
-// The Galaxy Map's on-map controls (MAP.200): a slider for the zoom, a
-// direction star of four arrows and a middle button that moves the center
-// the view turns and zooms about, and a readout of where the center is while
-// it moves. The map itself stays the stage view's (galaxystageview.js); this
-// only drives its `zoomShare`, `moveCentre`, `resetCentre` and `centre`.
+// The Galaxy Map's on-map controls (MAP.200): a direction star of four
+// arrows and a middle button that moves the center the view turns and zooms
+// about, and a readout of where the center is while it moves; and (MAP.336)
+// the log ruler: one vertical scale for the camera's distance, the whole
+// galaxy at the top and a moon at the bottom, with named stops that are each
+// a Go to for that scale and a readout of the distance. The map itself stays
+// the stage view's (galaxystageview.js); this only drives its `zoomShare`,
+// `setZoomShare`, `scaleInfo`, `goTo`, `moveCentre`, `resetCentre` and `centre`.
+
+const VERSION_QUERY = new URL(import.meta.url).search;
+const R = await import(`./maplogruler.js${VERSION_QUERY}`);
+const { formatDistancePc } = await import(`./unitladder.js${VERSION_QUERY}`);
 
 const STEP = 0.2;
+// Two stop names closer than this on the ruler (CSS pixels) would run into each other: the nearer one shows its tick only.
+const LABEL_GAP_PX = 14;
 const REPEAT_MS = 110;
 const SHOW_MS = 1800;
 
@@ -30,6 +39,19 @@ export function createNavPad(host, stageView, cross) {
   pad.className = "starmap-navpad";
   pad.id = "galaxymap3d-navpad";
 
+  // The ruler (MAP.336): the zoom slider with the named stops beside it, and the readout of the distance.
+  const ruler = doc.createElement("div");
+  ruler.className = "starmap-ruler";
+  ruler.id = "galaxymap3d-ruler";
+  ruler.setAttribute("role", "group");
+  ruler.setAttribute("aria-label", "Zoom scale: from the whole galaxy at the top to a moon at the bottom");
+  const rulerBody = doc.createElement("div");
+  rulerBody.className = "starmap-ruler-body";
+  ruler.appendChild(rulerBody);
+  const stopsEl = doc.createElement("div");
+  stopsEl.className = "starmap-ruler-stops";
+  rulerBody.appendChild(stopsEl);
+
   const slider = doc.createElement("input");
   slider.type = "range";
   slider.className = "starmap-zoom-slider";
@@ -39,7 +61,72 @@ export function createNavPad(host, stageView, cross) {
   slider.step = "1";
   slider.setAttribute("aria-label", "Zoom");
   slider.title = "Zoom";
-  pad.appendChild(slider);
+  rulerBody.appendChild(slider);
+
+  // The distance readout goes in the map's lower-left stack, over the scale bar and under the legend, so it covers neither.
+  const altitude = doc.createElement("div");
+  altitude.className = "starmap-altitude";
+  altitude.id = "galaxymap3d-altitude";
+  const stack = host.querySelector(".map-corner-stack");
+  const scale = stack ? stack.querySelector(".starmap-scale") : null;
+  if (scale) stack.insertBefore(altitude, scale);
+  else if (stack) stack.appendChild(altitude);
+  else host.appendChild(altitude);
+
+  let stops = [];
+  let stopsFor = "";
+  const stopButtons = {};
+  function buildStops(info) {
+    const key = info.farPc + "/" + info.floorPc;
+    if (key === stopsFor) return;
+    stopsFor = key;
+    stops = R.stopsBetween(info.farPc, info.floorPc);
+    stopsEl.textContent = "";
+    stops.forEach(function (stop) {
+      const button = doc.createElement("button");
+      button.type = "button";
+      button.className = "starmap-ruler-stop";
+      button.dataset.stop = stop.key;
+      const words = stop.label + ", about " + formatDistancePc(stop.pc);
+      button.title = "Go to " + words + " from the middle of the map";
+      button.setAttribute("aria-label", "Go to " + words);
+      button.textContent = stop.label;
+      button.addEventListener("click", function () {
+        const centre = stageView.centre();
+        if (centre) stageView.goTo({ center: centre, dist: stop.pc });
+      });
+      stopsEl.appendChild(button);
+      stopButtons[stop.key] = button;
+    });
+    layoutRuler();
+  }
+  // Each stop at its share of the ruler's height, the thumb's own half-height in from each end; a name too close under the one above
+  // keeps its tick and loses its words (the title and the label for a screen reader stay).
+  const THUMB_PX = 14;
+  function placeStops() {
+    const height = rulerBody.clientHeight;
+    if (!height) return;
+    let lastShown = -Infinity;
+    stops.forEach(function (stop) {
+      const y = THUMB_PX / 2 + (height - THUMB_PX) * stop.share;
+      const button = stopButtons[stop.key];
+      button.style.top = y + "px";
+      const bare = y - lastShown < LABEL_GAP_PX;
+      button.classList.toggle("is-bare", bare);
+      if (!bare) lastShown = y;
+    });
+  }
+  // A map too narrow for the stops' names keeps their ticks (and so does one with a card standing beside the ruler, style.css).
+  const NARROW_REM = 40;
+  function layoutRuler() {
+    const rem = parseFloat(getComputedStyle(doc.documentElement).fontSize) || 16;
+    ruler.classList.toggle("is-slim", host.clientWidth < NARROW_REM * rem);
+    placeStops();
+  }
+  if (typeof ResizeObserver === "function") {
+    new ResizeObserver(placeStops).observe(rulerBody);
+    new ResizeObserver(layoutRuler).observe(host);
+  }
 
   const star = doc.createElement("div");
   star.className = "starmap-dirstar";
@@ -112,15 +199,39 @@ export function createNavPad(host, stageView, cross) {
   ["pointerup", "pointercancel"].forEach(function (type) { slider.addEventListener(type, function () { held = false; }); });
   slider.addEventListener("input", function () { stageView.setZoomShare(Number(slider.value) / 1000); });
   // The wheel over the controls zooms the map as it does anywhere else.
-  pad.addEventListener("wheel", function (event) { if (stageView.onWheel(event)) event.preventDefault(); }, { passive: false });
+  [pad, ruler].forEach(function (control) {
+    control.addEventListener("wheel", function (event) { if (stageView.onWheel(event)) event.preventDefault(); }, { passive: false });
+  });
+  host.appendChild(ruler);
   host.appendChild(pad);
+
+  function syncReadout() {
+    const info = stageView.scaleInfo();
+    if (!info) {
+      altitude.hidden = true;
+      return;
+    }
+    buildStops(info);
+    altitude.hidden = false;
+    // Only a change is written: the camera's every frame would otherwise repaint the words when they have not moved.
+    const text = R.readoutText(info.dist, info.nearest, formatDistancePc);
+    if (altitude.textContent !== text) altitude.textContent = text;
+    const scale = R.scaleNamed(info.dist, stops);
+    const title = scale ? "About the scale of: " + scale.label : "";
+    if (altitude.title !== title) altitude.title = title;
+    Object.keys(stopButtons).forEach(function (key) {
+      stopButtons[key].classList.toggle("is-near", !!scale && scale.key === key);
+    });
+  }
 
   function sync() {
     const on = stageView.controlsEnabled();
     pad.classList.toggle("is-disabled", !on);
+    ruler.classList.toggle("is-disabled", !on);
     slider.disabled = !on;
     Object.keys(buttons).forEach(function (name) { buttons[name].disabled = !on; });
     if (!held) slider.value = String(Math.round(stageView.zoomShare() * 1000));
+    syncReadout();
     if (!readout.hidden) {
       const point = stageView.centre();
       if (point) readout.textContent = where(point);

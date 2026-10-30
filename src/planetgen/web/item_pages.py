@@ -234,7 +234,8 @@ def sheet_view(sheet):
     nothing is left out unless its absence matters (`describe.sheet.SHOW_WHEN_ABSENT`); a group left empty goes too."""
     absent = set(sheet.get("missing") or ())
     groups = [{"key": group["key"], "label": group["label"],
-               "rows": [{"key": row["key"], "label": row["label"], "html": _value_html(row), "stored": row["stored"]}
+               "rows": [{"key": row["key"], "label": row["label"], "html": _value_html(row), "stored": row["stored"],
+                         "source": row.get("source")}
                         for row in group["rows"] if _listed(row)]}
               for group in sheet["groups"] if group["key"] not in absent]    # UX.203: a section of zeros is one sentence
     if "atmosphere" in absent:
@@ -262,6 +263,7 @@ def planet_sections(name, row, sheet, species, piece):
     """
     parts = planet_layout.split_blocks(piece["blocks"] if piece else [])
     values = {r["key"]: _value_html(r) for g in sheet["groups"] for r in g["rows"] if r.get("stored", True)}
+    raw = {r["key"]: r.get("raw") for g in sheet["groups"] for r in g["rows"] if r.get("stored", True)}
     groups = {group["key"]: group for group in sheet_view(sheet)}
 
     def without(key, drop):
@@ -272,8 +274,9 @@ def planet_sections(name, row, sheet, species, piece):
     composition = without("composition", lambda key: key in planet_layout.MASS_SHARED_KEYS)
     phi6 = without("habitability", lambda key: False)
     return {
-        "summary": [trusted_html(sentence) for sentence in planet_summary.summary_sentences(name, row or {}, values)],
+        "summary": [trusted_html(sentence) for sentence in planet_summary.summary_sentences(name, row or {}, values, raw)],
         "life": trusted_html(blocks_html(parts["life"], _ref_link)),
+        "life_class": planet_layout.life_class_view(row),
         "civilization": [trusted_html(sentence) for sentence in planet_layout.civilization_sentences(row, species)],
         "notes": trusted_html(blocks_html(parts["rest"], _ref_link)),
         "phi6_blocks": trusted_html(blocks_html(parts["phi6"], _ref_link)),
@@ -624,7 +627,7 @@ def render_item(kind, printed_id):
         description=f"The {label.lower()} {name}: where it is, what it is like and everything stored about it.",
         kind=kind,
         kind_label=label,
-        habitability=found if kind in ("planet", "moon") else None,
+        habitability={**found, "life_class_id": (row or {}).get("life_class_id")} if kind in ("planet", "moon") else None,
         chips=trusted_html(chips_html(row, page_url("habitability_levels"))) if kind in ("planet", "moon") and row else "",
         facilities=hosted_facilities(db, system_id, kind, row) if row is not None else "",
         species=species,

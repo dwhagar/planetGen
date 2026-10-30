@@ -106,3 +106,60 @@ test("placeBoxes keeps clear of marker circles but not of the label's own", () =
   assert.equal(M.placeBoxes(items, { obstacles: [mine] })[0].hidden, false);
   assert.equal(M.placeBoxes(items, { obstacles: [other] })[0].hidden, true);
 });
+
+// --- MAP.299: a buffer between names, and the heavier or brighter keeps its name ---------------------------------------------
+
+function gap(a, b) {
+  return Math.max(b.left - (a.left + a.width), a.left - (b.left + b.width), b.top - (a.top + a.height), a.top - (b.top + b.height));
+}
+
+test("two names keep the buffer between them even when a grid line runs between them", () => {
+  // Boxes of 3 letters (7 px each) and a 6 px margin either side are 33 px wide; one stands on each side of the 96 px grid line.
+  for (const padding of [4, 12, 20]) {
+    const placed = place([label("aaa", 70, 300, { priority: 2 }), label("bbb", 70 + 33 + padding - 2, 300, { priority: 1 })], { padding });
+    assert.equal(placed.length, 1, `padding ${padding}: the second is too close and is left out`);
+    const far = place([label("aaa", 70, 300, { priority: 2 }), label("bbb", 70 + 33 + padding + 1, 300, { priority: 1 })], { padding });
+    assert.equal(far.length, 2, `padding ${padding}: just far enough`);
+    assert.ok(gap(far[0], far[1]) >= padding, `${padding}: ${gap(far[0], far[1])}`);
+  }
+});
+
+test("placed names stand on whole pixels with a width that holds the text", () => {
+  const placed = place([label("odd", 400.4, 300.6)], { measure: () => 20.2 });
+  assert.equal(placed[0].left, Math.round(placed[0].left));
+  assert.equal(placed[0].top, Math.round(placed[0].top));
+  assert.ok(placed[0].width >= 20.2 + 12);
+  assert.equal(placed[0].width, Math.round(placed[0].width));
+});
+
+test("the layer gives each kind its own text width, so a semibold or italic name is not taken for a plain one", () => {
+  const measureKind = M.createKindMeasure((kind) => (kind === "sector" ? "600 12px sans-serif" : "12px sans-serif"));
+  // Without a canvas the width falls back to the letter count for every font, but a width is kept per font and text.
+  assert.ok(measureKind("Fixture Prime", "sector") > 0);
+  assert.equal(measureKind("Fixture Prime", "star"), measureKind("Fixture Prime", "star"));
+});
+
+test("where names of one kind compete for room the heavier keeps the better place, and the kind keeps its places among the others", () => {
+  const stars = [
+    label("dim", 400, 300, { kind: "star", priority: 100, weight: 1 }),
+    label("bright", 405, 300, { kind: "star", priority: 98, weight: 50 }),
+  ];
+  const placed = place(stars.concat([label("sector", 100, 100, { kind: "sector", priority: 99 })]));
+  const ids = placed.map((p) => p.candidate.id);
+  assert.ok(ids.includes("bright") && !ids.includes("dim"), "the brighter star takes the place the dimmer one was ranked for: " + ids);
+  assert.ok(ids.includes("sector"));
+  const effective = M.weightedPriorities(stars.concat([label("sector", 100, 100, { kind: "sector", priority: 99 })]));
+  assert.equal(effective.get(stars[1]), 100, "the brighter star holds the best priority the kind had");
+  assert.equal(effective.get(stars[0]), 98);
+  assert.equal([...effective.values()].filter((v) => v === 99).length, 1, "the other kind's priority is untouched");
+});
+
+test("a name with no weight keeps its priority, and a weight ties break by the old order", () => {
+  const a = label("a", 100, 100, { kind: "star", priority: 5, weight: 3 });
+  const b = label("b", 200, 100, { kind: "star", priority: 4, weight: 3 });
+  const c = label("c", 300, 100, { kind: "star", priority: 3 });
+  const effective = M.weightedPriorities([a, b, c]);
+  assert.equal(effective.get(a), 5);
+  assert.equal(effective.get(b), 4);
+  assert.equal(effective.get(c), 3);
+});

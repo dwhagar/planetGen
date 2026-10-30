@@ -79,6 +79,10 @@ A note's own status line, at its top, is the authority; this page only points at
 | [wanderer-moon-sources.md](systems/wanderer-moon-sources.md) | The sources behind the moons of wanderers: the survival of moons when their planet is ejected and the disks of isolated planetary-mass objects, with the stated gaps (GEN.560, GEN.558) | research |
 | [black-hole-density.md](systems/black-hole-density.md) | The metallicity-dependent black hole density: the failed-supernova share f(Z) as two drawn anchors, the place factor, the rate sites, the tests and the seven open cards | built (GEN.563) |
 | [neutron-star-density.md](systems/neutron-star-density.md) | The neutron star density derived from the same massive-star budget as the black holes: the place factor with the survivors of the failed share, the unbound share, the numbers against 4.0e-3 | built (GEN.554 slice 1) |
+| [neutron-star-structure.md](systems/neutron-star-structure.md) | A neutron star's radius, mass and crust from a TOV integration over the 21 equation-of-state tables, against NICER (GEN.968) | built (lock-free step; wiring GEN.969) |
+| [stellar-spectra-library.md](systems/stellar-spectra-library.md) | A star's light by band from ATLAS9 and PHOENIX-ACES model atmospheres plus the corona's far ultraviolet from MUSCLES, against the Sun and eleven M and K stars (GEN.970) | built (lock-free step; wiring GEN.971) |
+| [alpha-and-age-metallicity.md](systems/alpha-and-age-metallicity.md) | A high-alpha star read off a solar-scaled track at a higher [Fe/H], and a disc star's [Fe/H] tied to its age by branch (GEN.744) | built (lock-free step; wiring GEN.744) |
+| [stellar-state.md](systems/stellar-state.md) | The state word of a star and the age since it stopped burning, from its Yerkes class and phase (GEN.785, GEN.786) | built (definitions; wiring GEN.785, GEN.786) |
 | [explosion-islands.md](systems/explosion-islands.md) | Which massive stars leave a black hole: the failure windows of initial mass that hold the failed share, the progenitor draw over them, the direct collapse | built (GEN.554 slice 2) |
 | [natal-kick.md](systems/natal-kick.md) | The share of a galaxy's neutron stars its natal kicks eject: the kick law against the galaxy's escape speed, replacing the 20% to 40% draw | built (GEN.554 slice 3) |
 | [compact-remnant-regions.md](systems/compact-remnant-regions.md) | Where neutron stars and black holes are observed | reference (feeds GEN.100) |
@@ -146,6 +150,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [wd-redox-tuning.md](composition/wd-redox-tuning.md) | The retune of the white-dwarf redox rows a3 and a4 with the detection model (GEN.513) | built |
 | [radioisotope-tuning.md](composition/radioisotope-tuning.md) | The retune of the radioisotope rows o2, o4 and o6 (GEN.514) | built |
 | [radius-valley-tuning.md](composition/radius-valley-tuning.md) | The tuning of the envelope rows e1 and e2 to the Kepler radius valley (GEN.509) | built |
+| [planet-architecture.md](composition/planet-architecture.md) | The planet count, spacing and giant architecture model (GEN.728 to GEN.730, GEN.828, GEN.829, GEN.920, TEST.395): sourced occurrence bands, the Kepler multiplicity harness, the census and what wiring into the system will change | composition |
 | [envelope-escape-wiring.md](composition/envelope-escape-wiring.md) | The hydro-based envelope loss wired to rows e1 and e2 and the radius valley, with the 1 Gyr onset as a tuned stand-in (GEN.822) | built |
 | [water-delivery-tuning.md](composition/water-delivery-tuning.md) | The delivered-water rows b1 to b4 from the Bern population synthesis: the mass law of GEN.510 and the joint formation-distance law that replaced it (GEN.802) | built |
 | [volatile-delivery-formation-distance.md](composition/volatile-delivery-formation-distance.md) | Water-rich share and delivery classes against formation distance from the Bern population synthesis, and how it relates to the GEN.510 mass law (GEN.481); wired into the rows by GEN.802 | research note |
@@ -194,6 +199,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [orbital-updates.md](orbits/orbital-updates.md) | Moving things: positions, thresholds, gravity, collisions and spin | partly built |
+| [tidal-chain.md](orbits/tidal-chain.md) | The tide chain (GEN.842, GEN.954 to GEN.960): rheology from temperature and melt, spin torques of moons and air, moon orbit evolution and ice, in lock-free and wiring steps | partly built (stage 1a, GEN.954) |
 | [orbital-solvers-and-integrators.md](orbits/orbital-solvers-and-integrators.md) | Kepler solvers, integrators, thresholds and the influence search | research |
 | [orbital-update-check-2026-10-18.md](orbits/orbital-update-check-2026-10-18.md) | Boss's four orbital motion update steps checked against the design, with the F1 to F5 answers | research |
 | [collisions-and-mergers.md](orbits/collisions-and-mergers.md) | How often bodies collide and how to detect it | research |
@@ -232,6 +238,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [cache-warm-up.md](operations/cache-warm-up.md) | The page cache shared through Redis, the data tags each answer reads and each change bumps, and the warm-up that fills it after an update (PERF.104) | built (Core 2, 2026-10-16) |
+| [one-run-per-job.md](operations/one-run-per-job.md) | A Generate page or API job is one `run-job` process and one wrapper run over all the selected commands: the job spec, a follower list per verb, start checks in `prepare` hooks, job_runner following one run (PERF.203) | design note (Aux 2, 2026-10-30), not built |
 | [logging-standard.md](operations/logging-standard.md) | One log record (time, RFC 5424 severity, component, message, fields), its file, JSON and display writings, the one wording of a stage's start, finish and failure, and every place the program logs today | partly built (the layer is built, UX.121; the places move in UX.122, UX.123, TEST.183) |
 | [slow-page-answers.md](operations/slow-page-answers.md) | A page request that is slow to build queues one job that stores the answer in the tagged page cache, with a cost rule, a status route, a node on the queue page, a cancel and a fallback (PERF.105) | built (Core 2, 2026-10-17; the search and phenomena pages use it, UX.118, #2089) |
 | [backups-and-repair.md](operations/backups-and-repair.md) | One bz2 archive of the settings, the control database and the parity data, and restore and repair from it (settings 8.1, chain 8.9) | plan |
@@ -252,6 +259,9 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [gap-filling-plan.md](research/gap-filling-plan.md) | How the open gaps are filled where the public record is silent: the 57 gaps with a derived, bracketed, theory or placeholder fill, the stand-in registry convention, the first Gemini batch (unverified) and the work order | research |
+| [data-catalog.md](research/data-catalog.md) | Every dataset and table the project already holds, ranked by usefulness: the six setup downloads, the data held only in the project files, the repo tables and the stand-in registry, with the TODO items each could serve; required reading before hand-tuning a number | research |
+| [wiring-register.md](research/wiring-register.md) | The wiring register of the guard GEN.754: every lock-free module, dataset reader, data file and registry row nothing reads yet, with the open TODO item that will wire it; `python scripts/wiring_guard.py --check` fails when one is missing | research |
+| [burn-down-register.md](research/burn-down-register.md) | GEN.946 step 1: a disposition (replace with a derivation, source, keep as registered stand-in) for each L3 and L4 row of the stand-in registry, with the item that does it | research |
 | [stand-in-values.md](research/stand-in-values.md) | Every stand-in value with its source tier (T1 to T9) and tweak level (L0 to L4), generated from the registry of the gap-filling plan (GEN.725) | generated (reference) |
 | [papers-to-fetch.md](research/papers-to-fetch.md) | The papers behind refused publishers that Boss downloads himself, and the arXiv papers a research thread reads instead, with Crossref citations (gap-filling plan section 8, GEN.531) | reference |
 | [vizier-courteau-comeron.md](research/vizier-courteau-comeron.md) | The VizieR search for the Courteau 2007 scatter (GR5) and the Comeron thick-disc tables (GR3): the Comeron 2018 fit, the raw Vc/sigma0 scatter and the corrected references | research |

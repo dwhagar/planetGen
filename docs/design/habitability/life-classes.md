@@ -177,6 +177,17 @@ A small line chart under the Life section: x is age (Gyr) from 0 to the system's
 
 Rates for Classes 5 to 9 are the climates report's redox bookkeeping, tier T6 to T8, L3 to L4. The chart marks them "speculative chemistry" with the tier, as the climates report recommended.
 
+### 6.4 As built (GEN.891, GEN.857, GEN.858, GEN.859)
+
+The gas ledger of section 4 is `physics/data/life_ledger.json`, read by `physics/life_air.py` and applied in the life pass after the oxygen (`generation/life.py`, `_build_air`):
+
+- **Keyed by class number.** One row per class (1 to 9) with a status. Classes 1, 2, 3, 6 and 8 are `built`; 4, 5, 7 and 9 are `pending` (the sulfur ledger and the acid classes, GEN.888 and GEN.894) and change nothing yet. Every number and row carries its tier and tweak level, with a summary row LF60 in the registry.
+- **Methane.** The flux is the class's fuel supply (Class 1: the organic carbon its photosynthesis buries, half a methane each; Class 2: `donor_supply` times Earth's 10 Tmol a year; Classes 3, 6, 8: `h2_supply` times Earth's 2.3 Tmol a year of hydrogen over 4 H2 per CH4) over the world's area. The air holds the flux times the 30,000 year life of methane in an oxygen-free air, at most 3.5 percent of its molecules, and the methane's carbon comes out of the air's own carbon dioxide (10 percent of the carbon stays carbon dioxide), so no world makes methane from carbon it does not have. A gain under 1 Pa (`biogenic_oxygen.MINIMUM_PA`) leaves the air as it was.
+- **Hydrogen.** The classes that eat hydrogen (2, 3, 6, 8) draw it down to 1e-4 of the molecules.
+- **Stage.** Nothing before the second step of the schedule (the producers) and, for Class 1, nothing once the oxygen has risen or while the air holds free oxygen (more than 0.001 of its molecules): the oxygen has burned the methane (`biogenic_oxygen.burn`). A world with no life keeps its abiotic air.
+- **Redone from the new air.** The haze (`aerosols`), the ultraviolet shield and dose (`radiation`), the colour and the habitability score are generated again from the air the life left. The stored surface temperature follows the new greenhouse (`biogenic_oxygen.store_air`).
+- **Not modelled.** The cooling of the ground by the haze, the hydrosphere of a world the new air moves across the freezing point (its stored state of water stays, as after the oxygen), and Classes 4, 5, 7 and 9.
+
 ---
 
 ## 7. How life is limited without a ban
@@ -281,6 +292,10 @@ The draw switched over in one lock turn. What differs from the plan above:
 - **Dominance** (8.2) is the supported class with the largest net primary production (`tuning.LIFE_NPP`); classes within a factor of 2 are tied and an NPP-weighted draw picks among them. The draw is made on a stream of the body's own, seeded by one draw of the run's (GEN.872), so a change to this model no longer moves the names and flavour text of later bodies.
 - **Complexity** (7.3) is `physics/life_complexity.py`: C is the class's net primary production times the yield of its oxidant times the temperature rate factor, the thresholds, the oxygen floors for an oxygen breather and the anoxic route R4 are `tuning.LIFE_COMPLEXITY`, and the highest milestone a body can reach is capped by C. Flora needs a class that eats light (GEN.871); Fauna needs an animal grade and never exceeds its producer base.
 - **Text** (GEN.869, GEN.892): the life and timeline sentences name the class ("Class 1a life, the oxygenic light-eaters ...") and use the class's own words for each rung and for the animal grade.
+
+### 10.6 As built: the planet page's Life section (UX.237, first part)
+
+The Life section of a planet's or moon's page (`web/item_pages.py`, `web/lib/planet_layout.life_class_view`, `item.html`) reads the system-detail row (API.37: `life_class_id`, `life_class_scores`, `life_class_best`, `life_class_best_score`, `life_stage`, `life_animal_grade`), so it shows stored values only. Under the "Life" heading, in this order: "Supports Class 1a life (oxygenic light-eaters), score 7 of 9." (the best-supported class); "Also supports Class 2 (...), Class 3a (...)." (the others, best score first); "Has Class 1a life, at the stage of small mobile animals (animal grade A2)." (the class that lives there, with the stage names of `life_class_text` and the animal grade only at the multicellular stage); the description's life paragraphs; then the collapsed block "What it eats, drinks, breathes and gives off" (the class's `drinks`, `eats`, `breathes` and `gives_off` from the rule file; for a world that supports a class but has none, the best-supported one). A line with nothing to say is left out, and a body that supports no class shows none of them. The class number (`1a`) follows the four life icons in every row that has the icons and a `life_class_id` (`habitability_symbols.life_row`: the object page and the system page). Not yet: the Life and air chart and the adaptation traits (GEN.875 and GEN.876 store no traits yet).
 
 ## 11. Overlap with Core 1 and Aux 4, and what changes in their items
 

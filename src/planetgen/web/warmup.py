@@ -333,19 +333,20 @@ def _cap(cap):
     return get_settings().page_cache.warm_max_objects if cap is None else int(cap)
 
 
-def _objects(visitor, fetch, cap):
-    """Yields the rows of a paginated listing, at most `cap`, and sets `visitor.total` to how many exist."""
+def _objects(visitor, fetch, cap, start=0):
+    """Yields the rows of a paginated listing from place `start`, at most `cap` of them, and sets `visitor.total` to how many
+    exist."""
     seen = 0
     visitor.total = 0
     while seen < cap:
-        envelope = fetch(limit=min(PAGE_SIZE, cap - seen), offset=seen)
+        envelope = fetch(limit=min(PAGE_SIZE, cap - seen), offset=start + seen)
         visitor.total = envelope["total"]
         if not envelope["items"]:
             return
         for row in envelope["items"]:
             yield row
         seen += len(envelope["items"])
-        if seen >= envelope["total"]:
+        if start + seen >= envelope["total"]:
             return
 
 
@@ -386,31 +387,36 @@ def _warm_lists(visitor, cap):
     return {"warmed": visitor.pages, "noun": "pages", "left_out": 0}
 
 
-def _warm_objects(visitor, cap, fetch, pages, noun):
+def _warm_objects(visitor, cap, fetch, pages, noun, window=None):
+    """Warms the pages of a listing's objects, up to `cap`. With a `window` (`{"offset", "count", "left_out"}`, PERF.180) it warms
+    that slice of the listing alone, one unit of the family's stage, and `left_out` is the share of the cap's leaving-out that
+    unit reports."""
     warmed = 0
-    for row in _objects(visitor, fetch, _cap(cap)):
+    start = 0 if window is None else window["offset"]
+    for row in _objects(visitor, fetch, _cap(cap) if window is None else window["count"], start):
         for page in pages(row):
             visitor.visit(page)
         warmed += 1
-    return {"warmed": warmed, "noun": noun, "left_out": max(0, visitor.total - warmed)}
+    left_out = max(0, visitor.total - warmed) if window is None else window["left_out"]
+    return {"warmed": warmed, "noun": noun, "left_out": left_out}
 
 
-def _warm_sectors(visitor, cap):
+def _warm_sectors(visitor, cap, window=None):
     return _warm_objects(
         visitor, cap, lambda **page: apiclient.get_sectors(visitor.db, **page),
-        lambda row: (f"/sector/{row['id']}", f"/sector/{row['id']}/scene"), "sectors")
+        lambda row: (f"/sector/{row['id']}", f"/sector/{row['id']}/scene"), "sectors", window)
 
 
-def _warm_systems(visitor, cap):
+def _warm_systems(visitor, cap, window=None):
     return _warm_objects(
         visitor, cap, lambda **page: apiclient.get_systems(visitor.db, **page),
-        lambda row: (f"/system/{row['id']}", f"/system/{row['id']}/scene"), "systems")
+        lambda row: (f"/system/{row['id']}", f"/system/{row['id']}/scene"), "systems", window)
 
 
-def _warm_phenomena(visitor, cap):
+def _warm_phenomena(visitor, cap, window=None):
     return _warm_objects(
         visitor, cap, lambda **page: apiclient.get_phenomena(visitor.db, **page),
-        lambda row: () if row.get("scattered") else (f"/phenomenon/{row['type']}/{row['id']}",), "phenomena")
+        lambda row: () if row.get("scattered") else (f"/phenomenon/{row['type']}/{row['id']}",), "phenomena", window)
 
 
 def _warm_search(visitor, cap):
@@ -434,7 +440,7 @@ _WARMERS = {"galaxy-map": _warm_galaxy_map, "galaxy-nodes": _warm_galaxy_nodes,
             "systems": _warm_systems, "phenomena": _warm_phenomena, "search": _warm_search}
 
 
-def warm_family(db, family, cap=None, app=None, config=None):
+def warm_family(db, family, cap=None, app=None, config=None, window=None):
     """
     Warms one family inline.
 
@@ -444,6 +450,8 @@ def warm_family(db, family, cap=None, app=None, config=None):
         cap (int, optional): Most objects of an object family (default `page_cache.warm_max_objects`).
         app (flask.Flask, optional): The warm-up app (`build_app`).
         config (MySQLConfig, optional): The database to build the app on when `app` is not given.
+        window (dict, optional): For an object family, the slice of its listing to warm (`{"offset", "count", "left_out"}`): one
+            unit of the family's stage (PERF.180). Without it the whole listing up to the cap.
 
     Returns:
         dict: `family`, `warmed`, `noun`, `cached` (answers that were already cached), `built`, `left_out` (objects
@@ -458,7 +466,7 @@ def warm_family(db, family, cap=None, app=None, config=None):
     app = app or build_app(config)
     visitor = _Visitor(app, db)
     with app.test_request_context("/"):
-        result = _WARMERS[family](visitor, cap)
+        result = _WARMERS[family](visitor, cap, **({} if window is None else {"window": window}))
     seconds = time.monotonic() - started
     result.update(family=family, cached=visitor.cached, built=visitor.built, seconds=seconds)
     result["line"] = (f"{family}: {result['warmed']} {result['noun']} warmed ({visitor.built} answers built, "
@@ -470,14 +478,17 @@ def warm_family(db, family, cap=None, app=None, config=None):
 
 
 def _warm_unit(family, args):
-    """One family's unit of a warm run: warms it and leaves a line in the activity log, the result's line of it."""
+    """One family's unit of a warm run: warms it and leaves a line in the activity log, the result's line of it. A unit that is a
+    slice of an object family (`args["offset"]`, PERF.180) leaves no line of its own: the stage's `finish` leaves one for all."""
+    window = None if "offset" not in args else {key: args[key] for key in ("offset", "count", "left_out")}
     try:
-        result = warm_family(args["database"], family, args.get("cap"))
+        result = warm_family(args["database"], family, args.get("cap"), **({} if window is None else {"window": window}))
     except Exception as exc:
         activity_log.event("GEN", "warm.failed", db=args["database"], family=family, error=str(exc)[:300])
         raise
-    activity_log.event("GEN", "warm.family", db=args["database"], family=family, warmed=result["warmed"],
-                       left_out=result["left_out"], seconds=round(result["seconds"], 1))
+    if window is None:
+        activity_log.event("GEN", "warm.family", db=args["database"], family=family, warmed=result["warmed"],
+                           left_out=result["left_out"], seconds=round(result["seconds"], 1))
     return result
 
 
@@ -548,9 +559,71 @@ def warm_object_index_unit(args, report):
                      f"already current, 0 left out by the cap) in {seconds:.1f} s")}
 
 
+OBJECT_CHUNK = 250
+"""int: How many objects of a sector, system or phenomenon family one unit warms (PERF.180): the page and its scene, two answers
+each. The stage is cut into units of this many (a whole multiple of it past `units.MAX_UNITS` units, `units.coarsen`)."""
+
+OBJECT_SECONDS = 0.3
+"""float: About how long one object takes to warm (its page and scene built, none cached), the weight of a unit and, times
+`OBJECT_CHUNK`, the longest unit the command declares (`queue.commands`)."""
+
+_OBJECT_TOTALS = {"sectors": "get_sectors", "systems": "get_systems", "phenomena": "get_phenomena"}
+
+
+def _expand_objects(params, family):
+    """
+    The units of an object family's stage (PERF.180): the listing up to the cap, in slices of `OBJECT_CHUNK` objects, each unit the
+    `offset` and `count` of its slice. The first unit also carries the objects the cap leaves out. A listing with nothing in it is one
+    unit that says so.
+    """
+    database = params["database"]
+    cap = _cap(params.get("cap"))
+    app = build_app()
+    with app.test_request_context("/"):
+        total = int(getattr(apiclient, _OBJECT_TOTALS[family])(database, limit=1)["total"])
+    wanted = min(total, cap)
+    size = units_module.coarsen(wanted, OBJECT_CHUNK)
+    units = [({"database": database, "cap": params.get("cap"), "offset": start, "count": min(size, wanted - start),
+               "left_out": total - wanted if start == 0 else 0}, OBJECT_SECONDS * min(size, wanted - start))
+             for start in range(0, wanted, size)]
+    if not units:
+        units = [({"database": database, "cap": params.get("cap"), "offset": 0, "count": 0, "left_out": 0}, OBJECT_SECONDS)]
+    return commands.Expansion(units, {family: total, "cap": cap})
+
+
+def expand_warm_sectors(params):
+    """The units of the `warm-sectors` stage: slices of the sector listing (`_expand_objects`)."""
+    return _expand_objects(params, "sectors")
+
+
+def expand_warm_systems(params):
+    """The units of the `warm-systems` stage: slices of the system listing (`_expand_objects`)."""
+    return _expand_objects(params, "systems")
+
+
+def expand_warm_phenomena(params):
+    """The units of the `warm-phenomena` stage: slices of the phenomenon listing (`_expand_objects`)."""
+    return _expand_objects(params, "phenomena")
+
+
+def finish_warm_sectors(params, plan, results, seconds):
+    """Leaves one line in the activity log for the whole `warm-sectors` stage."""
+    return _finish_nodes(params, results, seconds, "sectors")
+
+
+def finish_warm_systems(params, plan, results, seconds):
+    """Leaves one line in the activity log for the whole `warm-systems` stage."""
+    return _finish_nodes(params, results, seconds, "systems")
+
+
+def finish_warm_phenomena(params, plan, results, seconds):
+    """Leaves one line in the activity log for the whole `warm-phenomena` stage."""
+    return _finish_nodes(params, results, seconds, "phenomena")
+
+
 expand_warm_object_index = _expand_family
-expand_warm_galaxy_map = expand_warm_lists = expand_warm_sectors = _expand_family
-expand_warm_systems = expand_warm_phenomena = expand_warm_search = _expand_family
+expand_warm_galaxy_map = expand_warm_lists = _expand_family
+expand_warm_search = _expand_family
 
 
 def _fetch_in_requests(app, args, report):

@@ -26,6 +26,7 @@ down, not minus how far) and subtracted where it is used.
 
 from planetgen.generation.phenomena import registry as _phenomena_registry
 from planetgen.physics import constants as _physical_constants
+from planetgen.physics import mass_boundaries as _boundaries
 from planetgen.physics import unit_registry as units
 
 _myr_to_gyr = units.converter("Myr", "Gyr")
@@ -114,6 +115,99 @@ PLANET_OUTER_GROWTH_AU = 5.0
 PLANET_OUTER_GROWTH_EXPONENT = 1.5
 # A planet's solids are never more than this fraction of its star's mass (a disc holds about 1% of its star).
 PLANET_MAX_STAR_MASS_RATIO = GIANT_MAX_STAR_MASS_RATIO
+
+# The architecture's own copies of the mass law's disc and gas constants (tuned together with the rest of this block; the mass law's own, above,
+# stay for the class cut-over's code until the architecture replaces it). The solids of the disc against the minimum-mass nebula; where the
+# outer disc's growth falls behind (distance in AU, and the power of the fall); the share of runaway-capable cores that find gas left and the
+# distance beyond which that share falls as the square of the ratio. Stand-ins (tier T6, tweak L3), tuned to the observed occurrence.
+ARCH_GAS_SURVIVAL_SHARE = 0.7924
+ARCH_GAS_SURVIVAL_CUT_AU = 13.78
+ARCH_DISC_SOLIDS_ENHANCEMENT = 0.4647
+ARCH_OUTER_GROWTH_AU = 8
+ARCH_OUTER_GROWTH_EXPONENT = 2.726
+# How much more a heavier-metal star's cores find gas, as 10 to this power times [Fe/H]: with the solids the giants' occurrence goes as 10 to
+# 1.2 times [Fe/H] (Johnson et al. 2010, arXiv:1005.3084, read). A stand-in (tier T6, tweak L3).
+ARCH_GAS_METALLICITY_EXPONENT = 0.6498
+
+# Planet architecture (GEN.728, GEN.729, GEN.730, `physics/planet_architecture.py`, docs/design/composition/planet-architecture.md):
+# how a disc builds a chain of oligarchs, how dynamical instability thins it and what is left, from the star and its disc alone.
+# The solids of a disc scatter about the median of its star's mass with a root-mean-square 0.7 dex (Andrews et al. 2013, arXiv:1305.5262,
+# read: the dispersion of the dust mass about the host-mass relation). A disc light by one dex builds no planet of an Earth radius or more
+# inside 1 AU; a heavy one builds a chain of sub-Neptunes and, with the metallicity, the giants. Whether a star has a Kepler-like inner system at all is the sourced draw below.
+DISC_SOLIDS_SCATTER_DEX = 0.7
+# The spacing at which oligarchs form, in mutual Hill radii: Pu and Wu 2015 (arXiv:1502.05449, read) find the observed spacings of high
+# multiples clustered near 12 and propose that systems formed with an effective spacing of 8.1 or more and were thinned by instability. The
+# median and the width (a log-normal) are planetGen stand-ins (tier T6, tweak L3), tuned with the sculpting below so that the spacing of the survivors
+# peaks near 20 mutual Hill radii and 93 percent of pairs are over 10 apart (Weiss et al. 2018, arXiv:1706.06204, read).
+OLIGARCH_SEPARATION_MEDIAN = 15.07
+OLIGARCH_SEPARATION_SIGMA_LN = 0.2
+OLIGARCH_SEPARATION_MIN = 4.0
+# The inner edge of the chain, as an orbital period in days: the occurrence of planets falls inward of a 10-day period at every spectral
+# type (Mulders et al. 2015, arXiv:1406.7356, read), the edge a disc truncates at being the co-rotation radius. The first oligarch sits
+# at a period drawn log-normally about this median with this width in dex. A planetGen stand-in (tier T6, tweak L3) tuned to the rise of the
+# Kepler occurrence with period (Zhu and Dong 2021, arXiv:2103.02127, read).
+OLIGARCH_INNER_EDGE_PERIOD_DAYS = 5.0
+OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
+# The age to which the chain is thinned by instability, years. Pu and Wu's survival law (arXiv:1502.05449, read) loses 0.7 in spacing
+# per decade of time, so a factor of ten in age matters little; the chain is thinned to this age whatever the star's, and the later
+# change of orbits is the orbital update (GEN.105). A planetGen stand-in (tier T6, tweak L0).
+SCULPT_AGE_YR = 1.0e9
+# The inner system (a planet of an Earth radius or more with a period under 400 days). Whether a star has one: the share of stars with
+# Kepler-like planets, 30 percent of Sun-like stars (Zhu et al. 2018, arXiv:1802.09526, read), about 75 percent of stars under 5000 K and 35
+# percent over 6500 K (Yang et al. 2020, arXiv:2002.02840, read): the masses (in suns) and the shares at them, log-linear in the mass between.
+INNER_SYSTEM_FRACTION_MASSES = (0.15, 0.6, 1.0, 1.4)
+INNER_SYSTEM_FRACTION_SHARES = (0.85, 0.75, 0.30, 0.30)
+# How many planets it starts with before the thinning: 1 + a Poisson draw of this mean. A planetGen stand-in (tier T6, tweak L3), tuned so the
+# survivors average 3.0 per Sun-like system and 2.8 per M dwarf (Zhu et al. 2018; Yang et al. 2020).
+INNER_INITIAL_COUNT_EXTRA = 6.221
+# The spread of that mean between systems (the width in ln of a log-normal factor), so the counts are broader than a Poisson: the survey's
+# many single transiting planets need systems that start with few. A planetGen stand-in (tier T6, tweak L3), tuned to the transit multiplicity.
+INNER_COUNT_SIGMA_LN = 0.8
+# The mass of a planet of the inner system, Earth masses, for a Sun-like star and a median disc: the planets Kepler counts are 1 to 4 Earth
+# radii, 1 to 10 Earth masses (Zhu and Dong 2021, arXiv:2103.02127, read). The scale goes as the star's mass to the exponent (a planet-to-star
+# mass ratio about constant: Mulders et al. 2015), as the disc's scatter to the exponent (a heavy disc builds heavy planets and giants:
+# Zhu and Wu 2018) and as 10 to the exponent times [Fe/H] (the occurrence of sub-Neptunes doubles over 0.8 dex, Petigura et al. 2018,
+# arXiv:1712.04042, read). Planetgen stand-ins (tier T6, tweak L3).
+INNER_PLANET_MASS_EARTH = 3.624
+INNER_PLANET_MASS_STELLAR_EXPONENT = 0.6756
+INNER_PLANET_MASS_DISC_EXPONENT = 0.01783
+INNER_PLANET_MASS_METALLICITY_EXPONENT = 0.7565
+# Neighbours of a system are alike in mass: the spread of the log10 of a planet's mass about its system's scale, and how much heavier each next
+# planet is (the outer planet is the larger in 65 percent of pairs: Weiss et al. 2018, arXiv:1706.06204, read). Stand-ins (tier T6, tweak L3).
+INNER_NEIGHBOUR_SIGMA_DEX = 0.15
+INNER_OUTWARD_MASS_DEX_PER_PLANET = 0.04
+# The spacing at which the inner planets start, in mutual Hill radii, before the thinning: Pu and Wu's effective 8.1 or more
+# (arXiv:1502.05449, read), and the spread of one pair about its system's. A stand-in (tier T6, tweak L3).
+INNER_SEPARATION_MEDIAN = 5.575
+INNER_SPACING_SIGMA_LN = 0.25
+# The inner system ends at this period (days); the outer chain starts this many times beyond it (as a period) or past the last inner planet (as a distance).
+INNER_SYSTEM_PERIOD_LIMIT_DAYS = 400.0
+OUTER_CHAIN_START_RATIO = 1.3
+
+# The lightest body that is a planet, Earth masses; lighter oligarchs are the debris of a belt (Mercury is 0.055). A stand-in (tier T6, tweak L0).
+PLANET_MIN_MASS_EARTH = 0.1
+# Beyond the snow line a body this light is a dwarf planet of the belt beyond, not a planet: the ice makes the planets there heavier (Earth
+# masses). A stand-in (tier T6, tweak L3).
+PLANET_MIN_MASS_OUTER_EARTH = 0.6649
+# The share of the mass of two oligarchs that collide which stays in the planet; the rest is debris (Pu and Wu 2015 expect a destructive
+# collision at the relative speeds of the compact systems and cannot predict the outcome). A planetGen stand-in (tier T4, tweak L0).
+COLLISION_MASS_RETENTION = 0.9
+# The share of giants that migrate in to a hot Jupiter orbit, and how its rate rises with [Fe/H] beyond the giants' (10 to the 3.4
+# for hot Jupiters, Petigura et al. 2018, arXiv:1712.04042, read, against 1.2 for giants, Johnson et al. 2010, arXiv:1005.3084, read):
+# a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L3) to 0.6 percent of Sun-like stars
+# (Zhu and Dong 2021, arXiv:2103.02127, read) and 0.27 percent of early M dwarfs (Gan et al. 2023, arXiv:2210.08313, read).
+GIANT_MIGRATION_SHARE = 0.01133
+GIANT_MIGRATION_METALLICITY_EXTRA_EXPONENT = 2.2
+# Where a migrated giant ends, as an orbital period in days: log-uniform between these (the hot Jupiters pile up near 3 days).
+GIANT_MIGRATION_PERIOD_RANGE_DAYS = (1.0, 10.0)
+# A giant that does not become a hot Jupiter still moves in from where it formed: the occurrence of giants rises at 1 AU by a factor of 4 and
+# peaks at 1 to 3 AU, inside the snow line (Fulton et al. 2021, arXiv:2105.11584, read; Cumming et al. 2008, arXiv:0803.3357, read). It
+# moves in by the factor e to minus the absolute value of a normal of this width in ln. A planetGen stand-in (tier T6, tweak L3).
+GIANT_INWARD_MIGRATION_SIGMA_LN = 0.9281
+# A giant that moved in scatters the planets this close, in mutual Hill radii, and a hot Jupiter every planet inside its orbit up to this
+# distance in AU (planets inside a hot orbit are gone). Stand-ins (tier T6, tweak L0).
+GIANT_CLEARING_SPACING = 8.0
+GIANT_HOT_ORBIT_AU = 0.1
 
 # The kind of body a caller's mass or radius alone names (GEN.681, `physics/planet_kind.kind_of_given`), when the formation law
 # was not asked: a radius from this many km up is a giant (the smallest radius a Neptune-like envelope body reaches; the old
@@ -648,10 +742,6 @@ per primary inside log P (days) 3.7; `single`, `binary`, `multiple`: the fractio
 and two or more (triples and quadruples). The chance of a companion is 1 - `single`. The rows of
 `generation.phenomena.hosts.STAR_COUNT_PROBABILITIES` for mid and early B stars are rederived from these (GEN.449)."""
 
-B_SUBCLASS_LOWER_MASS_SOL = (("B-early", 9.0), ("B-mid", 5.0))
-"""tuple: The birth mass at which the B-star sub-classes begin, heaviest first (Table 13's bins); a B star below the
-last is late B and keeps the letter's row."""
-
 # --- Star population model (stellarEvolution.py) ---
 # A random star is drawn as physics, not from a letter table: a mass from
 # the initial mass function, an age from the star-formation history, and
@@ -665,7 +755,7 @@ last is late B and keeps the letter's row."""
 # power law dN/dM ~ M^-alpha: alpha = 1.3 from 0.08 to 0.5 Msun and 2.3
 # above, up to the ~150 Msun upper limit of real stars. IMF_BREAKS_SOL are
 # the segment edges and IMF_SLOPES each segment's alpha.
-IMF_BREAKS_SOL = (0.08, 0.5, 150.0)
+IMF_BREAKS_SOL = (_boundaries.sol("hydrogen_burning_limit"), 0.5, 150.0)
 IMF_SLOPES = (1.3, 2.3)
 
 # The default star-formation history: ages uniform over the thin disk's
@@ -698,7 +788,7 @@ AGB_MS_FRACTION = 0.002
 
 # Stars at or above this initial mass end as supergiants and then neutron
 # stars or black holes (core collapse); below it, as giants and white dwarfs.
-SUPERGIANT_MIN_MASS_SOL = 8.0
+SUPERGIANT_MIN_MASS_SOL = _boundaries.sol("core_collapse_limit")
 # Giants at or above this initial mass are bright giants (II), not III.
 BRIGHT_GIANT_MIN_MASS_SOL = 4.0
 # Giant-branch luminosities (Lsun) and temperatures (K). A giant lighter than
@@ -889,7 +979,7 @@ LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
 WD_ENGULFMENT_BASE_AU = 1.5
 WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN = 0.8
-WD_PROGENITOR_MASS_RANGE_SOL = (1.0, 8.0)
+WD_PROGENITOR_MASS_RANGE_SOL = (1.0, _boundaries.sol("core_collapse_limit"))
 
 # A planetary nebula's central star is a close pair in PLANETARY_NEBULA_COMPANION_CHANCE of nebulae (a post-common-envelope
 # pair); such a pair still inside its ejecta holds a circumbinary disk and no planets (GEN.318, design note 1.3). A white
@@ -930,7 +1020,7 @@ POST_AGB_DISK_MASS_RANGE_SOLAR = (0.01, 0.1)
 # it becomes agree. At 1 to 10 Myr the luminosity is within 0.25 dex of the table up
 # to 0.3 solar masses and up to 0.35 dex too bright from 0.5 to 1.4, where the
 # derived Hayashi phase falls more slowly than the table's.
-PRE_MAIN_SEQUENCE_MAX_MASS_SOL = 8.0
+PRE_MAIN_SEQUENCE_MAX_MASS_SOL = _boundaries.sol("core_collapse_limit")
 # No star contracts longer than this: the track takes the lightest star (0.08 solar masses) 0.94 Gyr (GEN.652). A shortcut for
 # the old stars, which are nearly all of them; the test checks it against the track.
 PRE_MAIN_SEQUENCE_LONGEST_YR = 1.0e9
@@ -1648,7 +1738,7 @@ the pair holds the placed star brings the share to the catalogue's 60% (measured
 none kept, 94% with all kept; a stand-in until GEN.631's fill measures it again)."""
 
 YOUNG_GROUP_AGE_MAX_YR = 3.0e5
-"""float: A massive system (O or early B, a birth mass of `B_SUBCLASS_LOWER_MASS_SOL`'s early-B limit and up) older than this is
+"""float: A massive system (O or early B, a birth mass of `mass_boundaries.B_SUBCLASS_LOWER_MASS_SOL`'s early-B limit and up) older than this is
 never drawn as a young group (the design note's 0.3 Myr, GEN.327). The share that is a group is the `young-group` row of
 `SYSTEM_TYPE_RATES`."""
 
@@ -1675,7 +1765,7 @@ rest harden, so the remnant is tighter than the field's draw (multi-star-systems
 
 MERGER_MASSIVE_MIN_MASS_SOL = 9.0
 """float: The birth mass from which a star counts as massive for the merger-product and mass-gainer shares (the
-early-B and O stars, `B_SUBCLASS_LOWER_MASS_SOL`; de Mink et al. 2014 give the 8% and 20% for O and early-B stars)."""
+early-B and O stars, `mass_boundaries.B_SUBCLASS_LOWER_MASS_SOL`; de Mink et al. 2014 give the 8% and 20% for O and early-B stars)."""
 
 YOUNG_POPULATION_MAX_AGE_GY = STELLAR_POPULATION_AGE_RANGES_GY["young"][1]
 """float: The age under which a star belongs to the young population, Gy: the gate of the Be stars, the massive merger
@@ -2351,7 +2441,7 @@ NEUTRON_STAR_MASS_RANGE_SOLAR = (1.1, 2.2)
 
 # The initial mass of the stars that end as a white dwarf. A star of 8 solar masses or more ends as a neutron star or a
 # black hole, by the windows of `EXPLOSION_FAILURE_ISLANDS_SOL` (GEN.554, `physics.remnant_progenitors`).
-WHITE_DWARF_PROGENITOR_SOL = (0.8, 8.0)
+WHITE_DWARF_PROGENITOR_SOL = (_boundaries.sol("white_dwarf_progenitor_floor"), _boundaries.sol("core_collapse_limit"))
 
 EXPLOSION_FAILURE_ISLANDS_SOL = ((23.0, 25.0), (35.0, 45.0))
 """tuple: The windows of initial mass, solar masses, in which a star of solar metallicity fails to explode and leaves a black
@@ -2853,7 +2943,7 @@ _ROGUE_PLANET_BIN_EDGES_EARTH = {
     "terrestrial": (0.1, 2.0),
     "sub-neptune": (2.0, 20.0),
     "saturn": (20.0, 317.8),
-    "jupiter": (317.8, 13 * 317.8),
+    "jupiter": (317.8, _boundaries.jupiter("deuterium_burning_limit") * 317.8),
 }
 
 
@@ -2870,7 +2960,7 @@ ROGUE_PLANET_MASS_BINS = _rogue_planet_mass_bins()
 """dict: bin name -> `(min_mass_earth, max_mass_earth, per_star_rate)`.
 The rates' sum is the rogue-planet rate per star (`ROGUE_PLANET_RATE_PER_STAR`)."""
 
-ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (13.0, 80.0)
+ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (_boundaries.jupiter("deuterium_burning_limit"), _boundaries.jupiter("brown_dwarf_upper_limit"))
 """tuple: A free-floating brown dwarf, between the deuterium-burning
 (~13 Mjup) and hydrogen-burning (~80 Mjup) limits. Stored as a
 `rogue_planets` row with `mass_bin = 'brown-dwarf'` (schema v37)."""

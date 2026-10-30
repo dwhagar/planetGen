@@ -42,7 +42,7 @@
     <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
       <tbody>
         {%- for row in rows %}
-        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}</td></tr>
+        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}{% if row.source %}<small class="sheet-source">{{ row.source }}</small>{% endif %}</td></tr>
         {%- endfor %}
       </tbody>
     </table></div>
@@ -106,9 +106,23 @@
   <p class="summary inline-links">{% for sentence in planet.summary %}{{ sentence }}{{ " " if not loop.last }}{% endfor %}</p>
   {%- endif %}
   {%- if absences %}<p class="absences">{{ absences|join(" ") }}</p>{% endif %}
-  {%- if planet.life %}
+  {%- if planet.life or planet.life_class %}
   <h3 id="life-paragraph-heading">Life</h3>
-  <div class="prose">{{ planet.life }}</div>
+  {%- if planet.life_class %}
+  {%- if planet.life_class.supports %}<p class="life-supports">{{ planet.life_class.supports }}</p>{% endif %}
+  {%- if planet.life_class.also %}<p class="life-also">Also supports {{ planet.life_class.also|join(", ") }}.</p>{% endif %}
+  {%- if planet.life_class.has %}<p class="life-has">{{ planet.life_class.has }}</p>{% endif %}
+  {%- endif %}
+  {%- if planet.life %}<div class="prose">{{ planet.life }}</div>{% endif %}
+  {%- if planet.life_class and planet.life_class.words %}
+  <details class="sheet-group" id="life-class-words">
+    <summary><h4>What {{ "it" if planet.life_class.words.lives else "the best-supported class" }} eats, drinks, breathes and gives off</h4></summary>
+    <p class="sheet-help">Class {{ planet.life_class.words.class }}: {{ planet.life_class.words.name }}.</p>
+    <dl class="life-class-lines">
+      {%- for label, text in planet.life_class.words.rows %}<dt>{{ label }}</dt><dd>{{ text }}</dd>{% endfor %}
+    </dl>
+  </details>
+  {%- endif %}
   {%- endif %}
   {%- if planet.civilization %}
   <h3 id="civilization-heading">Civilization and politics</h3>
@@ -171,6 +185,7 @@
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
   {%- for group in planet.sheet %}{{ group_details(group) }}{% endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
+  <p class="sheet-help"><a class="help-link" href="{{ page_url('property_help_page') }}">Where these values come from</a></p>
 </section>
 {%- else %}
 {%- if glance or symbols or location.chain or location.inside %}
@@ -198,6 +213,9 @@
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
   {%- for group in sheet %}{{ group_details(group) }}{% endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
+  {%- if kind in ("star", "planet", "moon") %}
+  <p class="sheet-help"><a class="help-link" href="{{ page_url('property_help_page') }}">Where these values come from</a></p>
+  {%- endif %}
 </section>
 {%- endif %}
 {%- if tree %}

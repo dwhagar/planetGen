@@ -20,6 +20,8 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 PLAN = os.path.join(HERE, "..", "docs", "design", "research", "gap-filling-plan.md")
 OUT = os.path.join(HERE, "..", "docs", "design", "research", "stand-in-values.md")
+WIRING = os.path.join(HERE, "..", "docs", "design", "research", "wiring-register.md")
+BURN_DOWN = os.path.join(HERE, "..", "docs", "design", "research", "burn-down-register.md")
 
 TIERS = (
     ("T1", "Verified", "read in the source and the value is the source's"),
@@ -81,8 +83,88 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.22", "6.22 Stand-ins of the class cut-over",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.23", "6.23 Stand-ins of the tidal rheology",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.24", "6.24 Stand-ins of the spin torques",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.25", "6.25 Stand-ins of the moon orbits",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.26", "6.26 Stand-ins of the birth spin from the last impacts",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.30", "6.30 Stand-ins of the dynamo field",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.31", "6.31 Stand-ins of the accreting compact binaries",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
+    ("6.32", "6.32 Stand-ins of the neutron star structure",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.33", "6.33 Stand-ins of the stellar spectra",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.34", "6.34 Stand-ins of the alpha-enhanced tracks and the age-metallicity relation",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.35", "6.35 Stand-ins of the condensates by temperature",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.36", "6.36 Stand-ins of the planet architecture",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.37", "6.37 Stand-ins of the brown dwarf ceiling",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.38", "6.38 Stand-ins of the aluminium-26 and iron-60 at birth",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.39", "6.39 Stand-ins of the X-ray saturation time by mass",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.40", "6.40 Stand-ins of the brackets the atmosphere recipes still draw by design",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.41", "6.41 Stand-ins of the derived taxon kernel",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.42", "6.42 Stand-ins of the brackets the research items GEN.480 and GEN.489 to GEN.493 leave",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.43", "6.43 Stand-ins of the mass left in a belt",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.44", "6.44 Stand-ins of the chondrite-group map",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.45", "6.45 Stand-ins of the rock types from bulk oxides",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.46", "6.46 Stand-ins of the comet ice budget",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""
+
+UNREAD_COLUMN = "Not read yet (item)"
+"""str: A column of every table in the list: the item that will wire a row whose constants nothing in the app reads yet
+(`wiring-register.md`, GEN.754), or a dash."""
+
+BURN_DOWN_COLUMN = "Burn-down (GEN.946)"
+"""str: The last column of every table in the list: what a row at tweak level L3 or L4 needs before it can go (`burn-down-register.md`:
+`no data` or `replace` with the item), or a dash."""
+
+
+def unread_rows(text):
+    """
+    The registry rows that the wiring register (GEN.754) says nothing in the app reads yet.
+
+    Returns:
+        dict: `"{section}:{fill_id}"` to the item that will wire it, or `by design`.
+    """
+    found = {}
+    for line in text.splitlines():
+        cells = [cell.strip().strip("`") for cell in line.strip().strip("|").split("|")]
+        if line.startswith("|") and len(cells) == 4 and cells[0] == "row":
+            found[cells[1]] = cells[2]
+    return found
+
+
+def burn_down_rows(text):
+    """
+    The burn-down register's lines (GEN.946).
+
+    Returns:
+        dict: `"{section}:{fill_id}"` to `(disposition, item, reason)`; the disposition is `no data`, `replace` or `replaced`.
+    """
+    found = {}
+    for line in text.splitlines():
+        cells = [cell.strip().strip("`") for cell in line.strip().strip("|").split("|")]
+        if line.startswith("|") and len(cells) == 4 and cells[1] in ("no data", "replace", "replaced"):
+            found[cells[0]] = (cells[1], cells[2], cells[3])
+    return found
 
 
 def _cells(line):
@@ -166,9 +248,12 @@ def _counts(tables):
     return total, tier_count, tweak_count, cross
 
 
-def render(plan_text):
-    """The text of the list."""
+def render(plan_text, wiring_text="", burn_down_text=""):
+    """The text of the list; `wiring_text` is the wiring register, which fills the column of rows nothing reads yet, and
+    `burn_down_text` the burn-down register, which fills the last column."""
     tables = registry_tables(plan_text)
+    unread = unread_rows(wiring_text)
+    burn_down = burn_down_rows(burn_down_text)
     bad = problems(tables)
     if bad:
         raise SystemExit("the registry is not complete:\n  " + "\n  ".join(bad))
@@ -222,10 +307,13 @@ def render(plan_text):
     ]
     for number, title, columns in SECTIONS:
         header, rows = tables[number]
-        out += [f"## {title}", "", "| " + " | ".join(columns) + " |", "|" + "---|" * len(columns)]
+        out += [f"## {title}", "", "| " + " | ".join(columns + (UNREAD_COLUMN, BURN_DOWN_COLUMN)) + " |", "|" + "---|" * (len(columns) + 2)]
         for row in rows:
             cells = dict(zip(header, row))
             shown = [(_first_option(cells[name]) if name == "Fill (ranked)" else cells[name]) for name in columns]
+            shown.append(unread.get(f"{number}:{row[0]}", "-"))
+            disposition = burn_down.get(f"{number}:{row[0]}")
+            shown.append("-" if disposition is None else disposition[0] + (f" ({disposition[1]})" if disposition[1] != "-" else ""))
             out.append("| " + " | ".join(shown) + " |")
         out.append("")
     return "\n".join(out).rstrip("\n") + "\n"
@@ -235,8 +323,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     parser.add_argument("--check", action="store_true", help="fail if the committed list differs from the registry")
     args = parser.parse_args(argv)
-    with open(PLAN, encoding="utf-8") as handle:
-        text = render(handle.read())
+    with open(PLAN, encoding="utf-8") as handle, open(WIRING, encoding="utf-8") as wiring, \
+            open(BURN_DOWN, encoding="utf-8") as burn_down:
+        text = render(handle.read(), wiring.read(), burn_down.read())
     if args.check:
         current = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
         if current != text:

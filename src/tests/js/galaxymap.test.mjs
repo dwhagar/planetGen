@@ -607,12 +607,13 @@ test("the address bar looks names up: one match flies there, several are listed"
   await ask("Many");
   assert.equal(m.els.notice.textContent, "2 names match; pick one.");
   assert.equal(m.els.matches.hidden, false);
-  const choices = m.els.matches.querySelectorAll("button");
-  assert.deepEqual(choices.map((b) => b.textContent), ["Many A (sector)", "Many B (system in Far)"]);
+  const choices = m.els.matches.querySelectorAll('[role="option"]');
+  assert.deepEqual(choices.map((b) => b.textContent), ["Many Asector", "Many Bsystem"]);
   choices[1].click();
   await arrive(m);
   assert.equal(m.els.matches.hidden, true);
-  assert.equal(withoutCam(m.win.location.search), "?sector=" + S.sectorDesignation(401, 1, 10));
+  // MAP.336: a system is opened in its sector (no printed ID in this answer, so no system of it).
+  assert.equal(withoutCam(m.win.location.search), "?sector=" + S.sectorDesignation(401, 1, 10) + "&open=1");
 });
 
 // --- The free view -------------------------------------------------------------

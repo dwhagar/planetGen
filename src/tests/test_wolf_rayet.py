@@ -17,7 +17,7 @@ from planetgen.generation import star_population
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.physics import stellar_evolution as evolution
+from planetgen.physics import imf, stellar_evolution as evolution
 from planetgen.physics import wolf_rayet
 from planetgen.util import draw
 from tests import render_support
@@ -165,10 +165,10 @@ def _stars_born_at_or_above(threshold_sol):
     number = mass = 0.0
     for i, alpha in enumerate(slopes):
         low, high = breaks[i], breaks[i + 1]
-        mass += factors[i] * evolution._power_law_integral(low, high, alpha - 1.0)
+        mass += factors[i] * imf.power_law_integral(low, high, alpha - 1.0)
         low = max(low, threshold_sol)
         if low < high:
-            number += factors[i] * evolution._power_law_integral(low, high, alpha)
+            number += factors[i] * imf.power_law_integral(low, high, alpha)
     return number / mass
 
 

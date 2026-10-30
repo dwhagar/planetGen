@@ -159,6 +159,44 @@ export function limitPathClearance(from, to, points, clearance) {
   return allowed;
 }
 
+// MAP.301: the densest layer of `points` ({x, y, z} or [x, y, z]) in front of the eye along a ray, or null. A point is on the ray when it
+// lies within `cone` (the tangent of the angle, so `cone * depth` is the width at that depth) of it, in front of the eye by more than
+// `nearest` and by no more than `farthest`. The depths are cut into slices each `ratio` times deeper than the one before, so a slice is the
+// same share of the way whatever the depth; a slice's density is its count over the volume of the cone it fills, which grows as the cube
+// of the depth. The slice with the highest density that holds at least `minPoints` wins, and the answer is `{point, count, depth}`: the
+// point on the ray at the mean depth of its points. The wheel heads for it, so it slows and stops in a crowd where it would fly through.
+export function densestLayerAlong(origin, direction, points, options) {
+  const settings = Object.assign({ cone: 0.02, nearest: 0, farthest: Infinity, ratio: 1.3, minPoints: 12 }, options);
+  const near = Math.max(settings.nearest, 1e-12);
+  const step = Math.log(settings.ratio);
+  const slices = new Map();
+  points.forEach(function (point) {
+    if (!point) return;
+    const x = point.x !== undefined ? point.x : point[0];
+    const y = point.y !== undefined ? point.y : point[1];
+    const z = point.z !== undefined ? point.z : point[2];
+    const rx = x - origin[0], ry = y - origin[1], rz = z - origin[2];
+    const depth = rx * direction[0] + ry * direction[1] + rz * direction[2];
+    if (!(depth > near) || depth > settings.farthest) return;
+    const across2 = rx * rx + ry * ry + rz * rz - depth * depth;
+    if (across2 > settings.cone * settings.cone * depth * depth) return;
+    const slice = Math.floor(Math.log(depth / near) / step);
+    const held = slices.get(slice) || { count: 0, depth: 0 };
+    held.count += 1;
+    held.depth += depth;
+    slices.set(slice, held);
+  });
+  let best = null;
+  slices.forEach(function (held, slice) {
+    if (held.count < settings.minPoints) return;
+    const density = held.count / Math.pow(near * Math.exp(step * slice), 3);
+    if (!best || density > best.density) best = { density: density, count: held.count, depth: held.depth / held.count };
+  });
+  if (!best) return null;
+  return { point: [origin[0] + direction[0] * best.depth, origin[1] + direction[1] * best.depth, origin[2] + direction[2] * best.depth],
+    count: best.count, depth: best.depth };
+}
+
 // MAP.225: the new center of a view that zooms by `factor` (the distance becomes `factor` times what it was) with
 // `anchor` staying where it is on the screen: the center scales about the anchor, `anchor + factor * (center -
 // anchor)`, because the eye moves along the line to the anchor by the same factor and the view direction is kept.

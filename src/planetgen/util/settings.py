@@ -446,7 +446,7 @@ class Queue(_Section):
         summary="How long a run waits in line for the one in front of it before it gives up (0 means it "
                 "does not wait).")
     max_waiting: int = opt(
-        8, "How many entries the one waiting list holds (PERF.154): generation runs and API jobs that wait for the "
+        8, "How many entries the one waiting list holds: generation runs and API jobs that wait for the "
         "machine, and Generate page jobs that wait for the running job. One more than this is refused, naming the list.",
         unit="entries", group="speed", ge=1, le=100,
         label="Waiting list length",

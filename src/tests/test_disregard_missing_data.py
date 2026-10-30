@@ -16,7 +16,8 @@ import pytest
 
 from planetgen.admin import activity_log
 from planetgen.cli import generate as generate_cli
-from planetgen.datasets import catalogue, fetch, hitran_cia, ir_ktables, isochrones, neutron_star_matter, ozone_uv, white_dwarf_models
+from planetgen.datasets import (baraffe_isochrones, catalogue, fetch, harris_clusters, hitran_cia, ir_ktables, isochrones, neutron_star_matter,
+                                noaa_proton_events, ozone_uv, stellar_spectra, white_dwarf_models)
 from planetgen.generation import run_galaxy
 from planetgen.physics import stellar_abundances as sa
 from planetgen.physics import stellar_composition as sc
@@ -88,12 +89,14 @@ def test_a_dataset_without_a_fallback_is_refused_whatever_the_run_was_told(monke
 
 def test_the_option_lets_the_gate_through_and_says_what_each_missing_dataset_is_replaced_by():
     missing = run_galaxy.require_datasets(True)
-    assert [located.dataset.key for located in missing] == ["isochrones", "white_dwarf_models", "neutron_star_matter", "ozone_uv", "ir_ktables", "ir_cia"]
+    assert [located.dataset.key for located in missing] == ["isochrones", "white_dwarf_models", "neutron_star_matter", "ozone_uv", "ir_ktables", "ir_cia",
+                                                        "harris_clusters", "noaa_proton_events", "baraffe_isochrones", "stellar_spectra"]
     lines = run_galaxy.disregard_notice(missing)
     assert "--disregard-missing-data" in lines[0]
-    assert len(lines) == 7
+    assert len(lines) == 11
     for line, dataset in zip(lines[1:], (isochrones.DATASET, white_dwarf_models.DATASET, neutron_star_matter.DATASET, ozone_uv.DATASET,
-                                         ir_ktables.DATASET, hitran_cia.DATASET)):
+                                         ir_ktables.DATASET, hitran_cia.DATASET, harris_clusters.DATASET, noaa_proton_events.DATASET,
+                                         baraffe_isochrones.DATASET, stellar_spectra.DATASET)):
         assert dataset.key in line and dataset.fallback in line
     assert run_galaxy.disregard_notice([]) == []
 

@@ -24,7 +24,8 @@ from planetgen import tuning
 from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
-from planetgen.physics import constants, gases, habitability_world, regional_temperature, unit_registry
+from planetgen.describe.sheet_sources import source_of
+from planetgen.physics import constants, daylight, gases, habitability_world, regional_temperature, unit_registry
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -64,9 +65,9 @@ API sheet always returns every row and says which are `absent` and which are `sh
 
 GLANCE = {
     "planet": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
-               "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "distance_km", "period_years"),
+               "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
     "moon": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
-             "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "distance_km", "period_years"),
+             "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
     "star": ("role", "star_type", "yerkes_class", "state", "mass_kg", "luminosity_w", "temperature_k",
              "habitable_zone_inner_km", "habitable_zone_outer_km", "snow_line_km", "flare_n33_per_yr",
              "lethal_event_rate_per_gyr", "heliosphere_radius_km", "system_perimeter_km"),
@@ -175,7 +176,7 @@ _BODY_GROUPS = (
     *_rows("physical", ("radius_km", "Radius", "radius"), ("mass_kg", "Mass"), ("volume_km3", "Volume"),
            ("density_g_cm3", "Density"), ("gravity_g", "Surface gravity")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt"),
-           ("outside_hours", "Hours of daylight a person can be outside"), ("solar_day_hours", "Length of the solar day"),
+           ("outside_hours", "Hours a person can work outside per year (dose limit)"), ("solar_day_hours", "Length of the solar day"),
            ("daylight_hours", "Hours of daylight at the equator"), ("day_share_equator", "Share of the time the star is up, equator"),
            ("day_share_mean", "Share of the time the star is up, whole surface"),
            ("parent_shadow_share", "Share of the time in the planet's shadow"),
@@ -794,6 +795,9 @@ _PLANET_RULES = [
 ]
 
 _STAR_RULES = [
+    (("flare_alpha", "uv_c_share", "log_lx_lbol", "lifespan_gy"), lambda klass, row: row is None or row.get("yerkes_class") != "VII",
+     "a white dwarf has no corona and no flares, so no X-ray share, flare law or UV-C draw, and it does not leave the stage it is in, "
+     "so its lifespan has no end"),
     (("wide_binary_a_crit_km",), lambda klass, row: row is None or row.get("role") != "single",
      "the critical orbit radius is set by a companion star, so a single star has none"),
 ]
@@ -814,13 +818,11 @@ OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
         ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
-    ("moon", "induced_moment_a_m2"): "GEN.779",
     **{("planet", key): "GEN.904" for key in ("solar_day_hours", "daylight_hours", "day_share_equator")},
     **{("planet", key): "GEN.905" for key in ("mantle_redox", "mantle_delta_iw")},
     **{("star", key): item for key, item in (
         ("state", "GEN.786"), ("decay_age_yr", "GEN.785"), ("lethal_event_rate_per_gyr", "GEN.785"),
         ("disk_kind", "GEN.787"), ("disk_mass_solar", "GEN.787"), ("disk_inner_au", "GEN.787"), ("disk_outer_au", "GEN.787"),
-        ("flare_alpha", "GEN.788"), ("uv_c_share", "GEN.788"), ("log_lx_lbol", "GEN.788"), ("lifespan_gy", "GEN.788"),
         ("wide_binary_a_crit_km", "GEN.789"))},
 }
 """dict: The columns known to be empty where they apply (UX.208), `{(kind, key): item id}`: each is a gap in the generation
@@ -875,6 +877,27 @@ def _zone_value(letter, by_key, specs, table):
     return [f"{name}, ", near, " to ", far, " from its star"]
 
 
+_yr_to_h = unit_registry.converter("yr", "h")
+
+ECLIPSE_KEY = "longest_eclipse_hours"
+"""str: The key of the moon's derived row for the longest eclipse in its planet's shadow (UX.205); it is worked out from the stored
+orbit and the planet's radius when the sheet is made and is not a column."""
+
+
+def _longest_eclipse(conn, kind, object_id):
+    """The longest time a moon is in its planet's shadow in one pass, hours (`daylight.longest_eclipse_hours`), or `None` for a moon that
+    orbits no planet, is never in the shadow or lacks the orbit."""
+    moon = conn.execute("SELECT parent_type, parent_id, distance_km, period_years, parent_shadow_share FROM moons WHERE id = ?",
+                        (object_id,)).fetchone()
+    if moon is None or moon["parent_type"] != "planet" or not moon["parent_shadow_share"]:
+        return None
+    parent = conn.execute("SELECT radius_km FROM planets WHERE id = ?", (moon["parent_id"],)).fetchone()
+    if parent is None or not moon["distance_km"] or not moon["period_years"]:
+        return None
+    hours = daylight.longest_eclipse_hours(moon["distance_km"], parent["radius_km"], _yr_to_h(moon["period_years"]))
+    return hours or None
+
+
 def sheet(conn, kind, object_id):
     """
     The property sheet of one body.
@@ -887,7 +910,7 @@ def sheet(conn, kind, object_id):
     Returns:
         dict: `kind`, `groups`: the non-empty groups in `GROUPS` order, each `{"key", "label", "rows"}`; a row is
             `{"key", "label", "value" (the inline list), "text" (it as plain text), "raw" (the stored number, `None` for text), "stored" (whether the column held a
-            value), "absent" (none or 0), "show_absent" (a page lists it even then)}`.
+            value), "absent" (none or 0), "source" (a one-line source for a physics row, UX.187, else `None`), "show_absent" (a page lists it even then)}`.
 
     Raises:
         ValueError: For a kind with no sheet or a missing row.
@@ -907,12 +930,17 @@ def sheet(conn, kind, object_id):
             value = _zone_value(stored, {s.key: row[s.stored_column()] for s in specs}, specs, table) or value
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value,
                                      "text": inline_text(value), "raw": stored if isinstance(stored, (int, float)) else None,
-                                     "stored": stored is not None, "absent": absent,
+                                     "stored": stored is not None, "absent": absent, "source": source_of(kind, spec.key),
                                      "show_absent": spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     for spec, pascals in _gas_rows(conn, kind, object_id) if kind in GAS_TABLES else ():
         value = _value(spec, GAS_TABLES[kind][0], pascals)
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "raw": pascals, "stored": True,
-                                     "absent": not pascals, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
+                                     "absent": not pascals, "source": None, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
+    eclipse = _longest_eclipse(conn, kind, object_id) if kind == "moon" else None
+    if eclipse:
+        value = [model.qty("time", eclipse, "h")]
+        by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
+                                     "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
     return {"kind": kind, "groups": groups, "missing": missing(kind, stored)}

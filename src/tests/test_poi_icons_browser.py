@@ -171,7 +171,7 @@ def test_the_galaxy_map_keys_all_seven_and_draws_the_habitable_world_marker_with
     # The habitable worlds layer begins on (MAP.303), and marks closer than MERGE_PX are drawn as one (MAP.305), so the view is
     # closed in on the field as far as its systems stand apart, with the black hole in it (MAP.333: a flight lands where asked).
     _open_star_field(page, map_site)
-    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})",
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, radius: r})",
                   [list(STAR_FIELD_CENTER_PC), 16])
     _settle(page)
     page.wait_for_timeout(1000)

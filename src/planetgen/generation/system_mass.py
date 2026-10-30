@@ -28,13 +28,12 @@ populations' by their densities, not the mass-weighted one.
 """
 
 import functools
-import math
 
 import numpy as np
 
 from planetgen import tuning
 from planetgen.generation import multistar
-from planetgen.physics import ms_lifetime, remnant_mass, remnant_progenitors, stellar_evolution
+from planetgen.physics import imf, mass_boundaries, ms_lifetime, remnant_mass, remnant_progenitors, stellar_evolution
 
 COHORT_AGES = 24
 """int: Ages of the midpoint rule that averages a population's cohorts, which formed at a steady rate over its range."""
@@ -53,28 +52,6 @@ COMPACT_COMPANION_SHARE_BOUND = 0.002
 module docstring); a test holds the figure."""
 
 
-def imf_segments():
-    """`((low, high, alpha, k), ...)`: the generator's initial mass function (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`),
-    each segment `k M^-alpha`, joined continuously."""
-    breaks, slopes = tuning.IMF_BREAKS_SOL, tuning.IMF_SLOPES
-    norms = [1.0]
-    for i in range(1, len(slopes)):
-        norms.append(norms[-1] * breaks[i] ** (slopes[i] - slopes[i - 1]))
-    return tuple((breaks[i], breaks[i + 1], slopes[i], norms[i]) for i in range(len(slopes)))
-
-
-def imf_integral(power, low, high):
-    """`integral of M^power xi(M) dM` from `low` to `high` (initial masses, solar masses; `xi` the IMF)."""
-    total = 0.0
-    for seg_low, seg_high, alpha, k in imf_segments():
-        a, b = max(low, seg_low), min(high, seg_high)
-        if a >= b:
-            continue
-        exponent = power + 1.0 - alpha
-        total += k * (math.log(b / a) if exponent == 0.0 else (b ** exponent - a ** exponent) / exponent)
-    return total
-
-
 def present_day_moments(age_gy, remnants=True):
     """
     `(sum of M, sum of M squared)` over everything a cohort of one age holds now, per unit of the IMF's number: the
@@ -84,11 +61,11 @@ def present_day_moments(age_gy, remnants=True):
     relation, neutron stars and black holes uniform over their mass ranges. Neutron stars and black holes take the
     progenitors of their windows above the white dwarf range's top (`remnant_progenitors`).
     """
-    top = tuning.IMF_BREAKS_SOL[-1]
+    top = imf.highest_mass_sol()
     turn_off = min(top, ms_lifetime.mass_for_lifetime_gy(age_gy))
-    low_edge = tuning.IMF_BREAKS_SOL[0]
-    mass = imf_integral(1.0, low_edge, turn_off)
-    square = imf_integral(2.0, low_edge, turn_off)
+    low_edge = imf.lowest_mass_sol()
+    mass = imf.integral(1.0, low_edge, turn_off)
+    square = imf.integral(2.0, low_edge, turn_off)
     if not remnants:
         return mass, square
 
@@ -97,13 +74,13 @@ def present_day_moments(age_gy, remnants=True):
     if wd_low < wd_high:
         grid = np.geomspace(wd_low, wd_high, REMNANT_GRID_POINTS)
         middle = 0.5 * (grid[:-1] + grid[1:])
-        weight = np.array([imf_integral(0.0, a, b) for a, b in zip(grid[:-1], grid[1:])])
+        weight = np.array([imf.integral(0.0, a, b) for a, b in zip(grid[:-1], grid[1:])])
         remnant = remnant_mass.white_dwarf_mass_sol(middle)
         mass += float(np.sum(weight * remnant))
         square += float(np.sum(weight * remnant * remnant))
 
     for kind in remnant_progenitors.KINDS:
-        number = sum(imf_integral(0.0, max(low, wd_high, turn_off), high)
+        number = sum(imf.integral(0.0, max(low, wd_high, turn_off), high)
                      for low, high in remnant_progenitors.kind_windows(kind) if max(low, wd_high, turn_off) < high)
         first, second = remnant_mass.uniform_moments(kind)
         mass += number * first
@@ -141,7 +118,7 @@ def _remnant_states(initial):
 def _turn_off_sol(age_gy):
     """The heaviest birth mass a star can have and still be alive at `age_gy`: the lightest progenitor whose giant phases
     have ended, capped at the IMF's top."""
-    return min(tuning.IMF_BREAKS_SOL[-1], stellar_evolution.youngest_progenitor_sol(age_gy * 1.0e9))
+    return min(imf.highest_mass_sol(), stellar_evolution.youngest_progenitor_sol(age_gy * 1.0e9))
 
 
 def _present_mass(states, turn_off):
@@ -170,13 +147,13 @@ def _placed_bins():
     IMF between its edges (and the edges of the star-count classes, so a class's count never straddles a bin): the IMF's
     number in each, the mean birth mass of those stars, and the stars a system of that mass holds besides the placed one.
     """
-    class_edges = [lower for _letter, lower in multistar.SPECTRAL_CLASS_LOWER_MASS_SOL]
-    class_edges += [lower for _name, lower in tuning.B_SUBCLASS_LOWER_MASS_SOL]
-    low, top = tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1]
+    class_edges = [lower for _letter, lower in mass_boundaries.SPECTRAL_CLASS_LOWER_MASS_SOL]
+    class_edges += [lower for _name, lower in mass_boundaries.B_SUBCLASS_LOWER_MASS_SOL]
+    low, top = imf.lowest_mass_sol(), imf.highest_mass_sol()
     edges = np.concatenate([np.geomspace(low, top, MASS_BINS + 1), tuning.IMF_BREAKS_SOL, class_edges])
     edges = np.unique(edges[(edges >= low) & (edges <= top)])
-    number = np.array([imf_integral(0.0, a, b) for a, b in zip(edges[:-1], edges[1:])])
-    first = np.array([imf_integral(1.0, a, b) for a, b in zip(edges[:-1], edges[1:])])
+    number = np.array([imf.integral(0.0, a, b) for a, b in zip(edges[:-1], edges[1:])])
+    first = np.array([imf.integral(1.0, a, b) for a, b in zip(edges[:-1], edges[1:])])
     mean_mass = first / number
     others = np.array([multistar.expected_star_count(m) - 1.0 for m in mean_mass])
     return number, mean_mass, others

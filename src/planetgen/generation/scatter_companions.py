@@ -38,7 +38,7 @@ import itertools
 from planetgen import tuning
 from planetgen.db import scatter_systems, store
 from planetgen.generation import multistar, phenomenon_scatter
-from planetgen.physics import constants, remnant_mass
+from planetgen.physics import constants, imf, remnant_mass
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -109,7 +109,7 @@ def _planetary_nebula_star(rng):
     initial-to-final mass relation, and an age of the progenitor's main-sequence life (the nebula is the end of its
     giant phase)."""
     low, high = tuning.WHITE_DWARF_PROGENITOR_SOL
-    initial = evolution.sample_imf_mass_sol(low, high, rng)
+    initial = imf.sample(low, high, rng)
     mass = remnant_mass.white_dwarf_mass_sol(initial)
     age_yr = evolution.main_sequence_lifetime_gy(initial) * 1.0e9
     return multistar.Placed("white-dwarf", mass, initial, planetary_nebula=True), age_yr

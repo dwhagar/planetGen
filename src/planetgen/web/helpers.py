@@ -194,6 +194,7 @@ HELP_MENU = (
     # (endpoint name, label)
     ("classes", "Classes"),
     ("habitability_levels", "Habitability"),
+    ("property_help_page", "Properties"),
 )
 """tuple: What the Help menu beside the search button opens (UX.180), in order. The menu is current on these pages and
 on the class pages under Classes (a page names `section="classes"` or `section="help"`)."""

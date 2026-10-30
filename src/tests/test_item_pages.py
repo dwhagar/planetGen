@@ -319,6 +319,41 @@ def test_a_barren_airless_dry_world_says_so_in_sentences_and_leaves_the_sections
         "atmosphere", "climate", "water", "life"]
 
 
+def _day_sheet(**shown):
+    """A sheet whose rotation group holds the stored day and night rows named in `shown` (a key to its text and number)."""
+    rows = [{"key": key, "label": key, "value": [text], "text": text, "raw": number, "stored": True, "absent": number == 0}
+            for key, (text, number) in shown.items()]
+    return {"kind": "planet", "groups": [{"key": "rotation", "label": "Rotation", "rows": rows}]}
+
+
+def test_the_summary_and_the_rotation_group_give_the_day_and_night_shares(client, monkeypatch):
+    """UX.205: an Earth-like world gets the share of the time its star is up, a tidally locked one says day side,
+    terminator and night side, and a moon in its planet's shadow gets the extra night with the longest eclipse."""
+    earth = _day_sheet(day_share_equator=("50.2 %", 0.502), day_share_mean=("50.1 %", 0.501), solar_day_hours=("24 h", 24.0),
+                       daylight_hours=("12 h", 12.0))
+    locked = _day_sheet(day_share_mean=("50 %", 0.5))
+    shadowed = _day_sheet(**{**{"day_share_equator": ("47 %", 0.47), "day_share_mean": ("47 %", 0.47),
+                                "solar_day_hours": ("42 h", 42.0), "daylight_hours": ("20 h", 20.0)},
+                             "parent_shadow_share": ("4.6 %", 0.046), "longest_eclipse_hours": ("2.3 h", 2.3)})
+    for ref, sheet in ((PLANET, earth), (PLANET, locked), (MOON, shadowed)):
+        monkeypatch.setattr(apiclient, "get_object_sheet", lambda db, r, sheet=sheet: {**sheet, "kind": ref.partition(":")[0]})
+        page = client.get(f"/object/{ref}").get_data(as_text=True)
+        summary = page[page.index('id="item-summary-heading"'):page.index('id="item-properties"')]
+        if sheet is earth:
+            assert "Its star is up 50.2 % of the time at the equator, 12 h of daylight in each solar day of 24 h" in summary
+            assert "keeps one face" not in summary and "shadow" not in summary
+        elif sheet is locked:
+            assert "keeps one face to its star" in summary and "terminator" in summary and "solar day" not in summary
+        else:
+            assert "in the shadow 4.6 % of the time, the longest eclipse lasting 2.3 h" in summary
+        assert "longest_eclipse_hours" in page if sheet is shadowed else True     # and the row is in the rotation group
+
+
+def test_an_object_with_no_day_and_night_shares_says_nothing_of_them(client):
+    page = client.get(f"/object/{STAR}").get_data(as_text=True)
+    assert "star is up" not in page and "one face" not in page
+
+
 def test_the_breadcrumb_calls_the_system_link_system_and_the_star_link_by_the_stars_name(client):
     """The system link of the trail reads "System" and the star's its own name, so a shared name is not shown twice."""
     page = client.get(f"/object/{MOON}").get_data(as_text=True)
@@ -416,3 +451,24 @@ def test_a_planet_page_is_laid_out_about_habitability_atmosphere_composition_the
 def test_a_planet_with_no_life_or_people_has_no_life_or_civilization_section(client):
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
     assert 'id="life-paragraph-heading"' not in page and 'id="civilization-heading"' not in page
+
+
+def test_a_planet_with_life_lists_the_classes_it_supports_and_what_the_class_lives_on(client, monkeypatch):
+    detail = _detail()
+    detail["planets"][0].update(planet_class="M", zone="e", body_type="t", phi4=0.8, tier_suitability=1, life_microbial=2, life_flora=3,
+                                life_fauna=1, life_sentient=0, life_class=1, life_class_variant="a", life_class_id="1a",
+                                life_class_best="1a", life_class_best_score=7, life_class_scores={"1a": 7, "2": 4},
+                                life_stage="multicellularity", life_animal_grade=2)
+    monkeypatch.setattr(apiclient, "get_system", lambda db, system_id: detail)
+    found = apiclient.get_object
+    monkeypatch.setattr(apiclient, "get_object", lambda db, ref: {**found(db, ref), "life_microbial": 2, "life_flora": 3,
+                                                                  "life_fauna": 1, "life_sentient": 0})
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert "Supports Class 1a life (oxygenic light-eaters), score 7 of 9." in page
+    assert re.search(r"Also supports Class 2 \(anoxygenic light-eaters[^<]*, 4 of 9\)\.", page)
+    assert "Has Class 1a life, at the stage of small mobile animals (animal grade A2)." in page
+    assert page.index('id="life-paragraph-heading"') < page.index("Supports Class 1a") < page.index('id="life-class-words"')
+    block = page.split('id="life-class-words"')[1].split("</details>")[0]
+    assert "eats, drinks, breathes and gives off" in page and "<dt>Drinks</dt><dd>water</dd>" in block
+    assert re.search(r'<details[^>]*id="life-class-words"(?![^>]*\bopen\b)', page), "the block starts collapsed"
+    assert 'class="hab-life-class"' in page

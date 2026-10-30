@@ -53,7 +53,7 @@ from statistics import NormalDist
 from planetgen import tuning
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, brown_dwarf, constants, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
+    accretion, brown_dwarf, constants, imf, mass_boundaries, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
     stability, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
@@ -65,9 +65,6 @@ _m_to_km = units.converter("m", "km")
 _au_to_m = units.converter("au", "m")
 _yr_to_d = units.converter("yr", "d")
 _d_to_yr = units.converter("d", "yr")
-
-SPECTRAL_CLASS_LOWER_MASS_SOL = (("O", 16.0), ("B", 2.1), ("A", 1.4), ("F", 1.04), ("G", 0.8), ("K", 0.45), ("M", 0.0))
-"""tuple: The initial mass at which each spectral class begins, heaviest first."""
 
 TAIL_RATIOS = (0.12, 0.10)
 """tuple: The chance a system of 7 stars has an 8th (0.12) and the chance each
@@ -134,7 +131,6 @@ COMPACT_TERTIARY_SHARE = 0.10
 """float: A compact binary has a third member in the share of the `compact-triple` row (30%, GEN.272; before it, black holes
 only), which is a compact object in 10% of those (a design default)."""
 
-BROWN_DWARF_MAX_MASS_SOL = 0.08
 BROWN_DWARF_DESERT_AU = 5.0
 BROWN_DWARF_DESERT_KEEP = 0.01
 """A brown dwarf inside `BROWN_DWARF_DESERT_AU` of a star is kept in 1% of draws."""
@@ -485,7 +481,7 @@ def draw_runaway_origin(initial_mass_sol, runaway_unit, origin_unit, bound_unit)
 
 def spectral_class(initial_mass_sol):
     """The spectral class (O to M) of a star of this initial mass."""
-    for letter, lower in SPECTRAL_CLASS_LOWER_MASS_SOL:
+    for letter, lower in mass_boundaries.SPECTRAL_CLASS_LOWER_MASS_SOL:
         if initial_mass_sol >= lower:
             return letter
     return "M"
@@ -497,7 +493,7 @@ def companion_class(initial_mass_sol, letter=None):
     B-early (Moe and Di Stefano's bins, GEN.449)."""
     letter = letter or spectral_class(initial_mass_sol)
     if letter == "B":
-        for name, lower in tuning.B_SUBCLASS_LOWER_MASS_SOL:
+        for name, lower in mass_boundaries.B_SUBCLASS_LOWER_MASS_SOL:
             if initial_mass_sol >= lower:
                 return name
     return letter
@@ -596,7 +592,7 @@ def _radius_au(state):
 
 def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0):
     """A star-like member of this birth mass at the system's age."""
-    if initial_mass < BROWN_DWARF_MAX_MASS_SOL:
+    if initial_mass < mass_boundaries.sol("hydrogen_burning_limit"):
         # GEN.252: the L, T or Y type its cooling gives at the system's age, and the radius the same laws fix.
         dwarf = brown_dwarf.state(initial_mass, age_yr / 1.0e9)
         return _Leaf("brown-dwarf", dwarf["spectral_type"], initial_mass, initial_mass,
@@ -643,7 +639,7 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None, fe_h=0.0):
         low = max(low, lowest, evolution.youngest_progenitor_sol(age_yr, fe_h))
         if low >= high:
             return None
-        progenitor = evolution.sample_imf_mass_sol(low, high, rng)
+        progenitor = imf.sample(low, high, rng)
         return _remnant_leaf(kind, progenitor, remnant_mass.white_dwarf_mass_sol(progenitor))
     progenitor = remnant_progenitors.sample_mass_sol(kind, max(lowest, evolution.youngest_progenitor_sol(age_yr, fe_h)),
                                                      rng)
@@ -660,7 +656,7 @@ def _alive_star_mass(low, high, age_yr, rng, fe_h=0.0):
     caps the range) for a star of birth [Fe/H] `fe_h`."""
     cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9, fe_h)
     high = max(min(high, cap), low * 1.0001)
-    return evolution.sample_imf_mass_sol(low, high, rng)
+    return imf.sample(low, high, rng)
 
 
 def _is_direct_collapse(leaf):
@@ -1306,7 +1302,7 @@ def _white_dwarf_companion(placed, base, binary, age_yr, rng):
         span = tuning.DOUBLE_WHITE_DWARF_AXIS_AU
     elif binary == "post-common-envelope":
         companion = (_stripped_helium_leaf(1.0, rng) if draw_stripped_helium(rng.random())
-                     else _star_leaf(_alive_star_mass(0.1, 8.0, age_yr, rng, placed.tree_fe_h), age_yr, rng,
+                     else _star_leaf(_alive_star_mass(0.1, mass_boundaries.sol("core_collapse_limit"), age_yr, rng, placed.tree_fe_h), age_yr, rng,
                                 fe_h=placed.tree_fe_h))
         span = tuning.POST_COMMON_ENVELOPE_AXIS_AU
     else:
@@ -1500,7 +1496,7 @@ def _compact_tertiary(placed, age_yr, rng):
         kind = placed.kind if own else ("neutron-star" if placed.kind == "black-hole" else "black-hole")
         limit = placed.mass_solar if kind == "black-hole" and placed.kind == "black-hole" else None
         return _remnant(kind, age_yr, 0.0, rng, limit_mass=limit, fe_h=placed.tree_fe_h)
-    return _star_leaf(_alive_star_mass(0.1, 8.0, age_yr, rng, placed.tree_fe_h), age_yr, rng, fe_h=placed.tree_fe_h)
+    return _star_leaf(_alive_star_mass(0.1, mass_boundaries.sol("core_collapse_limit"), age_yr, rng, placed.tree_fe_h), age_yr, rng, fe_h=placed.tree_fe_h)
 
 
 def _assemble(leaves, builder, age_yr, dropped, rng):

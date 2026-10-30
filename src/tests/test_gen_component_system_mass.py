@@ -8,7 +8,7 @@ import pytest
 
 from planetgen.galaxy import components
 from planetgen.generation import multistar, system_mass
-from planetgen.physics import remnant_mass, remnant_progenitors, stellar_evolution
+from planetgen.physics import imf, remnant_mass, remnant_progenitors, stellar_evolution
 from planetgen.util import draw
 
 
@@ -24,7 +24,7 @@ def test_a_components_mean_is_a_seeded_draw_of_systems_of_its_age(age_gy):
     rng = draw.Stream(f"gen598-systems-{age_gy}")
     found = []
     for _ in range(4000):
-        mass = stellar_evolution.sample_imf_mass_sol(rng=rng)
+        mass = imf.sample(rng=rng)
         if stellar_evolution.evolve_star(mass, age_gy, rng) is None:
             kind = "black-hole" if remnant_progenitors.fails(mass) else "neutron-star"
             found.append(remnant_mass.draw_mass_sol(kind, rng=rng))

@@ -1,0 +1,79 @@
+{
+ "version": 1,
+ "title": "The acid medium rules",
+ "description": "Where a world holds liquid concentrated sulfuric acid, the medium of life Classes 5 and 9 (GEN.888, docs/design/habitability/life-classes.md 8.3). Every number carries its source tier (T1 to T9) and tweak level (L0 to L4) next to it. The acid forms from sulfur dioxide with an oxidiser and a trace of water; it is liquid between about 283 and 373 K; its strength follows from how dry the air is (the water activity); a cloud layer is the level of the dry adiabat that is in the liquid window and under the pressure bounds, and a pool is acid at the ground.",
+ "numbers": {
+  "reference_bond_albedo": {
+   "value": 0.3,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "The albedo used to find the air's cold top (the skin temperature, 2^-1/4 of the airless grey temperature of the absorbed flux) when the body gives no effective temperature; only the level where the profile turns isothermal depends on it, and a cloud level lies on the adiabat well below that for any thick air (Venus's cloud top, 60 km, is the isothermal skin of about 190 to 250 K, whichever albedo is read); Earth's 0.3 is the plain choice"
+  },
+  "so2_min_share": {
+   "value": 1e-6,
+   "tier": "T8",
+   "tweak": "L4",
+   "basis": "The sulfur dioxide, as a mole share of the air, below which no standing acid cloud forms: Venus's upper cloud holds a few ppm and its lower air about 150 ppm and has a cloud deck of 81 to 100 percent acid (Bains and others on Venus's clouds, read in the climates report); an Earth stratosphere with a tenth of a ppb holds only a thin aerosol, not a liquid layer; the least value that is a deck is a design choice"
+  },
+  "oxidant_min_share": {
+   "value": 0.001,
+   "tier": "T8",
+   "tweak": "L4",
+   "basis": "The share of the air that is oxygen plus carbon dioxide at least, to have the oxygen atoms and hydroxyl that oxidise sulfur dioxide to sulfur trioxide (on Venus carbon dioxide photolysis supplies the oxygen); a design floor"
+  },
+  "water_min_share": {
+   "value": 1e-9,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "Sulfur trioxide needs some water to become the acid; a world with less than a part in a billion of water vapour makes none (a design floor; Venus's lower air holds 30 ppm)"
+  },
+  "liquid_low_k": {
+   "value": 283.0,
+   "tier": "T6",
+   "tweak": "L1",
+   "basis": "The coolest temperature at which 81 to 100 percent sulfuric acid is liquid in a cloud or pool: pure acid freezes near 283 K (about 10 C, recalled in the climates report); the stronger solutions freeze lower, the climates report's window is 283 to 373 K"
+  },
+  "liquid_high_k": {
+   "value": 373.0,
+   "tier": "T6",
+   "tweak": "L1",
+   "basis": "The warmest temperature a cloud or pool of life is allowed: Venus's temperate cloud layer is under 100 C (climates report, read), above which the acid-world window of the life class rules ends"
+  },
+  "cloud_min_pa": {
+   "value": 30000.0,
+   "tier": "T6",
+   "tweak": "L1",
+   "basis": "The lowest pressure of a cloud layer of the temperate kind: 0.3 bar (the climates report: thick air with a layer at 283 to 373 K and 0.3 to 3 bar, Venus's temperate layer at 48 to 60 km is about 2 bar)"
+  },
+  "cloud_max_pa": {
+   "value": 300000.0,
+   "tier": "T6",
+   "tweak": "L1",
+   "basis": "The highest pressure of the cloud layer: 3 bar (as the lowest, from the climates report)"
+  },
+  "concentrated_wt_percent": {
+   "value": 81.0,
+   "tier": "T6",
+   "tweak": "L1",
+   "basis": "The weakest acid the life classes count as the medium of acid-world life: 81 percent by weight (Venus's cloud acid is 81 to 100 percent; Seager and others 2024 found the amino acids and bases survive in 81 to 98 percent acid, read in the climates report)"
+  },
+  "reference_wt_percent": {
+   "value": 80.0,
+   "tier": "T7",
+   "tweak": "L3",
+   "basis": "The acid strength at the reference water activity: Venus's cloud top near 60 km (about 263 K, 0.24 bar, 3 ppm water: water activity near 3e-3) holds 80 to 81 percent acid"
+  },
+  "reference_water_activity": {
+   "value": 0.003,
+   "tier": "T7",
+   "tweak": "L3",
+   "basis": "The water activity (the water's partial pressure over its saturation pressure at the same temperature) at the reference strength: 3 ppm of water at 0.24 bar is 0.7 Pa against 260 Pa saturation over water at 263 K, 2.7e-3 (Venus numbers recalled; the cloud acid strength is read)"
+  },
+  "water_activity_slope_per_wt_percent": {
+   "value": 0.39,
+   "tier": "T7",
+   "tweak": "L3",
+   "basis": "How fast the natural log of the water activity falls per percent by weight of acid: through the Venus levels near 60 km (80 percent, 2.7e-3) and near 50 km (about 88 percent, water 30 ppm at 1.1 bar, 3.4 Pa against 27 kPa at 340 K: 1.3e-4): ln(2.7e-3 / 1.3e-4) over 8 percent is 0.38; the true curve bends and depends a little on temperature, this line holds between about 75 and 98 percent"
+  }
+ }
+}

@@ -138,7 +138,7 @@ export function createSystemStage(host) {
       // NAV.45: what is within 10 pc of this body.
       links: host.navPick ? host.navPick.nearbyLinks(entry.ref) : [],
       buttons: [
-        { label: "Fly to", onClick: function () { host.flyTo(entry); } },
+        { label: "Go to", onClick: function () { host.flyTo(entry); } },
         {
           label: state.mode === MODE_TRUE ? "Compressed scale" : "True scale",
           onClick: function () { host.setMode(state.mode === MODE_TRUE ? MODE_COMPRESSED : MODE_TRUE); },

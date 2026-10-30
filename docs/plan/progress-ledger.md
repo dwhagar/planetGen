@@ -1786,3 +1786,65 @@ Baseline: PR #1817.
 | GEN.755 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.286 | 8.1 | Fly-through map |
 | MAP.300 | 8.1 | Fly-through map |
+| MAP.299 | 8.1 | Fly-through map |
+| UX.205 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.301 | 8.1 | Fly-through map |
+| TEST.457 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.926 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.454 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.179 | 8.1 | The headline closes |
+| PERF.178 | 8.1 | The headline closes |
+| TEST.458 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.180 | 8.1 | The headline closes |
+| UX.186 | 8.1 | Habitability system |
+| MAP.336 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| GEN.906 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.859 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.858 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.857 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.891 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.843 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.933 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.460 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.33 | 8.4 | Planet classes |
+| GEN.350 | 8.4 | Planet classes |
+| GEN.351 | 8.4 | Planet classes |
+| GEN.352 | 8.4 | Planet classes |
+| GEN.353 | 8.4 | Planet classes |
+| GEN.354 | 8.4 | Planet classes |
+| GEN.28 | 8.4 | Planet classes |
+| GEN.741 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.921 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.329 | 8.1 | Fly-through map |
+| TEST.462 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.779 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.954 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.966 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.977 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.956 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.958 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.754 | 8.1 | Mixture and stored values |
+| GEN.724 | 8.1 | Mixture and stored values |
+| GEN.978 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.456 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.722 | 8.1 | Tuned draws and selection models |
+| GEN.788 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.345 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.986 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.484 | 8.1 | Weight research (atmosphere) |
+| GEN.485 | 8.1 | Weight research (atmosphere) |
+| GEN.486 | 8.1 | Weight research (atmosphere) |
+| GEN.488 | 8.1 | Weight research (atmosphere) |
+| GEN.487 | 8.1 | Weight research (atmosphere) |
+| GEN.775 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.776 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.777 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.480 | 8.1 | Weight research (atmosphere) |
+| GEN.489 | 8.1 | Weight research (atmosphere) |
+| GEN.490 | 8.1 | Weight research (atmosphere) |
+| GEN.491 | 8.1 | Weight research (atmosphere) |
+| PERF.202 | 8.1 | Queue, caches and performance |
+| GEN.740 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| API.37 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.450 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.997 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

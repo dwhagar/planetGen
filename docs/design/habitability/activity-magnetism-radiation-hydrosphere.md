@@ -203,6 +203,13 @@ local Rossby number `Ro_l`: dipolar below about 0.12, multipolar above, with
 `Ro_l ~ Omega^-1.23` [R]. A hard limit would fall at P about 30 hours for
 Earth, too sharp (Mercury, 59 d, is dipole-ish), so use a soft switch (3.5).
 
+GEN.966 builds this law as a pure module, `planetgen/physics/dynamo.py`: the dipole moment of a region from the power that drives it, its shell
+and the spin (`field`), the local Rossby number from the same power (`local_rossby`), a dynamo's lifetime from the history of its power
+(`lifetime`) and a giant's power from its heat (`giant_power_w`). Tested on Earth (7.8e22 A m2 from 1.15 TW), Jupiter (1.6e27 against 1.5e27),
+Ganymede (1.0e20 against 1.3e20), Saturn (six times its field: a stable helium layer), Mercury (22 times its field: a stable layer on a thin
+shell; the module takes the attenuation as an argument) and a dead Mars (no power, no field). GEN.967 stores its results in place of the
+defaults of 3.5. The stand-ins are the registry rows DY1 to DY4 (gap plan 6.30).
+
 ### 3.2 Measured moments
 
 Dipole moments in A m2 (`M = 4 pi R^3 B_eq / mu0`, [C from recalled `B_eq`]):
@@ -282,7 +289,8 @@ mass fraction c (Earth 0.325) and lid regime:
    induced field if a subsurface ocean exists.
 7. **Output fields:** `magnetic_moment_a_m2`, `dipole_class` (none, weak
    under 0.01 Earth, Earth-like, strong over 5 Earth, multipolar),
-   `magnetopause_rp`.
+   `magnetopause_rp` (the standoff in radii of the body itself, `R_planet` in the unit registry: Earth's 9.75 Earth radii scaled by the
+   field and the wind, then divided by the body's own radius, GEN.843).
 
 **Lid regime, as built (GEN.177).** Rule 2's stagnant-lid factor is applied in
 `magnetism._rocky_moment`: the dynamo lifetime is times 0.4 unless the planet

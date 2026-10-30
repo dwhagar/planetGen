@@ -9,6 +9,7 @@
 //   text      what to write;
 //   x, y, z   the anchor in the map's frame;
 //   priority  a number, higher placed first (apparent brightness, size, nearness: the caller's rank);
+//   weight    optional: a number to rank the kind's own candidates by when they compete for room (MAP.299, weightedPriorities);
 //   pixels    optional: how large the thing is on the screen now; with `minPixels` and `maxPixels` it limits the
 //             zoom range the label shows at (a nebula's name only where the nebula is large enough to read).
 //
@@ -59,6 +60,37 @@ export function createMeasure(font) {
   };
 }
 
+// MAP.299: the width a text takes in the font the label really has, which is not one font: a sector's name is semibold and a nebula's
+// italic (style.css), and a width measured in another font puts two names closer than their buffer or over each other. `fontOf(kind)`
+// gives the canvas font string of a kind's label; widths are kept per font and text.
+export function createKindMeasure(fontOf) {
+  const cache = new Map();
+  let context = null;
+  if (typeof document !== "undefined" && document.createElement) {
+    try {
+      const canvas = document.createElement("canvas");
+      context = canvas.getContext && canvas.getContext("2d");
+    } catch (e) {
+      context = null;
+    }
+  }
+  return function measure(text, kind) {
+    const font = fontOf(kind);
+    const key = font + "|" + text;
+    let width = cache.get(key);
+    if (width === undefined) {
+      if (context && context.measureText) {
+        context.font = font;
+        width = context.measureText(text).width;
+      }
+      if (!(width > 0)) width = text.length * 6.5;
+      cache.set(key, width);
+      if (cache.size > 4000) cache.delete(cache.keys().next().value);
+    }
+    return width;
+  };
+}
+
 // Whether the candidate's size range lets it show; a label shown last time keeps showing a little beyond the range.
 export function inRange(candidate, shownBefore) {
   if (candidate.pixels === undefined || candidate.pixels === null) return true;
@@ -68,6 +100,30 @@ export function inRange(candidate, shownBefore) {
   if (min !== undefined && min !== null && candidate.pixels < min / grow) return false;
   if (max !== undefined && max !== null && candidate.pixels > max * grow) return false;
   return true;
+}
+
+// MAP.299: where names of one kind compete for room, the heavier or brighter thing keeps its name. Among the candidates of a kind
+// that give a `weight` (a star's luminosity, a body's mass, a nebula's volume; a number comparable inside the kind only) the
+// priorities the kind holds are dealt out again in weight order, so the kind keeps its places in the order between kinds and the
+// heaviest of it takes the best of them. A candidate with no weight keeps its priority. Returns a Map of candidate -> priority.
+export function weightedPriorities(candidates) {
+  const effective = new Map();
+  const byKind = new Map();
+  candidates.forEach(function (candidate) {
+    effective.set(candidate, candidate.priority);
+    if (typeof candidate.weight === "number" && candidate.weight > 0) {
+      if (!byKind.has(candidate.kind)) byKind.set(candidate.kind, []);
+      byKind.get(candidate.kind).push(candidate);
+    }
+  });
+  byKind.forEach(function (group) {
+    const priorities = group.map(function (candidate) { return candidate.priority; }).sort(function (a, b) { return b - a; });
+    group.slice().sort(function (a, b) {
+      if (b.weight !== a.weight) return b.weight - a.weight;
+      return b.priority - a.priority;
+    }).forEach(function (candidate, n) { effective.set(candidate, priorities[n]); });
+  });
+  return effective;
 }
 
 // Places `candidates` and returns the shown ones, [{candidate, left, top, width, height}], most important first.
@@ -86,8 +142,11 @@ export function placeLabels(candidates, options) {
     if (!spot || !(spot.x >= 0 && spot.x <= width && spot.y >= 0 && spot.y <= height)) return;
     ranked.push({ candidate: candidate, spot: spot, held: held });
   });
+  const effective = weightedPriorities(ranked.map(function (entry) { return entry.candidate; }));
   ranked.sort(function (a, b) {
-    if (b.candidate.priority !== a.candidate.priority) return b.candidate.priority - a.candidate.priority;
+    const pa = effective.get(a.candidate);
+    const pb = effective.get(b.candidate);
+    if (pb !== pa) return pb - pa;
     if (a.held !== b.held) return a.held ? -1 : 1;
     const da = a.spot.depth === undefined ? 0 : a.spot.depth;
     const db = b.spot.depth === undefined ? 0 : b.spot.depth;
@@ -96,12 +155,14 @@ export function placeLabels(candidates, options) {
   });
   const grid = new Map();
   const placed = [];
+  // The grid cells a box reaches including its buffer, so two names closer than the buffer meet in a cell even when a grid line
+  // runs between them (MAP.299).
   function cells(box) {
     const keys = [];
-    const x0 = Math.floor(box.left / GRID_PX);
-    const x1 = Math.floor((box.left + box.width) / GRID_PX);
-    const y0 = Math.floor(box.top / GRID_PX);
-    const y1 = Math.floor((box.top + box.height) / GRID_PX);
+    const x0 = Math.floor((box.left - padding) / GRID_PX);
+    const x1 = Math.floor((box.left + box.width + padding) / GRID_PX);
+    const y0 = Math.floor((box.top - padding) / GRID_PX);
+    const y1 = Math.floor((box.top + box.height + padding) / GRID_PX);
     for (let gx = x0; gx <= x1; gx++) for (let gy = y0; gy <= y1; gy++) keys.push(gx + "," + gy);
     return keys;
   }
@@ -119,11 +180,13 @@ export function placeLabels(candidates, options) {
   }
   for (let i = 0; i < ranked.length && placed.length < budget; i++) {
     const item = ranked[i];
-    const w = options.measure(item.candidate.text) + 2 * GAP_PX;
-    const box = { left: item.spot.x - w / 2, top: item.spot.y - LABEL_HEIGHT_PX - GAP_PX, width: w, height: LABEL_HEIGHT_PX };
+    // Whole pixels, wide enough: the element is put at a rounded place and is as wide as its text, and the buffer between two
+    // names is measured on what is drawn (MAP.299).
+    const w = Math.ceil(options.measure(item.candidate.text, item.candidate.kind)) + 2 * GAP_PX;
+    const box = { left: Math.round(item.spot.x - w / 2), top: Math.round(item.spot.y - LABEL_HEIGHT_PX - GAP_PX), width: w, height: LABEL_HEIGHT_PX };
     if (box.left < 0) box.left = 0;
     if (box.left + box.width > width) box.left = Math.max(0, width - box.width);
-    if (box.top < 0) box.top = item.spot.y + GAP_PX;
+    if (box.top < 0) box.top = Math.round(item.spot.y + GAP_PX);
     const keys = cells(box);
     if (collides(box, keys)) continue;
     keys.forEach(function (key) {
@@ -190,7 +253,33 @@ export function placeBoxes(items, options) {
 // events); `project`, `viewport` (a function giving {width, height}) and `reducedMotion` come from the map.
 export function createLabelLayer(options) {
   const container = options.container;
-  const measure = options.measure || createMeasure("12px sans-serif");
+  // The font of each kind's label, read from a hidden probe in the container (style.css decides it), so the width placement
+  // allows is the width the name takes (MAP.299); read again when a web font finishes loading.
+  const fonts = new Map();
+  function fontOf(kind) {
+    let font = fonts.get(kind);
+    if (font) return font;
+    font = "12px sans-serif";
+    try {
+      const probe = document.createElement("span");
+      probe.className = "map-label";
+      probe.dataset.kind = kind;
+      probe.style.visibility = "hidden";
+      probe.textContent = "Mm";
+      container.appendChild(probe);
+      const style = getComputedStyle(probe);
+      font = style.fontStyle + " " + style.fontWeight + " " + style.fontSize + " " + style.fontFamily;
+      probe.remove();
+    } catch (e) {
+      font = "12px sans-serif";
+    }
+    fonts.set(kind, font);
+    return font;
+  }
+  if (typeof document !== "undefined" && document.fonts && document.fonts.addEventListener) {
+    document.fonts.addEventListener("loadingdone", function () { fonts.clear(); });
+  }
+  const measure = options.measure || createKindMeasure(fontOf);
   const pool = [];
   const live = new Map(); // id -> {element, kind}
   let shownIds = new Set();
@@ -231,6 +320,7 @@ export function createLabelLayer(options) {
     const view = options.viewport();
     const placed = placeLabels(candidates, {
       project: options.project, measure: measure, viewport: view, budget: options.budget, previous: shownIds,
+      padding: typeof options.padding === "function" ? options.padding() : options.padding,
     });
     const next = new Set();
     placed.forEach(function (item) {

@@ -188,7 +188,7 @@ def test_a_flight_from_the_whole_galaxy_to_a_planet_switches_no_stage_and_every_
     stage = page.evaluate(f"() => {CANVAS_JS}.galaxyStage()")
     assert stage["win"] is None, stage
     asked = len(requests)
-    page.evaluate(f"(p) => {CANVAS_JS}.galaxyFlyToPoint(p, 0.0001)", list(point))
+    page.evaluate(f"(p) => {CANVAS_JS}.galaxyGoTo({{center: p, dist: 0.0001}})", list(point))
     page.wait_for_function(f"() => !{CANVAS_JS}.galaxyMoving()", timeout=60000)
     # The sector's scene, then the system's, come up from where the eye is.
     page.wait_for_function(f"() => ({CANVAS_JS}.galaxyAmbient() || {{}}).share > 0.99", timeout=60000)
@@ -206,7 +206,7 @@ def test_a_flight_from_the_whole_galaxy_to_a_planet_switches_no_stage_and_every_
     refs = page.evaluate(f"() => {CANVAS_JS}.galaxySystem().refs")
     planets = [ref for ref in refs if ref.startswith("planet:")]
     assert planets, refs
-    assert page.evaluate(f"(r) => {CANVAS_JS}.galaxyFlyToBody(r)", planets[0])
+    assert page.evaluate(f"(r) => {CANVAS_JS}.galaxyGoTo({{body: r}})", planets[0])
     page.wait_for_function(f"() => !{CANVAS_JS}.galaxyMoving()", timeout=60000)
     assert page.evaluate(f"() => {CANVAS_JS}.galaxyStage()") == stage
     assert page.evaluate("() => window.__same_page === true"), "the page was loaded again"

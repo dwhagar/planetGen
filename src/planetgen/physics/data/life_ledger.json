@@ -1,0 +1,132 @@
+{
+ "version": 1,
+ "title": "The life gas ledger",
+ "description": "What each life class puts into the air and takes out of it, and how much (GEN.891, GEN.857, GEN.858, GEN.859; docs/design/habitability/life-classes.md sections 4 and 6; research: reports/non-oxygen-life-byproducts-2026-10-28.md). Rows are keyed by life class number. Every number carries its source tier (T1 to T9) and tweak level (L0 to L4) next to it. The methane flux of a class is its fuel supply (a share of Earth's, physics/life_supply.py) times the area over Earth's times the flux Earth's supply would give; the air holds the flux times the methane's lifetime, up to a cap, and the carbon comes from the air's own carbon dioxide.",
+ "numbers": {
+  "earth_donor_methane_tmol_yr": {
+   "value": 10.0,
+   "tier": "T3",
+   "tweak": "L2",
+   "basis": "The methane, Tmol a year, that the anoxygenic communities of an Earth-sized world give when its donor supply is Earth's: photoferrotrophs on 80 Tmol of Fe2+ a year fix 20 Tmol of carbon and the food web returns 0.5 methane per carbon, 10 Tmol (Ozaki et al. 2018, read; 0.37e11 molecules/cm2/s), inside the 9 to 67 Tmol of Kharecha et al. 2005 (read)"
+  },
+  "earth_h2_tmol_yr": {
+   "value": 2.3,
+   "tier": "T3",
+   "tweak": "L2",
+   "basis": "The hydrogen, Tmol a year, an Earth-sized world's hydrogenotrophs have when its hydrogen supply is Earth's: Earth's outgassing of 1.7 to 2.9 Tmol a year (Ozaki et al. 2018, read); four hydrogen make one methane, so the methane is a quarter of it"
+  },
+  "h2_per_methane": {
+   "value": 4.0,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "CO2 + 4 H2 -> CH4 + 2 H2O (the stoichiometry of hydrogenotrophic methanogenesis)"
+  },
+  "methane_per_buried_carbon": {
+   "value": 0.5,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "2 CH2O -> CH4 + CO2: the organic carbon that is buried or fermented with no oxidant left ends half as methane (stoichiometry)"
+  },
+  "methane_lifetime_yr": {
+   "value": 30000.0,
+   "tier": "T6",
+   "tweak": "L3",
+   "basis": "The life of methane in an air with no free oxygen, years: Kharecha et al. 2005 give 100 ppmv to 3.5 percent of methane for 9 to 67 Tmol a year, which is 2e3 to 9e4 years, and Catling and Zahnle 2020 (read) call it long-lived where hydroxyl is scarce; the geometric middle"
+  },
+  "methane_max_share": {
+   "value": 0.035,
+   "tier": "T3",
+   "tweak": "L2",
+   "basis": "The most methane of an anoxic air, as a share of its molecules: 3.5 percent (Kharecha et al. 2005, read abstract)"
+  },
+  "carbon_left_share": {
+   "value": 0.1,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The share of the air's carbon dioxide that methane-making life leaves in the air: the methane's carbon comes out of it, so it cannot take more than it has"
+  },
+  "oxygen_max_share": {
+   "value": 0.001,
+   "tier": "T6",
+   "tweak": "L3",
+   "basis": "The most free oxygen, as a share of the air's molecules, in which methane builds up: above a part in a thousand hydroxyl and ozone chemistry give methane a life of decades (Earth's, 21 percent oxygen, holds 1.8 ppmv); the methane of a ledger row is not added to an air with more oxygen than this"
+  },
+  "hydrogen_max_share": {
+   "value": 0.0001,
+   "tier": "T3",
+   "tweak": "L1",
+   "basis": "The most hydrogen an air holds where hydrogen-eating life lives, as a mole share: at or below 1e-4 (Catling and Zahnle 2020, read; Kharecha et al. 2005)"
+  },
+  "apply_rise": {
+   "value": 1.01,
+   "tier": "T9",
+   "tweak": "L0",
+   "basis": "The air takes new methane only when the target is this much above what it holds, so that applying the ledger again changes nothing (a numerical choice)"
+  }
+ },
+ "classes": {
+  "1": {
+   "name": "Oxygenic light-eaters",
+   "status": "built",
+   "methane": {"fuel": "burial", "stage": "photosynthesis", "until": "oxygen"},
+   "draws_down": [],
+   "note": "Before the oxygen rise the food web of the buried organic carbon makes methane and carbon dioxide; at the rise the oxygen burns the methane (physics/biogenic_oxygen.py), so the row gives none after it. Oxygen itself is GEN.855.",
+   "tier": "T5",
+   "tweak": "L1",
+   "basis": "The byproducts report's table (an anoxic air with oxygenic photosynthesis holds methane until the reductants are spent) and life-classes.md section 4, row 1"
+  },
+  "2": {
+   "name": "Anoxygenic light-eaters",
+   "status": "built",
+   "methane": {"fuel": "donor_supply", "stage": "photosynthesis", "until": null},
+   "draws_down": ["H2"],
+   "note": "Carbon is fixed with H2, Fe2+ or H2S for electrons; the food web makes the methane, donor-limited at 1e-4 to 1e-2 of today's biosphere. Never any oxygen.",
+   "tier": "T3",
+   "tweak": "L2",
+   "basis": "The byproducts report section 4 (Kharecha et al. 2005; Ozaki et al. 2018; Catling and Zahnle 2020)"
+  },
+  "3": {
+   "name": "Hydrogen eaters",
+   "status": "built",
+   "methane": {"fuel": "h2_supply", "stage": "photosynthesis", "until": null},
+   "draws_down": ["H2"],
+   "note": "A methane source on a world with open hydrogen (small); sealed sub-ice and aquifer worlds show nothing in the air because the supply is the water's contact with the rock. 3b (sulfate) makes sulfide, not methane, and is not modelled: its row gives none.",
+   "tier": "T5",
+   "tweak": "L3",
+   "basis": "life-classes.md section 4, row 3; the stoichiometry of hydrogenotrophic methanogenesis"
+  },
+  "4": {
+   "name": "Chemolithotrophs",
+   "status": "pending",
+   "methane": null,
+   "draws_down": [],
+   "note": "Draws H2S down and makes sulfate; the air effect needs a sulfur ledger (not built).",
+   "tier": "T6",
+   "tweak": "L3",
+   "basis": "life-classes.md section 4, row 4"
+  },
+  "5": {"name": "Acid eaters", "status": "pending", "methane": null, "draws_down": [], "note": "Classes 5 to 9 are the second build of the class system (GEN.888, GEN.894).", "tier": "T8", "tweak": "L4", "basis": "life-classes.md section 4, rows 5 and 9: speculative chemistry"},
+  "6": {
+   "name": "Dense-carbon-dioxide hydrogen eaters",
+   "status": "built",
+   "methane": {"fuel": "h2_supply", "stage": "photosynthesis", "until": null},
+   "draws_down": ["H2"],
+   "note": "As Class 3, in a supercritical carbon dioxide fluid.",
+   "tier": "T7",
+   "tweak": "L4",
+   "basis": "life-classes.md section 4, row 6 (a methane source; the water separates from the fluid)"
+  },
+  "7": {"name": "Cold methane hydrogenators", "status": "pending", "methane": null, "draws_down": [], "note": "Hydrogen and acetylene go down and methane up in an air that is already methane; not built.", "tier": "T8", "tweak": "L4", "basis": "life-classes.md section 4, row 7: the Titan anomalies are a lead, not a detection"},
+  "8": {
+   "name": "Ammonia-water hydrogen eaters",
+   "status": "built",
+   "methane": {"fuel": "h2_supply", "stage": "photosynthesis", "until": null},
+   "draws_down": ["H2"],
+   "note": "As Class 3 (the net air effect is small).",
+   "tier": "T7",
+   "tweak": "L4",
+   "basis": "life-classes.md section 4, row 8"
+  },
+  "9": {"name": "Silicon acid eaters", "status": "pending", "methane": null, "draws_down": [], "note": "As Class 5, with silica deposits.", "tier": "T8", "tweak": "L4", "basis": "life-classes.md section 4, rows 5 and 9: speculative chemistry"}
+ }
+}

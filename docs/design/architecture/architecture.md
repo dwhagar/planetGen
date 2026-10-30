@@ -213,10 +213,12 @@ The constants and the maths behind every generated body.
 | [`habitability_world.py`](../../../src/planetgen/physics/habitability_world.py) | The habitability score of every planet and moon (GEN.89): turns a body's stored air, water, temperature, radiation and light into the `World` that `habitability.scores` reads (GEN.84) and stores the result. |
 | [`hii.py`](../../../src/planetgen/physics/hii.py) | H II regions from their stars' ionizing photons (GEN.150). |
 | [`hydrosphere.py`](../../../src/planetgen/physics/hydrosphere.py) | Water on planets, moons and rogue planets (GEN.88). |
+| [`imf.py`](../../../src/planetgen/physics/imf.py) | The initial mass function (GEN.926): the one place the generator's stellar mass function lives, a piecewise power law read from `tuning.IMF_BREAKS_SOL` and `IMF_SLOPES`; the draw of a star's mass, the number or mass of stars in a range, the segments a mass grid is built on. |
 | [`insolation.py`](../../../src/planetgen/physics/insolation.py) | Summed insolation of a planet in a multi-star system (GEN.148). |
 | [`kepler.py`](../../../src/planetgen/physics/kepler.py) | Two-body Kepler and Barker propagation for eccentric and parabolic orbits. |
 | [`light_travel.py`](../../../src/planetgen/physics/light_travel.py) | Light-travel positions (VIEW.5): where an object appears to be to an observer. Built and tested, but no production Python calls it yet (only tests); the callers are planned in VIEW.12, VIEW.2 and VIEW.18. |
 | [`magnetism.py`](../../../src/planetgen/physics/magnetism.py) | Planetary magnetic fields and the star's radiation at the planet (GEN.86). |
+| [`mass_boundaries.py`](../../../src/planetgen/physics/mass_boundaries.py) | The masses where one kind of object gives way to another (GEN.933): hydrogen-burning and deuterium-burning limits, the brown dwarf upper limit, the core collapse edge, the white dwarf progenitor floor, Chandrasekhar, and the spectral-class mass edges, each with a source and a tier; the mass function, companions, rogue bodies and plausibility bounds read them here. |
 | [`mathcheck.py`](../../../src/planetgen/physics/mathcheck.py) | A fixed list of checks that the generator's math gives the right answers (TEST.63): pytest runs it first and stops the suite if it fails, and the website runs it once at startup. |
 | [`orbits.py`](../../../src/planetgen/physics/orbits.py) | Orbital mechanics for generated systems: the habitable zone, Hill spheres and mutual Hill radii, the stability limit and orbital positions. |
 | [`oxygen_fugacity.py`](../../../src/planetgen/physics/oxygen_fugacity.py) | One oxygen-fugacity scale (GEN.498): the Hirschmann 2021 iron-wustite buffer as the reference every stored delta-IW is on, the Frost 1991 buffers and the Sossi 2020 scale converted to it, the CO2/CO and H2O/H2 gas ratios at a delta-IW, and Sossi's melt Fe3+ law. Built and tested; the callers are planned in GEN.451, GEN.456 and GEN.513. |
@@ -558,7 +560,7 @@ The map panels and their data.
 |---|---|
 | [`galaxymap3d.js`](../../../src/html/static/galaxymap3d.js) | The 3D Galaxy Map (three.js): scene, the Free look camera, node fetching from `/galaxy/nodes` into an IndexedDB node store, bright stars and clouds, the NAV course line and the Territories overlay. Hands the drill-down to `galaxystageview.js`. |
 | `galaxystages.js` | The drill-down's stage rules with no drawing: which blocks a stage holds, the address (`?cam=` the camera, `&sector=`, `&open=1`; MAP.228) and the stage a camera looks at, breadcrumb, labels, the flight path. No three.js import; tested under node. |
-| `galaxystageview.js` | The drill-down drawn and driven: the stages from galaxy to sector (the block ladder on shells), camera flights, breadcrumb with sibling menus, tooltip, keys, touch, and the address bar. Created by `galaxymap3d.js`, which opens on it. |
+| `galaxystageview.js` | The drill-down drawn and driven: the stages from galaxy to sector (the block ladder on shells), camera flights, breadcrumb with sibling menus, tooltip, keys, touch, the find-a-place box and the one `goTo` (MAP.336). Created by `galaxymap3d.js`, which opens on it. |
 | `galaxyprisms.js` | Sector-grid cells, block level of detail, density shading and the `drill*` ladder rules (the page's copy of `galaxy/spherical.py`, `galaxy/drill.py` and `galaxy/window.py`; `tests/test_galaxyprisms.py` and `tests/test_galaxydrill.py` hold them equal). No three.js import, so tests run it under node. |
 | `galaxyblocks.js` | Builds the block scene's typed arrays, in a Web Worker when it can. |
 | `sectorscene.js`, `galaxysector.js` | One sector's scene (stars, phenomena, bodies; three.js) and the stage that opens it in the Galaxy Map; the sector page's Sector Map is the Galaxy Map locked to its sector (MAP.66, MAP.68). |
@@ -608,7 +610,10 @@ The map panels and their data.
 | `joblog.js` | The job output box: a terminal (Xterm.js) that shows the job's raw output as it streams (ADM.22). |
 | `mapcontrol.js` | The camera and input controller the Galaxy Map's drill-down and the Sector Map's scene share (MAP.64). |
 | `mapcore.js` | The helpers the Galaxy Map, the Sector Map and the System Map share, so each is written once (MAP.63). |
-| `mapnavpad.js` | The Galaxy Map's on-map controls (MAP.200): a slider for the zoom, a direction star of four arrows and a middle button that moves the center the view turns and zooms about, and a readout of where the center is while it moves. |
+| `mapnavpad.js` | The Galaxy Map's on-map controls: a direction star of four arrows and a middle button that moves the center the view turns and zooms about, a readout of where the center is while it moves (MAP.200), and the log ruler with its named stops and distance readout (MAP.336). |
+| `findplace.js`, `findplacebox.js` | The find-a-place box (MAP.336): what a typed line can be (coordinates, designations, object IDs, regions, names, recent places) and the box that lists it. |
+| `maplogruler.js` | The named scales of the map's log ruler and the distance readout's words (MAP.336). |
+| `regionlanding.js` | The cluster of a region's heaviest sectors a "densest" Go to a region lands on (MAP.336). |
 | `mappick.js` | The picking, hover and info-panel layer every 3D map shares (MAP.65). |
 | `menuplace.js` | Button menus that open where they can be seen instead of out of the bottom of the window (UX.85). |
 | `navpick.js` | Picking a NAV course on the maps; the Galaxy Map and the Sector Map hold one pick state (NAV.29, NAV.33). |

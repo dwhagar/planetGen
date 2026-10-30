@@ -26,7 +26,7 @@ the life model no longer re-rolls the names and flavour text of every later body
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import atmosphere, biogenic_oxygen, body_colour, habitability_world, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation
+from planetgen.physics import aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -81,7 +81,7 @@ def _apply(planet, keep_stored):
     # The schedule is drawn once; the life sentence, the timeline and the stored columns all read it.
     if not (kept and all(getattr(planet, field, None) is not None for field in evolution.SCHEDULE_FIELDS[:2]) and planet.evolutionary_pace):
         _draw_schedule(planet, row)
-    _build_oxygen(planet, row)
+    _build_air(planet, row)
     final = life_classes.score_classes(planet)             # the conditions after the oxygen the life has made
     _set_best(planet, final)
     result = final[row.id] if final.get(row.id) and final[row.id].score > 0 else chosen
@@ -99,7 +99,10 @@ def _apply(planet, keep_stored):
 
 def _choose(planet, scores, keep_stored):
     """`(ClassScore or None, kept)`: the class that lives on the body. With `keep_stored` the class it has is kept while it is still supported; else
-    the dominant one (`life_classes.dominant`)."""
+    the dominant one (`life_classes.dominant`). None whatever the scores when the star is younger than `tuning.LIFE_MIN_STAR_AGE_GY`."""
+    age = getattr(getattr(planet, "star", None), "age", None)
+    if age is not None and age < tuning.LIFE_MIN_STAR_AGE_GY:
+        return None, False      # a crust and oceans take about 0.1 Gyr: a star younger than that has no life anywhere (GEN.997)
     if keep_stored:
         stored = life_classes.class_id(getattr(planet, "life_class", None), getattr(planet, "life_class_variant", None))
         if stored in scores and scores[stored].score > 0:
@@ -156,29 +159,53 @@ def _draw_schedule(planet, row):
     _set_schedule(planet, ages, life_timeline.pace_of(factor))
 
 
+def _build_air(planet, row):
+    """
+    Gives the air what the life of `planet` has put into it by its star's age: the oxygen of a class that splits water (GEN.855) and the
+    rest of the class's ledger, the methane and the hydrogen drawdown (`physics.life_air`, GEN.857, GEN.858, GEN.859). When either changes the air,
+    everything that reads it is made again once (`_rebuild`).
+    """
+    if planet.body_type == "g":
+        return
+    rose = _build_oxygen(planet, row)
+    changed = life_air.apply_gases(planet, row, rose)
+    if rose or changed:
+        _rebuild(planet)
+    if changed:
+        log.choice("Life gases", f"{atmosphere.partial_kpa(planet, 'ch4'):.3g} kPa of methane",
+                   f"class {row.id}: methane and hydrogen of the ledger at the star's age")
+
+
 def _build_oxygen(planet, row):
     """
-    Gives the air the oxygen the life of `planet` has made by its star's age (GEN.855): when its class splits water, its photosynthesis
+    Gives the air the oxygen the life of `planet` has made by its star's age (GEN.855), when its class splits water, its photosynthesis
     is old enough for the delay (`biogenic_oxygen.Profile.delay_gyr`) and the air holds less than the world's balance of source and
-    sinks, the air takes that, and everything that reads it is made again: the ozone and doses (on a stream of the body's own, so the run's
-    draws do not move), the colour of the atmosphere and the habitability score. An air that already holds the oxygen is left as it is.
+    sinks: the air takes that. An air that already holds the oxygen is left as it is. Returns whether the air took oxygen (the rise
+    has happened: it burned the reduced gases, the methane among them).
     """
-    if not row.releases_oxygen or planet.body_type == "g":
-        return
+    if not row.releases_oxygen:
+        return False
     photosynthesis_age = getattr(planet, evolution.SCHEDULE_FIELDS[1], None)
     if photosynthesis_age is None:
-        return
+        return False
     profile = biogenic_oxygen.profile_of(planet)
     target = biogenic_oxygen.oxygen_mol(profile, planet.star.age - photosynthesis_age)
     if not biogenic_oxygen.apply(planet, target):
-        return
+        return False
+    log.choice("Biogenic oxygen", f"{atmosphere.partial_kpa(planet, 'o2'):.2f} kPa", f"oxygenic photosynthesis {planet.star.age - photosynthesis_age:.2f} Gyr old, "
+               f"delay {profile.delay_gyr:.2f} Gyr")
+    return True
+
+
+def _rebuild(planet):
+    """What reads the air, made again after life has changed it: the cloud, haze and dust (on the body's own stream), the ozone and doses (on a
+    stream of the body's own, so the run's draws do not move), the colour of the atmosphere and the habitability score."""
     from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
-    with draw.bound(f"biogenic-oxygen:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
+    aerosols.generate_aerosols(planet)
+    with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
         radiation.generate_dose(planet)
     body_colour.generate(planet)
     habitability_world.generate(planet, physics_planets.internal_heat_flux_w_m2(planet))
-    log.choice("Biogenic oxygen", f"{atmosphere.partial_kpa(planet, 'o2'):.2f} kPa", f"oxygenic photosynthesis {planet.star.age - photosynthesis_age:.2f} Gyr old, "
-               f"delay {profile.delay_gyr:.2f} Gyr")
 
 
 def _set_class(planet, row):

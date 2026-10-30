@@ -91,7 +91,7 @@ const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuf
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
 const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
-const { blackHoleDensityPx } = await import(`./mappreferences.js${VERSION_QUERY}`);
+const { blackHoleDensityPx, labelBufferPx, regionLanding } = await import(`./mappreferences.js${VERSION_QUERY}`);
 const {
   regionBlobs: nebulaRegionBlobs, regionLook: nebulaRegionLook, cutToBudget: cutNebulaRegions, FAMILIES: NEBULA_FAMILIES,
   FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour,
@@ -506,14 +506,14 @@ function showRegionInfo(blob) {
       ["Distance from core", formatDistancePc(Math.hypot(blob.x, blob.y, blob.z))],
     ],
     more: [["Radius", formatDistancePc(blob.radiusPc)], ["Region cell", blob.key]],
-    buttons: [{ label: "Fly to region", onClick: function () { openRegionBlob(blob); } }],
+    buttons: [{ label: "Go to region", onClick: function () { openRegionBlob(blob); } }],
   });
 }
 
 // Flies to a charted region of the regions layer: its window, the camera framing its extent (MAP.319).
 function openRegionBlob(blob) {
   if (!regionOpener) return;
-  regionOpener.region({ block: blob.block, extent: { centre: [blob.x, blob.y, blob.z], radius: blob.radiusPc } });
+  regionOpener.region({ block: blob.block, name: blob.name, extent: { centre: [blob.x, blob.y, blob.z], radius: blob.radiusPc } });
 }
 
 function showCloudInfo(cloud) {
@@ -3504,6 +3504,8 @@ function initGalaxyMap3d(canvasEl, data) {
     // center of the block the camera is inside, or null) the block drawn
     // from the inside (MAP.149).
     nearFieldAt: nearFieldAt,
+    // MAP.301: the stars the map draws now (their x, y, z in parsecs), which the wheel reads to head for a crowd of them.
+    drawnStars: function () { return starList; },
     // MAP.188: the blocks' alpha share (see gridUniform).
     setGridScale: function (scale) { gridUniform.value = scale; },
     gridScale: function () { return gridUniform.value; },
@@ -3624,6 +3626,13 @@ function initGalaxyMap3d(canvasEl, data) {
     opened: function () { showMapTargets(true); rebuildKinds(); },
     closed: function () { showMapTargets(false); rebuildKinds(); },
     kindsChanged: function () { rebuildKinds(); showMapTargets(true); },
+    // MAP.336: the charted regions (the find-a-place box lists them by name) and where a Go to a region lands (the reader's setting).
+    regions: function () { return regionBlobList || []; },
+    regionLanding: function () {
+      var storage = null;
+      try { storage = window.localStorage; } catch (error) { storage = null; }
+      return regionLanding(storage);
+    },
     locate: function (name) {
       return fetch((data.locatePath || "/galaxy/locate") + "?q=" + encodeURIComponent(name), {
         headers: { Accept: "application/json" },
@@ -3716,7 +3725,7 @@ function initGalaxyMap3d(canvasEl, data) {
       },
       label: function (sector) { return "Sector " + sectorDesignation(sector.shell, sector.band, sector.wedge); },
       cellPoints: cellEdgePoints,
-      onMove: function (sector) { stageView.openSector(sector); },
+      onMove: function (sector) { stageView.goTo({ sector: sector, open: true }); },
     });
     canvasEl.__mapSectorFrame = sectorFrame;    // the browser tests read it
     // For tests (MAP.327): what the opened sector does to the rest of the map.
@@ -3886,10 +3895,13 @@ function initGalaxyMap3d(canvasEl, data) {
   regionLookup = regionAt;
   regionOpener = {
     region: function (region) {
-      if (region.extent) stageView.openRegion(region.block, { center: region.extent.centre, radius: region.extent.radius });
-      else stageView.openBlock(region.block);
+      if (region.extent) {
+        stageView.goTo({ region: { block: region.block, center: region.extent.centre, radius: region.extent.radius }, label: region.name || null });
+      } else {
+        stageView.goTo({ block: region.block });
+      }
     },
-    block: function (block) { stageView.openBlock(block); },
+    block: function (block) { stageView.goTo({ block: block }); },
   };
   canvasEl.__mapInfo = infoPanel();    // the browser tests put long cards in it (MAP.295)
   // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
@@ -3910,14 +3922,14 @@ function initGalaxyMap3d(canvasEl, data) {
         button.addEventListener("click", function () {
           highlightPosition(system.x, system.y, system.z);
           showPointInfo(system);
-          stageView.flyToEntry(system);
+          stageView.goTo({ entry: system });
         });
       } else {
         button.textContent = (system.name || "Star system") + ": " + interestLines(system).map(function (reason) { return reason.text; }).join("; ");
         button.addEventListener("click", function () {
           highlightPosition(system.x, system.y, system.z);
           showInterestSystemInfo(system);
-          stageView.flyToEntry(system);
+          stageView.goTo({ entry: system });
         });
       }
       line.appendChild(button);
@@ -3931,7 +3943,7 @@ function initGalaxyMap3d(canvasEl, data) {
       title: crowd.count + (crowd.holes ? " black holes" : " points of interest"),
       fields: [["Distance from core", formatDistancePc(Math.hypot(crowd.x, crowd.y, crowd.z))]],
       after: [list],
-      buttons: [{ label: "Zoom in on them", onClick: function () { stageView.flyToEntry({ x: crowd.x, y: crowd.y, z: crowd.z, r: Math.max(reach * 1.5, 0.5) }); } }],
+      buttons: [{ label: "Go to them", onClick: function () { stageView.goTo({ entry: { x: crowd.x, y: crowd.y, z: crowd.z, r: Math.max(reach * 1.5, 0.5) } }); } }],
     });
   }
   function chooseMarker(entry) {
@@ -3978,6 +3990,10 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.layers.refresh();
     galaxyLabels = createGalaxyLabels({
       THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers, light: isLightBackground(),
+      // MAP.299: the clear margin between two names, a preference read at each placement.
+      padding: function () {
+        try { return labelBufferPx(window.localStorage); } catch (error) { return labelBufferPx(null); }
+      },
       sources: {
         sectors: stageView.sectorLabels, systems: stageView.systemLabels, bodies: bodyNames, nebulae: cloudLabels,
         stars: starNames, objects: objectNames, worlds: worldNames, regions: regionNames,
@@ -4342,25 +4358,25 @@ function initGalaxyMap3d(canvasEl, data) {
     if (ref.kind === "star") {
       highlightPosition(ref.star.x, ref.star.y, ref.star.z);
       showStarInfo(ref.star);
-      stageView.flyToEntry(ref.star);
+      stageView.goTo({ entry: ref.star });
     } else if (ref.kind === "object") {
       highlightPosition(ref.point.x, ref.point.y, ref.point.z);
       showPointInfo(ref.point);
-      stageView.flyToEntry(ref.point);
+      stageView.goTo({ entry: ref.point });
     } else if (ref.kind === "marker") {
       chooseMarker(ref.entry);
-      stageView.flyToEntry(ref.entry);
+      stageView.goTo({ entry: ref.entry });
     } else if (ref.kind === "system") {
       stageView.selectEntry(ref.entry);
-      stageView.flyToEntry(ref.entry);
+      stageView.goTo({ entry: ref.entry });
     } else if (ref.kind === "body") {
       stageView.selectBody(ref.entry);
     } else if (ref.kind === "nebula") {
       highlightPosition(ref.cloud.x, ref.cloud.y, ref.cloud.z);
       showCloudInfo(ref.cloud);
-      stageView.flyToEntry({ x: ref.cloud.x, y: ref.cloud.y, z: ref.cloud.z, r: ref.cloud.radius_pc });
+      stageView.goTo({ entry: { x: ref.cloud.x, y: ref.cloud.y, z: ref.cloud.z, r: ref.cloud.radius_pc } });
     } else if (ref.kind === "sector") {
-      stageView.locate(ref.sector);
+      stageView.goTo({ sector: ref.sector, label: label.text || null });
     } else if (ref.kind === "region") {
       // MAP.314: a charted region is framed by its sphere, a family or a region listed without one by its block.
       var block = parseNodeKey(ref.key);
