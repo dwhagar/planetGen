@@ -125,4 +125,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | acid_cloud_optics.json | GEN.850 | the acid droplets' infrared optics per band (made by `scripts/build_acid_cloud_optics.py`); `radiative_convective` will read it through `cloud_infrared` in the wiring step |
 | module | planetgen.physics.cloud_infrared | GEN.850 | the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired |
 | module | planetgen.physics.mie | by design | Mie spheres, used by the optics builder script only; the generator reads the table it makes, so this stays unread by the app (delete when the builder moves out of the repo) |
+| module | planetgen.physics.pair_history | GEN.1012 | the history rule of a pair of members; `multistar.classify_pair` will read it once the member record (GEN.1009) provides each member's largest mass and radius |
 | row | 6.63:CF3 | GEN.850 | `cloud_infrared.TOP_OVER_BASE_PRESSURE`, read when the column solver calls the cloud |
