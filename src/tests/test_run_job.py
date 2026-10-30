@@ -198,3 +198,37 @@ def test_a_job_whose_sectors_have_no_plan_to_work_from_stops_in_words(mysql_conf
     with pytest.raises(SystemExit):
         job.run_job(_job_args(mysql_config, [("sectors", ["--radius-pc", "4"])]))
     assert "The galaxy has never been planned" in capsys.readouterr().out
+
+
+@pytest.mark.db
+def test_the_run_job_command_numbers_its_stages_across_the_job_and_records_one_run(mysql_config, monkeypatch, tmp_path):
+    """What the Generate page's runner gives the one `run-job` step: the stages numbered from the step's offset, the page's progress
+    file naming the stage the run is in, one entry in the run history, and the stored galaxy the commands make."""
+    import sys
+
+    from planetgen.queue import progress_file
+    from planetgen.util import logrecord  # noqa: F401 -- the stage marks are log records
+
+    progress = tmp_path / "progress.json"
+    monkeypatch.setenv(progress_file.ENV_VAR, str(progress))
+    monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "2")
+    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "6")
+    spec = json.dumps([{"command": "plan", "argv": ["--seed", "0123456789ABCDEF0123456789ABCDEF", "--edge", "300pc"]},
+                       {"command": "scatter", "argv": ["--mass", *FLOOR]},
+                       {"command": "scatter", "argv": ["--luminosity", *FLOOR]}])
+    monkeypatch.setattr(sys, "argv", [
+        "planetgen", "run-job", spec, "--disregard-missing-data", "--mysql-host", mysql_config.host, "--mysql-port",
+        str(mysql_config.port), "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
+        "--mysql-database", mysql_config.database])
+    generate_cli.main()
+
+    reported = json.loads(progress.read_text())["stage"]
+    assert (reported["index"], reported["total"], reported["label"]) == (4, 4, "Make the block light totals")
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.get_galaxy_shape(conn) is not None
+        assert store.scatter_stored(conn, "mass") and store.scatter_stored(conn, "luminosity")
+        runs = conn.execute("SELECT command, outcome FROM generation_runs").fetchall()
+    finally:
+        conn.close()
+    assert [(row["command"], row["outcome"]) for row in runs] == [("run-job", "ok")]

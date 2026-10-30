@@ -621,7 +621,8 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
     Args:
         kind (str): `new_galaxy`, `new_plan`, `plan`, `galaxy`, `bring_to_epoch`, `finish_run`, `check_db` or `reset`.
         title (str): What the page calls it ("Generate sectors").
-        steps (list[dict]): `{"label", "argv"}` per step, run in order.
+        steps (list[dict]): `{"label", "argv"}` per step, run in order; the generation commands among them run as the one
+            step `planetgen run-job` (`job_steps.collapse`, PERF.203).
         env (dict, optional): Extra environment for every step (the
             `mysql_env` variables).
         admin (str, optional): Who started it, for the page.
@@ -636,6 +637,8 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
             worker can't start.
     """
     updateguard.refuse_while_updating("A Generate job")     # OPS.53
+    from planetgen.web import job_steps
+    steps = job_steps.collapse(steps, title)
     root = root or jobs_dir()
     # The directory first, under a fresh id if two jobs drew the same one
     # in the same second (TEST.41); then the lock.
