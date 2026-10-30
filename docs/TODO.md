@@ -15377,6 +15377,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Si to the table's per-bin scatter.
   Prerequisites: none. Related: TEST.456, GEN.984, GEN.932.
 
+- [ ] **GEN.991 Raise generated [O/Fe] by 0.03 to 0.09 dex to the Brewer and Fischer 2016 table in every [Fe/H] bin**
+  Left over from GEN.988 to GEN.990 (Sources 1, as the lane reported
+  9:55 PM EDT 2026-10-29): generated [O/Fe] sits 0.03 to 0.09 dex below
+  the table in every bin (inside the 0.10 test tolerance of TEST.456,
+  but it moves C/O). Do: refit the O trend to the table, check C/O
+  against the table's 0.385 after the GEN.988 to GEN.990 refit, and note
+  the table's own measurement error (0.03 to 0.06 dex) against the
+  scatter. Changes star compositions: epoch, --affects fill, rides train
+  3 on the same branch as GEN.988 to GEN.990 (claude/gen988-990). Every
+  constant it changes gets a GEN.725 registry row. Owner: Sources 1.
+  Version 8.1.
+  Prerequisites: none. Related: GEN.988, GEN.989, GEN.990, TEST.456.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
