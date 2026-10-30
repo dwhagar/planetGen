@@ -40,6 +40,15 @@ def test_the_heading_audit_finds_a_skipped_level_a_second_h1_and_an_unheaded_tab
         page.close()
 
 
+def _wait_until(page, condition, seconds=20):
+    """Polls `condition` until it holds (the page's scripts run on animation frames, which a loaded machine delays)."""
+    for _ in range(seconds * 10):
+        if condition():
+            return
+        page.wait_for_timeout(100)
+    raise AssertionError("the page did not reach the expected state")
+
+
 def test_an_object_page_has_a_contents_list_whose_links_reach_their_headings(browser, base_url, page_targets, admin_token):
     path, _needs_admin = page_targets["web.object_page"]
     context = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
@@ -60,7 +69,7 @@ def test_an_object_page_has_a_contents_list_whose_links_reach_their_headings(bro
         target = inside.as_element().get_attribute("href")[1:]
         assert page.evaluate("id => document.getElementById(id).closest('details').open", target) is False
         inside.as_element().click()
-        assert page.evaluate("id => document.getElementById(id).closest('details').open", target) is True
+        _wait_until(page, lambda: page.evaluate("id => document.getElementById(id).closest('details').open", target) is True)
     finally:
         context.close()
 
@@ -145,15 +154,6 @@ def test_no_page_shows_two_contents_lists(browser, base_url, page_targets, admin
         assert not two, "\n".join(two)
     finally:
         context.close()
-
-def _wait_until(page, condition, seconds=20):
-    """Polls `condition` until it holds (the page's scripts run on animation frames, which a loaded machine delays)."""
-    for _ in range(seconds * 10):
-        if condition():
-            return
-        page.wait_for_timeout(100)
-    raise AssertionError("the page did not reach the expected state")
-
 
 def test_the_contents_bar_of_an_object_page_stays_under_the_tab_bar_and_marks_the_section_in_view(browser, base_url, page_targets, admin_token):
     """UX.238 (replacing UX.215's column at the left): on a wide window and on a phone the contents list is a row of links under
