@@ -134,7 +134,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.clearance_ledger | GEN.1014 | the spans where a planet, moon or belt may sit; replaces `_orbit_floor_au`, the per-star `a_crit_au` reads and the spacing and `min_orbit_distance` pushes of `space_orbits` once the system build draws from it (train 10, after GEN.1009 and GEN.1011) |
 | data | quadruple_stability_3p1.json | GEN.1016 | the 3+1 quadruple stability rules (validity ranges, the stability definition); `multistar` limits will read them through `quadruple_stability` in the wiring step |
 | data | quadruple_stability_3p1_weights.json | GEN.1016 | the 8,301 numbers of the authors' network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
-| module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple; the stability margin and quadruple fit (P10) will call it |
+| data | quadruple_stability_2p2.json | GEN.1016 | the 2+2 quadruple stability rules (validity ranges, the stability definition); read by `quadruple_stability` |
+| data | quadruple_stability_2p2_weights.json | GEN.1016 | the 8,301 numbers of the authors' 2+2 network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
+| module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple and (GEN.1031) of a 2+2 quadruple; the stability margin and quadruple fit (P10) will call it |
 | module | planetgen.generation.member_record | GEN.1009 | the frozen member record (one evolution of a member); the tree, the build and the stored tree will read it once GEN.1009's wiring merges on its train |
 | module | planetgen.physics.ocean_tides | GEN.1034 | the open-ocean equilibrium tide and its spring and neap ranges; the fill pass will call it with the stored spin and moons and write `tide_range_spring_m` and `tide_range_neap_m` (train 7)|
 | row | 6.68:OT1 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
