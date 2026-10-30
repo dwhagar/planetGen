@@ -258,6 +258,26 @@ def generate_planet_properties(planet, zone_override=None):
     update_hill_sphere(planet)
 
 
+def settle_giant(planet):
+    """
+    Settles a giant sized from the radius tables once the star's age and the orbit are final (GEN.961, `giant_draw.settle`): when its
+    radius moves, the volume and the gravity follow, and the air is made again from a stream of its own (the gravity sets its scale
+    height; the run's stream is not touched). The class is derived later (`apply_class` in the life data pass).
+
+    Returns:
+        bool: Whether the giant's radius moved.
+    """
+    if not giant_draw.settle(planet):
+        return False
+    planet.volume = (4 / 3) * math.pi * planet.radius ** 3
+    calculate_surface_gravity(planet)
+    stream = draw.Stream(f"settle-giant-air:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:"
+                         f"{float(planet.star.age)!r}:{float(planet.radius)!r}")
+    with draw.bound(stream):
+        calculate_atmospheric_conditions(planet)
+    return True
+
+
 def _check_given_bounds(mass_kg, radius_km):
     """The mass and radius a caller gave must be inside `tuning.GIVEN_MASS_KG_BOUNDS` and `tuning.GIVEN_RADIUS_KM_BOUNDS`.
 

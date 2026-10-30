@@ -532,6 +532,13 @@ class StarSystem:
         # age rather than its provisional pre-adjustment one. Flavor text is decided
         # in the same pass (after life data, since it reads life_stage) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
+        # A giant sized from the radius tables was drawn at the star's provisional age, which rose with the planets in (GEN.961): it is
+        # sized again at the final age and the light of its orbit, and its interior and air are drawn again to the new radius.
+        with log.timed_phase("giant settle pass"):
+            for obj in self.all_planets:
+                if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
+                    log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr")
+
         with log.timed_phase("snow line pass"):
             for obj in self.all_planets:
                 if obj.body_type == 'a':  # A belt is not a body; GEN.442 gives it the stored line to read.
