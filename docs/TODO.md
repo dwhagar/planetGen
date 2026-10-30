@@ -2297,20 +2297,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.345 Map and search filters: a world filter for 'supports Class N' and 'has Class N' with a minimum score, from the life_class_scores index**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L10 part 2. The sector colouring by habitable
-  locations is unchanged.
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 2 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Prerequisites: none. Related: MAP.311.
-
 - [ ] **MAP.347 Galaxy Map info popup redesign: it is hard to read and scrolls off the screen even on a maximized 1080p display (bug)**
   Boss, 7:22 PM EDT 2026-10-29 (relayed by the coordinator): "we HAVE to
   redesign the info popup, it is not working at all, it's difficult to
@@ -2374,6 +2360,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   popup was scrolling off the screen for the same reason). Lock-free: no
   generated output. Owner: Core 2 (with MAP.347). Version 8.1.
   Prerequisites: none. Related: MAP.347, MAP.348, MAP.349.
+
+- [ ] **MAP.351 Galaxy Map reason per life class: a point-of-interest reason for each of the 15 life classes with map menu entries, backfilled for stored worlds**
+  Map half of MAP.345 (search half merged by Core 3 in #3829: the
+  'Supports a life class' filter on the search page and API). Do:
+  system_interests rows carry a reason per life class, backfilled for
+  worlds already stored (a migration, with the backfill in the
+  migration), and the Galaxy Map menu gets 15 class entries. Changes the
+  database, rides a train (train 3 or later). Owner: Core 3. Version
+  8.1.
+  Prerequisites: none. Related: MAP.345, MAP.307, API.37.
 
 ## NAV: Navigation and courses
 
@@ -13350,7 +13346,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
-  Prerequisites: GEN.862, UX.237, API.37, MAP.345.
+  Prerequisites: GEN.862, UX.237, API.37.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
   Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for
