@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 576 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 580 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 68 | 1 | 5 | 1 | 0 | 75 |
-| T2 | 86 | 8 | 0 | 1 | 0 | 95 |
-| T3 | 64 | 20 | 5 | 9 | 0 | 98 |
-| T4 | 27 | 0 | 0 | 12 | 6 | 45 |
+| T2 | 87 | 8 | 0 | 1 | 0 | 96 |
+| T3 | 65 | 20 | 5 | 9 | 0 | 99 |
+| T4 | 27 | 0 | 0 | 13 | 6 | 46 |
 | T5 | 39 | 11 | 0 | 0 | 0 | 50 |
-| T6 | 45 | 28 | 11 | 32 | 0 | 116 |
+| T6 | 45 | 28 | 11 | 33 | 0 | 117 |
 | T7 | 26 | 7 | 8 | 7 | 0 | 48 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 1 | 25 | 19 | 46 |
-| All | 356 | 75 | 30 | 88 | 27 | 576 |
+| All | 358 | 75 | 30 | 90 | 27 | 580 |
 
 ## How the labels were given
 
@@ -943,3 +943,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RO6 | P | T6 | L1 | ring_origin.COMET_ENCOUNTER_FRACTION 0.2, a comet's speed at infinity as a share of the planet's circular speed | 0.1 to 0.4 | giants at 5 to 30 AU | encounter speeds of the comet population differing by a factor of two | the encounter speed distribution of the comet population | the Jupiter-family comets meet Jupiter at about 5 km/s of its 13 | GEN.1057 | - |
 | RO7 | P | T2 | L0 | ring_origin.RING_MIN_DISTANCE_AU 0.1, inside which a planet holds no ring | 0.05 to 0.2 | planets of Sun-like stars | a ring found around a planet inside 0.05 AU | the ring lifetime against the star's heating and the particle size (Schlichting and Chang 2011) | Schlichting and Chang 2011, recalled: rings of close planets are short lived | GEN.1057 | - |
 | RO8 | P | T6 | L0 | ring_origin.MIN_RING_MASS_KG 1e7, the least ring that counts | 1e6 to 1e8 | dust rings | a ring of dust seen below 1e6 kg | the smallest ring the painter and the sheet can show | Jupiter's dust ring holds 1e7 to 1e9 kg | GEN.1057 | - |
+
+## 6.71 Stand-ins of the resonance rings of small bodies
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RR1 | P | T4 | L3 | small_body_rings.RESONANCE_RING_RATE 0.10 and RESONANCE_ORDER 3 (the chance that a small body that meets the conditions has the resonance ring, and the order of the resonance; three of the roughly twenty bodies mapped by occultation have one, a selection-biased count) | rate 0.03 to 0.3; order 3 only | dwarf planets and centaurs under 5e22 kg | a survey of ring searches whose detection rate on bodies of this kind differs from 0.03 to 0.3, or a ring at another order | the survey statistic of the occultation ring searches (Morgado et al. 2023 and later) | test_small_body_rings::test_the_chance_is_the_registered_rate; test_small_body_rings::test_the_ring_orbits_three_times_slower_than_the_body_turns_where_the_known_rings_are | GEN.1057 | no data |
+| RR2 | P | T3 | L0 | small_body_rings.INNER_RING_LIMIT_AU 0.1 (no ring inside this distance from the star; Schlichting and Chang 2011 via the design note, 2ND-HAND, 'about 0.1 AU') | 0.05 to 0.3 | planets and small bodies round Sun-like stars | a ring measured round a planet inside 0.05 AU, or the lifetime calculation putting the limit outside 0.3 AU | the lifetime of a ring against the star's tides and heat, scaled with the star's luminosity | test_small_body_rings::test_no_ring_survives_inside_a_tenth_of_an_au | GEN.1057 | - |
+| RR3 | P | T2 | L0 | small_body_rings.HILL_FRACTION_MAX 0.5 (the widest circular prograde orbit round a small body that stays bound, in Hill radii; Hamilton and Burns 1991, Domingos et al. 2006: 0.49) | 0.3 to 0.5 | prograde circular orbits | a stable prograde orbit measured outside 0.5 Hill radii | an N-body stability limit for the body's eccentricity | test_small_body_rings::test_a_resonance_outside_the_stable_zone_is_no_ring | GEN.1057 | - |
+| RR4 | P | T6 | L3 | small_body_rings.RESONANCE_RING_MASS_KG (1e10, 1e14) and RESONANCE_WIDTH_FRACTION (0.002, 0.05) (the ring's mass and its width over its radius, log-uniform; the range gives a mean optical depth from 0.001 to 10 over a thin ring at a few thousand km) | mass one decade each way; width 0.001 to 0.1 | narrow rings of small bodies | an optical depth and a width measured for Quaoar's ring outside the range | the mass from the ring's optical depth and width as measured by occultations | test_small_body_rings::test_the_ring_is_thin_light_and_dense_enough_to_see | GEN.1057 | no data |
