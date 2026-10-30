@@ -14260,6 +14260,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   s) and TEST.464 found the first table build, not repeat calls, is the
   cost, so fold the work into one change if they are the same fix and
   retire the others with it.
+  Measured (2026-10-30 1:31 PM EDT): Aux 5 (as the lane reported 1:30 PM
+  EDT): plain memoising cannot reach the Done line. One first sector
+  fill (test_backfill_fills_sectors_once_and_skips_filled_sectors, one
+  process, slow machine) takes 267 s and 1.84 GB on main: 353 table
+  builds, 380k to 470k cell-bound calls, 717k distinct track evaluations
+  (post_main_sequence.bright_pieces plus the timeline and light arrays),
+  10M lifetime_gy calls. The work is distinct (cells x 5 masses x 3
+  compositions x about 40 thresholds), not repeated; a table per (shell,
+  floor) already exists in the process (lru on _bright_table).
+  Output-identical tries: bound memo plus lifetime_gy cache 258 s (3
+  percent, +230 MB); plus larger timeline and evolved-window caches 192
+  s (28 percent) but 2.92 GB peak (+1.1 GB), refused. TODO decision
+  (1:31 PM EDT): the item becomes the redesign, owner Aux 5: compute the
+  bright pieces for every threshold of one mass and [Fe/H] in one pass
+  (or keep the table across processes), with the generated output and
+  golden digest identical and peak memory no higher than main. Related:
+  PERF.188, TEST.464.
   Prerequisites: none. Related: PERF.188, TEST.475.
 
 ## DB: Database and schema
