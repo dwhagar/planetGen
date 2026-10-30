@@ -70,10 +70,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.19:LF61 | no data | - | the gates and the liquid window of the acid cloud are chosen limits and the acid strength line is fitted through two Venus cloud levels; no second acid world exists to calibrate against, and the Zeleznik 1991 curve is not in the reachable papers |
 | 6.19:LF62 | no data | - | the ammonia share of an icy body's ices is a choice between the comet value and the cosmic cap; no survey measures the ammonia of the ocean of any world but a few plume spectra, and the Mg/Si line is the textbook one |
 | 6.19:LF53 | no data | - | chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them |
-| 6.20:PM1 | replace | GEN.728 | the observed occurrence rates (Fulton 2021, Petigura 2018, Dressing and Charbonneau 2015) enter as bands the planet count and spacing items (GEN.728, GEN.729, GEN.828, GEN.829) fit to |
-| 6.20:PM2 | replace | GEN.728 | the observed occurrence rates (Fulton 2021, Petigura 2018, Dressing and Charbonneau 2015) enter as bands the planet count and spacing items (GEN.728, GEN.729, GEN.828, GEN.829) fit to |
-| 6.20:PM6 | replace | GEN.728 | the observed occurrence rates (Fulton 2021, Petigura 2018, Dressing and Charbonneau 2015) enter as bands the planet count and spacing items (GEN.728, GEN.729, GEN.828, GEN.829) fit to |
-| 6.20:PM7 | replace | GEN.728 | the observed occurrence rates (Fulton 2021, Petigura 2018, Dressing and Charbonneau 2015) enter as bands the planet count and spacing items (GEN.728, GEN.729, GEN.828, GEN.829) fit to |
+| 6.20:PM2 | no data | - | the observed occurrence rates (Fulton 2021, Petigura 2018, Dressing and Charbonneau 2015) are the bands the planet count and spacing fit to (GEN.728, GEN.729, GEN.828, GEN.829, built); the steepening itself is tuned to them and no disc survey measures it |
 | 6.21:BO1 | no data | - | the oxygen balance has one measured world; Earth's fluxes are recalled (Hayes and Waldbauer 2006, Holland 2002) and calibrate the scale; tier stays |
 | 6.21:BO2 | no data | - | the oxygen balance has one measured world; Earth's fluxes are recalled (Hayes and Waldbauer 2006, Holland 2002) and calibrate the scale; tier stays |
 | 6.21:BO3 | no data | - | the oxygen balance has one measured world; Earth's fluxes are recalled (Hayes and Waldbauer 2006, Holland 2002) and calibrate the scale; tier stays |
@@ -92,14 +89,15 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.26:GS6 | replace | GEN.979 | the same N-body distribution (the planetesimal-built embryos) replaces the log-uniform range |
 | 6.36:PA1 | no data | - | no model of the outer disc solids is filed; the numbers are tuned to the giants at 2 to 8 AU (Fulton et al. 2021), and a measured pebble-flux model replaces them |
 | 6.36:PA2 | no data | - | the share of cores that find gas is tuned to the giant occurrence and its rise with [Fe/H] (Johnson et al. 2010); no survey measures the disc lifetime it stands for |
-| 6.36:PA3 | replace | GEN.730 | the formation-era dynamics item replaces the starting count of the inner chain with the outcome of giant impacts; Zhu et al. 2018 multiplicities are the data |
+| 6.36:PA3 | no data | - | the starting count of the inner chain is tuned to the Zhu et al. 2018 multiplicities after the formation-era dynamics build (GEN.730); the starting count of a real disc is not observed |
 | 6.36:PA4 | no data | - | the masses of the Kepler planets are measured for few; the scale is tuned to the 1 to 10 Earth-mass range of Zhu and Dong 2021 and its trend with host mass and metallicity |
 | 6.36:PA5 | no data | - | Weiss et al. 2018 measure the pair ratio, not the spread of masses a system starts with; tuned to the 65 percent outer-larger share |
-| 6.36:PA6 | replace | GEN.730 | the formation-era dynamics item replaces the starting spacing with the instability outcome; Pu and Wu 2015 and Weiss et al. 2018 spacings are the data |
+| 6.36:PA6 | no data | - | the starting spacing is tuned to the Pu and Wu 2015 and Weiss et al. 2018 spacings after the instability build (GEN.730); the spacing before the instability is not observed |
 | 6.36:PA7 | no data | - | the inner edge of the chain is measured as a fall of occurrence inside 10 days (Mulders et al. 2015); the median period and width are tuned to the Kepler rise with period |
 | 6.36:PA9 | no data | - | the hot Jupiter share of giants is tuned to 0.6 to 1.2 percent of Sun-like stars and 0.27 percent of early M dwarfs; no survey measures the migration channel |
 | 6.36:PA10 | no data | - | the inward move of other giants is tuned to the 1 to 3 AU peak of Fulton et al. 2021 and Cumming et al. 2008; no survey measures the migration |
 | 6.36:PA11 | no data | - | the lightest oligarch that counts as a planet is tuned to the Neptune-mass counts beyond the snow line; the microlensing mass function below 1 Earth mass is unmeasured |
+| 6.36:PA14 | no data | - | a requested planet class takes its mass log-uniform over 0.05 to 1000 Earth masses after 8 free draws; no survey measures the mass of a planet picked by class, so the range is a design choice kept wide |
 | 6.40:RD1 | no data | - | no atmosphere of a runaway-greenhouse planet has been measured; TRAPPIST-1 b and c only forbid keeping all of it |
 | 6.40:RD2 | no data | - | no abiotic oxygen air has been detected or ruled out on an M-dwarf habitable-zone planet; Luger and Barnes fix only the possible amount |
 | 6.40:RD3 | no data | - | no measurement of rocky exoplanet pressures by depth below the shoreline exists; GEN.483 derives the caps at these edges from the Solar System |
@@ -113,3 +111,47 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.14:SP11 | replace | GEN.979 | Kokubo and Genda 2010 equation 4 with the distribution of the last impacts' mass ratio (GEN.978, `impact_spin`) replaces the interim scale |
 | 6.14:SP12 | replace | GEN.979 | the chance of a giant impact by planet mass (`impact_spin.giant_impact_probability`, GEN.978) replaces the interim small-planet factor |
 | 6.51:PS14 | no data | - | the label is a margin between the model's own solar-metallicity and metal-poor stars; no survey count of subdwarfs by luminosity deficit is held, and the first one replaces the margin |
+| 6.60:GM2 | replace | GEN.1006 | Mustill and Villaver 2012 (read) print three Jovian points and a terrestrial bracket; the multi-star build replaces the linear lookup with an interpolation through them |
+| 6.60:GM3 | no data | - | a design default of the multi-star build; no measured limit for a close pair's separation in summed radii is held, and an N-body audit (GEN.1006 section 9) is optional; tier T6 stays |
+| 6.60:GM7 | replace | GEN.1006 | the 3+1 network of Vynatheya, Mardling and Hamers 2023 replaces the margin inside its training range; outside it the margin stays, flagged lower confidence |
+| 6.60:GM12 | replace | GEN.1028 | the criterion holds only for q_out up to 5; GEN.1028 enforces the range and GEN.1016 replaces it with the quadruple fit and the 3+1 criterion beyond it |
+| 6.71:RR1 | no data | - | the rate of a resonance ring on a small body has no survey behind it: the three known rings are of bodies chosen for occultation campaigns, and the count of bodies searched is not published as a rate |
+| 6.71:RR4 | no data | - | the mass and width range of a thin resonance ring is bracketed by the optical depth it must give; the measured optical depth and width of Quaoar's ring were not read |
+| 6.69:LQ3 | no data | - | the brine and ammonia-water eutectic densities, viscosities and boiling points are recalled values; laboratory brine tables (Pitzer-model compilations) can replace them when read |
+| 6.69:LQ5 | no data | - | the molten iron sulfide and Fe-S eutectic melt properties are recalled; measured Fe-S melt properties (Terasaki et al.) replace them when read |
+| 5.2:BC20 | replace | GEN.1057 | the conditional ring draw (a ring only after a moon fell or a comet passed inside the Roche limit, `ring_origin`) replaces the kind weights and the chance of a ring; the Solar System's four giants are one system, so the weights have no second sample |
+| 5.2:BC21 | no data | - | the edges of ring systems are measured for four giants only; the outer edge against the Roche limit and the inner edge in planet radii have no second sample |
+| 5.2:BC22 | replace | GEN.1057 | the ring's mass follows from the disrupted moon's or comet's mass and its spreading (`ring_origin`) once the conditional draw is wired |
+| 5.2:BC23 | replace | GEN.1055 | the ice share and darkness follow from the ring's age and pollution by the snow line (GEN.1055) |
+| 6.70:RO1 | no data | - | no simulation table of the ring left by a disrupted moon by composition is in hand; Canup 2010 and Black and Mittal 2015 disagree on the share |
+| 6.70:RO2 | no data | - | the age of Saturn's rings is contested between 1e8 years and the age of the planet, and no other ring system is dated |
+| 6.70:RO3 | no data | - | no survey measures how often a ring-making comet passes inside a giant's Roche limit |
+| 6.70:RO5 | no data | - | no N-body table of the share of a torn comet that stays in orbit by speed and periapsis is in hand; Dones 1991 gives a range only |
+| 6.74:SH3 | no data | - | the pressure a given shoreline ratio allows is not measured as a table: only Mars's 6 mbar and Pluto's 10 micro-bar sit at ratios of 1.8 and 0.78; the caps stay the design note's steps until a survey of thin atmospheres fits them |
+| 6.78:GT3 | replace | GEN.1058 | the share of ice giants with a recorded merger and the impactor mass share are tuned to one Solar System count (Uranus); the impact history of the outer chain, once recorded, gives the merger and its impactor |
+| 6.96:IO2 | no data | - | fitted with the Jupiter row to the retrograde to prograde split; a capture simulation's width replaces it when one is held |
+| 6.96:IO4 | no data | - | no family velocity field is held beyond the recalled tens to hundreds of m/s; the first one replaces the range |
+| 6.83:SX2 | no data | - | no simulation or survey gives the captured share of a swept span for a given migration; replaced by the resonant populations of a Neptune-migration run |
+| 6.83:SX3 | no data | - | the ejected share of a scattering giant is not tabulated by Safronov number; replaced when the scattering simulations are read |
+| 6.83:SX4 | no data | - | no survey statistic gives a hot to cold share for an arbitrary system; the observed classical populations are the only count |
+| 6.83:SX5 | no data | - | the split of the bound swept mass among scattered, centaur, detached, trojan, implanted and moon populations is not measured; replaced by a population synthesis |
+| 6.95:BR20 | no data | - | the size-frequency of the main belt above 40 km (Bottke et al. 2005 and the catalogue counts) was not reachable: the paper is not on arXiv and no catalogue was fetched; Ivezic et al. measured only to 40 km. Any census of bodies above 100 km replaces the break and the steep slope |
+| 6.100:CM14 | no data | - | the share a gas disc adds by drag is in no paper reached: Pollack et al. 1979 is the abstract only (NTRS), Cuk and Burns 2004 is not reachable, and the two reviews read (Jewitt and Haghighipour 2007, Sheppard 2006) give the gate and size window (CM18) and call the model weakly constrained; the first measured capture simulation of the drag channel replaces it |
+| 6.98:BW2 | no data | - | no measurement of surface winds across the thin-air range (Mars, Pluto, Triton) gives the fade's shape; the first drag-law fit from surface wind data replaces it |
+| 6.98:BW4 | no data | - | tuned to the Earth's mid-latitude surface wind; a boundary-layer drag law on the surface roughness replaces it when the surface roughness is stored |
+| 6.98:BW5 | no data | - | the Earth's night to day wind ratio is the only value held; a stable boundary-layer model replaces it |
+| 6.88:RG2 | replace | GEN.1119 | the ejection records (RP1) give the time of each loss after formation, so the drawn delay distribution is replaced by the architecture's own |
+| 6.87:RK7 | replace | GEN.1119 | the closest approach of each scattering is in the architecture's own ejection record, which replaces the line through three medians |
+| 6.112:MO2 | replace | GEN.1119 | the ejection record gives the real closest approach, so the curve through two printed points is not needed |
+| 6.86:TU1 | replace | GEN.1111 | the rogue research settles the per-star rate of free-floating planets and replaces the level ceilings |
+| 6.86:TU2 | no data | - | uniform placement is the neutral choice; the smoothed rogue field (GEN.1115) is the only thing that could change it |
+| 6.86:TU3 | replace | GEN.1119 | the ejection records give the scatterer's distance, so the drawn range is replaced by the architecture's own |
+| 6.108:TF1 | replace | GEN.1103 | a physical source for the mass the Rogues level cannot hold (the unbound remnants of the channels of section 6.103) replaces the stand-in origin |
+| 6.108:TF2 | replace | GEN.1105 | the size-frequency law of the collisional fields sets the largest body and the density of the pieces |
+| 6.108:TF3 | no data | - | nothing measures the spread of a field that was never observed; the dispersion of a real source (IF12) is the only thing that could replace it |
+| 6.108:TF4 | no data | - | the counts and masses are chosen to keep a sector's top-up to a dozen clouds; no measurement exists to replace them |
+| 6.114:RY1 | no data | - | no stagnant-lid eruption model yet; the one-box mantle temperature does not discriminate between bodies, so the cut stays a heat flow between Mars and the Earth |
+| 6.117:BHS3 | no data | - | no source gives the share of a belt (as against a planet system) that a star's sudden mass loss destabilises; the value is set so the white dwarf pollution the model gives is in the observed range, and any N-body run of a belt round a mass-losing star replaces it |
+| 6.118:IP5 | no data | - | no paper gives the gas-drag share against the three-body channel (Pollack et al. 1979 only as an abstract, Cuk and Burns 2004 not reached); a gas-drag capture run of the generated envelope replaces it |
+| 6.118:IP8 | no data | - | no binary-exchange run gives the size of the captured body for a general disc; the design's few hundred km is the only guide |
+| 6.118:IP10 | no data | - | the disruption size ratio is an energy argument from recalled strengths, not a measurement; the size-dependent strength of a cascade run of the generator's own population replaces it |

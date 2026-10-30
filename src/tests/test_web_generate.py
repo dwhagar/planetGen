@@ -1892,6 +1892,24 @@ def test_the_shape_report_is_the_line_the_plan_prints(site, client):
     assert answer["sample"] is True and any("under 20" in note for note in answer["warnings"])
 
 
+def test_the_shape_report_works_the_same_dials_out_once(site, client, monkeypatch):
+    """TEST.219: a page asks again at every change of a dial, and a closed page leaves its asks running."""
+    from planetgen.generation import plan_outline
+    from planetgen.web import generate_page
+    generate_page._shape_answers.clear()
+    real = plan_outline.preview
+    calls = []
+    monkeypatch.setattr(plan_outline, "preview", lambda argv, galaxy_seed=None: calls.append(list(argv)) or real(argv, galaxy_seed=galaxy_seed))
+    query = "mass=1e8&disk_scale_length=2000pc&flatness=20&bulge_share=0.001"
+    first = client.get(f"/admin/generate/shape-report?{query}").get_json()
+    again = client.get(f"/admin/generate/shape-report?{query}").get_json()
+    other = client.get("/admin/generate/shape-report?mass=2e8&disk_scale_length=2000pc&flatness=20&bulge_share=0.001").get_json()
+    assert first == again and len(calls) == 2 and first["line"] != other["line"]
+    client.get("/admin/generate/shape-report?mass=1")
+    client.get("/admin/generate/shape-report?mass=1")
+    assert len(calls) == 2, "a refusal never reached the preview"
+
+
 def test_the_shape_report_refuses_an_empty_outline_and_a_value_out_of_range(site, client):
     empty = client.get("/admin/generate/shape-report?mass=3e5&disk_scale_length=500pc")
     assert empty.status_code == 200 and "one-star-per-sector density" in empty.get_json()["refusal"]
@@ -2023,8 +2041,7 @@ def test_no_choice_on_a_task_page_is_a_bare_number(site, client):
 
 def _finish_found(**over):
     found = {"error": None, "run": "20261029-120000-ab12", "title": "New galaxy", "stopped_in": "Scatter the phenomena",
-             "carried": ["Plan", "Sectors"], "again": ["Scatter the phenomena", "Index the phenomena"],
-             "later": [{"label": "Link the sectors", "argv": ["python3", "x", "link"]}]}
+             "carried": ["Plan", "Sectors"], "again": ["Scatter the phenomena", "Index the phenomena"]}
     found.update(over)
     return found
 
@@ -2033,7 +2050,7 @@ def test_finish_run_page_says_which_run_it_carries_on_and_what_it_keeps(site, cl
     monkeypatch.setattr(generate_flow, "finish_status", lambda database: _finish_found())
     html = _task_html(client, "finish-run")
     assert "New galaxy" in html and "stopped in <strong>Scatter the phenomena</strong>" in html
-    assert "Plan, Sectors" in html and "Link the sectors" in html
+    assert "Plan, Sectors" in html and "Scatter the phenomena, Index the phenomena" in html
     assert 'name="action" value="finish_run"' in html and "data-review" in html
 
 
@@ -2043,14 +2060,14 @@ def test_finish_run_page_says_why_there_is_nothing_to_carry_on(site, client, mon
     assert "No run stopped before it was done." in html and "data-review" not in html
 
 
-def test_finish_run_job_carries_on_the_run_then_the_steps_of_its_job_that_never_started(site, client, no_spawn, monkeypatch):
+def test_finish_run_job_is_the_one_command_that_carries_on_the_run(site, client, no_spawn, monkeypatch):
     monkeypatch.setattr(generate_page, "finish_status", lambda database: _finish_found())
     assert _post(client, action="finish_run").status_code == 303
     (job,) = no_spawn
     assert job["kind"] == "finish_run"
     assert [_argv(step) for step in job["steps"][:1]] == [["finish-run", "--run", "20261029-120000-ab12"]]
-    assert [step["label"] for step in job["steps"]] == ["Finish the last run: New galaxy", "Link the sectors"], \
-        "no data check of its own: the run being carried on made it"
+    assert [step["label"] for step in job["steps"]] == ["Finish the last run: New galaxy"], \
+        "a job is one run, so the stages that never started are the run's own: nothing follows it"
 
 
 def test_finish_run_does_not_start_when_no_run_can_be_carried_on(site, client, no_spawn, monkeypatch):

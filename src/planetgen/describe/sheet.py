@@ -154,7 +154,7 @@ _STAR = (
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_rows("stellar", ("log_lx_lbol", "X-ray to bolometric luminosity, log"), ("l_xuv_w", "X-ray and ultraviolet power"),
            ("xuv_saturated", "X-ray output saturated", FLAG), ("xuv_fluence_j", "X-ray and ultraviolet energy emitted"),
-           ("uv_c_share", "Share of the ultraviolet that is UV-C"),
+           ("uv_c_share", "UV-C power against its blackbody's"),
            ("flare_n33_per_yr", "Large flares a year"), ("flare_alpha", "Flare size distribution slope"),
            ("lethal_event_rate_per_gyr", "Lethal events per billion years")),
     *_rows("galactic", ("galactic_orbital_period_gy", "Galactic orbital period"),
@@ -172,7 +172,12 @@ _BODY_GROUPS = (
            ("orbital_ascending_node_deg", "Longitude of the ascending node"), ("hill_radius_km", "Hill radius"),
            ("min_orbit_distance_km", "Closest stable orbit for a moon"), ("dynamical_state", "Dynamical state", TEXT),
            ("habitable_zone_inner_km", "Habitable zone, inner edge"),
-           ("habitable_zone_outer_km", "Habitable zone, outer edge")),
+           ("habitable_zone_outer_km", "Habitable zone, outer edge"),
+           ("moon_origin", "How a moon came to orbit its planet", TEXT)),
+    *_rows("disk", ("moon_disk_lifetime_myr", "Moon-forming disk lifetime"),
+           ("moon_disk_alpha_over_f", "Moon-forming disk turbulence over infall (alpha/f)"),
+           ("moon_disk_f_inf", "Moon-forming disk ice fraction far past its ice line"),
+           ("moon_disk_ice_line_km", "Moon-forming disk ice line")),
     *_rows("physical", ("radius_km", "Radius", "radius"), ("mass_kg", "Mass"), ("volume_km3", "Volume"),
            ("density_g_cm3", "Density"), ("gravity_g", "Surface gravity")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt"),
@@ -764,6 +769,7 @@ def _locked(row):
     return regional_temperature.is_locked(row["rotation_period_hours"], row["period_years"])
 
 
+_DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
 _BODY_RULES = [
     (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES,
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world"),
@@ -795,6 +801,8 @@ _BODY_RULES = [
      "complex cells need free oxygen, which a world has only if its air holds it or its photosynthesis builds it; a world that never does has no age for the stages from complex cells on, and its stage stops before them"),
     (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
      "a world with no magnetic field has no magnetopause"),
+    (_DISK_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _DISK_COLUMNS),
+     "only a giant planet whose moons formed in a disk keeps that disk; a rocky body, a moon and a giant with no disk-born moons store none"),
     (_BANDS, lambda klass, row: _locked(row) is not True,
      "a tidally locked world has day, terminator and night zones in place of latitude bands"),
     (_ZONES, lambda klass, row: _locked(row) is not False,
@@ -802,6 +810,8 @@ _BODY_RULES = [
 ]
 
 _PLANET_RULES = [
+    (("moon_origin",), lambda klass, row: False,
+     "only a moon has an origin (disk, impact, captured, ring or binary); a planet orbits its star alone"),
     (("parent_shadow_share", "induced_moment_a_m2"), lambda klass, row: False,
      "only a moon sits in the shadow of its planet or in the planet's magnetic field; a planet orbits its star alone"),
 ]
@@ -810,6 +820,9 @@ _STAR_RULES = [
     (("flare_alpha", "uv_c_share", "log_lx_lbol", "lifespan_gy"), lambda klass, row: row is None or row.get("yerkes_class") != "VII",
      "a white dwarf has no corona and no flares, so no X-ray share, flare law or UV-C draw, and it does not leave the stage it is in, "
      "so its lifespan has no end"),
+    (("decay_age_yr",), lambda klass, row: row is None or row.get("yerkes_class") == "VII",
+     "a star that is still burning has not stopped, so it has no age since it did; only a white dwarf, which cooled from the end of its "
+     "progenitor's life, has one"),
     (("disk_kind", "disk_inner_au", "disk_outer_au"), lambda klass, row: row is None or row.get("disk_kind") is not None,
      "most stars hold no disk: only a young star (class 0 to II), a main-sequence star with a cold debris belt (about one in seven "
      "to one in four) and the pair inside a planetary nebula do"),
@@ -838,7 +851,7 @@ OPEN_GAPS = {
         ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
     **{("star", key): item for key, item in (
-        ("state", "GEN.786"), ("decay_age_yr", "GEN.785"), ("lethal_event_rate_per_gyr", "GEN.785"))},
+        ("lethal_event_rate_per_gyr", "GEN.785"),)},
 }
 """dict: The columns known to be empty where they apply (UX.208), `{(kind, key): item id}`: each is a gap in the generation
 pathway, filed as the item named, and excused until that item is done. The fill audit (`tests/test_sheet_fill.py`) fails

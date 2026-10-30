@@ -492,10 +492,31 @@ comets): N-1 Kepler solves per system. `physics/body_positions.positions_at` and
 `static/orbitpositions.js` change together (`tests/test_js_unit.py` checks the two
 agree).
 
+As built (TEST.477, the overlap verifier): `physics/clearance.py` `audit(rows)` reads only what a finished system stores (its stars,
+the nodes of its tree, planets, moons and belts, `stored_rows` reads them with plain SELECTs) and lists every place two bodies
+overlap or a limit the generator promises is broken (a **hard** violation: Roche fill at pericentre, overlap of a node's two sides,
+stability by Mardling and Aarseth, Eggleton and Kiseleva and Vynatheya et al. 2022 together, node masses, a planet inside its
+star, the Holman and Wiegert S-type and P-type axes, planets crossing or under 10 mutual Hill radii apart, moons outside 0.4895 of
+the Hill radius or touching their planet, a belt over a planet's orbit) and the physical limits it does not promise today (an
+**advisory**: the rigid-body Roche limit of a planet or moon). It imports no placement or screening code and re-derives every form;
+`tests/test_clearance.py` holds each form against the generator's own copy and sweeps stored systems of one to five stars
+(`PLANETGEN_CLEARANCE_SCALE=12` gave 864: one hard failure, `triple-208`, a planet pair 9.93 mutual Hill radii apart where the
+generator promises 10; it is the one entry of `KNOWN`, expected to fail). Not yet checked, because the rows do not hold what it needs:
+the history rule, the Kozai-Lidov screen and the 3+1 quadruple margin (GEN.1006 4.3 and section 5).
+
 As built (MAP.255): `orbitpositions.js` walks the scene's `tree` the way `system_tree.member_offsets_au` does (the slot-1 child of a node
 on the node's Kepler orbit, both children about the node's centre by the other's mass, a group node's members at its centre, the
 wide pair's first star shifted to the origin) and `relativeAt` answers each star relative to the star its scene orbit names, or to
 the frame's origin. A scene with stars and no tree is refused.
+
+As built (MAP.213, slice A, the 3D system view): `relativeAt` also answers a point for each node's centre of mass (`node:<n>`, `virtual`),
+stars hang from their node's centre and nodes from their parent's, `nodePaths` gives each child's real ellipse about its node's centre
+(the slot-0 child opposite the slot-1 child, each at the other's share), and the compressed layout (`systemscale.js`) scales each node on
+its own: the node's separation is as many units as its two sides need to clear at periapsis (a star with bodies going round it needs
+their whole span, a sub-pair the reach of its own orbit), the orbit itself drawn straight-scaled so its ellipse keeps its shape. True
+scale draws the real distances. Slices B (the System Map diagram) and C (the system page lists the tree) follow.
+
+As built (MAP.213, slice C, the system page): `db.query.system_detail` carries the stored tree as `orbits` (the `orbit_nodes` rows in node order) and each star's `parent_node_no` and `slot`, and the page draws "Orbits of the stars" from `web/system_orbits_view.orbit_rows`: one row per node naming what it joins (slot 0 first, a star's name or `orbit N` for a pair hung below), with the same kind, separation, period and eccentricity columns an unbuilt scatter row's Orbits table has, plus the node's mass and its Roche `interaction`. A single star, or a system built before it stored a tree, has no panel.
 
 ### 6.3 Naming (extends GEN.62)
 

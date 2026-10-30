@@ -43,14 +43,14 @@ class SearchFake(FakeData):
         self.search_calls = []
         self.results = None
 
-    def get_search(self, db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
-        self.search_calls.append({"db": db, "texts": dict(texts), "tags": {k: set(v) for k, v in tags.items()},
+    def get_search(self, db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None):
+        self.search_calls.append({"stars": stars, "db": db, "texts": dict(texts), "tags": {k: set(v) for k, v in tags.items()},
                                   "sizes": dict(sizes or {}), "limit": limit, "offsets": dict(offsets or {}),
                                   "panels": panels, "sorts": dict(sorts or {})})
         results = self.results or {
             "sectors": _result([{"id": 5, "name": "Kepler <Reach>", "edge_mpc": 3.07}]) if texts.get("sector_q") else None,
             "systems": _result([{"id": 7, "name": "Kepler-42", "sector_id": None, "is_binary": 0,
-                                 "star_summary": "M5V"}]) if texts.get("system_q") else None,
+                                 "star_summary": "M5V", "star_count": 1, "object_count": 6, "has_habitable_world": True}]) if texts.get("system_q") or stars else None,
             "stars": _result([{"id": 3, "ref": "star:FE81000A2B-0000005-001", "name": "Kepler-42 A", "role": "primary", "star_type": "M5V", "radius_km": 118000.4,
                                "star_system_id": 7, "system_name": "Kepler-42", "sector_id": 5}])
             if texts.get("star_q") or tags.get("spectral") else None,
@@ -199,10 +199,10 @@ def test_a_panel_that_times_out_says_so_and_the_others_show(client, fake, monkey
     """UX.97: each panel runs under its own limit; one that hits it is a note, not the busy page."""
     answer = fake.get_search
 
-    def one_slow(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
+    def one_slow(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None):
         if panels == ["systems"]:
             raise apiclient.ApiError("QUERY_TIMEOUT", status_code=504)
-        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts)
+        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts, stars=stars)
 
     monkeypatch.setattr(apiclient, "get_search", one_slow)
     resp = client.get("/search?q=Kepler")
@@ -212,10 +212,10 @@ def test_a_panel_that_times_out_says_so_and_the_others_show(client, fake, monkey
     assert 'href="/search?q=Kepler"' in _panel(html, "systems")
     assert "Kepler &lt;Reach&gt;" in _panel(html, "sectors")
 
-    def broken(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
+    def broken(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None):
         if panels == ["systems"]:
             raise apiclient.ApiError("down", status_code=500)
-        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts)
+        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts, stars=stars)
 
     monkeypatch.setattr(apiclient, "get_search", broken)
     assert client.get("/search?q=Kepler").status_code == 502
@@ -408,3 +408,55 @@ def test_a_score_column_sorts_and_the_sort_goes_to_the_api(client, fake):
     assert fake.search_calls[-1]["sorts"] == {"planet": "-phi4"}
     client.get("/search?planet_q=Sc&planets_sort=nonsense")
     assert fake.search_calls[-1]["sorts"] == {}
+
+
+# --- The stars filter (UX.239) ---------------------------------------------------------------
+
+def test_the_stars_filter_is_a_menu_in_the_form_and_goes_to_the_api(client, fake):
+    html = client.get("/search?stars=3").get_data(as_text=True)
+    assert fake.search_calls[0]["stars"] == "3"
+    assert '<select name="stars" id="search-star-count">' in html and '<option value="3" selected>Trinary</option>' in html
+    for label in ("Single", "Binary", "Trinary", "Quaternary", "Quintenary and beyond"):
+        assert f">{label}</option>" in html
+    assert "Stars: Trinary" in html                                    # the removable chip
+    assert 'id="search-systems"' in html                               # the Systems panel runs with no name
+    assert 'href="/search"' in html
+
+
+def test_stars_typed_in_the_search_box_is_the_same_filter_and_the_rest_stays_a_name(client, fake):
+    client.get("/search?q=Kepler+stars:3%2B")
+    call = fake.search_calls[0]
+    assert call["stars"] == "3+" and call["texts"]["system_q"] == "Kepler"
+    client.get("/search?q=stars:Binary")
+    call = fake.search_calls[-1]
+    assert call["stars"] == "binary" and call["texts"]["system_q"] == ""
+
+
+def test_a_stars_filter_that_is_not_one_is_ignored_on_the_page(client, fake):
+    client.get("/search?stars=lots&q=Kepler")
+    assert fake.search_calls[0]["stars"] is None
+
+
+def test_no_filter_sends_none_and_the_menu_says_any(client, fake):
+    html = client.get("/search?q=Kepler").get_data(as_text=True)
+    assert fake.search_calls[0]["stars"] is None and '<option value="">Any number</option>' in html
+
+
+def test_real_search_finds_a_known_binary_and_a_known_triple(db_client, mysql_config):
+    from planetgen.util import draw
+    for name, count in (("Lone Omicron", 1), ("Pair Omicron", 2), ("Triple Omicron", 3)):
+        config = SystemConfig()
+        config.PLANETS = False
+        config.STARS = count
+        with draw.bound(f"stars-filter-page:{name}"):
+            system = StarSystem(system_config=config)
+        assert len(system.stars) == count
+        system.name = name
+        store.save_system(system, config, config=mysql_config)
+
+    binary = _panel(db_client.get("/search?stars=binary").get_data(as_text=True), "systems")
+    assert "Pair Omicron" in binary and "Triple Omicron" not in binary and "Lone Omicron" not in binary
+    triple = _panel(db_client.get("/search?q=stars:3").get_data(as_text=True), "systems")
+    assert "Triple Omicron" in triple and "Pair Omicron" not in triple
+    more = _panel(db_client.get("/search?stars=2%2B&q=Omicron").get_data(as_text=True), "systems")
+    assert "Pair Omicron" in more and "Triple Omicron" in more and "Lone Omicron" not in more
