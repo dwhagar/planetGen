@@ -2258,22 +2258,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.348 Galaxy Map hover preview: pointing at a place shows a small preview before the click**
-  Left unbuilt by MAP.336 (zoom redesign Z3, #3778, as Core 2 reported
-  7:11 PM EDT 2026-10-29) and approved by Boss (7:22 PM EDT): hovering a
-  star, system, region or nebula on the Galaxy Map shows a small preview
-  (name, kind and the two or three most useful values) without a click,
-  so the info popup is only needed for detail. It must not cover the
-  object, must never take the click, and works with the redesigned info
-  popup (the first view of that card and this preview use one layout).
-  Done: a browser test hovers one of each kind and finds the preview,
-  and a touch screen (no hover) shows nothing extra. Owner: Core 2
-  (after the info popup redesign). Version 8.1.
-  Core 2 (MAP.347 merged #3940) (2026-10-30 4:00 AM EDT): reuse the
-  first view of the new info popup (name, kind, three values, main
-  buttons) for the hover preview
-  Prerequisites: none. Related: MAP.336.
-
 - [ ] **MAP.349 Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place) **
   Left unbuilt by MAP.336 (zoom redesign Z3, #3778, as Core 2 reported
   7:11 PM EDT 2026-10-29) and approved by Boss (7:22 PM EDT): every line
@@ -14374,6 +14358,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tables. Record the before and after times in the item. The progress
   output exists (PERF.189), so the log lines show where the time goes.
   Owner: Aux 16 (Performance).
+  OWNER Aux 5 (assigned 6:43 AM EDT 2026-10-30 by TODO as the lane's one
+  lock-free item; replaces the retired Aux 16 line; separate branch)
+  (2026-10-30 6:43 AM EDT): Measure first and record before and after
+  times. A speed-up that builds the shell list from the plan outline in
+  code is lock-free. An index on bright_stars or phenomenon_scatter
+  needs a migration, so stop and tell TODO before adding one: it rides a
+  train.
   Prerequisites: none. Related: MAP.259.
 
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
@@ -14576,22 +14567,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the scatter command's expand or prepare hook; test that planning then
   scattering in one planned run gives the same stored output as today.
   Size M. Owner: Aux 2.
+  Update (Core 3, PERF.213 #3985) (2026-10-30 6:39 AM EDT): The hook is
+  in: a deferred step parameter the wrapper resolves when a stage opens,
+  plus a small registry for the stage-open parameters. Aux 2 extends
+  that registry for the bright-star, phenomena and shell scatters; no
+  stored value changes.
   Prerequisites: PERF.203. Related: PERF.203, PERF.213, PERF.214.
-
-- [ ] **PERF.213 Link and settle take the started_at of the sectors stage when their stage opens**
-  The link and settle followers read the started_at of the sectors stage
-  when the run is built. Found by Aux 2 (as the lane reported, 2:47 AM
-  EDT 2026-10-30) while planning PERF.203 step 2: a Follower's params
-  must be complete before the run starts, but several verbs read the
-  database when their followers are BUILT, so the whole page job cannot
-  be one run until each computes its params when its stage opens (in its
-  command's expand or prepare, in a worker). No behaviour or
-  stored-output change, no epoch. Lock-free. Do: read it in the stage's
-  prepare hook inside the worker; test the same stored output. Size S to
-  M. Owner: pool (a waiting lane, confirmed with TODO).
-  Owner (2026-10-30 2:54 AM EDT): Core 3 takes this (TODO, 2:54 AM EDT);
-  lock-free, no stored-output change
-  Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.214.
 
 - [ ] **PERF.214 The sectors planner (_plan_sectors) runs in a worker inside the run, not in the starting process**
   The sectors planner runs in the process that starts the run, so the

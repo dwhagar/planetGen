@@ -105,10 +105,10 @@ def _open(page, url, ready):
 
 def _shot(page, selector):
     """The picture of `selector` without the names laid over it (the label engine's, MAP.231, fade and move), the ruler's words
-    (MAP.336: their antialiasing differs by a level between a canvas with the focus and one without) and the Key (MAP.234: its lines
-    follow what is drawn, so they change as the view settles)."""
+    (MAP.336: their antialiasing differs by a level between a canvas with the focus and one without), the Key (MAP.234: its lines
+    follow what is drawn, so they change as the view settles) and the hover preview (MAP.348)."""
     page.wait_for_timeout(150)
-    covers = ".map-labels, .starmap-ruler-stops, .starmap-altitude, #galaxymap3d-layer-legend"
+    covers = ".map-labels, .starmap-ruler-stops, .starmap-altitude, #galaxymap3d-layer-legend, .map-hover-preview"
     page.evaluate("(q) => document.querySelectorAll(q).forEach((e) => { e.style.visibility = 'hidden'; })", covers)
     try:
         return page.locator(selector).screenshot()

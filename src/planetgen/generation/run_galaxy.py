@@ -613,8 +613,8 @@ class BackfillFollower(followed.Follower):
     given, and the unit that completes the stage stores the stage's row.
 
     Args:
-        started_at (datetime): The database's clock when the run started: the backfill goes out from the sectors
-            created since.
+        started_at (datetime): The database's clock when the run started (or the deferred clock of the sectors stage,
+            `wrapper.opened_by`): the backfill goes out from the sectors created since.
         center_pc (tuple, optional): Backfill around this one point instead (an API job's requested sector, GEN.30).
 
     Attributes:
@@ -632,7 +632,7 @@ class BackfillFollower(followed.Follower):
         self.bar = None
 
     def params(self):
-        return {"since": self.started_at.isoformat(sep=" "),
+        return {"since": since_param(self.started_at),
                 **({} if self.center_pc is None else {"center_pc": list(self.center_pc)})}
 
     def on_plan(self, plan):
@@ -673,6 +673,12 @@ def planned_backfill(args, started_at, center_pc=None):
     """The bright-star backfill as a `followed.Planned`; its result is the `summary`."""
     follower = BackfillFollower(args, started_at, center_pc)
     return followed.Planned([follower], "Bright-star backfill", lambda: follower.summary)
+
+
+def since_param(started_at):
+    """The `since` parameter of a stage that works on the sectors a run saved: the clock as text, or (PERF.213) the deferred
+    parameter `wrapper.opened_by` that a run takes the clock of the sectors stage from when the stage opens."""
+    return started_at if wrapper.is_deferred(started_at) else started_at.isoformat(sep=" ")
 
 
 def _sectors_since(params):
@@ -763,7 +769,7 @@ class LinkFollower(followed.Follower):
         self.bar = None
 
     def params(self):
-        return {"since": self.started_at.isoformat(sep=" ")}
+        return {"since": since_param(self.started_at)}
 
     def on_plan(self, plan):
         if plan["detail"].get("skip"):
@@ -852,7 +858,7 @@ class RunBlocksFollower(followed.Follower):
         self.started_at = started_at
 
     def params(self):
-        return {"since": self.started_at.isoformat(sep=" ")}
+        return {"since": since_param(self.started_at)}
 
     def on_result(self, unit, result):
         if result["nebulae"]:
@@ -940,7 +946,7 @@ class SettleFollower(followed.Follower):
         self.bar = None
 
     def params(self):
-        return {"since": self.started_at.isoformat(sep=" "), **self.extra}
+        return {"since": since_param(self.started_at), **self.extra}
 
     def on_plan(self, plan):
         if plan["detail"].get("skip"):
@@ -2762,13 +2768,15 @@ def _snap_to_region(args, edge_pc):
 
 def _run_stages(args, title, tail):
     """
-    One `galaxy` or `sectors` run: the sector stages (`_plan_sectors`) and the stages of `tail(started_at)` (followers),
+    One `galaxy` or `sectors` run: the sector stages (`_plan_sectors`) and the stages of `tail(since)` (followers),
     all as one run in the queue (PERF.172), numbered as `stages.begin` is told.
 
     Args:
         args (argparse.Namespace): Validated arguments.
         title (str): What the run is called.
-        tail (callable): `tail(started_at)` gives the followers that come after the sectors.
+        tail (callable): `tail(since)` gives the followers that come after the sectors; `since` is the deferred
+            `wrapper.opened_by` parameter of the first sectors stage (PERF.213): the stages that work on the run's sectors
+            take the database's clock when it opens, not the moment the run was built.
 
     Returns:
         datetime: The database's clock when the run started, or `None` when the run only estimated.
@@ -2785,7 +2793,7 @@ def _run_stages(args, title, tail):
         run_common._print_estimate(exc)
         run_common._finish_stats(args)
         return None
-    followers = sectors + tail(started_at)
+    followers = sectors + tail(wrapper.opened_by(sectors[0].key))
     listed = stages.galaxy_stages(args) if title == "galaxy" else stages.sectors_stages(args)
     assert [f.key for f in followers] == [stage.key for stage in listed], "the followers are the stage list"
     stages.begin(listed, args, title)
@@ -2822,12 +2830,12 @@ def run_galaxy(args):
     Args:
         args (argparse.Namespace): Validated arguments (`command == "galaxy"`).
     """
-    def tail(started_at):
+    def tail(since):
         stars, _book = run_plan.bright_star_followers(args)
         phenomena, _book = run_plan.phenomena_followers(args)
-        return [LinkFollower(args, started_at), *stars, *phenomena, run_plan.BlockLightsFollower(args),
-                BackfillFollower(args, started_at), run_population.population_follower(args),
-                run_population.territories_follower(args), SettleFollower(args, started_at),
-                RunBlocksFollower(args, started_at)]
+        return [LinkFollower(args, since), *stars, *phenomena, run_plan.BlockLightsFollower(args),
+                BackfillFollower(args, since), run_population.population_follower(args),
+                run_population.territories_follower(args), SettleFollower(args, since),
+                RunBlocksFollower(args, since)]
 
     _run_stages(args, "galaxy", tail)
