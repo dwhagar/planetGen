@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 435 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 437 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 54 | 0 | 3 | 0 | 0 | 57 |
 | T2 | 73 | 4 | 0 | 1 | 0 | 78 |
 | T3 | 53 | 8 | 3 | 10 | 0 | 74 |
-| T4 | 22 | 0 | 0 | 3 | 4 | 29 |
+| T4 | 22 | 1 | 0 | 3 | 4 | 30 |
 | T5 | 24 | 7 | 1 | 0 | 0 | 32 |
 | T6 | 39 | 13 | 7 | 28 | 0 | 87 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 1 | 1 | 2 |
-| T9 | 1 | 0 | 2 | 26 | 19 | 48 |
-| All | 283 | 35 | 17 | 76 | 24 | 435 |
+| T9 | 1 | 0 | 2 | 27 | 19 | 49 |
+| All | 283 | 36 | 17 | 77 | 24 | 437 |
 
 ## How the labels were given
 
@@ -682,9 +682,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| RT1 | P | T5 | L1 | rock_types.MELT_STAGES (the norm's minerals grouped by when they melt: the low-melting feldspars, quartz and pyroxene together in the proportions the rock holds them, then orthopyroxene, then olivine) | the grouping; stage order fixed by the eutectic | silicate rocks at crustal and upper-mantle pressure | a phase-equilibrium melt (MELTS or pMELTS) of the same rock more than 10 percent in SiO2 or MgO from the staged melt | a MELTS or pMELTS fit of the first melts of peridotite as a function of pressure | test_rock_types::test_the_melt_of_a_mantle_is_a_basalt_at_the_degrees_of_melting_a_mantle_reaches; test_rock_types::test_a_great_degree_of_melting_makes_a_magnesian_liquid_of_komatiite_kind | GEN.474 | - |
-| RT2 | P | T2 | L0 | rock_types.ANORTHOSITE_PLAGIOCLASE 0.90, ULTRABASIC_SILICA 45, KOMATIITE_MAGNESIA 18, BASIC_SILICA 52, ACID_SILICA 63 (the IUGS limit of anorthosite and the silica bands of the total alkali-silica diagram, Le Bas et al. 1986) | none: classification limits | volcanic and plutonic silicate rocks | a rock the diagram names against its band | none | test_rock_types::test_the_earths_crusts_and_the_moons_highlands_get_their_ground_types | GEN.474 | - |
-| RT3 | P | T5 | L0 | rock_types.INCOMPATIBLE_D 0 (the bulk partition coefficient of K, Th and U between peridotite and its melt) | 0 to 0.01 | batch melting of peridotite | a measured partition coefficient above 0.01 | measured bulk partition coefficients (Hofmann 1988, not read) | test_rock_types::test_the_heat_producers_of_the_earths_basalt_and_mantle_agree_with_one_degree_of_melting | GEN.474 | - |
+| RT1 | P | T5 | L1 | rock_types.MELT_STAGES (the norm's minerals grouped by when they melt: the low-melting feldspars, quartz and pyroxene together in the proportions the rock holds them, then orthopyroxene, then olivine) | the grouping; stage order fixed by the eutectic | silicate rocks at crustal and upper-mantle pressure | a phase-equilibrium melt (MELTS or pMELTS) of the same rock more than 10 percent in SiO2 or MgO from the staged melt | a MELTS or pMELTS fit of the first melts of peridotite as a function of pressure | test_rock_types::test_the_melt_of_a_mantle_is_a_basalt_at_the_degrees_of_melting_a_mantle_reaches; test_rock_types::test_a_great_degree_of_melting_makes_a_magnesian_liquid_of_komatiite_kind | - | - |
+| RT2 | P | T2 | L0 | rock_types.ANORTHOSITE_PLAGIOCLASE 0.90, ULTRABASIC_SILICA 45, KOMATIITE_MAGNESIA 18, BASIC_SILICA 52, ACID_SILICA 63 (the IUGS limit of anorthosite and the silica bands of the total alkali-silica diagram, Le Bas et al. 1986) | none: classification limits | volcanic and plutonic silicate rocks | a rock the diagram names against its band | none | test_rock_types::test_the_earths_crusts_and_the_moons_highlands_get_their_ground_types | - | - |
+| RT3 | P | T5 | L0 | rock_types.INCOMPATIBLE_D 0 (the bulk partition coefficient of K, Th and U between peridotite and its melt) | 0 to 0.01 | batch melting of peridotite | a measured partition coefficient above 0.01 | measured bulk partition coefficients (Hofmann 1988, not read) | test_rock_types::test_the_heat_producers_of_the_earths_basalt_and_mantle_agree_with_one_degree_of_melting | - | - |
+| RT4 | P | T4 | L1 | surface_composition.GROUND_TYPES row `intermediate` (plagioclase 0.52, orthoclase 0.10, quartz 0.12, diopside 0.08, enstatite 0.15, biotite 0.03: the norm of an average andesite rounded onto the materials table's rows) and its K, Th and U taken as basalt's (RESERVOIR_OF) | each mineral within 0.05; the heat producers within a factor of 3 of the lower continental crust's | intermediate volcanic crust | a measured andesite norm differing by over 0.1 in any mineral, or a lower crust with ten times basalt's K | the norm of the generator's own melt (`rock_types.cipw_norm` of the crust) and a reservoir of its own (Rudnick and Gao 2014 Table 11, second-hand) | test_surface_composition::test_the_volcanic_crust_is_the_melt_of_the_stored_mantle | - | - |
+| MF1 | P | T9 | L3 | surface_composition.MELT_FRACTION_RANGE (0.03, 0.30) and MELT_FLUX_DECADES 5: the share of the mantle that melts to make the volcanic crust, log-linear in the heat flow over the middle of the volcanism floor's range | the end shares 0.01 to 0.05 and 0.2 to 0.4; the decades 3 to 8 | rocky bodies with decompression melting | a mid-ocean-ridge melt share of Earth's heat flow outside 6 to 12 percent, or a measured Io melt fraction outside 10 to 30 | a mantle temperature and solidus model (melt fraction against potential temperature) | test_surface_composition::test_the_melt_share_rises_with_the_heat_flow_and_is_a_mid_ocean_ridge_s_at_earths | - | no data |
 
 ## 6.46 Stand-ins of the comet ice budget
 

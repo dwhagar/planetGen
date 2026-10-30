@@ -110,3 +110,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.44:MG2 | no data | - | the widths of the axes and the distance past which a body is called none are choices; the collection's spread inside each group is not in the table, which gives averages and ranges only |
 | 6.50:AB1 | replace | GEN.804 | the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of Johnstone et al. 2021 (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it |
 | 6.43:LB1 | replace | GEN.1000 | the size law of GEN.566 gives each belt's largest body; until it is built the size is a range drawn per belt |
+| 6.45:MF1 | no data | - | no measurement gives the melt share of a mantle outside the Earth (and Io's lavas); a mantle potential temperature and solidus model is the replacement and nothing we hold supplies it |
