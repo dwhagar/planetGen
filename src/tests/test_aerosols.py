@@ -195,3 +195,53 @@ def test_the_aerosol_stream_is_keyed_on_the_bodys_identity_and_conditions_never_
     assert first(_body(planet_class="M")) == first(_body(planet_class="D")) == first(_body(planet_class=None))
     assert first(_body()) != first(_body(atmospheric_pressure=5e5))
     assert first(_body()) != first(_body(surface_temperature=250.0))
+
+
+# ---- the sulfuric acid cloud (GEN.1019, `sulfuric_cloud`) ----
+
+VENUS_SKIN_K = 296.0
+"""float: The cold top of the Venus-like test air (the grey skin of its airless equilibrium temperature, as `skin_of` finds it)."""
+
+
+def test_a_venus_like_air_gets_an_acid_cloud_that_covers_the_sky():
+    drawn = aerosols.draw_aerosols(VENUS, 735.0, random.Random(3), skin_k=VENUS_SKIN_K)
+    assert 20.0 <= drawn.tau_cloud <= 30.0 and drawn.cloud_cover == 1.0
+
+
+def test_without_the_cold_top_a_hot_air_stays_too_warm_for_the_acid_cloud():
+    drawn = aerosols.draw_aerosols(VENUS, 735.0, random.Random(3))
+    assert drawn.tau_cloud == 0.0
+
+
+def test_an_air_without_sulfur_is_drawn_exactly_as_before():
+    """The acid cloud adds no draw and no depth where there is no sulfur: Earth, Mars and Titan keep their condensate clouds to the digit."""
+    for column, temperature in ((EARTH, 288.0), (MARS, 215.0), (TITAN, 94.0)):
+        drawn = aerosols.draw_aerosols(column, temperature, random.Random(9), skin_k=VENUS_SKIN_K)
+        cloud = aerosols.draw_cloud(column, temperature, random.Random(9))
+        assert (drawn.tau_cloud, drawn.cloud_cover) == cloud
+
+
+def test_the_acid_cloud_adds_its_depth_to_a_condensate_cloud_and_the_cover_is_the_larger():
+    wet = _air({"CO2": 8.9e6, "N2": 3.4e5, "H2O": 3.0e4, "SO2": 1e3}, 8.87)
+    both = aerosols.draw_aerosols(wet, 330.0, random.Random(4), skin_k=200.0)
+    only = aerosols.draw_cloud(wet, 330.0, random.Random(4))
+    assert both.tau_cloud > only[0] and both.cloud_cover >= only[1]
+
+
+def test_the_cold_top_of_a_body_is_the_grey_skin_of_its_airless_temperature():
+    class Body:
+        surface_temperature = 735.0
+        greenhouse_factor = 80.0
+    assert aerosols.skin_of(Body) == pytest.approx(aerosols.SKIN_FACTOR * 735.0 / 81.0 ** 0.25)
+
+    class Bare:
+        surface_temperature = 300.0
+        greenhouse_factor = None
+    assert aerosols.skin_of(Bare) is None
+
+
+def test_the_acid_cloud_of_a_stored_body_repeats_from_its_stored_values():
+    from planetgen.physics import sulfuric_cloud
+    drawn = aerosols.draw_aerosols(VENUS, 735.0, random.Random(8), skin_k=VENUS_SKIN_K)
+    tau, cover, radius = sulfuric_cloud.of_draw(VENUS, 735.0, drawn.aerosol_draw, VENUS_SKIN_K)
+    assert (tau, cover) == (drawn.tau_cloud, drawn.cloud_cover) and 0.3 <= radius <= 3.85

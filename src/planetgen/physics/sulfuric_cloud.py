@@ -25,7 +25,7 @@ import os
 
 import numpy as np
 
-from planetgen.physics import acid_medium, aerosols, elements
+from planetgen.physics import acid_medium, aerosols, air_column, elements
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "sulfuric_cloud.json")
 ACID_MOLAR_MASS_KG_MOL = 0.098079
@@ -126,3 +126,14 @@ def of_draw(column, temperature_k, aerosol_draw, skin=None):
     radius = radius_um(aerosol_draw)
     tau, cover = draw(column, temperature_k, (aerosol_draw * GOLDEN) % 1.0, aerosol_draw, skin)
     return tau, cover, radius
+
+
+def of_body(body):
+    """`(tau_550, cloud_cover, radius_um)` of the acid cloud of a planet or moon from its stored values (its air, surface temperature, greenhouse
+    factor and `aerosol_draw`); `(0, 0, 0)` for a body with no air or no stored aerosols."""
+    temperature = getattr(body, "surface_temperature", None)
+    draw_value = getattr(body, "aerosol_draw", None)
+    column = air_column.column_of(body)
+    if column is None or not temperature or draw_value is None:
+        return 0.0, 0.0, 0.0
+    return of_draw(column, temperature, draw_value, aerosols.skin_of(body))
