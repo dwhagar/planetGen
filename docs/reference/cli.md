@@ -787,9 +787,9 @@ python3 -m planetgen.cli.worker --burst
 
 ### query
 
-Lists what is stored, read-only. The subcommands are `sectors` (every sector with its size and system count), `systems`, `near`, `planets` and `moons`.
+Lists what is stored, read-only. The subcommands are `sectors` (the sectors with their size and system count), `systems`, `near`, `planets` and `moons`.
 
-*   `systems [--star-type TYPE] [--sector-id ID]`
+*   `sectors [--limit N] [--after ID]` and `systems [--star-type TYPE] [--sector-id ID] [--limit N] [--after ID]`: `--limit` sectors or systems at a time (default 100; `--limit 0` lists every one, which on a big galaxy reads them all), the sectors nearest the galactic core first and the systems by name. When more follow, the last line prints the `--after` to carry on with; a page starts after that row by key, so any page costs what the first does (PERF.211).
 *   `near PLACE --distance PC [--kinds a,b] [--limit N] [--offset N]`: everything within a distance (at most 50 pc) of an object (`system:<ID>`, `planet:<ID>`, `nebula:<ID>` ...; a bare three-part ID is a system) or of a galaxy-frame point `x,y,z` in parsecs.
 *   `planets` and `moons`: `[--class C] [--min-radius-km N] [--max-radius-km N] [--sector-id ID] [--system-id ID] [--limit N] [--after ID]`: they list in order of system name, system, orbit (a moon's planet's orbit, then its own), then ID, `--limit` planets or moons at a time (default 100; `--limit 0` lists every one, which on a big galaxy reads them all). When more follow, the last line prints the `--after` to carry on with; a page starts after that planet or moon by key, so any page costs what the first does (PERF.207).
 

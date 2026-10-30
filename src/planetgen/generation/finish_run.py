@@ -204,12 +204,23 @@ def plan(conn, run_id, galaxy_seed, build, database):
         # a stage that opened in the run being carried on keeps the clock it recorded (PERF.213); one that is run again opens anew
         params = {name: value for name, value in wrapper.resolve_params(conn, run_id, step.params, strict=False).items()
                   if name not in (wrapper.FINISHED_BY, AGAIN)}
+        if params.get("planned") == "random-start":
+            params = _starts_as_planned(conn, run_id, index, params)
         if index < first:
             params[wrapper.FINISHED_BY] = run_id
         elif index == stopped:
             params[AGAIN] = True
         carried.append(commands.Step(step.key, step.kind, step.label, params))
     return Plan(run, carried, first, stopped)
+
+
+def _starts_as_planned(conn, run_id, index, params):
+    """A random-start stage that picked its starts in the run being carried on (PERF.214) keeps them, as sectors to generate: picking again
+    would pass over the start it saved and choose another."""
+    detail = (runrecord.read_plan(conn, run_id, index) or {}).get("detail") or {}
+    if detail.get("centers") is None:
+        return params
+    return {**params, "items": [place for address in detail["centers"] for place in address], "planned": ""}
 
 
 def run_description(run):

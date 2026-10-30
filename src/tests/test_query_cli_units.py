@@ -27,7 +27,7 @@ def cli(monkeypatch, capsys):
 
 
 def test_a_sector_lists_its_edge_on_the_distance_ladder(cli, monkeypatch):
-    monkeypatch.setattr(query, "list_sectors", lambda conn: [{"id": 1, "name": "A", "edge_ly": 12.0, "system_count": 3}])
+    monkeypatch.setattr(query, "list_sectors", lambda conn, **filters: [{"id": 1, "name": "A", "edge_ly": 12.0, "system_count": 3}])
     assert cli("sectors").strip() == "[sector-1] A (edge 3.68 pc (12 ly), 3 systems)"
 
 
@@ -75,3 +75,28 @@ def test_the_counts_a_listing_prints_say_what_they_count(cli, monkeypatch):
     monkeypatch.setattr(query, "_row", lambda conn, kind, printed: None if printed is None else int(printed.split("-")[1]))
     assert "3 planets shown; more follow" in cli("planets", "--limit", "3")
     assert "3 moons shown; more follow" in cli("moons", "--limit", "3")
+
+
+def test_sectors_and_systems_list_a_page_at_a_time_and_print_the_after_to_carry_on_with(cli, monkeypatch):
+    """PERF.211: `sectors` and `systems` show `--limit` rows (100 unless told) like `planets` and `moons`, asking for one more to know whether
+    another page follows, and pass `--after` on as a row id."""
+    asked = []
+
+    def sectors(conn, **filters):
+        asked.append(("sectors", filters))
+        return [{"id": n, "name": f"S{n}", "edge_ly": 12.0, "system_count": n} for n in range(1, 5)]
+
+    def systems(conn, **filters):
+        asked.append(("systems", filters))
+        return [{"id": n, "name": f"Y{n}", "is_binary": n % 2, "sector_id": None} for n in range(1, 5)]
+
+    monkeypatch.setattr(query, "list_sectors", sectors)
+    monkeypatch.setattr(query, "list_systems", systems)
+    monkeypatch.setattr(query, "_row", lambda conn, kind, printed: None if printed is None else int(printed.split("-")[1]))
+    out = cli("sectors", "--limit", "3")
+    assert asked[-1][1] == {"limit": 4, "after": None}
+    assert out.count("[sector-") == 3 and "3 sectors shown; more follow: carry on with --after sector-3" in out
+    out = cli("systems", "--limit", "10", "--after", "system-9")
+    assert asked[-1][1]["limit"] == 11 and asked[-1][1]["after"] == 9
+    assert out.count("[system-") == 4 and "--after" not in out
+    assert cli("systems", "--limit", "0").count("[system-") == 4 and asked[-1][1]["limit"] is None
