@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.470 |
+| TEST | TEST.471 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -3388,6 +3388,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.467 | Two tests red on the base branch seen by Star 1: the wide-binary planet-class check and the planet serialization allowlist (formation_distance_au, host_eccentricity) (bug) | none | dropped (Bug 2 rechecked on main c4b6bd167: the serialization fuzz and generation fuzz files pass and every wide-binary test passes; Star 1 named no failing test. Refile with the test name if it recurs after rebasing) |
 | TEST.468 | test_work_units::test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands and test_generation_stats::test_an_unmeasured_server_estimates_from_the_defaults are red on a clean main (bug) | none | open |
 | TEST.469 | test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming fails on main: a generated body has urey_ratio 1.85 with a mantle that is no longer warming (bug) | none | open |
+| TEST.470 | test_orbit_elements fails on main: the moon-light test (relative error 6e-6) and the ellipse tests (a lunar-range problem) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

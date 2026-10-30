@@ -18940,6 +18940,24 @@ clears each one.
   (proposed), after TEST.417.
   Prerequisites: none. Related: TEST.463, TEST.468, GEN.842.
 
+- [ ] **TEST.470 test_orbit_elements fails on main: the moon-light test (relative error 6e-6) and the ellipse tests (a lunar-range problem) (bug)**
+  Reported by Aux 7 (as the lane reported, 6:22 AM EDT 2026-10-30) on
+  main d60b9df15 after train 2: tests/test_orbit_elements.py moon-light
+  test misses its tolerance by a relative 6e-6, and the ellipse tests
+  fail on what Aux 7 read as a lunar-range problem. Not from Aux 7's
+  branches. Tides 1 saw the same file's
+  test_every_generated_orbit_is_the_ellipse_it_was_drawn_on stop on a
+  gas-solver stall (GEN.1003), so one of the ellipse failures may be
+  that. Do: run the file on current main with the datasets fetched
+  (ozone_uv needed to generate a system); separate the failures into
+  solver stall (GEN.1003), a tolerance that is tighter than the float
+  error of the lunar-range case, and a real orbit error; for the
+  tolerance cases, set the tolerance from the float error with the
+  reason recorded, never by loosening past it; for a real orbit error,
+  fix the orbit. Done: the file passes on main. Related: TEST.463,
+  GEN.1003, GEN.957. Owner: Bug 2 (proposed), after TEST.417.
+  Prerequisites: none. Related: TEST.463, GEN.1003, GEN.957.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
