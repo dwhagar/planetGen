@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2637] - 2026-10-30
+
+**Headline:** The All systems list opens any page as fast as the first when sorted by sector, octant or binary, as it already did by name.
+
+### Changed
+- **The All systems table pages by key in every sort.** Sorted by sector, octant or binary, the page links carry the system the page before ended on and the list carries on from it inside its group, so a page deep in the list costs what the first does. Before, a page counted and skipped every system before it in its group: with 3,000,000 systems, a page 300,000 deep in an octant took 1.5 seconds and now takes 3 milliseconds. `GET /api/systems?after=<system ID>` now works in those sorts as well as by name.
+
 ## [8.0.2636] - 2026-10-30
 
 **Headline:** A world that suits a life class but where no life has started yet is no longer shown as having that life.
