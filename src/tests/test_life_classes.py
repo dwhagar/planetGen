@@ -135,14 +135,32 @@ def test_a_dense_carbon_dioxide_world_supports_class_6():
 def test_the_acid_and_ammonia_classes_wait_for_their_quantities_and_score_once_they_are_given():
     dry = dict(hydrosphere="dry", surface_temperature_k=330.0, ocean_ph=None, water_activity=None, water_mass_fraction=0.0,
                internal_heat_flux_w_m2=0.1, **{atmosphere.GAS_FIELD: {"CO2": 80000.0, "N2": 10000.0, "SO2": 10000.0}})
+    # the body's own air holds no water, so no acid forms: the quantity is worked out (GEN.888) and is 0
     waiting = life_classes.score_classes(world(**dry))
-    assert waiting["5b"].score == 0 and waiting["5b"].missing == ["acid_medium"]
-    given = life_classes.score_classes(world(acid_medium=1.0, **dry))
+    assert waiting["5b"].score == 0 and "acid_medium" in waiting["5b"].failed
+    given = life_classes.score_classes(world(acid_medium=2.0, **dry))
     assert given["5b"].score > 0 and given["5b"].missing == []
+    # a cloud layer alone is not a pool: Class 5b needs level 2, Class 5a level 1
+    cloud = life_classes.score_classes(world(acid_medium=1.0, **dry))
+    assert cloud["5b"].score == 0 and cloud["5a"].score > 0
     cold = dict(dry, surface_temperature_k=220.0)
+    # a body that stores no ice share has nothing to work the ammonia out from
     assert life_classes.score_classes(world(**cold))["8"].missing == ["ammonia_water_mass_fraction"]
     # a dry rock has no water in touch with its rock to make hydrogen (GEN.887), so the hydrogen of this one is given
     assert life_classes.score_classes(world(ammonia_water_mass_fraction=0.2, h2_supply=0.5, **cold))["8"].score > 0
+
+
+def test_the_ammonia_and_the_silicon_of_a_body_are_worked_out_from_its_bulk_composition():
+    cold = dict(hydrosphere="dry", surface_temperature_k=220.0, ocean_ph=None, water_activity=None, internal_heat_flux_w_m2=0.1,
+                h2_supply=0.5, **{atmosphere.GAS_FIELD: {"N2": 10000.0}})
+    icy = life_classes.score_classes(world(water_mass_fraction=0.2, ice_mass_fraction=0.4, **cold))["8"]
+    assert icy.missing == [] and icy.score > 0           # 0.1 of the other ice over the water: ammonia at 0.2 of the water
+    drier = life_classes.score_classes(world(water_mass_fraction=0.2, ice_mass_fraction=0.1, **cold))["8"]
+    assert drier.score == 0 and "ammonia_water_mass_fraction" in drier.failed
+    assert life_classes.derived_quantities({"rock_mg_si_ratio": 0.8})["silicon_rich_crust"] == 1.0
+    assert life_classes.derived_quantities({"rock_mg_si_ratio": 1.3})["silicon_rich_crust"] == 0.0
+    assert "silicon_rich_crust" not in life_classes.derived_quantities({})
+    assert "silicon_rich_crust" not in life_classes.derived_quantities({"rock_mg_si_ratio": 0.8, "silicon_rich_crust": 0.0})
 
 
 def test_a_stored_supply_replaces_the_one_worked_out_from_the_body():
