@@ -12536,32 +12536,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 9.5 (life classes and sentient life).
   Prerequisites: GEN.864, TEST.435.
 
-- [ ] **GEN.873 Standing life chemistry tests: star weights match the star lists, every pace can reach complex cells inside the age of the universe, no life chemistry without a stage, no Flora under ice, no chemistry on a non-water solvent, every life constant is registered, an oxygenic world past photosynthesis has more O2**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 9.3 tests 1, 2,
-  4, 5, 6, 7 and 8 as standing tests in the suite (test 3, the
-  prevalence band per chemistry per star letter, goes into the TEST.430
-  chain). Each test must fail on today's main for the defect it names
-  and pass after its fix. Size S to M.
-  Prerequisites: none. Related:
-  TEST.430.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): extended: the
-  standing tests read classes in place of chemistries once GEN.889
-  lands.
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  Owner (2026-10-30 2:07 AM EDT): Core 3 takes this lock-free tests-only
-  item (TODO). Write the standing tests; the life classes replaced
-  chemistries, so read classes where GEN.889 has landed. A test that
-  exposes a real defect on main is reported to TODO as a (bug) item
-  rather than fixed here unless the fix changes no generated value
-
 - [ ] **GEN.876 Adaptation traits built: drawn in the life pass, stored in a text column, listed on the object page (adapted to: radiation, sulfide) and read by the habitability scores**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 6.2, fix 8
