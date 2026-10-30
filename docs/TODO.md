@@ -18903,6 +18903,11 @@ clears each one.
   his ask at 5:18 PM EDT; separate branch, no generated-output change;
   if the lane already holds a lock-free item it finishes that first). If
   this step turns out to change a stored value, stop and tell TODO.
+  Update (Bug 2, #3971, as the lane reported 5:47 AM EDT) (2026-10-30
+  5:48 AM EDT): The pulsar fill test went from 5586 s to 73 s and the
+  single-sector backfill test from 897 s to 115 s, no check loosened.
+  Remaining targets test_gen_resume, test_work_queue and test_galaxy_gen
+  run the CLI in subprocesses; Bug 2 takes them next.
   Prerequisites: none. Related: TEST.408, TEST.410.
 
 - [ ] **TEST.430 Class census: a standing seeded report of every planet and moon class share and overall colour per star type and zone, with stored expected ranges and anomaly flags**
