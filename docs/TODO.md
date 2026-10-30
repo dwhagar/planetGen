@@ -13686,19 +13686,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   No output change. Wiring turn (train 9) is next, Aux 4.
   Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
 
-- [ ] **GEN.1040 W10 module: collisional mantle stripping to an iron-rich (Mercury type) core fraction, pure function (Marcus 2010, Benz 2007 scaling)**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: physics/mantle_stripping.py:
-  from the collision count and impact energy of the architecture to a
-  core mass fraction under 0.85, with Mercury, Kepler-107 b and c as
-  tests. Done: tests pass, registry rows in. Lock-free. Owner: Planets 1
-  (after the oddity table). Version 8.1.
-  Prerequisites: GEN.1036.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **GEN.1046 W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -13734,7 +13721,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1 integrates. Done: tests per oddity, the harness passes, the census
   shares sit in the literature ranges. Owner: Aux 7 (W1, W2), Planets 1
   (W10), Core 4 (W15). Version 8.1.
-  Prerequisites: GEN.1040, GEN.1047.
+  Prerequisites: GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1049 Wire W5 resonance heating and the W3 high-eccentricity and W4 misaligned-orbit tails in planet_architecture**

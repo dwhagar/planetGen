@@ -2,6 +2,27 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2766] - 2026-10-30
+
+**Headline:** How many near-resonant planet pairs actually librate, and so can keep a forced eccentricity, is now sourced.
+
+### Changed
+- `docs/design/research/oddity-rates.md` (GEN.1094): Goldberg and Batygin 2023 read; 22 of 105 transit-timing pairs (21 percent) librate, so at most about 3 percent of neighbouring pairs are heating-capable for the W5 oddity, with the forced-eccentricity formula and the resonance condition. Registry rows WR8 and WR9 (section 6.82). Docs only, no generated world changes.
+
+## [8.0.2765] - 2026-10-30
+
+**Headline:** The iron-rich planet of the weird-worlds design now has its physics: a head-on giant impact that strips the mantle and leaves a Mercury-type core.
+
+### Added
+- **Collisional mantle stripping (GEN.1040, oddity W10).** `physics/mantle_stripping.py` takes the masses, core fraction and impact speed of a giant impact to the mass and core fraction of the largest remnant, from the scaling of Marcus and others (2010): half the mass is lost at the catastrophic energy, and the remnant's iron rises with the energy. It reproduces the one simulated giant impact printed in full (two 10.5 Earth mass bodies at 62.5 km/s leave 8.2 Earth masses at 64 percent iron), makes Kepler-107 c's radius and iron share from that impact, leaves Kepler-107 b Earth-like, and reaches Mercury's 70 percent iron at about 23 km/s. The oddity table gets its first row, W10 (rocky planets under 10 Earth masses with a recorded merger, rate 0.05 from the sourced bracket of GEN.1037). Nothing calls it yet (GEN.1047 and GEN.1048 wire it), so no world changes.
+
+## [8.0.2764] - 2026-10-30
+
+**Headline:** Building a system is about a fifth to a third faster, with every planet, seed and number exactly as before.
+
+### Changed
+- **Cheaper atmosphere escape history and haze fall (PERF.210).** The thermal-escape history of an air no longer works out a gas's diffusion limit again at every step when the air has not changed, nor for a gas that is losing nothing, and the haze fall works out the air's viscosity once for each temperature of the profile instead of once for each level. Twelve Sun-like systems went from 36 s to 29 s and twelve of any star from 17 s to 12 s, and a checksum of every stored value of every body is the same before and after, so no seed gives a different world.
+
 ## [8.0.2763] - 2026-10-30
 
 **Headline:** The code now knows how a giant impact can lay an ice giant on its side, as Uranus lies, and that its rings and moons then follow the new equator.

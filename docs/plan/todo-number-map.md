@@ -1790,7 +1790,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1037 | Confirm the oddity rates and thresholds marked [R] (W3, W4, W5, W10, W14, W15, W20 first) against papers, write the literature table with sources, register the stand-ins | none | done, PR #4145 |
 | GEN.1038 | W2 module: the Venus-type retrograde slow rotator, the spin equilibrium of a thick-air planet from the thermal tide against core-mantle friction (Correia and Laskar 2001, 2003), pure function | none | done, PR #4133 |
 | GEN.1039 | W1 module: a seasonal temperature swing from the stored obliquity in the regional temperature (tilt-driven climate), polar summer hotter than the equator, ice and wet-bulb limits by season | none | done, PR #4141 |
-| GEN.1040 | W10 module: collisional mantle stripping to an iron-rich (Mercury type) core fraction, pure function (Marcus 2010, Benz 2007 scaling) | none | open |
+| GEN.1040 | W10 module: collisional mantle stripping to an iron-rich (Mercury type) core fraction, pure function (Marcus 2010, Benz 2007 scaling) | none | done, PR #4152 |
 | GEN.1041 | W14 module: mass loss and lifetime of a disintegrating rocky planet (Perez-Becker and Chiang 2013), pure function | none | done, PR #4128 |
 | GEN.1042 | W15 module: super-puff radius and its fade with age (Lee and Chiang 2016, Millholland 2019), pure function | none | done, PR #4143 |
 | GEN.1043 | W5 module: detect resonant chains from the stored periods and compute the forced eccentricity and the resulting tidal heating (Goldreich and Soter, Murray and Dermott), pure function | none | done, PR #4144 |
