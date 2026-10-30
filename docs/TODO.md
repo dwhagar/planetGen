@@ -1048,6 +1048,17 @@ with `clamp()`.
   chart, an additive route, no API version bump) and the adaptation
   traits, which wait on GEN.875 and GEN.876 because no trait data is
   stored.
+  Part 2 merged (Core 5, #3951, 4:59 AM EDT as the lane reported)
+  (2026-10-30 4:59 AM EDT): planet and moon pages get a collapsed "Life
+  and air through the ages" chart in the Life section (oxygen, CO2 and
+  methane partial pressure against star age, life stages numbered, the
+  same figures in a table, "Speculative chemistry" with tier and tweak
+  for L3 and L4 classes), worked backwards from the stored air; no
+  migration, epoch, golden or stored value; new additive routes GET
+  /api/planets|moons/<id>/life-air (API version unchanged; route
+  snapshot and api.md updated). Not drawn: sulfur gases, hydrogen
+  drawdown, the reduced gases the rise burned. UX.237 stays open only
+  for the adaptation traits (waits on GEN.875/876)
   Prerequisites: none. Related: UX.221.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -11511,7 +11522,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
   branch holds the H-He table reader. Hydrogen-helium EOS tables are not
   held otherwise. Catalog sections 3 and 4.
-  Prerequisites: GEN.733, GEN.809, GEN.810, GEN.811. Related: GEN.733, GEN.736, GEN.642, GEN.809, GEN.810, GEN.811.
+  Prerequisites: GEN.733, GEN.809, GEN.810. Related: GEN.733, GEN.736, GEN.642, GEN.809, GEN.810, GEN.811.
 
 - [ ] **GEN.804 Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1)**
   Unused stored values audit chain
@@ -11647,6 +11658,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
   branch holds the H-He table reader. Hydrogen-helium EOS tables are not
   held otherwise. Catalog sections 3 and 4.
+  Lock-free half merged (Aux 3, #3948, as the lane reported) (2026-10-30
+  5:00 AM EDT): new pure module physics/giant_dynamo.py: from a giant
+  interior layers, radius, radiated heat and spin it gives the shell
+  that makes the dynamo (metallic layer of a gas giant or brown dwarf,
+  ionic or superionic water mantle of an ice giant) and the field via
+  dynamo.field; Jupiter-like draws land within 4x of Jupiter moment,
+  Saturn-like about 7x high and Neptune-like about 10x high and as a
+  dipole (stable layer and thin-shell effects not modelled);
+  wiring-register line added. The wiring step (magnetism.generate_field
+  taking a giant moment from it) rides a train after Core 4 GEN.733
+  structure is on a train; an ice giant has no region until then.
+  GEN.967 (Aux 4) calls giant_dynamo.giant_field instead of rebuilding
+  the region
   Prerequisites: GEN.733. Related: GEN.801, GEN.733, GEN.736.
 
 - [ ] **GEN.810 A giant's internal heat reads the interior layers and the helium shell (G3, step 2)**
@@ -11677,30 +11701,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   branch holds the H-He table reader. Hydrogen-helium EOS tables are not
   held otherwise. Catalog sections 3 and 4.
   Prerequisites: GEN.733. Related: GEN.801, GEN.735.
-
-- [ ] **GEN.811 The description of a giant says what its interior is (G3, step 3)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). The description text names the interior kind, the metallic
-  layer, the dilute core and the helium shell where they exist, in the
-  in-universe voice of the pages. Done: three samples read differently
-  and a test pins the wording keys. Version 8.4, phase 1. Owner: Aux 3
-  with Aux 11. Rules: no backward-compat shims; every number has a unit
-  or scale (GEN.772); a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Fortney 2007 giant radii are
-  transcribed in full (physics/giant_radius_tables.py); Lopez and
-  Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
-  branch holds the H-He table reader. Hydrogen-helium EOS tables are not
-  held otherwise. Catalog sections 3 and 4.
-  Prerequisites: GEN.809, GEN.810. Related: GEN.801, GEN.415.
 
 - [ ] **GEN.819 Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet**
   GEN.739 (#3246) added physics/impact_history.py and
@@ -17539,6 +17539,12 @@ clears each one.
   sourced row. GEN.520 D6 (the Solar System population as the
   within-system comet shape) is kept as a flagged stand-in with the
   replacement item GEN.595.
+  Owner (2026-10-30 5:00 AM EDT): Aux 3 takes this tests-only item while
+  its giant items wait on Core 4 (TODO, 5:00 AM EDT); this replaces the
+  earlier Core 4 owner line. It must change no table value: move the
+  calibration rows into test files with the calibration_only flag and
+  add the assertion; any row it would need to change in a generator
+  table is reported to TODO first
 
 - [ ] **TEST.219 Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster**
   Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
