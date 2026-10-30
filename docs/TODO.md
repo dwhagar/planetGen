@@ -13560,6 +13560,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1983) and Mardling and Aarseth 2001 Equation 90 match the repo (the
   MA01 q_out <= 5 range is GEN.1028). Registry rows GM5 (T1), GM9 to
   GM12 added. Only Jeans/Hadjidemetriou remain second-hand.
+  Build plan (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT 2026-10-30:
+  build all of it. Owners: P0 GEN.1017 Bug 1; P1 TEST.476 Bug 2; P2
+  TEST.477 done (#4071); P3 GEN.1009, P4 GEN.1010, P5 GEN.1011 Star 2;
+  P6 GEN.1012 Tides 1; P7 GEN.1013 Aux 3; P8 GEN.1014 Planets 1 (with
+  GEN.1023); P9 GEN.1015 Bug 1; P10 GEN.1016 Core 3 (with GEN.1028); 3+1
+  research GEN.1029 Sources 1. Trains: 8 = P0 + P3, 9 = P4 to P7, 10 =
+  P8 + P9, 11 = P10; each lock part rides its train, the lock-free
+  pieces merge freely first.
   Prerequisites: TEST.476, GEN.1017, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016.
 
 - [ ] **GEN.1009 Overlap-free stars P3: evolve each star once into a frozen MemberRecord that the tree, the build and the planets all read (replaces GEN.1007 and GEN.1008)**
@@ -13576,6 +13584,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merge train. No shim.
   Prerequisites: TEST.476. Related: GEN.1006, GEN.1004,
   TEST.476.
+  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
+  2026-10-30: build all of GEN.1006. Star 2 (the pivot, ahead of
+  GEN.1024): MemberRecord and Star.from_record, tree and build read the
+  record, schema adds radius_max_au and mass_max_solar. Lock-free pieces
+  first (pure record, tests), then the wiring. Train 8. Merge
+  authorization: all merges without human review. Times to Boss in EDT
+  only.
 
 - [ ] **GEN.1010 Overlap-free stars P4: one keep-out rule at every depth of the star tree, replacing the Roche-or-extent split**
   One keep-out rule (Roche filling for two singles, the extent rule
@@ -13587,6 +13602,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   below Verified until a lane checks them). Changes generated output:
   --affects star and planet suites, epoch, golden and census re-tag on a
   merge train. No shim.
+  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
+  2026-10-30: build all of GEN.1006. Star 2, after GEN.1009 (same
+  module): one keep-out rule at every depth. Branch from the GEN.1009
+  branch. Train 9. Merge authorization: all merges without human review.
+  Times to Boss in EDT only.
   Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
 
 - [ ] **GEN.1011 Overlap-free stars P5: truncated sampling of period and eccentricity, deleting the 60-try loop and the tree restart loop**
@@ -13602,6 +13622,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merge train. No shim.
   Prerequisites: GEN.1009, GEN.1010. Related: GEN.1006, GEN.1004,
   TEST.476.
+  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
+  2026-10-30: build all of GEN.1006. Star 2, after GEN.1010: truncated
+  sampling of period and eccentricity, deleting the 60-try loop and the
+  restart loop. Train 9. Merge authorization: all merges without human
+  review. Times to Boss in EDT only.
 
 - [ ] **GEN.1012 Overlap-free stars P6: a general history rule replacing the white-dwarf-only engulfment test in classify_pair**
   A history rule for pairs that interact as a member evolves (common
@@ -13619,6 +13644,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   white-dwarf engulfment constants sit below Mustill and Villaver 2012;
   register the corrected values as a GEN.725 row with tier and tweak
   level.
+  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
+  2026-10-30: build all of GEN.1006. Tides 1 (engulfment and tides are
+  its area), after GEN.1009: the history rule replacing the
+  white-dwarf-only engulfment test; registers the engulfment constants
+  below Mustill and Villaver 2012. Train 9. Merge authorization: all
+  merges without human review. Times to Boss in EDT only.
   Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
 
 - [ ] **GEN.1013 Overlap-free stars P7: keep compact members and brown dwarfs in the tree for the orbit draw**
@@ -13631,6 +13662,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   below Verified until a lane checks them). Changes generated output:
   --affects star and planet suites, epoch, golden and census re-tag on a
   merge train. No shim.
+  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
+  2026-10-30: build all of GEN.1006. Aux 3 (waiting lane), after
+  GEN.1009: compact members and brown dwarfs kept in the tree for the
+  orbit draw. Train 9. Merge authorization: all merges without human
+  review. Times to Boss in EDT only.
   Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
 
 - [ ] **GEN.1014 Overlap-free stars P8: a clearance ledger and planet, moon and belt sampling from it**
@@ -13651,6 +13687,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lacks the Domingos et al. 2006 eccentricity terms and the retrograde
   stability limit; the ledger part adds them (stand-in tier until the
   paper is read by the research part).
+  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
+  2026-10-30: build all of GEN.1006. Planets 1, after GEN.1011: the
+  clearance ledger and planet, moon and belt sampling from it, replacing
+  _orbit_floor_au and the per-star a_crit reads; takes GEN.1023 (the
+  9.93 Hill radii pair) with it. Train 10. Merge authorization: all
+  merges without human review. Times to Boss in EDT only.
 
 - [ ] **GEN.1015 Overlap-free stars P9: delete the GEN.1004 quick fix (built_tree_clears, the clearance branch of _companions_fit, _built_stars_clear), no shim**
   Remove the quick fix once the construction guarantees clearance; set
@@ -13663,6 +13705,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merge train. No shim.
   Prerequisites: GEN.1011, GEN.1014. Related: GEN.1006, GEN.1004,
   TEST.476.
+  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
+  2026-10-30: build all of GEN.1006. Bug 1, after GEN.1011 and GEN.1014:
+  delete built_tree_clears, the _companions_fit clearance branch and
+  _built_stars_clear (GEN.1004 fix), no shim; TEST.476 invariant set to
+  zero. Train 10. Merge authorization: all merges without human review.
+  Times to Boss in EDT only.
 
 - [ ] **GEN.1016 Overlap-free stars P10: per-level hierarchical stability margin and the 2+2 quadruple fit, if the verifier shows it is needed**
   Hierarchical stability for more than three bodies (design section 5):
@@ -13690,6 +13738,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Report:
   /mnt/project-files/reports/gen1018-multistar-stability-2026-10-30.md;
   registry rows GM1 to GM8 in section 6.60.
+  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
+  2026-10-30: build all of GEN.1006. Core 3, after GEN.1011 and TEST.477
+  (its verifier): per-level stability margin, the 2+2 fit and the 3+1
+  criterion from the research item; takes GEN.1028 (MA01 q_out <= 5).
+  Train 11. Merge authorization: all merges without human review. Times
+  to Boss in EDT only.
 
 - [ ] **GEN.1017 Overlap-free stars P0: give the star tree the primary's [Fe/H] (and the build's age and mass) so the tree and the build evolve each companion the same way (replaces the dropped GEN.1007)**
   Root cause found by running it (GEN.1006 revised design,
@@ -13703,6 +13757,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sample. Changes generated output: --affects fill, epoch, golden and
   census re-tag on a merge train. First output-changing part of
   GEN.1006; it can go before P3. Owner: Bug 1 (star lane) after GEN.951.
+  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
+  2026-10-30: build all of GEN.1006. Bug 1 (star lane) first, after
+  GEN.951: P0 gives the star tree the primary [Fe/H], age and mass the
+  build uses. Train 8 with GEN.1009. Merge authorization: all merges
+  without human review. Times to Boss in EDT only.
   Prerequisites: none. Related: GEN.1006, GEN.1004, GEN.1009, TEST.476.
 
 - [ ] **GEN.1019 Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in)**
@@ -13891,6 +13950,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changes generated output only if a system is judged differently, so
   check the census. Owner: Bug 1 (star lane). Version 8.1.
   Prerequisites: none. Related: GEN.1006, GEN.1010, GEN.1016, GEN.1004.
+
+- [ ] **GEN.1029 Research: port a 3+1 quadruple stability criterion without a machine-learning dependency (Vynatheya, Mardling and Hamers 2023 model files)**
+  Part of GEN.1006 (design docs/design/systems/overlap-free-systems.md
+  section 5 and 13). Nested-triple tests (MA01, EK95) are right only 66
+  percent of the time for 3+1 quadruples (88 percent for 2+2) and
+  overestimate the stable systems (precision 0.59 for 3+1). Do: read the
+  paper's 2+2 and 3+1 model files (Vynatheya, Mardling and Hamers 2023,
+  arXiv 2301.09930; check the licence first, Boss handles
+  DATA-LICENSE.md) and decide how to port a 3+1 criterion as a table or
+  a small formula with no runtime dependency on a machine-learning
+  library; verify it against the paper's accuracy figures on a sample;
+  record every stand-in in GEN.725 with tier and tweak level. Done: a
+  design note with the chosen form and its measured accuracy, a pure
+  module and tests (lock-free); the wiring into the generator is
+  GEN.1016 (P10). Owner (full build): Sources 1. Boss, 2:47 PM EDT
+  2026-10-30: build all of GEN.1006.
+  Prerequisites: GEN.1006. Related: GEN.1006, GEN.1016, GEN.725,
+  GEN.1028.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18605,6 +18682,11 @@ clears each one.
   stars 24, 4 stars 17, 5 stars 50, 6 stars 95 (research thread
   measurement); the test reproduces these numbers as its baseline and
   then pins ceilings.
+  Order (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT 2026-10-30: build
+  all of GEN.1006. TEST.476 (counters and baseline, lock-free) goes
+  first after train 4; add the two gate kinds from the design (ceilings
+  per redraw kind and the zero invariant for overlap redraws). Owner:
+  Bug 2.
   Prerequisites: none. Related: GEN.1004, TEST.430, TEST.162.
 
 - [ ] **TEST.479 test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug)**
