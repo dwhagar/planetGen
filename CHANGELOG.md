@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2690] - 2026-10-30
+
+**Headline:** Every line of a Galaxy Map card that names a place now has its own Go to button.
+
+### Added
+- **A Go to on every container and place line of a card (MAP.349).** The "Region:" and "In:" lines on a card (and on a region's own card) each have their own Go to, which flies the camera to that region or to its larger family. Each system in a card's list of nearest systems has a Go to that opens its sector and the system, and each member of a crowd of marks has one that flies to it. They use the same Go to as the find box and the crumbs. The name on these lines is plain text now; the Go to button is what goes.
+
 ## [8.0.2689] - 2026-10-30
 
 **Headline:** Stars now follow the published mass function at every mass: a Chabrier curve for single stars, a derived curve for the stars that begin a system, and white dwarfs, neutron stars and black holes drawn from the same curve.
