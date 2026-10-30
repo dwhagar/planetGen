@@ -8,7 +8,7 @@ The API has a version of its own, one integer that is not the release number (`s
 
 | API version | First release | Items | Change | Routes and payload formats changed |
 |---|---|---|---|---|
-| **11** | next release | API.33 | The sizes of a backup archive and of its parts say they are in bytes. | GET /api/admin/backups and GET /api/admin/backups/<name>: an archive and each of its parts have size_bytes where they had size |
+| **11** | 8.0.2617 | API.33 | The sizes of a backup archive and of its parts say they are in bytes. | GET /api/admin/backups and GET /api/admin/backups/<name>: an archive and each of its parts have size_bytes where they had size |
 | **10** | 8.0.2608 | API.37 | A planet or moon names its life by class, not by chemistry. | GET /api/systems/<id>: planets and moons have no life_chemical; they have life_class (the class number), life_class_variant, life_class_best, life_class_best_score, life_animal_grade and life_complexity (the columns), and life_class_id (such as 1a) and life_class_scores (the score of every class the body supports)<br>the species of GET /api/planets/<id>/species and GET /api/planets/<id>/habitable-species have life_class (the class id) in place of life_chemical |
 | **9** | 8.0.2271 | MAP.287 | A star, planet or moon of a system scene carries a look record, not a colour. | GET /api/systems/<id>/scene: stars, planets and moons have look (the body look record, which holds the color and what the painters need) and no color; a comet keeps color |
 | **8** | 8.0.2236 | MAP.262 | The Galaxy Map reads its data by sector-block node; the cube tiles are gone. | GET /api/galaxy/tiles removed; GET /api/galaxy/nodes is the map's data<br>GET /api/galaxy/changes answers nodes, no longer tiles |
@@ -34,8 +34,8 @@ Every client that exists today ships with the server, so the release a page or a
 
 | API version | Releases that speak it |
 |---|---|
-| **11** | next release and later |
-| **10** | 8.0.2608 up to the current release |
+| **11** | 8.0.2617 and later |
+| **10** | 8.0.2608 up to the release before 8.0.2617 |
 | **9** | 8.0.2271 up to the release before 8.0.2608 |
 | **8** | 8.0.2236 up to the release before 8.0.2271 |
 | **7** | 8.0.2225 up to the release before 8.0.2236 |

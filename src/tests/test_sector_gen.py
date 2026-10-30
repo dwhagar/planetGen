@@ -290,7 +290,7 @@ def test_flag_fast_stars(monkeypatch):
 def _real_sector_args(num_systems, name, planets=None):
     """A real `sector` subcommand namespace, built via planetgen's own
     parser/validators -- generate_sector reads far more of `args` (via
-    build_sector_configs/build_system_config) than a hand-built
+    iter_sector_configs/build_system_config) than a hand-built
     SimpleNamespace could safely stand in for. `planets=False` makes every
     system planet-less (cheap); `sector` takes no `-planets` option any
     more (GEN.51), so it is set on the namespace build_system_config reads."""

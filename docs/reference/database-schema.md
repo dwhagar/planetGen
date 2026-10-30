@@ -1406,6 +1406,8 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `shelter_column_g_cm2`, `outside_hours` | DOUBLE | nullable | Added in v136 (GEN.655). The shielding in g/cm2 a shelter needs to bring the year's dose to the limit, and the hours outside a year the listed suit allows (NULL when unlimited or no shelter is needed). |
 | `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`, `temp_swing_k` | DOUBLE | nullable | Added in v137 (GEN.656). The mean surface temperature spread over a world that turns on its own: the annual mean of the polar (60 degrees and over), northern (20 to 60 N), equatorial and southern (20 to 60 S) bands in kelvin, from the annual insolation of the stored axial tilt and the air column's heat transport, and the day and night swing at the equator (`physics/regional_temperature.py`). NULL for a gas giant, an unscored body, a tidally locked world and a row not yet re-scored. |
 | `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` | DOUBLE | nullable | Added in v137 (GEN.656). The same for a tidally locked world (rotation period equal to the orbital period): the day side, the terminator ring and the night side, kelvin. NULL for any other body. |
+| `ice_co2_mass_fraction`, `ice_ch4_mass_fraction`, `ice_nh3_mass_fraction`, `ice_n2_mass_fraction`, `ice_so2_mass_fraction`, `ice_co_mass_fraction`, `ice_hcn_mass_fraction`, `ice_other_mass_fraction` | DOUBLE | nullable | Added in v183 (GEN.834). The share of the whole body's mass that each non-water ice holds (carbon dioxide, methane, ammonia, nitrogen, sulfur dioxide, carbon monoxide, hydrogen cyanide; `ice_other_mass_fraction` is ethane, methanol, formaldehyde and hydrogen sulfide), adding up to `ice_mass_fraction`. 0 for a body with no ice; NULL for a row made before v183. |
+| `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_mean_swing_k`, `temp_day_side_swing_k`, `temp_terminator_swing_k`, `temp_night_side_swing_k` | DOUBLE | nullable | Added in v182 (GEN.848). The day and night swing, peak to peak, in kelvin of difference, of the place the name says (`temp_swing_k` is the equator's): the polar, northern and southern bands and the mean of the whole world for a world that turns on its own (the equator's swing cut by the cosine of the latitude, `physics/regional_temperature.py`), the three zones of a tidally locked world (0: it has no day). NULL for a gas giant, an unscored body and a row made before v176. |
 | `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v76 (GEN.89). The four likelihoods behind microbial life: `l_solv` solvent, `l_chem` chemistry, `l_ener` energy and `l_rad` radiation, each 0 to 1. (v76 also stored `phi_bio`, `phi_cpx` and `phi_tech`; v136 dropped them for the four life scores below.) |
 | `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | Added in v150 (GEN.649). The four life scores, 0 (none) to 9 (abundant), from the evolutionary path the body reached and its surface conditions ([habitability-index.md](../design/habitability/habitability-index.md) section 11). NULL for a gas giant or a body with no score. |
 | `energy_flux_w_m2` | DOUBLE | nullable | Added in v76 (GEN.89). The light or chemical power life can use: 6% of the starlight, or 1% of the body's own heat flow, whichever is more (the heat only, under an ice lid). The one input the score keeps, so the dose refresh can re-score from the row. |
@@ -2029,12 +2031,14 @@ Added in v64 (GEN.100) and v77. `planetgen plan` places every black hole, neutro
 
 ### `sector_system_counts`
 
-Added in v82 (PERF.74). How many star systems each sector holds, as of the last refresh (`query.refresh_sector_system_counts`), so the Sectors list and its sorts by systems and density read this table instead of counting every system per request. A sector with no systems has no row.
+Added in v82 (PERF.74); `system_density` and `quadrant` and a row for every sector from v181 (PERF.208). Each sector's system count, system density and Quadrant as of the last refresh (`query.refresh_sector_system_counts`), so the Sectors list reads these instead of counting every system per request and its sorts by systems, density and position page by key on the three indexes. Derived data: the refresh makes every row again, in the background and not more often than every 30 s; a sector made since has no row until it runs, and the list shows it after the others with a count of 0.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `sector_id` | BIGINT UNSIGNED | PK | FK-like to `sectors.id` (no constraint). |
 | `system_count` | INT UNSIGNED | NOT NULL | The systems it holds. Indexed with `sector_id` (`idx_sector_system_counts_count`). |
+| `system_density` | DOUBLE | NULL | v181. Systems per cubic milliparsec of the sector (`system_count` over `sectors.edge_mpc` cubed). NULL for a sector with no galaxy position. Indexed with `sector_id` (`idx_sector_system_counts_density`). |
+| `quadrant` | VARCHAR(8) | NULL | v181. `'I'` to `'IV'`, the bands of `spherical.sector_quadrant`. NULL for a sector with no galaxy position. Indexed with `sector_id` (`idx_sector_system_counts_quadrant`). |
 
 ### `system_interests`
 
@@ -2204,6 +2208,14 @@ Migration 0179 adds no column. `planets.hydrosphere` and `moons.hydrosphere` tak
 
 Migration 0176 adds no column. It fills `system_interests` with one reason for each life class, `lifeclass-1a` to `lifeclass-9` (`interests.LIFE_CLASS_REASONS`): a system has a row for each life class that lives on one of its planets or moons (`life_class` and `life_class_variant`), `n` how many, no score. It is filled from the planets and moons already stored; a body whose life class is NULL gives none. Nothing a generator draws changes, so there is no epoch. Since GEN.1001 a body counts only when it also has a `life_stage` (a world that suits a class but whose life has not started gives none); a database migrated before that keeps the rows of such bodies until its systems are saved again.
 
+### v183 (GEN.834): the non-water ices by species
+
+Migration 0183 adds eight DOUBLE columns (`ice_co2_mass_fraction`, `ice_ch4_mass_fraction`, `ice_nh3_mass_fraction`, `ice_n2_mass_fraction`, `ice_so2_mass_fraction`, `ice_co_mass_fraction`, `ice_hcn_mass_fraction`, `ice_other_mass_fraction`, all nullable) to `planets` and `moons`, skipping a column already there. All NULL after the migration: the species are drawn with the body's bulk composition, so a regenerated galaxy fills them.
+
+### v182 (GEN.848): a day and night swing for every temperature
+
+Migration 0182 adds seven DOUBLE columns (`temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_mean_swing_k`, `temp_day_side_swing_k`, `temp_terminator_swing_k`, `temp_night_side_swing_k`, all nullable) to `planets` and `moons`, skipping a column already there. All NULL after the migration: they are worked out when a body is generated, so a regenerated galaxy fills them.
+
 ### v175 (GEN.889, GEN.890): the life class switch
 
 Migration 0175 drops `life_chemical` (and its index) from `planets` and `moons` and adds `life_class` (TINYINT UNSIGNED, the class number), `life_class_variant` (CHAR(1)), `life_class_best` (VARCHAR(2)), `life_class_best_score` (TINYINT UNSIGNED), `life_animal_grade` (TINYINT UNSIGNED) and `life_complexity` (DOUBLE), all nullable, plus the child tables `planet_life_class_scores` and `moon_life_class_scores` (`planet_id` or `moon_id`, `life_class` VARCHAR(2), `score` 1 to 9; unique for a body and class; indexed on class and score). `species.life_chemical` becomes `species.life_class` (the class id). A row made before keeps the class its chemistry stood for (Chlorophyll a is 1a, Blue-Optimized Porphyrins 1b, Bacteriochlorophylls and Retinal 2, Melanin 3b, Zinc-Bacteriochlorophyll 5b) and nothing else: no scores, grade or complexity are worked out, so a galaxy shows the new life only after `planetgen bring-to-epoch` or a regeneration (epoch 120). The columns are added with one ALTER for each table (no `ALGORITHM=INSTANT`: both tables carry a FULLTEXT index), and a stopped run starts again where it stopped.
@@ -2297,6 +2309,10 @@ Migration 0153 adds `mantle_eta0_pa_s`, `mantle_activation_kj_mol` and `internal
 ### v152 (GEN.700): the tide heat flow of an icy moon
 
 Migration 0152 adds `tidal_flux_w_m2` (DOUBLE, nullable) to `planets` and `moons`, at the end of each table (a planet has no tide and keeps NULL). The generator drew the tide before and discarded it after thickening or thinning the ice lid; it is now kept and added to the heat flow the chemical energy of the ocean's life reads (`energy_flux_w_m2`, [habitability-index.md](../design/habitability/habitability-index.md) section 8). The forced eccentricity behind a tide is not stored, so a moon saved earlier keeps NULL and its stored energy flux; only a moon generated now has it. One ALTER for each table with no `ALGORITHM=INSTANT` (both have a FULLTEXT index); a column already there is left alone. The version is detected from `planets.tidal_flux_w_m2`.
+### v181 (PERF.208): the Sectors list's sorts by key
+
+Migration 0181 adds `system_density` and `quadrant` to `sector_system_counts`, each with an index ending in `sector_id`, and fills the table again so that every sector has a row (before, a sector with no systems had none). Nothing else moves, and the table is derived data. The Sectors list sorted by systems, density or position pages by key on these indexes: with 1,000,000 sectors a page took 2.5 to 8 s whatever its depth and now takes 2 to 40 ms.
+
 ### v180 (DB.70): a moon's origin and its giant's disk
 
 Migration 0180 adds to `planets` and `moons`: `moon_origin` (VARCHAR(8)) and four DOUBLE columns, `moon_disk_lifetime_myr`, `moon_disk_alpha_over_f`, `moon_disk_f_inf` and `moon_disk_ice_line_km`, all nullable, each at the end of the table. Nothing is backfilled: the origin and the disk are draws of the generator epoch, so a row made before the revision keeps NULL and the regenerated galaxy replaces it. A stopped run can be started again (a column already there is skipped).

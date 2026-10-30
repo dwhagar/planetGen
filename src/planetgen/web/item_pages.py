@@ -25,7 +25,7 @@ from planetgen.describe.html import blocks_html, inline_html
 from planetgen.describe.model import sections
 from planetgen.galaxy import objectref
 from planetgen.web.lib import apiclient
-from planetgen.web.lib import bodyview, facility_display, planet_layout, planet_summary
+from planetgen.web.lib import bodyview, facility_display, life_air_chart, planet_layout, planet_summary
 from planetgen.web.lib.habitability_chips import chips_html
 from planetgen.web.lib.fmt import esc
 from planetgen.web.lib.systempage import facilities_by_host, facilities_html
@@ -251,6 +251,21 @@ def glance_view(sheet):
     rows = {row["key"]: row for group in sheet["groups"] for row in group["rows"]}
     return [{"label": rows[key]["label"], "html": _value_html(rows[key])}
             for key in sheet_registry.GLANCE.get(sheet["kind"], ()) if key in rows and _listed(rows[key])]
+
+
+def life_air_view(db, kind, printed_id, row):
+    """The Life and air chart of a planet's or moon's page (UX.237): `web.lib.life_air_chart.chart` of the body's air history, or `None` for a
+    body with no living class or whose air the life did not change, or when the API cannot say."""
+    if kind not in ("planet", "moon") or not row or not row.get("life_class_id"):
+        return None
+    try:
+        answer = apiclient.get_life_air(db, kind, printed_id)
+    except (apiclient.NotFoundError, apiclient.ApiError):
+        return None
+    grade = int(row.get("life_animal_grade") or 0)
+    view = life_air_chart.chart(answer.get("life_air"), row["life_class_id"], grade)
+    return None if view is None else {**view, "svg": trusted_html(view["svg"]), "legend": trusted_html(view["legend"]),
+                                      "note": trusted_html(view["note"])}
 
 
 def planet_sections(name, row, sheet, species, piece):
@@ -634,6 +649,7 @@ def render_item(kind, printed_id):
         object_id=printed_id,
         facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
         example=bodyview.view(kind, row, detail["stars"]) if row is not None else None,
+        life_air=life_air_view(db, kind, printed_id, row),
         **with_region(sheet_context(sheet), found),
         **({"planet": planet_sections(name, row, sheet, species, piece)} if kind in ("planet", "moon") else {}),
         tree=tree,

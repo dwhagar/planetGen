@@ -181,15 +181,20 @@ def test_the_ratio_and_index_rows_read_as_decided(key, stored, text):
 
 
 def test_the_swing_reads_as_a_range_and_each_temperature_says_whether_it_has_one():
-    """GEN.795, GEN.796: the swing is plus or minus half with the whole in all; the equator, which the swing belongs to,
-    shows its coldest and hottest hour with the stored value in the middle; every other place says no range is stored."""
-    row = {"temp_swing_k": 9.0, "temp_equator_k": 300.0, "temp_polar_k": 250.0, "surface_temperature_k": 288.0}
+    """GEN.795, GEN.796, GEN.848: the swing is plus or minus half with the whole in all; each place that has a swing of its own
+    shows its coldest and hottest hour with the stored value in the middle; a place with none stored says so; a place on a
+    locked world, which has no day, says that."""
+    row = {"temp_swing_k": 9.0, "temp_equator_k": 300.0, "temp_polar_k": 250.0, "temp_polar_swing_k": 3.0,
+           "surface_temperature_k": 288.0, "temp_mean_swing_k": 6.0, "temp_north_k": 280.0,
+           "temp_day_side_k": 330.0, "temp_day_side_swing_k": 0.0}
     by_key = {spec.key: spec for spec in sheet.SPECS["planet"]}
-    text = {key: inline_text(sheet._range_value(by_key[key], "planets", row[key], row)) for key in row}
+    text = {key: inline_text(sheet._range_value(by_key[key], "planets", row[key], row)) for key in row if key in by_key}
     assert text["temp_swing_k"] == "\u00b14.5 K, 9 K in all from the coldest hour to the hottest"
     assert text["temp_equator_k"].endswith(", from 296 K to 305 K over a day")
-    for key in ("temp_polar_k", "surface_temperature_k"):
-        assert text[key].endswith(f"({sheet.NO_RANGE})")
+    assert text["temp_polar_k"].endswith(", from 249 K to 252 K over a day")
+    assert text["surface_temperature_k"].endswith(", from 285 K to 291 K over a day")
+    assert text["temp_north_k"].endswith(f"({sheet.NO_RANGE})")
+    assert text["temp_day_side_k"].endswith(f"({sheet.NO_DAY})")
     assert inline_text(sheet._range_value(by_key["temp_equator_k"], "planets", None, row)) == sheet.NOT_STORED
 
 

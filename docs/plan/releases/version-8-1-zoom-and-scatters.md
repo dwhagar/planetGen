@@ -155,12 +155,9 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.189 | The Galaxy Map opens flown in to the created sectors |  |  |
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws |  | Boss 7:15 PM EDT; the superbubble layer is its sibling item. |
 | DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute |  |  |
-| MAP.347 | Galaxy Map info popup redesign: it is hard to read and scrolls off the screen even on a maximized 1080p display (bug) |  |  |
-| MAP.352 | Back to a system in a different sector fails when pressed before the first Back has finished (bug) |  |  |
 | MAP.348 | Galaxy Map hover preview: pointing at a place shows a small preview before the click |  |  |
 | MAP.349 | Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place)  |  |  |
 | API.36 | Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6) |  |  |
-| MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) |  |  |
 
 
 ### Golden galaxy
@@ -254,7 +251,6 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table |  | Phenomena catalogue, Boss 2026-10-15. Step 2 tests. Quality. |
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.315 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.275 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold |  | Spherical region query, stage C. Step 6. Quality. |
@@ -263,7 +259,6 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.215 | The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one |  | Boss 1:43 AM EDT, Stand-in only: R5, calibration rows fenced into tests. |
 
 ## Phase 5: New scatters: core, halo, interface update and docs
 
@@ -314,8 +309,6 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | UX.102 |  |
-| DOC.72 | The README lists every external file the program needs, with its URL and how to install it, and a check keeps the list complete |  |  |
-| DOC.73 | INSTALL.md recommends a larger innodb_redo_log_capacity for a machine that runs the full test gate |  |  |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.264, TEST.164 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder |  | Spherical region query, stage C. Step 8. Quality. |
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | DOC.19, DOC.50, DOC.51 |  |
@@ -512,6 +505,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 |---|---|---|---|
 | GEN.473 | Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution |  | Boss 1:43 AM EDT, Stand-in only: replace the measured Solar System taxon shares by a derived or general distribution. |
 | GEN.474 | Replace the Earth rock-type library, measured on Earth, by ground types derived from the bulk composition and the melting of the mantle |  | Boss 1:43 AM EDT, Stand-in only: replace the Earth rock-type library by derived ground types. |
+| GEN.1002 | Registered table rows that rest on a Solar System body are flagged stand-in with a replacement item, or re-sourced |  |  |
 | GEN.475 | Meteorite groups become outputs and not inputs: regions of composition space reachable from the drawn bulk, with the measured groups kept as calibration | GEN.473, GEN.474 | Boss 1:43 AM EDT, Stand-in only: R3, meteorite groups as outputs of the drawn chemistry. |
 | GEN.476 | Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range |  | Boss 1:43 AM EDT, Stand-in only: R4, Al-26 and Fe-60 from the formation environment. |
 
@@ -555,7 +549,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.414 | test_habitability_end_to_end_browser errors: the database fixture times out at 900 s before any page loads (8 errors) (bug) |  |  |
 | TEST.417 | Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug) |  | found by Aux 8 |
 | GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) |  |  |
-| GEN.911 | Habitable-world requests and the habitable zone: the zone mostly holds frozen worlds, so decide where habitable requests aim (inner half of the zone or a temperate band from the solved climate) |  |  |
 | GEN.913 | A forced civilization (+intelligent_life request) should retry placement until a civilization-capable world exists; today it usually fails to appear (bug) |  |  |
 | GEN.946 | Burn down the hand-tuned constants: replace each L3 or L4 registry row and each unregistered constant the audit ranks high with the data we hold, or record why no data exists | GEN.945 |  |
 | TEST.455 | A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink | GEN.945 |  |
@@ -583,11 +576,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.927 | Single-star mass function rows: a bell below 1 solar mass, the field slope from 1 to 8, the sub-stellar tail and the massive end, with stand-in tiers and tweak levels and a design note |  |  |
 | GEN.922 | The star mass function is built right: initial mass function and present-day populations match the observed curve segment by segment, for every mass range and every star-like object type (parent, replaces the one-number GEN.914 tweak) |  |  |
 | GEN.920 | Giants around F, G and K stars are too rare after the class cut-over: 0.03 cold and 0.07 in all per star against 0.05 to 0.25 and 0.08 to 0.35 observed; retune the mass-law gas share (bug) |  |  |
-| PERF.208 | A stored, indexed sector system count, density and quadrant so the remaining Sectors list sorts page by key (slice 5 of the PERF.137 OFFSET audit) |  |  |
-| PERF.215 | An unfiltered planets or moons list pages by key: an index on planets (star_system_id, orbital_index) so the name-then-orbit order is served by the index | PERF.208 |  |
 | GEN.918 | The galaxy's star count follows its own star-formation history: the density model counts systems per parsec cubed while the history counts stars formed, so the galaxy holds 0.46 of the stars its history implies (root of GEN.900, GEN.901, GEN.902) |  |  |
-| GEN.916 | The habitable-world guarantee is judged on the conditions (a world that can hold life), not on the class letter M |  |  |
-| GEN.980 | The stored class of 4 to 8 bodies differs from the class their final body gives (stored Q, conditions give D; stored P or K, derived D or P): the class is derived before the air is final (bug) |  |  |
 | GEN.915 | Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class |  |  |
 | TEST.430 | Class census: a standing seeded report of every planet and moon class share and overall colour per star type and zone, with stored expected ranges and anomaly flags |  |  |
 | GEN.862 | Design: the life class system, merged as docs/design/habitability/life-classes.md (nine classes, the stage ladder, the ledger, scoring and storage) |  | Boss, 9:10 PM EDT 2026-10-28: carbon life classes move into 8.1. |
@@ -599,7 +588,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.436 | Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges | TEST.430, GEN.879, GEN.880, GEN.876 | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
 | GEN.888 | The acid medium model: a sulfuric acid cloud layer and acid pools from the temperature profile and the SO2 and water shares, filling the dead solvent() sulfuric branch |  | Life class system (order final, Boss 9:20 PM EDT). |
 | UX.237 | Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists |  | Life class system (order final, Boss 9:20 PM EDT). |
-| GEN.894 | Strange-solvent life classes 5 to 9 (acid-world, dense CO2, cold hydrocarbon sea, ammonia-water, silicon-bearing in acid): windows, supplies, texts, stand-ins and tiers | GEN.888 | Life class system (second build). |
 | GEN.1001 | A world whose star is younger than the first step of its life schedule is stored with a life class but no life stage, so the map markers, the object page line and the class filters show life that has not started (bug) |  |  |
 | GEN.863 | Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters | GEN.862, UX.237 | A migration; moved to 8.1 by Boss, 9:10 PM EDT 2026-10-28. |
 | TEST.435 | Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges | GEN.863, TEST.430 | Extends the TEST.430 suite; moved to 8.1 (Boss 9:20 PM EDT); sentient the rarest rung, animals to civilizations at least 20 to 1. |
@@ -608,13 +596,10 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.982 | Wire the photolysis lifetimes (physics/photolysis.py and photolysis_lifetimes.json) into the atmosphere chemistry |  |  |
 | GEN.851 | Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today) |  |  |
 | GEN.850 | Wire radiative_convective.warming into generation behind a lookup table of the model answers, and delete the infrared_opacity.py plateau code |  |  |
-| GEN.849 | Re-fit the delivered-water rows b2/b3 against the bodies bulk water (the rows deliver 0.1 to 0.2 percent of mass against 0.01 to 0.03 percent of body water) |  |  |
-| GEN.848 | Store a day and night swing for every temperature the sheet shows (only the equator has one) (bug) |  |  |
-| GEN.842 | Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left | GEN.953, GEN.955, GEN.957, GEN.959, GEN.960, GEN.961, GEN.976, GEN.979 | Math 2 follow-up |
-| GEN.953 | Birth spin retune: a scale on the rocky planet birth rotation so free days fall in the Solar System range |  |  |
-| GEN.979 | Birth spin derivation (b): the birth rotation of a rocky planet follows Kokubo and Genda eq. 4 with the gamma law, replacing the scale factor of GEN.953 | GEN.953 |  |
+| GEN.842 | Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left | GEN.955, GEN.957, GEN.959, GEN.960, GEN.961, GEN.976, GEN.979 | Math 2 follow-up |
+| GEN.979 | Birth spin derivation (b): the birth rotation of a rocky planet follows Kokubo and Genda eq. 4 with the gamma law, replacing the scale factor of GEN.953 |  |  |
 | GEN.955 | Tides stage 1b: wire the rheology into tidal_heating, interior_heat and circularisation |  |  |
-| GEN.957 | Tides stage 2b: wire the torque sum into planet spin, with the moon-on-planet tide after the moons exist | GEN.955, GEN.953, GEN.979 |  |
+| GEN.957 | Tides stage 2b: wire the torque sum into planet spin, with the moon-on-planet tide after the moons exist | GEN.955, GEN.979 |  |
 | GEN.959 | Tides stage 3b: wire moon orbit history, rings from fallen moons and the moons' tide into the planet's heat | GEN.957 |  |
 | GEN.960 | Tides side thread: ice rheology for the hydrosphere ice shell and the icy branch of tidal_heating (c-ice) | GEN.955 |  |
 | GEN.961 | Settle giants: after the star's age is final, recompute each giant's radius and redraw its interior, at the mean light of its real orbit (eccentricity-first folded in) |  |  |
@@ -653,17 +638,12 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample |  |  |
 | GEN.819 | Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet |  |  |
 | GEN.824 | The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2 |  |  |
-| GEN.833 | Cold icy moons get sparse ice cover because the hydrosphere's toy ocean_fraction feeds the ground draw (bug) |  |  |
-| GEN.834 | Non-water ice species (CO2, CH4, N2 and others) are drawn into the ground but not stored per species |  |  |
 | PERF.198 | Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6) |  |  |
 | GEN.768 | Hours a person can be outside in a day: daylight hours limited by heat, cold, pressure, air supply and radiation dose, computed and stored per planet and moon |  |  |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output |  |  |
 | API.33 | API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug) |  |  |
 | TEST.389 | test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug) |  |  |
 | TEST.387 | test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug) |  |  |
-| OPS.73 | Delete the dead tuning knobs (HABITABLE_ZONE_BUFFER_AU, ROUND_RADIUS_KM, RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD, STELLAR_PROTO_HELIUM_OFFSET_DEX, MAX_FLAVOR_PLANET, NAV_COURSE_DECIMAL_PLACES, STELLAR_U_TH_UNCERTAINTY) (G7, step 1) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain OPS.72, Boss 10:35 PM EDT. |
-| OPS.74 | Delete the uncalled helpers (class_allowed_in_zone, build_sector_configs, shell_chunks, draw_mass, mantle_mass_kg, build_nodes, get_galaxy_phenomena, register_card_renderer, read_config, settings_hash, mass_limit_argv) (G7, step 2) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain OPS.72, Boss 10:35 PM EDT. |
-| OPS.72 | Delete the dead tuning knobs and uncalled helpers the unused-values audit found (G7) | OPS.73, OPS.74 |  |
 | UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) |  |  |
 | GEN.790 | Write the sheet rule for the comet columns mean_anomaly_deg, orbital_period_years and period_class (54 of 234 comets empty) |  |  |
 | GEN.789 | Write the sheet rule for wide_binary_a_crit_km: not applicable to a single star, filled for a binary (348 of 522 stars empty) |  |  |
@@ -687,10 +667,9 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.806 | Delete the duplicate XUV recomputation in physics/mixture_subject.py and read xuv_exposure_index (G2, step 3) | GEN.804 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
 | GEN.807 | Stellar activity (flare rate, XUV saturation) follows the star's rotation: rotation_period_hours, flare_alpha and xuv_saturated get readers (G2, step 4) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
 | GEN.808 | The ozone-loss flag feeds the UV limit on life and the surface look (G2, step 5) | GEN.805 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
-| GEN.801 | Wire the giant-planet interior outputs into the field, the heat and the description (G3) | GEN.733, GEN.809, GEN.810, GEN.811 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
+| GEN.801 | Wire the giant-planet interior outputs into the field, the heat and the description (G3) | GEN.733, GEN.809, GEN.810 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
 | GEN.809 | A giant's dipole moment and class come from the metallic-hydrogen shell and the dilute core (G3, step 1) | GEN.733 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.801, Boss 10:35 PM EDT. |
 | GEN.810 | A giant's internal heat reads the interior layers and the helium shell (G3, step 2) | GEN.733 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.801, Boss 10:35 PM EDT. |
-| GEN.811 | The description of a giant says what its interior is (G3, step 3) | GEN.809, GEN.810 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.801, Boss 10:35 PM EDT. |
 | GEN.912 | The planet albedo draw does not follow the star's colour, so planets of cool stars come out a little too cold (stand-in) |  |  |
 | GEN.944 | Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars) |  |  |
 | GEN.949 | Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets |  |  |

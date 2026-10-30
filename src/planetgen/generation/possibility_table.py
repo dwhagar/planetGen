@@ -170,6 +170,9 @@ class Row:
         tunable (bool): The row's weight or draw has knobs that are tuned to a published statistic (GEN.503): the
             tuning-target table must hold at least one target for it (`Registry.validate(targets=...)`). It does not decide
             a draw, so it is not part of `Table.digest`.
+        calibration_only (bool): The row is a measured Solar System target (Earth, Mars, the Moon, the Galilean moons, Sirius B) that a
+            test checks the physics against (TEST.215). Such a row is never a generator table's: `Registry.register` refuses a table
+            that holds one, so it lives in a test file only. Not part of `Table.digest`.
     """
 
     name: str
@@ -184,6 +187,7 @@ class Row:
     concentration: float | None = None
     notes: str = ""
     tunable: bool = False
+    calibration_only: bool = False
 
     def __post_init__(self):
         object.__setattr__(self, "classes", tuple(sorted(set(self.classes))))
@@ -413,9 +417,12 @@ class Registry:
         self._tables = {}
 
     def register(self, table):
-        """Registers `table`; a second table of the same name is an error. Returns the table."""
+        """Registers `table`; a second table of the same name is an error, and so is one that holds a calibration-only row. Returns the table."""
         if table.name in self._tables:
             raise TableError(f"a table named {table.name!r} is already registered")
+        fenced = [row.name for row in table.rows if row.calibration_only]
+        if fenced:
+            raise TableError(f"table {table.name!r} holds calibration-only rows {fenced}: a measured Solar System target lives in a test file and is never a generator table's row")
         self._tables[table.name] = table
         return table
 

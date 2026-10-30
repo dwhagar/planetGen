@@ -62,6 +62,24 @@
    "tier": "T9",
    "tweak": "L0",
    "basis": "The air takes new methane only when the target is this much above what it holds, so that applying the ledger again changes nothing (a numerical choice)"
+  },
+  "h2s_max_share": {
+   "value": 1e-8,
+   "tier": "T9",
+   "tweak": "L4",
+   "basis": "The most hydrogen sulfide an air holds where sulfur-eating life lives, as a mole share (GEN.894): Earth's modern air holds tens of parts per trillion (recalled) and a volcanic reduced air much more where nothing eats it; one part in a hundred million is the cap the ledger gives a world with sulfur eaters or acid eaters. A design floor, no source gives a sulfur-eater limit"
+  },
+  "sulfur_dioxide_per_h2s": {
+   "value": 1.0,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "The acid eaters of Classes 5 and 9 oxidise the hydrogen sulfide they take to sulfur dioxide: sulfur is conserved, one mole of SO2 for each mole of H2S (the oxygen comes from the acid; stoichiometry)"
+  },
+  "methane_per_h2_hydrogenated": {
+   "value": 0.6667,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "C2H2 + 3 H2 -> 2 CH4: the cold hydrogenators of Class 7 make two methane from the three hydrogen they take (stoichiometry); the carbon comes from the haze acetylene, not from the air's gases, which the air does not store"
   }
  },
  "classes": {
@@ -97,15 +115,27 @@
   },
   "4": {
    "name": "Chemolithotrophs",
-   "status": "pending",
+   "status": "built",
    "methane": null,
-   "draws_down": [],
-   "note": "Draws H2S down and makes sulfate; the air effect needs a sulfur ledger (not built).",
-   "tier": "T6",
-   "tweak": "L3",
-   "basis": "life-classes.md section 4, row 4"
+   "draws_down": ["H2S"],
+   "note": "Draws hydrogen sulfide down to a part in a hundred million and makes sulfate in the water (not an air gas); the air effect is the missing H2S. The size is capped by how fast the oxidant arrives, which the class's supply terms already do.",
+   "tier": "T8",
+   "tweak": "L4",
+   "basis": "life-classes.md section 4, row 4; the H2S cap is a design floor (h2s_max_share)"
   },
-  "5": {"name": "Acid eaters", "status": "pending", "methane": null, "draws_down": [], "note": "Classes 5 to 9 are the second build of the class system (GEN.888, GEN.894).", "tier": "T8", "tweak": "L4", "basis": "life-classes.md section 4, rows 5 and 9: speculative chemistry"},
+  "5": {
+   "name": "Acid eaters",
+   "status": "built",
+   "methane": null,
+   "draws_down": ["H2S"],
+   "note": "Acid eaters take reduced sulfur (hydrogen sulfide) and put sulfur dioxide into the air, so the air shifts from H2S to SO2 in the same moles. The elemental sulfur, carbon dioxide and water they also give off are not air changes the ledger tracks. The sulfur dioxide share is the acid medium's own supply (GEN.888).",
+   "tier": "T8",
+   "tweak": "L4",
+   "basis": "life-classes.md section 4, rows 5 and 9: speculative chemistry; the climates report's own bookkeeping, no source gives rates",
+   "products": {
+    "H2S": {"gas": "SO2", "per": "sulfur_dioxide_per_h2s"}
+   }
+  },
   "6": {
    "name": "Dense-carbon-dioxide hydrogen eaters",
    "status": "built",
@@ -116,7 +146,19 @@
    "tweak": "L4",
    "basis": "life-classes.md section 4, row 6 (a methane source; the water separates from the fluid)"
   },
-  "7": {"name": "Cold methane hydrogenators", "status": "pending", "methane": null, "draws_down": [], "note": "Hydrogen and acetylene go down and methane up in an air that is already methane; not built.", "tier": "T8", "tweak": "L4", "basis": "life-classes.md section 4, row 7: the Titan anomalies are a lead, not a detection"},
+  "7": {
+   "name": "Cold methane hydrogenators",
+   "status": "built",
+   "methane": null,
+   "draws_down": ["H2"],
+   "note": "Hydrogen goes down to its cap and methane up by two thirds of a mole for each mole of hydrogen taken. Acetylene goes down too, but the air does not store it, so that part is only in the text: the Titan hydrogen and acetylene anomalies are a lead, not a detection.",
+   "tier": "T8",
+   "tweak": "L4",
+   "basis": "life-classes.md section 4, row 7: the Titan anomalies are a lead, not a detection",
+   "products": {
+    "H2": {"gas": "CH4", "per": "methane_per_h2_hydrogenated"}
+   }
+  },
   "8": {
    "name": "Ammonia-water hydrogen eaters",
    "status": "built",
@@ -127,6 +169,18 @@
    "tweak": "L4",
    "basis": "life-classes.md section 4, row 8"
   },
-  "9": {"name": "Silicon acid eaters", "status": "pending", "methane": null, "draws_down": [], "note": "As Class 5, with silica deposits.", "tier": "T8", "tweak": "L4", "basis": "life-classes.md section 4, rows 5 and 9: speculative chemistry"}
+  "9": {
+   "name": "Silicon acid eaters",
+   "status": "built",
+   "methane": null,
+   "draws_down": ["H2S"],
+   "note": "As Class 5, with silica deposits (a solid, not an air gas).",
+   "tier": "T8",
+   "tweak": "L4",
+   "basis": "life-classes.md section 4, rows 5 and 9: speculative chemistry",
+   "products": {
+    "H2S": {"gas": "SO2", "per": "sulfur_dioxide_per_h2s"}
+   }
+  }
  }
 }

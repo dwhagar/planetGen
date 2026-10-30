@@ -76,46 +76,29 @@ POPULATION_AGED_KINDS = ("brown-dwarf", "neutron-star", "black-hole")
 `FillContext.apply_population` and take their age from that population's window and age law."""
 
 
-def build_sector_configs(args):
+def iter_sector_configs(args):
     """
-    Builds one `SystemConfig` per system in the sector, sharing the same
-    value options across all of them (via `build_system_config`, so this
-    can never silently drift from what those options mean for a single
-    system; sector runs take no forcing options, GEN.51), then -- if
-    `--min-habitable` was given -- sets `HABITABLE_WORLD = True` on that
-    many randomly-chosen configs.
+    Yields one `SystemConfig` per system in the sector, one at a time, sharing
+    the same value options across all of them (via `build_system_config`, so
+    this can never silently drift from what those options mean for a single
+    system; sector runs take no forcing options, GEN.51). A huge count
+    (`--num-systems 1000000000`, or a huge `--density` draw) never builds them
+    all up front -- `generate_sector` stops pulling once the sector is full.
+    If `--min-habitable` was given, `HABITABLE_WORLD = True` is set on that
+    many randomly-chosen configs; the indices are chosen (and any conflict
+    reported) before the first config is yielded.
 
     Args:
-        args (argparse.Namespace): Parsed arguments, with
-            `args.num_systems` already resolved to a concrete count --
-            either the user's explicit `--num-systems`, or (see
-            `generate_sector`) a per-sector value sampled from `--density`.
-
-    Returns:
-        list: A list of `num_systems` `SystemConfig` instances, one per
-              system the sector will contain.
+        args (argparse.Namespace): Parsed arguments, with `args.num_systems`
+            already resolved to a concrete count -- either the user's explicit
+            `--num-systems`, or (see `generate_sector`) a per-sector value
+            sampled from `--density`.
 
     Raises:
         SystemExit: Under `--strict`, if `--min-habitable` exceeds a
-            `--density`-driven count (an explicit `--num-systems` is
-            checked earlier by `validate_shared_generation_args`); without
-            it, a warning and the sector gets `--min-habitable` systems
-            (GEN.81).
-    """
-    return list(iter_sector_configs(args))
-
-
-def iter_sector_configs(args):
-    """
-    `build_sector_configs`, lazily: yields the same `args.num_systems`
-    configs one at a time, so a huge count (`--num-systems 1000000000`,
-    or a huge `--density` draw) never builds them all up front --
-    `generate_sector` stops pulling once the sector is full. Every config
-    comes from the same `args`; the `--min-habitable` indices are chosen
-    (and any conflict reported) before the first config is yielded.
-
-    Raises:
-        SystemExit: As `build_sector_configs`.
+            `--density`-driven count (an explicit `--num-systems` is checked
+            earlier by `validate_shared_generation_args`); without it, a
+            warning and the sector gets `--min-habitable` systems (GEN.81).
     """
     count = args.num_systems
     if args.min_habitable > count:
@@ -818,7 +801,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
             subcommand builds itself -- see
             `add_shared_generation_options`/`validate_shared_generation_args`
             for the option surface this function actually reads, via
-            `build_sector_configs`).
+            `iter_sector_configs`).
         galactic_center_dist_ly (float, optional): This sector's distance
             from the galactic center, in light-years, threaded down into
             every generated system's Hill-sphere calculation (see
@@ -1091,7 +1074,7 @@ def run_sector(args):
     """
     Generates `args.num_sectors` sectors (1 by default), each one a
     fully populated `SpaceSector` (see `generate_sector` -- one
-    `SystemConfig` per system via `build_sector_configs`, a full
+    `SystemConfig` per system via `iter_sector_configs`, a full
     `StarSystem` from each, all placed in the sector via
     `SpaceSector.add_system`'s Hill-sphere-based placement) saved into
     the same database. No `galactic_center_dist_ly` is passed to

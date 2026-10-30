@@ -3041,32 +3041,80 @@ code {
    button, and not at all until something is picked. The map under it stays pickable: only its buttons and links take
    the pointer. */
 .starmap-info[data-overlay] {
+  /* The share of the map's width the card takes: on a phone, all of what the controls leave (MAP.347). */
+  --info-share: clamp(13rem, 36%, 24rem);
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
   /* Under the Menu's open panel (z-index 5), so a tall popup never covers the Menu's buttons. */
   z-index: 4;
-  /* MAP.295: the popup follows the map's window: a share of its width (within limits), never taller than it, and its
-     text shrinks (mappick.js sets --info-scale) until what it says fits, so nothing is cut off. */
-  width: min(calc(100% - 1rem), clamp(13rem, 36%, 24rem));
+  /* MAP.295: the popup follows the map's window: a share of its width (within limits), never taller than it. MAP.347: it shows a
+     first view only (name, kind, three values, buttons); the rest is behind Expand, in a region that scrolls on its own. */
+  width: min(calc(100% - 1rem), var(--info-share));
   max-height: calc(100% - 1rem);
-  overflow: auto;
-  padding: calc(0.5rem * var(--info-scale, 1)) calc(0.7rem * var(--info-scale, 1));
-  /* MAP.325: a reading size (about 15 px); the text shrinks (mappick.js, --info-scale) only to 90 percent of it before
-     the card scrolls, and the card says less (what is rarely needed is behind More) rather than less legibly. */
-  font-size: calc(0.95rem * var(--info-scale, 1));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0.5rem 0.7rem;
+  /* MAP.325: a reading size (about 15 px). */
+  font-size: 0.95rem;
   background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
   overflow-wrap: anywhere;
   pointer-events: none;
 }
 
+/* MAP.347: the name with the Close beside it. */
+.starmap-info[data-overlay] .map-info-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  flex: none;
+}
+
+.starmap-info[data-overlay] .map-info-head > h3 {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.starmap-info[data-overlay] .map-info-head > .map-info-close,
+.starmap-info[data-overlay] .map-info-head > .map-info-bookmark {
+  flex: none;
+}
+
 .starmap-info[data-overlay] h3 {
   font-size: 1.05em;
-  margin-bottom: 0.4em;
+  margin: 0 0 0.1em;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* MAP.347: what kind of thing the card is about, under its name. */
+.starmap-info[data-overlay] .map-info-kind {
+  margin: 0 0 0.25em;
+  line-height: 1.2;
+  color: var(--text-muted);
+  flex: none;
+}
+
+.starmap-info[data-overlay] > dl,
+.starmap-info[data-overlay] > .map-info-actions {
+  flex: none;
+}
+
+/* MAP.347: what is behind Expand scrolls inside the card, so the name and the buttons stay in view. */
+.starmap-info[data-overlay] > .map-info-rest {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
 }
 
 .starmap-info[data-overlay] dl {
-  margin-bottom: 0.6em;
+  margin-bottom: 0.4em;
+  gap: 0.1rem 0.6rem;
+  line-height: 1.25;
 }
 
 /* MAP.296: the nearest systems under a system's position. */
@@ -3099,8 +3147,14 @@ code {
   cursor: pointer;
 }
 
-/* What does not fit even at the smallest text scrolls, so the pointer has to reach the popup to scroll it. */
-.starmap-info[data-overlay][data-scroll] {
+@media (max-width: 40rem) {
+  .starmap-info[data-overlay] {
+    --info-share: 100%;
+  }
+}
+
+/* An expanded card has a region to scroll, so the pointer has to reach the card. */
+.starmap-info[data-overlay][data-expanded] {
   pointer-events: auto;
 }
 
@@ -3137,31 +3191,31 @@ code {
 
 /* MAP.336: a card on the right stands to the left of the log ruler, which then keeps its ticks only (the names come back on hover or
    focus) so the card does not reach over the middle of the map; a tall card stands beside the controls (`--info-pad-clear`). */
-:is(.galaxy-map-main, .starmap-viewport):has(.starmap-ruler) > .starmap-info[data-overlay][data-corner$="right"]:not([data-tall]) {
+:is(.galaxy-map-main, .starmap-viewport):has(.starmap-ruler) > .starmap-info[data-overlay][data-corner$="right"]:not([data-beside]) {
   right: 3.2rem;
-  width: min(calc(100% - 3.7rem), clamp(13rem, 36%, 24rem));
+  width: min(calc(100% - 3.7rem), var(--info-share));
 }
 
 :is(.galaxy-map-main, .starmap-viewport):has(.starmap-navpad) > .starmap-info[data-corner="bottom-right"] {
   bottom: 9.5rem;
 }
 
-/* MAP.332: a card too tall for the room above the controls and the legend takes the map's whole height (static/mappick.js sets
-   `data-tall`), the popup sized to its content up to the window's height and scrolling past it. On the right it stands beside the
-   zoom controls (their width is `--info-pad-clear`); on the left it lies over the legend and the scale, which only read. */
-.starmap-info[data-overlay][data-tall],
-:is(.galaxy-map-main, .starmap-viewport):has(.starmap-navpad) > .starmap-info[data-overlay][data-tall] {
+/* MAP.332, MAP.347: an expanded card takes the map's whole height (static/mappick.js sets `data-beside`), its region scrolling past
+   it. On the right it stands beside the zoom controls (their width is `--info-pad-clear`); on the left it lies over the legend and
+   the scale, which only read. */
+.starmap-info[data-overlay][data-beside],
+:is(.galaxy-map-main, .starmap-viewport):has(.starmap-navpad) > .starmap-info[data-overlay][data-beside] {
   top: 0.5rem;
   bottom: auto;
   max-height: calc(100% - 1rem);
 }
 
-.starmap-info[data-overlay][data-tall][data-corner$="right"] {
+.starmap-info[data-overlay][data-beside][data-corner$="right"] {
   right: var(--info-pad-clear, 10rem);
-  width: min(calc(100% - var(--info-pad-clear, 10rem) - 1rem), clamp(13rem, 36%, 24rem));
+  width: min(calc(100% - var(--info-pad-clear, 10rem) - 1rem), var(--info-share));
 }
 
-.starmap-info[data-overlay][data-tall][data-corner$="left"] {
+.starmap-info[data-overlay][data-beside][data-corner$="left"] {
   left: 0.5rem;
   right: auto;
 }
@@ -5646,6 +5700,80 @@ p.hint a {
 
 .life-class-lines dd {
   margin: 0 0 0.4rem;
+}
+
+/* UX.237: the Life and air chart. */
+.life-air-chart {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  display: block;
+  margin: 0.5rem 0;
+}
+
+.life-air-chart .life-air-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.life-air-chart .life-air-label,
+.life-air-chart .life-air-stage-number {
+  fill: var(--text-muted);
+  font-size: 11px;
+}
+
+.life-air-chart .life-air-stage {
+  stroke: var(--line);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.life-air-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.life-air-o2 { stroke: var(--tier-blue); }
+.life-air-co2 { stroke: var(--text-muted); stroke-dasharray: 6 3; }
+.life-air-ch4 { stroke: var(--tier-yellow); stroke-dasharray: 2 3; }
+.life-air-other { stroke: var(--accent); }
+
+.life-air-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  list-style: none;
+  margin: 0.25rem 0;
+  padding: 0;
+}
+
+.life-air-key {
+  display: inline-block;
+  width: 1.5rem;
+  vertical-align: middle;
+  border-top: 2px solid currentColor;
+}
+
+.life-air-key.life-air-o2 { border-top-color: var(--tier-blue); }
+.life-air-key.life-air-co2 { border-top: 2px dashed var(--text-muted); }
+.life-air-key.life-air-ch4 { border-top: 2px dotted var(--tier-yellow); }
+
+.life-air-stages {
+  margin: 0.25rem 0 0.5rem 1.25rem;
+  padding: 0;
+}
+
+.life-air-table {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+
+.life-air-table th,
+.life-air-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.2rem 0.75rem 0.2rem 0;
+  text-align: left;
 }
 
 .sheet-missing {
