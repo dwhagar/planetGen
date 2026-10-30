@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2822] - 2026-10-30
+
+**Headline:** update.sh no longer leaves a migrated site closed because its /api/health probe got no good answer, and says why a probe got no HTTP answer.
+
+### Changed
+- **A health probe that fails after a clean reload is a warning, and the site opens.** By the time the probe runs, the migration is finished and Apache's configtest and reload have both succeeded. Only a failed configtest or reload (status 1) still ends the update with the site closed; a probe that never got a good answer (new status 3 of `reload_web_if_running`) prints the warning, says the database is migrated and current, and opens the site. A live update (v175 to v186) ended with HTTP 403 from the bare address and HTTP 000 from the site's own address, and stayed closed.
+- **"HTTP 000" now says why.** It is not a status code: curl got no HTTP answer at all. The warning names the cause from curl's exit status (connection refused, name lookup, TLS or certificate, timeout, too many redirects). The site's own address is checked with `-k` (the certificate is not what the check judges, and the connection is to this machine) and waits up to 8 seconds for each try, so a cold mod_wsgi start is not mistaken for no answer.
+- **Item:** OPS.78 (bug), update.sh left the migrated site closed when the health probe failed after a clean reload.
+
 ## [8.0.2821] - 2026-10-30
 
 **Headline:** Slow bodies now visibly turn, a tidally locked world keeps its day side toward its star, and the object page shows every planet at the day and night line.
