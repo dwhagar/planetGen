@@ -20,8 +20,10 @@ of the temperature between the three templates (4000 K, the Sun at 5772 K, 10000
   a 10000 K star CO2 rises 6.5 times and NH3 falls to 0.41.
 * **Outside 4000 to 10000 K the ratio is the end template's** (`outside_templates` says so): the sources have no
   spectrum there, so a star cooler than 4000 K is under-corrected for CO, N2, CH4 and HCN. It is an open item.
-* **The active-Sun factor is only for the species whose value was read** (H2O 1.68, CO2 2.35, NH3 1.075, HCN 2.1 from
-  a search snippet). For the others `active_sun=True` raises `NoData` rather than assume one.
+* **The active-Sun factor is only for the species whose value was read** (H2O 1.68, CO2 2.35, HCN 2.1 from a search
+  snippet) or computed (NH3 1.07 from measured solar spectra, `scripts/nh3_activity_factor.py`, GEN.794; a measured cycle
+  maximum, milder than the Huebner and Mukherjee active Sun of H2O and CO2). For the others `active_sun=True` raises `NoData`
+  rather than assume one.
 * **Shielding is not included**: CO and N2 self-shield in a dense inner coma and in a thick air column, and the lifetimes
   in an atmosphere are longer (docs/design/composition/atmosphere-composition-parts/04-photochemistry-lifetimes-escape.md).
 * **Source values** are labelled in the file: the quiet-Sun lifetime of H2O, CO, CO2, HCN, CH3OH and CH2O is the
