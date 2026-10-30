@@ -345,3 +345,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.116:RGP5 | GEN.1069 | `resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT`, read when the wiring step lands |
 | row | 6.116:RGP6 | GEN.1069 | `resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR, YARKOVSKY_REFERENCE_AU`, read when the wiring step lands |
 | row | 6.116:RGP7 | GEN.1069 | `resonance_gaps.ZONE_ECCENTRICITY_FLOOR`, read when the wiring step lands |
+| module | planetgen.physics.belt_history | GEN.1069 | the events that act on a belt (giant migration or instability, the giant branch, mass loss, a companion) and the pollution rate of the rock it scatters (lock-free, GEN.1064); the belt generator runs the events a system's history holds and the white dwarf pollution row reads the rate |
+| row | 6.117:BHS1 | GEN.1069 | `belt_history.GRAND_TACK_SURVIVAL, INSTABILITY_SURVIVAL`, read when the wiring step lands |
+| row | 6.117:BHS2 | GEN.1069 | `belt_history.SURFACE_DENSITY_SLOPE`, read when the wiring step lands |
+| row | 6.117:BHS3 | GEN.1069 | `belt_history.MASS_LOSS_SCATTER_SHARE`, read when the wiring step lands |
+| row | 6.117:BHS4 | GEN.1069 | `belt_history.DELIVERY_MYR`, read when the wiring step lands |
+| row | 6.117:BHS5 | GEN.1069 | `belt_history.MIN_POLLUTION_RATE_G_S`, read when the wiring step lands |
