@@ -2007,3 +2007,9 @@ Baseline: PR #1817.
 | TEST.485 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.487 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.353 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| GEN.1042 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1045 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1053 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.490 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.494 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1037 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

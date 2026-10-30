@@ -214,3 +214,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.78:GT1 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
 | row | 6.78:GT2 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
 | row | 6.78:GT3 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
+| module | planetgen.physics.mantle_stripping | GEN.1048 | the iron-rich core of a giant impact (Marcus and others 2010 scaling); the weirdness wiring (W10) gives a rocky planet that had a recorded merger a core fraction from the impacts the architecture recorded |
+| row | 6.93:MT4 | GEN.1048 | `mantle_stripping.Q_STAR_SCALE` of the mantle stripping module, read when its wiring step lands |
+| row | 6.93:MT6 | GEN.1048 | `mantle_stripping.MAX_CORE_MASS_FRACTION` of the mantle stripping module, read when its wiring step lands |
+| row | 6.93:MT7 | GEN.1048 | `mantle_stripping.IMPACT_ANGLE_DEG` of the mantle stripping module, read when its wiring step lands |

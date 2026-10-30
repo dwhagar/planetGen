@@ -36,5 +36,35 @@
     "moon_mass_ratio": {"label": "largest moon over its planet", "note": "mass ratio, 0 for no moon"},
     "neighbour_period_ratio": {"label": "closest neighbour's period ratio", "note": "outer period over inner, 0 for no neighbour"}
   },
-  "rows": []
+  "rows": [
+    {
+      "id": "W10",
+      "name": "Iron-rich core",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "mass_earth", "lt": 10.0},
+        {"quantity": "collision_count", "min": 1}
+      ],
+      "rate": {
+        "value": 0.05,
+        "source": "registry row WR4: iron-rich rocky planets are 5 of 22 and 6 of 28 in Adibekyan and others 2021, about 1 in 21 in Plotnykov and others 2025 and none distinct in Brinkman and others 2024; log-uniform 0.01 to 0.23, middle 0.05",
+        "label": "READ",
+        "tier": "T3",
+        "tweak": "L1",
+        "registry": "WR4"
+      },
+      "apply": {
+        "lever": "L3",
+        "input": "core_mass_fraction",
+        "effect": "strip_mantle",
+        "params": {"max_fraction": 0.85}
+      },
+      "limits": [
+        {"quantity": "core_mass_fraction", "lt": 0.85}
+      ],
+      "source": "Marcus, Stewart, Sasselov and Hernquist 2010 (ApJL 712, L73); Benz and others 2007 (Space Science Reviews 132, 189); Bonomo and others 2019 (Nature Astronomy 3, 416); the module is physics/mantle_stripping.py",
+      "text": "A giant impact knocked most of its rocky mantle off, so it is mostly iron, like Mercury."
+    }
+  ]
 }
