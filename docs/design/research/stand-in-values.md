@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 487 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 493 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 60 | 0 | 5 | 0 | 0 | 65 |
-| T2 | 79 | 8 | 0 | 1 | 0 | 88 |
-| T3 | 59 | 14 | 3 | 10 | 0 | 86 |
+| T2 | 80 | 8 | 0 | 1 | 0 | 89 |
+| T3 | 59 | 15 | 3 | 10 | 0 | 87 |
 | T4 | 25 | 0 | 0 | 4 | 4 | 33 |
-| T5 | 28 | 7 | 1 | 0 | 0 | 36 |
-| T6 | 40 | 18 | 9 | 30 | 0 | 97 |
-| T7 | 18 | 6 | 1 | 7 | 0 | 32 |
+| T5 | 28 | 8 | 1 | 0 | 0 | 37 |
+| T6 | 41 | 18 | 9 | 30 | 0 | 98 |
+| T7 | 19 | 6 | 2 | 7 | 0 | 34 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 310 | 53 | 21 | 78 | 25 | 487 |
+| All | 313 | 55 | 22 | 78 | 25 | 493 |
 
 ## How the labels were given
 
@@ -784,3 +784,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DD3 | P | T6 | L2 | tuning.DEBRIS_DISK_TEMPERATURE_MEDIAN_K 58 and DEBRIS_DISK_TEMPERATURE_LOG_SIGMA 0.45: the dust temperature of a disk, log-normal | median 45 to 70 K, sigma 0.3 to 0.6 | stars of one solar luminosity | the 47 blackbody radii of Table 1 | the temperatures read from the table itself | median 23 AU and 7 to 40 AU for most, from the abstract and the table as counted | - | - |
 | DD4 | P | T6 | L1 | tuning.DEBRIS_RADIUS_OVER_BLACKBODY 1.74: the belt lies this far beyond its blackbody radius | 1.5 to 2.5 (the paper: a blackbody radius "can underestimate the true disc radius by up to a factor of 2.5") | realistic dust | resolved belt radii | resolved radii from the imaged discs | "scales to about 40 AU for realistic dust properties" over a median of 23 AU | - | - |
 | DD5 | P | T4 | L0 | tuning.DEBRIS_DISK_EDGES_OVER_RADIUS (0.7, 1.5): the ring spans 0.7 to 1.5 of the belt radius | width over radius 0.3 to 1.2 | every debris disk | resolved widths | measured fractional widths | design (a ring about as wide as it is far out) | - | - |
+
+## 6.54 Stand-ins of the stellar wind and flares at a world
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| WF1 | P | T7 | L2 | ion_escape.ION_ESCAPE_EFFICIENCY 1.2e-5: the share of the energy-limited XUV mass loss that leaves as ions through the open field | 5e-6 to 5e-5 | worlds the wind reaches, Venus- and Mars-sized and up | test_ion_escape::test_venus_and_mars_lose_the_ions_the_spacecraft_saw_to_within_a_factor_of_three | an ion pickup and sputtering rate from the planet's exosphere and the wind (Egan et al. 2019 simulations) | design (tuned to Venus Express, 9e-6, and MAVEN, 2e-5; the geometric mean) | - | - |
+| WF2 | D | T2 | L0 | ion_escape.open_share: the polar caps of a dipole whose magnetopause is at r_mp radii hold 1 - sqrt(1 - 1/r_mp) of the surface | none | an aligned dipole | test_ion_escape::test_the_open_share_is_all_without_a_field_and_the_polar_caps_of_a_dipole_with_one | open flux from a tilted or multipolar field | COMPUTED (dipole lines leave the magnetopause at sin^2 theta = 1/r_mp) | - | - |
+| WF3 | P | T5 | L1 | activity.ROTATION_SLOPE 2.7: the unsaturated L_X/L_bol falls as the Rossby number to the minus 2.7 | 2.0 to 3.0 | unsaturated stars of FGKM type | test_activity::test_a_fast_rotator_is_more_active_and_flares_more_than_a_slow_one_of_the_same_mass_and_age | the rotation-activity relation of the star's own mass bin | RECALLED (Wright et al. 2011: slope -2.7 for the unsaturated branch; second-hand) | - | - |
+| WF4 | P | T6 | L0 | radiation.FLARE_ENERGY_SPAN 1000: the flare energies the SEP dose weights run over 1e33 to 1e36 erg | 1e2 to 1e4 | flaring stars | test_radiation::test_a_shallow_flare_slope_puts_more_energy_in_the_big_flares_and_raises_the_particle_dose | the energy range of the star's own flare statistics (Davenport 2016; Gunther et al. 2020) | RECALLED (the largest superflares seen are of order 1e36 erg; 1e33 is the table's N33 unit) | - | - |
+| WF5 | P | T7 | L0 | radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and LETHAL_EVENT_LIMIT_PER_GYR 10: the flag that flares or galactic events keep the ozone down | limit 100 to 1000 | worlds with an ozone column | test_radiation::test_proxima_b_without_a_field_loses_its_ozone_and_earth_does_not | a photochemistry run of the flare fluence on the air (Tilley et al. 2019; Segura et al. 2010) | design (the design note section 2.3: Proxima b about 2,100, Earth 0.003, on either side of the limit) | - | - |
+| WF6 | P | T3 | L1 | radiation.OZONE_LOSS_REMAINING 0.1: the share of its ozone a flagged world keeps | 0.06 to 0.2 | worlds the flares hold at the flag | test_radiation::test_a_world_whose_ozone_is_lost_keeps_a_tenth_of_it_and_takes_more_ultraviolet | the ozone column of the photochemistry run | RECALLED (Segura et al. 2010: 94 percent removed; Howard et al. 2018: 90 percent) | - | - |

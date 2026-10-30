@@ -1317,6 +1317,21 @@ A star's luminosity, temperature and radius after the main sequence are read fro
 | XF5 | P | T6 | L1 | tuning.STELLAR_XFE_SIGMA Ca high-alpha over thin 1.10 (Mg's old ratio 0.073/0.066; the table holds too few thick-disc dwarfs for its own) | 1.0 to 1.4 | thick-disc stars | a thick-disc [Ca/Fe] scatter more than 0.02 dex from the thin-disc one times 1.1 | the thick-disc scatter of a survey with ages | test_stellar_xfe_brewer_fischer::test_the_generated_scatter_is_within_half_again_of_the_tables_robust_scatter_in_every_bin |
 <!-- xfe-refit-standins:end -->
 
+### 6.54 Stand-ins of the stellar wind and flares at a world (GEN.804, GEN.805, GEN.807, GEN.808)
+
+The ion loss the wind takes through the open share of a field (`physics/ion_escape.py`), the star's own rotation moving its activity, the flare energy weight of the particle dose, and the ozone the flares keep down (`physics/activity.py`, `physics/radiation.py`).
+
+<!-- wind-flare-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| WF1 | P | T7 | L2 | ion_escape.ION_ESCAPE_EFFICIENCY 1.2e-5: the share of the energy-limited XUV mass loss that leaves as ions through the open field | 5e-6 to 5e-5 | worlds the wind reaches, Venus- and Mars-sized and up | test_ion_escape::test_venus_and_mars_lose_the_ions_the_spacecraft_saw_to_within_a_factor_of_three | an ion pickup and sputtering rate from the planet's exosphere and the wind (Egan et al. 2019 simulations) | design (tuned to Venus Express, 9e-6, and MAVEN, 2e-5; the geometric mean) |
+| WF2 | D | T2 | L0 | ion_escape.open_share: the polar caps of a dipole whose magnetopause is at r_mp radii hold 1 - sqrt(1 - 1/r_mp) of the surface | none | an aligned dipole | test_ion_escape::test_the_open_share_is_all_without_a_field_and_the_polar_caps_of_a_dipole_with_one | open flux from a tilted or multipolar field | COMPUTED (dipole lines leave the magnetopause at sin^2 theta = 1/r_mp) |
+| WF3 | P | T5 | L1 | activity.ROTATION_SLOPE 2.7: the unsaturated L_X/L_bol falls as the Rossby number to the minus 2.7 | 2.0 to 3.0 | unsaturated stars of FGKM type | test_activity::test_a_fast_rotator_is_more_active_and_flares_more_than_a_slow_one_of_the_same_mass_and_age | the rotation-activity relation of the star's own mass bin | RECALLED (Wright et al. 2011: slope -2.7 for the unsaturated branch; second-hand) |
+| WF4 | P | T6 | L0 | radiation.FLARE_ENERGY_SPAN 1000: the flare energies the SEP dose weights run over 1e33 to 1e36 erg | 1e2 to 1e4 | flaring stars | test_radiation::test_a_shallow_flare_slope_puts_more_energy_in_the_big_flares_and_raises_the_particle_dose | the energy range of the star's own flare statistics (Davenport 2016; Gunther et al. 2020) | RECALLED (the largest superflares seen are of order 1e36 erg; 1e33 is the table's N33 unit) |
+| WF5 | P | T7 | L0 | radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and LETHAL_EVENT_LIMIT_PER_GYR 10: the flag that flares or galactic events keep the ozone down | limit 100 to 1000 | worlds with an ozone column | test_radiation::test_proxima_b_without_a_field_loses_its_ozone_and_earth_does_not | a photochemistry run of the flare fluence on the air (Tilley et al. 2019; Segura et al. 2010) | design (the design note section 2.3: Proxima b about 2,100, Earth 0.003, on either side of the limit) |
+| WF6 | P | T3 | L1 | radiation.OZONE_LOSS_REMAINING 0.1: the share of its ozone a flagged world keeps | 0.06 to 0.2 | worlds the flares hold at the flag | test_radiation::test_a_world_whose_ozone_is_lost_keeps_a_tenth_of_it_and_takes_more_ultraviolet | the ozone column of the photochemistry run | RECALLED (Segura et al. 2010: 94 percent removed; Howard et al. 2018: 90 percent) |
+<!-- wind-flare-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
