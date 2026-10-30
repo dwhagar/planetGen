@@ -26,14 +26,20 @@ sections 2.1 to 2.4; every rate here is a design default good to about
    neutron star's is its thermal X-rays or a thousandth of its spin-down
    power (magnetic dipole), whichever is larger; a black hole's is its
    accretion disk's luminosity (or its Hawking glow without one).
-5. **Fluence.** `xuv_fluence_j` integrates `L_XUV` over the star's age; a
+5. **Rotation (GEN.807).** The activity-rotation relation (Wright et al. 2011): X-rays saturate while the Rossby number `Ro = P_rot / tau_conv` is
+   under 0.13 and fall as `Ro^-2.7` after, so a star that spins faster than a star of its mass and age spins stays saturated longer by the factor
+   `(P_nominal / P)^(2.7 / b)` of its saturation age (`rotation_saturation_scale`), and flares correspondingly more often. The table
+   of 2.1 stays the mean (it is tuned to the observed activity of M dwarfs, whose spin-down the gyrochronology law does not follow); a star's own
+   rotation (`spin.star_rotation_period_hours`, drawn before) moves it about that mean. A star the law does not cover (a hot star, a giant, a
+   white dwarf) keeps the table.
+6. **Fluence.** `xuv_fluence_j` integrates `L_XUV` over the star's age; a
    planet's exposure index divides it by its distance squared and by a
    1 solar mass star's at 1 AU over 5 Gyr (`REFERENCE_FLUENCE_J`).
 """
 
 import math
 
-from planetgen.physics import constants, stellar_spectrum, unit_registry as units
+from planetgen.physics import constants, spin, stellar_spectrum, unit_registry as units
 from planetgen.util import draw
 
 _au_to_m = units.converter("au", "m")
@@ -125,6 +131,10 @@ FLARE_MAX_MASS = 1.1
 HOT_STAR_LOG_N33 = -4.0
 FLARE_SCATTER_DEX = 0.5
 FLARE_ALPHA_RANGE = (1.8, 2.2)
+
+ROTATION_SLOPE = 2.7
+"""float: The exponent of the Rossby number in the unsaturated `L_X/L_bol` (Wright et al. 2011: -2.70 +/- 0.13), which sets how far a star's
+own spin moves its saturation age (GEN.807)."""
 
 XUV_EDGE_EV = 13.6
 """float: The XUV band starts at the hydrogen ionization edge (912 A)."""
@@ -284,6 +294,17 @@ def set_galactic_hazard(star):
     star.lethal_event_rate_per_gyr = lethal_event_rate_per_gyr(getattr(star, "galactic_center_dist_ly", None))
 
 
+def rotation_saturation_scale(nominal_period_hours, period_hours, decay):
+    """
+    The factor on a star's saturation age from its own rotation (GEN.807): the unsaturated `L_X/L_bol` falls as `Ro^-2.7`, the Rossby number
+    follows the period, and the period grows as `t^0.55` (`spin.GYRO_N`), so a star whose period is `nominal / x` is as active as a nominal star
+    `x^(2.7 / b)` times younger in the decay `b`. 1 for a star with no period or no nominal one.
+    """
+    if not nominal_period_hours or not period_hours or period_hours <= 0.0 or decay <= 0.0:
+        return 1.0
+    return (nominal_period_hours / period_hours) ** (ROTATION_SLOPE / decay)
+
+
 def generate_activity(star):
     """Sets `STAR_ACTIVITY_FIELDS` on an ordinary star (main sequence,
     subgiant, subdwarf, giant or white dwarf)."""
@@ -303,6 +324,13 @@ def generate_activity(star):
     offset = draw.gauss(0.0, DECAY_SIGMA_DEX)
     log_n33 = flare_log_n33(mass_sol, age) + draw.uniform(-FLARE_SCATTER_DEX, FLARE_SCATTER_DEX)
     star.flare_alpha = draw.uniform(*FLARE_ALPHA_RANGE)
+    saturated_ratio = saturated_lx_lbol(mass_sol)
+    spin_scale = rotation_saturation_scale(
+        spin.nominal_rotation_period_hours(star.mass, star.temperature, age) if star.temperature else None,
+        getattr(star, "rotation_period_hours", None), decay)
+    if spin_scale != 1.0:     # GEN.807: the star's own spin moves its activity, and its flares, about the table's mean
+        log_n33 += math.log10(lx_lbol_at(age, saturated_ratio, t_sat * spin_scale, decay) / lx_lbol_at(age, saturated_ratio, t_sat, decay))
+        t_sat *= spin_scale
     if yerkes in ("IV", "V", "VI", "PMS", "protostar"):  # a young star is saturated (GEN.242)
         ratio = lx_lbol_at(age, saturated_lx_lbol(mass_sol), t_sat, decay, offset)
         star.xuv_saturated = bool(age <= t_sat)
