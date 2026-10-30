@@ -550,10 +550,12 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
         if large_star:
             mass = imf.sample(min_mass_sol=pc.LARGE_STAR_MIN_MASS_SOL, rng=rng, curve=imf.PRIMARY)
             if max_mass_sol is not None and mass >= max_mass_sol:
+                draw.redrawn("star.model_redraw")
                 continue
             low, high = population_age_range_gy(population)
             high = min(high, remnant_formation_time_gy(mass, birth))
             if high <= low:
+                draw.redrawn("star.model_redraw")
                 continue  # an old population has no living star this massive
             low, high = age_window_gy(low, high, age_bias)
             age = rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng)
@@ -562,19 +564,24 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
             if mass < stellar_abundances.hydrogen_burning_limit_for_fe_h(birth):
                 continue    # GEN.936: under the limit of its place it is a brown dwarf, not a star a system is built around
             if large_star is False and mass >= pc.LARGE_STAR_MIN_MASS_SOL:
+                draw.redrawn("star.model_redraw")
                 continue
             if max_mass_sol is not None and mass >= max_mass_sol:
+                draw.redrawn("star.model_redraw")
                 continue
             age = sample_star_age_gy(age_bias, rng, population, age_law)
         if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY:
+            draw.redrawn("star.model_redraw")
             continue
         state = evolve_star(mass, age, rng, fe_h=birth, population=population, fe_h_peaks=fe_h_peaks)
         if state is None or (habitable_host and state["yerkes_class"] == "VII"):
+            draw.redrawn("star.model_redraw")
             continue
         # A white dwarf is never pre-placed, so the cap never removes one
         # (the hottest are clamped to exactly the lowest allowed cap).
         if (max_luminosity_sol is not None and state["yerkes_class"] != "VII"
                 and state["luminosity_sol"] >= max_luminosity_sol):
+            draw.redrawn("star.model_redraw")
             continue
         return mass, age, state
     raise ValueError(f"no living star in {pc.STAR_MODEL_MAX_REDRAWS} draws")

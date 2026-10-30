@@ -22,6 +22,7 @@ Evidence tags: READ = the paper (arXiv text) was opened and the number is in it;
 | Kenyon and Bromley 2008 (arXiv:0807.1134) | the largest body a young icy disc grows | READ |
 | Debes and Sigurdsson 2002 (arXiv:astro-ph/0202273) | planets that survive the giant branch, instability after mass loss | READ |
 | Koester, Gaensicke and Farihi 2014 (arXiv:1404.2617) | white dwarfs polluted by debris, accretion rates (stands for Zuckerman 2010) | READ; Zuckerman 2010 NOT REACHED (Koester cites 20 to 30 percent from it) |
+| Ivezic et al. 2001 (astro-ph/0105511) | main belt size law, 0.4 to 40 km; its indices 2.3 and 4 are differential, cumulative 1.3 and 3.0 (GEN.1061) | READ |
 | Fraser et al. 2014 (arXiv:1401.2157) | Kuiper belt size law, hot and cold | READ |
 | Bernstein et al. 2004 (arXiv:astro-ph/0308467) | Kuiper belt mass and its largest bodies | READ |
 | Pitjeva and Pitjev 2018 (arXiv:1811.05191) | the masses of the main belt and the Kuiper belt | READ |
@@ -50,6 +51,8 @@ Evidence tags: READ = the paper (arXiv text) was opened and the number is in it;
 **Debris discs round Sun-like stars (BR15).** 17.1 (+2.6 -2.3) percent of 275 F to K stars have an excess (Sibthorpe 2018), 20.2 +/- 2.0 in DUNES and 29 +/- 9 percent among exoplanet hosts (Marshall 2014). Most discs have a fractional luminosity near 1e-5 at blackbody radii of 7 to 40 au (about 40 au for real grains); the present Kuiper belt sits near the median, "half of stars have either depleted their Kuiper belts or had a lower planetesimal formation efficiency".
 
 **Where belts form (BR16).** Ida and Guillot 2016: when the pebble flux exceeds a critical value (low viscosity, alpha under 1e-3), silicate dust piles up inside the snow line and rock-rich planetesimals form there. Qualitative; the snow line stays the generator's own `snow_line_au`.
+
+**Size laws of the ledger (BR19 to BR21).** `physics/belt_ledger.py` (GEN.1061) holds two piecewise cumulative laws: the hot Kuiper belt's (q 1.0 and 4.35 about a break of 121 km, Fraser 2014, BR19) and the rocky belt's (q 1.3 below 5 km, 3.0 to 200 km, 4 above: Ivezic 2001 for the first two, a stand-in for the top, BR20). Ivezic's 2.3 and 4 are differential indices, so the cumulative exponents are 1.3 and 3.0 (corrected in `small-body-size-laws.md` 1.4). A stretch of q = 3 holds equal mass in every doubling, so the rocky law must steepen above the measured range; the break at 200 km makes 10 to 20 bodies above 1e19 kg at the main belt's mass (the Solar System has about 20), a count chosen to land there and so tier T9, tweak L3.
 
 **Cut rule (BR17, BR18).** The cut values of Boss's rule (1e19 kg and 1e15 kg, 90 percent of the belt mass, 300 per belt) are stand-ins from the needed output, registered at tier T9.
 

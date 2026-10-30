@@ -64,6 +64,7 @@ def draw_snow_line_au(luminosity_w, stream=None):
         z = source.gauss(0.0, 1.0)
         if abs(z) <= limit:
             return centre * 10.0 ** (scatter * z)
+        draw.redrawn("snow_line.scatter")
 
 
 @finite_domain()

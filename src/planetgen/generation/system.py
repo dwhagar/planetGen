@@ -421,6 +421,7 @@ class StarSystem:
                               f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
                               f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
                     break
+                draw.redrawn("system.planets_regenerated")
                 log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
                           f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
                           f"required and found: {belt_satisfied})")
@@ -454,6 +455,7 @@ class StarSystem:
             class_satisfied = self._forced_class_present()
             if (habitable_satisfied and belt_satisfied and class_satisfied) or _round or self._request_unreachable:
                 break
+            draw.redrawn("system.planets_regenerated_after_age")
         self.unmet_requirements = []
         if not habitable_satisfied:
             self.unmet_requirements.append("a habitable world")
@@ -788,6 +790,7 @@ class StarSystem:
                 if validation.comet_fits_ceiling(comet, ceiling_au):
                     comets.append(comet)
                     break
+                draw.redrawn("comet.ceiling")
         return comets
 
     @staticmethod
@@ -890,11 +893,13 @@ class StarSystem:
                                                pair_placed=True),
                         stored_trees.UNBUILT_KINDS)
                 except ValueError:    # the placed star has collapsed by this age
+                    draw.redrawn("tree.drawn_at_earlier_age")
                     continue
             return multistar.draw_member_tree(placed, 0.0, n_stars=1)
 
         drawn = tree(count)
         if at_least_two and drawn.member_count < 2:
+            draw.redrawn("tree.second_star_forced")
             drawn = tree(2)
         return stored_trees.drawn(drawn)
 
@@ -910,16 +915,22 @@ class StarSystem:
         config = self.system_config
         forced = self._forced_star_count()
         if forced is not None and len(self.stars) != forced:
+            draw.redrawn("companions.star_count")
             return False
         if self.binary_type is None:
             return True
         if wanted_kind is not None and self.binary_type != wanted_kind:
+            draw.redrawn("companions.pair_kind")
             return False
         if not self._built_stars_clear():
+            draw.redrawn("companions.overlap")
             return False
         # A close pair whose whole habitable zone lies inside its circumbinary stability limit can't host a habitable world.
-        return not (self.binary_type == "close" and config.HABITABLE_WORLD is True and config.WIDE_BINARY is None
-                    and self._orbit_floor_au(self.star) >= self.star.habitable_zone[1])
+        if (self.binary_type == "close" and config.HABITABLE_WORLD is True and config.WIDE_BINARY is None
+                and self._orbit_floor_au(self.star) >= self.star.habitable_zone[1]):
+            draw.redrawn("companions.circumbinary_floor")
+            return False
+        return True
 
     def _built_stars_clear(self):
         """
@@ -1105,6 +1116,7 @@ class StarSystem:
             self._reconcile_moved_planet(body)
         else:
             return
+        draw.redrawn("planet.circumbinary_floor_push")
         log.debug(f"Innermost body moved out to the circumbinary stability limit ({floor_au:.4g} AU)")
 
     def _generate_planets(self, star, habitable_zone, orbit_ceiling_au, apply_guarantees=True):
@@ -1874,6 +1886,7 @@ class StarSystem:
             planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects, **given)
             if (planet_class is not None and planet.planet_class == planet_class) or (life and habitable_request.meets_with_moons(planet)):
                 break
+            draw.redrawn("planet.request_missed")
             if life and attempt + 1 >= tuning.HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS:
                 # GEN.911: the next draw goes where the light would give the temperature this one solved the target
                 distance = habitable_request.aimed_distance(distance, getattr(planet, "surface_temperature", None), inner, outer)
