@@ -14739,6 +14739,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.725 and add the class to the sentence, colour, glance panel and
   tests. Same epoch, same full re-derivation. The exact letter and
   sentence follow the class index result.
+  Class index thread, 7:12 PM EDT 2026-10-30 (update to the Boss 7:05 PM
+  EDT note) (2026-10-30 7:12 PM EDT): old E is retired outright (reserve
+  list stays R U W X Y Z); P covers air-bearing bodies 233.15 K (-40 C)
+  to 273.15 K; the new class for air-bearing bodies under 233.15 K is
+  recommended to reuse the letter E as "Deep-frozen world" (option 2:
+  take R); Boss still to confirm the letter (build with E as the
+  default); live classes 19 (A to P, S, T, V). Update docs, tests and
+  the sweep script that name old E, the system map legend colour, the
+  class pages, and GEN.725 rows for the 233.15 K line. Detail: Update
+  7:12 PM section of
+  reports/class-index-rebuild-assessment-2026-10-30.md.
   Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1143.
 
 - [ ] **GEN.1144 Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach**
