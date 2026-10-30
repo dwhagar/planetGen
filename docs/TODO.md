@@ -13963,20 +13963,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stored value changes.
   Prerequisites: PERF.203. Related: PERF.203, PERF.213, PERF.214.
 
-- [ ] **PERF.217 The near list (near._systems_in_reach) reads the full row of every system in reach: list ids by the covering index and read names for the page only**
-  Reported by Aux 3 (as the lane reported, 7:17 AM EDT 2026-10-30) after
-  PERF.216 (#3992): near._systems_in_reach selects name and sector_id,
-  which are not in the covering index, so a 50 pc list reads the
-  clustered row of all 62,000 systems (1,170 ms against 360 ms for ids
-  only in the lane's profile). Do: list the ids through the covering
-  index with the distance, order and cap, then read names and sector ids
-  for the page only; keep the result and its order identical (a test
-  compares the old and new lists on the same data). Done: the 50 pc list
-  is within about the id-only time with an identical result. Related:
-  PERF.216, NAV.60. Owner: Aux 3 (assigned 7:18 AM EDT 2026-10-30; no
-  stored value).
-  Prerequisites: none. Related: PERF.216, NAV.60.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -18292,18 +18278,6 @@ clears each one.
   fix the orbit. Done: the file passes on main. Related: TEST.463,
   GEN.1003, GEN.957. Owner: Bug 2 (proposed), after TEST.417.
   Prerequisites: none. Related: TEST.463, GEN.1003, GEN.957.
-
-- [ ] **TEST.471 tests/test_near.py::test_the_command_line_asks_for_the_nearest_few fails: argparse exits with code 2 so the pytest.raises(SystemExit, match="--distance") never sees the text (bug)**
-  Reported by Aux 3 (as the lane reported, 7:17 AM EDT 2026-10-30), red
-  on main: the test fails at the pytest.raises(SystemExit,
-  match='--distance') line because argparse exits with code 2 and the
-  exception message is '2', so the match never sees the text. The same
-  kind of fix as TEST.465 (query_db exit code). Do: assert the exit code
-  and read the message from the captured stderr (capsys) instead of
-  matching the exception text. Done: the test passes and still fails if
-  the --distance error is lost. Related: TEST.465, PERF.217. Owner: Aux
-  3 (assigned 7:18 AM EDT 2026-10-30).
-  Prerequisites: none. Related: TEST.465, PERF.217.
 
 - [ ] **TEST.472 Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug)**
   Reported by Bug 2 (as the lane reported, 7:36 AM EDT 2026-10-30),
