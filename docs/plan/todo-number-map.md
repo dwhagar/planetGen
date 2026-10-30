@@ -1725,7 +1725,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.972 | Climate feedback 1: ice-albedo on the surface temperature fixed point (ice cover grows as the planet cools and raises the albedo) | none | open |
 | GEN.973 | Climate feedback 2: water vapour on the fixed point (a warmer ocean world holds more vapour and warms further, up to the runaway limit of GEN.639) | none | open |
 | GEN.974 | Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share) | none | open |
-| GEN.975 | Climate sensitivity sweep test: the fixed point converges on a cooling and a warming sweep and stays inside the published range of Earth's climate sensitivity | none | open |
+| GEN.975 | Climate sensitivity sweep test: the fixed point converges on a cooling and a warming sweep and stays inside the published range of Earth's climate sensitivity | none | done, PR #3895 |
 | GEN.976 | A giant's radius is read at the star's age before the age is moved: 28 percent of table-sized giants have a stored radius over 1 percent too large, up to 9.3 percent (bug) | none | open |
 | GEN.977 | Guard test: a seeded sweep fails if the generator ever makes a table-sized giant with light over 300 times Earth's and eccentricity over 0.3 | none | done, PR #3803 |
 | GEN.978 | Birth spin derivation (a): a module for the last-impact mass ratio gamma by planet mass, from the N-body impact statistics | none | done, PR #3809 |

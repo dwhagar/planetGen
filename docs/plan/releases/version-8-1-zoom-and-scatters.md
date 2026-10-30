@@ -669,11 +669,10 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.746 | Cosmic-ray dose below 100 g/cm2 of air from shower simulations instead of a straight stand-in between the Moon and Mars |  |  |
 | GEN.747 | Solar energetic particle events: the full event set and the Weibull parameters |  |  |
 | GEN.748 | Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's |  |  |
-| GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | GEN.462, GEN.972, GEN.973, GEN.974, GEN.975 |  |
+| GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | GEN.462, GEN.972, GEN.973, GEN.974 |  |
 | GEN.972 | Climate feedback 1: ice-albedo on the surface temperature fixed point (ice cover grows as the planet cools and raises the albedo) |  |  |
 | GEN.973 | Climate feedback 2: water vapour on the fixed point (a warmer ocean world holds more vapour and warms further, up to the runaway limit of GEN.639) | GEN.972 |  |
 | GEN.974 | Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share) | GEN.973 |  |
-| GEN.975 | Climate sensitivity sweep test: the fixed point converges on a cooling and a warming sweep and stays inside the published range of Earth's climate sensitivity | GEN.972, GEN.973, GEN.974 |  |
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | GEN.503, GEN.504 |  |
 | GEN.821 | Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure |  |  |
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample |  |  |
