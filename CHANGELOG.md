@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2610] - 2026-10-30
+
+**Headline:** The inner-system share anchors of the planet architecture are two ordered tuples, so the constants test passes again.
+
+### Fixed
+- **`test_fuzz_utils_and_config` failed on `INNER_SYSTEM_FRACTION_ANCHORS`.** The `(mass, share)` pairs were not in ascending order; the masses and the shares are now separate tuples with the same values. No generated output changes.
+
 ## [8.0.2609] - 2026-10-30
 
 **Headline:** Zooming into a sector at the galaxy's core no longer gets stuck when the wheel points at a neighbouring empty cell.
