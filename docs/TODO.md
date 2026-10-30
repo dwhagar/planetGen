@@ -11896,49 +11896,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   synthesis binned fit is ngpps_formation_water.json. No occurrence
   dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
 
-- [ ] **GEN.833 Cold icy moons get sparse ice cover because the hydrosphere's toy ocean_fraction feeds the ground draw (bug)**
-  Found by Blocker 4 while merging GEN.441 (PR 3335, as the lane
-  reported 3:57 AM EDT 2026-10-25): the ground draw reads the
-  hydrosphere's toy ocean_fraction, so a cold icy moon (where the water
-  is ice, not ocean) draws sparse ice cover. Do: feed the ground draw
-  the real water-layer coverage (ocean, ice shell and surface ice
-  together, from the water mass the body holds and the temperature)
-  instead of the toy ocean_fraction; remove the toy fraction from the
-  ground draw's inputs; record the change as generation (new epoch,
-  --affects fill). Done: a test generates cold icy moons across the mass
-  range and checks their ice cover follows the water the body holds (a
-  moon with a thick ice shell is covered), and bound planets keep their
-  results unless the real coverage differs, in which case the PR lists
-  which. Owner: Aux 5 (Lane K surfaces) or a free lane. Rules: no
-  backward-compat shims; the epoch carries --affects.
-  Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
-  dataset is held; Core 4's parked branch has core_heat.py;
-  compaction_table.json, clathrate_brine.json, decay_series.json and
-  isotopes.json are in the repo for interior heat and ices. Catalog
-  section 4.
-  Prerequisites: none. Related: GEN.441, GEN.699.
-
-- [ ] **GEN.834 Non-water ice species (CO2, CH4, N2 and others) are drawn into the ground but not stored per species**
-  Found by Blocker 4 while merging GEN.441 (3:57 AM EDT 2026-10-25): the
-  ground draw picks the non-water ices on a surface (CO2, CH4, N2, NH3
-  and the rest) but stores no per-species amount, so the object page,
-  the sheet and the renderer cannot read them. Do: store the drawn
-  amount per ice species, either one column per species or a child table
-  keyed by body and species (pick the one the sheet and renderer can
-  read with one query; new numeric columns carry units in
-  db/column_units.py); one migration and epoch at merge; readers (object
-  page ice list, MAP painter hooks, search filters) take it. Done: a
-  round trip test stores and reads the species of a Pluto-like body and
-  a CO2-frost Mars-like body; the sheet fill audit passes. Owner: Aux 5
-  (Lane K) or a free lane. Rules: no backward-compat shims; the epoch
-  carries --affects.
-  Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
-  dataset is held; Core 4's parked branch has core_heat.py;
-  compaction_table.json, clathrate_brine.json, decay_series.json and
-  isotopes.json are in the repo for interior heat and ices. Catalog
-  section 4.
-  Prerequisites: none. Related: GEN.441, GEN.282, DB.67.
-
 - [ ] **GEN.835 The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule**
   Found by Blocker 4 while merging GEN.441 (3:57 AM EDT 2026-10-25):
   tidal_flux_w_m2 is available once GEN.778 fills it, but the ground
@@ -12072,52 +12029,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   takes an epoch with --affects fill and a lock turn. Once stored, stars
   turn with no further map work. Owner: Core 3 (stars), after GEN.328.
   Prerequisites: none.
-
-- [ ] **GEN.848 Store a day and night swing for every temperature the sheet shows (only the equator has one) (bug)**
-  Found by the Units lane with GEN.795/GEN.796 (#3487, 4:13 PM EDT
-  2026-10-28 as the lane reported): only the equator has a stored swing
-  (temp_swing_k, peak to peak). Polar (temp_polar_k), north
-  (temp_north_k), south (temp_south_k), mean (surface_temperature_k) and
-  the locked-world day side, terminator and night side (temp_day_side_k,
-  temp_terminator_k, temp_night_side_k) have none, so their sheet rows
-  read "no day and night range stored for this place". Add a producer
-  for each swing from physics (stand-in tier and tweak level in the
-  registry where it is a fit), store it with its unit in
-  db/column_units.py, add the column to RANGE_FIELDS in
-  physics/regional_temperature.py and pass its swing. It changes
-  generated output, so it takes an epoch and a lock turn. Also check
-  that the climate sentence (physics/protection.py regional_sentence),
-  which now states the equator low and high, agrees with the GEN.656
-  regional-temperature text. Owner: none yet (Aux 5 retires after its
-  lock turn; it is in the released pool for a fresh lane).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 5. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Prerequisites: none. Related: GEN.656, GEN.767, GEN.795, GEN.796.
-
-- [ ] **GEN.849 Re-fit the delivered-water rows b2/b3 against the bodies bulk water (the rows deliver 0.1 to 0.2 percent of mass against 0.01 to 0.03 percent of body water)**
-  Found by Aux 8 with GEN.837 (#3504, epoch 115, 5:51 PM EDT 2026-10-28
-  as the lane reported): its measurement shows the b2 and b3 delivery
-  rows put 0.1 to 0.2 percent of the planet mass in as water while the
-  bodies they come from hold 0.01 to 0.03 percent of their mass as
-  water, a factor of about ten. Re-fit the rows so the delivered water
-  matches the stored bulk water of the delivering bodies, record the
-  change in the stand-in registry with tier and tweak level, and take an
-  epoch with --affects fill and a lock turn. Owner: none yet (Aux 8
-  retired); in the released pool for a fresh lane.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 5. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  (Venturini 2024) as ngpps_formation_water.json is the validation
-  target for delivered water; bulk composition source checks are in
-  reports/bulk-composition-sources-check-2026-10-17; materials.json and
-  elements.json are in the repo. Catalog sections 3 and 4.
-  Prerequisites: none. Related: GEN.837, GEN.830, GEN.812.
 
 - [ ] **GEN.850 Wire radiative_convective.warming into generation behind a lookup table of the model answers, and delete the infrared_opacity.py plateau code**
   Left by Math 1 after GEN.715/GEN.717/GEN.718 (#3507, 5:55 PM EDT
@@ -12483,99 +12394,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sections 3 and 4.
   Prerequisites: none.
 
-- [ ] **GEN.894 Strange-solvent life classes 5 to 9 (acid-world, dense CO2, cold hydrocarbon sea, ammonia-water, silicon-bearing in acid): windows, supplies, texts, stand-ins and tiers**
-  Life class system design (design thread, Boss 9:10 to 9:20 PM EDT
-  2026-10-28; Boss answered all four design cards with option 1):
-  docs/design/habitability/life-classes.md. L8, the second build inside
-  8.1 (classes 1 to 4 with the store, display and chart come first).
-  Physics decides how far they go: no hard cap, so most end as microbes
-  or mats and a few percent reach simple animals; cold methane worlds
-  use the faster diffusion-limited origin rate (Bains 2004), later steps
-  stay slow. Classes 4b and 4c (nitrate, chlorate and perchlorate
-  oxidants) ride with the Class 4 rows of the classifier. Supersedes
-  GEN.874 and GEN.885.
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  From GEN.740 (closed done by GEN.855 and GEN.891, Aux 2 check)
-  (2026-10-29 10:55 PM EDT): the air effects of life classes 4 (sulfur),
-  5, 7 and 9 are the `pending` rows of physics/data/life_ledger.json;
-  they ride this item, with the same tier and tweak level fields. Trace
-  biosignature gases beyond oxygen, methane and hydrogen (nitrous oxide,
-  organosulfur gases) are not filed: nothing reads them and no
-  source-backed row exists; file them only if Boss wants those gases
-  shown.
-  Aux 2 built (as the lane reported 12:01 AM EDT) (2026-10-30 12:01 AM
-  EDT): branch claude/gen894-strange-classes, no PR yet, golden
-  untouched, moves generated output so it rides train 2 with --affects:
-  classes 5, 8, 9 read acid_medium, a worked-out ammonia share of the
-  water and a silicon-rich-crust flag; new sulfur_supply for the acid
-  eaters; ledger rows for classes 4, 5, 7, 9 built; registry LF61 text
-  and new LF62. A 2,338-body sample shows no class 5, 7, 8 or 9 world:
-  generated worlds are too wet for acid (SO2 worlds hold 0.1 to 60
-  percent water) and no body reaches 10 percent ammonia (best 4.6
-  percent), so Class 8 stays unreachable unless the 10 percent gate is
-  lowered. Not tuned; asked Boss.
-  Prerequisites: GEN.888.
-
-- [ ] **GEN.911 Habitable-world requests and the habitable zone: the zone mostly holds frozen worlds, so decide where habitable requests aim (inner half of the zone or a temperate band from the solved climate)**
-  Boss decision needed, found by Core 4 in the GEN.909 diagnosis (report
-  /mnt/project-files/reports/gen909-cold-ecosphere-diagnosis-2026-10-29.md):
-  the generator's habitable zone is physically cold in its outer part,
-  so only 16 of 45 G2V and 6 of 40 K5V bodies of 0.8 Earth masses or
-  more are temperate with 10 kPa or more. Bug 2's +habitable_world
-  requests land on cold bodies for this reason (GEN.854). Options: (1)
-  aim habitable requests at the inner half of the zone; (2) derive a
-  temperate band from the solved climate (the band where the solved
-  surface temperature is liquid-water, not from the zone edges) and aim
-  there; (3) keep the physics as is and say so on the help page. Core 4
-  and Aux 1 recommend 2 if it stays physical, 1 if a cheaper rule is
-  wanted. Do: put the choice to Boss in plain words, then wire the
-  chosen aim into the habitable-request steering of GEN.646 (Aux 1); a
-  generation change, lock turn. Version 8.1. BOSS DECIDED (card answer 'Core 4 choice 1', 11:41 AM EDT
-  2026-10-29): aim habitable requests at a temperate band worked out
-  from the solved climate (the band where the solved surface temperature
-  is liquid-water and the air holds at least 10 kPa), so it stays
-  physical; not the inner half of the zone and not a changed zone edge.
-  Done: a +habitable_world request chooses the system, star and orbit
-  from that band, not from the zone edges, and the census (Bug 2's
-  habitable-request census) shows the met share against the aim/fallback/
-  unmet numbers recorded below; a request no try can meet still says
-  unmet. Owner: Core 1 (11:42 AM EDT 2026-10-29); Aux 1 retires after
-  the class cut-over GEN.646 merges and hands over its census harness.
-  Prerequisites: none (the cut-over). Related:
-  GEN.909, GEN.854, GEN.646, GEN.907.
-  Research (2026-10-09): Update (Core 4, about 5:07 AM EDT 2026-10-29 as
-  the lane reported): GEN.910 found no K5V-specific fault. At equal flux
-  G2V and K5V match within sampling error (0.5 to 0.7 of Earth's
-  sunlight: G2V 21 of 36 under 273 K, K5V 20 of 28), and the carbonate
-  cycle pins the typical body near 270 K whatever the flux (G2V 270,
-  269, 269 K at 0.5, 0.7, 0.9 of Earth's sunlight), so whether a world
-  is temperate or cold is down to the drawn constants. This favours
-  option 1 (a temperate band from the solved climate) over aiming at the
-  inner half. The albedo-follows-star-colour gap is GEN.912. Owner moves
-  from Aux 1 (retiring) to Core 1 once Boss decides.
-  Research (2026-10-09): Update (Aux 1, about 10:36 AM EDT 2026-10-29 as
-  the lane reported): habitable-request census with the class cut-over
-  rebased on main 86cac9be (includes GEN.855), 30 systems per star,
-  results as aim (a Blue/Green world) / fallback (best is Yellow) /
-  unmet: F5V 1/13/16, G2V 2/10/18, K5V 0/12/18, M2V 0/2/28, M5V 0/2/28.
-  The cut-over alone does not cure the unmet requests, which fits Core
-  4's GEN.909 finding (outer zone cold by the physics); it does make the
-  unmet state honest (the system says unmet instead of faking a class
-  M). Planet shares among ecosphere draws are mostly N, F, G, H, E, with
-  M at about 0.1 to 0.2 percent. This is the evidence for the Boss
-  decision on where habitable requests aim.
-  Data we hold (2026-10-29 8:55 PM EDT): proton_range.json,
-  ozone_chappuis.json, gases.json and materials.json are in the repo;
-  MPI-Mainz ozone cross sections are downloaded; the class census
-  expectations are in src/tests/data/prevalence_expectations.json.
-  Catalog sections 2 and 4.
-  Prerequisites: none. Related: GEN.909, GEN.854, GEN.646, GEN.907.
-
 - [ ] **GEN.912 The planet albedo draw does not follow the star's colour, so planets of cool stars come out a little too cold (stand-in)**
   Found by Core 4 (about 5:07 AM EDT 2026-10-29 as the lane reported) in
   the GEN.910 diagnosis, report
@@ -12678,31 +12496,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
-
-- [ ] **GEN.916 The habitable-world guarantee is judged on the conditions (a world that can hold life), not on the class letter M**
-  Found by Aux 2 (2:50 PM EDT 2026-10-29 as the lane reported), from
-  Boss's requirement of 2:46 PM EDT that life depends only on conditions
-  (GEN.915): generation/system.py (about lines 1320 and 2036) reads
-  class M to place the guaranteed habitable world, so a request can pass
-  or fail on the letter. Do: the guarantee, the retry and the check that
-  it was met all test the conditions that make a world able to hold life
-  (the GEN.911 temperate band from the solved climate, solvent and
-  temperature window, pressure, energy supply), for any class. Fits Core
-  1's second change with GEN.911 (after GEN.646 puts the class last).
-  Owner: Core 1. Version 8.1.
-  Research (2026-10-09): Aux 1 report (2:52 PM EDT as the lane
-  reported), more letter reads to remove here: generation/planet.py
-  redraws a body when HABITABLE_WORLD is False and a life class lands in
-  the ecosphere, and generation/system.py steers requests, the habitable
-  guarantee and the M count by class letters. Aux 1's GEN.646 PR does
-  not change them.
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  Prerequisites: none. Related: GEN.915, GEN.911, GEN.646.
 
 - [ ] **GEN.918 The phenomena census uses a reference galaxy that is not Milky Way-like (bulge heavier than disk, history and density disagree by 1.57x); give it a Milky Way-like shape so GEN.900, GEN.901, GEN.902 are judged on the right galaxy (a test-harness fix, no generator change)**
   BOSS DECIDED (3:02 PM EDT 2026-10-29), card answer option 1 'following
@@ -13513,40 +13306,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and then adds the luminosity row to that panel and to compact_pairs.
   Prerequisites: none. Related: UX.186, GEN.272, GEN.328.
 
-- [ ] **GEN.953 Birth spin retune: a scale on the rocky planet birth rotation so free days fall in the Solar System range**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Spin-down report
-  /mnt/project-files/reports/gen842-spin-down-2026-10-29.md sections 4a
-  and 7. The generator gives a rocky planet a 2 to 3 hour birth day
-  (median 0.63 of breakup, Kokubo and Genda 2010 rms 2.35 per hour);
-  Mars, Vesta and Ceres spin at a quarter to a third of breakup or less.
-  Do: one scale factor on the three-component birth sigma (about 0.4,
-  median free day about 7 hours) and a second factor for bodies under
-  about 0.3 Earth masses (so a Mars is reachable); the three Gaussian
-  draws stay, so the random stream does not move. Both are registry rows
-  at tweak level L3 with the falsifier 'a measured rotation of a rocky
-  exoplanet or a sample of terrestrial planets'. Re-target the law tests
-  in test_tidal_spin.py, update the sheet source sentence, re-measure
-  the day and night swing readers. Changes values: epoch with --affects
-  fill, rides a train. About 4 to 6 lane-hours. Every stand-in it adds
-  gets a GEN.725 registry row with tier and tweak level (L0 to L4).
-  Owner: Aux 7 (it owns GEN.842). Version 8.1.
-  Interim (2026-10-29 8:50 PM EDT): Boss 8:48 PM EDT 2026-10-29 chose to
-  build the derivation (GEN.978, GEN.979) rather than keep the scale
-  tweak. This item stays as the INTERIM stand-in (the 0.4 scale at tweak
-  level L3, with a registry row that names eq. 4 and GEN.979 as its
-  replacement), so the free days are right until the derivation lands;
-  it may ride train 2. Owner changed from Aux 7 to Tides 1 (it feeds the
-  stage 2 wiring GEN.957). If Aux 7 has already started it, tell TODO.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: none. Related: GEN.842, GEN.731, GEN.725.
-
 - [ ] **GEN.955 Tides stage 1b: wire the rheology into tidal_heating, interior_heat and circularisation**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
   secondary sources accepted by default; registered stand-ins allowed).
@@ -13595,7 +13354,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage 1 if both are ready. Every stand-in it adds gets a GEN.725
   registry row with tier and tweak level (L0 to L4). Owner: Tides 1.
   Version 8.1.
-  Prerequisites: GEN.955, GEN.953. Related: GEN.842, GEN.731,, GEN.979.
+  Prerequisites: GEN.955. Related: GEN.842, GEN.731,, GEN.979.
   GEN.904.
   Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
   rotations or tides is held (none exists); the measurement scripts and
@@ -13973,21 +13732,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
   Prerequisites: GEN.953. Related: GEN.953, GEN.842, GEN.731.
-
-- [ ] **GEN.980 The stored class of 4 to 8 bodies differs from the class their final body gives (stored Q, conditions give D; stored P or K, derived D or P): the class is derived before the air is final (bug)**
-  Found by Bug 2 on train 1 (as the lane reported, 8:53 PM EDT
-  2026-10-29): test_sweep_classes class-from-conditions fails with 4 to
-  8 bodies whose stored class differs from the class the finished body
-  gives; it fails on the train branch without Bug 1's changes too and
-  was green at epoch 121, so it most likely came with epoch 122 (Core
-  1's gas ledger and haze, GEN.857 to GEN.859, GEN.891: the class is
-  derived before the air is final). Do: bisect between epochs 121 and
-  122, find the stage that derives the class too early, and derive it
-  after the air is final (or re-derive it at the end of the pass); keep
-  the class census (TEST.430) in range. Changes generated output: epoch
-  with --affects fill, rides a train. Owner: Core 1 (its epoch 122 is
-  the likely cause; Bug 2's bisect decides). Version 8.1.
-  Prerequisites: none. Related: GEN.646, GEN.857, GEN.891, TEST.430.
 
 - [ ] **GEN.981 Induced magnetic moment part (b): conducting cores and planets in the star's field (the part of GEN.779 that remains)**
   Left by Aux 4 with GEN.779 (part (a) merged as #3796: the moons'
@@ -19098,6 +18842,10 @@ clears each one.
   column is deleted with a migration), and fix at the cause. A migration
   or a stored value change rides a train. Owner: Core 1 (lock-free
   diagnosis while it waits for its second turn). Version 8.1.
+  Update (Core 1, train 2 #3973) (2026-10-30 5:58 AM EDT): Resolved by
+  excusing planets.porosity in test_db_column_round_trip (no migration);
+  the test passes. The item stays open until GEN.780 fills the column
+  and the excusal is removed.
   Prerequisites: none. Related: DB.70.
 
 - [ ] **TEST.463 Reds on main reported by Core 5 at 10:33 PM EDT 2026-10-29: triage each one and fix or assign it (bug)**
