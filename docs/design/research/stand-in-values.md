@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 740 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 741 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 115 | 4 | 6 | 1 | 0 | 126 |
+| T1 | 115 | 5 | 6 | 1 | 0 | 127 |
 | T2 | 100 | 19 | 0 | 1 | 0 | 120 |
 | T3 | 74 | 27 | 5 | 9 | 0 | 115 |
 | T4 | 36 | 2 | 0 | 15 | 6 | 59 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 3 | 2 | 7 |
 | T9 | 7 | 1 | 4 | 34 | 19 | 65 |
-| All | 460 | 112 | 36 | 105 | 27 | 740 |
+| All | 460 | 113 | 36 | 105 | 27 | 741 |
 
 ## How the labels were given
 
@@ -1177,6 +1177,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CM14 | P | T6 | L3 | gas-drag window strength: 0.1 to 0.3 of the encounter channel, for a planet that has a gas disc and a population in it (the share of captures the drag channel adds) | 0.1 to 0.3; 0 for a planet with no gas disc | gas giants whose disc lasts over 1 Myr | a capture run with gas drag whose yield differs from the encounter channel by over a factor of 10 | a gas-drag capture run (Pollack et al. 1979; Cuk and Burns 2004, not reached) | design guess (captured-asteroid-moons.md section 5); the collision channel of the same era is CM12 and is negligible | - | no data |
 | CM15 | P | T9 | L1 | storage cut of the irregular list: every irregular above 1e16 kg (R 10.6 km at 2000 kg/m3), then the next heaviest until 90 percent of the irregular mass, at most 100; the Solar System giants give 8, 5, 6, 8 moons above the floor and 90 percent of the mass in 3, 1, 1, 1 bodies | floor 3e15 to 3e16 kg; share 0.8 to 0.95; cap 50 to 200 | the irregular list of every planet | a page of a real giant that needs more than the floor to show its known irregulars | the belt design's storage rule when it merges (one rule for belts and irregulars) | Boss decision 4:34 PM EDT 2026-10-30 (design section 8: option D with floor B); counts from the radius table in CM6; the radius of 1e16 kg for densities 1500, 2000, 2600 kg/m3 is 11.7, 10.6, 9.7 km | - | - |
 | CM16 | P | T1 | L0 | small near-circular equatorial moons of a rocky planet are not captured bodies: tidal dissipation cannot turn a captured orbit into one (Phobos, Deimos); they form from an impact debris disc of about 1e18 kg whose larger inner moons fall back in about 5 Myr; captured irregulars at a terrestrial planet: 0 | disc 3e17 to 3e18 kg | rocky planets after a giant impact | a captured irregular at a terrestrial planet in a capture run | an accretion run of the debris disc of the generated impact (GEN.1006 chain) | Rosenblatt et al. 2016 (HAL hal-01350105, READ in part) | - | - |
+| CM17 | P | T1 | L1 | moon_composition.CAPTURED_SIZE_INDEX 1.0 and CAPTURED_FULL_WEIGHT_MASS_KG 1e16: the weight of the `captured` origin of a moon of mass M is (M / 1e16 kg)^(-1/3) from the survivors' cumulative size law N(>R) ~ R^-1, 1 at or under the floor; 0.046 at 1e20 kg, 0.0078 at Triton's mass | index 0.9 to 1.8 (differential 1.9 +/- 0.3 at Jupiter and Saturn, CM5; 1.8 of the source disc below 70 km, CM3); floor 3e15 to 3e16 kg (CM15) | the moon draw of a giant, a terrestrial planet or a dwarf planet, once GEN.1083 wires it | a giant whose moons above 1e20 kg are captured in more than 1 draw in 10, or one that never draws a captured moon of 1e17 kg | the irregular population of GEN.1077 (the captured share of the mass drawn, not of an index) | CM5, CM15 and the design section 3 (N(>100 km) is 0.1 to 0.5 per giant, not one in three) | - | - |
 
 ## 6.94 Stand-ins of the irregular zone
 

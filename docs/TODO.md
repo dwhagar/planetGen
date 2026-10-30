@@ -14131,21 +14131,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1077, GEN.1067.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
-- [ ] **GEN.1081 Captured-origin weight depends on moon mass: the ORIGIN_TABLE row `captured` becomes a function of mass so a 1e20 kg or heavier moon is rarely captured, as a pure helper**
-  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
-  many moons because a lot of them are former asteroids from the belt,
-  if gravitational bodies are near a belt, they should pick up
-  asteroidal moons"; design
-  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
-  designation function with the belt evolution items (goal #4130).
-  Stand-ins accepted when registered in GEN.725 with tier and tweak
-  level; [R] numbers are read from the source by the lane that builds
-  it. Do: design 3 and 4; wiring is the lock item below. Done: tests.
-  Lock-free. Where we think it belongs (best guess, can move): Aux 4
-  (separate branch, after GEN.1035).
-  Prerequisites: none.
-  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
-
 - [ ] **GEN.1082 The architecture records its capture windows (the instability event, the number of giant-giant close encounters, the gas-disc lifetime already kept in DiskSystem) as a field on the system**
   Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
   many moons because a lot of them are former asteroids from the belt,
@@ -14178,7 +14163,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests, census share of giants with irregulars and the head counts per
   giant. Where we think it belongs (best guess, can move): Core 3 (owns
   the moon draw lock), train 17.
-  Prerequisites: GEN.1081, GEN.1082, GEN.1079, GEN.1080.
+  Prerequisites: GEN.1082, GEN.1079, GEN.1080.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
 - [ ] **GEN.1084 Store the individual irregular moons and the new moon columns (migration, API version), and call the stability test for irregulars in drop_unstable_moons and in bring-to-epoch when a planet moves**
@@ -19771,6 +19756,12 @@ clears each one.
   composition is wrong, say so and it becomes a GEN bug. Lock-free
   unless the code changes output. Where we think it belongs (best guess,
   can move): Core 1 (test owner), separate branch.
+  Failure text (Aux 4) (2026-10-30 5:33 PM EDT): The test fails in its
+  own body at `assert near and far`: the generated moons have no disk
+  moon far enough past the ice line, so the list is empty (not a
+  collection error; my lane run had a missing nltk data step). So either
+  the generator no longer makes such a moon in the seeded system, or the
+  test seed is stale.
   Prerequisites: none.
 
 ## USR: User accounts
