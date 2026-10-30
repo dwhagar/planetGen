@@ -27,7 +27,7 @@ import pymysql
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
 from planetgen.db import block_lights, block_stats, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
-from planetgen.galaxy import density, drill, named_regions, resolution as galaxyResolution, seed as galaxySeed, version_check
+from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, redisqueue, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -1503,6 +1503,8 @@ def expand_generate_sectors(params):
     generate them; for a stage that is `planned`, the ones `planned_items` works out when the stage opens) in about `SECTOR_UNITS_MAX` static chunks of consecutive sectors, the same at any worker count.
     A unit's cost is its sectors.
     """
+    if getattr(_sector_args_of(params), "around", None) is not None:
+        return _expand_region(params)
     warning = None
     if params.get("check_plan"):        # the stage of a run that plans the galaxy first (PERF.203) finds the plan when it opens
         problem, warning = _plan_check(store.mysql_config_from_args(_sector_args_of(params)), params["edge_pc"])
@@ -2543,6 +2545,8 @@ def _address_plan(args, edge_pc, batch_density, say=log.normal):
     if getattr(args, "course", None) is not None:
         return _course_plan(args, say)
     bounds = batch_density.bounds
+    if getattr(args, "around", None) is not None:
+        return _region_plan(args, edge_pc, bounds, say)
     if getattr(args, "block", None) is not None:
         return _block_plan(args, bounds, say)
     if getattr(args, "span", None) is not None or any(
@@ -2608,6 +2612,46 @@ def _refuse_if_very_large(args, what, total, hint):
     `--limit` nor `--yes`."""
     if total > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
         run_common._refuse_or_warn(args, f"{what.capitalize()} holds {total:,} sectors, a very large run {hint}")
+
+
+def _region_run_plan(args, edge_pc, bounds, skip=()):
+    """The `region_run.Plan` of region mode (GEN.1128): the sphere of `--radius-pc` around `--around`, `--grow-shells` more shells, in units of
+    `--unit-sectors` (default `region_run.BLOCK_SECTORS`), less the sectors in `skip`."""
+    return region_run.plan(tuple(args.around), args.radius_pc, edge_pc, block_sectors=args.unit_sectors or region_run.BLOCK_SECTORS,
+                           grow_shells=args.grow_shells or 0, skip=skip, bounds=bounds)
+
+
+def _region_plan(args, edge_pc, bounds, say):
+    """`_address_plan` of region mode (GEN.1128): the sectors of the region in the order of its units, nearest first, inside the galaxy's outline."""
+    plan = _region_run_plan(args, edge_pc, bounds)
+    x, y, z = args.around
+    what = (f"the region of {args.radius_pc:g} pc around ({x:g}, {y:g}, {z:g})"
+            + (f" grown by {args.grow_shells} shell(s)" if args.grow_shells else ""))
+    if not plan.sectors:
+        say(f"{what.capitalize()} holds no sector inside the galaxy's outline: nothing to generate.")
+        return None
+    _refuse_if_very_large(args, what, plan.sectors, "(--yes goes ahead).")
+    def addresses():
+        for unit in plan.units:
+            items = region_run.unit_items(unit, spherical.wedge_count)
+            for place in range(0, len(items), 3):
+                yield tuple(items[place:place + 3])
+
+    return AddressPlan(what, plan.sectors, sorted({unit.shell for unit in plan.units}), addresses)
+
+
+def _expand_region(params):
+    """The cut of a region run (GEN.1128): one unit of work per `region_run` unit, nearest first, less the sectors saved now (a rerun after a stop
+    builds only what is missing). A unit's cost is its sectors."""
+    args = _sector_args_of(params)
+    edge_pc = params["edge_pc"]
+    bounds = _BatchDensity(store.mysql_config_from_args(args)).bounds
+    plan = _region_run_plan(args, edge_pc, bounds, skip=_saved_addresses(args))
+    units = []
+    for unit in plan.units:
+        units.append(({"database": params["database"], "args": params["args"], "edge_pc": edge_pc,
+                       "items": region_run.unit_items(unit, spherical.wedge_count), "again": True}, float(unit.count)))
+    return commands.Expansion(units, {"sectors": plan.sectors, "units": len(units), "skipped": plan.skipped})
 
 
 def _course_plan(args, say):
@@ -2787,7 +2831,7 @@ def _deferred_sectors(args, edge_pc):
             log.normal(f"Generated {follower.generated} new sector(s) in {what}.")
         return finished
 
-    if any(getattr(args, name, None) is not None for name in ("span", "course", "block")) or (
+    if any(getattr(args, name, None) is not None for name in ("span", "course", "block", "around")) or (
             args.wedge is None and args.shell is not None):
         return [SectorsFollower(args, "sectors", "Sectors", edge_pc, count=0, bar_description="Sectors", planned="addresses",
                                 finish=generated_in("the sectors asked for"))]
@@ -2868,7 +2912,7 @@ def _plan_sectors(args, edge_pc, deferred=False):
     with run_common._generation_progress(disable=getattr(args, "estimate_only", False)) as progress:
         log.set_console(progress.console)
         try:
-            if any(getattr(args, name, None) is not None for name in ("span", "course", "block")):
+            if any(getattr(args, name, None) is not None for name in ("span", "course", "block", "around")):
                 return _plan_addresses(args, edge_pc, progress)
             if args.wedge is not None:
                 return _plan_single_sector(args, edge_pc, progress)
