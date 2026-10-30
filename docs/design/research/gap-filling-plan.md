@@ -1722,6 +1722,15 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | RG1 | P | T8 | L2 | rogue_age.EJECTION_DELAY_MIN_GY 0.001 Gy, the earliest ejection after formation | 0.0003 to 0.01 | ejected planets and embryos | an ejection record (GEN.1119) with a large share of ejections earlier than 1 Myr after formation | the delay distribution of the architecture's own ejection records | the gas disc's first Myr is before planets scatter; an educated guess from physics |
 | RG2 | P | T8 | L3 | rogue_age.DELAY_INDEX 1, the ejection delay's density goes as t^-1 | 0 to 2 | the scattering of giants and embryos | ejection records whose delays are not spread evenly over the decades of time | the delay distribution of the ejection records (GEN.1119) | Chatterjee et al. 2008 give scattering times from 1e6 to 1e9 yr and beyond, recalled; the even spread is ours |
 
+### 6.87 Stand-ins of the rogue planet ejection speed (GEN.1112, RP6)
+
+`physics/rogue_kick.py` gives the speed at infinity of a body ejected by a scattering planet, `v_inf = v_esc(a) sqrt(STEP (-ln(1 - u)) / 2)`, from the star's escape speed at the scatterer's distance and the fractional energy step of one encounter (`STEP = ENERGY_STEP_SCALE min(1, v_esc,p / v_orb)`, the first-passage overshoot of a random walk in orbital energy being exponential), the Safronov number cut for which scatterers eject, an isotropic default direction (the direction is held input, Boss's question open), and the rogue's velocity through the Galaxy as its host's plus the drift's relative velocity. A Jupiter scattering from 5.2 AU gives a median 6 km/s with a tail to 15; at 30 AU 2.5 km/s. Rogues of thin-disc hosts pass the Sun at a median of about 40 km/s, with 'Oumuamua's 26 and Borisov's 32 km/s inside the 10 to 90 percent window. Not read by the generator until the rogue rows (GEN.1111).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| RK1 | P | T8 | L3 | rogue_kick.ENERGY_STEP_SCALE 0.3, the fractional orbital-energy step of an encounter in units of min(1, v_esc,p / v_orb) | 0.15 to 1 | planets ejected by planets | ejection speeds from the architecture's own scattering records (GEN.1119, GEN.1113) whose median is not within a factor of two of the model's | the speeds read from the ejection records and from the N-body papers of GEN.1113 | tuned so giants at 5 to 30 AU give a median of 2.5 to 6 km/s, the drift note's 3 km/s and Sayed et al.'s 0.7 to 10.7 km/s |
+| RK2 | P | T6 | L0 | rogue_kick.EJECTION_SAFRONOV_NUMBER 1, the Safronov number above which a scatterer ejects | 0.5 to 2 | scattering planets | a scatterer with Theta under 1 that ejects most of what it scatters in an N-body run | the scattering simulations read by GEN.1089 | Safronov 1972; Ford and Rasio 2008 use the same cut, recalled |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
