@@ -13485,6 +13485,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flip that rides a train. Owner: Aux 3 (after GEN.1002).
   Prerequisites: GEN.474. Related: GEN.1002, GEN.474, GEN.595, GEN.725.
 
+- [ ] **GEN.1006 Stars and bodies in one system never overlap by design: every member knows the others when any is rebuilt, then fit and adjust afterwards**
+  Boss (2026-10-30, 10:51 AM EDT): merge the quick fix for the missing
+  third star (GEN.1004, PR #4026, train 4) but build the deeper, more
+  robust fix as its own item. For a multi-star system, all the star
+  objects need to be aware of the rebuilding of the others, so that in
+  theory any number of stars or objects in one system never overlap by
+  design, and any fitting and adjusting happens afterwards. Do: the
+  design thread researches the most scientifically robust way (build
+  each member's final radius, mass and evolved state before its orbit is
+  placed, so the orbit tree and the physical sizes come from one source
+  of truth; or place by Hill and Roche stability limits computed from
+  the built bodies; or a constraint pass over the whole tree) and writes
+  the design note with its sources and its stand-in tiers (GEN.725);
+  then the lane builds it in small parts. The quick fix of GEN.1004
+  (multistar.built_tree_clears and the redraw loop) is replaced by it,
+  no shim. Done: for every generated system of any star count, no star,
+  planet, moon or belt overlaps another by construction, shown by a test
+  over many seeds with forced triples, quadruples and deeper trees, and
+  the redraw count of TEST.476 falls to a small stated rate. Owner: the
+  GEN.1004 investigation thread for the design, then Star 2 or the first
+  free lane for the build. The build changes output, so it rides a
+  train.
+  Prerequisites: none. Related: GEN.1004, TEST.162, TEST.476, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -13944,26 +13968,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.992 merges (it edits the same function). Owner: Aux 7. Version
   8.1.
   Prerequisites: GEN.992. Related: GEN.992, PERF.209.
-
-- [ ] **PERF.212 The bright-star, phenomena and shell scatters take their params when their stage opens, not when the run is built**
-  bright_star_followers needs the skeleton and the stored mass limit and
-  settings, so plan then scatter in one run cannot build the scatter
-  followers up front. Found by Aux 2 (as the lane reported, 2:47 AM EDT
-  2026-10-30) while planning PERF.203 step 2: a Follower's params must
-  be complete before the run starts, but several verbs read the database
-  when their followers are BUILT, so the whole page job cannot be one
-  run until each computes its params when its stage opens (in its
-  command's expand or prepare, in a worker). No behaviour or
-  stored-output change, no epoch. Lock-free. Do: move the params into
-  the scatter command's expand or prepare hook; test that planning then
-  scattering in one planned run gives the same stored output as today.
-  Size M. Owner: Aux 2.
-  Update (Core 3, PERF.213 #3985) (2026-10-30 6:39 AM EDT): The hook is
-  in: a deferred step parameter the wrapper resolves when a stage opens,
-  plus a small registry for the stage-open parameters. Aux 2 extends
-  that registry for the bright-star, phenomena and shell scatters; no
-  stored value changes.
-  Prerequisites: PERF.203. Related: PERF.203, PERF.213, PERF.214.
 
 ## DB: Database and schema
 
@@ -18315,6 +18319,24 @@ clears each one.
   once on a fast machine. Done: all 8 tests pass in a few minutes on a
   lane machine. Owner: Aux 3 when free, or Bug 2 in the train gate.
   Prerequisites: none. Related: PERF.217, TEST.417.
+
+- [ ] **TEST.476 A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts**
+  Boss (2026-10-30, 10:51 AM EDT): a test that measures how often we
+  redraw or regenerate items to make them fit. Do: count every redraw (a
+  star tree redrawn by the GEN.1004 clearance check, a planet or moon
+  orbit redrawn for spacing or Hill stability, a disk or belt redrawn, a
+  member redrawn for a hydrogen limit and so on) in the generator's draw
+  loops by kind and by star count, over a seeded sample (forced triples,
+  quadruples, ordinary systems), and report the rates; the test pins
+  each rate to a registered ceiling so a change that suddenly redraws
+  more is caught, and the report goes in the census output (TEST.430).
+  Count the redraws through the one random wrapper (draw.py) or a
+  counter beside each retry loop, not a second seeded stream, so the
+  counts do not change what is generated. Done: the report lists every
+  retry loop with its rate, the ceilings are registered with a tier, and
+  the test fails when a rate doubles. Owner: Bug 2 (census) or the first
+  free lane; lock-free (a counter only, no output change).
+  Prerequisites: none. Related: GEN.1004, TEST.430, TEST.162.
 
 ## USR: User accounts
 

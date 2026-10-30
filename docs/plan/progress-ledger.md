@@ -1951,3 +1951,4 @@ Baseline: PR #1817.
 | PERF.190 | 8.1 | The headline closes |
 | PERF.209 | 8.1 | The headline closes |
 | TEST.473 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.212 | 8.1 | Queue, caches and performance |
