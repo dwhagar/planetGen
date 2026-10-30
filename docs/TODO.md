@@ -14790,6 +14790,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT source rule, physics found in research wins): take 182 K from the
   paper; Boss's 10-24 choice of the 170 K centre (GEN.468 findings)
   predates that rule.
+  Boss decided the snow line (2026-10-29 10:06 PM EDT): Boss, 10:05 PM
+  EDT 2026-10-29 (reply to the question of 170 K against 182 K, as
+  relayed by the coordinator): 182 K from Lodders 2003. This is now
+  Boss's decision, not only TODO's. Wiring step stays on train 7;
+  nothing is built yet.
   Prerequisites: none. Related: GEN.944, GEN.468.
 
 - [ ] **GEN.951 Companion mass ratio depends on the primary mass and the orbital period, with the twin excess (Moe and Di Stefano 2017 Table 13) instead of a flat 0.1 to 1 (low priority)**
