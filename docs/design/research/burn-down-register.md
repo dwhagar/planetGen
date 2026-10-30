@@ -67,6 +67,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.19:LF47 | no data | - | chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them |
 | 6.19:LF59 | no data | - | chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them |
 | 6.19:LF60 | no data | - | chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them |
+| 6.19:LF61 | no data | - | the gates and the liquid window of the acid cloud are chosen limits and the acid strength line is fitted through two Venus cloud levels; no second acid world exists to calibrate against, and the Zeleznik 1991 curve is not in the reachable papers |
 | 6.19:LF53 | no data | - | chosen or Earth-calibrated numbers of the life supplies and ledgers (each carries its own tier in its file); no other biosphere exists to calibrate them |
 | 6.20:PM1 | replace | GEN.728 | the observed occurrence rates (Fulton 2021, Petigura 2018, Dressing and Charbonneau 2015) enter as bands the planet count and spacing items (GEN.728, GEN.729, GEN.828, GEN.829) fit to |
 | 6.20:PM2 | replace | GEN.728 | the observed occurrence rates (Fulton 2021, Petigura 2018, Dressing and Charbonneau 2015) enter as bands the planet count and spacing items (GEN.728, GEN.729, GEN.828, GEN.829) fit to |
