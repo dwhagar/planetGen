@@ -14434,44 +14434,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.1111, GEN.1119, TEST.499.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
-- [ ] **GEN.1121 Designation history: an object may change its name and ID, keeps a stored history of its previous designations, and its current ID is always completely unique across the whole galaxy**
-  Boss, 5:28 PM EDT 2026-10-30: objects can change name and ID, but each
-  stores a history of its previous designations, and it must always have
-  a completely unique ID. Do: a designation history per object (a table
-  of object, old ID, old name, the change and when, in order), a rule
-  that a new ID must not equal any current or any past ID of any object
-  (a retired ID is never reused, so an old link can always resolve to
-  the object that held it), lookups by an old ID or name redirect to the
-  current object, belt and field members (`<belt ID>.<rank hex>`) and
-  moons follow when a parent changes ID, and the object page shows
-  "formerly" lines. The 96-bit Object ID stays the position-and-seed ID;
-  a renumbering produces an alias row rather than rewriting the ID in
-  place. Done: tests for rename, ID change, collision refused, redirect
-  from an old ID, history shown on the page, members following a parent
-  ID change, and the edit-everything flow of version 8.6 writing the
-  history; unit-less data. Lock work (migration, API field), the design
-  note first. Where we think it belongs (best guess, can move): Core 1
-  (IDs and reproducible galaxies), version 8.2 with the object pages;
-  the edit flow of 8.6 uses it.
-  Design from the region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT):
-  Design: region-object-store.md section 7.3. Every object keeps a
-  stable internal row id; name and uid are attributes. A `designations`
-  table has one row per designation ever held (designation text UNIQUE
-  across the whole galaxy, table, object_row_id, kind name or uid,
-  valid_from_epoch, retired_epoch NULL while current, reason: collision
-  bump, regeneration, moved, admin rename); a retired designation stays
-  reserved. Lookup by an old designation redirects to the current
-  object; the object page lists previous designations; fingerprints
-  digest the current designation only (GEN.1129 keeps the history digest
-  separate). This makes the collision bump of _rank_chain a legal rename
-  and reverses principle 1 of object-id-options.md. A moved rogue keeps
-  the ID of its birth position unless Boss asks otherwise (default).
-  Backfill one current row per existing object. Train 9.
-  Boss 5:49 PM EDT 10-30 (2026-10-30 5:50 PM EDT): Confirmed: a moved
-  rogue keeps its ID fixed (birth-position ID), so the move history row
-  applies only to renames and collision bumps.
-  Prerequisites: none. Related: GEN.1070, GEN.1105, GEN.1118.
-
 - [ ] **GEN.1123 Audit every table that carries sector_id and its ON DELETE rule, and every path that deletes or regenerates a sector, and report which objects would be lost when a sector is deleted though they drifted in**
   Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
   GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
@@ -14671,6 +14633,83 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   temperatures change (epoch, golden). Where we think it belongs (best
   guess, can move): Bug 1 (owner of GEN.948), train 6.
   Prerequisites: none. Related: GEN.948, GEN.494.
+
+- [ ] **GEN.1138 Designation history part b: the designations table (retired IDs and names), galaxy/designations.py (rules, retire, renumber) and the three rename writers and _rank_chain writing history**
+  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
+  questions: the small table of retired designations only (not a row per
+  object), retired IDs reserved forever and retired names not reserved
+  (the collision bump may hand a stored object's name to another), a
+  read of a retired ID redirects, a write against it answers 409, a
+  deleted object answers 410. Design:
+  docs/design/architecture/designation-history.md (GEN.1121 part a,
+  merged as #4234), section 4 to 5. Do: Alembic migration for the
+  designations table with the keys of section 4 (unique on the retired
+  uid, lookup and page-line indexes), designations.py with retire and
+  renumber, the store rename writers (rename_star_system, rename_star,
+  rename_body) and the _rank_chain collision bump (reason collision
+  bump) write the history in the same transaction as object_index;
+  invariants of section 3 as tests. Done: tests for rename, ID change, a
+  new ID equal to any current or retired ID refused, history rows in
+  order. Lock work (migration, epoch only if names move). Where we think
+  it belongs (best guess, can move): Core 1, train 9 (the last window).
+  Prerequisites: none. Related: GEN.1121, GEN.1127.
+  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
+
+- [ ] **GEN.1139 Designation history part c: a read of a retired ID redirects to the current object, a write against it answers 409, a deleted object answers 410 (api/ids.py and the page routes)**
+  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
+  questions: the small table of retired designations only (not a row per
+  object), retired IDs reserved forever and retired names not reserved
+  (the collision bump may hand a stored object's name to another), a
+  read of a retired ID redirects, a write against it answers 409, a
+  deleted object answers 410. Design:
+  docs/design/architecture/designation-history.md (GEN.1121 part a,
+  merged as #4234), section 5. Do: api/ids.row_id falls back to
+  designations when the printed ID is not current; page routes answer
+  301 to the current URL; GET API calls answer 301 with the new Location
+  and X-Designation-Formerly; PATCH and DELETE against a retired ID
+  answer 409; a deleted object answers 410. Done: tests for each status
+  and for an old link resolving to the object that held the ID.
+  Lock-free after part b. Where we think it belongs (best guess, can
+  move): Core 1, train 9.
+  Prerequisites: GEN.1138. Related: GEN.1121.
+  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
+
+- [ ] **GEN.1140 Designation history part d: Formerly lines on the object page, the former_designations API field and search by a past name**
+  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
+  questions: the small table of retired designations only (not a row per
+  object), retired IDs reserved forever and retired names not reserved
+  (the collision bump may hand a stored object's name to another), a
+  read of a retired ID redirects, a write against it answers 409, a
+  deleted object answers 410. Design:
+  docs/design/architecture/designation-history.md (GEN.1121 part a,
+  merged as #4234), section 5. Do: the object page lists previous
+  designations newest first with the reason and the epoch date; the JSON
+  of an object gains former_designations, a list of designation, kind,
+  reason and retired_epoch (additive, API version bump); search finds an
+  object by a past name or ID. Done: page and API tests, search test.
+  Lock work (API field). Where we think it belongs (best guess, can
+  move): Core 1, train 9.
+  Prerequisites: GEN.1138. Related: GEN.1121, UX.226.
+  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
+
+- [ ] **GEN.1141 Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete**
+  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
+  questions: the small table of retired designations only (not a row per
+  object), retired IDs reserved forever and retired names not reserved
+  (the collision bump may hand a stored object's name to another), a
+  read of a retired ID redirects, a write against it answers 409, a
+  deleted object answers 410. Design:
+  docs/design/architecture/designation-history.md (GEN.1121 part a,
+  merged as #4234), section 5 and 6. Do: when a system or belt changes
+  ID, its bodies, belt members (<belt ID>.<rank hex>) and captured
+  bodies renumber in the same transaction and write their own history
+  rows; a delete in store.delete_* stamps gone_epoch on the object's
+  rows (GEN.1123's audit lists the delete paths). Done: tests that
+  members follow a parent ID change and that a deleted object answers
+  410. Lock-free after part b unless the migration is shared. Where we
+  think it belongs (best guess, can move): Core 1, train 9.
+  Prerequisites: GEN.1138, GEN.1123. Related: GEN.1121, GEN.1070.
+  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
