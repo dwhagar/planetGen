@@ -8,12 +8,17 @@ Everything inside a sphere, read by the cell key (NAV.60)
 column and its covering index `(cell_key, x, y, z)` (design note `docs/design/galaxy/spherical-region-queries.md`, sections 6.3
 and 6.4), for any table with a position, whether or not the row has a sector:
 
-    SELECT p.id, ..., d2
+    SELECT p.id, ..., POW(x - cx, 2) + POW(y - cy, 2) + POW(z - cz, 2) AS d2
     FROM (VALUES ROW(lo1, hi1), ROW(lo2, hi2), ...) AS rg(lo, hi)        -- at most 256 runs of keys (GEN.276)
     STRAIGHT_JOIN table p FORCE INDEX (idx_table_cell) ON p.cell_key BETWEEN rg.lo AND rg.hi
-    WHERE (x - cx)^2 + (y - cy)^2 + (z - cz)^2 <= r^2
+    HAVING d2 <= r^2
     UNION ALL
-    SELECT ... FROM table p FORCE INDEX (idx_table_cell) WHERE p.cell_key IS NULL AND <the same test>     -- a row outside the box has no key
+    SELECT ... FROM table p FORCE INDEX (idx_table_cell) WHERE p.cell_key IS NULL AND ... HAVING d2 <= r^2     -- a row outside the box has no key
+
+The squared distance is worked out once per candidate row, as `POW(axis - c, 2)` (PERF.216): MySQL does not share a repeated
+sub-expression, so `(axis - c) * (axis - c)` is worked out twice and the test and the select list worked it out again;
+at 50 pc, where about 90,000 candidate rows are tested, that was most of the statement's time (the index read is 0.5 us a row, the
+test was 2.7).
 
 The runs are written into the statement as integers; the point and the radius as finite numbers. The SQL test is a
 little loose (a billionth), and the caller measures the exact distance with `detmath`, so the answer does not depend on
@@ -56,7 +61,7 @@ def values_list(runs):
     return "VALUES " + ", ".join(f"ROW({int(low)}, {int(high)})" for low, high in runs)
 
 
-def region_statement(table, columns, position, center, radius, where="", runs=None):
+def region_statement(table, columns, position, center, radius, where="", runs=None, with_distance=True):
     """
     The statement and its parameters for the rows of `table` within `radius` of `center`.
 
@@ -71,6 +76,8 @@ def region_statement(table, columns, position, center, radius, where="", runs=No
         where (str): More conditions on `p`, with no `?` (`region_rows` takes `?` values through `where_params`; the
             text stands in both branches).
         runs (list, optional): The key runs; `sphere_runs(center, radius)` by default.
+        with_distance (bool): Whether the squared distance is selected as the last column `d2` (the default) or only tested, in
+            `WHERE`, for a statement that counts rows and needs no distance.
 
     Returns:
         tuple: `(sql, runs)`; the SQL holds the point and the radius as numbers and `?` only where `where` does. A
@@ -79,20 +86,27 @@ def region_statement(table, columns, position, center, radius, where="", runs=No
     if runs is None:
         runs = cellkey.sphere_runs(center, radius)
     reach = float(radius) * (1.0 + SLACK) + SLACK
-    squares = " + ".join(f"({axis} - {_number(c)}) * ({axis} - {_number(c)})" for axis, c in zip(position, center))
-    test = f"{squares} <= {_number(reach * reach)}"
-    extra = f" AND ({where})" if where else ""
+    squares = " + ".join(f"POW({axis} - {_number(c)}, 2)" for axis, c in zip(position, center))
+    limit = _number(reach * reach)
+    selected = f"{columns}, {squares} AS d2" if with_distance else columns
+    extra = f"({where})" if where else ""
+    if with_distance:
+        join_where, join_tail = (f" WHERE {extra}" if extra else ""), f" HAVING d2 <= {limit}"
+        null_where, null_tail = f" AND {extra}" if extra else "", join_tail
+    else:
+        join_where, join_tail = f" WHERE {extra + ' AND ' if extra else ''}{squares} <= {limit}", ""
+        null_where, null_tail = f"{' AND ' + extra if extra else ''} AND {squares} <= {limit}", ""
     null_branch = (
-        f"SELECT {columns}, {squares} AS d2 FROM {table} p FORCE INDEX ({index_name(table)}) "
-        f"WHERE p.cell_key IS NULL AND {position[0]} IS NOT NULL AND {test}{extra}"
+        f"SELECT {selected} FROM {table} p FORCE INDEX ({index_name(table)}) "
+        f"WHERE p.cell_key IS NULL AND {position[0]} IS NOT NULL{null_where}{null_tail}"
     )
     if not runs:        # the sphere lies wholly outside the box: only the rows without a key can be in it
         return null_branch, runs
     sql = (
-        f"SELECT {columns}, {squares} AS d2 "
+        f"SELECT {selected} "
         f"FROM ({values_list(runs)}) AS rg(lo, hi) "
-        f"STRAIGHT_JOIN {table} p FORCE INDEX ({index_name(table)}) ON p.cell_key BETWEEN rg.lo AND rg.hi "
-        f"WHERE {test}{extra} "
+        f"STRAIGHT_JOIN {table} p FORCE INDEX ({index_name(table)}) ON p.cell_key BETWEEN rg.lo AND rg.hi"
+        f"{join_where}{join_tail} "
         f"UNION ALL {null_branch}"
     )
     return sql, runs
@@ -127,7 +141,7 @@ def capped_count(conn, table, position, center, radius, cap, where="", where_par
     cap = int(cap)
     if cap < 1:
         raise RegionError("a count is capped at 1 or more")
-    sql, runs = region_statement(table, "1 AS one", position, center, radius, where)
+    sql, runs = region_statement(table, "1 AS one", position, center, radius, where, with_distance=False)
     row = conn.execute(f"SELECT COUNT(*) AS n FROM ({sql} LIMIT {cap}) AS counted",
                        tuple(where_params) * (2 if runs else 1)).fetchone()
     return int(row["n"])

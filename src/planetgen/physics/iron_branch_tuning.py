@@ -53,7 +53,7 @@ def planet(enriched_weight, scatter_dex):
     """One planet and the host it orbits: the quantities `mass_radius_sample.observe` needs, plus `true_cmf` and `star_cmf`; None above the rocky cut."""
     fe_h = draw.gauss(0.0, FE_H_SIGMA)
     host_mass = math.exp(draw.uniform(math.log(HOST_MASS_RANGE_SOLAR[0]), math.log(HOST_MASS_RANGE_SOLAR[1])))
-    key = stellar_composition.abundance_key(mass=host_mass, age_gy=4.0, distance_ly=draw.uniform(20000.0, 30000.0))
+    key = stellar_composition.abundance_key(mass=host_mass, distance_ly=draw.uniform(20000.0, 30000.0))
     ratios = bulk_draw._ratios(fe_h, 4.0, key)
     star_part = bulk_draw.dry_partition(ratios, FEO, LIGHT, False)
     branch = "iron-enriched" if draw.uniform(0.0, 1.0) < enriched_weight else "star-matched"

@@ -39,27 +39,39 @@ def total(composition):
 # --- The key and the draws ---------------------------------------------------------------------------------------------
 
 def test_the_key_prefers_the_group_then_the_bright_seed_then_the_uid_then_the_quantities():
-    assert sc.abundance_key(uid=5, mass=1.0, age_gy=2.0, distance_ly=3.0, bright_seed=7, group="9") == "9"
-    assert sc.abundance_key(uid=5, mass=1.0, age_gy=2.0, distance_ly=3.0, bright_seed=7) == "bright:7"
-    assert sc.abundance_key(uid=5, mass=1.0, age_gy=2.0, distance_ly=3.0) == "5"
-    assert sc.abundance_key(mass=1.0, age_gy=2.0, distance_ly=3.0) == "1.0:2.0:3.0"
+    assert sc.abundance_key(uid=5, mass=1.0, distance_ly=3.0, bright_seed=7, group="9") == "9"
+    assert sc.abundance_key(uid=5, mass=1.0, distance_ly=3.0, bright_seed=7) == "bright:7"
+    assert sc.abundance_key(uid=5, mass=1.0, distance_ly=3.0) == "5"
+    assert sc.abundance_key(mass=1.0, distance_ly=3.0) == "1.0:3.0"
     assert sc.cluster_key(11) == "cluster:11"
     with pytest.raises(sc.StarMakeupError):
         sc.abundance_key(mass=1.0)
 
 
+def test_a_stars_key_does_not_move_when_its_age_rises_after_its_planets_are_made():
+    """GEN.984: a planet's host ratios and the star's makeup read one draw, whatever age the star had when the planet was made."""
+    from types import SimpleNamespace
+    from planetgen.physics import bulk_draw
+    star = SimpleNamespace(mass=1.0, age=2.0, galactic_center_dist_ly=26000.0, metallicity_fe_h=0.0)
+    before = bulk_draw.star_key(star)
+    star.age = 4.5
+    assert bulk_draw.star_key(star) == before == sc.abundance_key(mass=1.0, distance_ly=26000.0)
+    assert sc.key_draws(before) == sc.key_draws(bulk_draw.star_key(star))
+
+
 def test_the_draws_are_a_function_of_the_key_alone_and_all_are_always_drawn():
     one, two = sc.key_draws("42"), sc.key_draws("42")
     assert one == two and one != sc.key_draws("43")
-    assert 0.0 <= one.u_branch < 1.0 and len(one.normals) == 4 and 0.0 <= one.u_crust_model < 1.0
+    assert 0.0 <= one.u_branch < 1.0 and len(one.normals) == 5 and 0.0 <= one.u_crust_model < 1.0
     # The fixed order: changing only what is drawn last cannot move what is drawn first.
     stream = draw.Stream("abundance:42")
-    assert stream.random() == one.u_branch and tuple(stream.gauss(0.0, 1.0) for _ in range(4)) == one.normals
+    assert stream.random() == one.u_branch and tuple(stream.gauss(0.0, 1.0) for _ in range(4)) == one.normals[:4]
     assert stream.random() == one.u_enhanced and stream.random() == one.u_carbon
     assert stream.gauss(0.0, 1.0) == one.eu_normal and stream.gauss(0.0, 1.0) == one.th_eu_normal
     assert stream.random() == one.u_atmosphere and stream.random() == one.u_wolf_rayet
     assert stream.random() == one.u_crust_model, "the draw added before the pollution one (GEN.590) moved none before it"
-    assert stream.random() == one.u_pollution, "the draw added last (GEN.253) moved none before it"
+    assert stream.random() == one.u_pollution, "the draw added before the calcium one (GEN.253) moved none before it"
+    assert stream.gauss(0.0, 1.0) == one.normals[4], "the calcium residual (GEN.988) is the last draw and moved none before it"
 
 
 def test_the_draws_are_a_stream_of_their_own():
@@ -177,14 +189,15 @@ def test_a_wo_star_is_carbon_and_oxygen_rich_and_every_row_adds_up_at_both_ends_
             assert math.fsum(fractions.values()) == pytest.approx(1.0) and min(fractions.values()) >= 0.0, (name, u)
 
 
-def test_every_wolf_rayet_star_the_generator_makes_has_a_composition_that_adds_up():
+def test_every_wolf_rayet_star_the_generator_makes_has_a_composition_that_adds_up(monkeypatch):
+    monkeypatch.setattr(isochrones, "helium_star_relation", lambda: (4.31, 1.16, 0.064))   # the fixture grid holds no Wolf-Rayet row
     stream = draw.Stream("gen831")
     seen = set()
     for index in range(200):
         age = 0.003 + 0.001 * stream.random()
-        state = wolf_rayet.state(40.0 + 40.0 * stream.random(), age, 0.003, 0.004, stream)
+        state = wolf_rayet.state(40.0 + 40.0 * stream.random(), 15.0 + 20.0 * stream.random(), age, 0.003, 0.004, stream)
         text = f"{state['wr_subtype']}{wolf_rayet.subclass(state['wr_subtype'], state['temperature_k'])}"
-        key = sc.abundance_key(mass=state["mass_sol"], age_gy=age, distance_ly=26000.0 + index)
+        key = sc.abundance_key(mass=state["mass_sol"], distance_ly=26000.0 + index)
         by_text = sc.star_makeup(sc.kind_of(state["yerkes_class"], state["mass_sol"]), 0.0, age, state["mass_sol"], key,
                                  wolf_rayet_subtype=text)
         by_temperature = sc.star_makeup(sc.WOLF_RAYET, 0.0, age, state["mass_sol"], key, wolf_rayet_subtype=state["wr_subtype"],
@@ -361,7 +374,7 @@ def test_a_sweep_of_every_kind_of_star_the_generator_makes_adds_up_and_follows_t
         for age in ages + [lifetime * share for share in (0.3, 0.95, 1.0, 1.03, 1.06, 1.1, 1.2, 1.4, 2.0)]:
             fe_h = -2.0 + 2.4 * stream.random()
             state = evolve_star(mass, age, rng=stream, fe_h=fe_h)
-            key = sc.abundance_key(mass=mass, age_gy=age, distance_ly=26000.0)
+            key = sc.abundance_key(mass=mass, distance_ly=26000.0)
             if state is None:
                 kind = sc.NEUTRON_STAR if mass < 25.0 else sc.BLACK_HOLE
                 makeup = sc.star_makeup(kind, None, age, 1.4 if kind == sc.NEUTRON_STAR else mass, key)

@@ -26,8 +26,8 @@ from planetgen.describe.quantity import inline_text as describe_inline
 from planetgen.galaxy import enclosed_mass, scales
 from planetgen.physics.units import pc_to_ly
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.star import Star, _sample_evolved_star_mass_sol
-from planetgen.physics import constants as pc, mathcheck, ms_lifetime
+from planetgen.generation.star import Star
+from planetgen.physics import constants as pc, mathcheck, post_main_sequence
 from planetgen import tuning as prog_c
 
 SPECTRAL_CLASSES = ["O", "B", "A", "F", "G", "K", "M"]
@@ -109,7 +109,7 @@ def test_white_dwarfs_have_infinite_lifespan(yerkes_class):
         assert s.lifespan == float('inf'), (
             f"{spec}5{yerkes_class}: expected infinite lifespan for a white dwarf, got {s.lifespan}"
         )
-        assert prog_c.WHITE_DWARF_MIN_AGE_GY <= s.age <= prog_c.WHITE_DWARF_MAX_AGE_GY
+        assert 0 < s.age <= prog_c.UNIVERSE_AGE_GY * 1.001
 
 
 def test_subdwarf_age_never_exceeds_universe_age():
@@ -135,7 +135,6 @@ def test_subdwarf_age_never_exceeds_universe_age():
                 f"{spec}5VI: age {s.age} Gy exceeds the age of the universe "
                 f"({prog_c.UNIVERSE_AGE_GY} Gy)"
             )
-            assert prog_c.SUBDWARF_MIN_AGE_GY * 0.999 <= s.age <= prog_c.SUBDWARF_MAX_AGE_GY * 1.001
             assert math.isfinite(s.lifespan)
             assert s.age <= s.lifespan * 1.001
 
@@ -145,77 +144,23 @@ def test_evolved_stars_are_at_least_as_old_as_their_own_main_sequence_lifespan(y
     """
     A giant/supergiant/subgiant/bright-giant/hypergiant must already have
     finished its main-sequence phase to be observed as that class -- its age
-    can never be less than the main-sequence lifespan implied by its own
-    generated mass (see Star._calculate_initial_star_age_and_lifespan).
+    can never be less than the main-sequence lifespan of its own track (the
+    star is one of the star model's, GEN.941), and that lifespan can never be
+    longer than the age of the universe: such a progenitor couldn't have
+    finished its main sequence yet.
     """
     for spec in SPECTRAL_CLASSES:
-        s = make_star(f"{spec}5{yerkes_class}")
-        mass_sol = s.mass / pc.SOLAR_MASS_TO_KG
-        ms_lifespan = ms_lifetime.lifetime_gy(mass_sol)
-        assert s.age >= ms_lifespan * 0.999, (
-            f"{spec}5{yerkes_class}: age {s.age} Gy is younger than its own "
-            f"implied main-sequence lifespan {ms_lifespan} Gy"
-        )
-
-
-@pytest.mark.parametrize("yerkes_class", ["II", "III", "IV", "IB", "IAB", "IA", "IA+", "0"])
-def test_evolved_star_mass_never_implies_a_pre_big_bang_star(yerkes_class):
-    """
-    Regression test for "Evolved-star mass sampling can imply a
-    pre-Big-Bang star" (see TODO.md's "Future ideas" / CHANGELOG.md): an
-    evolved-class star's own generated mass must never imply a
-    main-sequence lifespan longer than the age of the universe -- such a
-    progenitor couldn't have finished its main-sequence phase yet, so a
-    star with that mass could never actually be observed as an evolved
-    class today. Class III (Giant)'s allowed mass range (0.8-8 Msun, see
-    physical_constants.YERKES_MASS_CONSTRAINTS) is the one that actually
-    brushes the ~0.93 Msun cutoff, so more trials run there to exercise the
-    reject-and-resample loop (Star._sample_evolved_star_mass_sol).
-    """
-    trials = 200 if yerkes_class == "III" else 20
-    for spec in SPECTRAL_CLASSES:
-        for _ in range(trials):
+        for _ in range(20):
             s = make_star(f"{spec}5{yerkes_class}")
-            mass_sol = s.mass / pc.SOLAR_MASS_TO_KG
-            ms_lifespan = ms_lifetime.lifetime_gy(mass_sol)
-            assert ms_lifespan <= prog_c.UNIVERSE_AGE_GY * 1.001, (
-                f"{spec}5{yerkes_class}: mass {mass_sol} Msun implies a "
-                f"main-sequence lifespan of {ms_lifespan} Gy, longer than the "
-                f"age of the universe ({prog_c.UNIVERSE_AGE_GY} Gy) -- this "
-                f"progenitor couldn't have finished its main-sequence phase yet."
+            ms_lifespan = post_main_sequence.timeline(s.initial_mass_sol, s.metallicity_fe_h).main_sequence_gy
+            assert s.age >= ms_lifespan * 0.999, (
+                f"{spec}5{yerkes_class}: age {s.age} Gy is younger than its own "
+                f"main-sequence lifespan {ms_lifespan} Gy"
             )
-
-
-def test_sample_evolved_star_mass_sol_rejects_pre_big_bang_masses():
-    """
-    Unit-level regression test for Star._sample_evolved_star_mass_sol
-    itself: every mass it returns for class III (Giant)'s allowed range
-    (0.8-8 Msun -- the one class where the ~0.93 Msun cutoff actually falls
-    inside the range) must have an implied main-sequence lifespan within
-    the age of the universe, even though plain uniform sampling over that
-    same range would sometimes land below the cutoff.
-    """
-    min_mass_sol, max_mass_sol = pc.YERKES_MASS_CONSTRAINTS["III"]
-    for _ in range(500):
-        mass_sol = _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol)
-        assert min_mass_sol <= mass_sol <= max_mass_sol
-        ms_lifespan = ms_lifetime.lifetime_gy(mass_sol)
-        assert ms_lifespan <= prog_c.UNIVERSE_AGE_GY * 1.001, (
-            f"sampled mass {mass_sol} Msun implies a main-sequence lifespan of "
-            f"{ms_lifespan} Gy, longer than the age of the universe"
-        )
-
-
-def test_sample_evolved_star_mass_sol_raises_when_range_is_entirely_invalid():
-    """
-    A mass range whose *every* value implies a main-sequence lifespan
-    longer than the age of the universe (e.g. class VI's own 0.1-0.8 Msun
-    range, which is exactly why Star.generate_star excludes VI from this
-    check) must fail loudly rather than looping forever or silently
-    returning a self-contradictory mass.
-    """
-    with pytest.raises(ValueError):
-        _sample_evolved_star_mass_sol(*pc.YERKES_MASS_CONSTRAINTS["VI"])
+            assert ms_lifespan <= prog_c.UNIVERSE_AGE_GY * 1.001, (
+                f"{spec}5{yerkes_class}: initial mass {s.initial_mass_sol} Msun has a main-sequence lifespan of "
+                f"{ms_lifespan} Gy, longer than the age of the universe ({prog_c.UNIVERSE_AGE_GY} Gy)"
+            )
 
 
 @pytest.mark.parametrize("star_type", ALL_STAR_TYPES)

@@ -112,7 +112,7 @@ const { blockGenerateButtons, generateButtons } = await import(`./generatebutton
 const {
   NEBULA_MESH_MIN_PX, buildNebulaMesh, createShapeLoader, disposeNebulaMesh,
 } = await import(`./nebulamesh.js${VERSION_QUERY}`);
-const { createPicker, createRing, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
+const { createPicker, createRing, createHoverPreview, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createNavPick } = await import(`./navpick.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
@@ -496,8 +496,9 @@ function phenomenonActions(item) {
 }
 
 // MAP.316: a charted region picked on the map: how much of it is charted, its family, and a button that flies to it.
-function showRegionInfo(blob) {
-  showInfo({
+// MAP.348: what a card says first of each kind of thing (its name, kind and values), also what the hover preview shows of it.
+function regionFacts(blob) {
+  return {
     title: blob.name || "Charted region",
     kind: "Region",
     fields: [
@@ -507,9 +508,14 @@ function showRegionInfo(blob) {
       ["Family", blob.parent],
       ["Distance from core", formatDistancePc(Math.hypot(blob.x, blob.y, blob.z))],
     ],
+  };
+}
+
+function showRegionInfo(blob) {
+  showInfo(Object.assign(regionFacts(blob), {
     more: [["Radius", formatDistancePc(blob.radiusPc)], ["Region cell", blob.key]],
     buttons: [{ label: "Go to region", onClick: function () { openRegionBlob(blob); } }],
-  });
+  }));
 }
 
 // Flies to a charted region of the regions layer: its window, the camera framing its extent (MAP.319).
@@ -518,8 +524,8 @@ function openRegionBlob(blob) {
   regionOpener.region({ block: blob.block, name: blob.name, extent: { centre: [blob.x, blob.y, blob.z], radius: blob.radiusPc } });
 }
 
-function showCloudInfo(cloud) {
-  showInfo(withRegion(Object.assign({
+function cloudFacts(cloud) {
+  return {
     title: cloud.name || cloudTypeLabel(cloud),
     fields: [
       ["Type", cloudTypeLabel(cloud)],
@@ -527,6 +533,11 @@ function showCloudInfo(cloud) {
       ["Radius", formatDistancePc(cloud.radius_pc)],
       ["Distance from core", formatDistancePc(Math.hypot(cloud.x, cloud.y, cloud.z))],
     ],
+  };
+}
+
+function showCloudInfo(cloud) {
+  showInfo(withRegion(Object.assign(cloudFacts(cloud), {
     more: [["Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   }, phenomenonActions(cloud)), [cloud.x, cloud.y, cloud.z]));
 }
@@ -558,8 +569,8 @@ function pointTypeLabel(point) {
 
 // A black hole, neutron star or quasar on the map (MAP.80,
 // queryDb.galaxy_point_phenomena_in_box): what it is, and its page.
-function showPointInfo(point) {
-  showInfo(withRegion(Object.assign({
+function pointFacts(point) {
+  return {
     title: point.name || POINT_TYPE_LABELS[point.type] || "Phenomenon",
     fields: [
       ["Type", pointTypeLabel(point)],
@@ -567,6 +578,11 @@ function showPointInfo(point) {
     ].concat(point.mass_solar != null ? [["Mass", formatMassSolar(point.mass_solar)]] : [], [
       ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
     ]),
+  };
+}
+
+function showPointInfo(point) {
+  showInfo(withRegion(Object.assign(pointFacts(point), {
     more: [["Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   }, phenomenonActions(point)), [point.x, point.y, point.z]));
 }
@@ -628,15 +644,20 @@ function nearestSystemsNode(systemId) {
 
 // A star system worth a mark on the map (MAP.220, MAP.305: a habitable world, a gas giant): every reason it has, where it is,
 // its nearest systems (MAP.296), and its page.
-function showInterestSystemInfo(system) {
-  var spec = {
+function interestFacts(system) {
+  return {
     title: system.name || "Star system",
     kind: "Star system",
     fields: interestLines(system).map(function (line) { return [line.label, line.text]; }).concat([
       ["Distance from core", formatDistancePc(Math.hypot(system.x, system.y, system.z))],
     ]),
-    more: [["Position x, y, z", [system.x, system.y, system.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   };
+}
+
+function showInterestSystemInfo(system) {
+  var spec = Object.assign(interestFacts(system), {
+    more: [["Position x, y, z", [system.x, system.y, system.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
+  });
   var nearest = nearestSystemsNode(system.id);
   if (nearest) {
     spec.after = [nearest];
@@ -650,8 +671,8 @@ function showInterestSystemInfo(system) {
 // MAP.243: a star beyond the galaxy's outline (the halo, a satellite galaxy), where no block or sector of the
 // whole-galaxy view holds it: what is known of it and where it is.
 // A star of the map (MAP.304): what the node lists of it, and its system's page when it has one.
-function showStarInfo(star, nearby) {
-  var spec = {
+function starFacts(star) {
+  return {
     title: star.name || "Star",
     kind: "Star",
     fields: [
@@ -660,8 +681,13 @@ function showStarInfo(star, nearby) {
       ["Class", star.star_type || null],
       ["Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z))],
     ],
-    more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   };
+}
+
+function showStarInfo(star, nearby) {
+  var spec = Object.assign(starFacts(star), {
+    more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
+  });
   if (star.system_id != null && sceneData.systemUrl) {
     var systemPage = String(sceneData.systemUrl).replace("{id}", encodeURIComponent(star.system_id));
     spec.view = { href: systemPage, label: "View system →" };
@@ -674,8 +700,8 @@ function showStarInfo(star, nearby) {
   showInfo(withRegion(spec, [star.x, star.y, star.z]));
 }
 
-function showHaloStarInfo(star) {
-  showInfo({
+function haloStarFacts(star) {
+  return {
     title: "Star beyond the galaxy's outline",
     fields: [
       ["Luminosity", formatLuminositySol(star.luminosity_sol)],
@@ -683,8 +709,13 @@ function showHaloStarInfo(star) {
       ["Class", star.star_type || null],
       ["Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z))],
     ],
+  };
+}
+
+function showHaloStarInfo(star) {
+  showInfo(Object.assign(haloStarFacts(star), {
     more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
-  });
+  }));
 }
 
 function rgba(hex, alpha) {
@@ -3624,6 +3655,8 @@ function initGalaxyMap3d(canvasEl, data) {
     pixelRatio: function () { return renderer.getPixelRatio(); },
     showInfo: showInfo,
     hideCell: hideCell,
+    // MAP.348: what the opened sector's things say first when hovered.
+    preview: function (facts, entry) { previewHover(entry, facts, entry); },
     viewport: viewport,
     // The sector page's "Show on map" buttons (MAP.46) are there once the
     // sector is.
@@ -3893,6 +3926,7 @@ function initGalaxyMap3d(canvasEl, data) {
         return best ? { entry: best.blob, distance: best.distance } : null;
       },
       tooltip: function (blob) { return (blob.name || "Charted region") + ", " + chartedText(blob.share); },
+      hover: function (blob) { previewHover(blob, blob ? function () { return regionFacts(blob); } : null); },
       select: function (blob) {
         highlightPosition(blob.x, blob.y, blob.z);
         showRegionInfo(blob);
@@ -4240,6 +4274,46 @@ function initGalaxyMap3d(canvasEl, data) {
     else hoverRing.hide();
   }
 
+  // MAP.348: a thing hovered shows a small preview (its card's first view) in a corner of the map that is clear of the pointer, of the thing
+  // and of the open card. It takes no pointer event, and a touch screen has no hover to show it.
+  var hoverPreview = createHoverPreview(canvasEl.closest(".galaxy-map-main") || viewport);
+  var lastPointer = null;
+  canvasEl.addEventListener("pointermove", function (event) { lastPointer = { x: event.clientX, y: event.clientY }; });
+  ["pointerleave", "pointerdown", "wheel", "keydown"].forEach(function (type) { canvasEl.addEventListener(type, function () { hoverPreview.hide(); }); });
+  canvasEl.__mapHoverPreview = hoverPreview;    // the browser tests read what it shows
+  var previewSpot = new THREE.Vector3();
+  function previewPoints(entry) {
+    var points = lastPointer ? [lastPointer] : [];
+    previewSpot.set(entry.x, entry.y, entry.z).project(camera);
+    if (previewSpot.z > -1 && previewSpot.z < 1) {
+      var rect = canvasEl.getBoundingClientRect();
+      points.push({ x: rect.left + (previewSpot.x + 1) / 2 * rect.width, y: rect.top + (1 - previewSpot.y) / 2 * rect.height });
+    }
+    return points;
+  }
+  // `thing` is what is under the pointer (null when nothing), `facts()` its card's spec; `at` is the entry with the thing's x, y, z.
+  function previewHover(thing, facts, at) {
+    if (!thing) hoverPreview.hide();
+    else hoverPreview.show(thing, facts, function () { return previewPoints(at || thing); });
+  }
+  // The hover of a layer whose things have a card: the ring (phenomenonHover) and the preview.
+  function hoverWith(facts) {
+    return function (entry) {
+      phenomenonHover(entry);
+      previewHover(entry, entry ? function () { return facts(entry); } : null);
+    };
+  }
+  // A marker is a star system, a black hole, neutron star or quasar, or a region's token; a crowd or a body has no first view of its own.
+  function markerFacts(marker) {
+    var item = marker.item;
+    if (item.merged || item.bodyRef) return null;
+    if (item.regionKey) {
+      var region = regionByKey.get(item.regionKey);
+      return region ? regionFacts(region) : null;
+    }
+    return item.type ? pointFacts(item) : interestFacts(item);
+  }
+
   picker.addLayer({
     name: "clouds",
     enabled: function () { return stageView.inContainer(); },
@@ -4248,7 +4322,7 @@ function initGalaxyMap3d(canvasEl, data) {
       return found && found.core ? { entry: found.cloud, distance: found.distance } : null;
     },
     tooltip: function (cloud) { return (cloud.name ? cloud.name + ", " : "") + cloudTypeLabel(cloud); },
-    hover: phenomenonHover,
+    hover: hoverWith(cloudFacts),
     select: function (cloud) {
       highlightPosition(cloud.x, cloud.y, cloud.z);
       showCloudInfo(cloud);
@@ -4263,7 +4337,7 @@ function initGalaxyMap3d(canvasEl, data) {
     accept: function (star) { return star.phenomenon && drawnByTheGalaxy(star.x, star.y, star.z); },
     lastWins: true,
     tooltip: function (point) { return (point.name ? point.name + ", " : "") + pointTypeLabel(point); },
-    hover: phenomenonHover,
+    hover: hoverWith(pointFacts),
     select: function (point) {
       highlightPosition(point.x, point.y, point.z);
       showPointInfo(point);
@@ -4503,7 +4577,7 @@ function initGalaxyMap3d(canvasEl, data) {
     reach: starReach,
     lastWins: true,
     tooltip: function (star) { return (star.name ? star.name + ", " : "") + "star" + (star.star_type && star.star_type !== "fixture" ? " " + star.star_type : ""); },
-    hover: phenomenonHover,
+    hover: hoverWith(starFacts),
     select: function (star) {
       highlightPosition(star.x, star.y, star.z);
       var crowd = starsNearPointer();
@@ -4524,7 +4598,7 @@ function initGalaxyMap3d(canvasEl, data) {
     tooltip: function (point) {
       return point.phenomenon ? (point.name ? point.name + ", " : "") + pointTypeLabel(point) : "Star beyond the galaxy's outline";
     },
-    hover: phenomenonHover,
+    hover: hoverWith(function (point) { return point.phenomenon ? pointFacts(point) : haloStarFacts(point); }),
     select: function (point) {
       highlightPosition(point.x, point.y, point.z);
       if (point.phenomenon) showPointInfo(point);
@@ -4542,7 +4616,11 @@ function initGalaxyMap3d(canvasEl, data) {
       points: function () { return markerLayer.entries(); },
       reach: function () { return MARKER_PX / 2 + 3; },
       tooltip: function (entry) { return entry.kind.describe(entry.item); },
-      hover: function (entry) { phenomenonHover(entry); },
+      hover: function (entry) {
+        phenomenonHover(entry);
+        var facts = entry && markerFacts(entry);
+        previewHover(facts ? entry.item : null, function () { return facts; }, entry);
+      },
       select: function (entry) { chooseMarker(entry); },
     });
   }

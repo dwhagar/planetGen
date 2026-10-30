@@ -8,7 +8,9 @@ bands by [Fe/H] (built by `scripts/build_brewer_fischer_bands.py`; the stars are
 
 Brewer and Fischer's scatter includes their own measurement error (about 0.03 to 0.06 dex), and their [X/H] sit on their own solar
 scale, so the tolerances are those of a cross-check between two calibrations: the medians within 0.10 dex, the scatter within a factor
-of three either way. The strict expected failures name what the table shows and the generator lacks.
+of three either way (the tolerance of the first tests). The scatter and the thin-disc magnesium, silicon and oxygen trend were then refitted to
+the table (GEN.988 to GEN.991, `scripts/fit_stellar_xfe_refit.py`): their tests hold the scatter to half again the table's robust spread
+(`(p84 - p16) / 2`, which leaves out the handful of far stars the table has) and the medians to 0.05 dex.
 """
 
 import json
@@ -26,6 +28,7 @@ DRAWS = 4000
 THIN_AGE_GY, THICK_AGE_GY = 4.0, 10.0
 MEDIAN_TOLERANCE_DEX = 0.10
 SCATTER_FACTOR = 3.0
+SCATTER_ROBUST = 1.5
 
 
 def generated(entry, element, seed=456):
@@ -36,7 +39,7 @@ def generated(entry, element, seed=456):
         fe_h = rng.uniform(entry["fe_h_low"], entry["fe_h_high"])
         age = THICK_AGE_GY if rng.random() < entry["older_than_thick_start"] else THIN_AGE_GY
         branch = sa.branch_from_uniform(fe_h, age, rng.random())
-        values.append(sa.abundance_offsets(fe_h, branch, list(rng.standard_normal(4)))[element])
+        values.append(sa.abundance_offsets(fe_h, branch, list(rng.standard_normal(5)))[element])
     return np.asarray(values)
 
 
@@ -53,22 +56,36 @@ def test_the_generated_median_is_within_a_tenth_of_a_dex_of_the_table_in_every_b
             f"[{element}/Fe] at [Fe/H] {entry['fe_h_low']} to {entry['fe_h_high']}: generated median is {shift:+.3f} dex from the table's")
 
 
-@pytest.mark.parametrize("element", ["C", "O", "Mg", "Si"])
-def test_the_generated_scatter_is_within_a_factor_of_three_of_the_tables_in_every_bin(element):
+@pytest.mark.parametrize("element", ["C", "O", "Mg", "Si", "Ca"])
+def test_the_generated_scatter_is_within_half_again_of_the_tables_robust_scatter_in_every_bin(element):
+    """GEN.988 and GEN.990: calcium gained a scatter and C, O and Si doubled theirs, each fitted to the table's `(p84 - p16) / 2`."""
     for entry in BINS:
-        ratio = float(np.std(generated(entry, element))) / entry[element]["sd"]
-        assert 1 / SCATTER_FACTOR <= ratio <= SCATTER_FACTOR, (
+        table = (entry[element]["p84"] - entry[element]["p16"]) / 2.0
+        ratio = float(np.std(generated(entry, element))) / table
+        assert 1 / SCATTER_ROBUST <= ratio <= SCATTER_ROBUST, (
             f"[{element}/Fe] at [Fe/H] {entry['fe_h_low']} to {entry['fe_h_high']}: generated scatter is {ratio:.2f} of the table's")
 
 
-@pytest.mark.xfail(strict=True, reason="TEST.456 finding: calcium, sulfur and argon carry no scatter, the table's [Ca/Fe] has 0.04 to 0.10 dex")
-def test_calcium_has_a_scatter_like_the_tables():
+@pytest.mark.parametrize("element", ["O", "Mg", "Si"])
+def test_the_thin_disc_oxygen_magnesium_and_silicon_medians_are_within_a_twentieth_of_a_dex_of_the_table(element):
+    """GEN.989 and GEN.991: the generated [Mg/Fe] sat 0.05 to 0.07 dex above the table from [Fe/H] -0.2 up (silicon 0.03 to 0.05, oxygen 0.03 to 0.09 below)."""
     for entry in BINS:
-        assert float(np.std(generated(entry, "Ca"))) / entry["Ca"]["sd"] >= 0.5
+        shift = float(np.median(generated(entry, element))) - entry[element]["median"]
+        assert abs(shift) <= 0.05, f"[{element}/Fe] at [Fe/H] {entry['fe_h_low']} to {entry['fe_h_high']}: {shift:+.3f} dex"
 
 
-@pytest.mark.xfail(strict=True, reason="TEST.456 finding: the generated [Mg/Fe] sits 0.05 to 0.07 dex above the table's from [Fe/H] -0.2 up")
-def test_magnesium_median_is_within_a_twentieth_of_a_dex_of_the_table():
+def test_the_magnesium_to_silicon_ratio_stays_on_the_tables_scale():
+    """The two thin-disc trends moved together, so the rock's Mg/Si did not drop by the 0.07 dex of magnesium alone."""
     for entry in BINS:
-        shift = float(np.median(generated(entry, "Mg"))) - entry["Mg"]["median"]
-        assert abs(shift) <= 0.05
+        table = entry["Mg"]["median"] - entry["Si"]["median"]
+        shift = float(np.median(generated(entry, "Mg") - generated(entry, "Si"))) - table
+        assert abs(shift) <= 0.04, f"[Mg/Si] at [Fe/H] {entry['fe_h_low']} to {entry['fe_h_high']}: {shift:+.3f} dex"
+
+
+def test_calcium_sulfur_and_argon_move_together_and_calcium_is_correlated_with_the_others():
+    rng = np.random.default_rng(988)
+    draws = [sa.abundance_offsets(0.0, sa.BRANCH_THIN, list(rng.standard_normal(5))) for _ in range(DRAWS)]
+    calcium, sulfur, argon = (np.array([d[element] for d in draws]) for element in ("Ca", "S", "Ar"))
+    assert np.array_equal(calcium, sulfur) and np.array_equal(calcium, argon)
+    magnesium = np.array([d["Mg"] for d in draws])
+    assert abs(np.corrcoef(calcium, magnesium)[0, 1] - sa.tuning.STELLAR_XFE_CORRELATION[4][2]) < 0.05

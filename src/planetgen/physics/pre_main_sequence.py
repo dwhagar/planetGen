@@ -17,12 +17,18 @@ not pay for all the light, so `G M^2` is stretched by `tuning.PRE_MAIN_SEQUENCE_
 Three inputs (`tuning`, GEN.529) are fitted to the published BHAC15 tracks (Baraffe et al. 2015, A&A 577, A42): the
 Hayashi temperature and its mass slope, the birthline radius and its slope, and the energy factor above. Past the
 table's 1.4 solar masses they are extended by the same power laws.
+
+GEN.947: the model's time to the main sequence is about half MIST's from 1.5 solar masses up and at 0.2 solar masses, and the
+star's arrival is MIST's own: setup keeps the heaviest star still in phase -1 of each isochrone age
+(`isochrones.pre_main_sequence_arrival_yr`), and the model's clock is stretched by the ratio of MIST's arrival to its own, so the
+track keeps its shape and ends when MIST's does. Where the rows do not reach the mass the model's own time stands.
 """
 
 import functools
 import math
 
 from planetgen import tuning
+from planetgen.datasets import isochrones
 from planetgen.physics import constants, main_sequence, unit_registry as units
 from planetgen.util import draw
 
@@ -62,7 +68,8 @@ def _track(mass_sol, fe_h=0.0):
     """
     The constants of the contraction: `r0` (birthline radius), `r_h` (where the Hayashi phase ends), `r_ms`, the
     temperature `t_h` of the Hayashi phase, the main-sequence luminosity `l_ms` (W), the two phase lengths `t1`
-    and `t2` (s) and the rate `k4` of the convective phase.
+    and `t2` (s), the rate `k4` of the convective phase and `scale`, the factor that stretches the model's time onto
+    MIST's arrival (GEN.947: 1 where MIST's rows do not reach the mass).
     """
     arrival = main_sequence.zams_state(mass_sol, fe_h)     # GEN.652: the MIST row the star contracts onto
     r_ms = arrival.radius_sol * constants.SOLAR_RADIUS_M
@@ -77,14 +84,18 @@ def _track(mass_sol, fe_h=0.0):
     t1 = max(0.0, (r_h ** -3 - r0 ** -3) / (3.0 * k4)) if r0 > r_h else 0.0
     start = min(r0, r_h)
     t2 = tuning.RADIATIVE_BINDING_COEFFICIENT * binding * (1.0 / r_ms - 1.0 / start) / l_ms
-    return {"r0": r0, "r_h": r_h, "r_ms": r_ms, "t_h": t_h, "l_ms": l_ms, "t1": t1, "t2": max(t2, 0.0), "k4": k4,
-            "start": start}
+    t2 = max(t2, 0.0)
+    mist_yr = isochrones.pre_main_sequence_arrival_yr(mass_sol, fe_h)
+    scale = _yr_to_s(mist_yr) / (t1 + t2) if mist_yr is not None and t1 + t2 > 0.0 else 1.0
+    return {"r0": r0, "r_h": r_h, "r_ms": r_ms, "t_h": t_h, "l_ms": l_ms, "t1": t1, "t2": t2, "k4": k4,
+            "start": start, "scale": scale}
 
 
 def contraction_time_yr(mass_sol, fe_h=0.0):
-    """The age at which a star of this mass reaches the main sequence, years (the Kelvin-Helmholtz time of the model)."""
+    """The age at which a star of this mass reaches the main sequence, years: MIST's arrival where its rows reach the mass
+    (GEN.947), else the Kelvin-Helmholtz time of the model."""
     track = _track(mass_sol, fe_h)
-    return _s_to_yr(track["t1"] + track["t2"])
+    return _s_to_yr((track["t1"] + track["t2"]) * track["scale"])
 
 
 def stage(mass_sol, age_yr, fe_h=0.0):
@@ -106,7 +117,7 @@ def _track_state(mass_sol, age_yr, fe_h=0.0):
     """The luminosity (solar), temperature and radius (solar) of a star on the track at this age, any age up to its
     contraction time, with no regard to the stage limits of `stage`."""
     track = _track(mass_sol, fe_h)
-    t = _yr_to_s(age_yr)
+    t = _yr_to_s(age_yr) / track["scale"]   # the model's time, stretched onto MIST's arrival
     if t <= track["t1"]:
         radius = (track["r0"] ** -3 + 3.0 * track["k4"] * t) ** (-1.0 / 3.0)
         temperature = track["t_h"]

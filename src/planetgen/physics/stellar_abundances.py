@@ -54,7 +54,7 @@ BRANCH_HIGH_ALPHA = "high-alpha"
 BRANCHES = (BRANCH_THIN, BRANCH_HIGH_ALPHA)
 """tuple: The two abundance sequences of the disc and halo."""
 
-RESIDUAL_ELEMENTS = ("C", "O", "Mg", "Si")
+RESIDUAL_ELEMENTS = ("C", "O", "Mg", "Si", "Ca")
 """tuple: The elements that carry a correlated residual, in the order of `tuning.STELLAR_XFE_CORRELATION`."""
 
 DATA_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
@@ -133,7 +133,7 @@ RELATIONS = (
     Relation("neutron star outer crust without the downloaded tables", "Chamel and Haensel 2008 Table 2", STAND_IN,
              "taken only by a run told to disregard missing data; one sequence instead of 20 nuclear mass models"),
     Relation("neutron star inner crust and core", "Malik, Pais and Providencia 2024, 21 equations of state, downloaded (SC3)",
-             OPEN, "the tables are on disk and nothing integrates them yet: a star's radius comes from the measured band (physics/neutron_star.py)"),
+             OPEN, "a star's radius is read from the integrated mass-radius curves of the 21 tables, weighted by NICER (physics/neutron_star.py); the inner crust and core composition is not drawn from them yet"),
     Relation("black hole quantities", "Kerr-Newman formulas (Bardeen, Press and Teukolsky 1972); the no-hair theorem "
              "(Chrusciel, Costa and Heusler 2012)", VERIFIED),
     Relation("brown dwarf deuterium limit", "Spiegel, Burrows and Milsom 2011 Table 1", VERIFIED),
@@ -270,10 +270,10 @@ _CHOLESKY = _cholesky(tuning.STELLAR_XFE_CORRELATION)
 
 
 def residual_offsets(branch, normals):
-    """The correlated residuals (dex) of C, O, Mg and Si for four independent standard normals `normals`: the normals through
+    """The correlated residuals (dex) of C, O, Mg, Si and Ca for five independent standard normals `normals`: the normals through
     the Cholesky factor of the residual correlation, each times the branch's scatter of its element."""
     if len(normals) != len(RESIDUAL_ELEMENTS):
-        raise StellarAbundanceError("the residuals take four standard normals (C, O, Mg, Si)")
+        raise StellarAbundanceError("the residuals take five standard normals (C, O, Mg, Si, Ca)")
     scatter = tuning.STELLAR_XFE_SIGMA[branch]
     return {symbol: sum(_CHOLESKY[i][k] * normals[k] for k in range(i + 1)) * scatter[symbol]
             for i, symbol in enumerate(RESIDUAL_ELEMENTS)}
@@ -294,11 +294,11 @@ def carbon_enhanced(fe_h, u_enhanced, u_carbon):
 
 def abundance_offsets(fe_h, branch, normals, u_enhanced=1.0, u_carbon=0.0, neon_follows=None):
     """
-    The [X/Fe] (dex) of every element of the scale for one star: C, O, Mg, Si with their residuals; Ca at the mean; S and Ar
-    following Ca; Ne following O (or Mg, `neon_follows`; the default is `tuning.STELLAR_NEON_FOLLOWS`); N, Na, Al, K, Fe and Ni
-    at 0. `normals` are four standard normals (C, O, Mg, Si); `u_enhanced` and `u_carbon` the two uniform numbers of
-    `carbon_enhanced` (the default never makes a star carbon-enhanced). A star with a carbon excess keeps the residuals of
-    the other elements.
+    The [X/Fe] (dex) of every element of the scale for one star: C, O, Mg, Si and Ca with their residuals; S and Ar
+    following Ca (neither is in the Brewer and Fischer table; both are alpha elements); Ne following O (or Mg, `neon_follows`; the
+    default is `tuning.STELLAR_NEON_FOLLOWS`); N, Na, Al, K, Fe and Ni at 0. `normals` are five standard normals (C, O, Mg, Si, Ca);
+    `u_enhanced` and `u_carbon` the two uniform numbers of `carbon_enhanced` (the default never makes a star carbon-enhanced). A
+    star with a carbon excess keeps the residuals of the other elements.
     """
     follows = tuning.STELLAR_NEON_FOLLOWS if neon_follows is None else neon_follows
     if follows not in ("O", "Mg"):
@@ -310,7 +310,6 @@ def abundance_offsets(fe_h, branch, normals, u_enhanced=1.0, u_carbon=0.0, neon_
     enhanced = carbon_enhanced(fe_h, u_enhanced, u_carbon)
     if enhanced is not None:
         offsets["C"] = enhanced
-    offsets["Ca"] = mean_xfe("Ca", fe_h, branch)
     offsets["S"] = offsets["Ar"] = offsets["Ca"]
     offsets["Ne"] = offsets[follows]
     return offsets

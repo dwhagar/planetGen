@@ -235,6 +235,8 @@ Boss: each control a slider, clearly labelled, with a text box at the end of the
 
 ### 5.3 Horizontal-branch and AGB stars
 
+**Superseded in part (GEN.935, 2026-10-29).** The luminosity, temperature and radius of a star after the main sequence now come from the MIST v1.2 tracks, and a star of 2.2 solar masses and more has core helium burning, so the hand-set luminosity and temperature ranges, the 0.1 subgiant and giant shares and the luminosity formulas below describe the model before that change; the horizontal branch (100 Myr, 35 to 50 Lsun, the colours by [Fe/H] and age) is unchanged. See `post-main-sequence-stars.md`.
+
 Boss (9:12 PM EDT): why not build horizontal-branch stars into the mix? There is no good reason beyond the stellar evolution model not having the phases.
 
 **What the model has** [S, `physics/stellar_evolution.py` `evolve_star`]: main sequence, then a subgiant that brightens to twice its main-sequence light, then one giant phase of 0.1 of the main-sequence lifetime (log-uniform luminosity 50 to 1,000 solar luminosities, 2% of it a tip of 1,000 to 2,500, 3,500 to 5,000 K), then a white dwarf at once. That giant phase is the red giant branch. The core helium-burning phase (the horizontal branch and the red clump) and the asymptotic giant branch are missing, so a star goes from the branch tip to a white dwarf. It was a simple chain built before the model had a metallicity or a halo, and the horizontal branch's colour depends on both [R].
