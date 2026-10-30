@@ -14729,6 +14729,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reads conditions only, never zone. H got zero bodies at 15 percent and
   widening alone may not fill it (bodies with air nearly always keep
   their water): see GEN.1145 and GEN.1146.
+  Boss, 7:05 PM EDT 2026-10-30, two more changes (2026-10-30 7:08 PM
+  EDT): (1) E is NOT reserved: retire it fully (the letter is free, not
+  held); this changes the 18 live classes count only if the new cold
+  class takes a letter (see 2). (2) Class P is too cold at the bottom: P
+  only goes down to -40 C (233.15 K); bodies colder than that need a NEW
+  class designator (letter proposed by the class index thread, may reuse
+  E). P then spans 233.15 K to 273.15 K. Register the new line in
+  GEN.725 and add the class to the sentence, colour, glance panel and
+  tests. Same epoch, same full re-derivation. The exact letter and
+  sentence follow the class index result.
   Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1143.
 
 - [ ] **GEN.1144 Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach**
