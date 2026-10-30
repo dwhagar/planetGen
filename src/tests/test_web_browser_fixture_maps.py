@@ -561,6 +561,16 @@ NO_WALL_ICONS = """{
 }"""
 
 
+def _pin_window(page, height=434):
+    """The map's window as it was before it filled the browser window (MAP.350), for the tests whose numbers were worked out on it: pinned to
+    `height` pixels, the height it had at the fixture's viewport. Call it before the page opens."""
+    page.add_init_script("""{
+    const sheet = new CSSStyleSheet();
+    sheet.replaceSync(".galaxymap3d-panel .starmap-viewport { height: %dpx !important; }");
+    document.adoptedStyleSheets = [...document.adoptedStyleSheets, sheet];
+}""" % height)
+
+
 def _open_galaxy(page, base, query="", wall_icons=False):
     """Opens the Galaxy Map; the icons on the walls of an opened sector (MAP.327) are left out unless `wall_icons`, as
     they sit over the points the tests look for."""
@@ -2026,6 +2036,7 @@ def open_dense_region(page, base, dist_pc=30.0):
 def test_dense_fixture_region_is_there_and_can_be_zoomed_into(page, dense_site):
     """TEST.368: the dense fixture galaxy holds a few thousand stars packed round one place, and a wheel scroll over it
     takes the view in until a single star of its cluster is the nearest thing to the middle of the screen."""
+    _pin_window(page)
     page.set_viewport_size(VIEWPORT)
     open_dense_region(page, dense_site)
     filled = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFill()")
@@ -2701,6 +2712,7 @@ def test_black_holes_are_the_near_ones_and_the_heavy_enough_at_a_10_pc_zoom_and_
     """MAP.339: at a 10 pc zoom of a galaxy listing 183 black holes, the marks are those within 3 view distances of what the camera
     looks at and those heavy enough for how far they are, no more than one per 120 by 120 pixels of the screen (the default of the
     `map.blackHoleDensity` preference), and a smaller side in the key lets more of the near ones show."""
+    _pin_window(page)
     page.set_viewport_size(VIEWPORT)
     drawn, view = _hole_view(page, holes_site)
     by_name = {hole["name"]: hole for hole in HOLE_FIELD}
@@ -3637,6 +3649,7 @@ OPACITIES = "() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.op
 def test_markers_outside_an_opened_sector_dim_as_the_stars_do(page, holes_site):
     """MAP.341: with a sector opened in place the stars outside it dim to 0.3 (MAP.327), and so does every marker outside it, black holes
     and the rest; with none opened the markers are whole, and closing the sector gives them back."""
+    _pin_window(page)
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, holes_site)
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapMarkers.entries().length > 0", timeout=20000)
@@ -4886,19 +4899,16 @@ GEOMETRY = """() => {
 
 @pytest.mark.parametrize("width,height", [(1000, 900), (1280, 720), (390, 700)])
 def test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves(page, map_site, width, height):
-    """MAP.291: the map's window is as wide as its column and as tall as the browser window leaves room for under the
-    header and search and above the toolbar (at least 320 px), with no fixed aspect ratio, and the canvas's drawing
-    buffer follows it."""
+    """MAP.291, MAP.350: the map's window is as wide as its column and as tall as the browser window less the header and 20 px
+    above and below (at least 320 px), with no fixed aspect ratio, and the canvas's drawing buffer follows it."""
     page.set_viewport_size({"width": width, "height": height})
     _open_galaxy(page, map_site)
     g = page.evaluate(GEOMETRY)
     assert g["view"]["width"] == pytest.approx(g["column"]["width"], abs=1), g
     assert g["canvas"]["width"] == pytest.approx(g["view"]["width"], abs=1) and g["canvas"]["height"] == pytest.approx(g["view"]["height"], abs=1)
     assert g["buffer"] == [round(g["canvas"]["width"] * g["dpr"]), round(g["canvas"]["height"] * g["dpr"])], g
-    assert g["view"]["height"] >= 320 - 1
-    if g["view"]["height"] > 321:
-        # Room to spare: the toolbar under the map ends at the bottom of the window, not below it.
-        assert height - 40 <= g["controls"]["bottom"] <= height + 1, g
+    covered = page.evaluate("() => document.querySelector('header').getBoundingClientRect().bottom")
+    assert g["view"]["height"] == pytest.approx(max(320, height - covered - 40), abs=1), (g, covered)
     assert g["scrollWidth"] <= width, g
 
 
@@ -5134,7 +5144,7 @@ CARD_REACH = """() => {
 }"""
 
 
-@pytest.mark.parametrize("width,height", [(1000, 560), (800, 520), (390, 640)])
+@pytest.mark.parametrize("width,height", [(1000, 560), (800, 520), (390, 480)])
 def test_galaxy_map_info_card_sizes_to_its_content_and_keeps_its_buttons_and_region_line_reachable_in_a_short_window(page, map_site, width, height):
     """MAP.332: the card is as tall as what it says, up to the map window's height, and past that it scrolls inside itself; its
     region line and its buttons are never left below the fold of a short window."""

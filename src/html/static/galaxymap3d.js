@@ -4548,7 +4548,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // --- Resize/render loop ----------------------------------------------
 
   // MAP.291: the window is as wide as its column and as tall as the browser window leaves room for.
-  watchWindowFit(viewport, viewport.closest(".starmap-layout").querySelector(".starmap-side"));
+  // MAP.350: the Galaxy Map is as tall as the browser window less 20 pixels above and below, and the page rests with it there; a sector page's
+  // map (pinned) is one thing among the page's others and keeps the room the page leaves it.
+  if (data.pinned) watchWindowFit(viewport, viewport.closest(".starmap-layout").querySelector(".starmap-side"));
+  else watchWindowFit(viewport, null, { fill: true });
 
   watchResize(viewport, function () {
     fitRendererToCanvas(renderer, camera, canvasEl);
