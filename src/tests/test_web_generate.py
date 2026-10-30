@@ -1892,6 +1892,24 @@ def test_the_shape_report_is_the_line_the_plan_prints(site, client):
     assert answer["sample"] is True and any("under 20" in note for note in answer["warnings"])
 
 
+def test_the_shape_report_works_the_same_dials_out_once(site, client, monkeypatch):
+    """TEST.219: a page asks again at every change of a dial, and a closed page leaves its asks running."""
+    from planetgen.generation import plan_outline
+    from planetgen.web import generate_page
+    generate_page._shape_answers.clear()
+    real = plan_outline.preview
+    calls = []
+    monkeypatch.setattr(plan_outline, "preview", lambda argv, galaxy_seed=None: calls.append(list(argv)) or real(argv, galaxy_seed=galaxy_seed))
+    query = "mass=1e8&disk_scale_length=2000pc&flatness=20&bulge_share=0.001"
+    first = client.get(f"/admin/generate/shape-report?{query}").get_json()
+    again = client.get(f"/admin/generate/shape-report?{query}").get_json()
+    other = client.get("/admin/generate/shape-report?mass=2e8&disk_scale_length=2000pc&flatness=20&bulge_share=0.001").get_json()
+    assert first == again and len(calls) == 2 and first["line"] != other["line"]
+    client.get("/admin/generate/shape-report?mass=1")
+    client.get("/admin/generate/shape-report?mass=1")
+    assert len(calls) == 2, "a refusal never reached the preview"
+
+
 def test_the_shape_report_refuses_an_empty_outline_and_a_value_out_of_range(site, client):
     empty = client.get("/admin/generate/shape-report?mass=3e5&disk_scale_length=500pc")
     assert empty.status_code == 200 and "one-star-per-sector density" in empty.get_json()["refusal"]
