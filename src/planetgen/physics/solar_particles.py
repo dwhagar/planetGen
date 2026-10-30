@@ -15,8 +15,8 @@ Tylka and Dietrich 2009, as fitted and tabulated in Vainio et al. 2017, A&A 604:
 whole event at 1 AU and `R` in GV. The spectra are hard or soft, the fluences span five orders of magnitude, and a few events carry the dose.
 
 **The rate.** The events are all the events of `RECORD_YEARS` years that the fits cover and that were large enough to fit. They are the
-events of 100 pfu (>10 MeV peak flux) and above: NOAA SWPC's list of 255 events of 10 pfu or more in 42 years (1976 to 2017;
-`NOAA_CUMULATIVE_COUNTS`) has 2.6 a year above 100 pfu and the set has 2.4 (`events_per_year_above`, tested), and the smaller ones add under
+events of 100 pfu (>10 MeV peak flux) and above: NOAA SWPC's list of 265 events of 10 pfu or more in 42 years (1976 to 2017;
+the downloaded `datasets/noaa_proton_events.py`, counted at `NOAA_NODES_PFU` by `noaa_cumulative_counts`) has 2.7 a year above 100 pfu and the set has 2.4 (`events_per_year_above`, tested), and the smaller ones add under
 a few percent of the fluence. So the yearly mean spectrum of the Sun at 1 AU is the sum of the 47 spectra over the record (`yearly_fluence`),
 with no model of the size distribution between them.
 
@@ -38,6 +38,7 @@ incident `S(T)`), and the 18 years are 1.6 solar cycles of one star. A Carringto
 import bisect
 import math
 
+from planetgen.datasets import noaa_proton_events
 from planetgen.physics import proton_range
 from planetgen.physics.surface_dose import BandSpectrum
 
@@ -97,9 +98,28 @@ RECORD_YEARS = 18.0
 """float: The years the set covers: the events run from 1997-11-04 to 2015-10-29 (17.98 years). Source tier T3, tweak level L0."""
 
 NOAA_YEARS = 42.0
-NOAA_CUMULATIVE_COUNTS = ((10.0, 255), (30.0, 177), (100.0, 109), (300.0, 72), (1000.0, 40), (3000.0, 18), (10000.0, 9))
-"""tuple: `(peak flux above 10 MeV, pfu; events at or above it)` in the NOAA SWPC list of 1976 to 2017 (`NOAA_YEARS`), counted from the 255
-events of 10 pfu or more (reports/best-guess-standins-2026-10-24.md section 17). Source tier T1 (the list is NOAA's; the counts are computed)."""
+"""float: The years of the NOAA list, 1976 to 2017 (calendar years, both ends counted). Source tier T1, tweak level L0."""
+NOAA_NODES_PFU = (10.0, 30.0, 100.0, 300.0, 1000.0, 3000.0, 10000.0)
+"""tuple: The peak fluxes above 10 MeV (pfu) at which the events of the NOAA list are counted for the rate's straight lines in log-log."""
+_counts_of = {}
+
+
+def noaa_cumulative_counts():
+    """`((peak flux above 10 MeV, pfu), events at or above it)` at each of `NOAA_NODES_PFU`, counted in the downloaded NOAA SWPC list of
+    1976 to 2017 (`datasets/noaa_proton_events`: 265 events of 10 pfu or more, then 181, 112, 74, 41, 18 and 9). Source tier T1 (NOAA's list;
+    the counts are computed).
+
+    Raises:
+        fetch.DataMissing: The list has not been downloaded (`python -m planetgen.cli.datasets fetch noaa_proton_events`).
+    """
+    events = noaa_proton_events.events()
+    held = _counts_of.get("counts")
+    if held is None or held[0] is not events:
+        peaks = [event.peak_flux_pfu for event in events]
+        held = _counts_of["counts"] = (events, tuple((node, sum(1 for peak in peaks if peak >= node)) for node in NOAA_NODES_PFU))
+    return held[1]
+
+
 TAIL_SLOPE = 1.9
 """float: The cumulative slope of the number of events above 10 000 pfu, fitted to one Carrington-class event (1e10 cm-2 above 30 MeV, 1.2e5 pfu)
 in 500 years (McCracken 2001, recalled; reports/best-guess-standins-2026-10-24.md section 17). Source tier T9, tweak level L3."""
@@ -187,9 +207,9 @@ def dose_share(rigidity_gv, geomagnetic_cutoff_gv=0.0, steps=90):
 
 
 def events_per_year_above(peak_flux_pfu):
-    """The events a year of the NOAA list at or above a peak flux (>10 MeV, pfu): straight lines in log-log between `NOAA_CUMULATIVE_COUNTS`,
-    the last segment's slope to 10 000 pfu and `TAIL_SLOPE` beyond; the count of the first node (255 in 42 years) held below 10 pfu."""
-    nodes = NOAA_CUMULATIVE_COUNTS
+    """The events a year of the NOAA list at or above a peak flux (>10 MeV, pfu): straight lines in log-log between `noaa_cumulative_counts`,
+    `TAIL_SLOPE` beyond 10 000 pfu; the count of the first node (265 in 42 years) held below 10 pfu."""
+    nodes = noaa_cumulative_counts()
     if peak_flux_pfu <= nodes[0][0]:
         return nodes[0][1] / NOAA_YEARS
     if peak_flux_pfu >= nodes[-1][0]:

@@ -1,6 +1,6 @@
 """
 Solar energetic particle events (GEN.747, `planetgen.physics.solar_particles`): the 47 measured spectra, the yearly dose they bring and the
-share of it a column of air or a magnetic cutoff lets through, against the NOAA list of 255 events.
+share of it a column of air or a magnetic cutoff lets through, against the NOAA list of 265 events.
 """
 
 import math
@@ -23,15 +23,17 @@ def test_the_event_set_is_the_47_fits_of_the_two_tables():
 
 
 def test_the_set_is_the_events_of_100_pfu_and_above_in_the_noaa_list():
-    """NOAA's list has 2.6 events a year at 100 pfu or more (109 in 42 years); the 43 events of the set (the four `esp` rows are second fits of
+    """NOAA's list has 2.7 events a year at 100 pfu or more (112 in 42 years); the 43 events of the set (the four `esp` rows are second fits of
     four of them) over its 18 years are 2.4 a year, so the set misses almost none of the events that carry the fluence."""
     events = sum(1 for event in sp.EVENTS if "esp" not in event[1])
     assert events == 43
     assert events / sp.RECORD_YEARS == pytest.approx(sp.events_per_year_above(100.0), rel=0.15)
 
 
-@pytest.mark.parametrize("peak, count", sp.NOAA_CUMULATIVE_COUNTS)
+@pytest.mark.parametrize("peak, count", zip(sp.NOAA_NODES_PFU, (265, 181, 112, 74, 41, 18, 9)))
 def test_the_event_rate_reproduces_the_noaa_counts(peak, count):
+    """The counts of the downloaded NOAA list (265 events, GEN.747), and the rate is those over the 42 years of the list."""
+    assert dict(sp.noaa_cumulative_counts())[peak] == count
     assert sp.events_per_year_above(peak) * sp.NOAA_YEARS == pytest.approx(count, rel=1e-9)
 
 
@@ -39,7 +41,7 @@ def test_the_noaa_rate_falls_with_size_and_the_tail_is_steeper_than_the_record()
     peaks = [10.0, 20.0, 50.0, 100.0, 500.0, 2000.0, 1e4, 3e4, 1.2e5]
     rates = [sp.events_per_year_above(p) for p in peaks]
     assert rates == sorted(rates, reverse=True)
-    assert 255.0 / 42.0 == pytest.approx(6.07, abs=0.01)
+    assert sp.events_per_year_above(10.0) == pytest.approx(265.0 / 42.0, rel=1e-9)
     assert sp.events_per_year_above(1.2e5) == pytest.approx(1.0 / 500.0, rel=0.35)  # one Carrington-class event in 500 years
 
 
