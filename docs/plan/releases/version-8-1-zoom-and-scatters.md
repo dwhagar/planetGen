@@ -618,6 +618,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.743 | Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs | GEN.968 |  |
 | GEN.968 | Neutron star structure (a): a TOV integration over the equation-of-state tables held on disk, tested against NICER radii |  |  |
 | GEN.744 | Alpha-enhanced stellar tracks and an age-metallicity relation from the galaxy's own history |  |  |
+| GEN.1024 | GEN.744 part B: the alpha-enhanced track shift through evolve_star and the scatter tables | GEN.744 |  |
 | GEN.745 | Stellar spectra by temperature, gravity and activity (model atmospheres) instead of a blackbody with a seeded UV share | GEN.970, GEN.971 |  |
 | GEN.970 | Stellar spectra (a): a spectral library entry (BT-Settl, MUSCLES for M dwarfs) and a lookup by temperature, gravity and activity, with tests on the Sun and an M dwarf |  |  |
 | GEN.971 | Stellar spectra (b): the UV band shares and the map colour of a star come from the library spectrum, not from a blackbody with a seeded UV-C share | GEN.970 |  |
@@ -662,6 +663,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.810 | A giant's internal heat reads the interior layers and the helium shell (G3, step 2) | GEN.733 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.801, Boss 10:35 PM EDT. |
 | GEN.912 | The planet albedo draw does not follow the star's colour, so planets of cool stars come out a little too cold (stand-in) |  |  |
 | GEN.944 | Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars) |  |  |
+| GEN.1025 | GEN.944 part 1b: the 10 to 13 Gyr thick-disc window in the galaxy density and age-law tables | GEN.944 |  |
 | GEN.949 | Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets |  |  |
 | GEN.950 | Water share of solids by distance from Lodders 2003 Table 11 and its condensation temperatures, replacing the fixed 170 K snow line (low priority) |  |  |
 | GEN.993 | Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12 |  |  |
