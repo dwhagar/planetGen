@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2746] - 2026-10-30
+
+**Headline:** The code now knows how a small, very hot rocky planet boils away, and how long it lasts, using the numbers of the planet Kepler-1520 b.
+
+### Changed
+- **The disintegrating planet module (GEN.1041).** `physics/disintegrating_planet.py` gives the mass a rocky planet under about a tenth of an Earth loses to a wind of its own rock vapour when its dayside is over 2000 K, the time it lasts, the mass it has left at an age, and the gate that says which bodies can be one. It follows Perez-Becker and Chiang 2013: for Kepler-1520 b (2150 K, 15.7 hours) a body of two hundredths of an Earth mass loses about a third of an Earth mass per billion years and is gone in about 140 million years, and the mass that survives ten billion years is about a tenth of an Earth in the paper's first estimate and a little under it in the full model. It changes no generated world: the oddity that uses it is a later wiring step (GEN.1050). The dust tail and the transit depth are not in it.
+- **Stand-ins recorded.** Rows DP1 to DP5 in the stand-in registry (GEN.725): the olivine vapour pressure, the vapour's mean mass and index, the full model's lower rate, the duty cycle and the gate.
+
 ## [8.0.2745] - 2026-10-30
 
 **Headline:** The weird-worlds oddity table and its loader exist, empty for now, with a weirdness dial and a stream of its own for every oddity roll.
