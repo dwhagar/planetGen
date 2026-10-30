@@ -157,6 +157,8 @@ def values_from_body(body):
         "water_activity": getattr(body, "water_activity", None),
         "phosphorus": getattr(body, "phosphorus", None),
         "water_mass_fraction": getattr(body, "water_mass_fraction", None),
+        "ice_mass_fraction": getattr(body, "ice_mass_fraction", None),
+        "rock_mg_si_ratio": getattr(body, "rock_mg_si_ratio", None),
         "aquifer_depth_km": getattr(body, "aquifer_depth_km", None),
         "aquifer_thickness_km": getattr(body, "aquifer_thickness_km", None),
         "surface_dose_msv_yr": getattr(body, "surface_dose_msv_yr", None),

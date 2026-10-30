@@ -97,6 +97,12 @@
    "tweak": "L4",
    "basis": "The multiplier of any other ocean"
   },
+  "sulfur_so2_ref_share": {
+   "value": 1.5e-4,
+   "tier": "T7",
+   "tweak": "L4",
+   "basis": "The sulfur dioxide share of the air that stands for a supply of 1 of reduced sulfur to the acid eaters (GEN.894): Venus's lower air holds about 150 ppm and has a standing sulfur cycle (recalled); the air's own sulfur dioxide is the proxy because no volcanic sulfur flux is modelled"
+  },
   "haze_methane_share": {
    "value": 0.005,
    "tier": "T7",

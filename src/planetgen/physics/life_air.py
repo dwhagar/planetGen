@@ -15,14 +15,17 @@ Archean model; `earth_h2_tmol_yr` over `h2_per_methane` for the hydrogen-eaters)
 no free oxygen (`methane_lifetime_yr`), at most `methane_max_share` of its molecules, and the carbon of that methane comes out of the air's
 own carbon dioxide, of which (with the methane) `carbon_left_share` stays carbon dioxide at least: methane cannot be made from carbon the world does not have.
 
-**Hydrogen.** An air where hydrogen-eating life lives holds no more than `hydrogen_max_share` of it.
+**Hydrogen and hydrogen sulfide.** An air where hydrogen-eating life lives holds no more than `hydrogen_max_share` of hydrogen, and one where
+sulfur eaters or acid eaters live no more than `h2s_max_share` of hydrogen sulfide (GEN.894). What the life makes of the gas it takes is the
+row's `products`: the acid eaters of Classes 5 and 9 turn the hydrogen sulfide into the same moles of sulfur dioxide, the hydrogenators of Class 7
+turn two thirds of a mole of methane out of each mole of hydrogen (the acetylene they also take is not an air gas).
 
 **Stage.** A class's gases begin when its producers do (the second step of the schedule) and a class whose methane ends at the oxygen rise
 (`until: "oxygen"`) gives none to a world whose air has risen: the oxygen has burned it (`biogenic_oxygen.burn`). Before the producers, and
 for a world that has no life, the air is the abiotic one.
 
 What this does not do: the haze's cooling of the ground (the haze itself, its ultraviolet shield and its colour are redrawn from the new air
-by `generation.life`), the sulfur ledger of Class 4 and the acid classes (GEN.888, GEN.894), and the hydrosphere: a world that the new air
+by `generation.life`), the sulfate, sulfur and silica the sulfur and acid classes leave in the water and rock (not air gases), and the hydrosphere: a world that the new air
 moves across the freezing point keeps its stored state of water, as it does after the oxygen. Every number is a stand-in with its tier and
 tweak level in the ledger file.
 """
@@ -37,6 +40,8 @@ TMOL = 1.0e12
 FUELS = ("burial", "donor_supply", "h2_supply")
 """tuple: What a methane row's fuel may be: the carbon buried (`burial`) or a supply of `physics/life_supply.py`."""
 STATUSES = ("built", "pending")
+DRAW_DOWN_CAPS = {"H2": "hydrogen_max_share", "H2S": "h2s_max_share"}
+"""dict: Each gas a class may draw down and the ledger number that caps its share of the air's molecules where that life lives."""
 
 
 class LifeLedgerError(ValueError):
@@ -62,6 +67,12 @@ def _load():
         methane = row.get("methane")
         if row["status"] == "built" and methane and methane.get("fuel") not in FUELS:
             raise LifeLedgerError(f"class {number}: the methane fuel is one of {FUELS}")
+        for gas in row.get("draws_down", ()):
+            if gas not in DRAW_DOWN_CAPS:
+                raise LifeLedgerError(f"class {number}: a gas drawn down is one of {tuple(DRAW_DOWN_CAPS)}, got {gas!r}")
+        for gas, product in (row.get("products") or {}).items():
+            if gas not in row.get("draws_down", ()) or product.get("per") not in document["numbers"] or not product.get("gas"):
+                raise LifeLedgerError(f"class {number}: a product is of a gas the class draws down, a gas and a ledger number per mole, got {gas!r}: {product!r}")
     return document
 
 
@@ -148,12 +159,18 @@ def apply_gases(body, life_class, rose):
                 new["CH4"] = wanted
                 new["CO2"] = moles["CO2"] - (wanted - have)
                 changed = True
-    if "H2" in row["draws_down"] and _producing(body, life_class, False):
-        share = number("hydrogen_max_share")
-        limit = share / (1.0 - share) * (sum(new.values()) - new.get("H2", 0.0))
-        if new.get("H2", 0.0) > limit * (1.0 + 1e-9):
-            new["H2"] = limit
+    if row["draws_down"] and _producing(body, life_class, False):
+        for gas in row["draws_down"]:
+            share = number(DRAW_DOWN_CAPS[gas])
+            limit = share / (1.0 - share) * (sum(new.values()) - new.get(gas, 0.0))
+            have = new.get(gas, 0.0)
+            if have <= limit * (1.0 + 1e-9):
+                continue
+            new[gas] = limit
             changed = True
+            product = (row.get("products") or {}).get(gas)
+            if product:      # what the life makes of the gas it takes: sulfur dioxide from hydrogen sulfide, methane from hydrogen
+                new[product["gas"]] = new.get(product["gas"], 0.0) + (have - limit) * number(product["per"])
     if not changed:
         return False
     new = {formula: amount for formula, amount in new.items() if amount > 0.0}
