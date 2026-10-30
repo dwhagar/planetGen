@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 597 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 605 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 70 | 1 | 5 | 1 | 0 | 77 |
+| T1 | 74 | 1 | 5 | 1 | 0 | 81 |
 | T2 | 89 | 8 | 0 | 1 | 0 | 98 |
-| T3 | 69 | 21 | 5 | 9 | 0 | 104 |
+| T3 | 69 | 23 | 5 | 9 | 0 | 106 |
 | T4 | 27 | 0 | 0 | 13 | 6 | 46 |
-| T5 | 39 | 11 | 0 | 0 | 0 | 50 |
-| T6 | 47 | 28 | 12 | 33 | 0 | 120 |
+| T5 | 40 | 11 | 0 | 0 | 0 | 51 |
+| T6 | 47 | 29 | 12 | 33 | 0 | 121 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 370 | 77 | 32 | 91 | 27 | 597 |
+| All | 375 | 80 | 32 | 91 | 27 | 605 |
 
 ## How the labels were given
 
@@ -935,14 +935,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| RO1 | P | T4 | L3 | ring_origin.RING_RETAINED_FRACTION 0.3, the share of a moon torn apart inside the Roche limit that stays as a ring | 0.05 to 0.6 | moons of 1e15 to 1e20 kg falling onto a planet | a disrupted moon whose simulated ring holds under 5 percent of its mass, or over 60 | the ring masses of N-body disruption runs by moon composition (Canup 2010; Black and Mittal 2015) | Black and Mittal 2015 keep most of Phobos in orbit, Canup 2010 only an ice mantle; 0.3 is argued between them and lets a Mimas-mass moon leave Saturn's ring mass | GEN.1057 | no data |
-| RO2 | P | T4 | L3 | ring_origin.RING_LIFETIME_YR 5e8, the time in which a ring's mass falls by 1/e | 1e8 to 2e9 | rings of 1e15 to 1e20 kg | the age of Saturn's rings measured below 1e8 or above 4.5e9 years | the viscous spreading time from the ring's mass, optical depth and particle size (Crida and Charnoz 2012) | the ring-moon cycle of Hesselbrock and Minton 2017 runs over 1e8 to 1e9 years; the age of Saturn's rings is argued between 1e8 and the age of the planet | GEN.1057 | no data |
-| RO3 | P | T4 | L3 | ring_origin.COMET_PASSAGES_PER_GYR 0.02, ring-making comets inside the Roche limit of a body in Saturn's situation per Gyr | 0.002 to 0.2 | giants beyond the snow line | a ring-bearing giant sample whose captured-body share is over 50 or under 1 percent | a comet flux model by size and distance (the scattering rate of Centaurs and the Kuiper belt) | no survey measures it; one in 50 Gyr leaves Saturn with a comet's ring once in the age of the Solar System | GEN.1057 | no data |
-| RO4 | P | T6 | L1 | ring_origin.COMET_MASS_KG_RANGE 1e14 to 1e20 kg, the masses of ring-making comets | one decade either side | comets and Centaurs | a captured-body ring observed over 1e19 kg from a body that large | the Centaur and Kuiper belt size distribution | a 5 km comet to a 300 km Centaur | GEN.1057 | - |
-| RO5 | P | T4 | L3 | ring_origin.COMET_CAPTURE_FRACTION 0.1, the share of a torn comet left in orbit | 0.03 to 0.4 | comets passing inside the Roche limit | an N-body disruption run that leaves under 3 percent of the comet | the capture fraction of a comet disruption run by passage speed and periapsis | Dones 1991 finds a few percent to tens of percent captured | GEN.1057 | no data |
-| RO6 | P | T6 | L1 | ring_origin.COMET_ENCOUNTER_FRACTION 0.2, a comet's speed at infinity as a share of the planet's circular speed | 0.1 to 0.4 | giants at 5 to 30 AU | encounter speeds of the comet population differing by a factor of two | the encounter speed distribution of the comet population | the Jupiter-family comets meet Jupiter at about 5 km/s of its 13 | GEN.1057 | - |
-| RO7 | P | T2 | L0 | ring_origin.RING_MIN_DISTANCE_AU 0.1, inside which a planet holds no ring | 0.05 to 0.2 | planets of Sun-like stars | a ring found around a planet inside 0.05 AU | the ring lifetime against the star's heating and the particle size (Schlichting and Chang 2011) | Schlichting and Chang 2011, recalled: rings of close planets are short lived | GEN.1057 | - |
-| RO8 | P | T6 | L0 | ring_origin.MIN_RING_MASS_KG 1e7, the least ring that counts | 1e6 to 1e8 | dust rings | a ring of dust seen below 1e6 kg | the smallest ring the painter and the sheet can show | Jupiter's dust ring holds 1e7 to 1e9 kg | GEN.1057 | - |
+| RO1 | P | T4 | L3 | ring_origin.RING_RETAINED_FRACTION 0.3, the share of a moon torn apart inside the Roche limit that stays as a ring | 0.05 to 0.6 | moons of 1e15 to 1e20 kg falling onto a planet | a disrupted moon whose simulated ring holds under 5 percent of its mass, or over 60 | the ring masses of N-body disruption runs by moon composition (Canup 2010; Black and Mittal 2015) | Black and Mittal 2015 keep most of Phobos in orbit, Canup 2010 only an ice mantle; 0.3 is argued between them and lets a Mimas-mass moon leave Saturn's ring mass | GEN.1054 | no data |
+| RO2 | P | T4 | L3 | ring_origin.RING_LIFETIME_YR 5e8, the time in which a ring's mass falls by 1/e | 1e8 to 2e9 | rings of 1e15 to 1e20 kg | the age of Saturn's rings measured below 1e8 or above 4.5e9 years | the viscous spreading time from the ring's mass, optical depth and particle size (Crida and Charnoz 2012) | the ring-moon cycle of Hesselbrock and Minton 2017 runs over 1e8 to 1e9 years; the age of Saturn's rings is argued between 1e8 and the age of the planet | GEN.1054 | no data |
+| RO3 | P | T4 | L3 | ring_origin.COMET_PASSAGES_PER_GYR 0.02, ring-making comets inside the Roche limit of a body in Saturn's situation per Gyr | 0.002 to 0.2 | giants beyond the snow line | a ring-bearing giant sample whose captured-body share is over 50 or under 1 percent | a comet flux model by size and distance (the scattering rate of Centaurs and the Kuiper belt) | no survey measures it; one in 50 Gyr leaves Saturn with a comet's ring once in the age of the Solar System | GEN.1054 | no data |
+| RO4 | P | T6 | L1 | ring_origin.COMET_MASS_KG_RANGE 1e14 to 1e20 kg, the masses of ring-making comets | one decade either side | comets and Centaurs | a captured-body ring observed over 1e19 kg from a body that large | the Centaur and Kuiper belt size distribution | a 5 km comet to a 300 km Centaur | GEN.1054 | - |
+| RO5 | P | T4 | L3 | ring_origin.COMET_CAPTURE_FRACTION 0.1, the share of a torn comet left in orbit | 0.03 to 0.4 | comets passing inside the Roche limit | an N-body disruption run that leaves under 3 percent of the comet | the capture fraction of a comet disruption run by passage speed and periapsis | Dones 1991 finds a few percent to tens of percent captured | GEN.1054 | no data |
+| RO6 | P | T6 | L1 | ring_origin.COMET_ENCOUNTER_FRACTION 0.2, a comet's speed at infinity as a share of the planet's circular speed | 0.1 to 0.4 | giants at 5 to 30 AU | encounter speeds of the comet population differing by a factor of two | the encounter speed distribution of the comet population | the Jupiter-family comets meet Jupiter at about 5 km/s of its 13 | GEN.1054 | - |
+| RO7 | P | T2 | L0 | ring_origin.RING_MIN_DISTANCE_AU 0.1, inside which a planet holds no ring | 0.05 to 0.2 | planets of Sun-like stars | a ring found around a planet inside 0.05 AU | the ring lifetime against the star's heating and the particle size (Schlichting and Chang 2011) | Schlichting and Chang 2011, recalled: rings of close planets are short lived | GEN.1054 | - |
+| RO8 | P | T6 | L0 | ring_origin.MIN_RING_MASS_KG 1e7, the least ring that counts | 1e6 to 1e8 | dust rings | a ring of dust seen below 1e6 kg | the smallest ring the painter and the sheet can show | Jupiter's dust ring holds 1e7 to 1e9 kg | GEN.1054 | - |
 
 ## 6.71 Stand-ins of the resonance rings of small bodies
 
@@ -989,3 +989,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | NC4 | P | T9 | L2 | nightside_collapse._calibration: the factor (about 1.24 at Earth's flux) on the grey night-side temperature that makes the balance first lose CO2 at the fit's critical pressure | none | CO2 below the fit's critical pressure | the fit's own critical pressure disagreeing with the balance by a factor over 2 in pressure at another flux | the night-side temperature from the 3D runs | tuned to the published threshold (NC1), so the two agree there and the retained share rises continuously to 1 at it | - | - |
 | NC5 | P | T7 | L0 | nightside_collapse.collapse for a gas other than CO2: the same grey balance, not calibrated | none | N2 and other gases the paper leaves to later work | a 3D run of an N2 air whose collapse pressure differs from this by a factor over 3 | the N2 collapse pressures of a later Wordsworth or Leconte paper | the paper says N2 collapse is left to future work (Section 3.6); N2 freezes under 126 K so at Earth's flux it holds at any pressure here | - | - |
 | NC6 | P | T9 | L0 | nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed | 0.1 to 0.9 | any gas | a page text that reads wrongly at the cut | none (the retained share is the number to use) | needed output: the share, not the flag, is the physics | GEN.1044 | - |
+
+## 6.80 Stand-ins of the Venus-type spin
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| VS1 | D | T1 | L0 | venus_spin.VENUS_STRENGTH 1.9255, the thermal over gravitational tide of Venus in orbital rates (the coefficient of the scaling for every thick-air planet) | none | rocky planets with a thick air | Venus's spin measured to differ from 243.0 days retrograde (the table reproduces -242.9 from this) | the Love number, time lags, scale height and ground flux of each planet (their Table 1 assumes Venus's for all) | Cunha, Correia and Laskar 2015 Table 1, read in full | GEN.1048 | - |
+| VS2 | D | T1 | L0 | venus_spin.VENUS_DAMPING_TIME_GY 2.3, the e-folding time of Venus's slow-rotation tide | none | rocky planets with a thick air | a spin-down time of Venus computed from its Love number and time lag that differs by a factor of two | the planet's own `k2` and time lag from the interior model | the same Table 1 (tau_eq 2.3 Gyr) | GEN.1048 | - |
+| VS3 | D | T5 | L0 | venus_spin.strength_over_orbital_rate and damping_time_gy: ws/n goes as L R a^2.5 M^-1.5 / m and tau as m a^6 M^-2 R^-3, from Venus | none | masses 0.1 to 10 Earth, `e` under 0.3 | a 3D climate model of a planet at twice Venus's distance whose thermal torque departs from the law by more than a factor of two (Leconte et al. 2015 find its pressure dependence is not monotonic) | `spin_torques` thermal table (GEN.956) fitted to the same planets | their equations 48, 55 and 68, read; the Venus normalisation is ours | - | - |
+| VS4 | P | T6 | L1 | venus_spin.FULL_TIDE_PRESSURE_BAR 10, the surface pressure from which the thermal tide has its full strength, falling in proportion to the pressure below | 3 to 30 | rocky planets with a nitrogen or carbon dioxide air | a planet of 1 to 3 bar in the Leconte et al. 2015 runs whose thermal torque is not a tenth to a third of Venus's at equal strength | the thermal tide amplitude by pressure from `spin_torques.THERMAL_TABLE` | the design note's "air above about 10 bar"; the linear cut is ours | GEN.1048 | - |
+| VS5 | P | T1 | L0 | venus_spin.PAPER_MAX_ECCENTRICITY 0.3, the eccentricity the closed forms are valid to; above it the states are computed at it and flagged | none | orbits under 0.3 | an integration at e 0.4 whose states differ from the extrapolation by more than 10 percent | the full expansion in eccentricity of the tidal torques | the paper's "moderate eccentricity (e < 0.3)" | GEN.1048 | - |
+| VS6 | P | T3 | L1 | venus_spin.TWO_STATE_SPLIT_DEG 60, the birth tilt above which a planet with two end states reaches the slower | 40 to 90 | thick-air planets with two states | a run at another strength that splits the states at under 40 or over 90 degrees | the integrated spin and tilt flow of the paper's equations 10 and 19 with core-mantle friction | their Fig. 10j, circular orbit at 0.6 AU M, read from the text: tilts over 60 degrees reach the retrograde state | GEN.1048 | - |
+| VS7 | P | T3 | L1 | venus_spin.THREE_STATE_SPLITS_DEG 40 and 100, the birth tilts that divide three end states | 30 to 60 and 80 to 120 | thick-air planets with three states | the same | the same | their Fig. 10e and 10f (0.42 AU M, e 0.1 and 0.2): 40 degrees and under, to 100 degrees, over 100 | GEN.1048 | - |
+| VS8 | D | T1 | L0 | venus_spin.VENUS_MASS_KG, VENUS_RADIUS_M and VENUS_DISTANCE_AU, the reference body | none | the normalisation | none | none | NASA Venus fact sheet: 4.8675e24 kg, 6051.8 km, 0.723332 AU | GEN.1048 | - |
