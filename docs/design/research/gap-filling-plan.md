@@ -945,6 +945,18 @@ Rows SC1 and SC2. The star census (`tests/audit/prevalence_stars.py`, TEST.432) 
 | SC2 | P | T2 | L0 | tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars | 0.01 to 0.06 | stars heavier than 0.08 solar masses, trees a directive does not count | test_multistar.test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member | a brown dwarf companion survey of M dwarfs | RECALLED (Metchev and Hillenbrand 2009: 3.2 percent of solar-type stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU) |
 <!-- star-census-standins:end -->
 
+### 6.26 Stand-ins of the stellar mass function (GEN.927, GEN.928)
+
+Rows MF1 to MF3. The single-star mass function is Chabrier (2003), and the primaries' function is derived from it and the multiplicity rows, not set (`docs/design/galaxy/stellar-mass-function.md`). Tiers T1 to T9 and tweak levels L0 to L4 as in 6.6a (GEN.725); the lane's reading (Bug 1), for the owner to confirm.
+
+<!-- stellar-mass-function-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| MF1 | P | T2 | L0 | tuning.IMF_BELL_CENTRE_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass | centre 0.079 to 0.08, width 0.69 | stars of the Galactic disk, individual stars (not systems) | the counts of M dwarfs in the solar neighbourhood (RECONS) against the census of the generated stars | the table read in the paper | RECALLED (Chabrier 2003, PASP 115:763, Table 2, disk, individual stars; the four numbers are not opened in the paper) |
+| MF2 | P | T2 | L0 | tuning.IMF_HIGH_SLOPE 2.3: the power law of the single-star function above one solar mass, a birth function | 2.3 to 2.35 | birth masses, 1 to 150 solar masses | the generated count of stars still alive at 1 to 2 solar masses against the field's 2.7 (Kroupa, Tout and Gilmore 1993) | a slope read from the paper | RECALLED (Chabrier 2003 x = 1.3 per logarithm; Kroupa 2001 2.3 above 0.5; the field's steeper slope comes from the ages) |
+| MF3 | D | T5 | L0 | generation.primary_mass_function: companions as `multistar` draws them (uniform mass ratio from the larger of 0.1 and 0.08 over the primary's mass to 1, counts from the star-count table), no twin excess, no brown dwarf companion, no mergers | none | systems of up to seven stars | the generated systems' own mass function against the systems' function of Chabrier (centre 0.22) | a twin excess in the mass ratio (Moe and Di Stefano 2017) | COMPUTED (the equation of the primary function, solved from the top mass; test_mass_function_curve) |
+<!-- stellar-mass-function-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

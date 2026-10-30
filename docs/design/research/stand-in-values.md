@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 332 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 335 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 39 | 0 | 3 | 0 | 0 | 42 |
-| T2 | 60 | 1 | 0 | 1 | 0 | 62 |
+| T2 | 62 | 1 | 0 | 1 | 0 | 64 |
 | T3 | 51 | 4 | 2 | 10 | 0 | 67 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
-| T5 | 15 | 5 | 1 | 0 | 0 | 21 |
+| T5 | 16 | 5 | 1 | 0 | 0 | 22 |
 | T6 | 28 | 8 | 3 | 12 | 0 | 51 |
 | T7 | 17 | 3 | 0 | 7 | 0 | 27 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 25 | 16 | 44 |
-| All | 226 | 21 | 11 | 57 | 17 | 332 |
+| All | 229 | 21 | 11 | 57 | 17 | 335 |
 
 ## How the labels were given
 
@@ -504,3 +504,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|
 | SC1 | P | T2 | L1 | constants.TEMP_RANGES: the A/F edge 7200 K and the K/M edge 3900 K (before, 7500 K and 3700 K); the F/G and G/K edges 6000 K and 5200 K are as they were | 100 K each | main-sequence stars of the solar neighbourhood | the star census mix of K, M and A against RECONS (`tests/audit/prevalence_stars.py`) | the spectral-type temperature table of Pecaut and Mamajek read in full | RECALLED (Pecaut and Mamajek 2013: F0V 7220 K, M0V 3850 K, rounded to 100 K; the luminosity ranges already put the K/M edge at 0.08 solar luminosities, about 3900 K) |
 | SC2 | P | T2 | L0 | tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars | 0.01 to 0.06 | stars heavier than 0.08 solar masses, trees a directive does not count | test_multistar.test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member | a brown dwarf companion survey of M dwarfs | RECALLED (Metchev and Hillenbrand 2009: 3.2 percent of solar-type stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU) |
+
+## 6.26 Stand-ins of the stellar mass function
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| MF1 | P | T2 | L0 | tuning.IMF_BELL_CENTRE_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass | centre 0.079 to 0.08, width 0.69 | stars of the Galactic disk, individual stars (not systems) | the counts of M dwarfs in the solar neighbourhood (RECONS) against the census of the generated stars | the table read in the paper | RECALLED (Chabrier 2003, PASP 115:763, Table 2, disk, individual stars; the four numbers are not opened in the paper) |
+| MF2 | P | T2 | L0 | tuning.IMF_HIGH_SLOPE 2.3: the power law of the single-star function above one solar mass, a birth function | 2.3 to 2.35 | birth masses, 1 to 150 solar masses | the generated count of stars still alive at 1 to 2 solar masses against the field's 2.7 (Kroupa, Tout and Gilmore 1993) | a slope read from the paper | RECALLED (Chabrier 2003 x = 1.3 per logarithm; Kroupa 2001 2.3 above 0.5; the field's steeper slope comes from the ages) |
+| MF3 | D | T5 | L0 | generation.primary_mass_function: companions as `multistar` draws them (uniform mass ratio from the larger of 0.1 and 0.08 over the primary's mass to 1, counts from the star-count table), no twin excess, no brown dwarf companion, no mergers | none | systems of up to seven stars | the generated systems' own mass function against the systems' function of Chabrier (centre 0.22) | a twin excess in the mass ratio (Moe and Di Stefano 2017) | COMPUTED (the equation of the primary function, solved from the top mass; test_mass_function_curve) |

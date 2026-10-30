@@ -876,11 +876,20 @@ MASSLESS_MARKER_MASS_SOL = 1.0
 SUN_EFFECTIVE_TEMPERATURE_K = 5772.0
 
 # White dwarfs: final mass from the initial-final mass relation of
-# Kalirai et al. (2008), ApJ 676:594 (M_f = 0.109 M_i + 0.394), clamped to
-# the observed range; luminosity from Mestel cooling,
-# L = WD_COOLING_L0 * (M/0.6) * t_cool^-1.4 (Lsun, t_cool in Gy), clamped.
-WD_IFMR_SLOPE = 0.109
-WD_IFMR_INTERCEPT_SOL = 0.394
+# Cummings et al. (2018), ApJ 866:21 (arXiv 1809.01673), the MIST-based fit, equations 4 to 6, read; luminosity from Mestel
+# cooling, L = WD_COOLING_L0 * (M/0.6) * t_cool^-1.4 (Lsun, t_cool in Gy), clamped.
+WD_IFMR_PIECES = (
+    (0.83, 2.85, 0.080, 0.489),
+    (2.85, 3.60, 0.187, 0.184),
+    (3.60, 7.20, 0.107, 0.471),
+)
+"""tuple: The white dwarf initial-final mass relation, `(low, high, slope, intercept)` per piece: the final mass is
+`intercept + slope * M_i` solar masses for an initial mass between `low` and `high` (Cummings et al. 2018, equations 4, 5
+and 6, the fit to the MIST tracks; the pieces join at 2.85 and 3.60). The first piece is carried down to the lightest
+progenitor (`WHITE_DWARF_PROGENITOR_SOL`) and the last up to the core collapse limit. Verified (read in the paper); one
+relation, read by the star model, the member draw, the disk history and `mass_loss`. The relation of Kalirai et al. (2008)
+the generator used before runs 0.04 to 0.06 under it, and Weidemann (2000), the disk history's, 0.1 to 0.16 under at 5 to 7
+solar masses (the audit of the star classes, M2)."""
 WD_MASS_RANGE_SOL = (0.5, 1.35)
 WD_COOLING_L0_SOL = 1.0e-3
 WD_COOLING_EXPONENT = -1.4
@@ -1130,9 +1139,6 @@ follows the stellar mass the halo's growth builds."""
 HALO_GROWTH_RATE_AT_1E12_MSUN_YR = 46.1
 """float: That fit's amplitude, solar masses per year for a halo of 1e12 solar masses at z = 0. It only sets how the
 halo's mass went back in time; the disk's inflow is scaled to the stars it must build, so its size drops out."""
-WHITE_DWARF_REMNANT_MASS_SOL = {"intercept": 0.444, "slope": 0.084}
-"""dict: A star of 1 to 7 solar masses leaves a white dwarf of `intercept + slope * m` (Weidemann 2000's initial-final masses
-as Madau and Dickinson 2014, ARA&A 52, 415, arXiv 1403.0007, quote them, read)."""
 NEUTRON_STAR_RETURN_REMNANT_SOL = 1.4
 """float: The remnant of a star of 8 to `BLACK_HOLE_RETURN_MASS_SOL` solar masses (the same source's choice)."""
 BLACK_HOLE_RETURN_MASS_SOL = 40.0
@@ -3696,7 +3702,7 @@ BLACK_HOLE_UNBOUND_FRACTION = 0.02
 
 CORE_COLLAPSE_MASS_RANGE_SOL = (SUPERGIANT_MIN_MASS_SOL, IMF_BREAKS_SOL[-1])
 """tuple: The initial masses that end as a neutron star or a black hole, solar masses: 8 (the supergiants' edge) to the
-top of the IMF, 150 (GEN.560). 0.637% of the stars born."""
+top of the IMF, 150 (GEN.560). 0.713% of the stars born (GEN.927)."""
 
 BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE = (0.0, 0.45)
 """tuple: The share of the massive stars of solar metallicity that fail to explode and leave a black hole: the widest

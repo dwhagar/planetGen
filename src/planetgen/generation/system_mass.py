@@ -84,7 +84,7 @@ def present_day_moments(age_gy, remnants=True):
     for kind in remnant_progenitors.KINDS:
         number = sum(imf.integral(0.0, max(low, wd_high, turn_off), high)
                      for low, high in remnant_progenitors.kind_windows(kind) if max(low, wd_high, turn_off) < high)
-        first, second = remnant_mass.uniform_moments(kind)
+        first, second = remnant_mass.moments(kind)
         mass += number * first
         square += number * second
     return mass, square
@@ -112,8 +112,8 @@ def _remnant_states(initial):
     for low, high in remnant_progenitors.kind_windows(remnant_progenitors.BLACK_HOLE):
         fails |= (initial >= low) & (initial <= high)
     remnant = np.where(initial < wd_high, remnant_mass.white_dwarf_mass_sol(np.minimum(initial, wd_high)),
-                       np.where(~fails, remnant_mass.uniform_moments("neutron-star")[0],
-                                remnant_mass.uniform_moments("black-hole")[0]))
+                       np.where(~fails, remnant_mass.moments("neutron-star")[0],
+                                remnant_mass.moments("black-hole")[0]))
     return initial, remnant
 
 

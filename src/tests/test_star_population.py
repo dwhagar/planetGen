@@ -17,7 +17,7 @@ import pytest
 
 from planetgen.physics import constants as phys_c, imf, main_sequence
 from planetgen import tuning as prog_c
-from planetgen.physics import stellar_evolution as se
+from planetgen.physics import stellar_abundances, stellar_evolution as se
 from planetgen.generation import star_population as sp
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import STAR_TYPE_PATTERN, Star
@@ -110,10 +110,13 @@ def test_white_dwarfs_are_earth_sized_and_dim(population):
     _, states = population
     white_dwarfs = [state for _, _, state in states if state["yerkes_class"] == "VII"]
     assert white_dwarfs
+    low, high = prog_c.WD_MASS_RANGE_SOL
+    # The heaviest the initial-final mass relation makes (1.33 solar masses, Cummings et al. 2018) is smaller than the
+    # zero-temperature radius at the top of the range (2,700 km); a cold star is never smaller than that.
+    smallest = stellar_abundances.white_dwarf_radius_solar(high) * phys_c.SOLAR_RADIUS_M / 1000.0
     for state in white_dwarfs:
-        low, high = prog_c.WD_MASS_RANGE_SOL
         assert low <= state["mass_sol"] <= high
-        assert 3000 < state["radius_km"] < 15000          # a hot 0.2 solar-mass white dwarf of the cooling sequences is 10,100 km (GEN.742)
+        assert smallest < state["radius_km"] < 15000          # a hot 0.2 solar-mass white dwarf of the cooling sequences is 10,100 km (GEN.742)
         assert state["luminosity_sol"] <= prog_c.WD_LUMINOSITY_RANGE_SOL[1]
 
 

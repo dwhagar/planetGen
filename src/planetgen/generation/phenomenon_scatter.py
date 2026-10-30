@@ -131,7 +131,9 @@ def draw_mass(kind, subtype, min_mass_solar, rng):
     if low >= high:
         return low
     law = mass_law(kind, subtype)
-    return log_uniform(low, high, rng=rng) if law[1] else rng.uniform(low, high)
+    if law[1]:
+        return log_uniform(low, high, rng=rng)
+    return remnant_mass.draw_mass_sol(kind, (low, high), rng)
 
 
 def class_label(kind, subtype):
@@ -182,8 +184,8 @@ def class_rate_per_star(kind, subtype):
 
 def share_above(kind, subtype, min_mass_solar):
     """S_k(c): the share of a class's mass law at or above `min_mass_solar`
-    (1 for a kind not drawn by mass). Neutron stars `(2.2 - c) / 1.1`,
-    stellar-mass black holes `(20 - c) / 15`, intermediate-mass
+    (1 for a kind not drawn by mass). Neutron stars the Gaussian's
+    (`remnant_mass.share_above`), stellar-mass black holes `(20 - c) / 15`, intermediate-mass
     `ln(1e5 / c) / ln(1e3)`, clamped to 0 to 1. The magnetars are all
     scattered whatever the cut (1): the fill never draws one (GEN.278)."""
     law = mass_law(kind, subtype)
@@ -196,7 +198,7 @@ def share_above(kind, subtype, min_mass_solar):
         return 0.0
     if logarithmic:
         return math.log(high / min_mass_solar) / math.log(high / low)
-    return (high - min_mass_solar) / (high - low)
+    return remnant_mass.share_above(kind, min_mass_solar)
 
 
 def mass_range(kind, subtype, min_mass_solar, above):

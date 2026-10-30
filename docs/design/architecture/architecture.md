@@ -238,7 +238,7 @@ The constants and the maths behind every generated body.
 | [`species_limits.py`](../../../src/planetgen/physics/species_limits.py) | A species' environment limits are the human visitor's table (`protection_limits.LIMIT_ROWS`) with some rows replaced: `overrides`, a dict `{limit name: value}`, empty for a species with the human limits. |
 | [`spin.py`](../../../src/planetgen/physics/spin.py) | Every rotating body's spin: a unit axis (the direction of its angular velocity, right-handed) and a rate (its rotation period), so the spin vector is `axis * 2 pi / period`. |
 | [`state_vectors.py`](../../../src/planetgen/physics/state_vectors.py) | Conversion between a two-body orbit's elements and its state vector, with the Kepler solver (GEN.122, GEN.66). |
-| [`stellar_evolution.py`](../../../src/planetgen/physics/stellar_evolution.py) | Draws a star as physics: a Kroupa IMF mass, an age from the star-formation history and the evolved state, main sequence through remnant. |
+| [`stellar_evolution.py`](../../../src/planetgen/physics/stellar_evolution.py) | Draws a star as physics: a Chabrier IMF mass (the primary function, `generation/primary_mass_function.py`), an age from the star-formation history and the evolved state, main sequence through remnant. |
 | [`units.py`](../../../src/planetgen/physics/units.py) | Distance conversions between light-years, parsecs, milliparsecs and AU. |
 
 #### src/planetgen/galaxy/

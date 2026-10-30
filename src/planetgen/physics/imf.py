@@ -1,12 +1,19 @@
 # planetgen/physics/imf.py
 
 """
-The Initial Mass Function (GEN.926)
-===================================
+The Initial Mass Function (GEN.926, GEN.927, GEN.928)
+=====================================================
 
 The one place the generator's initial mass function lives: `xi(M) dM`, the number of stars born in `dM` solar masses, a
 continuous piecewise power law `k M^-alpha` between the edges in `tuning.IMF_BREAKS_SOL` with the slopes in
-`tuning.IMF_SLOPES` (the rows the mass function is set by).
+`tuning.IMF_SLOPES`. Those rows are the Chabrier (2003) function for individual stars of the Galactic disk (GEN.927): the
+log-normal below one solar mass (`tuning.IMF_BELL_*`) cut into segments 0.05 dex wide, each a power law through the log-normal
+at both ends, and a `M^-2.3` power law above one solar mass up to 150.
+
+There are two curves (`SINGLE`, `PRIMARY`). `SINGLE` is `xi`: every star born, companions included. `PRIMARY` is the mass function
+of the stars that are the primary of a system, derived from `xi` and the multiplicity rows (`generation.primary_mass_function`,
+GEN.928); the stars of the systems together are `xi`. A star drawn as the primary of a system, or counted as a placed system,
+is on `PRIMARY`; a rate per star born (the ionizing stars, the black holes, the mass returned) is on `SINGLE`.
 
 Everything that needs the function asks here: the draw of a star's mass (`sample`), the number or mass of stars in a range
 (`number`, `integral`), the segments themselves for a table built over a mass grid (`segments`, `segment_at`), and the
@@ -15,7 +22,7 @@ out in six modules (the draw and the count in `stellar_evolution`, the moments i
 in `hii`, the mass return in `galaxy.disk_history`, the grid in `star_population`, the cluster check in `mathcheck`), each
 joining the segments its own way; a change of the curve is now a change of the rows and of this module.
 
-`mathcheck` keeps its own written-out copy of the Kroupa (2001) function on purpose: it is the check that this one still
+`mathcheck` keeps its own written-out copy of the Chabrier (2003) function on purpose: it is the check that this one still
 is what the literature says.
 """
 
