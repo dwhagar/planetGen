@@ -2312,6 +2312,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
+- [ ] **MAP.354 Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer**
+  Boss 7:48 PM EDT 10-30: objects around a Lagrange point get an icon at
+  the centre of the point that says [host]-L# so the pair of objects is
+  clear. Rides with T2 (train 8). Shares the Lagrange geometry of
+  MAP.169 and does not wait for the heat map.
+  Prerequisites: GEN.1150. Related: MAP.169.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -14769,6 +14776,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of main, no fix without the cause. Source: prevalence census
   (TEST.430).
   Prerequisites: none.
+
+- [ ] **GEN.1149 Lagrange trojans T1: pure physics module physics/trojans.py: Gascheau-Routh stability test (host, secondary and trojan masses), libration period, tadpole and horseshoe limit, e and i screen, swarm mass from the scatter trojan share with leading and trailing split, plausibility harness against Jupiter, Neptune, Saturn moons and the exoplanet upper bound (WR10), GEN.725 registry rows, design note**
+  Lock-free, no wiring. Report
+  /mnt/project-files/reports/lagrange-trojans-2026-10-30.md (not in the
+  repo). Boss approved building it 10-30 7:48 PM EDT. Rule: no forced
+  rate, no L1/L2/L3 bodies, stability test (m2+m3)/M under 0.0385.
+  Owner: Trojans lane. Same pattern as RP2/3/4/7 and IP1 to IP14.
+  Measure the e and i limits with an N-body run in the style of
+  data/gen1029-nbody/ rather than rely on recalled values.
+  Prerequisites: none.
+
+- [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
+  Epoch lock, migration, --affects on the generator and orbit-tree
+  tests. Train 8 with belts, clearance and the region store. Report
+  /mnt/project-files/reports/lagrange-trojans-2026-10-30.md (not in the
+  repo). Boss approved building it 10-30 7:48 PM EDT. Rule: no forced
+  rate, no L1/L2/L3 bodies, stability test (m2+m3)/M under 0.0385.
+  Owner: Trojans lane. A giant that never swept anything gets none; the
+  swarm is what the sweep leaves. The belt clearance ledger must allow a
+  belt-like region at 1:1 with a giant and exclude it from free-zone
+  belt placement. GEN.1006 must treat a trojan as a member at the
+  secondary orbit, not an overlap.
+  Prerequisites: GEN.1149, GEN.1006. Related: GEN.1077.
+
+- [ ] **GEN.1151 Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row**
+  Epoch lock, train 8 or 9. Report
+  /mnt/project-files/reports/lagrange-trojans-2026-10-30.md (not in the
+  repo). Boss approved building it 10-30 7:48 PM EDT. Rule: no forced
+  rate, no L1/L2/L3 bodies, stability test (m2+m3)/M under 0.0385.
+  Owner: Trojans lane. Needs the formation gate from the planet
+  architecture oligarch chain (solids in the 1:1 zone of a growing
+  planet), which does not model it yet. Brown dwarf and star secondaries
+  are allowed when the secondary is under 4 percent of the primary.
+  Prerequisites: GEN.1150.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
