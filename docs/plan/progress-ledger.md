@@ -2078,3 +2078,4 @@ Baseline: PR #1817.
 | UX.246 | 8.2 | Search by physical values |
 | UX.247 | 8.2 | Search by physical values |
 | UX.245 | 8.2 | Search by physical values |
+| UX.248 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
