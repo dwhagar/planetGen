@@ -24,7 +24,7 @@ defined separately in `asteroidData`.
 import math
 
 from planetgen import tuning
-from planetgen.generation import prevalence
+from planetgen.generation import habitable_request, prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import aerosols, atmosphere, body_colour, bulk_composition, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
@@ -416,7 +416,7 @@ class Planet(PlanetaryObject):
         primary_mass_kg = primary_mass_kg if primary_mass_kg is not None else star.mass
         self.primary_mass_kg = primary_mass_kg
         # Calculate physical/orbital properties (no life data yet). A system that bars habitable worlds from its ecosphere
-        # (`HABITABLE_WORLD` False) draws the body again where the finished body's class would be one that can carry life.
+        # (`HABITABLE_WORLD` False) draws the body again where the finished body would have the conditions a habitable request asks for (GEN.916).
         given_mass, given_radius = self.mass, self.radius
         for _attempt in range(tuning.BARRED_CLASS_MAX_ATTEMPTS):
             self.mass, self.radius = given_mass, given_radius
@@ -427,8 +427,7 @@ class Planet(PlanetaryObject):
             planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
             planetPhysics.calculate_atmospheric_conditions(self, distance_override)
             planetPhysics.apply_class(self)
-            if not (system_config.HABITABLE_WORLD is False and self.zone == 'e'
-                    and self.planet_class in tuning.HABITABLE_PLANET_CLASSES):
+            if not (system_config.HABITABLE_WORLD is False and self.zone == 'e' and habitable_request.meets(self)):
                 break
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
 

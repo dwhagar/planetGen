@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 432 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 434 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 54 | 0 | 3 | 0 | 0 | 57 |
+| T1 | 55 | 0 | 3 | 0 | 0 | 58 |
 | T2 | 73 | 4 | 0 | 1 | 0 | 78 |
 | T3 | 53 | 8 | 3 | 10 | 0 | 74 |
 | T4 | 22 | 0 | 0 | 3 | 4 | 29 |
 | T5 | 24 | 6 | 1 | 0 | 0 | 31 |
-| T6 | 39 | 13 | 7 | 28 | 0 | 87 |
+| T6 | 39 | 14 | 7 | 28 | 0 | 88 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 1 | 1 | 2 |
 | T9 | 1 | 0 | 2 | 24 | 19 | 46 |
-| All | 283 | 34 | 17 | 74 | 24 | 432 |
+| All | 284 | 35 | 17 | 74 | 24 | 434 |
 
 ## How the labels were given
 
@@ -480,6 +480,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CC8 | P | T5 | L0 | surface_air.VACUUM_PRESSURE_PA 1 (below it the fixed point has no air to equilibrate: the body keeps an exosphere and is airless) | 0.1 to 10 | rocky bodies | test_surface_air::test_a_pressure_that_falls_to_a_vacuum_is_airless | an exosphere model | READ-level fact (the Moon and Mercury hold 1e-10 Pa and under); the edge is the solver's | - | - |
 | CC9 | P | T4 | L0 | tuning.GIVEN_MASS_KG_BOUNDS (1e12, 2.47e28) and GIVEN_RADIUS_KM_BOUNDS (0.5, 200000) (the mass and radius a caller may give; outside them the request is an error) | none | given inputs only | test_gen_moon_helpers::test_a_radius_or_mass_that_cannot_be_a_planet_raises | none | design (the lightest body the bulk draw builds to 13 Jupiter masses and the largest inflated giant) | - | - |
 | CC10 | P | T9 | L3 | tuning.HABITABLE_REQUEST_FREE_ATTEMPTS 8 and HABITABLE_REQUEST_MASS_EARTH (0.5, 2.0) (a request for a habitable world draws freely, then draws Earth-like masses) | free attempts 4 to 16; masses 0.3 to 3 | the request only | test_gen_builder_internals::test_a_habitable_request_turns_to_earth_like_masses_after_its_free_draws; a request met in under 80 percent of systems around a K or A star | the PHI-6 steering of habitable requests (a follow-up of GEN.688) | design (needed output: a free draw in the ecosphere of an M5 dwarf gave a life class in none of 30, an Earth-like mass in 20 of 30) | - | no data |
+| CC11 | D | T1 | L0 | tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES ("surface ocean",) and REQUEST_TARGET_K 298.15 (the conditions a request for a habitable world asks of a finished body, GEN.916, and the middle of the range where a missed draw aims the next, GEN.911) | the range edges are the liquid-water range at the surface; the target anywhere inside it | every request for a habitable world | a request met by a body outside 273 to 323 K or without a surface ocean | none needed | the liquid range of water at the surface (verified physics); the target is the middle of the range (design) | - | - |
+| CC12 | P | T6 | L1 | tuning.REQUEST_MIN_PRESSURE_PA 10000 (the air a body must hold to count as having any, the floor the generator already uses for a world with air) and HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS 2 (draws left at the given distance before each next one is aimed by the solved temperature) | pressure 5 to 20 kPa; aim after 1 to 4 draws | every request for a habitable world | a request met by a body with under 10 kPa of air | the PHI-6 domains of habitable requests | design (the pressure floor is the generator's own; the aim count keeps a chance draw before the feedback starts) | - | - |
 
 ## 6.23 Stand-ins of the tidal rheology
 

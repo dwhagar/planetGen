@@ -199,13 +199,14 @@ def _build_oxygen(planet, row):
 
 def _rebuild(planet):
     """What reads the air, made again after life has changed it: the cloud, haze and dust (on the body's own stream), the ozone and doses (on a
-    stream of the body's own, so the run's draws do not move), the colour of the atmosphere and the habitability score."""
+    stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the habitability score and the class (derived from the air as it is now, GEN.980)."""
     from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
     aerosols.generate_aerosols(planet)
     with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
         radiation.generate_dose(planet)
     body_colour.generate(planet)
     habitability_world.generate(planet, physics_planets.internal_heat_flux_w_m2(planet))
+    physics_planets.apply_class(planet)               # GEN.980: the class is an output of the finished conditions, and the air has changed them
 
 
 def _set_class(planet, row):
