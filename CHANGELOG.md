@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2702] - 2026-10-30
+
+**Headline:** A system of three or more stars no longer puts one star inside another.
+
+### Fixed
+- **A third (or later) star could sit inside another star.** A drawn tree of stars is built again from each member's birth mass and the system's age, so a member the tree had evolved (a white dwarf in a post-common-envelope pair) could come out a giant wider than its own orbit, with its partner or a third star inside it. `StarSystem` now checks the stars as built against the orbits (`multistar.built_tree_clears`) and draws the tree again when one does not clear (about 1 forced triple in 150, 1 forced quadruple in 50).
+  generation-output: changed
+
 ## [8.0.2701] - 2026-10-30
 
 **Headline:** The bright-star and phenomenon scatters now work out their seed, mass limit and clearing when their stage opens, so a run can plan the galaxy and scatter it in one go.
