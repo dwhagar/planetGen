@@ -19,7 +19,7 @@ def _joined(detail, node_no):
     the node. `None` for a place nothing hangs in."""
     places = {}
     for star in detail.get("stars") or []:
-        if star.get("parent_node_id") == node_no:
+        if star.get("parent_node_no") == node_no:
             places[star.get("slot") or 0] = star["name"]
     for node in detail.get("orbits") or []:
         if node["parent_node_no"] == node_no:

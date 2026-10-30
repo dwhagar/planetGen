@@ -115,7 +115,7 @@ def test_system_detail_carries_the_orbit_tree_and_where_each_star_hangs(mysql_co
     try:
         detail = query.system_detail(conn, system_id)
         assert [(node["node_no"], node["parent_node_no"]) for node in detail["orbits"]] == [(0, 1), (1, None)]
-        assert [(star["parent_node_id"], star["slot"]) for star in detail["stars"]] == [(0, 0), (0, 1), (1, 1)]
+        assert [(star["parent_node_no"], star["slot"]) for star in detail["stars"]] == [(0, 0), (0, 1), (1, 1)]
         assert all(node["separation_km"] > 0 and node["period_years"] > 0 for node in detail["orbits"])
     finally:
         conn.close()
@@ -131,7 +131,7 @@ def test_a_single_star_has_no_orbits_in_its_detail(mysql_config):
         system_id = store.insert_star_system(conn, system, cfg)
         conn.commit()
         detail = query.system_detail(conn, system_id)
-        assert detail["orbits"] == [] and detail["stars"][0]["parent_node_id"] is None
+        assert detail["orbits"] == [] and detail["stars"][0]["parent_node_no"] is None
     finally:
         conn.close()
 

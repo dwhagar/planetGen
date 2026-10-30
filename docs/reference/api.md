@@ -231,7 +231,7 @@ connectivity to that specific schema rather than the default one.
   the primary — `null` for a single star; the System Map's own real
   binary-star placement is derived from this plus each star's `mass_kg`),
   `runaway_class` (`"runaway"`/`"hypervelocity"`/`null`) and
-  `runaway_speed_kms`, `stars` (each with `parent_node_id` and `slot`, the node of the orbit tree it hangs in and which of its two places it holds), `orbits` (MAP.213: the
+  `runaway_speed_kms`, `stars` (each with `parent_node_no` and `slot`, the node of the orbit tree it hangs in and which of its two places it holds), `orbits` (MAP.213: the
   system's tree of orbits, one entry per node with `node_no`, `parent_node_no`, `slot`, `kind`, `mass_solar`, `separation_km`, `eccentricity`, `inclination_deg`, `period_years`, `interaction` and `flags`; empty for a single star), `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable` (its overall PHI-6 colour is Blue or Green, GEN.643),
   `habitable_class` (its class can carry life), `life_class_id` and `life_class_scores` (API.37: the life class that lives on it, such as `1a`, and `{class id: score}` for each class it supports; `life_class_id` is `null` for a world that suits a class but whose life has not started, a star younger than the first step of its schedule, GEN.1001, where the stored `life_class` stays), `life_stage` — the furthest evolutionary milestone its timeline reached,

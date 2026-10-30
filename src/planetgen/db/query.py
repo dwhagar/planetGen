@@ -3893,7 +3893,7 @@ def system_detail(conn, system_id):
             `schema.sql`'s "v14"/"v15" notes), `stars` (id/role/name/
             star_type/mass_kg/radius_km/temperature_k/luminosity_w/
             heliosphere_radius_km/offset_x_au/offset_y_au/offset_z_au, the
-            offsets set for a `member` star only, and `parent_node_id`/`slot`, the node of the orbit tree the star hangs in and which of its
+            offsets set for a `member` star only, and `parent_node_no`/`slot`, the node of the orbit tree the star hangs in and which of its
             two places it holds, `None` for a single star --
             `id` matches a `'wide'` binary's `planets`/`belts` rows' own
             `star_id`, disambiguating which star each orbits), `orbits` (the system's `orbit_nodes` rows in node order, MAP.213:
@@ -3926,7 +3926,7 @@ def system_detail(conn, system_id):
 
     stars = conn.execute(
         "SELECT id, role, name, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km,"
-        " offset_x_au, offset_y_au, offset_z_au, parent_node_id, slot"
+        " offset_x_au, offset_y_au, offset_z_au, parent_node_id AS parent_node_no, slot"
         " FROM stars WHERE star_system_id = ?"
         " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 WHEN 'secondary' THEN 1 ELSE 2 END, id",
         (system_id,),

@@ -1,7 +1,7 @@
 # tests/test_system_orbits_view.py
 
 """MAP.213: the rows of a built system's "Orbits of the stars" panel (`web/system_orbits_view.py`), from the detail's `orbits` and
-the `parent_node_id` and `slot` of its stars."""
+the `parent_node_no` and `slot` of its stars."""
 
 import pytest
 
@@ -17,7 +17,7 @@ def _node(node_no, parent, slot, kind, mass, au, ecc, period, interaction="detac
 
 
 def _star(name, node, slot):
-    return {"name": name, "parent_node_id": node, "slot": slot}
+    return {"name": name, "parent_node_no": node, "slot": slot}
 
 
 TRIPLE = {
