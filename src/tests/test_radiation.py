@@ -413,3 +413,73 @@ def test_entering_and_leaving_a_cloud_moves_the_cosmic_ray_multiplier(mysql_conf
                    for row in rows)
     finally:
         conn.close()
+
+
+def test_a_shallow_flare_slope_puts_more_energy_in_the_big_flares_and_raises_the_particle_dose():
+    """GEN.805: the energy weight of the flare distribution (`flare_alpha`) over 1e33 to 1e36 erg, taken to the square root in the dose."""
+    assert rad.flare_energy_weight(2.0) == 1.0 and rad.flare_energy_weight(None) == 1.0
+    assert rad.flare_energy_weight(1.8) == pytest.approx(2.16, abs=0.02)
+    assert rad.flare_energy_weight(2.2) == pytest.approx(0.54, abs=0.02)
+    assert rad.flare_energy_weight(1.8) > rad.flare_energy_weight(2.0) > rad.flare_energy_weight(2.2)
+    shallow, steep = rad.free_sep_msv_yr(1.0, 0.1, 1.8), rad.free_sep_msv_yr(1.0, 0.1, 2.2)
+    assert shallow > rad.free_sep_msv_yr(1.0, 0.1, 2.0) > steep
+    assert shallow / steep == pytest.approx(math.sqrt(rad.flare_energy_weight(1.8) / rad.flare_energy_weight(2.2)))
+    assert rad.free_sep_msv_yr(1.0, 0.1) == rad.free_sep_msv_yr(1.0, 0.1, 2.0)
+
+
+def test_the_fields_shielding_of_the_flares_is_one_without_a_dipole_and_less_for_a_wider_magnetopause():
+    assert rad.field_shielding(None, "none") == rad.SHIELD_NO_FIELD == 1.0
+    assert rad.field_shielding(10.0, "none") == 1.0 and rad.field_shielding(0.0, "weak") == 1.0
+    assert rad.field_shielding(2.0, "earth-like") == rad.SHIELD_WEAK_FIELD == 0.3
+    assert rad.field_shielding(9.75, "earth-like") == rad.SHIELD_STRONG_FIELD == 0.1
+
+
+def _flared(index, magnetopause_rp, dipole_class, column=1.0, hazard=None):
+    star = types.SimpleNamespace(lethal_event_rate_per_gyr=hazard)
+    return types.SimpleNamespace(star=star, ozone_column_du=column, flare_irradiation_index=index, magnetopause_rp=magnetopause_rp,
+                                 dipole_class=dipole_class)
+
+
+def test_proxima_b_without_a_field_loses_its_ozone_and_earth_does_not():
+    """The design note section 2.3: flare irradiation index times f_B at 300; Proxima b about 2,100 and Earth 0.003."""
+    assert rad.ozone_lost(_flared(2100.0, None, "none"))
+    assert rad.ozone_lost(_flared(2100.0, 2.0, "earth-like"))                 # 630 even through a squeezed field
+    assert not rad.ozone_lost(_flared(2100.0, 9.0, "earth-like"))               # 210 through a wide one
+    assert not rad.ozone_lost(_flared(0.003, None, "none"))
+    assert rad.ozone_lost(_flared(300.0, None, "none")) and not rad.ozone_lost(_flared(299.0, None, "none"))
+    assert not rad.ozone_lost(_flared(2100.0, None, "none", column=0.0))        # nothing to lose
+    assert rad.ozone_lost(_flared(0.0, None, "none", hazard=rad.LETHAL_EVENT_LIMIT_PER_GYR * 2))      # the galaxy's events
+    assert not rad.ozone_lost(_flared(None, None, None))
+
+
+def _world_with_air():
+    for seed in range(80):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for body in _bodies(system):
+            if body.body_type == "t" and (body.atmospheric_pressure or 0.0) > 0.0 and (body.atmosphere or {}) and not body.is_moon:
+                body.draw_seed = seed
+                if atmosphere.partial_kpa(body, "o2") > 0.0 and body.star.temperature:
+                    return body
+    raise AssertionError("no seed gave a rocky world with oxygen")
+
+
+def test_a_world_whose_ozone_is_lost_keeps_a_tenth_of_it_and_takes_more_ultraviolet():
+    """GEN.808: the flag lowers the stored column and the DNA-weighted UV index of the surface follows it."""
+    body = _world_with_air()
+    body.star.lethal_event_rate_per_gyr = 0.0
+
+    body.magnetic_moment_a_m2, body.magnetopause_rp, body.dipole_class = 0.0, None, "none"
+
+    def run(index):
+        body.flare_irradiation_index = index
+        draw.set_run_seed(808)
+        rad.generate_dose(body)
+        return body.ozone_loss_flag, body.ozone_column_du, body.uv_surface_index
+
+    quiet = run(0.0)
+    flared = run(2100.0)
+    assert quiet[0] is False and flared[0] is True
+    assert flared[1] == pytest.approx(quiet[1] * rad.OZONE_LOSS_REMAINING)
+    assert flared[2] > quiet[2]
