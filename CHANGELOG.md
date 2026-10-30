@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2623] - 2026-10-30
+
+**Headline:** The Phenomena list opens any page, sorted by name, as fast as the first, and every page of it is quicker to open.
+
+### Changed
+- **The Phenomena table pages by key when sorted by name** (its default). The page links carry the phenomenon the page before ended on, so a page deep in the list costs what the first does: the list walks each phenomenon table's name index and the best of those is merged in the database, where it sorted every table whole for each page. With 8,000,000 built phenomena the first page by name went from about 45 seconds to 10 milliseconds, and a page after a built row takes 4 to 6 milliseconds. `GET /api/phenomena` takes `after=<type>:<ID>` of a built row for it.
+- **No page counts every phenomenon first.** A page that starts at the top, in any sort, no longer counts all the built phenomena to know where the scattered ones start; only a page that starts past some of them does. The other sorts (type, descriptor, radius, sector, on the Galaxy Map) still sort the whole list for a page.
+- **Within equal names, a descending sort now lists the types and ids in reverse too.**
+- **Two more name indexes** (asteroid fields and interstellar comets), built online by the update.
+
 ## [8.0.2622] - 2026-10-30
 
 **Headline:** The docs now have a page on the bulk composition data model: what a planet or moon is made of and how its mass, radius, density and gravity follow.
