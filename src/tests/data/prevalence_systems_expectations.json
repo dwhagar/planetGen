@@ -1,6 +1,7 @@
 {
  "anomalies": {
   "GEN.646": "the class cut-over (GEN.646) derives every class from the finished body and builds a moon from its mass: more bodies end in the classes that can carry life (Q, P, V, K), moons per planet rise, and the life shares follow the new air; the ranges are the pre-cut-over measurement and wait for Bug 2's re-baseline",
+  "GEN.728": "the planet architecture (GEN.728, wired on merge train 4) replaces the uniform planet count: a Sun-like star holds 0 planets in 25 to 30 percent of systems and about 7 otherwise, an M dwarf about 3 (the observed Kepler-like planets per M dwarf are 2.2), and a belt takes the place of a body under one Earth mass only (BELT_REPLACES_BELOW_EARTH), so belts fall to 4 to 14 percent of systems; the moons per planet follow the new planet masses. These ranges are the pre-cut-over reference of the old count (not observations): re-baseline them from the architecture when the class cut-over settles (TEST.430); the share of K dwarf systems where life starts (0.52 against a floor of 0.534) moved with the new planets (within the sampling error of 120 systems)",
   "GEN.750": "an intended change, not a fault: the life timeline is five hard steps with the means Boss chose (epoch 119: 0.5, 1.5, 2.5, 3 and 60 Gyr), so photosynthesis comes later than the old pace tables gave and a civilization needs more time than an F star lives; the ranges wait for the re-baseline",
   "GEN.889": "an intended change, not a fault: each life world stores one of the life classes (epoch 120). Chemical classes under ice reach complex cells more often than the old pace tables allowed, and a world counts as Blue or Green only with a sunlit sea for the Flora its food rung needs, which the cold air of GEN.909 and the frozen oceans of GEN.908 keep rare; the ranges wait for the re-baseline after the class cut-over (GEN.646)",
   "GEN.911": "an intended change, not a fault (epoch 124): a habitable request is judged by conditions (273 to 323 K, at least 10 kPa, a surface ocean) and the orbit is aimed by the solved temperature, so a temperate sea world is present in 28 to 30 of 30 G2V and K5V systems (was 2 to 5); A stars that carry such a world reach complex cells more often; the ranges wait for the re-baseline"
@@ -124,6 +125,7 @@
   "F5V": {
    "measures": {
     "belts": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.7534,
      "min": 0.1399,
@@ -200,6 +202,7 @@
      "source": "pre-cut-over 0.113 over 150 systems at 0b4d0ccef"
     },
     "moons_per_planet": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.8252,
      "min": 0.6645,
@@ -223,6 +226,7 @@
   "G2V": {
    "measures": {
     "belts": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.8082,
      "min": 0.1918,
@@ -312,6 +316,7 @@
      "source": "pre-cut-over 8.067 over 150 systems at 0b4d0ccef"
     },
     "zero_planets": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.2326,
      "min": 0.01,
@@ -420,12 +425,14 @@
   "K5V": {
    "measures": {
     "belts": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.788,
      "min": 0.172,
      "source": "pre-cut-over 0.480 over 150 systems at 0b4d0ccef"
     },
     "belts_count": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.1897,
      "min": 0.1303,
@@ -464,6 +471,7 @@
      "source": "pre-cut-over 0.407 over 150 systems at 0b4d0ccef"
     },
     "life_abiogenesis": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.5342,
@@ -521,12 +529,14 @@
   "M2V": {
    "measures": {
     "belts": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.9148,
      "min": 0.3119,
      "source": "pre-cut-over 0.613 over 150 systems at 0b4d0ccef"
     },
     "belts_count": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.5812,
      "min": 0.3121,
@@ -604,6 +614,7 @@
      "source": "pre-cut-over 0.996 over 150 systems at 0b4d0ccef"
     },
     "planets": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 12.6226,
      "min": 5.2974,
