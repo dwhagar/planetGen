@@ -206,8 +206,10 @@ MACHINE = {
     "d5": dict(kind="option", group="d", classes=ROCKY + ["asteroid"], lets=_SHORE,
                weight="p_atm*window(delta, None, -1.4, 0.247)",
                source="same as d2"),
-    "d6": dict(state="stand-in", replacement="GEN.511", kind="derived", classes=ROCKY + ["asteroid"], table_of="d",
-               table={"d1": 0.0, "d2": 1e-5, "d3": 0.01, "d4": 0.1, "d5": None}),
+    # The caps are the upper envelope of the pressures of the Solar System bodies the shoreline paper counts as atmosphere-bearing, read at the
+    # deep edge of each window (GEN.483, `physics/shoreline_caps.py`): 1.4e-5 bar (Pluto, Triton), 0.25 (Titan), 8 (Venus), none below.
+    "d6": dict(kind="derived", classes=ROCKY + ["asteroid"], table_of="d",
+               table={"d1": 0.0, "d2": 1.4e-5, "d3": 0.25, "d4": 8.0, "d5": None}),
     "d7": dict(kind="flag", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="1 if 2.016*AMU_KG*(v_esc_kms*1000)**2/(2*K_B*(teq_k + min(1500, 750*sqrt(xuv_index)))) >= 30 else 0"),
 

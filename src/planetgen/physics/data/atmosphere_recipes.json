@@ -1047,22 +1047,22 @@
    "kind": "derived",
    "option": "Pressure cap of the winning row (PARAM)",
    "gate_text": "d1 to d5",
-   "weight_text": "P_max = 0, 1e-5, 0.01, 0.1 bar for d1, d2, d3, d4; none for d5; P = min(supply, P_max, vapour)",
-   "source": "smooth caps suggested in the project doc s3.6 (values DESIGN)",
-   "status": "DESIGN",
+   "weight_text": "P_max = 0, 1.4e-5, 0.25, 8 bar for d1, d2, d3, d4; none for d5; P = min(supply, P_max, vapour)",
+   "source": "the upper envelope of the surface pressures of the Solar System bodies that Berta-Thompson 2025 counts as atmosphere-bearing, by depth below their shoreline, read at the deep edge of each window (`physics/shoreline_caps.py`, GEN.483; READ, COMPUTED, 2ND-HAND Titan and Triton pressures)",
+   "status": "DERIVED",
    "research": [
     "R4"
    ],
    "notes": "",
-   "replacement": "GEN.511",
    "labels": [
-    "DESIGN"
+    "READ",
+    "2ND-HAND",
+    "COMPUTED"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.511"
-   ],
+   "state": "partly verified",
+   "limit": "part of the weight source is 2ND-HAND (its edge widths or constants are design choices)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "terrestrial",
     "asteroid"
@@ -1071,9 +1071,9 @@
    "table_of": "d",
    "table": {
     "d1": 0.0,
-    "d2": 1e-05,
-    "d3": 0.01,
-    "d4": 0.1,
+    "d2": 1.4e-05,
+    "d3": 0.25,
+    "d4": 8.0,
     "d5": null
    }
   },
@@ -1089,10 +1089,12 @@
    "research": [],
    "notes": "gate only",
    "labels": [
-    "DESIGN"
+    "READ",
+    "2ND-HAND",
+    "COMPUTED"
    ],
    "state": "partly verified",
-   "limit": "part of the weight source is DESIGN (its edge widths or constants are design choices)",
+   "limit": "part of the weight source is 2ND-HAND (its edge widths or constants are design choices)",
    "replacement": "",
    "items": [],
    "classes": [

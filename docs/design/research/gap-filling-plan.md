@@ -1256,6 +1256,17 @@ Rows SC1 and SC2. The star census (`tests/audit/prevalence_stars.py`, TEST.432) 
 | SC2 | P | T2 | L0 | tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars | 0.01 to 0.06 | stars heavier than 0.08 solar masses, trees a directive does not count | test_multistar.test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member | a brown dwarf companion survey of M dwarfs | RECALLED (Metchev and Hillenbrand 2009: 3.2 percent of solar-type stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU) |
 <!-- star-census-standins:end -->
 
+### 6.52 Stand-ins of the shoreline pressure caps (GEN.483)
+
+`physics/shoreline_caps.py` derives the caps of row d6 (the most pressure an air may keep in each depth window below the cosmic shoreline) as the upper envelope of the surface pressures of the Solar System bodies that Berta-Thompson, Wachiraphan and Murray 2025 count as atmosphere-bearing, read at the deep edge of each window. The window edges (0.3, 0.8 and 1.4 dex below the line) are still a design of the recipe tables (rows d2 to d5) and have no registry row of their own yet.
+
+<!-- shoreline-caps-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SH1 | P | T1 | L0 | shoreline_caps.LOG_F0 2.62, P_V 5.9, Q_L 1.17 (the shoreline of Berta-Thompson, Wachiraphan and Murray 2025, as row d1 uses it) | the posteriors +0.45/-0.31, +0.61/-0.43, +0.28/-0.20 | rocky and icy bodies of any star with a bolometric flux and an escape velocity | a measured atmosphere on a body more than 1 dex above the line, or an airless one more than 1 dex below it | the shoreline fitted to a larger sample of JWST rocky-planet results | test_shoreline_caps::test_the_shoreline_parameters_are_the_published_ones |
+| SH2 | P | T2 | L2 | shoreline_caps.BODIES (the surface pressures of Pluto 1.3e-5, Triton 1.4e-5, Titan 1.467, Mars 6.4e-3, Venus 92 and Earth 1.014 bar; Titan and Triton second-hand) giving the d6 caps 1.4e-5, 0.25, 8 bar and none by window | the window edges 0.3, 0.8, 1.4 dex (design) | the four record bodies, three of them icy | a rocky exoplanet of depth 0.5 to 1.4 dex with a measured surface pressure above 10 bar | measured surface pressures of rocky exoplanets near the line (JWST Rocky Worlds) | test_shoreline_caps::test_the_recipe_takes_the_caps_the_window_edges_give |
+<!-- shoreline-caps-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

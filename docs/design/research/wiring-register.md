@@ -138,3 +138,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.46:CI2 | GEN.595 | `comet_ice_budget.LUMINOSITY_EXPONENT`, read when the wiring step lands |
 | row | 6.46:CI3 | GEN.595 | `comet_ice_budget.NEBULA_PER_1E4_H`, read when the wiring step lands |
 | row | 6.46:CI4 | GEN.595 | `comet_ice_budget.TRAPPED_FRACTION`, read when the wiring step lands |
+| module | planetgen.physics.shoreline_caps | by design | the derivation of the d6 table of `atmosphere_recipes.json` (GEN.483); the numbers are copied into `scripts/atmosphere_recipes_data.py` and `test_shoreline_caps` holds the table to it |
+| row | 6.52:SH1 | by design | `shoreline_caps.LOG_F0` and its two indices, read by the derivation and its test |
+| row | 6.52:SH2 | by design | `shoreline_caps.BODIES`, read by the derivation and its test |

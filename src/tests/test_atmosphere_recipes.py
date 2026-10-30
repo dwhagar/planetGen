@@ -83,8 +83,8 @@ def test_the_status_of_each_row_is_the_parts_except_the_rows_the_later_decisions
     statuses = {}
     for entry in RECIPES.entries:
         statuses[entry.status] = statuses.get(entry.status, 0) + 1
-    # the part: SOURCED 8, DERIVED 65, DESIGN 31 (b1 to b4 moved by GEN.802; a1 and a2 by GEN.482; f7, h2 to h4, i6 and k1 to k7 by GEN.484 to GEN.488); Boss's fork 7 (2026-10-18) makes j2 to j4 outputs of the retention physics
-    assert statuses == {"SOURCED": 8, "DERIVED": 70, "DESIGN": 26}
+    # the part: SOURCED 8, DERIVED 68, DESIGN 28 (b1 to b4 moved by GEN.802; a1 and a2 by GEN.482; f7, h2 to h4, i6 and k1 to k7 by GEN.484 to GEN.488; d6 by GEN.483); Boss's fork 7 (2026-10-18) makes j2 to j4 outputs of the retention physics
+    assert statuses == {"SOURCED": 8, "DERIVED": 71, "DESIGN": 25}
     assert {e.id for e in RECIPES.entries if e.status == "DERIVED"} >= {"j2", "j3", "j4"}
 
 
@@ -101,7 +101,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 55, "open": 0, "stand-in": 12}
+    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 56, "open": 0, "stand-in": 11}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -245,7 +245,7 @@ def test_example_d_the_shoreline_is_the_published_logistic_and_the_regimes_share
     # the slope in the escape speed is 5.9 and in the luminosity 1.17 (Berta-Thompson 2025)
     assert at(shore * 2 ** 5.9, v=11.186 * 2)["d1"] == pytest.approx(0.5, abs=1e-9)
     assert at(shore * 10 ** 1.17, lum=10.0)["d1"] == pytest.approx(0.5, abs=1e-9)
-    assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d3"})) == {"p_max_bar": 0.01}
+    assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d3"})) == {"p_max_bar": 0.25}
     assert RECIPES.derive("d6", Subject("terrestrial", {"drawn.d": "d5"})) == {"p_max_bar": None}
 
 
