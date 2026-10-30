@@ -747,6 +747,13 @@
       "first_release": "8.0.2673",
       "reason": "Train 3: GEN.927 GEN.928 GEN.929 GEN.930 GEN.984 (star mass function: Chabrier single-star IMF, derived primary curve, Cummings white dwarf relation, neutron star Gaussian, age-free star composition), GEN.935 GEN.939 GEN.940 GEN.941 GEN.943 GEN.947 (MIST post-main-sequence tracks, Wolf-Rayet luminosity, present masses, forced star types, Mamajek spectral subclasses, pre-main-sequence arrival), GEN.969 (neutron star radius from 21 equations of state), GEN.988 GEN.989 GEN.990 GEN.991 (stellar [X/Fe] refit to Brewer and Fischer), GEN.961 GEN.976 GEN.985 GEN.987 (giants settled at the final age and orbit), GEN.842 (rogue planet spin and mean-light distance), GEN.952 GEN.846 (scatter member radius and star rotation period columns), GEN.787 (cold debris disks), GEN.1001 (no life class before the first life step)",
       "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 126,
+      "first_release": null,
+      "pending": true,
+      "reason": "Train 4: the planet architecture wires into generation with the snow line and ice from Lodders (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920, GEN.950), rocky bodies are made again at the star's final age (GEN.992), a built star tree that does not clear its orbits is redrawn (GEN.1004), arm contrast by population (GEN.931), the main sequence under 0.1 solar masses and brown dwarf cooling (GEN.936, GEN.948), the state word and white dwarf decay age of every star (GEN.785, GEN.786), UV shares and star colour from the spectra library (GEN.971), the greenhouse table and a gas-free haze rule (GEN.850, GEN.851, GEN.1003), stellar wind and flares at a world (GEN.800)",
+      "affects": ["plan", "scatter", "fill", "population"]
     }
   ]
 }
