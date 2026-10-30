@@ -171,20 +171,29 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.74:SH2 | GEN.963 | `atmosphere_retention.VERDICT_EDGES`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH3 | GEN.963 | `atmosphere_retention.PRESSURE_CAPS_PA`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH4 | GEN.963 | `atmosphere_retention.JEANS_KEEP`, not read until the pressure stage takes its cap from the module |
-| module | planetgen.physics.nightside_collapse | GEN.1044 | whether a locked planet's air freezes onto its night side and how much stays; the oddity wiring (GEN.1051) will call it after the climate solver |
-| row | 6.75:NC1 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.75:NC3 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.75:NC6 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
+| module | planetgen.physics.nightside_collapse | GEN.1051 | whether a locked planet's air freezes onto its night side and how much stays; the oddity wiring (GEN.1051) will call it after the climate solver |
+| row | 6.75:NC1 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.75:NC3 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.75:NC6 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | module | planetgen.physics.ring_origin | GEN.1057 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
 | row | 6.70:RO1 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | module | planetgen.physics.venus_spin | GEN.1048 | the spin equilibria of a thick-air planet (thermal tide against the solid tide, Cunha, Correia and Laskar 2015); the weird-worlds wiring (W2) will give a not-locked thick-air planet its slow or retrograde spin |
-| row | 6.80:VS1 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS2 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS4 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS5 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS6 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS7 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.80:VS8 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS1 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS2 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS4 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS5 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS6 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS7 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.90:VS8 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| module | planetgen.physics.seasonal_swing | GEN.1048 | the temperature through the year at a latitude from the tilt and the orbit; the weird-worlds wiring (W1) will add the seasonal swing to the regional temperatures |
+| row | 6.91:SS1 | GEN.1048 | a constant of the seasonal swing module, read when its wiring step lands |
+| row | 6.91:SS2 | GEN.1048 | a constant of the seasonal swing module, read when its wiring step lands |
+| row | 6.91:SS3 | GEN.1048 | a constant of the seasonal swing module, read when its wiring step lands |
+| module | planetgen.physics.resonant_chains | GEN.1049 | the resonant chains of a system's periods and the eccentricity they force; the weird-worlds wiring (W5) will give a chain planet its forced orbit and tidal heating |
+| row | 6.92:RC1 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
+| row | 6.92:RC2 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
+| row | 6.92:RC3 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
+| row | 6.92:RC4 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
@@ -192,3 +201,37 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.70:RO6 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO7 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO8 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| module | planetgen.physics.super_puff | GEN.1048 | the super-puff radius, fade and gate (W15); the bulk step reads it when the wiring step lands |
+| row | 6.76:PF1 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| row | 6.76:PF2 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| row | 6.76:PF3 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| row | 6.76:PF4 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| module | planetgen.physics.helium_fractionation | GEN.1047 | the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands |
+| row | 6.77:HF1 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
+| row | 6.77:HF2 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
+| row | 6.77:HF3 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
+| module | planetgen.physics.giant_tilt | GEN.1058 | the tilt a giant merger gives an ice giant and the ring and moon plane that follow the equator (G1); the spin draw reads it when the wiring lands |
+| row | 6.78:GT1 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
+| row | 6.78:GT2 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
+| row | 6.78:GT3 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
+| module | planetgen.physics.mantle_stripping | GEN.1048 | the iron-rich core of a giant impact (Marcus and others 2010 scaling); the weirdness wiring (W10) gives a rocky planet that had a recorded merger a core fraction from the impacts the architecture recorded |
+| row | 6.93:MT4 | GEN.1048 | `mantle_stripping.Q_STAR_SCALE` of the mantle stripping module, read when its wiring step lands |
+| row | 6.93:MT6 | GEN.1048 | `mantle_stripping.MAX_CORE_MASS_FRACTION` of the mantle stripping module, read when its wiring step lands |
+| row | 6.93:MT7 | GEN.1048 | `mantle_stripping.IMPACT_ANGLE_DEG` of the mantle stripping module, read when its wiring step lands |
+| module | planetgen.physics.hycean_candidate | GEN.1047 | the Hycean box as a flag on the classes T, I and V; the oddity line names the planets it selects when the oddity wiring lands |
+| row | 6.79:HC1 | GEN.1047 | the four ranges of the Hycean box, read when its wiring step lands |
+| module | planetgen.physics.irregular_zone | GEN.1076 | the stable limits, Kozai band and inner edge of the irregular zone; the irregular orbit draw (GEN.1078) and the captured-moon wiring will call it |
+| row | 6.94:IZ1 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
+| row | 6.94:IZ2 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
+| row | 6.94:IZ3 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
+| module | planetgen.physics.irregular_orbits | GEN.1078 | the a / r_H, eccentricity, inclination and family draw of irregular moons; the captured-moon wiring will call it |
+| row | 6.96:IO1 | GEN.1078 | a constant of the irregular orbits module, read when its wiring step lands |
+| row | 6.96:IO2 | GEN.1078 | a constant of the irregular orbits module, read when its wiring step lands |
+| row | 6.96:IO3 | GEN.1078 | a constant of the irregular orbits module, read when its wiring step lands |
+| row | 6.96:IO4 | GEN.1078 | a constant of the irregular orbits module, read when its wiring step lands |
+| module | planetgen.physics.scatter | GEN.1092 | the shares of an outer disc's mass in each scattered population, the rule of the scatter phase; the wiring step feeds it the architecture's giants |
+| row | 6.83:SX1 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
+| row | 6.83:SX2 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
+| row | 6.83:SX3 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
+| row | 6.83:SX4 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
+| row | 6.83:SX5 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |

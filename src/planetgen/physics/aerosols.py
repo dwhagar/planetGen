@@ -265,7 +265,8 @@ def haze_fall(column, temperature_k, radius_m, density_kg_m3, top_pressure_pa, k
     pressure, temperature = profile(column, temperature_k, levels=400, decades=min(12.0, math.log10(column.pressure_pa / top_pressure_pa)))
     molar = column.mean_molar_mass_kg_mol
     rho = pressure * molar / (constants.R * temperature)
-    eta = np.array([_viscosity_pa_s(column, t) for t in temperature])
+    by_temperature = {}                                                      # the profile holds the same temperature over many levels
+    eta = np.array([by_temperature[t] if t in by_temperature else by_temperature.setdefault(t, _viscosity_pa_s(column, t)) for t in temperature])
     path = eta / (0.499 * rho * np.sqrt(8.0 * constants.R * temperature / (math.pi * molar)))
     kn = path / radius_m
     slip = 1.0 + 1.257 * kn + 0.400 * kn * np.exp(-1.10 / kn)

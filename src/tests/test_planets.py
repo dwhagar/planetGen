@@ -20,6 +20,7 @@ from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
 from planetgen.physics import constants, gases, planet_classes, surface_air
 from planetgen.generation import habitable_request, life as planetLife
+from planetgen.util import draw
 from tests import class_support
 
 ZONE_CHARS = "hec"
@@ -40,7 +41,8 @@ THIN_AIR_FLOOR_PA = surface_air.VACUUM_PRESSURE_PA * (1.0 - surface_air.STORE_MI
 def host_star():
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
-    return Star(cfg)
+    with draw.bound("test-planets-host-star"):      # TEST.497: a star drawn from the run's entropy gave a different air to the checks each run
+        return Star(cfg)
 
 
 def distance_for_zone(star, zone):

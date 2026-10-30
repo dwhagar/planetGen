@@ -2,6 +2,179 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2773] - 2026-10-30
+
+**Headline:** The orbits of captured asteroid moons (size, shape, tilt and the fragments of a broken moon) now exist as a tested calculation that reproduces the observed 4.5 to 1 retrograde excess at a Jupiter-like planet.
+
+### Changed
+- **Irregular orbits (GEN.1078).** A new module (`physics/irregular_orbits`) draws the orbit of a captured body about its planet: its size as a share of the Hill radius (median 0.44 at Jupiter after the stable limits cut, 0.29 at Saturn, 0.17 at Uranus, 0.19 at Neptune), its eccentricity up to 0.7, and its tilt outside the band where the star drives a body into the planet. Of 100 captured bodies at a Jupiter-like planet, the stable zone keeps about 4.5 retrograde for each prograde one, as the known moons do (88 to 19); at the far giants stability alone does not explain their excess of retrograde moons, which is not modelled. A broken moon's fragments get orbits that differ by the speed they were thrown with. Nothing reads it yet.
+
+generation-output: unchanged
+
+## [8.0.2772] - 2026-10-30
+
+**Headline:** A body that a planet captures keeps its belt designation and gains a link to the planet, and a body from outside the belts prints the planet's ID and a rank.
+
+### Added
+- **Designation of captured bodies (TEST.495).** `object_uid.captured_member(belt_id, rank, planet_id)` returns the belt member's unchanged designation `<belt ID>.<rank hex>` with a parent link to the capturing planet of the same system; `outside_reservoir_member(planet_id, rank)` prints `<planet ID>.<rank hex>` for a body from a reservoir that is no belt of the system; `parse_captured` reads either back through `parse_id`. All are pure; a capture across systems, by the belt itself or by a system's own ID is refused. Nothing is stored or shown yet.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.495.
+
+## [8.0.2771] - 2026-10-30
+
+**Headline:** The numbers behind the new belt model (drift, resonance gaps, depletion, planet tests, white dwarf pollution) are now read from their papers and listed with sources.
+
+### Changed
+- **Belt research read (GEN.1060).** A new note (`docs/design/systems/belt-sources.md`) lists what was read for the belt items and the numbers taken, with 18 registered stand-ins (section 6.95 of the registry). No generator code changes.
+
+generation-output: unchanged
+
+## [8.0.2770] - 2026-10-30
+
+**Headline:** A member of an asteroid belt now has a designation, the belt's ID, a point and the member's rank in hex, that is a pure function with a round trip.
+
+### Added
+- **Belt member designation (GEN.1065).** `galaxy/object_uid.designation(belt_id, rank)` prints `<belt ID>.<rank hex>` (rank 1 is the heaviest member by the mass drawn at birth; at least four hex digits), `parse_designation(text)` reads it back through `parse_id`, and `is_on_demand(rank, individual_count)` says whether a rank names a body drawn on demand and never stored. It reads no stream and no naming key, so a member has no name, only its designation, and one text. Nothing is stored or shown yet; the display and storage are the lock items of the belt evolution chain.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.1065.
+
+## [8.0.2769] - 2026-10-30
+
+**Headline:** The code now has the rule that says what a giant does to an outer disc: how much it sweeps, captures in resonance, scatters and throws out.
+
+### Changed
+- **The scatter module (GEN.1089).** `physics/scatter.py` takes the outermost giant (mass, radius, orbit, how far it moved outward), the disc and whether the system had an instability, and gives the share of the disc's mass that stays cold, is excited, sits in the 3:2 and 2:1 resonances, becomes scattered disc, centaurs, detached or trojan bodies, is thrown out, is implanted in the inner belt or captured by a moon system, and one sentence for the belt page. A disc with no giant keeps all its mass cold; a Neptune-sized giant that moved from 18 to 30 AU through a disc of 15 to 35 AU scatters 84 percent of it. It is a rule with no N-body run. No generated world changes: the belt and outer-disc wiring is a later step (GEN.1092).
+- **Stand-ins recorded.** Rows SX1 to SX5 in the stand-in registry (GEN.725): the chaotic zone and disc slope, and four shares at tier educated guess from physics, tweak L3 (each with a burn-down line).
+
+## [8.0.2768] - 2026-10-30
+
+**Headline:** The rule for where a captured asteroid can stay in orbit round a planet now exists as a tested calculation, with the Hill radii and the inner edges of the four giants as checks.
+
+### Changed
+- **The irregular zone (GEN.1076, first part).** A new module (`physics/irregular_zone`) gives, for a planet and its star, the Hill radius (0.35, 0.43, 0.47 and 0.77 AU for Jupiter, Saturn, Uranus and Neptune), the distance out to which a prograde orbit (0.4 of it) and a retrograde one (0.55 of it) stay, the inclination band where the star drives a body into the planet, and the inner edge set by the outermost regular moon (0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus). A hot giant's zone comes out empty. This is the first of the pieces for moons that were once asteroids; nothing reads it yet.
+
+generation-output: unchanged
+
+## [8.0.2767] - 2026-10-30
+
+**Headline:** The code can now say which small planets fall in the Hycean box, the sub-Neptunes that could hold a liquid ocean under a hydrogen envelope.
+
+### Changed
+- **The Hycean box (GEN.963).** `physics/hycean_candidate.py` flags a gas dwarf, ice giant or high-gravity world of 1 to 10 Earth masses, 1.4 to 2.6 Earth radii, an equilibrium temperature of 150 to 500 K and a density of 1.5 to 3 g/cc. The audit found the state `hycean` and the envelope survival (`envelope_escape`, the retention library) already in the code; only the box was missing. No class and no stored value moves, so no generated world changes.
+- **Stand-in recorded.** Row HC1 in the stand-in registry (GEN.725): the four ranges, as the item quotes them (Madhusudhan et al. 2021 was not read).
+
+## [8.0.2766] - 2026-10-30
+
+**Headline:** How many near-resonant planet pairs actually librate, and so can keep a forced eccentricity, is now sourced.
+
+### Changed
+- `docs/design/research/oddity-rates.md` (GEN.1094): Goldberg and Batygin 2023 read; 22 of 105 transit-timing pairs (21 percent) librate, so at most about 3 percent of neighbouring pairs are heating-capable for the W5 oddity, with the forced-eccentricity formula and the resonance condition. Registry rows WR8 and WR9 (section 6.82). Docs only, no generated world changes.
+
+## [8.0.2765] - 2026-10-30
+
+**Headline:** The iron-rich planet of the weird-worlds design now has its physics: a head-on giant impact that strips the mantle and leaves a Mercury-type core.
+
+### Added
+- **Collisional mantle stripping (GEN.1040, oddity W10).** `physics/mantle_stripping.py` takes the masses, core fraction and impact speed of a giant impact to the mass and core fraction of the largest remnant, from the scaling of Marcus and others (2010): half the mass is lost at the catastrophic energy, and the remnant's iron rises with the energy. It reproduces the one simulated giant impact printed in full (two 10.5 Earth mass bodies at 62.5 km/s leave 8.2 Earth masses at 64 percent iron), makes Kepler-107 c's radius and iron share from that impact, leaves Kepler-107 b Earth-like, and reaches Mercury's 70 percent iron at about 23 km/s. The oddity table gets its first row, W10 (rocky planets under 10 Earth masses with a recorded merger, rate 0.05 from the sourced bracket of GEN.1037). Nothing calls it yet (GEN.1047 and GEN.1048 wire it), so no world changes.
+
+## [8.0.2764] - 2026-10-30
+
+**Headline:** Building a system is about a fifth to a third faster, with every planet, seed and number exactly as before.
+
+### Changed
+- **Cheaper atmosphere escape history and haze fall (PERF.210).** The thermal-escape history of an air no longer works out a gas's diffusion limit again at every step when the air has not changed, nor for a gas that is losing nothing, and the haze fall works out the air's viscosity once for each temperature of the profile instead of once for each level. Twelve Sun-like systems went from 36 s to 29 s and twelve of any star from 17 s to 12 s, and a checksum of every stored value of every body is the same before and after, so no seed gives a different world.
+
+## [8.0.2763] - 2026-10-30
+
+**Headline:** The code now knows how a giant impact can lay an ice giant on its side, as Uranus lies, and that its rings and moons then follow the new equator.
+
+### Changed
+- **The giant-tilt module (GEN.1053).** `physics/giant_tilt.py` gives the angular momentum of an impact at contact, the angle the planet's axis turns through when it adds that to its spin, the chance of a tilt over 60 degrees, the spin period after, and the ring and moon plane (the equator). A 2 Earth-mass impactor grazing a 12.5 Earth-mass ice giant brings 7e36 kg m^2/s, inside the range of the impact simulations of Kegerreis et al. 2018, and tilts the axis to 98 degrees at the right direction; a 0.3 Earth-mass one brings under the planet's own spin and turns it by Neptune's 28 degrees at most. About 0.36 of the mergers of a 5 to 30 Earth-mass ice giant tilt it over 60 degrees; with a stand-in 0.55 of such giants having a merger, one ice giant in five is tilted, the Solar System count. No generated world changes: the draw that uses it is a later wiring step (GEN.1058).
+- **Stand-ins recorded.** Rows GT1 to GT3 in the stand-in registry (GEN.725): the impact angular momentum, the moment of inertia and retained share, and the merger and impactor shares (T4, L3, with a burn-down line).
+
+## [8.0.2762] - 2026-10-30
+
+**Headline:** A harness forces each weird-world oddity on 200 bodies and checks that every outcome stays physical, including rings; it runs today on stub rows and fails on deliberately broken ones.
+
+### Added
+- **The oddity plausibility harness (TEST.490).** `src/tests/oddity_plausibility_cli.py` draws a gated body for a row, applies the row's effect with the row's own stream, and checks the six general invariants of the weird-worlds design (energy, structure, stability, air, class derived and total, no NaN) and the row's own limits. Stub rows pass and nine deliberately broken rows each fail at the invariant they break; the isolation tests show that rolling a row reads nothing from the run's stream at any dial. A module that implements a row registers its effect in `EFFECTS`, and the shipped table is held to the same checks as rows arrive.
+- **The ring list (TEST.494).** Ring mass under 1e-4 of the planet, the outer edge inside the Roche limit unless the body names the R4 resonance, an optical depth that is the formula's output, no ring inside 0.1 AU, the ring plane in the equator, and no ring field on a body with no ring; five broken ring rows show each can fail.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.490, TEST.494.
+
+## [8.0.2761] - 2026-10-30
+
+**Headline:** The code now knows how a small planet that has lost most of its hydrogen to its star is left with an air that is mostly helium.
+
+### Changed
+- **The helium fractionation module (GEN.1045).** `physics/helium_fractionation.py` splits an envelope's mass loss between hydrogen and helium (Hu et al. 2015, Malsky et al. 2023): while the loss is under the diffusion-limited flux only hydrogen leaves, and over it the two leave in a mix that is richer in hydrogen the stronger the loss. A planet that loses over 90 percent of its envelope at a rate near that flux comes out more than 80 percent helium by mass; a 10 Earth-mass planet losing half a 0.5 percent envelope in 5 Gyr gains helium to 0.29. The audit of `envelope_escape` found it follows the envelope's mass and keeps it a solar mix, so it cannot do this; the new module takes its loss history and changes nothing in it. No generated world changes: the oddity that uses it is a later wiring step (GEN.1047).
+- **Stand-ins recorded.** Rows HF1 to HF3 in the stand-in registry (GEN.725): the diffusion coefficient, the homopause values and the starting helium share.
+
+## [8.0.2760] - 2026-10-30
+
+**Headline:** The rates behind the planned weird worlds are now checked against papers, and three of the recalled ones were wrong.
+
+### Changed
+- New `docs/design/research/oddity-rates.md` (GEN.1037): the rates of W3, W4, W5, W10, W14, W15 and W20 of the weird-worlds design read in papers or counted from the exoplanet archive, with the sources and what each changes in the design (the misaligned share of hot Jupiters depends on the host temperature, near-resonance is common, the disintegrating-planet rate is a progenitor population, the snowball window has gates). Registry rows WR1 to WR7 (section 6.82). No code changes and no generated world changes.
+
+## [8.0.2759] - 2026-10-30
+
+**Headline:** The generator now has the physics of resonant chains, the rows of planets whose orbits lock in step and tug each other's orbits oval.
+
+### Added
+- **`physics/resonant_chains.py` (GEN.1043).** From a system's orbital periods it finds the chains of three or more planets whose neighbouring periods sit near 2:1, 3:2, 4:3 or 5:3 (TRAPPIST-1 comes out as one chain of seven, Kepler-223 of four, Jupiter's three big moons of three, and the Solar System as none), and it gives the eccentricity each neighbour forces on a planet, from the resonance's disturbing function: Io 0.005 against the observed 0.004, TRAPPIST-1's inner chain a few thousandths. It hands back the orbit in the form `tidal_heating` already flexes for moons, so an eccentric chain planet is heated the way Io is. Nothing puts a chain on a world yet; that is the weird-worlds wiring (GEN.1049).
+- **Stand-in rows RC1 to RC4** in the gap-filling plan (section 6.92) and the stand-in list.
+
+## [8.0.2758] - 2026-10-30
+
+**Headline:** The code now knows how a young low-mass planet can be as big as Neptune or Saturn with a density under 0.1, and how it shrinks as it ages.
+
+### Changed
+- **The super-puff module (GEN.1042).** `physics/super_puff.py` gives the radius of a young planet of a few Earth masses under a thick hydrogen envelope (the law of Lopez and Fortney 2014 inside its range, the giant tables past it, so WASP-107 b comes out at its measured 10.7 Earth radii), the envelope a measured radius needs (Kepler-51 d: 41 percent for 9.3 Earth radii, Kepler-51 b: 16 percent for 7.1), the extra radius that obliquity tides give a hot close-in planet (Millholland 2019, from 20 Earth fluxes up, at most a factor 2), the radius at a later age with the envelope the star's XUV leaves it, and the gate of the oddity. It changes no generated world: the oddity that uses it is a later wiring step (GEN.1048).
+- **Stand-ins recorded.** Rows PF1 to PF4 in the stand-in registry (GEN.725): the gate, the envelope range, the occurrence share (not confirmed, no survey statistic found) and the tidal inflation.
+
+## [8.0.2757] - 2026-10-30
+
+**Headline:** The Galaxy Map is now always 95% of the browser window's height, recomputed on every resize.
+
+### Changed
+
+- MAP.350 follow-up: the Galaxy Map's height was the window less 40 pixels; it is now 95% of the window's height (less a header held at the top of the window), with the rest split above and below, and the page still scrolls past or before the map. `mapfit.js` `fillHeight` takes `FILL_SHARE` and `fillBuffer` gives the margin. No generated output changes.
+
+## [8.0.2756] - 2026-10-30
+
+**Headline:** The generator now has the physics of the seasons: how far a place swings between summer and winter from the planet's tilt, orbit, sea and air.
+
+### Added
+- **`physics/seasonal_swing.py` (GEN.1039).** For a latitude it gives the temperature through the year from the stored tilt and eccentricity, the sea's mixed layer, the ground and the air's heat capacity, and the heat the air carries away: the Earth's tropics barely move while 60 degrees swings tens of kelvin, a dry thin-air planet like Mars follows its light, and above a tilt of about 55 degrees the pole is the hottest place in summer. It also gives the share of the year above freezing and the peak wet-bulb temperature. Nothing puts the swing on a world yet; that is the weird-worlds wiring (GEN.1048).
+- **Stand-in rows SS1 to SS3** in the gap-filling plan (section 6.91) and the stand-in list.
+
+### Changed
+- **The registry section of the Venus-type spin is 6.90** (it shared 6.80 with the quadruple stability rows).
+
+## [8.0.2755] - 2026-10-30
+
+**Headline:** The help text of `planetgen run-job` and the replacement shown for the five ground-type rows no longer carry item codes.
+
+### Fixed
+- **TODO codes in text a user sees (TEST.487).** The `run-job` description named PERF.203 and the five stand-in rows of the surface ground types named GEN.474 as the replacement. The help now says what the command does without the code, and the rows say "ground types derived from the bulk composition and the melting of the mantle"; the item code stays in a comment. `test_no_todo_codes_shown` passes. Nothing generated changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.487.
+
 ## [8.0.2754] - 2026-10-30
 
 **Headline:** A new test audits the giant planets' mass tail, the hot Neptune desert and the derived giant rows, and records one bug: a metal-rich 1.5 to 2 solar-mass host can draw a giant above the 13 Jupiter-mass edge.
