@@ -810,6 +810,9 @@ _STAR_RULES = [
     (("flare_alpha", "uv_c_share", "log_lx_lbol", "lifespan_gy"), lambda klass, row: row is None or row.get("yerkes_class") != "VII",
      "a white dwarf has no corona and no flares, so no X-ray share, flare law or UV-C draw, and it does not leave the stage it is in, "
      "so its lifespan has no end"),
+    (("decay_age_yr",), lambda klass, row: row is None or row.get("yerkes_class") == "VII",
+     "a star that is still burning has not stopped, so it has no age since it did; only a white dwarf, which cooled from the end of its "
+     "progenitor's life, has one"),
     (("disk_kind", "disk_inner_au", "disk_outer_au"), lambda klass, row: row is None or row.get("disk_kind") is not None,
      "most stars hold no disk: only a young star (class 0 to II), a main-sequence star with a cold debris belt (about one in seven "
      "to one in four) and the pair inside a planetary nebula do"),
@@ -836,8 +839,7 @@ OPEN_GAPS = {
         ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
     **{("star", key): item for key, item in (
-        ("state", "GEN.786"), ("decay_age_yr", "GEN.785"), ("lethal_event_rate_per_gyr", "GEN.785"),
-        ("wide_binary_a_crit_km", "GEN.789"))},
+        ("lethal_event_rate_per_gyr", "GEN.785"), ("wide_binary_a_crit_km", "GEN.789"))},
 }
 """dict: The columns known to be empty where they apply (UX.208), `{(kind, key): item id}`: each is a gap in the generation
 pathway, filed as the item named, and excused until that item is done. The fill audit (`tests/test_sheet_fill.py`) fails

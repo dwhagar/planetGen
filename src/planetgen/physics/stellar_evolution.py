@@ -473,9 +473,15 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         return None
     else:
         final_mass = remnant_mass.white_dwarf_mass_sol(mass_sol)
-        cooling_age = max(age_gy - t_end, pc.WD_MIN_COOLING_AGE_GY)
+        cooling_age = cooling_age_gy(mass_sol, age_gy, fe_h)
         state.update(_white_dwarf_state(final_mass, cooling_age, rng))
     return state
+
+
+def cooling_age_gy(initial_mass_sol, age_gy, fe_h):
+    """How long, Gy, a white dwarf of this progenitor has been cooling at `age_gy`: the age less the end of the progenitor's life, at least
+    `tuning.WD_MIN_COOLING_AGE_GY`."""
+    return max(age_gy - post_main_sequence.timeline(initial_mass_sol, fe_h).end_gy, tuning.WD_MIN_COOLING_AGE_GY)
 
 
 def _white_dwarf_state(final_mass_sol, cooling_age_gy, rng):
