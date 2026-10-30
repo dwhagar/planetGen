@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2607] - 2026-10-30
+
+**Headline:** The mass boundary table no longer shows a TODO item code in the text it prints.
+
+### Fixed
+- **Two mass boundary notes named an item code (GEN.936).** The notes on the hydrogen-burning limit and the brown dwarf upper limit said which item will close the gap between them; the words are plain now, so `test_no_todo_codes_shown` passes again.
+
 ## [8.0.2606] - 2026-10-30
 
 **Headline:** The one-line sources under the values of a body's page no longer name internal item numbers.
