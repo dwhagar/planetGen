@@ -146,6 +146,15 @@ def test_no_page_shows_two_contents_lists(browser, base_url, page_targets, admin
     finally:
         context.close()
 
+def _wait_until(page, condition, seconds=20):
+    """Polls `condition` until it holds (the page's scripts run on animation frames, which a loaded machine delays)."""
+    for _ in range(seconds * 10):
+        if condition():
+            return
+        page.wait_for_timeout(100)
+    raise AssertionError("the page did not reach the expected state")
+
+
 def test_the_contents_bar_of_an_object_page_stays_under_the_tab_bar_and_marks_the_section_in_view(browser, base_url, page_targets, admin_token):
     """UX.238 (replacing UX.215's column at the left): on a wide window and on a phone the contents list is a row of links under
     the tab bar that stays there as the page scrolls, marks the link of the section in view, and the page does not scroll sideways."""
@@ -163,6 +172,7 @@ def test_the_contents_bar_of_an_object_page_stays_under_the_tab_bar_and_marks_th
             assert menu["y"] + menu["height"] <= first["y"] + 1, (width, menu, first)
             assert menu["x"] < first["x"] + first["width"] and menu["width"] >= first["width"] - 40, (width, menu, first)
             page.mouse.wheel(0, 1500)
+            _wait_until(page, lambda: toc.locator("a[aria-current='location']").count() == 1 and page.evaluate("window.scrollY") > 400)
             page.wait_for_timeout(300)
             menu = toc.bounding_box()
             header = page.locator(".site-header").bounding_box()
@@ -174,8 +184,8 @@ def test_the_contents_bar_of_an_object_page_stays_under_the_tab_bar_and_marks_th
             last = toc.locator("a").last
             last.scroll_into_view_if_needed()
             last.click()
-            page.wait_for_timeout(400)
-            assert toc.locator("a[aria-current='location']").get_attribute("href") == last.get_attribute("href"), width
+            _wait_until(page, lambda: toc.locator("a[aria-current='location']").get_attribute("href") == last.get_attribute("href"))
+            page.wait_for_timeout(500)
             target = page.evaluate("id => document.getElementById(id).getBoundingClientRect().top",
                                    last.get_attribute("href")[1:])
             assert target >= header["height"] + menu["height"] - 2, (width, "the heading is under the bars", target)

@@ -5781,8 +5781,7 @@ p.hint a {
    every width, and stays there as the page scrolls; a long row scrolls sideways. The link of the section in view is marked
    (aria-current="location", pagetoc.js). pagetoc.js sets --site-header-height and --page-toc-height so a jump leaves the heading
    below both bars. */
-.app-main.toc-top h2,
-.app-main.toc-top h3 {
+.app .app-main.toc-top [id] {
   scroll-margin-top: calc(var(--site-header-height, 3.5rem) + var(--page-toc-height, 2.5rem) + 0.5rem);
 }
 
