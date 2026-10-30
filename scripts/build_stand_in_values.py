@@ -149,6 +149,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.65", "6.65 Stand-ins of the 3+1 quadruple stability network",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.66", "6.66 Stand-ins of the 2+2 quadruple stability network",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.64", "6.64 Stand-ins of the NH3 active-Sun factor",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.56", "6.56 Stand-ins of the registered rows that rest on a Solar System body",

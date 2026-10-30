@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 545 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 549 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 66 | 1 | 5 | 1 | 0 | 73 |
+| T1 | 69 | 1 | 5 | 1 | 0 | 76 |
 | T2 | 81 | 8 | 0 | 1 | 0 | 90 |
 | T3 | 66 | 19 | 5 | 11 | 0 | 101 |
 | T4 | 27 | 0 | 0 | 4 | 4 | 35 |
 | T5 | 31 | 9 | 1 | 0 | 0 | 41 |
-| T6 | 42 | 26 | 10 | 32 | 0 | 110 |
+| T6 | 43 | 26 | 10 | 32 | 0 | 111 |
 | T7 | 24 | 7 | 7 | 7 | 0 | 45 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 338 | 70 | 30 | 82 | 25 | 545 |
+| All | 342 | 70 | 30 | 82 | 25 | 549 |
 
 ## How the labels were given
 
@@ -846,6 +846,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | QS2 | P | T1 | L0 | the meaning of "stable": bound and not chaotic over 100 outer orbits (a twin with the inner axis larger by 1e-6 au diverging by under 1 percent in the inner axis), `outer_orbits` 100 and `divergence_limit` 0.01 | none | systems that are stable for a stellar lifetime only if nothing slower acts | a system stable at 100 outer orbits that the N-body code breaks at 10^4 outer orbits | a long-integration label | paper section 2, read | - | - |
 | QS3 | P | T3 | L0 | the documented range: `q_mid_max` 3 and `q_out_max` 2 from the help text of the authors' script ("best if < ~3", "< ~2"), `q_in_min` 0.1 and `eccentricity_max` 0.95 from the paper | q_mid up to 5 by the paper's masses | 3+1 systems inside the range | a system outside it that the network classifies against an N-body run | the range of a bigger training set | classify_quad_3p1.py help text and paper section 3.1, read | - | - |
 | QS4 | P | T6 | L0 | the training distribution: orbital angles isotropic, arguments of periapsis and mean anomalies not inputs, systems kept near the Mardling-Aarseth boundary of the two nested triples, 20 percent of the MA01-unstable draws kept | none | the verdict of a system near the boundary; far from it (very wide or very tight) the network extrapolates | a very hierarchical system (alpha under 0.05) called unstable by the network with all else benign | the nested triple test far from the boundary | paper section 3.1, read | - | - |
+
+## 6.66 Stand-ins of the 2+2 quadruple stability network
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| QT1 | D | T1 | L0 | the 8,301 weights and biases of `quadruple_stability_2p2_weights.json`, the authors' own trained network, to nine significant digits | none | 2+2 quadruples with masses within a factor 10, eccentricities to 0.95, near the Mardling-Aarseth boundary | an N-body sample of the same kind whose classification score falls more than 10 points below the paper's 94 percent | a network or table fitted to our own N-body runs | the forward pass equals an MLPClassifier set to the state of the pickle on five stored cases (read 10-30); my REBOUND check: 185 systems drawn like the paper's, network right 91 percent against 82 percent for nested MA01 (paper 94 and 83), precision for stable 0.62 (paper 0.94); on 787 near-boundary systems 69 against 40 percent, precision for stable 0.33, no stable system missed; the false stables are weakly chaotic (twin divergence 1 to 5 percent, 3 percent limit gives 95 percent right); the repository of the authors has no licence file (Boss handles DATA-LICENSE.md) | - | - |
+| QT2 | P | T1 | L0 | the meaning of "stable": bound and not chaotic over 100 outer orbits (a twin with the inner axis of the lighter binary larger by 1e-6 au diverging by under 1 percent in that axis), `outer_orbits` 100 and `divergence_limit` 0.01 | none | systems that are stable for a stellar lifetime only if nothing slower acts | a system stable at 100 outer orbits that the N-body code breaks at 10^4 outer orbits | a long-integration label | paper section 2, read | - | - |
+| QT3 | P | T1 | L0 | the documented range: `q_in_min` 0.1, `q_out_max` 1 (first binary the heavier), `eccentricity_max` 0.95 | none | 2+2 systems inside the range | a system outside it that the network classifies against an N-body run | the range of a bigger training set | paper sections 2 and 3.1 and classify_quad_2p2.py help text, read | - | - |
+| QT4 | P | T6 | L0 | the training distribution: orbital angles isotropic, arguments of periapsis and mean anomalies not inputs, systems kept near the Mardling-Aarseth boundary of the two nested triples, 30 percent of the MA01-unstable draws kept | none | the verdict of a system near the boundary; far from it the network extrapolates | a very hierarchical system (both alphas under 0.05) called unstable by the network with all else benign | the nested triple test far from the boundary | paper section 3.1, read | - | - |
 
 ## 6.64 Stand-ins of the NH3 active-Sun factor
 
