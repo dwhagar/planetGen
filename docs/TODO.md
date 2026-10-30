@@ -18329,6 +18329,19 @@ clears each one.
   the first free lane.
   Prerequisites: T, E, S, T, ., 4, 6, 3.
 
+- [ ] **TEST.475 tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug)**
+  Found by Aux 3 (relayed 9:46 AM EDT 2026-10-30 as the lane reported,
+  while landing PERF.217): the nav section, unknown place 404, crowded
+  sphere and page walk tests of test_web_nearby.py error in fixture
+  setup with the 900 s timeout on a loaded lane machine, not on an
+  assertion; the function-scoped client fixture generates two sectors
+  per test (over 15 minutes there). Not checked on main. Do: build the
+  sample galaxy once per module (module-scoped fixture, read only in the
+  tests that do not write), keeping the tests independent; run the file
+  once on a fast machine. Done: all 8 tests pass in a few minutes on a
+  lane machine. Owner: Aux 3 when free, or Bug 2 in the train gate.
+  Prerequisites: none. Related: PERF.217, TEST.417.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
