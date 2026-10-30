@@ -32,6 +32,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [mass-object-class.md](architecture/mass-object-class.md) | One master mass-object class: three family classes under it, state and parent as data, one core table plus three profile tables, a 10 m representability floor, the measured code savings | plan |
 | [object-ids.md](architecture/object-ids.md) | Interstellar object IDs | built |
 | [object-id-options.md](architecture/object-id-options.md) | The options weighed for unique IDs and the decision | built |
+| [designation-history.md](architecture/designation-history.md) | Names and IDs may change; a retired ID is reserved forever and the history is kept (GEN.1121) | designed |
 | [system-description.md](architecture/system-description.md) | One model of a system's text, many renderers | plan |
 | [units-and-number-formatting.md](architecture/units-and-number-formatting.md) | The unit ladder and number format | plan (UX.23 open) |
 | [command-inventory.md](architecture/command-inventory.md) | Every command does one and only one thing and the order lives only in the wrapper's step list: Boss's principle (2026-10-17), and the inventory of every command and entry point with the item that reshapes each one (PERF.118, PERF.120 to PERF.128, OPS.60, OPS.61) | plan |
