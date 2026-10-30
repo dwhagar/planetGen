@@ -1,6 +1,6 @@
 # Captured asteroid moons: what the papers and the satellite tables say (GEN.1075)
 
-Sources 1 lane, 10-30. This is the read list of [captured-asteroid-moons.md](../systems/captured-asteroid-moons.md) section 7 item 1: the papers opened, the head counts per giant read from the satellite tables, and what each changes in the design. The rows for GEN.725 are plan section 6.100 (CM1 to CM16). Docs only; no module reads these numbers yet.
+Sources 1 lane, 10-30. This is the read list of [captured-asteroid-moons.md](../systems/captured-asteroid-moons.md) section 7 item 1: the papers opened, the head counts per giant read from the satellite tables, and what each changes in the design. The rows for GEN.725 are plan section 6.100 (CM1 to CM19). Docs only; no module reads these numbers yet.
 
 ## Result in one paragraph
 
@@ -75,7 +75,28 @@ Size counts need the radii; these are Wikipedia's mean radii (from JPL and Shepp
 
 ## Not read, still open
 
-- Gas-drag capture (Pollack et al. 1979; Cuk and Burns 2004): the strength of the gas window stays a guess (CM14, burn-down line).
+- Gas-drag capture strength: see the GEN.1122 section below; the share stays a guess (CM14, burn-down line).
 - Per-planet capture in the newer instability histories for Saturn, Uranus and Neptune beyond the one sentence of NDD14 section 3.4.
 - Family speeds and counts at Saturn beyond JH07 and Bottke 2010 (the Gallic, Inuit and Norse groups).
 - The origin of Nereid (scattered regular moon after Triton's capture, or an irregular) decides whether Neptune's largest irregular is 178 km or 31 km.
+
+## GEN.1122: gas-drag capture (Pollack 1979, Cuk and Burns 2004)
+
+Sources 1 lane, 10-30. **Result: neither paper could be opened and no source reached gives a drag share against the encounter channel, so CM14 stays a guess (T6, L3); what the second-hand reading does give is a gate and a size window for the drag channel, now rows CM17 to CM19.**
+
+What was reached: the abstract of Pollack, Burns and Tauber 1979 (Icarus 37, 587; NTRS, the full text is not on the server); Cuk and Burns 2004 (AJ 128, 2518) not on arXiv and its publisher page is refused, so read only through its two summaries: Jewitt and Haghighipour 2007 section 6.2 (read in full) and Sheppard 2006, IAU 229, arXiv astro-ph/0605041 section 3.1 (read in full). Also searched for a numeric capture efficiency in Philpott, Hamilton and Agnor 2010 (fetched, not read beyond its title: it is the three-body channel).
+
+| Quantity | Value | Source |
+|---|---|---|
+| who can do it | gas giants only: Jupiter and Saturn kept about 300 and 100 earth masses of H2 and He, Uranus and Neptune about 1; the bloated young envelope was hundreds of times the planet's size | JH07 6.3 |
+| capture condition | the body must meet about its own mass of gas on its way through the envelope | Sheppard 2006 3.1 |
+| size window | a few km to a few hundred km; larger bodies are hardly slowed, smaller ones spiral into the planet | Pollack 1979 as quoted by Sheppard 2006 and JH07 6.2 |
+| timing | the envelope must collapse within a few thousand years of the capture, else the body spirals in; the present irregulars would be the last few captured | Sheppard 2006 3.1 |
+| orbits it predicts | retrograde bodies lose more (smaller e, i, a), smaller bodies evolve faster and are removed first, larger ones are captured nearer the planet; none of these size trends is seen | Sheppard 2006 3.1; JH07 6.2 |
+| fit to the data | Cuk and Burns 2004 explain the prograde Himalia group (disc, not envelope); JH07 call such a model dependent on weakly constrained parameters of the gas; the equal populations at the four giants argue against drag as the main agent | JH07 6.2, 6.3 |
+| pull-down (sudden planet growth) | at least a 10 percent mass jump (Vieira Neto 2004) or over 40 percent in a few thousand years (Pollack 1976); gas giants only; also works for prograde | JH07 6.1; Sheppard 2006 3.2 |
+| quasi-satellites | 5 to 20 percent of scattered planetesimals become quasi-satellites of the planet (Kortenkamp 2005) | JH07 6.3 |
+
+For the generator: the drag channel is switched on only for a planet with a massive envelope in the gas era, for bodies of 1 to 500 km, and its yield stays the guess of CM14 (0.1 to 0.3 of the encounter channel) with the knob 0 to 0.3, since the observed equality of the four giants (JH07) and the lack of size-orbit trends (Sheppard 2006) put the upper end at risk. A physical form is possible when the envelope is generated: capture if the column density of gas along the path times the cross-section is at least the body's mass, which gives R_max = (3/4) (rho_gas L / rho_body); it needs the gas density of the envelope (not in any paper reached).
+
+Still open: the full text of Pollack 1979 and Cuk and Burns 2004 (a person with library access could read the capture-efficiency figure of the first and the disc-capture rate of the second).
