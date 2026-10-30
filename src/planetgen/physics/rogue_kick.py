@@ -1,28 +1,37 @@
 # planetgen/physics/rogue_kick.py
 
 """
-How fast an ejected planet leaves, and how fast it moves through the Galaxy (GEN.1112, RP6)
-============================================================================================
+How fast an ejected planet leaves, and how fast it moves through the Galaxy (GEN.1112 RP6, GEN.1113)
+====================================================================================================
 
 The rogue planets had the speed of a star on a generic galactic orbit and no ejection kick (`rogue-planet-review.md` row 14). A planet thrown out of its system by a
-scattering planet leaves the star with a speed at infinity set by how much orbital energy the encounters gave it beyond the little it needed, and it carries that speed,
-added to its star's, into the Galaxy. This module gives that speed from the scatterer and the orbit it scatters on, the direction as a held input, and the velocity the rogue has
-now relative to the local standard of rest, using the drift (`rogue_drift`) for the years between. Nothing calls it yet (GEN.1111 creates the rogue rows, and RP1 gives each
-ejection its scatterer and orbit).
+scattering planet leaves the star with a speed at infinity that depends on the scatterer, not on the star or on the planet it throws. This module gives that speed from the
+scatterer's mass and orbit, the survival of the ejected planet's moons, and the velocity the rogue has now relative to the local standard of rest, using the drift
+(`rogue_drift`) for the years between. Nothing calls it yet (GEN.1111 creates the rogue rows, and GEN.1119 gives each ejection its scatterer and orbit). The reading behind
+every number is in `docs/design/research/rogue-ejection-kick.md`.
 
-**The speed.** A body on an orbit at distance `a` from a star has the binding energy `GM / 2a`, which is `v_esc(a)^2 / 4` for the escape speed `v_esc = sqrt(2GM/a)` there. A
-scattering encounter changes its energy by about `v_orb dv`, where `dv` is the most the scatterer can deflect it, the smaller of the scatterer's own escape speed `v_esc,p` and
-the orbital speed `v_orb` (the Safronov number `Theta = v_esc,p^2 / 2 v_orb^2` above 1 means the scatterer ejects and below 1 means it only stirs). So the fractional energy
-step of one encounter is `STEP = ENERGY_STEP_SCALE min(1, v_esc,p / v_orb)`. A random walk in energy reaches ejection when it first crosses zero, and the energy it has
-beyond zero is then exponentially distributed with a mean of one step: `E_x = -STEP (v_esc^2 / 4) ln(1 - u)`, so
+**The speed** (GEN.1113 replaced the earlier energy-step guess). Huang and Lai 2025 (arXiv:2508.18239, Eq. 19, 24 and 26) find from N-body runs of scattering planets that
+the speeds at infinity peak near
 
-    v_inf = v_esc(a) sqrt(STEP (-ln(1 - u)) / 2)
+    v_c = 3 km/s (m_p / M_Jup)^(1/2) (a / 1 AU)^(-1/2) m_p / (m_p + m_ej)
 
-for a uniform number `u`. With the step scaled to 0.3 (`ENERGY_STEP_SCALE`, tuned) Jupiter ejecting from 5 AU gives a median of 6 km/s and a tail to 15, a giant at 30 AU a median of 2.5 km/s; the design note's stand-in median
-of 3 km/s for the whole population and Sayed, Profumo and Smyth's 0.7 to 10.7 km/s (abstract only, `rogue-planet-drift.md` section 2) bracket it. The speed means something only where the
-scatterer ejects at all (`ejects`: Safronov number above `EJECTION_SAFRONOV_NUMBER`); an Earth at 1 AU only stirs.
+for a scatterer of mass `m_p` on an orbit `a` ejecting a body of mass `m_ej`, independent of the star's mass for stars 100 to 1000 times the scatterer's. Kramer and Profumo
+2026 (arXiv:2608.02945, Sec. 4.1 to 4.2) find a mean of 3.4 to 3.6 km/s for a 10 Jupiter-mass scatterer at 5.2 AU with no trend over four decades in the ejected mass, and 1.15
+km/s for 1 Jupiter mass at 5.2 AU: the mean is 0.87 of `v_c` at both. The speeds spread from zero to about 2.5 `v_c` (Huang and Lai Sec. 4.3), so `v_inf = v_c X` with `X`
+log-normal of mean `MEAN_OVER_SCALE` and 99th percentile 2.5 (`SPEED_SIGMA_LN`), drawn by the inverse of the normal distribution from a uniform number `u`. Sayed, Profumo
+and Smyth 2026 (arXiv:2609.21027) assume a kick falling with the ejected mass as `M^-1/2` instead (a stated prescription, not a result), and the two N-body papers contradict it;
+their medians of 0.7 to 10.7 km/s bracket the speeds of giants scattering between 1 and 30 AU here. The tail that eccentric giants and three-planet systems add (Kramer and
+Profumo: up to 7 km/s mean, 80 km/s at the first outbound step for a giant of eccentricity 0.9; Huang and Lai: 5 to 8 `v_c` for three planets) is **not** modelled yet.
+A scatterer whose Safronov number (`ejects`) is under 1 only stirs.
 
-**The direction** is a held input (Boss has not decided it; GEN.1113): `isotropic_direction` is the default, scattering having no preferred direction in the star's frame.
+**Moons.** Huang and Lai 2025 (Sec. 1 and Eq. 4) judge a moon by how close the planets came: it stays bound if its orbital radius is under `MOON_LOSS_FRACTION` of the Hill
+sphere that the closest approach `r_min` leaves it, `r_moon < f r_min (m_ej / m_12)^(1/3)`. Their runs give `r_min` in units of the mutual Hill radius with a median of
+0.089 for a 10 Jupiter-mass scatterer ejecting a 1 Jupiter-mass planet, falling as the scatterer's mass to the 1.13 (0.034 at 5, 0.0066 at 1 Jupiter masses at a fixed ratio
+of 10), and a spread that puts 48 percent of runs above 0.1 and 82 percent above 0.01 (a log-normal of ln-width `CLOSEST_APPROACH_SIGMA_LN`). `closest_approach_m` draws it and `moon_survival_probability` is
+the share of ejections that keep a moon at a given radius.
+
+**The direction** is isotropic in the star's frame (`isotropic_direction`): Boss answered (GEN.1113, 5:29 PM EDT) that it is isotropic, added to the planet's actual motion and the
+system's. Neither N-body paper reports a direction statistic.
 
 **The velocity through the Galaxy.** The rogue's velocity is its host star's plus the drift's relative velocity (`rogue_drift.drift`): the speed at infinity is the speed relative
 to the star at ejection, and the Galaxy's tide turns it over the epicycle after. `rogue_velocity` adds the host's velocity relative to the local standard of rest (the host's
@@ -32,13 +41,28 @@ Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.87.
 """
 
 import math
+from statistics import NormalDist
 
 from planetgen.physics import constants, rogue_drift
 from planetgen.util.checks import finite_domain
 
-ENERGY_STEP_SCALE = 0.3
-"""float: The fractional orbital-energy step of one scattering encounter in units of `min(1, v_esc,p / v_orb)`: most encounters are distant and deflect much less than the most
-the scatterer can. Tuned so that giants scattering between 5 and 30 AU give a median of 2.5 to 6 km/s, the design note's 3 km/s and inside Sayed et al.'s 0.7 to 10.7 km/s. Source tier T8, tweak level L3."""
+SCATTER_SPEED_KM_S = 3.0
+"""float: The scale of the ejection speed for a scatterer of one Jupiter mass at 1 AU, km/s: `v_c = SCATTER_SPEED_KM_S (m_p / M_Jup)^(1/2) (a / 1 AU)^(-1/2) m_p / (m_p + m_ej)`
+(Huang and Lai 2025, Eq. 26, read first-hand). Source tier T1, tweak level L0."""
+MEAN_OVER_SCALE = 0.87
+"""float: The mean ejection speed in units of `v_c`: Kramer and Profumo 2026 give 1.15 km/s for 1 Jupiter mass and 3.4 to 3.6 for 10 at 5.2 AU, where `v_c` is 1.32 and 4.16 (0.87 and 0.84). Source tier T1, tweak level L1."""
+SPEED_SIGMA_LN = 0.51
+"""float: The ln-width of the ejection speed in units of `v_c`, set so the 99th percentile is 2.5 `v_c`, the top of the range of Huang and Lai 2025 (Sec. 4.3, a figure reading, not a table). Source tier T6, tweak level L2."""
+MOON_LOSS_FRACTION = 0.5
+"""float: `f` of Huang and Lai's Eq. 4: a moon stays bound if its orbital radius is under `f` times the Hill sphere that the closest approach leaves it ("a high survival probability requires f ~ 1/2"). Source tier T1, tweak level L1."""
+CLOSEST_APPROACH_MEDIAN_HILL = 0.089
+"""float: The median closest approach of the ejected planet to the scatterer before ejection, in mutual Hill radii, for a scatterer of `CLOSEST_APPROACH_REFERENCE_JUPITERS` ejecting a tenth of its mass (Huang and Lai Fig. 2). Source tier T1, tweak level L2."""
+CLOSEST_APPROACH_REFERENCE_JUPITERS = 10.0
+"""float: The scatterer's mass, Jupiter masses, at which the median closest approach is `CLOSEST_APPROACH_MEDIAN_HILL`."""
+CLOSEST_APPROACH_MASS_INDEX = 1.13
+"""float: The median closest approach goes as the scatterer's mass to this power (0.089, 0.034, 0.0066 at 10, 5, 1 Jupiter masses at a fixed ratio of 10; Huang and Lai Fig. 2). Source tier T3, tweak level L3."""
+CLOSEST_APPROACH_SIGMA_LN = 2.35
+"""float: The ln-width of the closest approach: 48 percent of runs above 0.1 and 82 percent above 0.01 mutual Hill radii at a median of 0.089 give 2.3 to 2.4 (Huang and Lai Sec. 7). Source tier T1, tweak level L1."""
 EJECTION_SAFRONOV_NUMBER = 1.0
 """float: The Safronov number above which a scatterer ejects what it scatters and below which it only stirs (Safronov 1972; Ford and Rasio 2008 use the same cut). Source tier T6, tweak level L0."""
 _KM = 1.0e3
@@ -77,27 +101,69 @@ def ejects(planet_mass_kg, planet_radius_m, host_mass_kg, distance_au):
     return safronov_number(planet_mass_kg, planet_radius_m, host_mass_kg, distance_au) > EJECTION_SAFRONOV_NUMBER
 
 
-def energy_step(planet_mass_kg, planet_radius_m, host_mass_kg, distance_au):
-    """The fractional orbital-energy step of one encounter, `ENERGY_STEP_SCALE min(1, v_esc,p / v_orb)`."""
-    ratio = planet_escape_speed_km_s(planet_mass_kg, planet_radius_m) / circular_speed_km_s(host_mass_kg, distance_au)
-    return ENERGY_STEP_SCALE * min(1.0, ratio)
+def scatter_speed_km_s(planet_mass_kg, distance_au, ejected_mass_kg=0.0):
+    """`v_c`, the scale of the speeds a scatterer gives what it ejects, km/s: `SCATTER_SPEED_KM_S (m_p / M_Jup)^(1/2) (a / 1 AU)^(-1/2) m_p / (m_p + m_ej)`."""
+    if not planet_mass_kg > 0.0 or not distance_au > 0.0 or ejected_mass_kg < 0.0:
+        raise RogueKickError("the scatterer's mass and distance must be positive and the ejected mass not negative")
+    return (SCATTER_SPEED_KM_S * math.sqrt(planet_mass_kg / constants.JUPITER_MASS_TO_KG / distance_au)
+            * planet_mass_kg / (planet_mass_kg + ejected_mass_kg))
 
 
 @finite_domain()
-def ejection_speed_km_s(u, host_mass_kg, distance_au, planet_mass_kg, planet_radius_m):
+def ejection_speed_km_s(u, planet_mass_kg, distance_au, ejected_mass_kg=0.0):
     """
     The speed at infinity relative to the star of a body ejected by a scatterer, km/s.
 
     Args:
         u (float): A uniform random number, 0 to 1 (excluding 1).
-        host_mass_kg (float): The star's mass.
+        planet_mass_kg (float): The scatterer's mass.
         distance_au (float): Where the scattering happens: the scatterer's distance from the star.
-        planet_mass_kg, planet_radius_m (float): The scatterer's.
+        ejected_mass_kg (float): The mass of the body thrown out, which lowers the speed a little when it is a sizeable part of the scatterer's.
     """
     if not 0.0 <= u < 1.0:
         raise RogueKickError("u must be at least 0 and under 1")
-    step = energy_step(planet_mass_kg, planet_radius_m, host_mass_kg, distance_au)
-    return escape_speed_km_s(host_mass_kg, distance_au) * math.sqrt(step * -math.log1p(-u) / 2.0)
+    scale = scatter_speed_km_s(planet_mass_kg, distance_au, ejected_mass_kg)
+    z = NormalDist().inv_cdf(max(u, 1.0e-12))
+    mu = math.log(MEAN_OVER_SCALE) - 0.5 * SPEED_SIGMA_LN ** 2
+    return scale * math.exp(mu + SPEED_SIGMA_LN * z)
+
+
+def mutual_hill_radius_m(host_mass_kg, distance_au, planet_mass_kg, ejected_mass_kg):
+    """The mutual Hill radius of the scatterer and the ejected planet at the scatterer's distance, metres."""
+    if not host_mass_kg > 0.0 or not distance_au > 0.0 or planet_mass_kg <= 0.0 or ejected_mass_kg <= 0.0:
+        raise RogueKickError("the masses and the distance must be positive")
+    return distance_au * constants.AU_M * ((planet_mass_kg + ejected_mass_kg) / (3.0 * host_mass_kg)) ** (1.0 / 3.0)
+
+
+def _closest_approach_median_hill(planet_mass_kg):
+    return CLOSEST_APPROACH_MEDIAN_HILL * (planet_mass_kg / constants.JUPITER_MASS_TO_KG / CLOSEST_APPROACH_REFERENCE_JUPITERS) ** CLOSEST_APPROACH_MASS_INDEX
+
+
+@finite_domain()
+def closest_approach_m(u, host_mass_kg, distance_au, planet_mass_kg, ejected_mass_kg):
+    """The closest approach of the ejected planet to the scatterer before ejection, metres, from a uniform number `u` (0 to 1, excluding both ends are clamped)."""
+    if not 0.0 <= u < 1.0:
+        raise RogueKickError("u must be at least 0 and under 1")
+    z = NormalDist().inv_cdf(max(u, 1.0e-12))
+    hill = mutual_hill_radius_m(host_mass_kg, distance_au, planet_mass_kg, ejected_mass_kg)
+    return hill * _closest_approach_median_hill(planet_mass_kg) * math.exp(CLOSEST_APPROACH_SIGMA_LN * z)
+
+
+def moon_survives(moon_radius_m, closest_approach, planet_mass_kg, ejected_mass_kg):
+    """Whether a moon at `moon_radius_m` round the ejected planet stays bound through a closest approach (Huang and Lai Eq. 4)."""
+    if not moon_radius_m > 0.0 or not closest_approach > 0.0 or planet_mass_kg <= 0.0 or ejected_mass_kg <= 0.0:
+        raise RogueKickError("the radii and masses must be positive")
+    return moon_radius_m < MOON_LOSS_FRACTION * closest_approach * (ejected_mass_kg / (ejected_mass_kg + planet_mass_kg)) ** (1.0 / 3.0)
+
+
+def moon_survival_probability(moon_radius_m, host_mass_kg, distance_au, planet_mass_kg, ejected_mass_kg):
+    """The share of ejections that keep a moon at `moon_radius_m`: the chance the closest approach is wide enough, from the log-normal of `closest_approach_m`."""
+    if not moon_radius_m > 0.0:
+        raise RogueKickError("the moon's radius must be positive")
+    hill = mutual_hill_radius_m(host_mass_kg, distance_au, planet_mass_kg, ejected_mass_kg)
+    needed = moon_radius_m / (MOON_LOSS_FRACTION * (ejected_mass_kg / (ejected_mass_kg + planet_mass_kg)) ** (1.0 / 3.0))
+    z = math.log(needed / (hill * _closest_approach_median_hill(planet_mass_kg))) / CLOSEST_APPROACH_SIGMA_LN
+    return 1.0 - NormalDist().cdf(z)
 
 
 def isotropic_direction(u_cos, u_phi):
