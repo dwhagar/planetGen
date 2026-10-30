@@ -16,7 +16,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.generation import star_population as sp
-from planetgen.physics import constants, main_sequence, post_main_sequence as pm
+from planetgen.physics import constants, imf, main_sequence, post_main_sequence as pm
 from planetgen.physics import stellar_evolution as se
 
 
@@ -103,7 +103,7 @@ def test_no_red_supergiant_is_brighter_than_the_humphreys_davidson_limit_and_non
     rng = random.Random(3)
     red_above = smaller = total = 0
     for _ in range(3000):
-        mass = se.sample_imf_mass_sol(8.0, 150.0, rng)
+        mass = imf.sample(8.0, 150.0, rng)
         line = pm.timeline(mass, 0.0)
         # (Past the first percent of the window: a star contracts a little at the very end of its hydrogen burning, the hook.)
         age = line.main_sequence_gy + rng.uniform(0.01, 1.0) * (line.end_gy - line.main_sequence_gy)

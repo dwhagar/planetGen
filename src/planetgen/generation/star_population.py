@@ -70,7 +70,7 @@ from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
 from planetgen.physics import constants, imf, post_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
-    _power_law_integral, _sample_power_law, birth_fe_h, evolve_star, horizontal_branch_bright_chance,
+    birth_fe_h, evolve_star, horizontal_branch_bright_chance,
     main_sequence_bright_from_gy, main_sequence_lifetime_gy, population_age_range_gy,
     remnant_formation_time_gy, sample_living_star, star_params,
 )

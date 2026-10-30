@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 388 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 395 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 46 | 0 | 3 | 0 | 0 | 49 |
 | T2 | 69 | 3 | 0 | 1 | 0 | 73 |
-| T3 | 52 | 5 | 2 | 10 | 0 | 69 |
+| T3 | 54 | 9 | 2 | 10 | 0 | 75 |
 | T4 | 16 | 0 | 0 | 2 | 0 | 18 |
-| T5 | 21 | 5 | 1 | 0 | 0 | 27 |
+| T5 | 21 | 6 | 1 | 0 | 0 | 28 |
 | T6 | 39 | 10 | 4 | 27 | 0 | 80 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 261 | 26 | 13 | 71 | 17 | 388 |
+| All | 263 | 31 | 13 | 71 | 17 | 395 |
 
 ## How the labels were given
 
@@ -600,3 +600,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PA10 | P | T6 | L3 | tuning.GIANT_INWARD_MIGRATION_SIGMA_LN 0.9281, GIANT_CLEARING_SPACING 8 and GIANT_HOT_ORBIT_AU 0.1 (how far a giant that does not become a hot Jupiter moves in, the spacing within which it scatters planets, the orbit that counts as hot) | sigma 0.3 to 1.2; spacing 4 to 10 | giants | test_planet_architecture::test_a_hot_jupiter_has_nothing_inside_its_orbit_and_a_moved_giant_clears_its_neighbours; a giant occurrence not peaking at 1 to 3 AU | a migration model | Fulton 2021 and Cumming et al. 2008 (arXiv:0803.3357, READ: the occurrence rises by a factor of 4 at 1 AU and peaks at 1 to 3 AU) | GEN.728 | no data |
 | PA11 | P | T6 | L3 | tuning.PLANET_MIN_MASS_OUTER_EARTH 0.6649 and PLANET_MIN_MASS_EARTH 0.1 (the lightest oligarch that is a planet, beyond and inside the snow line) | outer 0.3 to 1.5; inner 0.05 to 0.2 | all chains | test_planet_architecture::test_a_star_gets_its_planets_in_order_with_the_masses_a_planet_has_and_a_seeded_run_repeats; a planet count beyond 2 AU outside the microlensing counts | a belt formation and size-frequency model | design (Mercury is 0.055 Earth masses); the outer floor tuned to the count of the Neptune-mass planets beyond the snow line (Suzuki et al. 2016, recalled) | GEN.728 | no data |
 | PA12 | P | T7 | L0 | planet_occurrence.json `disc_dust_scatter` 0.7 dex and tuning.DISC_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_ANCHORS ((0.15, 0.85), (0.6, 0.75), (1.0, 0.30), (1.4, 0.30)) (the scatter of the solids and the share of stars with an inner system by mass) | scatter 0.5 to 0.9; shares inside the bands | all hosts | test_planet_architecture::test_the_share_of_stars_with_an_inner_system_follows_the_observed_anchors | the formation model that gives the share from the disc (GEN.729 follow-up) | Andrews et al. 2013 (arXiv:1305.5262, READ: 0.7 dex); Zhu 2018 (30 percent Sun-like); Yang 2020 (75 percent under 5000 K, 35 percent over 6500 K) | GEN.728 | - |
+
+## 6.37 Stand-ins of the stars after the main sequence
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| PS1 | P | T3 | L1 | tuning.HELIUM_FLASH_MASS_SOL 2.2 (a star lighter than this ignites its helium in a flash and has a horizontal branch; a heavier one burns it quietly as a core-helium-burning giant) | 1.8 to 2.3 | every star of 0.8 to 8 solar masses | test_post_main_sequence::test_the_windows_follow_each_other_from_the_end_of_the_main_sequence_to_the_end_of_the_track; a cluster whose helium-burning stars change kind below 1.8 or above 2.3 solar masses | the mass at which the MIST tracks themselves change kind, read from the phase column at setup | RECALLED (Hurley, Pols and Tout 2000: the helium flash mass is 1.6 to 2.0 solar masses by metallicity; MIST's own transition sits near 2.0 to 2.3) | - | - |
+| PS2 | P | T3 | L0 | tuning.HORIZONTAL_BRANCH_DURATION_GY 0.1 and AGB_MS_FRACTION 0.002 (how long a flash star burns helium in its core, and the share of its main-sequence life it spends on the asymptotic branch) | 0.07 to 0.12 Gy; 0.001 to 0.005 | stars under HELIUM_FLASH_MASS_SOL | test_gen_horizontal_branch::test_the_horizontal_branch_to_red_giants_above_it_ratio_is_the_observed_one; a branch star to red giant ratio in globular clusters outside 1.2 to 1.7 | the MIST track durations for the light stars once its low-mass grid reaches the flash | READ (Salaris et al. 2004: 1.44 +- 0.06 horizontal-branch stars to each red giant brighter than the branch, which a 100 Myr branch reproduces) | - | - |
+| PS3 | P | T3 | L1 | tuning.SUPERGIANT_MIN_MASS_SOL 8 (from it a star has one supergiant window and ends in a core collapse; under it, giants and a white dwarf) | 7 to 9 | all stars | a white dwarf progenitor above 8 or a core-collapse progenitor below 7 solar masses | the mass where the MIST thermal pulses end (EEP 808 reached by the track), read at setup | RECALLED (carbon ignition between 7 and 9 solar masses by composition and convective overshoot; Doherty et al. 2015) | - | - |
+| PS4 | P | T3 | L0 | tuning.BRIGHT_GIANT_MIN_MASS_SOL 4 (the giant classes III and II divide here) | 3 to 6 | giants | none | a class by luminosity per Morgan and Keenan's calibration | design (class II is a rare bright giant; the luminosity of a 4 solar mass giant is about 1000 Lsun) | - | - |
+| PS5 | P | T3 | L1 | tuning.SUPERGIANT_YERKES_THRESHOLDS_SOL (10000, 50000, 500000 Lsun for IAB, IA, 0) | each edge a factor 2 | supergiants | none | the Yerkes-class calibration of absolute magnitude (GEN.943) | RECALLED (Ib near M_V -5, Iab -6, Ia -7 to -8, hypergiants -9 to -10) | - | - |
+| PS6 | P | T3 | L1 | tuning.CEPHEID_TEMPERATURE_RANGE_K (5000, 7000), CEPHEID_MIN_LUMINOSITY_SOL 500, CEPHEID_MAX_INITIAL_MASS_SOL 13 (a giant or supergiant on its track is flagged as a classical Cepheid) | edges 300 K; luminosity 300 to 1000; mass 10 to 15 | giants and supergiants | test_post_main_sequence::test_stars_inside_the_instability_strip_are_flagged_as_classical_cepheids_only_when_luminous_and_of_the_right_mass; a Cepheid below 3 or above 13 solar masses | the instability strip from a pulsation calculation (the MIST tracks carry no pulsation) | READ-level facts (classical Cepheids are 3 to 13 solar masses of 100 to 30000 Lsun, T_eff 5000 to 7000 K; the strip is fuzzier than the edges) | - | - |
+| PS7 | P | T5 | L1 | evolved_tracks.MASS_NODES_SOL (130 log-spaced masses from 0.8 to 300) and the linear mapping of each generator window onto a stretch of the track's equivalent evolutionary points | none | all post-main-sequence stars | test_evolved_tracks (track construction against synthetic isochrones); test_gen_horizontal_branch::test_the_time_a_star_spends_above_a_luminosity_on_the_mist_branch_follows_the_hurley_branch | the generator's own time-in-phase formulas fitted to MIST at setup | design (the node count only sets how finely the tracks are rebuilt; the time mapping keeps the Hurley, Pols and Tout base of the giant branch and helium ignition) | - | - |
