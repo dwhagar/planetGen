@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2825] - 2026-10-30
+
+**Headline:** The Search page's star spectral and luminosity tags now list every star type the generator can produce.
+
+### Fixed
+- **The star type tags on Search listed only the types already in the database.** The Star: Spectral Class and Star: Luminosity Class lists now come from the generator's own class lists, with a count of 0 for a type no star holds yet.
+
 ## [8.0.2824] - 2026-10-30
 
 **Headline:** The web app starts even when a downloaded data set is not there yet, so an update no longer turns every page into a 500 while it downloads.
