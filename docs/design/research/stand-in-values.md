@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 762 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 766 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 123 | 7 | 6 | 1 | 0 | 137 |
-| T2 | 102 | 19 | 0 | 1 | 0 | 122 |
+| T2 | 103 | 19 | 0 | 1 | 0 | 123 |
 | T3 | 77 | 28 | 5 | 9 | 0 | 119 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 40 | 12 | 0 | 0 | 0 | 52 |
-| T6 | 63 | 40 | 12 | 34 | 0 | 149 |
+| T6 | 64 | 41 | 12 | 34 | 0 | 151 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 3 | 2 | 7 |
-| T9 | 7 | 2 | 4 | 34 | 19 | 66 |
-| All | 474 | 120 | 36 | 105 | 27 | 762 |
+| T9 | 7 | 3 | 4 | 34 | 19 | 67 |
+| All | 476 | 122 | 36 | 105 | 27 | 766 |
 
 ## How the labels were given
 
@@ -1223,6 +1223,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | DPM1 | P | T6 | L1 | dwarf_population.ICE_BODY_FRACTION 0.5: the ice mass fraction at and above which a body is as weak as pure ice; the round mass runs log-linearly from the rock value at no ice to the ice value here | 0.3 to 1.0 | belt members and dwarf planets | a body of 20 to 40 percent ice whose measured shape is far from the mixed round mass (Ceres, round at 9.4e20 kg and about a quarter water, sits inside it) | the relaxed hydrostatic mass from the body's strength and heat (BR9) | educated guess from physics (a mixture is as weak as its weak phase once that phase is half the mass) | GEN.1092 | - |
+
+## 6.105 Stand-ins of the field dispersal
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IF15 | D | T9 | L1 | field_dispersal.RETIREMENT_RADIUS_M 1 light year: the rms radius past which a field is retired (its mass is then under 1e-6 of the background density of a 1 ly ball for a planet's worth of rock, and the field is no longer a place) | 0.5 to 3 ly | fields of one planet's mass or less | a field of one Earth mass whose column density at 1 ly is still above the background of rows IF11 | a density cut on the background instead of a radius | Boss decision 4:54 PM EDT 2026-10-30 | GEN.1103 | - |
+| IF16 | B | T2 | L0 | field_dispersal.OORT_A_KMS_KPC 15.0 km/s/kpc, with SHEAR_VALID_YEARS 2.6e7: the galactic shear of the field along the orbit, 2 A x t for an offset x, applied to the bodies of a field only while the epicyclic approximation holds | A 14 to 16 | a field under about 26 Myr (a field retires at about 30 kyr at 10 km/s, 3 Myr at 0.1 km/s, so the shear is rarely above 0.3 pc) | a field older than 26 Myr that is still inside 1 ly | the epicyclic orbit of each body | Oort constant A from the Hipparcos and Gaia rotation curve (recalled, not opened) | GEN.1105 | - |
+| IF17 | P | T6 | L0 | field_dispersal.DEFAULT_DENSITY_KG_M3 3000: the bulk density of a rocky piece, used for the freeze-out radius sqrt(3 M / (2 pi rho D)) at which a column of pieces of diameter D stops colliding (one collision per piece when the optical depth is 1) | 1000 to 8000 | rocky pieces, mass M spread over a disc, optical depth of 1 | a measured collision time of a debris cloud outside a factor of 3 of the formula | an N-body run of a cloud | derived here from the optical depth | GEN.1105 | - |
+| IF18 | P | T6 | L1 | the rms radius of a field as sqrt(R0^2 + (v t)^2) (quadrature of the initial size and the ballistic spread), the velocity of a body a normal draw of dispersion v / sqrt(3) per component for a ball, and for the ring of a supernova belt the tangential speed at the body's azimuth with the speed at infinity sqrt(G (M0 - 2 M_rem) / a); bodies are a pure function of (seed, rank, age) | none | ballistic bodies, no gas, collisions ignored after freeze-out | an N-body run of an unbound belt whose rms radius leaves the formula by more than 20 percent in 30 kyr | an N-body run of the unbound belt | derived here (Maxwellian ball, ring after the half-mass rule of row IF10) | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 
