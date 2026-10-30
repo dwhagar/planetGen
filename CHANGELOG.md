@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2755] - 2026-10-30
+
+**Headline:** The help text of `planetgen run-job` and the replacement shown for the five ground-type rows no longer carry item codes.
+
+### Fixed
+- **TODO codes in text a user sees (TEST.487).** The `run-job` description named PERF.203 and the five stand-in rows of the surface ground types named GEN.474 as the replacement. The help now says what the command does without the code, and the rows say "ground types derived from the bulk composition and the melting of the mantle"; the item code stays in a comment. `test_no_todo_codes_shown` passes. Nothing generated changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.487.
+
 ## [8.0.2754] - 2026-10-30
 
 **Headline:** A new test audits the giant planets' mass tail, the hot Neptune desert and the derived giant rows, and records one bug: a metal-rich 1.5 to 2 solar-mass host can draw a giant above the 13 Jupiter-mass edge.
