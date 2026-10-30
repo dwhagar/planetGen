@@ -14,6 +14,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import build_stand_in_values as builder  # noqa: E402
 
 TEXT = (ROOT / "docs" / "design" / "research" / "gap-filling-plan.md").read_text(encoding="utf-8")
+WIRING = (ROOT / "docs" / "design" / "research" / "wiring-register.md").read_text(encoding="utf-8")
+BURN_DOWN = (ROOT / "docs" / "design" / "research" / "burn-down-register.md").read_text(encoding="utf-8")
 TABLES = builder.registry_tables(TEXT)
 
 
@@ -46,12 +48,23 @@ def test_a_row_without_the_columns_is_named():
 
 def test_the_list_is_the_registry_as_built():
     path = ROOT / "docs" / "design" / "research" / "stand-in-values.md"
-    assert path.read_text(encoding="utf-8") == builder.render(TEXT), \
+    assert path.read_text(encoding="utf-8") == builder.render(TEXT, WIRING, BURN_DOWN), \
         "run python scripts/build_stand_in_values.py to rebuild docs/design/research/stand-in-values.md"
 
 
 def test_every_row_of_the_registry_is_in_the_list():
-    listed = builder.render(TEXT)
+    listed = builder.render(TEXT, WIRING, BURN_DOWN)
     for number, (header, rows) in TABLES.items():
         for row in rows:
             assert f"| {row[0]} |" in listed, (number, row[0])
+
+
+def test_the_rows_the_wiring_register_names_show_their_item_in_the_list():
+    listed = builder.render(TEXT, WIRING, BURN_DOWN)
+    unread = builder.unread_rows(WIRING)
+    assert unread, "the wiring register names no registry row"
+    for key, item in unread.items():
+        section, fill_id = key.split(":")
+        line = next(line for line in listed.splitlines() if line.startswith(f"| {fill_id} |"))
+        assert [cell.strip() for cell in line.strip("|").split("|")][-2] == item, key
+    assert builder.UNREAD_COLUMN in listed
