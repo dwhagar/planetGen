@@ -2,6 +2,40 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2728] - 2026-10-30
+
+**Headline:** "Finish the last run" now carries on a stopped Generate job as the one run it is, including the stages that never started.
+
+### Changed
+
+- PERF.203 step 5: a Generate job is one run (step 4), so "Finish the last run" plans what is left from that run's own stage list and no longer adds the job's later steps as separate runs. The task page no longer lists "steps of that job that never started"; the stages that run again include the ones the stopped run never reached. A scatter whose stage had not opened when the run stopped still works out its limits when its stage opens (`scatter-settings` is left deferred while the stopped run is planned), so a finished job stores what an uninterrupted one does. The queue page's Retry is unchanged. Nothing stored changes, no epoch.
+
+## [8.0.2727] - 2026-10-30
+
+**Headline:** A system now has a clearance ledger that says where a planet, moon or belt may sit, ready for the generator to draw from.
+
+### Added
+- **The clearance ledger (GEN.1014 part 1, `physics/clearance_ledger.py`).** For a star or a close pair taken as one body it holds the spans of distance where a new planet of a given mass and eccentricity may sit: the host's window (the engulfment floor, the Holman and Wiegert limits at every level above it), less the stretch round each planet where two planets would stand closer than ten mutual Hill radii (on both sides, and across a belt), less each belt with the planet's five Hill radii. A moon's window follows the Domingos, Winter and Yokoyama (2006) limit with the planet's and the moon's eccentricity terms and the retrograde case, which the generator does not yet use. A draw cut to the spans (`restricted_quantile`) needs no pushing afterwards. Nothing in the generator reads it yet, so no system changes; the wiring that replaces `_orbit_floor_au`, the per-star stability reads and the spacing pass, and fixes the pair of planets 9.93 mutual Hill radii apart in triple seed 208 (GEN.1023), rides merge train 10.
+
+## [8.0.2726] - 2026-10-30
+
+**Headline:** A 3+1 quadruple star system can now be tested for stability with a published classifier that is right about nine times in ten.
+
+### Changed
+- New `physics/quadruple_stability.py` (GEN.1029): the 3+1 quadruple stability network of Vynatheya, Mardling and Hamers 2023 as plain numbers and a numpy forward pass (no machine-learning library). On my N-body check of 331 systems it agreed with the integration 95 percent of the time against 49 percent for the nested-triple test. Nothing in generation calls it yet (GEN.1016 wires it), so no generated world changes.
+- Registry rows QS1 to QS4 (section 6.65), the design note `docs/design/systems/quadruple-stability-3p1.md`, and `scripts/build_quadruple_stability.py`, which reads the authors' model file without running its code.
+
+## [8.0.2725] - 2026-10-30
+
+**Headline:** Three tests that failed on a clean main are fixed on the test side: a moved seed, a mixed composition and a stale plan key list.
+
+### Changed
+- **TEST.481: the Hill sphere moon test, the halo flux test and the component pass plan test pass on main.** (1) `test_shrinking_the_hill_sphere_drops_the_outer_moons_first` needs a planet with two or more moons, and how many of the six asked for keep a stable orbit is a draw (1 to 6 over seeds 3301 to 3320); the file's seed gave one after the star epoch moved the draws, so the test draws that planet from its own seed. (2) `test_the_halo_counts_match_the_evolutionary_flux_of_an_old_population` took the Sun's composition for the halo's mean luminosity and turn-off track while the count it checks is at the halo's reference [Fe/H] of -1.6; at -1.6, with the turn-off mass of the same 12.5 Gy lifetime (0.82 solar masses), the model's count is 1.06 to 1.09 times the flux's at 100, 500 and 1000 Lsun, inside the 35% the test allows. The mean of too few draws also moved it by a third (a 40,000 draw mean has a spread of 25%). (3) `test_a_large_components_phenomena_are_a_unit_per_slice_that_add_up_at_any_order` compared the whole plan with the shape's JSON, and the plan has said `outline_shells` and `min_mass_solar` since PERF.212. Nothing the generator makes changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.481.
+
 ## [8.0.2724] - 2026-10-30
 
 **Headline:** A Generate job's generating steps now run as one run in the work queue, with one stage list and one estimate.
