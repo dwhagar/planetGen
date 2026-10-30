@@ -1260,11 +1260,13 @@ STELLAR_FE_H_FIT_RANGE = {"thin": (-0.9, 0.5), "high-alpha": (-1.6, 0.1)}
 """dict: The [Fe/H] each branch's [X/Fe] fits were made over; outside it the fit is held at its edge (flagged)."""
 # [X/Fe] means by branch, as ("linear", a, b): a + b F; ("min", c, b, k): c + b min(F - k, 0), the thin disc's plateau above k
 # and rise below; ("max", p, s, k): p + s max(F - k, 0), the high-alpha plateau below k. Fitted to Bensby 2014 (Mg, Si, Ca,
-# Al), Nissen 2014 NLTE (C, O) and Battistini and Bensby 2016 (Eu), part A 2.7.
+# Al), Nissen 2014 NLTE (C, O) and Battistini and Bensby 2016 (Eu), part A 2.7. The thin-disc Mg and Si are refitted to Brewer and
+# Fischer 2016 (GEN.989, and the thin-disc O of GEN.991; `scripts/fit_stellar_xfe_refit.py`): their stars sit 0.06 dex under the Sun in
+# Mg, 0.03 in Si and 0.03 in O at [Fe/H] above solar, where Bensby's plateau is at the Sun and Nissen's O line goes on falling.
 STELLAR_XFE_FITS = {
     "thin": {
-        "Mg": ("min", 0.006, -0.343, 0.03), "Si": ("min", 0.017, -0.166, -0.07), "Ca": ("min", -0.041, -0.163, 0.42),
-        "O": ("linear", -0.011, -0.373), "C": ("linear", -0.030, -0.163), "Al": ("min", 0.032, -0.029, 0.06),
+        "Mg": ("min", -0.067, -0.284, 0.06), "Si": ("min", -0.047, -0.298, -0.07), "Ca": ("min", -0.041, -0.163, 0.42),
+        "O": ("min", -0.028, -0.414, 0.07), "C": ("linear", -0.030, -0.163), "Al": ("min", 0.032, -0.029, 0.06),
         "Eu": ("linear", 0.060, -0.404)},
     "high-alpha": {
         "Mg": ("max", 0.357, -0.373, -0.73), "Si": ("max", 0.253, -0.199, -0.99), "Ca": ("max", 0.282, -0.251, -0.99),
@@ -1272,16 +1274,21 @@ STELLAR_XFE_FITS = {
         "Eu": ("max", 0.446, -0.290, -0.93)},
 }
 STELLAR_XFE_SIGMA = {
-    "thin": {"C": 0.044, "O": 0.052, "Mg": 0.066, "Si": 0.042, "Eu": 0.077},
-    "high-alpha": {"C": 0.050, "O": 0.065, "Mg": 0.073, "Si": 0.073, "Eu": 0.084}}
-"""dict: Residual scatter (dex) of the fits above, by branch."""
+    "thin": {"C": 0.095, "O": 0.102, "Mg": 0.046, "Si": 0.072, "Ca": 0.032, "Eu": 0.077},
+    "high-alpha": {"C": 0.108, "O": 0.128, "Mg": 0.051, "Si": 0.126, "Ca": 0.035, "Eu": 0.084}}
+"""dict: Residual scatter (dex) of the fits above, by branch. C, O, Mg, Si and Ca are refitted to Brewer and Fischer 2016 (1,615 dwarfs,
+`scripts/fit_stellar_xfe_refit.py`, GEN.988 and GEN.990): the scale of each that puts the generated variance of every populous [Fe/H] bin
+on the table's robust one, the means and the branch mixture included; the ratio between the branches is the old one, and calcium's is
+magnesium's. Eu is Battistini and Bensby 2016's."""
 STELLAR_XFE_CORRELATION = (
-    (1.00, 0.56, 0.69, 0.71),
-    (0.56, 1.00, 0.36, 0.37),
-    (0.69, 0.36, 1.00, 0.77),
-    (0.71, 0.37, 0.77, 1.00))
-"""tuple: Residual correlation of C, O, Mg and Si (Brewer and Fischer 2016, 844 dwarfs), so Mg/Si, a ratio of two correlated
-terms, has its narrow real scatter."""
+    (1.00, 0.47, 0.57, 0.64, 0.35),
+    (0.47, 1.00, 0.26, 0.42, 0.41),
+    (0.57, 0.26, 1.00, 0.68, 0.02),
+    (0.64, 0.42, 0.68, 1.00, 0.30),
+    (0.35, 0.41, 0.02, 0.30, 1.00))
+"""tuple: Residual correlation of C, O, Mg, Si and Ca (Brewer and Fischer 2016, 1,558 dwarfs of the full table with all five, the residual
+being [X/Fe] less its median in the 0.1 dex bin of [Fe/H]), so Mg/Si, a ratio of two correlated terms, has its narrow real scatter. The
+844-dwarf table of the first fit gave 0.56, 0.69, 0.71, 0.36, 0.37, 0.77 for the C, O, Mg, Si pairs; calcium is new (GEN.988)."""
 STELLAR_CEMP = {"fe_h_below": -2.0, "probability": 0.25, "carbon_fe_min": 0.7, "carbon_fe_span": 1.3, "rich_probability_below": -4.0}
 """dict: Carbon-enhanced metal-poor stars (Frebel and Norris 2015): below [Fe/H] -2 a fraction `probability` have [C/Fe] of
 `carbon_fe_min` plus a uniform share of `carbon_fe_span`. The literature's rise to 1 below -4 is unreachable under the stored

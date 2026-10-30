@@ -293,7 +293,7 @@ def host_offset_dex(fe_h, age_gy, key):
 @functools.cache
 def _solar_th_over_mg():
     """Th/Mg by mass of the solar-scale star: [Fe/H] 0 on the thin branch with every residual and scatter at its mean."""
-    star = sa.composition(0.0, sa.abundance_offsets(0.0, sa.BRANCH_THIN, (0.0, 0.0, 0.0, 0.0)))
+    star = sa.composition(0.0, sa.abundance_offsets(0.0, sa.BRANCH_THIN, (0.0,) * len(sa.RESIDUAL_ELEMENTS)))
     found = sa.birth_radiogenic(star, sa.BRANCH_THIN)
     return found["mass_fractions"]["Th"] / star.elements["Mg"]
 
