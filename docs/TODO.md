@@ -13552,6 +13552,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows none from it, and the property sheet carries the columns. Owner:
   Tides 1 (lock-free module now; wiring rides train 7 after train 5
   merges). Version 8.1.
+  Boss widened the scope (4:07 PM EDT 2026-10-30): Boss, 4:07 PM EDT
+  2026-10-30: gather all the data we can for ocean tides, and check
+  whether the model can handle liquids other than water: methane or
+  ethane oceans (Titan-like), a mercury ocean or other metals, molten
+  rock lava oceans, ammonia-water, sulfuric acid, and so on. Secondary
+  and tertiary sources and stand-ins are accepted when each is
+  registered in GEN.725 (docs/design/research/stand-in-values.md) with
+  tier and tweak level and documented as the best available fit. The
+  equilibrium height does not depend on the fluid density; what does is
+  dissipation and the depth response (the basin and resonance, the
+  fluid's viscosity and density in the shallow-water speed sqrt(g d)),
+  the Love-number factor for the solid or liquid-over-solid body, which
+  liquids are stable at the surface temperature and pressure (freezing,
+  boiling, which liquids exist as oceans on which worlds, the registry
+  of ocean liquids), and ice-covered oceans. A research thread (not the
+  Tides lane) does the sweep across every lane's data, writes the
+  findings in a design draft
+  (/mnt/project-files/reports/design-drafts/), and this item is
+  rewritten from the result: the stored column names, the liquid list,
+  the stand-ins.
   Prerequisites: none. Related: GEN.957, GEN.959, GEN.842.
 
 ## PERF: Speed, caching, bulk generation and parallel work
