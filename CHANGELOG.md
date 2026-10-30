@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2627] - 2026-10-30
+
+**Headline:** Radiation doses on thin-air worlds and the ozone layer now follow measured physics.
+
+### Changed
+- **The cosmic-ray dose of a thin or absent air column (GEN.746).** Between no air (the Moon) and 100 g/cm2 of air the dose is no longer a straight line between anchors: it is the cosmic-ray primaries thinned by nuclear collisions plus a shower that builds up with depth, fitted to the Moon, to Mars (232 mSv/yr at 22.6 g/cm2 and the slope Guo measured) and to the shower peak of the Atri table. A world with 0.1 to 50 g/cm2 of air now has a dose that rises toward the peak the way real columns do.
+- **The dose from a star's particle storms (GEN.747).** The old 20 mSv/yr constant is replaced by the sum of 47 measured solar particle events (1997 to 2015), taken at the blood-forming organs: about 265 mSv/yr in free space at the Sun's distance, less what an air column and a magnetic field keep out. Other stars scale by their flare rate and distance. Worlds with thin air and no field now score worse on radiation; the ozone-loss flag follows the new numbers.
+- **The ozone layer's temperature and spread (GEN.748).** The visible (Chappuis) absorption of ozone now depends on temperature, read from the Burkholder and Talukdar tables (cached on the next setup download of the ozone data), at the temperature of each body's ozone layer rather than a fixed 220 K. The spread of the ozone column around its median is now the range the published models give at each oxygen level, narrower where they agree, instead of one wide range everywhere.
+- The stand-ins of all three are in the registry (gap-filling plan 6.23, rows CR1 to CR4, SE1 to SE5, OZ1 to OZ3), each with its source tier and tweak level.
+- generation-output: changed
+
 ## [8.0.2626] - 2026-10-30
 
 **Headline:** The stars of a globular cluster, a young cluster or a satellite galaxy now draw their composition from their own component instead of a halo value.
