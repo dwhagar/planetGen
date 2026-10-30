@@ -15615,6 +15615,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Follows slice 1. Owner: Core 5. Version 8.1.
   Prerequisites: none. Related: PERF.137.
 
+- [ ] **PERF.209 The generator battery digest costs about 30 s in every test process (its docstring says 3 to 5 s); the bright-star table build alone is 18 s**
+  Found by Aux 5 while building TEST.403 (as the lane reported 10:36 PM
+  EDT 2026-10-29): the generator battery digest costs about 30 s at the
+  start of every test process; its docstring says 3 to 5 s; the
+  bright-star scatter case alone takes 18 s
+  (star_population._bright_table). GEN.935 also makes the bright-star
+  tables slower (about 4 s against 1 s for the reference table, Star 1's
+  PR #3842). Do: profile it, cache the table across processes (or build
+  it once per test session), and keep the digest identical. No output
+  change. Owner: Aux 5. Version 8.1.
+  Prerequisites: none. Related: TEST.403, PERF.188, GEN.935.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
