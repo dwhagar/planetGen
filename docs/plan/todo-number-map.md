@@ -2477,7 +2477,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.200 | Galaxy Map node cut bookkeeping: about half the busy time in the profile is string building, geometry recomputation and cache re-insertion | none | open |
 | PERF.201 | The neighborhood job test (test_api_job_runs, a_neighborhood_job_runs_its_sectors_through_the_wrapper) takes over 150 s because generation physics is slow on main: find the slow step and speed it up with identical values (bug) | none | done, PR #3633 |
 | PERF.202 | Move each generating verb's starter handlers and start-time checks into the step units, so a verb is expressible as units in one run | none | done, PR #3857 |
-| PERF.203 | The Generate page and job_runner follow one wrapper run: one command list, one run, with the page's progress, state and log files kept | none | open |
+| PERF.203 | The Generate page and job_runner follow one wrapper run: one command list, one run, with the page's progress, state and log files kept | none | done, PR #4100 |
 | PERF.204 | An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2) | none | open |
 | PERF.205 | Keyset paging for the species list and the built phenomena list (slice 2 of the PERF.137 OFFSET audit) | none | done, PR #3916 |
 | PERF.206 | Keyset walk for the octant and binary system group queries (slice 3 of the PERF.137 OFFSET audit) | none | done, PR #3929 |
