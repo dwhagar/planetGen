@@ -12020,6 +12020,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
   nasa_glenn_species.json and saturation_pressure.json are in the repo.
   Catalog sections 1 and 2.
+  Progress (2026-10-30 12:22 PM EDT): Sources 1 (as the lane reported):
+  part 4 (cp for every gas in the table, registry IR9) and part 3
+  (tropopause step is a model level nothing reads, surface temperature
+  moves under 0.1 K when it steps, registry IR10, no code change) merged
+  in #4048 at 12:20 PM EDT. Part 2 (NH3, SO2, H2S, CO and HCN ExoMol
+  k-tables in the setup download, about 2 GB more, derive_version 2) is
+  on claude/gen852-tables head ea5dbe456 and rides a train (new epoch,
+  --affects the air and greenhouse stage, no migration). Part 1 (Venus
+  clouds and the CO2 far wing) moved to its own item, GEN.1019.
 
 - [ ] **GEN.854 Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug)**
   Boss, 6:59 PM EDT 2026-10-28 (relayed by the coordinator), live
@@ -13685,6 +13694,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   census re-tag on a merge train. First output-changing part of
   GEN.1006; it can go before P3. Owner: Bug 1 (star lane) after GEN.951.
   Prerequisites: none. Related: GEN.1006, GEN.1004, GEN.1009, TEST.476.
+
+- [ ] **GEN.1019 Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in)**
+  Split from GEN.852 part 1 by Sources 1 (relayed 12:19 PM EDT
+  2026-10-30 as the lane reported). A far-wing line shape for CO2 needs
+  a chi-factor or line-wing treatment; the HITRAN CO2 line list is not
+  held in reduced form, and a Venus cloud needs a sulphuric-acid cloud
+  layer in the aerosol model. Do: (1) source a published CO2 far-wing
+  treatment (second-hand is fine, widest range when two are in question)
+  and use it in place of the labelled IR3 stand-in; (2) add a
+  sulphuric-acid cloud layer to the aerosol model from published Venus
+  cloud models (mode sizes, optical depth, base and top heights) so a
+  Venus-like air gets its cloud, drawn from the air and not from Venus
+  itself (no fixed Solar System content); (3) register every stand-in in
+  GEN.725 with tier and tweak level. Done: a thick-CO2 test air gets a
+  surface temperature inside the published range for the model, an air
+  with no sulphur gets no acid cloud, and the registry rows exist. The
+  pure module, tests and registry rows are lock-free; wiring that
+  changes stored output rides a train. Owner: Sources 1.
+  Prerequisites: GEN.852. Related: GEN.715, GEN.852, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
