@@ -2031,12 +2031,14 @@ Added in v64 (GEN.100) and v77. `planetgen plan` places every black hole, neutro
 
 ### `sector_system_counts`
 
-Added in v82 (PERF.74). How many star systems each sector holds, as of the last refresh (`query.refresh_sector_system_counts`), so the Sectors list and its sorts by systems and density read this table instead of counting every system per request. A sector with no systems has no row.
+Added in v82 (PERF.74); `system_density` and `quadrant` and a row for every sector from v181 (PERF.208). Each sector's system count, system density and Quadrant as of the last refresh (`query.refresh_sector_system_counts`), so the Sectors list reads these instead of counting every system per request and its sorts by systems, density and position page by key on the three indexes. Derived data: the refresh makes every row again, in the background and not more often than every 30 s; a sector made since has no row until it runs, and the list shows it after the others with a count of 0.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `sector_id` | BIGINT UNSIGNED | PK | FK-like to `sectors.id` (no constraint). |
 | `system_count` | INT UNSIGNED | NOT NULL | The systems it holds. Indexed with `sector_id` (`idx_sector_system_counts_count`). |
+| `system_density` | DOUBLE | NULL | v181. Systems per cubic milliparsec of the sector (`system_count` over `sectors.edge_mpc` cubed). NULL for a sector with no galaxy position. Indexed with `sector_id` (`idx_sector_system_counts_density`). |
+| `quadrant` | VARCHAR(8) | NULL | v181. `'I'` to `'IV'`, the bands of `spherical.sector_quadrant`. NULL for a sector with no galaxy position. Indexed with `sector_id` (`idx_sector_system_counts_quadrant`). |
 
 ### `system_interests`
 
@@ -2307,6 +2309,10 @@ Migration 0153 adds `mantle_eta0_pa_s`, `mantle_activation_kj_mol` and `internal
 ### v152 (GEN.700): the tide heat flow of an icy moon
 
 Migration 0152 adds `tidal_flux_w_m2` (DOUBLE, nullable) to `planets` and `moons`, at the end of each table (a planet has no tide and keeps NULL). The generator drew the tide before and discarded it after thickening or thinning the ice lid; it is now kept and added to the heat flow the chemical energy of the ocean's life reads (`energy_flux_w_m2`, [habitability-index.md](../design/habitability/habitability-index.md) section 8). The forced eccentricity behind a tide is not stored, so a moon saved earlier keeps NULL and its stored energy flux; only a moon generated now has it. One ALTER for each table with no `ALGORITHM=INSTANT` (both have a FULLTEXT index); a column already there is left alone. The version is detected from `planets.tidal_flux_w_m2`.
+### v181 (PERF.208): the Sectors list's sorts by key
+
+Migration 0181 adds `system_density` and `quadrant` to `sector_system_counts`, each with an index ending in `sector_id`, and fills the table again so that every sector has a row (before, a sector with no systems had none). Nothing else moves, and the table is derived data. The Sectors list sorted by systems, density or position pages by key on these indexes: with 1,000,000 sectors a page took 2.5 to 8 s whatever its depth and now takes 2 to 40 ms.
+
 ### v180 (DB.70): a moon's origin and its giant's disk
 
 Migration 0180 adds to `planets` and `moons`: `moon_origin` (VARCHAR(8)) and four DOUBLE columns, `moon_disk_lifetime_myr`, `moon_disk_alpha_over_f`, `moon_disk_f_inf` and `moon_disk_ice_line_km`, all nullable, each at the end of the table. Nothing is backfilled: the origin and the disk are draws of the generator epoch, so a row made before the revision keeps NULL and the regenerated galaxy replaces it. A stopped run can be started again (a column already there is skipped).

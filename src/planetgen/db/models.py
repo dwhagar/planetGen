@@ -2469,7 +2469,11 @@ sector_system_counts = sa.Table(
     metadata,
     sa.Column('sector_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
     sa.Column('system_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('system_density', mysql.DOUBLE(), nullable=True),
+    sa.Column('quadrant', sa.String(8), nullable=True),
     sa.Index('idx_sector_system_counts_count', 'system_count', 'sector_id'),
+    sa.Index('idx_sector_system_counts_density', 'system_density', 'sector_id'),
+    sa.Index('idx_sector_system_counts_quadrant', 'quadrant', 'sector_id'),
     mysql_engine="InnoDB",
 )
 

@@ -2,6 +2,35 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2648] - 2026-10-30
+
+**Headline:** The Sectors list opens any page as fast as the first when sorted by systems, density or galaxy position, and `planetgen planets` and `moons` page without a filter too.
+
+### Changed
+- **The Sectors table pages by key in every sort.** Sorted by systems, density or galaxy position, the page links carry the sector the page before ended on and the list carries on from it, so a page deep in the list costs what the first does. Each sector's system count, density and Quadrant are now stored and indexed (`sector_system_counts` gains `system_density` and `quadrant`, and holds a row for every sector). With 1,000,000 sectors a page took 2.5 to 8 seconds in these sorts and now takes 2 to 40 milliseconds. Sectors that tie now follow the sort's direction by ID instead of by distance. A sector made since the stored figures were last refreshed is listed after the others until they are. `GET /api/sectors?after=<sector ID>` now works in these sorts as well. The migration (0181) fills the stored figures again.
+- **`planetgen planets` and `planetgen moons` page without a filter too (PERF.215).** The page walks the systems by name in chunks and sorts only the bodies of each chunk, where the listing sorted every planet or moon of the galaxy for a page: with 6,000,000 planets the first page took 48 seconds and any page now takes 5 to 33 milliseconds.
+
+## [8.0.2647] - 2026-10-30
+
+**Headline:** A giant's dynamo region and field can now be worked out from its interior layers (built, not wired in yet; nothing generated changes).
+
+### Changed
+- **The dynamo region of a giant (GEN.809, the lock-free half).** `physics/giant_dynamo.py` takes a giant's interior layers, its radius, the heat it radiates and its spin, finds the shell that carries its dynamo (the metallic hydrogen layer of a gas giant or brown dwarf, the conducting water of an ice giant's mantle; the helium gradient, helium shell and dilute core under a gas giant's are stable and left out) and gives the field of `dynamo.py` for it. Jupiter-like draws land within a factor of four of Jupiter's moment and differ with the drawn metallization pressure; a Saturn-like giant comes out weaker than a Jupiter-like one (still several times Saturn's own, the stable layer above its dynamo is not modelled); a slowly turning hot giant is multipolar; a Neptune-like ice giant lands within a factor of ten of Neptune's moment but as a dipole, which Neptune's field is not. The generator does not call it yet: the wiring step replaces the three giant anchors of `magnetism` and rides a train after the giant structure of GEN.733.
+
+## [8.0.2646] - 2026-10-30
+
+**Headline:** Pressing Back twice quickly across a sector change now lands on the right system.
+
+### Fixed
+- **Two quick presses of Back across a sector change (MAP.352).** Pressing Back twice in quick succession, the second time to a system in a different sector than the one the first press was moving to, lost the system: the second entry's open request was handed to the display the first move was arriving at and dropped. A move still under way is now finished before the next history entry is read, and a sector or system still loading for the view being left is cancelled when the next view is taken up, so the second press lands on its system.
+
+## [8.0.2645] - 2026-10-30
+
+**Headline:** A browser test now holds that at sector zoom every kind of thing a sector holds is drawn, named under the pointer and picked by a click.
+
+### Changed
+- **Sector zoom draws and picks every kind (MAP.302).** On the fixture sector (now with a brown dwarf, a black hole, an asteroid field, a supernova remnant, an interstellar comet and a quasar beside its stars, nebula, neutron star and rogue planets) the opened sector is checked kind by kind: each is in the scene, a hover where it is drawn names it, and a click picks it and opens its panel. Nothing was missing in the drawing; rogue planets stay off until asked for in the Menu (they outnumber the stars), so the test opens the page with them shown. Clusters and facilities are not sector contents yet (a globular cluster is a galaxy-scale container; stations and facilities are MAP.307, 8.3).
+
 ## [8.0.2644] - 2026-10-30
 
 **Headline:** The component pass test that took over 900 s on a four-core machine now takes about 35 s, and the register names the open item for two more unread things.

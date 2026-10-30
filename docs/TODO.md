@@ -2096,28 +2096,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
   Prerequisites: VIEW.14.
 
-- [ ] **MAP.302 At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: as one gets to a
-  sector-level zoom all items should appear from comets, rogue planets,
-  etc etc. Do: list what the sector-level view draws today and fill the
-  gaps so that at that zoom every object kind in the sector is drawn and
-  pickable (stars, systems, bodies where size allows, comets, rogue
-  planets, asteroid fields, brown dwarfs, black holes and neutron stars,
-  nebulae, clusters, facilities), each from the node cut down to its own
-  record, with names by MAP.298. Done: a browser test on the fixture
-  sector at sector zoom finds one of every kind it holds. Part of one
-  chain filed from that message: TEST.368 (fixture galaxy), MAP.295 and
-  MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking, labels, zoom,
-  icons; Aux 10). Owner: Aux 10.
-  Research (2026-10-09): OWNER Aux 3 (assigned 7:20 PM EDT 2026-10-29
-  after Boss asked where the map labelling part stands; Aux 10 is
-  retired). Lock-free; separate branch from Aux 3's parked GEN.816
-  branch. Its MAP.299 label work (#3754) is merged, so names for every
-  kind come from that engine.
-  Prerequisites: TEST.368. Related: MAP.298, MAP.207, MAP.301.
-
 - [ ] **MAP.307 Stations and facilities become points of interest: interest reasons for the map mark and its menu filter**
   Boss, 7:37 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiWkyk1uvowuCjYSiP92Pofq, relayed by the
@@ -2324,17 +2302,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first time). Boss to say if the region and parent Go to lines should
   be in the first view instead
   Prerequisites: none. Related: MAP.336.
-
-- [ ] **MAP.352 Back to a system in a different sector fails when pressed before the first Back has finished (bug)**
-  Core 2 report (as the lane reported 11:35 PM EDT 2026-10-29), found
-  while fixing TEST.450: pressing Back to a system in a different sector
-  before the previous Back has finished its move can fail (a timing
-  race, not reproduced reliably; Core 2's test now waits). Do: reproduce
-  with two quick Back presses across a sector change, find which load or
-  camera move the second press races with, queue or ignore the second
-  press until the first finishes, and add a test that presses twice
-  without waiting. Owner: Core 2. Version 8.1.
-  Prerequisites: none. Related: TEST.450, MAP.347.
 
 ## NAV: Navigation and courses
 
@@ -14778,21 +14745,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.149.
   Prerequisites: none. Related: PERF.149.
 
-- [ ] **PERF.208 A stored, indexed sector system count, density and quadrant so the remaining Sectors list sorts page by key (slice 5 of the PERF.137 OFFSET audit)**
-  Slice 5 of the PERF.137 audit (report
-  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
-  2026-10-29): the three other Sectors list sorts (system count,
-  density, quadrant) cannot page by key because the sort value is
-  computed per row, so every page is a full filesort (5 to 8 s deep at
-  1,000,000 sectors). Do: store the sector system count, density and
-  quadrant as indexed columns written by the stage that places the
-  systems (new numeric columns go in db/column_units.py), page those
-  sorts by (value, id), and rescore existing galaxies with a repair
-  command rather than a shim. A schema change (Alembic revision) and a
-  stored-value change; lock-free only if no generated value moves.
-  Follows slice 1. Owner: Core 5. Version 8.1.
-  Prerequisites: none. Related: PERF.137.
-
 - [ ] **PERF.209 The generator battery digest costs about 30 s in every test process (its docstring says 3 to 5 s); the bright-star table build alone is 18 s**
   Found by Aux 5 while building TEST.403 (as the lane reported 10:36 PM
   EDT 2026-10-29): the generator battery digest costs about 30 s at the
@@ -14834,6 +14786,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   those sizes, or the exception is stated on this item with the measure.
   No generated value changes; indexes and keyset paging only. Size M.
   Owner: Core 5 when its queue ends.
+  Core 5 audit list (PERF.208 and PERF.215 merged #3949) (2026-10-30
+  4:44 AM EDT): remaining slow spots: species by homeworld and system
+  sorts, phenomena by type, descriptor, radius, sector and placed, the
+  systems and sectors CLI subcommands, and a deep offset-form sectors
+  page (1 to 3 s; the table uses keys). PERF.215 closed without the
+  planets index: MySQL cannot serve a two-table ORDER BY from a join
+  index, so unfiltered planets and moons walk the systems by name in
+  chunks of up to 1000 (6M planets, first page 48 s to 20 ms)
   Prerequisites: none. Related: PERF.206, PERF.210.
 
 - [ ] **PERF.212 The bright-star, phenomena and shell scatters take their params when their stage opens, not when the run is built**
@@ -14881,19 +14841,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (2026-10-30 2:54 AM EDT): Core 3 takes this after PERF.213
   (TODO); lock-free, no stored-output change
   Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
-
-- [ ] **PERF.215 An unfiltered planets or moons list pages by key: an index on planets (star_system_id, orbital_index) so the name-then-orbit order is served by the index**
-  Core 5 (as the lane reported, 3:17 AM EDT 2026-10-30), after PERF.207
-  (#3935; planetgen planets and moons take --limit and --after): at
-  6,000,000 planets a filtered list by system, sector or class costs
-  about 40 ms a page, but the unfiltered list still costs 18 s a page
-  because the name-then-orbit order has no index. Do: add the index (and
-  the moons equivalent), page the unfiltered list by key, and measure at
-  6,000,000 planets. Done: an unfiltered page answers in under 100 ms at
-  that size. An index only, no stored value, no epoch; it takes a
-  migration number, so build it with PERF.208's migration in the same
-  sitting. Size S. Owner: Core 5.
-  Prerequisites: PERF.208. Related: PERF.207, PERF.208.
 
 ## DB: Database and schema
 

@@ -4329,6 +4329,35 @@ def test_a_step_across_the_sector_edge_opens_the_system_beside_in_its_own_sector
                            arg=[was], timeout=30000)
 
 
+@pytest.mark.parametrize("gap", [-1, 0, 30, 60, 90, 150, 400, 1000])
+def test_two_quick_presses_of_back_across_a_sector_change_land_on_the_system_the_second_one_asks_for(page, map_site, gap):
+    """MAP.352: Back pressed twice with no wait, from Middling Sun reached by stepping west from Across The Edge (the sector beside),
+    goes to the first sector's own entry and then to Across The Edge in the sector beside: the second press, a system in a different
+    sector, is not lost to the first one's move, and the map ends on that system."""
+    _open_system_in_place(page, map_site)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStepTo('east') === 'Across The Edge'", timeout=20000)
+    page.click("#galaxymap3d-menu > summary")
+    for direction, name in (("east", "Across The Edge"), ("west", "Middling Sun")):
+        page.wait_for_function("([d, n]) => document.querySelector('#galaxymap3d-canvas').galaxyStepTo(d) === n", arg=[direction, name], timeout=30000)
+        before = _galaxy_system(page)["id"]
+        page.click(f'#galaxymap3d-controls [data-step="{direction}"]')
+        page.wait_for_function("([was]) => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); return !!s && s.id !== was && !s.flying; }",
+                               arg=[before], timeout=30000)
+        _settle(page)
+        assert _galaxy_system(page)["name"] == name
+    beside = next(i for i, n, *_r in BESIDE_SYSTEMS if n == "Across The Edge")
+    if gap < 0:
+        page.go_back()
+        page.go_back()
+    else:
+        page.evaluate("(gap) => new Promise((done) => { const back = document.querySelector('#galaxymap3d-controls [data-action=back]'); back.click(); setTimeout(() => { back.click(); done(); }, gap); })", gap)
+    page.wait_for_function("([wanted]) => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); return !!s && s.id === wanted && !s.flying; }",
+                           arg=[beside], timeout=40000)
+    _settle(page)
+    assert _galaxy_system(page)["id"] == beside
+    assert f"system={beside}" in _query(page) and f"sector={BESIDE_CODE}" in _query(page), _query(page)
+
+
 def test_a_close_pairs_two_orbits_are_drawn_each_at_its_share(page, map_site):
     """MAP.136: both stars of a close pair circle the barycenter on their own
     line, the lighter one on the wider (the fixture pair's mass fraction is
@@ -5353,3 +5382,70 @@ def test_the_wheel_heads_for_the_crowd_in_front_of_the_zoom_and_does_not_fly_thr
     # middle. Where it rests within the region depends on the frames the approach took, so the test holds the region, not a point.
     assert came < DENSE_HALO_RADIUS_PC / 2, f"the camera came into the region ({came:.2f} pc from its middle)"
     assert math.dist(eye, DENSE_CENTER_PC) < DENSE_HALO_RADIUS_PC, f"and rests in it, not beyond ({eye})"
+
+
+SECTOR_KIND_OF_PHENOMENON = {
+    "nebula": "nebula", "neutron_star": "neutronStar", "rogue_planet": "roguePlanet", "black_hole": "blackHole",
+    "asteroid_field": "asteroidField", "supernova_remnant": "supernovaRemnant", "interstellar_comet": "interstellarComet", "quasar": "quasar",
+}
+"""The kind the Sector Map gives each type of phenomenon the fixture sector holds (`sectorscene.js`'s `kindOf`)."""
+
+HOVER_AT = """([x, y]) => {
+    const canvas = document.querySelector("#galaxymap3d-canvas");
+    const tip = document.querySelector("#galaxymap3d-tooltip");
+    canvas.dispatchEvent(new PointerEvent("pointermove", {clientX: x, clientY: y, bubbles: true, pointerType: "mouse"}));
+    return tip.hidden ? "" : tip.textContent;
+}"""
+
+
+def _picks_by_hover(page, entry):
+    """Whether a hover at, or a few pixels round, the screen point where `entry` is drawn names it; returns that point or None."""
+    spot = page.evaluate("([x, y, z]) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(x, y, z)", [entry["x"], entry["y"], entry["z"]])
+    if not spot:
+        return None
+    for dx, dy in [(0, 0)] + [(a, b) for a in (-4, 0, 4) for b in (-4, 0, 4) if a or b]:
+        point = [spot["x"] + dx, spot["y"] + dy]
+        if page.evaluate("([x, y]) => document.elementFromPoint(x, y) === document.querySelector('#galaxymap3d-canvas')", point) and \
+                entry["name"] in page.evaluate(HOVER_AT, point):
+            return point
+    return None
+
+
+def test_the_opened_sector_draws_and_picks_one_of_every_kind_it_holds(page, map_site):
+    """MAP.302: at sector zoom (the sector opened in place) every kind of thing the fixture sector holds is in the scene, drawn on the
+    map, named when the pointer is over it and picked by a click: stars (a binary and a brown dwarf among them), a nebula, a supernova
+    remnant, an asteroid field, a black hole, a neutron star, a quasar, rogue planets and an interstellar comet. Rogue planets are the one kind
+    the Menu leaves off until asked for (they outnumber the stars), so the page is opened with them shown."""
+    page.add_init_script(NO_WALL_ICONS)
+    page.set_viewport_size(VIEWPORT)
+    _open(page, f"{map_site}/galaxy?sector={PRIME_CODE}&open=1&show=roguePlanet", GALAXY_CANVAS)
+    page.wait_for_function("() => { const open = document.querySelector('#galaxymap3d-canvas').galaxyOpenSector();"
+                           " return !!open && open.share >= 0.999; }", timeout=30000)
+    _settle(page)
+    entries = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySectorEntries()")
+    held = {"star"} | {SECTOR_KIND_OF_PHENOMENON[p["type"]] for p in PHENOMENA}
+    assert held <= {entry["kind"] for entry in entries}, f"the scene lacks {sorted(held - {e['kind'] for e in entries})}"
+    assert not [e for e in entries if e["hidden"]], "with the rogue planets shown (they are off until asked for) nothing is left off the map"
+    names = {entry["name"] for entry in entries}
+    assert {name for _id, name, *_rest in SYSTEMS} | {p["name"] for p in PHENOMENA} <= names
+
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    missed = []
+    for kind in sorted(held):
+        of_kind = [entry for entry in entries if entry["kind"] == kind and not entry["hidden"]]
+        found = None
+        for entry in of_kind:
+            point = _picks_by_hover(page, entry)
+            if point:
+                found = (entry, point)
+                break
+        if not found:
+            missed.append(kind)
+            continue
+        entry, point = found
+        page.mouse.click(*point)
+        title = _info_title(page)
+        assert title == entry["name"], f"a click on the {kind} {entry['name']!r} picked {title!r}"
+        page.mouse.click(box["x"] + 3, box["y"] + 3)  # empty space between picks (it keeps the selection; the next pick replaces it)
+    assert not missed, f"no hover named a {missed} where it is drawn"

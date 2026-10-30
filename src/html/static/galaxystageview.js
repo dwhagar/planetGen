@@ -1142,6 +1142,12 @@ export function createStageView(host) {
     const keep = !!((options.keepCamera || keepNext) && view && display);
     keepNext = false;
     if (entered) closeSector();
+    else {
+      // MAP.352: a sector or system still loading for the view being left is not wanted in the one taken up now.
+      enterToken += 1;
+      enterSystemToken += 1;
+      entering = false;
+    }
     // MAP.268: the selection is not a stage's: a crossing the wheel makes from one window to the next (the camera
     // kept) keeps the selected and the picked sector, so what is selected at one scale is still selected at the next.
     if (!options.keepSector && !keep) selectedSector = null;
@@ -2187,6 +2193,18 @@ export function createStageView(host) {
   // (the panel names the sector from its address before the scene has been fetched, and a click then falls on a cell).
   canvasEl.galaxyOpenSector = function () {
     return sectorStage.isOpen() ? { id: sectorStage.sectorId(), share: sectorStage.fade() } : null;
+  };
+
+  // For the browser tests (MAP.302): every entry of the sector opened in place, {key, kind, name, x, y, z, hidden}, in the map's frame
+  // (parsecs) as galaxyScreenOf takes it, so a test can look for one of every kind the sector holds and click where it is drawn.
+  canvasEl.galaxySectorEntries = function () {
+    if (!sectorStage.isOpen()) return [];
+    return sectorStage.entries().map(function (entry) {
+      return {
+        key: entry.key || null, kind: sectorStage.kindOf(entry), name: entry.name || "", x: entry.x, y: entry.y, z: entry.z,
+        hidden: sectorStage.hides(entry),
+      };
+    });
   };
 
   // --- The sector opened in place (MAP.66) ------------------------------------
@@ -3927,6 +3945,10 @@ export function createStageView(host) {
 
   function onPopState(event) {
     if (!active || pinned) return;
+    // MAP.352: a move a quick press before this one began is finished first, with what it was asked to open, so what this entry asks
+    // to open is not handed to the display that move was arriving at.
+    if (animation) finishAnimation();
+    if (crossFade) finishCross();
     const state = event.state && event.state.galaxyStage ? event.state : null;
     mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
     maxIndex = Math.max(maxIndex, mapIndex);

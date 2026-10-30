@@ -83,7 +83,7 @@ def test_the_sectors_list_gives_each_sectors_system_count(galaxy):
     assert by_systems == sorted(by_systems, reverse=True)
     stored = {row["sector_id"]: row["system_count"] for row in galaxy.execute(
         "SELECT sector_id, system_count FROM sector_system_counts").fetchall()}
-    assert sum(stored.values()) == 13 and len(stored) == 3
+    assert sum(stored.values()) == 13 and len(stored) == 4       # every sector has a row (PERF.208), the empty one too
 
 
 def test_the_scattered_point_query_has_an_index_of_its_own(galaxy):

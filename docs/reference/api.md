@@ -113,16 +113,17 @@ connectivity to that specific schema rather than the default one.
   (`queryDb.list_sectors`/`count_sectors`). The Sectors table (UX.41) also
   takes `sort` (`name`, `systems`, `density`, `position`, `distance`) with
   `order=asc|desc` (unplaced sectors sort last for `density`, `distance` and
-  `position`; ties keep the default order), the repeatable filter
+  `position`; ties follow the sort's direction by sector ID), the repeatable filter
   `quadrant` (`I`-`IV`, or `unplaced`) and `facets=1`, which adds
   `facets: {"quadrant": [{"value", "count"}]}` (the menu ignores its own
   filter). `total` counts the sectors that pass the filter; a bad `sort` or
-  `order` is a 400. `after=<sector ID>` (PERF.137) starts the page after that
-  sector in the default order and the `name` and `distance` sorts and ignores
-  `offset`: the placed sectors are read by the distance index and the unplaced ones
-  after them by name, so a page costs the same at any depth (sectors at the same
-  distance follow the sort's direction by id); the other sorts ignore `after`. An
-  `after` that is not a sector ID is a 400.
+  `order` is a 400. `after=<sector ID>` (PERF.137, PERF.208) starts the page after that
+  sector in every sort and ignores `offset`, so a page costs the same at any depth: the
+  placed sectors are read by the distance index and the unplaced ones after them by name; the
+  systems, density and position sorts read the stored count, density and Quadrant
+  (`sector_system_counts`) by index, with the sectors that have no galaxy position last, and
+  sectors that tie follow the sort's direction by id; a sector made since the last refresh of
+  those figures follows the others. An `after` that is not a sector ID is a 400.
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
