@@ -3617,6 +3617,14 @@ PHENOMENON_DENSITY_PC3 = {
 """dict: Local number density per pc^3 at REFERENCE_STELLAR_DENSITY_PC3,
 the research value for each kind (see the design doc's table)."""
 
+WEIRDNESS_DIAL = 1.0
+"""float: The world-level weirdness dial (GEN.1036, docs/design/systems/weird-worlds.md 4.4): it multiplies the rate of every oddity row
+(`physics/oddities.py`); 0 turns every oddity off, 1 gives the literature rates. Default 1.0 (design; Boss asked for a dial,
+4:15 PM EDT 2026-10-30)."""
+
+WEIRDNESS_RATE_SCALE = {}
+"""dict: A multiplier per oddity id (`{"W10": 0.5}`, default 1.0 for any id not named), applied with `WEIRDNESS_DIAL` to the rate of that row."""
+
 PHENOMENON_RATE_SCALE = {kind: 1.0 for kind in _phenomena_registry.rated_kinds()}
 """dict: A multiplier per kind (default 1.0) to dial a rate up or down
 without touching its research value -- e.g. 0.1 for "rogue-planet" gives

@@ -1,6 +1,6 @@
 # Stability of a 3+1 quadruple star system (GEN.1029)
 
-Part of GEN.1006 (overlap-free multi-star systems, [overlap-free-systems.md](overlap-free-systems.md) section 5 and 13). This note says which criterion the generator uses for a 3+1 quadruple, how it was ported, how accurate it is, and what it does not cover. The module is `physics/quadruple_stability.py`; GEN.1016 (Core 3) wires it into the multi-star limits. Stand-in rows QS1 to QS4 in section 6.72 of [gap-filling-plan.md](../research/gap-filling-plan.md).
+Part of GEN.1006 (overlap-free multi-star systems, [overlap-free-systems.md](overlap-free-systems.md) section 5 and 13). This note says which criterion the generator uses for a 3+1 quadruple, how it was ported, how accurate it is, and what it does not cover. The module is `physics/quadruple_stability.py`; GEN.1016 (Core 3) wires it into the multi-star limits. Stand-in rows QS1 to QS4 in section 6.74 of [gap-filling-plan.md](../research/gap-filling-plan.md).
 
 ## 1. The problem
 
