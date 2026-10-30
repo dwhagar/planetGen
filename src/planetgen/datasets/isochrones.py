@@ -48,7 +48,7 @@ DATASET = fetch.Dataset(
     fallback="no MIST point, so no luminosity, temperature, radius or lifetime for a star (an open item on the star)",
     derived=(DERIVED, POST_DERIVED),
     derive=lambda folder: derive(folder),
-    derive_version=2,
+    derive_version=3,
 )
 
 _COLUMNS = {"log_age": 1, "initial_mass": 2, "star_mass": 3, "log_l": 7, "log_teff": 10, "log_r": 11, "h1": 13, "c12": 16,
@@ -60,13 +60,15 @@ belongs to `post_main_sequence.npz`."""
 
 
 def parse_isochrone_file(lines):
-    """Reads one MIST `.iso` file (an iterable of byte lines): returns `(y_init, z_init, fe_h, rows, post_rows)` where
+    """Reads one MIST `.iso` file (an iterable of byte lines): returns `(y_init, z_init, fe_h, rows, post_rows, pre_edge)` where
     `rows` is a float32 array of the main-sequence rows with columns log age, initial mass, log L, log Teff, log R and
     present mass, and `post_rows` a float64 array of the rows from `FIRST_POST_EEP` on with the columns of
     `evolved_tracks.ROW_COLUMNS` (equivalent evolutionary point, log age, initial mass, present mass, log L, log Teff,
-    log R, surface hydrogen and carbon fractions, phase)."""
+    log R, surface hydrogen and carbon fractions, phase), and `pre_edge` the heaviest star still contracting at each age (GEN.947: the
+    rows of phase -1), a float64 array of `(log age, initial mass)` from the youngest age to the oldest."""
     y_init = z_init = fe_h = None
     rows, post = [], []
+    contracting = {}
     previous_was_header = False
     for line in lines:
         text = line.strip()
@@ -84,7 +86,10 @@ def parse_isochrone_file(lines):
         if len(parts) <= _COLUMNS["phase"]:
             raise ValueError(f"not a MIST isochrone row: {len(parts)} columns, expected 25")
         phase = float(parts[_COLUMNS["phase"]])
-        if phase == 0.0:
+        if phase == -1.0:
+            age, mass = float(parts[_COLUMNS["log_age"]]), float(parts[_COLUMNS["initial_mass"]])
+            contracting[age] = max(contracting.get(age, 0.0), mass)
+        elif phase == 0.0:
             rows.append([float(parts[_COLUMNS[name]])
                          for name in ("log_age", "initial_mass", "log_l", "log_teff", "log_r", "star_mass")])
         elif float(parts[0]) >= FIRST_POST_EEP:
@@ -92,7 +97,9 @@ def parse_isochrone_file(lines):
                 "log_age", "initial_mass", "star_mass", "log_l", "log_teff", "log_r", "h1", "c12", "phase")])
     if y_init is None or not rows:
         raise ValueError("not a MIST isochrone file: no abundance line or no main-sequence rows")
-    return y_init, z_init, fe_h, np.asarray(rows, dtype=np.float32), np.asarray(post, dtype=np.float64).reshape(-1, 10)
+    pre_edge = np.asarray(sorted(contracting.items()), dtype=np.float64).reshape(-1, 2)
+    return (y_init, z_init, fe_h, np.asarray(rows, dtype=np.float32), np.asarray(post, dtype=np.float64).reshape(-1, 10),
+            pre_edge)
 
 
 def derive(folder):
@@ -110,6 +117,7 @@ def derive(folder):
               "z_init": np.array([entry[1] for entry in found])}
     for i, entry in enumerate(found):
         arrays[f"rows_{i}"] = entry[3]
+        arrays[f"pre_edge_{i}"] = entry[5]
     buffer = io.BytesIO()
     np.savez_compressed(buffer, **arrays)
     post = {"fe_h": arrays["fe_h"]}
@@ -130,6 +138,8 @@ class _Isochrone:
     z_init: float
     log_ages: np.ndarray
     blocks: tuple
+    pre_edge: np.ndarray = None
+    """`(log age, heaviest initial mass still contracting)` rows, youngest first (GEN.947); empty when the file holds none."""
 
     @staticmethod
     def _on_block(block, mass):
@@ -226,7 +236,8 @@ def _load(path):
             rows = data[f"rows_{i}"]
             ages = np.unique(rows[:, 0])
             blocks = tuple(rows[rows[:, 0] == age][:, 1:] for age in ages)
-            grid.append(_Isochrone(float(fe_h), float(data["y_init"][i]), float(data["z_init"][i]), ages.astype(float), blocks))
+            grid.append(_Isochrone(float(fe_h), float(data["y_init"][i]), float(data["z_init"][i]), ages.astype(float), blocks,
+                                   data[f"pre_edge_{i}"]))
     return tuple(grid)
 
 
@@ -353,6 +364,36 @@ def edge_point(mass_sol, fe_h, departure):
         found.append(tuple(n + (f - n) * along for n, f in zip(near, far)))
     first, second = found
     return tuple(a + (b - a) * weight for a, b in zip(first, second))
+
+
+def _arrival_log_age(isochrone, log_mass):
+    """The log age at which `isochrone`'s heaviest contracting star has fallen to the mass (log10), interpolated, or None outside
+    the masses the rows hold."""
+    edge = isochrone.pre_edge
+    if edge is None or len(edge) < 2:
+        return None
+    ages, log_masses = edge[:, 0], np.log10(edge[:, 1])
+    if log_mass > log_masses.max() or log_mass < log_masses.min():
+        return None
+    # The heaviest contracting mass falls with age; np.interp wants rising x, so the masses are read from the oldest age down.
+    order = np.argsort(log_masses, kind="stable")
+    return float(np.interp(log_mass, log_masses[order], ages[order]))
+
+
+def pre_main_sequence_arrival_yr(mass_sol, fe_h):
+    """
+    The age in years at which a star of initial mass `mass_sol` and birth `fe_h` has finished contracting onto the main sequence
+    in MIST (GEN.947): the age at which the heaviest star still in phase -1 of the isochrones (equivalent evolutionary points
+    before 202) has fallen to that mass, interpolated between the isochrone ages (0.05 dex apart) and between the two nearest
+    [Fe/H]. None when the mass is outside the rows (heavier than the contracting stars of the youngest isochrone, or lighter than
+    those of the oldest). Raises `fetch.DataMissing` when the isochrones were not downloaded.
+    """
+    log_mass = math.log10(mass_sol)
+    below, above, weight = _bracket(_grid(), fe_h)
+    found = [_arrival_log_age(isochrone, log_mass) for isochrone in (below, above)]
+    if found[0] is None or found[1] is None:
+        return None
+    return 10.0 ** (found[0] + (found[1] - found[0]) * weight)
 
 
 def main_sequence_point(mass_sol, age_gy, fe_h, clamp=False):

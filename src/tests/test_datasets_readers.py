@@ -48,6 +48,16 @@ def test_a_star_that_left_the_main_sequence_or_is_outside_the_ages_gets_none(mis
     assert isochrones.main_sequence_point(0.1, 1.0, 0.0) is None     # lighter than the grid's lowest mass
 
 
+def test_the_arrival_on_the_main_sequence_is_read_from_the_contracting_rows(mist):
+    """GEN.947: the age at which the heaviest star still in phase -1 has fallen to the mass, in the log of the mass."""
+    assert isochrones.pre_main_sequence_arrival_yr(0.9, 0.0) == pytest.approx(1.0e8, rel=1e-6)
+    assert isochrones.pre_main_sequence_arrival_yr(0.35, 0.0) == pytest.approx(1.0e9, rel=1e-6)
+    halfway = (np.log10(0.5) - np.log10(0.9)) / (np.log10(0.35) - np.log10(0.9))
+    assert isochrones.pre_main_sequence_arrival_yr(0.5, 0.0) == pytest.approx(10 ** (8.0 + halfway), rel=1e-6)
+    assert isochrones.pre_main_sequence_arrival_yr(2.0, 0.0) is None     # heavier than any contracting star of the rows
+    assert isochrones.pre_main_sequence_arrival_yr(0.05, 0.0) is None    # lighter than the oldest isochrone's
+
+
 def test_the_lifetime_follows_the_turn_off_and_metallicity_is_clamped(mist):
     assert isochrones.main_sequence_lifetime_gy(10 ** (1 / 2.5), 0.0) == pytest.approx(1.0, rel=0.02)  # a grid age
     between = isochrones.main_sequence_lifetime_gy(2.0, 0.0)

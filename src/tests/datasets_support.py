@@ -58,6 +58,10 @@ def install(monkeypatch, module, dataset, payloads):
 
 # ---- MIST ----
 
+PRE_EDGE_MASSES = {8.0: 0.9, 9.0: 0.35, 10.0: 0.15}
+"""dict: The heaviest contracting star (phase -1) of each fixture isochrone age."""
+
+
 def _iso_text(fe_h, y=0.27, z=0.014):
     """A MIST-format file: 3 ages; main-sequence masses 0.2 to the turn-off mass, then two evolved rows."""
     lines = ["# MIST version number  = 1.2", "# ---", "#  Yinit        Zinit   [Fe/H]   [a/Fe]  v/vcrit",
@@ -69,6 +73,8 @@ def _iso_text(fe_h, y=0.27, z=0.014):
             lines.append(_iso_row(eep, log_age, mass, fe_h, 0))
         for extra in range(2):
             lines.append(_iso_row(500 + extra, log_age, turn_off * (1 + 0.001 * extra), fe_h, 2))
+        for step, mass in enumerate((PRE_EDGE_MASSES[log_age] * 0.5, PRE_EDGE_MASSES[log_age])):
+            lines.append(_iso_row(5 + step, log_age, mass, fe_h, -1))
         lines.append("")
     return "\n".join(lines).encode()
 
