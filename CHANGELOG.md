@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2664] - 2026-10-30
+
+**Headline:** Acid-world, ammonia-water and silicon-in-acid life can now arise on worlds whose conditions fit, and sulfur, acid and cold-hydrogen life now change the air.
+
+### Changed
+
+- GEN.894: Classes 5, 8 and 9 now read real quantities instead of waiting for them. A world holds the acid medium of Classes 5 and 9 when its air makes a sulfuric acid cloud layer or pool (GEN.888); Class 8 reads the ammonia of its water, worked out from its ice and water shares; Class 9 also needs a silicon-rich crust (rock Mg/Si at or under 1). The acid classes get a reduced-sulfur supply from the air's sulfur dioxide, and the pool class (5b) and Class 9 need a pool, not just a cloud layer.
+- The gas ledger of sulfur-eating life (Class 4) and acid-eating life (Classes 5 and 9) now draws hydrogen sulfide down, and the acid eaters turn it into sulfur dioxide; Class 7 draws hydrogen down and makes methane of it. These are stand-in numbers, each with a tier and tweak level in the registry (LF61 and LF62).
+- Changes generated worlds (a new generator epoch); the quantities are worked out, nothing new is stored.
+
 ## [8.0.2663] - 2026-10-30
 
 **Headline:** A rocky planet's own water now follows the same delivery law as its air: more water the farther from the star and the heavier it is.
