@@ -12,7 +12,9 @@
   }
  },
  "anomalies": {
-   "GEN.898": "A stars are 0.15% of stars against 0.6% (Mamajek) to 1.1% (RECONS): the A/F edge moved to 7200 K (F0V) and the share rose from 0.11%, the rest is the recent star formation. At the reference solar position (the inter-arm minimum) the mix is 87% old, 12% intermediate, 0.1% young, which is the disk history of the Milky Way-like galaxy: its present rate over its mean is 0.27 to 0.38 against the observed 0.20, and its B share 0.02 to 0.05% against 0.04%, so more recent stars would break both; a constant history gives A 0.3%, and the observed figure is 4 stars of 378 (a 95% interval of 0.3% to 2.7%)"
+   "GEN.898": "A stars are 0.15% of stars against 0.6% (Mamajek) to 1.1% (RECONS): the A/F edge moved to 7200 K (F0V) and the share rose from 0.11%, the rest is the recent star formation. At the reference solar position (the inter-arm minimum) the mix is 87% old, 12% intermediate, 0.1% young, which is the disk history of the Milky Way-like galaxy: its present rate over its mean is 0.27 to 0.38 against the observed 0.20, and its B share 0.02 to 0.05% against 0.04%, so more recent stars would break both; a constant history gives A 0.3%, and the observed figure is 4 stars of 378 (a 95% interval of 0.3% to 2.7%)",
+   "GEN.943": "G stars are 2.9% of stars against 5.0% (RECONS) and 4.1% (Mamajek): the letter edges moved to the midpoints of the Pecaut and Mamajek dwarf sequence (G from 5,325 to 5,990 K, was 5,200 to 6,000; train 3, epoch 125), so fewer stars fall in G; Star 1 decides whether the edge or the star mix is the fault",
+   "TEST.473": "The A0V companion rate is 0.7456 against the norm edge 0.7367 (0.70 plus the draws' tolerance): arrived with train 3 (epoch 125), one cell 1.2 points over its edge; Star 2 and Star 1 look at the companion draw"
  },
  "hangs": {"anomaly": ""},
  "errors": {"anomaly": ""},
@@ -22,7 +24,7 @@
   "K": {"norm_min": 0.10, "norm_max": 0.14, "kind": "observed",
         "source": "RECONS 44 of 378 = 0.116; Mamajek 0.129"},
   "G": {"norm_min": 0.035, "norm_max": 0.065, "kind": "observed",
-        "source": "RECONS 19 of 378 = 0.050; Mamajek 0.041"},
+        "source": "RECONS 19 of 378 = 0.050; Mamajek 0.041", "anomaly": "GEN.943"},
   "F": {"norm_min": 0.012, "norm_max": 0.040, "kind": "observed",
         "source": "RECONS 7 of 378 = 0.019; Mamajek 0.031"},
   "A": {"norm_min": 0.004, "norm_max": 0.016, "kind": "observed",
@@ -57,7 +59,7 @@
   },
   "A0V": {
    "companion": {"norm_min": 0.44, "norm_max": 0.70, "kind": "norm",
-                 "source": "De Rosa et al. 2014 about 0.44 from companions found; Duchene and Kraus 2013 at least 0.5; Moe and Di Stefano 2017 A and late B 0.59 +/- 0.11"}
+                 "source": "De Rosa et al. 2014 about 0.44 from companions found; Duchene and Kraus 2013 at least 0.5; Moe and Di Stefano 2017 A and late B 0.59 +/- 0.11", "anomaly": "TEST.473"}
   }
  }
 }
