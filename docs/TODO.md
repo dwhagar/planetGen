@@ -18850,24 +18850,6 @@ clears each one.
   with the property it checks kept. Owner: Planets 1. Version 8.1.
   Prerequisites: none. Related: GEN.728.
 
-- [ ] **TEST.481 Three tests red on clean main: the Hill sphere moon drop, the halo evolutionary flux counts and the large component phenomena unit (bug)**
-  Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
-  lane reported), red on clean main too:
-  test_moon_helpers::test_shrinking_the_hill_sphere_drops_the_outer_moons_first;
-  the halo flux test
-  test_the_halo_counts_match_the_evolutionary_flux_of_an_old_population[100,500];
-  test_gen_component_pass::test_a_large_components_phenomena_are_a_unit_per_slice.
-  Do: triage each (stale expectation after the star epoch, a real
-  regression, or a seed that moved) and fix the right side without
-  skipping or loosening beyond the property. Done: all three pass on
-  main. Owner: Bug 2 (after TEST.468 to TEST.472) or any free lane.
-  Version 8.1.
-  Owner (idle lanes) (2026-10-30 2:51 PM EDT): Aux 5 (assigned by TODO;
-  test-only, lock-free, separate branch, merge it yourself). Triage each
-  of the three tests: stale expectation after the star epoch, real
-  regression, or moved seed; never skip or loosen beyond the property.
-  Prerequisites: none. Related: TEST.463.
-
 - [ ] **TEST.483 test_disregard_missing_data (6 tests) and test_rq_time_limits::test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorded_to_take (3 params) are red on clean main (bug)**
   Found by Aux 2 on PERF.203 step 4 (relayed 3:06 PM EDT 2026-10-30 as
   the lane reported), red with the change stashed, so on clean main. Do:
@@ -18888,6 +18870,10 @@ clears each one.
   right side without skipping or loosening beyond the property. Done:
   all pass on main. Owner: Bug 2 (after TEST.483) or any free lane.
   Version 8.1.
+  Owner (idle lanes) (3:21 PM EDT 2026-10-30): Aux 5 (assigned by TODO
+  after TEST.481 merged as PR #4096; test-only, lock-free, separate
+  branch, merge it yourself). The Hill sphere moon test is done in
+  TEST.481, so only the other three remain.
   Prerequisites: none. Related: TEST.481, TEST.483.
 
 ## USR: User accounts
