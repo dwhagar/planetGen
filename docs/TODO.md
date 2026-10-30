@@ -1909,27 +1909,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.315, GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
 
-- [ ] **MAP.255 The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug)**
-  Found by Blocker 2 (relayed 12:12 PM EDT 2026-10-22 as the lane's
-  clock reads, when GEN.311 and GEN.269 merged as #2481), filed by the
-  TODO thread. Python now places a star from the stored orbit tree
-  (`positions_at` reads the orbit nodes, a wide pair on its eccentric
-  orbit), but the browser twin `html/static/orbitpositions.js` still
-  draws a wide pair as a circle, so the browser and Python disagree.
-  Fails on main: yes, in the browser only. Do: move `orbitpositions.js`
-  onto the tree the scene now carries (`tree` in the scene payload),
-  with the eccentric orbit, so it places every star the way
-  `positions_at` does; MAP.213 builds the full JavaScript twin for
-  trees, so this item is the narrow fix that item's owner can take first
-  or fold in. Done: the Python and JavaScript positions of a wide pair
-  agree in `tests/test_js_unit.py` at several phases, and the system map
-  shows the pair on its ellipse. Owner: none (the coordinator assigns;
-  MAP.213's owner is the natural one).
-  Owner: Core 3 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: MAP.213, MAP.253, GEN.311.
-
 - [ ] **MAP.257 Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug)**
   Boss's live observation (relayed 5:27 PM EDT 2026-10-23, typed in the
   project chat): infinite zoom is still really clunky. Boss asks to get
@@ -18342,6 +18321,20 @@ clears each one.
   main with the ranges or the code explained in the change note. Owner:
   Bug 2 (census re-tag, with Star 2 for the companion rate).
   Prerequisites: G, E, N, ., 9, 4, 1.
+
+- [ ] **TEST.474 tests/test_web_a11y.py::_add_bright_stars fails with pymysql 1136 "Column count doesn't match value count" and errors every site_app browser test in setup (bug)**
+  Found by Core 3 (relayed 9:09 AM EDT 2026-10-30 as the lane reported):
+  red on clean main. test_web_browser_controls.py and the other site_app
+  browser tests error in setup, because _add_bright_stars in
+  tests/test_web_a11y.py passes rows to store.insert_bright_stars with
+  the old column count. Probable cause: GEN.846 (train 3, migration
+  0185) added bright_stars.rotation_period_hours and the fixture rows
+  were not extended. Fails on main: yes. Do: give the fixture rows the
+  new column (or build them from the column list so the next column
+  cannot break them), and run the site_app browser tests. Done: the
+  browser tests pass setup on main. Owner: Bug 2 (train 3 fallout), or
+  the first free lane.
+  Prerequisites: T, E, S, T, ., 4, 6, 3.
 
 ## USR: User accounts
 

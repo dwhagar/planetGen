@@ -1943,3 +1943,4 @@ Baseline: PR #1817.
 | MAP.349 | 8.1 | Fly-through map |
 | PERF.211 | 8.1 | The headline closes |
 | PERF.214 | 8.1 | Queue, caches and performance |
+| MAP.255 | 8.1 | Multi-star and compact systems |
