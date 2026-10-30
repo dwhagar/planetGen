@@ -291,11 +291,59 @@ def settle_orbit(planet):
     return True
 
 
+AGE_SETTLE_TOLERANCE = 0.02
+"""float: A rocky planet or moon made when the star's age was within this share of its final age keeps its air, class and dose
+(`refinish_rocky`); the age the decay clock and the heat history read is then within 2 percent of the right one. A stand-in, registry
+row OE15."""
+
+
+def age_moved(body):
+    """Whether the star's age has risen by more than `AGE_SETTLE_TOLERANCE` of the age `body` was made at."""
+    drawn = getattr(body, "_age_drawn", None)
+    return drawn is not None and body.star.age - drawn > AGE_SETTLE_TOLERANCE * max(drawn, 0.1)
+
+
+def refinish_rocky(planet):
+    """
+    Makes a rocky planet's end stages again at the star's final age, and its moons' (GEN.992, found by GEN.986): the air, the water and the
+    surface (`calculate_atmospheric_conditions`), the class, the spin at that age and what ends it (the field, the dose, the colour and the
+    habitability score; `generate_spin`), the same sequence a moved planet gets (`validation.reconcile_moved_planet`), but from a stream of
+    the body's own (mass, distance, star and the age it settles to), so the run's stream does not move. A body keeps its mass, radius,
+    composition and orbit. The forced requests are judged on the classes this makes (`StarSystem`), and the moons' induced fields, rings and
+    life follow in later passes. A planet or moon whose star's age rose by under `AGE_SETTLE_TOLERANCE` of the age it was made at is left.
+
+    Args:
+        planet (Planet): A rocky planet (`body_type` "t", not a moon) with its moons; a giant's moons are made again too.
+
+    Returns:
+        int: How many bodies were made again (the planet and its moons).
+    """
+    made = 0
+    with_planet = planet.body_type == "t" and not planet.is_moon and age_moved(planet)
+    for body in ((planet, *planet.moons) if with_planet else planet.moons):
+        if not age_moved(body):
+            continue
+        stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
+                             f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}")
+        with draw.bound(stream):
+            if body.is_moon:
+                calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
+                apply_class(body)
+                generate_spin(body, planet.mass)
+            else:
+                calculate_atmospheric_conditions(body)
+                apply_class(body)
+                generate_spin(body, body.primary_mass_kg)
+        body._age_drawn = body.star.age
+        made += 1
+    return made
+
+
 def settle_giant(planet):
     """
     Settles a giant sized from the radius tables once the star's age and the orbit are final (GEN.961, `giant_draw.settle`): when its
     radius moves, the volume and the gravity follow, and the air is made again from a stream of its own (the gravity sets its scale
-    height; the run's stream is not touched), then the class, the dose, the colour and the habitability score that follow the air.
+    height; the run's stream is not touched), then the class and the spin (which ends with the field, the dose, the colour and the habitability score).
 
     Returns:
         bool: Whether the giant's radius moved.
@@ -309,10 +357,7 @@ def settle_giant(planet):
     with draw.bound(stream):
         calculate_atmospheric_conditions(planet)
         apply_class(planet)
-        # what `generate_spin` makes last, from the air above: the dose, the colour and the habitability score (the field is of the mass)
-        radiation.generate_dose(planet)
-        body_colour.generate(planet)
-        habitability_world.generate(planet, internal_heat_flux_w_m2(planet))
+        generate_spin(planet, planet.primary_mass_kg)  # the spin at the final age, then the field, the dose, the colour and the score
     if drop_unstable_moons(planet):  # a smaller giant holds a smaller moon and a smaller range of orbits
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons])
@@ -902,6 +947,7 @@ def generate_moons(planet, moon_count=None):
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
                           moon_origin=origin, moon_disk_system=disk_system, host_eccentricity=planet.eccentricity)
         if new_moon.radius > limit_radius_km:    # denser or lighter than the parent could hold; its slot stays open
+            draw.redrawn("moon.too_large")
             rejected += 1
             if rejected >= MOON_REJECTION_LIMIT:
                 break

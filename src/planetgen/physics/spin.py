@@ -216,6 +216,21 @@ GIANT_CLASSES = frozenset({"0", "I", "Ia", "Iab", "Ib", "II", "III", "IV"})
 to subgiants)."""
 
 
+def gyro_median_days(colour_excess, age_gy):
+    """The gyrochronology period of a star `colour_excess` (B - V less `GYRO_C`) redder than the law's origin at `age_gy`, days, before the
+    scatter."""
+    return GYRO_A * max(age_gy * 1000.0, 1.0) ** GYRO_N * colour_excess ** GYRO_B
+
+
+def nominal_rotation_period_hours(mass_kg, temperature_k, age_gy):
+    """The period, hours, a star of this mass and temperature at `age_gy` has by gyrochronology before its scatter, or `None` for a star the law
+    does not cover (a hot star, whose spin is a speed it keeps)."""
+    colour = b_minus_v(temperature_k) - GYRO_C
+    if mass_kg / constants.SOLAR_MASS_TO_KG <= COOL_STAR_MAX_MASS_SOL and colour > GYRO_MIN_COLOUR_EXCESS:
+        return gyro_median_days(colour, age_gy) * 24.0
+    return None
+
+
 def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes_class):
     """
     A star's rotation period, hours, by the cascade: white dwarfs
@@ -235,8 +250,7 @@ def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes
     else:
         colour = b_minus_v(temperature_k) - GYRO_C
         if mass_sol <= COOL_STAR_MAX_MASS_SOL and colour > GYRO_MIN_COLOUR_EXCESS:
-            age_myr = max(age_gy * 1000.0, 1.0)
-            days = GYRO_A * age_myr ** GYRO_N * colour ** GYRO_B * math.exp(draw.gauss(0.0, GYRO_SCATTER))
+            days = gyro_median_days(colour, age_gy) * math.exp(draw.gauss(0.0, GYRO_SCATTER))
             period = days * 24.0
         else:
             speed = math.exp(draw.gauss(math.log(HOT_STAR_SPEED_KMS), HOT_STAR_SPEED_SIGMA))

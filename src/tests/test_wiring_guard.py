@@ -28,7 +28,7 @@ def test_the_register_and_the_code_agree(code):
 def test_the_register_parses_every_line_it_has():
     entries = guard.load_register()
     assert entries and all(kind in guard.KINDS for kind, _ in entries)
-    assert all(item == guard.BY_DESIGN or item[:3].isalpha() for item, _ in entries.values())
+    assert all(item == guard.BY_DESIGN or item.split(".")[0].isalpha() for item, _ in entries.values())
 
 
 def test_the_guard_reaches_the_modules_the_app_reaches(code):

@@ -1,6 +1,6 @@
 # Stellar spectra library: model atmospheres plus the measured chromosphere (GEN.970)
 
-Status: lock-free step built (GEN.970, parent GEN.745). Nothing in generation calls it yet; the wiring that replaces the seeded UV-C share and the blackbody map colour is GEN.971 and rides the star-epoch merge train. Code: `datasets/stellar_spectra.py` (download and reduction), `physics/stellar_library.py` (the lookup and the chromosphere). Tests: `tests/test_stellar_spectra.py` (blackbody fixtures), `tests/test_stellar_library_real.py` (the real grids against the Sun and MUSCLES).
+Status: built (GEN.970, parent GEN.745) and wired (GEN.971, rides the star-epoch merge train 3). Code: `datasets/stellar_spectra.py` (download and reduction), `physics/stellar_library.py` (the lookup and the chromosphere). Tests: `tests/test_stellar_spectra.py` (blackbody fixtures), `tests/test_stellar_library_real.py` (the real grids against the Sun and MUSCLES).
 
 ## What it replaces
 
@@ -28,9 +28,11 @@ Setup downloads 130 MB (transient pieces, sha256 and size pinned), reduces each 
 | Far-ultraviolet with the corona (XUV times 1.12) | within 0.55 dex for all eleven | France et al. 2016 Table 3 |
 | Closure (integrated flux over sigma T^4) | 0.97 to 1.00 | |
 
-## Open for GEN.971
+## Wired (GEN.971)
 
-- Replace `activity.generate_activity`'s `uv_c_share` draw with `shares_of_blackbody(...)["uv_c"]` from the star's own T_eff, log g and `l_xuv_w / luminosity` (the draw goes away, the column stays; UV-B and UV-A shares come from the library too). This moves the UV of every star, so it rides the star-epoch train.
-- Replace the BT-Settl offset table in `photometry.py` by the CIE chromaticity of the library spectrum (the library keeps the shares, not the spectra, so a star's colour needs the bins' wavelengths and shares, which it has: the bin centres and shares are enough for a 1500-point integral against the CIE tables).
+- `physics.activity.generate_activity` stores `uv_c_share` as the library's UV-C power over the blackbody's (`activity.uv_shares_of` -> `stellar_library.uv_shares`): the star's effective temperature, surface gravity (mass and radius) and its corona's XUV over luminosity (`log_lx_lbol`; the photosphere's own XUV is in the model, so only the corona is added). The seeded draw is gone except for a run that disregards a missing library (`fetch.stand_ins_used`). The value is a multiple of the blackbody's and exceeds 1 for a cool active star (an M5 dwarf at saturation: 100 to 1000, the chromosphere); the column unit is `uv-mult`, the sheet row "UV-C power against its blackbody's". A star outside 2300 to 50000 K takes 1. A white dwarf keeps none.
+- `physics.body_radiation` takes all three shares (`uv_c`, `uv_b`, `uv_a`) from the library instead of the family built on `uv_c_share` (`stellar_spectrum.irradiance_w_m2(..., shares=)`, `atmospheric_radiation.surface_radiation(..., uv_shares=)`); a star that lacks mass, radius, temperature or luminosity keeps the family from its stored `uv_c_share`. Limitation: the extra UV-C of a cool star is placed in the 100 to 280 nm cells in proportion to the blackbody's shape there, so it sits near 280 nm, where the chromosphere's is really at 120 to 170 nm; the band total is right and the in-band shape is not (a later item: the spectrum on the radiation grid from the library bins).
+- The colour of a star's disc (`bodylook.star_surface_color`) and the light of the sky colour (`atmosphere_colour.body_light` into `atmosphere_colour(light=)`, and the giant's) come from the library spectrum by `stellar_library.visible_spectrum` and `star_colour`; outside the library, or for a run that disregards a missing library, the blackbody with the BT-Settl offsets of `photometry.py` (still what a bare `atmosphere_colour(temperature_k=)` call takes). A cool star's seeded spread is no longer used with a library spectrum. Against the blackbody at the Sun's temperature the chromaticity is within 0.006; at 7500 K the library is bluer (line blanketing moves the ultraviolet's flux into the blue), and at 3300 K the red dwarf's sky is whiter.
 - The grids are solar metallicity; a metal-poor star's ultraviolet differs. SL4 records it.
-- Stars above 50000 K or below 2300 K get no answer (None); the caller takes the blackbody.
+- Stars above 50000 K or below 2300 K get no spectrum (None); callers take the blackbody.
+- This moves the UV of every star and the colour of every star and sky, so it is `--affects fill` (stars, and the body colour stage) and rides train 3.

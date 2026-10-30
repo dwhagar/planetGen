@@ -1004,14 +1004,14 @@ def _build_job_steps(action, form, edge_pc=None, database=None):
         label = "Bring the galaxy to the running generator epoch"
         return "bring_to_epoch", label, [{"label": label, "argv": generate + ["bring-to-epoch"]}]
     if action == "finish_run":
-        # PERF.182: the command carries on the run the page just read, then the steps of the job it was part of that
-        # never started (a stopped New galaxy goes on to link, settle and the rest).
+        # PERF.182: the command carries on the run the page just read. A job is one run (PERF.203), so what never started
+        # is stages of that run, and the run's own record carries them on.
         found = finish_status(database)
         if found["error"]:
             raise FormError(found["error"] + " Nothing was changed.")
         label = f"Finish the last run: {found['title']}"
         finish = {"label": label, "argv": generate + ["finish-run", "--run", found["run"]]}
-        return "finish_run", label, [finish, *found["later"]]
+        return "finish_run", label, [finish]
     if action == "check_db":
         deep = bool(form.get("deep"))
         argv = generate + ["check-db"] + (list(DEEP_CHECKS) + ["--yes"] if deep else [])
@@ -1618,9 +1618,9 @@ def epoch_status(database):
 def finish_status(database):
     """
     What "Finish the last run" would do (PERF.182), read from the run record: `{"error": None, "run", "title",
-    "stopped_in", "carried", "again", "later"}` (the id and title of the run that stopped, the stage it stopped in, the
-    stages it finished and keeps, the stages that run now, and the later steps of the Generate job it was part of that
-    never started), or `{"error": ...}` saying why there is nothing to carry on. It changes nothing but the record of a
+    "stopped_in", "carried", "again"}` (the id and title of the run that stopped, the stage it stopped in, the stages it
+    finished and keeps, and the stages that run now: those the run never started among them), or `{"error": ...}` saying
+    why there is nothing to carry on. It changes nothing but the record of a
     run whose process is gone, which it marks stopped. The build is checked by the command, not here.
     """
     try:
@@ -1632,15 +1632,8 @@ def finish_status(database):
         log.error(f"Generate page: the last run could not be read: {exc}")
         return {"error": f"The last run could not be read: {exc}"}
     run, labels = found.run, [step.label for step in found.steps]
-    later = []
-    if run.get("job") and jobs.JOB_ID_RE.match(run["job"]):
-        try:
-            remaining = jobs.remaining_steps(run["job"])
-        except OSError:
-            remaining = None
-        later = remaining[1][1:] if remaining else []
     return {"error": None, "run": run["id"], "title": run["title"], "stopped_in": labels[found.stopped],
-            "carried": labels[:found.first], "again": labels[found.first:], "later": later}
+            "carried": labels[:found.first], "again": labels[found.first:]}
 
 
 def _require_bringable(database):
