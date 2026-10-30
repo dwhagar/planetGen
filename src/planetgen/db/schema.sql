@@ -3728,6 +3728,7 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
 
     UNIQUE KEY uq_interstellar_comets_uid (uid),
+    KEY idx_interstellar_comets_name (name),  -- v178 (PERF.205): the Phenomena table pages by name in index order
     KEY idx_interstellar_comets_parent (parent_type, parent_id),
     CONSTRAINT chk_interstellar_comets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     CONSTRAINT chk_interstellar_comets_placement CHECK (
@@ -3827,6 +3828,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
 
     -- Named explicitly -- see `nebulae`'s identical "v18" CHECK comment above.
     UNIQUE KEY uq_asteroid_fields_uid (uid),
+    KEY idx_asteroid_fields_name (name),  -- v178 (PERF.205)
     CONSTRAINT chk_asteroid_fields_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
