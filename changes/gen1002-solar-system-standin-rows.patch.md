@@ -1,5 +1,0 @@
-**Headline:** The nine registered rows that rest on a Solar System body now have rows in the stand-in list, with their source tier, tweak level and the item that will replace them.
-
-### Changed
-
-- GEN.1002 (the registry half): `docs/design/research/gap-filling-plan.md` section 6.56 holds one stand-in row for each of the nine rows `tests/data/solar_system_rows.json` lists as pending: `atmosphere-a` a1 and a2 (oxygen fugacity tuned to Moon, Mars and Earth), `atmosphere-b` b1 (dry carbon tuned to the bulk silicate Earth), `atmosphere-k` k7 (the species of one comet), and the five ground types of `surface-ground-types` (the crust assemblages of Hu, Ehlmann and Seager 2012). Redox, carbon and comet rows name GEN.1005 as their replacement, the ground types GEN.474. `docs/design/research/stand-in-values.md` is rebuilt, and `tests/test_solar_system_standin_rows.py` requires a registry row for every pending row. The state flips on the table rows (which change their digests) ride a merge train. No stored value changes.
