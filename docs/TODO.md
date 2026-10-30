@@ -15802,6 +15802,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   #3248 fixed. Property sheet and stats and settings pages were already
   done. Still open: the help pages and glossary (DOC.15) and any CLI
   line the heuristic missed; keep API.33 open for those
+  Update (Core 5, #3958, as the lane reported 5:16 AM EDT) (2026-10-30
+  5:17 AM EDT): CLI help, printed lines and run logs scanned and fixed
+  (plan skeleton line units, Drew line systems, near/planets/moons count
+  lines, verbose life log lines); no generated-output change. What
+  remains: the in-site help pages and glossary (DOC.15) do not exist
+  yet, so the item closes when DOC.15 lands with every number stating
+  its unit.
   Prerequisites: none. Related: GEN.771, DOC.15.
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
@@ -20037,6 +20044,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   section, linked from each page it describes, and updated by any later
   change to those features (a feature item is not done until its help
   text is).
+  Added requirement (2026-10-30 5:17 AM EDT): Every number on the help
+  pages and the glossary states its unit; API.33 closes only when this
+  holds (the CLI half is merged in #3958).
   Prerequisites: DOC.57. Related: DOC.6.
 
 - [ ] **DOC.16 The API help page for visitors: what the API is, how to get a key, and where the reference lives**
