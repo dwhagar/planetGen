@@ -26,9 +26,8 @@ AGES = (0.1, 0.4, 1.0, 2.0, 3.0)
 def _star(intelligent_life=None, age=None):
     """A real main-sequence G2V Star -- get_evolutionary_state only
     reads type/yerkes_class/age/lifespan/system_config off it, and a G2V's
-    `yerkes_class == 'V'` short-circuits get_star_evolutionary_profile
-    straight to STAR_EVOLUTION['G'] without needing a finite lifespan
-    special case (see that function's own docstring)."""
+    `lifespan` is finite, so no white dwarf special case applies
+    (see `supported_evolutionary_scales`)."""
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
     cfg.INTELLIGENT_LIFE = intelligent_life
@@ -132,3 +131,30 @@ def test_only_a_water_splitting_class_puts_oxygen_into_its_water():
 
 def test_a_grade_names_the_animals_of_multicellular_life():
     assert evolution.stage_name("multicellularity", "1a", 3) != evolution.stage_name("multicellularity", "1a", 0)
+
+
+def _fake_star(letter="G", age=5.0, lifespan=10.0, yerkes="V"):
+    import types
+    return types.SimpleNamespace(type=f"{letter}2{yerkes}", yerkes_class=yerkes, age=age, lifespan=lifespan)
+
+
+def test_the_paces_a_star_supports_come_from_its_own_lifespan_not_its_letter():
+    """GEN.942: the paces whose technological civilization comes within the star's lifespan; a G star that dies at 10 Gy cannot be asked to wait for
+    the 35 Gy of the slow pace, and one that lives 40 Gy can."""
+    from planetgen.generation.stellar_object import supported_evolutionary_scales as paces
+    assert paces(_fake_star("G", lifespan=10.0)) == ["fast", "normal"]
+    assert paces(_fake_star("G", lifespan=40.0)) == ["fast", "normal", "slow"]
+    assert paces(_fake_star("M", lifespan=2000.0)) == ["fast", "normal", "slow"]
+    assert paces(_fake_star("A", lifespan=2.2)) == ["fast"], "the model's A star lives 0.65 to 2.2 Gy, short of the 4.5 Gy of the normal pace"
+    assert paces(_fake_star("B", lifespan=0.05)) == ["fast"], "a star that gives less time than the fastest pace needs keeps the fastest"
+
+
+def test_a_white_dwarf_has_the_time_it_has_had_and_a_remnant_letter_has_no_paces():
+    from planetgen.generation.stellar_object import supported_evolutionary_scales as paces
+    assert paces(_fake_star("F", age=5.0, lifespan=float("inf"), yerkes="VII")) == ["fast", "normal"]
+    assert paces(_fake_star("D", age=5.0, lifespan=float("inf"), yerkes="VII")) == []
+
+
+def test_the_per_letter_lifespan_table_is_gone():
+    from planetgen import tuning
+    assert not hasattr(tuning, "STAR_EVOLUTION")

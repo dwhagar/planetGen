@@ -2065,59 +2065,9 @@ PLANET_CLASSES = {
 # --- Life Data ---
 # What lives on a world is a life class (`physics/data/life_classes.json`, GEN.889), drawn from the conditions the world stores.
 
-# Main-sequence lifespan ranges, derived from t = 10 Gy * (M/Msun)^-2.5 (the
-# standard mass-luminosity-based lifetime scaling, anchored to the Sun at 1
-# Msun/10 Gy) applied to each spectral class's real mass range (O: >=16 Msun,
-# B: 2.1-16, A: 1.4-2.1, F: 1.04-1.4, G: 0.8-1.04, K: 0.45-0.8, M: 0.08-0.45
-# Msun -- the same boundaries implied by SPECTRAL_LUMINOSITY_RANGES). Each
-# class's range now meets its neighbors' at the shared mass boundary instead
-# of jumping (the previous table, e.g., capped A at 1.0 Gy while F started at
-# 2.0 Gy, silently skipping the ~1.5-2.3 Gy lifespans of real late-A stars).
-# O keeps a literature-cited floor (~1-10 Myr) rather than extrapolating the
-# power law out to 150 Msun, which understates real mass-loss effects at
-# extreme masses and would predict lifespans of only tens of thousands of
-# years for the most massive O stars -- shorter than any observed star.
-STAR_EVOLUTION = {
-    "O": {
-        "lifespan_gy": (0.001, 0.01), # 1 Million - 10 Million years
-        "supported_evolutionary_scales": ["fast"],
-        "evolutionary_constraint_notes": "It burns out and explodes before planets can cool enough to hold oceans, so only the simplest light-driven chemistry could arise."
-    },
-    "B": {
-        "lifespan_gy": (0.01, 1.5), # 10 Million - 1.5 Billion years
-        "supported_evolutionary_scales": ["fast"],
-        "evolutionary_constraint_notes": "It is volatile and short-lived, which leaves barely enough time for a planet to cool and for single-celled life to appear."
-    },
-    "A": {
-        "lifespan_gy": (1.5, 4.3), # 1.5 Billion - 4.3 Billion years
-        "supported_evolutionary_scales": ["fast", "normal"],
-        "evolutionary_constraint_notes": "It lasts long enough for early biospheres and radiation-tolerant life, but probably not for slow, complex photosynthesis to mature."
-    },
-    "F": {
-        "lifespan_gy": (4.3, 9.1), # 4.3 Billion - 9.1 Billion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "It lasts long enough for complex biospheres to emerge, including UV shielding and fluorescent adaptations."
-    },
-    "G": {
-        "lifespan_gy": (9.1, 17.5), # 9.1 Billion - 17.5 Billion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "It is steady for a long time, which suits the slow evolution of complex, oxygen-making photosynthesis."
-    },
-    "K": {
-        "lifespan_gy": (17.5, 73.5), # 17.5 Billion - 73.5 Billion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "It is very stable and lives for tens of billions of years, so slow-evolving biospheres can reach a climax and adapt to its slight red shift."
-    },
-    "M": {
-        "lifespan_gy": (73.5, 5500.0), # 73.5 Billion - 5.5 Trillion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "Early flares demand quick adaptation, such as radiotrophic melanin, but trillions of years of stability let deep-infrared photosynthesis last for good."
-    }
-}
-
 # Not a world's schedule since GEN.750: a world draws its own five ages (`physics.life_timeline`, `LIFE_STEP_MEANS_GYR`). This table
-# names the three paces (the words `life_facts.pace_label` writes), gives the star-level helpers their lifespan classes
-# (`stellar_object.get_star_evolutionary_profile`, `age_needs`) and is what migration 0156 read to fill the ages of an older database.
+# names the three paces (the words `life_facts.pace_label` writes), gives the star-level helpers the paces a star's lifespan allows
+# (`stellar_object.supported_evolutionary_scales`, `age_needs`; GEN.942) and is what migration 0156 read to fill the ages of an older database.
 EVOLUTIONARY_TIMELINES = {
     "normal": { # Changed from "norm" to "normal" for consistency
         "star_lifespan": 10.0, # Billion Years

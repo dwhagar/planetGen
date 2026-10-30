@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 651 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 650 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,12 +40,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T2 | 92 | 10 | 0 | 1 | 0 | 103 |
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
 | T4 | 31 | 1 | 0 | 14 | 6 | 52 |
-| T5 | 38 | 12 | 0 | 0 | 0 | 50 |
+| T5 | 37 | 12 | 0 | 0 | 0 | 49 |
 | T6 | 53 | 30 | 12 | 33 | 0 | 128 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 29 | 19 | 52 |
-| All | 405 | 90 | 33 | 96 | 27 | 651 |
+| All | 404 | 90 | 33 | 96 | 27 | 650 |
 
 ## How the labels were given
 
@@ -374,7 +374,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| LF3 | D | T5 | L0 | tuning.STAR_EVOLUTION (`lifespan_gy`: `10 Gyr (M/Msun)^-2.5` on each letter's mass range; O keeps a 1 to 10 Myr floor) | the exponent 2.5 to 3 | main-sequence stars | an observed lifespan outside a letter's range | none needed | computed from the mass-luminosity lifetime scaling anchored to the Sun | - | - |
 | LF5 | P | T9 | L4 | tuning.EVOLUTIONARY_TIMELINES (normal 0.5, 1.5, 2.5, 4.0, 4.5 Gyr; fast 0.005 to 0.08; slow 3, 8, 15, 25, 35) | each age | every life milestone | the Earth timeline for `normal`; none for fast and slow | the life timeline of GEN.750 | "purely speculative" in `evolution.py`; `normal` is Earth's history, fast and slow are scaled by hand | - | no data |
 | LF6 | P | T9 | L3 | tuning.LIFE_MIN_STAR_AGE_GY 0.1 | 0.05 to 0.5 | a star young enough that no life is drawn | a measured age before which a planet cannot hold life | the life timeline of GEN.750 | design | - | no data |
 | LF7 | P | T9 | L3 | tuning.HABITABILITY_LIFE_SCORE_MIN 0.005 | 0.001 to 0.02 | the likelihood under which a world has no life (GEN.206, GEN.649) | none | the class table | design | - | no data |
