@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 402 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 408 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 52 | 0 | 3 | 0 | 0 | 55 |
 | T2 | 70 | 3 | 0 | 1 | 0 | 74 |
 | T3 | 53 | 5 | 2 | 10 | 0 | 70 |
-| T4 | 16 | 0 | 0 | 3 | 0 | 19 |
+| T4 | 16 | 0 | 0 | 3 | 4 | 23 |
 | T5 | 22 | 5 | 1 | 0 | 0 | 28 |
-| T6 | 39 | 9 | 7 | 28 | 0 | 83 |
+| T6 | 39 | 11 | 7 | 28 | 0 | 85 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 17 | 44 |
-| All | 270 | 25 | 16 | 73 | 18 | 402 |
+| All | 270 | 27 | 16 | 73 | 22 | 408 |
 
 ## How the labels were given
 
@@ -624,7 +624,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RS1 | P | T3 | L0 | saturation_time.ANCHORS_MYR (thirteen masses by three percentiles, read off the published figure by pixel position; the fast curve at 0.1 solar masses by eye) | each value within about 10 percent; the steep 1.1 to 1.2 solar mass edge of the fast curve within 30 percent | solar metallicity, 0.1 to 1.2 solar masses | a star sample with a saturated fraction against age and mass differing from the model's by more than a third (Medina 2022 gives 2.4 +- 0.3 Gyr for 0.1 to 0.3 solar masses, and the tests keep the median curve near it) | the tracks of the model itself (Johnstone's MIT-licensed code) or a measured saturated fraction against mass | test_saturation_time::test_the_published_curves_are_reproduced_at_their_anchors; test_saturation_time::test_the_mid_to_late_m_dwarfs_stay_saturated_for_gigayears_as_medina_2022_finds | GEN.493 | - |
 
-## 6.40 Stand-ins of the derived taxon kernel
+## 6.40 Stand-ins of the brackets the atmosphere recipes still draw by design
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RD1 | P | T4 | L4 | recipe row j1 constant c_j1: the share of the atmosphere a runaway-greenhouse planet keeps, uniform 0 to 1 (the bracket must allow 0, because 0 of 2 bare M-dwarf planets, TRAPPIST-1 b and c, cannot be forbidden) | 0 to 1 | rocky planets past the runaway-greenhouse limit with the water lost | a measured dense air on a planet well past the limit, or a bare one that the row would not allow | measured airs of runaway planets (JWST Rocky Worlds), or a coupled escape and outgassing history | test_atmosphere_recipes::test_the_status_of_each_row_is_the_parts_except_the_rows_the_later_decisions_moved | - | no data |
+| RD2 | P | T4 | L4 | recipe row j5 constant c_j5: the share of M-dwarf habitable-zone worlds older than 1 Gyr with an abiotic oxygen air, log-uniform 0.05 to 0.5 | 0.05 to 0.5 | M dwarfs, ages over 1 Gyr, 0.3 to 5 Earth masses, in the habitable zone | the first measured oxygen air on such a planet, or ten without one | a frequency from a population of measured M-dwarf planet airs; the physics (Luger and Barnes 2015, 240 bar of O2 per ocean, cap of Gao 2015) fixes only the possible amount | test_atmosphere_recipes::test_the_status_of_each_row_is_the_parts_except_the_rows_the_later_decisions_moved | - | no data |
+| RD3 | P | T4 | L4 | recipe rows d2 to d5: the edges of the depth windows below the cosmic shoreline, 0.3, 0.8 and 1.4 dex (the soft width is the shoreline's 0.247 dex) | none | the atmosphere cases of rocky bodies below the shoreline | a pressure distribution that jumps at a depth other than these | edges where the measured pressures of rocky exoplanets change regime | test_atmosphere_recipes::test_example_d_the_shoreline_is_the_published_logistic_and_the_regimes_share_its_probability | - | no data |
+| RD4 | P | T6 | L1 | recipe row f7: the tail of the giant planets' C/O is uniform 0.8 to 1.5 (6 of 69 retrieved planets above 0.8, a share 0.043 to 0.087) | upper end 1.0 to 2.0 | giant planets and brown dwarfs | a retrieved C/O above 1.5 on a giant, or a tail share outside 0.043 to 0.087 | the retrieved C/O of more planets (JWST, ground high-resolution) | test_tuned_draws | - | - |
+| RD5 | P | T4 | L4 | recipe rows h2 and h3: the softness of the hot-giant regime edges, 100 K around the computed equilibrium lines | 50 to 200 K | giants hotter than 1000 K | a regime change measured sharper or broader than 100 K | the pressure and metallicity spread of the equilibrium edges themselves | test_equilibrium_edges | - | no data |
+| RD6 | P | T6 | L1 | recipe row k7: the width of the comet gases known from 67P alone (N2, O2, OCS, SO2, Ar, Kr, Xe), 0.6 dex, the spread of CO | 0.4 to 0.8 dex | comets with a coma | a second comet's measured N2 or O2 outside the 67P value by more than 0.6 dex | measured ratios of these gases in more comets | test_comet_population | - | - |
+
+## 6.41 Stand-ins of the derived taxon kernel
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|

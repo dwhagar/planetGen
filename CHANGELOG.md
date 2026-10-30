@@ -2,6 +2,21 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2595] - 2026-10-30
+
+**Headline:** The stand-in rows for the planet iron scatter, the rogue-planet volatile loss and the core light elements now state what the latest data says.
+
+### Changed
+
+- **Registry rows BC8, BC11, BC18 (GEN.775, GEN.776, GEN.777).** BC8 described a 0.10 dex scatter and a 12 percent super-Mercury tail that GEN.512 had already replaced with 0.05 dex and 1 percent; it now records the built values, the 20-planet table of Brinkman et al. 2024 re-read (intrinsic scatter 0.12 in core mass fraction at most, no planet over +2 sigma, 14 to 15 of 20 within 1 sigma) and why the newest homogeneous sample wins over the 2021 count. BC11 records that no measurement of a rocky free-floating planet's volatiles exists. BC18 records the Mars check (a total of 0.07 to 0.20 of the core mass against Earth's 0.05 to 0.10) and the wider range the wiring step should take. Nothing generated changes.
+
+## [8.0.2594] - 2026-10-30
+
+**Headline:** The Sectors table reads any page of a large galaxy in a few milliseconds when sorted by distance from the core (the default) or by name.
+
+### Changed
+- **The Sectors list pages by key.** Every page of it sorted a whole table first: with a million sectors a page took 1 to 8 seconds, the first as slow as the last. The default order and the distance and name sorts now walk an index (the placed sectors by distance, then the unplaced ones by name), and `GET /api/sectors` takes `after=<sector ID>` as the systems list does, which the table uses to page forward. Two sectors at exactly the same distance now follow each other by their ID, not by name. The systems, density and position sorts still sort the whole table (PERF.208 stores what they need).
+
 ## [8.0.2593] - 2026-10-30
 
 **Headline:** The ammonia photolysis activity factor now has a second-hand cross-check in the stand-in registry text.
