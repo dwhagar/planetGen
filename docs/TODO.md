@@ -13803,6 +13803,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
   are in the project files; Bedard white dwarf sequences and the neutron
   star tables are also held. Catalog sections 1 to 3.
+  Star 1 finding (as the lane reported 11:21 PM EDT) (2026-10-29 11:21
+  PM EDT): MIST tracks of Wolf-Rayet stars of 60 to 150 solar masses end
+  at 4e5 to 9e5 solar luminosities, so the audit's "code too low above
+  60" does not show in the tracks; GEN.939 is READY as PR #3873 (stacked
+  on #3858, registry row PS9) and rides train 3 after #3842 and #3858.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.940 Present mass for giants, horizontal-branch, asymptotic and massive stars: a Reimers-type loss for the red giant and asymptotic branches and a wind loss for massive stars**
@@ -14874,6 +14879,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects fill if so. Owner: Aux 2 (life from conditions). Version
   8.1.
   Prerequisites: none. Related: GEN.992, GEN.750, TEST.463.
+
+- [ ] **GEN.998 The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug)**
+  Sources 2 finding (as the lane reported 11:22 PM EDT 2026-10-29),
+  found while wiring GEN.476: birth_radioisotopes reads the disc gas
+  depletion time, and the default galaxy's value is 0.85 Gy against the
+  Galaxy's measured 4.2 Gy, so the mean aluminium-26 ratio of rocky
+  bodies comes out five times what the lock-free note expected (GEN.469
+  gas content reads the same number). Do: trace where the 0.85 Gy comes
+  from (a unit, a different quantity such as a star formation timescale,
+  or a stand-in), say whether it is the right quantity for the disc gas
+  depletion, correct it or register it in GEN.725 with its tier and
+  tweak level, and list every reader that moves. Changes generated
+  output if the value moves: epoch and --affects fill. Owner: Sources 2.
+  Version 8.1.
+  Prerequisites: none. Related: GEN.469, GEN.476, GEN.477.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
