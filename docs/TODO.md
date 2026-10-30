@@ -13933,31 +13933,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1.
   Prerequisites: GEN.992. Related: GEN.992, PERF.209.
 
-- [ ] **PERF.211 Phenomena and species list sorts that still sort the whole set per page: phenomena by type, descriptor, radius, sector and placed; species by homeworld and by system**
-  Core 5 (as the lane reported, 2:18 AM EDT 2026-10-30), after PERF.205
-  (#3909 species half, #3916 built phenomena half): the Phenomena list
-  sorted by name pages by key and is fast, but the type, descriptor,
-  radius, sector and placed sorts still sort the whole union of the
-  eight phenomenon tables on every page (no index serves them), and
-  Species sorted by homeworld or by system still sorts every species
-  because the names live in other tables. Do: for each sort, either add
-  a key (a stored sort column or an index per table with a merge across
-  the tables) or state in the interface why it stays slow; measure at
-  8,000,000 built phenomena and 1,000,000 species. Done: every sort on
-  the Phenomena and Species lists answers a page in under 100 ms at
-  those sizes, or the exception is stated on this item with the measure.
-  No generated value changes; indexes and keyset paging only. Size M.
-  Owner: Core 5 when its queue ends.
-  Core 5 audit list (PERF.208 and PERF.215 merged #3949) (2026-10-30
-  4:44 AM EDT): remaining slow spots: species by homeworld and system
-  sorts, phenomena by type, descriptor, radius, sector and placed, the
-  systems and sectors CLI subcommands, and a deep offset-form sectors
-  page (1 to 3 s; the table uses keys). PERF.215 closed without the
-  planets index: MySQL cannot serve a two-table ORDER BY from a join
-  index, so unfiltered planets and moons walk the systems by name in
-  chunks of up to 1000 (6M planets, first page 48 s to 20 ms)
-  Prerequisites: none. Related: PERF.206, PERF.210.
-
 - [ ] **PERF.212 The bright-star, phenomena and shell scatters take their params when their stage opens, not when the run is built**
   bright_star_followers needs the skeleton and the stored mass limit and
   settings, so plan then scatter in one run cannot build the scatter
