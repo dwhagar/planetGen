@@ -14916,6 +14916,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wiring. Owner: Sources 2. Version 8.1.
   Prerequisites: GEN.477. Related: GEN.477, GEN.566, GEN.725.
 
+- [ ] **GEN.1001 A world whose star is younger than the first step of its life schedule is stored with a life class but no life stage, so the map markers, the object page line and the class filters show life that has not started (bug)**
+  Found by Core 3 in the GEN.873 standing tests (as the lane reported,
+  2:33 AM EDT 2026-10-30; test
+  test_a_body_with_a_life_class_has_a_life_stage in PR #3918, a strict
+  xfail). Seen on cold, slow chemical-class worlds round a 0.5 Gyr star:
+  24 of 904 sweep bodies, classes 3a and 3b have life_class set and
+  life_stage None, so no life scores yet a class. The class markers on
+  the map (MAP.351), the object page Has Class N life line and the class
+  filters read life_class. Do in two steps. Step 1, lock-free: those
+  readers treat a body with no life_stage as having no life class yet
+  (marker, line and filter), with a test; Core 3 owns MAP.351 and takes
+  it. Step 2, rides a train: draw no class until the schedule's first
+  step is reached (changes what is drawn, so it needs an epoch with
+  --affects fill), then remove the xfail marker in the test. Done: no
+  stored body has a life_class without a life_stage and the xfail is
+  gone. Owner: step 1 Core 3, step 2 Aux 2 (life lane) or Bug 1.
+  Prerequisites: none. Related: GEN.873, GEN.894.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
