@@ -352,3 +352,16 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.117:BHS3 | GEN.1069 | `belt_history.MASS_LOSS_SCATTER_SHARE`, read when the wiring step lands |
 | row | 6.117:BHS4 | GEN.1069 | `belt_history.DELIVERY_MYR`, read when the wiring step lands |
 | row | 6.117:BHS5 | GEN.1069 | `belt_history.MIN_POLLUTION_RATE_G_S`, read when the wiring step lands |
+| module | planetgen.physics.irregular_population | GEN.1083 | the capture windows, ground-down count and stored irregulars of a planet (lock-free, GEN.1077); the captured-moon wiring calls `make_pool`, `draw_irregulars` and `draw_exchange` |
+| row | 6.118:IP1 | GEN.1083 | `irregular_population.REFERENCE_DISC_MASS_EARTH`, read when the captured-moon wiring lands |
+| row | 6.118:IP2 | GEN.1083 | `irregular_population.CAPTURED_DENSITY_KG_M3`, read when the captured-moon wiring lands |
+| row | 6.118:IP3 | GEN.1083 | `irregular_population.ENCOUNTER_YIELD`, read when the captured-moon wiring lands |
+| row | 6.118:IP4 | GEN.1083 | `irregular_population.REFERENCE_HILL_AU`, read when the captured-moon wiring lands |
+| row | 6.118:IP5 | GEN.1083 | `irregular_population.GAS_WINDOW_STRENGTH`, read when the captured-moon wiring lands |
+| row | 6.118:IP6 | GEN.1083 | `irregular_population.GAS_SIZE_WINDOW_KM`, read when the captured-moon wiring lands |
+| row | 6.118:IP7 | GEN.1083 | `irregular_population.EXCHANGE_CHANCE`, read when the captured-moon wiring lands |
+| row | 6.118:IP8 | GEN.1083 | `irregular_population.EXCHANGE_MIN_RADIUS_KM`, read when the captured-moon wiring lands |
+| row | 6.118:IP9 | GEN.1083 | `irregular_population.TEMPORARY_MIN_PLANET_RADII`, read when the captured-moon wiring lands |
+| row | 6.118:IP10 | GEN.1083 | `irregular_population.DISRUPTION_SIZE_RATIO`, read when the captured-moon wiring lands |
+| row | 6.118:IP11 | GEN.1083 | `irregular_population.MODEL_MIN_RADIUS_KM`, read when the captured-moon wiring lands |
+| row | 6.118:IP12 | GEN.1083 | `irregular_population.STORE_FLOOR_KG`, read when the captured-moon wiring lands |
