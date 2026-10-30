@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 810 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 815 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 127 | 10 | 7 | 1 | 0 | 145 |
-| T2 | 106 | 23 | 0 | 1 | 0 | 130 |
+| T2 | 107 | 24 | 0 | 1 | 0 | 132 |
 | T3 | 77 | 31 | 5 | 10 | 0 | 123 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 41 | 13 | 0 | 0 | 0 | 54 |
-| T6 | 69 | 49 | 13 | 36 | 0 | 167 |
+| T6 | 69 | 51 | 13 | 36 | 0 | 169 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
-| T9 | 8 | 3 | 4 | 38 | 19 | 72 |
-| All | 490 | 141 | 38 | 114 | 27 | 810 |
+| T9 | 8 | 3 | 4 | 39 | 19 | 73 |
+| All | 491 | 144 | 38 | 115 | 27 | 815 |
 
 ## How the labels were given
 
@@ -1331,6 +1331,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RGP5 | P | T2 | L0 | resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT 1.25: the eccentricity a giant forces on a belt, 5/4 (a / a_giant) e_giant / (1 - e_giant^2) | 1.0 to 1.5 | belts on either side of an eccentric giant, a / a_giant not near 1 | a belt whose measured forced eccentricity differs from the law by more than a factor 2 | the Laplace-Lagrange solution of the system's own planets | Wyatt et al. 1999 (recalled, not opened); the leading secular term | GEN.1069 | - |
 | RGP6 | P | T2 | L1 | resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR 9.3e-4 and resonance_gaps.YARKOVSKY_REFERENCE_AU 1.1: da/dt times D at 1.1 au, scaled with 1/a^2 | coefficient 0.5 to 2 times; flux exponent 1 to 3 | bodies of 0.1 to 40 km | the same as BR1 of 6.95 | the thermal-parameter model of Vokrouhlicky 2015 | Vokrouhlicky et al. 2015 (arXiv:1502.01249, READ); Bennu's measured drift | GEN.1069 | - |
 | RGP7 | P | T6 | L1 | resonance_gaps.ZONE_ECCENTRICITY_FLOOR 0.005: the least free eccentricity the zones and widths are worked out for | 0.001 to 0.02 | cold belts | a measured free eccentricity of a cold belt far from it | the belt's own self-stirred eccentricity from its size law (Kenyon and Bromley 2008) | educated guess from physics (a cold disc, the cold classical belt's e under 0.05) | GEN.1069 | - |
+
+## 6.117 Stand-ins of the history of a belt
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BHS1 | P | T2 | L1 | belt_history.GRAND_TACK_SURVIVAL (2e-3, 1e-2) and belt_history.INSTABILITY_SURVIVAL (0.1, 0.5): the share of a belt left after a migration of a giant through it and after an instability alone, drawn log-uniform | one decade each way (as BR4 and BR5 of 6.95) | belts of systems with such an event | a system with the event whose belt is outside the range | N-body migration and instability runs with the system's own giants (GEN.1054 origin table) | Walsh et al. 2011 (arXiv:1201.5177, READ); Morbidelli et al. 2015 (arXiv:1501.06204, READ) | GEN.1069 | - |
+| BHS2 | P | T6 | L1 | belt_history.SURFACE_DENSITY_SLOPE 1.5: the belt's solids go as a^-1.5, so the mass between two distances goes as a^0.5 | 1.0 to 2.0 | belts of 0.1 to 100 au | the mass share of an engulfed or truncated belt differing from the law by more than a factor 2 | the system's own disc profile (GEN.1054) | educated guess from physics (the minimum-mass nebula; the same slope as the scatter step SX1) | GEN.1069 | - |
+| BHS3 | P | T9 | L3 | belt_history.MASS_LOSS_SCATTER_SHARE 0.5: the share of a belt thrown inward per unit fraction of the star's mass lost, if giants remain | 0.1 to 1 | belts beyond a few au of a star that becomes a white dwarf, with giants left | an N-body run of a giant system losing 80 percent of its mass whose belt scatters a share far from the law | an N-body population synthesis of belts round mass-losing stars (Debes and Sigurdsson 2002 for planets only) | educated guess from needed output (the observed 27 to 50 percent of white dwarfs accreting) | GEN.1069 | no data |
+| BHS4 | P | T6 | L1 | belt_history.DELIVERY_MYR 100: how long the scattered rock takes to fall on the white dwarf | 20 to 200 Myr (the cooling ages surveyed) | white dwarfs of 20 to 200 Myr cooling age | polluted white dwarfs showing accretion that stops as the delivery time runs out | a delivery time from the scattering rate of the system's own giants | the cooling-age range of Koester et al. 2014 (READ), the middle in the log | GEN.1069 | - |
+| BHS5 | P | T2 | L0 | belt_history.MIN_POLLUTION_RATE_G_S 1e5: the lowest accretion rate seen on a polluted white dwarf | none (measured) | DA white dwarfs of 17 000 to 27 000 K | a white dwarf polluted at a rate well below | a larger survey with a lower detection limit | Koester, Gaensicke and Farihi 2014 (arXiv:1404.2617, READ): a few 1e5 to a few 1e8 g/s | GEN.1069 | - |
 
 ## 6.95 Stand-ins of the belt sources
 
