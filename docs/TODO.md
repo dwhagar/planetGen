@@ -19269,6 +19269,16 @@ clears each one.
   calls (key on the inputs, no stale reads across epochs), time the two
   tests before and after, and keep every result identical. Owner: Bug 2.
   Version 8.1.
+  First part merged (Bug 2, #3943, about 3:50 AM EDT as the lane
+  reported) (2026-10-30 4:17 AM EDT): test_gen_component_pass same-seed
+  test 35 s instead of over 900 s (smaller test cloud, same properties);
+  the whole-sphere component census fixture fills 30 sectors a region
+  instead of 100 (all 14 tests pass in 7.7 min). Finding: band_fractions
+  is already cached inside a process; the cost is the first table build
+  and drawing 138,000 satellite stars five times, so the cache the item
+  asked for would not help (a memo of the per-cell terms saved 11
+  percent, not added). Still open: the single-sector backfill test
+  (test_bright_star_scatter) is being timed and shrunk next
   Prerequisites: none. Related: TEST.463, GEN.935.
 
 ## USR: User accounts
