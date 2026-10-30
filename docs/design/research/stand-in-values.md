@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 537 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 540 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 65 | 19 | 5 | 11 | 0 | 100 |
 | T4 | 27 | 0 | 0 | 4 | 4 | 35 |
 | T5 | 31 | 9 | 1 | 0 | 0 | 41 |
-| T6 | 41 | 26 | 10 | 32 | 0 | 109 |
+| T6 | 43 | 27 | 10 | 32 | 0 | 112 |
 | T7 | 24 | 7 | 7 | 7 | 0 | 45 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 331 | 70 | 30 | 81 | 25 | 537 |
+| All | 333 | 71 | 30 | 81 | 25 | 540 |
 
 ## How the labels were given
 
@@ -840,6 +840,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | NA1 | P | T5 | L0 | the NH3 active-Sun factor of `photolysis_lifetimes.json` 1.07: the rate of the strongest year of a measured solar record over its weakest year, mean of three instruments | 1.05 to 1.15 | the Sun between the cycle minimum and maximum measured since 1991 | an NH3 line of Huebner and Mukherjee 2015 outside 1.05 to 1.15, or a cross section whose 200 to 217 nm part differs from the Leiden one by a different spectral shape | the Huebner and Mukherjee 2015 NH3 quiet and active rates | `scripts/nh3_activity_factor.py` run 10-30 on the Leiden NH3_partial_cross_sections.h5 and the NASA GSFC SORCE SOLSTICE v16, SUSIM v22 and UARS SOLSTICE v18 files; annual medians; the Leiden quiet rate 1.538e-4 per s is reproduced (1.542e-4) | - | - |
 | NA2 | P | T6 | L0 | the meaning of "active Sun" in the NH3 factor: the strongest measured year of a modern record, not the Huebner and Mukherjee 2015 active Sun, which is stronger than any measured maximum (H2O 1.68 against 1.33 by the earlier lane's method), so the table mixes two conventions (H2O 1.68 and CO2 2.35 on theirs, NH3 on this) | 1.07 to 1.15, the top being NA1 scaled by the H2O ratio of the two conventions | any use of `active_sun=True` for NH3 | an NH3 factor of Huebner and Mukherjee 2015 outside 1.05 to 1.15 | the Huebner and Mukherjee 2015 NH3 quiet and active rates | docs/design/composition/atmosphere-composition-parts/10-verification-second-note-E-nh3-lifetime.md section 3 (H2O 1.33 against 1.68) | - | - |
+
+## 6.65 Stand-ins of the variable-star kinds
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| VR1 | P | T6 | L1 | variability.MIRA_MAX_TEMPERATURE_K 3500 (an asymptotic-giant star cooler than this is a Mira or semiregular variable; Miras run from about 2,500 to 3,500 K) | 3200 to 3800 | asymptotic-giant stars | a measured asymptotic-giant population whose cool stars are mostly not variable, or whose variables reach 4,000 K | a pulsation model of the asymptotic-giant branch (period-luminosity-temperature) | test_variability::test_only_a_cool_asymptotic_giant_is_a_mira | - | - |
+| VR2 | P | T6 | L0 | variability.HERBIG_MIN_MASS_SOL 2 (a pre-main-sequence star of this mass or more is a Herbig Ae/Be star, under it a T Tauri star) | 1.5 to 2.5 | pre-main-sequence stars | a catalogue split of the two classes by spectral type that puts the boundary more than 0.5 solar masses away | the spectral-type definition of the classes | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | - | - |
+| VR3 | P | T6 | L0 | variability.HERBIG_MAX_MASS_SOL 8 (a pre-main-sequence star of this mass or more is neither: it reaches the main sequence still accreting) | 6 to 10 | pre-main-sequence stars | a Herbig Be star of more than 10 solar masses on a pre-main-sequence track | a massive-star accretion model | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | - | - |
 
 ## 6.56 Stand-ins of the registered rows that rest on a Solar System body
 

@@ -349,3 +349,25 @@ def test_the_glance_and_show_when_absent_lists_name_rows_the_kind_has():
     for kind, keys in sheet.SHOW_WHEN_ABSENT.items():
         have = {spec.key for spec in sheet.SPECS[kind]}
         assert set(keys) <= have, f"{kind}: {sorted(set(keys) - have)}"
+
+
+def test_a_star_that_varies_by_its_phase_has_a_variability_row_and_one_that_does_not_has_none(client, mysql_config):
+    """GEN.944: the kind of variable is worked out from the stored state, class, temperature and mass when the sheet is made."""
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        star = conn.execute("SELECT id FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchone()
+        conn.execute("UPDATE stars SET state = 'cepheid' WHERE id = ?", (star["id"],))
+        conn.commit()
+    finally:
+        conn.close()
+    ref = f"star:{pid('star', star['id'])}"
+    rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    assert rows[sheet.VARIABILITY_KEY]["text"] == "classical Cepheid" and rows[sheet.VARIABILITY_KEY]["label"] == "Variability"
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE stars SET state = 'main-sequence', yerkes_class = 'V' WHERE id = ?", (star["id"],))
+        conn.commit()
+    finally:
+        conn.close()
+    assert sheet.VARIABILITY_KEY not in _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
