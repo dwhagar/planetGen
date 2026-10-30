@@ -41,7 +41,7 @@ def test_the_new_rules_read_the_physics_they_state():
     assert not sheet.applies("planet", "M", "solar_day_hours", locked) and sheet.applies("planet", "M", "solar_day_hours", {"rotation_period_hours": 24.0, "period_years": 1.0})
     assert sheet.applies("planet", "C", "shelter_column_g_cm2", {"eq_shelter": 0, "eq_shelter_rec": 2})
     assert not sheet.applies("planet", "C", "shelter_column_g_cm2", {"eq_shelter": 0, "eq_shelter_rec": 0})
-    assert sheet.applies("moon", "C", "outside_hours", {"eq_shelter": 2}) and not sheet.applies("moon", "C", "outside_hours", {"eq_shelter": 0})
+    assert sheet.applies("moon", "C", "outside_hours", {"outside_hours": 800.0}) and not sheet.applies("moon", "C", "outside_hours", {"outside_hours": None})
     assert sheet.applies("moon", "C", "ice_shell_km", {"hydrosphere": "ice"}) and not sheet.applies("moon", "C", "ice_shell_km", {"hydrosphere": "dry"})
     assert sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "ice-covered ocean"}) and not sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "surface ocean"})
     assert sheet.applies("planet", "M", "ring_kind", {"ring_kind": "ice"}) and not sheet.applies("planet", "M", "ring_mass_kg", {"ring_kind": None})

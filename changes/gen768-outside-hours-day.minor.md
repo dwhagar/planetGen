@@ -1,0 +1,6 @@
+**Headline:** A world's page now says how many hours of a day a person can be outside, and what limits them.
+
+### Added
+- **GEN.768: the hours a person can be outside in one local day are stored for every rocky planet and moon.** The number is the smallest of the day's daylight, the day's share of the radiation allowance, how long the garment the survival rules list keeps the body between heat and cold injury, how long the breathing gear lasts against an 8-hour shift, and the ultraviolet the garment is rated for (a body that needs a vehicle has 0 hours); `outside_hours_day` holds the hours and `outside_hours_limit` the one that binds (`daylight`, `dose`, `heat`, `cold`, `air`, `uv` or `vehicle`). A tidally locked world is judged in its terminator belt over a 24-hour shift. The planet and moon pages show "Hours a person can be outside in a day" in the glance and with what limits it in the rotation group, the details tab adds the same two lines to the survival equipment, and the API's `equipment` object carries both fields. Two new columns on planets and moons (migration, schema v187); a world whose daylight is not stored has none. The yearly row stays, labelled "Hours a person can work outside per year (dose limit)".
+
+generation-output: changed

@@ -25,7 +25,7 @@ from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
-from planetgen.physics import constants, daylight, gases, habitability_world, regional_temperature, unit_registry
+from planetgen.physics import constants, daylight, gases, habitability_world, outside_hours, regional_temperature, unit_registry
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -52,7 +52,7 @@ SHOW_GROUPS = frozenset({"identity", "habitability", "life", "ratings"})
 or a facility with no ratings set is itself the answer."""
 
 _PLANET_ABSENT = frozenset({
-    "atmospheric_pressure_pa", "outside_hours", "hydrosphere", "ocean_fraction", "water_mass_fraction",
+    "atmospheric_pressure_pa", "outside_hours_day", "hydrosphere", "ocean_fraction", "water_mass_fraction",
     "dipole_class", "magnetic_moment_a_m2",
 })
 SHOW_WHEN_ABSENT = {
@@ -65,9 +65,9 @@ API sheet always returns every row and says which are `absent` and which are `sh
 
 GLANCE = {
     "planet": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
-               "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
+               "surface_dose_msv_yr", "outside_hours_day", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
     "moon": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
-             "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
+             "surface_dose_msv_yr", "outside_hours_day", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
     "star": ("role", "star_type", "yerkes_class", "state", "mass_kg", "luminosity_w", "temperature_k",
              "habitable_zone_inner_km", "habitable_zone_outer_km", "snow_line_km", "flare_n33_per_yr",
              "lethal_event_rate_per_gyr", "heliosphere_radius_km", "system_perimeter_km"),
@@ -101,9 +101,10 @@ REGISTRY_QUANTITIES = {
 """dict: A unit registry kind, to the Document quantity kind that shows it with its ladder. Any other kind is written
 as a number and the unit's symbol."""
 
-TEXT, FLAG, TIER, RATING, AUTO = "text", "flag", "tier", "rating", "auto"
+TEXT, FLAG, TIER, RATING, LIMIT, AUTO = "text", "flag", "tier", "rating", "limit", "auto"
 """str: How a column is shown besides a ladder quantity: as stored text, as Yes or No, as a PHI-6 colour, as a facility
-rating (1 Green to 3 Red, `population/facility_ratings.py`), or from its unit (`AUTO`)."""
+rating (1 Green to 3 Red, `population/facility_ratings.py`), as what limits the hours a person can be outside (`LIMIT`, GEN.768), or from
+its unit (`AUTO`)."""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -176,7 +177,9 @@ _BODY_GROUPS = (
     *_rows("physical", ("radius_km", "Radius", "radius"), ("mass_kg", "Mass"), ("volume_km3", "Volume"),
            ("density_g_cm3", "Density"), ("gravity_g", "Surface gravity")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt"),
-           ("outside_hours", "Hours a person can work outside per year (dose limit)"), ("solar_day_hours", "Length of the solar day"),
+           ("outside_hours", "Hours a person can work outside per year (dose limit)"),
+           ("outside_hours_day", "Hours a person can be outside in a day"), ("outside_hours_limit", "What limits those hours", LIMIT),
+           ("solar_day_hours", "Length of the solar day"),
            ("daylight_hours", "Hours of daylight at the equator"), ("day_share_equator", "Share of the time the star is up, equator"),
            ("day_share_mean", "Share of the time the star is up, whole surface"),
            ("parent_shadow_share", "Share of the time in the planet's shadow"),
@@ -651,6 +654,8 @@ def _value(spec, table, stored):
         return ["Yes" if stored else "No"]
     if quantity == RATING:
         return [facility_ratings.COLORS[int(stored) - 1].capitalize()] if 1 <= int(stored) <= 3 else [str(stored)]
+    if quantity == LIMIT:
+        return [outside_hours.LIMIT_WORDS.get(stored, str(stored))]
     if quantity == TIER:
         names = habitability_world.TIER_NAMES
         return [names[int(stored)]] if 0 <= int(stored) < len(names) else [str(stored)]
@@ -728,7 +733,7 @@ _SURFACE = (
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
-    "dose_ground_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2",
+    "dose_ground_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
     "phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
     "tier_pressure", "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
     "life_microbial", "life_flora", "life_fauna", "life_sentient", "l_solv", "l_chem", "l_ener", "l_rad",
@@ -779,8 +784,8 @@ _BODY_RULES = [
      "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight or day share to give"),
     (("shelter_column_g_cm2",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0 or (row.get("eq_shelter_rec") or 0) > 0,
      "a shelter column is given only for a body whose radiation calls for a shelter, required or recommended"),
-    (("outside_hours",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0,
-     "the hours a person can be outside in a year are limited by dose only where a shelter is required"),
+    (("outside_hours",), lambda klass, row: row is None or row.get("outside_hours") is not None,
+     "the hours a person can work outside in a year are limited by dose only where the dose is a limit; a suit that allows a full working year outside has none"),
     (("ice_shell_km",), lambda klass, row: row is None or row.get("hydrosphere") in ICE_SHELL_STATES,
      "an ice shell covers a body whose water is ice or an ocean frozen over; a dry body, an open ocean and a vapour world have none"),
     (_RING_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _RING_COLUMNS),
@@ -838,7 +843,7 @@ generation pathway, not a rule."""
 
 OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
-        ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
+        ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
     ("star", "wide_binary_a_crit_km"): "GEN.789",
 }
