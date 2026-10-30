@@ -12649,7 +12649,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   closed as coded with the mean-light default (Aux 7's branch); GEN.961
   is now the settle-giants pass on the GEN.932 train, GEN.976 the age
   bug it fixes and GEN.977 the guard test.
-  Prerequisites: none. Related: GEN.727, GEN.731, GEN.737, GEN.725, GEN.953, GEN.954, GEN.955, GEN.956, GEN.957, GEN.958, GEN.959, GEN.960, GEN.961, GEN.976, GEN.977.
+  Prerequisites: none. Related: GEN.727, GEN.731, GEN.737, GEN.725, GEN.953, GEN.954, GEN.955, GEN.956, GEN.957, GEN.958, GEN.959, GEN.960, GEN.961, GEN.976, GEN.977, GEN.978, GEN.979.
 
 - [ ] **GEN.845 Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764)**
   GEN.764 is done (#3439): `planetgen bring-to-epoch` and the Generate
@@ -14071,6 +14071,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fill, rides a train. About 4 to 6 lane-hours. Every stand-in it adds
   gets a GEN.725 registry row with tier and tweak level (L0 to L4).
   Owner: Aux 7 (it owns GEN.842). Version 8.1.
+  Interim (2026-10-29 9:30 PM EDT): Boss 8:48 PM EDT 2026-10-29 chose to
+  build the derivation (GEN.978, GEN.979) rather than keep the scale
+  tweak. This item stays as the INTERIM stand-in (the 0.4 scale at tweak
+  level L3, with a registry row that names eq. 4 and GEN.979 as its
+  replacement), so the free days are right until the derivation lands;
+  it may ride train 2. Owner changed from Aux 7 to Tides 1 (it feeds the
+  stage 2 wiring GEN.957). If Aux 7 has already started it, tell TODO.
   Prerequisites: none. Related: GEN.842, GEN.731, GEN.725.
 
 - [ ] **GEN.954 Tides stage 1a (lock-free): a rheology module giving k2 and Q from temperature, melt fraction and tide frequency**
@@ -14145,7 +14152,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage 1 if both are ready. Every stand-in it adds gets a GEN.725
   registry row with tier and tweak level (L0 to L4). Owner: Tides 1.
   Version 8.1.
-  Prerequisites: GEN.955, GEN.956, GEN.953. Related: GEN.842, GEN.731,
+  Prerequisites: GEN.955, GEN.956, GEN.953. Related: GEN.842, GEN.731,, GEN.979.
   GEN.904.
 
 - [ ] **GEN.958 Tides stage 3a (lock-free): a moon orbit evolution module: outward drift, spiral-in and the Roche fall**
@@ -14443,6 +14450,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   note. About 0.25 lane-hours, no epoch, merges freely. Owner: Aux 7.
   Version 8.1.
   Prerequisites: none. Related: GEN.961, GEN.842.
+
+- [ ] **GEN.978 Birth spin derivation (a): a module for the last-impact mass ratio gamma by planet mass, from the N-body impact statistics**
+  Boss, 8:48 PM EDT 2026-10-29 ('Yes, build it': build the birth-spin
+  derivation, not only the scale tweak). Spin-down report
+  /mnt/project-files/reports/gen842-spin-down-2026-10-29.md section on
+  sources and 'What this changes'. The Kokubo and Genda 2010 spin law
+  (eq. 4) already has the impactor mass ratio gamma in it, so a
+  Mars-sized embryo hit by small bodies comes out slow without a fitted
+  scale; the missing piece is the distribution of gamma of the last
+  impacts by planet mass. Do: a pure module returning that distribution
+  by planet mass from the N-body statistics (Kokubo and Ida 2007, Agnor
+  et al. 1999; secondary sources accepted). Where Miguel and Brunini
+  2010 (most planets 10 to 10,000 hours) and Kokubo and Genda (2 to 3
+  hours) disagree, use the widest range (Boss's rule for two sources in
+  question) and record both in the registry. Tests: the Solar System
+  rocky planets fall inside the distribution, Mars is reachable, the
+  free-day median is in the Vesta, Ceres and Earth-Moon range. Changes
+  no generated output, so it merges freely. Stand-in tier T1 for the
+  formula and T6 for the gamma law. Every stand-in it adds gets a
+  GEN.725 registry row with tier and tweak level (L0 to L4). Owner:
+  Tides 1 (Boss's word 8:48 PM EDT, relayed by the coordinator). Version
+  8.1.
+  Prerequisites: none. Related: GEN.953, GEN.842, GEN.731.
+
+- [ ] **GEN.979 Birth spin derivation (b): the birth rotation of a rocky planet follows Kokubo and Genda eq. 4 with the gamma law, replacing the scale factor of GEN.953**
+  Boss, 8:48 PM EDT 2026-10-29 ('Yes, build it': build the birth-spin
+  derivation, not only the scale tweak). Do: accretion_spin draws the
+  birth spin from the eq. 4 form with the gamma law of the (a) item
+  instead of the fitted scale factor (the three Gaussian draws should
+  stay so the random stream does not move; check it); decide the tilt
+  law (the code's isotropic tilt against the prograde bias of
+  Schlichting and Sari 2007) and record it; the 0.4 scale and the
+  small-planet factor of GEN.953 are removed and their registry rows
+  name this item as the replacement. Re-target the law tests in
+  test_tidal_spin.py, update the sheet source sentence, re-measure the
+  day and night swing readers. Changes values: epoch with --affects
+  fill, rides the same train as the tides stage 2 wiring. About 7 to 10
+  lane-hours for (a) and (b) together, from the report. Every stand-in
+  it adds gets a GEN.725 registry row with tier and tweak level (L0 to
+  L4). Owner: Tides 1. Version 8.1.
+  Prerequisites: GEN.978, GEN.953. Related: GEN.953, GEN.842, GEN.731.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
