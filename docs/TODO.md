@@ -13925,23 +13925,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1069, GEN.1006.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
-- [ ] **GEN.1077 physics/irregular_population.py: capture windows, the cumulative count N0(>R), grinding, and the order-statistic draw into individual, on-demand and population tiers**
-  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
-  many moons because a lot of them are former asteroids from the belt,
-  if gravitational bodies are near a belt, they should pick up
-  asteroidal moons"; design
-  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
-  designation function with the belt evolution items (goal #4130).
-  Stand-ins accepted when registered in GEN.725 with tier and tweak
-  level; [R] numbers are read from the source by the lane that builds
-  it. Do: design section 4. Pure function. Done: a Jupiter-like giant
-  gives about one body above 40 km and ten to twenty above 5 km, the
-  four giants come out the same order, terrestrial planets get zero.
-  Lock-free. Where we think it belongs (best guess, can move): Aux 5
-  (separate branch), after the captured moons read list.
-  Prerequisites: GEN.1075. Related: GEN.1061.
-  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
-
 - [ ] **GEN.1079 Collisional-saturation check for the irregular zone: reuse belt_mass_earth and show the invariance across the four giants, or replace the guess with a fitted scalar per planet registered at L3**
   Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
   many moons because a lot of them are former asteroids from the belt,
@@ -14434,61 +14417,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.1111, GEN.1119, TEST.499.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
-- [ ] **GEN.1121 Designation history: an object may change its name and ID, keeps a stored history of its previous designations, and its current ID is always completely unique across the whole galaxy**
-  Boss, 5:28 PM EDT 2026-10-30: objects can change name and ID, but each
-  stores a history of its previous designations, and it must always have
-  a completely unique ID. Do: a designation history per object (a table
-  of object, old ID, old name, the change and when, in order), a rule
-  that a new ID must not equal any current or any past ID of any object
-  (a retired ID is never reused, so an old link can always resolve to
-  the object that held it), lookups by an old ID or name redirect to the
-  current object, belt and field members (`<belt ID>.<rank hex>`) and
-  moons follow when a parent changes ID, and the object page shows
-  "formerly" lines. The 96-bit Object ID stays the position-and-seed ID;
-  a renumbering produces an alias row rather than rewriting the ID in
-  place. Done: tests for rename, ID change, collision refused, redirect
-  from an old ID, history shown on the page, members following a parent
-  ID change, and the edit-everything flow of version 8.6 writing the
-  history; unit-less data. Lock work (migration, API field), the design
-  note first. Where we think it belongs (best guess, can move): Core 1
-  (IDs and reproducible galaxies), version 8.2 with the object pages;
-  the edit flow of 8.6 uses it.
-  Design from the region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT):
-  Design: region-object-store.md section 7.3. Every object keeps a
-  stable internal row id; name and uid are attributes. A `designations`
-  table has one row per designation ever held (designation text UNIQUE
-  across the whole galaxy, table, object_row_id, kind name or uid,
-  valid_from_epoch, retired_epoch NULL while current, reason: collision
-  bump, regeneration, moved, admin rename); a retired designation stays
-  reserved. Lookup by an old designation redirects to the current
-  object; the object page lists previous designations; fingerprints
-  digest the current designation only (GEN.1129 keeps the history digest
-  separate). This makes the collision bump of _rank_chain a legal rename
-  and reverses principle 1 of object-id-options.md. A moved rogue keeps
-  the ID of its birth position unless Boss asks otherwise (default).
-  Backfill one current row per existing object. Train 9.
-  Boss 5:49 PM EDT 10-30 (2026-10-30 5:50 PM EDT): Confirmed: a moved
-  rogue keeps its ID fixed (birth-position ID), so the move history row
-  applies only to renames and collision bumps.
-  Prerequisites: none. Related: GEN.1070, GEN.1105, GEN.1118.
-
-- [ ] **GEN.1123 Audit every table that carries sector_id and its ON DELETE rule, and every path that deletes or regenerates a sector, and report which objects would be lost when a sector is deleted though they drifted in**
-  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
-  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
-  #4130). Defaults taken until Boss changes them: whole sectors are the
-  unit of randomness and a region is rounded up to whole sectors (no
-  partial sectors); work units are the galaxy's own (shell, band) arcs;
-  a moved rogue keeps the ID of its birth position, with history; the
-  top-up fills the shortfall only up to the Rogues level. Do: list each
-  positioned table, its sector_id column and delete rule, and each code
-  path that deletes or regenerates a sector (store, admin tools, tests);
-  say which tables must lose the cascade (rogue_planets first) and which
-  are birth-owned. Done: a report with the table and the change per
-  table, which the cascade-removal item uses. Lock-free (report). Where
-  we think it belongs (best guess, can move): Core 5 (sectors and fill),
-  now, separate branch.
-  Prerequisites: none. Related: GEN.1118.
-
 - [ ] **GEN.1127 chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is**
   Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
   GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
@@ -14507,6 +14435,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   applies it. Lock work (migration; goes on its own early train, "train
   19a", before the rogue rows). Where we think it belongs (best guess,
   can move): Core 5 (sectors and fill) with the DB lane, train 6.
+  GEN.1123 audit (Sources 2,
+  reports/sector-delete-audit-gen1123-2026-10-30.md) (2026-10-30 6:57 PM
+  EDT): sector_id is "held now", not "born in": the nightly orbital
+  update already rewrites sector_id of every moved system, phenomenon
+  (not quasars) and space facility. So today a raw DELETE
+  /api/sectors/<id> cascades away drifted-in rogues, interstellar
+  comets, supernova remnants, quasars and space facilities and orphans
+  systems (sector_id NULL, and the motion code then never moves them
+  again), and DELETE .../contents, regenerate and bring-to-epoch delete
+  every system filed there including drifted-in ones, while objects born
+  there that drifted out are left and drawn again under the same ID. Do,
+  in addition: remove ON DELETE CASCADE from rogue_planets,
+  interstellar_comets, supernova_remnants and space facilities (default
+  RESTRICT, so a sector row cannot vanish while a resident points at it,
+  and the delete code removes birth-owned objects first); keep CASCADE
+  for quasars, nearest_systems, the name registry and paths; change
+  delete_sector_with_contents from WHERE sector_id to birth-owned by the
+  first 56 bits of the uid (no new column); the motion code re-files a
+  NULL sector_id object by position; regeneration keeps the sectors row;
+  bring-to-epoch's admin-edit test covers birth-owned objects held
+  elsewhere; DELETE /api/sectors/<id> deletes birth-owned contents and
+  answers 409 while residents remain (defaults taken, TODO, 6:57 PM EDT,
+  until Boss says otherwise). Needs a MySQL test of regenerating sector
+  A when one of its systems drifted into C (second copy refused or
+  renumbered?) before building. GEN.1123 retired.
   Prerequisites: none. Related: GEN.1118, GEN.1111.
 
 - [ ] **GEN.1128 Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger**
@@ -14658,6 +14611,217 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (best guess, can move): Core 4, train 6, first in the window together
   with GEN.1135.
   Prerequisites: none. Related: GEN.1135, GEN.1132, GEN.909, GEN.911.
+
+- [ ] **GEN.1137 cooling_track (GEN.948) jumps for a mass just under the lowest mass the table holds: 0.0699 solar masses at 5 Gy gives 1220 K, 0.07 gives 1627 K, so the temperature cap never binds below the limit mass (bug)**
+  Sources 2, 6:35 PM EDT 2026-10-30 (as the lane reported), found while
+  wiring GEN.494: the track extrapolates at t^-0.32 from the age at
+  which the table drops the mass, so a body just below the lowest held
+  mass is far too cool and the cap for brown dwarfs and rogues does not
+  bind there. Do: extend the table down in mass or extrapolate in mass
+  as well as in age so the temperature at a fixed age is continuous
+  across the table edge; test that 0.0699 and 0.07 solar masses at 5 Gy
+  differ by a few percent, not 25 percent. Lock work if stored
+  temperatures change (epoch, golden). Where we think it belongs (best
+  guess, can move): Bug 1 (owner of GEN.948), train 6.
+  Prerequisites: none. Related: GEN.948, GEN.494.
+
+- [ ] **GEN.1138 Designation history part b: the designations table (retired IDs and names), galaxy/designations.py (rules, retire, renumber) and the three rename writers and _rank_chain writing history**
+  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
+  questions: the small table of retired designations only (not a row per
+  object), retired IDs reserved forever and retired names not reserved
+  (the collision bump may hand a stored object's name to another), a
+  read of a retired ID redirects, a write against it answers 409, a
+  deleted object answers 410. Design:
+  docs/design/architecture/designation-history.md (GEN.1121 part a,
+  merged as #4234), section 4 to 5. Do: Alembic migration for the
+  designations table with the keys of section 4 (unique on the retired
+  uid, lookup and page-line indexes), designations.py with retire and
+  renumber, the store rename writers (rename_star_system, rename_star,
+  rename_body) and the _rank_chain collision bump (reason collision
+  bump) write the history in the same transaction as object_index;
+  invariants of section 3 as tests. Done: tests for rename, ID change, a
+  new ID equal to any current or retired ID refused, history rows in
+  order. Lock work (migration, epoch only if names move). Where we think
+  it belongs (best guess, can move): Core 1, train 9 (the last window).
+  Prerequisites: none. Related: GEN.1121, GEN.1127.
+  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
+
+- [ ] **GEN.1139 Designation history part c: a read of a retired ID redirects to the current object, a write against it answers 409, a deleted object answers 410 (api/ids.py and the page routes)**
+  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
+  questions: the small table of retired designations only (not a row per
+  object), retired IDs reserved forever and retired names not reserved
+  (the collision bump may hand a stored object's name to another), a
+  read of a retired ID redirects, a write against it answers 409, a
+  deleted object answers 410. Design:
+  docs/design/architecture/designation-history.md (GEN.1121 part a,
+  merged as #4234), section 5. Do: api/ids.row_id falls back to
+  designations when the printed ID is not current; page routes answer
+  301 to the current URL; GET API calls answer 301 with the new Location
+  and X-Designation-Formerly; PATCH and DELETE against a retired ID
+  answer 409; a deleted object answers 410. Done: tests for each status
+  and for an old link resolving to the object that held the ID.
+  Lock-free after part b. Where we think it belongs (best guess, can
+  move): Core 1, train 9.
+  Prerequisites: GEN.1138. Related: GEN.1121.
+  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
+
+- [ ] **GEN.1140 Designation history part d: Formerly lines on the object page, the former_designations API field and search by a past name**
+  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
+  questions: the small table of retired designations only (not a row per
+  object), retired IDs reserved forever and retired names not reserved
+  (the collision bump may hand a stored object's name to another), a
+  read of a retired ID redirects, a write against it answers 409, a
+  deleted object answers 410. Design:
+  docs/design/architecture/designation-history.md (GEN.1121 part a,
+  merged as #4234), section 5. Do: the object page lists previous
+  designations newest first with the reason and the epoch date; the JSON
+  of an object gains former_designations, a list of designation, kind,
+  reason and retired_epoch (additive, API version bump); search finds an
+  object by a past name or ID. Done: page and API tests, search test.
+  Lock work (API field). Where we think it belongs (best guess, can
+  move): Core 1, train 9.
+  Prerequisites: GEN.1138. Related: GEN.1121, UX.226.
+  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
+
+- [ ] **GEN.1141 Designation history part e: bodies, belt members and captured bodies follow a parent ID change, and tombstones on delete**
+  Boss, 6:46 PM EDT 2026-10-30, answered the designation-history
+  questions: the small table of retired designations only (not a row per
+  object), retired IDs reserved forever and retired names not reserved
+  (the collision bump may hand a stored object's name to another), a
+  read of a retired ID redirects, a write against it answers 409, a
+  deleted object answers 410. Design:
+  docs/design/architecture/designation-history.md (GEN.1121 part a,
+  merged as #4234), section 5 and 6. Do: when a system or belt changes
+  ID, its bodies, belt members (<belt ID>.<rank hex>) and captured
+  bodies renumber in the same transaction and write their own history
+  rows; a delete in store.delete_* stamps gone_epoch on the object's
+  rows (GEN.1123's audit lists the delete paths). Done: tests that
+  members follow a parent ID change and that a deleted object answers
+  410. Lock-free after part b unless the migration is shared. Where we
+  think it belongs (best guess, can move): Core 1, train 9.
+  Prerequisites: GEN.1138. Related: GEN.1121, GEN.1070.
+  Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
+
+- [ ] **GEN.1142 Class lines patch for the train 6 epoch: T hydrogen-envelope test ahead of N, N Venus-like sentence and hot, not-hydrogen-dominated rule, K without the under 273 K condition and ordered after P**
+  Class index patch
+  (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
+  at 6:48 PM EDT 2026-10-30 to patching the class lines in the same
+  train 6 epoch as the Class Q retirement GEN.1135 and the Class V line
+  GEN.1136). Do: (1) class T: a hydrogen-envelope test ahead of N so
+  hydrogen-rich terrestrial-kind bodies under about 10 Earth masses
+  become T (today 35 of 105 N bodies are hydrogen-rich, median 5.7 Earth
+  masses, and T gets none); (2) class N: 10 bar or more, hot, and not
+  hydrogen dominated, sentence back to Venus-like dense carbon dioxide
+  and sulfur air; (3) class K: drop the under 273 K condition, order it
+  after P, sentence back to an adaptable world with a thin atmosphere
+  (43 of 44 K bodies are frozen ocean); (4) GEN.725 rows for the V line
+  at 2 g, the flux flag at 0.75 and the N temperature line. If the
+  counts of GEN.1143 are not back before the train 6 cut, ship GEN.1135
+  and GEN.1136 alone and hold this item for the next window. Done: tests
+  naming the letters, class page and condition-based-planet-classes.md
+  text updated, covered by the same epoch re-derivation of every class.
+  Lock work, same epoch as GEN.1135. Where we think it belongs (best
+  guess, can move): Core 4, train 6.
+  Boss, 6:57 PM EDT 2026-10-30, SUPERSEDES the K rule above and widens
+  the patch (2026-10-30 7:00 PM EDT): class decisions: (1) E and F are
+  near duplicates whose lore purpose (stages on the chain to an
+  Earth-like world) Boss dislikes: retire one and keep one, or make each
+  more distinct, our choice. (2) Class K: above freezing, thin
+  atmosphere and LOW atmospheric pressure, near-Earth temperature,
+  pretty close to Earth-like but not quite; below freezing goes to Class
+  P (glaciated) at the top end of what P accepts. (3) Class L:
+  Earth-like except high CO2 and low oxygen, difficult to breathe
+  without a mask but not toxic (the original description fits),
+  near-Earth temperature. (4) Class H: desert world, less than about 20
+  percent available surface water (Boss: if I recall correctly, check
+  the source). (5) Class O: ocean world, about 80 percent of the surface
+  ocean. (6) CONDITIONS ONLY, no zone (hot, eco, cold) in any class
+  rule: a K or L world may sit closer to or farther from its star if
+  that is what the temperature needs. H and L are unreached today (zero
+  bodies) and must be fixed in this epoch; O (1 to 3 bodies) must be
+  checked against the 80 percent rule. The class index thread's result
+  sets the exact lines; this item and the train 6 epoch scope follow it.
+  Still one epoch for every class re-derivation.
+  Class index thread result, 7:05 PM EDT 2026-10-30 (Boss decisions of
+  6:57 PM EDT turned into lines; SUPERSEDES the T, N, K lines above
+  where they differ) (2026-10-30 7:08 PM EDT): E retired (letter
+  reserved); F kept as the reducing-air world (no free oxygen, methane
+  or hydrogen 5 percent or more), sentence loses the stage idea; K =
+  thin air under 3 kPa, mean surface 273.15 K to about 320 K, little
+  oxygen (the cold part goes away); P = every mean surface below 273.15
+  K (line moves from 210 K, a large change, P takes the cold Q and K
+  bodies, census moves); L = Earth-like pressure (about 30 kPa to 3
+  bar), 273.15 K to about 320 K, CO2 about 1 percent or more (ahead of G
+  at 20 percent) and O2 3 to about 16 percent, sentence hard to breathe
+  without a mask, not toxic; O = ocean fraction 80 percent or more; H =
+  under 20 percent; M = the rest (20 to 80 percent); T and N lines as
+  above. Result: 18 live classes (Q and E retired, letters reserved).
+  Temperature and pressure make K, L, M, P disjoint; G stays after L.
+  Register every new line in GEN.725 (L1 or L2). Classification already
+  reads conditions only, never zone. H got zero bodies at 15 percent and
+  widening alone may not fill it (bodies with air nearly always keep
+  their water): see GEN.1145 and GEN.1146.
+  Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1143.
+
+- [ ] **GEN.1143 Class count script: temperate-ocean bodies per class, hydrogen-rich N bodies under 15 Earth masses, and the E, H and L reach (prints only)**
+  Class index patch
+  (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
+  at 6:48 PM EDT 2026-10-30 to patching the class lines in the same
+  train 6 epoch as the Class Q retirement GEN.1135 and the Class V line
+  GEN.1136). Do: a script (audit/ or scripts/) run on main that prints,
+  per current class, the count of bodies at 250 to 330 K with a liquid
+  ocean; the count of hydrogen-rich N bodies under 15 Earth masses; and
+  how many bodies each of E, H and L reaches. Lock-free (prints only, no
+  output change). Run it on main before the train 6 epoch and again
+  after, so Boss sees what M yields. Where we think it belongs (best
+  guess, can move): Aux 2 (class sweeps).
+  Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1142.
+
+- [ ] **GEN.1144 Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach**
+  Class index patch
+  (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
+  at 6:48 PM EDT 2026-10-30 to patching the class lines in the same
+  train 6 epoch as the Class Q retirement GEN.1135 and the Class V line
+  GEN.1136). Do: after the train 6 epoch lands, re-run the class sweep
+  (GEN.1143 script plus audit/sweep_classes) on the new main and write a
+  short report; only then decide whether E merges into F, whether T and
+  N need a further boundary, and why H and L reach zero bodies (a
+  physics question about Venus and Mars type worlds, not a class-row
+  problem until measured). Boss's call on the decisions. Lock-free
+  report. Where we think it belongs (best guess, can move): Aux 2.
+  Boss, 6:57 PM EDT 2026-10-30 (2026-10-30 7:00 PM EDT): E and F, H, L
+  and O are no longer decided after the re-sweep: Boss told us to retire
+  or differentiate E and F and to fix H, L, K and O by conditions only,
+  inside the train 6 epoch (GEN.1142). This re-sweep now checks that H,
+  L, O and K reach bodies with their new lines, and reports the
+  temperate-ocean count per class.
+  Prerequisites: GEN.1135, GEN.1136, GEN.1143. Related: GEN.1142.
+
+- [ ] **GEN.1145 Ocean-fraction spread of temperate air-bearing bodies, printed before the train 6 epoch (decides whether the H line can fill)**
+  Class index thread, 7:05 PM EDT 2026-10-30: H (desert, under 20
+  percent surface water) got zero bodies at 15 percent and bodies with
+  air nearly always keep their water, so print the ocean-fraction spread
+  of temperate (273.15 to 320 K) air-bearing bodies on main before the
+  epoch lines are fixed, in the style of GEN.1143 (prints only). Done:
+  the histogram in reports/, and whether the 20 percent H line and the
+  80 percent O line each reach bodies. Lock-free. Where we think it
+  belongs (best guess, can move): Aux 2 (wrote GEN.1143).
+  Prerequisites: none. Related: GEN.1142, GEN.1143, GEN.1146.
+
+- [ ] **GEN.1146 Upstream water inventory and land share: temperate bodies with air nearly always keep their water, so no desert world (Class H) exists; decide whether the generator should produce dry temperate planets (only if GEN.1145 shows H stays empty)**
+  Class index thread, 7:05 PM EDT 2026-10-30, Boss: Class H (desert,
+  under 20 percent available surface water) must exist. If the spread of
+  GEN.1145 shows H stays empty after widening the line, the fix is
+  upstream, not another class line: the water inventory delivered to and
+  kept by temperate bodies, and the land share (continents versus ocean
+  basins, which sets the ocean fraction at a given water mass). Do: a
+  short research and design report on what physics sets the ocean
+  fraction (water inventory, mantle storage, basin volume, Lehmer-type
+  land fraction laws), the current values, and a proposal; Boss decides
+  before any code. Prerequisite: GEN.1145 result. Report only
+  (lock-free); the fix would be lock work. Where we think it belongs
+  (best guess, can move): Aux 3 (bulk composition) with Aux 2.
+  Prerequisites: GEN.1145. Related: GEN.1142, GEN.909, GEN.1145.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19385,32 +19549,6 @@ clears each one.
   if the output moves).
   Prerequisites: none. Related: TEST.484.
 
-- [ ] **TEST.489 Reds on clean main found by Core 3: test_cache_warmup (nodes_to_warm, full_cache_leaves, nodes_family: insert_bright_stars column count mismatch), test_satellites (2), test_activity (stored field and exposure), test_sector_gen research rates per star (black-hole rate 0.00123 over the 0.0012 cap) (bug)**
-  Found by Core 3 on MAP.213 slice C (relayed 3:52 PM EDT 2026-10-30 as
-  the lane reported); each is also red on a clean origin/main.
-  test_runaway_history surface water is already TEST.391. Do: triage
-  each (stale expectation, a real regression, a moved seed, or a cap
-  that needs its source) and fix the right side without skipping or
-  loosening beyond the property; the black-hole rate cap needs its
-  source or a GEN.725 row. Done: all pass on main. Owner: Bug 2 (after
-  TEST.483 and TEST.484) or any free lane; lock-free unless a cause is a
-  generator change. Version 8.1.
-  Also red on main (4:06 PM EDT 2026-10-30): Aux 2 found
-  test_property_sheet moon_disk columns (5 unlisted columns) and 5
-  test_db_persistence bright-star tests (column count mismatch, the same
-  cause as the cache warmup reds) on a clean main (as the lane
-  reported).
-  Also red on main (Tides 1) (4:15 PM EDT 2026-10-30):
-  test_orbital_motion reflex offset (settle_orbit moves a captured
-  moon's position and nobody refreshes the planet's offset: a real bug
-  to fix at the cause) and test_moon_composition disk moon ice (the
-  sample now holds only two disk moons: widen the sample), both red on
-  clean main c563ce591 (as the lane reported).
-  Owner (4:20 PM EDT 2026-10-30): Aux 5 (assigned by TODO after TEST.484
-  merged as PR #4120; test-only unless a cause is a real bug, separate
-  branch, merge it yourself).
-  Prerequisites: none. Related: TEST.391, TEST.472, TEST.484.
-
 - [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after train 9)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -19461,24 +19599,6 @@ clears each one.
   Prerequisites: GEN.1111.
   Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
 
-- [ ] **TEST.500 test_moon_composition::test_a_disk_moon_gains_ice_past_its_disks_ice_line fails on a clean main (reported by Aux 4 on PR #4184) (bug)**
-  Aux 4, 5:28 PM EDT 2026-10-30: the test fails on main without the
-  change of PR #4184 (GEN.1081); my lane run of the single test gave a
-  collection error (the nltk data step), so the failure text is Aux 4's
-  to attach. Do: reproduce on a lane machine with the datasets fetched,
-  find which merge broke it (the ice line of a disk moon), and fix the
-  test or the code, whichever is wrong; if the generated moon
-  composition is wrong, say so and it becomes a GEN bug. Lock-free
-  unless the code changes output. Where we think it belongs (best guess,
-  can move): Core 1 (test owner), separate branch.
-  Failure text (Aux 4) (2026-10-30 5:33 PM EDT): The test fails in its
-  own body at `assert near and far`: the generated moons have no disk
-  moon far enough past the ice line, so the list is empty (not a
-  collection error; my lane run had a missing nltk data step). So either
-  the generator no longer makes such a moon in the seeded system, or the
-  test seed is stale.
-  Prerequisites: none.
-
 - [ ] **TEST.501 Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out"**
   Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
   GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
@@ -19505,6 +19625,16 @@ clears each one.
   it becomes a GEN bug. Lock-free unless the code changes output. Where
   we think it belongs (best guess, can move): Core 1 (test owner),
   separate branch, after TEST.500.
+  Aux 5, 6:35 PM EDT (as the lane reported) (2026-10-30 6:38 PM EDT):
+  the cause is real: a planet wobble from its moons is made when the
+  moons are, then the moons move (orbits settle, GEN.992 remake), so 24
+  of 117 planets had a stale reflex_offset_*. Fix is 4 lines in
+  StarSystem.__init__ (refresh each planet offset together with the
+  stars), 0 of 104 off after, test_orbital_motion 40/40; branch
+  claude/aux5-test489-reflex, written by Aux 5, NOT merged because it
+  changes generated output (planets with moons). Lock work for train 6,
+  --affects fill,population (stored reflex columns), golden. Owner Aux
+  5; Bug 2 takes it into train 6.
   Prerequisites: none.
 
 ## USR: User accounts

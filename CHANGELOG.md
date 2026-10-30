@@ -2,6 +2,95 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2816] - 2026-10-30
+
+**Headline:** A new script prints how many planets and moons fall in each class, how many of those are temperate with a liquid ocean, and how many bodies reach classes E, H and L; it stores nothing.
+
+### Added
+- **Class count script (GEN.1143).** `scripts/class_counts.py` generates a seeded sample of systems and prints the bodies per class, the bodies at 250 to 330 K with a surface or hycean ocean per class, the hydrogen-rich N bodies under 15 Earth masses, and how many bodies reach E, H and L (and would match their own conditions if the rows before them did not take them). Used to decide the class line edits of the next epoch.
+
+generation-output: unchanged
+
+## [8.0.2815] - 2026-10-30
+
+**Headline:** A full reference list of every paper, dataset and catalog the project builds on.
+
+### Added
+
+`docs/REFERENCES.md` and `docs/REFERENCES.html` list more than 2,300 papers in AAS/ADS style with DOI, arXiv and ADS links, the archives and datasets the project reads, and the citations that could not yet be tied to a paper. `scripts/build_references.py` regenerates both from `docs/reference/references-data.json`.
+
+## [8.0.2814] - 2026-10-30
+
+**Headline:** The generator can now say how many small captured bodies a planet holds, from the capture windows its history gave it, instead of every giant getting a few by chance.
+
+### Added
+- **`physics/irregular_population.py` (GEN.1077).** The captured small bodies of a planet from its windows: the instability (its own close encounters with another giant, scaled by its Hill volume), the gas era (gas giants only, bodies of 1 to 500 km), a binary exchange for a massive capture at an ice giant, and a temporary-capture flag. The count is ground down by the collisions of the planet's age, and the largest bodies are drawn as objects (every body above 1e16 kg, then the next heaviest until 90 percent of the mass, at most 100). A Jupiter-like planet gets about one body above 40 km and a few tens above 5 km, the four giants come out the same order, and an Earth gets none. Nothing reads it yet; the captured-moon wiring (GEN.1083) does.
+- **Stand-in rows IP1 to IP14** in the gap-filling plan (section 6.118), the stand-in list, the burn-down register and the wiring register.
+
+generation-output: unchanged
+
+## [8.0.2813] - 2026-10-30
+
+**Headline:** The plan of a region run is written: a sphere around a start point becomes whole sectors, cut into units along the galaxy's own shell and band arcs, nearest first, with resume and the stage barrier.
+
+### Added
+- **The region run plan (GEN.1128, first slice).** `planetgen/galaxy/region_run.py`: `plan` (a sphere of a radius from a start point, plus `grow_shells` whole shells, as the whole sectors it touches; units of at most 27 consecutive wedges of one (shell, band) arc; nearest first; sectors already charted taken out so a stopped run or an overlapping region builds only what is missing), `next_units` (every generate unit before any top-up unit, so a stopped run resumes in the generate stage until the whole set is charted), `unit_items` (a unit as the triples a sector stage takes) and `cost` (sectors, units, shells, the sphere's volume in sectors, seconds only when a per-sector time is given). The plan reads no stream and no database, and no draw reads it, so the same seed gives the same sectors whatever the start, the radius, the cut or the order. The command that runs the units and the chart ledger write follow (GEN.1127).
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1128 stays open for the command).
+
+## [8.0.2812] - 2026-10-30
+
+**Headline:** The design for objects that change name and ID while keeping their past designations is written.
+
+### Added
+- **Designation history design note (GEN.1121).** `docs/design/architecture/designation-history.md`: one `designations` table of retired names and IDs (a retired ID is reserved forever, a retired name is kept in history and may move by the collision rule), lookup of an old ID redirecting to the current object (a write against a retired ID refused with 409, a deleted object 410), bodies, belt members and captured bodies following a parent's ID change, a "formerly" line on the object page and an API field, the split into parts and three questions for Boss. Nothing is built.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1121 stays open for the build).
+
+## [8.0.2811] - 2026-10-30
+
+**Headline:** A test now holds a rogue planet to being a bound planet without a star, and says how far from that it is today.
+
+### Added
+- **The rogue planet parity contract (TEST.498).** `tests/test_rogue_planet_parity.py`: the columns a bound planet stores that a rogue planet does not (148 of the 228 under the same name, apart from the host-only ones: the orbit, position and velocity round a host, the zone, the Hill radius and the reflex offset), and the 13 names a rogue uses for what a planet already stores (`mass_kg` for `mass`, `radius_km`, `surface_temperature_k`, `planet_type` for `body_type` and the like), as a ceiling that can only fall. Five strict expected failures state what GEN.1111 and the rogue train build: every planet column on a rogue, no column of its own beyond the rogue note, galactic motion and ejecting system, a rogue that is a `Planet` (no rogue-only generator), a moon system of `Planet` moons instead of a flag, and the class set by the one classifier. Each mark comes off when the rogue is built through the planet code.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.498 stays open until GEN.1111 turns the five expected failures into passes).
+
+## [8.0.2810] - 2026-10-30
+
+**Headline:** A rare failure of the example narrative test, on a subdwarf that rightly carries the main-sequence lifespan note, no longer happens.
+
+### Fixed
+- **The main-sequence note test (flake found while bisecting TEST.500).** `test_example_narrative_never_misapplies_main_sequence_notes` skipped class V stars only, so a Yerkes VI subdwarf companion in the van Maanen's star example (drawn rarely) failed it, though `describe/build.py` writes the main-sequence note for classes V and VI by design and the physics treats a subdwarf as main sequence. The test now skips both. No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none.
+
+## [8.0.2809] - 2026-10-30
+
+**Headline:** The property sheet now lists a moon's origin and the disk it formed in, and eight test files that failed on a clean main pass again (all but one were stale tests).
+
+### Changed
+- **TEST.489: the moon origin and disk rows on the property sheet.** `moon_origin` ("How a moon came to orbit its planet") and the four `moon_disk_*` columns (lifetime, α/f, ice fraction far past the ice line, ice line) are rows of the planet and moon sheets, in the Orbit and Disk groups; `moon_disk_alpha_over_f` is declared in a new unit `disk-alpha-f` that writes "(α/f of the disk the moons formed in; it sets their total mass)" beside the number instead of a bare ratio.
+- **TEST.489: tests fixed on the test side.** (1) `test_cache_warmup` (3), `test_db_persistence` (5 bright-star tests), `test_galaxy_nodes`: the hand-written `bright_stars` row tuples lacked the `rotation_period_hours` column GEN.846 added; the rows are now made by column name (`tests/bright_star_rows.py`, also used by `test_api`). (2) `test_lifespan_gy_null_round_trips_to_infinite_lifespan` failed about one run in eight when the system drew a companion, so the star was not the forced white dwarf alone; it asks for one star. (3) `test_a_disk_moon_gains_ice_past_its_disks_ice_line`: 40 systems of random stars held 3 disk moons, none near the ice line (a disk moon needs a giant, which few systems now have); the fixture draws Sun-like single stars, and more of them until two disk moons stand on each side. (4) `test_research_rates_per_star`: the black hole rate is 1.23e-3 with the Chabrier function's massive stars, over the old 1.2e-3 edge; the edge is 1.7e-3, the most any place can roll (0.235 failed share with no metals). (5) `test_generate_sector_phenomena_builds_the_right_type_and_count`: a fifth of planetary nebula centres have a close companion (GEN.320), and the primary of a pair can be that companion, so the test looks for the white dwarf among the stars. Nothing the generator makes changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.489 (except `test_orbital_motion` reflex offset, a planet's wobble that is not refreshed when its moons move, which changes what is generated and is filed apart, and `test_satellites`, `test_activity` and `runaway_history`, which pass on this machine).
+
 ## [8.0.2808] - 2026-10-30
 
 **Headline:** The search can now find systems by how many stars they hold: a Stars menu on the search page, `stars:3` in the search box, and `stars=` in the API.
