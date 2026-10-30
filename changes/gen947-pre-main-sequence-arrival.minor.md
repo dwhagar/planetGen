@@ -1,4 +1,0 @@
-**Headline:** Young stars take as long to settle onto the main sequence as the MIST models say: stars of 1.5 solar masses and up, and of 0.2, stay young about twice as long.
-
-### Changed
-- **GEN.947: pre-main-sequence contraction times from MIST.** The contraction model reached the main sequence about twice too soon from 1.5 solar masses up and at 0.2 solar masses (a 2 solar mass star in 4.2 Myr where MIST takes 9 to 10). Setup now also keeps the heaviest still-contracting star of every MIST isochrone age (the derived `main_sequence.npz` is rebuilt by `update.sh`), and the model's clock is stretched so each star arrives when MIST's does. A 0.2 solar mass dwarf is a pre-main-sequence star for about 750 Myr, not 350; more of the youngest stars of 1.5 to 5 solar masses are pre-main-sequence, and their `phase_end` and the early radiation history of their planets shift with it.
