@@ -124,8 +124,11 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # property, which draws it on first read from `_name_seed` (PERF.43). A planet's `phi_bio` and `phi_cpx` are the
 # likelihoods its life draw and life scores are made from; the stored life scores say what they gave (GEN.649). A moon's
 # `moon_origin` is how it came to orbit its parent, drawn when its orbit is (GEN.714); its columns are DB.70.
+# A star's `initial_mass_sol`, `phase_end_age_gy`, `_model_age_lifespan` and `_model_fe_h` are the population model's
+# own state, which a forced type shares (GEN.941); they are runtime state that the stored columns rebuild.
 _RUNTIME_ONLY = {
-    Star: {"system_config", "galactic_center_dist_ly", "spatial", "_name", "_name_seed"},
+    Star: {"system_config", "galactic_center_dist_ly", "spatial", "_name", "_name_seed", "initial_mass_sol",
+           "phase_end_age_gy", "_model_age_lifespan", "_model_fe_h"},
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
              "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx", "moon_origin",
              "moon_disk_system"},

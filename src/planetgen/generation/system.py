@@ -536,7 +536,7 @@ class StarSystem:
             for obj in self.all_planets:
                 if obj.body_type == 'a':  # A belt is not a body; GEN.442 gives it the stored line to read.
                     continue
-                obj.born_beyond_snow_line = obj.distance >= obj.star.snow_line_au
+                obj.born_beyond_snow_line = bool(obj.distance >= obj.star.snow_line_au)
                 for moon in obj.moons:
                     moon.born_beyond_snow_line = obj.born_beyond_snow_line
 
