@@ -20,7 +20,7 @@ formula of its age.
   `x0 + v t` plus shear. Two shapes: `ball` (a collision: from a point, isotropic velocities) and `annulus` (a belt unbound by a supernova: from a ring of radius `a` on a straight tangent at the
   speed it leaves with, `unbound_belt_speed_ms`, a thin pancake).
 
-Stand-ins are IF15 to IF18 of `docs/design/research/gap-filling-plan.md` section 6.103. Nothing reads the module yet: the field columns, the host rule and the bring-to-epoch step (GEN.1103,
+Stand-ins are IF15 to IF18 of `docs/design/research/gap-filling-plan.md` section 6.105. Nothing reads the module yet: the field columns, the host rule and the bring-to-epoch step (GEN.1103,
 GEN.1104, GEN.1107) wire it.
 """
 
