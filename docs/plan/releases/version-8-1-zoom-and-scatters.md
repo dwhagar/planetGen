@@ -732,7 +732,9 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.944 | Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars) |  |  |
 | GEN.949 | Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets |  |  |
 | GEN.950 | Water share of solids by distance from Lodders 2003 Table 11 and its condensation temperatures, replacing the fixed 170 K snow line (low priority) |  |  |
-| TEST.456 | A test that the generated [X/Fe] abundances match the Brewer and Fischer 2016 table, not only its trend and scatter (low priority) |  |  |
+| GEN.990 | Raise the C, O and Si abundance scatter, now about half the Brewer and Fischer 2016 scatter (bug) |  |  |
+| GEN.989 | Lower generated [Mg/Fe] by 0.05 to 0.07 dex for [Fe/H] above -0.2 to match Brewer and Fischer 2016 (bug) |  |  |
+| GEN.988 | Give Ca, S and Ar a star-to-star scatter like the other generated [X/Fe] abundances (bug) |  |  |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there |  | Under GEN.90. Same reconcile/zone code as phase 0's physics fixes. |
 | GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | GEN.27, GEN.91 | Under GEN.90: the refactor is the sweep. Bug, but by definition a sweep after the new classes; it can't go earlier. Includes rocky rogues of 10-16 Earth masses (up to 17,600 km) that get S as nearest fit (PR #415). |
 | GEN.90 | Refactor the planet classes around the habitability index | GEN.27, GEN.29, GEN.91 | Parent; takes GEN.33, GEN.28, GEN.27 and GEN.29 as its subitems. |
