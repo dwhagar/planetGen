@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 508 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 518 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 60 | 0 | 5 | 0 | 0 | 65 |
-| T2 | 79 | 9 | 0 | 1 | 0 | 89 |
-| T3 | 59 | 15 | 5 | 11 | 0 | 90 |
-| T4 | 25 | 0 | 0 | 4 | 4 | 33 |
-| T5 | 28 | 7 | 1 | 0 | 0 | 36 |
-| T6 | 40 | 23 | 10 | 32 | 0 | 105 |
+| T2 | 80 | 9 | 0 | 1 | 0 | 90 |
+| T3 | 63 | 16 | 5 | 11 | 0 | 95 |
+| T4 | 26 | 0 | 0 | 4 | 4 | 34 |
+| T5 | 29 | 8 | 1 | 0 | 0 | 38 |
+| T6 | 40 | 24 | 10 | 32 | 0 | 106 |
 | T7 | 24 | 6 | 3 | 7 | 0 | 40 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 316 | 60 | 26 | 81 | 25 | 508 |
+| All | 323 | 63 | 26 | 81 | 25 | 518 |
 
 ## How the labels were given
 
@@ -806,6 +806,21 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | KD2 | P | T3 | L2 | potassium_depletion.statistics_of(False): bodies under 0.03 Earth masses, log10 depletion normal with mean -1.815 (0.015) and predictive spread 0.94 dex, from the Moon, Vesta and the angrite parent body | spread 0.6 to 1.3 dex | moons, dwarf planets and planetesimals that melted | an undifferentiated or lightly heated small body whose K/U is above 0.5 CI (the ordinary and enstatite chondrites of the same table, 0.85 to 1.24, are such bodies) is not drawn here | a class for undifferentiated small bodies, or a depletion tied to the heating that melted the body | test_potassium_depletion; Dauphas et al. 2022 Table 1 read, three bodies | - | - |
 | KD3 | P | T6 | L1 | potassium_depletion.CLASS_MASS_EARTH 0.03: the mass that separates the two classes (the gap in the table runs from the Moon, 0.0123, to Mercury, 0.0553) | 0.0123 to 0.0553 | all bodies | a body between 0.0123 and 0.0553 Earth masses measured on either side | a depletion that varies continuously with mass | test_potassium_depletion; the gap in Table 1 | GEN.492 | - |
 | KD4 | P | T6 | L1 | potassium_depletion.MAX_DEPLETION 1.0 and no undepleted channel: no body keeps more potassium than CI chondrites, and none is drawn near 1 more often than the normal gives | none | rocky bodies | the white dwarf pollutants of Harrison et al. 2021 (arXiv 2103.05713, READ): 38 of 50 systems with sodium measured show none of the sodium depletion the Solar System planets show; a measured K/U of an exoplanet above 0.5 CI | an undepleted channel of weight near 0.5 to 0.76 once the pollutant sample is corrected for what a white dwarf's sodium line can detect | test_potassium_depletion; Harrison et al. 2021 section 3 | GEN.492 | - |
+
+## 6.62 Stand-ins of the carbon dioxide far wing and the sulfuric acid cloud
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| FW1 | T | T2 | L0 | the chi parameters of Perrin and Hartmann 1989 for CO2-CO2 and CO2-N2 (`co2_far_wing.json` `chi_co2_co2`, `chi_co2_n2`: sigma1, sigma2, sigma3 of 3, 30, 120 and 3, 10, 70 cm-1, b_i(T) = alpha + beta exp(-epsilon T)) | none | carbon dioxide in carbon dioxide or nitrogen, 190 to 800 K | a measured clear-sky spectrum of a dense carbon dioxide air (Venus near-surface windows) whose wing differs from the factor by more than a factor of 2 | the paper's own tables, or the Tonkov et al. 1996 factor (350 cm-1 truncation) | HELIOS-K files read 10-30; Simonetti and others 2021 (arXiv 2110.11702) equations 12 to 15 read; Wordsworth, Forget and Eymet 2010 compare it with the 25 cm-1 cut | - | - |
+| FW2 | P | T4 | L0 | the Lorentz half widths of the carbon dioxide lines: 0.10 cm-1 per atmosphere self-broadened, 0.07 foreign (every gas that is not carbon dioxide takes the nitrogen width), exponent 0.7 in (296 K / T) (`co2_far_wing.json` `gamma_self_cm1_atm`, `gamma_foreign_cm1_atm`, `gamma_exponent`) | self 0.09 to 0.11; foreign 0.06 to 0.08; exponent 0.6 to 0.8 | strong lines of the 4.3 and 15 micron bands | the HITRAN widths of the lines that carry the band strength lie outside the knobs | the HITRAN line list (a download, not held) | recalled from HITRAN, not read | - | - |
+| FW3 | P | T3 | L0 | the reach of the wing, 500 cm-1 (`co2_far_wing.json` `reach_cm1`) | 120 to the whole grid | all carbon dioxide bands | a measured spectrum shows the wing beyond 500 cm-1 or none beyond 120 | a measured truncation | Simonetti and others 2021 use 500 cm-1 for carbon dioxide air and say proposed truncations run from 120 cm-1 to none; the tests sweep the bracket | - | - |
+| FW4 | P | T3 | L0 | the temperature range of the chi factor, 190 to 800 K, held at the ends (`co2_far_wing.json` `temperature_low_k`, `temperature_high_k`) | 140 to 250 K; 700 to 1000 K | all carbon dioxide air | a chi measured above 800 K that differs from the held value | a chi fit that covers the hot air of a close-in planet | Wordsworth, Forget and Eymet 2010; the form gives a chi above 1 below about 140 K | - | - |
+| FW5 | P | T5 | L0 | the factor is applied to every carbon dioxide band (it was fitted to the 4.3 micron wing, the file's range is 2100 to 2500 cm-1), the band strength is the k-table mean at 1e-5 bar times the band width, spread evenly over the band, and the line shape inside the cutoff stays the tables' | chi on the 4.3 micron band only | all bands | a line-by-line spectrum that differs from the band-averaged wing by more than a factor of 2 in a window | a line-by-line wing from a carbon dioxide line list | HELIOS-K's own example sets 0 to 10000 cm-1; Bezard and others 2011 quote Meadows and Crisp 1996 for the shape beyond the band | - | - |
+| SC1 | P | T3 | L1 | the acid cloud base temperature 367 K (`sulfuric_cloud.json` `base_temperature_k`): the first level up the dry adiabat that cool, the ground when it already is | 345 to 367 K; the 38 km level (about 4 bar, temperature not printed) | airs with sulfur dioxide, an oxidiser and water | a Venus-like air whose cloud base lies at another temperature than the dry adiabat gives | a cloud base from the saturation of sulfuric acid in the weight-percent solution | Arney and Kane 2018 (arXiv 1804.05889) Table 1 read: lower cloud 47.5 to 50.5 km, 367 to 345 K, 1.39 to 0.98 bar | - | - |
+| SC2 | P | T3 | L0 | the acid cloud depth, uniform on 20 to 30 at 550 nm (`optical_depth_low`, `optical_depth_high`), the sum of the published layer depths at 0.63 micron (the wavelength is not corrected) | 6 to 40 | any air that makes the cloud | a second world with an acid cloud whose depth is far outside; a sum that should not add the three layers | a depth from the production rate of the acid | Arney and Kane 2018 Table 1 read: upper cloud 6 to 8, middle 8 to 10, lower 6 to 12 | - | - |
+| SC3 | P | T3 | L0 | the droplet radius, log-uniform on 0.3 to 3.85 micron, and the density 1800 kg/m3 (`radius_low_um`, `radius_high_um`, `density_kg_m3`): they only set how much acid a depth needs | 0.3 to 4; 1670 to 1840 | any air that makes the cloud | the papers disagree on the mode radii (mode 1 0.30, 0.4 or 0.49; mode 2 1.0, 1.04 or 1.4 micron), so the widest range is used | a size from the cloud microphysics | Gillmann and others 2024 (arXiv 2404.07669) section 3.5.2 and Arney and Kane 2018 Table 2, read; Dai and others 2022 (arXiv 2207.10238) density, a model value | - | - |
+| SC4 | P | T5 | L1 | the share of the sky under an acid cloud, 1 (`cover`) | 0.5 to 1 | any air that makes the cloud | a second acid-cloud world seen partly clear | a cover from the cloud dynamics | Gillmann and others 2024: the one known world is completely enshrouded | - | - |
+| SC5 | P | T6 | L1 | the acid supply: the three gates of `acid_medium` (sulfur dioxide, an oxidiser, water), and no production rate, only the limit of all the sulfur dioxide above the base made into acid (`sulfuric_cloud.acid_column_limit_kg_m2`), which binds only in a thin air | none | airs with sulfur dioxide | the limit binds in a thick air in a way the photochemistry would not allow (the acid of a 150 ppm air at 2 bar is hundreds of times the cloud's mass) | a photochemical production rate, with a sink | Gillmann and others 2024 section 3.5.3: cloud-top SO2 5 to 100 ppbv, 130 to 180 ppm below the cloud | - | - |
 
 ## 6.56 Stand-ins of the registered rows that rest on a Solar System body
 
