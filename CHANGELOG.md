@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2704] - 2026-10-30
+
+**Headline:** A sourced potassium depletion by body class is built and tested, ready for the generator; no world changes yet.
+
+### Changed
+
+- **Potassium depletion (GEN.492, lock-free step).** `potassium_depletion` holds the K/U of the bulk silicate Earth, Mars, Mercury, the Moon, Vesta and the angrite parent body (Dauphas et al. 2022 Table 1) over CI chondrites, and draws a body's depletion from its class: planets of 0.03 Earth masses or more centre on 0.19, smaller bodies on 0.015. Nothing calls it yet; `radiogenic` still draws log-uniform 0.03 to 1 until the wiring step. Registry rows KD1 to KD4.
+
 ## [8.0.2703] - 2026-10-30
 
 **Headline:** Nine registered rows that rest on a Solar System body are now flagged as stand-ins with the item that replaces each.
