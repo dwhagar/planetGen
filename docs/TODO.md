@@ -13810,28 +13810,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1060. Related: GEN.1016.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
-- [ ] **GEN.1063 physics/body_status.py: roundness mass by composition, Soter mu, Stern-Levison Lambda, Margot Pi, and the status words (planet, dwarf planet, minor body, moon), both words and numbers stored**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Do: design section 3.2 and Boss
-  decision 2 (store both the IAU word and the numbers). Pure function of
-  mass, composition, orbit and the neighbours in the ledger. Reuse the
-  compaction taper (1e19 to 1e21 kg) for roundness. Done: tests on
-  Earth, Mars, Ceres, Pluto, Eris, Jupiter and the Trojans. Lock-free.
-  Where we think it belongs (best guess, can move): Aux 2 (waits for
-  train 6 on GEN.768; separate branch), after the research read.
-  Prerequisites: GEN.1060.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
 - [ ] **GEN.1064 physics/belt_history.py: early-depletion survival, instability sweep, and the star events (engulf partly, mass-loss destabilise share, companion truncation, white dwarf pollution link)**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
   so belts evolve and say where we think each belongs; design
@@ -13987,7 +13965,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter tag once the scatter phase is wired (GEN.1092).
   Belt page (Boss 4:37 PM EDT) (2026-10-30 4:38 PM EDT): Each stored
   member is linked from the asteroid belt information page UX.241.
-  Prerequisites: GEN.1063, GEN.1067, GEN.1069.
+  Prerequisites: GEN.1067, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **GEN.1071 Outer (Kuiper-type) disc built as a belt from the same chain, linked to the debris descriptor so the descriptor and the belt are one thing**
@@ -14214,41 +14192,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1084. Related: GEN.1014.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
-- [ ] **GEN.1090 physics/dwarf_population.py: N(>D) from belt mass and size law, the order-statistic top body, the dwarf-planet line and Class D tagging**
-  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
-  we think it came from, we know because we made it; design
-  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
-  Boss, taken until he changes them: Class D stays "small, airless, at
-  least 1 percent ice" and covers belt members and dwarf planets; dwarf
-  planets are listed on the system page as members of their belt, not in
-  the planet list; the scatter phase is a rule over the architecture's
-  events with stored mass shares, no N-body run. Stand-ins accepted when
-  registered in GEN.725 with tier and tweak level; the Solar System is a
-  test target, never an input. Do: design belt-origins section 5.
-  Targets only (never inputs): the main belt 200 to 250 bodies of 100 km
-  and up, a Kuiper-type disc 15 to 20 dwarf candidates. Done: tests,
-  stand-ins registered. Lock-free. Where we think it belongs (best
-  guess, can move): Sources 2 (with the belt ledger), separate branch.
-  Kuiper-type objects in the sweep (2026-10-30 4:39 PM EDT): Boss asked
-  4:38 PM EDT whether Kuiper belt objects belong in the sweep: yes.
-  Kuiper-type objects (classical cold and hot, resonant, scattered,
-  detached) are generated from the cold outer disc and swept by the
-  scatter step, with dwarf planets drawn from the size law (GEN.1090),
-  the outer disc being the belt of GEN.1071.
-  Census result (Aux 3, 5:35 PM EDT) (2026-10-30 5:33 PM EDT): GEN.1087
-  merged (#4185, report reports/dwarf-census-2026-10-30.md): in 700
-  systems Class D is 5 to 9 per system for F, G, K and 3.5 to 4 for M
-  but 79 to 98 percent are moons; no free-orbiting dwarf planet exists
-  (smallest planet 2,950 km, smallest moon 215 km, nothing of 50 to 200
-  km); belts are annuli with no members in 14 percent of G2V systems
-  (0.03 for M5V, 0.30 for K0III), a third short of the roughly 20
-  percent debris rate the design cites for Sun-like hosts. So the belt
-  and outer-disc members are the only source of free dwarf-sized Class D
-  bodies and this module is needed; the M-dwarf and G-dwarf belt rate is
-  checked against the design rate when GEN.1068 is built.
-  Prerequisites: GEN.1087.
-  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
-
 - [ ] **GEN.1092 Wire the scatter phase and the belt origin: scatter tag on stored members, the outer disc fed from the scatter step, origin and formation shown on the belt page**
   Belt origins (Boss, 2026-10-30, plan the items so each belt says where
   we think it came from, we know because we made it; design
@@ -14275,7 +14218,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   detached) are generated from the cold outer disc and swept by the
   scatter step, with dwarf planets drawn from the size law (GEN.1090),
   the outer disc being the belt of GEN.1071.
-  Prerequisites: GEN.1090, GEN.1070, GEN.1071.
+  Prerequisites: GEN.1070, GEN.1071.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
 - [ ] **GEN.1094 Read Goldberg and Batygin 2023 for the librating share of near-resonant pairs (the share of pairs that are heating-capable, W5), and register the number**
@@ -14315,31 +14258,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   draws, migration). Where we think it belongs (best guess, can move):
   Aux 2 (owns GEN.768 hours outside), train 7.
   Prerequisites: none. Related: GEN.768, GEN.957.
-
-- [ ] **GEN.1099 physics/rogue_collision.py: rogue-rogue collision rate (cross-section with focusing), Maxwellian speed window, Q_R against Q*_RD, shock pressure, unbound mass and ejecta dispersion**
-  Interstellar asteroid fields from rogue-planet collisions and the
-  other sources (Boss, 4:40 PM EDT 2026-10-30; design
-  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
-  choice and two small questions (retire past 1 ly versus keep a record
-  row; the remnant planet) are with Boss; the lane builds the modules
-  with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Do: design F1. Tests: the Galaxy rate 0.1 to 10 per 10 Gyr,
-  the window fractions of design section 3.1, the regime order.
-  Lock-free. Where we think it belongs (best guess, can move): Aux 4,
-  after the research read.
-  Boss decision (2026-10-30 4:55 PM EDT): Boss decided 4:54 PM EDT
-  2026-10-30: option 1, physics only, no labelled game rate; fields come
-  only from physical sources (supernova-unbound belts and the other
-  physical sources), a retired field past 1 ly is marked retired, and
-  the leftover planet of a collision is its own rogue planet. The
-  collision rate is the physical one (about one per Galaxy life), so the
-  generator makes almost none from collisions; the leftover planet is
-  its own rogue planet.
-  Rogue parents (R4) (2026-10-30 4:57 PM EDT): The field parents and the
-  collision speed window are drawn from the rogue ejection population of
-  GEN.1111, not from a flat table.
-  Prerequisites: GEN.1098.
-  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
 - [ ] **GEN.1100 physics/field_dispersal.py: expansion radius from age, age from radius, freeze-out radius per size, shear term, retirement age, and a body position from (seed, rank, age)**
   Interstellar asteroid fields from rogue-planet collisions and the
@@ -14390,7 +14308,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Rogue parents (R4) (2026-10-30 4:57 PM EDT): The field parents and the
   collision speed window are drawn from the rogue ejection population of
   GEN.1111, not from a flat table.
-  Prerequisites: GEN.1099, GEN.1100.
+  Prerequisites: GEN.1100.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
 - [ ] **GEN.1103 AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed**
@@ -14409,7 +14327,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physical sources), a retired field past 1 ly is marked retired, and
   the leftover planet of a collision is its own rogue planet. The field
   density no longer comes from a flat table at all.
-  Prerequisites: GEN.1099, GEN.1100, GEN.1101, GEN.1102.
+  Prerequisites: GEN.1100, GEN.1101, GEN.1102.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
 - [ ] **GEN.1104 Supernova host rule: a young supernova remnant and its remnant core draw the unbound belt as a field, like NEBULA_HOST_RULES**
@@ -14614,6 +14532,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until the region-store study (GEN.1118) is read and final; then it is
   released. Object names and IDs may change with a stored history
   (GEN.1121).
+  Reworded by the region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT):
+  Design: docs/design/systems/region-object-store.md sections 7 and 8. A
+  rogue exists only because a generated system ejected it: the donor
+  draws its ejection events from its own seed (time, kick, mass, moons
+  kept, destination), drifts each by the closed form of GEN.1114, and
+  saves the rogue as a full row (same table and body chain as any
+  planet, GEN.557) in the sector where it lands, creating that sector
+  uncharted if new. The kick is isotropic and built from the origin
+  planet's actual motion (donor star's galactic velocity plus the
+  planet's orbital velocity vector at ejection from the stored orbit,
+  plus the scattering kick); needs the orbit state at the ejection from
+  GEN.1119. Each rogue row carries the donor uid and event index; saving
+  a donor first deletes the rogues it made by that key then writes them
+  again; deleting a sector deletes the rogues its systems ejected, not
+  those that landed in it (GEN.1127 removes the cascade). The earlier
+  virtual-donor, home-sector and landing-phase paragraphs are void.
+  Released from hold. Order: GEN.1127 (train 19a) first, this item with
+  GEN.1129 on train 19, the abundance level and top-up GEN.1120 on train
+  19b.
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -14674,48 +14611,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the planet's actual movement vector plus the system's motion; check
   the research for the speed against the perturber and moon survival
   only.
+  Region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT): Unchanged by the
+  region study; its kick answer is the origin planet's actual motion
+  plus the scattering kick.
   Prerequisites: none. Related: GEN.1111, GEN.1109.
-  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
-
-- [ ] **GEN.1115 Smoothed star-density function for rogues (D3): ring average plus radial smoothing, shared by the sector draw and the low-zoom map**
-  Rogue planet drift and storage (Boss, 5:06 PM EDT 2026-10-30, ejection
-  vector research; design docs/design/systems/rogue-planet-drift.md,
-  goal #4130). Finding: a rogue ejected with a few km/s spreads along
-  the galactic orbit by roughly 1 kpc per 0.5 Gyr, so almost none is
-  near its donor; the recommended storage is virtual donors (each sector
-  draws its own ejection events and runs a closed-form drift, so the
-  rogue lands in the sector where it is, with no real donor needed).
-  Done: function and tests. Lock-free. Where we think it belongs (best
-  guess, can move): Sources 2 (separate branch), after the belt ledger.
-  Map (D6) (2026-10-30 5:11 PM EDT): The low-zoom map reads this
-  smoothed density instead of drawing rogues one by one far out; the map
-  lane (Core 2) takes that step after this function merges.
-  Boss answer (5:29 PM EDT) (2026-10-30 5:31 PM EDT): Rogues are
-  generated only by real donor systems and stored where they land, so
-  this smoothed density no longer feeds a virtual-donor draw; it stays
-  for the low-zoom map and for the expected-count check of the abundance
-  option (GEN.1120). Re-scope after the region-store study (GEN.1118) is
-  read.
-  Prerequisites: none. Related: GEN.1111, GEN.1109.
-  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
-
-- [ ] **GEN.1116 Regenerate a rogue's donor on demand from its seed (D5): the history sentence and the parent record shown on the object page**
-  Rogue planet drift and storage (Boss, 5:06 PM EDT 2026-10-30, ejection
-  vector research; design docs/design/systems/rogue-planet-drift.md,
-  goal #4130). Finding: a rogue ejected with a few km/s spreads along
-  the galactic orbit by roughly 1 kpc per 0.5 Gyr, so almost none is
-  near its donor; the recommended storage is virtual donors (each sector
-  draws its own ejection events and runs a closed-form drift, so the
-  rogue lands in the sector where it is, with no real donor needed).
-  Done: tests; the page line is wired with the rogue rows (GEN.1111).
-  Lock-free module. Where we think it belongs (best guess, can move):
-  Planets 1, after GEN.1111 design is settled.
-  Boss answer (5:29 PM EDT) (2026-10-30 5:31 PM EDT): With donors
-  generated for real the rogue keeps its own history record (the
-  ejection event in the donor system history), so the on-demand
-  regeneration of a donor is needed only for rogues whose donor lay in a
-  region not yet charted; re-scope after GEN.1118 is read.
-  Prerequisites: GEN.1114. Related: GEN.1111, GEN.1109.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
 - [ ] **GEN.1117 Register the rogue drift and kick stand-ins in GEN.725 (D7): the rows of design section 8, each with tier and tweak level and a burn-down line where L3 or L4**
@@ -14731,61 +14630,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and D2, in the same PRs.
   Prerequisites: none. Related: GEN.1111, GEN.1109.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
-
-- [ ] **GEN.1118 Design study: one galaxy-wide object store generated in region work units (bands within the sphere), with sectors as a navigation table that flags whether each is charted and where its uncharted part lies**
-  Boss, 5:15 PM EDT 2026-10-30: "What if we stored everything in the
-  same database, so we don't care where an object is in the galaxy, we
-  only use sectors and regions for navigation purposes but it's
-  calculated each time we ask what's in a sector? No more sector by
-  sector building, instead we choose a starting location for our random
-  draw, it populates that entire region regardless of the sectors
-  defined there, we treat it as one space rather than sectors within the
-  space. We can break up the work unit any way we want (I vote bands
-  within the sphere); sectors can then be stored in their own database
-  that have boundaries and we flag if the sector is fully charted or not
-  (measured by whether the sector is fully within a previously charted
-  area); each sector stores what part of it has not been generated by
-  plotting a boundary using spherical coordinates from the centre of the
-  sector so the system knows where systems need to be generated; rogue
-  planets that end up in another region still exist in just uncharted
-  sectors where we know what might be there, but not what is there." Do:
-  a design study (report, then plan items filed by TODO) covering: the
-  object store keyed by position and seed rather than by sector; region
-  work units as spherical bands, their size and cost; determinism (one
-  seed gives the same objects whatever the order regions are charted
-  in); consistency between adjacent regions (objects and orbits that
-  cross a boundary, multi-star systems, rogue drift across regions); the
-  sector table with a charted flag and the uncharted-boundary
-  description in spherical coordinates from the sector centre; rogue
-  planets drifting into uncharted sectors kept as known-unknowns;
-  migration from today's sector-by-sector storage (no backward-compat
-  shim, testing mode allows new epochs and a wiped database); and the
-  effect on the rogue donor design (GEN.1111 stays held until this study
-  is read; the virtual-donor idea of
-  docs/design/systems/rogue-planet-drift.md may become simpler or
-  unnecessary). Done: a design note in docs/design/ with a
-  recommendation and the questions for Boss. Lock-free (design). Where
-  we think it belongs (best guess, can move): the coordinator starts a
-  research thread; the build owner afterwards is Core 5 (sectors and
-  fill) with Core 1 (reproducible galaxies).
-  Boss follow-up, 5:16 PM EDT (2026-10-30 5:17 PM EDT): To unhold the
-  rogue donor: a rogue's end position decides its sector, the rogue is
-  stored in that sector, the sector is listed as uncharted, and this
-  applies to every object in the galaxy. The study folds this in as part
-  of the storage model. It is NOT taken as Boss's answer to the two held
-  GEN.1111 questions (virtual versus real donors; isotropic versus
-  perpendicular kick) unless the study shows it settles them; ask him if
-  unclear.
-  Boss answers (5:29 PM EDT) (2026-10-30 5:31 PM EDT): Boss, 5:23 to
-  5:29 PM EDT 2026-10-30 (region-store thread): the landing-phase
-  placement is cut; rogues come only from generated systems and are
-  stored as full objects in the sector where they land, uncharted if
-  that sector is new. The study folds these in: one galaxy-wide store
-  with sectors as navigation, the rogue density option (GEN.1120), and
-  designation history (GEN.1121). The study may now settle the GEN.1111
-  storage question; build items are filed by TODO after the study is
-  read.
-  Prerequisites: none. Related: GEN.1111, GEN.1115, PERF.123.
 
 - [ ] **GEN.1119 RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today**
   Rogue planet physics (goal #4130, review report
@@ -14832,6 +14676,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects, API version bump), after GEN.1111. Where we think it
   belongs (best guess, can move): Planets 1 for the yield and the option
   plumbing in the rogue rows (train 19), Core 5 for the web form fields.
+  Reworded by the region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT):
+  Three-stage spread (study section 8.5): stage 0 subtracts residents
+  from the sector budget (GEN.1124); stage 1 is real physics with no
+  tweak (rogues land where they land, GEN.1111); stage 3 is the top-up,
+  once per region run after every sector finished stages 0 to 2: the
+  sector's own systems donate another round of rogues placed inside the
+  sector (GEN.1125), capped by the level (None 0, Few 2.5, Normal 4.3,
+  Many 10 terrestrial rogues per star, internal numbers never shown, the
+  dropdown shows only the words), each given a realistic velocity and an
+  apparent origin marked "apparent"; any mass left over becomes light
+  asteroid fields (GEN.1126). The selector is a row in galaxy/dials.py
+  (flag, Generate field, help and the CLI table generated from it) plus
+  a sector override recorded like density_multiplier_used (DB.60). This
+  item wires GEN.1124 to GEN.1126 into the generation phases and the
+  region run (GEN.1128), and registers ROGUE_TOPUP_PLACEMENT (L3,
+  burn-down line). Default until Boss answers: the top-up fills the
+  shortfall only up to the level. Replaces the single spread-tweak
+  wording above. Train 19b, after the rogue rows.
   Prerequisites: none. Related: GEN.1111, GEN.1119, TEST.499.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
@@ -14854,23 +14716,165 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   note first. Where we think it belongs (best guess, can move): Core 1
   (IDs and reproducible galaxies), version 8.2 with the object pages;
   the edit flow of 8.6 uses it.
+  Design from the region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT):
+  Design: region-object-store.md section 7.3. Every object keeps a
+  stable internal row id; name and uid are attributes. A `designations`
+  table has one row per designation ever held (designation text UNIQUE
+  across the whole galaxy, table, object_row_id, kind name or uid,
+  valid_from_epoch, retired_epoch NULL while current, reason: collision
+  bump, regeneration, moved, admin rename); a retired designation stays
+  reserved. Lookup by an old designation redirects to the current
+  object; the object page lists previous designations; fingerprints
+  digest the current designation only (GEN.1129 keeps the history digest
+  separate). This makes the collision bump of _rank_chain a legal rename
+  and reverses principle 1 of object-id-options.md. A moved rogue keeps
+  the ID of its birth position unless Boss asks otherwise (default).
+  Backfill one current row per existing object. Train 22.
   Prerequisites: none. Related: GEN.1070, GEN.1105, GEN.1118.
 
-- [ ] **GEN.1122 Read Pollack 1979 and Cuk and Burns 2004 for the gas-drag capture window strength and register the number (CM14)**
-  Sources 1 offered this read after the GEN.1081 note: the gas-drag
-  window strength of captured-asteroid-moons.md section 5 is a design
-  guess (stand-in CM14, T6, L3, 0.1 to 0.3 of the encounter channel,
-  burn-down line) because Cuk and Burns 2004 was not reached. Do: open
-  Pollack et al. 1979 and Cuk and Burns 2004 (second-hand citations
-  accepted, Boss cannot reach some papers), extract the drag capture
-  share against the encounter channel for a planet with a gas disc,
-  replace the guess or confirm it, update the GEN.725 row CM14 with tier
-  and tweak level, and remove its burn-down line when it is no longer
-  L3. Done: the row changed, the research note section added. Lock-free
-  (docs). Where we think it belongs (best guess, can move): Sources 1
-  (idle, separate branch).
-  Prerequisites: none. Related: GEN.1082, GEN.1084.
-  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+- [ ] **GEN.1123 Audit every table that carries sector_id and its ON DELETE rule, and every path that deletes or regenerates a sector, and report which objects would be lost when a sector is deleted though they drifted in**
+  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
+  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
+  #4130). Defaults taken until Boss changes them: whole sectors are the
+  unit of randomness and a region is rounded up to whole sectors (no
+  partial sectors); work units are the galaxy's own (shell, band) arcs;
+  a moved rogue keeps the ID of its birth position, with history; the
+  top-up fills the shortfall only up to the Rogues level. Do: list each
+  positioned table, its sector_id column and delete rule, and each code
+  path that deletes or regenerates a sector (store, admin tools, tests);
+  say which tables must lose the cascade (rogue_planets first) and which
+  are birth-owned. Done: a report with the table and the change per
+  table, which the cascade-removal item uses. Lock-free (report). Where
+  we think it belongs (best guess, can move): Core 5 (sectors and fill),
+  now, separate branch.
+  Prerequisites: none. Related: GEN.1118.
+
+- [ ] **GEN.1124 Resident-mass subtraction: a pure function giving a sector's remaining mass budget after what it already holds (arrived rogues, pre-placed bright stars, scattered phenomena, extended objects whose centre lies there)**
+  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
+  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
+  #4130). Defaults taken until Boss changes them: whole sectors are the
+  unit of randomness and a region is rounded up to whole sectors (no
+  partial sectors); work units are the galaxy's own (shell, band) arcs;
+  a moved rogue keeps the ID of its birth position, with history; the
+  top-up fills the shortfall only up to the Rogues level. Stage 0 of the
+  generation order (study section 8.5): what a sector already holds when
+  it is generated comes off the sector's calculated mass (sector_stats
+  expected_systems, bright_mass_sol, total_mass_kg, max_mass_kg) before
+  anything is drawn, in every phase (mass-backfill rings, system draw,
+  phenomena, remnants, belts). The residents are never moved or changed.
+  Do: the pure function and tests (budget never negative, residents
+  untouched, empty sector unchanged). Wiring into each phase rides
+  GEN.1120. Lock-free. Where we think it belongs (best guess, can move):
+  Core 5 (sectors and fill), separate branch.
+  Prerequisites: none. Related: GEN.1118, GEN.1120.
+
+- [ ] **GEN.1125 Rogue top-up planner: a pure module that, from a sector's mass shortfall and the Rogues level cap, says how many rogues to place, their masses by the existing mass bins (96 percent terrestrial, 4 percent gas giant), and gives each a placement inside the sector, a realistic velocity and an apparent origin marked "apparent"**
+  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
+  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
+  #4130). Defaults taken until Boss changes them: whole sectors are the
+  unit of randomness and a region is rounded up to whole sectors (no
+  partial sectors); work units are the galaxy's own (shell, band) arcs;
+  a moved rogue keeps the ID of its birth position, with history; the
+  top-up fills the shortfall only up to the Rogues level. Stage 3 of the
+  generation order (study section 8.5), run once per region run after
+  every sector has finished stages 0 to 2. Level ceilings (internal
+  numbers, never shown, accepted by Boss 5:39 PM EDT): None 0, Few 2.5,
+  Normal 4.3, Many 10 terrestrial rogues per star; the shortfall is the
+  mass the sector is missing and the level is the ceiling. Each rogue is
+  placed uniformly inside the sector, then given a velocity (donor-frame
+  isotropic kick added to galactic motion, as in rogue_kick.py) and an
+  apparent origin (distance and direction back along its drifted path,
+  ejection age, shown on the object page as "ejected about N Gyr ago
+  from about D pc away"); no donor row is claimed. The placement is one
+  registered stand-in ROGUE_TOPUP_PLACEMENT plus the level table, both
+  in tuning.py (GEN.725, L3, burn-down line). Done: tests for each
+  level, the cap, mass conserved to the shortfall, apparent origin never
+  a donor link. Lock-free (pure module, nothing calls it). Where we
+  think it belongs (best guess, can move): Aux 7 (owner of rogue_kick.py
+  and rogue_age.py), separate branch.
+  Prerequisites: none. Related: GEN.1118, GEN.1120, GEN.1112.
+
+- [ ] **GEN.1126 Top-up asteroid field kind: lighter interstellar asteroid fields made when the Rogues cap leaves sector mass unmatched, smaller bodies, lower density, a larger volume, no full body history, origin a registered stand-in "unbound remnant"**
+  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
+  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
+  #4130). Defaults taken until Boss changes them: whole sectors are the
+  unit of randomness and a region is rounded up to whole sectors (no
+  partial sectors); work units are the galaxy's own (shell, band) arcs;
+  a moved rogue keeps the ID of its birth position, with history; the
+  top-up fills the shortfall only up to the Rogues level. Boss, 5:41 and
+  5:42 PM EDT: the remainder goes to interstellar asteroid fields in the
+  same last pass, using the field machinery (ledger, mass cut rule,
+  `<parent ID>.<rank hex>` designation, field radius from age, retire
+  past 1 ly) but a distinct lighter kind with no collision event
+  claimed; placed inside the sector, then given a realistic origin and
+  velocity as if from elsewhere (apparent origin, marked). Stand-in
+  origin registered in GEN.725 (accepted). Do: the pure module with
+  sizes, density and spread as tuning values, tests that mass is
+  conserved to the remainder. Lock-free. Wiring rides GEN.1120 and the
+  field items GEN.1103 to GEN.1107. Where we think it belongs (best
+  guess, can move): Aux 4 (interstellar fields chain), after GEN.1100 to
+  GEN.1102.
+  Prerequisites: none. Related: GEN.1118, GEN.1120, GEN.1103.
+
+- [ ] **GEN.1127 chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is**
+  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
+  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
+  #4130). Defaults taken until Boss changes them: whole sectors are the
+  unit of randomness and a region is rounded up to whole sectors (no
+  partial sectors); work units are the galaxy's own (shell, band) arcs;
+  a moved rogue keeps the ID of its birth position, with history; the
+  top-up fills the shortfall only up to the Rogues level. Study section
+  10 step 1: an epoch with no generation change (schema only), one
+  Alembic migration, no compatibility view, no dual write. A sector is
+  wholly charted or wholly not, so no stored spherical boundary is
+  needed; its uncharted remainder is derived. Deleting or regenerating a
+  sector deletes the rogues its systems ejected (by donor uid and event
+  index), never the ones that landed in it. Done: migration, schema
+  fixture, ledger tests, delete tests per the audit report, update.sh
+  applies it. Lock work (migration; goes on its own early train, "train
+  19a", before the rogue rows). Where we think it belongs (best guess,
+  can move): Core 5 (sectors and fill) with the DB lane, train 19a.
+  Prerequisites: none. Related: GEN.1118, GEN.1111.
+
+- [ ] **GEN.1128 Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger**
+  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
+  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
+  #4130). Defaults taken until Boss changes them: whole sectors are the
+  unit of randomness and a region is rounded up to whole sectors (no
+  partial sectors); work units are the galaxy's own (shell, band) arcs;
+  a moved rogue keeps the ID of its birth position, with history; the
+  top-up fills the shortfall only up to the Rogues level. Study sections
+  4 and 9: one seed gives the same objects whatever the order regions
+  are charted in, because every draw is keyed by the fixed tile and
+  candidate index and never by the start point. Barrier: stages 0 to 2
+  for all units, then the top-up units (stage 3), each unit reading the
+  final stored state. A run stopped before the barrier resumes at stage
+  3 only after stages 0 to 2 are complete for the whole set. Done: the
+  command in the CLI, tests of the unit cut, resume and the barrier,
+  cost reported (PERF items own seconds per sector). Lock-free (no
+  schema change after GEN ledger item); the stage 3 call rides GEN.1120.
+  Where we think it belongs (best guess, can move): Core 5 and Core 1,
+  after GEN.1127.
+  Prerequisites: none. Related: GEN.1118.
+
+- [ ] **GEN.1129 Fingerprint split: a sector's digest (GEN.58) becomes "made here" and "arrived here" so rogues landing from other sectors do not change the sector's own digest**
+  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
+  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
+  #4130). Defaults taken until Boss changes them: whole sectors are the
+  unit of randomness and a region is rounded up to whole sectors (no
+  partial sectors); work units are the galaxy's own (shell, band) arcs;
+  a moved rogue keeps the ID of its birth position, with history; the
+  top-up fills the shortfall only up to the Rogues level. Study section
+  8.1 point 5: the rogue count of a charted sector is not fixed at its
+  charting time, it grows as donors elsewhere are charted. Do: digest
+  the objects made by the sector's own systems separately from objects
+  that arrived, keep the history digest separate (designation history,
+  GEN.1121). Done: tests that charting another region changes only the
+  "arrived" digest. Lock work (the fingerprint column and its readers;
+  epoch if stored digests change); rides the rogue-rows train (train
+  19). Where we think it belongs (best guess, can move): Core 1
+  (reproducible galaxies), with the GEN.1111 train.
+  Prerequisites: none. Related: GEN.1118, GEN.1111, GEN.58.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19731,6 +19735,22 @@ clears each one.
   the generator no longer makes such a moon in the seeded system, or the
   test seed is stale.
   Prerequisites: none.
+
+- [ ] **TEST.501 Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out"**
+  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
+  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
+  #4130). Defaults taken until Boss changes them: whole sectors are the
+  unit of randomness and a region is rounded up to whole sectors (no
+  partial sectors); work units are the galaxy's own (shell, band) arcs;
+  a moved rogue keeps the ID of its birth position, with history; the
+  top-up fills the shortfall only up to the Rogues level. Study sections
+  5 and 8.2. The sector digest is split into "made here" and "arrived
+  here" so an unrelated region being charted never changes a sector's
+  own digest. Done: the test on a small sphere, run in the merge gate of
+  the sector fill. Lock-free (test). Where we think it belongs (best
+  guess, can move): Core 1 (reproducible galaxies), after the region run
+  command.
+  Prerequisites: none. Related: GEN.1118.
 
 ## USR: User accounts
 
