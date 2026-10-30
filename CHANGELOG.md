@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2775] - 2026-10-30
+
+**Headline:** The generator can now say how crowded a belt is: how many objects above 1, 10 and 100 km a square astronomical unit holds, and how much mass.
+
+### Added
+- **`physics/belt_density.py` (GEN.1093).** From a belt's limits, its mass, a size law and the bodies the ledger keeps one by one, it gives the objects per square AU above a stated diameter and the mass per square AU for the belt information page, and the size-table bins whose counts and masses add, with the listed bodies, to the belt's mass with nothing over and nothing short. A main-belt-like belt with its nine biggest bodies listed comes out within a few times Ivezic's 530,000 objects above 1 km and near the two hundred above 100 km. It found that the main-belt size slopes of Ivezic et al. 2001 (2.3 and 4) are most likely differential, not cumulative as the size-law note had them; the stand-ins say so. Nothing reads it yet; that is the belt page (UX.240).
+- **Units for the density.** Objects per square metre, kilometre and AU, and kilograms per square kilometre and AU and Earth masses per square AU, are in the unit registry, so no density shows without its unit.
+- **Stand-in rows BD1 to BD5** in the gap-filling plan (section 6.99) and the stand-in list.
+
 ## [8.0.2774] - 2026-10-30
 
 **Headline:** The planet tests draw their host star from a fixed seed, so a run no longer fails on a star whose thin air or life scores happen to sit at an edge.
