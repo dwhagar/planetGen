@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2758] - 2026-10-30
+
+**Headline:** The code now knows how a young low-mass planet can be as big as Neptune or Saturn with a density under 0.1, and how it shrinks as it ages.
+
+### Changed
+- **The super-puff module (GEN.1042).** `physics/super_puff.py` gives the radius of a young planet of a few Earth masses under a thick hydrogen envelope (the law of Lopez and Fortney 2014 inside its range, the giant tables past it, so WASP-107 b comes out at its measured 10.7 Earth radii), the envelope a measured radius needs (Kepler-51 d: 41 percent for 9.3 Earth radii, Kepler-51 b: 16 percent for 7.1), the extra radius that obliquity tides give a hot close-in planet (Millholland 2019, from 20 Earth fluxes up, at most a factor 2), the radius at a later age with the envelope the star's XUV leaves it, and the gate of the oddity. It changes no generated world: the oddity that uses it is a later wiring step (GEN.1048).
+- **Stand-ins recorded.** Rows PF1 to PF4 in the stand-in registry (GEN.725): the gate, the envelope range, the occurrence share (not confirmed, no survey statistic found) and the tidal inflation.
+
 ## [8.0.2757] - 2026-10-30
 
 **Headline:** The Galaxy Map is now always 95% of the browser window's height, recomputed on every resize.
