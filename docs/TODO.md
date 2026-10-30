@@ -12774,6 +12774,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
+  Owner (2026-10-30 2:07 AM EDT): Core 3 takes this lock-free tests-only
+  item (TODO). Write the standing tests; the life classes replaced
+  chemistries, so read classes where GEN.889 has landed. A test that
+  exposes a real defect on main is reported to TODO as a (bug) item
+  rather than fixed here unless the fix changes no generated value
 
 - [ ] **GEN.876 Adaptation traits built: drawn in the life pass, stored in a text column, listed on the object page (adapted to: radiation, sulfide) and read by the habitability scores**
   Life chemistry review (research thread, 2026-10-28,
@@ -21042,30 +21047,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: GEN.395. Related: GEN.391, DOC.52.
   Design: [docs/design/galaxy/superbubble-density.md](design/galaxy/superbubble-density.md)
 
-- [ ] **DOC.65 Docs: bulk composition, the materials table and how density, mass and gravity follow**
-  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
-  stores the composition of a body and that composition drives the mass
-  calculations and density calculations for gravity and such?" Answer
-  (read-only trace,
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
-  main at 8.0.1635): no. `planet.composition` is one fixed text string
-  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
-  fractions exist; the bulk density is a uniform draw per class (500:
-  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
-  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
-  radius and density (528) and the gravity from those; giants take mass
-  and radius from a mass-radius relation (534-557). The chain below
-  makes the composition the cause. The data model and physics pages
-  describe the fractions, the materials table, the mass-radius model,
-  the migration and the sweep, with the sources of every number. Done:
-  the pages name each stored value and where it comes from.
-  Owner (2026-10-30 2:04 AM EDT): Core 3 takes this docs item (TODO,
-  2:04 AM EDT). The text above describes main before the composition
-  build; document what main holds now (stored fractions, materials
-  table, mass-radius model) from the merged code and migrations, with
-  sources. Lock-free, docs only
-  Prerequisites: TEST.210. Related: DOC.63, DB.69.
-
 - [ ] **DOC.66 Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -21088,7 +21069,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: TEST.212, DOC.65. Related: DB.70.
+  Prerequisites: TEST.212. Related: DB.70.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
 
