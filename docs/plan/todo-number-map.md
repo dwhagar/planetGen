@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.238 |
 | MAP | MAP.350 |
 | NAV | NAV.65 |
-| GEN | GEN.981 |
+| GEN | GEN.982 |
 | PERF | PERF.209 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1716,7 +1716,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.963 | The envelope-survival rule and the Hycean flag on the existing sub-Neptune classes (the part of GEN.350 that stays; no new class letter) | none | open |
 | GEN.964 | H-He equation of state tables (a): a setup catalogue entry and a reader with tests on Jupiter, Saturn, Uranus and Neptune | none | open |
 | GEN.965 | H-He equation of state tables (b): replace the n=1 polytrope in the giant interior solver with the tables | none | open |
-| GEN.966 | Dynamo field (a): a pure module giving field strength and lifetime from core heat flow and spin, with tests on Earth, Mercury, Ganymede, Jupiter and Mars (dead) | none | open |
+| GEN.966 | Dynamo field (a): a pure module giving field strength and lifetime from core heat flow and spin, with tests on Earth, Mercury, Ganymede, Jupiter and Mars (dead) | none | done, PR #3802 |
 | GEN.967 | Dynamo field (b): the stored field strength, moment and lifetime come from the dynamo module and feed the radiation shielding | none | open |
 | GEN.968 | Neutron star structure (a): a TOV integration over the equation-of-state tables held on disk, tested against NICER radii | none | open |
 | GEN.969 | Neutron star structure (b): wire the integrated radius and layers into the neutron star model, and add helium-core and oxygen-neon white dwarf layers | none | open |
@@ -1731,6 +1731,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.978 | Birth spin derivation (a): a module for the last-impact mass ratio gamma by planet mass, from the N-body impact statistics | none | open |
 | GEN.979 | Birth spin derivation (b): the birth rotation of a rocky planet follows Kokubo and Genda eq. 4 with the gamma law, replacing the scale factor of GEN.953 | none | open |
 | GEN.980 | The stored class of 4 to 8 bodies differs from the class their final body gives (stored Q, conditions give D; stored P or K, derived D or P): the class is derived before the air is final (bug) | none | open |
+| GEN.981 | Induced magnetic moment part (b): conducting cores and planets in the star's field (the part of GEN.779 that remains) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

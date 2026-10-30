@@ -15131,30 +15131,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held otherwise. Catalog sections 3 and 4.
   Prerequisites: GEN.964. Related: GEN.733.
 
-- [ ] **GEN.966 Dynamo field (a): a pure module giving field strength and lifetime from core heat flow and spin, with tests on Earth, Mercury, Ganymede, Jupiter and Mars (dead)**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Split of GEN.736 into a lock-free part and a wiring part. Do: the
-  buoyancy-flux scaling for the dipole moment and the dynamo lifetime,
-  reading the interior heat model (GEN.699) and the spin (GEN.731);
-  tests on Earth, Mercury, Ganymede, Jupiter and a dead Mars. Changes no
-  generated output, so it merges freely and a lane waiting for a train
-  can do it. Every stand-in it adds gets a GEN.725 registry row with
-  tier and tweak level (L0 to L4). Owner: Aux 4 (magnetosphere chain
-  GEN.800). Version 8.1.
-  Start point (2026-10-29 8:35 PM EDT): Core 4's parked branch
-  claude/project-thread-wm6oti has core_heat.py: a core thermal model
-  whose dipole moment comes from the core's buoyancy flux and whose
-  dynamo lifetime is the history of the liquid shell (tested on Earth, a
-  dead Mars and a super-Earth). Aux 4 starts from it: add the Ganymede
-  and Jupiter tests and the dipole at the final star age.
-  Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
-  dataset is held; Core 4's parked branch has core_heat.py;
-  compaction_table.json, clathrate_brine.json, decay_series.json and
-  isotopes.json are in the repo for interior heat and ices. Catalog
-  section 4.
-  Prerequisites: none. Related: GEN.736.
-
 - [ ] **GEN.967 Dynamo field (b): the stored field strength, moment and lifetime come from the dynamo module and feed the radiation shielding**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
   secondary sources accepted by default; registered stand-ins allowed).
@@ -15415,6 +15391,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with --affects fill, rides a train. Owner: Core 1 (its epoch 122 is
   the likely cause; Bug 2's bisect decides). Version 8.1.
   Prerequisites: none. Related: GEN.646, GEN.857, GEN.891, TEST.430.
+
+- [ ] **GEN.981 Induced magnetic moment part (b): conducting cores and planets in the star's field (the part of GEN.779 that remains)**
+  Left by Aux 4 with GEN.779 (part (a) merged as #3796: the moons'
+  induced moment was already filled by GEN.178, so the stale open-gap
+  excuse was removed; as the lane reported 8:58 PM EDT 2026-10-29). Part
+  (b) needs the core's liquid state: the induced moment of conducting
+  cores and of planets in the star's varying field. Do: compute it once
+  the core thermal model (Core 4's core_heat.py, parked branch
+  claude/project-thread-wm6oti) is on a train. Changes generated output:
+  epoch with --affects fill, rides train 6. Every stand-in it adds gets
+  a GEN.725 registry row with tier and tweak level. Owner: Aux 4.
+  Version 8.1.
+  Prerequisites: GEN.967. Related: GEN.779, GEN.967, GEN.838.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
