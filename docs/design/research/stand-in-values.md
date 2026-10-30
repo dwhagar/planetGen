@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 369 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 373 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 43 | 0 | 3 | 0 | 0 | 46 |
-| T2 | 68 | 3 | 0 | 1 | 0 | 72 |
+| T2 | 69 | 3 | 0 | 1 | 0 | 73 |
 | T3 | 52 | 5 | 2 | 10 | 0 | 69 |
 | T4 | 16 | 0 | 0 | 2 | 0 | 18 |
 | T5 | 21 | 5 | 1 | 0 | 0 | 27 |
-| T6 | 38 | 7 | 4 | 17 | 0 | 66 |
+| T6 | 38 | 10 | 4 | 17 | 0 | 69 |
 | T7 | 16 | 3 | 1 | 7 | 0 | 27 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 255 | 23 | 13 | 61 | 17 | 369 |
+| All | 256 | 26 | 13 | 61 | 17 | 373 |
 
 ## How the labels were given
 
@@ -566,3 +566,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SL2 | P | T2 | L0 | stellar_library.FUV_OVER_XUV 1.12 (the far-ultraviolet 912 to 1700 A power of a star's chromosphere over its XUV 5 to 911 A power; median of the eleven MUSCLES stars) | 0.3 to 2.3 (the eleven stars' own range) | stars with a corona, 2900 to 5200 K; applied to every temperature | a star whose measured far-ultraviolet is not within a factor of 3 of its XUV | the star-by-star HLSP spectra, or a relation against rotation and age (Linsky et al. 2020; Youngblood et al. 2017 Ca II K relations) | test_stellar_library_real::test_the_far_ultraviolet_of_a_muscles_star_is_the_corona_and_not_the_photosphere | GEN.971 | - |
 | SL3 | T | T5 | L0 | stellar_library.FUV_IN_UV_C 0.89 (the chromospheric far ultraviolet is spread evenly in wavelength over 91.2 to 170 nm, and the share above 100 nm is UV-C) | 0.8 to 0.95 | the split of the corona's light between the ionising band and UV-C | a measured spectrum with the 91.2 to 100 nm part above 20 percent of the band | the HLSP spectra (Lyman alpha at 121.6 nm lies inside UV-C either way) | test_stellar_spectra::test_a_star_with_a_corona_has_more_far_ultraviolet_and_ionising_light_and_the_same_visible | GEN.971 | - |
 | SL4 | P | T5 | L0 | stellar_spectra: the grids are solar metallicity; the models hold no chromosphere (SP2 adds it); a giant cooler than 3500 K reads the log g 4.5 dwarf; the part of a bin the grid does not reach takes the blackbody and the bins are renormalised to one (closure 0.97 to 1.00) | none | stars of 2300 to 50000 K | a metal-poor or metal-rich star whose ultraviolet differs from the solar-metallicity model by more than 0.2 dex | metallicity-dependent grids (ATLAS9 and PHOENIX both have them; a larger download) | test_stellar_library_real::test_the_library_covers_the_temperatures_the_generator_makes_stars_at | - | - |
+
+## 6.34 Stand-ins of the alpha-enhanced tracks and the age-metallicity relation
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| AL1 | P | T2 | L0 | alpha_tracks.ALPHA_SHARE 0.638 (the alpha elements' share of the metals, so [M/H] = [Fe/H] + log10(0.638 f + 0.362), Salaris et al. 1993; read second-hand) | none | stars of [alpha/Fe] up to +0.5 on solar-scaled tracks | an alpha-enhanced track set whose turn-off differs from the shifted solar-scaled one by more than 0.05 dex | alpha-enhanced isochrones (Dartmouth, BaSTI-alpha) | test_alpha_and_age_metallicity::test_the_salaris_shift_for_plus_four_tenths_is_about_three_tenths_of_a_dex | GEN.744 | - |
+| AR1 | P | T6 | L1 | age_metallicity.THIN_BIRTH_FE_H 0.05 (the thin disc's mean [Fe/H] at age 0; the slope below it is Haywood's 0.025 dex per Gyr) | -0.05 to 0.15 | thin-disc stars | a thin disc whose young stars average more than 0.1 away | the Geneva-Copenhagen age-metallicity relation (Casagrande et al. 2011) | test_alpha_and_age_metallicity::test_the_relation_matches_the_populations_the_generator_has_today | GEN.744 | - |
+| AR2 | P | T6 | L1 | age_metallicity.THICK_ANCHOR_FE_H -0.10 (the thick disc's mean [Fe/H] at 8 Gyr where it ends; the slope below it is Haywood's 0.15 dex per Gyr) | -0.3 to 0.1 | thick-disc stars of 8 to 13 Gyr | a thick disc whose 8 Gyr stars average more than 0.2 away | the relation of Haywood et al. 2013 Fig. 9 fitted star by star | test_alpha_and_age_metallicity::test_the_thick_disc_ends_at_its_anchor_and_is_held_outside_its_window | GEN.744 | - |
+| AR3 | P | T6 | L1 | age_metallicity.SIGMA (0.15 thin, 0.10 thick; the scatter about the mean at one age) | each 0.05 | disc stars | a measured scatter at one age differing by more than 0.05 | the fitted scatters of the two relations | test_alpha_and_age_metallicity::test_a_draw_is_the_mean_plus_the_scatter_and_stays_in_range | GEN.744 | - |
