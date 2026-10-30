@@ -13572,7 +13572,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (/mnt/project-files/reports/design-drafts/), and this item is
   rewritten from the result: the stored column names, the liquid list,
   the stand-ins.
+  Research result (4:09 PM EDT 2026-10-30): TODO research (Boss 4:07 PM
+  EDT), draft
+  /mnt/project-files/reports/design-drafts/ocean-tides-and-liquids-2026-10-30.md:
+  the equilibrium tide height does not depend on the liquid, so the
+  module takes a liquid parameter (density, name) and stores
+  ocean_liquid beside the tide columns (water for now). Depth,
+  resonance, loading, Love factor and dissipation do depend on it (draft
+  section 3). A global liquid layer that is heavy against the body
+  (mercury on a rocky planet) breaks the thin-layer loading factor 1/(1
+  - 3 rho_l / 5 rho_mean): the module refuses above 0.9 and says so.
+  Mercury is left out (no generated composition carries it). Other
+  liquids need the surface liquid inventory, GEN.1035. Stand-in rows OT1
+  to OT5 go in GEN.725 when built, as the draft lists.
   Prerequisites: none. Related: GEN.957, GEN.959, GEN.842.
+
+- [ ] **GEN.1035 Surface liquid inventory: which liquid a cold or hot world holds as a sea (methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water, sulfur) from its temperature, pressure, ice and air, so non-water oceans can have tides**
+  Proposed by the TODO research for GEN.1034 (4:09 PM EDT 2026-10-30;
+  draft
+  /mnt/project-files/reports/design-drafts/ocean-tides-and-liquids-2026-10-30.md,
+  sections 2, 4 and 5). Today the generator holds only water oceans
+  (hydrosphere.py, surface_composition LIQUID_STATES); the liquid
+  windows of 18 species are already in physics/saturation.py. Do: a
+  lock-free module that, for a body with a surface temperature and
+  pressure, lists the liquids stable there (the window from the triple
+  point to the boiling temperature at the surface pressure, using
+  saturation.py), picks the dominant one from the ice fractions and the
+  air (a stand-in rule, OT3), gives a methane-ethane-nitrogen mixture
+  for Titan-like seas (Cordier et al. 2009, memory), and returns the
+  liquid's density from a table of NIST/Glenn values (OT2); then the
+  wiring (a stored surface_liquid column, coverage, the ocean_fraction
+  for non-water, the habitability and description text) as a lock turn
+  after GEN.1034. Boss accepts secondary and tertiary sources and
+  stand-ins when each is registered in GEN.725 with tier and tweak
+  level. Done: a Titan-like world draws a hydrocarbon sea, a warm water
+  world still draws water, a body outside every window draws none, a
+  test sweep shows each liquid in its window, and the registry rows are
+  in. Owner: none yet (pool; Tides 1 after GEN.1034, or any free lane).
+  Version 8.1 or later, Boss to say.
+  Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
