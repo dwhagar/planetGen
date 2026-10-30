@@ -167,3 +167,73 @@ Overlap checks for TODO: GEN.1034 (ocean tides, exotic liquids) is separate; GEN
 1. Should rare oddities be visible on the page as a named "Odd" line, or only show in the property sheet? Recommended: a named line with the cause sentence, because it teaches the reader the physics.
 2. Which first: W1 (climate from tilt, common) or W10 and W2 (rare, striking)? Recommended: W1 and W2 first, because they change every visit to a map.
 3. Is a global weirdness dial wanted in settings? Recommended yes, default 1.
+
+## 8. Added 4:17 PM EDT 2026-10-30 (Boss): the core levers, and giants
+
+### 8.1 The core levers (what an oddity may change)
+
+An oddity row may only change one of these inputs. Everything else follows from the solvers.
+
+| Lever | What it is | Oddities that use it |
+|---|---|---|
+| L1 Spin axis and rate | tilt, retrograde sign, period | W1, W2, G1, G2, G6 |
+| L2 Orbit | eccentricity, inclination to host equator, resonance, binary host | W3, W4, W5, W6, W7 |
+| L3 Bulk composition | core fraction, water, carbon, ice mix, envelope share | W10, W11, W12, W15, W16, G3, G4 |
+| L4 Interior heat and structure | internal flux, tidal power, dynamo, lid regime | W5, W24, G2, G5, G7 |
+| L5 History | collisions, migration, mass loss, age at which an event hit | W10, W14, W16, W21, G1, G2 |
+| L6 Moon and ring set | moon origin, retrograde moons, rings | W8, W9, G1, G8 |
+| L7 Air state (bistable only) | which branch of snowball or warm, collapsed or kept | W19, W20 |
+
+The dial (section 4.4) scales how often a qualifying body gets an oddity. The gates are: host type and mass, body mass and kind, age, orbit, and the history record. So "the core things" are the seven levers plus those gates.
+
+### 8.2 Giant planet oddities (Neptune, Uranus, Jupiter, Saturn type)
+
+| ID | Oddity and real cases | Trigger | Lever | Rate [R] |
+|---|---|---|---|---|
+| G1 | **Giant-impact tilt.** Uranus 98 deg, with its tilted ring and moon system aligned to the tilt (Slattery 1992; Morbidelli 2012 says a moon-disrupting or two-impact path; Kegerreis 2018) | ice giant or gas dwarf, mass 5 to 30 Earth, outer chain with a recorded merger | L1, L5, L6 | tilt above 60 deg is a minority for giants (Rayleigh 15 deg today); a tail of about 1 in 5 ice giants in the Solar System, unknown elsewhere, stand-in T4 L3 |
+| G2 | **Cold or hot ice-giant interior.** Uranus heat flux about 0.04 W/m2 against Neptune 0.43 (Uranus emits almost no internal heat, Neptune about 2.6 times what it absorbs); explanations: layered interior and suppressed convection (Nettelmann 2016, Kurosaki and Ikoma 2017; GEN.1033 is already filing the heat spread) | ice giant | L4, L5 | spread already owned by GEN.1033, do not duplicate; oddity row only sets the extreme tail |
+| G3 | **Non-dipolar, off-centre field.** Uranus and Neptune fields tilted 59 and 47 deg and offset by 0.3 and 0.55 radii, from a dynamo in a thin ionic-water shell (Stanley and Bloxham 2004) | ice giant | L4 | follows from shell structure; one row for the field shape |
+| G4 | **Superionic and diamond-rain interiors.** carbon rain and superionic water (Kraus 2017, Millot 2018) | ice giant, deep layers | L3, L4 | derived, a text line only |
+| G5 | **Fast winds and giant storms.** Neptune 2,100 km/h, Great Dark Spot, Jupiter's Red Spot, Saturn's hexagon and Great White Storm | any giant | L4 | derived flavour from heat and spin, not a draw |
+| G6 | **Seasonal giants.** Uranus season 21 years with 98 deg tilt; Saturn tilt 27 deg with ring shadow | tilted giant | L1 | follows from W1 climate term |
+| G7 | **Hot Neptune desert and chthonian cores.** few Neptunes inside 3 d (Mazeh 2016), stripped giant cores (Hebrard 2004) | giant inside the desert | L3, L5 | covered by `envelope_escape`; oddity is the survivor outlier (LTT 9779 b survives in the desert, Jenkins 2020) |
+| G8 | **Odd ring and moon systems.** Saturn's rings (young or old, debated), Chariklo rings, J1407b giant ring system, Neptune's Triton captured retrograde moon, Uranus' dark rings | any giant | L6 | rings partly covered (`rings.py`), captured moons covered |
+| G9 | **Super-Jupiters and brown-dwarf edge giants.** HAT-P-2 b, Kepler-39 b, 10 to 13 Jupiter masses, direct-imaged HR 8799 and Beta Pic b in wide orbits | high-metallicity or massive disc | L3 | within existing mass tail; check ceiling |
+| G10 | **Helium rain, Saturn extra heat.** Saturn's excess heat from helium sedimentation (Stevenson and Salpeter 1977) | gas giant 0.2 to 1 Jupiter mass, age over 2 Gyr | L4 | derived from interior model |
+| G11 | **Dark and reflective giants.** TrES-2 b dark, Kepler-7 b bright clouds | hot giant | L3 | W23 |
+
+Most G rows are derived outputs, not draws. Only G1 and the survivor outliers need a rate row.
+
+## 9. Rings (Boss, 4:17 PM EDT 2026-10-30)
+
+### 9.1 What is built [REPO: `physics/rings.py`, `planetary-rings.md`, GEN.732]
+
+One summed ring system per body (kind, origin, inner and outer radius, mass, optical depth, ice share). Roche limit and snow line are physics; **whether a body has a ring is a draw**: a giant always has one (kinds dusty : narrow : broad = 1 : 2 : 1, the Solar System's four), a rocky or dwarf planet 1 percent, rogues too. All numbers are stand-ins BC20 to BC23. The painter (MAP.275) draws from the stored fields.
+
+### 9.2 What is missing, and the fix: rings follow from history, as oddities
+
+The ring draw is independent of the planet's history, so every giant has a ring and rings never explain anything. Make a ring an **outcome of the L6 lever (moon and ring set)** and let oddities use it:
+
+| ID | Ring oddity and real cases | Trigger | Rate [R] |
+|---|---|---|---|
+| R1 | **Ring from a disrupted moon.** Saturn (Canup 2010; young rings 100 to 400 Myr per Cassini mass, contested), Phobos about 30 to 50 Myr from disruption, ring-moon cycling (Hesselbrock and Minton 2017) | moon inspiral below the Roche limit (W9) | follows from `moon_orbits`; replaces the always-a-ring rule |
+| R2 | **Ring from a captured comet.** Dones 1991 | comet passing inside the Roche limit | rare |
+| R3 | **Rings aligned with a tilt.** Uranus rings and moons lie in the 98 deg equator (G1) | giant-impact tilt | by construction: ring plane = equator |
+| R4 | **Rings beyond the Roche limit.** Quaoar ring at 7.4 radii (Morgado 2023), Haumea (Ortiz 2017), Chariklo, Chiron | small body with a spin-orbit resonance to a satellite or fast spin | rare, no rate; stand-in T4 |
+| R5 | **Shepherded and eccentric rings, arcs.** Uranus epsilon ring, Neptune's Adams arcs held by Galatea, Saturn's F ring | narrow ring plus an inner moon | derived flavour |
+| R6 | **Dark or bright rings.** Saturn 90 to 99 percent ice, Uranus and Neptune dark | snow line, ring age, pollution | derived from ice share and age |
+| R7 | **Giant ring systems on super-Saturns.** J1407b about 0.6 AU (Mamajek 2012); rings as a cause of super-puff radii (Piro and Vissapragada 2020, now disfavoured for Kepler-51) | low-mass young giant with many moons | a few named cases, no rate |
+| R8 | **Ring shadow climate.** ring shades the winter hemisphere and the moons | broad ring plus tilt | derived from W1 plus the ring |
+| R9 | **Ring lifetime near a star.** rings of close planets are short lived (Schlichting and Chang 2011) | planet inside about 0.1 AU | gate: no ring |
+| R10 | **Propeller moons and gaps.** Saturn's propellers, Encke gap | broad ring with an embedded moon | painter flavour |
+
+### 9.3 Changes this implies
+
+- The ring draw becomes conditional on moon history (R1, R2), so a giant with no disrupted moon or capture has no ring, and Saturn-like broad rings are the tail. "Four of four in the Solar System" is a single-system anchor, so BC20 is registered T4 L3 and replaced by Cassini ring age and disruption rates.
+- A ring stores its **age**; ice share and darkness follow from pollution over time (R6).
+- Ring plane is the equator, so oddities that move the spin (G1, W1, W2) move the ring.
+- Invariants for the harness: ring mass under 1e-4 of the planet, ring inside the Roche limit unless R4 names its resonance, optical depth from the formula (an output), no ring inside 0.1 AU.
+
+### 9.4 Added TODO items
+
+Non-lock: (20) ring origin from moon decay and comet passage, pure function, tests on Saturn and Phobos; (21) ring age and pollution darkening; (22) R4 resonance rings for small bodies, Quaoar and Haumea tests; (23) ring invariants in the plausibility harness. Lock: (24) wire conditional rings (epoch, replaces the BC20 draw); (25) wire ring age, R4, R9; (26) census re-baseline for ring shares.
