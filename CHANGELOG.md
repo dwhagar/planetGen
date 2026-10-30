@@ -2,6 +2,40 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2745] - 2026-10-30
+
+**Headline:** The weird-worlds oddity table and its loader exist, empty for now, with a weirdness dial and a stream of its own for every oddity roll.
+
+### Added
+- **The oddity table (GEN.1036).** `physics/data/oddities.json` holds the vocabulary for rare, physically plausible outcomes (the lever each one changes and the inputs it may touch, and the quantities a gate or a limit may read) and an empty list of rows; `physics/oddities.py` loads it and refuses a row without a source, a gate, limits, a rate, a tier or a tweak level. Nothing calls it yet: the weird-worlds modules add rows and GEN.1047 wires them into the generator, so no world changes.
+- **A weirdness dial (GEN.1036).** `tuning.WEIRDNESS_DIAL` (1.0; 0 turns every oddity off) and `tuning.WEIRDNESS_RATE_SCALE` (a scale by oddity id) multiply a row's rate, and every roll comes from a stream keyed on the oddity and the body, so adding, removing or turning off one oddity moves no other draw.
+
+## [8.0.2744] - 2026-10-30
+
+**Headline:** The rings that small icy worlds like Quaoar and Haumea hold far outside the usual ring zone now exist as a tested calculation, ready to give some small bodies a narrow ring.
+
+### Changed
+- **Resonance rings of small bodies (GEN.1056).** A new module (`physics/small_body_rings`) puts a narrow ring where a ring would go round three times for each turn of a small body (4 200 km for Quaoar against 4 057 observed, 2 290 for Haumea against 2 287, 426 for Chariklo against 391 and 405), past the Roche limit and inside half the body's Hill radius, with a registered stand-in chance of 0.10. It also holds the gate that no ring survives inside 0.1 AU of a star. Nothing reads it yet: the conditional rings (GEN.1057) wire it on a later generation train.
+
+generation-output: unchanged
+
+## [8.0.2743] - 2026-10-30
+
+**Headline:** The rule that makes a planet's ring come from its own history, a moon that fell inside the Roche limit or a comet that passed inside it, now exists as a tested calculation.
+
+### Changed
+- **Ring origin from history (GEN.1054, first part).** A new module (`physics/ring_origin`) says whether a planet has a ring from what happened to it: a moon the tide drew inside the Roche limit leaves a share of its mass as a ring, a comet that passed inside it leaves a smaller share, each ring spreads away over about half a billion years, a planet closer than 0.1 AU to its star keeps none, and a giant with nothing in its past has none. A Mimas-sized moon that fell 150 million years ago leaves Saturn's ring mass to a factor of two; Phobos would leave Mars a faint ring. The older chances of a ring (every giant, one terrestrial planet in a hundred) are re-registered as hand-tuned until the module is wired in (GEN.1057). Nothing reads the module yet.
+
+generation-output: unchanged
+
+## [8.0.2742] - 2026-10-30
+
+**Headline:** The generator now has a table of the 51 liquids a surface can hold, from liquid helium and methane seas to brines, sulfur, molten salts, metals and lavas, with their windows, densities and viscosities.
+
+### Added
+- **`physics/surface_liquids.py` and `physics/data/surface_liquids.json` (GEN.1035).** For a temperature and a pressure it lists the liquids stable there (the window from the melting point to the boiling point at that pressure, from the saturation curves of `saturation.py` for the 19 species that have them and Clausius-Clapeyron for the rest), picks which liquid a world has (a volatile at saturation in the air condenses; otherwise the body's reservoir of the liquid ranks it), gives the mole fractions and density of a mixed methane-ethane-nitrogen sea, and a density and viscosity for every row. Rows are added by adding a line to the file, so mercury, a new lava or a molten salt are rows. Nothing puts a surface liquid on a world yet; the stored `surface_liquid`, its coverage and the text are the rest of GEN.1035.
+- **Stand-in rows LQ1 to LQ10** in the gap-filling plan (section 6.69) and the stand-in list.
+
 ## [8.0.2741] - 2026-10-30
 
 **Headline:** The size of the open-ocean tide a world's moons and star would raise now exists as a tested calculation, ready to give each ocean world its tide range.

@@ -29,6 +29,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.physics.giant_dynamo | GEN.809 | the dynamo region and field of a giant from its interior layers (lock-free); the wiring step has `magnetism.generate_field` take a giant's moment from it in place of the three anchors, once the structure of GEN.733 has placed an ice giant's layers (GEN.967 wires `dynamo` for the rest) |
 | module | planetgen.physics.outside_hours | GEN.768 | the hours a person can be outside in a day, stored per planet by the item |
+| module | planetgen.physics.surface_liquids | GEN.1035 | the liquids a surface can hold; the stored surface_liquid, its coverage and the ocean tide read it once the wiring turn (train 9) lands |
+| row | 6.69:LQ6 | GEN.1035 | `surface_liquids.SOLUBILITY_FACTOR`, read only by the ideal sea until the wiring turn (train 9) |
+| data | surface_liquids.json | GEN.1035 | read by `physics/surface_liquids.py` only |
 | module | planetgen.physics.radiation_belts | GEN.983 | trapped radiation belts of a magnetised body, read when the stored magnetosphere reaches dose |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.physics.closest_approach | GEN.197 | the pair closest-approach library, read by the orbital event writer |
@@ -137,7 +140,31 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.68:OT1 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT2 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT6 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
+| module | planetgen.physics.small_body_rings | GEN.1057 | the resonance ring of a small body (R4) and the gate against rings inside 0.1 AU (R9), pure functions (lock-free); the wiring step calls them from the ring pass |
+| row | 6.71:RR1 | GEN.1057 | `small_body_rings.RESONANCE_RING_RATE, RESONANCE_ORDER`, read when the wiring step lands |
+| row | 6.71:RR2 | GEN.1057 | `small_body_rings.INNER_RING_LIMIT_AU`, read when the wiring step lands |
+| row | 6.71:RR3 | GEN.1057 | `small_body_rings.HILL_FRACTION_MAX`, read when the wiring step lands |
+| row | 6.71:RR4 | GEN.1057 | `small_body_rings.RESONANCE_RING_MASS_KG, RESONANCE_WIDTH_FRACTION`, read when the wiring step lands |
+| module | planetgen.physics.ring_origin | GEN.1057 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
+| row | 6.70:RO1 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO5 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO6 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO7 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO8 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| module | planetgen.physics.oddities | GEN.1047 | the oddity table and its rolls (candidates, probability, roll, limit_failures); the planet and moon builds call it once GEN.1047 wires the table, with the effects the modules of GEN.1040 and its siblings define |
+| data | oddities.json | GEN.1047 | the oddity table (empty until the modules add their rows); read by physics/oddities.py, which nothing calls yet |
+| row | 6.72:OD1 | GEN.1047 | `tuning.WEIRDNESS_DIAL`, read by `oddities.probability` once the table is wired; the dial also goes in the settings page |
+| row | 6.72:OD2 | GEN.1047 | `tuning.WEIRDNESS_RATE_SCALE`, read by `oddities.probability` once the table is wired |
+| module | planetgen.physics.disintegrating_planet | GEN.1050 | the wind, lifetime and gate of a disintegrating rocky planet (W14); the oddity row reads it when its wiring step lands |
+| row | 6.73:DP1 | GEN.1050 | the olivine vapour constants, not read until the oddity row is wired |
+| row | 6.73:DP2 | GEN.1050 | the vapour mean mass and index, not read until the oddity row is wired |
+| row | 6.73:DP3 | GEN.1050 | the full model's factor and the solid angle, not read until the oddity row is wired |
+| row | 6.73:DP4 | GEN.1050 | the duty cycle, not read until the oddity row is wired |
+| row | 6.73:DP5 | GEN.1050 | the gate, not read until the oddity row is wired |
 | module | planetgen.physics.nightside_collapse | GEN.1044 | whether a locked planet's air freezes onto its night side and how much stays; the oddity wiring (GEN.1051) will call it after the climate solver |
-| row | 6.69:NC1 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.69:NC3 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.69:NC6 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.74:NC1 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.74:NC3 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.74:NC6 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
