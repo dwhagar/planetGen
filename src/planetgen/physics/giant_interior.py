@@ -1039,3 +1039,52 @@ def describe_interior(body, min_share=0.02):
             f"{_pressure_text(layer.top_pressure_gpa)} down to {_pressure_text(layer.bottom_pressure_gpa)}; it is "
             f"{', '.join(made)}.")
     return sentences
+
+
+INTERIOR_KIND_WORDING = {
+    "gas_giant": "Soundings read a gas giant: a deep envelope of hydrogen and helium over a compact core",
+    "ice_giant": "Soundings read an ice giant: a thin envelope of hydrogen and helium over a deep mantle of hot water, ammonia and methane",
+    "brown_dwarf": "Soundings read a brown dwarf: a body too massive to stay a planet, hydrogen all the way down to a small core",
+}
+"""dict: The opening clause for each kind of interior (`INTERIOR_KINDS`); a test pins that every kind has one."""
+
+INTERIOR_FEATURE_WORDING = {
+    "metallic_envelope": "hydrogen squeezed to a liquid metal below {pressure}, where the planet's magnetic field is made",
+    "dilute_core": "a dilute core, rock and ice mixed into the hydrogen instead of sitting in a ball at the centre",
+    "helium_shell": "a shell of helium the rain left behind",
+    "helium_rain": "an envelope short of helium, which has sunk into the deep",
+    "ice_mantle": "a conducting mantle of ionic water where the planet's magnetic field is made",
+}
+"""dict: The clause for each feature a giant's interior can have, in the voice of the pages. A test pins the keys."""
+
+HELIUM_RAIN_BELOW = 0.97
+"""float: A `helium_depletion` under this reads as an envelope the helium has rained out of."""
+
+
+def interior_wording_keys(body):
+    """
+    Which wording of `INTERIOR_KIND_WORDING` and `INTERIOR_FEATURE_WORDING` a `GiantInterior` uses, the kind first and then its features in the order
+    of the layers (the helium rain last).
+    """
+    keys = [body.kind]
+    keys += [layer.kind for layer in body.layers if layer.kind in INTERIOR_FEATURE_WORDING]
+    if body.helium_depletion < HELIUM_RAIN_BELOW:
+        keys.append("helium_rain")
+    return keys
+
+
+def summarize_interior(body):
+    """
+    One sentence that says what a giant's interior is: its kind, then the metallic layer, the dilute core, the helium shell and the helium rain it has.
+
+    Returns:
+        str: The sentence.
+    """
+    keys = interior_wording_keys(body)
+    kind, features = keys[0], keys[1:]
+    pressure = body.metallization_pressure_gpa
+    clauses = [INTERIOR_FEATURE_WORDING[key].format(pressure=_pressure_text(pressure)) for key in features]
+    if not clauses:
+        return INTERIOR_KIND_WORDING[kind] + "."
+    joined = clauses[0] if len(clauses) == 1 else ", ".join(clauses[:-1]) + " and " + clauses[-1]
+    return f"{INTERIOR_KIND_WORDING[kind]}, with {joined}."
