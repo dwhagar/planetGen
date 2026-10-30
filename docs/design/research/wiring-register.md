@@ -41,6 +41,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
 | module | planetgen.physics.iron_branch_tuning | by design | the simulated sample the iron branch table is tuned to; run by the tuning tests, not by generation |
 | module | planetgen.generation.redraw_kinds | by design | the names and one-line meanings of the redraw counters (TEST.476); `draw.redrawn` is called by name from the generator and the census reads this registry, so no generation code imports it |
+| module | planetgen.galaxy.region_run | GEN.1128 | the region run's plan (sphere to whole sectors, units, barrier, cost), read by the region command once the command is wired (second slice) |
 | module | planetgen.generation.class_sample | by design | a sample that holds every class, a helper of the sheet audit tests |
 | module | planetgen.generation.plausibility | by design | the anomaly finder engine; run by the plausibility tests and their command line wrapper in `src/tests` |
 | module | planetgen.generation.phenomena_plausibility | by design | the exotic-phenomena counterpart of the anomaly finder, run by its tests |
@@ -351,3 +352,20 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.117:BHS3 | GEN.1069 | `belt_history.MASS_LOSS_SCATTER_SHARE`, read when the wiring step lands |
 | row | 6.117:BHS4 | GEN.1069 | `belt_history.DELIVERY_MYR`, read when the wiring step lands |
 | row | 6.117:BHS5 | GEN.1069 | `belt_history.MIN_POLLUTION_RATE_G_S`, read when the wiring step lands |
+| module | planetgen.physics.irregular_population | GEN.1083 | the capture windows, ground-down count and stored irregulars of a planet (lock-free, GEN.1077); the captured-moon wiring calls `make_pool`, `draw_irregulars` and `draw_exchange` |
+| row | 6.118:IP1 | GEN.1083 | `irregular_population.REFERENCE_DISC_MASS_EARTH`, read when the captured-moon wiring lands |
+| row | 6.118:IP2 | GEN.1083 | `irregular_population.CAPTURED_DENSITY_KG_M3`, read when the captured-moon wiring lands |
+| row | 6.118:IP3 | GEN.1083 | `irregular_population.ENCOUNTER_YIELD`, read when the captured-moon wiring lands |
+| row | 6.118:IP4 | GEN.1083 | `irregular_population.REFERENCE_HILL_AU`, read when the captured-moon wiring lands |
+| row | 6.118:IP5 | GEN.1083 | `irregular_population.GAS_WINDOW_STRENGTH`, read when the captured-moon wiring lands |
+| row | 6.118:IP6 | GEN.1083 | `irregular_population.GAS_SIZE_WINDOW_KM`, read when the captured-moon wiring lands |
+| row | 6.118:IP7 | GEN.1083 | `irregular_population.EXCHANGE_CHANCE`, read when the captured-moon wiring lands |
+| row | 6.118:IP8 | GEN.1083 | `irregular_population.EXCHANGE_MIN_RADIUS_KM`, read when the captured-moon wiring lands |
+| row | 6.118:IP9 | GEN.1083 | `irregular_population.TEMPORARY_MIN_PLANET_RADII`, read when the captured-moon wiring lands |
+| row | 6.118:IP10 | GEN.1083 | `irregular_population.DISRUPTION_SIZE_RATIO`, read when the captured-moon wiring lands |
+| row | 6.118:IP11 | GEN.1083 | `irregular_population.MODEL_MIN_RADIUS_KM`, read when the captured-moon wiring lands |
+| row | 6.118:IP12 | GEN.1083 | `irregular_population.STORE_FLOOR_KG`, read when the captured-moon wiring lands |
+| module | planetgen.physics.captured_composition | GEN.1083 | the taxon, ice and density of a captured body from its source and a family's lumps (lock-free, GEN.1080); the captured-moon wiring calls `compose`, `draw_parent` and `fragment` |
+| row | 6.119:CP1 | GEN.1083 | `captured_composition.FEEDING_ZONE_HILL_RADII`, read when the captured-moon wiring lands |
+| row | 6.119:CP3 | GEN.1083 | `captured_composition.PARENT_LUMPS`, read when the captured-moon wiring lands |
+| row | 6.119:CP2 | GEN.1083 | `belt_history.SURFACE_DENSITY_SLOPE`, read by the captured composition when the captured-moon wiring lands |
