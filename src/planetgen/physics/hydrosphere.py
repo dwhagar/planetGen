@@ -70,6 +70,8 @@ HYDROSPHERE_STATES = ("dry", "vapour", "ice", "ice-covered ocean", "surface ocea
 OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutral")
 
 WATER_MELTING_K = 273.15
+FROZEN_COVER_STATES = ("ice", "ice-covered ocean")
+"""tuple: The hydrosphere states whose surface is ice (GEN.833: their cover is the water layer the body holds, `frozen_cover`)."""
 LIQUID_WATER_DENSITY_KG_M3 = 1000.0
 ICE_DENSITY_KG_M3 = water_layer.ICE_LID_DENSITY_KG_M3
 ICE_CONDUCTIVITY_A_W_M = 567.0
@@ -155,12 +157,30 @@ def water_layer_depth_km(mass_kg, radius_km, water_mass_fraction):
     return water_mass_fraction * mass_kg / (LIQUID_WATER_DENSITY_KG_M3 * area_m2) / 1000.0
 
 
-def ocean_fraction(layer_km, gravity_m_s2):
-    """Section 5.1's `f_ocean = min(1, sqrt(2 D / L))`."""
+def ocean_fraction(layer_km, gravity_m_s2, icy=False):
+    """
+    Section 5.1's `f_ocean = min(1, sqrt(2 D / L))`, with the relief `L` of a rock basin, `EARTH_RELIEF_KM` scaled as 1 / g. For
+    `icy` (GEN.833) `L` is `EARTH_RELIEF_KM` at most: observed icy relief is a few to 20 km on bodies of any gravity (Enceladus,
+    Callisto, Iapetus), ice being strength-limited, so it does not grow as 1 / g below Earth's.
+    """
     if layer_km <= 0 or gravity_m_s2 <= 0:
         return 0.0
     relief_km = EARTH_RELIEF_KM * constants.EARTH_GRAVITY / gravity_m_s2
+    if icy:
+        relief_km = min(relief_km, EARTH_RELIEF_KM)
     return min(1.0, math.sqrt(2 * layer_km / relief_km))
+
+
+def frozen_cover(body, gravity_m_s2):
+    """
+    The share of its surface the water of a frozen body covers as ice (GEN.833): the cover (`ocean_fraction`'s law) of the layer all of the body's
+    water makes at ice's density. The surface water (`draw_surface_water`, what the mantle leaves) is the reservoir of a liquid ocean;
+    a frozen body holds its water as ice through its outer layers, so the ice that covers it is the water it holds, not the part
+    a liquid ocean would have had. A small moon with a thick ice shell is covered (`ocean_fraction`'s `icy` relief).
+    """
+    area_m2 = 4 * math.pi * (body.radius * 1000.0) ** 2
+    layer_km = (body.water_mass_fraction or 0.0) * body.mass / (ICE_DENSITY_KG_M3 * area_m2) / 1000.0
+    return ocean_fraction(layer_km, gravity_m_s2, icy=True)
 
 
 def surface_water_fraction(water_mass_fraction, rng=draw):
@@ -282,6 +302,9 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
             state = "ice-covered ocean" if column.ice_shell_km else "surface ocean"
     shell_km, liquid_km, hp_km = column.ice_shell_km, column.liquid_km or None, column.hp_ice_km
     body.hydrosphere = state
+    if state in FROZEN_COVER_STATES:    # GEN.833: the ice covers what the water the body holds makes, not the toy ocean cover
+        body.ocean_fraction = max(covered, frozen_cover(body, gravity))
+        body.land_fraction = 1.0 - body.ocean_fraction
     body.ice_shell_km = shell_km or None
     body.hp_ice_km = hp_km or None
     body.ocean_depth_km = liquid_km
