@@ -32,7 +32,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.datasets import evolved_tracks, isochrones
-from planetgen.physics import giant_branch, ms_lifetime
+from planetgen.physics import giant_branch, ms_lifetime, remnant_mass
 
 SUBGIANT = "subgiant"
 GIANT = "giant"
@@ -47,7 +47,7 @@ that MIST's track is at each end (`evolved_tracks.Track.frac`) and the equivalen
 of the track the window is mapped onto)."""
 
 State = namedtuple("State", "window mass_sol luminosity_sol temperature_k radius_sol surface_h1 surface_c12 mist_phase")
-"""A star's place on the track: the window it is in, its present mass (MIST's, Msun), luminosity (Lsun), temperature (K) and
+"""A star's place on the track: the window it is in, its present mass (Msun, `Timeline.present_mass`), luminosity (Lsun), temperature (K) and
 radius (Rsun), its surface hydrogen and carbon mass fractions and MIST's phase number."""
 
 _FIRST_ASCENT_FIRST = evolved_tracks.FIRST_EEP
@@ -107,7 +107,40 @@ class Timeline:
         share = min(max((age_gy - window.start_gy) / span, 0.0), 1.0) if span > 0.0 else 0.0
         frac = window.f_start + share * (window.f_end - window.f_start)
         mass, log_l, log_teff, log_r, h1, c12, phase = self.track.at_frac(frac, window.first_eep, window.last_eep)
-        return State(window.name, mass, 10.0 ** log_l, 10.0 ** log_teff, 10.0 ** log_r, h1, c12, phase)
+        frac = min(max(frac, self.track.frac[self.track.index_of(window.first_eep)]),
+                   self.track.frac[self.track.index_of(window.last_eep)])
+        return State(window.name, self.present_mass(frac, mass, window), 10.0 ** log_l, 10.0 ** log_teff, 10.0 ** log_r, h1, c12, phase)
+
+    def present_mass(self, frac, track_mass, window):
+        """
+        The mass the star has at `frac` of its main-sequence lifetime after the main sequence ended, where MIST's track has
+        `track_mass` (GEN.940). A star of `SUPERGIANT_MIN_MASS_SOL` and more keeps the track's, winds included. A lighter
+        one loses, on the first ascent, the track's loss times `RED_GIANT_BRANCH_REIMERS_ETA` over `MIST_REIMERS_ETA`, keeps
+        the track's small loss through core helium burning, and on the asymptotic branch goes from the mass it has to the
+        white dwarf it makes (`remnant_mass`, so a giant and the dwarf it becomes are one mass) as the track loses its own
+        mass; never under that white dwarf's. A star of 6.5 solar masses and more has a track that stops before the thermal
+        pulses, so its asymptotic branch goes to the dwarf in a straight line in time (a stand-in).
+        """
+        initial = self.mass_sol
+        if initial >= tuning.SUPERGIANT_MIN_MASS_SOL:
+            return track_mass
+        track = self.track
+        scale = tuning.RED_GIANT_BRANCH_REIMERS_ETA / tuning.MIST_REIMERS_ETA
+        tip, helium_end = track.index_of(evolved_tracks.RGB_TIP_EEP), track.index_of(evolved_tracks.CORE_HELIUM_END_EEP)
+        dwarf = remnant_mass.white_dwarf_mass_sol(initial)
+        if frac <= track.frac[tip]:
+            return max(initial - scale * (initial - track_mass), dwarf)
+        extra = (scale - 1.0) * (initial - track.star_mass[tip])
+        if frac <= track.frac[helium_end]:
+            return max(track_mass - extra, dwarf)
+        helium_mass = max(track.star_mass[helium_end] - extra, dwarf)
+        if not track.reaches(evolved_tracks.AGB_END_EEP):
+            span = window.f_end - window.f_start
+            share = min(max((frac - window.f_start) / span, 0.0), 1.0) if span > 0.0 else 0.0
+            return helium_mass - (helium_mass - dwarf) * share if window.name == ASYMPTOTIC_GIANT else helium_mass
+        lost = track.star_mass[helium_end] - track.star_mass[track.index_of(evolved_tracks.AGB_END_EEP)]
+        share = 1.0 if lost <= 0.0 else min(max((track.star_mass[helium_end] - track_mass) / lost, 0.0), 1.0)
+        return helium_mass - (helium_mass - dwarf) * share
 
     def bright_pieces(self, min_luminosity_sol, skip=()):
         """

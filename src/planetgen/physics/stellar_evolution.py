@@ -390,10 +390,10 @@ def _evolved_state(line, age_gy, mass_sol, fe_h, rng):
     window = place.window
     if window == post_main_sequence.HORIZONTAL_BRANCH:
         colour = sample_horizontal_branch_colour(fe_h, age_gy, rng)
-        return dict(yerkes_class="III", phase="horizontal-branch",
+        return dict(yerkes_class="III", phase="horizontal-branch", mass_sol=place.mass_sol,
                     luminosity_sol=luminosity_law_quantile(*pc.HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL, 0.0, rng.random()),
                     temperature_k=rng.uniform(*pc.HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K[colour]))
-    found = dict(luminosity_sol=place.luminosity_sol, temperature_k=place.temperature_k)
+    found = dict(luminosity_sol=place.luminosity_sol, temperature_k=place.temperature_k, mass_sol=place.mass_sol)
     if window == post_main_sequence.SUPERGIANT:
         found["yerkes_class"] = _supergiant_yerkes_class(place.luminosity_sol)
     elif window == post_main_sequence.SUBGIANT:
@@ -428,8 +428,8 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         dict or None: None when the star has already collapsed to a neutron
         star or black hole (initial mass at or above
         `SUPERGIANT_MIN_MASS_SOL`, past its giant phase). Otherwise:
-        `yerkes_class`, `mass_sol` (present mass: a white dwarf's final
-        mass), `luminosity_sol`, `temperature_k`, `radius_km` (a white
+        `yerkes_class`, `mass_sol` (present mass: MIST's on the main sequence and, with the red giant
+        branch's loss of `tuning.RED_GIANT_BRANCH_REIMERS_ETA`, after it, GEN.940; a white dwarf's final mass), `luminosity_sol`, `temperature_k`, `radius_km` (a white
         dwarf's from its mass-radius relation, None for every other class,
         whose radius follows from luminosity and temperature),
         `metallicity_fe_h` (the birth [Fe/H]), `lifespan_gy` (the age at which it becomes a remnant; infinite for a
@@ -458,7 +458,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         state.update(young)
     elif age_gy < t_ms:
         on_sequence = main_sequence.state(mass_sol, age_gy, fe_h)
-        state.update(yerkes_class="V", luminosity_sol=on_sequence.luminosity_sol,
+        state.update(yerkes_class="V", luminosity_sol=on_sequence.luminosity_sol, mass_sol=on_sequence.mass_sol,
                      temperature_k=on_sequence.temperature_k, phase_end_gy=t_ms)
     elif wr_start is not None and wr_start <= age_gy < t_end:
         # GEN.243: the last stretch of a very massive star's life, in place of the end of its supergiant window.

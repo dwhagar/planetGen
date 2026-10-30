@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 403 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 404 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,7 +37,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 51 | 0 | 3 | 0 | 0 | 54 |
-| T2 | 70 | 3 | 0 | 1 | 0 | 74 |
+| T2 | 70 | 4 | 0 | 1 | 0 | 75 |
 | T3 | 55 | 9 | 2 | 10 | 0 | 76 |
 | T4 | 16 | 0 | 0 | 2 | 0 | 18 |
 | T5 | 21 | 6 | 1 | 0 | 0 | 28 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 270 | 31 | 14 | 71 | 17 | 403 |
+| All | 270 | 32 | 14 | 71 | 17 | 404 |
 
 ## How the labels were given
 
@@ -634,4 +634,5 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PS4 | P | T3 | L0 | tuning.BRIGHT_GIANT_MIN_MASS_SOL 4 (the giant classes III and II divide here) | 3 to 6 | giants | none | a class by luminosity per Morgan and Keenan's calibration | design (class II is a rare bright giant; the luminosity of a 4 solar mass giant is about 1000 Lsun) | - | - |
 | PS5 | P | T3 | L1 | tuning.SUPERGIANT_YERKES_THRESHOLDS_SOL (10000, 50000, 500000 Lsun for IAB, IA, 0) | each edge a factor 2 | supergiants | none | the Yerkes-class calibration of absolute magnitude (GEN.943) | RECALLED (Ib near M_V -5, Iab -6, Ia -7 to -8, hypergiants -9 to -10) | - | - |
 | PS6 | P | T3 | L1 | tuning.CEPHEID_TEMPERATURE_RANGE_K (5000, 7000), tuning.CEPHEID_MIN_LUMINOSITY_SOL 500, tuning.CEPHEID_MAX_INITIAL_MASS_SOL 13 (a giant or supergiant on its track is flagged as a classical Cepheid) | edges 300 K; luminosity 300 to 1000; mass 10 to 15 | giants and supergiants | test_post_main_sequence::test_stars_inside_the_instability_strip_are_flagged_as_classical_cepheids_only_when_luminous_and_of_the_right_mass; a Cepheid below 3 or above 13 solar masses | the instability strip from a pulsation calculation (the MIST tracks carry no pulsation) | READ-level facts (classical Cepheids are 3 to 13 solar masses of 100 to 30000 Lsun, T_eff 5000 to 7000 K; the strip is fuzzier than the edges) | - | - |
-| PS7 | P | T5 | L1 | evolved_tracks.MASS_NODES_SOL (130 log-spaced masses from 0.8 to 300) and the linear mapping of each generator window onto a stretch of the track's equivalent evolutionary points | none | all post-main-sequence stars | test_evolved_tracks (track construction against synthetic isochrones); test_gen_horizontal_branch::test_the_time_a_star_spends_above_a_luminosity_on_the_mist_branch_follows_the_hurley_branch | the generator's own time-in-phase formulas fitted to MIST at setup | design (the node count only sets how finely the tracks are rebuilt; the time mapping keeps the Hurley, Pols and Tout base of the giant branch and helium ignition) | - | - |
+| PS7 | P | T5 | L1 | evolved_tracks.MASS_NODES_SOL (130 log-spaced masses from 0.8 to 300) and the linear mapping of each generator window onto a stretch of the track's equivalent evolutionary points (and, for GEN.940, the straight-line fall of the mass of a star of 6.5 solar masses and more, whose track stops before the thermal pulses, over its asymptotic window to the white dwarf mass) | none | all post-main-sequence stars | test_evolved_tracks (track construction against synthetic isochrones); test_gen_horizontal_branch::test_the_time_a_star_spends_above_a_luminosity_on_the_mist_branch_follows_the_hurley_branch | the generator's own time-in-phase formulas fitted to MIST at setup | design (the node count only sets how finely the tracks are rebuilt; the time mapping keeps the Hurley, Pols and Tout base of the giant branch and helium ignition) | - | - |
+| PS8 | P | T2 | L1 | tuning.RED_GIANT_BRANCH_REIMERS_ETA 0.477 and tuning.MIST_REIMERS_ETA 0.1 (a star lighter than SUPERGIANT_MIN_MASS_SOL loses on the first ascent the track's loss times 0.477 over 0.1; the number of the track is MIST's own, read from Choi et al. 2016) | 0.407 to 0.547 (McDonald and Zijlstra's error) | stars of 0.8 to 8 solar masses | test_post_main_sequence::test_the_red_giant_branch_loses_the_mass_of_a_reimers_wind_at_the_fitted_efficiency_not_mists; a horizontal-branch mass of a cluster of 0.85 to 0.9 solar mass turn-off outside 0.55 to 0.7 | a mass-loss law with metallicity and the observed tip masses (asteroseismic masses of red clump stars) | READ (McDonald and Zijlstra 2015, MNRAS 446, 2226: 0.477 +- 0.070 from the horizontal-branch morphology of 22 clusters; Choi et al. 2016 section 3.7.1: eta_R = 0.1 in the tracks) | - | - |

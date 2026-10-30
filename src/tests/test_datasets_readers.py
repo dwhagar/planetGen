@@ -32,7 +32,7 @@ def test_the_derived_file_keeps_only_main_sequence_rows(mist, cache):
 
 
 def test_a_main_sequence_point_interpolates_in_mass_age_and_metallicity(mist):
-    log_l, log_teff, log_r = isochrones.main_sequence_point(0.5, 1.0, 0.0)
+    log_l, log_teff, log_r, present_mass = isochrones.main_sequence_point(0.5, 1.0, 0.0)
     assert log_l == pytest.approx(4 * np.log10(0.5), abs=0.02)
     assert log_teff == pytest.approx(3.7 + 0.5 * np.log10(0.5), abs=0.005)
     assert log_r == pytest.approx(0.8 * np.log10(0.5), abs=0.01)

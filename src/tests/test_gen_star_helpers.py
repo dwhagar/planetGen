@@ -157,7 +157,7 @@ def test_star_params_shape_and_units():
     assert set(params) == {"type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
                            "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "metallicity_fe_h"}
     assert params["temperature_k"] % 100 == 0
-    assert params["mass_kg"] == pytest.approx(constants.SOLAR_MASS_TO_KG)
+    assert params["mass_kg"] == pytest.approx(constants.SOLAR_MASS_TO_KG, rel=1e-3)      # MIST: the Sun has lost 1e-4 by now
     assert params["type"].endswith("Main Sequence Star")
 
 

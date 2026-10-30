@@ -140,14 +140,15 @@ class _Isochrone:
         # The block is float32 and the mass a float64: a mass a hair past the last (or before the first) row compares
         # equal to it in float32 and the search puts it just outside, so it takes that row.
         if upper >= len(masses):
-            return block[-1, 1:4]
+            return block[-1, 1:5]
         if upper == 0 or masses[upper] == mass:
-            return block[upper, 1:4]
+            return block[upper, 1:5]
         weight = (mass - masses[upper - 1]) / (masses[upper] - masses[upper - 1])
-        return block[upper - 1, 1:4] * (1.0 - weight) + block[upper, 1:4] * weight
+        return block[upper - 1, 1:5] * (1.0 - weight) + block[upper, 1:5] * weight
 
     def point(self, mass, log_age):
-        """`(log L, log Teff, log R)` on this metallicity's isochrone at `log_age`, or None if off the main sequence."""
+        """`(log L, log Teff, log R, present mass)` on this metallicity's isochrone at `log_age`, or None if off the main
+        sequence."""
         ages = self.log_ages
         if log_age < ages[0] or log_age > ages[-1]:
             return None
@@ -173,7 +174,7 @@ class _Isochrone:
 
     def clamped_point(self, mass, log_age):
         """
-        `(log L, log Teff, log R)` of `mass` at `log_age`, held to the mass's own span (GEN.652): an age before the first
+        `(log L, log Teff, log R, present mass)` of `mass` at `log_age`, held to the mass's own span (GEN.652): an age before the first
         isochrone it is on takes that row, and one past the last takes that row carried on in age at the slope of the
         two last rows, up to the age the mass leaves the main sequence between isochrones (`lifetime_log_age`), then
         held. The isochrones come 0.05 dex of age apart, so the last row alone would step with the mass; carried on,
@@ -313,7 +314,7 @@ _EDGES = {}
 
 
 def _edge_table(isochrone):
-    """`(arrival, departure)`, each a list over the mass grid of `(log L, log Teff, log R)` or None where the grid holds
+    """`(arrival, departure)`, each a list over the mass grid of `(log L, log Teff, log R, present mass)` or None where the grid holds
     no main-sequence row of that mass, of one isochrone (`_Isochrone.clamped_point` at its first and last age)."""
     cached = _EDGES.get(id(isochrone))
     if cached is None:
@@ -330,7 +331,7 @@ def _edge_table(isochrone):
 
 def edge_point(mass_sol, fe_h, departure):
     """
-    `(log10 L/Lsun, log10 Teff/K, log10 R/Rsun)` of a star of initial mass `mass_sol` and `fe_h` as it arrives on the
+    `(log10 L/Lsun, log10 Teff/K, log10 R/Rsun, present mass in Msun)` of a star of initial mass `mass_sol` and `fe_h` as it arrives on the
     main sequence (`departure` False) or leaves it (True): `main_sequence_point(..., clamp=True)` at its first and last
     age, read from a table of 3000 masses, interpolated in log mass and in [Fe/H] (GEN.652: a table build and every
     star's record read these a million times; the rows themselves cost a few hundred microseconds each). None for a mass
@@ -349,15 +350,13 @@ def edge_point(mass_sol, fe_h, departure):
         near, far = rows[index], rows[index + 1]
         if near is None or far is None:
             return None
-        found.append((near[0] + (far[0] - near[0]) * along, near[1] + (far[1] - near[1]) * along,
-                      near[2] + (far[2] - near[2]) * along))
+        found.append(tuple(n + (f - n) * along for n, f in zip(near, far)))
     first, second = found
-    return (first[0] + (second[0] - first[0]) * weight, first[1] + (second[1] - first[1]) * weight,
-            first[2] + (second[2] - first[2]) * weight)
+    return tuple(a + (b - a) * weight for a, b in zip(first, second))
 
 
 def main_sequence_point(mass_sol, age_gy, fe_h, clamp=False):
-    """`(log10 L/Lsun, log10 Teff/K, log10 R/Rsun)` of a main-sequence star of initial mass `mass_sol` solar masses
+    """`(log10 L/Lsun, log10 Teff/K, log10 R/Rsun, present mass in Msun)` of a main-sequence star of initial mass `mass_sol` solar masses
     and `age_gy` Gy at `fe_h`, or None when it has left the main sequence, is not yet on it, or its age is outside
     the grid (10^5 to about 10^10.3 years). With `clamp` the age is held to the mass's own span on each isochrone, the
     first row it has on the main sequence to the last (GEN.652): a star that the generator's phase times keep on the

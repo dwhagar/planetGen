@@ -279,6 +279,8 @@ class Grid:
         for index, low, high, along, weight in corners:
             data = self.tracks[index]
             mix = data[low, :length, :_PHASE] * (1.0 - along) + data[high, :length, :_PHASE] * along
+            if low == high and mass_sol < 10.0 ** self._nodes[low]:
+                mix[:, _MASS] *= mass_sol / 10.0 ** self._nodes[low]      # the lightest track, for a star lighter than it: its present mass in proportion
             blended += mix * (weight / total)
             age += (self.ms_age_gy[index][low] * (1.0 - along) + self.ms_age_gy[index][high] * along) * (weight / total)
         index, low, high, along, _ = best

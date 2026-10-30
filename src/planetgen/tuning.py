@@ -798,6 +798,14 @@ BRIGHT_GIANT_MIN_MASS_SOL = 4.0
 CEPHEID_TEMPERATURE_RANGE_K = (5000.0, 7000.0)
 CEPHEID_MIN_LUMINOSITY_SOL = 500.0
 CEPHEID_MAX_INITIAL_MASS_SOL = 13.0
+# The mass a star has lost by a point on its track (GEN.940). MIST (Choi et al. 2016, section 3.7.1) takes Reimers (1975)
+# mass loss on the red giant branch with eta_R = 0.1, tuned to the white dwarf initial-final mass relation, and a star
+# that loses that little is 0.954 solar masses at the tip from 1; globular clusters want a horizontal branch of 0.55 to
+# 0.7. McDonald and Zijlstra 2015 (MNRAS 446, 2226) fit eta_R = 0.477 +- 0.070 to the horizontal-branch morphology of 22
+# clusters, so the loss of the first ascent is the track's times their eta over MIST's. Above SUPERGIANT_MIN_MASS_SOL the
+# track's winds (Vink et al., Nugis and Lamers) are kept as they are.
+RED_GIANT_BRANCH_REIMERS_ETA = 0.477
+MIST_REIMERS_ETA = 0.1
 # The horizontal branch (core helium burning): one luminosity range, whatever
 # the colour; the colour (temperature) is drawn from [Fe/H] and age
 # (HORIZONTAL_BRANCH_COLOURS below). Red clump and red horizontal-branch stars

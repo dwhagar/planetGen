@@ -1,6 +1,6 @@
 # Stars after the main sequence, from the MIST tracks (GEN.935)
 
-Status: built (Star 1, 2026-10-29), part of the star mass function epoch (GEN.932). Read with the star class audit (`reports/star-class-audit-2026-10-29.md`, findings H1 to H3 and section 6) which found the faults this change removes.
+Status: built (Star 1, 2026-10-29 and 30), part of the star mass function epoch (GEN.932); the present mass is GEN.940. Read with the star class audit (`reports/star-class-audit-2026-10-29.md`, findings H1 to H3 and section 6) which found the faults this change removes.
 
 ## What was wrong
 
@@ -38,10 +38,21 @@ Each window is mapped linearly in time onto its own stretch of EEPs, so a star h
 - Core helium burning: 3 solar masses 113 to 144 Lsun, 5 solar masses about 1,500 Lsun, 8 solar masses 6,477 Lsun at 4,097 K.
 - No red supergiant above 320,000 Lsun (Humphreys-Davidson limit, Davies, Crowther and Beasor 2018); the tracks themselves stop being red above about 25 solar masses.
 
+## The present mass (GEN.940)
+
+A star's mass is no longer its birth mass. `Timeline.present_mass` and `main_sequence.State.mass_sol` give:
+
+- **Main sequence.** MIST's present mass (`star_mass`, which the setup now keeps for every row): a Sun-like star is its birth mass to a thousandth, a 40 solar mass star has lost 5 percent by the end of its hydrogen burning.
+- **Heavier than `SUPERGIANT_MIN_MASS_SOL`.** The track's mass all through: the Dutch wind scheme of MESA (Vink et al. 2000 and 2001, de Jager et al. 1988, Nugis and Lamers 2000) is in the rows. A 20 solar mass star ends its red supergiant life at 13 and a 40 solar mass one at 23.
+- **Lighter, first ascent.** MIST took the Reimers (1975) wind with eta_R = 0.1 (Choi et al. 2016, section 3.7.1); McDonald and Zijlstra 2015 fit 0.477 +- 0.070 to the horizontal-branch morphology of 22 globular clusters. The loss of the first ascent is MIST's times 0.477 over 0.1 (`RED_GIANT_BRANCH_REIMERS_ETA`, `MIST_REIMERS_ETA`): a one solar mass star is 0.83 at the tip against MIST's 0.954, its horizontal branch 0.78, and a 0.85 to 0.9 solar mass star of an old cluster has a horizontal branch of 0.58 to 0.64, inside the observed 0.55 to 0.7.
+- **Core helium burning:** the track's small loss. **Asymptotic branch:** the mass goes from the horizontal-branch mass to the white dwarf the star becomes (`remnant_mass.white_dwarf_mass_sol`) as the track loses its own, so a giant and the dwarf it turns into are one mass. A star of 6.5 solar masses and more has a track that stops before the thermal pulses, so its asymptotic branch goes to the dwarf in a straight line in time (a stand-in, PS7).
+- A star lighter than the lightest track of the grid takes that track and its present mass in proportion.
+
+The star's record carries it as `mass_kg`, so the surface gravity, the orbital periods and the habitable-zone and Hill-sphere sizes of its planets follow. The hot-subdwarf mass of the audit's L8 (0.47 solar masses) and the Wolf-Rayet mass (GEN.939) are not in it.
+
 ## Known limits
 
 - The tracks of 30 to 45 solar masses spend about half their post-main-sequence life as yellow hypergiants (5,000 to 9,000 K, 0.3 to 1 million Lsun). MIST has no eruptive mass loss, so these stars do not become luminous blue variables or Wolf-Rayet stars as the real ones do. They are rare in the sky (the mass range is a few percent of the supergiants) and the rows are tier T1 data used as the table gives them.
 - The Wolf-Rayet window is still the old one (GEN.939 changes it).
 - At the 2.2 solar mass boundary the horizontal branch of the lighter star (a fixed 100 Myr) and the core helium burning of the heavier (MIST, about 17 percent of the main-sequence life, 130 Myr at 2.2) differ, so the end of the last giant phase steps by 10 percent of the main-sequence life there.
 - A mass below the lightest track of the grid that reaches the thermal pulses (0.85 to 1.0 solar masses, by metallicity) takes that track.
-- Present masses are still the initial masses until GEN.940.

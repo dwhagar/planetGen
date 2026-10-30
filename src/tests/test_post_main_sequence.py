@@ -16,7 +16,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.generation import star_population as sp
-from planetgen.physics import constants, imf, main_sequence, post_main_sequence as pm
+from planetgen.physics import constants, imf, main_sequence, post_main_sequence as pm, remnant_mass
 from planetgen.physics import stellar_evolution as se
 
 
@@ -261,3 +261,70 @@ def test_the_planets_of_a_giant_read_its_new_luminosity_and_radius(mass, age_sha
         engulfed_au = system._engulfment_radius_au(system.primary_star)
         for body in system.planets:
             assert (body.lower_limit if body.body_type == "a" else body.distance) >= engulfed_au
+
+
+# ---- GEN.940: the present mass ----
+
+def _present_masses(mass, per_window=40):
+    line = pm.timeline(mass, 0.0)
+    found = []
+    for window in line.windows:
+        for share in np.linspace(0.0, 0.9999999, per_window):
+            found.append(line.state(window.start_gy + share * (window.end_gy - window.start_gy)).mass_sol)
+    return found
+
+
+@pytest.mark.parametrize("mass", [0.85, 0.9, 1.0, 1.5, 2.0, 3.0, 5.0, 6.0, 7.0, 7.9, 8.0, 15.0, 40.0])
+def test_a_star_never_gains_mass_after_its_main_sequence(mass):
+    masses = _present_masses(mass)
+    assert all(later <= earlier * (1.0 + 1.0e-4) for earlier, later in zip(masses, masses[1:])), mass
+    assert masses[0] <= mass * 1.0001 and masses[-1] > 0.0
+
+
+@pytest.mark.parametrize("mass", [0.85, 0.9, 1.0, 1.5, 2.0, 3.0, 5.0, 6.0, 7.0, 7.9])
+def test_a_star_of_up_to_eight_solar_masses_ends_its_last_giant_phase_at_the_mass_of_the_white_dwarf_it_becomes(mass):
+    dwarf = remnant_mass.white_dwarf_mass_sol(mass)
+    assert _present_masses(mass)[-1] == pytest.approx(dwarf, rel=0.1, abs=0.05)
+    assert min(_present_masses(mass)) >= dwarf * 0.9999
+
+
+def test_the_red_giant_branch_loses_the_mass_of_a_reimers_wind_at_the_fitted_efficiency_not_mists():
+    """MIST's eta_R = 0.1 takes 0.046 solar masses of a one solar mass star by the tip; McDonald and Zijlstra's 0.477 takes 4.77
+    times as much, so the horizontal-branch star of an old cluster is 0.55 to 0.7 solar masses (globular clusters' turn-offs
+    are 0.8 to 0.9)."""
+    line = pm.timeline(1.0, 0.0)
+    tip = line.window("giant")
+    at_tip = line.state(tip.end_gy - 1.0e-9)
+    mist_loss = 1.0 - line.track.star_mass[line.track.index_of(605)]
+    scale = tuning.RED_GIANT_BRANCH_REIMERS_ETA / tuning.MIST_REIMERS_ETA
+    assert 1.0 - at_tip.mass_sol == pytest.approx(scale * mist_loss, rel=0.02)
+    for turn_off in (0.85, 0.9):
+        branch = pm.timeline(turn_off, 0.0).window("horizontal-branch")
+        mass = pm.timeline(turn_off, 0.0).state((branch.start_gy + branch.end_gy) / 2.0).mass_sol
+        assert 0.55 <= mass <= 0.7, (turn_off, mass)
+
+
+def test_a_star_lighter_than_the_lightest_track_keeps_its_own_mass_on_the_giant_branch():
+    line = pm.timeline(0.85, 0.0)
+    assert line.state(line.windows[0].start_gy).mass_sol == pytest.approx(0.85, rel=0.01)
+
+
+def test_massive_stars_keep_the_winds_of_the_track_and_lose_a_tenth_to_two_fifths_of_their_mass():
+    rng = random.Random(2)
+    for mass, low, high in ((20.0, 0.60, 0.95), (40.0, 0.5, 0.9)):
+        line = pm.timeline(mass, 0.0)
+        end = line.state(line.end_gy - 1.0e-9).mass_sol / mass
+        assert low <= end <= high, (mass, end)
+        on_sequence = se.evolve_star(mass, line.main_sequence_gy * 0.9, rng, fe_h=0.0)
+        assert on_sequence["mass_sol"] < mass and on_sequence["mass_sol"] > 0.8 * mass
+    sun_like = se.evolve_star(1.0, 4.6, rng, fe_h=0.0)
+    assert sun_like["mass_sol"] == pytest.approx(1.0, rel=2.0e-3)
+
+
+def test_the_mass_of_a_star_in_its_record_is_the_present_one():
+    rng = random.Random(3)
+    mass, age = 1.0, pm.timeline(1.0, 0.0).windows[2].start_gy + 0.01
+    state = se.evolve_star(mass, age, rng, fe_h=0.0)
+    params = se.star_params(mass, age, state)
+    assert params["mass_kg"] == pytest.approx(state["mass_sol"] * constants.SOLAR_MASS_TO_KG)
+    assert params["mass_kg"] < 0.9 * mass * constants.SOLAR_MASS_TO_KG and params["initial_mass_sol"] == mass
