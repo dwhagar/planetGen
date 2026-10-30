@@ -19822,7 +19822,7 @@ clears each one.
   machine's MariaDB or the flaky class-mismatch (GEN.980, fixed on Core
   1's branch for train 2). Owner: Bug 2. Version 8.1.
   More reds from Core 5 (as the lane reported 11:17 PM EDT) (2026-10-29
-  11:20 PM EDT): test_maintenance map rebuild and
+  11:17 PM EDT): test_maintenance map rebuild and
   test_db_column_round_trip test_every_column_is_written (the porosity
   column, GEN.980/TEST.461 on train 2) are red on main; test_population
   species setup hit one random failure in the gas solver
