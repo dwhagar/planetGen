@@ -13745,30 +13745,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with no sulphur gets no acid cloud, and the registry rows exist. The
   pure module, tests and registry rows are lock-free; wiring that
   changes stored output rides a train. Owner: Sources 1.
+  Progress (2026-10-30 1:38 PM EDT): Sources 1 (as the lane reported
+  1:37 PM EDT): GEN.1020 lock-free merged in #4061 (Mie, acid-cloud
+  infrared optics from the HITRAN acid indices, SO2/CO/H2O wings, rows
+  CF1 to CF5, FW6, FW7) and #4063 (the infrared column uses the sourced
+  CO2 wing, IR3 deleted, radiative_convective.solve takes
+  cloud=(tau_550, radius_um)). Clear-sky Venus-like test air: sourced
+  wing alone 539 K, wing plus a 1 micron acid cloud of depth 25 = 757 K
+  (measured 735 K); droplet radius across the published modes spans
+  about 620 to 820 K; minor-gas wings add under 1 K. Report
+  reports/gen1020-cloud-infrared-2026-10-30.md. Nothing in generation
+  calls radiative_convective or line_opacity yet (GEN.850, Air 1), so
+  #4063 moved no stored value. Still to ride a train: branch
+  claude/gen1019-wire (3900b800f) puts the acid cloud into the aerosol
+  draw (bodies with SO2 at 1 ppm or more, an oxidiser and water, cold
+  top below 367 K gain a cloud 20 to 30 deep covering the sky),
+  --affects fill, no migration, no new draw or column, airs without
+  sulfur unchanged to the digit; ground-UV, radiation score and sky
+  colour fields that read the aerosols move with it. Air 1 note for
+  GEN.850: when it wires the column, pass
+  cloud=sulfuric_cloud.of_body(body)[::2] to solve.
   Prerequisites: GEN.852. Related: GEN.715, GEN.852, GEN.725.
-
-- [ ] **GEN.1020 Infrared opacity of the acid cloud and the SO2, CO and H2O line wings, so a Venus-like air reaches its published surface temperature once the sourced CO2 far wing replaces IR3**
-  Follow-on of GEN.1019, asked for by Sources 1 (relayed 12:50 PM EDT
-  2026-10-30 as the lane reported). The sourced Perrin and Hartmann CO2
-  far wing alone takes the clear-sky Venus-like test air to 539 K (no
-  wing 489 K), where the flat IR3 stand-in gave about 735 K; the gap
-  needs the infrared opacity of the sulfuric-acid cloud and the SO2, CO
-  and H2O wings, which the model lacks. Do: (1) give the acid cloud of
-  GEN.1019 an infrared opacity from published Venus cloud optical models
-  (mode radii, refractive indices of sulfuric acid, column optical
-  depth), (2) add the SO2, CO and H2O far-wing terms from published
-  line-shape work (second-hand is fine, widest range when two are in
-  question), (3) register every stand-in in GEN.725 with tier and tweak
-  level. Done: the Venus-like test air with the sourced wing, the acid
-  cloud and the added wings lands inside the published
-  surface-temperature range for the model, and an air with no sulfur and
-  no dense CO2 is unchanged. Decision (TODO, 12:51 PM EDT 2026-10-30;
-  physics found in research wins): IR3 is replaced by the sourced wing,
-  and the wiring of GEN.1019 and this item ride one train together so
-  the worse intermediate never ships. Lock-free module and tests first;
-  the wiring that moves output (new epoch, --affects the aerosols and
-  greenhouse stages, no migration) rides a train. Owner: Sources 1.
-  Prerequisites: GEN.1019. Related: GEN.1019, GEN.852, GEN.725.
 
 - [ ] **GEN.1021 Replace the 67P calibration of the comet species factors with a second comet or a laboratory trapping table**
   Filed for Aux 3 (relayed 1:10 PM EDT 2026-10-30 as the lane reported)
@@ -13787,6 +13784,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the module; the swap changes comet composition output, so it rides a
   train. Waits on GEN.1005 k7 (the rows exist after it). Owner: none
   yet; released pool, low priority.
+  Owner (2026-10-30 1:38 PM EDT): Sources 1 (assigned by TODO 1:38 PM
+  EDT 2026-10-30; Aux 3 skipped it). Research first, lock-free: find a
+  second comet or a laboratory trapping table by formation temperature.
+  The swap in comet_species.py needs the GEN.1005 flip (branch
+  claude/gen1005-flip) merged first because the CS rows live there, so
+  build the replacement on top of it after that train.
   Prerequisites: GEN.1005. Related: GEN.1005, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
