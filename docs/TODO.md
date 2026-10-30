@@ -2816,56 +2816,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## GEN: Generation and physics
 
-- [ ] **GEN.29 Sweep every planet class for sense once the new ones are in (bug)**
-  Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
-  sure they all make sense logically once the new classes are in
-  place." After GEN.28. Done: every class's description, composition,
-  zones, sizes, weights, temperatures and atmosphere agree with each
-  other. Known oddities to settle: D allowed in the hot zone (icy
-  bodies at 265-490 K); C a catch-all for 63% of cold planets; Q never
-  generated (weight 0.0001, and orbits are circular); V's composition
-  "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
-  at 376-414 K, above water's boiling point at 0.6 bar. Rocky rogues of
-  10-16 Earth masses come out up to 17,600 km, past class S's
-  11,468 km top, and get S as the nearest fit (PR #415); Boss to decide
-  whether those sizes make sense or need their own range.
-  Prerequisites: none.
-  Plan (2026-10-07): Under GEN.90: the refactor is the sweep, so it
-  stays with it in phase 2.
-  Research (2026-10-09, atmospheres-retention-and-classes.md): known
-  oddities to fold in: classes A and B hold 13 to 17 kPa at S = 4.4 and
-  v_esc 3.7 km/s, about 50 times beyond the cosmic shoreline; N sits in
-  the ecosphere at S about 1.05 (below runaway); T and I overlap; rogue
-  S reaches 17,600 km (recommend class R at 10 to 16 Me, or cap S at
-  13,500 km); K, L and P fail the Armstrong and 20 kPa limits (P needs
-  the stage cap from GEN.92).
-  Checked 2026-10-10 22:19Z for Boss's generation-first priority: this
-  waits on GEN.27 and GEN.28 (the new planet classes) and sits under the
-  GEN.90 refactor, so it cannot move up yet; it starts when they land.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): reduced to the judgement pass over its oddities list and
-  Boss's decisions (rogue sizes, a D in the hot zone), run on top of the
-  TEST.209 and TEST.210 harness; not a second sweep over the same
-  classes.
-  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
-  EDT 2026-10-28, high priority) takes this with TEST.430 where it
-  overlaps the class census; confirm any other lane's claim with TODO
-  first.
-  Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): classes are conditions-based and derived from the
-  finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-  letters stay; new class letters are revoked (GEN.28 and its children).
-  Core 4: re-read this item against the derived classes, drop any clause
-  that asks for a fixed letter rule, and tell TODO which parts stand;
-  the physics clauses (retention, zones, sense of each class) stand.
-  Moved into 8.1. Owner: Core 4.
-  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT):
-  narrowed to a final sweep of the 20 derived class rows (descriptions,
-  sizes, temperatures, atmosphere) once GEN.355 lands; Q is no longer
-  never generated (7 to 9 percent in the census); GEN.27 and GEN.90 are
-  dropped; the rogue S size over 17,600 km still needs Boss. Report
-  reports/core4-classifier-reread-2026-10-30.md
-
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
   sectors that need to be backfilled by taking the star density
@@ -14904,6 +14854,72 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects, golden). Where we think it belongs (best guess, can move):
   Aux 2 (life), after the life class build, a later train.
   Prerequisites: none. Related: GEN.648, GEN.688, GEN.644.
+
+- [ ] **GEN.1131 Class descriptions for N, K and Q agree with the bodies their rules select**
+  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
+  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Class N says hot
+  and CO2/sulfur dominated but its rule is only 10 bar (only 38 of 105
+  are CO2 or SO2 half or more, 35 have over 30 percent hydrogen, 30 are
+  under 400 K); class K says cold desert but 43 of 44 are ice-covered
+  ocean; class Q says swings between extremes but its line is
+  eccentricity 0.06 (128 bodies, 29 percent of those with air). Boss:
+  yes, edit the descriptions. Do: rewrite the three sentences
+  (tuning.PLANET_CLASSES text, the class pages, the design docs) to say
+  what the rule selects, changing no class and no threshold; Q keeps its
+  line for now (Boss: do not raise it to 0.5 until the Q assessment is
+  read). Done: the sentences match the sample numbers of the report,
+  tests that read the descriptions pass. Lock-free if only text changes
+  (otherwise note generation-output). Where we think it belongs (best
+  guess, can move): Core 4, separate branch.
+  Prerequisites: none. Related: GEN.29, GEN.1132.
+
+- [ ] **GEN.1132 Assess retiring Class Q: what depends on it, which bodies it covers, and whether eccentricity belongs in a separate orbit or climate flag, with a recommendation**
+  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
+  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Boss: "do we even
+  need a Class Q? I'm not sure we should have a class that is basically
+  just an orbit." Do not change Q to 0.5 for now. Do: list every
+  dependence on class Q (tuning rows, life classes, habitability, the
+  class census and tests, pages, the map legend, searches, design docs);
+  the 128 bodies it covers in the 1,788-body sample and what class each
+  would take by composition and conditions if Q were retired (the class
+  follows the finished body, GEN.644 to 648); whether eccentricity
+  swings should become a flag or field on the orbit or climate sheet
+  instead (the seven-band climate of GEN.1108 could carry it); the cost
+  of retiring a letter (all 20 letters stay was Boss's earlier rule,
+  8:16 PM EDT 10-29, so retiring needs his word). Done: a short report
+  with a recommendation and the questions for Boss. Lock-free
+  (research). Where we think it belongs (best guess, can move): Core 4,
+  or a research lane if Core 4 is full.
+  Boss 5:52 PM EDT 10-30 (2026-10-30 5:52 PM EDT): Boss: the planet's
+  orbital information can just store the eccentricity value, and "at a
+  glance" can flag it when it is very high. That points to retiring
+  Class Q and covering the extreme-orbit case with the stored value plus
+  an at-a-glance flag. Fold into the assessment: what depends on Q
+  today, the high-eccentricity threshold for the flag, which bodies the
+  128 Q bodies become, and the epoch impact of retiring the class (the
+  class is derived from the finished body, so the derivation changes; an
+  epoch with --affects). A recommendation to retire Q still needs the
+  Boss word that the 20-letter rule changes.
+  Prerequisites: none. Related: GEN.29, GEN.1131, GEN.1108.
+
+- [ ] **GEN.1133 Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree**
+  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
+  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Boss: yes, apply
+  what Core 4 recommended. The earlier research
+  (atmospheres-retention-and-classes.md, 2026-10-09) offered a new class
+  R at 10 to 16 Earth masses or a cap of S at 13,500 km; new class
+  letters are revoked (Boss, 8:16 PM EDT 10-29), so the recommendation
+  to apply is Core 4's in the sweep report and this note. Do: read the
+  sweep report and the GEN.29 history, state in the item which of the
+  two (or the nearest conditions-based fit) is applied, change the class
+  range or the size draw so no body is classed outside its size range,
+  and keep one body chain for rogues and bound planets (a rogue is
+  identical to a bound planet, Boss 10-30). Done: tests that every rogue
+  and planet of 10 to 16 Earth masses sits inside its class range,
+  census re-baseline. Lock work if the draw or the range changes output
+  (epoch with --affects, golden). Where we think it belongs (best guess,
+  can move): Core 4, a later train.
+  Prerequisites: none. Related: GEN.29, GEN.1111.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
