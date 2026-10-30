@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 497 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 503 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 62 | 0 | 5 | 0 | 0 | 67 |
-| T2 | 79 | 8 | 0 | 1 | 0 | 88 |
-| T3 | 59 | 14 | 3 | 8 | 0 | 84 |
+| T2 | 80 | 8 | 0 | 1 | 0 | 89 |
+| T3 | 59 | 15 | 3 | 8 | 0 | 85 |
 | T4 | 25 | 0 | 0 | 4 | 4 | 33 |
-| T5 | 32 | 7 | 1 | 0 | 0 | 40 |
-| T6 | 39 | 18 | 10 | 30 | 0 | 97 |
-| T7 | 24 | 6 | 3 | 7 | 0 | 40 |
+| T5 | 32 | 8 | 1 | 0 | 0 | 41 |
+| T6 | 40 | 18 | 10 | 30 | 0 | 98 |
+| T7 | 25 | 6 | 4 | 7 | 0 | 42 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 1 | 24 | 19 | 45 |
-| All | 321 | 53 | 23 | 75 | 25 | 497 |
+| All | 324 | 55 | 24 | 75 | 25 | 503 |
 
 ## How the labels were given
 
@@ -804,3 +804,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | LM2 | D | T1 | L0 | main_sequence.SETTLED_RADIUS_SHARE 1.02: a star under 0.1 solar masses has arrived on the main sequence when its Baraffe radius is within 2% of the least it reaches (0.6 to 3 Gy) | 1.01 to 1.05 | stars of 0.07 to 0.1 solar masses | the contraction time of the pre-main-sequence model against this arrival by more than a factor 2.5 | the pre-main-sequence tracks of the table | READ (the BHAC15 radii; 2% is the share the pre-main-sequence energy factor was fitted to, GEN.529) | - | - |
 | LM3 | P | T5 | L0 | mass_boundaries.STAR_BROWN_DWARF_SPLIT_SOL 0.08: the mass function of the stars ends and that of the brown dwarfs begins; the class of an object is by its place's hydrogen-burning limit, 0.074 at solar Z to 0.092 at none (`hydrogen_burning_limit_for_fe_h`) | the split 0.074 to 0.092 | all objects of 0.07 to 0.092 solar masses | the share of objects of 0.074 to 0.092 solar masses that burn hydrogen at a place against Baraffe's and Chabrier and Baraffe's limits | a limit by [Fe/H] from a grid of models at other metallicities | a decision of the item (Boss, 2026-10-21, the limit by Z); the dependence on Z is a parametrisation, Burrows et al. 2001 | - | - |
 | LM4 | P | T7 | L0 | brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 (Burrows et al. 2001) | none | brown dwarfs of 13 to 50 Jupiter masses past the age the table loses them (0.01 to 0.6 Gy) | a radius of a 13 Jupiter mass object at 10 Gy over 1.2 Jupiter radii | a track that reaches the old ages (ATMO 2020, Phillips et al. 2020) | an inference, kept from the eleven-row table it replaces; the radius is 1.7 Jupiter radii for 13 Jupiter masses | - | - |
+
+## 6.59 Stand-ins of the stellar wind and flares at a world
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| WF1 | P | T7 | L2 | ion_escape.ION_ESCAPE_EFFICIENCY 1.2e-5: the share of the energy-limited XUV mass loss that leaves as ions through the open field | 5e-6 to 5e-5 | worlds the wind reaches, Venus- and Mars-sized and up | test_ion_escape::test_venus_and_mars_lose_the_ions_the_spacecraft_saw_to_within_a_factor_of_three | an ion pickup and sputtering rate from the planet's exosphere and the wind (Egan et al. 2019 simulations) | design (tuned to Venus Express, 9e-6, and MAVEN, 2e-5; the geometric mean) | - | - |
+| WF2 | D | T2 | L0 | ion_escape.open_share: the polar caps of a dipole whose magnetopause is at r_mp radii hold 1 - sqrt(1 - 1/r_mp) of the surface | none | an aligned dipole | test_ion_escape::test_the_open_share_is_all_without_a_field_and_the_polar_caps_of_a_dipole_with_one | open flux from a tilted or multipolar field | COMPUTED (dipole lines leave the magnetopause at sin^2 theta = 1/r_mp) | - | - |
+| WF3 | P | T5 | L1 | activity.ROTATION_SLOPE 2.7: the unsaturated L_X/L_bol falls as the Rossby number to the minus 2.7 | 2.0 to 3.0 | unsaturated stars of FGKM type | test_activity::test_a_fast_rotator_is_more_active_and_flares_more_than_a_slow_one_of_the_same_mass_and_age | the rotation-activity relation of the star's own mass bin | RECALLED (Wright et al. 2011: slope -2.7 for the unsaturated branch; second-hand) | - | - |
+| WF4 | P | T6 | L0 | radiation.FLARE_ENERGY_SPAN 1000: the flare energies the SEP dose weights run over 1e33 to 1e36 erg | 1e2 to 1e4 | flaring stars | test_radiation::test_a_shallow_flare_slope_puts_more_energy_in_the_big_flares_and_raises_the_particle_dose | the energy range of the star's own flare statistics (Davenport 2016; Gunther et al. 2020) | RECALLED (the largest superflares seen are of order 1e36 erg; 1e33 is the table's N33 unit) | - | - |
+| WF5 | P | T7 | L0 | radiation.FLARE_OZONE_LIMIT 300, SHIELD_NO_FIELD 1, SHIELD_WEAK_FIELD 0.3, SHIELD_STRONG_FIELD 0.1, WEAK_MAGNETOPAUSE_RP 3 and LETHAL_EVENT_LIMIT_PER_GYR 10: the flag that flares or galactic events keep the ozone down | limit 100 to 1000 | worlds with an ozone column | test_radiation::test_proxima_b_without_a_field_loses_its_ozone_and_earth_does_not | a photochemistry run of the flare fluence on the air (Tilley et al. 2019; Segura et al. 2010) | design (the design note section 2.3: Proxima b about 2,100, Earth 0.003, on either side of the limit) | - | - |
+| WF6 | P | T3 | L1 | radiation.OZONE_LOSS_REMAINING 0.1: the share of its ozone a flagged world keeps | 0.06 to 0.2 | worlds the flares hold at the flag | test_radiation::test_a_world_whose_ozone_is_lost_keeps_a_tenth_of_it_and_takes_more_ultraviolet | the ozone column of the photochemistry run | RECALLED (Segura et al. 2010: 94 percent removed; Howard et al. 2018: 90 percent) | - | - |
