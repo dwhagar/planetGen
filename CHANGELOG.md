@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2606] - 2026-10-30
+
+**Headline:** The one-line sources under the values of a body's page no longer name internal item numbers.
+
+### Fixed
+- **Item numbers in the sheet source lines.** The source line under a physics value on a planet, moon or star page (and in the API's `source`) ended with an internal item number such as GEN.727. Those are for the people who keep the code, so they are gone; the line still says how the value is worked out and from which paper.
+
 ## [8.0.2605] - 2026-10-30
 
 **Headline:** What ices a comet holds (carbon dioxide, carbon monoxide) can now be worked out from where in its star's disc it formed (not yet used by the generator).
