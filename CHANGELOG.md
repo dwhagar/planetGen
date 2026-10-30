@@ -2,6 +2,20 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2610] - 2026-10-30
+
+**Headline:** The inner-system share anchors of the planet architecture are two ordered tuples, so the constants test passes again.
+
+### Fixed
+- **`test_fuzz_utils_and_config` failed on `INNER_SYSTEM_FRACTION_ANCHORS`.** The `(mass, share)` pairs were not in ascending order; the masses and the shares are now separate tuples with the same values. No generated output changes.
+
+## [8.0.2609] - 2026-10-30
+
+**Headline:** Zooming into a sector at the galaxy's core no longer gets stuck when the wheel points at a neighbouring empty cell.
+
+### Changed
+- **The wheel opens the sector again (TEST.450).** At the core the cells are small and close, so the wheel could land on a neighbouring cell nothing was generated in. The map asked the server for that cell's scene on every tick (a 404 each time), and each ask took the place of the real sector's scene load, which was then given up for good: the sector never opened and the zoom stopped about 1.4 parsecs out. An empty cell is now asked once, and a scene load that was only pushed aside is asked again.
+
 ## [8.0.2608] - 2026-10-30
 
 **Headline:** The API names the life class of a planet or moon and the score of every class it supports.

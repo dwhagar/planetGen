@@ -154,8 +154,9 @@ OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
 SCULPT_AGE_YR = 1.0e9
 # The inner system (a planet of an Earth radius or more with a period under 400 days). Whether a star has one: the share of stars with
 # Kepler-like planets, 30 percent of Sun-like stars (Zhu et al. 2018, arXiv:1802.09526, read), about 75 percent of stars under 5000 K and 35
-# percent over 6500 K (Yang et al. 2020, arXiv:2002.02840, read): `(solar masses, share)` anchors, log-linear in the mass between them.
-INNER_SYSTEM_FRACTION_ANCHORS = ((0.15, 0.85), (0.6, 0.75), (1.0, 0.30), (1.4, 0.30))
+# percent over 6500 K (Yang et al. 2020, arXiv:2002.02840, read): the masses (in suns) and the shares at them, log-linear in the mass between.
+INNER_SYSTEM_FRACTION_MASSES = (0.15, 0.6, 1.0, 1.4)
+INNER_SYSTEM_FRACTION_SHARES = (0.85, 0.75, 0.30, 0.30)
 # How many planets it starts with before the thinning: 1 + a Poisson draw of this mean. A planetGen stand-in (tier T6, tweak L3), tuned so the
 # survivors average 3.0 per Sun-like system and 2.8 per M dwarf (Zhu et al. 2018; Yang et al. 2020).
 INNER_INITIAL_COUNT_EXTRA = 6.221
