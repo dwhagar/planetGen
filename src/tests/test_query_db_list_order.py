@@ -151,10 +151,14 @@ def test_the_distance_sort_and_the_name_sort_put_sectors_in_their_order(mysql_co
 
 # --- PERF.207: planets and moons page by key -----------------------------------------------------------------------
 
-def test_planets_and_moons_page_by_key_in_the_order_one_long_read_gives(mysql_config):
+@pytest.mark.parametrize("chunk", [1, 2, 1000])
+def test_planets_and_moons_page_by_key_in_the_order_one_long_read_gives(mysql_config, monkeypatch, chunk):
     """`after` (the row id the previous page ended on) starts the next page in the same order, for planets and for
-    moons, with and without a filter; an id that names nothing starts at the top and `offset` is not used with it."""
+    moons, with and without a filter; an id that names nothing starts at the top and `offset` is not used with it.
+    Unfiltered pages (PERF.215) read the bodies of `chunk` systems at a time, so a page spans chunks when it is small."""
     from tests.test_api import _save_wide_binary_with_moons
+
+    monkeypatch.setattr(query, "BODY_CHUNK_SYSTEMS", chunk)
 
     for _ in range(3):
         _save_wide_binary_with_moons(mysql_config)
