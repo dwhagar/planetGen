@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 496 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 504 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 60 | 0 | 5 | 0 | 0 | 65 |
-| T2 | 79 | 8 | 0 | 1 | 0 | 88 |
-| T3 | 59 | 14 | 3 | 10 | 0 | 86 |
+| T2 | 79 | 9 | 0 | 1 | 0 | 89 |
+| T3 | 59 | 15 | 3 | 11 | 0 | 88 |
 | T4 | 25 | 0 | 0 | 4 | 4 | 33 |
 | T5 | 28 | 7 | 1 | 0 | 0 | 36 |
-| T6 | 40 | 18 | 10 | 30 | 0 | 98 |
+| T6 | 40 | 21 | 10 | 32 | 0 | 103 |
 | T7 | 24 | 6 | 3 | 7 | 0 | 40 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 316 | 53 | 24 | 78 | 25 | 496 |
+| All | 316 | 58 | 24 | 81 | 25 | 504 |
 
 ## How the labels were given
 
@@ -784,6 +784,19 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DD3 | P | T6 | L2 | tuning.DEBRIS_DISK_TEMPERATURE_MEDIAN_K 58 and DEBRIS_DISK_TEMPERATURE_LOG_SIGMA 0.45: the dust temperature of a disk, log-normal | median 45 to 70 K, sigma 0.3 to 0.6 | stars of one solar luminosity | the 47 blackbody radii of Table 1 | the temperatures read from the table itself | median 23 AU and 7 to 40 AU for most, from the abstract and the table as counted | - | - |
 | DD4 | P | T6 | L1 | tuning.DEBRIS_RADIUS_OVER_BLACKBODY 1.74: the belt lies this far beyond its blackbody radius | 1.5 to 2.5 (the paper: a blackbody radius "can underestimate the true disc radius by up to a factor of 2.5") | realistic dust | resolved belt radii | resolved radii from the imaged discs | "scales to about 40 AU for realistic dust properties" over a median of 23 AU | - | - |
 | DD5 | P | T4 | L0 | tuning.DEBRIS_DISK_EDGES_OVER_RADIUS (0.7, 1.5): the ring spans 0.7 to 1.5 of the belt radius | width over radius 0.3 to 1.2 | every debris disk | resolved widths | measured fractional widths | design (a ring about as wide as it is far out) | - | - |
+
+## 6.60 Stand-ins of the multiple-star limits and the white-dwarf planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| GM1 | P | T3 | L1 | tuning.WD_ENGULFMENT_BASE_AU 1.5 AU, the radius inside which a solar-mass progenitor cleared its planets | 1.5 to 2.7 AU | white dwarfs with a progenitor near one solar mass | already met at the top of the bracket: Mustill and Villaver 2012 print 2.7 AU for Jovian planets (Zahn tides) and 1.6 AU with the Nordhaus et al. 2010 tides, so 1.5 sits just under the low value | a lookup through the paper's three Jovian points (2.7, 3.8, 10 AU at 1, 2.5, 5 solar masses), terrestrial 15 AU at 5 solar masses as the upper bracket (GEN.1006 build) | arXiv 1210.0328 read (sections 4.3 and 5, abstract); the choice of 1.5 is the GEN.318 note's | - | - |
+| GM2 | P | T3 | L3 | tuning.WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN 0.8 AU per solar mass above one | 0.8 to 2.0 | white dwarfs with a progenitor of 1 to 8 solar masses | already met: the line gives 2.7 AU at 2.5 solar masses (paper 3.8) and 4.7 AU at 5 solar masses (paper about 10 for Jovian, 15 or more for terrestrial planets) | the same lookup as GM1 | arXiv 1210.0328 read; the slope is the GEN.318 note's hand choice | - | replace (GEN.1006) |
+| GM3 | P | T6 | L3 | multistar.EXTENT_AXIS_FACTOR 2.5 and multistar.PERICENTRE_EXTENT_FACTOR 2.0, how many summed radii a pair's axis and its pericentre must clear | 2 to 4; 1.5 to 3 | stellar pairs of two single members | an N-body run of a close pair whose tides stay below the contact limit at a smaller factor | a tidal-stability limit from the pair's spin and Roche lobe (GEN.842 tides) | design default of the multi-star build | - | no data |
+| GM4 | P | T6 | L1 | multistar.MAX_FILL_FACTOR 1.2, how far past its Roche lobe a star may reach at closest approach | 1.0 to 1.3 | close and contact pairs | a contact-binary sample whose fill factors lie mostly above 1.3 | the contact-binary fill-factor distribution of a catalogue | Eggleton 1983 lobe formula (second-hand, Jackson 2017); the 1.2 is the design default | - | - |
+| GM5 | P | T2 | L1 | tuning.MOON_PROGRADE_STABLE_HILL_FRACTION 0.4895 of the Hill radius, with none of Domingos et al.'s eccentricity terms and no retrograde fraction | planet and moon eccentricity terms 1.03 and 0.27 (prograde); 0.9309 (1 - 1.0764 e_planet - 0.9812 e_moon) (retrograde) | circular host orbit; moons on prograde orbits | a host with e_planet 0.3 where the paper's cut is 0.69 of the circular one | the full two-term fits of both senses | Domingos, Winter and Yokoyama 2006 as quoted in arXiv 0912.3484 and arXiv 1308.4402; the paper itself not opened | - | - |
+| GM6 | P | T6 | L1 | the stable-axis ratio of Holman and Wiegert 1999 (Equations 1 and 3) in `orbits`, used for a pair outside the fit range | fit range mu 0.1 to 0.9, e up to 0.8, coplanar, 1e4 periods | binary-star planets with mu below 0.1 or e above 0.8 | an N-body run of a planet at a pair with mu 0.05 or e 0.9 whose critical axis differs from the extrapolation by more than 20 percent | an N-body-fitted ratio over a wider range | Holman and Wiegert 1999 read (astro-ph/9809315); the extension is ours | - | - |
+| GM7 | P | T6 | L3 | the 3+1 quadruple margin: where the 3+1 network of Vynatheya, Mardling and Hamers 2023 does not apply, the nested-triple test at 1.5 times the required axis ratio and the node flagged lower confidence (not built) | 1.0 to 3.0 | 3+1 hierarchies outside mass ratios of ten, q_mid 3, q_out 2 | the network's verdict on a sample of such systems disagrees with the margin in more than 25 percent | the network itself, once its table is licensed and fetched at setup (GEN.1006 build) | the report's sweep of 4e4 coplanar systems against the network: margin 1.5 gives precision 0.78 and recall 0.53; 1.0 gives 0.74 and 0.98 | - | replace (GEN.1006) |
+| GM8 | P | T6 | L1 | the per-level stability margin of a nested-triple test in a deeper tree, 1.0 (none) until the build sets it (not built) | 1.0 to 1.5 | 2+2 and deeper trees | the 2+2 network of the same paper (94 percent accurate) disagrees with the margin | the 2+2 network, as GM7 | Vynatheya, Mardling and Hamers 2023: nested triples are 88 percent accurate for 2+2 | - | - |
 
 ## 6.56 Stand-ins of the registered rows that rest on a Solar System body
 
