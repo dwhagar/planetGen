@@ -1517,9 +1517,9 @@
 --   `ice_mass_fraction`. NULL for a row made before v183 and for a body with no composition; 0 for a body with no ice. Nothing is backfilled.
 -- v184 (GEN.952): `scatter_members.radius_au` (DOUBLE, NULL), a member's extent in AU, so a page can work out the X-ray luminosity of an accreting pair; NULL on a row made before v184, nothing is backfilled.
 -- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
--- v177 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
---   is 52 to 63 percent silica; NULL on a row made before v177 (the regenerated galaxy replaces it; see `migrations/versions/0177_ground_intermediate.py`). (GEN.475) `asteroid_belts` and `asteroid_fields`
---   also gain `chondrite_group`, the nearest meteorite group of the body's mean composition (`none` far from every group), NULL before v177.
+-- v187 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
+--   is 52 to 63 percent silica; NULL on a row made before v187 (the regenerated galaxy replaces it; see `migrations/versions/0187_ground_intermediate.py`). (GEN.475) `asteroid_belts` and `asteroid_fields`
+--   also gain `chondrite_group`, the nearest meteorite group of the body's mean composition (`none` far from every group), NULL before v187.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2462,7 +2462,7 @@ CREATE TABLE IF NOT EXISTS planets (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
-    ground_intermediate_fraction  DOUBLE,  -- v177 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
+    ground_intermediate_fraction  DOUBLE,  -- v187 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -2811,7 +2811,7 @@ CREATE TABLE IF NOT EXISTS moons (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
-    ground_intermediate_fraction  DOUBLE,  -- v177 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
+    ground_intermediate_fraction  DOUBLE,  -- v187 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -2984,7 +2984,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
-    chondrite_group             VARCHAR(4) NULL,  -- v177 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v177
+    chondrite_group             VARCHAR(4) NULL,  -- v187 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v187
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),
@@ -3895,7 +3895,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-    chondrite_group     VARCHAR(4) NULL,  -- v177 (GEN.475): the nearest chondrite group of the field's mean composition, `none` far from every group, NULL before v177
+    chondrite_group     VARCHAR(4) NULL,  -- v187 (GEN.475): the nearest chondrite group of the field's mean composition, `none` far from every group, NULL before v187
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
 
