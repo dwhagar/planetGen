@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2740] - 2026-10-30
+
+**Headline:** Four tests that failed on a clean main are fixed on the test side: radiation gear for an ultraviolet Red, worlds whose life has not begun, a giant's own heat, and a hot airless world.
+
+### Changed
+- **TEST.484: the climate draws test, the generated-body score test, the class-blind life draw test and the stored-score test pass on main.** (1) `test_every_generated_body_is_scored_consistently` asked a Red Radiation tier to carry radiation gear, but since GEN.445 the tier is the lower of the dose's and the ultraviolet's score, and an ultraviolet Red (a dose under the Yellow edge) is met by the Body Protection ladder (an ultraviolet suit or cover), so the test now asks for gear when the dose is over the Yellow edge and for the ultraviolet step when it is not; it also draws more systems when the twelve hold no gas giant (the star epoch moved that draw). (2) `test_the_generator_gives_life_to_every_supported_planet_and_the_same_life_under_every_class_letter` counted a world the model supports without life as a fault; GEN.997 (a star younger than 0.1 Gy) and GEN.1001 (the first step of the schedule after the star's age) give such a world no life by design, so the audit (`tests/audit/sweep_life.py`) records those two causes, reports them in a fourth column of the rates and still reports a supported world that is lifeless for any other reason. (3) `test_every_body_stores_the_draws_its_temperature_is_made_of` demanded the starlight-only temperature of every body; a giant radiates its own heat too since GEN.816 and the air solve stops at 2000 K, so the expectation includes both (it only failed when the randomly drawn host star gave a giant or a very hot world). (4) `test_the_score_round_trips_and_a_cloud_rescores_the_dose` demanded Body Protection 4 for an airless world, but the level is the highest of the kinds and the system's innermost world (1298 K) needs a heat suit; it now asks for the pressure suit as the least. Nothing the generator makes changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.484.
+
 ## [8.0.2739] - 2026-10-30
 
 **Headline:** A system page now lists the orbits of its stars, so a triple or larger system shows what each orbit joins.
