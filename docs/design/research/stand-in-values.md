@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 794 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 797 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 77 | 31 | 5 | 9 | 0 | 122 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 41 | 13 | 0 | 0 | 0 | 54 |
-| T6 | 67 | 46 | 12 | 36 | 0 | 161 |
+| T6 | 69 | 47 | 12 | 36 | 0 | 164 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 6 | 2 | 10 |
 | T9 | 7 | 3 | 4 | 38 | 19 | 71 |
-| All | 484 | 133 | 36 | 114 | 27 | 794 |
+| All | 486 | 134 | 36 | 114 | 27 | 797 |
 
 ## How the labels were given
 
@@ -1247,6 +1247,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RY1 | P | T6 | L3 | rogue_radiogenic.ACTIVE_HEAT_FLUX_W_M2 0.04 W/m2: a rocky rogue whose heat flow reaches it is geologically active | 0.02 to 0.087 | rocky rogues of 0.01 to 3 Earth masses | a model of when a stagnant lid stops erupting that puts the cut far from 0.04 for an Earth-mass body | a stagnant-lid eruption model on the interior heat (mantle potential temperature against the solidus at the lid's base) | between Mars (about 0.02 W/m2, recalled, InSight) and the Earth (0.087, Pollack et al. 1993, recalled); the old `ROGUE_ACTIVE_HEAT_FLUX_W_M2`, moved here unchanged | GEN.1111 | no data |
+
+## 6.115 Stand-ins of the composition of a belt member
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MC1 | P | T6 | L1 | belt_member._filling: the filling of a stored member (one minus its porosity) is the compacted density of `compaction` over the compaction's own grain density at the member's rock fraction, applied to the taxon's grain density | the taper endpoints (`compaction.TAPER_START_KG`, `TAPER_END_KG`, stand-ins of decision S9) | members of 1e19 to 1e21 kg | a measured bulk density of a main-belt asteroid of that taxon and mass far from grain density times this filling (Carry 2012 densities by taxon) | the structure solver and viscous compaction (GEN.429) | the taper closes the pores of the Bierson and Nimmo ice and silicate mix (rock 3500, ice 920 kg/m3); using it as a filling for other grains is ours | - | - |
+| MC2 | P | T6 | L0 | belt_member._filling: a member under 1e19 kg takes a porosity drawn uniformly in its taxon family's range, 0.25 to 0.55 for the carbonaceous taxa and 0.10 to 0.35 for the rocky ones (`small_body_composition.POROSITY_RANGES`) | the ranges | on-demand members of 1e15 to 1e19 kg | a rubble pile of that size and taxon with a porosity far outside the range (Britt and Consolmagno 2003; Carry 2012) | the porosity from the size law and the collisional history of the belt | the ranges are `small_body_composition`'s (parametrisations of Britt and Consolmagno 2003 and Carry 2012); the uniform draw inside them is ours | - | - |
+| MC3 | P | T6 | L0 | belt_member._filling: a member's rock fraction for the compaction is its rock and metal, held to the table's 0.3 to 0.95 (`compaction.ROCK_FRACTION_RANGE`), the metal counted with the rock | the metal share counted with the ice instead | every taxon (the iron M taxon is held at 0.95) | a metal-rich member whose compaction filling differs from a rock one's by more than the grain density does | a compaction table with metal as a third component | the habit of `moon_composition.density_kg_m3` | - | - |
 
 ## 6.94 Stand-ins of the irregular zone
 
