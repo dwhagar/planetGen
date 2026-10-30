@@ -1860,10 +1860,14 @@ class StarSystem:
             inner = max(inner, floor_au)
         for attempt in range(tuning.REQUEST_MAX_PLANET_ATTEMPTS):
             # A request for a habitable world is first left to chance; where chance does not give one (a dim star's ecosphere, a heavy
-            # one's) the draws that follow are of an Earth-sized planet, the mass at which a world holds its air and its water.
+            # one's) the draws that follow are of an Earth-sized planet, the mass at which a world holds its air and its water. A request
+            # for a class is left to chance too, and then draws a mass log-uniformly over all the masses a planet has (the architecture's
+            # disc makes few ice giants at a cold slot, so chance alone can miss that class for the whole run of draws).
             given = {}
             if life and attempt >= tuning.HABITABLE_REQUEST_FREE_ATTEMPTS:
                 given["mass"] = math.exp(draw.uniform(*(math.log(m) for m in tuning.HABITABLE_REQUEST_MASS_EARTH))) * constants.EARTH_MASS_TO_KG
+            elif planet_class is not None and attempt >= tuning.CLASS_REQUEST_FREE_ATTEMPTS:
+                given["mass"] = math.exp(draw.uniform(*(math.log(m) for m in tuning.CLASS_REQUEST_MASS_EARTH))) * constants.EARTH_MASS_TO_KG
             planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects, **given)
             if (planet_class is not None and planet.planet_class == planet_class) or (life and habitable_request.meets_with_moons(planet)):
                 break

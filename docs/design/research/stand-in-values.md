@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 483 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 484 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 40 | 18 | 9 | 30 | 0 | 97 |
 | T7 | 17 | 6 | 1 | 7 | 0 | 31 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
-| T9 | 1 | 0 | 2 | 24 | 19 | 46 |
-| All | 309 | 53 | 21 | 75 | 25 | 483 |
+| T9 | 1 | 0 | 2 | 25 | 19 | 47 |
+| All | 309 | 53 | 21 | 76 | 25 | 484 |
 
 ## How the labels were given
 
@@ -611,6 +611,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PA11 | P | T6 | L3 | tuning.PLANET_MIN_MASS_OUTER_EARTH 0.6016 and PLANET_MIN_MASS_EARTH 0.1 (the lightest oligarch that is a planet, beyond and inside the snow line) | outer 0.3 to 1.5; inner 0.05 to 0.2 | all chains | test_planet_architecture::test_a_star_gets_its_planets_in_order_with_the_masses_a_planet_has_and_a_seeded_run_repeats; a planet count beyond 2 AU outside the microlensing counts | a belt formation and size-frequency model | design (Mercury is 0.055 Earth masses); the outer floor tuned to the count of the Neptune-mass planets beyond the snow line (Suzuki et al. 2016, recalled) | - | no data |
 | PA12 | P | T7 | L0 | planet_occurrence.json `disc_dust_scatter` 0.7 dex and tuning.DISC_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass) | scatter 0.5 to 0.9; shares inside the bands | all hosts | test_planet_architecture::test_the_share_of_stars_with_an_inner_system_follows_the_observed_anchors | the formation model that gives the share from the disc (GEN.729 follow-up) | Andrews et al. 2013 (arXiv:1305.5262, READ: 0.7 dex); Zhu 2018 (30 percent Sun-like); Yang 2020 (75 percent under 5000 K, 35 percent over 6500 K) | - | - |
 | PA13 | P | T5 | L0 | tuning.BELT_REPLACES_BELOW_EARTH 1.0 (a belt takes the place of a planet in its slot only where the disc built a body lighter than this many Earth masses) | 0.3 to 2 | all hosts | test_disk_physics::test_a_belt_never_replaces_a_giant_or_a_planet_of_an_earth_mass; a belt that stands where a giant or a planet of an Earth mass or more was built | the belt formation model (GEN.442): the belt is where a feeding zone built no planet | design (a belt is what a feeding zone leaves when it built no planet) | - | - |
+| PA14 | P | T9 | L3 | tuning.CLASS_REQUEST_FREE_ATTEMPTS 8 and CLASS_REQUEST_MASS_EARTH (0.05, 1000) (a request for a planet class is left to chance for 8 draws, then takes a mass log-uniform over this range) | free draws 4 to 20; range 0.05 to 1000 up to 0.01 to 3000 | slot and forced-class requests | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count; a requested class of the table that 40 draws miss at a slot where the class can exist | the class-conditioned draw of the architecture (a plan that places the requested class) | design (needed so a request is reachable; the old law made ice giants common at a cold slot, the architecture does not) | - | - |
 
 ## 6.37 Stand-ins of the brown dwarf ceiling
 
