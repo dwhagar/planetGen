@@ -14868,6 +14868,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
+  Spin must read the final star age (2026-10-29 9:27 PM EDT): Aux 7's
+  stale-age audit (9:26 PM EDT 2026-10-29): planets.generate_spin runs
+  tidal_spin.evolve with the provisional star age, so the stage 1 wiring
+  must keep the birth spin and evolve again at the final age (the settle
+  pass of GEN.961), not only at draw time. Same for GEN.959 stage 3.
   Prerequisites: GEN.954. Related: GEN.842, GEN.778, GEN.737.
 
 - [ ] **GEN.957 Tides stage 2b: wire the torque sum into planet spin, with the moon-on-planet tide after the moons exist**
@@ -15309,6 +15314,74 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects fill, rides train 6. Owner: Aux 4 (with the magnetosphere
   chain). Version 8.1.
   Prerequisites: none. Related: GEN.754, GEN.804, GEN.805, GEN.800.
+
+- [ ] **GEN.984 Make the star's composition draw independent of its age so every planet reads the final composition (bug)**
+  Aux 7's stale-age audit
+  /mnt/project-files/reports/gen961-stale-age-audit-2026-10-30.md (as
+  the lane reported 9:26 PM EDT 2026-10-29). The star's age is set when
+  the star is made and rises once after all planets exist, so everything
+  a planet draws in Planet.__init__ reads the provisional, younger age.
+  Found while fixing GEN.961: stellar_composition.abundance_key includes
+  the age, so bulk_draw.host_ratios(star) reads a different abundance
+  draw than the star's own stored final-age composition (a 1e-6 Gyr age
+  change moved a giant's radius 0.28 percent through the envelope Z).
+  Do: make the key age-free (a star's composition does not change with
+  its age), or take every planet's host ratios from the final
+  composition; test that a planet and its star read the same draw.
+  Changes generated output: epoch, --affects fill, rides train 3 with
+  the star epoch. Owner: Bug 1 (stellar composition, with GEN.932).
+  Version 8.1.
+  Prerequisites: none. Related: GEN.961, GEN.976, GEN.932.
+
+- [ ] **GEN.985 Circularise a close-in planet's eccentricity again at the final star age**
+  Aux 7's stale-age audit
+  /mnt/project-files/reports/gen961-stale-age-audit-2026-10-30.md (as
+  the lane reported 9:26 PM EDT 2026-10-29). The star's age is set when
+  the star is made and rises once after all planets exist, so everything
+  a planet draws in Planet.__init__ reads the provisional, younger age.
+  planets.generate_orbit_shape circularises the birth eccentricity with
+  the provisional age (orbit_elements.circularised(birth, age, time)),
+  so a close-in planet (time under about 10 Gyr) of a star whose age
+  rose keeps too large an eccentricity. Do: keep the birth eccentricity
+  as a private attribute (like DrawnGiant) and circularise again in the
+  settle pass of GEN.961; moons read the parent's eccentricity
+  (host_eccentricity) so they follow. Changes generated output: epoch,
+  --affects fill, rides train 3 after GEN.961. Owner: Aux 7. Version
+  8.1.
+  Prerequisites: GEN.961. Related: GEN.961, GEN.976, GEN.842.
+
+- [ ] **GEN.986 Measure how far the rocky planets' dose, surface ages and magnetism move when read at the final star age**
+  Aux 7's stale-age audit
+  /mnt/project-files/reports/gen961-stale-age-audit-2026-10-30.md (as
+  the lane reported 9:26 PM EDT 2026-10-29). The star's age is set when
+  the star is made and rises once after all planets exist, so everything
+  a planet draws in Planet.__init__ reads the provisional, younger age.
+  radiation.generate_dose (K, Th, U decay), surface_composition
+  (age_gy=) and magnetism.generate_field read star.age inside
+  calculate_atmospheric_conditions; interior_heat.update_heat is already
+  rerun at the final age in the life data pass (GEN.763). Do first,
+  lock-free: re-run calculate_atmospheric_conditions on a seeded sample
+  at the final age, report how many dose, surface-age and magnetic
+  moment values and how many classes move (HABITABLE_WORLD is judged on
+  them, so a re-run cannot just be added to the pass). Write the finding
+  in reports/; file the fix as its own item if the effect is larger than
+  1 percent. Owner: Aux 7. Version 8.1.
+  Prerequisites: GEN.961. Related: GEN.961, GEN.763, GEN.800.
+
+- [ ] **GEN.987 Read a moon's tidal heat from the settled giant's radius**
+  Aux 7's stale-age audit
+  /mnt/project-files/reports/gen961-stale-age-audit-2026-10-30.md (as
+  the lane reported 9:26 PM EDT 2026-10-29). The star's age is set when
+  the star is made and rises once after all planets exist, so everything
+  a planet draws in Planet.__init__ reads the provisional, younger age.
+  After GEN.961 settles a giant (radius up to 9.3 percent smaller), a
+  moon's tidal heat still reads the parent's radius from before the
+  settle; heat goes as R^5, a factor up to about 1.6. Do: check that
+  interior_heat.update_heat (already run for moons in the life pass)
+  reads the settled parent radius; if not, make it, with a test on a
+  giant whose radius moved. Changes generated output: epoch, --affects
+  fill, rides train 3 after GEN.961. Owner: Aux 7. Version 8.1.
+  Prerequisites: GEN.961. Related: GEN.961, GEN.962, GEN.958.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
