@@ -17412,29 +17412,6 @@ clears each one.
   comments on issue #1694.
   Prerequisites: none.
 
-- [ ] **TEST.200 The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`**
-  From the GEN.372 precision audit (Core 1,
-  docs/design/architecture/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
-  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
-  stored value. Boss decided by card: the nightly update keeps a local
-  offset, and this item documents it and tests it, with no code change
-  to the update. Done: the limit (how far an object's local offset may
-  grow before it is folded into the absolute point) is written in the
-  orbital update's design doc, and
-  `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`
-  pins that after the largest rotation the update applies the local
-  offset is within one unit in the last place of the absolute point.
-  Owner: Core 1.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  OWNER Aux 3 (assigned 5:20 AM EDT 2026-10-30 by TODO as the lane's one
-  lock-free item; tests and documentation only, separate branch, change
-  no stored value) (2026-10-30 5:20 AM EDT): If the test shows a real
-  offset error, file it with TODO as a bug and do not fix it under this
-  item.
-  Prerequisites: none. Related: GEN.372, GEN.223, GEN.294.
-
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -20344,6 +20321,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   EDT 2026-10-22: record the DOC.72 README row as the TODO thread's).
   The README check compares the flag name and the refusal text with the
   code.
+  OWNER Aux 3 (assigned 5:25 AM EDT 2026-10-30 by TODO as the lane's one
+  lock-free item; docs and a check test only, separate branch; use
+  docs/design/research/data-catalog.md as the source list) (2026-10-30
+  5:25 AM EDT): If the check finds a file the program reads that no
+  document lists, list it; change no stored value.
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
 
 - [ ] **DOC.73 INSTALL.md recommends a larger innodb_redo_log_capacity for a machine that runs the full test gate**
@@ -20362,6 +20344,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  OWNER Aux 3 (queued 5:25 AM EDT 2026-10-30 by TODO, after DOC.72; docs
+  only) (2026-10-30 5:25 AM EDT): Take it only after DOC.72 merges.
   Prerequisites: none. Related: TEST.265.
 
 - [ ] **DOC.76 Docs for the condition-based classes: the rule table, the planet class pages and the help**

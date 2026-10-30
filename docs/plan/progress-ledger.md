@@ -1898,3 +1898,4 @@ Baseline: PR #1817.
 | TEST.215 | 8.1 | Composition proofs |
 | TEST.161 | 8.1 | Whole-sphere audits |
 | TEST.201 | 8.3 | Positions as one object |
+| TEST.200 | 8.3 | Positions as one object |
