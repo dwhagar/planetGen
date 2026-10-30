@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 327 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 333 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 38 | 0 | 3 | 0 | 0 | 41 |
-| T2 | 60 | 0 | 0 | 1 | 0 | 61 |
-| T3 | 48 | 4 | 2 | 10 | 0 | 64 |
+| T2 | 60 | 1 | 0 | 1 | 0 | 62 |
+| T3 | 49 | 4 | 2 | 10 | 0 | 65 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
-| T5 | 14 | 5 | 1 | 0 | 0 | 20 |
-| T6 | 31 | 7 | 2 | 14 | 0 | 54 |
+| T5 | 15 | 5 | 1 | 0 | 0 | 21 |
+| T6 | 33 | 7 | 3 | 14 | 0 | 57 |
 | T7 | 16 | 3 | 0 | 7 | 0 | 26 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 223 | 19 | 10 | 58 | 17 | 327 |
+| All | 227 | 20 | 11 | 58 | 17 | 333 |
 
 ## How the labels were given
 
@@ -489,3 +489,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TR8 | P | T2 | L0 | tidal_rheology.LIQUID_VISCOSITY_PA_S 1 (a silicate liquid) | 0.1 to 10 | a fully molten mantle | test_tidal_rheology::test_viscosity_is_arrhenius_then_weakened_by_melt_then_a_liquid_at_full_melt | a liquid viscosity from the melt's composition | komatiite to basalt melt, 0.1 to 10 Pa s, recalled |
 | TR9 | P | T2 | L0 | tidal_rheology.ICE (rigidity 3.3e9 Pa), ICE_ACTIVATION_J_MOL 4.9e4, ICE_MELTING_VISCOSITY_PA_S 1e14 (ice I) | rigidity 3.3 to 3.5 GPa; activation 40 to 60 kJ/mol; viscosity 1e13 to 1e15 | an ice body or shell | test_tidal_rheology::test_cold_ice_gives_europa_the_k2_over_q_that_tidal_heating_uses_and_a_warm_shell_far_more | the shell treatment of GEN.960 (grain size, a shell on an ocean) | Gammon et al. 1983 (rigidity), Goldsby and Kohlstedt 2001 and McCarthy and Castillo-Rogez 2013 (creep), Ojakangas and Stevenson 1989 (viscosity), all second-hand |
 | TR10 | P | T6 | L3 | tidal_rheology.COLD_Q_CEILING 1000 (the largest Q the Andrade form gives: a cold mantle and a magma ocean both keep the loss of rock's own friction and of a solid lid and core) | 300 to 5000 | every rocky body | test_tidal_rheology::test_a_very_cold_mantle_keeps_the_loss_of_cold_rock | a frictional and extrinsic loss law with temperature | Q of 500 to a few thousand in the Earth's lithosphere and the Moon's cold interior (Dziewonski and Anderson 1981, Nakamura 1982, recalled); without it 25 percent of generated planets get a Q above 6e4 and close-in magma-ocean planets never lock |
+
+## 6.24 Stand-ins of the spin torques
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| TQ1 | P | T3 | L0 | spin_torques.GRAVITATIONAL_TORQUE_FACTOR 3 (the built despinning's constant; Murray and Dermott and Leconte et al. write 3/2 for the same constant-Q result; the thermal torque is scaled with it so their ratio stays the paper's) | 1.5 or 3 | every tide | test_spin_torques::test_the_moon_slows_the_earth_by_the_measured_two_milliseconds_a_century | one definition of Q for the whole chain (GEN.957 decides with the rheology) | the 3 is Gladman et al. 1996 as SP7 has it; at 3/2 the lunar torque gives the Earth's measured 2.0 ms per century |
+| TQ2 | P | T2 | L1 | spin_torques.THERMAL_TABLE (the thermal tide's pressure amplitude q0 and relaxation time 1/omega0 at 1, 10 and 92 bar, brought to a common flux) | the table | an Earth-like or Venus-like air at 1 to 92 bar | test_spin_torques::test_thermal_amplitude_and_relaxation_reproduce_leconte_table_1 | a scaling law for q0 and omega0 from the air's composition, pressure and heating (Auclair-Desrotour et al. 2017 give the shape only) | Table 1 of Leconte et al. 2015 (Venus 92 bar, 2610 W/m2: 201 Pa, 3.77e-7 /s; 1366 W/m2: 1180 Pa and 2.30e-6 /s at 1 bar, 4050 Pa and 1.46e-6 /s at 10 bar; 450 W/m2: 890 and 2960 Pa, 1.18e-6 and 7.17e-7 /s); the Venus row is moved to 1366 W/m2 with TQ3 |
+| TQ3 | P | T6 | L2 | spin_torques.FLUX_EXPONENT_Q0 0.27 and FLUX_EXPONENT_OMEGA0 0.75 (q0 and omega0 against the stellar flux) | 0.2 to 0.35 and 0.6 to 0.9 | air at 450 to 2600 W/m2 | test_spin_torques::test_thermal_amplitude_and_relaxation_reproduce_leconte_table_1 | the paper's own climate runs at each flux | omega0 ~ F^(3/4) is the paper's; 0.27 fits its 1366 against 450 W/m2 at 1 and 10 bar (0.25 and 0.28) |
+| TQ4 | P | T5 | L0 | spin_torques.THERMAL_SMALL_PRESSURE_SLOPE 1 (below 1 bar q0 goes with the surface pressure; the thermal time loses 6 percent of its surface part) | 0.8 to 1.2 | air under 1 bar | test_spin_torques::test_thin_air_has_a_proportionally_smaller_thermal_tide | a climate run for thin air | the paper's argument that the amplitude goes as the pressure over the scale height |
+| TQ5 | T | T6 | L0 | spin_torques.Torques.atmospheric (the convective-atmosphere Debye torque, N_a = F K_a q0 x / (1 + x^2); a stably stratified air, which flattens it, is not modelled) | none | a thick air with a convective troposphere | test_spin_torques::test_the_asynchronous_equilibria_are_leconte_equation_13 | the stratified-air torque of Auclair-Desrotour, Mathis and Laskar 2017 | Leconte et al. 2015 equations 1 to 3; Auclair-Desrotour et al. 2017 equation 72 gives the same shape and say a stable stratification sends the torque to zero |
+| TQ6 | T | T6 | L0 | spin_torques.evolve (a one-dimensional flow; a resonance whose window holds the eccentricity captures for sure, a sign flip of the torque at a raiser's orbital rate or a smooth zero stops it; obliquity zero, circular torques) | none | a planet with one star and up to a few moons | test_spin_torques::test_one_star_with_constant_q_is_the_built_despinning | a spin-orbit integration with obliquity and eccentricity | the same simplifications as SP10 of 6.14 |
