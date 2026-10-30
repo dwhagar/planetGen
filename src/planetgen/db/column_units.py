@@ -197,6 +197,7 @@ TABLES = {
         "unix_s": ("epoch_unix", "next_update_due"),
         "count": ("member_count",),
         "dex": ("metallicity_fe_h",),
+        "h": ("rotation_period_hours",),
     },
     "change_plan_ops": {
         "id": ("id", "plan_id"),
@@ -782,7 +783,7 @@ TABLES = {
         "index": ("source", "member_no", "parent_node_no", "slot"),
         "id": ("source_id",),
         "flag": ("flags",),
-        "au": ("offset_x_au", "offset_y_au", "offset_z_au"),
+        "au": ("offset_x_au", "offset_y_au", "offset_z_au", "radius_au"),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "yr": ("decay_age_yr",),
         "Msun": ("mass_solar", "initial_mass_solar"),

@@ -12,7 +12,7 @@ profile's part to the system draw on `SystemConfig.PLACE_TERMS`; a system drawn 
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.galaxy import system_mass as galaxy_system_mass
@@ -73,8 +73,10 @@ class PlaceTerms:
     """
     mass_density_solar_pc3: float
     dispersion_kms: float
-    perturber_mass_solar: float = mass_weighted_perturber_mass_solar([(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)])
-    mean_system_mass_solar: float = system_mass.window_mean_system_mass_solar(*tuning.STAR_FORMATION_AGE_RANGE_GY)
+    perturber_mass_solar: float = field(default_factory=lambda: mass_weighted_perturber_mass_solar(
+        [(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)]))
+    mean_system_mass_solar: float = field(default_factory=lambda: system_mass.window_mean_system_mass_solar(
+        *tuning.STAR_FORMATION_AGE_RANGE_GY))
 
     @property
     def systems_per_pc3(self):
@@ -82,10 +84,18 @@ class PlaceTerms:
         return self.mass_density_solar_pc3 / self.mean_system_mass_solar
 
 
-SOLAR_NEIGHBOURHOOD = PlaceTerms(
-    mass_density_solar_pc3=tuning.SOLAR_NEIGHBOURHOOD_MASS_DENSITY_SOLAR_PC3,
-    dispersion_kms=tuning.SOLAR_NEIGHBOURHOOD_DISPERSION_KMS)
-"""PlaceTerms: The terms of a system drawn with no galaxy placement (a single system from the command line)."""
+def __getattr__(name):
+    """
+    `SOLAR_NEIGHBOURHOOD`, the terms of a system drawn with no galaxy placement (a single system from the command line),
+    built on first use: its defaults read the post-main-sequence tracks, which setup downloads, so importing this module
+    (and the setup command itself) must not need them.
+    """
+    if name == "SOLAR_NEIGHBOURHOOD":
+        terms = PlaceTerms(mass_density_solar_pc3=tuning.SOLAR_NEIGHBOURHOOD_MASS_DENSITY_SOLAR_PC3,
+                           dispersion_kms=tuning.SOLAR_NEIGHBOURHOOD_DISPERSION_KMS)
+        globals()[name] = terms
+        return terms
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def from_profile(profile):

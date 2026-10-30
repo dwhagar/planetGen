@@ -4501,7 +4501,7 @@ def _bright_star_entry(row):
 def scatter_member_tree(conn, table, row_id):
     """
     The stored members of an unbuilt scatter row, as a page lists them (UX.114): `members` (`member_no`, `kind`,
-    `state`, `mass_solar`, `parent_node_no`, `flags`, `decay_age_yr`, which only a member of a young group has, GEN.327) in member
+    `state`, `mass_solar`, `parent_node_no`, `flags`, `decay_age_yr`, which only a member of a young group has, GEN.327, and `radius_au`, GEN.952) in member
     order and `nodes` (`node_no`, `parent_node_no`, `kind`
     (`close`, `wide`, `compact` or `group`), `mass_solar`, `separation_au`, `period_years`, `eccentricity`, `interaction`, `flags`),
     both empty for a single object, and `compact_pairs` (UX.186: the X-ray binaries and spider pulsars among them,
@@ -4515,9 +4515,10 @@ def scatter_member_tree(conn, table, row_id):
     source = SCATTER_SOURCES[table]
     members = [
         {"member_no": r["member_no"], "kind": r["kind"], "state": r["state"], "mass_solar": r["mass_solar"],
-         "parent_node_no": r["parent_node_no"], "decay_age_yr": r["decay_age_yr"], "flags": r["flags"]}
+         "parent_node_no": r["parent_node_no"], "decay_age_yr": r["decay_age_yr"], "flags": r["flags"],
+         "radius_au": r["radius_au"]}
         for r in conn.execute(
-            "SELECT member_no, kind, state, mass_solar, parent_node_no, decay_age_yr, flags FROM scatter_members"
+            "SELECT member_no, kind, state, mass_solar, parent_node_no, decay_age_yr, flags, radius_au FROM scatter_members"
             " WHERE source = ? AND source_id = ? ORDER BY member_no", (source, int(row_id))).fetchall()]
     nodes = [
         {"node_no": r["node_no"], "parent_node_no": r["parent_node_no"], "kind": r["kind"],
@@ -4742,7 +4743,7 @@ def _uncharted_item(row, edge_pc):
 def uncharted_system_detail(conn, bright_star_id):
     """
     One scattered star as its page needs it (UX.114): `list_uncharted_systems`'s item, plus `system_id` (the system
-    built around it, or `None` while it is uncharted), `hosted_nebula` (the nebula it lights, as
+    built around it, or `None` while it is uncharted), `rotation_period_hours` (GEN.846; `None` on a row made before v185), `hosted_nebula` (the nebula it lights, as
     `hostednebula.summary`, or `None`: the one its sector builds, GEN.530) and, for a star with company, its `members` and `nodes`
     (`scatter_member_tree`). A star already built into a system lists no members: its members are the system's stars.
 
@@ -4752,13 +4753,14 @@ def uncharted_system_detail(conn, bright_star_id):
     row = conn.execute(
         "SELECT id, shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc, position_z_mpc,"
         " population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, age_gy,"
-        " member_count, system_mass_solar, star_system_id FROM bright_stars WHERE id = ?",
+        " member_count, system_mass_solar, star_system_id, rotation_period_hours FROM bright_stars WHERE id = ?",
         (int(bright_star_id),)).fetchone()
     if row is None:
         raise ValueError(f"no bright_stars row with id {bright_star_id}")
     skeleton = get_galaxy_shape(conn)
     detail = _uncharted_item(row, skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC))
     detail["system_id"] = row["star_system_id"]
+    detail["rotation_period_hours"] = row["rotation_period_hours"]
     detail["hosted_nebula"] = None if row["star_system_id"] is not None else hostednebula.hosted_by_rows(
         conn, [row]).get(row["id"])
     if detail["member_count"] and row["star_system_id"] is None:

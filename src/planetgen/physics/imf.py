@@ -1,12 +1,19 @@
 # planetgen/physics/imf.py
 
 """
-The Initial Mass Function (GEN.926)
-===================================
+The Initial Mass Function (GEN.926, GEN.927, GEN.928)
+=====================================================
 
 The one place the generator's initial mass function lives: `xi(M) dM`, the number of stars born in `dM` solar masses, a
 continuous piecewise power law `k M^-alpha` between the edges in `tuning.IMF_BREAKS_SOL` with the slopes in
-`tuning.IMF_SLOPES` (the rows the mass function is set by).
+`tuning.IMF_SLOPES`. Those rows are the Chabrier (2003) function for individual stars of the Galactic disk (GEN.927): the
+log-normal below one solar mass (`tuning.IMF_BELL_*`) cut into segments 0.05 dex wide, each a power law through the log-normal
+at both ends, and a `M^-2.3` power law above one solar mass up to 150.
+
+There are two curves (`SINGLE`, `PRIMARY`). `SINGLE` is `xi`: every star born, companions included. `PRIMARY` is the mass function
+of the stars that are the primary of a system, derived from `xi` and the multiplicity rows (`generation.primary_mass_function`,
+GEN.928); the stars of the systems together are `xi`. A star drawn as the primary of a system, or counted as a placed system,
+is on `PRIMARY`; a rate per star born (the ionizing stars, the black holes, the mass returned) is on `SINGLE`.
 
 Everything that needs the function asks here: the draw of a star's mass (`sample`), the number or mass of stars in a range
 (`number`, `integral`), the segments themselves for a table built over a mass grid (`segments`, `segment_at`), and the
@@ -15,7 +22,7 @@ out in six modules (the draw and the count in `stellar_evolution`, the moments i
 in `hii`, the mass return in `galaxy.disk_history`, the grid in `star_population`, the cluster check in `mathcheck`), each
 joining the segments its own way; a change of the curve is now a change of the rows and of this module.
 
-`mathcheck` keeps its own written-out copy of the Kroupa (2001) function on purpose: it is the check that this one still
+`mathcheck` keeps its own written-out copy of the Chabrier (2003) function on purpose: it is the check that this one still
 is what the literature says.
 """
 
@@ -38,6 +45,14 @@ def highest_mass_sol():
     return tuning.IMF_BREAKS_SOL[-1]
 
 
+SINGLE = "single"
+"""str: The curve of every star born, companions included (`xi(M)`, the rows of `tuning`)."""
+
+PRIMARY = "primary"
+"""str: The curve of the stars that are the primary of a system, derived from `SINGLE` and the companions the heavier primaries
+bring (`generation.primary_mass_function`, GEN.928). Same scale as `SINGLE`, so the ratio of their numbers is the systems per star."""
+
+
 @functools.lru_cache(maxsize=None)
 def _segments(breaks, slopes):
     norms = [1.0]
@@ -46,30 +61,38 @@ def _segments(breaks, slopes):
     return tuple((breaks[i], breaks[i + 1], slopes[i], norms[i]) for i in range(len(slopes)))
 
 
-def segments():
+@functools.lru_cache(maxsize=None)
+def _primary_segments():
+    # Deferred import: the derivation reads the companion tables of the generator, which import this module.
+    from planetgen.generation import primary_mass_function
+    return primary_mass_function.segments()
+
+
+def segments(curve=SINGLE):
     """`((low, high, alpha, k), ...)`: the function's segments, each `k M^-alpha` between `low` and `high` solar masses,
-    joined continuously (`k` of the first is 1)."""
+    joined continuously (`k` of the first of `SINGLE` is 1)."""
+    if curve == PRIMARY:
+        return _primary_segments()
     return _segments(tuple(tuning.IMF_BREAKS_SOL), tuple(tuning.IMF_SLOPES))
 
 
-def segment_at(mass_sol):
+def segment_at(mass_sol, curve=SINGLE):
     """`(low, high, alpha, k)` of the segment that holds `mass_sol` (a mass on an edge belongs to the segment above it,
     the top one for the top edge)."""
-    found = segments()
+    found = segments(curve)
     for segment in found:
         if mass_sol < segment[1]:
             return segment
     return found[-1]
 
 
-def density(mass, breaks=None, slopes=None):
+def density(mass, breaks=None, slopes=None, curve=SINGLE):
     """`xi(M)` at each of the masses in the array `mass` (solar masses; 0 outside the edges), for the function of the rows
     in `tuning` or, given them, of other `breaks` and `slopes` (a check against another function, as `galaxy.disk_history`
-    does for the mass a population returns)."""
-    breaks = tuning.IMF_BREAKS_SOL if breaks is None else breaks
-    slopes = tuning.IMF_SLOPES if slopes is None else slopes
+    does for the mass a population returns), or of the `curve` named."""
+    found = segments(curve) if breaks is None and slopes is None else _segments(tuple(breaks), tuple(slopes))
     out = np.zeros_like(mass)
-    for low, high, alpha, k in _segments(tuple(breaks), tuple(slopes)):
+    for low, high, alpha, k in found:
         inside = (mass >= low) & (mass <= high)
         out[inside] = k * mass[inside] ** -alpha
     return out
@@ -91,11 +114,12 @@ def sample_power_law(a, b, alpha, rng=draw):
     return (a ** p + u * (b ** p - a ** p)) ** (1 / p)
 
 
-def integral(power, low, high):
+def integral(power, low, high, curve=SINGLE):
     """The integral of `M^power xi(M) dM` from `low` to `high` solar masses: the number of stars for power 0, their mass
-    for power 1. Only the ratio of two integrals means anything (the function has no overall scale)."""
+    for power 1. Only the ratio of two integrals means anything (the function has no overall scale), within one `curve`
+    or between the two (`PRIMARY` over `SINGLE` is the systems per star)."""
     total = 0.0
-    for seg_low, seg_high, alpha, k in segments():
+    for seg_low, seg_high, alpha, k in segments(curve):
         a, b = max(low, seg_low), min(high, seg_high)
         if a >= b:
             continue
@@ -104,12 +128,12 @@ def integral(power, low, high):
     return total
 
 
-def number(low_sol, high_sol):
+def number(low_sol, high_sol, curve=SINGLE):
     """The number of stars born in `[low_sol, high_sol]` solar masses per unit of the function; 0 for an empty range."""
-    return integral(0.0, low_sol, high_sol)
+    return integral(0.0, low_sol, high_sol, curve)
 
 
-def sample(min_mass_sol=None, max_mass_sol=None, rng=draw):
+def sample(min_mass_sol=None, max_mass_sol=None, rng=draw, curve=SINGLE):
     """
     Draws an initial mass (solar masses) from the function, optionally truncated to `[min_mass_sol, max_mass_sol]`.
 
@@ -122,7 +146,7 @@ def sample(min_mass_sol=None, max_mass_sol=None, rng=draw):
         raise ValueError(f"empty IMF range [{lo}, {hi}] Msun")
 
     weighted = []
-    for seg_low, seg_high, alpha, k in segments():
+    for seg_low, seg_high, alpha, k in segments(curve):
         a, b = max(seg_low, lo), min(seg_high, hi)
         if a < b:
             weighted.append((a, b, alpha, k * power_law_integral(a, b, alpha)))

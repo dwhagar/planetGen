@@ -18,6 +18,7 @@ from planetgen.api.config import Config
 
 from planetgen.describe import model  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
+from planetgen.datasets import mamajek_sequence  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
 from markupsafe import escape  # noqa: E402
 from planetgen.physics import constants, planet_classes  # noqa: E402
@@ -141,7 +142,7 @@ def test_class_pages_show_the_constants(client):
     html = _html(client, "/classes/planet/S")
     assert "surface pressure below 10 Pa; mass at least 1.5 Earth masses" in html
 
-    low_k, high_k = constants.TEMP_RANGES["G"]
+    low_k, high_k = mamajek_sequence.letter_range_k("G")
     html = _html(client, "/classes/star-spectral/G")
     assert f"{classref.number(low_k)} to {classref.number(high_k)} K" in html
     assert constants.SPECTRAL_CLASS_COLORS["G"] in html

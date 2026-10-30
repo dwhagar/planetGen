@@ -41,7 +41,7 @@ import numpy as np
 from planetgen import tuning
 from planetgen.galaxy import mass_chain
 from planetgen.galaxy.age_law import AgeLaw
-from planetgen.physics import imf, mass_boundaries
+from planetgen.physics import imf, mass_boundaries, remnant_mass
 
 _GYR_PER_HUBBLE_TIME = 977.792
 """float: `1 / H0` in Gy for `H0 = 1` km/s/Mpc over 100 (so `977.792 / (100 h)` Gy)."""
@@ -190,13 +190,12 @@ def mass_return_fraction(breaks, slopes):
     The share of a stellar generation's mass that returns to the gas, with instantaneous recycling (Madau and Dickinson
     2014, section 2.1), for a mass function that is a continuous piecewise power law `dN/dm ~ m^-slope` between
     `breaks` (solar masses): stars above `tuning.RECYCLING_MASS_SOL` return all but their remnant, the white dwarf of
-    Weidemann 2000 up to 8 solar masses, a neutron star to `tuning.BLACK_HOLE_RETURN_MASS_SOL`, and a black hole keeps
+    the initial-final relation of `physics.remnant_mass` up to 8 solar masses, a neutron star to `tuning.BLACK_HOLE_RETURN_MASS_SOL`, and a black hole keeps
     its whole mass. (A single Salpeter slope of 2.35 from 0.1 to 100 gives their 0.27.)
     """
     mass = np.geomspace(breaks[0], breaks[-1], 200_001)
     density = imf.density(mass, breaks, slopes)
-    intercept, slope = tuning.WHITE_DWARF_REMNANT_MASS_SOL["intercept"], tuning.WHITE_DWARF_REMNANT_MASS_SOL["slope"]
-    remnant = np.where(mass < mass_boundaries.sol("core_collapse_limit"), intercept + slope * mass,
+    remnant = np.where(mass < mass_boundaries.sol("core_collapse_limit"), remnant_mass.white_dwarf_mass_sol(mass),
                        np.where(mass < tuning.BLACK_HOLE_RETURN_MASS_SOL, tuning.NEUTRON_STAR_RETURN_REMNANT_SOL, mass))
     returned = np.where(mass >= tuning.RECYCLING_MASS_SOL, mass - remnant, 0.0)
     log_mass = np.log(mass)

@@ -305,11 +305,77 @@ A search over every kind is one such statement per table with the same `VALUES` 
 
 ## 8. What was not measured (and how to close it)
 
-- **Cold cache and wide rows.** Every number is warm, rows are 238 bytes, ids are in sector order. Real `star_systems` rows are wider (the index scan is unaffected, the plain-index and box designs lose more), and ids from several generation runs are less spatially ordered. Core re-times the recommended statement, the plain index and the box on a real generated galaxy once GEN.223 lands; a cold-cache run (restart with a small buffer pool and `O_DIRECT`) is part of that.
+- **Cold cache and wide rows.** Every number is warm, rows are 238 bytes, ids are in sector order. Real `star_systems` rows are wider (the index scan is unaffected, the plain-index and box designs lose more), and ids from several generation runs are less spatially ordered. Core re-times the recommended statement, the plain index and the box on a real generated galaxy once GEN.223 lands; a cold-cache run (restart with a small buffer pool and `O_DIRECT`) is part of that. **Done by TEST.165: section 8.1.**
 - **More than 10 million rows.** Larger tables are extrapolated: B-tree depth rises by one level at about 400 million rows, about +10% on 220 probes [E]; the box's slab grows linearly with N for a given region radius (a billion systems at the Sun's density fill a ball of radius 1,270 pc; a 50 pc box would read about 30 million rows, 10 s at the measured 0.33 µs per row [E]).
 - **Several tables in one search** (section 6.4), **concurrency** (one connection), **clumpy real stellar distributions** (clusters make the cover look worse than a smooth density), and **the MySQL version on Boss's server** (8.0.46 here).
 - **The 21-bit constants and the `IF` guard** (section 6.2).
 - **The Hilbert key's cost in a pure-Python plan** (3 times Morton in numpy).
+
+### 8.1 Measured on a real-shaped table (TEST.165)
+
+`scripts/bench_region_queries.py` grows a scratch database to 3,000,000 `star_systems` rows (`grow`) and times the recommended statement against the box and the sector walk (`run`). The rows are copies of 120 real generated systems (the full 128-column row, `uid` NULL) placed in a ball of 181 pc around the Sun at 0.12 systems per pc³, each with its real sector address, its own `sectors` row and the real `cell_key` and covering index `idx_star_systems_cell` (1,211 MB of indexes, 1,076 MB of rows). Because the rows are copies, a row's neighbours in the table are not its neighbours in space (as in a galaxy built from several runs, but more so). Sixteen centres drawn from the table (eight for the cold run), one pass of every query before timing for the warm run, median of planning, statement and fetch in Python. Every design returned the same set of systems at every centre and radius. MySQL 8.0.46, 4 cores, 16 GB, the test container.
+
+Warm (4 GB buffer pool, everything resident), ms:
+
+| Design | 1 pc | 5 pc | 10 pc | 25 pc | 50 pc |
+|---|---|---|---|---|---|
+| Systems inside (median) | 1 | 66 | 504 | 7,794 | 62,336 |
+| Key, `COUNT(*)` in SQL (the figure of section 4) | 5.8 | 9.0 | 13.6 | 64.5 | 427.5 |
+| Key, rows returned | 5.6 | 9.7 | 17.3 | 82.4 | 600.2 |
+| Box over indexed x, y, z | 11.1 | 52.2 | 110.0 | 317.0 | 790.6 |
+| Sector walk | 17.1 | 41.2 | 93.2 | 576.7 | 3,171.9 |
+
+Cold (1 GB buffer pool against 2.3 GB of table and indexes, `O_DIRECT`, so most pages come from disk; 8 centres), ms:
+
+| Design | 1 pc | 5 pc | 10 pc | 25 pc | 50 pc |
+|---|---|---|---|---|---|
+| Key, `COUNT(*)` | 8.9 | 10.4 | 18.7 | 100.1 | 478.7 |
+| Key, rows returned | 7.4 | 9.5 | 17.6 | 105.2 | 572.2 |
+| Box | 28.5 | 106.0 | 168.9 | 526.3 | 1,293.0 |
+| Sector walk | 85.5 | 126.1 | 349.0 | 2,399.3 | 14,115.6 |
+
+What it says.
+
+- **The ranking holds on a real table, warm and cold.** The key statement is the fastest at every radius, at 50 pc by only 1.3 times over the box; the sector walk, which the research found fastest at 1 pc and nearly as good at 10 pc, is the slowest from 5 pc up on real rows, because it fetches the systems of every sector it touches by `sector_id` and filters in Python. The cold run costs the key statement 1.0 to 1.6 times its warm time, the box 1.6 to 2.6 and the sector walk up to 4.5.
+- **The key statement is slower than the research's figure: 3 times at 1 pc, 4 times at 10 pc, 10 times at 50 pc** (5.8 against 1.8 ms, 13.6 against 3.1, 427.5 against 42, all `COUNT(*)`). The time per system inside is 6.9 µs at 50 pc here against the 0.5 µs of section 4 (2 million candidate rows per second). Section 6.4's NAV.60 measurement on the build machine under load (3 tables of 340,000 rows, 260 ms at 50 pc, 47 ms at 25 pc, 9 ms at 10 pc) lies between the two, so the 42 ms looks like the best case of a quiet machine and a narrow table rather than a rate to promise. The causes were not separated (this machine's speed, a 3 million row table whose 62,000 systems are scattered through the index, the 256 `range checked for each record` probes of the plan); the plan uses the covering index and the join order the plan-shape test pins. It is filed as a performance item (the TODO thread has the number).
+- **Fetching the rows costs a third more than counting them at 50 pc** (600 against 428 ms); at 10 pc and below the two are the same.
+- **The box is close at 50 pc.** Here the box is only 1.3 to 1.8 times the key at 25 and 50 pc (research: 17 times at 50 pc). The ball here is 181 pc across, so a 50 pc box slab covers a fifth of the table; the research's slab was 2.1 million rows of 10 million. At 5 to 10 pc the key is 6 times faster than the box, as before.
+
+Not covered: a generated galaxy of several runs (the copies repeat 120 systems), concurrent queries, `uid`-bearing rows, and a buffer pool of 128 MB (the setting did not take effect on the live server; the cold run used the 1 GB the configuration gives).
+
+### 8.2 Where the time went, and the cheaper statement (PERF.216)
+
+The 3 to 10 times gap of section 8.1 was not the index. On the 3 million row table, 50 pc, 219 runs, 87,000 candidate rows, 62,700 inside (median of six centres):
+
+| What | ms |
+|---|---|
+| Plan (`sphere_runs`, Python) | 4 |
+| Join the runs to the covering index and count the candidates, no distance test | 46 (0.5 µs a candidate, the research's 2 million rows a second) |
+| The same with the distance test in `WHERE` | 260 to 280 |
+| `capped_count` as built (a `UNION ALL` of the two branches, `LIMIT`, `d2` selected) | 410 to 550 |
+
+The distance test costs 2.7 µs a candidate, five times the index read. MySQL evaluates an expression tree node by node and does not share a repeated sub-expression: `(x - cx) * (x - cx)` works out `x - cx` twice, and the statement tested the distance in `WHERE` and then selected it as `d2` (the whole expression again for each row kept), and `capped_count` selected `d2` it never used. About 1.8 million expression nodes were evaluated for 87,000 candidates. The research tables used the same expression on a quiet machine, so what is left of the gap after this change (4 times at 50 pc) is this machine and a 3 million row table, not the statement.
+
+The statement now (`planetgen/db/region.py`):
+
+- The squared distance is `POW(axis - c, 2)` per axis (`x - c` once), worked out once per candidate, in the select list, and the test is `HAVING d2 <= r²` on that column.
+- `capped_count` selects `1` and tests in `WHERE`; it does not compute `d2`.
+- Nothing about the plan changes (the plan-shape test passes unchanged): same runs, same covering index, same join order, same loose test. Systems returned are identical to the product form's, including a system exactly `radius` away: `test_the_distance_is_worked_out_once_per_candidate_and_returns_the_same_systems` compares the id sets and the capped count on the test galaxy, and the benchmark's check of the three designs held at every one of the 16 centres and 5 radii.
+
+Warm, 3 million rows, ms (before from section 8.1, same machine; the median of 16 centres):
+
+| | 1 pc | 5 pc | 10 pc | 25 pc | 50 pc |
+|---|---|---|---|---|---|
+| `COUNT(*)`, before | 5.8 | 9.0 | 13.6 | 64.5 | 427.5 |
+| `COUNT(*)`, after | 6.6 | 9.3 | 10.1 | 32.1 | 177.5 |
+| Rows returned (`p.id`), before | 5.6 | 9.7 | 17.3 | 82.4 | 600.2 |
+| Rows returned (`p.id`), after | 5.9 | 8.3 | 14.5 | 69.1 | 425.5 |
+
+So the count at 50 pc is 2.4 times faster, at 25 pc 2 times, and the early stop at a cap of 20,000 is 3 times faster (220 to 74 ms in the profiling run). The 1 and 5 pc times are the planning and are unchanged. The count at 50 pc is still 4 times the research's 42 ms, which is the index read (46 ms) plus the test on the 87,000 candidates at the new price (about 1.5 µs).
+
+What was tried and not taken. Splitting the runs into cubes wholly inside the sphere (counted with no test) and cubes the surface crosses (tested): about half the candidates are in each, so it saves a further 40 ms of 260 at the price of a second `VALUES` list and a second return from `sphere_runs`; not worth the code. A prefilter on each axis's distance added work. `x * (x - 2c) + Σc²` is 1.5 times slower than `POW` and loses digits.
+
+Seen on the way and not changed here: `near._systems_in_reach` selects `p.name` and `p.sector_id`, which are not in the covering index, so the 50 pc list reads the clustered row of each of the 62,000 systems: 1,170 ms against 360 ms for the ids alone (profiling run). Listing the ids by the covering index and reading names for the page only would take that to the cost of the count; that is a change to the caller, filed separately.
 
 ## 9. Proposed TODO items (working titles; the TODO thread assigns the numbers)
 
@@ -318,7 +384,7 @@ A search over every kind is one such statement per table with the same `VALUES` 
 3. **NAV.43 on the key** (Core, then Interface). `objects_within` reads by the `VALUES`/`STRAIGHT_JOIN` statement for every kind with positions, including objects with no sector and the unbuilt scatter rows ("not generated yet" rows come from the same statement on the scatter tables); the sector-table path goes; extended objects use `r + widest radius`; counts stop early; a plan-shape test (`EXPLAIN FORMAT=JSON` names the covering index and the join order) so a MySQL upgrade that picks a full scan fails a test.
 4. **Nearest-first by radius ladder, dense-core guard** (Core). NAV.12 and NAV.43's ordering use the doubling ladder; the API refuses an uncapped count above its limit with a clear message; NAV.44's page shows "300+" from the early-stop count.
 5. **Scatter rows keep both keys** (Core, with the whole-sphere train). Point columns and cell key on `phenomenon_scatter` and `bright_stars`; the (shell, band, wedge) columns stay as the generator's lookup and the birth address.
-6. **Re-measure on a real galaxy** (Quality, after 1 and 2). The benchmark scripts become `scripts/bench_region_queries.py` (seed, centres, the recommended statement against the box and the sector walk) and run once on a generated galaxy of a few million systems, warm and cold; the numbers go into this note.
+6. **Re-measure on a real galaxy** (Quality, after 1 and 2). **Done by TEST.165, section 8.1.** The benchmark scripts become `scripts/bench_region_queries.py` (seed, centres, the recommended statement against the box and the sector walk) and run once on a generated galaxy of a few million systems, warm and cold; the numbers go into this note.
 7. **Test: the key survives motion** (Quality). The nightly update test moves objects across a cube boundary and asserts the key follows; a round trip bit for bit of the point columns and the key.
 8. **Docs** (Docs). `galaxy-coordinate-system.md` and `database-schema.md` describe the cell key; this note moves to "built" when 1 to 3 land; the API reference states the cap and the ladder.
 

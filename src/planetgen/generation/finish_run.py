@@ -201,7 +201,9 @@ def plan(conn, run_id, galaxy_seed, build, database):
                            f"again.")
     carried = []
     for index, step in enumerate(queued):
-        params = {name: value for name, value in step.params.items() if name not in (wrapper.FINISHED_BY, AGAIN)}
+        # a stage that opened in the run being carried on keeps the clock it recorded (PERF.213); one that is run again opens anew
+        params = {name: value for name, value in wrapper.resolve_params(conn, run_id, step.params, strict=False).items()
+                  if name not in (wrapper.FINISHED_BY, AGAIN)}
         if index < first:
             params[wrapper.FINISHED_BY] = run_id
         elif index == stopped:
