@@ -2202,7 +2202,7 @@ Migration 0179 adds no column. `planets.hydrosphere` and `moons.hydrosphere` tak
 
 ### v176 (MAP.351): the life class reasons
 
-Migration 0176 adds no column. It fills `system_interests` with one reason for each life class, `lifeclass-1a` to `lifeclass-9` (`interests.LIFE_CLASS_REASONS`): a system has a row for each life class that lives on one of its planets or moons (`life_class` and `life_class_variant`), `n` how many, no score. It is filled from the planets and moons already stored; a body whose life class is NULL gives none. Nothing a generator draws changes, so there is no epoch.
+Migration 0176 adds no column. It fills `system_interests` with one reason for each life class, `lifeclass-1a` to `lifeclass-9` (`interests.LIFE_CLASS_REASONS`): a system has a row for each life class that lives on one of its planets or moons (`life_class` and `life_class_variant`), `n` how many, no score. It is filled from the planets and moons already stored; a body whose life class is NULL gives none. Nothing a generator draws changes, so there is no epoch. Since GEN.1001 a body counts only when it also has a `life_stage` (a world that suits a class but whose life has not started gives none); a database migrated before that keeps the rows of such bodies until its systems are saved again.
 
 ### v175 (GEN.889, GEN.890): the life class switch
 

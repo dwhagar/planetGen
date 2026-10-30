@@ -121,10 +121,20 @@ def run_territories(args):
 def run_population_stage(args):
     """The population pass as a run of its own (`planetgen population`)."""
     stages.enter("population")
-    followed.run_followed(args, [population_follower(args)], "Population pass")
+    followed.run_planned(args, planned_population(args))
+
+
+def planned_population(args):
+    """The population pass as a `followed.Planned`."""
+    return followed.Planned([population_follower(args)], "Population pass")
 
 
 def run_territories_stage(args):
     """The territories pass as a run of its own (`planetgen territories`)."""
     stages.enter("territories")
-    followed.run_followed(args, [territories_follower(args)], "Territories pass")
+    followed.run_planned(args, planned_territories(args))
+
+
+def planned_territories(args):
+    """The territories pass as a `followed.Planned`."""
+    return followed.Planned([territories_follower(args)], "Territories pass")

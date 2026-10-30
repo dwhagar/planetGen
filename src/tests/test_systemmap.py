@@ -45,7 +45,8 @@ def _planet(id_, star_id, x_km, y_km, distance_km=None, radius_km=6371.0, planet
         "distance_km": distance_km if distance_km is not None else math.hypot(x_km, y_km),
         "radius_km": radius_km, "planet_class": planet_class, "body_type": body_type,
         "zone": zone, "period_years": period_years, "gravity_g": gravity_g,
-        "life_stage": life_stage, "life_class": 1 if life_stage else None, "life_class_variant": "a" if life_stage else None, "moons": moons or [],
+        "life_stage": life_stage, "life_class": 1 if life_stage else None, "life_class_variant": "a" if life_stage else None,
+        "life_class_id": "1a" if life_stage else None, "moons": moons or [],
         "atmosphere": atmosphere, "composition": composition, "surface_temperature_k": surface_temperature_k,
         "atmospheric_pressure_pa": atmospheric_pressure_pa,
     }

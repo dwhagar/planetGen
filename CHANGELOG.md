@@ -2,6 +2,148 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2638] - 2026-10-30
+
+**Headline:** Drawing the nebula field can now follow another stage in the same run, the part of one run per Generate job that needs no other change.
+
+### Changed
+
+- PERF.203 step 2: the nebula field stage says "the galaxy's skeleton has never been built" and skips a galaxy with no outline when the stage opens (its `prepare` and `expand`), not when the command starts, so an earlier stage of the same run may be what builds the plan. `planetgen scatter --nebula-field` refuses and draws exactly what it did. The other fills (map luminosity, habitability, population, territories) had no start-time check to move. The scatters, link, settle and the sectors planner read the database to build their stages and are PERF.212 to PERF.214.
+
+## [8.0.2637] - 2026-10-30
+
+**Headline:** The All systems list opens any page as fast as the first when sorted by sector, octant or binary, as it already did by name.
+
+### Changed
+- **The All systems table pages by key in every sort.** Sorted by sector, octant or binary, the page links carry the system the page before ended on and the list carries on from it inside its group, so a page deep in the list costs what the first does. Before, a page counted and skipped every system before it in its group: with 3,000,000 systems, a page 300,000 deep in an octant took 1.5 seconds and now takes 3 milliseconds. `GET /api/systems?after=<system ID>` now works in those sorts as well as by name.
+
+## [8.0.2636] - 2026-10-30
+
+**Headline:** A world that suits a life class but where no life has started yet is no longer shown as having that life.
+
+### Changed
+
+- **No life class before life (GEN.1001).** A planet or moon round a star younger than the first step of its life schedule is stored with the life class it suits and no life stage, and it used to look as if that life lived there. The Galaxy Map life class marks, the life class filter and its count, the class shown in the search results and the habitability icons, the API's `life_class_id`, the dominant species line on the object page and the side panel of the system map now treat such a world as having no living class; the description of the world still says the conditions suit the class and none has appeared yet. A database made before this keeps the old map marks of those worlds until their systems are saved again.
+
+## [8.0.2635] - 2026-10-30
+
+**Headline:** The runs of the generation commands are now built apart from starting them, the first step toward one run for a whole Generate job.
+
+### Changed
+
+- PERF.203 step 1: each single-stage generation command (skeleton, bright-star and phenomena scatters, map luminosity, habitability, nebula field, clear scatter, link, backfill, settle, population, territories) builds its run as a `followed.Planned` (its followers, title and what it returns) and starts it with `followed.run_planned`. Nothing about what a command does or generates changes; the later steps put the planned runs of every selected command into one run.
+
+## [8.0.2634] - 2026-10-30
+
+**Headline:** The test suite now holds standing checks on the life classes: no star letter table, no stage without a class, no Flora under ice, and no class on a solvent it does not allow.
+
+### Changed
+
+- **Standing life class tests (GEN.873).** A new test file checks the life class rules against the shared body sweep and the generated systems: the class rules hold no table keyed by a star letter and every star letter feeds some light class, a body with a life stage has a life class, no light class is supported and no body has Flora under an ice-covered ocean, and no class is supported or lives where its solvent (water, hydrocarbon, liquid carbon dioxide, sulfuric acid or ammonia water) is missing. Each rule is shown to fail on a body made to break it. Nothing the generator draws changes.
+
+## [8.0.2633] - 2026-10-30
+
+**Headline:** "Near this system" now measures from where the system really is, and four more tests that were red on main are green.
+
+### Fixed
+
+- **A system's page and the near command put the system in the wrong place (TEST.453).** The galaxy position an object page and `near` read for a system added the system's offset to its sector centre without turning it by the sector's orientation, so it sat up to a couple of parsecs from the point stored with it (the position every map and search uses). `near` and `nearest` from a system now measure from the stored point, and the system's own sector-local position on its page is unchanged.
+- **A moon whose tide works out to nothing stored 0 and not none (TEST.453).** An icy moon on a circular orbit saved a tidal flux of exactly 0.0 while a rocky one saved none; both are none now, so a saved moon's tide is empty or positive.
+- **A world around a black hole could stop a system from generating (TEST.453).** A black hole's temperature gives no visible light, and the atmosphere colour of a giant lit by it raised "the spectrum has no light between 380 and 780 nm"; a body lit by a star with no visible light now has no atmosphere colour, as one with no star temperature already did.
+- **Two planet page tests expected a class name the page no longer has (TEST.453).** The summary paragraph is `summary inline-links` since UX.220; the tests now look for that.
+
+## [8.0.2632] - 2026-10-30
+
+**Headline:** K dwarfs are 11% of stars instead of 19%, and an M dwarf has a companion star as often as the star-count table says.
+
+### Fixed
+- **K and M stars were split at the wrong temperature (GEN.897).** The K class ran down to 3700 K, so stars of 0.4 to 0.55 solar masses, M0 to M2 in the surveys, came out K8 and K9: K was 19.4% of stars against 11.6% (RECONS) to 12.9% (Mamajek) observed. The K/M edge is now 3900 K (M0V is 3850 K; the luminosity ranges already put it near there) and the A/F edge 7200 K (F0V is 7220 K): K is 10.8% and M 76.7% of the stars at the reference solar position, both inside the researched ranges, and A rises from 0.11% to 0.15%. The class page and the map colours read the same edges. Stand-in row SC1 (T2, L1).
+- **An M dwarf lost its companions to brown dwarfs (GEN.899).** A companion's mass was drawn from 0.1 to 1 times its primary's, so more than half of the companions of a low-mass M dwarf were under 0.08 solar masses, were cut out of the system, and left an M2V primary with a companion star in 15.8% of systems against the star-count table's 27%. Every other star of a tree is now at least 0.08 solar masses, so the table counts stars (M2V: 26.6%), and a brown dwarf is one extra member in 3% of the drawn trees (`tuning.BROWN_DWARF_COMPANION_CHANCE`, stand-in row SC2, T2, L0; it was about 17% of M2V trees). A forced star count adds none, and a tree's `star_count` no longer counts one.
+- **A stars stay rare (GEN.898, closed with the residual documented).** The disk history behind the age mix matches the observed present star formation rate over its mean and the B star share, so the shortfall of A stars (0.15% against 0.6% to 1.1%, which rests on 4 stars of 378) is left as a documented known anomaly in the star census instead of a tuned mix. The census also keeps G dwarfs (3.1% against 4.1% to 5.0%) as a known anomaly: the mass function gives too few stars of 0.86 to 1.1 solar masses.
+- **Day and night shares followed the spin before an orbit move (GEN.904).** After a planet's orbit was moved to clear a neighbour, its spin was drawn again but its solar day and hours of daylight were left as they were (or, for a reclassified planet, were left empty: 158 of 1,100 rotating planets in the sample): a planet with a 2.02 hour rotation showed a 3.41 hour solar day. The shares are worked out again from the new spin and orbit, for the planet and each of its moons.
+- **Class V and other worlds that keep their hydrogen had no mantle oxidation (GEN.905).** An envelope's air mixture carries no mantle redox, so `mantle_redox` and `mantle_delta_iw` were empty on class V; they come from the same redox rows as an airless rocky body's now, and the sheet fill audit no longer excuses them.
+
+generation-output: changed
+
+TODO items resolved: GEN.897, GEN.898, GEN.899, GEN.904, GEN.905.
+
+## [8.0.2631] - 2026-10-30
+
+**Headline:** The phenomena census now measures a galaxy that is Milky Way-like, so the supernova remnant, magnetar and Wolf-Rayet counts it reported as too low were the test galaxy's, not the generator's.
+
+### Changed
+
+- **The phenomena census reads a Milky Way-like galaxy (GEN.900, GEN.901, GEN.902).** The old reference galaxy had a bulge as heavy as its thin disk and no mass chain, so its star formation history ran on a galaxy a half larger than the stars its density held: it held 0.46 of the young and massive stars that history implied, and the supernova remnants (260), magnetars (22) and Wolf-Rayet stars (590) all fell short of their surveys. The census now draws its galaxy through the generator's own shape chain (5.2 billion solar masses of stars, a fifth of them in the bulge, a 2.6 kpc disk), where the density, the history and the mass agree and star formation is 1.9 solar masses a year (the Milky Way's 1.65). It finds 411 supernova remnants, 42 magnetars and 985 Wolf-Rayet stars, all inside their ranges, and the three known-anomaly tags are removed. Tests and test data only: no generated galaxy, system or planet changes.
+
+## [8.0.2630] - 2026-10-30
+
+**Headline:** The ground a planet is drawn with and its cloud, haze and dust draws no longer depend on its class letter.
+
+### Changed
+- **The dominant surface material and the aerosol draws follow the conditions, not the class (GEN.917, GEN.915).** The surface draw took the class letter in its inputs (for the giant check and as the key of its table, all of whose rows are open to every class); it now takes whether the body is a giant, from its structure, and draws the dominant ground from the composition, temperature, pressure and age alone, as its conditions already did. The aerosol stream was seeded with the class letter among its identity; it is now seeded from the body's identity (moon or planet, mass, radius, distance) and its conditions (surface temperature, air pressure). Bodies that carried a class letter at that point of generation draw different cloud, haze and dust depths.
+
+generation-output: changed
+
+## [8.0.2629] - 2026-10-30
+
+**Headline:** A world whose only liquid is a puddle of concentrated chloride brine now reads "Brine seep" instead of "Surface ocean", and it no longer counts as a sunlit sea for life.
+
+### Changed
+- **Brine seep (GEN.908).** A liquid surface with so little water (under 2e-5 of the body's mass) that its chemistry is a concentrated chloride brine, melting at 200 to 270 K and often under no air, is its own water state, `brine seep`, on the page, the map and in the search. It still holds liquid water for a base and its ocean details are shown, but it is not a sunlit sea for life, not a wet world for plate tectonics and not an induction ocean. About two thirds of the worlds that used to read "Surface ocean" in a sun's habitable zone were such seeps.
+- **Database.** Migration 0176 lets `planets` and `moons` store the new state and relabels the stored brine oceans.
+
+generation-output: changed
+
+## [8.0.2628] - 2026-10-30
+
+**Headline:** A giant's temperature at its 1 bar level now includes its own heat, so a Jupiter-like giant at 5 AU is near 155 K instead of 135 K and Neptune-like ones near 75 K.
+
+### Changed
+- **Giant 1 bar temperature (GEN.816).** The stored temperature of a gas or ice giant radiates the starlight it absorbs and its own heat together. The own heat is the cooling law through Jupiter and Neptune (a Jupiter-like giant 5.6 W/m2 at 4.5 Gy, fading with age, rising with mass), replacing the old square-root-of-mass stand-in; the same flux feeds the temperature that decides helium rain and the temperature the giant's gas mixture is drawn at. Jupiter-, Uranus- and Neptune-like giants land at 154, 83 and 76 K against 166, 76 and 72 K measured; a Saturn-like one at 115 K against 134 K until its helium-rain heat is added (GEN.810). The temperature, pressure-level mixture and helium-rain verdict of every giant change.
+
+generation-output: changed
+
+## [8.0.2627] - 2026-10-30
+
+**Headline:** Radiation doses on thin-air worlds and the ozone layer now follow measured physics.
+
+### Changed
+- **The cosmic-ray dose of a thin or absent air column (GEN.746).** Between no air (the Moon) and 100 g/cm2 of air the dose is no longer a straight line between anchors: it is the cosmic-ray primaries thinned by nuclear collisions plus a shower that builds up with depth, fitted to the Moon, to Mars (232 mSv/yr at 22.6 g/cm2 and the slope Guo measured) and to the shower peak of the Atri table. A world with 0.1 to 50 g/cm2 of air now has a dose that rises toward the peak the way real columns do.
+- **The dose from a star's particle storms (GEN.747).** The old 20 mSv/yr constant is replaced by the sum of 47 measured solar particle events (1997 to 2015), taken at the blood-forming organs: about 265 mSv/yr in free space at the Sun's distance, less what an air column and a magnetic field keep out. Other stars scale by their flare rate and distance. Worlds with thin air and no field now score worse on radiation; the ozone-loss flag follows the new numbers.
+- **The ozone layer's temperature and spread (GEN.748).** The visible (Chappuis) absorption of ozone now depends on temperature, read from the Burkholder and Talukdar tables (cached on the next setup download of the ozone data), at the temperature of each body's ozone layer rather than a fixed 220 K. The spread of the ozone column around its median is now the range the published models give at each oxygen level, narrower where they agree, instead of one wide range everywhere.
+- The stand-ins of all three are in the registry (gap-filling plan 6.23, rows CR1 to CR4, SE1 to SE5, OZ1 to OZ3), each with its source tier and tweak level.
+- generation-output: changed
+
+## [8.0.2626] - 2026-10-30
+
+**Headline:** The stars of a globular cluster, a young cluster or a satellite galaxy now draw their composition from their own component instead of a halo value.
+
+### Changed
+
+- **Cluster and satellite stars take their component's [Fe/H] (GEN.662).** The stars the component pass places in a cluster or a satellite draw their birth [Fe/H] from that component's own value (with the scatter of its family) before their lifetimes and giant branch are worked out, and the row stores it. A star with no component given takes the generic cluster or satellite distribution; the halo's value, and the reference 0 their trees were read at, are gone from those paths.
+- **A population's star counts are worked out at its own composition (GEN.661).** The number of stars in a mass band or above a luminosity used to be read at the Sun's composition for every population. A metal-poor population (a halo, a cluster) now has the larger bright share its stars have, and a metal-rich one the smaller. The stand-in left is the composition of the counts: one value, the population's mean at the Sun's distance (registry row SCC1).
+
+generation-output: changed
+
+## [8.0.2625] - 2026-10-30
+
+**Headline:** The colour of a world's sky now takes the colour of its own ground, ice and bare rock, and a moon keeps how it formed.
+
+### Changed
+- **The ground under the air is the body's stored surface mix (GEN.462).** The atmosphere colour of a rocky planet or moon is worked out over the area-weighted reflectance of its stored ground types and ice in the three visible bands (the laboratory spectra of the materials table, held flat beyond 450 to 650 nm). The share of the surface with no measured visible spectrum (the open ocean and the metal) keeps the old stand-in reflectance of 0.15, and so does the whole ground of a body with no stored mix. The sky of a thick air above bright ice or salt is slightly lighter than above dark carbon or basalt. The weathering of an airless surface and the Bond albedo of the temperature stay with GEN.684.
+- **A moon's origin and its giant's disk are stored (DB.70).** `moons` and `planets` gain `moon_origin` (disk, impact, captured, ring or binary) and, on a giant, the lifetime, alpha over f, ice fraction and ice-line distance of the disk its moons formed in (schema 169). A moon made before keeps empty columns.
+
+generation-output: changed
+
+## [8.0.2624] - 2026-10-30
+
+**Headline:** Massive stars born in the youngest star-forming regions can now come with a small group of siblings a fraction of a light year away.
+
+### Changed
+- **Young groups at fill (GEN.328).** An O or early-B star younger than 0.3 million years that the fill makes in an emission region (class D or E) is born in a group of three to five stars in 5% of cases (the Orion Trapezium is the model). Its group mates are separate young systems a few thousand to thirty thousand AU from it, built by whichever sector holds each one, so a group across a sector border is made once. A group older than its decay age (10,000 to 40,000 years) is not drawn: the star is built with the tighter hierarchy the group left, one star fewer. The protostars of star-forming cores are all under 8 solar masses, so none of them is massive enough to be in a group. Because an emission region's stars are usually older than 0.3 million years, groups are rare in the fill.
+
+generation-output: changed
+
 ## [8.0.2623] - 2026-10-30
 
 **Headline:** The Phenomena list opens any page, sorted by name, as fast as the first, and every page of it is quicker to open.
