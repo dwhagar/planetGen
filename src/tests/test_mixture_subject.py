@@ -151,7 +151,10 @@ def test_a_generated_body_gives_a_subject_the_draw_accepts(host, mass_earth, zon
     planet = _real(host, mass_earth, zone)
     subject = ms.subject_of_body(planet, ts_k=planet.surface_temperature, pressure_bar=max(planet.atmospheric_pressure, 1.0) / 1e5,
                                  long_lived_geology=True)
-    assert set(subject.quantities) == set(mixture_draw.required_inputs(subject.body_class))
+    required = set(mixture_draw.required_inputs(subject.body_class))
+    assert required <= set(subject.quantities) <= required | set(ms.OPTIONAL_INPUTS)       # GEN.804: the star's own activity rides along
+    assert subject.quantities["log_lx_lbol"] == host.log_lx_lbol
+    assert "magnetopause_rp" not in subject.quantities
     with draw.bound(draw.Stream("mixture-subject")):
         result = mixture_draw.draw_mixture(subject)
     assert result.mole_fractions and sum(result.mole_fractions.values()) == pytest.approx(1.0)

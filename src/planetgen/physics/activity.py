@@ -193,6 +193,27 @@ def coronal_xuv_at(mass_sol, age_gy, luminosity_w):
     return coronal_xuv_w(lx_lbol_at(age_gy, saturated_lx_lbol(mass_sol), t_sat, decay) * luminosity_w)
 
 
+def effective_saturation_age_gy(mass_sol, age_gy, log_lx_lbol=None):
+    """
+    The saturation age that reproduces a star's own `L_X/L_bol` at `age_gy` in the table's decay (GEN.804): a star that spun slowly or fast, or that
+    drew a high or low decay offset, ran along the decay of its mass shifted in time, and its stored `log_lx_lbol` fixes the shift. The nominal
+    age without the stored value, and the older of the two for a star still saturated (its saturation has not ended, so its end is not known).
+    """
+    nominal, decay = _interp(ACTIVITY_TABLE, mass_sol)
+    if log_lx_lbol is None or decay <= 0.0 or age_gy <= 0.0:
+        return nominal
+    ratio = 10 ** log_lx_lbol / saturated_lx_lbol(mass_sol)
+    if ratio >= 1.0:
+        return max(age_gy, nominal)
+    return age_gy * ratio ** (1.0 / decay)
+
+
+def coronal_xuv_with(mass_sol, at_gy, luminosity_w, t_sat_gy):
+    """`coronal_xuv_at` along the decay with a given saturation age (`effective_saturation_age_gy` for a star's own)."""
+    _, decay = _interp(ACTIVITY_TABLE, mass_sol)
+    return coronal_xuv_w(lx_lbol_at(at_gy, saturated_lx_lbol(mass_sol), t_sat_gy, decay) * luminosity_w)
+
+
 def blackbody_fraction_above(energy_ev, temperature_k):
     """The share of a blackbody's output above `energy_ev` (the series of
     the Planck integral)."""

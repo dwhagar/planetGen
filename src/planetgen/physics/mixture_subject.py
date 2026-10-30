@@ -138,6 +138,8 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     index = stored if stored is not None and same_distance else activity.exposure_index(star, distance_au)
     if index is not None:
         quantities["xuv_index"] = index
+    if getattr(star, "log_lx_lbol", None) is not None:
+        quantities["log_lx_lbol"] = star.log_lx_lbol
     flux = climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM)
     albedo = getattr(body, "bond_albedo", None)
     if albedo is not None:
@@ -149,6 +151,12 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     quantities["teff_k"] = effective
     quantities["t_layer_k"] = giant_draw.ONE_BAR_OVER_EFFECTIVE * effective
     return quantities
+
+
+OPTIONAL_INPUTS = ("log_lx_lbol",)
+"""tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
+(the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
+field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others."""
 
 
 KIND_OF_BODY_TYPE = {"t": "terrestrial", "g": "giant"}
@@ -184,4 +192,5 @@ def subject_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_lived
     if missing:
         raise MixtureError(f"the mixture draw of a {kind} reads {', '.join(missing)}, which cannot be built for this body"
                            f" (no star, no distance from the star, no Bond albedo or no stored interior)")
-    return Subject(kind, {name: built[name] for name in needed})
+    optional = {name: built[name] for name in OPTIONAL_INPUTS if built.get(name) is not None}
+    return Subject(kind, {**{name: built[name] for name in needed}, **optional})
