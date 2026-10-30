@@ -13945,26 +13945,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1.
   Prerequisites: GEN.992. Related: GEN.992, PERF.209.
 
-- [ ] **PERF.212 The bright-star, phenomena and shell scatters take their params when their stage opens, not when the run is built**
-  bright_star_followers needs the skeleton and the stored mass limit and
-  settings, so plan then scatter in one run cannot build the scatter
-  followers up front. Found by Aux 2 (as the lane reported, 2:47 AM EDT
-  2026-10-30) while planning PERF.203 step 2: a Follower's params must
-  be complete before the run starts, but several verbs read the database
-  when their followers are BUILT, so the whole page job cannot be one
-  run until each computes its params when its stage opens (in its
-  command's expand or prepare, in a worker). No behaviour or
-  stored-output change, no epoch. Lock-free. Do: move the params into
-  the scatter command's expand or prepare hook; test that planning then
-  scattering in one planned run gives the same stored output as today.
-  Size M. Owner: Aux 2.
-  Update (Core 3, PERF.213 #3985) (2026-10-30 6:39 AM EDT): The hook is
-  in: a deferred step parameter the wrapper resolves when a stage opens,
-  plus a small registry for the stage-open parameters. Aux 2 extends
-  that registry for the bright-star, phenomena and shell scatters; no
-  stored value changes.
-  Prerequisites: PERF.203. Related: PERF.203, PERF.213, PERF.214.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
