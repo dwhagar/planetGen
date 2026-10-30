@@ -19462,6 +19462,18 @@ clears each one.
   command.
   Prerequisites: none. Related: GEN.1118.
 
+- [ ] **TEST.502 test_orbital_motion::test_moon_having_planet_reflex_offset_matches_manual_formula fails on a clean main: settle_orbit moves captured moons without refreshing the planet offset (bug)**
+  Tides 1, 6:19 PM EDT 2026-10-30 (as the lane reported): the test fails
+  on main, not from the train 5 branch; settle_orbit moves captured
+  moons without refreshing the planet's reflex offset, so the stored
+  offset no longer matches the manual formula. Do: reproduce with the
+  datasets fetched, find which merge broke it, and fix the code or the
+  test, whichever is wrong; if the generated offset is wrong, say so and
+  it becomes a GEN bug. Lock-free unless the code changes output. Where
+  we think it belongs (best guess, can move): Core 1 (test owner),
+  separate branch, after TEST.500.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
