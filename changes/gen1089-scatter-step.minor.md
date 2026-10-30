@@ -1,5 +1,0 @@
-**Headline:** The code now has the rule that says what a giant does to an outer disc: how much it sweeps, captures in resonance, scatters and throws out.
-
-### Changed
-- **The scatter module (GEN.1089).** `physics/scatter.py` takes the outermost giant (mass, radius, orbit, how far it moved outward), the disc and whether the system had an instability, and gives the share of the disc's mass that stays cold, is excited, sits in the 3:2 and 2:1 resonances, becomes scattered disc, centaurs, detached or trojan bodies, is thrown out, is implanted in the inner belt or captured by a moon system, and one sentence for the belt page. A disc with no giant keeps all its mass cold; a Neptune-sized giant that moved from 18 to 30 AU through a disc of 15 to 35 AU scatters 84 percent of it. It is a rule with no N-body run. No generated world changes: the belt and outer-disc wiring is a later step (GEN.1092).
-- **Stand-ins recorded.** Rows SX1 to SX5 in the stand-in registry (GEN.725): the chaotic zone and disc slope, and four shares at tier educated guess from physics, tweak L3 (each with a burn-down line).
