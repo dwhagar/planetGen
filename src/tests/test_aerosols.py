@@ -98,11 +98,49 @@ def test_the_methane_haze_gate_follows_the_ratio_and_the_hydrogen():
 
 
 def test_the_titan_like_haze_is_the_order_of_titans_and_never_a_preset():
-    depths = np.array([aerosols.draw_haze(TITAN, 94.0, random.Random(s)) for s in range(300)])
+    depths = np.array([_haze(TITAN, 94.0, s).tau for s in range(300)])
     assert 0.003 < depths.min() < 0.1 and 1.0 < depths.max() < 30.0                  # Titan's 9.6 at 500 nm is a target in the span's order
     assert len(set(np.round(depths, 6))) > 250
-    assert aerosols.draw_haze(EARTH, 288.0, random.Random(1)) == 0.0
-    assert aerosols.draw_haze(HOT_JUPITER_LIKE, 300.0, random.Random(1)) == 0.0     # no methane, no haze
+    assert _haze(EARTH, 288.0, 1) is aerosols.NO_HAZE
+    assert _haze(HOT_JUPITER_LIKE, 300.0, 1) is aerosols.NO_HAZE                    # no methane, no haze
+
+
+def _haze(column, temperature, seed, star_temperature_k=5772.0):
+    return aerosols.haze_in(column, temperature, aerosols.draw_haze_draws(random.Random(seed)), star_temperature_k)
+
+
+def test_a_haze_takes_a_share_of_the_sunlight_that_grows_with_its_depth_and_sits_aloft():
+    hazes = [_haze(TITAN, 94.0, s) for s in range(60)]
+    ordered = sorted(hazes, key=lambda haze: haze.tau)
+    shares = [haze.absorbed_share for haze in ordered]
+    assert shares == sorted(shares) and 0.0 < shares[0] and shares[-1] <= aerosols.HAZE_SHARE_CAP
+    assert all(0.0 < haze.pressure_pa < TITAN.pressure_pa for haze in hazes)
+    assert _haze(TITAN, 94.0, 2, star_temperature_k=None).absorbed_share == 0.0       # no star, no sunlight to take
+    assert aerosols.haze_absorbed_share(0.0, 5772.0) == 0.0
+    assert aerosols.haze_absorbed_share(1.0e4, 5772.0) == aerosols.HAZE_SHARE_CAP
+
+
+def test_a_cooler_star_has_more_of_its_light_where_the_haze_absorbs_less():
+    """The tholin absorbs in the blue (Khare): a red star's light is less absorbed than a hot star's."""
+    assert aerosols.haze_absorbed_share(1.0, 3000.0) < aerosols.haze_absorbed_share(1.0, 5772.0) < aerosols.haze_absorbed_share(1.0, 9000.0)
+
+
+def test_a_thick_haze_takes_its_sunlight_higher_up_than_a_thin_one_of_the_same_mass_profile():
+    draws = aerosols.draw_haze_draws(random.Random(2))
+    thin = aerosols.haze_in(TITAN, 94.0, aerosols.HazeDraws(draws.kzz_m2_s, 0.01, draws.radius_m), 5772.0)
+    thick = aerosols.haze_in(TITAN, 94.0, aerosols.HazeDraws(draws.kzz_m2_s, 1.0, draws.radius_m), 5772.0)
+    assert thick.tau > thin.tau and thick.pressure_pa < thin.pressure_pa
+
+
+def test_the_haze_draws_are_a_stream_of_the_bodys_own_and_the_air_makes_the_same_haze_each_time():
+    class Body:
+        is_moon, mass, radius, distance = False, 5.97e24, 6371.0, 1.0
+
+    first = aerosols.draw_haze_draws(aerosols.haze_stream_of(Body))
+    assert first == aerosols.draw_haze_draws(aerosols.haze_stream_of(Body))
+    Body.distance = 2.0
+    assert first != aerosols.draw_haze_draws(aerosols.haze_stream_of(Body))
+    assert _haze(TITAN, 94.0, 7) == _haze(TITAN, 94.0, 7)
 
 
 def test_the_haze_supply_grows_with_the_mixing_and_not_with_the_methane_share():
@@ -124,15 +162,15 @@ def test_dust_needs_a_dry_ground_and_a_wind_over_the_threshold():
 @pytest.mark.parametrize("column, temperature", [(EARTH, 288.0), (MARS, 215.0), (TITAN, 94.0), (None, 0.0)])
 def test_every_body_takes_the_same_number_of_draws(column, temperature):
     rng = Counting(11)
-    aerosols.draw_aerosols(column, temperature, rng)
+    aerosols.draw_aerosols(column, temperature, rng, aerosols.NO_HAZE)
     assert rng.calls == aerosols.DRAWS
 
 
 def test_the_same_stream_draws_the_same_aerosols():
-    first = aerosols.draw_aerosols(EARTH, 288.0, random.Random(5), dry_surface=False)
-    assert first == aerosols.draw_aerosols(EARTH, 288.0, random.Random(5), dry_surface=False)
+    first = aerosols.draw_aerosols(EARTH, 288.0, random.Random(5), aerosols.NO_HAZE, dry_surface=False)
+    assert first == aerosols.draw_aerosols(EARTH, 288.0, random.Random(5), aerosols.NO_HAZE, dry_surface=False)
     assert first.tau_dust == 0.0 and first.tau_haze == 0.0 and first.tau_cloud > 0.0
-    assert aerosols.draw_aerosols(None, 0.0, random.Random(5)) == aerosols.NONE
+    assert aerosols.draw_aerosols(None, 0.0, random.Random(5), aerosols.NO_HAZE) == aerosols.NONE
 
 
 def test_the_layers_carry_the_materials_optics():
