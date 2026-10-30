@@ -13761,6 +13761,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse stages, no migration) rides a train. Owner: Sources 1.
   Prerequisites: GEN.1019. Related: GEN.1019, GEN.852, GEN.725.
 
+- [ ] **GEN.1021 Replace the 67P calibration of the comet species factors with a second comet or a laboratory trapping table**
+  Filed for Aux 3 (relayed 1:10 PM EDT 2026-10-30 as the lane reported)
+  as the replaced_by item of the k7 registry row. After GEN.1005 k7,
+  each comet species (N2, Ar, OCS, SO2, O2, Kr, Xe) is built relative to
+  CO from the host star's own N/C, Ar/C and S/C times one trapping
+  factor per species calibrated to comet 67P (physics/comet_species.py
+  TRAPPED_OVER_NEBULAR and UNSCALED_OVER_H2O, rows CS1 to CS5, tier T7,
+  tweak L3, a flagged stand-in). Do: replace that calibration with
+  measured abundances of a second comet (N2, Ar, OCS, SO2, O2, Kr or Xe)
+  or a laboratory trapping table by formation temperature (Bar-Nun
+  style), widen or narrow the trapping bracket to what the sources give,
+  and retire CS1 to CS5 in GEN.725. Done: no species factor depends on
+  one comet alone, the registry rows say so, and the generated output
+  change is reported in the epoch note. Lock-free for the research and
+  the module; the swap changes comet composition output, so it rides a
+  train. Waits on GEN.1005 k7 (the rows exist after it). Owner: none
+  yet; released pool, low priority.
+  Prerequisites: GEN.1005. Related: GEN.1005, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
