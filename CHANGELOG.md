@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2598] - 2026-10-30
+
+**Headline:** The atmosphere rows for brown dwarf types and the host-star rotation track now say what they rest on, and the brackets no source reaches are registered.
+
+### Changed
+
+- Rows g4 (brown dwarf T8 to Y0) and p6 (host rotation track) of the atmosphere recipes are `DERIVED`; the brackets of the water-rich share, hycean share, envelope metals, white dwarf debris, trace gases, hazes and radioisotopes that no source gives are stand-in registry rows RA1 to RA11 with their tier and tweak level. No generated value changes.
+
 ## [8.0.2597] - 2026-10-30
 
 **Headline:** The kinds of asteroid in a belt now follow the star's ice lines and its aluminium-26 instead of the Solar System's zone table (not yet used by the generator).
