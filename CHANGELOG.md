@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2786] - 2026-10-30
+
+**Headline:** Every document now says the same thing about what a Class D body is.
+
+### Changed
+- **GEN.1091: the Class D wording agrees with the rule the generator uses.** Class D is a small, airless body (surface pressure under 10 Pa) with at least 1 percent of its mass in water or ice; size is not in the rule, and the intended scale of 50 to 500 km radius is stated as that, not as a limit. It covers belt members and dwarf planets as well as moons (the default Boss confirmed with the belt-origins plan). Four design documents and the comment on `tuning.PLANET_CLASSES["D"]` are rewritten to match; nothing the generator draws or stores changes.
+
 ## [8.0.2785] - 2026-10-30
 
 **Headline:** A moon's chance of having been captured now falls with its mass as a tested calculation, so a big moon is rarely a captured one; the moon generator does not use it yet.
