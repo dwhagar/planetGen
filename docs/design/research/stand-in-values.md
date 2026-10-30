@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 797 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 803 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 125 | 7 | 6 | 1 | 0 | 139 |
+| T1 | 126 | 10 | 7 | 1 | 0 | 144 |
 | T2 | 105 | 21 | 0 | 1 | 0 | 127 |
-| T3 | 77 | 31 | 5 | 9 | 0 | 122 |
+| T3 | 77 | 31 | 5 | 10 | 0 | 123 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 41 | 13 | 0 | 0 | 0 | 54 |
-| T6 | 69 | 47 | 12 | 36 | 0 | 164 |
+| T6 | 69 | 47 | 13 | 36 | 0 | 165 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
-| T8 | 0 | 1 | 1 | 6 | 2 | 10 |
+| T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 7 | 3 | 4 | 38 | 19 | 71 |
-| All | 486 | 134 | 36 | 114 | 27 | 797 |
+| All | 487 | 137 | 38 | 114 | 27 | 803 |
 
 ## How the labels were given
 
@@ -1027,8 +1027,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| RK1 | P | T8 | L3 | rogue_kick.ENERGY_STEP_SCALE 0.3, the fractional orbital-energy step of an encounter in units of min(1, v_esc,p / v_orb) | 0.15 to 1 | planets ejected by planets | ejection speeds from the architecture's own scattering records (GEN.1119, GEN.1113) whose median is not within a factor of two of the model's | the speeds read from the ejection records and from the N-body papers of GEN.1113 | tuned so giants at 5 to 30 AU give a median of 2.5 to 6 km/s, the drift note's 3 km/s and Sayed et al.'s 0.7 to 10.7 km/s | GEN.1111 | replace (GEN.1113) |
+| RK1 | P | T1 | L0 | rogue_kick.SCATTER_SPEED_KM_S 3, the ejection speed scale of a Jupiter-mass scatterer at 1 AU, km/s; `v_c` goes as the square root of the scatterer's mass over its distance | 2.5 to 3.5 | planets ejected by scattering planets, stars 100 to 1000 times the scatterer's mass | an N-body set of scattering giants whose mean ejection speed is not within 30 percent of `v_c` | the speeds read from the architecture's own ejection records (GEN.1119) | Huang and Lai 2025 (arXiv:2508.18239, READ in full), Eq. 19, 24 and 26; checked against Kramer and Profumo 2026 (arXiv:2608.02945, READ), means 1.15 and 3.5 km/s at 5.2 AU against `v_c` of 1.32 and 4.16 | GEN.1111 | - |
 | RK2 | P | T6 | L0 | rogue_kick.EJECTION_SAFRONOV_NUMBER 1, the Safronov number above which a scatterer ejects | 0.5 to 2 | scattering planets | a scatterer with Theta under 1 that ejects most of what it scatters in an N-body run | the scattering simulations read by GEN.1089 | Safronov 1972; Ford and Rasio 2008 use the same cut, recalled | GEN.1111 | - |
+| RK3 | P | T1 | L1 | rogue_kick.MEAN_OVER_SCALE 0.87, the mean ejection speed in units of `v_c` | 0.8 to 0.95 | as RK1 | a mean outside 0.75 to 1 `v_c` for a 1 to 10 Jupiter-mass scatterer at 5.2 AU | as RK1 | Kramer and Profumo 2026 Sec. 4.1 to 4.2: 1.15 km/s (1 Jupiter mass) and 3.4 to 3.6 (10), 0.87 and 0.84 of `v_c`; no trend in the ejected mass over four decades | GEN.1111 | - |
+| RK4 | P | T6 | L2 | rogue_kick.SPEED_SIGMA_LN 0.51, the ln-width of the ejection speed in units of `v_c`, set so the 99th percentile is 2.5 `v_c` | 0.4 to 0.7 | as RK1, two-planet systems | an N-body speed distribution (percentiles) with a 99th percentile outside 2 to 3.5 `v_c` | the percentiles of a rerun of the scattering runs, or of the ejection records (GEN.1119) | Huang and Lai Sec. 4.3: the two-planet distributions range from 0 to 2.5 `v_c` with a peak near 1, read from figures; the paper prints no percentile | GEN.1111 | - |
+| RK5 | P | T1 | L1 | rogue_kick.MOON_LOSS_FRACTION 0.5, the share of the Hill sphere that the closest approach leaves a moon, inside which it stays | 0.3 to 1 | moons of ejected planets | a moon-carrying N-body run whose survivors differ from the rule by more than 20 percent | an N-body run with moons (the paper simulates none) | Huang and Lai Eq. 4: `r_moon < f r_min (m_2/m_12)^(1/3)`, "a high survival probability requires f ~ 1/2" | GEN.1111 | - |
+| RK6 | P | T1 | L2 | rogue_kick.CLOSEST_APPROACH_MEDIAN_HILL 0.089 mutual Hill radii at CLOSEST_APPROACH_REFERENCE_JUPITERS 10 (ejecting a tenth of the scatterer's mass) | 0.06 to 0.12 | as RK5, two-planet systems spaced by 2 mutual Hill radii | a median closest approach outside 0.05 to 0.15 for that setup | the closest approaches of the architecture's own scatterings (GEN.1119) | Huang and Lai Sec. 4.2, Fig. 2 (median 0.089); the 0.089 depends strongly on the planet spacing (0.60 at 2.5, 0.051 at 1) and the inclination (0.0030 at 0.01 R_H/a), which this model does not carry | GEN.1111 | - |
+| RK7 | P | T3 | L3 | rogue_kick.CLOSEST_APPROACH_MASS_INDEX 1.13, the median closest approach goes as the scatterer's mass to this power | 0.8 to 1.5 | scatterers of 1 to 10 Jupiter masses at a mass ratio of 10 | medians at other masses that fall off this line by more than a factor of 2 | the closest approaches of the architecture's own scatterings (GEN.1119) | Huang and Lai Fig. 2: 0.089, 0.034, 0.0066 at 10, 5, 1 Jupiter masses; a line through two ends of three points | GEN.1111 | replace (GEN.1119) |
+| RK8 | P | T1 | L1 | rogue_kick.CLOSEST_APPROACH_SIGMA_LN 2.35, the ln-width of the closest approach | 2.0 to 2.7 | as RK6 | a closest-approach distribution whose 16 to 84 percent range is not within a factor of 5 of the log-normal's | as RK6 | Huang and Lai Sec. 7: 48 percent of runs above 0.1 and 82 percent above 0.01 mutual Hill radii, which a log-normal of median 0.089 matches at 2.3 and 2.4 | GEN.1111 | - |
 
 ## 6.88 Stand-ins of the rogue planet age
 

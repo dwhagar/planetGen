@@ -219,6 +219,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.rogue_kick | GEN.1111 | the ejection speed of a rogue and its velocity through the Galaxy; the rogue rows read them |
 | row | 6.87:RK1 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
 | row | 6.87:RK2 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
+| row | 6.87:RK3 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
+| row | 6.87:RK4 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
+| row | 6.87:RK5 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
+| row | 6.87:RK6 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
+| row | 6.87:RK7 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
+| row | 6.87:RK8 | GEN.1111 | a constant of the rogue kick module, read when its wiring step lands |
 | module | planetgen.physics.rogue_mass_function | GEN.1111 | the masses of the bodies a system ejects and their shares; the rogue rows draw their masses from it |
 | row | 6.110:RM1 | GEN.1111 | a constant of the rogue mass function module, read when its wiring step lands |
 | row | 6.110:RM2 | GEN.1111 | a constant of the rogue mass function module, read when its wiring step lands |
