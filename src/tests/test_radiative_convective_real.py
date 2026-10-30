@@ -56,7 +56,9 @@ def test_with_the_vapour_free_the_doubling_warms_more_than_with_it_held(monkeypa
 def test_earth_sends_out_what_it_absorbs_and_sits_where_the_cloudy_earth_does(earth):
     assert earth.converged and earth.outgoing_w_m2 == pytest.approx(EARTH_FLUX, rel=0.01)
     assert 280.0 < earth.surface_temperature_k < 290.0                 # 288 K measured; with its vapour fixed at 1 kPa the surface is 284 K
-    assert 170.0 < earth.tropopause_temperature_k < 230.0
+    # The measured cold-point and lapse-rate tropopauses are 190 to 217 K (tropics to mid-latitudes), but they sit under an ozone-heated stratosphere; the model's stratosphere is
+    # clear-sky radiative equilibrium without ozone (a limit it states: 140 to 160 K here), so the adiabat meets it colder, and the level is one of 40 (a step of about 12 K, GEN.852).
+    assert 155.0 < earth.tropopause_temperature_k < 230.0
     assert 5.0e3 < earth.tropopause_pressure_pa < 4.0e4                # the tropopause: 100 to 200 hPa
 
 
