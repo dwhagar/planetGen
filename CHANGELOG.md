@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2634] - 2026-10-30
+
+**Headline:** The test suite now holds standing checks on the life classes: no star letter table, no stage without a class, no Flora under ice, and no class on a solvent it does not allow.
+
+### Changed
+
+- **Standing life class tests (GEN.873).** A new test file checks the life class rules against the shared body sweep and the generated systems: the class rules hold no table keyed by a star letter and every star letter feeds some light class, a body with a life stage has a life class, no light class is supported and no body has Flora under an ice-covered ocean, and no class is supported or lives where its solvent (water, hydrocarbon, liquid carbon dioxide, sulfuric acid or ammonia water) is missing. Each rule is shown to fail on a body made to break it. Nothing the generator draws changes.
+
 ## [8.0.2633] - 2026-10-30
 
 **Headline:** "Near this system" now measures from where the system really is, and four more tests that were red on main are green.
