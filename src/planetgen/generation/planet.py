@@ -432,6 +432,7 @@ class Planet(PlanetaryObject):
                 break
             draw.redrawn("planet.barred_world")
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
+        self._age_drawn = star.age  # the age this body was made at; the star's rises once the planets are in (`planets.refinish_rocky`, GEN.992)
 
         if moon_count != DEFER_MOONS:
             self.add_moons(moon_count)
