@@ -14119,6 +14119,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   build is at least five times faster, the tests' own timeout can come
   down, and a test pins the output. Owner: Performance lane (pool
   otherwise).
+  Progress (2026-10-30 2:11 PM EDT): Aux 5 (as the lane reported 2:10 PM
+  EDT; #4075): PERF.218 and TEST.464 are retired. Tests now keep the
+  bright-star tables across processes (PLANETGEN_BAND_TABLE_CACHE, set
+  only by conftest): one first sector fill on a slow machine 267 s and
+  1,842 MB before, 35.8 s and 534 MB with the kept tables, output and
+  golden digest identical. Production never sets the variable, so a real
+  first fill still builds the tables (measured 267 s, 717,000 distinct
+  track evaluations); making that faster is this item, by one-pass
+  bright pieces per mass and [Fe/H], or by turning the kept folder on in
+  production (Boss call: it trades a disk folder for time).
   Prerequisites: none. Related: TEST.344, GEN.394.
 
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
@@ -14270,51 +14280,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.992 merges (it edits the same function). Owner: Aux 7. Version
   8.1.
   Prerequisites: GEN.992. Related: GEN.992, PERF.209.
-
-- [ ] **PERF.218 run_plan._draw_sector_bands recomputes the bright-star band table for every capped cell: memoise it per (shell, luminosity floor)**
-  Found by Aux 3 (relayed 11:57 AM EDT 2026-10-30 as the lane reported,
-  while fixing TEST.475): the slow part of the first sector fill since
-  the star epoch is not the sample galaxy but
-  `run_plan._draw_sector_bands` calling
-  `star_population.bright_band_fraction` and
-  `post_main_sequence.bright_pieces` for each capped cell, minutes of
-  band-table work per first sector fill. Do: memoise the band table per
-  (shell, luminosity floor), keyed so a changed input invalidates it.
-  Done: a first sector fill on a capped cell no longer redoes the band
-  table (a timing test with a stated ceiling), and the generated output
-  is identical (the golden digest does not move). Lock-free. Owner: Bug
-  1 (star lane) or Core 3.
-  Owner (2026-10-30 12:50 PM EDT): Aux 5 (assigned by TODO; Aux 3 is on
-  GEN.1005). Lock-free, separate branch, merge it yourself; if the
-  generated output or the golden digest moves, stop and tell TODO. Check
-  PERF.188 and TEST.464 first: PERF.188 is the same band table build (60
-  s) and TEST.464 found the first table build, not repeat calls, is the
-  cost, so fold the work into one change if they are the same fix and
-  retire the others with it.
-  Measured (2026-10-30 1:31 PM EDT): Aux 5 (as the lane reported 1:30 PM
-  EDT): plain memoising cannot reach the Done line. One first sector
-  fill (test_backfill_fills_sectors_once_and_skips_filled_sectors, one
-  process, slow machine) takes 267 s and 1.84 GB on main: 353 table
-  builds, 380k to 470k cell-bound calls, 717k distinct track evaluations
-  (post_main_sequence.bright_pieces plus the timeline and light arrays),
-  10M lifetime_gy calls. The work is distinct (cells x 5 masses x 3
-  compositions x about 40 thresholds), not repeated; a table per (shell,
-  floor) already exists in the process (lru on _bright_table).
-  Output-identical tries: bound memo plus lifetime_gy cache 258 s (3
-  percent, +230 MB); plus larger timeline and evolved-window caches 192
-  s (28 percent) but 2.92 GB peak (+1.1 GB), refused. TODO decision
-  (1:31 PM EDT): the item becomes the redesign, owner Aux 5: compute the
-  bright pieces for every threshold of one mass and [Fe/H] in one pass
-  (or keep the table across processes), with the generated output and
-  golden digest identical and peak memory no higher than main. Related:
-  PERF.188, TEST.464.
-  Also seen (2026-10-30 1:34 PM EDT): Core 3 (as the lane reported 1:36
-  PM EDT): the site database set-up behind the site_app browser tests
-  took 3 to 45 minutes between identical runs; py-spy shows it inside
-  star_population._bright_measure_bound and _bright_windows (isochrone
-  lookups for each sector bright-star table), the same table build. Aux
-  5 owns the redesign.
-  Prerequisites: none. Related: PERF.188, TEST.475.
 
 ## DB: Database and schema
 
@@ -18453,27 +18418,6 @@ clears each one.
   input), the habitability browser fixture 900 s timeouts on slow
   machines, planets.porosity (TEST.461, Core 1)
   Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
-
-- [ ] **TEST.464 Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug)**
-  Bug 1 report (as the lane reported 10:53 PM EDT 2026-10-29):
-  test_gen_component_pass (the same-seed test) and the whole-sphere
-  census fixtures run over 900 seconds on a 4-core machine even on the
-  base commit, so they time out under the gate, and Star 1's slower
-  bright-star tables make them worse. Do: cache band_fractions between
-  calls (key on the inputs, no stale reads across epochs), time the two
-  tests before and after, and keep every result identical. Owner: Bug 2.
-  Version 8.1.
-  First part merged (Bug 2, #3943, about 3:50 AM EDT as the lane
-  reported) (2026-10-30 4:17 AM EDT): test_gen_component_pass same-seed
-  test 35 s instead of over 900 s (smaller test cloud, same properties);
-  the whole-sphere component census fixture fills 30 sectors a region
-  instead of 100 (all 14 tests pass in 7.7 min). Finding: band_fractions
-  is already cached inside a process; the cost is the first table build
-  and drawing 138,000 satellite stars five times, so the cache the item
-  asked for would not help (a memo of the per-cell terms saved 11
-  percent, not added). Still open: the single-sector backfill test
-  (test_bright_star_scatter) is being timed and shrunk next
-  Prerequisites: none. Related: TEST.463, GEN.935.
 
 - [ ] **TEST.468 test_work_units::test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands and test_generation_stats::test_an_unmeasured_server_estimates_from_the_defaults are red on a clean main (bug)**
   Reported by Core 3 (as the lane reported, 6:04 AM EDT 2026-10-30) on a
