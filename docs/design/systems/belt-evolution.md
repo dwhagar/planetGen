@@ -87,6 +87,8 @@ Belt oddities this model makes possible without painting: a **heavy belt that ne
 Stand-in values to register when built: `M_L1` and `M_L2` cuts; the early-depletion survival lognormal; the Yarkovsky size-cut coefficient (until the da/dt law is read and calibrated, tier T2, tweak L1); the instability depletion fraction; the dwarf-planet roundness masses by composition; the Soter mu thresholds if a word cut is used. All carry tier and tweak level; none reads the Solar System as an input; the Solar System belt, Kuiper belt and the Ceres/Pluto/Eris masses are **test targets**.
 
 ## 8. What to read before building (research list)
+Read in GEN.1060 (2026-10-30): see `belt-sources.md` for what was opened, what was not reachable and the numbers (registry rows BR1 to BR18, section 6.95). The [R] tags below and above are covered by those rows.
+
 Wyatt 2007 (READ), Ivezic 2001 (READ), Fraser 2014 (READ), Singer 2019 (READ), DEEP V (READ). To read: Bottke 2006 (Yarkovsky/YORP review), Wisdom 1980/1982 and Moons-Morbidelli 1995 (resonance and chaotic zone), Walsh 2011 and Raymond-Izidoro 2017 (belt depletion), Stern and Levison 2002, Soter 2006, Margot 2015 (planet definition numbers), Bierson and Nimmo 2019 (ice hydrostatic mass, READ for density), Thomas 2010 (rock equilibrium), Kenyon and Bromley 2008 (self-stirring), Debes and Sigurdsson 2002, Zuckerman 2010, Koester 2014 (white dwarf pollution), Ida and Guillot 2016 (snow line pressure bump), Gladman and Volk 2021 (Kuiper belt review), Holman and Wiegert 1999 (READ in repo). Boss cannot access some papers: use second-hand if a source is closed.
 
 ## 9. Identity of belt members (Boss, 4:21 PM EDT 2026-10-30)
