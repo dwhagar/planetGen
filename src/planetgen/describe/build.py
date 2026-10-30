@@ -156,6 +156,9 @@ _DISK_LABELS = {"post-agb": "Circumbinary post-AGB"}
 
 
 def _star_disk_text(star):
+    if star.disk_mass_solar is None:    # a debris disk (GEN.787): its dust light is measured, its mass is not
+        return inline(_DISK_LABELS.get(star.disk_kind) or star.disk_kind.replace("-", " ").capitalize(), " disk, from ",
+                      _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", with no bodies in it")
     return inline(_DISK_LABELS.get(star.disk_kind) or star.disk_kind.replace("-", " ").capitalize(), " disk of ",
                   _mass_solar(star.disk_mass_solar), ", from ",
                   _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", with no bodies in it")
@@ -173,7 +176,7 @@ def _star_age_sentence(star):
     else:
         sentence = inline("The star is about ", age, " old and should last about ", _gy(star.lifespan), ".")
     # STAR_EVOLUTION's notes describe a main-sequence star's lifespan window only.
-    if star.yerkes_class == "V":
+    if star.yerkes_class in ("V", "VI"):
         notes = tuning.STAR_EVOLUTION.get(star.type[0], {}).get("evolutionary_constraint_notes")
         if notes:
             sentence = inline(sentence, " ", notes)

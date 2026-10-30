@@ -140,3 +140,22 @@ def test_free_objects_spin_about_the_galactic_pole(cls):
     restored = cls.from_dict(body.to_dict(), SystemConfig())
     assert _axis(restored) == _axis(body)
     assert restored.axial_tilt_deg == body.axial_tilt_deg
+
+
+def test_rocky_rogue_planets_are_born_at_the_accretion_spin_and_giants_keep_the_gas_giant_day():
+    """GEN.842: a rocky rogue planet turns at the rate its giant impacts left (`spin.accretion_spin`, GEN.731), so its day is not held to the
+    old 8 to 48 hours, and never turns faster than the breakup fraction; a rogue giant keeps the gas-giant day of 8 to 20 hours."""
+    rocky, giants = [], []
+    for seed in range(300):
+        with deterministic_entropy(seed):
+            body = RoguePlanet(SystemConfig())
+        if body.planet_type == 't':
+            critical = spin.critical_spin_rad_s(body.mass_kg, body.radius_km)
+            assert body.rotation_period_hours >= 2.0 * math.pi / (spin.BREAKUP_FRACTION * critical) / 3600.0 * (1.0 - 1e-9)
+            rocky.append(body.rotation_period_hours)
+        else:
+            giants.append(body.rotation_period_hours)
+    low, high = constants.ROTATION_PERIOD_RANGE_HOURS['t']
+    assert rocky and any(not low <= hours <= high for hours in rocky), "the old log-uniform law never leaves 8 to 48 hours"
+    glow, ghigh = constants.ROTATION_PERIOD_RANGE_HOURS['g']
+    assert all(glow <= hours <= ghigh for hours in giants)

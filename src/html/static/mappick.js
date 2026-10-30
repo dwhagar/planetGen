@@ -265,6 +265,18 @@ export function pageLink(href, label, className) {
 // is behind the Expand button, in a region that scrolls on its own.
 export const FIRST_FIELDS = 3;
 
+// What a card's first view says of `spec`: its name, its kind (named by the spec or by its "Type" row, which then is not repeated as a row),
+// and its rows with a value. The hover preview (createHoverPreview) takes the same.
+export function firstViewOf(spec) {
+  const fields = (spec.fields || []).filter(function (field) { return field[1] !== null && field[1] !== undefined && field[1] !== ""; });
+  let kind = spec.kind || null;
+  if (!kind) {
+    const typed = fields.findIndex(function (field) { return field[0] === "Type"; });
+    if (typed >= 0) kind = fields.splice(typed, 1)[0][1];
+  }
+  return { title: spec.title || "Unknown", kind: kind, fields: fields };
+}
+
 export function createInfoPanel(panelEl) {
   const hostIds = panelEl && panelEl.hasAttribute("data-overlay") ? (panelEl.dataset.overlay || "").split(/\s+/).filter(Boolean) : null;
   const hosts = !panelEl || !hostIds ? [] : (hostIds.length
@@ -464,19 +476,15 @@ export function createInfoPanel(panelEl) {
     expandButton = null;
     if (overlay) place();
     // The name, with the ☆ and the Close beside it so the buttons below keep to one row.
+    const view = firstViewOf(spec);
     const head = el("div", "map-info-head");
-    head.appendChild(el("h3", null, spec.title || "Unknown"));
+    head.appendChild(el("h3", null, view.title));
     if (overlay && spec.bookmark) head.appendChild(bookmarkToggle(spec.bookmark));
     if (overlay) head.appendChild(closeButton());
     panelEl.appendChild(head);
     // The kind: named by the card or by its "Type" row, which then is not repeated as a row.
-    const fields = (spec.fields || []).filter(function (field) { return field[1] !== null && field[1] !== undefined && field[1] !== ""; });
-    let kind = spec.kind || null;
-    if (!kind) {
-      const typed = fields.findIndex(function (field) { return field[0] === "Type"; });
-      if (typed >= 0) kind = fields.splice(typed, 1)[0][1];
-    }
-    if (kind) panelEl.appendChild(el("p", "map-info-kind", String(kind)));
+    const fields = view.fields;
+    if (view.kind) panelEl.appendChild(el("p", "map-info-kind", String(view.kind)));
     const first = overlay ? fields.slice(0, FIRST_FIELDS) : fields;
     if (first.length) {
       const dl = document.createElement("dl");
@@ -528,6 +536,106 @@ export function createInfoPanel(panelEl) {
   }
 
   return { show: show, hint: hint, reveal: reveal, refit: fit, element: panelEl };
+}
+
+// --- Hover preview -----------------------------------------------------------------
+
+// MAP.348: the small card that a hovered star, system, region or cloud shows: the card's first view (its name, kind and up to three
+// values, no buttons), in a corner of the map `host`. It is never under the pointer or the hovered thing, never over the open card or the
+// map's controls, never takes a pointer event, and shows after the pointer has rested on the same thing for `delay` ms.
+// show(key, spec, avoid): `key` names the thing (the same key keeps the preview as it is), `spec` is the card's spec,
+// `avoid()` lists the client points {x, y} it must stay clear of (the pointer, the thing's spot). hide() puts it away.
+const PREVIEW_CLEAR_SELECTORS = [
+  ".starmap-info[data-state=\"selected\"]", ".map-corner-stack", ".map-layer-legend", ".starmap-navpad", ".starmap-ruler", ".starmap-scale",
+  ".galaxy-menu-panel", ".map-tooltip:not([hidden])",
+];
+const PREVIEW_EDGE = 8;
+const PREVIEW_CLEARANCE = 28;
+
+export function createHoverPreview(host, options) {
+  if (!host) return { show: function () {}, hide: function () {}, element: null };
+  const delay = options && options.delay != null ? options.delay : 180;
+  const node = el("aside", "map-hover-preview");
+  node.hidden = true;
+  node.setAttribute("aria-hidden", "true");    // the tooltip carries the words for assistive technology
+  host.appendChild(node);
+  let shownKey = null;
+  let timer = null;
+
+  function hide() {
+    if (timer) window.clearTimeout(timer);
+    timer = null;
+    shownKey = null;
+    node.hidden = true;
+  }
+
+  function overlaps(a, b) {
+    return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+  }
+
+  // The first corner, nearest the top and farthest from the points to avoid, that nothing else of the map is under; false when none is.
+  function place(points) {
+    const box = host.getBoundingClientRect();
+    const own = node.getBoundingClientRect();
+    const width = own.width;
+    const height = own.height;
+    const blocked = [];
+    PREVIEW_CLEAR_SELECTORS.forEach(function (selector) {
+      host.querySelectorAll(selector).forEach(function (other) {
+        if (other === node || other.hidden || !other.getClientRects().length) return;
+        blocked.push(other.getBoundingClientRect());
+      });
+    });
+    points.forEach(function (point) {
+      blocked.push({ left: point.x - PREVIEW_CLEARANCE, right: point.x + PREVIEW_CLEARANCE, top: point.y - PREVIEW_CLEARANCE, bottom: point.y + PREVIEW_CLEARANCE });
+    });
+    const middle = points.length ? points.reduce(function (sum, point) { return sum + point.x; }, 0) / points.length : box.left + box.width / 2;
+    const farLeft = Math.abs(box.left + PREVIEW_EDGE + width / 2 - middle) >= Math.abs(box.right - PREVIEW_EDGE - width / 2 - middle);
+    const sides = farLeft ? ["left", "right"] : ["right", "left"];
+    const corners = [["top", sides[0]], ["top", sides[1]], ["bottom", sides[0]], ["bottom", sides[1]]];
+    for (let i = 0; i < corners.length; i++) {
+      const left = corners[i][1] === "left" ? box.left + PREVIEW_EDGE : box.right - PREVIEW_EDGE - width;
+      const top = corners[i][0] === "top" ? box.top + PREVIEW_EDGE : box.bottom - PREVIEW_EDGE - height;
+      const rect = { left: left, right: left + width, top: top, bottom: top + height };
+      if (rect.left < box.left || rect.right > box.right || rect.top < box.top || rect.bottom > box.bottom) continue;
+      if (blocked.some(function (other) { return overlaps(rect, other); })) continue;
+      node.style.left = (left - box.left) + "px";
+      node.style.top = (top - box.top) + "px";
+      node.dataset.corner = corners[i].join("-");
+      return true;
+    }
+    return false;
+  }
+
+  function draw(spec, avoid) {
+    const view = firstViewOf(spec);
+    node.textContent = "";
+    node.appendChild(el("h3", null, view.title));
+    if (view.kind) node.appendChild(el("p", "map-info-kind", String(view.kind)));
+    const rows = view.fields.slice(0, FIRST_FIELDS);
+    if (rows.length) {
+      const dl = document.createElement("dl");
+      rows.forEach(function (field) { addField(dl, field[0], field[1]); });
+      node.appendChild(dl);
+    }
+    node.hidden = false;
+    node.style.visibility = "hidden";    // measured in place before it is seen
+    const fits = place(avoid());
+    node.style.visibility = "";
+    if (!fits) node.hidden = true;
+  }
+
+  function show(key, spec, avoid) {
+    if (key === shownKey) return;
+    hide();
+    shownKey = key;
+    timer = window.setTimeout(function () {
+      timer = null;
+      draw(spec(), avoid);
+    }, delay);
+  }
+
+  return { show: show, hide: hide, element: node };
 }
 
 // The one info panel for `panelEl` (so its ☆ button is made once), or

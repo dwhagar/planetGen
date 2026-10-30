@@ -29,7 +29,7 @@ SOURCES = {"bright_stars": 1, "phenomenon_scatter": 2}
 _MEMBER_COLUMNS = (
     "source", "source_id", "member_no", "parent_node_no", "slot", "kind", "state", "flags", "mass_solar",
     "initial_mass_solar", "seed", "epoch_unix", "offset_x_au", "offset_y_au", "offset_z_au", "velocity_x_kms",
-    "velocity_y_kms", "velocity_z_kms", "decay_age_yr")
+    "velocity_y_kms", "velocity_z_kms", "decay_age_yr", "radius_au")
 _READ_ROWS = 1000
 _ORBIT_NODE_FIELDS = tuple(field.name for field in dataclasses.fields(OrbitNode))
 _NODE_COLUMNS = (
@@ -54,10 +54,10 @@ def delete_member_tree(conn, table, row_id):
 
 def _member_values(source, row_id, tree, epoch_unix):
     """The `scatter_members` rows of a tree; a member of a `group` node (GEN.327) also has its offset, velocity and the
-    group's decay age, every other member has NULL for the seven."""
+    group's decay age, every other member has NULL for the seven. Every member also keeps its `radius_au` (GEN.952)."""
     return [(source, row_id, m.member_no, m.parent_node_no, m.slot, m.kind, m.state, m.flags, m.mass_solar,
              m.initial_mass_solar, m.seed, epoch_unix, *(m.offset_au or (None,) * 3), *(m.velocity_kms or (None,) * 3),
-             m.decay_age_yr) for m in tree.members]
+             m.decay_age_yr, m.radius_au) for m in tree.members]
 
 
 def _node_values(source, row_id, tree, epoch_unix):

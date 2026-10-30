@@ -19,6 +19,10 @@ fixed and is part of the generator epoch:
    masses, a moon, a body whose heavy elements outweigh what the tables hold).
 4. **The interior** (`giant_interior.draw_interior`): the layers, whose whole-body totals are the body's bulk composition.
 
+The star's age is final only after the planets are (`Star.adjust_age_for_planets`), so a table radius is drawn at a provisional age and
+`settle` takes it again once the age and the orbit are final (GEN.961); the interior, which is made to that radius, is drawn again
+with it.
+
 The one-bar temperature that decides helium rain is the effective temperature (starlight and the planet's own heat) times
 `ONE_BAR_OVER_EFFECTIVE`.
 """
@@ -27,7 +31,7 @@ import math
 
 from planetgen import tuning
 from planetgen.physics import (bulk_composition, bulk_draw, climate_draws, composition_text, constants, giant_interior, giant_radius,
-                               rogue_surface)
+                               orbit_elements, rogue_surface)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -71,6 +75,13 @@ is 1.36), a stand-in."""
 MOON_ONE_BAR_K = 130.0
 """float: The one-bar temperature taken for a giant moon, whose distance from the star the body does not carry (a stand-in)."""
 
+SETTLE_TOLERANCE = 0.001
+"""float: A table giant whose radius at the final age and the orbit's mean light is within this share of the one it was drawn with
+keeps its radius and interior (`settle`); the tables themselves are good to a few percent. A stand-in, registry row OE13."""
+
+SETTLE_ATTRIBUTE = "_giant_draw"
+"""str: The attribute of a giant that `draw_giant` leaves for `settle` (`DrawnGiant`); not stored, it lives for the generation."""
+
 REFERENCE_FRACTIONS = (0.08, 0.07)
 """tuple: The mantle's FeO share and the core's light-element share used to read the iron share of the rock-and-iron from the
 star's ratios (`bulk_draw.dry_partition`), so that no further draw is made."""
@@ -111,13 +122,17 @@ def _heavy_mass_earth(regime, mass_earth):
     return draw.uniform(low, high) * mass_earth
 
 
-def _radius_km(planet, mass_earth, heavy_earth, envelope_z, flux_w_m2, fallback_radius_km):
-    if flux_w_m2 is not None and giant_radius.in_range(mass_earth):
-        core_earth = giant_radius.table_core_mass_earth(mass_earth, heavy_earth, envelope_z)
-        if giant_radius.covers(mass_earth, core_earth):
-            flux_earth = flux_w_m2 / giant_radius.flux_w_m2(1.0)
-            return giant_radius.radius_km(mass_earth, core_earth, flux_earth, planet.star.age)
-    return fallback_radius_km(planet.mass)
+def _table_core_earth(mass_earth, heavy_earth, envelope_z):
+    """The core mass (Earth masses) the radius tables are read at, or `None` where they do not hold the body."""
+    if not giant_radius.in_range(mass_earth):
+        return None
+    core_earth = giant_radius.table_core_mass_earth(mass_earth, heavy_earth, envelope_z)
+    return core_earth if giant_radius.covers(mass_earth, core_earth) else None
+
+
+def _table_radius_km(mass_earth, core_earth, flux_w_m2, age_gy):
+    """The tables' radius (no draw) at a starlight in W/m2 and an age."""
+    return giant_radius.radius_km(mass_earth, core_earth, flux_w_m2 / giant_radius.flux_w_m2(1.0), age_gy)
 
 
 def _ice_shares(planet, regime):
@@ -126,6 +141,17 @@ def _ice_shares(planet, regime):
     low, high = WATER_SHARE_OF_HEAVY[regime]
     water = draw.uniform(low, high)
     return {"water_liquid": water, "nh3_ice": water * AMMONIA_OVER_WATER, "ch4_ice": water * METHANE_OVER_WATER}
+
+
+class DrawnGiant:
+    """What `settle` needs of a giant whose radius came from the tables: the star's ratios, the envelope's Z and the heavy-element mass it
+    was drawn with (the ratios are read from the star's composition at the age of the draw, and a later age reads another draw of
+    them, so they are kept) and the radius it was drawn with."""
+
+    __slots__ = ("ratios", "envelope_z", "heavy_earth", "radius_km")
+
+    def __init__(self, ratios, envelope_z, heavy_earth, radius_km):
+        self.ratios, self.envelope_z, self.heavy_earth, self.radius_km = ratios, envelope_z, heavy_earth, radius_km
 
 
 def draw_giant(planet, radius_given, fallback_radius_km):
@@ -140,7 +166,7 @@ def draw_giant(planet, radius_given, fallback_radius_km):
 
     Sets:
         `radius` (unless given), `density` (g/cm3), the attributes of `bulk_composition.BODY_FIELDS` and the interior's
-        (`giant_interior.body_values`, DB.89).
+        (`giant_interior.body_values`, DB.89), and for a giant sized from the tables the `DrawnGiant` that `settle` reads.
     """
     mass_earth = planet.mass / constants.EARTH_MASS_TO_KG
     ratios = bulk_draw.host_ratios(planet.star)
@@ -149,8 +175,20 @@ def draw_giant(planet, radius_given, fallback_radius_km):
     envelope_z = min(MAX_ENVELOPE_Z, ratios.z * log_uniform(z_low, z_high))
     heavy_earth = _heavy_mass_earth(regime, mass_earth)
     flux_w_m2 = starlight_w_m2(planet)
+    setattr(planet, SETTLE_ATTRIBUTE, None)
     if not radius_given:
-        planet.radius = _radius_km(planet, mass_earth, heavy_earth, envelope_z, flux_w_m2, fallback_radius_km)
+        core_earth = None if flux_w_m2 is None else _table_core_earth(mass_earth, heavy_earth, envelope_z)
+        if core_earth is None:
+            planet.radius = fallback_radius_km(planet.mass)
+        else:
+            planet.radius = _table_radius_km(mass_earth, core_earth, flux_w_m2, planet.star.age)
+            setattr(planet, SETTLE_ATTRIBUTE, DrawnGiant(ratios, envelope_z, heavy_earth, planet.radius))
+    _store_body(planet, mass_earth, ratios, regime, heavy_earth, envelope_z, flux_w_m2)
+
+
+def _store_body(planet, mass_earth, ratios, regime, heavy_earth, envelope_z, flux_w_m2):
+    """Stores the density of the radius the giant has, draws its interior to that radius and stores the bulk composition, the text
+    and the interior's values."""
     volume_m3 = (4 / 3) * math.pi * (planet.radius * constants.KM_TO_M_FACTOR) ** 3
     planet.density = planet.mass / volume_m3 / 1000
 
@@ -171,3 +209,47 @@ def draw_giant(planet, radius_given, fallback_radius_km):
     planet.composition = composition_text.text(planet)  # GEN.430: the text states the stored fractions
     for attribute, value in giant_interior.body_values(interior).items():
         setattr(planet, attribute, value)
+
+
+def settle_stream(planet, drawn):
+    """The stream a settled giant's interior is drawn from: its own, keyed by what it is once the star's age is final (the run's stream
+    is not touched, so nothing drawn after it moves). The key is the giant's mass, distance, star and the age and radius it settles
+    from, which no other giant shares."""
+    return draw.Stream(f"settle-giant:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:"
+                       f"{float(planet.star.age)!r}:{drawn.radius_km!r}")
+
+
+def settle(planet):
+    """
+    Takes a table-sized giant's radius again at the star's final age and the mean light of the orbit, and draws its interior again to it
+    (GEN.961, GEN.976).
+
+    A giant is drawn when the star's age is provisional, and the eccentricity it is lit by comes after the radius; the age rises when the
+    planets are in (`Star.adjust_age_for_planets`) and the table radius falls with it, by up to 9 percent. The radius is the tables' (no
+    draw) at the age now and the light of `orbit_elements.flux_distance_au`. A giant that the tables moved by under `SETTLE_TOLERANCE`, one
+    sized any other way and a moon are left as drawn. Otherwise the radius, the volume, the density and the gravity are set again, and the
+    interior (the layers, the bulk composition and the text) is drawn from `settle_stream`. The star's ratios, the envelope's Z and the
+    heavy-element mass are the original draws (`DrawnGiant`).
+
+    Returns:
+        bool: Whether the giant's radius was moved. The caller makes the air again (it reads the gravity).
+    """
+    drawn = getattr(planet, SETTLE_ATTRIBUTE, None)
+    if drawn is None or planet.is_moon:
+        return False
+    mass_earth = planet.mass / constants.EARTH_MASS_TO_KG
+    regime = regime_of(mass_earth)
+    core_earth = _table_core_earth(mass_earth, drawn.heavy_earth, drawn.envelope_z)
+    if core_earth is None:
+        return False
+    flux_w_m2 = climate_draws.starlight_w_m2(
+        planet.star.luminosity, orbit_elements.flux_distance_au(planet.distance, planet.eccentricity) * constants.AU_TO_KM)
+    radius_km = _table_radius_km(mass_earth, core_earth, flux_w_m2, planet.star.age)
+    if abs(radius_km - drawn.radius_km) <= SETTLE_TOLERANCE * drawn.radius_km:
+        return False
+    stream = settle_stream(planet, drawn)
+    planet.radius = radius_km
+    with draw.bound(stream):
+        _store_body(planet, mass_earth, drawn.ratios, regime, drawn.heavy_earth, drawn.envelope_z, flux_w_m2)
+    setattr(planet, SETTLE_ATTRIBUTE, DrawnGiant(drawn.ratios, drawn.envelope_z, drawn.heavy_earth, radius_km))
+    return True

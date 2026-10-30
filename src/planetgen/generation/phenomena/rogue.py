@@ -241,9 +241,16 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
 
         rings.apply_rogue(self)  # GEN.836
         self.set_galactic_motion()
-        # GEN.104: a planet's day and a Rayleigh tilt from the galactic pole.
-        self.rotation_period_hours = spin.planet_day_hours(self.planet_type)
-        spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
+        # GEN.104, GEN.842: a rocky rogue planet is born spinning at the rate and angle the giant impacts that built it leave
+        # (`spin.accretion_spin`, GEN.731), with no star to tide it; a giant keeps a day from the gas-giant law and a Rayleigh tilt.
+        # The angle is measured from the galactic pole, the axis a rogue planet has in place of an orbit normal.
+        if self.planet_type == 't':
+            spin_rate, tilt = spin.accretion_spin(self.mass_kg, self.radius_km)
+            self.rotation_period_hours = 2.0 * math.pi / spin_rate / 3600.0
+        else:
+            self.rotation_period_hours = spin.planet_day_hours(self.planet_type)
+            tilt = spin.rayleigh_tilt_deg()
+        spin.set_spin(self, spin.GALACTIC_POLE, tilt)
 
     def _apply_surface_conditions(self, conditions):
         """Sets `ROGUE_SURFACE_FIELDS`, `has_internal_heat` and the habitability score

@@ -1,14 +1,15 @@
 # planetgen/datasets/isochrones.py
 
 """
-The main sequence of the MIST isochrone grid, against [Fe/H] (GEN.548).
+The main sequence of the MIST isochrone grid, against [Fe/H] (GEN.548), and the tracks after it (GEN.935).
 
 Source: MESA Isochrones and Stellar Tracks (MIST) v1.2, the "basic" isochrones with rotation v/vcrit = 0.4, solar-scaled
 ([a/Fe] = 0), 15 values of [Fe/H] from -4.00 to +0.50 and 107 ages from 10^5 to 10^10.3 years (Choi et al. 2016, ApJ 823,
 102, doi:10.3847/0004-637X/823/2/102; Dotter 2016, ApJS 222, 8, doi:10.3847/0067-0049/222/1/8; mist.science). The
-archive is 220 MB and holds every phase; setup downloads it once, checks its sha256, keeps only the main-sequence rows
-(phase 0) of each isochrone (initial mass, log L, log Teff, log R: about 340,000 rows, 4 MB) in `main_sequence.npz`
-and removes the archive. The model choices (v/vcrit = 0.4, solar-scaled) are MIST's recommended grid and a default
+archive is 220 MB and holds every phase; setup downloads it once, checks its sha256, keeps the main-sequence rows
+(phase 0) of each isochrone (initial mass, log L, log Teff, log R and the present mass: about 340,000 rows, 5 MB) in
+`main_sequence.npz` and, in `post_main_sequence.npz`, the tracks from the end of the main sequence on that
+`evolved_tracks` builds from the rest of the rows (GEN.935), and removes the archive. The model choices (v/vcrit = 0.4, solar-scaled) are MIST's recommended grid and a default
 of this build; the grid is the data, not a result tuned to any known star.
 
 The readers interpolate: linearly in [Fe/H] between the two grid values around it (clamped at the ends of the grid),
@@ -34,6 +35,7 @@ from planetgen.datasets import fetch
 
 ARCHIVE = "MIST_v1.2_vvcrit0.4_basic_isos.txz"
 DERIVED = "main_sequence.npz"
+POST_DERIVED = "post_main_sequence.npz"
 
 DATASET = fetch.Dataset(
     key="isochrones",
@@ -43,21 +45,30 @@ DATASET = fetch.Dataset(
                         "bb3f42743f75676fa8bf6ca63c4cb2723a0839b77204efebcae39fa4610a92c8", 221507784, transient=True),),
     replaces="the Baraffe et al. 2015 track at solar metallicity and the fitted relations of the stellar-composition note",
     fill="SC1",
-    fallback="no MIST point, so no luminosity, temperature, radius or lifetime for a main-sequence star (an open item on the star)",
-    derived=(DERIVED,),
+    fallback="no MIST point, so no luminosity, temperature, radius or lifetime for a star (an open item on the star)",
+    derived=(DERIVED, POST_DERIVED),
     derive=lambda folder: derive(folder),
-    derive_version=1,
+    derive_version=3,
 )
 
-_COLUMNS = {"log_age": 1, "initial_mass": 2, "log_l": 7, "log_teff": 10, "log_r": 11, "phase": 24}
+_COLUMNS = {"log_age": 1, "initial_mass": 2, "star_mass": 3, "log_l": 7, "log_teff": 10, "log_r": 11, "h1": 13, "c12": 16,
+            "phase": 24}
 _ABUNDANCES = re.compile(rb"^#\s+([0-9.]+)\s+([0-9.Ee+-]+)\s+(-?[0-9.]+)\s+(-?[0-9.]+)\s+([0-9.]+)\s*$")
+FIRST_POST_EEP = 454
+"""int: The first equivalent evolutionary point after the main sequence (MIST's terminal-age main sequence): a row from it on
+belongs to `post_main_sequence.npz`."""
 
 
 def parse_isochrone_file(lines):
-    """Reads one MIST `.iso` file (an iterable of byte lines): returns `(y_init, z_init, fe_h, rows)` where rows is a
-    float32 array of the main-sequence rows with columns log age, initial mass, log L, log Teff, log R."""
+    """Reads one MIST `.iso` file (an iterable of byte lines): returns `(y_init, z_init, fe_h, rows, post_rows, pre_edge)` where
+    `rows` is a float32 array of the main-sequence rows with columns log age, initial mass, log L, log Teff, log R and
+    present mass, and `post_rows` a float64 array of the rows from `FIRST_POST_EEP` on with the columns of
+    `evolved_tracks.ROW_COLUMNS` (equivalent evolutionary point, log age, initial mass, present mass, log L, log Teff,
+    log R, surface hydrogen and carbon fractions, phase), and `pre_edge` the heaviest star still contracting at each age (GEN.947: the
+    rows of phase -1), a float64 array of `(log age, initial mass)` from the youngest age to the oldest."""
     y_init = z_init = fe_h = None
-    rows = []
+    rows, post = [], []
+    contracting = {}
     previous_was_header = False
     for line in lines:
         text = line.strip()
@@ -74,16 +85,26 @@ def parse_isochrone_file(lines):
         parts = text.split()
         if len(parts) <= _COLUMNS["phase"]:
             raise ValueError(f"not a MIST isochrone row: {len(parts)} columns, expected 25")
-        if float(parts[_COLUMNS["phase"]]) != 0.0:
-            continue
-        rows.append([float(parts[_COLUMNS[name]]) for name in ("log_age", "initial_mass", "log_l", "log_teff", "log_r")])
+        phase = float(parts[_COLUMNS["phase"]])
+        if phase == -1.0:
+            age, mass = float(parts[_COLUMNS["log_age"]]), float(parts[_COLUMNS["initial_mass"]])
+            contracting[age] = max(contracting.get(age, 0.0), mass)
+        elif phase == 0.0:
+            rows.append([float(parts[_COLUMNS[name]])
+                         for name in ("log_age", "initial_mass", "log_l", "log_teff", "log_r", "star_mass")])
+        elif float(parts[0]) >= FIRST_POST_EEP:
+            post.append([float(parts[0])] + [float(parts[_COLUMNS[name]]) for name in (
+                "log_age", "initial_mass", "star_mass", "log_l", "log_teff", "log_r", "h1", "c12", "phase")])
     if y_init is None or not rows:
         raise ValueError("not a MIST isochrone file: no abundance line or no main-sequence rows")
-    return y_init, z_init, fe_h, np.asarray(rows, dtype=np.float32)
+    pre_edge = np.asarray(sorted(contracting.items()), dtype=np.float64).reshape(-1, 2)
+    return (y_init, z_init, fe_h, np.asarray(rows, dtype=np.float32), np.asarray(post, dtype=np.float64).reshape(-1, 10),
+            pre_edge)
 
 
 def derive(folder):
-    """The compact main-sequence file from the downloaded archive: `{DERIVED: npz bytes}`."""
+    """The compact files from the downloaded archive: `{DERIVED: npz bytes, POST_DERIVED: npz bytes}`."""
+    from planetgen.datasets import evolved_tracks
     found = []
     with tarfile.open(f"{folder}/{ARCHIVE}") as archive:
         for member in archive:
@@ -96,9 +117,16 @@ def derive(folder):
               "z_init": np.array([entry[1] for entry in found])}
     for i, entry in enumerate(found):
         arrays[f"rows_{i}"] = entry[3]
+        arrays[f"pre_edge_{i}"] = entry[5]
     buffer = io.BytesIO()
     np.savez_compressed(buffer, **arrays)
-    return {DERIVED: buffer.getvalue()}
+    post = {"fe_h": arrays["fe_h"]}
+    for i, entry in enumerate(found):
+        post[f"tracks_{i}"], post[f"ms_age_gy_{i}"] = evolved_tracks.build(entry[4])
+        post[f"ms_age_gy_{i}"] = post[f"ms_age_gy_{i}"] / 1.0e9
+    post_buffer = io.BytesIO()
+    np.savez_compressed(post_buffer, **post)
+    return {DERIVED: buffer.getvalue(), POST_DERIVED: post_buffer.getvalue()}
 
 
 @dataclass(frozen=True)
@@ -110,6 +138,8 @@ class _Isochrone:
     z_init: float
     log_ages: np.ndarray
     blocks: tuple
+    pre_edge: np.ndarray = None
+    """`(log age, heaviest initial mass still contracting)` rows, youngest first (GEN.947); empty when the file holds none."""
 
     @staticmethod
     def _on_block(block, mass):
@@ -120,14 +150,15 @@ class _Isochrone:
         # The block is float32 and the mass a float64: a mass a hair past the last (or before the first) row compares
         # equal to it in float32 and the search puts it just outside, so it takes that row.
         if upper >= len(masses):
-            return block[-1, 1:4]
+            return block[-1, 1:5]
         if upper == 0 or masses[upper] == mass:
-            return block[upper, 1:4]
+            return block[upper, 1:5]
         weight = (mass - masses[upper - 1]) / (masses[upper] - masses[upper - 1])
-        return block[upper - 1, 1:4] * (1.0 - weight) + block[upper, 1:4] * weight
+        return block[upper - 1, 1:5] * (1.0 - weight) + block[upper, 1:5] * weight
 
     def point(self, mass, log_age):
-        """`(log L, log Teff, log R)` on this metallicity's isochrone at `log_age`, or None if off the main sequence."""
+        """`(log L, log Teff, log R, present mass)` on this metallicity's isochrone at `log_age`, or None if off the main
+        sequence."""
         ages = self.log_ages
         if log_age < ages[0] or log_age > ages[-1]:
             return None
@@ -153,7 +184,7 @@ class _Isochrone:
 
     def clamped_point(self, mass, log_age):
         """
-        `(log L, log Teff, log R)` of `mass` at `log_age`, held to the mass's own span (GEN.652): an age before the first
+        `(log L, log Teff, log R, present mass)` of `mass` at `log_age`, held to the mass's own span (GEN.652): an age before the first
         isochrone it is on takes that row, and one past the last takes that row carried on in age at the slope of the
         two last rows, up to the age the mass leaves the main sequence between isochrones (`lifetime_log_age`), then
         held. The isochrones come 0.05 dex of age apart, so the last row alone would step with the mass; carried on,
@@ -205,7 +236,8 @@ def _load(path):
             rows = data[f"rows_{i}"]
             ages = np.unique(rows[:, 0])
             blocks = tuple(rows[rows[:, 0] == age][:, 1:] for age in ages)
-            grid.append(_Isochrone(float(fe_h), float(data["y_init"][i]), float(data["z_init"][i]), ages.astype(float), blocks))
+            grid.append(_Isochrone(float(fe_h), float(data["y_init"][i]), float(data["z_init"][i]), ages.astype(float), blocks,
+                                   data[f"pre_edge_{i}"]))
     return tuple(grid)
 
 
@@ -293,7 +325,7 @@ _EDGES = {}
 
 
 def _edge_table(isochrone):
-    """`(arrival, departure)`, each a list over the mass grid of `(log L, log Teff, log R)` or None where the grid holds
+    """`(arrival, departure)`, each a list over the mass grid of `(log L, log Teff, log R, present mass)` or None where the grid holds
     no main-sequence row of that mass, of one isochrone (`_Isochrone.clamped_point` at its first and last age)."""
     cached = _EDGES.get(id(isochrone))
     if cached is None:
@@ -310,7 +342,7 @@ def _edge_table(isochrone):
 
 def edge_point(mass_sol, fe_h, departure):
     """
-    `(log10 L/Lsun, log10 Teff/K, log10 R/Rsun)` of a star of initial mass `mass_sol` and `fe_h` as it arrives on the
+    `(log10 L/Lsun, log10 Teff/K, log10 R/Rsun, present mass in Msun)` of a star of initial mass `mass_sol` and `fe_h` as it arrives on the
     main sequence (`departure` False) or leaves it (True): `main_sequence_point(..., clamp=True)` at its first and last
     age, read from a table of 3000 masses, interpolated in log mass and in [Fe/H] (GEN.652: a table build and every
     star's record read these a million times; the rows themselves cost a few hundred microseconds each). None for a mass
@@ -329,15 +361,43 @@ def edge_point(mass_sol, fe_h, departure):
         near, far = rows[index], rows[index + 1]
         if near is None or far is None:
             return None
-        found.append((near[0] + (far[0] - near[0]) * along, near[1] + (far[1] - near[1]) * along,
-                      near[2] + (far[2] - near[2]) * along))
+        found.append(tuple(n + (f - n) * along for n, f in zip(near, far)))
     first, second = found
-    return (first[0] + (second[0] - first[0]) * weight, first[1] + (second[1] - first[1]) * weight,
-            first[2] + (second[2] - first[2]) * weight)
+    return tuple(a + (b - a) * weight for a, b in zip(first, second))
+
+
+def _arrival_log_age(isochrone, log_mass):
+    """The log age at which `isochrone`'s heaviest contracting star has fallen to the mass (log10), interpolated, or None outside
+    the masses the rows hold."""
+    edge = isochrone.pre_edge
+    if edge is None or len(edge) < 2:
+        return None
+    ages, log_masses = edge[:, 0], np.log10(edge[:, 1])
+    if log_mass > log_masses.max() or log_mass < log_masses.min():
+        return None
+    # The heaviest contracting mass falls with age; np.interp wants rising x, so the masses are read from the oldest age down.
+    order = np.argsort(log_masses, kind="stable")
+    return float(np.interp(log_mass, log_masses[order], ages[order]))
+
+
+def pre_main_sequence_arrival_yr(mass_sol, fe_h):
+    """
+    The age in years at which a star of initial mass `mass_sol` and birth `fe_h` has finished contracting onto the main sequence
+    in MIST (GEN.947): the age at which the heaviest star still in phase -1 of the isochrones (equivalent evolutionary points
+    before 202) has fallen to that mass, interpolated between the isochrone ages (0.05 dex apart) and between the two nearest
+    [Fe/H]. None when the mass is outside the rows (heavier than the contracting stars of the youngest isochrone, or lighter than
+    those of the oldest). Raises `fetch.DataMissing` when the isochrones were not downloaded.
+    """
+    log_mass = math.log10(mass_sol)
+    below, above, weight = _bracket(_grid(), fe_h)
+    found = [_arrival_log_age(isochrone, log_mass) for isochrone in (below, above)]
+    if found[0] is None or found[1] is None:
+        return None
+    return 10.0 ** (found[0] + (found[1] - found[0]) * weight)
 
 
 def main_sequence_point(mass_sol, age_gy, fe_h, clamp=False):
-    """`(log10 L/Lsun, log10 Teff/K, log10 R/Rsun)` of a main-sequence star of initial mass `mass_sol` solar masses
+    """`(log10 L/Lsun, log10 Teff/K, log10 R/Rsun, present mass in Msun)` of a main-sequence star of initial mass `mass_sol` solar masses
     and `age_gy` Gy at `fe_h`, or None when it has left the main sequence, is not yet on it, or its age is outside
     the grid (10^5 to about 10^10.3 years). With `clamp` the age is held to the mass's own span on each isochrone, the
     first row it has on the main sequence to the last (GEN.652): a star that the generator's phase times keep on the
@@ -368,3 +428,44 @@ def abundances(fe_h):
     """`(Y, Z)` the grid starts with at `fe_h`, interpolated between the two grid values around it."""
     low, high, weight = _bracket(_grid(), fe_h)
     return (low.y_init * (1 - weight) + high.y_init * weight, low.z_init * (1 - weight) + high.z_init * weight)
+
+
+_POST = {}
+"""dict: The tracks last read (`post_main_sequence_grid`): `{"token", "grid"}`."""
+
+
+def post_main_sequence_grid():
+    """The `evolved_tracks.Grid` of the post-main-sequence tracks (GEN.935), read from the derived file once for the grid
+    `_grid` has read: it follows the main sequence's checks of the dataset and the cache folder, and is read again when
+    that grid is. Raises `fetch.DataMissing` when the isochrones were not downloaded."""
+    from planetgen.datasets import evolved_tracks
+    _grid()
+    token = _SEEN["token"]
+    if _POST.get("token") != token:
+        path = fetch.locate(DATASET).require().path(POST_DERIVED)
+        with np.load(path) as data:
+            fe_h = data["fe_h"]
+            grid = evolved_tracks.Grid(fe_h, [data[f"tracks_{i}"] for i in range(len(fe_h))],
+                                       [data[f"ms_age_gy_{i}"] for i in range(len(fe_h))])
+        _POST.clear()
+        _POST.update(token=token, grid=grid)
+    return _POST["grid"]
+
+
+def post_main_sequence_track(mass_sol, fe_h):
+    """The `evolved_tracks.Track` of a star of initial mass `mass_sol` and birth `fe_h` from the end of its main sequence on
+    (the four nearest tracks blended, GEN.935), or None when no track of the grid reaches the thermal pulses."""
+    return post_main_sequence_grid().track(mass_sol, fe_h)
+
+
+
+def post_main_sequence_light(mass_sol, fe_h):
+    """`(frac, log_l)` of the track of `post_main_sequence_track`, for the readers that need only those two columns."""
+    return post_main_sequence_grid().light(mass_sol, fe_h)
+
+
+def helium_star_relation():
+    """`(intercept, slope, sigma)` of the luminosity of a Wolf-Rayet star against its present mass in MIST
+    (`evolved_tracks.Grid.helium_star_relation`, GEN.939); None when the tracks hold none. Raises `fetch.DataMissing` when the
+    isochrones were not downloaded."""
+    return post_main_sequence_grid().helium_star_relation()
