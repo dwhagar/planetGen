@@ -11298,37 +11298,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train.
   Prerequisites: none. Related: UX.208.
 
-- [ ] **GEN.794 Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 quiet and active NH3 rates, or a computation from the Cheng 2006 cross section and measured solar spectra**
-  Citations lane (Aux 17), GEN.793 merged #3211, relayed 9:56 PM EDT
-  2026-10-24 as the lane reported: Irwin 2019 is an absorption line list
-  with no photolysis rate, so it cannot settle the factor; it stays a
-  labelled stand-in (T4, bracket 1.05 to 1.10, quiet rate 1.54e-4 to
-  1.8e-4 per second at 1 au) until the Huebner and Mukherjee 2015 NH3
-  quiet and active line is reachable (Boss cannot access the paper; use
-  a second-hand source or compute it from the Cheng 2006 cross section
-  with measured solar spectra). Done: the factor and the rates carry a
-  source and the registry row (GEN.725) is updated with tier and tweak
-  level; a changed value carries tests.golden_update --reason ....
-  Version 8.4. Owner: pool, after 8.1.
-  Rescoped (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): the 'after 8.1' and 'pool' wording is revoked; this is
-  built in 8.1. Secondary sources are accepted; where the source is not
-  reachable use a second-hand value (for GEN.794 the second-hand Huebner
-  rates, or compute from the Cheng 2006 cross section).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Sources 1 (new lane,
-  proposed by TODO). This replaces any earlier owner line (pool,
-  unowned, retired lane or 'after 8.1'). If it is already started
-  elsewhere, the lane tells TODO before taking it. Lock-free parts
-  first; the part that changes generated output rides a train.
-  Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
-  design-drafts/gen465-second-pass; the stand-in registry
-  (stand-in-values.md, 316 rows) lists every constant with its source.
-  Catalog sections 3 and 4.
-  Prerequisites: none. Related: GEN.501, GEN.725, GEN.793.
-
 - [ ] **GEN.798 Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers)**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
