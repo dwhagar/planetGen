@@ -53,27 +53,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.15:RB5 | GEN.983 | `radiation_belts.ATMOSPHERE_EDGE_SCALE_HEIGHTS`, read when the belts are |
 | row | 6.15:RB6 | GEN.983 | `radiation_belts.EARTH_OUTER_PEAK_GY_YR`, read when the belts are |
 | row | 6.15:RB7 | GEN.983 | `radiation_belts.OUTER_RISE_EXPONENT`, read when the belts are |
-| module | planetgen.physics.tidal_rheology | GEN.955 | the rheology of a rocky or icy body under a tide (stage 1a, lock-free); stage 1b wires it into tidal heating, interior heat and circularisation |
-| module | planetgen.physics.spin_torques | GEN.957 | the star, moon and thermal-tide torques on a planet's spin (stage 2a, lock-free); stage 2b wires the sum into planet spin |
-| module | planetgen.physics.moon_orbits | GEN.959 | moon orbit drift, spiral-in and the Roche fall (stage 3a, lock-free); stage 3b wires the history into the planet |
-| module | planetgen.physics.impact_spin | GEN.979 | Kokubo and Genda equation 4 with the gamma law of the last impacts (GEN.978, lock-free); GEN.979 wires it into the rocky planet's birth spin |
-| row | 6.23:TR1 | GEN.955 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.23:TR2 | GEN.955 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.23:TR4 | GEN.955 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.23:TR5 | GEN.955 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.23:TR8 | GEN.955 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.23:TR10 | GEN.955 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.24:TQ1 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.24:TQ2 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.24:TQ3 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.24:TQ4 | GEN.957 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.25:TM1 | GEN.959 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.25:TM2 | GEN.959 | a constant of the tides chain's lock-free module, read when its wiring step lands |
-| row | 6.26:GS2 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
-| row | 6.26:GS3 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
-| row | 6.26:GS4 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
-| row | 6.26:GS5 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
-| row | 6.26:GS6 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | module | planetgen.physics.planet_occurrence | by design | the reader of the observed occurrence bands; the architecture and the census read it (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
 | module | planetgen.physics.kepler_multiplicity | by design | the Kepler transit multiplicity harness, read by the tuning tests until the wiring (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
 | data | planet_occurrence.json | by design | read by `physics/planet_occurrence.py` only (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |

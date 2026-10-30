@@ -160,7 +160,7 @@ def _draw_kind(parent):
     return kinds[-1]
 
 
-def draw_ring(parent, radius_km, mass_kg, cold, moon_distances_km=()):
+def draw_ring(parent, radius_km, mass_kg, cold, moon_distances_km=(), fallen_mass_kg=0.0):
     """
     A planet's ring system, or `None` when it has none.
 
@@ -170,6 +170,8 @@ def draw_ring(parent, radius_km, mass_kg, cold, moon_distances_km=()):
         mass_kg (float): The planet's mass.
         cold (bool): Whether the planet orbits beyond its star's snow line, where a ring keeps its ice.
         moon_distances_km (iterable): The distances of the planet's moons from its centre.
+        fallen_mass_kg (float): The mass of the moons that fell inside the Roche limit (`moon_history`, GEN.959): the planet has a ring of disrupted moon,
+            of that mass up to `MAX_MASS_OVER_PLANET` of the planet's (the rest rained onto the planet), whatever the chance said. The draws are the same.
 
     Returns:
         Ring or None: The draws are made in the order of the module docstring whether or not a ring results.
@@ -177,14 +179,16 @@ def draw_ring(parent, radius_km, mass_kg, cold, moon_distances_km=()):
     if parent == moon_composition.GIANT:
         kind = _draw_kind(parent)
     else:
-        if draw.random() >= RING_CHANCE[parent]:
+        if draw.random() >= RING_CHANCE[parent] and fallen_mass_kg <= 0.0:
             return None
         kind = NON_GIANT_KIND[parent]
     origin = {"dusty": "moon_erosion", "narrow": "disrupted_moon"}.get(kind) or draw.choice(("disrupted_moon", "captured_body"))
+    if fallen_mass_kg > 0.0:
+        origin = "disrupted_moon"
     low, high = RANGES["ice_fraction"][kind]
     share = draw.uniform(low, high)
     ice_fraction = share if cold else 0.0
-    mass = min(log_uniform(*RANGES["mass_kg"][kind]), MAX_MASS_OVER_PLANET * mass_kg)
+    mass = min(log_uniform(*RANGES["mass_kg"][kind]) if fallen_mass_kg <= 0.0 else fallen_mass_kg, MAX_MASS_OVER_PLANET * mass_kg)
     filling = log_uniform(*RANGES["filling"][kind]) if RANGES["filling"][kind][0] < RANGES["filling"][kind][1] else 1.0
     planet_density = mass_kg / (4.0 / 3.0 * math.pi * (radius_km * 1000.0) ** 3)
     roche = roche_limit_km(radius_km, planet_density, mixture_density_kg_m3(ice_fraction))
@@ -223,7 +227,7 @@ def apply(planet):
         cold, distances = bool(planet.born_beyond_snow_line), []
     else:
         cold, distances = planet.distance >= planet.star.snow_line_au, [_au_to_km(moon.distance) for moon in planet.moons]
-    return _store(planet, draw_ring(parent, planet.radius, planet.mass, cold, distances))
+    return _store(planet, draw_ring(parent, planet.radius, planet.mass, cold, distances, getattr(planet, "fallen_moon_mass_kg", 0.0) or 0.0))
 
 
 def apply_rogue(rogue):
