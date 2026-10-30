@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 487 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 491 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 60 | 0 | 5 | 0 | 0 | 65 |
+| T1 | 61 | 0 | 5 | 0 | 0 | 66 |
 | T2 | 79 | 8 | 0 | 1 | 0 | 88 |
 | T3 | 59 | 14 | 3 | 10 | 0 | 86 |
 | T4 | 25 | 0 | 0 | 4 | 4 | 33 |
-| T5 | 28 | 7 | 1 | 0 | 0 | 36 |
+| T5 | 29 | 7 | 1 | 0 | 0 | 37 |
 | T6 | 40 | 18 | 9 | 30 | 0 | 97 |
-| T7 | 18 | 6 | 1 | 7 | 0 | 32 |
+| T7 | 20 | 6 | 1 | 7 | 0 | 34 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 310 | 53 | 21 | 78 | 25 | 487 |
+| All | 314 | 53 | 21 | 78 | 25 | 491 |
 
 ## How the labels were given
 
@@ -784,3 +784,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DD3 | P | T6 | L2 | tuning.DEBRIS_DISK_TEMPERATURE_MEDIAN_K 58 and DEBRIS_DISK_TEMPERATURE_LOG_SIGMA 0.45: the dust temperature of a disk, log-normal | median 45 to 70 K, sigma 0.3 to 0.6 | stars of one solar luminosity | the 47 blackbody radii of Table 1 | the temperatures read from the table itself | median 23 AU and 7 to 40 AU for most, from the abstract and the table as counted | - | - |
 | DD4 | P | T6 | L1 | tuning.DEBRIS_RADIUS_OVER_BLACKBODY 1.74: the belt lies this far beyond its blackbody radius | 1.5 to 2.5 (the paper: a blackbody radius "can underestimate the true disc radius by up to a factor of 2.5") | realistic dust | resolved belt radii | resolved radii from the imaged discs | "scales to about 40 AU for realistic dust properties" over a median of 23 AU | - | - |
 | DD5 | P | T4 | L0 | tuning.DEBRIS_DISK_EDGES_OVER_RADIUS (0.7, 1.5): the ring spans 0.7 to 1.5 of the belt radius | width over radius 0.3 to 1.2 | every debris disk | resolved widths | measured fractional widths | design (a ring about as wide as it is far out) | - | - |
+
+## 6.55 Stand-ins of the low-mass main sequence and the star/brown-dwarf boundary
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| LM1 | P | T7 | L0 | main_sequence.LOW_MASS_BLEND_FLOOR_SOL 0.07: the ratio of the MIST and Baraffe luminosities and radii at 0.1 solar masses (1.14 and 1.02 at 1 Gy) fades linearly to 1 at 0.07 | 0.06 to 0.08 | stars of 0.07 to 0.1 solar masses | a star of 0.09 solar masses whose luminosity differs from the blend by more than the two tables differ | a MIST track below 0.1 solar masses | an inference: the two tables disagree at 0.1 and the join has to be continuous; the Baraffe values stay pure at the hydrogen-burning limit | - | - |
+| LM2 | D | T1 | L0 | main_sequence.SETTLED_RADIUS_SHARE 1.02: a star under 0.1 solar masses has arrived on the main sequence when its Baraffe radius is within 2% of the least it reaches (0.6 to 3 Gy) | 1.01 to 1.05 | stars of 0.07 to 0.1 solar masses | the contraction time of the pre-main-sequence model against this arrival by more than a factor 2.5 | the pre-main-sequence tracks of the table | READ (the BHAC15 radii; 2% is the share the pre-main-sequence energy factor was fitted to, GEN.529) | - | - |
+| LM3 | P | T5 | L0 | mass_boundaries.STAR_BROWN_DWARF_SPLIT_SOL 0.08: the mass function of the stars ends and that of the brown dwarfs begins; the class of an object is by its place's hydrogen-burning limit, 0.074 at solar Z to 0.092 at none (`hydrogen_burning_limit_for_fe_h`) | the split 0.074 to 0.092 | all objects of 0.07 to 0.092 solar masses | the share of objects of 0.074 to 0.092 solar masses that burn hydrogen at a place against Baraffe's and Chabrier and Baraffe's limits | a limit by [Fe/H] from a grid of models at other metallicities | a decision of the item (Boss, 2026-10-21, the limit by Z); the dependence on Z is a parametrisation, Burrows et al. 2001 | - | - |
+| LM4 | P | T7 | L0 | brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 (Burrows et al. 2001) | none | brown dwarfs of 13 to 50 Jupiter masses past the age the table loses them (0.01 to 0.6 Gy) | a radius of a 13 Jupiter mass object at 10 Gy over 1.2 Jupiter radii | a track that reaches the old ages (ATMO 2020, Phillips et al. 2020) | an inference, kept from the eleven-row table it replaces; the radius is 1.7 Jupiter radii for 13 Jupiter masses | - | - |

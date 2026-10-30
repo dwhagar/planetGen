@@ -1317,6 +1317,19 @@ A star's luminosity, temperature and radius after the main sequence are read fro
 | XF5 | P | T6 | L1 | tuning.STELLAR_XFE_SIGMA Ca high-alpha over thin 1.10 (Mg's old ratio 0.073/0.066; the table holds too few thick-disc dwarfs for its own) | 1.0 to 1.4 | thick-disc stars | a thick-disc [Ca/Fe] scatter more than 0.02 dex from the thin-disc one times 1.1 | the thick-disc scatter of a survey with ages | test_stellar_xfe_brewer_fischer::test_the_generated_scatter_is_within_half_again_of_the_tables_robust_scatter_in_every_bin |
 <!-- xfe-refit-standins:end -->
 
+### 6.55 Stand-ins of the low-mass main sequence and the star/brown-dwarf boundary (GEN.936, GEN.948)
+
+Rows LM1 to LM4. The main sequence under the MIST grid (0.07 to 0.1 solar masses) is the Baraffe et al. 2015 table's, and a brown dwarf's temperature and radius are the same table's, at its age (they were a power-law extension and eleven thinned rows). Tiers T1 to T9 and tweak levels L0 to L4 as in 6.6a (GEN.725); the lane's reading (Bug 1), for the owner to confirm.
+
+<!-- low-mass-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| LM1 | P | T7 | L0 | main_sequence.LOW_MASS_BLEND_FLOOR_SOL 0.07: the ratio of the MIST and Baraffe luminosities and radii at 0.1 solar masses (1.14 and 1.02 at 1 Gy) fades linearly to 1 at 0.07 | 0.06 to 0.08 | stars of 0.07 to 0.1 solar masses | a star of 0.09 solar masses whose luminosity differs from the blend by more than the two tables differ | a MIST track below 0.1 solar masses | an inference: the two tables disagree at 0.1 and the join has to be continuous; the Baraffe values stay pure at the hydrogen-burning limit |
+| LM2 | D | T1 | L0 | main_sequence.SETTLED_RADIUS_SHARE 1.02: a star under 0.1 solar masses has arrived on the main sequence when its Baraffe radius is within 2% of the least it reaches (0.6 to 3 Gy) | 1.01 to 1.05 | stars of 0.07 to 0.1 solar masses | the contraction time of the pre-main-sequence model against this arrival by more than a factor 2.5 | the pre-main-sequence tracks of the table | READ (the BHAC15 radii; 2% is the share the pre-main-sequence energy factor was fitted to, GEN.529) |
+| LM3 | P | T5 | L0 | mass_boundaries.STAR_BROWN_DWARF_SPLIT_SOL 0.08: the mass function of the stars ends and that of the brown dwarfs begins; the class of an object is by its place's hydrogen-burning limit, 0.074 at solar Z to 0.092 at none (`hydrogen_burning_limit_for_fe_h`) | the split 0.074 to 0.092 | all objects of 0.07 to 0.092 solar masses | the share of objects of 0.074 to 0.092 solar masses that burn hydrogen at a place against Baraffe's and Chabrier and Baraffe's limits | a limit by [Fe/H] from a grid of models at other metallicities | a decision of the item (Boss, 2026-10-21, the limit by Z); the dependence on Z is a parametrisation, Burrows et al. 2001 |
+| LM4 | P | T7 | L0 | brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 (Burrows et al. 2001) | none | brown dwarfs of 13 to 50 Jupiter masses past the age the table loses them (0.01 to 0.6 Gy) | a radius of a 13 Jupiter mass object at 10 Gy over 1.2 Jupiter radii | a track that reaches the old ages (ATMO 2020, Phillips et al. 2020) | an inference, kept from the eleven-row table it replaces; the radius is 1.7 Jupiter radii for 13 Jupiter masses |
+<!-- low-mass-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

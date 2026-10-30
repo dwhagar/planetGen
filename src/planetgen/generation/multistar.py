@@ -55,7 +55,7 @@ from planetgen import tuning
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
     accretion, brown_dwarf, constants, imf, mass_boundaries, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
-    stability, stellar_composition)
+    stability, stellar_abundances, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -591,10 +591,12 @@ def _radius_au(state):
     return _m_to_au(radius_sol * constants.SOLAR_RADIUS_M)
 
 
-def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0):
-    """A star-like member of this birth mass at the system's age."""
-    if initial_mass < mass_boundaries.sol("hydrogen_burning_limit"):
-        # GEN.252: the L, T or Y type its cooling gives at the system's age, and the radius the same laws fix.
+def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0, substellar=False):
+    """A star-like member of this birth mass at the system's age. A `substellar` one was drawn from the brown dwarf mass function (the
+    objects of 0.074 to 0.08 solar masses among them are the stable late-M and L dwarfs of the census, `physics/brown_dwarf.py`)."""
+    if substellar or initial_mass < stellar_abundances.hydrogen_burning_limit_for_fe_h(fe_h):
+        # GEN.252: the L, T or Y type its cooling gives at the system's age, and the radius the same laws fix. Under the limit
+        # of its place's [Fe/H] (GEN.936): 0.074 at solar Z, up to 0.092 at none.
         dwarf = brown_dwarf.state(initial_mass, age_yr / 1.0e9)
         return _Leaf("brown-dwarf", dwarf["spectral_type"], initial_mass, initial_mass,
                      _m_to_au(dwarf["radius_sol"] * constants.SOLAR_RADIUS_M))
@@ -1402,7 +1404,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         brown = (n_stars is None and birth > mass_boundaries.sol("hydrogen_burning_limit") and len(leaves) < max_stars - (compact is not None)
                  and rng.random() < tuning.BROWN_DWARF_COMPANION_CHANCE)
         if brown:
-            leaves.append(_star_leaf(brown_dwarf.sample_mass_solar(rng), age_yr, rng, fe_h=placed.tree_fe_h))
+            leaves.append(_star_leaf(brown_dwarf.sample_mass_solar(rng), age_yr, rng, fe_h=placed.tree_fe_h, substellar=True))
         if stripped and count >= 2:
             leaves[1] = _stripped_helium_leaf(birth, rng)
             leaf.flags |= MEMBER_MASS_GAINER
