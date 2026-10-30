@@ -11,6 +11,7 @@ import pytest
 
 from planetgen.db import block_lights, nodes, query, store
 from planetgen.galaxy import spherical
+from tests.bright_star_rows import B2V, star_row
 from planetgen.galaxy.drill import DRILL_LEVELS, DrillBlock, drill_block_bounds, drill_chain_of, format_drill_key
 
 pytestmark = pytest.mark.db
@@ -19,9 +20,8 @@ EDGE = 4.0
 
 
 def _bright_row(position, luminosity_sol, population="young"):
-    shell, band, wedge = spherical.sector_address_at(position, EDGE)
-    return (shell, band, wedge, int(position[0] * 1000), int(position[1] * 1000), int(position[2] * 1000), population,
-            "B2V", "V", 1.4e31, 3.0e6, 22000.0, luminosity_sol * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None)
+    return star_row(spherical.sector_address_at(position, EDGE), tuple(int(position[a] * 1000) for a in range(3)), population=population,
+                    luminosity_w=luminosity_sol * 3.828e26, **B2V)
 
 
 @pytest.fixture

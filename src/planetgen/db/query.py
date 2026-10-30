@@ -54,6 +54,7 @@ from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
 from planetgen.util import generator_epoch
+from planetgen.util.star_count import parse_star_count
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import shape_with_terms
 from planetgen.galaxy.frame import binary_companion_offset_pc
@@ -6664,29 +6665,29 @@ def _search_facet_type(conn):
 
 
 def _search_facet_spectral(conn):
-    rows = conn.execute(
-        "SELECT SUBSTR(star_type, 1, 1) AS v, COUNT(*) AS c FROM stars GROUP BY v ORDER BY v"
-    ).fetchall()
+    """Every spectral class the generator produces (`SPECTRAL_CLASS_COLORS`), with its star count (0 when none yet),
+    then any other letter the stars hold."""
+    counts = {row["v"]: row["c"] for row in conn.execute(
+        "SELECT SUBSTR(star_type, 1, 1) AS v, COUNT(*) AS c FROM stars GROUP BY v ORDER BY v").fetchall()}
+    letters = [*SPECTRAL_CLASS_COLORS, *sorted(letter for letter in counts if letter not in SPECTRAL_CLASS_COLORS)]
     opts = []
-    for row in rows:
-        letter = row["v"]
+    for letter in letters:
         color = SPECTRAL_CLASS_COLORS.get(letter)
         tip = f"{color} star" if color else None
-        opts.append({"value": letter, "label": f"{letter}-Type Star", "count": row["c"], "tooltip": tip})
+        opts.append({"value": letter, "label": f"{letter}-Type Star", "count": counts.get(letter, 0), "tooltip": tip})
     return opts
 
 
 def _search_facet_luminosity(conn):
-    rows = conn.execute(
-        "SELECT yerkes_class AS v, COUNT(*) AS c FROM stars WHERE yerkes_class IS NOT NULL GROUP BY v"
-    ).fetchall()
-    rows = sorted(
-        rows, key=lambda r: _SEARCH_YERKES_ORDER.index(r["v"]) if r["v"] in _SEARCH_YERKES_ORDER else len(_SEARCH_YERKES_ORDER)
-    )
+    """Every Yerkes class (`_SEARCH_YERKES_ORDER`) with its star count (0 when none yet), then any other class the
+    stars hold."""
+    counts = {row["v"]: row["c"] for row in conn.execute(
+        "SELECT yerkes_class AS v, COUNT(*) AS c FROM stars WHERE yerkes_class IS NOT NULL GROUP BY v").fetchall()}
+    classes = [*_SEARCH_YERKES_ORDER, *sorted(value for value in counts if value not in _SEARCH_YERKES_ORDER)]
     return [
-        {"value": row["v"], "label": _SEARCH_YERKES_LABELS.get(row["v"], row["v"]), "count": row["c"],
-         "tooltip": f"Yerkes class {row['v']}"}
-        for row in rows
+        {"value": value, "label": _SEARCH_YERKES_LABELS.get(value, value), "count": counts.get(value, 0),
+         "tooltip": f"Yerkes class {value}"}
+        for value in classes
     ]
 
 
@@ -6999,12 +7000,23 @@ def _search_result_sectors(conn, term, limit, offset):
     return {"rows": _with_refs(conn, [dict(r) for r in rows], "sector"), **page}
 
 
-def _search_result_systems(conn, term, limit, offset):
-    match, params = _search_match(conn, "ss.name", term)
+def _search_result_systems(conn, term, limit, offset, stars=None):
+    clauses, params = [], []
+    if term:
+        match, params = _search_match(conn, "ss.name", term)
+        clauses.append(match)
+    if stars is not None:
+        least, most = stars
+        count = "(SELECT COUNT(*) FROM stars st WHERE st.star_system_id = ss.id)"
+        clauses.append(f"{count} >= ?")
+        params = [*params, least]
+        if most is not None:
+            clauses.append(f"{count} <= ?")
+            params.append(most)
     rows, page = _search_page(
         conn,
         "SELECT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type",
-        f"FROM star_systems ss WHERE {match}",
+        f"FROM star_systems ss WHERE {' AND '.join(clauses)}",
         "ss.name, ss.id",
         params, limit, offset,
     )
@@ -7231,7 +7243,7 @@ def _search_facets_cached(conn):
     return value
 
 
-def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None, sorts=None):
+def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None, sorts=None, stars=None):
     """
     Runs the faceted search behind `GET /api/search`/`html/search.py`:
     the same click-to-filter attribute tags (object type; star spectral/
@@ -7262,6 +7274,8 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
             absent panel starts at 0.
         only (iterable, optional): Run just these panels (a table scrolling
             one panel asks for that panel alone); the others come back `None`.
+        stars (tuple, optional): The stars filter `(least, most)` of `parse_star_count` (UX.239): the Systems panel runs for it (with or without a
+            name) and holds only the systems with that many stars in the `stars` table.
 
     Returns:
         dict: `facets` (`{facet: [{"value","label","count","tooltip"}, ...]}`,
@@ -7320,8 +7334,8 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
     wanted = set(SEARCH_RESULT_PANELS if only is None else only)
     if texts.get("sector_q") and "sectors" in wanted:
         results["sectors"] = _search_result_sectors(conn, texts["sector_q"], *_page("sectors"))
-    if texts.get("system_q") and "systems" in wanted:
-        results["systems"] = _search_result_systems(conn, texts["system_q"], *_page("systems"))
+    if (texts.get("system_q") or stars is not None) and "systems" in wanted:
+        results["systems"] = _search_result_systems(conn, texts.get("system_q", ""), *_page("systems"), stars=stars)
     if stars_included and "stars" in wanted:
         results["stars"] = _search_result_stars(
             conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), *_page("stars"), size_range=star_size

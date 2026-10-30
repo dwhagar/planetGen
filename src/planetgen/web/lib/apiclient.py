@@ -877,7 +877,7 @@ def get_object_children(db, ref, limit=None, after=None):
     return _request(f"/objects/{ref}/children", {"db": db, "limit": limit, "after": after})
 
 
-def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
+def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
     `db.query.search`'s docstring for the full shape.
@@ -902,6 +902,7 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
             the facets and the name suggestions.
         sorts (dict, optional): `{"planet", "moon"} -> sort key` (`-` in front for the best first), sent as
             `planet_sort`/`moon_sort` (UX.214).
+        stars (str, optional): The stars filter (UX.239), sent as `stars`: a count, a count and a plus, or a name.
     """
     _require_db(db)
     pairs = [("db", db)]
@@ -923,6 +924,8 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
     for entity, sort in (sorts or {}).items():
         if sort:
             pairs.append((f"{entity}_sort", sort))
+    if stars:
+        pairs.append(("stars", stars))
     if panels is not None:
         pairs.append(("panels", ",".join(panels) or "none"))
     return _request("/search", pairs)

@@ -90,6 +90,7 @@ from planetgen.db.query import (
     nebula_shape as query_nebula_shape,
     nebula_surroundings as query_nebula_surroundings,
     search as run_search,
+    parse_star_count,
     sector_detail as query_sector_detail,
     system_detail as query_system_detail,
 )
@@ -1774,6 +1775,10 @@ def search():
     names; `none` for no panel at all, which still answers the facets and name suggestions) runs just those
     panels, the rest answering `null`; the Search page fetches each panel on its own so one slow panel
     times out alone (UX.97).
+
+    UX.239: `stars` keeps the systems with that many stars: a count (`stars=3`, exactly three), a count and a plus (`stars=3+`, three or more)
+    or a name (`single`, `binary`, `trinary`, `quaternary`: exactly that many; `quintenary`: five or more). The Systems panel runs for it with
+    or without a name; each row carries `star_count`. Anything else is a 400.
     """
     args = request.args
     texts = {
@@ -1802,7 +1807,11 @@ def search():
     if args.get("panels"):
         only = {panel for panel in args["panels"].split(",") if panel in SEARCH_RESULT_PANELS}  # "none": no panel
     sorts = {entity: args.get(f"{entity}_sort") for entity in ("planet", "moon") if args.get(f"{entity}_sort")}
-    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only, sorts=sorts))
+    try:
+        stars = parse_star_count(args.get("stars"))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only, sorts=sorts, stars=stars))
 
 
 # ---------------------------------------------------------------------

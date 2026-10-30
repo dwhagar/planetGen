@@ -1152,9 +1152,12 @@ def test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate(pa
         assert elapsed > 0.2, elapsed
         dot = abs(sum(x * y for x, y in zip(a["quaternion"], b["quaternion"])))
         turned = 2 * math.acos(min(1.0, dot))
+        if a["locked"]:
+            assert turned < 0.02, (a["ref"], turned)      # UX.244: a locked body keeps its face toward what it orbits
+            continue
         assert turned == pytest.approx(a["rate"] * elapsed, abs=2e-3), (a["ref"], turned, a["rate"], elapsed)
         checked += a["rate"] > 0
-    assert checked >= 2, "bodies with a stored period turn"
+    assert checked >= 2, ("bodies with a stored period turn", [(a["ref"], a["rate"], a["locked"]) for a in got["first"]])
 
 
 @pytest.mark.viewport(1280, 900)

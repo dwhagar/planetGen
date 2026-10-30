@@ -242,15 +242,18 @@ ensure_apache_modules() {
 # A reload aborts the requests a mod_wsgi daemon is serving after about 4 seconds (touching src/html/wsgi.py does
 # not), which is why a reload is quick and a long request at that moment can fail.
 # Returns 0 when everything reloaded answers, 1 when a step failed (the caller prints the command and ends non-zero),
-# 2 when nothing that serves the site is running (the caller prints the command, the update is fine).
+# 2 when nothing that serves the site is running (the caller prints the command, the update is fine), 3 when every
+# reload succeeded but the /api/health probe never got a good answer (the probe can be wrong for reasons that are not
+# the new code's: another virtual host owns the address, no listener on the https port; the caller warns and opens the
+# site, since the database migration has finished by then).
 reload_web_if_running() {
-    local acted=0 failed=0 unit="" verb=reload check=""
+    local acted=0 failed=0 unhealthy=0 unit="" verb=reload check=""
     if is_macos; then
         if launchctl print "system/$GUNICORN_LABEL" >/dev/null 2>&1; then
             if launchctl kill SIGHUP "system/$GUNICORN_LABEL" >/dev/null 2>&1; then
                 echo "reloaded gunicorn."
                 acted=1
-                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || failed=1
+                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || unhealthy=1
             else
                 echo "warning: launchctl kill SIGHUP system/$GUNICORN_LABEL failed." >&2
                 failed=1
@@ -269,7 +272,7 @@ reload_web_if_running() {
                 failed=1
             elif systemctl "$verb" "$unit" >/dev/null 2>&1; then
                 echo "${verb}ed Apache."
-                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1/api/health}" Apache "${PLANETGEN_HEALTH_URL:-$(site_health_target)}" || failed=1
+                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1/api/health}" Apache "${PLANETGEN_HEALTH_URL:-$(site_health_target)}" || unhealthy=1
             else
                 echo "warning: systemctl $verb $unit failed." >&2
                 failed=1
@@ -279,7 +282,7 @@ reload_web_if_running() {
             acted=1
             if systemctl reload planetgen-gunicorn >/dev/null 2>&1; then
                 echo "reloaded gunicorn."
-                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || failed=1
+                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || unhealthy=1
             else
                 echo "warning: systemctl reload planetgen-gunicorn failed." >&2
                 failed=1
@@ -287,6 +290,7 @@ reload_web_if_running() {
         fi
     fi
     (( failed )) && return 1
+    (( unhealthy )) && return 3
     (( acted )) && return 0
     return 2
 }
@@ -334,18 +338,37 @@ if host and host not in ("localhost", "127.0.0.1", "::1"):
 ' 2>/dev/null || true
 }
 
+# What curl's exit status says when it got no HTTP answer at all (the "HTTP 000" in a warning), in plain words.
+curl_failure_words() {
+    case "${1:-0}" in
+        0) echo "no answer" ;;
+        6) echo "the name could not be looked up" ;;
+        7) echo "the connection was refused: nothing listens on that address and port" ;;
+        28) echo "no answer in time" ;;
+        35|51|53|54|58|59|60|77|80|82|83|90|91) echo "the TLS (https) handshake or certificate failed, curl exit $1" ;;
+        47) echo "too many redirects" ;;
+        52) echo "the server closed the connection without an answer" ;;
+        56) echo "the connection was reset" ;;
+        *) echo "curl exit $1" ;;
+    esac
+}
+
 # Waits up to HEALTH_WAIT_SECONDS for $1 (an address) to answer below 400, naming $2 in the warning; true without curl.
 # $3, when given, is the site's own address and its two curl --resolve values (site_health_target), tried each round when $1
 # does not answer below 400: it passes on a 2xx answer, so a host whose bare loopback address belongs to another virtual
-# host (OPS.77) is checked through the site's own name. A passing answer by that route is said so.
+# host (OPS.77) is checked through the site's own name. A passing answer by that route is said so. The site's own address
+# is pointed at this machine, so what is checked is this Apache and not DNS, NAT or the certificate (-k: a name the
+# certificate does not cover, or one that has lapsed, is not a reason to call the new code unhealthy).
 # /api/health stays open while the site is closed for the update (OPS.75), so a reload is checked while the update's
 # own maintenance mode is still on; a closed site is said so (and why), on success and in the warning alike.
+# Returns 0 when it answers, 1 when it never did.
 wait_for_health() {
     command -v curl >/dev/null 2>&1 || return 0
-    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body site_url="" resolve_http="" resolve_https="" site_code="" site_note=""
+    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body rc site_url="" resolve_http="" resolve_https="" site_code="" site_rc=0 site_note=""
     if [[ -n "${3:-}" ]]; then read -r site_url resolve_http resolve_https <<<"$3"; fi
     while :; do
-        reply="$(curl -s --max-time 5 -w '\n%{http_code}' "$1" 2>/dev/null)"
+        rc=0
+        reply="$(curl -s --max-time 5 -w '\n%{http_code}' "$1" 2>/dev/null)" || rc=$?
         code="${reply##*$'\n'}"
         body="${reply%$'\n'*}"
         if [[ "$code" =~ ^[23] ]]; then
@@ -353,7 +376,8 @@ wait_for_health() {
             return 0
         fi
         if [[ -n "$site_url" ]]; then
-            reply="$(curl -sL --max-time 5 --resolve "$resolve_http" --resolve "$resolve_https" -w '\n%{http_code}' "$site_url" 2>/dev/null)"
+            site_rc=0
+            reply="$(curl -skL --max-time 8 --resolve "$resolve_http" --resolve "$resolve_https" -w '\n%{http_code}' "$site_url" 2>/dev/null)" || site_rc=$?
             site_code="${reply##*$'\n'}"
             body="${reply%$'\n'*}"
             if [[ "$site_code" =~ ^2 ]]; then
@@ -361,10 +385,14 @@ wait_for_health() {
                 health_maintenance_note "$body"
                 return 0
             fi
-            site_note=" The site's own address $site_url answered HTTP ${site_code:-000}."
+            site_note=" The site's own address $site_url answered HTTP ${site_code:-000}"
+            [[ "${site_code:-000}" == 000 ]] && site_note+=" (no HTTP answer at all: $(curl_failure_words "$site_rc"))"
+            site_note+="."
         fi
         if (( SECONDS >= end )); then
-            echo "warning: the health check of $2 failed: $1 answered HTTP ${code:-000} for ${HEALTH_WAIT_SECONDS:-20} seconds after the reload.${site_note}$(health_maintenance_note "$body" brief)" >&2
+            local bare_note=""
+            [[ "${code:-000}" == 000 ]] && bare_note=" (no HTTP answer at all: $(curl_failure_words "$rc"))"
+            echo "warning: the health check of $2 failed: $1 answered HTTP ${code:-000}${bare_note} for ${HEALTH_WAIT_SECONDS:-20} seconds after the reload.${site_note}$(health_maintenance_note "$body" brief)" >&2
             return 1
         fi
         sleep 1

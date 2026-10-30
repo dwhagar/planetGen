@@ -641,7 +641,9 @@ connectivity to that specific schema rather than the default one.
   `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/`moon_`),
   in km, either bound optional (a size range is a continuous quantity,
   not a discrete facet value, so it's its own pair of query parameters
-  rather than a tag). Returns `facets` (one `{value, label, count,
+  rather than a tag). `stars` (UX.239) keeps the systems with that many stars: a count (`stars=3`, exactly three), a count and a plus (`stars=3+`, three or
+  more) or a name (`single`, `binary`, `trinary`, `quaternary`: exactly that many; `quintenary`: five or more); the Systems panel then runs with or without
+  a name, every system row carries `star_count`, and anything else is a `400`. Returns `facets` (one `{value, label, count,
   tooltip}` list per facet, built from the distinct values actually
   present), `autocomplete` (`sectors`/`systems`/`stars`/`planets`/`moons`
   name lists), `facet_labels` (`"facet:value"` -> label, for an

@@ -75,7 +75,7 @@ def test_example_narrative_never_misapplies_main_sequence_notes(path):
     for _ in range(TRIALS):
         system = build_system(path)
         for star in system.stars:
-            if star.yerkes_class == "V":
+            if star.yerkes_class in ("V", "VI"):  # a subdwarf is a main-sequence star; the note is written for both (describe/build.py)
                 continue
             # Only this star's own paragraphs: a main-sequence companion
             # (GEN.54) rightly carries its own note.
