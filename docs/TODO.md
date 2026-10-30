@@ -1095,7 +1095,16 @@ with `clamp()`.
   filters (UX.226, UX.227). Done: a browser test finds a known binary
   and a known triple by the filter, the API and command line agree, and
   the help text names every choice.
-  Prerequisites: UX.226. Related: UX.227, GEN.728, TEST.162.
+  Boss 5:49 PM EDT 10-30 (owner and priority) (2026-10-30 5:50 PM EDT):
+  Boss needs this now to find and test multi-star systems (the
+  third-star fix): owner Core 1, right after UX.242 (PR #4142 adds
+  star_count to the list). First slice, not waiting for the general
+  engine: a `stars` filter (exactly N, or N or more; Single, Binary,
+  Trinary, Quaternary, Quintenary and beyond) in the search box and the
+  Systems panel of the search page and in /api/search?stars=, reading
+  the stored star count; the numeric engine of UX.226 absorbs it later.
+  The prerequisite on UX.226 is dropped for this slice.
+  Prerequisites: none. Related: UX.226, UX.227, GEN.728, TEST.162.
 
 - [ ] **UX.240 Belt page data builder: the designated individual bodies (designation, mass, size, status, composition), the size table of the rest of the belt mass (counts, mass share and typical composition by diameter bin), and the density factor, as one pure structure**
   Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
@@ -1143,6 +1152,11 @@ with `clamp()`.
   were only compiled in the thread container: a lane machine runs
   scripts/test.py changed --resume, then merges it. Lock-free. Owner:
   Core 1 (runs the tests and merges; separate from its TEST queue).
+  Boss 5:49 PM EDT 10-30 (priority) (2026-10-30 5:50 PM EDT): Boss has
+  not yet tested the third-star fix and needs this merged first so he
+  can find those systems: top priority for Core 1. He also needs the
+  star count searchable from the search box (UX.239 first slice, same
+  owner).
   Prerequisites: none.
 
 - [ ] **UX.243 Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4)**
@@ -2801,56 +2815,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: MAP.312, NAV.63. Related: NAV.63, NAV.4, NAV.5.
 
 ## GEN: Generation and physics
-
-- [ ] **GEN.29 Sweep every planet class for sense once the new ones are in (bug)**
-  Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
-  sure they all make sense logically once the new classes are in
-  place." After GEN.28. Done: every class's description, composition,
-  zones, sizes, weights, temperatures and atmosphere agree with each
-  other. Known oddities to settle: D allowed in the hot zone (icy
-  bodies at 265-490 K); C a catch-all for 63% of cold planets; Q never
-  generated (weight 0.0001, and orbits are circular); V's composition
-  "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
-  at 376-414 K, above water's boiling point at 0.6 bar. Rocky rogues of
-  10-16 Earth masses come out up to 17,600 km, past class S's
-  11,468 km top, and get S as the nearest fit (PR #415); Boss to decide
-  whether those sizes make sense or need their own range.
-  Prerequisites: none.
-  Plan (2026-10-07): Under GEN.90: the refactor is the sweep, so it
-  stays with it in phase 2.
-  Research (2026-10-09, atmospheres-retention-and-classes.md): known
-  oddities to fold in: classes A and B hold 13 to 17 kPa at S = 4.4 and
-  v_esc 3.7 km/s, about 50 times beyond the cosmic shoreline; N sits in
-  the ecosphere at S about 1.05 (below runaway); T and I overlap; rogue
-  S reaches 17,600 km (recommend class R at 10 to 16 Me, or cap S at
-  13,500 km); K, L and P fail the Armstrong and 20 kPa limits (P needs
-  the stage cap from GEN.92).
-  Checked 2026-10-10 22:19Z for Boss's generation-first priority: this
-  waits on GEN.27 and GEN.28 (the new planet classes) and sits under the
-  GEN.90 refactor, so it cannot move up yet; it starts when they land.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): reduced to the judgement pass over its oddities list and
-  Boss's decisions (rogue sizes, a D in the hot zone), run on top of the
-  TEST.209 and TEST.210 harness; not a second sweep over the same
-  classes.
-  Research (2026-10-09): Bug 2 (Class census tests lane, Boss 7:24 PM
-  EDT 2026-10-28, high priority) takes this with TEST.430 where it
-  overlaps the class census; confirm any other lane's claim with TODO
-  first.
-  Trimmed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): classes are conditions-based and derived from the
-  finished body (GEN.644 to GEN.648, cut-over epoch 121), and all 20
-  letters stay; new class letters are revoked (GEN.28 and its children).
-  Core 4: re-read this item against the derived classes, drop any clause
-  that asks for a fixed letter rule, and tell TODO which parts stand;
-  the physics clauses (retention, zones, sense of each class) stand.
-  Moved into 8.1. Owner: Core 4.
-  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT):
-  narrowed to a final sweep of the 20 derived class rows (descriptions,
-  sizes, temperatures, atmosphere) once GEN.355 lands; Q is no longer
-  never generated (7 to 9 percent in the census); GEN.27 and GEN.90 are
-  dropped; the rogue S size over 17,600 km still needs Boss. Report
-  reports/core4-classifier-reread-2026-10-30.md
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
@@ -10362,6 +10326,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   comes from the Flora and Fauna scores (GEN.653).
   Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
   Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
+  Boss 5:49 PM EDT 10-30 (2026-10-30 5:50 PM EDT): Superseded in part:
+  the request is a probability tweak only and never forces (see
+  GEN.1130); the forcing ladder is removed by GEN.1130. Do not build
+  further steps of the ladder.
 
 - [ ] **GEN.660 The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug)**
   Found by Habitability lane K (relayed 8:21 PM EDT 2026-10-23 as the
@@ -10526,6 +10494,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ladder); the directive counts is_habitable. Done: no request names a
   class letter. The admin part waits on the 8.6 edit chain. Owner:
   Condition-based classes lane.
+  Boss 5:49 PM EDT 10-30 (2026-10-30 5:50 PM EDT): Superseded in part:
+  +habitable_world and +intelligent_life only tweak probabilities (see
+  GEN.1130); the PHI-6 steering is not built.
   Prerequisites: GEN.681, GEN.682, GEN.684, GEN.685.
 
 - [ ] **GEN.689 The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column**
@@ -13074,7 +13045,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research GEN.1029 Sources 1. Trains: 8 = P0 + P3, 9 = P4 to P7, 10 =
   P8 + P9, 11 = P10; each lock part rides its train, the lock-free
   pieces merge freely first.
-  Prerequisites: TEST.476, GEN.1017, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016.
+  Prerequisites: GEN.1017, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016.
 
 - [ ] **GEN.1009 Overlap-free stars P3: evolve each star once into a frozen MemberRecord that the tree, the build and the planets all read (replaces GEN.1007 and GEN.1008)**
   Add `MemberRecord` and `Star.from_record`; the tree and the build read
@@ -14259,42 +14230,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 2 (owns GEN.768 hours outside), train 7.
   Prerequisites: none. Related: GEN.768, GEN.957.
 
-- [ ] **GEN.1100 physics/field_dispersal.py: expansion radius from age, age from radius, freeze-out radius per size, shear term, retirement age, and a body position from (seed, rank, age)**
-  Interstellar asteroid fields from rogue-planet collisions and the
-  other sources (Boss, 4:40 PM EDT 2026-10-30; design
-  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
-  choice and two small questions (retire past 1 ly versus keep a record
-  row; the remnant planet) are with Boss; the lane builds the modules
-  with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Do: design F2. Pure function, reversible in age, mass
-  conserved. Lock-free. Where we think it belongs (best guess, can
-  move): Aux 4.
-  Rogue parents (R4) (2026-10-30 4:57 PM EDT): The field parents and the
-  collision speed window are drawn from the rogue ejection population of
-  GEN.1111, not from a flat table.
-  Prerequisites: GEN.1098.
-  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
-
-- [ ] **GEN.1101 physics/field_rates.py: the four source rates (collision, supernova-unbound belts, and the others), the hosted rule for unbound belts, the labelled floor dial keeping both figures**
-  Interstellar asteroid fields from rogue-planet collisions and the
-  other sources (Boss, 4:40 PM EDT 2026-10-30; design
-  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
-  choice and two small questions (retire past 1 ly versus keep a record
-  row; the remnant planet) are with Boss; the lane builds the modules
-  with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Do: design F4 and section 8. Registers the stand-ins. Boss
-  picks the rate; the dial default follows his answer. Lock-free. Where
-  we think it belongs (best guess, can move): Aux 4.
-  Boss decision (2026-10-30 4:55 PM EDT): Boss decided 4:54 PM EDT
-  2026-10-30: option 1, physics only, no labelled game rate; fields come
-  only from physical sources (supernova-unbound belts and the other
-  physical sources), a retired field past 1 ly is marked retired, and
-  the leftover planet of a collision is its own rogue planet. Drop the
-  floor dial: the rates are the physical ones and nothing else; no field
-  is drawn at a made-up per-sector rate.
-  Prerequisites: GEN.1098.
-  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
-
 - [ ] **GEN.1102 Field composition from two differentiated parents (iron, silicate, ice shards) replacing draw_field("collisional")**
   Interstellar asteroid fields from rogue-planet collisions and the
   other sources (Boss, 4:40 PM EDT 2026-10-30; design
@@ -14327,7 +14262,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physical sources), a retired field past 1 ly is marked retired, and
   the leftover planet of a collision is its own rogue planet. The field
   density no longer comes from a flat table at all.
-  Prerequisites: GEN.1100, GEN.1101, GEN.1102.
+  Prerequisites: GEN.1102.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
 - [ ] **GEN.1104 Supernova host rule: a young supernova remnant and its remnant core draw the unbound belt as a field, like NEBULA_HOST_RULES**
@@ -14694,6 +14629,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   burn-down line). Default until Boss answers: the top-up fills the
   shortfall only up to the level. Replaces the single spread-tweak
   wording above. Train 19b, after the rogue rows.
+  Boss 5:49 PM EDT 10-30 (2026-10-30 5:50 PM EDT): The three-stage plan
+  is confirmed by Boss; whole sectors are confirmed as the tile.
   Prerequisites: none. Related: GEN.1111, GEN.1119, TEST.499.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
@@ -14730,6 +14667,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and reverses principle 1 of object-id-options.md. A moved rogue keeps
   the ID of its birth position unless Boss asks otherwise (default).
   Backfill one current row per existing object. Train 22.
+  Boss 5:49 PM EDT 10-30 (2026-10-30 5:50 PM EDT): Confirmed: a moved
+  rogue keeps its ID fixed (birth-position ID), so the move history row
+  applies only to renames and collision bumps.
   Prerequisites: none. Related: GEN.1070, GEN.1105, GEN.1118.
 
 - [ ] **GEN.1123 Audit every table that carries sector_id and its ON DELETE rule, and every path that deletes or regenerates a sector, and report which objects would be lost when a sector is deleted though they drifted in**
@@ -14767,32 +14707,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1120. Lock-free. Where we think it belongs (best guess, can move):
   Core 5 (sectors and fill), separate branch.
   Prerequisites: none. Related: GEN.1118, GEN.1120.
-
-- [ ] **GEN.1125 Rogue top-up planner: a pure module that, from a sector's mass shortfall and the Rogues level cap, says how many rogues to place, their masses by the existing mass bins (96 percent terrestrial, 4 percent gas giant), and gives each a placement inside the sector, a realistic velocity and an apparent origin marked "apparent"**
-  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
-  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
-  #4130). Defaults taken until Boss changes them: whole sectors are the
-  unit of randomness and a region is rounded up to whole sectors (no
-  partial sectors); work units are the galaxy's own (shell, band) arcs;
-  a moved rogue keeps the ID of its birth position, with history; the
-  top-up fills the shortfall only up to the Rogues level. Stage 3 of the
-  generation order (study section 8.5), run once per region run after
-  every sector has finished stages 0 to 2. Level ceilings (internal
-  numbers, never shown, accepted by Boss 5:39 PM EDT): None 0, Few 2.5,
-  Normal 4.3, Many 10 terrestrial rogues per star; the shortfall is the
-  mass the sector is missing and the level is the ceiling. Each rogue is
-  placed uniformly inside the sector, then given a velocity (donor-frame
-  isotropic kick added to galactic motion, as in rogue_kick.py) and an
-  apparent origin (distance and direction back along its drifted path,
-  ejection age, shown on the object page as "ejected about N Gyr ago
-  from about D pc away"); no donor row is claimed. The placement is one
-  registered stand-in ROGUE_TOPUP_PLACEMENT plus the level table, both
-  in tuning.py (GEN.725, L3, burn-down line). Done: tests for each
-  level, the cap, mass conserved to the shortfall, apparent origin never
-  a donor link. Lock-free (pure module, nothing calls it). Where we
-  think it belongs (best guess, can move): Aux 7 (owner of rogue_kick.py
-  and rogue_age.py), separate branch.
-  Prerequisites: none. Related: GEN.1118, GEN.1120, GEN.1112.
 
 - [ ] **GEN.1126 Top-up asteroid field kind: lighter interstellar asteroid fields made when the Rogues cap leaves sector mass unmatched, smaller bodies, lower density, a larger volume, no full body history, origin a registered stand-in "unbound remnant"**
   Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
@@ -14875,6 +14789,91 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   19). Where we think it belongs (best guess, can move): Core 1
   (reproducible galaxies), with the GEN.1111 train.
   Prerequisites: none. Related: GEN.1118, GEN.1111, GEN.58.
+
+- [ ] **GEN.1130 The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization**
+  Boss, 5:49 PM EDT 2026-10-30 (answering whether the options on
+  `planetgen system` keep forcing): probability tweak only. Rule already
+  recorded: a civilization is never forced (life-classes.md section 5.2,
+  life-timeline-and-oxygen.md). Do: each option becomes a multiplier on
+  the draw probabilities that lead to the wanted outcome (more rocky
+  planets in the zone, water retention, a life start, a civilization
+  that the physics allows); the request may come out unmet and says so;
+  the adaptation ladder of GEN.648 (redraw, restrict, extra water,
+  aquifers, regenerate in the slot, adapt the system) and the
+  Yellow-or-better steering of GEN.688 are removed, no compatibility
+  shim. Done: tests that a request raises the rate of the outcome over a
+  sweep but a run can fail it, the help text states "raises the odds,
+  never forces", no code path places a planet or a civilization to
+  satisfy a request. Lock work (changes generated output, epoch with
+  --affects, golden). Where we think it belongs (best guess, can move):
+  Aux 2 (life), after the life class build, a later train.
+  Prerequisites: none. Related: GEN.648, GEN.688, GEN.644.
+
+- [ ] **GEN.1131 Class descriptions for N, K and Q agree with the bodies their rules select**
+  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
+  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Class N says hot
+  and CO2/sulfur dominated but its rule is only 10 bar (only 38 of 105
+  are CO2 or SO2 half or more, 35 have over 30 percent hydrogen, 30 are
+  under 400 K); class K says cold desert but 43 of 44 are ice-covered
+  ocean; class Q says swings between extremes but its line is
+  eccentricity 0.06 (128 bodies, 29 percent of those with air). Boss:
+  yes, edit the descriptions. Do: rewrite the three sentences
+  (tuning.PLANET_CLASSES text, the class pages, the design docs) to say
+  what the rule selects, changing no class and no threshold; Q keeps its
+  line for now (Boss: do not raise it to 0.5 until the Q assessment is
+  read). Done: the sentences match the sample numbers of the report,
+  tests that read the descriptions pass. Lock-free if only text changes
+  (otherwise note generation-output). Where we think it belongs (best
+  guess, can move): Core 4, separate branch.
+  Prerequisites: none. Related: GEN.29, GEN.1132.
+
+- [ ] **GEN.1132 Assess retiring Class Q: what depends on it, which bodies it covers, and whether eccentricity belongs in a separate orbit or climate flag, with a recommendation**
+  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
+  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Boss: "do we even
+  need a Class Q? I'm not sure we should have a class that is basically
+  just an orbit." Do not change Q to 0.5 for now. Do: list every
+  dependence on class Q (tuning rows, life classes, habitability, the
+  class census and tests, pages, the map legend, searches, design docs);
+  the 128 bodies it covers in the 1,788-body sample and what class each
+  would take by composition and conditions if Q were retired (the class
+  follows the finished body, GEN.644 to 648); whether eccentricity
+  swings should become a flag or field on the orbit or climate sheet
+  instead (the seven-band climate of GEN.1108 could carry it); the cost
+  of retiring a letter (all 20 letters stay was Boss's earlier rule,
+  8:16 PM EDT 10-29, so retiring needs his word). Done: a short report
+  with a recommendation and the questions for Boss. Lock-free
+  (research). Where we think it belongs (best guess, can move): Core 4,
+  or a research lane if Core 4 is full.
+  Boss 5:52 PM EDT 10-30 (2026-10-30 5:52 PM EDT): Boss: the planet's
+  orbital information can just store the eccentricity value, and "at a
+  glance" can flag it when it is very high. That points to retiring
+  Class Q and covering the extreme-orbit case with the stored value plus
+  an at-a-glance flag. Fold into the assessment: what depends on Q
+  today, the high-eccentricity threshold for the flag, which bodies the
+  128 Q bodies become, and the epoch impact of retiring the class (the
+  class is derived from the finished body, so the derivation changes; an
+  epoch with --affects). A recommendation to retire Q still needs the
+  Boss word that the 20-letter rule changes.
+  Prerequisites: none. Related: GEN.29, GEN.1131, GEN.1108.
+
+- [ ] **GEN.1133 Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree**
+  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
+  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Boss: yes, apply
+  what Core 4 recommended. The earlier research
+  (atmospheres-retention-and-classes.md, 2026-10-09) offered a new class
+  R at 10 to 16 Earth masses or a cap of S at 13,500 km; new class
+  letters are revoked (Boss, 8:16 PM EDT 10-29), so the recommendation
+  to apply is Core 4's in the sweep report and this note. Do: read the
+  sweep report and the GEN.29 history, state in the item which of the
+  two (or the nearest conditions-based fit) is applied, change the class
+  range or the size draw so no body is classed outside its size range,
+  and keep one body chain for rogues and bound planets (a rogue is
+  identical to a bound planet, Boss 10-30). Done: tests that every rogue
+  and planet of 10 to 16 Earth masses sits inside its class range,
+  census re-baseline. Lock work if the draw or the range changes output
+  (epoch with --affects, golden). Where we think it belongs (best guess,
+  can move): Core 4, a later train.
+  Prerequisites: none. Related: GEN.29, GEN.1111.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19556,46 +19555,6 @@ clears each one.
   is still red after train 4 (Bug 2, relayed 3:52 PM EDT 2026-10-30 as
   the lane reported).
   Prerequisites: none. Related: TEST.463, TEST.468, TEST.469, TEST.470.
-
-- [ ] **TEST.476 A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts**
-  Boss (2026-10-30, 10:51 AM EDT): a test that measures how often we
-  redraw or regenerate items to make them fit. Do: count every redraw (a
-  star tree redrawn by the GEN.1004 clearance check, a planet or moon
-  orbit redrawn for spacing or Hill stability, a disk or belt redrawn, a
-  member redrawn for a hydrogen limit and so on) in the generator's draw
-  loops by kind and by star count, over a seeded sample (forced triples,
-  quadruples, ordinary systems), and report the rates; the test pins
-  each rate to a registered ceiling so a change that suddenly redraws
-  more is caught, and the report goes in the census output (TEST.430).
-  Count the redraws through the one random wrapper (draw.py) or a
-  counter beside each retry loop, not a second seeded stream, so the
-  counts do not change what is generated. Done: the report lists every
-  retry loop with its rate, the ceilings are registered with a tier, and
-  the test fails when a rate doubles. Owner: Bug 2 (census) or the first
-  free lane; lock-free (a counter only, no output change).
-  Design thread (10:56 AM EDT) (2026-10-30 10:57 AM EDT): Two gate
-  kinds: ceilings for loops that legitimately remain (Kozai reject,
-  shape fail, no room for a planet), pinned to a registered value with a
-  tier, failing when a rate doubles; and an exact-zero invariant for the
-  overlap redraw, which the build parts must reach. Report rate by kind,
-  star count (1, 2, 3, 4, 5+) and placed-star class with a binomial
-  interval over a seeded sample that includes forced triples and
-  quadruples. It goes first, before any output change, on today's code,
-  for the baseline the Done clause of GEN.1006 is measured against.
-  Revised design (11:14 AM EDT) (2026-10-30 11:15 AM EDT): Baseline
-  first-draw failures with the quick fix, per 2,500 forced systems: 3
-  stars 24, 4 stars 17, 5 stars 50, 6 stars 95 (research thread
-  measurement); the test reproduces these numbers as its baseline and
-  then pins ceilings.
-  Order (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT 2026-10-30: build
-  all of GEN.1006. TEST.476 (counters and baseline, lock-free) goes
-  first after train 4; add the two gate kinds from the design (ceilings
-  per redraw kind and the zero invariant for overlap redraws). Owner:
-  Bug 2.
-  Owner (idle lanes) (2026-10-30 2:51 PM EDT): Core 1 (assigned by TODO;
-  Core 1 was idle and Bug 2 runs the trains). Lock-free, separate
-  branch, merge it yourself. This replaces the Bug 2 owner line above.
-  Prerequisites: none. Related: GEN.1004, TEST.430, TEST.162.
 
 - [ ] **TEST.479 test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug)**
   Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the

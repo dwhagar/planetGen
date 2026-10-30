@@ -2978,6 +2978,14 @@ ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (_boundaries.jupiter("deuterium_burning_l
 ROGUE_PLANET_MASS_BIN_CHOICES = tuple(ROGUE_PLANET_MASS_BINS) + ("brown-dwarf",)
 """tuple: Every `rogue_planets.mass_bin` value."""
 
+ROGUE_LEVEL_CEILINGS = {"None": 0.0, "Few": 2.5, "Normal": 4.3, "Many": 10.0}
+"""dict: The Rogues level -> the most rogue planets per star a sector may hold after its top-up (GEN.1125; Boss accepted these numbers 5:39 PM EDT 2026-10-30; the page shows only the
+words). Source tier T9, tweak level L3 (GEN.725 row 6.86:RT1)."""
+
+ROGUE_TOPUP_PLACEMENT = 1.0
+"""float: The share of the sector's edge, centred on the sector, inside which the top-up places a rogue uniformly (1 is the whole sector). Boss wants to play with it
+(`region-object-store.md` 8.5). Source tier T9, tweak level L3 (GEN.725 row 6.86:RT2)."""
+
 # Above this mass (in Jupiter masses, ~16 Earth masses), a generated rogue
 # planet is treated as a gas giant rather than terrestrial -- roughly
 # where the solar system's own ice giants (Uranus ~14.5, Neptune ~17

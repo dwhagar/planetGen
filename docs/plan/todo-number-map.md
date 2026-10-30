@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.245 |
 | MAP | MAP.354 |
 | NAV | NAV.65 |
-| GEN | GEN.1130 |
+| GEN | GEN.1134 |
 | PERF | PERF.219 |
 | DB | DB.110 |
 | API | API.38 |
@@ -779,7 +779,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.26 | Rogue planet surface conditions | none | done, PR #263 (schema v48; design docs/design/systems/rogue-planet-surface.md) |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | dropped (classes are derived from the finished body (cut-over epoch 121); Core 4 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | dropped (revoked by Boss's full-build sweep 8:16 PM EDT 10-29: new class letters R, U, W, X, Y and Z conflict with conditions-based classes (10-23) and 'all 20 letters stay' (10-28); the part that stands is GEN.963) |
-| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | none | open |
+| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | none | done (sweep report reports/core4-class-sweep-2026-10-30.md, items GEN.1131, GEN.1132, GEN.1133) |
 | GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PRs #295, #296 |
 | GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | done, PR #353 |
 | GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | none | done, PR #371 |
@@ -1850,8 +1850,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1097 | Every object has a day-and-night state and counter: solar day length, day and night hours, and an explicit state for tidally locked, non-rotating, polar-day and no-solid-surface bodies, stored for planets, moons, belt bodies and (where meaningful) stars (bug) | none | open |
 | GEN.1098 | Interstellar fields research read: the sources of design section 10 (LS12 and the rest), one GEN.725 row per number used | none | done, PR #4194 |
 | GEN.1099 | physics/rogue_collision.py: rogue-rogue collision rate (cross-section with focusing), Maxwellian speed window, Q_R against Q*_RD, shock pressure, unbound mass and ejecta dispersion | none | done, PR #4197 |
-| GEN.1100 | physics/field_dispersal.py: expansion radius from age, age from radius, freeze-out radius per size, shear term, retirement age, and a body position from (seed, rank, age) | none | open |
-| GEN.1101 | physics/field_rates.py: the four source rates (collision, supernova-unbound belts, and the others), the hosted rule for unbound belts, the labelled floor dial keeping both figures | none | open |
+| GEN.1100 | physics/field_dispersal.py: expansion radius from age, age from radius, freeze-out radius per size, shear term, retirement age, and a body position from (seed, rank, age) | none | done, PR #4200 |
+| GEN.1101 | physics/field_rates.py: the four source rates (collision, supernova-unbound belts, and the others), the hosted rule for unbound belts, the labelled floor dial keeping both figures | none | done, PR #4205 |
 | GEN.1102 | Field composition from two differentiated parents (iron, silicate, ice shards) replacing draw_field("collisional") | none | open |
 | GEN.1103 | AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed | none | open |
 | GEN.1104 | Supernova host rule: a young supernova remnant and its remnant core draw the unbound belt as a field, like NEBULA_HOST_RULES | none | open |
@@ -1875,11 +1875,15 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1122 | Read Pollack 1979 and Cuk and Burns 2004 for the gas-drag capture window strength and register the number (CM14) | none | done, PR #4192 |
 | GEN.1123 | Audit every table that carries sector_id and its ON DELETE rule, and every path that deletes or regenerates a sector, and report which objects would be lost when a sector is deleted though they drifted in | none | open |
 | GEN.1124 | Resident-mass subtraction: a pure function giving a sector's remaining mass budget after what it already holds (arrived rogues, pre-placed bright stars, scattered phenomena, extended objects whose centre lies there) | none | open |
-| GEN.1125 | Rogue top-up planner: a pure module that, from a sector's mass shortfall and the Rogues level cap, says how many rogues to place, their masses by the existing mass bins (96 percent terrestrial, 4 percent gas giant), and gives each a placement inside the sector, a realistic velocity and an apparent origin marked "apparent" | none | open |
+| GEN.1125 | Rogue top-up planner: a pure module that, from a sector's mass shortfall and the Rogues level cap, says how many rogues to place, their masses by the existing mass bins (96 percent terrestrial, 4 percent gas giant), and gives each a placement inside the sector, a realistic velocity and an apparent origin marked "apparent" | none | done, PR #4204 |
 | GEN.1126 | Top-up asteroid field kind: lighter interstellar asteroid fields made when the Rogues cap leaves sector mass unmatched, smaller bodies, lower density, a larger volume, no full body history, origin a registered stand-in "unbound remnant" | none | open |
 | GEN.1127 | chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is | none | open |
 | GEN.1128 | Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger | none | open |
 | GEN.1129 | Fingerprint split: a sector's digest (GEN.58) becomes "made here" and "arrived here" so rogues landing from other sectors do not change the sector's own digest | none | open |
+| GEN.1130 | The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization | none | open |
+| GEN.1131 | Class descriptions for N, K and Q agree with the bodies their rules select | none | open |
+| GEN.1132 | Assess retiring Class Q: what depends on it, which bodies it covers, and whether eccentricity belongs in a separate orbit or climate flag, with a recommendation | none | open |
+| GEN.1133 | Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3529,7 +3533,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.473 | test_star_census_raises_no_new_flag is red on main: G stars 2.90 percent against the 3.13 to 6.99 percent range, and the A0V companion rate 0.7456 against up to 0.7367 (bug) | none | done, PR #4031 |
 | TEST.474 | tests/test_web_a11y.py::_add_bright_stars fails with pymysql 1136 "Column count doesn't match value count" and errors every site_app browser test in setup (bug) | none | done, PR #4023 |
 | TEST.475 | tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug) | none | done, PR #4049 |
-| TEST.476 | A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts | none | open |
+| TEST.476 | A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts | none | done, PR #4199 |
 | TEST.477 | The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2) | none | done, PR #4071 |
 | TEST.478 | tests/test_api.py _bright_row (and its row near line 1491) is one value short since GEN.846 added bright_stars.rotation_period_hours (bug) | none | done, PR #4056 |
 | TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) | none | open |

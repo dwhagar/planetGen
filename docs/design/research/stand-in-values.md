@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 777 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 786 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 125 | 7 | 6 | 1 | 0 | 139 |
-| T2 | 104 | 20 | 0 | 1 | 0 | 125 |
-| T3 | 77 | 30 | 5 | 9 | 0 | 121 |
+| T2 | 105 | 21 | 0 | 1 | 0 | 127 |
+| T3 | 77 | 31 | 5 | 9 | 0 | 122 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 40 | 12 | 0 | 0 | 0 | 52 |
-| T6 | 66 | 43 | 12 | 35 | 0 | 156 |
+| T6 | 67 | 45 | 12 | 35 | 0 | 159 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
-| T8 | 0 | 1 | 1 | 3 | 2 | 7 |
+| T8 | 0 | 1 | 1 | 6 | 2 | 10 |
 | T9 | 7 | 3 | 4 | 34 | 19 | 67 |
-| All | 481 | 127 | 36 | 106 | 27 | 777 |
+| All | 483 | 131 | 36 | 109 | 27 | 786 |
 
 ## How the labels were given
 
@@ -1013,6 +1013,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | NC5 | P | T7 | L0 | nightside_collapse.collapse for a gas other than CO2: the same grey balance, not calibrated | none | N2 and other gases the paper leaves to later work | a 3D run of an N2 air whose collapse pressure differs from this by a factor over 3 | the N2 collapse pressures of a later Wordsworth or Leconte paper | the paper says N2 collapse is left to future work (Section 3.6); N2 freezes under 126 K so at Earth's flux it holds at any pressure here | - | - |
 | NC6 | P | T9 | L0 | nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed | 0.1 to 0.9 | any gas | a page text that reads wrongly at the cut | none (the retained share is the number to use) | needed output: the share, not the flag, is the physics | GEN.1051 | - |
 
+## 6.86 Stand-ins of the rogue planet top-up
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| TU1 | P | T8 | L3 | tuning.ROGUE_LEVEL_CEILINGS None 0, Few 2.5, Normal 4.3, Many 10 terrestrial rogues per star, the most the top-up may bring a sector to | Few 1 to 4; Normal 3 to 6; Many 6 to 15 | the Rogues dropdown of the galaxy and the sector options | a microlensing or survey rate of free-floating Earth-mass planets per star outside 1 to 20 | the rate the rogue research (GEN.1111) settles on, set by Boss's levels | the design note's accepted numbers (region-object-store 8.5); the ceiling is a dial, not a measurement | GEN.1120 | replace (GEN.1111) |
+| TU2 | P | T8 | L3 | tuning.ROGUE_TOPUP_PLACEMENT 1, the share of the sector edge a top-up rogue may be placed over, centred (1 is the whole sector) | 0.25 to 1 | rogues added inside a sector | a rogue count that clusters at the sector middle against the field | the density of the smoothed rogue field (GEN.1115) once it exists | uniform placement is the neutral choice; no source | GEN.1120 | no data |
+| TU3 | P | T8 | L3 | rogue_topup.SCATTERER_AU_RANGE 1 to 30 AU, where the scattering giant of an apparent origin sits, drawn log-uniform | 1 to 5 for the inner edge; 20 to 100 for the outer | the apparent speed and drift of a top-up rogue | ejection distances from the architecture's own records (GEN.1119) outside 1 to 30 AU | the ejection records of GEN.1119 | giants scatter from 1 to 30 AU in the Solar System and in the observed giant-planet period range; an educated guess from physics | GEN.1120 | replace (GEN.1119) |
+| TU4 | P | T6 | L1 | rogue_topup.VELOCITY_DISPERSION_KM_S 35, 25, 20 km/s, the thin disc's U, V and W dispersion of the hosts | within the printed spread | hosts the caller gives no velocity for | the dispersion of the host stars' own velocities in the sector | the velocities of the sector's hosts | the thin-disc dispersions recalled from the local kinematics literature (not opened) | GEN.1120 | - |
+| TU5 | P | T6 | L0 | rogue_topup.GALACTOCENTRIC_RADIUS_PC 8000, the galactocentric radius of the ring used for the arc of an apparent origin where the caller gives none | 7500 to 8500 | the Sun's neighbourhood | none (a position input) | the sector's own galactocentric radius | about the Sun's distance from the Galactic centre | GEN.1120 | - |
+
 ## 6.87 Stand-ins of the rogue planet ejection speed
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -1201,21 +1211,21 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CM20 | D | T3 | L0 | quasi-satellite route (flag only): 5 to 20 percent of planetesimals scattered by a planet become quasi-satellites in the 1:1 resonance and a significant share pass through the planet's Hill sphere | 5 to 20 percent | scattered planetesimals of any giant | a direct simulation of captures from quasi-satellites | n/a (a flag with no mass) | Kortenkamp 2005 as quoted in Jewitt and Haghighipour 2007 section 6.3 (READ second-hand; paper not reached) | - | - |
 | CM17 | P | T1 | L1 | moon_composition.CAPTURED_SIZE_INDEX 1.0 and CAPTURED_FULL_WEIGHT_MASS_KG 1e16: the weight of the `captured` origin of a moon of mass M is (M / 1e16 kg)^(-1/3) from the survivors' cumulative size law N(>R) ~ R^-1, 1 at or under the floor; 0.046 at 1e20 kg, 0.0078 at Triton's mass | index 0.9 to 1.8 (differential 1.9 +/- 0.3 at Jupiter and Saturn, CM5; 1.8 of the source disc below 70 km, CM3); floor 3e15 to 3e16 kg (CM15) | the moon draw of a giant, a terrestrial planet or a dwarf planet, once GEN.1083 wires it | a giant whose moons above 1e20 kg are captured in more than 1 draw in 10, or one that never draws a captured moon of 1e17 kg | the irregular population of GEN.1077 (the captured share of the mass drawn, not of an index) | CM5, CM15 and the design section 3 (N(>100 km) is 0.1 to 0.5 per giant, not one in three) | - | - |
 
-## 6.106 Stand-ins of the masses of ejected bodies
+## 6.110 Stand-ins of the masses of ejected bodies
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RM1 | P | T1 | L0 | rogue_mass_function.SUPPLY_DIFFERENTIAL_INDEX 3.5, the differential size index q of the supply, dN/dD ~ D^-q, so dN/dlogM ~ M^-0.83 | 3.5 to 4 | bodies of one density in a steady-state collisional cascade; the supply of a real disc is bimodal (embryos and planetesimals) | ejection records (GEN.1119) whose mass spectrum, 0.33 to 30 Earth masses, has a slope outside Sumi's 0.69 to 1.43 | the supply spectrum read from the architecture's own oligarch chain and sub-minimum bodies | Dohnanyi 1969 (n(m) ~ m^-11/6, quoted in Belyaev and Rafikov 2011 arXiv:1012.3220 eq. 1; q = 3.5 in the abstract of Pan and Schlichting 2012 arXiv:1111.0667, up to 4 with velocity evolution); Sumi et al. 2023 arXiv:2303.08280 alpha = 0.96 +0.47 -0.27 read | GEN.1111 | - |
 | RM2 | P | T6 | L0 | rogue_mass_function.MAX_EJECTED_OVER_SCATTERER 1.0, the heaviest body a scatterer ejects as a multiple of its own mass | 0.3 to 1 | scatterers that eject (Safronov number over 1) | an N-body run in which a scatterer ejects a body heavier than itself, or lets a body under a tenth of its mass stay | the ejection records (GEN.1119), which give every ejected body's mass beside its scatterer's | the lighter of a pair is the one ejected (the architecture's `_scatter_crowded_giants` already does it); Barclay et al. 2017 arXiv:1704.08749 eject embryos of at most one Earth mass beside Jupiter and Saturn analogues, read | GEN.1111 | - |
 
-## 6.107 Stand-ins of the air and water of ejected planets
+## 6.111 Stand-ins of the air and water of ejected planets
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | EV1 | P | T6 | L0 | rogue_volatiles.HELD_AIR_VERDICTS dense, moderate, tenuous: the shoreline verdicts that count as the body having held an air of its own before it left | trace counted as held, or tenuous not | rocky bodies of 0.01 to 10 Earth masses at the orbit they left | a rogue of Mars's size whose surface shows no frost where the model gives one, or the reverse | the outgassing and impact-loss inventory of the body (the volatile budget of GEN.849) | the verdict names are those of `atmosphere_retention.verdict_of` (Zahnle and Catling 2017 shoreline), and where the cut falls is ours | GEN.1111 | - |
 | EV2 | B | T1 | L0 | rogue_volatiles.ENVELOPE_LAW_MASS_RANGE_EARTH 1 to 30: the planet masses the radius law of Lopez and Fortney 2014 was fitted to, a mass outside held at the nearest edge | 1 to 20 for the strict fit | the gas-giant test of a rogue (`is_gas_giant`) | a planet under 1 Earth mass whose envelope the law cannot size, called a giant by the clamp | a radius law for envelopes on cores under 1 Earth mass | the range `envelope_escape` already uses for the same law; Lopez and Fortney 2014 Eqs. 1 and 3 (`bulk_structure.envelope_radius_earth`) | GEN.1111 | - |
 
-## 6.108 Stand-ins of the moons carried out with ejected planets
+## 6.112 Stand-ins of the moons carried out with ejected planets
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1224,7 +1234,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MO3 | P | T3 | L1 | rogue_moons.EJECTED_MOON_ECCENTRICITY 0.13: the eccentricity of a moon carried out with its planet | 0.05 to 0.3 | a lunar-mass moon at 30 Earth radii, a Jupiter as scatterer | a different moon mass or orbit whose ejected eccentricity is far from 0.13 in N-body runs | the moon's eccentricity from the ejection record (GEN.1119) | Debes and Sigurdsson 2007 arXiv:0709.0945, median of the 123 bound ejections, read (one setup, 2,700 runs) | GEN.1111 | - |
 | MO4 | P | T6 | L1 | rogue_moons.circularisation_flux_w_m2: the eccentricity tide is held constant over the age, and the larger early term of the planet's spin being braked by the moon (their eq. 2) is not in it | e from 0.05 to 0.3 | the first hundreds of Myr after the ejection | a rogue younger than 300 Myr whose measured heat flux is far above the constant term | the spin-braking term from the spin-down work (GEN.842) | Debes and Sigurdsson 2007 eqs. 1 and 2: the spin term is 100 times the Earth's radiogenic heat for the best case and falls to it in 144 Myr (rocky) or 246 Myr (icy); the constant term is `tidal_heating`'s habit | - | - |
 
-## 6.109 Stand-ins of the planets a birth cluster strips
+## 6.113 Stand-ins of the planets a birth cluster strips
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1263,6 +1273,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | IF16 | B | T2 | L0 | field_dispersal.OORT_A_KMS_KPC 15.0 km/s/kpc, with SHEAR_VALID_YEARS 2.6e7: the galactic shear of the field along the orbit, 2 A x t for an offset x, applied to the bodies of a field only while the epicyclic approximation holds | A 14 to 16 | a field under about 26 Myr (a field retires at about 30 kyr at 10 km/s, 3 Myr at 0.1 km/s, so the shear is rarely above 0.3 pc) | a field older than 26 Myr that is still inside 1 ly | the epicyclic orbit of each body | Oort constant A from the Hipparcos and Gaia rotation curve (recalled, not opened) | GEN.1105 | - |
 | IF17 | P | T6 | L0 | field_dispersal.DEFAULT_DENSITY_KG_M3 3000: the bulk density of a rocky piece, used for the freeze-out radius sqrt(3 M / (2 pi rho D)) at which a column of pieces of diameter D stops colliding (one collision per piece when the optical depth is 1) | 1000 to 8000 | rocky pieces, mass M spread over a disc, optical depth of 1 | a measured collision time of a debris cloud outside a factor of 3 of the formula | an N-body run of a cloud | derived here from the optical depth | GEN.1105 | - |
 | IF18 | P | T6 | L1 | the rms radius of a field as sqrt(R0^2 + (v t)^2) (quadrature of the initial size and the ballistic spread), the velocity of a body a normal draw of dispersion v / sqrt(3) per component for a ball, and for the ring of a supernova belt the tangential speed at the body's azimuth with the speed at infinity sqrt(G (M0 - 2 M_rem) / a); bodies are a pure function of (seed, rank, age) | none | ballistic bodies, no gas, collisions ignored after freeze-out | an N-body run of an unbound belt whose rms radius leaves the formula by more than 20 percent in 30 kyr | an N-body run of the unbound belt | derived here (Maxwellian ball, ring after the half-mass rule of row IF10) | - | - |
+
+## 6.106 Stand-ins of the field rates
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IF19 | D | T2 | L0 | field_rates.GALAXY_CORE_COLLAPSE_RATE_PER_YEAR 0.02: core-collapse supernovae in the Galaxy per year, 2 per century | 1 to 3 per century | the present Galaxy; scaled by the star formation history for other epochs | a supernova rate measured outside 1 to 3 per century | the rate from the star formation history of the galaxy model (`galaxy/disk_history.py`) | Diehl et al. 2006 (26Al, 1.9 +/- 1.1 per century; recalled, not opened) | GEN.1104 | - |
+| IF20 | P | T2 | L1 | field_rates.TRUNCATION_FRACTION 0.3: a flyby of periastron q truncates a disc at about 0.3 q, so a belt of radius a is stripped by q under a / 0.3, with the focusing 1 + 2 G M / (q v^2) of the pair | 0.28 to 0.35, mass ratio dependence ignored | equal-mass stellar flybys, coplanar and prograde worst case | an N-body flyby that truncates a disc at under 0.2 q or over 0.4 q | the fit of Breslau et al. 2014 with its mass-ratio term | Holman and Wiegert 1999 and Breslau et al. 2014 (recalled, not opened) | GEN.1104 | - |
+| IF21 | D | T3 | L1 | field_rates.CLUSTER_BELT_SHARE 0.32: the share of the stars of a young cluster that hold a debris belt, the overall 32 +/- 5 percent of the A-star sample of row IF9 used for stars of every mass | 0.2 to 0.4 | A stars used as stand-ins for solar-type stars | a Herschel or Spitzer sample of solar-type stars of a young cluster outside 0.2 to 0.4 | the debris fractions of solar-type stars by age (Herschel DEBRIS) | Su et al. 2006 (READ, see IF9) | GEN.1104 | - |
+| IF22 | P | T6 | L1 | a stripped swarm spreads at the orbital speed sqrt(G M / a) it had round its star (4.2 km/s for 50 AU round the Sun-mass star) from the belt radius, so it is a field for the time it needs to pass the retirement radius (70 kyr); the stripping rate is n pi q^2 (1 + focusing) v and the standing swarms are the stripping rate times that life | none | belts on circular orbits, stripped whole | an N-body flyby of a belt whose bodies disperse at under half or over twice the orbital speed | an N-body flyby run | derived here (Breslau et al. 2014 give the truncation, not the bodies' velocities) | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 

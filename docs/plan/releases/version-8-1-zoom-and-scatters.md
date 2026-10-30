@@ -536,10 +536,8 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1106 | Field render: a 3D view for the field page (today _NO_VIEW), the sector map drawing the cloud or annulus plus the individual points at v x age, the render seed from the uid not the database id | GEN.1105 |  |
 | GEN.1105 | Field members (individual bodies by the belt cut rule) with `<field ID>.<rank hex>` designations, status flags, and the sector and field pages | GEN.1103, GEN.1070 |  |
 | GEN.1104 | Supernova host rule: a young supernova remnant and its remnant core draw the unbound belt as a field, like NEBULA_HOST_RULES | GEN.1103 |  |
-| GEN.1103 | AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed | GEN.1100, GEN.1101, GEN.1102 |  |
-| GEN.1102 | Field composition from two differentiated parents (iron, silicate, ice shards) replacing draw_field("collisional") | GEN.1100 |  |
-| GEN.1101 | physics/field_rates.py: the four source rates (collision, supernova-unbound belts, and the others), the hosted rule for unbound belts, the labelled floor dial keeping both figures |  |  |
-| GEN.1100 | physics/field_dispersal.py: expansion radius from age, age from radius, freeze-out radius per size, shear term, retirement age, and a body position from (seed, rank, age) |  |  |
+| GEN.1103 | AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed | GEN.1102 |  |
+| GEN.1102 | Field composition from two differentiated parents (iron, silicate, ice shards) replacing draw_field("collisional") |  |  |
 | UX.241 | Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row | UX.240, GEN.1070, GEN.1069 |  |
 | UX.240 | Belt page data builder: the designated individual bodies (designation, mass, size, status, composition), the size table of the rest of the belt mass (counts, mass share and typical composition by diameter bin), and the density factor, as one pure structure |  |  |
 | GEN.1092 | Wire the scatter phase and the belt origin: scatter tag on stored members, the outer disc fed from the scatter step, origin and formation shown on the belt page | GEN.1070, GEN.1071 |  |
@@ -567,7 +565,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1012 | Overlap-free stars P6: a general history rule replacing the white-dwarf-only engulfment test in classify_pair | GEN.1009 |  |
 | GEN.1011 | Overlap-free stars P5: truncated sampling of period and eccentricity, deleting the 60-try loop and the tree restart loop | GEN.1009, GEN.1010 |  |
 | GEN.1010 | Overlap-free stars P4: one keep-out rule at every depth of the star tree, replacing the Roche-or-extent split | GEN.1009 |  |
-| GEN.1009 | Overlap-free stars P3: evolve each star once into a frozen MemberRecord that the tree, the build and the planets all read (replaces GEN.1007 and GEN.1008) | TEST.476 |  |
+| GEN.1009 | Overlap-free stars P3: evolve each star once into a frozen MemberRecord that the tree, the build and the planets all read (replaces GEN.1007 and GEN.1008) |  |  |
 | TEST.395 | A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q | GEN.689 |  |
 | TEST.408 | test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug) |  |  |
 | TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) |  |  |
@@ -584,7 +582,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.486 | test_planets c-2: a life class is kept but life_class_scores is None when no class scores above the line after the oxygen build (bug) |  |  |
 | TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) |  |  |
 | TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) |  |  |
-| TEST.476 | A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts |  |  |
 | GEN.1004 | A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug) | TEST.162 |  |
 | TEST.472 | Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug) |  |  |
 | TEST.470 | test_orbit_elements fails on main: the moon-light test (relative error 6e-6) and the ellipse tests (a lunar-range problem) (bug) |  |  |
@@ -629,12 +626,15 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.499 | RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against Sumi 2023 (central 21, lower 1 sigma 8 over the probed range), the Mroz 2017 Jupiter limit and Barclay 2017's 2.5 terrestrial bodies per star | GEN.1111 |  |
 | TEST.500 | test_moon_composition::test_a_disk_moon_gains_ice_past_its_disks_ice_line fails on a clean main (reported by Aux 4 on PR #4184) (bug) |  |  |
 | GEN.1119 | RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today |  |  |
+| GEN.1133 | Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree |  |  |
+| GEN.1132 | Assess retiring Class Q: what depends on it, which bodies it covers, and whether eccentricity belongs in a separate orbit or climate flag, with a recommendation |  |  |
+| GEN.1131 | Class descriptions for N, K and Q agree with the bodies their rules select |  |  |
+| GEN.1130 | The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization |  |  |
 | GEN.1129 | Fingerprint split: a sector's digest (GEN.58) becomes "made here" and "arrived here" so rogues landing from other sectors do not change the sector's own digest |  |  |
 | TEST.501 | Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out" |  |  |
 | GEN.1128 | Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger |  |  |
 | GEN.1127 | chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is |  |  |
 | GEN.1126 | Top-up asteroid field kind: lighter interstellar asteroid fields made when the Rogues cap leaves sector mass unmatched, smaller bodies, lower density, a larger volume, no full body history, origin a registered stand-in "unbound remnant" |  |  |
-| GEN.1125 | Rogue top-up planner: a pure module that, from a sector's mass shortfall and the Rogues level cap, says how many rogues to place, their masses by the existing mass bins (96 percent terrestrial, 4 percent gas giant), and gives each a placement inside the sector, a realistic velocity and an apparent origin marked "apparent" |  |  |
 | GEN.1124 | Resident-mass subtraction: a pure function giving a sector's remaining mass budget after what it already holds (arrived rogues, pre-placed bright stars, scattered phenomena, extended objects whose centre lies there) |  |  |
 | GEN.1123 | Audit every table that carries sector_id and its ON DELETE rule, and every path that deletes or regenerates a sector, and report which objects would be lost when a sector is deleted though they drifted in |  |  |
 | GEN.1121 | Designation history: an object may change its name and ID, keeps a stored history of its previous designations, and its current ID is always completely unique across the whole galaxy |  |  |
@@ -721,7 +721,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.949 | Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets |  |  |
 | GEN.993 | Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12 |  |  |
 | GEN.994 | Wire the hot-giant regime edges (equilibrium_edges) into the atmosphere row for hot giants |  |  |
-| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | GEN.91 | Under GEN.90: the refactor is the sweep. Bug, but by definition a sweep after the new classes; it can't go earlier. Includes rocky rogues of 10-16 Earth masses (up to 17,600 km) that get S as nearest fit (PR #415). |
 | GEN.91 | Classes like S and V in the hot and cold zones |  |  |
 
 ## Phase 12: The headline closes
