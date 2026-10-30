@@ -23,6 +23,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.203 | The Generate page and job_runner follow one wrapper run: one command list, one run, with the page's progress, state and log files kept |  |  |
+| PERF.214 | The sectors planner (_plan_sectors) runs in a worker inside the run, not in the starting process | PERF.203 |  |
+| PERF.213 | Link and settle take the started_at of the sectors stage when their stage opens | PERF.203 |  |
+| PERF.212 | The bright-star, phenomena and shell scatters take their params when their stage opens, not when the run is built | PERF.203 |  |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill |  | Parent; closes with its subitems. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands |  | Research: ledger size at full galaxy. |
 | PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds |  | Boss, 8:46 PM EDT 2026-10-21 (relayed). |

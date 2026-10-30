@@ -14895,6 +14895,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   starts it with run_planned; no behaviour or stored-output change, no
   epoch; new tests/test_planned_runs.py. Next: step 2 (start-time checks
   into prepare hooks); the item stays open for the later steps
+  Scope split (Aux 2 finding, 2:47 AM EDT, TODO decision) (2026-10-30
+  2:48 AM EDT): step 2 composes only the verbs whose params are static
+  (fills, habitability, nebula field, population) into one run; the
+  data-dependent chains are split into PERF.212 (scatters), PERF.213
+  (link and settle) and PERF.214 (sectors planner), each a prerequisite
+  of the final one-run step. Waiting lanes take PERF.213 and PERF.214;
+  Aux 2 takes PERF.212
 
 - [ ] **PERF.204 An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2)**
   Boss (1:19 PM EDT 2026-10-29), asked by Core 5 what a visit to an
@@ -14988,6 +14995,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   No generated value changes; indexes and keyset paging only. Size M.
   Owner: Core 5 when its queue ends.
   Prerequisites: none. Related: PERF.206, PERF.210.
+
+- [ ] **PERF.212 The bright-star, phenomena and shell scatters take their params when their stage opens, not when the run is built**
+  bright_star_followers needs the skeleton and the stored mass limit and
+  settings, so plan then scatter in one run cannot build the scatter
+  followers up front. Found by Aux 2 (as the lane reported, 2:47 AM EDT
+  2026-10-30) while planning PERF.203 step 2: a Follower's params must
+  be complete before the run starts, but several verbs read the database
+  when their followers are BUILT, so the whole page job cannot be one
+  run until each computes its params when its stage opens (in its
+  command's expand or prepare, in a worker). No behaviour or
+  stored-output change, no epoch. Lock-free. Do: move the params into
+  the scatter command's expand or prepare hook; test that planning then
+  scattering in one planned run gives the same stored output as today.
+  Size M. Owner: Aux 2.
+  Prerequisites: PERF.203. Related: PERF.203, PERF.213, PERF.214.
+
+- [ ] **PERF.213 Link and settle take the started_at of the sectors stage when their stage opens**
+  The link and settle followers read the started_at of the sectors stage
+  when the run is built. Found by Aux 2 (as the lane reported, 2:47 AM
+  EDT 2026-10-30) while planning PERF.203 step 2: a Follower's params
+  must be complete before the run starts, but several verbs read the
+  database when their followers are BUILT, so the whole page job cannot
+  be one run until each computes its params when its stage opens (in its
+  command's expand or prepare, in a worker). No behaviour or
+  stored-output change, no epoch. Lock-free. Do: read it in the stage's
+  prepare hook inside the worker; test the same stored output. Size S to
+  M. Owner: pool (a waiting lane, confirmed with TODO).
+  Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.214.
+
+- [ ] **PERF.214 The sectors planner (_plan_sectors) runs in a worker inside the run, not in the starting process**
+  The sectors planner runs in the process that starts the run, so the
+  plan is fixed before the run exists. Found by Aux 2 (as the lane
+  reported, 2:47 AM EDT 2026-10-30) while planning PERF.203 step 2: a
+  Follower's params must be complete before the run starts, but several
+  verbs read the database when their followers are BUILT, so the whole
+  page job cannot be one run until each computes its params when its
+  stage opens (in its command's expand or prepare, in a worker). No
+  behaviour or stored-output change, no epoch. Lock-free. Do: run the
+  planner when the sectors stage opens and let the stages after it read
+  its result; test the same plan and stored output. Size M. Owner: pool
+  (a waiting lane, confirmed with TODO).
+  Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
 
 ## DB: Database and schema
 
