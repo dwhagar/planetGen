@@ -14325,6 +14325,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects fill), then remove the xfail marker in the test. Done: no
   stored body has a life_class without a life_stage and the xfail is
   gone. Owner: step 1 Core 3, step 2 Aux 2 (life lane) or Bug 1.
+  Step 1 merged (Core 3, #3927, as the lane reported) (2026-10-30 2:54
+  AM EDT): a body that suits a life class but has no life stage yet is
+  left out of the Galaxy Map class marks, the class filter and its
+  count, search results, the habitability icons, the API life_class_id,
+  the dominant species line on the object page and the system map side
+  panel; two new tests; no migration, nothing drawn changes. Existing
+  databases keep the old lifeclass map rows of those bodies until their
+  systems are saved again (a small data migration would clear them; not
+  filed, optional). Step 2 remains (draw no class before the first step,
+  epoch, removes the xfail)
   Prerequisites: none. Related: GEN.873, GEN.894.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -14890,6 +14900,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stored-output change, no epoch. Lock-free. Do: read it in the stage's
   prepare hook inside the worker; test the same stored output. Size S to
   M. Owner: pool (a waiting lane, confirmed with TODO).
+  Owner (2026-10-30 2:54 AM EDT): Core 3 takes this (TODO, 2:54 AM EDT);
+  lock-free, no stored-output change
   Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.214.
 
 - [ ] **PERF.214 The sectors planner (_plan_sectors) runs in a worker inside the run, not in the starting process**
@@ -14904,6 +14916,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planner when the sectors stage opens and let the stages after it read
   its result; test the same plan and stored output. Size M. Owner: pool
   (a waiting lane, confirmed with TODO).
+  Owner (2026-10-30 2:54 AM EDT): Core 3 takes this after PERF.213
+  (TODO); lock-free, no stored-output change
   Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
 
 ## DB: Database and schema
