@@ -46,7 +46,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.collision_outcome | GEN.197 | what a collision does, read by the orbital event writer |
 | module | planetgen.physics.body_positions | MAP.253 | where every body of a system is at a time, read by the scene and the maps once they read the parent chain |
 | module | planetgen.physics.light_travel | VIEW.1 | light-travel positions for the view from a planet |
-| module | planetgen.physics.radius_valley | GEN.722 | the simulated Kepler survey of the radius valley; the generator reads the result once the follow-up settles the mechanism |
+| module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
 | module | planetgen.physics.iron_branch_tuning | by design | the simulated sample the iron branch table is tuned to; run by the tuning tests, not by generation |
 | module | planetgen.generation.class_sample | by design | a sample that holds every class, a helper of the sheet audit tests |
 | module | planetgen.generation.plausibility | by design | the anomaly finder engine; run by the plausibility tests and their command line wrapper in `src/tests` |
@@ -55,8 +55,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.7:AM18 | GEN.524 | `mixture_trace.ABUNDANCES`, not drawn until the trace gases are wired |
 | row | 6.8:OH8 | GEN.768 | `protection_limits.GARMENTS` insulation, read by `outside_hours` |
 | row | 6.8:OH9 | GEN.768 | `protection_limits.GARMENTS` cooling and heating power, read by `outside_hours` |
-| row | 6.10:RV2 | GEN.722 | `radius_valley.CORE_MASS_SIGMA`, a width of the simulated survey, read by the follow-up |
-| row | 6.10:RV3 | GEN.722 | `radius_valley.ENVELOPE_SIGMA`, a width of the simulated survey, read by the follow-up |
+| row | 6.10:RV2 | by design | `radius_valley.CORE_MASS_SIGMA`, a width of the simulated survey, read by the tuning tests |
+| row | 6.10:RV3 | by design | `radius_valley.ENVELOPE_SIGMA`, a width of the simulated survey, read by the tuning tests |
 | row | 6.15:RB1 | GEN.983 | `radiation_belts.WIND_EDGE_FRACTION`, read when the belts are |
 | row | 6.15:RB2 | GEN.983 | `radiation_belts.ROTATION_EDGE_FACTOR`, read when the belts are |
 | row | 6.15:RB3 | GEN.983 | `radiation_belts.WIND_PEAK_FRACTION`, read when the belts are |
@@ -93,15 +93,15 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.planet_occurrence | GEN.728 | the reader of the observed occurrence bands; the architecture and the census read it |
 | module | planetgen.physics.kepler_multiplicity | GEN.728 | the Kepler transit multiplicity harness, read by the tuning tests until the wiring |
 | data | planet_occurrence.json | GEN.728 | read by `physics/planet_occurrence.py` only |
-| row | 6.36:AR1 | GEN.728 | `ARCH_DISC_SOLIDS_ENHANCEMENT, ARCH_OUTER_GROWTH_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:AR2 | GEN.728 | `ARCH_GAS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:AR3 | GEN.728 | `INNER_INITIAL_COUNT_EXTRA, INNER_COUNT_SIGMA_LN`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:AR4 | GEN.728 | `INNER_PLANET_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:AR5 | GEN.728 | `INNER_NEIGHBOUR_SIGMA_DEX`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:AR6 | GEN.728 | `*_SEPARATION_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:AR7 | GEN.728 | `OLIGARCH_INNER_EDGE_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:AR8 | GEN.728 | `SCULPT_AGE_YR and the survival law`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:AR9 | GEN.728 | `GIANT_MIGRATION_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:AR10 | GEN.728 | `GIANT_INWARD_MIGRATION_SIGMA_LN, GIANT_CLEARING_SPACING`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:AR11 | GEN.728 | `PLANET_MIN_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:AR12 | GEN.728 | `DISC_SOLIDS_SCATTER_DEX, INNER_SYSTEM_FRACTION_ANCHORS`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA1 | GEN.728 | `ARCH_DISC_SOLIDS_ENHANCEMENT, ARCH_OUTER_GROWTH_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA2 | GEN.728 | `ARCH_GAS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA3 | GEN.728 | `INNER_INITIAL_COUNT_EXTRA, INNER_COUNT_SIGMA_LN`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA4 | GEN.728 | `INNER_PLANET_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA5 | GEN.728 | `INNER_NEIGHBOUR_SIGMA_DEX`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA6 | GEN.728 | `*_SEPARATION_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA7 | GEN.728 | `OLIGARCH_INNER_EDGE_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA8 | GEN.728 | `SCULPT_AGE_YR and the survival law`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA9 | GEN.728 | `GIANT_MIGRATION_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA10 | GEN.728 | `GIANT_INWARD_MIGRATION_SIGMA_LN, GIANT_CLEARING_SPACING`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA11 | GEN.728 | `PLANET_MIN_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
+| row | 6.36:PA12 | GEN.728 | `DISC_SOLIDS_SCATTER_DEX, INNER_SYSTEM_FRACTION_ANCHORS`, read by `planet_architecture`, which `system.py` calls at the wiring |

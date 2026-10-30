@@ -56,7 +56,7 @@ Spacing: median 14.5 mutual Hill radii, 91 percent of pairs over 10 (observed mo
 
 ## Stand-ins
 
-Section 6.36 of `docs/design/research/gap-filling-plan.md`, rows AR1 to AR12, each with tier, tweak, falsifier test and what replaces it. The listing `stand-in-values.md` is regenerated from it.
+Section 6.36 of `docs/design/research/gap-filling-plan.md`, rows PA1 to PA12, each with tier, tweak, falsifier test and what replaces it. The listing `stand-in-values.md` is regenerated from it.
 
 ## Wiring plan (train 4)
 
