@@ -166,3 +166,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.73:DP3 | GEN.1050 | the full model's factor and the solid angle, not read until the oddity row is wired |
 | row | 6.73:DP4 | GEN.1050 | the duty cycle, not read until the oddity row is wired |
 | row | 6.73:DP5 | GEN.1050 | the gate, not read until the oddity row is wired |
+| module | planetgen.physics.atmosphere_retention | GEN.963 | the shoreline ratio, verdict, pressure cap and Jeans gate of the design note; the pressure stage reads the logistic of rows d until the envelope-survival rule (GEN.963) reads the module and the pressure stage takes its cap from it |
+| row | 6.74:SH1 | GEN.963 | `atmosphere_retention.SHORELINE_K`, not read until the pressure stage takes its cap from the module |
+| row | 6.74:SH2 | GEN.963 | `atmosphere_retention.VERDICT_EDGES`, not read until the pressure stage takes its cap from the module |
+| row | 6.74:SH3 | GEN.963 | `atmosphere_retention.PRESSURE_CAPS_PA`, not read until the pressure stage takes its cap from the module |
+| row | 6.74:SH4 | GEN.963 | `atmosphere_retention.JEANS_KEEP`, not read until the pressure stage takes its cap from the module |

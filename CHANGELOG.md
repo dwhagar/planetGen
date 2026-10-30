@@ -2,6 +2,22 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2747] - 2026-10-30
+
+**Headline:** The question of when a world can hold an atmosphere now has one place in the code that answers it, tested on the thirteen Solar System bodies it was written from.
+
+### Changed
+- **The retention library (GEN.355).** `physics/atmosphere_retention.py` gives the cosmic shoreline ratio of a body (cumulative insolation over the fourth power of its escape velocity), the verdict that ratio makes (dense, moderate, tenuous, trace or none) and the surface pressure it allows, the gases a body keeps (a Jeans parameter of 30 or more at the exobase, which comes from the thermosphere model), the temperature under which a gas at a given partial pressure is ice, and the share of a planet's mass the star's X-rays could lift out of its well over its life. Tests reproduce the design table: Earth 0.17, Venus 0.43, Titan 0.59, Mars 1.8, Mercury 53, the Moon 82. It changes no generated world: the pressure stage keeps its own logistic shoreline until the envelope-survival rule (GEN.963) reads this module.
+- **Stand-ins recorded.** Rows SH1 to SH4 in the stand-in registry (GEN.725): the shoreline constant (the middle of the window the thirteen bodies leave), the edges of the verdicts, the pressure each verdict allows, and the Jeans threshold. The design note's section 3.6 now says what was built.
+
+## [8.0.2746] - 2026-10-30
+
+**Headline:** The code now knows how a small, very hot rocky planet boils away, and how long it lasts, using the numbers of the planet Kepler-1520 b.
+
+### Changed
+- **The disintegrating planet module (GEN.1041).** `physics/disintegrating_planet.py` gives the mass a rocky planet under about a tenth of an Earth loses to a wind of its own rock vapour when its dayside is over 2000 K, the time it lasts, the mass it has left at an age, and the gate that says which bodies can be one. It follows Perez-Becker and Chiang 2013: for Kepler-1520 b (2150 K, 15.7 hours) a body of two hundredths of an Earth mass loses about a third of an Earth mass per billion years and is gone in about 140 million years, and the mass that survives ten billion years is about a tenth of an Earth in the paper's first estimate and a little under it in the full model. It changes no generated world: the oddity that uses it is a later wiring step (GEN.1050). The dust tail and the transit depth are not in it.
+- **Stand-ins recorded.** Rows DP1 to DP5 in the stand-in registry (GEN.725): the olivine vapour pressure, the vapour's mean mass and index, the full model's lower rate, the duty cycle and the gate.
+
 ## [8.0.2745] - 2026-10-30
 
 **Headline:** The weird-worlds oddity table and its loader exist, empty for now, with a weirdness dial and a stream of its own for every oddity roll.
