@@ -2,6 +2,59 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2760] - 2026-10-30
+
+**Headline:** The rates behind the planned weird worlds are now checked against papers, and three of the recalled ones were wrong.
+
+### Changed
+- New `docs/design/research/oddity-rates.md` (GEN.1037): the rates of W3, W4, W5, W10, W14, W15 and W20 of the weird-worlds design read in papers or counted from the exoplanet archive, with the sources and what each changes in the design (the misaligned share of hot Jupiters depends on the host temperature, near-resonance is common, the disintegrating-planet rate is a progenitor population, the snowball window has gates). Registry rows WR1 to WR7 (section 6.82). No code changes and no generated world changes.
+
+## [8.0.2759] - 2026-10-30
+
+**Headline:** The generator now has the physics of resonant chains, the rows of planets whose orbits lock in step and tug each other's orbits oval.
+
+### Added
+- **`physics/resonant_chains.py` (GEN.1043).** From a system's orbital periods it finds the chains of three or more planets whose neighbouring periods sit near 2:1, 3:2, 4:3 or 5:3 (TRAPPIST-1 comes out as one chain of seven, Kepler-223 of four, Jupiter's three big moons of three, and the Solar System as none), and it gives the eccentricity each neighbour forces on a planet, from the resonance's disturbing function: Io 0.005 against the observed 0.004, TRAPPIST-1's inner chain a few thousandths. It hands back the orbit in the form `tidal_heating` already flexes for moons, so an eccentric chain planet is heated the way Io is. Nothing puts a chain on a world yet; that is the weird-worlds wiring (GEN.1049).
+- **Stand-in rows RC1 to RC4** in the gap-filling plan (section 6.92) and the stand-in list.
+
+## [8.0.2758] - 2026-10-30
+
+**Headline:** The code now knows how a young low-mass planet can be as big as Neptune or Saturn with a density under 0.1, and how it shrinks as it ages.
+
+### Changed
+- **The super-puff module (GEN.1042).** `physics/super_puff.py` gives the radius of a young planet of a few Earth masses under a thick hydrogen envelope (the law of Lopez and Fortney 2014 inside its range, the giant tables past it, so WASP-107 b comes out at its measured 10.7 Earth radii), the envelope a measured radius needs (Kepler-51 d: 41 percent for 9.3 Earth radii, Kepler-51 b: 16 percent for 7.1), the extra radius that obliquity tides give a hot close-in planet (Millholland 2019, from 20 Earth fluxes up, at most a factor 2), the radius at a later age with the envelope the star's XUV leaves it, and the gate of the oddity. It changes no generated world: the oddity that uses it is a later wiring step (GEN.1048).
+- **Stand-ins recorded.** Rows PF1 to PF4 in the stand-in registry (GEN.725): the gate, the envelope range, the occurrence share (not confirmed, no survey statistic found) and the tidal inflation.
+
+## [8.0.2757] - 2026-10-30
+
+**Headline:** The Galaxy Map is now always 95% of the browser window's height, recomputed on every resize.
+
+### Changed
+
+- MAP.350 follow-up: the Galaxy Map's height was the window less 40 pixels; it is now 95% of the window's height (less a header held at the top of the window), with the rest split above and below, and the page still scrolls past or before the map. `mapfit.js` `fillHeight` takes `FILL_SHARE` and `fillBuffer` gives the margin. No generated output changes.
+
+## [8.0.2756] - 2026-10-30
+
+**Headline:** The generator now has the physics of the seasons: how far a place swings between summer and winter from the planet's tilt, orbit, sea and air.
+
+### Added
+- **`physics/seasonal_swing.py` (GEN.1039).** For a latitude it gives the temperature through the year from the stored tilt and eccentricity, the sea's mixed layer, the ground and the air's heat capacity, and the heat the air carries away: the Earth's tropics barely move while 60 degrees swings tens of kelvin, a dry thin-air planet like Mars follows its light, and above a tilt of about 55 degrees the pole is the hottest place in summer. It also gives the share of the year above freezing and the peak wet-bulb temperature. Nothing puts the swing on a world yet; that is the weird-worlds wiring (GEN.1048).
+- **Stand-in rows SS1 to SS3** in the gap-filling plan (section 6.91) and the stand-in list.
+
+### Changed
+- **The registry section of the Venus-type spin is 6.90** (it shared 6.80 with the quadruple stability rows).
+
+## [8.0.2755] - 2026-10-30
+
+**Headline:** The help text of `planetgen run-job` and the replacement shown for the five ground-type rows no longer carry item codes.
+
+### Fixed
+- **TODO codes in text a user sees (TEST.487).** The `run-job` description named PERF.203 and the five stand-in rows of the surface ground types named GEN.474 as the replacement. The help now says what the command does without the code, and the rows say "ground types derived from the bulk composition and the melting of the mantle"; the item code stays in a comment. `test_no_todo_codes_shown` passes. Nothing generated changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.487.
+
 ## [8.0.2754] - 2026-10-30
 
 **Headline:** A new test audits the giant planets' mass tail, the hot Neptune desert and the derived giant rows, and records one bug: a metal-rich 1.5 to 2 solar-mass host can draw a giant above the 13 Jupiter-mass edge.

@@ -189,6 +189,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.91:SS1 | GEN.1048 | a constant of the seasonal swing module, read when its wiring step lands |
 | row | 6.91:SS2 | GEN.1048 | a constant of the seasonal swing module, read when its wiring step lands |
 | row | 6.91:SS3 | GEN.1048 | a constant of the seasonal swing module, read when its wiring step lands |
+| module | planetgen.physics.resonant_chains | GEN.1049 | the resonant chains of a system's periods and the eccentricity they force; the weird-worlds wiring (W5) will give a chain planet its forced orbit and tidal heating |
+| row | 6.92:RC1 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
+| row | 6.92:RC2 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
+| row | 6.92:RC3 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
+| row | 6.92:RC4 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
@@ -196,3 +201,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.70:RO6 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO7 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO8 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
+| module | planetgen.physics.super_puff | GEN.1048 | the super-puff radius, fade and gate (W15); the bulk step reads it when the wiring step lands |
+| row | 6.76:PF1 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| row | 6.76:PF2 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| row | 6.76:PF3 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| row | 6.76:PF4 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
