@@ -14797,15 +14797,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.149.
   Prerequisites: none. Related: PERF.149.
 
-- [ ] **PERF.206 Keyset walk for the octant and binary system group queries (slice 3 of the PERF.137 OFFSET audit)**
-  Slice 3 of the PERF.137 audit (report
-  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
-  2026-10-29): the octant and binary system group walk uses LIMIT ?
-  OFFSET ?. Do: walk it by key (the last seen id of the group) so each
-  step costs the same, and measure at a large galaxy. No
-  generated-output change. Owner: Core 5. Version 8.1.
-  Prerequisites: none. Related: PERF.137.
-
 - [ ] **PERF.207 planetgen planets and moons take --limit and --after (keyset), replacing OFFSET listing (slice 4 of the PERF.137 OFFSET audit)**
   Slice 4 of the PERF.137 audit (report
   /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
