@@ -1854,3 +1854,4 @@ Baseline: PR #1817.
 | MAP.350 | 8.1 | Fly-through map |
 | GEN.845 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | DOC.63 | 8.1 | Consistency |
+| DOC.65 | 8.1 | Consistency |
