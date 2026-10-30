@@ -1,6 +1,6 @@
 # tests/test_quadruple_stability.py
 
-"""GEN.1029: the 3+1 quadruple stability network of Vynatheya, Mardling and Hamers 2023, against the scikit-learn model it was made from."""
+"""GEN.1029 and GEN.1031: the 3+1 and 2+2 quadruple stability networks of Vynatheya, Mardling and Hamers 2023, against the scikit-learn models they were made from."""
 
 import os
 import pathlib
@@ -27,6 +27,16 @@ SKLEARN = (
 )
 
 
+# The same for mlp_model_2p2_ghost_v1.2.2.pkl: an MLPClassifier given the state of the pickle (read without running its code) and asked for predict_proba, 10-30.
+SKLEARN_2P2 = (
+    ((1.0, 1.0, 1.0, 0.2, 0.2, 0, 0, 0, 0, 0, 0), 0.004994214692352674),
+    ((0.5, 0.8, 0.7, 0.1, 0.15, 0.3, 0.2, 0.1, 0.5, 1.0, 0.7), 0.0006070406302067851),
+    ((0.3, 0.4, 0.9, 0.35, 0.3, 0.6, 0.5, 0.4, 1.5, 2.0, 2.5), 0.9998603646350366),
+    ((0.9, 0.9, 0.5, 0.05, 0.05, 0.1, 0.1, 0.1, 0.2, 0.3, 0.1), 6.146184382850036e-10),
+    ((0.2, 0.5, 0.6, 0.25, 0.4, 0.0, 0.7, 0.5, 0.0, 0.0, 0.0), 0.9999812592135476),
+)
+
+
 @pytest.mark.parametrize("inputs, probability", SKLEARN)
 def test_the_numpy_forward_pass_gives_the_scikit_learn_probability(inputs, probability):
     assert quad.unstable_probability(*inputs) == pytest.approx(probability, abs=1e-6)
@@ -39,6 +49,19 @@ def test_the_weights_are_the_authors_network_of_8301_numbers():
     assert quad.INPUT_NAMES[:3] == ("q_in", "q_mid", "q_out") and len(quad.INPUT_NAMES) == 11
 
 
+@pytest.mark.parametrize("inputs, probability", SKLEARN_2P2)
+def test_the_2p2_forward_pass_gives_the_scikit_learn_probability(inputs, probability):
+    assert quad.unstable_probability_2p2(*inputs) == pytest.approx(probability, abs=1e-6)
+
+
+def test_the_2p2_weights_are_the_authors_network_of_8301_numbers():
+    sizes = [c.size for c in quad._COEFS_2P2] + [b.size for b in quad._INTERCEPTS_2P2]
+    assert sum(sizes) == 8301
+    assert [c.shape for c in quad._COEFS_2P2] == [(11, 50), (50, 50), (50, 50), (50, 50), (50, 1)]
+    assert quad.INPUT_NAMES_2P2[:3] == ("q_in1", "q_in2", "q_out") and len(quad.INPUT_NAMES_2P2) == 11
+    assert not np.allclose(quad._COEFS[0], quad._COEFS_2P2[0])
+
+
 def test_the_authors_example_system_is_stable_and_a_loose_one_is_not():
     """The command line example of the authors' README (q 1, 0.5, 0.33; alpha 0.2, 0.2; circular, coplanar) prints 'ML stable'."""
     assert quad.is_stable(1.0, 0.5, 0.33, 0.2, 0.2, 0.0, 0.0, 0.0)
@@ -49,6 +72,20 @@ def test_the_authors_example_system_is_stable_and_a_loose_one_is_not():
 def test_arrays_broadcast_and_a_tighter_system_is_never_more_stable_along_the_axis_ratio():
     alpha = np.linspace(0.02, 0.45, 40)
     stable = quad.is_stable(0.8, 0.6, 0.4, alpha, alpha, 0.1, 0.1, 0.1)
+    assert stable.shape == alpha.shape and stable[0] and not stable[-1]
+    assert np.all(np.diff(stable.astype(int)) <= 0)
+
+
+def test_the_2p2_authors_example_is_stable_and_a_loose_one_is_not():
+    """The command line example of the authors' README for 2+2 (q 1, 1, 1; alpha 0.2, 0.2; circular, coplanar)."""
+    assert quad.is_stable_2p2(1.0, 1.0, 1.0, 0.2, 0.2, 0.0, 0.0, 0.0)
+    assert quad.is_stable_2p2(1.0, 1.0, 1.0, 0.01, 0.01, 0.0, 0.0, 0.0)
+    assert not quad.is_stable_2p2(1.0, 1.0, 1.0, 0.4, 0.4, 0.0, 0.0, 0.0)
+
+
+def test_2p2_arrays_broadcast_and_a_tighter_system_is_never_more_stable_along_the_axis_ratio():
+    alpha = np.linspace(0.02, 0.45, 40)
+    stable = quad.is_stable_2p2(0.8, 0.6, 0.7, alpha, alpha, 0.1, 0.1, 0.1)
     assert stable.shape == alpha.shape and stable[0] and not stable[-1]
     assert np.all(np.diff(stable.astype(int)) <= 0)
 
@@ -69,6 +106,24 @@ def test_the_ratios_of_masses_and_axes():
         quad.ratios(2.0, 1.0, 1.0, 1.0, 0.5, 0.1, 5.0)
 
 
+def test_the_2p2_ratios_of_masses_and_axes():
+    assert quad.ratios_2p2(2.0, 1.0, 1.5, 0.75, 0.1, 0.2, 1.0) == pytest.approx((0.5, 0.5, 0.75, 0.1, 0.2))
+    with pytest.raises(ValueError):
+        quad.ratios_2p2(1.0, 2.0, 1.0, 0.5, 0.1, 0.2, 1.0)
+    with pytest.raises(ValueError):
+        quad.ratios_2p2(1.0, 0.5, 2.0, 1.0, 0.1, 0.2, 1.0)
+    with pytest.raises(ValueError):
+        quad.ratios_2p2(2.0, 1.0, 1.0, 0.5, 0.1, 1.2, 1.0)
+
+
+def test_the_2p2_range_check_and_hierarchy():
+    assert quad.outside_range_2p2(0.5, 0.5, 0.8, 0.2, 0.2, 0.1, 0.1, 0.1) == ()
+    assert quad.outside_range_2p2(0.05, 1.2, 1.5, 0.2, 1.2, 0.1, 0.99, 0.1) == ("q_in1", "q_in2", "q_out", "alpha_in2_out", "e_in2")
+    assert quad.hierarchy_holds_2p2(0.2, 0.2, 0.3, 0.3, 0.3)
+    assert not quad.hierarchy_holds_2p2(0.6, 0.2, 0.5, 0.0, 0.5)
+    assert not quad.hierarchy_holds_2p2(0.2, 0.6, 0.0, 0.5, 0.5)
+
+
 def test_the_range_check_names_what_the_authors_did_not_document():
     assert quad.outside_range(0.5, 1.0, 1.0, 0.2, 0.2, 0.1, 0.1, 0.1) == ()
     assert quad.outside_range(0.05, 4.0, 2.5, 0.2, 1.2, 0.1, 0.99, 0.1) == ("q_in", "q_mid", "q_out", "alpha_mid_out", "e_mid")
@@ -81,7 +136,7 @@ def test_the_hierarchy_test_is_apoapsis_inside_the_next_periapsis():
 
 
 def test_every_number_in_the_rule_file_carries_a_tier_a_tweak_level_and_a_basis():
-    for name, entry in quad.NUMBERS.items():
+    for name, entry in {**quad.NUMBERS, **{"2p2 " + k: v for k, v in quad.NUMBERS_2P2.items()}}.items():
         assert entry["tier"] in {f"T{n}" for n in range(1, 10)} and entry["tweak"] in {f"L{n}" for n in range(5)} and entry["basis"], name
 
 

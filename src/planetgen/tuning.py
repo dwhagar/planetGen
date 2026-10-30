@@ -1974,6 +1974,9 @@ PLANET_CLASSES = {
         "composition": 'anthracite, basalt, and hydrocarbons',
         "type": 't',
     },
+    # GEN.1091: the class is a rule over the finished body's conditions (`physics/data/planet_classes.json`): surface pressure under 10 Pa and at
+    # least 1 percent of the mass water or ice. Size is not in the rule; the intended scale is a dwarf planet or a moon (radius 50 to 500 km), and
+    # the class covers belt members and dwarf planets as well as moons (docs/design/systems/belt-origins.md).
     'D': {
         "description": 'a small icy body',
         "composition": 'frozen hydrocarbons and ice',
@@ -3616,6 +3619,14 @@ PHENOMENON_DENSITY_PC3 = {
 }
 """dict: Local number density per pc^3 at REFERENCE_STELLAR_DENSITY_PC3,
 the research value for each kind (see the design doc's table)."""
+
+WEIRDNESS_DIAL = 1.0
+"""float: The world-level weirdness dial (GEN.1036, docs/design/systems/weird-worlds.md 4.4): it multiplies the rate of every oddity row
+(`physics/oddities.py`); 0 turns every oddity off, 1 gives the literature rates. Default 1.0 (design; Boss asked for a dial,
+4:15 PM EDT 2026-10-30)."""
+
+WEIRDNESS_RATE_SCALE = {}
+"""dict: A multiplier per oddity id (`{"W10": 0.5}`, default 1.0 for any id not named), applied with `WEIRDNESS_DIAL` to the rate of that row."""
 
 PHENOMENON_RATE_SCALE = {kind: 1.0 for kind in _phenomena_registry.rated_kinds()}
 """dict: A multiplier per kind (default 1.0) to dial a rate up or down
