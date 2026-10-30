@@ -72,7 +72,7 @@ The cold classical belt has **no objects of 400 km or more**; its size distribut
 ### 5.2 Population model (recommended)
 Do not add Class D to the planet slot loop. Draw them from the belt and disc size laws:
 
-* `N(>D) = N100 (D / 100 km)^(-q)` per population, with the slope `q` and the cutoff from the size-law note (`small-body-size-laws.md`: main belt q 4 above 100 km, tapered; Kuiper bright slope, hot and cold from Fraser 2014 [REPO table]).
+* `N(>D) = N100 (D / 100 km)^(-q)` per population, with the slope `q` and the cutoff from the size-law note (`small-body-size-laws.md`: main belt cumulative q 3.0 from 5 to 40 km (Ivezic's differential 4) and a steeper stand-in above, see `belt_ledger.ROCKY_LAW`; Kuiper bright slope, hot and cold from Fraser 2014 [REPO table]).
 * `N100` from the belt mass and size law, not typed in; the top body is the order statistic `N(>D) = 1` (ledger draft 3.1). Test target: main belt with 0.0005 Earth masses gives a Ceres-size top body and 200 to 250 bodies of 100 km and up; Kuiper-type with 0.02 Earth masses gives order 1e5 bodies of 100 km and up and the 15 to 20 round candidates.
 * **Dwarf planet line:** a body is a dwarf planet when its mass is above the hydrostatic mass for its composition (ice about 1e20 to 1e21 kg, rock above that, ledger draft 3.2) and the orbit-clearing number is under the planet line. The count follows from the size law; **do not put a count in as a target**.
 * **Class D label:** applied to every L1 body that is airless and at least 1 percent ice (conditions rule). The rocky ones inside the snow line are Class C or A by the rules the planet classes already hold, or have no letter if they are under the dwarf line.

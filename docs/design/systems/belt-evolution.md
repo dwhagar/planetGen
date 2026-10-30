@@ -48,7 +48,7 @@ Rule: mass is conserved. `M_belt = sum(L1) + integral(L2) + L3`, and the belt's 
 
 ### 3.1 The L1 draw
 1. Belt mass `M_belt(t)` from `belt_mass_earth` with `Dc` fixed by step 2.
-2. Number above mass `m`: `N(>m) = N0 m^(-b)` from the size law (main belt q 4 above ~40 km, tapered, Ivezic 2001 [REPO]; Kuiper hot/cold Fraser 2014 [REPO]). The top body is the one with `N(>m) = 1` (order statistic), jittered; the Solar System's Ceres (9.4e20 kg) is a test target, not an input.
+2. Number above mass `m`: `N(>m) = N0 m^(-b)` from the size law (main belt cumulative q 3.0 from 5 to 40 km, steeper above (stand-in BR20), Ivezic 2001 [REPO]; Kuiper hot/cold Fraser 2014 [REPO]; built as `physics/belt_ledger.py`, GEN.1061). The top body is the one with `N(>m) = 1` (order statistic), jittered; the Solar System's Ceres (9.4e20 kg) is a test target, not an input.
 3. Resolve `Dc` and the mass: iterate once (Dc changes `M_belt`, which changes the top end), as `belt_mass.py` notes.
 4. Sample L1 bodies from the order statistics; assign orbits inside the belt, **excluding resonant gaps** and size-dependent Yarkovsky depletion; assign eccentricity and inclination from the stirring (`e = (upper - lower) / (upper + lower)` already used).
 5. Compositions: the belt's taxon shares at the body's own `a` (the kernel makes a gradient, not one belt value), differentiated bodies (V, A, M) only if the system's 26Al ratio says so (GEN.473 step 4). Density from `compaction` (existing taper 1e19 to 1e21 kg).
@@ -87,6 +87,8 @@ Belt oddities this model makes possible without painting: a **heavy belt that ne
 Stand-in values to register when built: `M_L1` and `M_L2` cuts; the early-depletion survival lognormal; the Yarkovsky size-cut coefficient (until the da/dt law is read and calibrated, tier T2, tweak L1); the instability depletion fraction; the dwarf-planet roundness masses by composition; the Soter mu thresholds if a word cut is used. All carry tier and tweak level; none reads the Solar System as an input; the Solar System belt, Kuiper belt and the Ceres/Pluto/Eris masses are **test targets**.
 
 ## 8. What to read before building (research list)
+Read in GEN.1060 (2026-10-30): see `belt-sources.md` for what was opened, what was not reachable and the numbers (registry rows BR1 to BR18, section 6.95). The [R] tags below and above are covered by those rows.
+
 Wyatt 2007 (READ), Ivezic 2001 (READ), Fraser 2014 (READ), Singer 2019 (READ), DEEP V (READ). To read: Bottke 2006 (Yarkovsky/YORP review), Wisdom 1980/1982 and Moons-Morbidelli 1995 (resonance and chaotic zone), Walsh 2011 and Raymond-Izidoro 2017 (belt depletion), Stern and Levison 2002, Soter 2006, Margot 2015 (planet definition numbers), Bierson and Nimmo 2019 (ice hydrostatic mass, READ for density), Thomas 2010 (rock equilibrium), Kenyon and Bromley 2008 (self-stirring), Debes and Sigurdsson 2002, Zuckerman 2010, Koester 2014 (white dwarf pollution), Ida and Guillot 2016 (snow line pressure bump), Gladman and Volk 2021 (Kuiper belt review), Holman and Wiegert 1999 (READ in repo). Boss cannot access some papers: use second-hand if a source is closed.
 
 ## 9. Identity of belt members (Boss, 4:21 PM EDT 2026-10-30)
