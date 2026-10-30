@@ -11412,36 +11412,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread; nobody has started it).
   Prerequisites: none. Related: GEN.699, GEN.461.
 
-- [ ] **GEN.722 Radius valley follow-up to GEN.509: the mechanism choice, the stellar-mass slope (e-link) and the width stand-ins**
-  Split from GEN.509 by Lane Draws (merged #3025 at about 2:14 PM EDT
-  2026-10-24 as the lane reported): GEN.509 tuned rows e1 and e2 to
-  Petigura 2022 (slope -0.11, 1.84 Earth radii at 10 days, along one
-  degenerate ridge) and wrote the rest in
-  docs/design/composition/radius-valley-tuning.md. Left open there:
-  which mechanism makes the valley (photoevaporation or core-powered
-  mass loss), the stellar-mass slope of the valley (the e-link), and the
-  valley width stand-ins. Do: choose the mechanism from the sources in
-  the design note under the standing source rules, tune the stellar-mass
-  slope and the widths, and register any stand-in in the gap plan
-  registry. Done: the three open points in the design note are closed or
-  registered as labelled stand-ins. Owner: Lane Draws (after GEN.510 and
-  GEN.512).
-  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Aux 7 takes it when free.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Planets 1 (new lane,
-  proposed by TODO). This replaces any earlier owner line (pool,
-  unowned, retired lane or 'after 8.1'). If it is already started
-  elsewhere, the lane tells TODO before taking it. Lock-free parts
-  first; the part that changes generated output rides a train.
-  Data we hold (2026-10-29 8:55 PM EDT): Kepler DR25 recovery,
-  mass-radius sample, JWST selection fits are in the repo as harness
-  JSONs (kepler_recovery.json, mass_radius_sample.json,
-  jwst_selection.json); the 2,000-system class distribution check and
-  its data are in reports/data/planet-class-distribution; the Bern
-  synthesis binned fit is ngpps_formation_water.json. No occurrence
-  dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
-  Prerequisites: none. Related: GEN.509, GEN.510.
-
 - [ ] **GEN.728 Planet count from the observed multiplicity and occurrence distributions by star mass and metallicity**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   F1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
