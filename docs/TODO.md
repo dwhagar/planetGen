@@ -14859,6 +14859,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1). Version 8.1.
   Prerequisites: none. Related: GEN.932, GEN.995.
 
+- [ ] **GEN.997 A moon of a planet around a very young star (under 0.06 Gy) holds a life class: test_planets_respect_their_stars_age_and_history is red on main (bug)**
+  Aux 4 report (as the lane reported 10:58 PM EDT 2026-10-29):
+  src/tests/test_star_population.py::test_planets_respect_their_stars_age_and_history
+  fails on main b8ad6a6ce because a moon of a planet around a
+  pre-main-sequence star under 0.06 Gy has a life class (example: planet
+  class Q with life 1, moon with life 3). Life must start only after the
+  life-stage schedule allows it (GEN.649, GEN.750 timeline), so a star
+  this young can hold none anywhere. Do: find which path gives the moon
+  a life class that the planet's own path withholds (the moon is
+  probably finished with the star's provisional age or without the stage
+  gate), fix it, and keep the test green with the same seed. Changes
+  generated output only if the gate moves a stored life class: epoch and
+  --affects fill if so. Owner: Aux 2 (life from conditions). Version
+  8.1.
+  Prerequisites: none. Related: GEN.992, GEN.750, TEST.463.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
