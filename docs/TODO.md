@@ -12502,6 +12502,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   needs the original scatter parameters. Store the scatter parameters
   with the plan (or read them from the audit log), then let the same run
   redraw the scatter. Optional; owner Core 1 when it runs dry.
+  Owner (2026-10-30 12:44 AM EDT): Core 3 takes this lock-free tooling
+  item while it waits for the trains (confirmed by TODO). It changes no
+  generated value, so it merges without a train; the optional label in
+  the text no longer applies
   Prerequisites: none.
 
 - [ ] **GEN.846 Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still)**
@@ -21029,6 +21033,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   describe the new columns, the gas table, the mixture rule, ozone,
   aerosols and the consistency sweep, with the sources of every number.
   Done: the pages name each stored value and where it comes from.
+  Owner (2026-10-30 12:44 AM EDT): Core 3 takes this docs item after
+  GEN.845 (TODO). Read the merged atmosphere gas table, aerosol and
+  ozone code on main for the real values; lock-free, docs only
   Prerequisites: TEST.209. Related: DB.67, DB.68.
 
 - [ ] **DOC.65 Docs: bulk composition, the materials table and how density, mass and gravity follow**
