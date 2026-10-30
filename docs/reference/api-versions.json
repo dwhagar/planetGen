@@ -4,14 +4,18 @@
     {
       "version": 1,
       "first_release": "8.0.866",
-      "items": ["API.22"],
+      "items": [
+        "API.22"
+      ],
       "summary": "The first numbered version: every /api answer carries it in the X-PlanetGen-API-Version header and /api/health reports it.",
       "changes": []
     },
     {
       "version": 2,
       "first_release": "8.0.912",
-      "items": ["API.23"],
+      "items": [
+        "API.23"
+      ],
       "summary": "Sectors, systems and phenomena are named by their object ID, not by their database row number.",
       "changes": [
         "id, sector_id and ref fields of sector, system and phenomenon answers carry the printed object ID (0008000000-4000000-000)",
@@ -23,7 +27,9 @@
     {
       "version": 3,
       "first_release": "8.0.912",
-      "items": ["API.23"],
+      "items": [
+        "API.23"
+      ],
       "summary": "Stars, planets, moons, asteroid belts, comets and facilities are named by their object ID too.",
       "changes": [
         "fields id, star_id, planet_id, moon_id, belt_id, comet_id, host_id and homeworld_planet_id; <kind>:<ID> references",
@@ -34,7 +40,9 @@
     {
       "version": 4,
       "first_release": "8.0.1589",
-      "items": ["ADM.50"],
+      "items": [
+        "ADM.50"
+      ],
       "summary": "The galaxy settings files are gone.",
       "changes": [
         "GET /api/admin/galaxy-settings removed",
@@ -44,7 +52,9 @@
     {
       "version": 5,
       "first_release": "8.0.1783",
-      "items": ["DB.51"],
+      "items": [
+        "DB.51"
+      ],
       "summary": "A system's description is a document built from stored data, not a table of paragraphs.",
       "changes": [
         "GET /api/systems/<uid>/sections removed"
@@ -53,7 +63,9 @@
     {
       "version": 6,
       "first_release": "8.0.2215",
-      "items": ["PERF.99"],
+      "items": [
+        "PERF.99"
+      ],
       "summary": "The work queue endpoints answer runs held in Redis, not job trees.",
       "changes": [
         "GET /api/admin/work and GET /api/admin/work/<id> return runs with their stage, units and time left; <id> is a run id",
@@ -66,7 +78,10 @@
     {
       "version": 7,
       "first_release": "8.0.2225",
-      "items": ["API.26", "API.31"],
+      "items": [
+        "API.26",
+        "API.31"
+      ],
       "summary": "Every sector address is shell, band and wedge, where it was ring, layer and slot.",
       "changes": [
         "request parameters shell, band and wedge; answers shell_index, band_index and wedge_index (were ring, layer, slot; ring_index, layer_index, ring_slot_index)",
@@ -76,7 +91,9 @@
     {
       "version": 8,
       "first_release": "8.0.2236",
-      "items": ["MAP.262"],
+      "items": [
+        "MAP.262"
+      ],
       "summary": "The Galaxy Map reads its data by sector-block node; the cube tiles are gone.",
       "changes": [
         "GET /api/galaxy/tiles removed; GET /api/galaxy/nodes is the map's data",
@@ -86,7 +103,9 @@
     {
       "version": 9,
       "first_release": "8.0.2271",
-      "items": ["MAP.287"],
+      "items": [
+        "MAP.287"
+      ],
       "summary": "A star, planet or moon of a system scene carries a look record, not a colour.",
       "changes": [
         "GET /api/systems/<id>/scene: stars, planets and moons have look (the body look record, which holds the color and what the painters need) and no color; a comet keeps color"
@@ -94,9 +113,10 @@
     },
     {
       "version": 10,
-      "first_release": null,
-      "pending": true,
-      "items": ["API.37"],
+      "first_release": "8.0.2608",
+      "items": [
+        "API.37"
+      ],
       "summary": "A planet or moon names its life by class, not by chemistry.",
       "changes": [
         "GET /api/systems/<id>: planets and moons have no life_chemical; they have life_class (the class number), life_class_variant, life_class_best, life_class_best_score, life_animal_grade and life_complexity (the columns), and life_class_id (such as 1a) and life_class_scores (the score of every class the body supports)",
