@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2721] - 2026-10-30
+
+**Headline:** `planetgen run-job` runs a whole list of generation commands as one run, the first step towards a Generate job that is one run with one estimate.
+
+### Changed
+
+- PERF.203 step 3: a new `planetgen run-job SPEC` takes a JSON list of `{command, argv}` (plan, sectors, link, backfill, settle, scatter --mass, --luminosity or --phenomena, clear-scatter; the options are what follows the command's name) and runs them as the stages of one run in the work queue, built from the same followers the single commands run. Each entry is checked by its own command's parser, and what a command used to check before it started is now checked when its own stage opens, so a job can plan the galaxy and scatter it, or clear a scatter and draw it again: `planetgen scatter` refuses a kind that is stored, the sectors stage refuses a galaxy that was never planned (and says the mixed-version warning), both in the same words as before. Stages that more than one command ends with (the block light totals) run once, after the last of them, and each stage's time is stored with the settings its own command was given. The Generate page still runs its steps one after another; step 4 moves it onto `run-job`. Nothing stored changes, no epoch.
+
 ## [8.0.2720] - 2026-10-30
 
 **Headline:** A test run builds each bright-star sampling table once for all its workers and the next run, instead of in every process.
