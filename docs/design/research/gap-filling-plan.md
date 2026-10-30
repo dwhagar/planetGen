@@ -1167,6 +1167,17 @@ The atmosphere recipe rows of GEN.480 (occurrence of water-rich and H/He worlds)
 | BM2 | P | T9 | L4 | belt_mass.DENSE_FACTOR 3 (a belt with three times the reference mass per area is dense, a third sparse) | 2 to 10 | all belts | the dense and sparse shares of the generated belts outside what the words are meant to cover | an observed spread of belt masses at one age | test_belt_mass::test_the_density_word_follows_the_mass_per_area_against_its_reference |
 <!-- belt-mass-standins:end -->
 
+### 6.44 Stand-ins of the chondrite-group map (GEN.475)
+
+`physics/meteorite_groups.py` holds the chondrite groups as points of a four-axis composition space (olivine fayalite, metal, refractory inclusions and matrix, Weisberg et al. 2006 Table 1) and labels a body with its nearest group, so the groups become outputs of a derived bulk and no longer inputs to a body's mix.
+
+<!-- meteorite-group-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| MG1 | P | T1 | L0 | meteorite_groups.CHONDRITE_GROUPS (the group averages of Weisberg, McCoy and Krot 2006 Table 1: fayalite mol percent, metal, refractory inclusions and matrix volume percent; a range is taken at its midpoint, CO and CV have no olivine average) | per group, the table's own ranges | chondrite groups of the Solar System's collection | a group average outside the table's range | the oxygen-isotope and chondrule-size axes, which the table holds and the map leaves out | test_meteorite_groups::test_every_group_is_its_own_nearest_group_except_the_pair_the_table_cannot_tell_apart |
+| MG2 | P | T9 | L4 | meteorite_groups.AXIS_SCALES (10, 15, 5, 30) and NEAREST_LIMIT 1.5 (the width of each axis and the distance past which a body is labelled none) | scales 0.5 to 2 times; near 1 to 3 | all bodies | the share of drawn bodies labelled none outside what the groups are meant to cover | the spread of each group in the collection (the table has only ranges) | test_meteorite_groups::test_the_ordinary_chondrites_are_told_apart_by_their_oxidation |
+<!-- meteorite-group-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
