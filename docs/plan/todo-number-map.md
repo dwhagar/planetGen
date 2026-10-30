@@ -2102,7 +2102,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.346 | Map browser tests fail on main since MAP.240 (#3605): the wheel moves the target off its line of sight, the window does not fill the page, the info popup does not scroll (bug) | none | done, PR #3639 |
 | MAP.347 | Galaxy Map info popup redesign: it is hard to read and scrolls off the screen even on a maximized 1080p display (bug) | none | done, PR #3940 |
 | MAP.348 | Galaxy Map hover preview: pointing at a place shows a small preview before the click | none | done, PR #3990 |
-| MAP.349 | Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place)  | none | open |
+| MAP.349 | Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place)  | none | done, PR #4006 |
 | MAP.350 | The Galaxy Map window fills the screen with only about 20 pixels of buffer at the top and bottom, so the whole window shows with no page scrolling (bug) | none | done, PR #3905 |
 | MAP.351 | Galaxy Map reason per life class: a point-of-interest reason for each of the 15 life classes with map menu entries, backfilled for stored worlds | none | done, PR #3897 |
 | MAP.352 | Back to a system in a different sector fails when pressed before the first Back has finished (bug) | none | done, PR #3946 |
