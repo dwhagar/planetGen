@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2578] - 2026-10-30
+
+**Headline:** A neutron star's radius and layers can now be computed from the 21 equation-of-state tables by integrating the general-relativity structure equations.
+
+### Added
+- **Neutron star structure from an equation of state (GEN.968).** `physics/neutron_star_structure.py` integrates the Tolman-Oppenheimer-Volkoff equations over the 21 Malik, Pais and Providencia 2024 tables: a star's mass, radius, compactness, crust and neutron-drip radii, each table's mass-radius curve and maximum mass (2.0 to 2.75 solar masses), and the radius band the tables span at a mass (R of 1.4 solar masses: 11.8 to 13.8 km against NICER's 12.45 +- 0.65). Nothing in generation calls it yet; the wiring is GEN.969. Three stand-ins registered (NS1 to NS3).
+
 ## [8.0.2577] - 2026-10-30
 
 **Headline:** A birth-spin module gives a rocky planet's spin from the mass ratio of its last impacts, so a Mars-sized planet can turn in a day while an Earth turns in hours.
