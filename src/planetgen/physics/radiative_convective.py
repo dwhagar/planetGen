@@ -52,6 +52,7 @@ from planetgen.physics import (
     greenhouse,
     line_opacity,
     mixture,
+    radiative_kernel,
     saturation,
     species_thermo,
 )
@@ -167,7 +168,7 @@ _CP_GRID = np.arange(100.0, 4001.0, 20.0)
 @functools.cache
 def _cp_over_r(formula):
     """The heat capacity at constant pressure over R of a gas on `_CP_GRID` (the cold end of its fit stands in below the fit)."""
-    thermo = species_thermo.species(formula)
+    thermo = species_thermo.gas(formula)
     low, high = thermo.range_k
     return np.array([thermo.cp_over_r(min(max(t, low), high)) for t in _CP_GRID])
 
@@ -303,35 +304,13 @@ class Column:
 def sweep(level_temperature, depth, surface_temperature):
     """
     The upward and downward infrared flux at every level, W/m2: `level_temperature` is (profile, level), `depth` the layers' optical
-    depths (layer, band, g), `surface_temperature` (profile). The source is linear in optical depth between level temperatures.
+    depths (layer, band, g), `surface_temperature` (profile). The source is linear in optical depth between level temperatures. The
+    layer-by-layer sweep is `radiative_kernel.sweep`.
     """
-    count, levels = level_temperature.shape
-    layers = levels - 1
-    weights = line_opacity.G_WEIGHTS
     emission = line_opacity.band_emission(level_temperature)                  # (profile, level, band)
     ground = line_opacity.band_emission(surface_temperature)                  # (profile, band)
-    path = DIFFUSIVITY * depth
-    transmitted = np.exp(-path)
-    absorbed = -np.expm1(-path)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        slope = np.where(path > 1.0e-6, 1.0 - absorbed / np.maximum(path, 1.0e-300), path / 2.0)
-    bands, points = depth.shape[1], depth.shape[2]
-    down = np.zeros((count, bands, points))
-    flux_down = np.zeros((count, levels))
-    for layer in range(layers):
-        top = emission[:, layer, :, None]
-        bottom = emission[:, layer + 1, :, None]
-        down = down * transmitted[layer] + top * absorbed[layer] + (bottom - top) * slope[layer]
-        flux_down[:, layer + 1] = (down * weights).sum((1, 2))
-    up = np.broadcast_to(ground[:, :, None], (count, bands, points)).copy()
-    flux_up = np.zeros((count, levels))
-    flux_up[:, layers] = (up * weights).sum((1, 2))
-    for layer in range(layers - 1, -1, -1):
-        top = emission[:, layer, :, None]
-        bottom = emission[:, layer + 1, :, None]
-        up = up * transmitted[layer] + bottom * absorbed[layer] + (top - bottom) * slope[layer]
-        flux_up[:, layer] = (up * weights).sum((1, 2))
-    return flux_up, flux_down
+    return radiative_kernel.sweep(np.ascontiguousarray(emission), np.ascontiguousarray(ground), np.ascontiguousarray(depth),
+                                  line_opacity.G_WEIGHTS, DIFFUSIVITY)
 
 
 def _upper_levels(layer_temperature):
