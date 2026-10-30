@@ -662,9 +662,13 @@ class BackfillFollower(followed.Follower):
 def _backfill_on_queue(args, started_at, center_pc=None):
     """The backfill as a run of its own (`BackfillFollower`). Returns its `summary`: `sectors` (drawn) and `stars`
     (placed)."""
+    return followed.run_planned(args, planned_backfill(args, started_at, center_pc))
+
+
+def planned_backfill(args, started_at, center_pc=None):
+    """The bright-star backfill as a `followed.Planned`; its result is the `summary`."""
     follower = BackfillFollower(args, started_at, center_pc)
-    followed.run_followed(args, [follower], "Bright-star backfill")
-    return follower.summary
+    return followed.Planned([follower], "Bright-star backfill", lambda: follower.summary)
 
 
 def _sectors_since(params):
@@ -779,9 +783,13 @@ class LinkFollower(followed.Follower):
 
 def _link_on_queue(args, started_at):
     """The link stage as a run of its own (`LinkFollower`). Returns how many sectors were linked."""
+    return followed.run_planned(args, planned_link(args, started_at))
+
+
+def planned_link(args, started_at):
+    """The link stage as a `followed.Planned`; its result is how many sectors were linked."""
     follower = LinkFollower(args, started_at)
-    followed.run_followed(args, [follower], "Neighbours")
-    return follower.linked
+    return followed.Planned([follower], "Neighbours", lambda: follower.linked)
 
 
 def expand_refresh_run_blocks(params):
@@ -952,9 +960,13 @@ class SettleFollower(followed.Follower):
 
 def _settle_on_queue(args, started_at, extra=None):
     """The settle stage as a run of its own (`SettleFollower`). Returns how many paths were saved."""
+    return followed.run_planned(args, planned_settle(args, started_at, extra))
+
+
+def planned_settle(args, started_at, extra=None):
+    """The settle stage as a `followed.Planned`; its result is how many paths were saved."""
     follower = SettleFollower(args, started_at, extra)
-    followed.run_followed(args, [follower], "Sector paths")
-    return follower.saved
+    return followed.Planned([follower], "Sector paths", lambda: follower.saved)
 
 
 def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=None):
