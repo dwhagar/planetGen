@@ -153,7 +153,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) |  | Deferred; MAP.147 recommendation step 3. |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors |  |  |
 | DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute |  |  |
-| MAP.348 | Galaxy Map hover preview: pointing at a place shows a small preview before the click |  |  |
 | MAP.349 | Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place)  |  |  |
 | API.36 | Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6) |  |  |
 

@@ -2258,22 +2258,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.348 Galaxy Map hover preview: pointing at a place shows a small preview before the click**
-  Left unbuilt by MAP.336 (zoom redesign Z3, #3778, as Core 2 reported
-  7:11 PM EDT 2026-10-29) and approved by Boss (7:22 PM EDT): hovering a
-  star, system, region or nebula on the Galaxy Map shows a small preview
-  (name, kind and the two or three most useful values) without a click,
-  so the info popup is only needed for detail. It must not cover the
-  object, must never take the click, and works with the redesigned info
-  popup (the first view of that card and this preview use one layout).
-  Done: a browser test hovers one of each kind and finds the preview,
-  and a touch screen (no hover) shows nothing extra. Owner: Core 2
-  (after the info popup redesign). Version 8.1.
-  Core 2 (MAP.347 merged #3940) (2026-10-30 4:00 AM EDT): reuse the
-  first view of the new info popup (name, kind, three values, main
-  buttons) for the hover preview
-  Prerequisites: none. Related: MAP.336.
-
 - [ ] **MAP.349 Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place) **
   Left unbuilt by MAP.336 (zoom redesign Z3, #3778, as Core 2 reported
   7:11 PM EDT 2026-10-29) and approved by Boss (7:22 PM EDT): every line
