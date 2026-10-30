@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 713 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 717 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 104 | 3 | 6 | 1 | 0 | 114 |
+| T1 | 106 | 3 | 6 | 1 | 0 | 116 |
 | T2 | 100 | 17 | 0 | 1 | 0 | 118 |
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
 | T4 | 36 | 2 | 0 | 15 | 6 | 59 |
 | T5 | 39 | 12 | 0 | 0 | 0 | 51 |
-| T6 | 62 | 33 | 12 | 34 | 0 | 141 |
+| T6 | 62 | 35 | 12 | 34 | 0 | 143 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 5 | 1 | 4 | 33 | 19 | 62 |
-| All | 446 | 103 | 35 | 102 | 27 | 713 |
+| All | 448 | 105 | 35 | 102 | 27 | 717 |
 
 ## How the labels were given
 
@@ -1012,6 +1012,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | NC4 | P | T9 | L2 | nightside_collapse._calibration: the factor (about 1.24 at Earth's flux) on the grey night-side temperature that makes the balance first lose CO2 at the fit's critical pressure | none | CO2 below the fit's critical pressure | the fit's own critical pressure disagreeing with the balance by a factor over 2 in pressure at another flux | the night-side temperature from the 3D runs | tuned to the published threshold (NC1), so the two agree there and the retained share rises continuously to 1 at it | - | - |
 | NC5 | P | T7 | L0 | nightside_collapse.collapse for a gas other than CO2: the same grey balance, not calibrated | none | N2 and other gases the paper leaves to later work | a 3D run of an N2 air whose collapse pressure differs from this by a factor over 3 | the N2 collapse pressures of a later Wordsworth or Leconte paper | the paper says N2 collapse is left to future work (Section 3.6); N2 freezes under 126 K so at Earth's flux it holds at any pressure here | - | - |
 | NC6 | P | T9 | L0 | nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed | 0.1 to 0.9 | any gas | a page text that reads wrongly at the cut | none (the retained share is the number to use) | needed output: the share, not the flag, is the physics | GEN.1051 | - |
+
+## 6.89 Stand-ins of the rogue planet drift
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| GD1 | P | T1 | L0 | rogue_drift.OORT_A_KM_S_KPC 15.3 km/s/kpc, the shear at the Sun | 14.8 to 15.8 | the Sun's neighbourhood | an Oort constant measured at another galactocentric radius | the potential's own `Omega` and `kappa` at the sector's radius (`Galaxy.from_frequencies`) | Bovy 2017, quoted in the drift note, section 3.1 | GEN.1111 | - |
+| GD2 | P | T1 | L0 | rogue_drift.OORT_B_KM_S_KPC -11.9 km/s/kpc | -12.4 to -11.4 | the Sun's neighbourhood | the same | the same | Bovy 2017, quoted in the drift note | GEN.1111 | - |
+| GD3 | P | T6 | L1 | rogue_drift.VERTICAL_FREQUENCY_KM_S_KPC 76 km/s/kpc, `nu = sqrt(4 pi G rho)` for 0.1 solar masses per cubic parsec | 60 to 90 | the solar neighbourhood | a vertical frequency from the potential differing by more than 10 percent (the repo's galactic-potential value at the Sun is 74.3) | the potential's `nu` at the sector's radius and height | the standard midplane-density estimate; galactic-potential.md section 7.1 | GEN.1111 | - |
+| GD4 | P | T6 | L1 | rogue_drift.LINEAR_LIMIT_PC 1500, the separation up to which the linear equations are taken as good | 1000 to 2000 | all drifts | the integrator behind the potential disagreeing with the closed form by more than 10 percent inside this | the orbit integrator's own validity map | the drift note's "1 to 2 kpc"; the test against a nonlinear integration is good to 5 percent at 600 pc | GEN.1111 | - |
 
 ## 6.90 Stand-ins of the Venus-type spin
 
