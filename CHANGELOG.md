@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2812] - 2026-10-30
+
+**Headline:** The design for objects that change name and ID while keeping their past designations is written.
+
+### Added
+- **Designation history design note (GEN.1121).** `docs/design/architecture/designation-history.md`: one `designations` table of retired names and IDs (a retired ID is reserved forever, a retired name is kept in history and may move by the collision rule), lookup of an old ID redirecting to the current object (a write against a retired ID refused with 409, a deleted object 410), bodies, belt members and captured bodies following a parent's ID change, a "formerly" line on the object page and an API field, the split into parts and three questions for Boss. Nothing is built.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1121 stays open for the build).
+
 ## [8.0.2811] - 2026-10-30
 
 **Headline:** A test now holds a rogue planet to being a bound planet without a star, and says how far from that it is today.
