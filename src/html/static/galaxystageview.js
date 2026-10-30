@@ -59,6 +59,7 @@ const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
 const { KINDS } = await import(`./sectorscene.js${VERSION_QUERY}`);
 const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
 const { nearestInDirection } = await import(`./systemstep.js${VERSION_QUERY}`);
+const CROSS = await import(`./crossstars.js${VERSION_QUERY}`);
 const NF = await import(`./nearfield.js${VERSION_QUERY}`);
 const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 const SR = await import(`./sectorreach.js${VERSION_QUERY}`);
@@ -195,6 +196,8 @@ export function createStageView(host) {
   let enterSystemToken = 0;
   // A system to open once its sector has (a reload or Back to its URL).
   let pendingSystem = null;
+  // MAP.329: how to open that system (history entry and scale) when a step to it crossed a sector's edge.
+  let pendingSystemOptions = null;
   // The body of that system the URL named (?object=planet:12).
   let pendingObject = null;
   // The body of the open system the camera rides along with (a moving target).
@@ -1436,8 +1439,9 @@ export function createStageView(host) {
     if (pinned) return null;
     if (enteredSystem) {
       // MAP.121: from the open system, the nearest system of the open sector that lies that way (systemstep.js).
+      // MAP.329: the systems across the sector's edge are candidates too (crossStars), once their sectors' scenes are read.
       const here = sectorStage.entries().find(function (e) { return e.endpoint === "system:" + enteredSystem.id; });
-      const to = here ? nearestInDirection(here, sectorStars(true), direction, function (e) { return e === here; }) : null;
+      const to = here ? nearestInDirection(here, sectorStars(true).concat(crossStars()), direction, function (e) { return e === here; }) : null;
       return to ? { system: to } : null;
     }
     if (entered) {
@@ -1463,6 +1467,13 @@ export function createStageView(host) {
     if (next.system) {
       const mode = systemStage.mode();
       closeSystem();
+      if (next.system.sector) {
+        // MAP.329: a system across the sector's edge: its sector opens beside this one (as the wall icon's step does) and its system with it,
+        // each its own history entry.
+        pendingSystem = next.system.endpoint.slice("system:".length);
+        pendingSystemOptions = { push: true, mode: mode };
+        return openSector(next.system.sector);
+      }
       enterSystem(next.system, { push: true, mode: mode });
       return true;
     }
@@ -2160,6 +2171,12 @@ export function createStageView(host) {
     return ambient && !ambient.loading ? { id: ambient.id, key: ambient.key, share: ambientShare } : null;
   };
 
+  // For the browser tests (MAP.329): the name of the system a step in `direction` goes to from the open system, or null.
+  canvasEl.galaxyStepTo = function (direction) {
+    const next = stepTarget(direction);
+    return next && next.system ? next.system.name : null;
+  };
+
   // For the browser tests (TEST.442): the sector opened in place once its scene is up and takes clicks, {id, share}, or null
   // (the panel names the sector from its address before the scene has been fetched, and a click then falls on a cell).
   canvasEl.galaxyOpenSector = function () {
@@ -2434,7 +2451,9 @@ export function createStageView(host) {
     const wanted = pendingSystem;
     pendingSystem = null;
     const entry = sectorStage.entries().find(function (e) { return e.endpoint === "system:" + wanted; });
-    if (entry) enterSystem(entry, { push: false });
+    const options = pendingSystemOptions || { push: false };
+    pendingSystemOptions = null;
+    if (entry) enterSystem(entry, options);
   }
 
   // The map's scale of the open system, true or compressed.
@@ -2492,6 +2511,39 @@ export function createStageView(host) {
     return sectorStage.sceneEntries().filter(function (e) {
       return e.href && e.endpoint && e.endpoint.indexOf("system:") === 0 && !sectorStage.sceneHides(e);
     });
+  }
+
+  // MAP.329: the systems of the sectors round the open one, for stepping from an open system across the sector's edge: the generated sectors
+  // near the system are asked of the server (`host.fetchNear`, as the ambient scenes are) and each one's scene read for its systems
+  // (crossstars.js), nothing drawn. Read once for each system opened; the step buttons come on when it is in (renderTravel).
+  let cross = null;
+  function crossStars() {
+    if (!enteredSystem || !entered || !host.fetchNear || !host.fetchSectorScene) return [];
+    if (!cross || cross.id !== enteredSystem.id) loadCross();
+    return cross.stars;
+  }
+
+  function loadCross() {
+    const mine = cross = { id: enteredSystem.id, stars: [] };
+    const here = sectorStage.entries().find(function (e) { return e.endpoint === "system:" + enteredSystem.id; });
+    if (!here) return;
+    const centreOf = function (record) {
+      const block = { m: 1, shell: record.shell, band: record.band, wedge: record.wedge };
+      return P.cellCenter(P.drillBlockBounds(block, edgePc));
+    };
+    const query = "?x=" + here.x.toFixed(3) + "&y=" + here.y.toFixed(3) + "&z=" + here.z.toFixed(3) + "&r=" + (2 * edgePc).toFixed(3);
+    const openId = entered.id;
+    host.fetchNear(query).then(function (payload) {
+      if (!active || cross !== mine) return null;
+      const records = CROSS.neighbourRecords((payload && payload.sectors) || [], centreOf, [here.x, here.y, here.z], edgePc, openId);
+      return Promise.all(records.map(function (record) {
+        return host.fetchSectorScene(record.id).then(function (data) { return CROSS.starsOfScene(data, record); }, function () { return []; });
+      }));
+    }).then(function (lists) {
+      if (!lists || !active || cross !== mine) return;
+      mine.stars = [].concat.apply([], lists);
+      renderTravel();
+    }, function () { /* the neighbours are only a bonus: the step stays to the open sector */ });
   }
 
   // MAP.245: the star of the open sector under a screen point (within STAR_ANCHOR_PX of it on the screen), as
