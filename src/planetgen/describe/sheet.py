@@ -468,7 +468,7 @@ _BODY_NOT_SHOWN = {
               "the stored mix of ground types; it feeds the ground dose and the surface rendering, and the page does "
               "not list it as a row yet"),
     **_excuse(tuple(column for column in regional_temperature.SWING_OF.values() if column != "temp_swing_k"),
-              "the day and night swing of a place; shown on the row of its temperature as a range, from the coldest hour to the hottest (GEN.848)"),
+              "the day and night swing of a place; shown on the row of its temperature as a range, from the coldest hour to the hottest"),
     **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",

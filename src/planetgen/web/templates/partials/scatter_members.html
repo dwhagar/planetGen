@@ -31,10 +31,10 @@
   <h2 id="pairs-heading">Compact binaries</h2>
   <p class="muted">A neutron star or black hole that accretes from a companion (an X-ray binary, a microquasar when it launches jets), or a pulsar that ablates one (a black widow or a redback).</p>
   <div class="table-scroll" tabindex="0"><table>
-    <thead><tr><th scope="col">Orbit</th><th scope="col">Kind</th><th scope="col">Compact object</th><th scope="col">Companion</th><th scope="col">Microquasar</th></tr></thead>
+    <thead><tr><th scope="col">Orbit</th><th scope="col">Kind</th><th scope="col">Compact object</th><th scope="col">Companion</th><th scope="col">Microquasar</th><th scope="col">X-ray luminosity</th></tr></thead>
     <tbody>
-      {%- for orbit, kind, compact, companion, microquasar in view.pairs %}
-      <tr><td>{{ orbit }}</td><td>{{ kind }}</td><td>{{ compact }}</td><td>{{ companion }}</td><td>{{ microquasar }}</td></tr>
+      {%- for orbit, kind, compact, companion, microquasar, x_ray in view.pairs %}
+      <tr><td>{{ orbit }}</td><td>{{ kind }}</td><td>{{ compact }}</td><td>{{ companion }}</td><td>{{ microquasar }}</td><td>{{ x_ray }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
