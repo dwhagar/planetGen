@@ -164,7 +164,7 @@ def test_a_job_stopped_before_its_later_scatter_opened_is_carried_on_to_the_unin
             job.run_job(_job_args(mysql_config, spec))
     run_common._RUN_STATS.clear()
     stopped = runrecord.read_run(conn, _last_run(conn))
-    assert stopped["state"] == "failed" and stopped["command"] == "run-job"
+    assert stopped["state"] == "failed" and stopped["title"] == "Generate job"
     assert stopped["stages"][stopped["current"]]["label"] != stopped["stages"][-1]["label"]
 
     run_cli("finish-run", mysql_argv(mysql_config))
