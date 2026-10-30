@@ -1,4 +1,0 @@
-**Headline:** The bright-star scatter tests build their sectors in a small galaxy, so the file runs in minutes instead of an hour.
-
-### Changed
-- **TEST.403: the slow scatter tests no longer build thousands of systems.** `make_sector` took the profile's own system count even when a test asked for one (a density overrode it); a test that asks for a count now gets it. The tests that make whole sectors and check what is done around them, not what is in them, use a galaxy of 20 systems per sector at density 1 instead of 2,000, so a sector's fill builds a few dozen pre-placed stars' systems, not about a thousand (the biggest, `test_going_down_a_band_gives_backfilled_sectors_only_what_they_lack`, fell from 10 minutes to 4; the plan-scatter test from 4.5 minutes to 1). Nothing the generator makes changes.
