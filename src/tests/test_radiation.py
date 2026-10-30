@@ -330,6 +330,7 @@ def test_a_real_world_gets_a_finite_ground_dose_that_follows_the_rock_of_its_gro
 def test_a_planet_that_loses_half_its_air_keeps_half_its_ozone_and_its_ultraviolet_rises(monkeypatch):
     """GEN.668: a loss event scales the stored ozone column by the share of the air kept, and the UV index follows."""
     body = _rocky_world_with_air()
+    monkeypatch.setattr(rad, "ozone_lost", lambda body: False)       # GEN.808 is tested on its own: here the flares do not hold the ozone down
     monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
     with deterministic_entropy(1):
         rad.generate_dose(body)
@@ -342,6 +343,7 @@ def test_a_planet_that_loses_half_its_air_keeps_half_its_ozone_and_its_ultraviol
 
 def test_an_air_loss_that_keeps_all_of_the_air_changes_nothing_and_one_that_keeps_none_leaves_no_ozone(monkeypatch):
     body = _rocky_world_with_air()
+    monkeypatch.setattr(rad, "ozone_lost", lambda body: False)       # GEN.808 is tested on its own: here the flares do not hold the ozone down
     monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
     with deterministic_entropy(1):
         rad.generate_dose(body)
