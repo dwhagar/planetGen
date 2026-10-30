@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 487 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 491 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 60 | 0 | 5 | 0 | 0 | 65 |
+| T1 | 61 | 0 | 5 | 0 | 0 | 66 |
 | T2 | 79 | 8 | 0 | 1 | 0 | 88 |
 | T3 | 59 | 14 | 3 | 10 | 0 | 86 |
 | T4 | 25 | 0 | 0 | 4 | 4 | 33 |
-| T5 | 28 | 7 | 1 | 0 | 0 | 36 |
+| T5 | 30 | 7 | 1 | 0 | 0 | 38 |
 | T6 | 40 | 18 | 9 | 30 | 0 | 97 |
-| T7 | 18 | 6 | 1 | 7 | 0 | 32 |
+| T7 | 19 | 6 | 1 | 7 | 0 | 33 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 310 | 53 | 21 | 78 | 25 | 487 |
+| All | 314 | 53 | 21 | 78 | 25 | 491 |
 
 ## How the labels were given
 
@@ -784,3 +784,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DD3 | P | T6 | L2 | tuning.DEBRIS_DISK_TEMPERATURE_MEDIAN_K 58 and DEBRIS_DISK_TEMPERATURE_LOG_SIGMA 0.45: the dust temperature of a disk, log-normal | median 45 to 70 K, sigma 0.3 to 0.6 | stars of one solar luminosity | the 47 blackbody radii of Table 1 | the temperatures read from the table itself | median 23 AU and 7 to 40 AU for most, from the abstract and the table as counted | - | - |
 | DD4 | P | T6 | L1 | tuning.DEBRIS_RADIUS_OVER_BLACKBODY 1.74: the belt lies this far beyond its blackbody radius | 1.5 to 2.5 (the paper: a blackbody radius "can underestimate the true disc radius by up to a factor of 2.5") | realistic dust | resolved belt radii | resolved radii from the imaged discs | "scales to about 40 AU for realistic dust properties" over a median of 23 AU | - | - |
 | DD5 | P | T4 | L0 | tuning.DEBRIS_DISK_EDGES_OVER_RADIUS (0.7, 1.5): the ring spans 0.7 to 1.5 of the belt radius | width over radius 0.3 to 1.2 | every debris disk | resolved widths | measured fractional widths | design (a ring about as wide as it is far out) | - | - |
+
+## 6.54 Stand-ins of the arm contrast of each stellar population
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| ARM1 | P | T1 | L0 | tuning.ARM_CONTRAST_OLD_DISK 0.10: the old disk's arm contrast `A` in `1 + A cos(arm phase)` | 0.09 to 0.14 | old disk stars (red giants, near-infrared light) near the solar radius | an arm to inter-arm surface density ratio outside 1.2 to 1.35 for an old sample at the solar radius | a contrast by age from Gaia samples of A, F and G stars when one is published | READ (Eilers et al. 2020, ApJ 900:186, abstract: a surface mass density contrast of about +-10% at the solar radius; Drimmel and Spergel 2001, ApJ 556:181, section 4.3: arm to inter-arm 1.2 in J and 1.32 in K; Siebert et al. 2012: 14%) | - | - |
+| ARM2 | D | T5 | L0 | tuning.ARM_GAS_TO_INTERARM_RATIO 4.0 raised to tuning.STAR_FORMATION_LAW_EXPONENT 1.4, as an amplitude (the young population's `A`, 0.749) | gas ratio 2 to 5 (A 0.45 to 0.80) | stars under 0.1 Gy, which have not left the gas they formed in | an arm to inter-arm ratio of young upper main sequence stars outside 3 to 12 | a number from the Gaia maps of young stars (Poggio et al. 2021 give maps and no number) | RECALLED (Koda et al. 2009, ApJ 700:L132: CO arm to inter-arm contrasts of about 2 to 5; Kennicutt 1998 index 1.4, a surface-density law applied here to the volume ratio) | - | - |
+| ARM3 | P | T7 | L0 | the intermediate population's `A` (0.418): the fall of the contrast with the log of the age from the young value at 0.05 Gy to the old one at the old window's geometric mean age (5.5 Gy), read at the intermediate window's (0.55 Gy) | none | stars of 0.1 to 3 Gy | an observed arm contrast of A and F stars far from 0.2 to 0.6 | a contrast by age from a published sample | an inference from the two ends: stars drift out of their birth arm in a few hundred Myr, and the contrast of A and F stars is not published as a number | - | - |
+| ARM4 | P | T5 | L0 | tuning.ARM_CONTRAST_AGE_YOUNG_GY 0.05 | 0.03 to 0.07 | the young population | none | the age law of the disk history | the middle of the young window, 0 to 0.1 Gy | - | - |

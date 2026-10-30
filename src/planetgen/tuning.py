@@ -1138,7 +1138,6 @@ STELLAR_POPULATION_AGE_RANGES_GY.update({
     for k, name in enumerate(OPEN_CLUSTER_POPULATIONS)})
 # The three thin-disc populations' scale heights over the old one's come from the galaxy's own dispersions
 # (`galaxy.structure.population_height_ratios`, GEN.532), not from a table here.
-STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
 DISK_AGE_LAW_POPULATIONS = ("young", "intermediate", "old")
 """tuple: The populations whose ages inside their window follow the disk's star formation rate (GEN.546,
 `galaxy.disk_history.population_age_laws`). The others (bulge, halo, clusters, satellites) draw uniformly: their history
@@ -1152,6 +1151,41 @@ cumulative to better than 1e-3 of the window)."""
 STAR_FORMATION_LAW_EXPONENT = 1.4
 """float: The Kennicutt-Schmidt exponent: the rate per area goes as the gas per area to this power (Kennicutt 1998:
 1.4 +/- 0.15 over 61 spirals and 36 starbursts; other fits run from 1.3 to 1.65)."""
+ARM_GAS_TO_INTERARM_RATIO = 4.0
+"""float: The molecular gas on a spiral arm's crest over the gas midway between arms (CO arm to interarm contrasts run about 2
+to 5; Koda et al. 2009, ApJ 700:L132). `NEBULA_FIELD_ARM_AMPLITUDE` is this ratio's amplitude, `(r - 1) / (r + 1)` (GEN.931)."""
+ARM_CONTRAST_OLD_DISK = 0.10
+"""float: The arm contrast, `1 + A cos(arm phase)`, of the old disk's stars: the surface mass density contrast between arm and
+inter-arm is about +-10% at the solar radius (Eilers et al. 2020, ApJ 900:186, red giants, abstract), 14% in Siebert et al.
+2012, and the near-infrared arm to inter-arm ratio is 1.2 in J and 1.32 in K (Drimmel and Spergel 2001, ApJ 556:181, section
+4.3), amplitudes 0.09 to 0.14 (GEN.931)."""
+ARM_CONTRAST_AGE_YOUNG_GY = 0.05
+"""float: The age the young population's arm contrast belongs to: the middle of its window, 0 to 0.1 Gy (GEN.931)."""
+
+
+def _arm_amplitude(ratio):
+    return (ratio - 1.0) / (ratio + 1.0)
+
+
+def _stellar_population_arm_amplitudes():
+    """The arm contrast of each thin-disk population (GEN.931). Young stars (under 0.1 Gy) are where they were born, so they
+    follow the star formation, which goes as the gas to the Kennicutt-Schmidt index: the gas ratio to that power. The old
+    disk is the observed one. Between, the contrast falls with the log of the age from the young value to the old one,
+    at each population's geometric mean age (a stand-in: stars leave their arm in a few hundred Myr, and the observed
+    contrasts of A and F stars, between the two, are not published as a number)."""
+    young = _arm_amplitude(ARM_GAS_TO_INTERARM_RATIO ** STAR_FORMATION_LAW_EXPONENT)
+    old = ARM_CONTRAST_OLD_DISK
+    ages = {name: _math.sqrt(STELLAR_POPULATION_AGE_RANGES_GY[name][0] * STELLAR_POPULATION_AGE_RANGES_GY[name][1])
+            for name in ("intermediate", "old")}
+    span = _math.log(ages["old"] / ARM_CONTRAST_AGE_YOUNG_GY)
+    fraction = _math.log(ages["intermediate"] / ARM_CONTRAST_AGE_YOUNG_GY) / span
+    return {"young": young, "intermediate": young + (old - young) * fraction, "old": old}
+
+
+STELLAR_POPULATION_ARM_AMPLITUDE = _stellar_population_arm_amplitudes()
+"""dict: Each thin-disk population's arm contrast `A` in `1 + A cos(arm phase)`: about 0.75, 0.42 and 0.10 for the young,
+intermediate and old (GEN.931). Derived from `ARM_GAS_TO_INTERARM_RATIO`, `STAR_FORMATION_LAW_EXPONENT` and
+`ARM_CONTRAST_OLD_DISK`; the shares of a place's mix shift, never its total density."""
 STAR_FORMATION_LOW_DENSITY_EXPONENT = 2.1
 """float: The index the star-formation law steepens to where the gas thins (GEN.450): resolved observations give 1.5 to 2.7 for
 the total gas (Kennicutt and Evans), and 2.1 is the middle of that range. Open: no source gives the index of the outer

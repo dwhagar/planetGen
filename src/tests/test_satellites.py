@@ -85,8 +85,10 @@ def test_a_component_is_cut_at_the_radius_its_table_says():
 def test_the_table_of_satellites_holds_the_clouds_at_the_distances_the_design_gives():
     found = _by_name(_placed())
     assert len(found) == len(satellites.MILKY_WAY_SATELLITES) == 11
-    for name, distance_kpc, systems in (("Large Magellanic Cloud", 49.6, 5.09e9), ("Small Magellanic Cloud", 62.4, 1.07e9),
-                                        ("Sagittarius dwarf", 24.0, 2.09e8), ("Fornax dwarf", 143.0, 4.15e7)):
+    # The counts follow the stars' mass over the mean system mass, which the primary mass function (GEN.929) made 5% heavier
+    # than the hand value: the design's 5.09e9, 1.07e9, 2.09e8 and 4.15e7 times 0.951.
+    for name, distance_kpc, systems in (("Large Magellanic Cloud", 49.6, 4.84e9), ("Small Magellanic Cloud", 62.4, 1.02e9),
+                                        ("Sagittarius dwarf", 24.0, 1.99e8), ("Fornax dwarf", 143.0, 3.95e7)):
         component = found[name]
         sun = np.array(satellites.sun_frame(SOLAR_RADIUS, SOLAR_ANGLE)[0])
         assert np.linalg.norm(np.array(component.center_pc) - sun) == pytest.approx(distance_kpc * 1000.0, rel=1e-9)
@@ -229,7 +231,7 @@ def test_the_fill_gives_a_satellite_system_the_peaks_of_its_place_and_the_star_d
     assert config.FE_H_PEAKS == where.populations["satellite"].fe_h
     drawn = [Star(config, galactic_center_dist_ly=1.6e5).metallicity_fe_h for _ in range(40)]
     assert np.mean(drawn) == pytest.approx(cloud.metallicity_fe_h, abs=0.2)
-    assert bright_stars.star_fe_h("satellite", {"metallicity_fe_h": -1.0}) is None
+    assert bright_stars.star_fe_h({"metallicity_fe_h": -1.0}) == -1.0      # the star carries the birth [Fe/H] its component drew
     elsewhere = bright_stars.FillContext(profile.profile_at((SOLAR_RADIUS, 0.0, 0.0), shape, EDGE, E1))
     assert elsewhere.apply(SystemConfig(), draw.Stream("test-fill")).FE_H_PEAKS is None
 

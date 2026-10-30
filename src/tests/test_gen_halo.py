@@ -152,12 +152,12 @@ def test_the_halo_does_not_widen_the_outline():
     # The outline reads the disk and bulge only (`skeleton._bound_raw_density_at`), and the halo is under 0.3% of the
     # one-star threshold where it ends. The galaxy holds the systems its stellar mass makes (GEN.404) over an
     # exponential disk (GEN.544) and the derived mean system mass (GEN.545), so the reference galaxy's edge sits at shell
-    # 3,426 (3,576 at the recalled 0.4 a system, 3,762 for the density tuned to the real count at the Sun, 3,127 with the
-    # isothermal disk).
+    # 3,421 (3,454 before the primary mass function of GEN.929 gave 5% fewer systems for the same stars; 3,576 at the
+    # recalled 0.4 a system, 3,762 for the density tuned to the real count at the Sun, 3,127 with the isothermal disk).
     extents, outer, _confirmed = build_shell_extents(mathcheck._reference_galaxy_shape(), EDGE_PC, 1.0 / E_VALUE)
-    assert outer == 3454
-    assert len(extents) == 3455
-    assert sum(high for _shell, high in extents) == 865311
+    assert outer == 3421
+    assert len(extents) == 3422
+    assert sum(high for _shell, high in extents) == 848394
 
 
 def _halo_and_edge_cells(shape):
@@ -240,7 +240,9 @@ def test_bright_stars_rise_far_above_the_thin_young_band():
 
 
 def test_the_bright_stars_z_spread_by_population():
-    rows = _scatter(INNER_SHELL)
+    # Three shells pooled: the bright intermediate-age stars are about 1% of a shell's rows, so one shell holds 0 to 2 of them
+    # 240 pc up and the comparison with the plane's 8 or 9 is noise (GEN.931 moved which rows the seed draws there).
+    rows = [row for shell in (INNER_SHELL, INNER_SHELL + 2, INNER_SHELL + 5) for row in _scatter(shell)]
     plane = [row[6] for row in rows if abs(_height_pc(row)) < 100.0]
     high = [row[6] for row in rows if 200.0 < abs(_height_pc(row)) < 300.0]       # about 240 pc up
     # Young stars are a clear share of the plane's, though the bar gap holds them down here (GEN.134; the rest is
