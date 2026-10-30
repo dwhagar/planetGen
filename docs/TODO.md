@@ -13795,36 +13795,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   otherwise).
   Prerequisites: none. Related: TEST.344, GEN.394.
 
-- [ ] **PERF.190 Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates**
-  After the progress output of the block light rebuild exists, measure
-  how long the two phases take (the shell scan and the unit sums) on a
-  New galaxy with the scatter on (commands in
-  /mnt/project-files/reports/phenomena-stall-2026-10-24.md). If the scan
-  dominates, give bright_stars and phenomenon_scatter an index that lets
-  the shell scan and the shell sums run from the index alone, or build
-  the distinct shell list from the plan's own outline (the extents
-  scatter_phenomena already holds) instead of a DISTINCT scan of the
-  tables. Record the before and after times in the item. The progress
-  output exists (PERF.189), so the log lines show where the time goes.
-  Owner: Aux 16 (Performance).
-  OWNER Aux 5 (assigned 6:43 AM EDT 2026-10-30 by TODO as the lane's one
-  lock-free item; replaces the retired Aux 16 line; separate branch)
-  (2026-10-30 6:43 AM EDT): Measure first and record before and after
-  times. A speed-up that builds the shell list from the plan outline in
-  code is lock-free. An index on bright_stars or phenomenon_scatter
-  needs a migration, so stop and tell TODO before adding one: it rides a
-  train.
-  Aux 5 (built, lock-free, bundle handoffs/aux5-perf190.bundle, branch
-  lane-k-perf190) (2026-10-30 7:57 AM EDT): The shell scan is only 16 to
-  19 s of the rebuild (about 1.5 percent), so building the shell list
-  from the plan outline gains nothing; the cost is the 83 units (about
-  1,260 s of 1,322.7 s). Rows are now written as plain INSERT text
-  (store._row_literal via execute_literal): one unit 13.3 s to 10.7 s,
-  byte-identical table, whole rebuild 1,322.7 s to 1,191.1 s (10
-  percent, synthetic 3M stars + 1.5M points). Anything bigger needs an
-  index (a migration) or a SQL-side roll-up; stopped here.
-  Prerequisites: none. Related: MAP.259.
-
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
   Unused stored values audit (the "Find stored values nothing uses"
   thread, report reports/unused-stored-values-audit-2026-10-24.md,
@@ -13960,18 +13930,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.2. Owner: none yet (Core 5 is the natural owner); follows
   PERF.149.
   Prerequisites: none. Related: PERF.149.
-
-- [ ] **PERF.209 The generator battery digest costs about 30 s in every test process (its docstring says 3 to 5 s); the bright-star table build alone is 18 s**
-  Found by Aux 5 while building TEST.403 (as the lane reported 10:36 PM
-  EDT 2026-10-29): the generator battery digest costs about 30 s at the
-  start of every test process; its docstring says 3 to 5 s; the
-  bright-star scatter case alone takes 18 s
-  (star_population._bright_table). GEN.935 also makes the bright-star
-  tables slower (about 4 s against 1 s for the reference table, Star 1's
-  PR #3842). Do: profile it, cache the table across processes (or build
-  it once per test session), and keep the digest identical. No output
-  change. Owner: Aux 5. Version 8.1.
-  Prerequisites: none. Related: TEST.403, PERF.188, GEN.935.
 
 - [ ] **PERF.210 Cut the cost of GEN.992: re-finish only the bodies whose result can change after the star age is final**
   Aux 7 report (as the lane reported 11:12 PM EDT 2026-10-29). GEN.992
