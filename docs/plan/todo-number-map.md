@@ -2056,7 +2056,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.326 | Zooming in from the Galaxy Map does not carry smoothly into the star system map: on no system could Boss zoom from the galaxy into the system view as one continuous move (bug) | none | done, PR #3345 |
 | MAP.327 | Galactic view draws a locked wireframe round the current region with no dimming (the sector part, dimming and wall icons, is done in #3422) | none | done, PR #3445 |
 | MAP.328 | Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views) | none | done, PR #3573 |
-| MAP.329 | System Map stepping reaches systems across a sector's edge | none | open |
+| MAP.329 | System Map stepping reaches systems across a sector's edge | none | done, PR #3789 |
 | MAP.330 | Star glow halos grow huge when stars are blurred and cover most of the screen: fade the glow out strongly with halo size and cut it to zero long before that (bug) | none | done, PR #3454 |
 | MAP.331 | The purple wireframe cube on the Galaxy Map has no legend entry or label, so nothing says it outlines the charted region (bug) | none | done, PR #3535 |
 | MAP.332 | The Galaxy Map info card (Block 10 1 63 and similar) is cut off at the bottom, so its region line and buttons are hidden below the More row (bug) | none | done, PR #3533 |
