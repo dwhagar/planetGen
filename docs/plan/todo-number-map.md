@@ -1713,7 +1713,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.960 | Tides side thread: ice rheology for the hydrosphere ice shell and the icy branch of tidal_heating (c-ice) | none | open |
 | GEN.961 | Settle giants: after the star's age is final, recompute each giant's radius and redraw its interior, at the mean light of its real orbit (eccentricity-first folded in) | none | done, PR #3984 |
 | GEN.962 | Rocky planets hold 1.5 to 2.0 moons of 1e20 kg and over each (the Solar System has 1 for 4 rocky planets): ground the moon rate in giant-impact and capture frequency | none | open |
-| GEN.963 | The envelope-survival rule and the Hycean flag on the existing sub-Neptune classes (the part of GEN.350 that stays; no new class letter) | none | open |
+| GEN.963 | The envelope-survival rule and the Hycean flag on the existing sub-Neptune classes (the part of GEN.350 that stays; no new class letter) | none | done, PR #4156 |
 | GEN.964 | H-He equation of state tables (a): a setup catalogue entry and a reader with tests on Jupiter, Saturn, Uranus and Neptune | none | open |
 | GEN.965 | H-He equation of state tables (b): replace the n=1 polytrope in the giant interior solver with the tables | none | open |
 | GEN.966 | Dynamo field (a): a pure module giving field strength and lifetime from core heat flow and spin, with tests on Earth, Mercury, Ganymede, Jupiter and Mars (dead) | none | done, PR #3802 |
@@ -1839,7 +1839,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1086 | System map and pages for irregular moons (eccentric, inclined, retrograde orbits on the moon-orbit view, a body page per irregular) and the clearance ledger taking the irregular zone as occupied space | none | open |
 | GEN.1087 | Census of Class D and dwarf-size bodies, moons of 50 to 500 km, and belts per system from the current generator, per star type | none | open |
 | GEN.1088 | physics/belt_origin.py: the cause table (gap, unfinished tail, snow-line bump, giant stirring, instability depletion, collisional debris, destroyed planet), the survival factors, the origin and formation record and the one-sentence text | none | done, PR #4168 |
-| GEN.1089 | physics/scatter.py: the scatter step as pure functions of the giants and the disc (a rule over the architecture's events with stored mass shares, no N-body run) | none | open |
+| GEN.1089 | physics/scatter.py: the scatter step as pure functions of the giants and the disc (a rule over the architecture's events with stored mass shares, no N-body run) | none | done, PR #4160 |
 | GEN.1090 | physics/dwarf_population.py: N(>D) from belt mass and size law, the order-statistic top body, the dwarf-planet line and Class D tagging | none | open |
 | GEN.1091 | Rewrite the Class D wording in tuning.PLANET_CLASSES["D"] and the docs to match the conditions rule plus the ledger scope (docs only) | none | open |
 | GEN.1092 | Wire the scatter phase and the belt origin: scatter tag on stored members, the outer disc fed from the scatter step, origin and formation shown on the belt page | none | open |

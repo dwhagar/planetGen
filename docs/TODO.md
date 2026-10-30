@@ -12562,31 +12562,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (NO FIXED CONTENT). Catalog section 3.
   Prerequisites: none. Related: GEN.921, GEN.522, GEN.725.
 
-- [ ] **GEN.963 The envelope-survival rule and the Hycean flag on the existing sub-Neptune classes (the part of GEN.350 that stays; no new class letter)**
-  Trimmed out of GEN.350 when the new class letters R, U, W, X, Y and Z
-  were revoked (Boss, 8:16 PM EDT 2026-10-29; conditions-based classes
-  of 10-23 and 'all 20 letters stay' of 10-28 win as the newer
-  decisions). Kept: the envelope survives or is stripped by the
-  energy-limited loss of the retention module (GEN.355), and a Hycean
-  flag (1 to 10 Earth masses, 1.4 to 2.6 radii, equilibrium temperature
-  150 to 500 K, density 1.5 to 3) sits on the existing classes T, I and
-  V by conditions. Do: check what the code already has (the flag appears
-  in bodylook.py and biogenic_oxygen.py), write down what is missing,
-  and build it on the derived class. Changes generated output if the
-  flag or the rule moves a class: epoch with --affects fill, rides a
-  train. Every stand-in it adds gets a GEN.725 registry row with tier
-  and tweak level (L0 to L4). Owner: Core 4. Version 8.1.
-  Core 4 re-read (as the lane reported) (2026-10-30 2:50 AM EDT):
-  envelope survival is already in physics/envelope_escape.py (GEN.822,
-  hydro-based loss of Kubyshkina et al. 2018 over the star XUV history,
-  Lopez and Fortney 2014 radius) and Hycean is already a hydrosphere
-  state; what is missing is the box (1 to 10 Earth masses, 1.4 to 2.6
-  Earth radii, equilibrium temperature 150 to 500 K, density 1.5 to 3)
-  as a derived flag plus a GEN.725 row. Scope shrinks to that derived
-  flag and the registry row; it moves no class, so it can go lock-free
-  (no epoch). Owner: Core 4
-  Prerequisites: none. Related: GEN.350, GEN.355, GEN.829.
-
 - [ ] **GEN.964 H-He equation of state tables (a): a setup catalogue entry and a reader with tests on Jupiter, Saturn, Uranus and Neptune**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
   secondary sources accepted by default; registered stand-ins allowed).
@@ -14345,30 +14320,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
-- [ ] **GEN.1089 physics/scatter.py: the scatter step as pure functions of the giants and the disc (a rule over the architecture's events with stored mass shares, no N-body run)**
-  Belt origins (Boss, 2026-10-30, plan the items so each belt says where
-  we think it came from, we know because we made it; design
-  docs/design/systems/belt-origins.md, goal #4130). Defaults pending
-  Boss, taken until he changes them: Class D stays "small, airless, at
-  least 1 percent ice" and covers belt members and dwarf planets; dwarf
-  planets are listed on the system page as members of their belt, not in
-  the planet list; the scatter phase is a rule over the architecture's
-  events with stored mass shares, no N-body run. Stand-ins accepted when
-  registered in GEN.725 with tier and tweak level; the Solar System is a
-  test target, never an input. Do: design belt-origins section 6: what
-  fraction of the disc solids ends scattered, in the outer disc, or onto
-  moons. Done: tests with giant-free and giant-rich inputs, Sol not an
-  input. Lock-free. Where we think it belongs (best guess, can move):
-  Core 4 (giants lane, separate branch), after its giants items.
-  Kuiper-type objects in the sweep (2026-10-30 4:39 PM EDT): Boss asked
-  4:38 PM EDT whether Kuiper belt objects belong in the sweep: yes.
-  Kuiper-type objects (classical cold and hot, resonant, scattered,
-  detached) are generated from the cold outer disc and swept by the
-  scatter step, with dwarf planets drawn from the size law (GEN.1090),
-  the outer disc being the belt of GEN.1071.
-  Prerequisites: GEN.1060.
-  Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
-
 - [ ] **GEN.1090 physics/dwarf_population.py: N(>D) from belt mass and size law, the order-statistic top body, the dwarf-planet line and Class D tagging**
   Belt origins (Boss, 2026-10-30, plan the items so each belt says where
   we think it came from, we know because we made it; design
@@ -14437,7 +14388,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   detached) are generated from the cold outer disc and swept by the
   scatter step, with dwarf planets drawn from the size law (GEN.1090),
   the outer disc being the belt of GEN.1071.
-  Prerequisites: GEN.1089, GEN.1090, GEN.1070, GEN.1071.
+  Prerequisites: GEN.1090, GEN.1070, GEN.1071.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
 - [ ] **GEN.1094 Read Goldberg and Batygin 2023 for the librating share of near-resonant pairs (the share of pairs that are heating-capable, W5), and register the number**
@@ -14944,6 +14895,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   we think it belongs (best guess, can move): the coordinator starts a
   research thread; the build owner afterwards is Core 5 (sectors and
   fill) with Core 1 (reproducible galaxies).
+  Boss follow-up, 5:16 PM EDT (2026-10-30 5:17 PM EDT): To unhold the
+  rogue donor: a rogue's end position decides its sector, the rogue is
+  stored in that sector, the sector is listed as uncharted, and this
+  applies to every object in the galaxy. The study folds this in as part
+  of the storage model. It is NOT taken as Boss's answer to the two held
+  GEN.1111 questions (virtual versus real donors; isotropic versus
+  perpendicular kick) unless the study shows it settles them; ask him if
+  unclear.
   Prerequisites: none. Related: GEN.1111, GEN.1115, PERF.123.
 
 ## PERF: Speed, caching, bulk generation and parallel work
