@@ -178,7 +178,10 @@ thick disk is old. The cluster population (10 to 13 Gyr) is 0 until the cluster 
 density. The thin disk is shared by each population's share of star
 formation, its own scale height (`structure.population_height_ratios`, GEN.532: the squared vertical
 dispersion of the population over the old disc's, thinner for younger stars) and its own arm contrast
-(`STELLAR_POPULATION_ARM_AMPLITUDE`, strongest for young stars). The parts
+(`STELLAR_POPULATION_ARM_AMPLITUDE`, strongest for young stars: 0.75, 0.42 and 0.10 for the young, intermediate and old,
+GEN.931; the old disk is the observed contrast of about 10% (Eilers et al. 2020; Drimmel and Spergel 2001), the young one the
+gas ratio of 4 to the Kennicutt-Schmidt index 1.4, and the intermediate one falls with the log of the age between them;
+registry 6.65). The parts
 always sum to `relative_density`. Each system in a galaxy sector draws its
 star's population from this mix, so O and B stars and supergiants gather in
 the arms near the plane (CHANGELOG 7.38.0).

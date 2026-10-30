@@ -76,7 +76,7 @@ from dataclasses import dataclass, field
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
 from planetgen.generation import tuning_harness
-from planetgen.physics import elements, envelope_escape
+from planetgen.physics import elements, envelope_escape, magma_ocean_redox
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
 
@@ -150,7 +150,7 @@ INPUTS = {
 }
 """dict: Every stored quantity a gate or a weight may read, with its meaning and unit. `body_class` is the class of the subject."""
 
-FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "envelope_lost_fraction", "w", "p", "pdist")
+FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "envelope_lost_fraction", "magma_ocean_diw", "magma_ocean_diw_sigma", "later_mantle_diw", "w", "p", "pdist")
 SHAPES = ("log", "uniform")
 DIST_KINDS = ("normal", "uniform", "loguniform", "mixture")
 
@@ -194,7 +194,9 @@ def loglog(x, *anchors):
 
 
 _PLAIN = {"phi": phi, "window": window, "exp": math.exp, "log": math.log, "log10": math.log10, "sqrt": math.sqrt,
-          "min": min, "max": max, "abs": abs, "clamp": clamp, "loglog": loglog, "envelope_lost_fraction": envelope_escape.lost_fraction}
+          "min": min, "max": max, "abs": abs, "clamp": clamp, "loglog": loglog, "envelope_lost_fraction": envelope_escape.lost_fraction,
+          "magma_ocean_diw": magma_ocean_redox.surface_diw, "magma_ocean_diw_sigma": magma_ocean_redox.diw_sigma,
+          "later_mantle_diw": magma_ocean_redox.later_mantle_diw}
 
 
 class Expression:

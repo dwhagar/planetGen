@@ -397,6 +397,7 @@ class Star(StellarObject):
             # alive rather than redraw it at another age: the pair shares
             # one age (GEN.53).
             while state is None and initial_mass_sol > imf.lowest_mass_sol():
+                draw.redrawn("star.mass_lightened")
                 initial_mass_sol = max(initial_mass_sol * 0.8, imf.lowest_mass_sol())
                 state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
                                     galactic_center_dist_ly=self.galactic_center_dist_ly)

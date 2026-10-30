@@ -231,7 +231,8 @@ connectivity to that specific schema rather than the default one.
   the primary — `null` for a single star; the System Map's own real
   binary-star placement is derived from this plus each star's `mass_kg`),
   `runaway_class` (`"runaway"`/`"hypervelocity"`/`null`) and
-  `runaway_speed_kms`, `stars`, `planets` (each with
+  `runaway_speed_kms`, `stars` (each with `parent_node_no` and `slot`, the node of the orbit tree it hangs in and which of its two places it holds), `orbits` (MAP.213: the
+  system's tree of orbits, one entry per node with `node_no`, `parent_node_no`, `slot`, `kind`, `mass_solar`, `separation_km`, `eccentricity`, `inclination_deg`, `period_years`, `interaction` and `flags`; empty for a single star), `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable` (its overall PHI-6 colour is Blue or Green, GEN.643),
   `habitable_class` (its class can carry life), `life_class_id` and `life_class_scores` (API.37: the life class that lives on it, such as `1a`, and `{class id: score}` for each class it supports; `life_class_id` is `null` for a world that suits a class but whose life has not started, a star younger than the first step of its schedule, GEN.1001, where the stored `life_class` stays), `life_stage` — the furthest evolutionary milestone its timeline reached,
   or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 H3 [R2]`, `required_line` and `recommended_line` (UX.163; a line with nothing in it is empty), the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` and `regions` (GEN.656: the regional temperatures in kelvin by short name — `polar`, `north`, `equator`, `south` and the day and night `swing` for a world that turns on its own, `day_side`, `terminator` and `night_side` for a tidally locked one; GEN.848 adds the swing of every other place by the same short name with `_swing`: `polar_swing`, `north_swing`, `south_swing`, `mean_swing` and, for a locked world, `day_side_swing`, `terminator_swing`, `night_side_swing` (0, it has no day); `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
@@ -552,8 +553,10 @@ connectivity to that specific schema rather than the default one.
   list on to the map's browser cache.
 - `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>|<type>:<ID>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
   row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; `after=<type>:<ID>`, the `type` and `id` of a
-  built row, starts it after that row in the name order and then the tail, PERF.205: the first page by name and every page after a built row cost the
-  same at any depth, and the other sorts read the whole union as before; anything else is a 400;
+  built row, starts it after that row in the order of `sort` and then the tail, PERF.205, PERF.211: the first page of every sort (`name`, `type`,
+  `descriptor`, `radius`, `placed`, `sector`) and every page after a built row cost the same at any depth, each table read on an index ending in
+  `name` and the best rows of all taken, a tie settling by name, type and id in the direction of the sort; a page by `offset` past the first still
+  sorts the whole union of built rows; anything else is a 400;
   `from=<scatter id>`, PERF.135, lists that tail from the row with that id on, `total` counting from there; a value that is not a whole number from 1 up
   is a 400, and one past the end answers the last page of the tail, `past_end` true and `total` its length),
   across every sector and regardless of galaxy placement (unlike

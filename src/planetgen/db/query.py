@@ -494,7 +494,7 @@ distinct from the default `None`, which means "don't filter by sector at
 all." The API's `/api/systems?sector_id=none` maps onto this."""
 
 
-SYSTEM_SORTS = {"name": "ss.name", "sector": "sec.name", "octant": "ss.quadrant", "binary": "ss.is_binary"}
+SYSTEM_SORTS = {"name": "ss.name", "sector": "sec.name", "octant": "ss.quadrant"}
 """dict: The sort keys `list_systems` accepts (the Systems tables' column
 keys) -> the SQL they order by. Ties fall back to name, then id."""
 
@@ -523,8 +523,7 @@ def _start_condition(sort, descending, start):
     that begin with `start` and runs down from them.
 
     Returns:
-        tuple or None: `(condition_sql, params)`, or `None` for an empty `start`, a sort that has no start (octant,
-            binary) or a descending start that nothing sorts above.
+        tuple or None: `(condition_sql, params)`, or `None` for an empty `start`, a sort that has no start (octant) or a descending start that nothing sorts above.
     """
     if not start or sort not in ("name", "sector"):
         return None
@@ -611,7 +610,7 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         octants (iterable[str]): Keep only systems in these sector octants.
         in_sector (bool, optional): Keep only systems in a sector (True) or
             standalone ones (False).
-        after (int, optional): A system's row ID: with `sort="name"`, `"sector"`, `"octant"` or `"binary"` the page starts
+        after (int, optional): A system's row ID: with `sort="name"`, `"sector"` or `"octant"` the page starts
             after that system (a keyset page, PERF.75, PERF.206: the rows before it are not read and `offset` is
             ignored). Other sorts, a system that is gone and a list filtered by star type or sector use `offset`.
         start (str, optional): The jump-by-value box (PERF.75): the list begins at the first name (`sort="name"`) or
@@ -621,7 +620,8 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     Returns:
         list[dict]: One row per matching system, with `id`, `name`,
                            `sector_id`, `sector_name`, `quadrant` (its
-                           octant in the sector), `is_binary`, and `star_summary`
+                           octant in the sector), `is_binary`, `star_count`,
+                           `object_count`, `has_habitable_world` (`_system_counts`), and `star_summary`
                            (the single star's `star_type`, or a binary's
                            `binary_type` -- what `html/browse.py`/
                            `html/search.py` show as a system's "Star type"
@@ -669,16 +669,48 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
 def _system_rows(conn, rows):
     """`list_systems`' dicts for `rows` (`star_systems` rows)."""
     rows = _with_star_types(conn, rows, with_sector_name=True)
+    counts = _system_counts(conn, [r["id"] for r in rows])
     return [
         {
             "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "sector_name": r["sector_name"],
             "quadrant": r["quadrant"], "is_binary": r["is_binary"], "star_summary": _star_summary(r),
+            **counts[r["id"]],
         }
         for r in rows
     ]
 
 
-_GROUP_WALK_SORTS = ("sector", "octant", "binary")
+def _system_counts(conn, ids):
+    """
+    The figures the Systems tables show beside a system, read for the whole page (PERF.15) from the rows that exist and
+    kept nowhere else: `star_count` (every row of `stars`: a star, a brown dwarf, a white dwarf, a neutron star, a
+    black hole, in a tree or not), `object_count` (those plus the system's planets, moons and asteroid belts) and
+    `has_habitable_world` (a planet or moon scored Yellow or better, `habitability.YELLOW_FLOOR`, the Galaxy Map's
+    `habitable` reason).
+
+    Returns:
+        dict: system ID -> `{"star_count", "object_count", "has_habitable_world"}`, every ID in `ids` present.
+    """
+    counts = {i: {"star_count": 0, "object_count": 0, "has_habitable_world": False} for i in ids}
+    if not ids:
+        return counts
+    marks = ", ".join("?" * len(ids))
+    tables = ("stars", "planets", "moons", "asteroid_belts")
+    # Two queries for the page, not one per table (the page's read count is held by test_db_web_reads).
+    for r in conn.execute(" UNION ALL ".join(
+            f"SELECT star_system_id AS id, '{table}' AS kind, COUNT(*) AS n FROM {table} WHERE star_system_id IN ({marks}) "
+            f"GROUP BY star_system_id" for table in tables), ids * len(tables)).fetchall():
+        counts[r["id"]]["object_count"] += r["n"]
+        if r["kind"] == "stars":
+            counts[r["id"]]["star_count"] = r["n"]
+    for r in conn.execute(" UNION ".join(
+            f"SELECT star_system_id AS id FROM {table} WHERE star_system_id IN ({marks}) AND phi4 >= ?"
+            for table in ("planets", "moons")), [*ids, habitability.YELLOW_FLOOR] * 2).fetchall():
+        counts[r["id"]]["has_habitable_world"] = True
+    return counts
+
+
+_GROUP_WALK_SORTS = ("sector", "octant")
 """tuple[str]: The `list_systems` sorts served a group at a time by `_systems_by_group`."""
 
 _GROUP_WALK_COLUMNS = ("ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration, "
@@ -690,16 +722,36 @@ def _and_where(where_sql, condition):
     return f"{where_sql} AND {condition}" if where_sql else f" WHERE {condition}"
 
 
+def _lexicographic(columns, values, descending, inclusive=False):
+    """
+    The rows after one row in `ORDER BY <columns>`, all sorted the same way: those whose first column is past its value, or equal to
+    it and the second past its value, and so on; with `inclusive` the row itself and the ones that tie with it all through count too.
+
+    Written with `OR` and `AND`, never as a row constructor: `(a, b, id) > (?, ?, ?)` took 5.0 s on MariaDB 10.11 with no index range
+    (and a full walk of the index on MySQL 8), the same condition spelled out 2 ms (docs/design/operations/slow-reads-and-timeouts.md).
+
+    Returns:
+        tuple: `(condition_sql, params)`; the condition is parenthesised.
+    """
+    operator = "<" if descending else ">"
+    terms, params, equal, equal_params = [], [], [], []
+    last = len(columns) - 1
+    for number, (column, value) in enumerate(zip(columns, values)):
+        compare = operator + "=" if inclusive and number == last else operator
+        terms.append("(" + " AND ".join([*equal, f"{column} {compare} ?"]) + ")")
+        params.extend([*equal_params, value])
+        equal.append(f"{column} = ?")
+        equal_params.append(value)
+    return "(" + " OR ".join(terms) + ")", params
+
+
 def _keyset_condition(columns, values, descending, id_column, after_id):
     """
     The rows after one row in `ORDER BY <columns> <direction>, <id_column> <direction>` (a keyset page, PERF.75):
     the rows whose sort key is past `values` (the row's own, in `columns` order) or equal to it with a past id.
 
     The id sorts the same way as the columns, so one backward or forward walk of an index on the columns (which
-    holds the id as its last part) serves the page and the sort needs no filesort.
-
-    Written with `OR` and `AND`, never as a row constructor: `(a, b, id) > (?, ?, ?)` took 5.0 s on MariaDB 10.11
-    with no index range, the same condition spelled out 2 ms (docs/design/operations/slow-reads-and-timeouts.md).
+    holds the id as its last part) serves the page and the sort needs no filesort. Written as `_lexicographic` is.
 
     Args:
         columns (list[str]): The sort columns, in order, all sorted the same way.
@@ -711,22 +763,11 @@ def _keyset_condition(columns, values, descending, id_column, after_id):
     Returns:
         tuple: `(condition_sql, params)`; the condition is parenthesised.
     """
-    operator = "<" if descending else ">"
-    terms, params, equal, equal_params = [], [], [], []
-    for column, value in zip(columns, values):
-        terms.append("(" + " AND ".join([*equal, f"{column} {operator} ?"]) + ")")
-        params.extend([*equal_params, value])
-        equal.append(f"{column} = ?")
-        equal_params.append(value)
-    terms.append("(" + " AND ".join([*equal, f"{id_column} {operator} ?"]) + ")")
-    params.extend([*equal_params, after_id])
-    return "(" + " OR ".join(terms) + ")", params
+    return _lexicographic([*columns, id_column], [*values, after_id], descending)
 
 
 def _simple_groups(sort, descending):
-    """The groups of an octant or binary sort in order: `(condition_sql, params)`, the systems with none last."""
-    if sort == "binary":
-        return [("ss.is_binary = ?", [value]) for value in ((1, 0) if descending else (0, 1))]
+    """The groups of an octant sort in order: `(condition_sql, params)`, the systems with none last."""
     labels = (("VIII", "VII", "VI", "V", "IV", "III", "II", "I") if descending else
               ("I", "II", "III", "IV", "V", "VI", "VII", "VIII"))
     return [("ss.quadrant = ?", [label]) for label in labels] + [("ss.quadrant IS NULL", [])]
@@ -740,10 +781,9 @@ def _read_group(conn, where_sql, params, condition, group_params, need, offset):
 
 def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset, start=None, after=None):
     """
-    One page of `list_systems` sorted by sector, octant or binary, without sorting the table (PERF.70): the
+    One page of `list_systems` sorted by sector or octant, without sorting the table (PERF.70): the
     sort is `<group>, name, id` with the systems that have no sector or octant last, so the page is found by
-    counting group after group (an index range each: `idx_star_systems_sector_id`, `idx_star_systems_quadrant`,
-    `idx_star_systems_binary_name`) until `offset` is used up, then reading the rows from the group it lands in
+    counting group after group (an index range each: `idx_star_systems_sector_id`, `idx_star_systems_quadrant`) until `offset` is used up, then reading the rows from the group it lands in
     and the groups after it. The sectors are taken in chunks, counted by one query per chunk. A `start` (the
     jump-by-value box) begins the sector sort at the first sector from that name on.
 
@@ -775,8 +815,7 @@ def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset, 
         groups = _simple_groups(sort, descending)
         begin = 0
         if resume is not None:
-            own = (("ss.is_binary = ?", [int(bool(found["is_binary"]))]) if sort == "binary" else
-                   ("ss.quadrant = ?", [found["quadrant"]]) if found["quadrant"] is not None else
+            own = (("ss.quadrant = ?", [found["quadrant"]]) if found["quadrant"] is not None else
                    ("ss.quadrant IS NULL", []))
             if own in groups:
                 begin, offset = groups.index(own), 0
@@ -2602,61 +2641,242 @@ def parse_built_cursor(text):
     return None
 
 
-def _built_by_name(conn, limit, descending, types, descriptors, placed, after=None):
+SECTOR_WALK_MIN_ROWS = 50_000
+"""int: Under this many built phenomena (the sum of the tables' highest ids) the Phenomena table's sector sort sorts them whole, which a
+page of a few thousand rows costs next to nothing; from it up the sort walks the sectors by name (`_built_by_sector`, PERF.211)."""
+
+SECTOR_CHUNK = 200
+"""int: The sectors the sector sort reads at first for a page; each further read doubles it, to `SECTOR_CHUNK_MAX`."""
+SECTOR_CHUNK_MAX = 5000
+
+_COLLATION = " COLLATE utf8mb4_unicode_ci"
+
+
+def _descriptor_key(descriptor_expr):
+    """The expression of a table's descriptor as its descriptor index holds it (`idx_<table>_descriptor_name`): a CASE of text
+    carries the collation of the columns, so that the sort of one table and the merge of all agree."""
+    return descriptor_expr + _COLLATION if descriptor_expr.startswith("(") else descriptor_expr
+
+
+_PLACED_KEY = "(t.center_x_pc IS NOT NULL)"
+_BUILT_OUTER_KEYS = {"type": "type", "descriptor": "descriptor", "radius": "radius_ly", "placed": "placed"}
+"""dict: The Phenomena sorts that order by a key before the name -> the column of the merge they order by."""
+
+
+def _built_sort_key(sort, type_label, descriptor_expr, radius_expr):
+    """`(sql, constant)` for how a phenomenon table orders by `sort`: the expression its index serves (`sql`), or the one value
+    (`constant`) every row of the table has (the type, a radius of 0), or neither for the name."""
+    if sort == "type":
+        return None, type_label
+    if sort == "placed":
+        return _PLACED_KEY, None
+    if sort == "descriptor":
+        return _descriptor_key(descriptor_expr), None
+    if sort == "radius":
+        return (None, 0) if radius_expr == "0" else (f"t.{radius_expr}", None)
+    return None, None
+
+
+def _built_start(conn, sort, after):
+    """What a page after the built row `after` (`(type, row id)`) continues from: the row's name, type, id, its key for `sort`
+    and its sector, or `None` when the row is gone (the page then starts at the top)."""
+    table = _PHENOMENON_TYPE_TO_TABLE[after[0]]
+    entry = next(e for e in _PHENOMENON_TABLES if e[0] == table)
+    key_sql, _constant = _built_sort_key(sort, entry[1], entry[2], entry[3])
+    row = conn.execute(
+        f"SELECT t.name AS name, t.sector_id AS sector_id, sec.name AS sector_name"
+        f"{', ' + key_sql + ' AS sort_key' if key_sql else ''} FROM {table} t "
+        f"LEFT JOIN sectors sec ON sec.id = t.sector_id WHERE t.id = ?", (after[1],)).fetchone()
+    if row is None:
+        return None
+    return {"name": row["name"], "type": after[0], "id": after[1], "sector_id": row["sector_id"],
+            "sector_name": row["sector_name"], "key": row["sort_key"] if key_sql else (entry[1] if sort == "type" else
+                                                                                      0 if sort == "radius" else None)}
+
+
+def _after_condition(key_sql, constant, type_label, start, descending):
+    """`(sql, params)` for a table's rows that come after `start` in the order `key, name, type, id` (all in one direction), `None`
+    when none of them do. Written as `_lexicographic` is, so the index serves the range; the type is not a column,
+    so it decides whether a row equal to `start` in key and name comes after it (the type does, or the id does)."""
+    ascending = not descending
+    if constant is not None and key_sql is None and start["key"] is not None:
+        if constant != start["key"]:
+            return ("", []) if (constant > start["key"]) == ascending else None
+    if (type_label > start["type"]) == ascending and type_label != start["type"]:
+        closed = True
+    elif type_label == start["type"]:
+        closed = None
+    else:
+        closed = False
+    columns = ([key_sql] if key_sql else []) + ["t.name"]
+    values = ([start["key"]] if key_sql else []) + [start["name"]]
+    if closed is None:
+        columns.append("t.id")
+        values.append(start["id"])
+    return _lexicographic(columns, values, descending, inclusive=bool(closed))
+
+
+def _built_by_key(conn, limit, sort, descending, types, descriptors, placed, start=None, extra=None):
     """
-    A page of the built phenomena by name, read in index order (PERF.205): from each phenomenon table the `limit` rows
-    that come next in `ORDER BY name, type, id`, found by walking that table's name index, and the best `limit` of
-    those together. The page costs the same at any depth, since no table is read or sorted past the rows it returns,
-    where the union of every table sorted whole for each page.
+    A page of the built phenomena by `sort` read in index order (PERF.205, PERF.211): from each phenomenon table the `limit`
+    rows that come next in `ORDER BY key, name, id`, found by walking the table's index on that key and name, and the best `limit`
+    of those together in `ORDER BY key, name, type, id`. The page costs the same at any depth, since no table is read or sorted
+    past the rows it returns, where the union of every table sorted whole for each page. Ties follow the direction of the sort.
 
     Args:
         limit (int): Rows to return.
-        descending (bool): Whether the names, then the types and ids, sort downward.
+        sort (str): `name`, `type`, `descriptor`, `radius` or `placed` (the key each table's index serves).
+        descending (bool): Whether the keys, then the names, types and ids, sort downward.
         types, descriptors, placed: The Phenomena table's filters (`_phenomena_where`).
-        after (tuple, optional): `(type, row id)` of the row the previous page ended on (`parse_built_cursor`); a row that
-            no longer exists starts at the top.
+        start (dict, optional): The row the previous page ended on (`_built_start`).
+        extra (str, optional): One more condition on a table `t` (`t.sector_id IS NULL`).
 
     Returns:
         list[dict]: The rows, as `list_phenomena` returns them.
     """
     direction = "DESC" if descending else "ASC"
-    operator = "<" if descending else ">"
-    start = None
-    if after is not None:
-        table = _PHENOMENON_TYPE_TO_TABLE[after[0]]
-        found = conn.execute(f"SELECT name FROM {table} WHERE id = ?", (after[1],)).fetchone()
-        start = None if found is None else (found["name"], after[0], after[1])
     parts, params = [], []
     for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES:
         if types and type_label not in types:
             continue
+        key_sql, constant = _built_sort_key(sort, type_label, descriptor_expr, radius_expr)
         clauses, clause_params = [], []
         if table in ("black_holes", "neutron_stars"):
             clauses.append("t.star_id IS NULL")
+        if extra:
+            clauses.append(extra)
         if descriptors:
-            clauses.append(f"{descriptor_expr} IN ({', '.join('?' for _ in descriptors)})")
+            clauses.append(f"{_descriptor_key(descriptor_expr)} IN ({', '.join('?' for _ in descriptors)})")
             clause_params.extend(descriptors)
         if placed is not None:
-            clauses.append("(t.center_x_pc IS NOT NULL) = ?")
+            clauses.append(f"{_PLACED_KEY} = ?")
             clause_params.append(1 if placed else 0)
         if start is not None:
-            name, start_type, start_id = start
-            clauses.append(f"(t.name {operator} ? OR (t.name = ? AND ? {operator} ?) OR (t.name = ? AND ? = ? AND t.id {operator} ?))")
-            clause_params.extend([name, name, type_label, start_type, name, type_label, start_type, start_id])
+            after = _after_condition(key_sql, constant, type_label, start, descending)
+            if after is None:
+                continue
+            if after[0]:
+                clauses.append(after[0])
+                clause_params.extend(after[1])
+        order = (f"{key_sql} {direction}, " if key_sql else "") + f"t.name {direction}, t.id {direction}"
         parts.append(
-            f"(SELECT '{type_label}' AS type, t.id AS id, t.name AS name, {descriptor_expr} AS descriptor, "
+            f"(SELECT '{type_label}' AS type, t.id AS id, t.name AS name, {_descriptor_key(descriptor_expr)} AS descriptor, "
             f"{radius_expr} AS radius_ly, t.sector_id AS sector_id, sec.name AS sector_name, "
-            f"(t.center_x_pc IS NOT NULL) AS placed, 0 AS scattered FROM {table} t "
+            f"{_PLACED_KEY} AS placed, 0 AS scattered FROM {table} t "
             f"LEFT JOIN sectors sec ON sec.id = t.sector_id "
             f"{'WHERE ' + ' AND '.join(clauses) + ' ' if clauses else ''}"
-            f"ORDER BY t.name {direction}, t.id {direction} LIMIT ?)")
+            f"ORDER BY {order} LIMIT ?)")
         params.extend(clause_params + [limit])
     if not parts:
         return []
+    outer = f"{_BUILT_OUTER_KEYS[sort]} {direction}, " if sort in _BUILT_OUTER_KEYS else ""
     rows = conn.execute(
         f"SELECT * FROM ({' UNION ALL '.join(parts)}) AS phenomena "
-        f"ORDER BY name {direction}, type {direction}, id {direction} LIMIT ?", params + [limit]).fetchall()
+        f"ORDER BY {outer}name {direction}, type {direction}, id {direction} LIMIT ?", params + [limit]).fetchall()
     return [_built_item(row) for row in rows]
+
+
+def _built_row_bound(conn):
+    """About how many built phenomena there are, from above: the sum of the highest ids of the phenomenon tables (index reads)."""
+    reads = " + ".join(f"(SELECT COALESCE(MAX(id), 0) FROM {table})" for table, *_rest in _PHENOMENON_TABLES)
+    return int(conn.execute(f"SELECT {reads} AS n").fetchone()["n"])
+
+
+def _sector_rows(conn, limit, descending, types, descriptors, placed, sector_ids=None, start=None):
+    """Up to `limit` built phenomena that are in a sector, in the order `sector name, sector id, name, type, id`: those of the
+    `sector_ids`, or of every sector, and, with `start`, only those after that row."""
+    direction = "DESC" if descending else "ASC"
+    parts, params = [], []
+    for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES:
+        if types and type_label not in types:
+            continue
+        clauses = ["t.sector_id IN (" + ", ".join("?" for _ in sector_ids) + ")"] if sector_ids is not None \
+            else ["t.sector_id IS NOT NULL"]
+        clause_params = list(sector_ids or [])
+        if table in ("black_holes", "neutron_stars"):
+            clauses.append("t.star_id IS NULL")
+        if descriptors:
+            clauses.append(f"{_descriptor_key(descriptor_expr)} IN ({', '.join('?' for _ in descriptors)})")
+            clause_params.extend(descriptors)
+        if placed is not None:
+            clauses.append(f"{_PLACED_KEY} = ?")
+            clause_params.append(1 if placed else 0)
+        parts.append(
+            f"SELECT '{type_label}' AS type, t.id AS id, t.name AS name, {_descriptor_key(descriptor_expr)} AS descriptor, "
+            f"{radius_expr} AS radius_ly, t.sector_id AS sector_id, sec.name AS sector_name, "
+            f"{_PLACED_KEY} AS placed, 0 AS scattered FROM {table} t "
+            f"JOIN sectors sec ON sec.id = t.sector_id WHERE {' AND '.join(clauses)}")
+        params.extend(clause_params)
+    if not parts:
+        return []
+    after = ""
+    if start is not None:
+        condition, found = _lexicographic(["sector_name", "sector_id", "name", "type", "id"],
+                                          [start["sector_name"], start["sector_id"], start["name"], start["type"], start["id"]], descending)
+        after = f"WHERE {condition} "
+        params.extend(found)
+    rows = conn.execute(
+        f"SELECT * FROM ({' UNION ALL '.join(parts)}) AS phenomena {after}"
+        f"ORDER BY sector_name {direction}, sector_id {direction}, name {direction}, type {direction}, id {direction} LIMIT ?",
+        params + [limit]).fetchall()
+    return [_built_item(row) for row in rows]
+
+
+def _built_by_sector(conn, limit, descending, types, descriptors, placed, after=None):
+    """
+    A page of the built phenomena by sector name (PERF.211), a phenomenon with no sector after those that have one (in either
+    direction): the sectors are read by name in index order, a few hundred at a time (more each time while the page is not full), and
+    only the phenomena of those are sorted, so a page costs about what it returns whatever its depth. No index could hold a name
+    that lives in another table. With fewer than `SECTOR_WALK_MIN_ROWS` phenomena built they are sorted whole instead.
+    Ties follow the direction of the sort, a sector's name then its id.
+
+    Args:
+        limit, descending, types, descriptors, placed: As `_built_by_key`.
+        after (tuple, optional): `(type, row id)` of the row the previous page ended on.
+    """
+    start = None if after is None else _built_start(conn, "sector", after)
+    rows = []
+    if start is None or start["sector_id"] is not None:
+        if _built_row_bound(conn) < SECTOR_WALK_MIN_ROWS:
+            rows = _sector_rows(conn, limit, descending, types, descriptors, placed, start=start)
+        else:
+            direction = "DESC" if descending else "ASC"
+            chunk, beyond = SECTOR_CHUNK, None
+            while len(rows) < limit:
+                if beyond is not None:
+                    condition, where_params = _lexicographic(["name", "id"], list(beyond), descending)
+                    where = f"WHERE {condition} "
+                elif start is not None:
+                    condition, where_params = _lexicographic(["name", "id"], [start["sector_name"], start["sector_id"]], descending,
+                                                             inclusive=True)
+                    where = f"WHERE {condition} "
+                else:
+                    where, where_params = "", []
+                sectors = conn.execute(
+                    f"SELECT id, name FROM sectors {where}ORDER BY name {direction}, id {direction} LIMIT ?",
+                    where_params + [chunk]).fetchall()
+                if not sectors:
+                    break
+                rows += _sector_rows(conn, limit - len(rows), descending, types, descriptors, placed,
+                                     sector_ids=[sector["id"] for sector in sectors],
+                                     start=start if beyond is None else None)
+                if len(sectors) < chunk:
+                    break
+                beyond = (sectors[-1]["name"], sectors[-1]["id"])
+                chunk = min(chunk * 2, SECTOR_CHUNK_MAX)
+    if len(rows) < limit:
+        rows += _built_by_key(conn, limit - len(rows), "name", descending, types, descriptors, placed,
+                              start=start if start is not None and start["sector_id"] is None else None,
+                              extra="t.sector_id IS NULL")
+    return rows
+
+
+def _built_page(conn, limit, sort, descending, types, descriptors, placed, after=None):
+    """A page of the built phenomena by `sort`, from the top or after the `(type, row id)` in `after`."""
+    if sort == "sector":
+        return _built_by_sector(conn, limit, descending, types, descriptors, placed, after)
+    start = None if after is None else _built_start(conn, sort, after)
+    return _built_by_key(conn, limit, sort, descending, types, descriptors, placed, start)
 
 
 def _built_item(row):
@@ -2686,7 +2906,8 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
         offset (int, optional): Skips this many rows first. Ignored unless
             `limit` is also given.
         sort (str): A key of `PHENOMENON_SORTS`; ties fall back to name,
-            type and id so pages never overlap.
+            type and id (in the direction of the sort) so pages never overlap. The first page and the pages after a
+            row (`after`) of any sort are read by key; a page by `offset` past the first sorts the whole union.
         descending (bool): Reverse the sort.
         types (iterable[str]): Keep only these types (any of).
         descriptors (iterable[str]): Keep only these descriptors (any of).
@@ -2694,8 +2915,8 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
         after (int or tuple, optional): A scattered row's `scatter_id`: the page starts after it in the tail of unbuilt
             scattered phenomena (they follow every built one, in id order), and the built ones and `offset` are
             not read (a keyset page, PERF.75). Or the `(type, row id)` of a built row (`parse_built_cursor`): the page
-            starts after it in the name order, then the tail (PERF.205; the built phenomena are read by name only, so
-            another `sort` is ignored with it). Without `limit` it is not used.
+            starts after it in the order of `sort`, then the tail (PERF.205, PERF.211: `offset` is not used, and every sort
+            reads its built rows in index order, so a page costs the same at any depth). Without `limit` it is not used.
         start (str, optional): The jump-by-value box (PERF.135), a scatter id: the list is the tail of unbuilt
             scattered phenomena from that id on (the built ones are not listed), `offset` counting from there.
             Needs `limit`; text that is not an id raises `ValueError`.
@@ -2728,16 +2949,18 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
         return _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), limit, offset or 0,
                                after=after, first=None if last else first, last=last)
     if isinstance(after, tuple) and limit is not None:
-        return _built_then_scattered(conn, limit, descending, types, descriptors, placed, after)
+        return _built_then_scattered(conn, limit, sort, descending, types, descriptors, placed, after)
     if after is not None and limit is not None:
         return _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), limit, 0, after=after)
     begin = offset or 0
-    if sort == "name" and begin == 0 and limit is not None:
-        return _built_then_scattered(conn, limit, descending, types, descriptors, placed, None)
+    if begin == 0 and limit is not None:
+        return _built_then_scattered(conn, limit, sort, descending, types, descriptors, placed, None)
     where, filter_params = _phenomena_where(types, descriptors, placed)
     column = PHENOMENON_SORTS[sort]
+    direction = "DESC" if descending else "ASC"
+    tie = "sector_id " + direction + ", " if sort == "sector" else ""
     query = (f"SELECT * FROM ({_phenomena_union()}) AS phenomena{where} "
-             f"ORDER BY {column} IS NULL, {column} {'DESC' if descending else 'ASC'}, name, type, id")
+             f"ORDER BY {column} IS NULL, {column} {direction}, {tie}name {direction}, type {direction}, id {direction}")
     params = list(filter_params)
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
@@ -2756,10 +2979,10 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
     return items
 
 
-def _built_then_scattered(conn, limit, descending, types, descriptors, placed, after):
-    """A page by name of the built phenomena after `after` (`(type, row id)`, or the top), and when the built ones end
-    inside it the start of the scattered tail that follows them (PERF.205)."""
-    items = _built_by_name(conn, limit, descending, types, descriptors, placed, after)
+def _built_then_scattered(conn, limit, sort, descending, types, descriptors, placed, after):
+    """A page by `sort` of the built phenomena after `after` (`(type, row id)`, or the top), and when the built ones end
+    inside it the start of the scattered tail that follows them (PERF.205, PERF.211)."""
+    items = _built_page(conn, limit, sort, descending, types, descriptors, placed, after)
     room = limit - len(items)
     if room > 0:
         items += _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), room, 0)
@@ -3698,9 +3921,12 @@ def system_detail(conn, system_id):
             `schema.sql`'s "v14"/"v15" notes), `stars` (id/role/name/
             star_type/mass_kg/radius_km/temperature_k/luminosity_w/
             heliosphere_radius_km/offset_x_au/offset_y_au/offset_z_au, the
-            offsets set for a `member` star only --
+            offsets set for a `member` star only, and `parent_node_no`/`slot`, the node of the orbit tree the star hangs in and which of its
+            two places it holds, `None` for a single star --
             `id` matches a `'wide'` binary's `planets`/`belts` rows' own
-            `star_id`, disambiguating which star each orbits), `planets`
+            `star_id`, disambiguating which star each orbits), `orbits` (the system's `orbit_nodes` rows in node order, MAP.213:
+            `node_no`, `parent_node_no`, `slot`, `kind`, `mass_solar`, `separation_km`, `eccentricity`, `inclination_deg`,
+            `period_years`, `interaction` and `flags`; empty for a single star), `planets`
             (each a `planets` row, including its own `star_id`, plus its
             own `moons` list; every planet and moon also carries
             `habitable`, `life_stage` and `inhabited` (a colony counts --
@@ -3728,11 +3954,14 @@ def system_detail(conn, system_id):
 
     stars = conn.execute(
         "SELECT id, role, name, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km,"
-        " offset_x_au, offset_y_au, offset_z_au"
+        " offset_x_au, offset_y_au, offset_z_au, parent_node_id AS parent_node_no, slot"
         " FROM stars WHERE star_system_id = ?"
         " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 WHEN 'secondary' THEN 1 ELSE 2 END, id",
         (system_id,),
     ).fetchall()
+    orbits = [dict(r) for r in conn.execute(
+        "SELECT node_no, parent_node_no, slot, kind, mass_solar, separation_km, eccentricity, inclination_deg, period_years,"
+        " interaction, flags FROM orbit_nodes WHERE star_system_id = ? ORDER BY node_no", (system_id,)).fetchall()]
     # mass_kg (already selected above) is what lets planetgen/web/maps/systemmap.py
     # split binary_mutual_position_x/y/z_km below into each star's own
     # mass-weighted offset from the system's barycenter, rather than
@@ -3810,6 +4039,7 @@ def system_detail(conn, system_id):
         "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],
         "runaway_class": system["runaway_class"], "runaway_speed_kms": system["runaway_speed_kms"],
         "stars": [dict(s) for s in stars],
+        "orbits": orbits,
         "planets": planets,
         "belts": belts,
         "comets": [_with_printed_uid(c) for c in comets],
@@ -6778,13 +7008,15 @@ def _search_result_systems(conn, term, limit, offset):
         "ss.name, ss.id",
         params, limit, offset,
     )
+    rows = _with_star_types(conn, rows)
+    counts = _system_counts(conn, [r["id"] for r in rows])
     return {
         "rows": _with_refs(conn, [
             {
                 "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "is_binary": r["is_binary"],
-                "star_summary": _star_summary(r),
+                "star_summary": _star_summary(r), **counts[r["id"]],
             }
-            for r in _with_star_types(conn, rows)
+            for r in rows
         ], "system"),
         **page,
     }

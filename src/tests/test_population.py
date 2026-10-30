@@ -535,6 +535,52 @@ def test_species_page_by_key_in_every_sort_gives_the_same_order_as_one_long_page
         conn.close()
 
 
+@pytest.mark.parametrize("chunk", [1, 2, 20_000])
+def test_species_sorted_by_homeworld_or_system_walk_the_planets_or_systems_and_give_the_same_order(mysql_config, galaxy, monkeypatch,
+                                                                                                    chunk):
+    """PERF.211: from `SPECIES_WALK_MIN_ROWS` species up the `homeworld` and `system` sorts read the planets or systems by name a chunk at a
+    time (one, two, all) and sort only their species; the first page and each page after a species are the pages of the order the sort
+    gives under the floor, where the species that match are sorted whole, with and without a filter."""
+    conn = store.get_connection(mysql_config)
+    try:
+        populate(conn)
+        with conn:
+            _set_age(conn, galaxy["a"], 1e6)
+        populate(conn)
+        with conn:
+            conn.execute(
+                "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_stage, build, climate, size) "
+                "SELECT CONCAT('Wild ', p.id), p.id, p.star_system_id, 'multicellularity', 'plain', 'temperate', 'medium' "
+                "FROM planets p WHERE NOT EXISTS (SELECT 1 FROM species x WHERE x.homeworld_planet_id = p.id) LIMIT 4")
+        total = population.count_species(conn)
+        assert total >= 4
+        filters = ({}, {"spacefaring": False}, {"spacefaring": True})
+        monkeypatch.setattr(population, "SPECIES_WALK_MIN_ROWS", 10 ** 9)
+        wanted = {(sort, descending, tuple(f.items())): [row["id"] for row in population.list_species(
+            conn, sort=sort, descending=descending, limit=100, **f)]
+            for sort in ("homeworld", "system") for descending in (False, True) for f in filters}
+        monkeypatch.setattr(population, "SPECIES_WALK_MIN_ROWS", 0)
+        monkeypatch.setattr(population, "SPECIES_CHUNK_MIN", chunk)
+        monkeypatch.setattr(population, "SPECIES_CHUNK_MAX", chunk)
+        for (sort, descending, items), whole in wanted.items():
+            for size in (1, 2, 100):
+                assert [row["id"] for row in population.list_species(conn, sort=sort, descending=descending, limit=size,
+                                                                     **dict(items))] == whole[:size], (sort, descending, items, size)
+                paged, after = [], None
+                for _ in range(total + 1):
+                    page = population.list_species(conn, sort=sort, descending=descending, limit=size, after=after,
+                                                   **dict(items))
+                    paged += [row["id"] for row in page]
+                    if len(page) < size:
+                        break
+                    after = page[-1]["id"]
+                assert paged == whole, (sort, descending, items, size)
+        assert [row["id"] for row in population.list_species(conn, sort="system", after=987654321, limit=100)] == wanted[
+            ("system", False, ())]
+    finally:
+        conn.close()
+
+
 def test_species_and_polities_sort_filter_and_count(mysql_config, galaxy):
     conn = store.get_connection(mysql_config)
     try:
