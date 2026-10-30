@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2818] - 2026-10-30
+
+**Headline:** The class count script now also prints how much of the surface is ocean on temperate worlds with air, so the lines between desert, temperate and ocean worlds can be placed against real bodies; it stores nothing.
+
+### Added
+- **Ocean-fraction spread (GEN.1145).** `scripts/class_counts.py` adds a histogram in tenths of the ocean share of the bodies at 273.15 to 320 K with air, and the bodies under a 20 percent and over an 80 percent ocean line with their current class and water state.
+
+generation-output: unchanged
+
 ## [8.0.2817] - 2026-10-30
 
 **Headline:** The irregular moons of the four giants are checked for saturation: they end within a factor 2.5 of each other, and the repo's belt law is shown not to fit a moon zone.
