@@ -12050,20 +12050,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.909, GEN.910, GEN.911.
   Prerequisites: none. Related: GEN.909, GEN.910, GEN.911.
 
-- [ ] **GEN.913 A forced civilization (+intelligent_life request) should retry placement until a civilization-capable world exists; today it usually fails to appear (bug)**
-  Found by Aux 2 (about 9:05 AM EDT 2026-10-29 as the lane reported)
-  while tuning the epoch 120 census: a forced INTELLIGENT_LIFE request
-  produces a civilization in only about 1 system in 13, because Class 1
-  life needs a sunlit sea and oxygen and the forced placement picks a
-  world without checking that it can host one. Do: make the forced
-  placement retry (choose among the bodies, or redraw the system) until
-  a civilization-capable world exists, the way the habitable-world
-  request steers (GEN.646); a request that no system in the allowed
-  tries can meet says so plainly. A generation change: lock turn in Aux
-  2's second turn (GEN.888, GEN.894) or after. Version 8.1. Owner: Aux
-  2.
-  Prerequisites: none. Related: GEN.646, GEN.854, GEN.872.
-
 - [ ] **GEN.915 Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class**
   Boss requirement (2:46 PM EDT 2026-10-29): "I want to make sure every
   possible combination of effects, whatever planet class it is, that can

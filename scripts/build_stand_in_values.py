@@ -203,7 +203,9 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.95", "6.95 Stand-ins of the belt sources",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.96", "6.96 Stand-ins of the belt origins",
+    ("6.96", "6.96 Stand-ins of the irregular orbits",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.97", "6.97 Stand-ins of the belt origins",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 682 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 686 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 95 | 2 | 6 | 1 | 0 | 104 |
-| T2 | 98 | 14 | 0 | 1 | 0 | 113 |
+| T2 | 98 | 15 | 0 | 1 | 0 | 114 |
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
-| T4 | 36 | 2 | 0 | 14 | 6 | 58 |
+| T4 | 36 | 2 | 0 | 15 | 6 | 59 |
 | T5 | 39 | 12 | 0 | 0 | 0 | 51 |
 | T6 | 58 | 31 | 12 | 33 | 0 | 134 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
-| T9 | 4 | 0 | 2 | 29 | 19 | 54 |
-| All | 430 | 96 | 33 | 96 | 27 | 682 |
+| T9 | 4 | 0 | 3 | 30 | 19 | 56 |
+| All | 430 | 97 | 34 | 98 | 27 | 686 |
 
 ## How the labels were given
 
@@ -1127,7 +1127,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BR17 | P | T9 | L0 | the mass cuts of a belt's ledger: individual bodies above 1e19 kg (about 200 km of rock), reproducible on demand from 1e15 kg (about 10 km) | 1e18 to 1e20 kg; 1e14 to 1e16 kg | every belt and outer disc | not applicable (a storage rule) | a cut from the cost of storing a belt | Boss's rule of 4:27 PM EDT 2026-10-30 (belt-evolution.md section 11) | - | - |
 | BR18 | P | T9 | L0 | the coverage rule of a belt's ledger: store the heaviest bodies until 90 percent of the belt mass is covered, at most 300 bodies per belt | 80 to 95 percent; 100 to 1000 | every belt and outer disc | not applicable (a storage rule) | a cut from the cost of storing a belt | Boss's rule of 4:27 PM EDT 2026-10-30 (belt-evolution.md section 11) | - | - |
 
-## 6.96 Stand-ins of the belt origins
+## 6.96 Stand-ins of the irregular orbits
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IO1 | P | T9 | L2 | irregular_orbits.MEDIAN_BEFORE_SURVIVAL, the median a / r_H before the stable limits cut, by planet distance: 1.1, 0.33, 0.17, 0.19 at 5.2, 9.5, 19.2, 30.1 AU | each value within 30 percent | the four giants | a capture simulation whose pre-survival a / r_H differs from the table | a capture-simulation distribution by planet mass, distance and mechanism (Nesvorny, Vokrouhlicky and Deienno 2014) | fitted so the survivors have the observed medians of 0.44, 0.29, 0.17 and 0.19 of the Hill radius (Jewitt and Haghighipour 2007) | GEN.1078 | - |
+| IO2 | P | T9 | L3 | irregular_orbits.SIGMA_LN 0.44, the natural-log width of the a / r_H draw | 0.3 to 0.6 | the four giants | a survivor spread of a / r_H that differs from the observed one at three giants | the width of a capture simulation | fitted with the Jupiter row to the retrograde to prograde split of 4.5 | GEN.1078 | no data |
+| IO3 | P | T2 | L1 | irregular_orbits.ECCENTRICITY_MAX 0.7, the upper end of the uniform eccentricity draw | 0.6 to 0.8 | the four giants | a survivor with an eccentricity well over 0.7 | the eccentricity distribution of a capture simulation | the known irregulars run from 0.1 to 0.7 (Jewitt and Haghighipour 2007) | GEN.1078 | - |
+| IO4 | P | T4 | L3 | irregular_orbits.FAMILY_SPEED_M_S (20, 300), the log-uniform ejection speed of a family's fragments | tens to a few hundred | the families of Jupiter and Saturn | a family whose spread needs speeds outside the range | the velocity fields of the Himalia, Gallic and Inuit families (Nesvorny et al. 2003) | Nesvorny et al. 2003, recalled: tens to hundreds of m/s | GEN.1078 | no data |
+
+## 6.97 Stand-ins of the belt origins
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
