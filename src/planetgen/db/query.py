@@ -3610,11 +3610,11 @@ def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None):
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
     it: `colonized` is that table's ids from `colonized_body_ids`, schema
-    v42), `life_class_id` (the class that lives on it as one id such as `"1a"`, or `None`) and `life_class_scores`
+    v42), `life_class_id` (the class that lives on it as one id such as `"1a"`, or `None`; none for a class the body suits but has no life stage yet, GEN.1001) and `life_class_scores`
     (`{class id: score 1 to 9}` for every class it supports, from `class_scores`, the body's
     `planet_life_class_scores` or `moon_life_class_scores` rows; empty when it supports none, API.37).
     """
-    body["life_class_id"] = life_classes.class_id(body.get("life_class"), body.get("life_class_variant"))
+    body["life_class_id"] = life_classes.living_class_id(body.get("life_class"), body.get("life_class_variant"), body.get("life_stage"))
     body["life_class_scores"] = dict(sorted((class_scores or {}).items()))
     body["habitable_class"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
     body["habitable"] = habitability.is_habitable(body.get("phi4"))
@@ -6264,7 +6264,7 @@ def _life_class_label(class_id):
 def _life_class_facet(conn, table):
     """The life classes living on the bodies of `table` (`planets` or `moons`), with how many bodies each is the class of."""
     rows = conn.execute(
-        f"SELECT CONCAT(life_class, COALESCE(life_class_variant, '')) AS v, COUNT(*) AS c FROM {table} WHERE life_class IS NOT NULL GROUP BY v ORDER BY v"
+        f"SELECT CONCAT(life_class, COALESCE(life_class_variant, '')) AS v, COUNT(*) AS c FROM {table} WHERE life_class IS NOT NULL AND life_stage IS NOT NULL GROUP BY v ORDER BY v"
     ).fetchall()
     return [{"value": row["v"], "label": _life_class_label(row["v"]), "count": row["c"], "tooltip": None} for row in rows]
 
@@ -6278,7 +6278,7 @@ def _life_class_clause(alias, class_ids, clauses, params):
         clauses.append("1 = 0")
         return
     pairs = sorted((int(class_id[:1]), class_id[1:]) for class_id in known)
-    clauses.append(f"({alias}.life_class, COALESCE({alias}.life_class_variant, '')) IN ({','.join('(?, ?)' for _ in pairs)})")
+    clauses.append(f"({alias}.life_class, COALESCE({alias}.life_class_variant, '')) IN ({','.join('(?, ?)' for _ in pairs)}) AND {alias}.life_stage IS NOT NULL")
     for number, variant in pairs:
         params.extend((number, variant))
 
@@ -6640,7 +6640,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     rows, page = _search_page(
         conn,
         f"""
-        SELECT p.id, p.name, p.planet_class, p.body_type, CONCAT(p.life_class, COALESCE(p.life_class_variant, '')) AS life_class_id, {_equipment_columns('p')}, {_tiers("p")}, p.radius_km,
+        SELECT p.id, p.name, p.planet_class, p.body_type, CASE WHEN p.life_stage IS NULL THEN NULL ELSE CONCAT(p.life_class, COALESCE(p.life_class_variant, '')) END AS life_class_id, {_equipment_columns('p')}, {_tiers("p")}, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
@@ -6671,7 +6671,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     rows, page = _search_page(
         conn,
         f"""
-        SELECT m.id, m.name, m.planet_class, m.body_type, CONCAT(m.life_class, COALESCE(m.life_class_variant, '')) AS life_class_id, {_equipment_columns('m')}, {_tiers("m")}, m.radius_km,
+        SELECT m.id, m.name, m.planet_class, m.body_type, CASE WHEN m.life_stage IS NULL THEN NULL ELSE CONCAT(m.life_class, COALESCE(m.life_class_variant, '')) END AS life_class_id, {_equipment_columns('m')}, {_tiers("m")}, m.radius_km,
                m.planet_id, m.rogue_planet_id, COALESCE(p.name, rp.name) AS planet_name, m.star_system_id,
                ss.name AS system_name, COALESCE(ss.sector_id, rp.sector_id) AS sector_id
         """,

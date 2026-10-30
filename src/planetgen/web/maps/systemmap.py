@@ -76,7 +76,6 @@ import colorsys
 import math
 import statistics
 
-from planetgen.physics import life_classes
 from planetgen.physics.constants import AU_TO_KM
 from planetgen.web.lib.fmt import (
     esc, format_distance_km, format_gravity_g_short, format_pressure_pa, format_speed_kms, format_temperature_k)
@@ -774,8 +773,8 @@ def _star_marker_svg(cx, cy, r_px, star, attrs, bounds=_DEFAULT_BOUNDS):
 
 
 def _life_class_text(planet):
-    """The side panel's line for the life class on a body (`"Class 1a"`), `None` for none."""
-    class_id = life_classes.class_id(planet.get("life_class"), planet.get("life_class_variant"))
+    """The side panel's line for the life class that lives on a body (`"Class 1a"`), `None` for none (and for a class it suits but has no life stage for yet)."""
+    class_id = planet.get("life_class_id")
     return None if class_id is None else f"Class {class_id}"
 
 

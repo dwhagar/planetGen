@@ -2442,10 +2442,10 @@ def test_a_planet_and_a_moon_name_their_life_class_and_the_scores_of_every_class
                               (system_id,)).fetchone()["id"]
         moon = conn.execute("SELECT id FROM moons WHERE star_system_id = ? ORDER BY id LIMIT 1", (system_id,)).fetchone()["id"]
         conn.execute("UPDATE planets SET life_class = 1, life_class_variant = 'a', life_class_best = '1a', life_class_best_score = 7,"
-                     " life_animal_grade = 2, life_complexity = 0.4 WHERE id = ?", (planet,))
+                     " life_animal_grade = 2, life_complexity = 0.4, life_stage = 'abiogenesis' WHERE id = ?", (planet,))
         conn.execute("DELETE FROM planet_life_class_scores WHERE planet_id = ?", (planet,))
         conn.execute("INSERT INTO planet_life_class_scores (planet_id, life_class, score) VALUES (?, '1a', 7), (?, '2', 3)", (planet, planet))
-        conn.execute("UPDATE moons SET life_class = 6, life_class_variant = NULL WHERE id = ?", (moon,))
+        conn.execute("UPDATE moons SET life_class = 6, life_class_variant = NULL, life_stage = 'abiogenesis' WHERE id = ?", (moon,))
         conn.execute("DELETE FROM moon_life_class_scores WHERE moon_id = ?", (moon,))
         conn.execute("INSERT INTO moon_life_class_scores (moon_id, life_class, score) VALUES (?, '6', 2)", (moon,))
         conn.commit()
@@ -2462,3 +2462,14 @@ def test_a_planet_and_a_moon_name_their_life_class_and_the_scores_of_every_class
     assert seen["life_class_id"] == "6" and seen["life_class_scores"] == {"6": 2}
     for body in [*detail["planets"], *(m for p in detail["planets"] for m in p["moons"])]:
         assert {"life_class_id", "life_class_scores"} <= set(body) and isinstance(body["life_class_scores"], dict)
+
+    # GEN.1001: a class the moon suits but that has no life stage yet is stored, but it is not the class that lives there
+    conn = _db.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE moons SET life_stage = NULL WHERE id = ?", (moon,))
+        conn.commit()
+    finally:
+        conn.close()
+    detail = client.get(f"/api/systems/{pid('system', system_id)}").get_json()
+    seen = next(m for p in detail["planets"] for m in p["moons"] if m["id"] == pid("moon", moon))
+    assert seen["life_class"] == 6 and seen["life_class_id"] is None and seen["life_class_scores"] == {"6": 2}
