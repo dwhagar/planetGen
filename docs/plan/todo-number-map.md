@@ -2239,9 +2239,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.69 | Remove all wiki functionality: the upload and download code, the wikitext renderer, the wiki routes, UI, settings and columns; the export to Markdown stays | none | done, PR #2963 |
 | OPS.70 | Gate resumes after a restart, and a lane-start health check runs before every gate | none | done, PR #3192 |
 | OPS.71 | Epoch and migration numbers are allocated by a script during the merge rebase, never renumbered by hand | none | done, PR #3695 |
-| OPS.72 | Delete the dead tuning knobs and uncalled helpers the unused-values audit found (G7) | none | open |
-| OPS.73 | Delete the dead tuning knobs (HABITABLE_ZONE_BUFFER_AU, ROUND_RADIUS_KM, RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD, STELLAR_PROTO_HELIUM_OFFSET_DEX, MAX_FLAVOR_PLANET, NAV_COURSE_DECIMAL_PLACES, STELLAR_U_TH_UNCERTAINTY) (G7, step 1) | none | open |
-| OPS.74 | Delete the uncalled helpers (class_allowed_in_zone, build_sector_configs, shell_chunks, draw_mass, mantle_mass_kg, build_nodes, get_galaxy_phenomena, register_card_renderer, read_config, settings_hash, mass_limit_argv) (G7, step 2) | none | open |
+| OPS.72 | Delete the dead tuning knobs and uncalled helpers the unused-values audit found (G7) | none | done, PR #3938 |
+| OPS.73 | Delete the dead tuning knobs (HABITABLE_ZONE_BUFFER_AU, ROUND_RADIUS_KM, RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD, STELLAR_PROTO_HELIUM_OFFSET_DEX, MAX_FLAVOR_PLANET, NAV_COURSE_DECIMAL_PLACES, STELLAR_U_TH_UNCERTAINTY) (G7, step 1) | none | done, PR #3938 |
+| OPS.74 | Delete the uncalled helpers (class_allowed_in_zone, build_sector_configs, shell_chunks, draw_mass, mantle_mass_kg, build_nodes, get_galaxy_phenomena, register_card_renderer, read_config, settings_hash, mass_limit_argv) (G7, step 2) | none | done, PR #3938 |
 | OPS.75 | update.sh ends with "the update failed at step 9/9, checking that the web app imports" when the import check passed and the real failure is the health check after the Apache reload; the site stays closed with a wrong reason (bug) | none | done, PR #3363 |
 | OPS.76 | update.sh warns "uncommitted local changes in /var/lib/planetGen -- these will be overwritten: ?? state/" on every update although state/ is expected (bug) | none | done, PR #3363 |
 | OPS.77 | update.sh ends with the site closed because its final /api/health check gets a 403 (a reemergence of OPS.75) (bug) | none | done, PR #3525 |
