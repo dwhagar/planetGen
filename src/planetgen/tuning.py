@@ -252,15 +252,16 @@ MOON_MIN_MASS_KG = 1.0e20
 MOON_GIANT_PARENT_MAX_MASS_RATIO = 1.0e-3
 MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO = 0.1
 
-# The water a terrestrial body is born with, by where it formed (GEN.682, GEN.685; `physics/bulk_draw`): log-uniform shares of
-# its whole mass. Inside the snow line the rock is dry (Earth's oceans are 2.3e-4; Mars 2e-4 to 1e-3; Venus and Mercury far
-# less), and `WATER_WORLD_SHARE` of the inner worlds hold an ocean world's 1 to 10 percent (the Marboeuf 2014 icy-body range
-# is the next line). Beyond the snow line the body is ice and rock (Europa 8 percent water, Ganymede about 45, Marboeuf
-# et al. 2014: 5 to 50 percent). Every value is a stand-in (tier "educated guess from physics", level L2) that took the old
-# class ranges and merged them into one table by origin.
-DRY_WATER_MASS_FRACTION = (1.0e-6, 1.0e-3)
-WATER_WORLD_WATER_MASS_FRACTION = (1.0e-2, 0.1)
-WATER_WORLD_SHARE = 0.03
+# The water a rocky terrestrial body is born with (GEN.849; `physics/delivered_water`): its class (dry, low, high, rich) comes from the Bern
+# population synthesis law the atmosphere recipes already read (`data/ngpps_formation_water.json`), by its mass and the snow lines it formed
+# at; inside a class the share of its whole mass is log-uniform. The class edges are the model's. The dry class reaches down to
+# `DELIVERED_WATER_DRY_MIN` (Venus and Mercury hold far less than Earth's 2.3e-4 in the oceans), the rich class up to
+# `DELIVERED_WATER_RICH_MAX`, the largest water share a rocky body keeps and still has the rock to be a planet (Thiabaud et al. 2014
+# find at most about 0.5 for the bodies the model formed). Both ends are stand-ins (registry rows DW2 and DW3, tier "educated guess
+# from physics", level L1). A body that formed beyond the snow line of a class that is not rocky is ice and rock: its share is
+# `ICY_WATER_MASS_FRACTION` (Europa 8 percent water, Ganymede about 45, Marboeuf et al. 2014: 5 to 50 percent).
+DELIVERED_WATER_DRY_MIN = 1.0e-6
+DELIVERED_WATER_RICH_MAX = 0.5
 ICY_WATER_MASS_FRACTION = (0.05, 0.5)
 
 # A terrestrial body's Bond albedo, drawn before its air is solved so it can only read what the body is made of and the starlight

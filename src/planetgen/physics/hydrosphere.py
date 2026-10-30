@@ -8,8 +8,8 @@ section 5. Both star-system bodies (`generate_hydrosphere`) and rogue
 planets (`physics.rogue_surface`) use the functions here.
 
 1. **Inventory.** A rocky body's water mass fraction is drawn with its bulk
-   composition (`bulk_draw`, GEN.428) log-uniformly from the range of its origin
-   (`tuning.DRY_WATER_MASS_FRACTION` and the others beside it; Earth's oceans are 2.34e-4). The mantle holds part of it: the surface
+   composition (`bulk_draw`, GEN.428) from the delivery law of its mass and where it formed
+   (`delivered_water`, GEN.849; Earth's oceans are 2.34e-4). The mantle holds part of it: the surface
    keeps `w / b`, `b` log-uniform 1 to 8, but the mantle never holds more
    than ten Earth oceans (`MANTLE_MAX_WATER_FRACTION`). Gas giants have no
    hydrosphere (every field `None`).

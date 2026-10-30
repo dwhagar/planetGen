@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 432 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 435 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 54 | 0 | 3 | 0 | 0 | 57 |
-| T2 | 73 | 4 | 0 | 1 | 0 | 78 |
+| T2 | 73 | 5 | 0 | 1 | 0 | 79 |
 | T3 | 53 | 8 | 3 | 10 | 0 | 74 |
 | T4 | 22 | 0 | 0 | 3 | 4 | 29 |
 | T5 | 24 | 6 | 1 | 0 | 0 | 31 |
 | T6 | 39 | 13 | 7 | 28 | 0 | 87 |
-| T7 | 17 | 3 | 1 | 7 | 0 | 28 |
+| T7 | 17 | 5 | 1 | 7 | 0 | 30 |
 | T8 | 0 | 0 | 0 | 1 | 1 | 2 |
 | T9 | 1 | 0 | 2 | 24 | 19 | 46 |
-| All | 283 | 34 | 17 | 74 | 24 | 432 |
+| All | 283 | 37 | 17 | 74 | 24 | 435 |
 
 ## How the labels were given
 
@@ -472,7 +472,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | CC1 | P | T7 | L3 | tuning.MOON_MIN_MASS_KG 1e20 (the lightest moon a planet is given; lighter captured rocks are left to belts and rings) | 1e19 to 1e21 | every parent | test_planet_kind::test_moon_masses_stay_between_the_floor_and_the_ceiling_and_favour_the_light; a moon count per planet outside the bands of the class sweep | a moon formation and capture model (GEN.761 chain) | design (about an Enceladus; the old class draw built moons of 500 km and more, 1.1 per planet) | - | replace (GEN.962) |
 | CC2 | P | T7 | L3 | tuning.MOON_MASS_FUNCTION_SLOPE 0.5, MOON_GIANT_PARENT_MAX_MASS_RATIO 1e-3, MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO 0.1 (a moon's mass is dN/dlogM ~ M^-0.5 up to a share of its parent) | slope 0.3 to 0.8; giant ratio 1e-4 to 1e-3; terrestrial ratio 0.01 to 0.12 | every parent | test_planet_kind::test_a_moon_ceiling_is_a_share_of_its_parent; a Moon, Charon or Triton heavier than the ceilings | a circumplanetary disc model | RECALLED (satellite to planet mass ratios: Ganymede 8e-5, Triton 2e-4, Moon 0.012, Charon 0.12) | - | replace (GEN.962) |
-| CC3 | P | T6 | L2 | tuning.DRY_WATER_MASS_FRACTION (1e-6, 1e-3), WATER_WORLD_SHARE 0.03 with WATER_WORLD_WATER_MASS_FRACTION (1e-2, 0.1), ICY_WATER_MASS_FRACTION (0.05, 0.5) (the water of a body by where it formed: inside or beyond the snow line) | each end a factor of 3 | bodies of 0.001 to 20 Earth masses | test_bulk_draw water-by-origin tests; a measured water fraction of inner-system rock outside 1e-6 to 1e-2 | the delivered-volatile model of the atmosphere recipes (GEN.739) feeding the bulk draw | READ-level facts (Earth 2.3e-4 of its mass in the oceans and about 1e-3 in all; comets and Ceres 0.1 to 0.5); the shares are design | - | - |
+| CC3 | P | T6 | L2 | tuning.ICY_WATER_MASS_FRACTION (0.05, 0.5) (the water of a body that formed beyond the snow line; a rocky body's water is the delivery law, DW1 to DW3) | each end a factor of 3 | icy bodies of 0.001 to 20 Earth masses | test_bulk_draw water-by-origin tests; a measured water fraction of an outer-system body outside 0.05 to 0.5 | the delivered-volatile model of the atmosphere recipes (GEN.739) feeding the bulk draw | READ-level facts (comets and Ceres 0.1 to 0.5; Europa 8 percent, Ganymede about 45); the range is design | - | - |
+| DW1 | P | T2 | L1 | physics/data/ngpps_formation_water.json classes dry, low, high, rich as the water of a rocky body (the Bern population synthesis law of the recipes b1 to b4: class by mass and snow lines formed at, GEN.849) | the model's own fit bands | masses 0.5 to 30 Earth masses, 0.03 to 4 snow lines (held to the range outside it) | test_delivered_water; a measured water class share of rocky planets against distance outside the fit bands | the Bern model refit to a larger population | Bern NGPPS (Emsenhuber et al. 2021, Burn et al. 2021) through the second-hand fit of GEN.802; the class edges are the nearest mapping of Ortenzi 2020 | - | - |
+| DW2 | P | T7 | L1 | tuning.DELIVERED_WATER_DRY_MIN 1e-6 (the lowest water share of the dry class; Venus and Mercury are far under Earth's 2.3e-4 in oceans) | 1e-7 to 1e-5 | rocky bodies in the dry class | test_delivered_water::test_the_brackets_tile_the_range_from_the_dry_floor_to_the_rich_cap; a measured dry-class body under 1e-7 of its mass | a magma-ocean degassing model of the dry bodies | educated guess from physics (the old DRY range floor, kept) | - | - |
+| DW3 | P | T7 | L1 | tuning.DELIVERED_WATER_RICH_MAX 0.5 (the largest water share a rocky body draws; the rich class is log-uniform from the hycean limit 0.1 to it) | 0.3 to 0.6 | rocky bodies in the rich class | test_delivered_water::test_the_brackets_tile_the_range_from_the_dry_floor_to_the_rich_cap; a measured rocky planet holding over 60 percent water | a refractory-cap model of the water worlds (Thiabaud 2014) | educated guess from physics (water-rich bodies of the Bern model end near 0.5) | - | - |
 | CC4 | P | T6 | L3 | tuning.ALBEDO_WET_RANGE (0.25, 0.40), ALBEDO_FROZEN_RANGE (0.45, 0.70), ALBEDO_FROZEN_BELOW_K 230, ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (a body's Bond albedo by its regime, before its air and ground are known) | each range edge 0.05 | all hosts | test_climate_draws::albedo regime tests; a measured Bond albedo of an ocean world outside 0.2 to 0.45 | a ground and cloud albedo from composition (GEN.414, GEN.462) | RECALLED (Earth 0.30, Mars 0.25, Europa 0.68, Enceladus 0.8; the dry range is the old class ranges) | - | replace (GEN.684) |
 | CC5 | P | T7 | L1 | tuning.GIANT_MIN_RADIUS_KM 15000 (a radius given alone names a giant from here; a given mass above 20 Earth masses names one too) | 12000 to 20000 | given inputs only | test_planet_kind::test_a_given_radius_names_the_kind_and_the_mass_wins | the radius law of the envelope (GEN.822) | RECALLED (Uranus and Neptune 25000 km; a 4 Earth radius sub-Neptune 25000 km; the edge between rocky and gas-rich near 1.7 Earth radii) | - | - |
 | CC6 | P | T4 | L3 | tuning.PLANET_MIN_MASS_KG 1e21 (the lightest body drawn as a planet; lighter ones are small bodies of the belts) | 1e20 to 1e22 | every host | test_planet_mass floor tests | a size-frequency model joining planets and belts | design (about Ceres, 9e20 kg) | - | no data |
