@@ -59,6 +59,21 @@ ACCRETION_CRITICAL_PER_HOUR = 3.3
 """float: The critical (breakup) spin of the paper's planets, `sqrt(G M / R^3)`, rad/h (3.3 at their density of 3000 kg/m3): what the
 dispersion above is a share of (0.41), so a planet of another density spins in proportion to its own breakup rate."""
 
+ACCRETION_SPIN_SCALE = 0.4
+"""float: INTERIM stand-in (GEN.953): a scale on the width of the Gaussian components above. The paper's width is the average over planets built by
+protoplanet-on-protoplanet impacts; Vesta (5.3 h), Ceres (9.1 h), the Earth after the Moon-forming impact (about 5 h) and Mars (24.6 h) spin at a
+quarter to a third of breakup or less. 0.4 puts the median free day of a planet at about 7 hours. Source tier T6, tweak level L3 (chosen by running the
+generator over the planets and reading the day). Replaced by Kokubo and Genda equation 4 with the distribution of the last impacts' mass ratio
+(`impact_spin`, GEN.978) when GEN.979 wires it."""
+
+SMALL_PLANET_MASS_EARTH = 0.3
+"""float: Below this mass (Earth masses) a planet is an embryo that may never have had a giant impact, and `small_planet_factor` slows its spin in proportion to
+its mass. Interim stand-in (GEN.953), source tier T6, tweak level L3 (chosen so that a Mars, 0.107 Earth masses, is reachable: about a third of the draws are
+slower than its 24.6 hours at 0.07 of breakup)."""
+
+SMALL_PLANET_FACTOR_FLOOR = 0.05
+"""float: The least `small_planet_factor` (a planet of 0.015 Earth masses or less). Interim stand-in (GEN.953), source tier T6, tweak level L3."""
+
 YORP_TILT_DEG = (10.0, 170.0)
 YORP_TILT_SIGMA_DEG = 8.0
 """Small bodies' obliquity: N(10, 8) or N(170, 8), even odds (YORP)."""
@@ -244,15 +259,20 @@ def critical_spin_rad_s(mass_kg, radius_km):
     return math.sqrt(constants.G * mass_kg / (radius_km * 1000.0) ** 3)
 
 
+def small_planet_factor(mass_kg):
+    """The extra slowing of a planet under `SMALL_PLANET_MASS_EARTH` Earth masses: its mass over that mass, never under `SMALL_PLANET_FACTOR_FLOOR`; 1 above it."""
+    return min(1.0, max(mass_kg / constants.EARTH_MASS_TO_KG / SMALL_PLANET_MASS_EARTH, SMALL_PLANET_FACTOR_FLOOR))
+
+
 def accretion_spin(mass_kg, radius_km):
     """
     A rocky planet's birth spin from the giant impacts that built it (GEN.731, Kokubo and Genda 2010): a vector whose three components are
-    Gaussian, each with `ACCRETION_SPIN_SIGMA_PER_HOUR` at the paper's density, scaled to the breakup rate of this body and held under
-    `BREAKUP_FRACTION` of it. Returns `(rate, tilt_deg)`: the spin rate, rad/s, and its angle from the vector's own z axis (taken as the
+    Gaussian, each with `ACCRETION_SPIN_SIGMA_PER_HOUR` at the paper's density, scaled to the breakup rate of this body, by `ACCRETION_SPIN_SCALE` and by
+    `small_planet_factor` (the interim of GEN.953), and held under `BREAKUP_FRACTION` of the breakup rate. Returns `(rate, tilt_deg)`: the spin rate, rad/s, and its angle from the vector's own z axis (taken as the
     orbit normal), which for components of one width is isotropic, `p(e) = sin(e) / 2`, as the paper finds.
     """
     critical = critical_spin_rad_s(mass_kg, radius_km)
-    sigma = ACCRETION_SPIN_SIGMA_PER_HOUR / ACCRETION_CRITICAL_PER_HOUR * critical
+    sigma = ACCRETION_SPIN_SIGMA_PER_HOUR / ACCRETION_CRITICAL_PER_HOUR * critical * ACCRETION_SPIN_SCALE * small_planet_factor(mass_kg)
     x, y, z = (draw.gauss(0.0, sigma) for _ in range(3))
     rate = math.sqrt(x * x + y * y + z * z)
     tilt = math.degrees(math.acos(max(-1.0, min(1.0, z / rate)))) if rate > 0.0 else 0.0
