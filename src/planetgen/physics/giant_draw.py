@@ -81,7 +81,7 @@ MOON_ONE_BAR_K = 130.0
 
 SETTLE_TOLERANCE = 0.001
 """float: A table giant whose radius at the final age and the orbit's mean light is within this share of the one it was drawn with
-keeps its radius and interior (`settle`); the tables themselves are good to a few percent. A stand-in, registry row GS1."""
+keeps its radius and interior (`settle`); the tables themselves are good to a few percent. A stand-in, registry row OE13."""
 
 SETTLE_ATTRIBUTE = "_giant_draw"
 """str: The attribute of a giant that `draw_giant` leaves for `settle` (`DrawnGiant`); not stored, it lives for the generation."""
