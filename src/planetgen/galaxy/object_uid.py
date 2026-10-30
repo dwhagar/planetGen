@@ -303,3 +303,69 @@ def is_on_demand(rank, individual_count):
     """Whether the member of this rank is drawn on demand and never stored: its rank is above the number of individually stored bodies of its belt."""
     return rank > individual_count
 
+
+# --- captured bodies (TEST.495, docs/design/systems/captured-asteroid-moons.md section 4) -------------------------------------------
+
+class Captured(NamedTuple):
+    """A captured body's designation and the parent link it gains: `designation` is the text it prints and `captured_by` the printed ID of the planet
+    that holds it (the object it is a moon of)."""
+
+    designation: str
+    captured_by: str
+
+
+def same_system(first, second, layout=LAYOUT):
+    """Whether two object IDs name bodies of one system: they differ at most in the body number."""
+    _check("object ID", first, layout.total_bits)
+    _check("object ID", second, layout.total_bits)
+    return with_body(first, 0, layout) == with_body(second, 0, layout)
+
+
+def captured_member(belt_id, rank, planet_id, layout=LAYOUT):
+    """
+    A member of a belt in the same system that a planet has captured keeps its belt designation, `<belt ID>.<rank hex>`, and gains a parent link to
+    the planet (the capture is a flag and a link on the existing object, not a new number): `Captured(designation(belt_id, rank), format_id(planet_id))`.
+    Pure; which members are captured is a function of the belt seed, the planet ID and the window, never of insertion order.
+
+    Raises:
+        ValueError: A belt ID or rank `designation` refuses, a planet ID that is a system's own ID, a planet of another system, or the belt itself.
+    """
+    text = designation(belt_id, rank, layout)
+    _check_planet(planet_id, layout)
+    if not same_system(belt_id, planet_id, layout):
+        raise ValueError(f"{format_id(planet_id, layout)} is not in the system of {format_id(belt_id, layout)}")
+    if planet_id == belt_id:
+        raise ValueError("a belt does not capture its own members")
+    return Captured(text, format_id(planet_id, layout))
+
+
+def outside_reservoir_member(planet_id, rank, layout=LAYOUT):
+    """
+    A body from a reservoir that is not a belt of the system (the outer disc before it is a belt, a passing population) that a planet holds prints
+    `<planet ID>.<rank hex>`, the same sub-number pattern with the planet's ID in the belt's place and the 12-bit body field untouched. Its
+    parent link is the planet itself: `Captured(designation, format_id(planet_id))`. Which reservoir it came from is recorded apart.
+    """
+    _check_planet(planet_id, layout)
+    return Captured(designation(planet_id, rank, layout), format_id(planet_id, layout))
+
+
+def _check_planet(planet_id, layout):
+    _check("object ID", planet_id, layout.total_bits)
+    if body_of(planet_id, layout) == 0:
+        raise ValueError(f"{format_id(planet_id, layout)} is a system's own ID, not a planet's")
+
+
+def parse_captured(captured, layout=LAYOUT):
+    """`(parent_id, rank, planet_id)` of a `Captured`: `parse_designation` of its designation and `parse_id` of its parent link. The inverse of
+    `captured_member` and `outside_reservoir_member`; `parent_id == planet_id` for an outside-reservoir body.
+
+    Raises:
+        ValueError: A designation or a link that does not parse, or a planet that is not in the system of the parent.
+    """
+    parent_id, rank = parse_designation(captured.designation, layout)
+    planet_id = parse_id(captured.captured_by, layout)
+    _check_planet(planet_id, layout)
+    if not same_system(parent_id, planet_id, layout):
+        raise ValueError(f"{captured.captured_by} is not in the system of {captured.designation}")
+    return parent_id, rank, planet_id
+

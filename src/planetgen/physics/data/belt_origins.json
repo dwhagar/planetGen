@@ -1,0 +1,58 @@
+{
+  "title": "Where a belt came from: the causes and the sentence each one prints (GEN.1088, docs/design/systems/belt-origins.md sections 3 to 5)",
+  "note": "A formation cause says what made the belt; a shaping cause says what took mass from it afterwards. The text is a Python format string over the fields named in 'fields'. Rates, widths and survival factors are constants of physics/belt_origin.py with registry rows in section 6.94 of the gap filling plan.",
+  "causes": {
+    "gap": {
+      "kind": "formation",
+      "label": "gap in the planet chain",
+      "fields": ["inner_neighbour_au", "outer_neighbour_au", "inner_au", "outer_au"],
+      "text": "The leftover of a planet that never grew here: the chain of planets skips from {inner_neighbour_au:.3g} AU to {outer_neighbour_au:.3g} AU, and the solids between stayed small."
+    },
+    "tail": {
+      "kind": "formation",
+      "label": "unfinished tail of the planet chain",
+      "fields": ["inner_neighbour_au", "inner_au", "outer_au"],
+      "text": "The unfinished end of the planet chain: planets stopped forming past {inner_neighbour_au:.3g} AU, and the solids out to {outer_au:.3g} AU never grew into one."
+    },
+    "snow-line-bump": {
+      "kind": "formation",
+      "label": "solids piled up at the snow line",
+      "fields": ["snow_line_au", "inner_au", "outer_au"],
+      "text": "Solids piled up at the snow line, which stood at {snow_line_au:.3g} AU when the system formed, and never finished growing.",
+      "co_fields": ["snow_line_au"],
+      "co_text": "Solids also piled up here, at the snow line of the young system, {snow_line_au:.3g} AU."
+    },
+    "outer-disc": {
+      "kind": "formation",
+      "label": "cold leftover beyond the last giant",
+      "fields": ["inner_au", "outer_au"],
+      "text": "The cold leftover of the disc past {inner_au:.3g} AU: the solids were too sparse and the orbits too slow to build a planet."
+    },
+    "collisional-debris": {
+      "kind": "formation",
+      "label": "rubble of a collision",
+      "fields": ["inner_au", "outer_au", "event_au"],
+      "text": "The rubble of a collision between large bodies near {event_au:.3g} AU, still spread along their orbit."
+    },
+    "destroyed-planet": {
+      "kind": "formation",
+      "label": "remains of a destroyed planet",
+      "fields": ["inner_au", "outer_au", "event_au"],
+      "text": "What is left of a planet that was destroyed near {event_au:.3g} AU."
+    },
+    "giant-stirring": {
+      "kind": "shaping",
+      "label": "cleared and stirred by a giant",
+      "fields": ["giant_au", "removed_percent"],
+      "text": "The giant at {giant_au:.3g} AU cleared {removed_percent:.2g} percent of it and stirs the rest.",
+      "alt_fields": ["giant_au"],
+      "alt_text": "The giant at {giant_au:.3g} AU stirs it."
+    },
+    "instability-depletion": {
+      "kind": "shaping",
+      "label": "swept by a moving giant",
+      "fields": ["giant_from_au", "giant_au", "removed_percent"],
+      "text": "A giant that moved from {giant_from_au:.3g} AU to {giant_au:.3g} AU swept away {removed_percent:.3g} percent of it."
+    }
+  }
+}

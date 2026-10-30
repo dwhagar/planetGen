@@ -19,6 +19,7 @@ albedo).
 |---|---|---|---|---|
 | Main belt, small | q = 1.3 (differential index 2.3) | 0.4 to 5 km | Ivezic et al. 2001 (astro-ph/0105511), SDSS, 98 percent complete sample of about 10,000; corrected in GEN.1061, see 1.4 | READ |
 | Main belt, medium | q = 3.0 (differential index 4.00 +- 0.05) | 5 to 40 km | Ivezic et al. 2001; corrected in GEN.1061, see 1.4 | READ |
+| Main belt, exponents (GEN.1093) | checked verbatim in GEN.1061 (section 6.6 and Fig. 25 of the PDF): the 2.3 and 4 are indices of `dN/dD`, so the cumulative `q` is 1.3 and 3.0; the cumulative reading leaves 3 asteroids above 40 km against some hundreds in the belt | | Ivezic et al. 2001 | READ, section 6.6 |
 | Main belt, count | about 530,000 objects with D > 1 km | belt | Ivezic et al. 2001 (four times fewer than earlier estimates) | READ |
 | Main belt, small | q = 2.5, kink between 15 and 25 km | small side of the kink | Masiero et al. 2011 (arXiv:1109.4096) quoting Gladman et al. 2009; raw, not debiased (the paper says debiasing is needed) | READ (Gladman 2009 itself 2ND-HAND) |
 | Jupiter-family comet nuclei | q = 1.92 +- 0.20 | r_N >= 1.25 km | Snodgrass et al. 2011 (arXiv:1101.4228); earlier values 1.45 to 2.7 depend on the size range chosen (Meech 2004: 1.45 over 1 to 10 km, 1.91 over 2 to 5 km; Tancredi 2006: 2.7 for r >= 1.5 km) | READ |
