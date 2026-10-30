@@ -6,7 +6,7 @@ Source marks: **[read]** a paper whose text was opened for this report or for GE
 
 ## Result in one paragraph
 
-The rogue-planet count is a flat rate (5.8 per star, `ROGUE_PLANET_RATE_PER_STAR`), not an output of any system. The architecture removes about **0.3 bodies per star** that could count as ejected (about 0.22 thrown by a crowded giant plus about 0.08 swept by a hot Jupiter, together roughly 9 Earth masses per star, nearly all of it gas giants), against a flat rate that gives about 2.7 per star over the range microlensing probes (0.33 to 6,660 Earth masses) and a microlensing central value of 21 per star over that range. So the architecture alone is about nine times short of our own flat rate and about seventy times short of the survey central value. The gap is not a reason to keep the flat rate. It says where the missing ejection lives: the architecture throws out almost no small bodies, because it deletes sub-minimum bodies (about 125 per star in the oligarch chain) and merges rocky pairs (losing 10 percent of mass each time, about 2.3 Earth masses per star) rather than scattering them. Barclay et al. 2017 [read] find that planets scattered by giants alone eject about 2.5 terrestrial-mass bodies per star, which is the right scale. The physical build is therefore: a scatter step (GEN.1089) that classifies each loss as ejection or collision by the Safronov number, a tally of embryos and planetesimals the architecture currently deletes, and cluster unbinding (GEN.291). The flat rate then becomes a test target.
+The rogue-planet count is a flat rate (5.8 per star, `ROGUE_PLANET_RATE_PER_STAR`), not an output of any system. The architecture removes about **0.3 bodies per star** that could count as ejected (about 0.22 thrown by a crowded giant plus about 0.08 swept by a hot Jupiter, together roughly 9 Earth masses per star, nearly all of it gas giants), against a flat rate that gives about 2.7 per star over the range microlensing probes (0.33 to 6,660 Earth masses) and a microlensing central value of 21 per star over that range. So the architecture alone is about nine times short of our own flat rate and about seventy times short of the survey central value over all stars. Section 6 (GEN.1119) refines this: the ejection step is on scale (about 2.5 planets thrown out per giant-hosting star, the figure Barclay et al. 2017 [read] give for stars with a Jupiter and a Saturn analogue), but only 5 to 20 percent of stars host a giant, and the architecture deletes its 125 sub-minimum bodies per star and merges its rocky pairs (losing 10 percent of mass each time) rather than scattering them. Most of Sumi's population is therefore not scattered planets, as Veras and Raymond 2012 and Ma et al. 2016 also find. The physical build is a scatter step (GEN.1089) that classes each loss as ejection or collision by the Safronov number (done, GEN.1119), cluster unbinding (GEN.291) and embryo ejection while giants grow; the flat rate then becomes a test target.
 
 ## 1. What the architecture ejects today (measured)
 
@@ -80,6 +80,20 @@ Kinds: **physics** (a law or a sourced fit, keep), **sourced stand-in** (a publi
 
 R3 (GEN.1112) is RP2 to RP7 as the replacement modules; RP1 is the first of them because every other row needs its ejection record.
 
-## 6. Stand-ins this review registers
+## 6. Result of GEN.1119 (RP1): the losses classed
 
-None added to GEN.725. The audit adds no number to the generator; rows 1 to 12 and 14 to 16 already count as stand-ins in the design table and are replaced by RP1 to RP7.
+`planet_architecture.losses` and `ejection_yield` (with `scatter.loss_fates`) now class every loss of the build as ejected, collided or bound by the Safronov number the perturber has at the body's distance (ejection to collision as Theta squared, registry rows EJ1 and EJ2, section 6.102 of the gap filling plan). Nothing is dropped: planets and losses add up to the whole chain (tested). The same 3,000 sun-like stars that gave section 1's counts, measured with the classifier:
+
+| Quantity | Value |
+|---|---|
+| Ejected planet-mass bodies (0.1 Earth masses or more) per star, all stars (Kroupa-like mass mix) | about 0.15, 6.4 Earth masses; all of it giants thrown out by a heavier crowding giant |
+| The same per **giant-hosting** sun-like star ([Fe/H] +0.2, 639 of 3,000) | about 2.5 planets, 165 Earth masses, of which about 1.8 are lighter than 20 Earth masses |
+| Chain bodies below the planet minimum (about 125 per star) | none ejected: no planet reaches them, they stay bound as one record per star |
+| Merges and core cap | collided, their lost mass kept as debris (about 2.3 Earth masses per star) |
+| Hot-Jupiter sweeps | about 0.002 bodies per star, and with Theta below 0.1 they collide, not leave |
+
+**What this changes in the section 1 reading.** Barclay et al. 2017's 2.5 terrestrial-mass bodies per star assumes every star has a Jupiter and a Saturn analogue. Our architecture ejects about 2.5 planets per star that has a giant, which is the same scale, so the mechanism is right. Over all stars the yield is the giant-hosting share (5 to 20 percent) of that: about 0.15 to 0.5 per star. So the per-star shortfall against Sumi's 21 per star is not a defect of the ejection step; it says the free-floating population is not mostly scattered planets, in line with Veras and Raymond 2012 and Ma et al. 2016. RP9's test target is therefore two numbers: about 2.5 per giant-hosting star (Barclay) and a total that matches the microlensing range once the other sources (embryo ejection while giants grow, cluster unbinding RP7, formation by collapse) are added. The `time_yr` of a loss is the disc era (`DISC_LIFETIME_YR`, 3 Myr) for these giant-driven losses; later instability delays are `rogue_age`'s (RG1, RG2). The ejection record carries the body's Hill radius at the encounter for the moon survival test (RP4).
+
+## 7. Stand-ins this review registers
+
+GEN.1119 registers EJ1 and EJ2 (section 6.102). The audit itself adds no number to the generator; rows 1 to 12 and 14 to 16 already count as stand-ins in the design table and are replaced by RP1 to RP7.

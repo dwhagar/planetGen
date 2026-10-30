@@ -250,12 +250,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.96:IO2 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
 | row | 6.96:IO3 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
 | row | 6.96:IO4 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
-| module | planetgen.physics.scatter | GEN.1092 | the shares of an outer disc's mass in each scattered population, the rule of the scatter phase; the wiring step feeds it the architecture's giants |
-| row | 6.83:SX1 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
-| row | 6.83:SX2 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
-| row | 6.83:SX3 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
-| row | 6.83:SX4 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
-| row | 6.83:SX5 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
 | module | planetgen.physics.belt_ledger | GEN.1069 | the stored bodies of a belt by the mass cut, the size laws and the largest body settled with the collisional mass (lock-free, GEN.1061); the belt store and the belt generator call it, the outer disc (GEN.1071) and the scatter step (GEN.1092) after them |
 | row | 6.95:BR17 | GEN.1069 | `belt_ledger.L1_MASS_KG`, read when the wiring step lands |
 | row | 6.95:BR18 | GEN.1069 | `belt_ledger.LEDGER_COVERAGE, LEDGER_MAX_BODIES`, read when the wiring step lands |

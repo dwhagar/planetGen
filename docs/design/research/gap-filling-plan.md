@@ -1722,6 +1722,15 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | RG1 | P | T8 | L2 | rogue_age.EJECTION_DELAY_MIN_GY 0.001 Gy, the earliest ejection after formation | 0.0003 to 0.01 | ejected planets and embryos | an ejection record (GEN.1119) with a large share of ejections earlier than 1 Myr after formation | the delay distribution of the architecture's own ejection records | the gas disc's first Myr is before planets scatter; an educated guess from physics |
 | RG2 | P | T8 | L3 | rogue_age.DELAY_INDEX 1, the ejection delay's density goes as t^-1 | 0 to 2 | the scattering of giants and embryos | ejection records whose delays are not spread evenly over the decades of time | the delay distribution of the ejection records (GEN.1119) | Chatterjee et al. 2008 give scattering times from 1e6 to 1e9 yr and beyond, recalled; the even spread is ours |
 
+### 6.102 Stand-ins of the architecture's losses (GEN.1119, RP1)
+
+`physics/scatter.py` (`loss_fates`, `reach_band_au`, `hill_radius_au`) and `planet_architecture.losses` share every body the architecture loses among ejected, collided and bound by the Safronov number of the encounter (design `docs/design/research/rogue-planet-review.md` sections 5 and 7). The Safronov number, the chaotic zone and the Hill radius are textbook laws; the two rows are the weights between the three fates and the time of a disc-era loss. The ejection record they return is what the rogue builder (GEN.1111) and the age module (`rogue_age`, row RG1) read.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| EJ1 | P | T9 | L0 | scatter.EJECTION_THETA_EXPONENT 2 and LOSS_BOUND_WEIGHT 1: ejection goes to collision as Theta^2, and a scattered body that is neither hit nor thrown out has the weight of a collision | exponent 1 to 3; bound weight 0.3 to 3 | bodies scattered by one perturber whose Safronov number runs from 0.05 (an Earth) to 20 (a hot super-Jupiter) | an N-body run of embryos scattered by a giant whose ejected share differs from Theta^2/(Theta^2+2) by more than a factor of 2 at Theta 0.3 to 3 | the ejected share of a scattering run (the Barclay et al. 2017 setup, arXiv 1704.08749) | educated guess from physics (Safronov 1972: a hit grows with the focusing 1 + Theta, a throw-out needs the escape speed) |
+| EJ2 | D | T6 | L0 | scatter.DISC_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build | 1e6 to 1e7 | losses the build makes while giants move and crowd | a lost planet whose recorded time is not in the disc era | the delay distribution of the architecture's own instabilities (rogue_age RG1, RG2) | Haisch et al. 2001 (recalled, ApJ 553 L153: half of the discs lost by 3 Myr) |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
