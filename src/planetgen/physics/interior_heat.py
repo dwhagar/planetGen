@@ -55,7 +55,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, bulk_structure, constants, magnetism, radiogenic, tidal_heating, tidal_rheology
+from planetgen.physics import atmosphere, bulk_structure, constants, magnetism, moon_orbits, radiogenic, spin_torques, tidal_heating, tidal_rheology
 from planetgen.util import draw
 
 BODY_FIELDS = ("mantle_eta0_pa_s", "mantle_activation_kj_mol")
@@ -308,11 +308,30 @@ def _flux_w_m2(temperature_k, interior, gravity, thickness_m, lid=STAGNANT, surf
 
 
 def _tide_w(forcing, mantle, kelvin, interior):
-    """The eccentricity tide's power, W, in a body of this `mantle` (its rock, with the water taken off) with the mantle at `kelvin`: `tidal_rheology`'s
-    `k2/Q` at the tide's frequency (the orbital rate), the melt `kelvin` makes between the solidus and the liquidus, and the body's drawn viscosity."""
-    found = tidal_rheology.rock_response(mantle.dry_kg, mantle.dry_m, tidal_heating.mean_motion_rad_s(forcing), kelvin, interior.eta0_pa_s,
-                                         interior.activation_kj_mol * 1000.0, mantle.solidus_k, mantle.liquidus_k)
-    return tidal_heating.peale_power_w(found.k2_over_q, forcing, mantle.dry_m)
+    """The tide's power, W, in a body of this `mantle` (its rock, with the water taken off) with the mantle at `kelvin`: the eccentricity tide at the orbital rate
+    and, for a planet, the tides of its moons against its spin (`_moons_w`), each with `tidal_rheology`'s `k2/Q` at its frequency, the melt `kelvin` makes
+    between the solidus and the liquidus, and the body's drawn viscosity."""
+    power = 0.0
+    if forcing.eccentricity > 0.0:
+        found = tidal_rheology.rock_response(mantle.dry_kg, mantle.dry_m, tidal_heating.mean_motion_rad_s(forcing), kelvin, interior.eta0_pa_s,
+                                             interior.activation_kj_mol * 1000.0, mantle.solidus_k, mantle.liquidus_k)
+        power += tidal_heating.peale_power_w(found.k2_over_q, forcing, mantle.dry_m)
+    return power + _moons_w(forcing, mantle, kelvin, interior)
+
+
+def _moons_w(forcing, mantle, kelvin, interior):
+    """The power the tides of a planet's moons dissipate in it, W: for each moon `-N (spin - n)` with the torque `N` of `spin_torques` at the mantle's `k2/Q` for the
+    frequency of that tide (GEN.959; the planet's spin is `forcing.spin_rate_rad_s`, the moons go round at the Kepler rates of `forcing.moons`)."""
+    if not forcing.moons:
+        return 0.0
+    planet = spin_torques.Planet(mantle.dry_kg, mantle.dry_m)
+    torques = spin_torques.Torques(planet, (), spin_torques.rheology_dissipation(planet, kelvin, interior.eta0_pa_s, interior.activation_kj_mol * 1000.0,
+                                                                                mantle.solidus_k, mantle.liquidus_k),
+                                   None, spin_torques.GRAVITATIONAL_TORQUE_FACTOR, moon_orbits.COROTATION_SOFTNESS)
+    power = 0.0
+    for mass_kg, distance_m, retrograde, rate in forcing.moons:
+        power += max(-torques.gravitational(forcing.spin_rate_rad_s, spin_torques.Raiser(mass_kg, distance_m, rate)) * (forcing.spin_rate_rad_s - rate), 0.0)
+    return power
 
 
 def _under_a_magma_ocean(terms, silicate_kg, area_m2, age_gy, surface_k, tide_w):

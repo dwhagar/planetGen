@@ -86,27 +86,54 @@ def heat_pipe_temperature_k(pressure_gpa):
 @dataclass(frozen=True)
 class Forcing:
     """
-    What a body orbits, the tide-raising side of `E`.
+    What flexes a body, the tide-raising side of `E`.
 
     Attributes:
         host_mass_kg (float): The mass of what it orbits (its star for a planet, its planet for a moon).
         semi_major_axis_m (float): Its semi-major axis.
         eccentricity (float): Its eccentricity.
+        moons (tuple): A planet's moons, `(mass_kg, distance_m, retrograde, orbital_rate_rad_s)` each (the rate signed, negative for a retrograde moon, from the planet's whole mass):
+            their tides, at the planet's spin, flex it too (GEN.959). Empty for a moon.
+        spin_rate_rad_s (float): The planet's spin, rad/s, negative for a retrograde one (what the moons' tides are raised against).
     """
 
     host_mass_kg: float
     semi_major_axis_m: float
     eccentricity: float
+    moons: tuple = ()
+    spin_rate_rad_s: float = 0.0
+
+
+def moon_tides_of(body):
+    """The `(mass_kg, distance_m, retrograde, orbital_rate_rad_s)` of each of a planet's moons and the planet's spin rate (rad/s, negative when retrograde) from the stored
+    fields, or `((), 0.0)` for a moon, a planet with no moons or one whose day is not stored."""
+    moons = getattr(body, "moons", None)
+    day_hours = getattr(body, "rotation_period_hours", None)
+    if not moons or getattr(body, "is_moon", False) or not day_hours:
+        return (), 0.0
+    tilt = getattr(body, "axial_tilt_deg", None) or 0.0
+    spin = 2.0 * math.pi / (day_hours * 3600.0) * (-1.0 if tilt > 90.0 else 1.0)
+    tides = []
+    for moon in moons:
+        distance_m = moon.distance * constants.AU_TO_M
+        retrograde = (getattr(moon, "orbital_inclination_deg", 0.0) or 0.0) > 90.0
+        rate = math.sqrt(constants.G * (body.mass + moon.mass) / distance_m ** 3) * (-1.0 if retrograde else 1.0)
+        tides.append((moon.mass, distance_m, retrograde, rate))
+    tides = tuple(tides)
+    return tides, spin
 
 
 def forcing_of(body):
-    """The `Forcing` of a planet or moon from its stored orbit, or `None` for a circle, a body with no host or no orbit."""
+    """The `Forcing` of a planet or moon from its stored orbit and moons, or `None` for a circle with no moon tide, a body with no host or no orbit."""
     host_mass = getattr(body, "primary_mass_kg", None)
     eccentricity = getattr(body, "eccentricity", None)
     distance_au = getattr(body, "distance", None)
-    if not host_mass or not eccentricity or not distance_au or eccentricity <= 0.0:
+    if not host_mass or not distance_au:
         return None
-    return Forcing(host_mass, distance_au * constants.AU_TO_M, eccentricity)
+    moons, spin = moon_tides_of(body)
+    if not moons and (not eccentricity or eccentricity <= 0.0):
+        return None
+    return Forcing(host_mass, distance_au * constants.AU_TO_M, eccentricity if eccentricity and eccentricity > 0.0 else 0.0, moons, spin)
 
 
 def is_icy(body):

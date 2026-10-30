@@ -12,7 +12,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import interior_heat, radiogenic, tidal_heating
+from planetgen.physics import interior_heat, radiogenic, spin_torques, tidal_heating
 from planetgen.physics import constants as pc
 from planetgen.physics.mathcheck import _bulk_silicate_earth
 from planetgen.util import draw
@@ -177,7 +177,13 @@ def test_every_generated_body_stores_the_tide_of_its_orbit_and_the_habitability_
                 assert body.tidal_flux_w_m2 >= 0.0
                 area = 4 * math.pi * (body.radius * 1000.0) ** 2
                 # never more than a fluid Love number over a Q of 1 would make (the box works on the dry radius, a few percent from the stored one)
-                assert body.tidal_flux_w_m2 * area <= tidal_heating.peale_power_w(1.5, forcing, body.radius * 1000.0) * 1.25
+                bound = tidal_heating.peale_power_w(1.5, forcing, body.radius * 1000.0) if forcing.eccentricity > 0.0 else 0.0
+                if forcing.moons:      # and the moons' tides at the same ceiling (GEN.959): N |spin - n| with a k2/Q of 1.5
+                    planet = spin_torques.Planet(body.mass, body.radius * 1000.0)
+                    torques = spin_torques.Torques(planet, (), spin_torques.constant_dissipation(1.5, 1.0), None, spin_torques.GRAVITATIONAL_TORQUE_FACTOR)
+                    for mass_kg, distance_m, retrograde, rate in forcing.moons:
+                        bound += abs(torques.gravitational(forcing.spin_rate_rad_s, spin_torques.Raiser(mass_kg, distance_m, rate))) * abs(forcing.spin_rate_rad_s - rate)
+                assert body.tidal_flux_w_m2 * area <= bound * 1.25
             # the own heat flow does not contain the tide: the habitability energy term adds it
             assert body.internal_heat_flux_w_m2 is not None and body.internal_heat_flux_w_m2 > 0.0
     assert seen > 10 and rocky > 0
