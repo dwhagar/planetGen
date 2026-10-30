@@ -277,16 +277,16 @@ mass fraction c (Earth 0.325) and lid regime:
    whatever the model says: its iron-sulfide core melts lower than the pure iron the model has.
 2. **Lid.** The lid regime acts on the mantle's temperature, and so on the base of the mantle the core is measured against; the
    dynamo lifetime draw and the stagnant-lid factor of GEN.86 and GEN.177 are gone.
-3. **Strength.** `M_dip = 7.8e22 * (R / R_e)^2 (P / P_e)^(1/3) (rho / rho_e)^(1/6) * LN(0.4 dex)` for the core's radius, dynamo power and
-   density over the Earth's as the model makes it. Mercury-like (M 0.05 to 0.1, c over 0.4): 3e19 * LN(0.5 dex).
-4. **Rotation switch.** `Ro_l = 0.09 (P / 24 h)^1.23`; `f_dip = 0.15 + 0.85 /
-   (1 + (Ro_l / 0.12)^4)`. A locked M-dwarf planet has `f_dip` about 0.15.
-5. **Giants.** Always magnetized; log-normal 0.4 dex by bin: Neptune and
-   sub-Neptune 2e24 to 4e24; Saturn-mass 5e25; Jupiter-mass 1.5e27, rising
-   about linearly with mass above that [R].
-6. **Moons.** Ganymede-like (mass >= 0.02 Me, differentiated, resonant tidal
-   heating): P = 0.1, `M_dip` = 1.3e20 * LN(0.7 dex). Otherwise none; flag an
-   induced field if a subsurface ocean exists.
+3. **Strength (GEN.967).** The moment is the dipole of the buoyancy-flux scaling of the liquid shell (`physics/dynamo.py`, section 3.1): `dynamo.field` of
+   the power (the core model's, times `magnetism.CORE_POWER_SCALE` so its Earth is the scaling's Earth), the shell's radii (the core's and its inner core's), the core's
+   density and the spin, times a log-normal of 0.07 dex (the law's fit). Mercury-like (M 0.05 to 0.1, c over 0.4): 3e19 * LN(0.5 dex), a stand-in.
+4. **Rotation switch.** `Ro_l` is the local Rossby number of the liquid shell (`Ra*^0.41`, about `0.09 (P / 24 h)^1.23` at Earth's power);
+   `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)`. A locked M-dwarf planet has `f_dip` about 0.15. The stored moment is the dipole's, so it already holds `f_dip`
+   (over Earth's own); nothing downstream multiplies it by a share again.
+5. **Giants.** The field is made in the convecting layer of the stored interior (the metallic envelope of a gas giant, the ionic water of an ice giant's mantle) and driven
+   by a tenth of the heat the giant radiates (`physics/giant_dynamo.py`, `physics/giant_heat.py`). A giant with no placed layer has no field.
+6. **Moons.** A moon's core is run through the same thermal model and scaling as a planet's (its heat includes the tide); a moon with a running core has a field,
+   any other none; flag an induced field if a subsurface ocean exists.
 7. **Output fields:** `magnetic_moment_a_m2`, `dipole_class` (none, weak
    under 0.01 Earth, Earth-like, strong over 5 Earth, multipolar),
    `magnetopause_rp` (the standoff in radii of the body itself, `R_planet` in the unit registry: Earth's 9.75 Earth radii scaled by the

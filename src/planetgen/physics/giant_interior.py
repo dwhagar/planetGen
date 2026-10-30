@@ -997,26 +997,33 @@ def _ice_giant(subject):
         hhe = layer_mass - math.fsum(heavy_part.values())
         return heavy_part, hhe * y, hhe * (1.0 - y)
 
+    outer = profile.outer_radii
+    radius_1bar = outer[-1]
+
+    def inner_of(kind):
+        return outer[index[kind] - 1] / radius_1bar if index[kind] > 0 else 0.0
+
     radius_mm = profile.radius_at_pressure(p_mm_gpa * 1e9)
-    envelope_inner = profile.outer_radii[index["molecular_envelope"] - 1] if index["molecular_envelope"] > 0 else 0.0
-    if radius_mm is not None and radius_mm > envelope_inner:
+    envelope_inner = inner_of("molecular_envelope")
+    if radius_mm is not None and radius_mm > envelope_inner * radius_1bar:
         upper = (profile.inner_mass[index["molecular_envelope"]] - profile.mass_inside(radius_mm)) / kg
-        parts = [("molecular_envelope", "molecular_fluid", upper, env_top, p_mm_gpa * 1e9),
-                 ("metallic_envelope", "metallic_fluid", envelope - upper, p_mm_gpa * 1e9, env_bottom)]
+        mm_fraction = radius_mm / radius_1bar
+        parts = [("molecular_envelope", "molecular_fluid", upper, env_top, p_mm_gpa * 1e9, 1.0, mm_fraction),
+                 ("metallic_envelope", "metallic_fluid", envelope - upper, p_mm_gpa * 1e9, env_bottom, mm_fraction, envelope_inner)]
     elif env_top >= p_mm_gpa * 1e9:
-        parts = [("metallic_envelope", "metallic_fluid", envelope, env_top, env_bottom)]
+        parts = [("metallic_envelope", "metallic_fluid", envelope, env_top, env_bottom, 1.0, envelope_inner)]
     else:
-        parts = [("molecular_envelope", "molecular_fluid", envelope, env_top, env_bottom)]
-    for kind, state, layer_mass, top, bottom in parts:
+        parts = [("molecular_envelope", "molecular_fluid", envelope, env_top, env_bottom, 1.0, envelope_inner)]
+    for kind, state, layer_mass, top, bottom, top_radius, bottom_radius in parts:
         heavy_part, helium, hydrogen = envelope_part(layer_mass)
-        layers.append(_layer(kind, state, top, bottom, heavy_part, helium, hydrogen))
+        layers.append(_layer(kind, state, top, bottom, heavy_part, helium, hydrogen, top_radius, bottom_radius))
     if mantle > 0:
         top, bottom = profile.boundary_pressures(index["ice_mantle"])
         layers.append(_layer("ice_mantle", "superionic" if bottom / 1e9 >= SUPERIONIC_PRESSURE_GPA else "ionic_fluid",
-                             top, bottom, mantle_take, 0.0, 0.0))
+                             top, bottom, mantle_take, 0.0, 0.0, outer[index["ice_mantle"]] / radius_1bar, inner_of("ice_mantle")))
     if core > 0:
         top, bottom = profile.boundary_pressures(index["rock_core"])
-        layers.append(_layer("rock_core", "molten", top, bottom, core_take, 0.0, 0.0))
+        layers.append(_layer("rock_core", "molten", top, bottom, core_take, 0.0, 0.0, outer[index["rock_core"]] / radius_1bar, 0.0))
     return GiantInterior(tuple(_fix_water(layers)), mass, "ice_giant", p_mm_gpa, 1.0)
 
 
