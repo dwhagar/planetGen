@@ -319,13 +319,14 @@ def test_generated_bodies_store_their_field_and_exposure():
 
 
 def test_a_generated_moon_has_an_induced_field_figure_and_a_planet_has_none():
-    """GEN.178: `generate_moons` sets the induced moment (0 without an ocean) on each moon; a planet keeps None."""
+    """GEN.178: `generate_moons` sets the induced moment (0 without an ocean) on each moon; a planet keeps None. GEN.959: the tide pulls the moons
+    of a planet locked to its star in, so the seeds that give moons are the ones with a planet that turns freely (seeds 6, 10 and 11 of the first twelve)."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from tests.fuzz_support import deterministic_entropy
 
     moons = 0
-    for seed in range(6):
+    for seed in range(16):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
