@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 645 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 646 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 89 | 2 | 6 | 1 | 0 | 98 |
 | T2 | 92 | 10 | 0 | 1 | 0 | 103 |
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
-| T4 | 30 | 1 | 0 | 14 | 6 | 51 |
+| T4 | 31 | 1 | 0 | 14 | 6 | 52 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
 | T6 | 52 | 30 | 12 | 33 | 0 | 127 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 403 | 90 | 33 | 92 | 27 | 645 |
+| All | 404 | 90 | 33 | 92 | 27 | 646 |
 
 ## How the labels were given
 
@@ -1066,7 +1066,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | GT1 | D | T2 | L0 | giant_tilt.DEFAULT_IMPACT_SPEED_KM_S 5: the speed at infinity; and the angular momentum of an impact at contact `mu v_c R_c sin(theta)` | 1 to 9 km/s (their test: no significant change) | ice giants of 5 to 30 Earth masses hit by 0.3 to 3.6 Earth masses | an impact simulation of the same masses with a different angular momentum | the angular momentum of the SPH runs of Kegerreis et al. 2018 as a function of b | Kegerreis et al. 2018 Sec. 2.3 and Appendix B (read); contact at the sum of the radii is the module's | GEN.1058 | - |
 | GT2 | D | T4 | L1 | giant_tilt.MOMENT_OF_INERTIA_FACTOR 0.225, RETAINED_SHARE 0.9 and PRE_IMPACT_SPIN_BREAKUP 0.2: the planet's moment of inertia, the share of the angular momentum it keeps and the spin before | I 0.22 to 0.24; kept 0.8 to 1; spin 0 (Kegerreis) to 0.3 | Uranus and Neptune | an interior model of a given ice giant, or a run that measures the debris angular momentum | the Helled et al. 2010 interior models and the debris of an SPH run | Kegerreis et al. 2018 Sec. 2.1, 3.4 (read); I is recalled, not read | GEN.1058 | - |
-| GT3 | P | T4 | L3 | giant_tilt.MERGER_SHARE 0.55, IMPACTOR_SHARE (0.02, 0.25) and MASS_RANGE_EARTH (5, 30): the share of ice giants with a recorded giant merger, the impactor's mass share log-uniform, and the masses | merger share 0.3 to 1; impactor share 0.01 to 0.5 | the draw of the tilt tail | a survey of obliquities of giants; a population synthesis with impact histories | the impact history of the outer chain (GEN.1058) | design table G1 (Uranus 98 degrees, one ice giant in five; tuned so the share tilted over 60 degrees is 0.2), Kegerreis et al. 2018 Sec. 2.1 and Morbidelli et al. 2012 Sec. 5 (read) | GEN.1058 | replace (GEN.1058) |
+| GT3 | P | T4 | L3 | giant_tilt.MERGER_SHARE 0.55, IMPACTOR_SHARE (0.02, 0.25) and HYCEAN_MASS_EARTH (5, 30): the share of ice giants with a recorded giant merger, the impactor's mass share log-uniform, and the masses | merger share 0.3 to 1; impactor share 0.01 to 0.5 | the draw of the tilt tail | a survey of obliquities of giants; a population synthesis with impact histories | the impact history of the outer chain (GEN.1058) | design table G1 (Uranus 98 degrees, one ice giant in five; tuned so the share tilted over 60 degrees is 0.2), Kegerreis et al. 2018 Sec. 2.1 and Morbidelli et al. 2012 Sec. 5 (read) | GEN.1058 | replace (GEN.1058) |
 
 ## 6.93 Stand-ins of the collisional mantle stripping
 
@@ -1079,6 +1079,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MT5 | P | T6 | L0 | the retention law for another starting core fraction: the iron and the rock kept are equation 3 and the remnant mass read as shares of a third-iron body, iron held to all the body had | none | core fractions 0.1 to 0.6 | an SPH run of a body that began at 0.15 or 0.5 iron whose remnant iron differs by more than 0.1 from the module | an SPH grid over starting core fractions | the form is derived from equations 2 and 3, equal to equation 3 at a third | - | - |
 | MT6 | P | T1 | L1 | mantle_stripping.MAX_CORE_MASS_FRACTION 0.85, the core fraction no remnant passes (held to the float under it) | 0.8 to 0.9 | rocky planets | a rocky planet measured above 0.85 | the iron-rich limit of a larger sample | Plotnykov and Valencia 2020 (arXiv:2010.06480, abstract read): the most iron enrichment rocky planets reach is a core fraction of about 0.8; the design's limit is 0.85, nudged inside the printed "about" | GEN.1048 | - |
 | MT7 | P | T1 | L0 | mantle_stripping.IMPACT_ANGLE_DEG 30, the angle from head-on beyond which an impact is a hit-and-run and strips nothing | 30 to 45 | similar-sized bodies | an SPH run of a 40 degree impact between embryos that strips more than a tenth of the mantle | the angle at which the disruption energy doubles, by mass ratio | Marcus 2010 section 3 (read): the onset of hit-and-run is at 30 to 45 degrees (Asphaug 2009); all their 45 degree cases were merging or hit-and-run; the share of impacts inside it is `sin^2` | GEN.1048 | - |
+
+## 6.79 Stand-ins of the Hycean box
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HC1 | B | T4 | L0 | hycean_candidate.HYCEAN_MASS_EARTH (1, 10), HYCEAN_RADIUS_EARTH (1.4, 2.6), HYCEAN_TEMPERATURE_K (150, 500) and HYCEAN_DENSITY_G_CM3 (1.5, 3.0): the box | the radius edge 2.6 puts K2-18 b (2.61, measured) just outside | sub-Neptunes of 1 to 10 Earth masses | the ranges of the defining paper, once read | Madhusudhan et al. 2021 (to be read) | the item GEN.963 and its re-read (2026-10-30); not read from the paper | GEN.1047 | - |
 
 ## 6.94 Stand-ins of the irregular zone
 
