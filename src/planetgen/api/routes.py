@@ -558,13 +558,12 @@ MAX_START_LENGTH = 80
 def systems():
     """
     The systems, by name, paginated; `star_type` and `sector_id` filter them.
-    The Systems tables (UX.41) also take `sort` (`name`, `sector`, `octant`
-    or `binary`) with `order=asc|desc`, the filters `binary=yes|no`,
+    The Systems tables (UX.41) also take `sort` (`name`, `sector` or `octant`) with `order=asc|desc`, the filters `binary=yes|no`,
     `placement=sector|standalone` and `octant` (repeatable), and `facets=1`
     for the filter menus' option counts (`facets`: `placement`, `binary`,
     `octant`). `total` counts the systems that pass the filters. `after=<system ID>` starts the page after that system in the
-    sort instead of skipping `offset` rows (PERF.75, PERF.206: page 40,000 costs what page 1 does, in the name, sector,
-    octant and binary sorts; a list filtered by star type or sector reads by `offset`). `from=<text>` is the
+    sort instead of skipping `offset` rows (PERF.75, PERF.206: page 40,000 costs what page 1 does, in the name, sector
+    and octant sorts; a list filtered by star type or sector reads by `offset`). `from=<text>` is the
     jump-by-value box (PERF.75): with the `name` sort the list begins at the first name from that text on (a letter, or
     the start of a name), with the `sector` sort at the first sector from it on, in the sort's direction; `total`
     counts the systems from there and `offset` and `after` count from there too. The other sorts ignore it.

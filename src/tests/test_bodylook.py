@@ -86,7 +86,7 @@ def test_the_glow_is_the_atmosphere_colour_of_the_stored_air_under_its_star():
     dwarf = bl.planet_look(_earth_air(_star_temperature_k=3300.0))["glow"]
     r, g, b = _channels(sun)
     assert b == 255 and b > g > r and sun != "#bfe3ff"
-    assert _channels(dwarf)[2] < b                          # a red dwarf's air is not blue
+    assert _channels(dwarf)[2] - _channels(dwarf)[0] < 0.5 * (b - r)  # a red dwarf's air is whiter than the Sun's (GEN.971: its model atmosphere)
     assert bl.planet_look(_earth_air(surface_temperature_k=400.0))["glow"] == sun        # temperature no longer decides it
 
 
@@ -105,11 +105,13 @@ def test_a_giant_glows_with_the_colour_of_the_air_above_its_clouds():
     assert giant["body"] == "gas" and len(giant["glow"]) == 7
 
 
-def test_star_colour_is_the_blackbody_colour_of_its_temperature():
-    from planetgen.physics import photometry
+def test_star_colour_is_the_model_atmosphere_colour_of_its_temperature_and_gravity():
+    from planetgen.physics import stellar_library
     star = {"id": 3, "star_type": "M3V", "yerkes_class": "V", "temperature_k": 3400.0, "luminosity_w": 1e24}
     look = bl.star_look(star)
-    assert look["color"] == photometry.star_colour(3400.0).hex
+    assert look["color"] == stellar_library.star_colour(3400.0).hex
+    dense = bl.star_look({**star, "mass_kg": 4.0e29, "radius_km": 3.0e5})
+    assert dense["color"] == stellar_library.star_colour(3400.0, stellar_library.surface_logg(4.0e29, 3.0e5)).hex
     assert look["yerkes"] == "V"
     hot = bl.star_look({**star, "temperature_k": 20000.0})
     assert hot["color"] != look["color"]

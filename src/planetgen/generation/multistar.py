@@ -670,10 +670,11 @@ def _leaf_of(record):
                  radius_max_au=record.radius_max_au, mass_max_solar=record.mass_max_solar, seed=record.seed)
 
 
-def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0):
+def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0, substellar=False):
     """A star-like member of this birth mass at the system's age: its record (`member_record.make`, under a seed drawn here, which
-    the member keeps, so the build makes the same star)."""
-    return _leaf_of(member_record.make(rng.getrandbits(63), initial_mass, age_yr, fe_h, lighten))
+    the member keeps, so the build makes the same star). A `substellar` one was drawn from the brown dwarf mass function (the
+    objects of 0.074 to 0.08 solar masses among them are the stable late-M and L dwarfs of the census, `physics/brown_dwarf.py`)."""
+    return _leaf_of(member_record.make(rng.getrandbits(63), initial_mass, age_yr, fe_h, lighten, substellar))
 
 
 def _schwarzschild_au(mass_solar):
@@ -945,19 +946,23 @@ class _Builder:
                 axis = 10.0 ** (math.log10(span[0]) + rng.random() * (math.log10(span[1]) - math.log10(span[0])))
                 period_d = 365.25 * math.sqrt(axis ** 3 / total)
                 if axis < a_lo or axis > min(a_hi, cap):
+                    draw.redrawn("pair.axis_out_of_range")
                     continue
                 e = self.eccentricity(law, period_d, axis, parent is None)
             elif fixed is None:
                 period_d = self.period_days(law, total, a_lo, min(a_hi, cap), massive)
                 if period_d is None:
+                    draw.redrawn("pair.no_allowed_period")
                     continue
                 axis = stability.axis_au(_d_to_yr(period_d), total)
                 e = self.eccentricity(law, period_d, axis, parent is None)
             else:
                 period_d, axis, e = fixed
                 if axis > min(a_hi, cap):
+                    draw.redrawn("pair.axis_out_of_range")
                     continue
             if not pair_clears(axis, e, *sides):
+                draw.redrawn("pair.overlap")
                 continue
             interaction, member_flags = self.interaction(left, right, axis, e)
             pair = self.pair_leaves(left, right)
@@ -965,28 +970,35 @@ class _Builder:
             if accretes is not None:
                 interaction = "accreting"  # the wind of a supergiant or the disc of a Be star feeds it without a full lobe
             elif interaction == "accreting" and any(leaf.compact for leaf in pair):
+                draw.redrawn("pair.interaction_gate")
                 continue  # a neutron star or a black hole accretes only in the X-ray binary draws, which fix the rate
             if interaction == "accreting" and any(leaf.kind == "white-dwarf" for leaf in pair) and (
                     span is None or span[0] < span[1]):
+                draw.redrawn("pair.interaction_gate")
                 continue  # a white dwarf accretes only in the cataclysmic variable and AM CVn draws, which fix the rate
             if _gate_forbids(interaction, heavy, self.age_yr, () if pair is None else (pair[0].kind, pair[1].kind)):
+                draw.redrawn("pair.interaction_gate")
                 continue
             flags = NODE_INTERACTED if law != "star" or interaction in ("accreting", "post-common-envelope") else 0
             flags |= {"wind": NODE_WIND_FED, "disc": NODE_DISC_FED}.get(accretes, 0)
             if parent is not None:
                 if not stability.is_triple_stable(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual,
                                                   safety=STABILITY_MARGIN):
+                    draw.redrawn("pair.unstable_triple")
                     continue
                 verdict = stability.kozai_verdict(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual,
                                                   self.age_yr, extent)
                 if verdict == "unsafe":
+                    draw.redrawn("pair.kozai")
                     continue
                 if verdict == "kl_active":
                     flags |= NODE_KL_ACTIVE
             if ((law == "compact-pair" or double_dwarf)
                     and not stability.survives_gravitational_waves(m_left, m_right, axis, e, self.age_yr)):
+                draw.redrawn("pair.gravitational_waves")
                 continue
             if self._in_desert(left, right, axis):
+                draw.redrawn("pair.brown_dwarf_desert")
                 continue
             break
         else:
@@ -1321,6 +1333,7 @@ def _low_mass_xray_companion(placed, base, age_yr, rng):
             if draw_accreting_compact("microquasar", rng.random()) is not None:
                 base.flags |= MEMBER_MICROQUASAR
             return donor
+        draw.redrawn("accreting.donor")
     return None
 
 
@@ -1356,6 +1369,7 @@ def _accreting_companion(placed_mass, kind, age_yr, rng, fe_h=0.0):
             donor = _star_leaf(rng.uniform(*tuning.CATACLYSMIC_DONOR_MASS_RANGE_SOL), age_yr, rng,
                                fe_h=fe_h)
             if donor.kind != "main-sequence":
+                draw.redrawn("accreting.donor")
                 continue
         else:
             low, high = tuning.AM_CVN_DONOR_MASS_RANGE_SOL
@@ -1367,6 +1381,7 @@ def _accreting_companion(placed_mass, kind, age_yr, rng, fe_h=0.0):
         if axis is not None:
             donor.orbit_au = (axis, axis)
             return donor
+        draw.redrawn("accreting.donor")
     return None
 
 
@@ -1481,7 +1496,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         brown = (n_stars is None and birth > mass_boundaries.sol("hydrogen_burning_limit") and len(leaves) < max_stars - (compact is not None)
                  and rng.random() < tuning.BROWN_DWARF_COMPANION_CHANCE)
         if brown:
-            leaves.append(_star_leaf(brown_dwarf.sample_mass_solar(rng), age_yr, rng, fe_h=placed.tree_fe_h))
+            leaves.append(_star_leaf(brown_dwarf.sample_mass_solar(rng), age_yr, rng, fe_h=placed.tree_fe_h, substellar=True))
         if stripped and count >= 2:
             leaves[1] = _stripped_helium_leaf(birth, rng)
             leaf.flags |= MEMBER_MASS_GAINER
@@ -1641,6 +1656,7 @@ def _contact_pair_alone(leaves, builder, n_stars, rng):
         try:
             alone.place(shape, None, 0, None)
         except _Failed:
+            draw.redrawn("tree.restart_pair_failed")
             continue
         if alone.clears_extents():
             alone.finish()
@@ -1884,8 +1900,10 @@ def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed):
             try:
                 builder.place(shape_of(units, rng), None, 0, None)
             except _Failed:
+                draw.redrawn("tree.restart_pair_failed")
                 continue
             if not builder.clears_extents():
+                draw.redrawn("tree.restart_overlap")
                 continue
             builder.finish()
             alone = _contact_pair_alone(leaves, builder, n_stars, rng)
@@ -1900,4 +1918,5 @@ def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed):
             units.pop()
         else:
             units[0] = units[0][0]
+        draw.redrawn("tree.member_dropped")
         dropped += 1

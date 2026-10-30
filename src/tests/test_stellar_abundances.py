@@ -369,9 +369,10 @@ def test_brown_dwarf_limits_and_radius():
     assert sa.lithium_burning_limit_sol() * 1.98841e30 / 1.89813e27 == pytest.approx(63, abs=1.0)
     assert sa.hydrogen_burning_limit_sol(0.0) == pytest.approx(0.092) and sa.hydrogen_burning_limit_sol(0.0154) == pytest.approx(0.074)
     assert sa.hydrogen_burning_limit_sol(0.0154) < sa.hydrogen_burning_limit_sol(0.005) < sa.hydrogen_burning_limit_sol(0.0)
-    assert sa.brown_dwarf_radius_solar(0.07) == pytest.approx(0.0944, rel=0.05)
-    assert sa.brown_dwarf_radius_solar(0.065) == pytest.approx((0.0940 + 0.0944) / 2, rel=1e-9)
-    for mass in (0.04, 0.6):
+    assert sa.brown_dwarf_radius_solar(0.07) == pytest.approx(0.0944, rel=0.05)           # at 1 Gyr, the default
+    assert sa.brown_dwarf_radius_solar(0.04, 0.1) == pytest.approx(0.13)                   # GEN.948: any age of the table
+    assert sa.brown_dwarf_radius_solar(0.07, 0.1) > sa.brown_dwarf_radius_solar(0.07, 1.0) >= sa.brown_dwarf_radius_solar(0.07, 10.0)
+    for mass in (0.005, 2.0):
         with pytest.raises(sa.StellarAbundanceError):
             sa.brown_dwarf_radius_solar(mass)
     # A fifty-two Jupiter-mass object (example I) burned its deuterium, kept its lithium and burns no hydrogen.

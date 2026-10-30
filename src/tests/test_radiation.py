@@ -206,8 +206,8 @@ def test_the_uv_proxies_are_gone():
 def test_the_stored_uv_index_is_the_dna_dose_of_the_spectrum_below_the_bodys_air():
     from planetgen.physics import body_radiation
 
-    with deterministic_entropy(3):
-        draw.set_run_seed(3)
+    with deterministic_entropy(2):    # a seed whose system holds several rocky planets (the architecture leaves some systems bare)
+        draw.set_run_seed(2)
         system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
     checked = 0
     for body in _bodies(system):
@@ -270,7 +270,7 @@ def _bodies(system):
 
 def test_every_generated_body_has_a_consistent_dose():
     seen = {"rocky": 0, "giant": 0, "ozone": 0}
-    for seed in range(12):
+    for seed in range(24):    # the planet architecture (GEN.728) makes a giant in about 1 system of 10, so 12 seeds held none
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
@@ -330,6 +330,7 @@ def test_a_real_world_gets_a_finite_ground_dose_that_follows_the_rock_of_its_gro
 def test_a_planet_that_loses_half_its_air_keeps_half_its_ozone_and_its_ultraviolet_rises(monkeypatch):
     """GEN.668: a loss event scales the stored ozone column by the share of the air kept, and the UV index follows."""
     body = _rocky_world_with_air()
+    monkeypatch.setattr(rad, "ozone_lost", lambda body: False)       # GEN.808 is tested on its own: here the flares do not hold the ozone down
     monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
     with deterministic_entropy(1):
         rad.generate_dose(body)
@@ -342,6 +343,7 @@ def test_a_planet_that_loses_half_its_air_keeps_half_its_ozone_and_its_ultraviol
 
 def test_an_air_loss_that_keeps_all_of_the_air_changes_nothing_and_one_that_keeps_none_leaves_no_ozone(monkeypatch):
     body = _rocky_world_with_air()
+    monkeypatch.setattr(rad, "ozone_lost", lambda body: False)       # GEN.808 is tested on its own: here the flares do not hold the ozone down
     monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
     with deterministic_entropy(1):
         rad.generate_dose(body)
@@ -413,3 +415,73 @@ def test_entering_and_leaving_a_cloud_moves_the_cosmic_ray_multiplier(mysql_conf
                    for row in rows)
     finally:
         conn.close()
+
+
+def test_a_shallow_flare_slope_puts_more_energy_in_the_big_flares_and_raises_the_particle_dose():
+    """GEN.805: the energy weight of the flare distribution (`flare_alpha`) over 1e33 to 1e36 erg, taken to the square root in the dose."""
+    assert rad.flare_energy_weight(2.0) == 1.0 and rad.flare_energy_weight(None) == 1.0
+    assert rad.flare_energy_weight(1.8) == pytest.approx(2.16, abs=0.02)
+    assert rad.flare_energy_weight(2.2) == pytest.approx(0.54, abs=0.02)
+    assert rad.flare_energy_weight(1.8) > rad.flare_energy_weight(2.0) > rad.flare_energy_weight(2.2)
+    shallow, steep = rad.free_sep_msv_yr(1.0, 0.1, 1.8), rad.free_sep_msv_yr(1.0, 0.1, 2.2)
+    assert shallow > rad.free_sep_msv_yr(1.0, 0.1, 2.0) > steep
+    assert shallow / steep == pytest.approx(math.sqrt(rad.flare_energy_weight(1.8) / rad.flare_energy_weight(2.2)))
+    assert rad.free_sep_msv_yr(1.0, 0.1) == rad.free_sep_msv_yr(1.0, 0.1, 2.0)
+
+
+def test_the_fields_shielding_of_the_flares_is_one_without_a_dipole_and_less_for_a_wider_magnetopause():
+    assert rad.field_shielding(None, "none") == rad.SHIELD_NO_FIELD == 1.0
+    assert rad.field_shielding(10.0, "none") == 1.0 and rad.field_shielding(0.0, "weak") == 1.0
+    assert rad.field_shielding(2.0, "earth-like") == rad.SHIELD_WEAK_FIELD == 0.3
+    assert rad.field_shielding(9.75, "earth-like") == rad.SHIELD_STRONG_FIELD == 0.1
+
+
+def _flared(index, magnetopause_rp, dipole_class, column=1.0, hazard=None):
+    star = types.SimpleNamespace(lethal_event_rate_per_gyr=hazard)
+    return types.SimpleNamespace(star=star, ozone_column_du=column, flare_irradiation_index=index, magnetopause_rp=magnetopause_rp,
+                                 dipole_class=dipole_class)
+
+
+def test_proxima_b_without_a_field_loses_its_ozone_and_earth_does_not():
+    """The design note section 2.3: flare irradiation index times f_B at 300; Proxima b about 2,100 and Earth 0.003."""
+    assert rad.ozone_lost(_flared(2100.0, None, "none"))
+    assert rad.ozone_lost(_flared(2100.0, 2.0, "earth-like"))                 # 630 even through a squeezed field
+    assert not rad.ozone_lost(_flared(2100.0, 9.0, "earth-like"))               # 210 through a wide one
+    assert not rad.ozone_lost(_flared(0.003, None, "none"))
+    assert rad.ozone_lost(_flared(300.0, None, "none")) and not rad.ozone_lost(_flared(299.0, None, "none"))
+    assert not rad.ozone_lost(_flared(2100.0, None, "none", column=0.0))        # nothing to lose
+    assert rad.ozone_lost(_flared(0.0, None, "none", hazard=rad.LETHAL_EVENT_LIMIT_PER_GYR * 2))      # the galaxy's events
+    assert not rad.ozone_lost(_flared(None, None, None))
+
+
+def _world_with_air():
+    for seed in range(80):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for body in _bodies(system):
+            if body.body_type == "t" and (body.atmospheric_pressure or 0.0) > 0.0 and (body.atmosphere or {}) and not body.is_moon:
+                body.draw_seed = seed
+                if atmosphere.partial_kpa(body, "o2") > 0.0 and body.star.temperature:
+                    return body
+    raise AssertionError("no seed gave a rocky world with oxygen")
+
+
+def test_a_world_whose_ozone_is_lost_keeps_a_tenth_of_it_and_takes_more_ultraviolet():
+    """GEN.808: the flag lowers the stored column and the DNA-weighted UV index of the surface follows it."""
+    body = _world_with_air()
+    body.star.lethal_event_rate_per_gyr = 0.0
+
+    body.magnetic_moment_a_m2, body.magnetopause_rp, body.dipole_class = 0.0, None, "none"
+
+    def run(index):
+        body.flare_irradiation_index = index
+        draw.set_run_seed(808)
+        rad.generate_dose(body)
+        return body.ozone_loss_flag, body.ozone_column_du, body.uv_surface_index
+
+    quiet = run(0.0)
+    flared = run(2100.0)
+    assert quiet[0] is False and flared[0] is True
+    assert flared[1] == pytest.approx(quiet[1] * rad.OZONE_LOSS_REMAINING)
+    assert flared[2] > quiet[2]
