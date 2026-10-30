@@ -14768,17 +14768,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   temperate-ocean count per class.
   Prerequisites: GEN.1135, GEN.1136. Related: GEN.1142.
 
-- [ ] **GEN.1145 Ocean-fraction spread of temperate air-bearing bodies, printed before the train 6 epoch (decides whether the H line can fill)**
-  Class index thread, 7:05 PM EDT 2026-10-30: H (desert, under 20
-  percent surface water) got zero bodies at 15 percent and bodies with
-  air nearly always keep their water, so print the ocean-fraction spread
-  of temperate (273.15 to 320 K) air-bearing bodies on main before the
-  epoch lines are fixed, in the style of GEN.1143 (prints only). Done:
-  the histogram in reports/, and whether the 20 percent H line and the
-  80 percent O line each reach bodies. Lock-free. Where we think it
-  belongs (best guess, can move): Aux 2 (wrote GEN.1143).
-  Prerequisites: none. Related: GEN.1142, GEN.1143, GEN.1146.
-
 - [ ] **GEN.1146 Upstream water inventory and land share: temperate bodies with air nearly always keep their water, so no desert world (Class H) exists; decide whether the generator should produce dry temperate planets (only if GEN.1145 shows H stays empty)**
   Class index thread, 7:05 PM EDT 2026-10-30, Boss: Class H (desert,
   under 20 percent available surface water) must exist. If the spread of
@@ -14792,6 +14781,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before any code. Prerequisite: GEN.1145 result. Report only
   (lock-free); the fix would be lock work. Where we think it belongs
   (best guess, can move): Aux 3 (bulk composition) with Aux 2.
+  GEN.1145 result (Aux 2, 300 systems, as the lane reported) (2026-10-30
+  7:07 PM EDT): 83 bodies at 273.15 to 320 K with air; ocean share is
+  two humps with a hole at 50 to 80 percent (0 to 20 percent: 48 bodies,
+  80 percent or more: 25 bodies, only 10 bodies between the lines). So H
+  can fill by its new line, but M would get only about 10 of 83
+  temperate air bodies (3 percent of the sample), even after V and Q
+  move. The water inventory and land share upstream is the lever for a
+  more common M: this report is NOT conditional any more, start it now
+  (lock-free report). Owner changed to Aux 2.
   Prerequisites: GEN.1145. Related: GEN.1142, GEN.909, GEN.1145.
 
 ## PERF: Speed, caching, bulk generation and parallel work
