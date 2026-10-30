@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2592] - 2026-10-30
+
+**Headline:** How long a star stays X-ray saturated is now tabulated by mass and initial rotation from Johnstone et al. 2021 (not yet used by the generator).
+
+### Changed
+
+- New library `physics/saturation_time.py`: the age at which a star falls out of X-ray saturation by mass (0.1 to 1.2 solar masses) and initial rotation percentile, read off the published model figure. Cool red dwarfs stay saturated for gigayears, Sun-like stars for tens of millions of years. Nothing in generation reads it yet; the wiring step (the activity table and row p6) follows with the epoch train.
+
 ## [8.0.2591] - 2026-10-30
 
 **Headline:** The atmosphere recipe rows whose research was already built are now labelled as derived, not as a design.
