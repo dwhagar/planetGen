@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.239 |
 | MAP | MAP.352 |
 | NAV | NAV.65 |
-| GEN | GEN.992 |
+| GEN | GEN.993 |
 | PERF | PERF.209 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1736,12 +1736,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.983 | Wire the radiation belts (physics/radiation_belts.py) into the surface dose and the habitability radiation score | none | open |
 | GEN.984 | Make the star's composition draw independent of its age so every planet reads the final composition (bug) | none | open |
 | GEN.985 | Circularise a close-in planet's eccentricity again at the final star age | none | open |
-| GEN.986 | Measure how far the rocky planets' dose, surface ages and magnetism move when read at the final star age | none | open |
+| GEN.986 | Measure how far the rocky planets' dose, surface ages and magnetism move when read at the final star age | none | done, measured in reports/gen986-final-age-rocky-planets-2026-10-30.md |
 | GEN.987 | Read a moon's tidal heat from the settled giant's radius | none | open |
 | GEN.988 | Give Ca, S and Ar a star-to-star scatter like the other generated [X/Fe] abundances (bug) | none | open |
 | GEN.989 | Lower generated [Mg/Fe] by 0.05 to 0.07 dex for [Fe/H] above -0.2 to match Brewer and Fischer 2016 (bug) | none | open |
 | GEN.990 | Raise the C, O and Si abundance scatter, now about half the Brewer and Fischer 2016 scatter (bug) | none | open |
 | GEN.991 | Raise generated [O/Fe] by 0.03 to 0.09 dex to the Brewer and Fischer 2016 table in every [Fe/H] bin | none | open |
+| GEN.992 | Re-finish every rocky planet and moon after the star's age is final, then re-judge the forced requests with the retry round | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
