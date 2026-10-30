@@ -35,7 +35,7 @@ import math
 from planetgen.datasets import fetch, mamajek_sequence, white_dwarf_models
 from planetgen.galaxy import scales
 from planetgen.physics import (
-    constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass, wolf_rayet)
+    constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass, stellar_abundances, wolf_rayet)
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -559,6 +559,8 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
             age = rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng)
         else:
             mass = imf.sample(rng=rng, curve=imf.PRIMARY)
+            if mass < stellar_abundances.hydrogen_burning_limit_for_fe_h(birth):
+                continue    # GEN.936: under the limit of its place it is a brown dwarf, not a star a system is built around
             if large_star is False and mass >= pc.LARGE_STAR_MIN_MASS_SOL:
                 continue
             if max_mass_sol is not None and mass >= max_mass_sol:

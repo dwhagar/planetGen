@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 493 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 497 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 61 | 0 | 5 | 0 | 0 | 66 |
+| T1 | 62 | 0 | 5 | 0 | 0 | 67 |
 | T2 | 79 | 8 | 0 | 1 | 0 | 88 |
 | T3 | 59 | 14 | 3 | 8 | 0 | 84 |
 | T4 | 25 | 0 | 0 | 4 | 4 | 33 |
-| T5 | 31 | 7 | 1 | 0 | 0 | 39 |
+| T5 | 32 | 7 | 1 | 0 | 0 | 40 |
 | T6 | 39 | 18 | 10 | 30 | 0 | 97 |
-| T7 | 22 | 6 | 3 | 7 | 0 | 38 |
+| T7 | 24 | 6 | 3 | 7 | 0 | 40 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 1 | 24 | 19 | 45 |
-| All | 317 | 53 | 23 | 75 | 25 | 493 |
+| All | 321 | 53 | 23 | 75 | 25 | 497 |
 
 ## How the labels were given
 
@@ -795,3 +795,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | ARM2 | D | T5 | L0 | tuning.ARM_GAS_TO_INTERARM_RATIO 4.0 raised to tuning.STAR_FORMATION_LAW_EXPONENT 1.4, as an amplitude (the young population's `A`, 0.749) | gas ratio 2 to 5 (A 0.45 to 0.80) | stars under 0.1 Gy, which have not left the gas they formed in | an arm to inter-arm ratio of young upper main sequence stars outside 3 to 12 | a number from the Gaia maps of young stars (Poggio et al. 2021 give maps and no number) | RECALLED (Koda et al. 2009, ApJ 700:L132: CO arm to inter-arm contrasts of about 2 to 5; Kennicutt 1998 index 1.4, a surface-density law applied here to the volume ratio) | - | - |
 | ARM3 | P | T7 | L0 | the intermediate population's `A` (0.418): the fall of the contrast with the log of the age from the young value at 0.05 Gy to the old one at the old window's geometric mean age (5.5 Gy), read at the intermediate window's (0.55 Gy) | none | stars of 0.1 to 3 Gy | an observed arm contrast of A and F stars far from 0.2 to 0.6 | a contrast by age from a published sample | an inference from the two ends: stars drift out of their birth arm in a few hundred Myr, and the contrast of A and F stars is not published as a number | - | - |
 | ARM4 | P | T5 | L0 | tuning.ARM_CONTRAST_AGE_YOUNG_GY 0.05 | 0.03 to 0.07 | the young population | none | the age law of the disk history | the middle of the young window, 0 to 0.1 Gy | - | - |
+
+## 6.58 Stand-ins of the low-mass main sequence and the star/brown-dwarf boundary
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| LM1 | P | T7 | L0 | main_sequence.LOW_MASS_BLEND_FLOOR_SOL 0.07: the ratio of the MIST and Baraffe luminosities and radii at 0.1 solar masses (1.14 and 1.02 at 1 Gy) fades linearly to 1 at 0.07 | 0.06 to 0.08 | stars of 0.07 to 0.1 solar masses | a star of 0.09 solar masses whose luminosity differs from the blend by more than the two tables differ | a MIST track below 0.1 solar masses | an inference: the two tables disagree at 0.1 and the join has to be continuous; the Baraffe values stay pure at the hydrogen-burning limit | - | - |
+| LM2 | D | T1 | L0 | main_sequence.SETTLED_RADIUS_SHARE 1.02: a star under 0.1 solar masses has arrived on the main sequence when its Baraffe radius is within 2% of the least it reaches (0.6 to 3 Gy) | 1.01 to 1.05 | stars of 0.07 to 0.1 solar masses | the contraction time of the pre-main-sequence model against this arrival by more than a factor 2.5 | the pre-main-sequence tracks of the table | READ (the BHAC15 radii; 2% is the share the pre-main-sequence energy factor was fitted to, GEN.529) | - | - |
+| LM3 | P | T5 | L0 | mass_boundaries.STAR_BROWN_DWARF_SPLIT_SOL 0.08: the mass function of the stars ends and that of the brown dwarfs begins; the class of an object is by its place's hydrogen-burning limit, 0.074 at solar Z to 0.092 at none (`hydrogen_burning_limit_for_fe_h`) | the split 0.074 to 0.092 | all objects of 0.07 to 0.092 solar masses | the share of objects of 0.074 to 0.092 solar masses that burn hydrogen at a place against Baraffe's and Chabrier and Baraffe's limits | a limit by [Fe/H] from a grid of models at other metallicities | a decision of the item (Boss, 2026-10-21, the limit by Z); the dependence on Z is a parametrisation, Burrows et al. 2001 | - | - |
+| LM4 | P | T7 | L0 | brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 (Burrows et al. 2001) | none | brown dwarfs of 13 to 50 Jupiter masses past the age the table loses them (0.01 to 0.6 Gy) | a radius of a 13 Jupiter mass object at 10 Gy over 1.2 Jupiter radii | a track that reaches the old ages (ATMO 2020, Phillips et al. 2020) | an inference, kept from the eleven-row table it replaces; the radius is 1.7 Jupiter radii for 13 Jupiter masses | - | - |

@@ -976,9 +976,10 @@ POST_AGB_DISK_MASS_RANGE_SOLAR = (0.01, 0.1)
 # to 0.3 solar masses and up to 0.35 dex too bright from 0.5 to 1.4, where the
 # derived Hayashi phase falls more slowly than the table's.
 PRE_MAIN_SEQUENCE_MAX_MASS_SOL = _boundaries.sol("core_collapse_limit")
-# No star contracts longer than this: the track takes the lightest star (0.08 solar masses) 0.94 Gyr (GEN.652). A shortcut for
-# the old stars, which are nearly all of them; the test checks it against the track.
-PRE_MAIN_SEQUENCE_LONGEST_YR = 1.0e9
+# No star contracts longer than this: the track takes the lightest star (0.074 solar masses, the hydrogen-burning limit at solar
+# metallicity, GEN.936) 4.1 Gyr, against 0.94 Gyr for the 0.08 of before (GEN.652; the main sequence under 0.1 solar masses now is
+# Baraffe's, which arrives later). A shortcut for the old stars, which are nearly all of them; the test checks it against the track.
+PRE_MAIN_SEQUENCE_LONGEST_YR = 4.5e9
 PROTOSTAR_MAX_AGE_YR = 0.5e6
 HAYASHI_TEMPERATURE_1_SOL_K = 4357.0
 HAYASHI_TEMPERATURE_MASS_EXPONENT = 0.1815
@@ -3062,41 +3063,15 @@ shrunken body; a brown dwarf younger than a few hundred million years is
 still puffed up, so the law (with today's radius) overshoots. Young brown
 dwarfs near the hydrogen-burning limit are late-M dwarfs, ~2,800 K."""
 
-# Brown dwarfs as stars (GEN.252, GEN.549, docs/design/systems/brown-dwarf-state.md): the cooling track, the mass function and the
-# map from temperature to spectral type.
-BROWN_DWARF_TRACKS = (
-    (0.01, ((0.01, 1570, 0.156),)),
-    (0.015, ((0.01, 2261, 0.189), (0.03, 2139, 0.171), (0.05, 1760, 0.146))),
-    (0.02, ((0.01, 2519, 0.244), (0.03, 2184, 0.159), (0.05, 1838, 0.137))),
-    (0.03, ((0.01, 2682, 0.283), (0.03, 2448, 0.167), (0.1, 1912, 0.124), (0.12, 1779, 0.12))),
-    (0.04, ((0.01, 2768, 0.292), (0.03, 2632, 0.185), (0.1, 2311, 0.13), (0.3, 1667, 0.108))),
-    (0.05, ((0.01, 2843, 0.315), (0.03, 2755, 0.2), (0.1, 2525, 0.139), (0.3, 2063, 0.109), (0.625, 1555, 0.099))),
-    (0.06, ((0.01, 2900, 0.335), (0.03, 2860, 0.217), (0.1, 2670, 0.148), (0.3, 2331, 0.112), (1.0, 1584, 0.094))),
-    (0.07, ((0.01, 2946, 0.358), (0.03, 2925, 0.233), (0.1, 2794, 0.158), (0.3, 2519, 0.117), (1.0, 2047, 0.094),
-            (3.0, 1650, 0.09), (10.0, 1626, 0.09))),
-    (0.072, ((0.01, 2954, 0.363), (0.03, 2936, 0.236), (0.1, 2813, 0.16), (0.3, 2552, 0.118), (1.0, 2109, 0.095),
-             (3.0, 1793, 0.091), (10.0, 1790, 0.091))),
-    (0.075, ((0.01, 2967, 0.369), (0.03, 2952, 0.241), (0.1, 2839, 0.162), (0.3, 2594, 0.119), (1.0, 2243, 0.097),
-             (3.0, 2052, 0.092), (10.0, 2037, 0.091))),
-    (0.08, ((0.01, 2987, 0.383), (0.03, 2977, 0.249), (0.1, 2879, 0.167), (0.3, 2660, 0.122), (1.0, 2400, 0.102),
-            (3.0, 2343, 0.099), (10.0, 2345, 0.099))),
-)
-"""tuple: The cooling track of a brown dwarf, one row per mass: `(mass in solar masses, ((age in Gy, effective
-temperature in K, radius in solar radii), ...))`, oldest last. These are values of the solar-metallicity models of
-Baraffe, Homeier, Allard and Chabrier 2015 (A&A 577:A42, arXiv 1503.04107, read; the 2MASS isochrone file of
-perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir, whose BT-Settl atmospheres reach down to about 1,500 K), thinned to nine
-ages and rounded as printed. Their tables stop where an object has cooled below the models' range (the last age of a
-row), which is why Phillips et al. 2020 (A&A 637:A38, arXiv 2003.13717, read) limit their own ATMO 2020 grid to below
-about 2,000 K and send the hotter objects to these models. A row that ends before 10 Gy continues at
-`BROWN_DWARF_TEMPERATURE_AGE_EXPONENT`; a row that reaches 10 Gy holds its last values (the near-limit objects settle on a
-plateau)."""
-
+# Brown dwarfs as stars (GEN.252, GEN.549, GEN.948, docs/design/systems/brown-dwarf-state.md): the cooling track (the Baraffe table,
+# `datasets/baraffe_isochrones.py`), the mass function and the map from temperature to spectral type.
 BROWN_DWARF_TRACK_END_GY = 10.0
-"""float: The age the tabulated tracks are cut at: a `BROWN_DWARF_TRACKS` row whose last age is this one has settled."""
+"""float: The age the Baraffe table is cut at (10 Gy): a mass the table still holds at its last age has settled on its plateau."""
 
 BROWN_DWARF_TEMPERATURE_AGE_EXPONENT = -0.32
 """float: Burrows et al. 2001 (Rev. Mod. Phys. 73:719, eq. 2, read, arXiv astro-ph/0103383): the effective temperature of
-an old brown dwarf falls as `t^-0.32`. It continues a `BROWN_DWARF_TRACKS` row past its last age."""
+an old brown dwarf falls as `t^-0.32`. It continues a mass past the last age the Baraffe table holds it at (the models stop where an
+object has cooled below their range, about 1,500 K)."""
 
 BROWN_DWARF_MASS_FUNCTION_SLOPE = 0.6
 """float: The substellar mass function `dN/dM ~ M^-0.6` (Kirkpatrick et al. 2021, ApJS 253:7, arXiv 2011.11616, read:

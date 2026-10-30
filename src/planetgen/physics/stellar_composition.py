@@ -55,7 +55,7 @@ import re
 from dataclasses import dataclass, field
 
 from planetgen import tuning
-from planetgen.datasets import fetch, isochrones, neutron_star_matter, white_dwarf_models
+from planetgen.datasets import baraffe_isochrones, fetch, isochrones, neutron_star_matter, white_dwarf_models
 from planetgen.physics import constants, elements, main_sequence, wolf_rayet
 from planetgen.physics import stellar_abundances as sa
 from planetgen.util import draw
@@ -360,11 +360,15 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
             mass_jupiter=mass_jupiter, deuterium_limit_mj=deuterium, burned_deuterium=mass_jupiter > deuterium,
             burned_lithium=mass_sol > sa.lithium_burning_limit_sol(),
             burns_hydrogen=mass_sol > sa.hydrogen_burning_limit_sol(birth.z))
-        try:
-            detail["radius_solar_at_1_gy"] = sa.brown_dwarf_radius_solar(mass_sol)
-        except sa.StellarAbundanceError:
-            detail["radius_solar_at_1_gy"] = None
-        open_items = ("radius at other ages and metallicities", "the hydrogen limit against metallicity")
+        if fetch.locate(baraffe_isochrones.DATASET).use_stand_in("no brown dwarf radius"):
+            detail["radius_solar"] = None
+            open_items = (f"the Baraffe table is missing: {baraffe_isochrones.DATASET.fallback}", "radius at other metallicities")
+        else:
+            try:
+                detail["radius_solar"] = sa.brown_dwarf_radius_solar(mass_sol, age_gy)
+            except sa.StellarAbundanceError:
+                detail["radius_solar"] = None
+            open_items = ("radius at other metallicities",)
     elif kind == WHITE_DWARF:
         if teff_k is None:
             raise StarMakeupError("a white dwarf needs its effective temperature")
