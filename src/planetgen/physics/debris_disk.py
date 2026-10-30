@@ -28,11 +28,12 @@ its heat, and a white dwarf's dust is a different disk)."""
 
 
 def incidence(mass_sol):
-    """The share of stars of `mass_sol` solar masses that hold a debris disk (`tuning.DEBRIS_DISK_INCIDENCE`)."""
-    for upper, share in tuning.DEBRIS_DISK_INCIDENCE:
-        if upper is None or mass_sol < upper:
+    """The share of stars of `mass_sol` solar masses that hold a debris disk (`tuning.DEBRIS_DISK_INCIDENCE`, one share for each band
+    that ends at a mass of `tuning.DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL`, the last band open)."""
+    for upper, share in zip(tuning.DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL, tuning.DEBRIS_DISK_INCIDENCE):
+        if mass_sol < upper:
             return share
-    return tuning.DEBRIS_DISK_INCIDENCE[-1][1]
+    return tuning.DEBRIS_DISK_INCIDENCE[-1]
 
 
 def blackbody_radius_au(temperature_k, luminosity_sol):

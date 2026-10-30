@@ -1080,10 +1080,12 @@ DISK_DUST_SUBLIMATION_K = 1500.0
 # The cold debris disk of a main-sequence star (GEN.787, physics/debris_disk.py). Sibthorpe et al. 2018 (MNRAS 475, 3046, the
 # Herschel DEBRIS survey; arXiv:1803.00072, sections 2.5 and 3 and Tables 1 and 2 read 2026-10-30): the share of stars with a
 # detected cold disk is F 23.9, G 14.3 and K 13.0 percent (47 discs round 275), M 2.2 percent (89 stars) and, raw, 24 percent for
-# A stars. The pairs are (upper mass in solar masses, share); the last has no upper mass. The masses are the spectral types'
+# A stars. `DEBRIS_DISK_INCIDENCE` is the share for each mass band, the bands ending at the masses of
+# `DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL` (the last band has no upper mass). The masses are the spectral types'
 # (M under 0.45, K to 0.8, G to 1.04, F to 1.4, A and hotter above); Matthews et al. 2014 find the dust shows no clear dependence on
 # type from late B to M, so a hotter star takes the A figure.
-DEBRIS_DISK_INCIDENCE = ((0.45, 0.022), (0.8, 0.130), (1.04, 0.143), (1.4, 0.239), (None, 0.24))
+DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL = (0.45, 0.8, 1.04, 1.4)
+DEBRIS_DISK_INCIDENCE = (0.022, 0.130, 0.143, 0.239, 0.24)
 BLACKBODY_AT_ONE_AU_K = 278.3
 # The dust temperature of a detected disk: the 47 discs of Sibthorpe 2018 Table 1 have blackbody radii from 0.63 to 280 AU with a
 # median of 23 AU (7 to 40 AU for most), which at one solar luminosity is a median of 58 K; the log-normal width 0.45 puts the

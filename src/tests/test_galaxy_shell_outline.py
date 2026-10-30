@@ -85,7 +85,8 @@ def test_the_default_galaxy_holds_fewer_cells_than_the_study_counted(milky_way):
     extents, _outer, _confirmed = milky_way
     shells = shell_candidate_sector_count(extents)
     assert shells < 23_930_000_000
-    assert shells == 11_271_314_727
+    # GEN.927: the single-star mass function moves the derived mean system mass, so the pinned count moved 0.005 percent (from 11,271,314,727).
+    assert shells == 11_270_804_751
 
 
 @pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 799, 800, 801, 900, 1000, 1500, 2500, 3000, 3441])
