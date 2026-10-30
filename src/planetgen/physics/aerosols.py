@@ -96,7 +96,7 @@ HAZE_K_550 = (0.057, 0.0256, 0.012)
 HAZE_OMEGA_550 = 0.87
 """float: The tholin single-scattering albedo at 550 nm for 0.1 micron grains (part 06 2.8: 0.873)."""
 HAZE_AIR_MASS = 2.0
-"""float: STAND-IN (IR10, tier T7, L0): the slant path of sunlight through the haze, the sphere-averaged secant (the starlight is averaged over the
+"""float: STAND-IN (IR13, tier T7, L0): the slant path of sunlight through the haze, the sphere-averaged secant (the starlight is averaged over the
 sphere in the absorbed flux), which turns the absorption optical depth into the share of the sunlight absorbed."""
 HAZE_SHARE_CAP = 0.95
 """float: The most sunlight a haze may take of the absorbed flux (the radiative-convective model needs the rest to reach the ground)."""

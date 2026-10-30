@@ -13,7 +13,7 @@ polar caps.
 2. **Rate.** The ions the wind takes are a share `ION_ESCAPE_EFFICIENCY` of the energy-limited rate the XUV could lift (`thermosphere.energy_limited_mass_loss_kg_s`)
    over the open share. STAND-IN ION1: the efficiency is tuned so Venus and Mars lose what the spacecraft saw (both within a factor 2).
 
-Every number that is not a published value is a stand-in in the gap registry (docs/design/research/gap-filling-plan.md section 6.59).
+Every number that is not a published value is a stand-in in the gap registry (docs/design/research/gap-filling-plan.md section 6.67).
 """
 
 import math

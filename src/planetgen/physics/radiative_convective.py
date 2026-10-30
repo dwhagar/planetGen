@@ -24,8 +24,8 @@ Why this and not the grey closure of GEN.703: the closure needs one number for t
 band does when water vapour thins aloft (GEN.717) or what a haze that absorbs sunlight high up does to the ground (GEN.718).
 Here the vapour profile is a profile, and `Column.sunlight_aloft` puts a share of the absorbed flux where a haze takes it.
 
-Limits (stated, registry rows IR1 to IR8 in docs/design/research/gap-filling-plan.md section 6): no clouds in the infrared and no
-condensation of anything but water; the humidity profile is Manabe and Wetherald's, not a computed one; sunlight is deposited by the
+Limits (stated, registry rows IR1 to IR8 in docs/design/research/gap-filling-plan.md section 6): the only infrared cloud is the sulfuric
+acid one the caller passes (`cloud`), scaled for scattering, and no condensation of anything but water; the humidity profile is Manabe and Wetherald's, not a computed one; sunlight is deposited by the
 caller, never absorbed by the gases here; the stratosphere is clear-sky radiative equilibrium without ozone heating
 (a gas without a table has stand-in bands); the tables hold 100 K as the lowest temperature and 100 bar as the highest pressure, beyond
 which a lookup takes the edge; the model is a global mean (one column, the absorbed flux already averaged over the sphere).
@@ -41,6 +41,7 @@ Use:
 
 import functools
 import math
+import re
 from dataclasses import dataclass
 
 import numpy as np
@@ -50,6 +51,7 @@ from planetgen.physics import (
     constants,
     gases,
     greenhouse,
+    cloud_infrared,
     line_opacity,
     mixture,
     radiative_kernel,
@@ -78,7 +80,7 @@ SUNLIGHT_WIDTH_LN_P = 1.0
 """float: STAND-IN (IR8, tier T7, L0): the width of the layer of sunlight deposited aloft, in ln P (a Gaussian: a haze or an upper methane band is a few
 scale heights deep). The share and the pressure are inputs the caller supplies; nothing here derives them from the aerosols."""
 CLOUD_LONGWAVE_SHARE = 0.13
-"""float: STAND-IN (IR9, tier T9, L3): the share of the clear-sky outgoing infrared flux the cloud of an air whose surface humidity is `EARTH_HUMIDITY` keeps in.
+"""float: STAND-IN (IR12, tier T9, L3): the share of the clear-sky outgoing infrared flux the cloud of an air whose surface humidity is `EARTH_HUMIDITY` keeps in.
 The model is a clear-sky one and the albedo of a body is its all-sky one, so without this a world that keeps the Earth's cloud (and its cloud shortwave
 cooling) would lose the cloud's longwave warming: 26.5 W/m2 of the 266 W/m2 the clear-sky Earth sends out (CERES EBAF, 0.10; that leaves the Earth twin of the
 fixed point at 284.6 K, the clear-sky model's own bias of 3 K, and 0.13 puts it at 287.9 K, the measured 288 K, which is the value held). The sky sends out
@@ -177,12 +179,33 @@ def latent_heat_j_mol(temperature_k):
 _CP_GRID = np.arange(100.0, 4001.0, 20.0)
 
 
+def _atoms(formula):
+    """The number of atoms in a molecule written without brackets (`"HC3N"` is 5)."""
+    return sum(int(count or 1) for _symbol, count in re.findall(r"([A-Z][a-z]?)(\d*)", formula))
+
+
 @functools.cache
 def _cp_over_r(formula):
-    """The heat capacity at constant pressure over R of a gas on `_CP_GRID` (the cold end of its fit stands in below the fit)."""
-    thermo = species_thermo.gas(formula)
-    low, high = thermo.range_k
-    return np.array([thermo.cp_over_r(min(max(t, low), high)) for t in _CP_GRID])
+    """
+    The heat capacity at constant pressure over R of a gas on `_CP_GRID`, from the first source the gas has (GEN.852, row IR9):
+
+    1. its NASA Glenn fit (`species_thermo.gas`; the cold end of the fit stands in below it, the hot end above it);
+    2. the heat capacities the gas table gives at 100, 300 and 1000 K (`gases.Gas.cp_j_mol_k`), interpolated linearly in temperature and
+       held at the end values beyond them (a polyatomic gas gains heat capacity above 1000 K, so this is low there);
+    3. a rigid-rotor count of the atoms: 5/2 for one, 7/2 for two, and 4 + (3N - 6) / 2 for a molecule of N atoms, half its vibrations awake.
+    """
+    try:
+        thermo = species_thermo.gas(formula)
+    except KeyError:
+        pass
+    else:
+        low, high = thermo.range_k
+        return np.array([thermo.cp_over_r(min(max(t, low), high)) for t in _CP_GRID])
+    known = sorted((float(t), v / R) for t, v in gases.gas(formula).cp_j_mol_k.items() if v is not None)
+    if known:
+        return np.interp(_CP_GRID, [t for t, _ in known], [v for _, v in known])
+    atoms = _atoms(formula)
+    return np.full_like(_CP_GRID, {1: 2.5, 2: 3.5}.get(atoms, 4.0 + 0.5 * (3 * atoms - 6)))
 
 
 # ---- the column ----
@@ -190,7 +213,8 @@ def _cp_over_r(formula):
 class Column:
     """An air cut into layers: its geometry, its composition and the pieces of the thermodynamics the solver needs."""
 
-    def __init__(self, partial_pressures_pa, gravity_m_s2, layers=LAYERS, water_fraction=None):
+    def __init__(self, partial_pressures_pa, gravity_m_s2, layers=LAYERS, water_fraction=None, cloud=None):
+        self.cloud = cloud
         self.fixed_water = None if water_fraction is None else np.asarray(water_fraction, dtype=float)
         fractions = mixture.mole_fractions(partial_pressures_pa)
         self.gravity = gravity_m_s2
@@ -309,10 +333,13 @@ class Column:
         mean_molar_mass = (1.0 - water) * self.dry_molar_mass + water * WATER_MOLAR_MASS
         molecules_cm2 = self.layer_mass / mean_molar_mass * AVOGADRO * 1.0e-4
         depth = line_opacity.layer_depth(self.prepared, layer_temperature, self.layer_pressure, water, molecules_cm2)
+        if self.cloud is not None:
+            tau_550, radius_um = self.cloud
+            depth = depth + cloud_infrared.layer_depth(self.layer_pressure, self.layer_mass, layer_temperature, tau_550, radius_um)[:, :, None]
         return depth, water
 
     def cloud_share(self, surface_temperature):
-        """The share of the clear-sky outgoing flux the cloud keeps in (stand-in IR9): `CLOUD_LONGWAVE_SHARE` at the humidity of the Earth, in proportion to the
+        """The share of the clear-sky outgoing flux the cloud keeps in (stand-in IR12): `CLOUD_LONGWAVE_SHARE` at the humidity of the Earth, in proportion to the
         surface humidity, nil where the air holds no water vapour."""
         if self.water_surface <= 0.0:
             return 0.0
@@ -543,7 +570,7 @@ def sunlight_aloft(column, absorbed_w_m2, share, pressure_pa):
 
 
 def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.0, aloft_pressure_pa=None, layers=LAYERS,
-          water_fraction=None):
+          water_fraction=None, cloud=None):
     """
     The radiative-convective state of an air under an absorbed flux.
 
@@ -557,6 +584,8 @@ def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.
         layers (int): The number of layers.
         water_fraction (ndarray or None): Hold the water vapour mole fraction of each layer (top first, `layers` long) at these values instead of
             the humidity profile (a previous solution's `water_fraction`: the experiment of a change with the vapour fixed).
+        cloud (tuple or None): `(tau_550, radius_um)` of a sulfuric acid cloud (`sulfuric_cloud.of_draw`): its depth at 550 nm and droplet radius.
+            Its infrared opacity (`cloud_infrared`) sits in the layers between the level cooler than the cloud base temperature and its top.
 
     Returns:
         Solution: Its `converged` is False when the search for the surface temperature did not reach a balance (for example when the sunlight
@@ -568,7 +597,7 @@ def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.
     for name, value in (("gravity_m_s2", gravity_m_s2), ("absorbed_flux_w_m2", absorbed_flux_w_m2)):
         if not (value > 0.0 and math.isfinite(value)):
             raise ValueError(f"{name} must be a positive number, not {value!r}")
-    column = Column(partial_pressures_pa, gravity_m_s2, layers, water_fraction)
+    column = Column(partial_pressures_pa, gravity_m_s2, layers, water_fraction, cloud)
     heating = None
     if aloft_share > 0.0:
         if aloft_pressure_pa is None or not aloft_pressure_pa > 0.0:

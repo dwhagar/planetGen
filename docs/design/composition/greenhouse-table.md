@@ -66,7 +66,7 @@ The network was fitted on airs that always hold an absorber and are at least 10 
 `THIN_AIR_PA` (10 Pa) scales it by `P / 10 Pa` (an optically thin air warms with its column), and a share of gases that absorb or collide in the infrared (everything the gas table does not flag `none`) under
 `ABSORBER_SHARE_MIN` (1 percent) scales it by the share over that. Both are registry row IR11 (tier T5, tweak L0).
 
-## The cloud (stand-in IR9)
+## The cloud (stand-in IR12)
 
 The model is a clear-sky one and a body's albedo is its all-sky one, so a world that keeps the Earth's clouds would lose their longwave warming (26.5 W/m2 of the 266 W/m2
 the clear-sky Earth sends out, CERES EBAF, 0.10). The sky sends out `(1 - s) * clear`, `s = CLOUD_LONGWAVE_SHARE * h / 0.77` for a surface relative humidity `h` (at most 1.3
@@ -75,7 +75,7 @@ went from +1.72 to +0.99 K), so the cloud is a share of the flux, which masks fo
 (the clear-sky model's own bias of 3 K); 0.13 puts it at the measured 288 K (tier T9, tweak L3 in the registry). The cloud falls with the surface humidity, so a world whose vapour
 is held while it warms loses cloud: the fixed point's vapour follows the temperature and does not.
 
-## The haze (GEN.851, stand-in IR10)
+## The haze (GEN.851, stand-in IR13)
 
 The aerosols were made after the air, from its final temperature. They are part of it now. The three haze draws (K_zz, yield, grain radius) come from a stream of the body's
 own (`aerosols.haze_stream_of`, seeded by the mass, radius and distance, which are fixed before the air), carried in the `Setting`; at each step `surface_air.solve` reads
@@ -93,4 +93,4 @@ grey closure, the dense ones by 60 to 190 K (the closure was too cold); the worl
 
 - The table is as good as its training airs: an air of a kind the generator and the designed families never made is the network's extrapolation, held at the feature ranges' edge.
 - The derivative of the temperature with the flux (the climate sensitivity of GEN.972 to GEN.974) is smooth but not exact: the table's slope error is a few hundredths of the slope.
-- The line data are the ones of GEN.715; the stand-ins of the model (IR1 to IR10) are in the table with it.
+- The line data are the ones of GEN.715; the stand-ins of the model (IR1 to IR13) are in the table with it.
