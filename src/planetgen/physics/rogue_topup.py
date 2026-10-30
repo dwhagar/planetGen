@@ -183,8 +183,12 @@ def apparent_donor(kick, time_myr, galactocentric_radius_pc, galaxy=rogue_drift.
     return (r * (math.cos(ring.azimuth_rad) - 1.0) - ring.radial_pc, -r * math.sin(ring.azimuth_rad), -ring.vertical_pc)
 
 
-def _rogue(mass_earth, rng, sector_edge_pc, host_masses_kg, age_law, dispersion, placement, radius_pc):
-    position = place_in_sector(rng, sector_edge_pc, placement)
+def apparent_history(rng, host_masses_kg, age_law, dispersion, radius_pc):
+    """
+    What an object placed in a sector would have if it had come from another one: its velocity relative to the local standard of rest `(U, V, W)`, km/s, and its `ApparentOrigin`.
+    The draws, in order: the age and time since ejection, the host (of `host_masses_kg`), the scatterer's distance, the ejection speed, the direction and the host's velocity (the
+    rogue top-up and the lighter asteroid-field top-up, GEN.1126, share it).
+    """
     ages = rogue_age.rogue_age(age_law, rng.random(), rng.random())
     host_mass = host_masses_kg[min(int(rng.random() * len(host_masses_kg)), len(host_masses_kg) - 1)]
     low, high = SCATTERER_AU_RANGE
@@ -197,7 +201,12 @@ def _rogue(mass_earth, rng, sector_edge_pc, host_masses_kg, age_law, dispersion,
     offset = apparent_donor(kick, ages.since_ejection_gy * 1.0e3, radius_pc)
     distance = math.sqrt(sum(c * c for c in offset))
     unit = tuple(c / distance for c in offset) if distance > 0.0 else (0.0, 0.0, 0.0)
-    origin = ApparentOrigin(distance, unit, ages.age_gy, ages.since_ejection_gy, speed)
+    return velocity, ApparentOrigin(distance, unit, ages.age_gy, ages.since_ejection_gy, speed)
+
+
+def _rogue(mass_earth, rng, sector_edge_pc, host_masses_kg, age_law, dispersion, placement, radius_pc):
+    position = place_in_sector(rng, sector_edge_pc, placement)
+    velocity, origin = apparent_history(rng, host_masses_kg, age_law, dispersion, radius_pc)
     return TopUpRogue(mass_earth, mass_bin_of(mass_earth), position, velocity, origin)
 
 
