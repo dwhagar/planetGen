@@ -12470,19 +12470,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (NO FIXED CONTENT). Catalog section 3.
   Prerequisites: none. Related: GEN.727, GEN.731, GEN.737, GEN.725, GEN.953, GEN.954, GEN.955, GEN.956, GEN.957, GEN.958, GEN.959, GEN.960, GEN.961, GEN.976, GEN.977, GEN.978, GEN.979.
 
-- [ ] **GEN.845 Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764)**
-  GEN.764 is done (#3439): `planetgen bring-to-epoch` and the Generate
-  task redo what an epoch bump changed, but a stale scatter is refused
-  with the clear-scatter and scatter instructions, because redrawing
-  needs the original scatter parameters. Store the scatter parameters
-  with the plan (or read them from the audit log), then let the same run
-  redraw the scatter. Optional; owner Core 1 when it runs dry.
-  Owner (2026-10-30 12:44 AM EDT): Core 3 takes this lock-free tooling
-  item while it waits for the trains (confirmed by TODO). It changes no
-  generated value, so it merges without a train; the optional label in
-  the text no longer applies
-  Prerequisites: none.
-
 - [ ] **GEN.846 Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still)**
   Found by Aux 10 with MAP.328 (stars in the sector view, #3447, 1:00 PM
   EDT 2026-10-28 as the lane reported): stars have no stored rotation
@@ -19930,6 +19917,17 @@ clears each one.
   under TEST.463.
   Prerequisites: none. Related: TEST.298, TEST.463.
 
+- [ ] **TEST.466 test_generate_py_system_output_writes_a_file_and_no_database: the plain system output starts with a newline (bug)**
+  Core 3 (as the lane reported, 2:03 AM EDT 2026-10-30) found
+  test_generate_py_system_output_writes_a_file_and_no_database red on
+  clean main: the plain system output starts with a newline. Do: find
+  the commit that added the leading newline, fix the output or the test,
+  whichever the intended format says. Done: the test passes and the
+  cause is on this item. Owner: Bug 2. Version 8.1. The other red Core 3
+  named, the item code at stellar_spectra.py line 198 (GEN.443), is
+  fixed by Star 2's #3831 on train 3.
+  Prerequisites: none. Related: TEST.463.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21044,17 +21042,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: GEN.395. Related: GEN.391, DOC.52.
   Design: [docs/design/galaxy/superbubble-density.md](design/galaxy/superbubble-density.md)
 
-- [ ] **DOC.63 Docs: the atmosphere data model, the gas table and how the values agree**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): The data model and physics pages
-  describe the new columns, the gas table, the mixture rule, ozone,
-  aerosols and the consistency sweep, with the sources of every number.
-  Done: the pages name each stored value and where it comes from.
-  Owner (2026-10-30 12:44 AM EDT): Core 3 takes this docs item after
-  GEN.845 (TODO). Read the merged atmosphere gas table, aerosol and
-  ozone code on main for the real values; lock-free, docs only
-  Prerequisites: TEST.209. Related: DB.67, DB.68.
-
 - [ ] **DOC.65 Docs: bulk composition, the materials table and how density, mass and gravity follow**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -21072,6 +21059,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   describe the fractions, the materials table, the mass-radius model,
   the migration and the sweep, with the sources of every number. Done:
   the pages name each stored value and where it comes from.
+  Owner (2026-10-30 2:04 AM EDT): Core 3 takes this docs item (TODO,
+  2:04 AM EDT). The text above describes main before the composition
+  build; document what main holds now (stored fractions, materials
+  table, mass-radius model) from the merged code and migrations, with
+  sources. Lock-free, docs only
   Prerequisites: TEST.210. Related: DOC.63, DB.69.
 
 - [ ] **DOC.66 Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number**
@@ -21096,7 +21088,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: TEST.212, DOC.63, DOC.65. Related: DB.70.
+  Prerequisites: TEST.212, DOC.65. Related: DB.70.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
 
