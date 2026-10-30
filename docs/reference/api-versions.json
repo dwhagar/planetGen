@@ -125,8 +125,7 @@
     },
     {
       "version": 11,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2617",
       "items": [
         "API.33"
       ],
