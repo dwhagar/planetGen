@@ -699,7 +699,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) |  |  |
 | GEN.790 | Write the sheet rule for the comet columns mean_anomaly_deg, orbital_period_years and period_class (54 of 234 comets empty) |  |  |
 | GEN.789 | Write the sheet rule for wide_binary_a_crit_km: not applicable to a single star, filled for a binary (348 of 522 stars empty) |  |  |
-| GEN.788 | Fill star flare_alpha, uv_c_share, log_lx_lbol and lifespan_gy for stars of classes A to F and the G and K stars where they are empty |  |  |
 | GEN.787 | Fill star disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au for the stars that have a disk (never filled except for one G star) |  |  |
 | GEN.786 | Fill star state (never filled for any star): the evolutionary state of each star |  |  |
 | GEN.785 | Fill star decay_age_yr and lethal_event_rate_per_gyr (never filled for any star) |  |  |

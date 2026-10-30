@@ -1538,7 +1538,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.785 | Fill star decay_age_yr and lethal_event_rate_per_gyr (never filled for any star) | none | open |
 | GEN.786 | Fill star state (never filled for any star): the evolutionary state of each star | none | open |
 | GEN.787 | Fill star disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au for the stars that have a disk (never filled except for one G star) | none | open |
-| GEN.788 | Fill star flare_alpha, uv_c_share, log_lx_lbol and lifespan_gy for stars of classes A to F and the G and K stars where they are empty | none | open |
+| GEN.788 | Fill star flare_alpha, uv_c_share, log_lx_lbol and lifespan_gy for stars of classes A to F and the G and K stars where they are empty | none | done, PR #3824 |
 | GEN.789 | Write the sheet rule for wide_binary_a_crit_km: not applicable to a single star, filled for a binary (348 of 522 stars empty) | none | open |
 | GEN.790 | Write the sheet rule for the comet columns mean_anomaly_deg, orbital_period_years and period_class (54 of 234 comets empty) | none | open |
 | GEN.791 | Generator switch that forces a planet or moon class so a sample can hold at least 30 of every class (random generation gives under 30 of classes O, P, T, V, E, K, L, N, F, G) | none | done, PR #3592 |
