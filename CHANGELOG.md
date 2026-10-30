@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2581] - 2026-10-30
+
+**Headline:** The burn-down register names what each hand-tuned birth-spin stand-in needs before it can go.
+
+### Changed
+- **Burn-down register lines for GS4, GS5 and GS6** (the isolation mass, the giant-impact mass-ratio range and the planetesimal range of `impact_spin`, GEN.978), each naming GEN.979 and the N-body distribution of the last impactor that replaces it; the stand-in list is regenerated.
+
 ## [8.0.2580] - 2026-10-30
 
 **Headline:** The generator can now read an alpha-enhanced star off a solar-scaled track and tie a disc star's metallicity to its age.
