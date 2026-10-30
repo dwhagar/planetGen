@@ -85,3 +85,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.22:CC10 | no data | - | the lightest planet is a naming boundary and the habitable-request steering is a user-interface choice; neither is a measured quantity |
 | 6.23:TR3 | no data | - | the form follows from physics (a suspension has no static rigidity); the floor is the lowest value that keeps the Io state's k2 under the fluid limit, and no measurement of the rigidity of a partial melt at planetary scale exists |
 | 6.23:TR10 | no data | - | the quality factor of cold rock is measured only for the Earth and the Moon (Dziewonski and Anderson 1981, Nakamura 1982, recalled); the ceiling keeps the planets' Q inside that |
+| 6.26:GS4 | replace | GEN.979 | the distribution of the last impactor by planet mass from Kokubo and Ida 2007 or Agnor et al. 1999 replaces the isolation mass and steepness; the planet-formation train can give the isolation mass of the disc (formation.isolation_mass_kg) |
+| 6.26:GS5 | replace | GEN.979 | the same N-body distribution replaces the log-uniform range of the last giant impact |
+| 6.26:GS6 | replace | GEN.979 | the same N-body distribution (the planetesimal-built embryos) replaces the log-uniform range |
