@@ -13784,7 +13784,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the module; the swap changes comet composition output, so it rides a
   train. Waits on GEN.1005 k7 (the rows exist after it). Owner: none
   yet; released pool, low priority.
-  Owner (2026-10-30 1:38 PM EDT): Sources 1 (assigned by TODO 1:40 PM
+  Owner (2026-10-30 1:38 PM EDT): Sources 1 (assigned by TODO 1:38 PM
   EDT 2026-10-30; Aux 3 skipped it). Research first, lock-free: find a
   second comet or a laboratory trapping table by formation temperature.
   The swap in comet_species.py needs the GEN.1005 flip (branch
