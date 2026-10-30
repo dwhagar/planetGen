@@ -33,10 +33,23 @@ def _stored(tree, epoch=EPOCH):
     return scatter_systems.StoredTree(members, orbit_trees.nodes_from_member_tree(tree, epoch))
 
 
+PRIMARY_FE_H = 0.1
+"""float: The [Fe/H] the placed star is built at (`_primary_params`) and its tree is drawn at, as a scatter row's is (GEN.651)."""
+
+
+def _present_mass(mass, age_yr):
+    """The mass a star born with `mass` has at `age_yr`, built at `PRIMARY_FE_H`: slightly under the birth mass on the
+    main sequence once the star model loses mass (the mass the stored member must hold for the build to be that star)."""
+    with draw.bound(0):
+        star = Star(SystemConfig(), name="Placed", initial_mass_sol=mass, age_gy=age_yr / 1.0e9, metallicity_fe_h=PRIMARY_FE_H)
+    return star.mass / SOLAR
+
+
 def _tree_of(members, seed, mass=1.0, age_fraction=0.5):
     """The tree seed `seed` draws for a main-sequence star of `mass` half way through its life (or `None`)."""
     age_yr = evolution.main_sequence_lifetime_gy(mass) * 1.0e9 * age_fraction
-    tree = multistar.draw_member_tree(multistar.Placed("star", mass, mass), age_yr, draw.Stream(f"{seed}:members"))
+    placed = multistar.Placed("star", _present_mass(mass, age_yr), mass, fe_h=PRIMARY_FE_H)
+    tree = multistar.draw_member_tree(placed, age_yr, draw.Stream(f"{seed}:members"))
     return tree if tree.member_count == members else None, age_yr
 
 
@@ -50,7 +63,7 @@ def _tree(members, mass=1.0, start=1):
 
 def _primary_params(mass, age_yr, seed):
     with draw.bound(seed):
-        star = Star(SystemConfig(), name="Placed", initial_mass_sol=mass, age_gy=age_yr / 1.0e9, metallicity_fe_h=0.1)
+        star = Star(SystemConfig(), name="Placed", initial_mass_sol=mass, age_gy=age_yr / 1.0e9, metallicity_fe_h=PRIMARY_FE_H)
     return {"type": star.type, "yerkes_class": star.yerkes_class, "mass_kg": star.mass, "radius_km": star.radius,
             "temperature_k": star.temperature, "luminosity_w": star.luminosity, "age_gy": star.age,
             "lifespan_gy": star.lifespan, "initial_mass_sol": star.initial_mass_sol,
