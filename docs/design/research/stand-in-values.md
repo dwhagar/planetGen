@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 601 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 605 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 74 | 1 | 5 | 1 | 0 | 81 |
+| T1 | 76 | 1 | 5 | 1 | 0 | 83 |
 | T2 | 89 | 8 | 0 | 1 | 0 | 98 |
-| T3 | 70 | 21 | 5 | 9 | 0 | 105 |
+| T3 | 71 | 21 | 5 | 9 | 0 | 106 |
 | T4 | 27 | 0 | 0 | 13 | 6 | 46 |
 | T5 | 37 | 11 | 0 | 0 | 0 | 48 |
-| T6 | 49 | 28 | 12 | 33 | 0 | 122 |
+| T6 | 50 | 28 | 12 | 33 | 0 | 123 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 374 | 77 | 32 | 91 | 27 | 601 |
+| All | 378 | 77 | 32 | 91 | 27 | 605 |
 
 ## How the labels were given
 
@@ -944,14 +944,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| RO1 | P | T4 | L3 | ring_origin.RING_RETAINED_FRACTION 0.3, the share of a moon torn apart inside the Roche limit that stays as a ring | 0.05 to 0.6 | moons of 1e15 to 1e20 kg falling onto a planet | a disrupted moon whose simulated ring holds under 5 percent of its mass, or over 60 | the ring masses of N-body disruption runs by moon composition (Canup 2010; Black and Mittal 2015) | Black and Mittal 2015 keep most of Phobos in orbit, Canup 2010 only an ice mantle; 0.3 is argued between them and lets a Mimas-mass moon leave Saturn's ring mass | GEN.1057 | no data |
-| RO2 | P | T4 | L3 | ring_origin.RING_LIFETIME_YR 5e8, the time in which a ring's mass falls by 1/e | 1e8 to 2e9 | rings of 1e15 to 1e20 kg | the age of Saturn's rings measured below 1e8 or above 4.5e9 years | the viscous spreading time from the ring's mass, optical depth and particle size (Crida and Charnoz 2012) | the ring-moon cycle of Hesselbrock and Minton 2017 runs over 1e8 to 1e9 years; the age of Saturn's rings is argued between 1e8 and the age of the planet | GEN.1057 | no data |
-| RO3 | P | T4 | L3 | ring_origin.COMET_PASSAGES_PER_GYR 0.02, ring-making comets inside the Roche limit of a body in Saturn's situation per Gyr | 0.002 to 0.2 | giants beyond the snow line | a ring-bearing giant sample whose captured-body share is over 50 or under 1 percent | a comet flux model by size and distance (the scattering rate of Centaurs and the Kuiper belt) | no survey measures it; one in 50 Gyr leaves Saturn with a comet's ring once in the age of the Solar System | GEN.1057 | no data |
-| RO4 | P | T6 | L1 | ring_origin.COMET_MASS_KG_RANGE 1e14 to 1e20 kg, the masses of ring-making comets | one decade either side | comets and Centaurs | a captured-body ring observed over 1e19 kg from a body that large | the Centaur and Kuiper belt size distribution | a 5 km comet to a 300 km Centaur | GEN.1057 | - |
-| RO5 | P | T4 | L3 | ring_origin.COMET_CAPTURE_FRACTION 0.1, the share of a torn comet left in orbit | 0.03 to 0.4 | comets passing inside the Roche limit | an N-body disruption run that leaves under 3 percent of the comet | the capture fraction of a comet disruption run by passage speed and periapsis | Dones 1991 finds a few percent to tens of percent captured | GEN.1057 | no data |
-| RO6 | P | T6 | L1 | ring_origin.COMET_ENCOUNTER_FRACTION 0.2, a comet's speed at infinity as a share of the planet's circular speed | 0.1 to 0.4 | giants at 5 to 30 AU | encounter speeds of the comet population differing by a factor of two | the encounter speed distribution of the comet population | the Jupiter-family comets meet Jupiter at about 5 km/s of its 13 | GEN.1057 | - |
-| RO7 | P | T2 | L0 | ring_origin.RING_MIN_DISTANCE_AU 0.1, inside which a planet holds no ring | 0.05 to 0.2 | planets of Sun-like stars | a ring found around a planet inside 0.05 AU | the ring lifetime against the star's heating and the particle size (Schlichting and Chang 2011) | Schlichting and Chang 2011, recalled: rings of close planets are short lived | GEN.1057 | - |
-| RO8 | P | T6 | L0 | ring_origin.MIN_RING_MASS_KG 1e7, the least ring that counts | 1e6 to 1e8 | dust rings | a ring of dust seen below 1e6 kg | the smallest ring the painter and the sheet can show | Jupiter's dust ring holds 1e7 to 1e9 kg | GEN.1057 | - |
+| RO1 | P | T4 | L3 | ring_origin.RING_RETAINED_FRACTION 0.3, the share of a moon torn apart inside the Roche limit that stays as a ring | 0.05 to 0.6 | moons of 1e15 to 1e20 kg falling onto a planet | a disrupted moon whose simulated ring holds under 5 percent of its mass, or over 60 | the ring masses of N-body disruption runs by moon composition (Canup 2010; Black and Mittal 2015) | Black and Mittal 2015 keep most of Phobos in orbit, Canup 2010 only an ice mantle; 0.3 is argued between them and lets a Mimas-mass moon leave Saturn's ring mass | GEN.1054 | no data |
+| RO2 | P | T4 | L3 | ring_origin.RING_LIFETIME_YR 5e8, the time in which a ring's mass falls by 1/e | 1e8 to 2e9 | rings of 1e15 to 1e20 kg | the age of Saturn's rings measured below 1e8 or above 4.5e9 years | the viscous spreading time from the ring's mass, optical depth and particle size (Crida and Charnoz 2012) | the ring-moon cycle of Hesselbrock and Minton 2017 runs over 1e8 to 1e9 years; the age of Saturn's rings is argued between 1e8 and the age of the planet | GEN.1054 | no data |
+| RO3 | P | T4 | L3 | ring_origin.COMET_PASSAGES_PER_GYR 0.02, ring-making comets inside the Roche limit of a body in Saturn's situation per Gyr | 0.002 to 0.2 | giants beyond the snow line | a ring-bearing giant sample whose captured-body share is over 50 or under 1 percent | a comet flux model by size and distance (the scattering rate of Centaurs and the Kuiper belt) | no survey measures it; one in 50 Gyr leaves Saturn with a comet's ring once in the age of the Solar System | GEN.1054 | no data |
+| RO4 | P | T6 | L1 | ring_origin.COMET_MASS_KG_RANGE 1e14 to 1e20 kg, the masses of ring-making comets | one decade either side | comets and Centaurs | a captured-body ring observed over 1e19 kg from a body that large | the Centaur and Kuiper belt size distribution | a 5 km comet to a 300 km Centaur | GEN.1054 | - |
+| RO5 | P | T4 | L3 | ring_origin.COMET_CAPTURE_FRACTION 0.1, the share of a torn comet left in orbit | 0.03 to 0.4 | comets passing inside the Roche limit | an N-body disruption run that leaves under 3 percent of the comet | the capture fraction of a comet disruption run by passage speed and periapsis | Dones 1991 finds a few percent to tens of percent captured | GEN.1054 | no data |
+| RO6 | P | T6 | L1 | ring_origin.COMET_ENCOUNTER_FRACTION 0.2, a comet's speed at infinity as a share of the planet's circular speed | 0.1 to 0.4 | giants at 5 to 30 AU | encounter speeds of the comet population differing by a factor of two | the encounter speed distribution of the comet population | the Jupiter-family comets meet Jupiter at about 5 km/s of its 13 | GEN.1054 | - |
+| RO7 | P | T2 | L0 | ring_origin.RING_MIN_DISTANCE_AU 0.1, inside which a planet holds no ring | 0.05 to 0.2 | planets of Sun-like stars | a ring found around a planet inside 0.05 AU | the ring lifetime against the star's heating and the particle size (Schlichting and Chang 2011) | Schlichting and Chang 2011, recalled: rings of close planets are short lived | GEN.1054 | - |
+| RO8 | P | T6 | L0 | ring_origin.MIN_RING_MASS_KG 1e7, the least ring that counts | 1e6 to 1e8 | dust rings | a ring of dust seen below 1e6 kg | the smallest ring the painter and the sheet can show | Jupiter's dust ring holds 1e7 to 1e9 kg | GEN.1054 | - |
 
 ## 6.71 Stand-ins of the resonance rings of small bodies
 
@@ -998,3 +998,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | NC4 | P | T9 | L2 | nightside_collapse._calibration: the factor (about 1.24 at Earth's flux) on the grey night-side temperature that makes the balance first lose CO2 at the fit's critical pressure | none | CO2 below the fit's critical pressure | the fit's own critical pressure disagreeing with the balance by a factor over 2 in pressure at another flux | the night-side temperature from the 3D runs | tuned to the published threshold (NC1), so the two agree there and the retained share rises continuously to 1 at it | - | - |
 | NC5 | P | T7 | L0 | nightside_collapse.collapse for a gas other than CO2: the same grey balance, not calibrated | none | N2 and other gases the paper leaves to later work | a 3D run of an N2 air whose collapse pressure differs from this by a factor over 3 | the N2 collapse pressures of a later Wordsworth or Leconte paper | the paper says N2 collapse is left to future work (Section 3.6); N2 freezes under 126 K so at Earth's flux it holds at any pressure here | - | - |
 | NC6 | P | T9 | L0 | nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed | 0.1 to 0.9 | any gas | a page text that reads wrongly at the cut | none (the retained share is the number to use) | needed output: the share, not the flag, is the physics | GEN.1044 | - |
+
+## 6.80 Stand-ins of the Venus-type spin
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| QS1 | D | T1 | L0 | the 8,301 weights and biases of `quadruple_stability_3p1_weights.json`, the authors' own trained network, to nine significant digits | none | 3+1 quadruples with masses within a factor 10, eccentricities to 0.95, near the Mardling-Aarseth boundary | an N-body sample of the same kind whose classification score falls more than 10 points below the paper's 93 percent | a network or table fitted to our own N-body runs | the forward pass equals scikit-learn on five stored cases and 2000 random ones (read 10-30); my REBOUND check of 331 systems with the paper's labelling rule: network right 95 percent against 49 percent for nested MA01, but precision for stable only 0.57 on the near-boundary sample (paper 0.91; the sample is small and labelled differently); the repository of the authors has no licence file (Boss handles DATA-LICENSE.md) | - | - |
+| QS2 | P | T1 | L0 | the meaning of "stable": bound and not chaotic over 100 outer orbits (a twin with the inner axis larger by 1e-6 au diverging by under 1 percent in the inner axis), `outer_orbits` 100 and `divergence_limit` 0.01 | none | systems that are stable for a stellar lifetime only if nothing slower acts | a system stable at 100 outer orbits that the N-body code breaks at 10^4 outer orbits | a long-integration label | paper section 2, read | - | - |
+| QS3 | P | T3 | L0 | the documented range: `q_mid_max` 3 and `q_out_max` 2 from the help text of the authors' script ("best if < ~3", "< ~2"), `q_in_min` 0.1 and `eccentricity_max` 0.95 from the paper | q_mid up to 5 by the paper's masses | 3+1 systems inside the range | a system outside it that the network classifies against an N-body run | the range of a bigger training set | classify_quad_3p1.py help text and paper section 3.1, read | - | - |
+| QS4 | P | T6 | L0 | the training distribution: orbital angles isotropic, arguments of periapsis and mean anomalies not inputs, systems kept near the Mardling-Aarseth boundary of the two nested triples, 20 percent of the MA01-unstable draws kept | none | the verdict of a system near the boundary; far from it (very wide or very tight) the network extrapolates | a very hierarchical system (alpha under 0.05) called unstable by the network with all else benign | the nested triple test far from the boundary | paper section 3.1, read | - | - |

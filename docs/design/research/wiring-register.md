@@ -175,3 +175,20 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.75:NC1 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
 | row | 6.75:NC3 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
 | row | 6.75:NC6 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
+| module | planetgen.physics.ring_origin | GEN.1054 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
+| row | 6.70:RO1 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| module | planetgen.physics.venus_spin | GEN.1048 | the spin equilibria of a thick-air planet (thermal tide against the solid tide, Cunha, Correia and Laskar 2015); the weird-worlds wiring (W2) will give a not-locked thick-air planet its slow or retrograde spin |
+| row | 6.80:VS1 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.80:VS2 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.80:VS4 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.80:VS5 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.80:VS6 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.80:VS7 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.80:VS8 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
+| row | 6.70:RO2 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO3 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO4 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO5 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO6 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO7 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
+| row | 6.70:RO8 | GEN.1054 | a constant of the ring origin module, read when its wiring step lands |
