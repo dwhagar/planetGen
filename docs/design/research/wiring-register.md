@@ -114,3 +114,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.38:BR3 | GEN.476 | `birth_radioisotopes.GALAXY_STAR_FORMATION_SOLAR_MASSES_PER_YR`, read when the wiring step lands |
 | row | 6.38:BR4 | GEN.476 | `birth_radioisotopes.RECURRENCE_RANGE_YR`, read when the wiring step lands |
 | row | 6.38:BR5 | GEN.476 | `birth_radioisotopes.EVENT_YIELD_SIGMA_LN`, read when the wiring step lands |
+| module | planetgen.physics.saturation_time | GEN.493 | the X-ray saturation time by stellar mass and initial rotation percentile from Johnstone et al. 2021 (lock-free); the wiring step has row p6 and the activity table's `t_sat` read it with the star's own mass |
+| row | 6.39:RS1 | GEN.493 | `saturation_time.ANCHORS_MYR`, read when the wiring step lands |
