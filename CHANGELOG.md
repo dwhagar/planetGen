@@ -2,6 +2,21 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2614] - 2026-10-30
+
+**Headline:** A sweep test now checks that an Earth-like world's air settles from a cooling to a warming change of sunlight and measures its response against the published climate sensitivity.
+
+### Added
+- **Climate sensitivity sweep test (GEN.975).** The surface-air fixed point of an Earth-twin, with Earth's ocean, is solved at 90 to 110 percent of its absorbed sunlight. Every solve must converge, the surface must warm with the light, and the response must not exceed the upper end of the published range (AR6, 2 to 5 K per doubling, 0.54 to 1.35 K per W/m2). The lower end is held by a strict expected failure that names the three missing feedbacks (GEN.972 ice-albedo, GEN.973 water vapour, GEN.974 cloud albedo): the response is about 0.4 K per W/m2 today, and the mark has to come off when the feedbacks land.
+
+## [8.0.2613] - 2026-10-30
+
+**Headline:** A design note describes how a Generate job will become one run instead of one run per command.
+
+### Changed
+
+- PERF.203: added docs/design/operations/one-run-per-job.md, the plan for making the Generate page and the API start one run over all the selected commands, with job_runner following it. Nothing in the program changes yet.
+
 ## [8.0.2612] - 2026-10-30
 
 **Headline:** Worlds around stars younger than 0.1 billion years no longer hold life.
