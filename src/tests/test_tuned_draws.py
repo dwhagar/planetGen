@@ -183,8 +183,9 @@ def test_the_carbon_dioxide_and_monoxide_ratios_follow_the_comet_database_and_a_
 def test_the_species_with_a_population_follow_it_and_the_single_comet_species_stay_flagged():
     dists = RECIPES.entry("k7").spec["dists"]
     assert dists["CH4"]["mu"] == "log10(0.0068)" and dists["CH4"]["sigma"] == 0.33
-    assert {name: d["sigma"] for name, d in dists.items() if name in ("N2", "O2", "Xe")} == {"N2": 0.6, "O2": 0.6, "Xe": 0.6}
-    assert "one comet" in RECIPES.entry("k7").limit
+    assert {name: d["sigma"] for name, d in dists.items() if name in ("N2", "O2", "Xe")} == {"N2": "comet_species_sigma()", "O2": "comet_species_sigma()", "Xe": "comet_species_sigma()"}
+    assert dists["N2"]["mu"].startswith("log10(comet_species_median('N2', n_over_c, ar_over_c, s_over_c))")
+    assert "one comet" in RECIPES.entry("k7").limit and RECIPES.entry("k7").replacement == "GEN.1021"
 
 
 # --- host-star rotation track (GEN.523) --------------------------------------------------------------------------------------
