@@ -16441,6 +16441,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
   progress-line work only: no generated-output change and no lock turn;
   if any step turns out to change a stored value, stop and tell TODO.
+  Core 5 slice merged #3902 (12:58 AM EDT as the lane reported)
+  (2026-10-30 12:59 AM EDT): API answers (sectors, systems with planets,
+  moons and stars, descriptions, search, galaxy routes) are checked by
+  tests/test_api_response_units.py: a number must end in a unit suffix,
+  be a registered column whose unit says what it is, or be listed with
+  what it counts or names; backup sizes are size_bytes (API version 11,
+  no shim); the CLI and run-log scan found no bare numbers beyond what
+  #3248 fixed. Property sheet and stats and settings pages were already
+  done. Still open: the help pages and glossary (DOC.15) and any CLI
+  line the heuristic missed; keep API.33 open for those
   Prerequisites: none. Related: GEN.771, DOC.15.
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
