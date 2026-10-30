@@ -6974,6 +6974,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread (Sources 2 and Sources 1 agreed) (2026-10-30 11:38 AM
   EDT): Owner: Sources 1 (claude/gen492); Sources 2 has not started it.
   Sources 2 keeps the GEN.473/474/475/477/493/494/595 wiring on train 7.
+  Sources 1 (step 1 merged as #4046, as the lane reported) (2026-10-30
+  11:46 AM EDT): Lock-free step done: physics/potassium_depletion.py
+  draws potassium depletion by body class from Dauphas et al. 2022 Table
+  1 (planets of 0.03 Earth masses or more centre on 0.19 with 0.15 dex,
+  smaller bodies on 0.015 with 0.94 dex); rows KD1 to KD4 in section
+  6.61; report
+  /mnt/project-files/reports/gen492-potassium-depletion-2026-10-30.md.
+  Step 2, the wiring (radiogenic.draw_content takes the draw plus Barrat
+  CI K/U 71,429; Earth K heat drops about 20 percent; new epoch, no
+  migration), rides train 7. Item stays open until step 2 merges.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.493 Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14)**
