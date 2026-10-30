@@ -9,7 +9,7 @@ docs/design/composition/greenhouse-table.md)
 collision-induced pairs, and takes one to a few seconds (a minute for a dense air). The surface-air fixed point asks for the greenhouse of
 every body five to ten times, so the generator reads this table instead: a small network, fitted by `scripts/fit_greenhouse_table.py` to
 the model's own answers on tens of thousands of airs (the airs the generator makes and perturbed copies of them), whose weights are the
-file `physics/data/greenhouse_table.json`. It is a stand-in for the model and carries a registry row (GEN.725, fill id AD12) with the error it
+file `physics/data/greenhouse_table.json`. It is a stand-in for the model and carries a registry row (GEN.725, fill id IR11) with the error it
 was measured to have; the model remains the truth (`tests/test_greenhouse_table.py` holds the table to it where the data are on the machine).
 
     ln(T_s / T_e) = net(features)         T_e = (F / sigma)^(1/4), F the absorbed flux
@@ -43,7 +43,6 @@ from planetgen.physics import constants, elements, gases, mixture
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "greenhouse_table.json")
 """str: The fitted table (`scripts/fit_greenhouse_table.py`)."""
 
-SIGMA = constants.STEFAN_BOLTZMANN_CONSTANT
 
 TABLED_GASES = ("H2O", "CO2", "CH4")
 """tuple: The gases with a correlated-k table (`datasets/ir_ktables.py`)."""
@@ -58,6 +57,12 @@ FEATURE_NAMES = (
 
 FRACTION_FLOOR = 1.0e-9
 """float: Added to a mole fraction under its logarithm, so an absent gas is a finite feature."""
+THIN_AIR_PA = 10.0
+"""float: STAND-IN (IR11, tier T5, L0): below this surface pressure the log of the warming is scaled by `P / THIN_AIR_PA`: an air this thin is optically thin in every band, so
+its greenhouse goes with its column, which the network, fitted on airs of 10 Pa and more, would otherwise hold at its edge."""
+ABSORBER_SHARE_MIN = 0.01
+"""float: STAND-IN (IR11, tier T5, L0): below this mole share of gases that absorb or collide in the infrared (every gas the gas table does not flag `none`: the noble gases) the log of
+the warming is scaled by the share over this: an air of noble gases has no greenhouse, and the network, fitted on airs that always hold some absorber, does not know it."""
 PRESSURE_MAX_PA = 1.0e8
 """float: The surface pressure the table was fitted up to (1000 bar; the k-tables stop at 100 bar, and the model does not converge beyond about 1e8 Pa)."""
 HIGHEST_SURFACE_K = 4000.0
@@ -122,7 +127,7 @@ def features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share
     """The inputs of the network for an air (see the module docstring), a vector in the order of `FEATURE_NAMES`."""
     total = mixture.total_pressure_pa(partial_pressures_pa)
     fractions = {formula: pressure / total for formula, pressure in partial_pressures_pa.items()}
-    effective = (absorbed_flux_w_m2 / SIGMA) ** 0.25
+    effective = (absorbed_flux_w_m2 / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
     others = [(formula, fraction) for formula, fraction in fractions.items() if formula not in TABLED_GASES and formula not in PAIRING_GASES]
     infrared = sum(fraction for formula, fraction in others if gases.gas(formula).ir == "ir")
     weak = sum(fraction for formula, fraction in others if gases.gas(formula).ir == "weak")
@@ -158,8 +163,11 @@ def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=
             raise ValueError(f"{name} must be a positive number, not {value!r}")
     if not 0.0 <= aloft_share < 1.0:
         raise ValueError(f"aloft_share must be in [0, 1), not {aloft_share!r}")
-    effective = (absorbed_flux_w_m2 / SIGMA) ** 0.25
+    effective = (absorbed_flux_w_m2 / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
     ratio = log_ratio(features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa))
+    total = mixture.total_pressure_pa(partial_pressures_pa)
+    absorbing = sum(pressure for formula, pressure in partial_pressures_pa.items() if gases.gas(formula).ir != "none") / total
+    ratio *= min(1.0, total / THIN_AIR_PA, absorbing / ABSORBER_SHARE_MIN)
     surface = min(effective * math.exp(ratio), HIGHEST_SURFACE_K) if effective < HIGHEST_SURFACE_K else effective
     return Warming(effective_temperature_k=effective, surface_temperature_k=surface,
                    factor=max((surface / effective) ** 4 - 1.0, 0.0))

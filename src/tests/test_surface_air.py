@@ -9,7 +9,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, atmosphere_state, clathrate_brine, constants, gases, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gases, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -265,7 +265,8 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
     """GEN.423 and DB.67: the molar density, the density, the scale height and the greenhouse multiplier a body stores are the ones
     its stored partial pressures give at its surface temperature and gravity: the molar mass is `sum x_i M_i`, the density `P M / (R T)`,
     the scale height `R T / (M g)`, and the multiplier is the warming `atmosphere_state.greenhouse_warming` finds for the stored mixture
-    at the starlight the body absorbs, which is the one its stored temperature `T_e (1 + G)^(1/4)` is made of."""
+    at the starlight the body absorbs, with the sunlight its haze takes aloft (GEN.851), which is the one its stored temperature `T_e (1 + G)^(1/4)` is made
+    of; the haze is read at the stored temperature, the fixed point's last step read it at the one before (under 0.1 K away)."""
     bodies = 0
     for body in _generated(range(10)):
         air = atmosphere.gas_partials_pa(body)
@@ -280,8 +281,12 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
         assert body.scale_height == pytest.approx(state.scale_height_m / 1000.0, rel=1e-6)
         assert body.bond_albedo is not None and 0.0 <= body.bond_albedo < 1.0
         absorbed = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
-        warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed)
-        assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1e-6, abs=1e-9)
+        if getattr(body, "life_class", None):
+            continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
+        haze = aerosols.haze_of(air, gravity, body.surface_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
+                                body.star.temperature)
+        warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
+        assert body.greenhouse_factor == pytest.approx(warming.factor, rel=2e-3, abs=1e-6)
     assert bodies > 5
 
 

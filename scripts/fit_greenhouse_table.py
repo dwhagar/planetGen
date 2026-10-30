@@ -51,14 +51,16 @@ DISTINCT_LN_STEP = 0.1
 MIN_FRACTION = 1.0e-6
 """float: A gas under this mole fraction does not tell two airs apart."""
 SIGNIFICANT_DIGITS = 8
-NOISE_FLOOR = 0.004
+NOISE_FLOOR = 0.003
 """float: The error in `ln(T_s / T_e)` the fit does not mind (about a kelvin at 250 K; the model's own tropopause steps are of this size)."""
-RELATIVE_ERROR = 0.03
+UNPHYSICAL_BELOW = 0.98
+"""float: Model answers colder than this share of the effective temperature are faults of the model on a dense hot air and are left out of the fit."""
+RELATIVE_ERROR = 0.025
 """float: The share of its warming an air's `ln(T_s / T_e)` may be off by before the fit minds."""
 
 
 def collect(args):
-    """The greenhouse calls of the generator for the seeds `args = (first, last)`: (partials, gravity, flux)."""
+    """The greenhouse calls of the generator for the seeds `args = (first, last)`: (partials, gravity, flux, aloft share, aloft pressure)."""
     first, last = args
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
@@ -68,9 +70,9 @@ def collect(args):
     calls = []
     original = atmosphere_state.greenhouse_warming
 
-    def record(partials, gravity, flux):
-        calls.append((dict(partials), gravity, flux))
-        return original(partials, gravity, flux)
+    def record(partials, gravity, flux, aloft_share=0.0, aloft_pressure_pa=None):
+        calls.append((dict(partials), gravity, flux, aloft_share, aloft_pressure_pa))
+        return original(partials, gravity, flux, aloft_share, aloft_pressure_pa)
 
     atmosphere_state.greenhouse_warming = record
     try:
@@ -84,23 +86,28 @@ def collect(args):
 
 def distinct(calls):
     seen = {}
-    for partials, gravity, flux in calls:
+    for partials, gravity, flux, share, aloft in calls:
         total = sum(partials.values())
         key = (round(math.log(total) / DISTINCT_LN_STEP), round(math.log(flux) / DISTINCT_LN_STEP), round(math.log(gravity) / DISTINCT_LN_STEP),
-               tuple(sorted((formula, round(math.log(p / total + 1e-9) / 0.5)) for formula, p in partials.items() if p / total > MIN_FRACTION)))
-        seen.setdefault(key, (partials, gravity, flux))
+               tuple(sorted((formula, round(math.log(p / total + 1e-9) / 0.5)) for formula, p in partials.items() if p / total > MIN_FRACTION)),
+               round(share * 10.0), round(math.log(aloft / total) / DISTINCT_LN_STEP) if share > 0.0 else 0)
+        seen.setdefault(key, (partials, gravity, flux, share, aloft))
     return list(seen.values())
 
 
 def perturbed(air, rng):
-    partials, gravity, flux = air
+    partials, gravity, flux, share0, aloft0 = air
     total = sum(partials.values())
     scaled = {formula: p * math.exp(rng.gauss(0.0, 0.4)) if rng.random() < 0.5 else p for formula, p in partials.items()}
     norm = sum(scaled.values())
     scale = math.exp(rng.uniform(-1.0, 1.0))
     scaled = {formula: p / norm * total * scale for formula, p in scaled.items()}
-    share = math.exp(rng.uniform(math.log(0.003), math.log(0.9))) if rng.random() < 0.2 else 0.0
-    aloft = sum(scaled.values()) * 10.0 ** rng.uniform(-5.5, -1.0)
+    if share0 > 0.0:
+        share = min(0.95, share0 * math.exp(rng.gauss(0.0, 0.3)))
+        aloft = aloft0 / total * sum(scaled.values()) * math.exp(rng.gauss(0.0, 0.5))
+    else:
+        share = math.exp(rng.uniform(math.log(0.003), math.log(0.9))) if rng.random() < 0.2 else 0.0
+        aloft = sum(scaled.values()) * 10.0 ** rng.uniform(-5.5, -1.0)
     return (scaled, gravity * math.exp(rng.uniform(-0.3, 0.3)), flux * math.exp(rng.uniform(-0.8, 0.8)), share, aloft if share > 0.0 else None)
 
 
@@ -117,7 +124,7 @@ def sample(args):
             print(f"{len(calls)} greenhouse calls", flush=True)
     airs = [air for air in distinct(calls) if sum(air[0].values()) <= greenhouse_table.PRESSURE_MAX_PA]
     rng = random.Random(PERTURB_SEED)
-    out = [(*air, 0.0, None) for air in airs]
+    out = list(airs)
     if not args.no_perturb:
         out.extend(perturbed(air, rng) for air in airs)
     path = os.path.join(args.work, args.name + ".pkl")
@@ -209,7 +216,7 @@ def solve(args):
 
 def load(work, name):
     """The feature matrix and the target `ln(T_s / T_e)` of the converged samples of `name`."""
-    from planetgen.physics import greenhouse_table
+    from planetgen.physics import constants, greenhouse_table
 
     with open(os.path.join(work, name + ".pkl"), "rb") as handle:
         samples = pickle.load(handle)
@@ -220,7 +227,9 @@ def load(work, name):
             if error or surface is None or not converged:
                 continue
             partials, gravity, flux, share, aloft = samples[index]
-            effective = (flux / greenhouse_table.SIGMA) ** 0.25
+            effective = (flux / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
+            if surface < UNPHYSICAL_BELOW * effective:
+                continue                                    # the model "converged" on a surface colder than the sunlight alone gives: a fault of its own
             rows.append(greenhouse_table.features(partials, gravity, flux, share, aloft))
             targets.append(math.log(max(surface, effective) / effective))
     return np.array(rows), np.array(targets)
@@ -291,7 +300,7 @@ def fit_network(features, targets, hidden, seed, iterations, penalty):
     scale = features.std(0) + 1.0e-9
     sizes = [features.shape[1], *hidden, 1]
     result = minimize(loss_and_gradient, pack(initial(sizes, seed)), args=(sizes, (features - mean) / scale, targets, error_weights(targets), penalty), jac=True,
-                      method="L-BFGS-B", options={"maxiter": iterations, "maxfun": 2 * iterations})
+                      method="L-BFGS-B", options={"maxiter": iterations, "maxfun": 2 * iterations, "ftol": 1.0e-12, "gtol": 1.0e-9})
     layers = unpack(result.x, sizes)
     return {"mean": mean, "scale": scale, "low": features.min(0), "high": features.max(0),
             "weights": layers[0::2], "biases": layers[1::2]}, result
@@ -317,6 +326,33 @@ def temperature_error(network, features, targets):
             "kelvin_bias": float(np.mean(absolute))}
 
 
+BANDS_K = ((0.0, 300.0), (300.0, 500.0), (500.0, 1000.0), (1000.0, 1.0e9))
+"""tuple: The surface temperatures (the model's) the validation is broken down by: the cool airs the habitability reads, then the hot dense ones."""
+
+
+def validate(args):
+    """Measures the file `--out` on the sample set `--name` (made by `sample --no-perturb` on seeds the fit never saw, and `solve`) and writes the
+    result into the file as `summary.validation`, with the same percentiles broken down by the model's surface temperature."""
+    with open(args.out, encoding="utf-8") as handle:
+        data = json.load(handle)
+    network = {"mean": np.array(data["mean"]), "scale": np.array(data["scale"]), "low": np.array(data["low"]), "high": np.array(data["high"]),
+               "weights": [np.array(layer) for layer in data["weights"]], "biases": [np.array(layer) for layer in data["biases"]]}
+    features, targets = load(args.work, args.name)
+    result = temperature_error(network, features, targets)
+    model = np.exp(features[:, 0]) * np.exp(targets)
+    result["set"] = args.name
+    result["by_surface_temperature_k"] = {}
+    for low, high in BANDS_K:
+        chosen = (model >= low) & (model < high)
+        if chosen.any():
+            result["by_surface_temperature_k"][f"{low:g} to {high:g}"] = temperature_error(network, features[chosen], targets[chosen])
+    data["summary"]["validation"] = result
+    with open(args.out, "w", encoding="utf-8") as handle:
+        json.dump(data, handle, separators=(",", ":"))
+        handle.write("\n")
+    print(json.dumps(result, indent=1))
+
+
 def rounded(array):
     return [float(f"{value:.{SIGNIFICANT_DIGITS}g}") for value in np.asarray(array).ravel()]
 
@@ -324,7 +360,8 @@ def rounded(array):
 def fit(args):
     from planetgen.physics import greenhouse_table
 
-    features, targets = load(args.work, "train")
+    loaded = [load(args.work, name) for name in args.train]
+    features, targets = np.concatenate([f for f, _ in loaded]), np.concatenate([t for _, t in loaded])
     network, result = fit_network(features, targets, tuple(args.hidden), args.seed, args.iterations, args.penalty)
     summary = {"hidden": list(args.hidden), "seed": args.seed, "iterations": int(result.nit), "penalty": args.penalty,
                "training": temperature_error(network, features, targets), "pressure_max_pa": greenhouse_table.PRESSURE_MAX_PA}
@@ -344,9 +381,10 @@ def fit(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("step", choices=("sample", "designed", "solve", "fit"))
+    parser.add_argument("step", choices=("sample", "designed", "solve", "fit", "validate"))
     parser.add_argument("work", help="the work folder (outside the repository)")
     parser.add_argument("--name", default="train")
+    parser.add_argument("--train", nargs="+", default=["train"], help="fit: the sample sets to fit to (each made by sample, designed and solve)")
     parser.add_argument("--seeds", type=int, nargs=2, default=(1000, 1800))
     parser.add_argument("--no-perturb", action="store_true")
     parser.add_argument("--count", type=int, default=6000)
@@ -358,7 +396,7 @@ def main():
     parser.add_argument("--out", default=OUT)
     args = parser.parse_args()
     os.makedirs(args.work, exist_ok=True)
-    {"sample": sample, "designed": designed, "solve": solve, "fit": fit}[args.step](args)
+    {"sample": sample, "designed": designed, "solve": solve, "fit": fit, "validate": validate}[args.step](args)
 
 
 if __name__ == "__main__":
