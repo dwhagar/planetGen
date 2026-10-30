@@ -1899,3 +1899,5 @@ Baseline: PR #1817.
 | TEST.161 | 8.1 | Whole-sphere audits |
 | TEST.201 | 8.3 | Positions as one object |
 | TEST.200 | 8.3 | Positions as one object |
+| DOC.72 | 8.1 | Docs |
+| DOC.73 | 8.1 | Docs |
