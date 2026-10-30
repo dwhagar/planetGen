@@ -52,6 +52,7 @@ from planetgen.physics import (
     greenhouse,
     line_opacity,
     mixture,
+    radiative_kernel,
     saturation,
     species_thermo,
 )
@@ -74,6 +75,18 @@ WATER_CRITICAL_K = 640.0
 SUNLIGHT_WIDTH_LN_P = 1.0
 """float: STAND-IN (IR8, tier T7, L0): the width of the layer of sunlight deposited aloft, in ln P (a Gaussian: a haze or an upper methane band is a few
 scale heights deep). The share and the pressure are inputs the caller supplies; nothing here derives them from the aerosols."""
+CLOUD_LONGWAVE_TAU0 = 0.36
+"""float: STAND-IN (IR9, tier T9, L2): the grey infrared optical depth of the cloud of an air whose surface humidity is `EARTH_HUMIDITY`, spread over a
+Gaussian of width `CLOUD_WIDTH_LN_P` in ln P centred at `CLOUD_PRESSURE_SHARE` of the surface pressure. The model is a clear-sky one and the albedo of a body is its
+all-sky one, so without this a world that keeps the Earth's cloud (and its cloud shortwave cooling) would lose the cloud's longwave warming: 26.5 W/m2 for the
+Earth (CERES EBAF, the all-sky outgoing flux less the clear-sky one). Set so that the Earth's clear-sky column loses 26 W/m2 of outgoing flux to it (the
+GEN.703 stand-in `CLOUD_LONGWAVE_TAU0` of 0.35 did the same for the grey closure); the cloud scales with the surface humidity and is nil without water vapour."""
+CLOUD_PRESSURE_SHARE = 0.7
+"""float: STAND-IN (IR9, tier T9, L2): the pressure of the cloud as a share of the surface pressure (the Earth's low and middle cloud, 700 hPa of 1000)."""
+CLOUD_WIDTH_LN_P = 0.35
+"""float: STAND-IN (IR9, tier T9, L2): the width of the cloud layer in ln P."""
+EARTH_HUMIDITY = 0.77
+"""float: The mean relative humidity of the Earth's surface air (Manabe and Wetherald 1967), the humidity at which `CLOUD_LONGWAVE_TAU0` holds (tier T1)."""
 FINITE_DIFFERENCE_K = 0.5
 """float: The step of the Jacobian of the stratosphere, K."""
 STRATOSPHERE_STEPS = 25
@@ -167,7 +180,7 @@ _CP_GRID = np.arange(100.0, 4001.0, 20.0)
 @functools.cache
 def _cp_over_r(formula):
     """The heat capacity at constant pressure over R of a gas on `_CP_GRID` (the cold end of its fit stands in below the fit)."""
-    thermo = species_thermo.species(formula)
+    thermo = species_thermo.gas(formula)
     low, high = thermo.range_k
     return np.array([thermo.cp_over_r(min(max(t, low), high)) for t in _CP_GRID])
 
@@ -295,7 +308,21 @@ class Column:
         water = self.water_profile(layer_temperature, level_temperature[-1])
         mean_molar_mass = (1.0 - water) * self.dry_molar_mass + water * WATER_MOLAR_MASS
         molecules_cm2 = self.layer_mass / mean_molar_mass * AVOGADRO * 1.0e-4
-        return line_opacity.layer_depth(self.prepared, layer_temperature, self.layer_pressure, water, molecules_cm2), water
+        depth = line_opacity.layer_depth(self.prepared, layer_temperature, self.layer_pressure, water, molecules_cm2)
+        return depth + self.cloud_depth(level_temperature[-1])[:, None, None], water
+
+    def cloud_depth(self, surface_temperature):
+        """The grey infrared optical depth of the cloud in every layer (stand-in IR9): the cloud scales with the surface humidity, as the Earth's does, and is nil
+        where the air holds no water vapour."""
+        if self.water_surface <= 0.0 or not self.dry:
+            return np.zeros(self.layers) if self.water_surface <= 0.0 else self._cloud_profile(1.0)
+        saturated = float(saturation_pressure_pa(surface_temperature))
+        humidity = min(1.0, self.water_surface * self.surface_pressure_pa / saturated) if math.isfinite(saturated) else 1.0
+        return self._cloud_profile(humidity)
+
+    def _cloud_profile(self, humidity):
+        weight = np.exp(-0.5 * (np.log(self.layer_pressure / (CLOUD_PRESSURE_SHARE * self.surface_pressure_pa)) / CLOUD_WIDTH_LN_P) ** 2)
+        return CLOUD_LONGWAVE_TAU0 * humidity / EARTH_HUMIDITY * weight / weight.sum()
 
 
 # ---- the flux ----
@@ -303,35 +330,13 @@ class Column:
 def sweep(level_temperature, depth, surface_temperature):
     """
     The upward and downward infrared flux at every level, W/m2: `level_temperature` is (profile, level), `depth` the layers' optical
-    depths (layer, band, g), `surface_temperature` (profile). The source is linear in optical depth between level temperatures.
+    depths (layer, band, g), `surface_temperature` (profile). The source is linear in optical depth between level temperatures. The
+    layer-by-layer sweep is `radiative_kernel.sweep`.
     """
-    count, levels = level_temperature.shape
-    layers = levels - 1
-    weights = line_opacity.G_WEIGHTS
     emission = line_opacity.band_emission(level_temperature)                  # (profile, level, band)
     ground = line_opacity.band_emission(surface_temperature)                  # (profile, band)
-    path = DIFFUSIVITY * depth
-    transmitted = np.exp(-path)
-    absorbed = -np.expm1(-path)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        slope = np.where(path > 1.0e-6, 1.0 - absorbed / np.maximum(path, 1.0e-300), path / 2.0)
-    bands, points = depth.shape[1], depth.shape[2]
-    down = np.zeros((count, bands, points))
-    flux_down = np.zeros((count, levels))
-    for layer in range(layers):
-        top = emission[:, layer, :, None]
-        bottom = emission[:, layer + 1, :, None]
-        down = down * transmitted[layer] + top * absorbed[layer] + (bottom - top) * slope[layer]
-        flux_down[:, layer + 1] = (down * weights).sum((1, 2))
-    up = np.broadcast_to(ground[:, :, None], (count, bands, points)).copy()
-    flux_up = np.zeros((count, levels))
-    flux_up[:, layers] = (up * weights).sum((1, 2))
-    for layer in range(layers - 1, -1, -1):
-        top = emission[:, layer, :, None]
-        bottom = emission[:, layer + 1, :, None]
-        up = up * transmitted[layer] + bottom * absorbed[layer] + (top - bottom) * slope[layer]
-        flux_up[:, layer] = (up * weights).sum((1, 2))
-    return flux_up, flux_down
+    return radiative_kernel.sweep(np.ascontiguousarray(emission), np.ascontiguousarray(ground), np.ascontiguousarray(depth),
+                                  line_opacity.G_WEIGHTS, DIFFUSIVITY)
 
 
 def _upper_levels(layer_temperature):
