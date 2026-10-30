@@ -347,6 +347,84 @@ def test_api_near_answers_and_refuses(client, galaxy):
         assert client.get(bad).status_code == 400, bad
 
 
+def test_the_list_reads_the_names_of_one_page_and_names_every_row_as_before(galaxy, monkeypatch):
+    """PERF.217: the sphere's systems are listed from the covering cell index (id and position), and the name and sector of a system
+    are read for the systems of the page only; every row, on every page, carries what it carried when the whole sphere's rows were read."""
+    from planetgen.db import region
+    conn = _conn(galaxy)
+    try:
+        center = sector_position_pc(*ADDRESSES[0], EDGE_PC)
+        place = near.place_from_point(center)
+        listed = []
+        real = region.region_rows
+
+        def watching(conn_, table, columns, *rest, **keyword):
+            listed.append((table, columns))
+            return real(conn_, table, columns, *rest, **keyword)
+
+        monkeypatch.setattr(region, "region_rows", watching)
+        everything = near.objects_within(conn, place, 40.0, limit=near.MAX_LIMIT)
+        assert ("star_systems", "p.id, p.galaxy_x_pc, p.galaxy_y_pc, p.galaxy_z_pc") in listed
+        assert not any(table == "star_systems" and "name" in columns for table, columns in listed)
+        assert everything["total"] >= 10 and len({row["kind"] for row in everything["rows"]}) >= 2
+
+        labels = {row["id"]: (row["name"], row["sector_id"]) for row in conn.execute("SELECT id, name, sector_id FROM star_systems").fetchall()}
+        for row in everything["rows"]:
+            if row["kind"] == "system":
+                name, sector_id = labels[row["id"]]
+                assert row["name"] == name
+                assert row["parent"] == ({"ref": f"sector:{sector_id}", "kind": "sector", "name": row["parent"]["name"]}
+                                         if sector_id is not None else None)
+            elif row["parent"] and row["parent"]["kind"] == "system":
+                assert row["parent"]["name"] == labels[int(row["parent"]["ref"].split(":")[1])][0]
+        assert any(row["parent"] and row["parent"]["kind"] == "system" for row in everything["rows"]), "the sphere holds a body of a system"
+
+        # Pages cut from the same sphere are the same rows, and each is named by its own reads.
+        paged = []
+        for offset in range(0, everything["total"], 7):
+            page = near.objects_within(conn, place, 40.0, limit=7, offset=offset)
+            assert page["total"] == everything["total"] and page["by_kind"] == everything["by_kind"]
+            paged.extend(page["rows"])
+        assert len(paged) == everything["total"] and paged[:len(everything["rows"])] == everything["rows"]
+        for row in paged:           # all of them, past the first page of the whole sphere too
+            if row["kind"] == "system":
+                assert row["name"] == labels[row["id"]][0]
+            elif row["parent"] and row["parent"]["kind"] == "system":
+                assert row["parent"]["name"] == labels[int(row["parent"]["ref"].split(":")[1])][0]
+    finally:
+        conn.close()
+
+
+def test_the_distance_is_worked_out_once_per_candidate_and_returns_the_same_systems(galaxy):
+    """PERF.216: the statement tests the distance as `POW(axis - c, 2)` once (MySQL does not share `(axis - c) * (axis - c)`, and a test in
+    `WHERE` plus the select list worked it out twice more), and the systems it returns are those of the product form, a system exactly
+    `radius` away included."""
+    from planetgen.db import region
+    from planetgen.galaxy import cellkey
+    position = ("p.galaxy_x_pc", "p.galaxy_y_pc", "p.galaxy_z_pc")
+    sql, _runs = region.region_statement("star_systems", "p.id", position, (8200.0, 0.0, 0.0), 20.0)
+    assert sql.count("POW(") == 6 and sql.count(" AS d2") == 2 and sql.count("HAVING d2 <= ") == 2 and ") * (" not in sql
+    counting, _runs = region.region_statement("star_systems", "1 AS one", position, (8200.0, 0.0, 0.0), 20.0, with_distance=False)
+    assert counting.count("POW(") == 6 and "d2" not in counting and "HAVING" not in counting
+    conn = _conn(galaxy)
+    try:
+        systems = _systems(conn)
+        points = [point for _name, point in systems.values()]
+        for center in points[:3] + [sector_position_pc(*ADDRESSES[0], EDGE_PC)]:
+            for radius in (0.0, 3.0, 12.0, 50.0, *(math.dist(center, other) for other in points[:4])):
+                runs = cellkey.sphere_runs(center, radius)
+                reach = radius * (1.0 + region.SLACK) + region.SLACK
+                product = " + ".join(f"({axis} - {c!r}) * ({axis} - {c!r})" for axis, c in zip(position, center))
+                expected = {row["id"] for row in conn.execute(
+                    f"SELECT p.id FROM ({region.values_list(runs)}) AS rg(lo, hi) STRAIGHT_JOIN star_systems p FORCE INDEX (idx_star_systems_cell) "
+                    f"ON p.cell_key BETWEEN rg.lo AND rg.hi WHERE {product} <= {reach * reach!r}").fetchall()} if runs else set()
+                found = {row["id"] for row in region.region_rows(conn, "star_systems", "p.id", position, center, radius, runs=runs)}
+                assert found == expected, (center, radius)
+                assert region.capped_count(conn, "star_systems", position, center, radius, 10_000) == len(expected), (center, radius)
+    finally:
+        conn.close()
+
+
 def test_the_early_stop_count_counts_up_to_its_cap(galaxy):
     """NAV.61: `capped_count` is the sphere's real count below the cap and the cap above it."""
     from planetgen.db import region
@@ -468,6 +546,7 @@ def test_the_command_line_asks_for_the_nearest_few(galaxy, monkeypatch, capsys):
         return capsys.readouterr().out
 
     out = run("--nearest", "3", "--kinds", "system")
-    assert out.count("\n") == 4 and " found within " in out         # three rows and the summary line
-    with pytest.raises(SystemExit, match="--distance"):
+    assert out.count("\n") == 4 and " objects found within " in out    # three rows and the summary line (API.33: it counts objects)
+    with pytest.raises(SystemExit) as refused:      # a command-line error: argparse exits 2 and writes the usage and the reason to stderr (TEST.465)
         run()
+    assert refused.value.code == 2 and "give --distance" in capsys.readouterr().err

@@ -19,7 +19,7 @@ import contextlib
 
 from planetgen.db import store
 from planetgen.generation import finish_run, run_common, stages
-from planetgen.queue import wrapper
+from planetgen.queue import runrecord, wrapper
 from planetgen.util import log
 
 
@@ -80,6 +80,33 @@ class Follower:
         self._held.__exit__(exc_type, exc, traceback)
 
 
+class Planned:
+    """
+    A run a verb is going to make, before it is started (PERF.203): the followers of its stages in order, the run's title, the
+    options `run_followed` takes besides them (`seed`, `kind`, `workers`, `galaxy`) and `result`, the callable that gives what the
+    verb returns once the run has ended (it reads the followers). `planetgen <verb>` starts its own with `run_planned`; the one
+    run of a whole Generate job (`planetgen run-job`) takes the followers of every selected verb from the same functions, so the
+    two cannot differ.
+
+    Attributes:
+        followers (list[Follower]): One for each stage, in order.
+        title (str): What the run is called.
+        options (dict): The keyword arguments of `run_followed`.
+        result (callable or None): `result()` is what the verb returns.
+    """
+
+    __slots__ = ("followers", "title", "options", "result")
+
+    def __init__(self, followers, title, result=None, **options):
+        self.followers, self.title, self.options, self.result = list(followers), title, options, result
+
+
+def run_planned(args, planned):
+    """Runs a `Planned` as one run (`run_followed`) and returns what its `result` gives, `None` without one."""
+    run_followed(args, planned.followers, planned.title, **planned.options)
+    return planned.result() if planned.result is not None else None
+
+
 def _enter(follower):
     """Enters the follower's stage for the run's numbering, as one whose row the queue stores unless it keeps its own."""
     key = follower.key
@@ -91,7 +118,7 @@ def _enter(follower):
         stages.enter(key, queued=True)
 
 
-def run_followed(args, followers, title, seed=None):
+def run_followed(args, followers, title, seed=None, kind=runrecord.GENERATION, workers=None, galaxy=True):
     """
     Runs the stages of `followers` as one run in the queue and follows it to its end: the steps are the followers'
     (`wrapper.plan_steps`, each with its parameters), the stage rows are handed to the queue up front
@@ -102,6 +129,10 @@ def run_followed(args, followers, title, seed=None):
         followers (list[Follower]): One for each stage, in order.
         title (str): What the run is called.
         seed (int, optional): The seed to record with the run.
+        kind (str): The kind of run (`runrecord.GENERATION`, or `runrecord.MAINTENANCE` for one that saves nothing).
+        workers (int, optional): The workers to use, the run's `--workers` when not given.
+        galaxy (bool): Whether to record the stored galaxy's seed and build with the run, so `planetgen finish-run` can
+            carry it on (false for a run that belongs to no galaxy: one sector or one system).
 
     Raises:
         redisqueue.Unavailable: No Redis server answers.
@@ -109,9 +140,9 @@ def run_followed(args, followers, title, seed=None):
         units.RunStopped: A unit failed or the run was cancelled.
     """
     mysql_config = store.mysql_config_from_args(args)
-    workers = run_common._worker_count(args)
+    workers = workers or run_common._worker_count(args)
     database = wrapper.database_args(mysql_config)
-    galaxy_seed, build = finish_run.current_galaxy(args)
+    galaxy_seed, build = finish_run.current_galaxy(args) if galaxy else (None, None)
     steps, listing = wrapper.plan_steps(
         args, [(f.key, f.label, {"database": database, "workers": workers, **f.params()}) for f in followers])
     rows = {f.key: row for f in followers if f.own_row and (row := stages.row_for(f.key)) is not None}
@@ -132,14 +163,15 @@ def run_followed(args, followers, title, seed=None):
         followers[index].end(conclusion)
         open_ones.remove(followers[index])
 
-    with run_common._generation_progress() as progress:
+    # a document written to stdout (`--output -`) must start at its first line: the bar's display, even a finished one, writes a blank line
+    with run_common._generation_progress(disable=getattr(args, "output", None) == "-") as progress:
         log.set_console(progress.console)
         for follower in followers:
             follower.progress, follower.workers = progress, workers
         try:
             wrapper.run(title, steps, on_plan, on_result, on_progress, workers_count=workers,
                         who=getattr(args, "who", None), database=mysql_config.database,
-                        argv=getattr(args, "argv", None), seed=seed, listing=listing, rows=rows or None,
+                        argv=getattr(args, "argv", None), seed=seed, listing=listing, rows=rows or None, kind=kind,
                         on_stage_done=on_stage_done, galaxy_seed=galaxy_seed, build=build)
         except BaseException as exc:
             for follower in open_ones:

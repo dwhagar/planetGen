@@ -166,15 +166,15 @@ def saturation_pa(formula, temperature_k):
     return gas.triple_point_pa * math.exp(-heat * 1000.0 / constants.R * (1.0 / temperature_k - 1.0 / gas.triple_point_k))
 
 
-def profile(column, temperature_k, levels=240, decades=8.0):
+def profile(column, temperature_k, levels=240, decades=8.0, skin_k=None):
     """
     The pressure and temperature of `levels` points from the ground (index 0) up: the dry adiabat from `temperature_k`, isothermal at the
-    skin temperature above.
+    skin temperature above (`skin_k` when given, else `temperature_k` times `SKIN_FACTOR`).
 
     Returns:
         tuple: `(pressure_pa, temperature_k)`, arrays.
     """
-    skin = temperature_k * SKIN_FACTOR
+    skin = temperature_k * SKIN_FACTOR if skin_k is None else min(skin_k, temperature_k)
     cp = _cp_j_mol_k(column, 0.5 * (temperature_k + skin))
     kappa = constants.R / cp
     pressure = column.pressure_pa * 10.0 ** (-np.linspace(0.0, decades, levels))
@@ -432,8 +432,10 @@ def _clear(body):
 
 def stream_of(body):
     """The body's own stream for these draws, seeded from what is final about it before they are made, so no draw of the run's stream
-    moves when they are added, taken out or retuned."""
-    return draw.Stream(f"aerosols:{body.is_moon}:{body.planet_class}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{body.surface_temperature!r}")
+    moves when they are added, taken out or retuned. It is keyed on the body's identity (moon or planet, mass, radius, distance) and its
+    conditions (surface temperature, air pressure), never on its class letter (GEN.917, GEN.915)."""
+    return draw.Stream(f"aerosols:{body.is_moon}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{body.surface_temperature!r}"
+                       f":{getattr(body, 'atmospheric_pressure', None)!r}")
 
 
 def generate_aerosols(body):

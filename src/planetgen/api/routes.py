@@ -563,7 +563,8 @@ def systems():
     `placement=sector|standalone` and `octant` (repeatable), and `facets=1`
     for the filter menus' option counts (`facets`: `placement`, `binary`,
     `octant`). `total` counts the systems that pass the filters. `after=<system ID>` starts the page after that system in the
-    name sort instead of skipping `offset` rows (PERF.75: page 40,000 costs what page 1 does). `from=<text>` is the
+    sort instead of skipping `offset` rows (PERF.75, PERF.206: page 40,000 costs what page 1 does, in the name, sector,
+    octant and binary sorts; a list filtered by star type or sector reads by `offset`). `from=<text>` is the
     jump-by-value box (PERF.75): with the `name` sort the list begins at the first name from that text on (a letter, or
     the start of a name), with the `sector` sort at the first sector from it on, in the sort's direction; `total`
     counts the systems from there and `offset` and `after` count from there too. The other sorts ignore it.
@@ -662,6 +663,48 @@ def system_text(system_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     return jsonify({"id": system_id, "format": fmt, "content": content})
+
+
+def _life_air(table, body_id):
+    """Shared body of `planet_life_air` and `moon_life_air`."""
+    from planetgen.generation import evolution
+    from planetgen.physics import life_air, life_classes
+
+    conn = get_db()
+    row = conn.execute(f"SELECT star_system_id, life_class, life_class_variant, life_stage FROM {table} WHERE id = ?", (body_id,)).fetchone()
+    if row is None:
+        raise ApiError(f"no such {table[:-1]}: {body_id}", status_code=404)
+    class_id = life_classes.living_class_id(row["life_class"], row["life_class_variant"], row["life_stage"])
+    history = None
+    if class_id in life_classes.BY_ID:
+        system = store.load_star_system(conn, row["star_system_id"])
+        bodies = [planet for planet in system.planets if hasattr(planet, "moons")]
+        bodies += [moon for planet in bodies for moon in planet.moons]
+        body = next((b for b in bodies if getattr(b, "db_id", None) == body_id and (b.is_moon == (table == "moons"))), None)
+        if body is not None:
+            ages = dict(zip(evolution.MILESTONE_KEYS, (getattr(body, field, None) for field in evolution.SCHEDULE_FIELDS)))
+            history = life_air.air_history(body, life_classes.BY_ID[class_id], ages)
+    return jsonify({"id": ids.printed(conn, table[:-1], body_id), "life_class_id": class_id, "life_air": history})
+
+
+@bp.route("/planets/<uid:planet_id>/life-air")
+def planet_life_air(planet_id):
+    """
+    `GET /api/planets/<id>/life-air` -- the Life and air chart's data (UX.237, `physics.life_air.air_history`): the planet's air through the
+    age of its star as far as the life class that lives on it changed it, worked out from the stored air on request and stored nowhere. `{"id",
+    "life_class_id", "life_air"}`; `life_air` is `null` for a world with no living class, a giant, or an air the life did not change.
+    Otherwise it has `age_gyr` (the star's age, Gyr), `producers_gyr` and `rose_gyr` (the ages the producers began and the oxygen rose,
+    Gyr, the latter `null` for a class that makes none), `gases` (`{"formula", "name", "steps": [[age_gyr, partial_pressure_kpa], ...]}`, each
+    value holding until the next age), `stages` (`{"key", "age_gyr"}` for each milestone the schedule reaches) and `speculative` (the
+    ledger's `{"tier", "tweak"}` for a class whose numbers are tuned, else `null`).
+    """
+    return _life_air("planets", planet_id)
+
+
+@bp.route("/moons/<uid:moon_id>/life-air")
+def moon_life_air(moon_id):
+    """`GET /api/moons/<id>/life-air` -- the same for a moon (see `planet_life_air`)."""
+    return _life_air("moons", moon_id)
 
 
 @bp.route("/near")
@@ -1430,7 +1473,10 @@ def phenomena():
     for the type and descriptor filter menus (`db.query.phenomena_facets`).
     `total` counts the rows that pass the filters (`total_capped`: it stopped at 10,000, PERF.69).
     `after=<scatter id>` (the `scatter_id` of a scattered row) starts the page after that row in the tail of
-    unbuilt scattered phenomena instead of skipping `offset` rows (PERF.75). `from=<scatter id>` (PERF.135, the
+    unbuilt scattered phenomena instead of skipping `offset` rows (PERF.75). `after=<type>:<ID>` (the `type` and `id`
+    of a built row, such as `nebula:0008000000-3000000-000`) starts it after that row in the order of `sort`, then
+    the tail (PERF.205, PERF.211: any page costs the same, `offset` is ignored with it; the first page of any sort needs
+    no `after` and costs the same too, while a page by `offset` past the first sorts the whole set of built rows). `from=<scatter id>` (PERF.135, the
     jump-by-value box) lists that tail from the row with that id on (the built phenomena come before it and are not
     listed); a value that is not a whole number from 1 up is a 400, and one past the last scattered row answers the last
     page of the tail, `total` its length and `past_end` true.
@@ -1442,14 +1488,21 @@ def phenomena():
         "descriptors": [v for v in request.args.getlist("descriptor") if v],
         "placed": _parse_yes_no(request.args.get("placed"), "placed"),
     }
+    db = get_db()
     after = None
     if request.args.get("after"):
-        try:
-            after = int(request.args["after"])
-        except ValueError:
-            raise ApiError(f"after must be a scatter id, got {request.args['after']!r}")
+        type_label, colon, printed = request.args["after"].partition(":")
+        if colon:
+            row = ids.row_id(db, type_label, printed) if type_label in ids.PHENOMENON_KINDS else None
+            if row is None:
+                raise ApiError(f"after must be a scatter id or <type>:<ID> of a phenomenon, got {request.args['after']!r}")
+            after = (type_label, row)
+        else:
+            try:
+                after = int(request.args["after"])
+            except ValueError:
+                raise ApiError(f"after must be a scatter id or <type>:<ID> of a phenomenon, got {request.args['after']!r}")
     start = (request.args.get("from") or "").strip()[:MAX_START_LENGTH] or None
-    db = get_db()
     try:
         total = count_phenomena(db, start=start, **filters)
         items = list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after,

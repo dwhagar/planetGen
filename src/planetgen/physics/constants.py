@@ -288,7 +288,6 @@ FOUR_PI = 4 * math.pi
 
 # --- Real Stellar Classification Data ---
 SUBCLASS_MAX_VALUE = 9  # Spectral subclasses run 0-9 by astronomical convention
-MAIN_SEQUENCE_MASS_LUMINOSITY_EXPONENT = 3.5
 SPECTRAL_CLASS_COLORS = {'O': 'Blue', 'B': 'Blue-White', 'A': 'White', 'F': 'Yellow-White', 'G': 'Yellow', 'K': 'Orange', 'M': 'Red'}
 
 # --- White Dwarf Physics ---
@@ -299,73 +298,25 @@ CHANDRASEKHAR_LIMIT_SOL = 1.44
 # A base radius for a 1 solar mass white dwarf, in kilometers.
 WHITE_DWARF_BASE_RADIUS_KM = 5800
 
-# The hot cores of planetary nebulae (GEN.149), generated as an O or B white
-# dwarf (class VII): observed central stars are 0.5 to 0.7 Msun (median
-# 0.59), 1e2 to 1e4 Lsun and up to 2e5 K (Weidmann et al. 2020, A&A 640,
-# A10; Frew & Parker 2010, PASA 27, 129), not near-Chandrasekhar objects.
-HOT_WHITE_DWARF_MASS_RANGE_SOL = (0.5, 0.7)
-HOT_WHITE_DWARF_MEDIAN_MASS_SOL = 0.59
-HOT_WHITE_DWARF_MASS_SIGMA_SOL = 0.04
-HOT_WHITE_DWARF_LUMINOSITY_RANGE_SOL = (1.0e2, 1.0e4)
-HOT_WHITE_DWARF_TEMP_RANGES = {'O': (30000, 200000), 'B': (10000, 30000)}
-COOL_WHITE_DWARF_BELOW_K = HOT_WHITE_DWARF_TEMP_RANGES['B'][0]  # a white dwarf cooler than the hot ones' floor is a cool one
-COOL_WHITE_DWARF_MAX_MASS_SOL = 1.0
+# A white dwarf cooler than this is a cool one (the hot ones are the cores of planetary nebulae and the youngest remnants).
+COOL_WHITE_DWARF_BELOW_K = 10000
 WHITE_DWARF_MASS_RADIUS_EXPONENT = -1/3
 
-# Temperature ranges for each spectral class in Kelvin
+# The temperatures between which the nearest spectral type is of each letter, in Kelvin: the midpoints between the last type of one
+# letter and the first of the next in the Pecaut and Mamajek dwarf sequence (GEN.943; `mamajek_sequence.letter_range_k` reads them
+# from the file and a test keeps these equal). The map shades a star within its letter's band with them.
 TEMP_RANGES = {
-    'O': (30000, 60000), 'B': (10000, 30000), 'A': (7500, 10000), 'F': (6000, 7500),
-    'G': (5200, 6000), 'K': (3700, 5200), 'M': (2400, 3700)
-}
-
-# Luminosity ranges based on a star's spectral class (color/temperature).
-# This is primarily useful for Main Sequence (V) stars, where the relationship is strong.
-SPECTRAL_LUMINOSITY_RANGES = {
-    'O': (30000, 1000000), 'B': (25, 30000), 'A': (5, 25), 'F': (1.5, 5),
-    'G': (0.6, 1.5), 'K': (0.08, 0.6), 'M': (0.0001, 0.08)
+    'O': (32350, 62500), 'B': (10200, 32350), 'A': (7310, 10200), 'F': (5990, 7310),
+    'G': (5325, 5990), 'K': (3890, 5325), 'M': (2285, 3890)
 }
 
 # Typical main-sequence mass ranges by spectral class (letter), in solar
-# masses, per standard stellar-classification references. Unlike
-# YERKES_MASS_CONSTRAINTS above (which spans every luminosity class, so its
-# "V" entry alone covers this whole range), this is specifically dwarfs
-# broken out by spectral letter -- used to scale a star's galactic Hill
+# masses, per standard stellar-classification references: dwarfs broken
+# out by spectral letter -- used to scale a star's galactic Hill
 # radius (see `spaceSector.hill_radius_ly`) across spectral types.
 SPECTRAL_MASS_RANGES = {
     'O': (15, 90), 'B': (2, 16), 'A': (1.4, 2.1), 'F': (1.0, 1.4),
-    'G': (0.89, 1.07), 'K': (0.6, 0.9), 'M': (0.08, 0.45)
-}
-
-# Approximate luminosity ranges for each Yerkes luminosity class, in solar luminosities.
-# This is the primary determinant of a star's energy output.
-YERKES_LUMINOSITY_RANGES = {
-    "0": (500000, 2000000),      # Hypergiants
-    "IA+": (500000, 2000000),    # Luminous Supergiants (upper end)
-    "IA": (50000, 500000),       # Luminous Supergiants
-    "IAB": (10000, 100000),      # Intermediate-size Luminous Supergiants
-    "IB": (1000, 50000),         # Less Luminous Supergiants
-    "II": (100, 10000),          # Bright Giants
-    "III": (50, 1000),           # Normal Giants
-    "IV": (2, 50),               # Subgiants
-    "V": (0.0001, 1000000),      # Main-sequence (very broad)
-    "VI": (0.00001, 0.1),        # Subdwarfs (dimmer than main sequence)
-    "VII": (0.0001, 0.1),        # White Dwarfs (standard)
-    "D": (0.0001, 0.1),          # Alias for White Dwarfs
-    "W": (100000, 1000000),      # Wolf-Rayet stars (tuning.WR_LUMINOSITY_RANGE_SOL, GEN.243)
-}
-
-# Physically allowed mass ranges for each Yerkes luminosity class, in solar masses.
-# This enforces realistic constraints on generated stars.
-YERKES_MASS_CONSTRAINTS = {
-    "0": (20, 150), "IA+": (20, 150), "IA": (10, 40), "IAB": (8, 20), "IB": (8, 20),
-    "II": (2, 15),
-    "III": (0.8, 8),
-    "IV": (1, 5),
-    "V": (0.08, 150),
-    "VI": (0.1, 0.8),
-    "VII": (0.5, CHANDRASEKHAR_LIMIT_SOL),
-    "D": (0.5, CHANDRASEKHAR_LIMIT_SOL),
-    "W": (10, 90),    # Wolf-Rayet: 0.4 to 0.6 of an initial 25 to 150 solar masses (GEN.243)
+    'G': (0.89, 1.07), 'K': (0.58, 0.9), 'M': (0.08, 0.58)
 }
 
 # --- Orbital motion (physics.planets.generate_orbital_motion_properties) ---

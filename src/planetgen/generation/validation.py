@@ -26,7 +26,7 @@ import math
 from collections import namedtuple
 
 from planetgen.generation import life as planetLife
-from planetgen.physics import constants, orbit_elements, planet_classes, planets as planetPhysics, rings
+from planetgen.physics import constants, daylight, orbit_elements, planet_classes, planets as planetPhysics, rings
 from planetgen import tuning
 from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
 from planetgen.physics import unit_registry as units
@@ -255,6 +255,12 @@ def reconcile_moved_planet(planet):
     # every moon's own mass/position, any of which the reconciliation above may just have moved. Recomputed unconditionally here,
     # the same "cheap, always recompute from current state" treatment store.advance_orbital_phases gives this same value.
     refresh_planet_reflex(planet)
+
+    # GEN.904: the spin, the orbital period or the class above can be new, and the day and night shares were worked out from the
+    # old ones (or went with a regenerated body): they follow the geometry the planet and its moons have now (no draws).
+    daylight.generate(planet)
+    for moon in planet.moons:
+        daylight.generate(moon, planet)
 
 
 def refresh_planet_reflex(planet, force=False):

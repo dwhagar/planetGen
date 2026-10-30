@@ -26,9 +26,24 @@ def _worlds(seeds):
                 yield planet
 
 
+OXYGENIC_WORLDS_WANTED = 3
+"""int: How many worlds of oxygenic life the sample must hold for the tests that read them."""
+
+FIRST_SEEDS = 12
+"""int: The seeds always drawn; more follow until `OXYGENIC_WORLDS_WANTED` oxygenic worlds are held (one seed in eight gives one)."""
+
+LAST_SEED = 80
+"""int: The seed after which the sample stops growing (the tests then fail on the missing oxygenic worlds)."""
+
+
 @pytest.fixture(scope="module")
 def worlds():
-    return list(_worlds(range(0, 12)))
+    held = list(_worlds(range(0, FIRST_SEEDS)))
+    seed = FIRST_SEEDS
+    while seed < LAST_SEED and sum(1 for w in held if w.life_class_id and evolution.releases_oxygen(w.life_class_id)) < OXYGENIC_WORLDS_WANTED:
+        held += list(_worlds([seed]))
+        seed += 1
+    return held
 
 
 def test_earth_numbers_balance_at_the_oxygen_of_earths_air():

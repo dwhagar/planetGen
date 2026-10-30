@@ -6,7 +6,7 @@
 {%- set archive = data.archive %}
 <section class="panel" aria-labelledby="archive-heading">
   <h2 id="archive-heading">Archive</h2>
-  <p>Taken {{ utc_time(archive.taken_at) }}{% if archive.taken_by %} by {{ archive.taken_by }}{% endif %}{% if archive.reason %}, because: {{ archive.reason }}{% endif %}. {{ num(archive.size / 1024, ',.1f') }} KB{% if archive.version %}, made by planetGen {{ archive.version }}{% endif %}.</p>
+  <p>Taken {{ utc_time(archive.taken_at) }}{% if archive.taken_by %} by {{ archive.taken_by }}{% endif %}{% if archive.reason %}, because: {{ archive.reason }}{% endif %}. {{ num(archive.size_bytes / 1024, ',.1f') }} KB{% if archive.version %}, made by planetGen {{ archive.version }}{% endif %}.</p>
   {%- if data.verified %}
   <p class="hint">Checked: every file in it matches its recorded hash.</p>
   {%- else %}

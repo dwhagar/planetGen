@@ -189,3 +189,25 @@ def test_the_description_has_a_sentence_for_every_layer():
     assert all(s.endswith(".") and any(word in s for word in ("hydrogen", "rock", "iron")) for s in sentences)
     ice = gi.describe_interior(interior(NEPTUNE))
     assert any("mantle of water, ammonia and methane" in s for s in ice)
+
+
+def test_the_summary_wording_has_a_clause_for_every_kind_and_every_feature_it_names():
+    """GEN.811: the keys the summary uses are pinned, so a layer kind or interior kind added later must be worded."""
+    assert set(gi.INTERIOR_KIND_WORDING) == set(gi.INTERIOR_KINDS)
+    assert set(gi.INTERIOR_FEATURE_WORDING) == {"metallic_envelope", "dilute_core", "helium_shell", "helium_rain", "ice_mantle"}
+    for body in (interior(JUPITER), interior(SATURN), interior(NEPTUNE), interior(BROWN_DWARF)):
+        keys = gi.interior_wording_keys(body)
+        assert keys[0] == body.kind and all(key in gi.INTERIOR_FEATURE_WORDING for key in keys[1:])
+
+
+def test_three_giants_read_differently_and_each_names_its_layers():
+    jupiter, neptune, dwarf = (gi.summarize_interior(interior(spec)) for spec in (JUPITER, NEPTUNE, BROWN_DWARF))
+    assert len({jupiter, neptune, dwarf}) == 3
+    assert jupiter.startswith("Soundings read a gas giant") and "liquid metal" in jupiter and jupiter.endswith(".")
+    assert neptune.startswith("Soundings read an ice giant") and "ionic water" in neptune
+    assert dwarf.startswith("Soundings read a brown dwarf")
+    for seed in range(1, 30):
+        body = interior(SATURN, seed)
+        text = gi.summarize_interior(body)
+        assert ("helium the rain left" in text) == body.has_helium_shell
+        assert ("dilute core" in text) == (body.dilute_core_mass_earth > 0)

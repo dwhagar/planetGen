@@ -18,10 +18,11 @@ and 7); the stability criteria, the Kozai-Lidov screen and the Peters time are
    that continues the table's last column, and the `prevalence` knob on the
    five-or-more columns. A forced `n_stars` or a lower `max_stars` wins.
 2. **Which members.** The other stars have initial masses `m1 * U(0.1, 1)`
-   (the ratio no lower than keeps the star over the deuterium limit, GEN.596)
-   and take their present state from the system's age (main sequence, giant,
-   white dwarf, pre-main-sequence, protostar; a brown dwarf below 0.08
-   solar masses). A compact companion (white dwarf, neutron star, black hole)
+   (the ratio no lower than keeps the star over the hydrogen-burning limit,
+   GEN.899: the table counts stars) and take their present state from the
+   system's age (main sequence, giant, white dwarf, pre-main-sequence,
+   protostar). A brown dwarf is one more member, in `tuning.BROWN_DWARF_COMPANION_CHANCE`
+   of the trees a directive does not count. A compact companion (white dwarf, neutron star, black hole)
    is added at the odds of `MEMBER_STATE_BY_PLACED`, one uniform draw per
    placed object, so the scatter's bulk pass can screen with it
    (`companion_state`) and call the tree only for the hits.
@@ -61,6 +62,7 @@ from planetgen.physics import unit_registry as units
 
 _m_to_au = units.converter("m", "au")
 _km_to_m = units.converter("km", "m")
+_km_to_au = units.converter("km", "au")
 _m_to_km = units.converter("m", "km")
 _au_to_m = units.converter("au", "m")
 _yr_to_d = units.converter("yr", "d")
@@ -307,7 +309,7 @@ class MemberTree:
 
     @property
     def star_count(self):
-        return sum(member.kind not in COMPACT_KINDS for member in self.members)
+        return sum(member.kind not in COMPACT_KINDS and member.kind != "brown-dwarf" for member in self.members)
 
     @property
     def compact_count(self):
@@ -983,6 +985,35 @@ class _Builder:
                 self.extra_flags[index] = self.extra_flags.get(index, 0) | MEMBER_THEORETICAL
 
 
+def built_tree_clears(nodes, stars):
+    """
+    Whether the built stars of a tree clear its orbits: the same screen `_Builder.clears_extents` runs on the drawn leaves, run
+    on the radii and masses the build gave the stars (`nodes` the tree's `OrbitNode`s, `stars` `(parent_node_no, radius_au,
+    mass_solar)` for each). A star the build makes from a birth mass and an age can come out larger than the tree's member
+    (a giant where the tree had a white dwarf), and a pair then holds a star inside its partner.
+    """
+    singles, inner = {}, {}
+    for parent, radius_au, mass_solar in stars:
+        singles.setdefault(parent, []).append((radius_au, mass_solar))
+    for node in nodes:
+        inner.setdefault(node.parent_node_no, []).append(node)
+    for node in nodes:
+        axis_au = _km_to_au(node.separation_km)
+        peri = axis_au * (1.0 - node.eccentricity)
+        pair = singles.get(node.node_no, [])
+        if len(pair) == 2 and node.node_no not in inner:
+            (radius_a, mass_a), (radius_b, mass_b) = pair
+            if (roche.filling_factor(radius_a, peri, mass_a, mass_b) > MAX_FILL_FACTOR
+                    or roche.filling_factor(radius_b, peri, mass_b, mass_a) > MAX_FILL_FACTOR):
+                return False
+            continue
+        extent = sum(radius for radius, _mass in pair) + sum(
+            child.separation_km / constants.AU_TO_KM * (1.0 + child.eccentricity) for child in inner.get(node.node_no, ()))
+        if peri < PERICENTRE_EXTENT_FACTOR * extent:
+            return False
+    return True
+
+
 def _shape(units, rng):
     """A random binary tree over `units` (indices or nested pairs of them)."""
     if len(units) == 1:
@@ -1335,12 +1366,12 @@ state itself."""
 
 def companion_ratio_range(birth):
     """The range `(low, high)` the birth mass of another star of a tree is drawn over, as a share of the primary's `birth`
-    solar masses, uniform: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the deuterium
-    limit (`brown_dwarf.mass_range_solar`): lighter objects are planets, filled in as planets are, not members of a tree
-    and not on the cooling tracks (GEN.596)."""
+    solar masses, uniform: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the hydrogen-burning
+    limit (`mass_boundaries.sol("hydrogen_burning_limit")`): the `star-count` table counts stars, so a lighter object would use up one of its
+    places (GEN.899). The brown dwarfs of a tree are a member of their own (`tuning.BROWN_DWARF_COMPANION_CHANCE`); lighter
+    objects than they are planets, filled in as planets are, not members of a tree (GEN.596)."""
     low_ratio, high_ratio = tuning.BINARY_MASS_RATIO_RANGE
-    floor = brown_dwarf.mass_range_solar()[0]
-    return min(max(low_ratio, floor / birth), high_ratio), high_ratio
+    return min(max(low_ratio, mass_boundaries.sol("hydrogen_burning_limit") / birth), high_ratio), high_ratio
 
 
 def _companion_mass(birth, rng):
@@ -1396,18 +1427,24 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
             count = max(1, min(n_stars, max_stars - (compact is not None)))
         for _ in range(count - 1):
             leaves.append(_star_leaf(_companion_mass(birth, rng), age_yr, rng, fe_h=placed.tree_fe_h))
+        # A brown dwarf is no star of the table's count: a drawn tree may hold one more member (a directive's count is
+        # of stars, so it adds none).
+        brown = (n_stars is None and birth > mass_boundaries.sol("hydrogen_burning_limit") and len(leaves) < max_stars - (compact is not None)
+                 and rng.random() < tuning.BROWN_DWARF_COMPANION_CHANCE)
+        if brown:
+            leaves.append(_star_leaf(brown_dwarf.sample_mass_solar(rng), age_yr, rng, fe_h=placed.tree_fe_h))
         if stripped and count >= 2:
             leaves[1] = _stripped_helium_leaf(birth, rng)
             leaf.flags |= MEMBER_MASS_GAINER
         if compact is not None:
             leaves.append(compact)
             units[0] = (0, len(leaves) - 1)
-        units.extend(range(1, count))
+        units.extend(range(1, count + brown))
         return leaves, units
-    base = {"black-hole": _remnant_leaf("black-hole", birth, placed.mass_solar, _placed_direct_collapse(placed)),
-            "intermediate-mass-black-hole": _remnant_leaf("black-hole", birth, placed.mass_solar, True),
-            "neutron-star": _remnant_leaf("neutron-star", birth, placed.mass_solar),
-            "white-dwarf": _remnant_leaf("white-dwarf", birth, placed.mass_solar)}[placed.kind]
+    base = {"black-hole": lambda: _remnant_leaf("black-hole", birth, placed.mass_solar, _placed_direct_collapse(placed)),
+            "intermediate-mass-black-hole": lambda: _remnant_leaf("black-hole", birth, placed.mass_solar, True),
+            "neutron-star": lambda: _remnant_leaf("neutron-star", birth, placed.mass_solar),
+            "white-dwarf": lambda: _remnant_leaf("white-dwarf", birth, placed.mass_solar)}[placed.kind]()
     leaves = [base]
     if placed.kind == "white-dwarf" and draw_white_dwarf_merger(age_yr, rng.random()):
         base.flags |= MEMBER_MERGER_PRODUCT

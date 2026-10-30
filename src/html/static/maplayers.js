@@ -26,6 +26,9 @@
 //   fadedWithSectors true when the blocker fade (MAP.149, nearfield.js) hides the layer with the sectors; a
 //                    course layer says false (MAP.121's note);
 //   draw             optional `function (scene, on)`, called by `draw(scene)` for every layer of the mode;
+//   keyless          a sentence saying why the layer has no line in the key (a setting, names, nothing drawn): a layer
+//                    with no `legend`, no key entry pointing at it (`registerKey`, `layer`) and no `keyless` shows up in
+//                    `registry.unkeyed()`, which the browser test holds empty (MAP.234);
 //   forward          true when the layer can also be pulled forward (MAP.306): a third state beside shown and hidden, which
 //                    the layer's own code reads through `isPulled(id)` (it is drawn on top and named first). The Menu
 //                    gives such a layer a second button; pulling a layer forward shows it, hiding it lets it go;
@@ -70,6 +73,7 @@ export function createLayerRegistry(mode, options) {
   const pulled = new Set(); // ids pulled forward (MAP.306); `front` in the URL lists them
   const bulkGroups = new Set(); // Menu groups with a row that sets all their layers at once
   const views = new Map(); // container -> its refresh, one menu or legend per container
+  const keyEntries = []; // MAP.234: lines of the key for things drawn that are not a toggled layer, or several layers at once
 
   function find(id) {
     return layers.find(function (layer) { return layer.id === id; }) || null;
@@ -149,10 +153,49 @@ export function createLayerRegistry(mode, options) {
       throw new Error("layer " + spec.id + " begins off, so it needs urlKeyOn to say when it is on");
     }
     const layer = Object.assign({ group: null, title: null, defaultOn: true, urlKey: null, urlKeyOn: null,
-      legend: null, pickerLayer: null, fadedWithSectors: true, draw: null, available: null, data: null }, spec, { modes: modes });
+      legend: null, keyless: null, pickerLayer: null, fadedWithSectors: true, draw: null, available: null, data: null }, spec, { modes: modes });
     layers.push(layer);
     if (state.get(layer.id) === defaultOf(layer)) state.delete(layer.id);
     return layer;
+  }
+
+  // MAP.234: a line of the key. `text` (a string or a function returning one), `swatch`, `swatchClass`, `icon` and `token` are as a
+  // layer's legend entry; `drawn` is `function () -> boolean`, and the line shows only while it is true; `layer` names the layer the line
+  // stands for, if any, so the layer needs no legend of its own.
+  function registerKey(spec) {
+    if (!spec || !spec.id || !spec.text || typeof spec.drawn !== "function") throw new Error("a key line needs an id, a text and a drawn()");
+    if (keyEntries.some(function (entry) { return entry.id === spec.id; })) throw new Error("key line " + spec.id + " is already registered");
+    const modes = spec.modes || [mode];
+    modes.forEach(function (name) {
+      if (MODES.indexOf(name) < 0) throw new Error("key line " + spec.id + ": unknown map mode " + name);
+    });
+    keyEntries.push(Object.assign({ layer: null, swatch: null, swatchClass: null, icon: null, token: null }, spec, { modes: modes }));
+  }
+
+  // The key lines of the mode: [{id, layer, drawn}].
+  function keys() {
+    return keyEntries.filter(function (entry) { return entry.modes.indexOf(mode) >= 0; }).map(function (entry) {
+      return { id: entry.id, layer: entry.layer, drawn: !!entry.drawn() };
+    });
+  }
+
+  // Brings every legend drawn from this registry up to date when what is drawn has changed since the last time (the key lines whose
+  // `drawn()` changed with the view). True when it did.
+  let keySignature = null;
+  function refreshKey() {
+    const now = keyEntries.filter(function (entry) { return entry.modes.indexOf(mode) >= 0 && entry.drawn(); })
+      .map(function (entry) { return entry.id; }).join("|");
+    if (now === keySignature) return false;
+    keySignature = now;
+    views.forEach(function (refresh) { refresh(); });
+    return true;
+  }
+
+  // The ids of the layers of the mode that the key says nothing about: no legend, no key line for them and no reason given.
+  function unkeyed() {
+    return forMode().filter(function (layer) {
+      return !layer.legend && !layer.keyless && !keyEntries.some(function (entry) { return entry.layer === layer.id && entry.modes.indexOf(mode) >= 0; });
+    }).map(function (layer) { return layer.id; });
   }
 
   // Takes layers out, for ones made per sector (a kind that is not in the open sector has no button);
@@ -236,7 +279,7 @@ export function createLayerRegistry(mode, options) {
     return params;
   }
 
-  // The legend lines of the layers that are on, in registration order: [{id, text, swatch}].
+  // The legend lines of the layers that are on, in registration order, then the key lines whose thing is drawn: [{id, text, swatch}].
   function legend() {
     const lines = [];
     forMode().forEach(function (layer) {
@@ -246,6 +289,11 @@ export function createLayerRegistry(mode, options) {
         lines.push({ id: layer.id, text: entry.text, swatch: entry.swatch, swatchClass: entry.swatchClass,
           icon: entry.icon, token: entry.token });
       }
+    });
+    keyEntries.forEach(function (entry) {
+      if (entry.modes.indexOf(mode) < 0 || !entry.drawn()) return;
+      lines.push({ id: entry.id, text: typeof entry.text === "function" ? entry.text() : entry.text, swatch: entry.swatch,
+        swatchClass: entry.swatchClass, icon: entry.icon, token: entry.token });
     });
     return lines;
   }
@@ -360,12 +408,35 @@ export function createLayerRegistry(mode, options) {
     return refresh;
   }
 
-  // Fills `container` with a line per legend entry (a swatch, then the text) and hides it when there is none.
-  function renderLegend(container) {
+  // Fills `container` with a line per legend entry (a swatch, then the text) and hides it when there is none. With `options.collapsible`
+  // (MAP.234) the lines sit in a "Key" the reader can fold away, which stays folded from one page to the next (`options.storageKey`).
+  function renderLegend(container, options) {
     const doc = container.ownerDocument || document;
+    const collapsible = !!(options && options.collapsible);
+    const storageKey = (options && options.storageKey) || "planetgen.mapKey.folded";
+    let fold = null;
+    let body = container;
+    if (collapsible) {
+      fold = doc.createElement("details");
+      fold.className = "map-key";
+      const summary = doc.createElement("summary");
+      summary.textContent = "Key";
+      summary.title = "What the map draws; press to fold it away";
+      body = doc.createElement("div");
+      body.className = "map-key-lines";
+      let folded = false;
+      try { folded = doc.defaultView.localStorage.getItem(storageKey) === "1"; } catch (error) { /* no storage: it starts open */ }
+      fold.open = !folded;
+      fold.appendChild(summary);
+      fold.appendChild(body);
+      fold.addEventListener("toggle", function () {
+        try { doc.defaultView.localStorage.setItem(storageKey, fold.open ? "0" : "1"); } catch (error) { /* the choice is not kept */ }
+      });
+    }
     function refresh() {
       const lines = legend();
-      container.textContent = "";
+      body.textContent = "";
+      if (fold && fold.parentNode !== container) container.appendChild(fold);
       lines.forEach(function (line) {
         const row = doc.createElement("span");
         row.className = "map-layer-legend-line";
@@ -390,7 +461,7 @@ export function createLayerRegistry(mode, options) {
           row.appendChild(swatch);
         }
         row.appendChild(doc.createTextNode(line.text));
-        container.appendChild(row);
+        body.appendChild(row);
       });
       container.hidden = lines.length === 0;
     }
@@ -402,6 +473,10 @@ export function createLayerRegistry(mode, options) {
   return {
     mode: mode,
     register: register,
+    registerKey: registerKey,
+    keys: keys,
+    refreshKey: refreshKey,
+    unkeyed: unkeyed,
     unregister: unregister,
     get: find,
     layers: forMode,

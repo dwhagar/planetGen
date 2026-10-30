@@ -75,7 +75,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, body_colour, bulk_composition, daylight, giant_interior, life_classes, orbit_elements, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, bulk_composition, daylight, giant_interior, life_classes, moon_composition, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -2979,6 +2979,7 @@ BODY_FIELDS = (
     object_rows.each(bulk_composition.COLUMN_FIELDS),
     object_rows.each(surface_composition.COLUMN_FIELDS),
     object_rows.each(daylight.FIELDS),
+    object_rows.each(moon_composition.BODY_FIELDS),
     object_rows.computed("carbon_rock", lambda body, context: _tristate(body.carbon_rock),
                          lambda row: {"carbon_rock": _tristate_from_db(row["carbon_rock"])}),
     object_rows.each(tuple(name for name in giant_interior.BODY_FIELDS if name != "has_helium_shell")),
@@ -6039,6 +6040,7 @@ BRIGHT_STAR_COLUMNS = (
     "shell_index", "band_index", "wedge_index", *point_columns.LAYOUTS["bright_stars"].position,
     "population", "star_type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
     "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "seed", "metallicity_fe_h",
+    "rotation_period_hours",
 )
 """tuple: The `bright_stars` columns a scatter writes, in the order
 `insert_bright_stars` expects each row's values."""
@@ -8754,11 +8756,13 @@ def _save_with_retries(config, names, insert):
         conn = get_connection(config)
         claim = None
         try:
+            conn.commit()       # a connection that just checked the schema has a transaction open, and MySQL refuses the next line inside one
             conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
             # PERF.49: names are claimed on a connection of their own that
             # commits at once, so other writers wait for a claim, not for
             # this whole save.
             claim = get_connection(config)
+            claim.commit()
             claim.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
             conn.claim_connection = claim
             draw.setstate(state)

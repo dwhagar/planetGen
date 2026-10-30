@@ -143,13 +143,13 @@ def test_the_multi_star_prevalence_scales_the_five_or_more_columns():
 
 def test_the_usual_share_of_five_or_more_stars_is_the_tables_over_the_mass_function():
     """`tuning.PREVALENCE_DRAW_SHARES["multi_star"]` is not measured from generated systems yet (GEN.630): it is the
-    `star-count` table's five-or-more columns averaged over the initial mass function."""
+    `star-count` table's five-or-more columns averaged over the primary mass function (the placed star's, GEN.928)."""
     import numpy as np
     low, high = tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1]
     grid = np.geomspace(low, high, 400)
     total = five = 0.0
     for a, b in zip(grid[:-1], grid[1:]):
-        number = imf.integral(0.0, a, b)
+        number = imf.integral(0.0, a, b, imf.PRIMARY)
         weights = multistar.star_count_weights((a * b) ** 0.5)
         total += number
         five += number * sum(weights[4:]) / sum(weights)
@@ -165,8 +165,8 @@ def test_the_prevalence_option_takes_multi_star():
 
 def test_the_generate_page_offers_the_share_and_the_cap():
     names = {name: usual for name, _label, usual in generate_page.PREVALENCE_FIELDS}
-    assert names["prevalence_multi_star"] == "0.45"
-    argv = generate_page.prevalence_argv({"prevalence_multi_star": "0.9"})
+    assert names["prevalence_multi_star"] == "0.44"
+    argv = generate_page.prevalence_argv({"prevalence_multi_star": "0.88"})
     assert argv[:1] == ["--prevalence"] and argv[1].startswith("multi_star=") and float(argv[1].split("=")[1]) == pytest.approx(100, abs=3)
     assert generate_page.prevalence_argv({}) == []
     assert generate_page.prevalence_argv({"max_stars": "12"}) == []

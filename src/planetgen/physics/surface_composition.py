@@ -43,7 +43,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, materials, mixture, saturation
+from planetgen.physics import constants, hydrosphere, ice_species, materials, mixture, saturation
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -55,9 +55,6 @@ SOURCES = {
                  "(part E table 2.8b, second-hand)",
     "millero": "mean ocean salinity 35 g/kg (Millero et al. 2008, Deep-Sea Research I 55, 50)",
 }
-
-GIANT_CLASSES = ("I", "J", "T")
-"""tuple: The classes with no solid ground (every field empty)."""
 
 RANGES = {
     "volcanism_floor_w_m2": (1.0e-4, 1.0e-3),
@@ -90,7 +87,7 @@ RANGES = {
 """
 
 OCEAN, ICE = "ocean", "ice"
-LIQUID_STATES = ("surface ocean", "hycean", "ice-covered ocean")
+LIQUID_STATES = ("surface ocean", "brine seep", "hycean", "ice-covered ocean")
 FROZEN_STATES = ("ice", "ice-covered ocean")
 SLAB, CRUSHED, POWDER = "slab", "crushed", "powder"
 GRAINS = (SLAB, CRUSHED, POWDER)
@@ -112,20 +109,20 @@ VACUUM_ICE_PA = saturation.pressure_pa("H2O", hydrosphere.VACUUM_ICE_MAX_K)
 GROUND_TYPES = pt.REGISTRY.register(pt.Table(
     "surface-ground-types", 1,
     [
-        pt.Row("ultramafic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], fractions={"olivine": 0.60, "enstatite": 0.40},
+        pt.Row("ultramafic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement="GEN.474", fractions={"olivine": 0.60, "enstatite": 0.40},
                notes="primary crust after mantle overturn"),
-        pt.Row("anorthositic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"],
+        pt.Row("anorthositic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement="GEN.474",
                fractions={"plagioclase": 0.97, "diopside": 0.03}, notes="primary flotation crust, no overturn"),
-        pt.Row("basaltic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"],
+        pt.Row("basaltic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement="GEN.474",
                fractions={"plagioclase": 0.76, "diopside": 0.08, "enstatite": 0.06, "basalt_powder": 0.05, "olivine": 0.01},
                notes="secondary crust of decompression melting; Hu's glass is `basalt powder`"),
-        pt.Row("felsic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"],
+        pt.Row("felsic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement="GEN.474",
                fractions={"orthoclase": 0.40, "quartz": 0.35, "plagioclase": 0.20, "biotite": 0.05},
                notes="granitoid tertiary crust; Hu's K-feldspar is `orthoclase`"),
         pt.Row("clay", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.PARTLY_VERIFIED,
                limit="Hu's Mg-smectite has no row; kaolinite stands in",
                fractions={"kaolinite": 0.50, "serpentine": 0.50}, notes="aqueous alteration of basalt"),
-        pt.Row("oxidised", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"],
+        pt.Row("oxidised", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement="GEN.474",
                fractions={"hematite_fine": 0.50, "plagioclase": 0.38, "diopside": 0.04, "enstatite": 0.03,
                           "basalt_powder": 0.03, "olivine": 0.02}, notes="Hu's 50/50 nanophase hematite and basalt"),
         pt.Row("metal", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.PARTLY_VERIFIED,
@@ -200,7 +197,8 @@ class SurfaceInputs:
     What the surface draw reads (the stored values of a planet or moon).
 
     Attributes:
-        planet_class (str): The class letter.
+        giant (bool): The body is a gas or ice giant: no solid ground, every field empty. Read from the body's structure (its
+            `body_type`), never from its class letter (GEN.917, GEN.915).
         surface_temperature_k, pressure_pa (float): The surface temperature and the air pressure (0 for none).
         o2_partial_pa (float): The free oxygen's partial pressure.
         partial_pressures_pa (dict): Other gases' partial pressures by formula (`CO2`, `N2`, ...), for the ices that stand.
@@ -218,8 +216,8 @@ class SurfaceInputs:
         mobile_lid (bool): Whether the body has plate tectonics (its stored `lid_regime`, GEN.721).
     """
 
-    planet_class: str
     surface_temperature_k: float
+    giant: bool = False
     pressure_pa: float = 0.0
     o2_partial_pa: float = 0.0
     partial_pressures_pa: dict = field(default_factory=dict)
@@ -307,7 +305,7 @@ def _covered(inputs, frozen):
     share = min(max(inputs.ocean_fraction or 0.0, 0.0), 1.0)
     if share <= 0.0:
         return 0.0, None
-    if inputs.hydrosphere in ("surface ocean", "hycean"):
+    if inputs.hydrosphere in ("surface ocean", "brine seep", "hycean"):
         return share, OCEAN
     if inputs.hydrosphere in FROZEN_STATES and frozen:
         return share, ICE
@@ -358,7 +356,7 @@ def draw_surface(inputs):
     Returns:
         SurfaceComposition or None: `None` for a giant, which has no solid ground.
     """
-    if inputs.planet_class in GIANT_CLASSES:
+    if inputs.giant:
         return None
     frozen = _frozen_components(inputs)
     quantities = _quantities(inputs, frozen)
@@ -370,7 +368,7 @@ def draw_surface(inputs):
         mix[kind] = covered
     land = 1.0 - covered
     if land > 1e-12:
-        dominant = DOMINANT_TABLE.draw(inputs.planet_class, quantities).name
+        dominant = DOMINANT_TABLE.draw(pt.ANY_CLASS, quantities).name
         mods = _modifiers(inputs, kind)
         if dominant in ("metal", "carbon"):
             mods.pop("felsic", None)
@@ -425,6 +423,8 @@ minerals have no spectra of their own). A grain state of slab or crushed swaps t
 metal have no measured visible spectrum in the sources read, so they are not covered (`band_albedo` reports the covered share)."""
 
 BANDS = ("alb_040_050", "alb_050_060", "alb_060_070")
+BAND_CENTRES_NM = (450.0, 550.0, 650.0)
+"""tuple: The middle of each of `BANDS`, nm."""
 
 
 def band_albedo(composition):
@@ -514,7 +514,7 @@ def inputs_of(body):
     pressure = getattr(body, "atmospheric_pressure", None) or 0.0
     partials = mixture.partial_pressures_pa(body)
     return SurfaceInputs(
-        planet_class=body.planet_class, surface_temperature_k=body.surface_temperature or 0.0, pressure_pa=pressure,
+        giant=body.body_type == "g", surface_temperature_k=body.surface_temperature or 0.0, pressure_pa=pressure,
         o2_partial_pa=partials.get("O2", 0.0), partial_pressures_pa=partials,
         water_mass_fraction=getattr(body, "water_mass_fraction", None) or 0.0,
         ice_mass_fraction=getattr(body, "ice_mass_fraction", None) or 0.0,
@@ -529,14 +529,14 @@ def inputs_of(body):
 
 
 def _volatile_shares(body):
-    """The other ices' proportions: a stand-in until the species are stored, the mean comet volatiles (`bulk_draw.RANGES`) of the
-    body's non-water ice, as shares of that ice."""
+    """The other ices' proportions as shares of that ice by materials row: the stored amounts per species (`ice_species`, GEN.834), or for a body
+    saved before them the comet volatiles at the medians (`ice_species.median_shares`); the ices with no row of their own are left out."""
     if not (getattr(body, "ice_mass_fraction", None) or 0.0) > 0.0:
         return {}
-    percent = comet_population.median_volatiles(bulk_draw.RANGES["other_ice_comet_class"])
-    shares = {ICE_ROW_OF_FORMULA[name]: value for name, value in percent.items() if name in ICE_ROW_OF_FORMULA and value > 0.0}
-    total = math.fsum(shares.values())
-    return {name: value / total for name, value in shares.items()} if total > 0.0 else {}
+    shares = ice_species.shares_of(body) or ice_species.median_shares()
+    rows = {ICE_ROW_OF_FORMULA[name]: value for name, value in shares.items() if name in ICE_ROW_OF_FORMULA}
+    total = math.fsum(rows.values())
+    return {name: value / total for name, value in rows.items()} if total > 0.0 else {}
 
 
 def generate_surface(body):

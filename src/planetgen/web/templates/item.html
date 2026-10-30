@@ -1,6 +1,8 @@
 {#- One star, planet, moon, belt, comet or facility (/object/<ref>, web/item_pages.py, UX.143, UX.170): where it is, its property
     sheet, what the description says about it and the tree of what belongs to it. -#}
 {% extends "base.html" %}
+{#- UX.238: the "On this page" bar sits under the tab bar (static/pagetoc.js), not in a column at the left. -#}
+{% block main_class %} toc-top{% endblock %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/poi_key.html" import poi_key_panel with context %}
@@ -106,9 +108,37 @@
   <p class="summary inline-links">{% for sentence in planet.summary %}{{ sentence }}{{ " " if not loop.last }}{% endfor %}</p>
   {%- endif %}
   {%- if absences %}<p class="absences">{{ absences|join(" ") }}</p>{% endif %}
-  {%- if planet.life %}
+  {%- if planet.life or planet.life_class %}
   <h3 id="life-paragraph-heading">Life</h3>
-  <div class="prose">{{ planet.life }}</div>
+  {%- if planet.life_class %}
+  {%- if planet.life_class.supports %}<p class="life-supports">{{ planet.life_class.supports }}</p>{% endif %}
+  {%- if planet.life_class.also %}<p class="life-also">Also supports {{ planet.life_class.also|join(", ") }}.</p>{% endif %}
+  {%- if planet.life_class.has %}<p class="life-has">{{ planet.life_class.has }}</p>{% endif %}
+  {%- endif %}
+  {%- if planet.life %}<div class="prose">{{ planet.life }}</div>{% endif %}
+  {%- if planet.life_class and planet.life_class.words %}
+  <details class="sheet-group" id="life-class-words">
+    <summary><h4>What {{ "it" if planet.life_class.words.lives else "the best-supported class" }} eats, drinks, breathes and gives off</h4></summary>
+    <p class="sheet-help">Class {{ planet.life_class.words.class }}: {{ planet.life_class.words.name }}.</p>
+    <dl class="life-class-lines">
+      {%- for label, text in planet.life_class.words.rows %}<dt>{{ label }}</dt><dd>{{ text }}</dd>{% endfor %}
+    </dl>
+  </details>
+  {%- endif %}
+  {%- if life_air %}
+  <details class="sheet-group" id="life-and-air">
+    <summary><h4>Life and air through the ages</h4></summary>
+    <p class="sheet-help">How the air changed as the life took hold, worked out from the air it has now. The numbered lines are the stages of the life.</p>
+    {{ life_air.svg }}
+    <ul class="life-air-legend">{{ life_air.legend }}</ul>
+    <ol class="life-air-stages">{% for stage in life_air.stages %}<li value="{{ stage.number }}">{{ stage.name }}, {{ stage.age }} Gyr</li>{% endfor %}</ol>
+    {%- if life_air.note %}<p class="sheet-help life-air-note">{{ life_air.note }}</p>{% endif %}
+    <table class="life-air-table">
+      <thead><tr>{% for head in life_air.table.header %}<th scope="col">{{ head }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for row in life_air.table.rows %}<tr>{% for cell in row %}{% if loop.first %}<th scope="row">{{ cell }}</th>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>{% endfor %}</tbody>
+    </table>
+  </details>
+  {%- endif %}
   {%- endif %}
   {%- if planet.civilization %}
   <h3 id="civilization-heading">Civilization and politics</h3>

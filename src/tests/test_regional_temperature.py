@@ -129,7 +129,10 @@ def test_a_body_with_no_regions_has_no_sentence_and_no_summary():
     assert rt.summary({}) is None
     assert rt.summary(rt.compute(MOON)) == {"day_side": pytest.approx(rt.compute(MOON)["temp_day_side_k"]),
                                             "terminator": pytest.approx(rt.compute(MOON)["temp_terminator_k"]),
-                                            "night_side": rt.NIGHT_FLOOR_K}
+                                            "night_side": rt.NIGHT_FLOOR_K,
+                                            # GEN.848: a locked world has no day, so its places swing by nothing
+                                            "day_side_swing": 0.0, "terminator_swing": 0.0, "night_side_swing": 0.0,
+                                            "mean_swing": 0.0}
 
 
 def test_the_daily_range_has_the_stored_value_exactly_in_the_middle():
@@ -145,3 +148,46 @@ def test_the_sentence_gives_the_swing_as_plus_or_minus_and_the_equators_low_and_
     text = protection.regional_sentence(_world(15.0), regions)
     assert "from the coldest hour to the hottest (±10 K)" in text
     assert "so the equator runs from 16.9 C to 36.9 C over a day." in text
+
+
+BAND_SWINGS = ("temp_polar_swing_k", "temp_north_swing_k", "temp_south_swing_k")
+ZONE_SWINGS = ("temp_day_side_swing_k", "temp_terminator_swing_k", "temp_night_side_swing_k")
+
+
+def test_gen848_every_band_of_a_turning_world_has_a_swing_that_falls_toward_the_pole():
+    out = rt.compute(EARTH)
+    assert out["temp_swing_k"] > out["temp_north_swing_k"] > out["temp_polar_swing_k"] > 0.0
+    assert out["temp_north_swing_k"] == out["temp_south_swing_k"]
+    assert all(out[name] is None for name in ZONE_SWINGS)
+    # the world's mean swing is the area-weighted mean of its bands: between the polar and the equatorial swing
+    assert out["temp_polar_swing_k"] < out["temp_mean_swing_k"] < out["temp_swing_k"]
+    areas = rt.band_areas()
+    expected = sum(areas[name] * out[column] for name, column in
+                   (("polar", "temp_polar_swing_k"), ("north", "temp_north_swing_k"), ("equator", "temp_swing_k"),
+                    ("south", "temp_south_swing_k"))) / sum(areas.values())
+    assert out["temp_mean_swing_k"] == pytest.approx(expected)
+
+
+def test_gen848_the_bands_swings_are_the_equators_cut_by_the_cosine_of_the_latitude():
+    ratios = rt._band_swing_ratios()
+    assert ratios["equator"] == 1.0
+    assert 0.2 < ratios["polar"] < 0.5 < ratios["north"] < 0.95 and ratios["north"] == ratios["south"]
+    out = rt.compute(MARS)
+    assert out["temp_polar_swing_k"] == pytest.approx(out["temp_swing_k"] * ratios["polar"])
+
+
+def test_gen848_a_locked_world_has_no_day_so_its_places_swing_by_nothing():
+    out = rt.compute(MOON)
+    assert all(out[name] == 0.0 for name in ZONE_SWINGS) and out["temp_mean_swing_k"] == 0.0
+    assert all(out[name] is None for name in BAND_SWINGS) and out["temp_swing_k"] is None
+
+
+def test_gen848_every_stored_temperature_names_the_column_of_its_swing():
+    assert set(rt.SWING_OF.values()) <= set(rt.FIELDS)
+    assert set(rt.RANGE_FIELDS) == set(rt.SWING_OF) and "surface_temperature_k" in rt.RANGE_FIELDS
+    assert rt.SWING_OF["temp_equator_k"] == "temp_swing_k"
+    assert len(set(rt.SWING_OF.values())) == len(rt.SWING_OF)
+
+
+def test_gen848_no_air_and_no_rotation_leave_the_swings_empty():
+    assert all(value is None for value in rt.compute(dict(EARTH, rotation_period_hours=0.0)).values())

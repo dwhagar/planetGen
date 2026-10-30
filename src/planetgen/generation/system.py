@@ -36,7 +36,7 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.generation import pulsar_planets, remnant_orbits
+from planetgen.generation import habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics import bulk_draw, planet_zones
@@ -416,7 +416,7 @@ class StarSystem:
 
                     self.member_planets = [self._generate_member_planets(member) for member in self.member_stars]
 
-                    habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
+                    habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
                     belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
                     class_satisfied = self._forced_class_present()
                 if habitable_satisfied and belt_satisfied and class_satisfied:
@@ -451,7 +451,7 @@ class StarSystem:
                 self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
             for member, bodies in self.member_hosts():
                 self._trim_to_orbit_ceiling(bodies, self._orbit_ceiling_au(member))
-            habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
+            habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
             class_satisfied = self._forced_class_present()
             if (habitable_satisfied and belt_satisfied and class_satisfied) or _round or self._request_unreachable:
@@ -526,6 +526,19 @@ class StarSystem:
         else:
             log.debug("System flavor text: none (roll failed FLAVOR_CHANCE_SYSTEM or MAX_FLAVOR_TOTAL reached)")
 
+        # A giant sized from the radius tables was drawn at the star's provisional age, which rose with the planets in (GEN.961): it is
+        # sized again at the final age and the light of its orbit, and its interior and air are drawn again to the new radius. The
+        # tides of every planet's and captured moon's orbit are taken again at that age (GEN.985).
+        with log.timed_phase("settle pass"):
+            for obj in self.all_planets:
+                if obj.body_type == 'a':  # a belt is not a body
+                    continue
+                if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
+                    log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr")
+                for body in (obj, *obj.moons):
+                    if planetPhysics.settle_orbit(body):
+                        log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+
         # All planets and moons are generated without life data (see physics.planets's
         # module docstring). Apply it now, in one pass over the finished system, so
         # evolutionary timelines are computed against the star's final, planet-adjusted
@@ -536,7 +549,7 @@ class StarSystem:
             for obj in self.all_planets:
                 if obj.body_type == 'a':  # A belt is not a body; GEN.442 gives it the stored line to read.
                     continue
-                obj.born_beyond_snow_line = obj.distance >= obj.star.snow_line_au
+                obj.born_beyond_snow_line = bool(obj.distance >= obj.star.snow_line_au)
                 for moon in obj.moons:
                     moon.born_beyond_snow_line = obj.born_beyond_snow_line
 
@@ -570,6 +583,15 @@ class StarSystem:
                 self.unmet_requirements.append(wanted)
             elif present and wanted in self.unmet_requirements:
                 self.unmet_requirements.remove(wanted)
+            # The same for a habitable world (GEN.916): life changes the air of a body after the retry judged it, and with it the
+            # temperature and the water, so the request is judged again on the finished bodies.
+            if self.system_config.HABITABLE_WORLD is True:
+                wanted = "a habitable world"
+                present = habitable_request.count(self.planets) > 0
+                if not present and wanted not in self.unmet_requirements:
+                    self.unmet_requirements.append(wanted)
+                elif present and wanted in self.unmet_requirements:
+                    self.unmet_requirements.remove(wanted)
 
         # The system takes the name the star was generated (or configured)
         # with; every star, planet and moon inside it is named from that --
@@ -874,10 +896,6 @@ class StarSystem:
         # the end of that lifetime, the star itself keeps its age.
         draw_age_yr = min(age_yr, 0.95 * evolution.main_sequence_lifetime_gy(placed.birth_mass_solar) * 1.0e9)
 
-        # A forced count keeps a brown dwarf as a star at the hydrogen-burning limit, as a forced pair always had one.
-        unbuilt = (tuple(kind for kind in stored_trees.UNBUILT_KINDS if kind != "brown-dwarf")
-                   if count is not None else stored_trees.UNBUILT_KINDS)
-
         def tree(n_stars):
             for tree_age_yr in (age_yr, draw_age_yr):
                 try:
@@ -885,7 +903,7 @@ class StarSystem:
                         multistar.draw_member_tree(placed, tree_age_yr, max_stars=config.MAX_STARS, n_stars=n_stars,
                                                prevalence=prevalence.multi_star_scale(config), max_axis_au=limit_au,
                                                pair_placed=True),
-                        unbuilt)
+                        stored_trees.UNBUILT_KINDS)
                 except ValueError:    # the placed star has collapsed by this age
                     continue
             return multistar.draw_member_tree(placed, 0.0, n_stars=1)
@@ -912,9 +930,24 @@ class StarSystem:
             return True
         if wanted_kind is not None and self.binary_type != wanted_kind:
             return False
+        if not self._built_stars_clear():
+            return False
         # A close pair whose whole habitable zone lies inside its circumbinary stability limit can't host a habitable world.
         return not (self.binary_type == "close" and config.HABITABLE_WORLD is True and config.WIDE_BINARY is None
                     and self._orbit_floor_au(self.star) >= self.star.habitable_zone[1])
+
+    def _built_stars_clear(self):
+        """
+        Whether the stars as built clear the orbits of the tree they hang in. A drawn tree is built again from each member's
+        birth mass and the system's age, so a member the tree evolved on (a white dwarf, a stripped core) can come out a giant
+        wider than its orbit: the pair, or a third star about it, then lies inside a star (`multistar.built_tree_clears`).
+        """
+        if not self.orbit_nodes:
+            return True
+        slots = self.star_slots or tuple((self.orbit_nodes[0].node_no, slot) for slot in (0, 1))
+        stars = [(parent, _km_to_au(star.radius), star.mass / constants.SOLAR_MASS_TO_KG)
+                 for star, (parent, _slot) in zip(self.stars, slots)]
+        return multistar.built_tree_clears(self.orbit_nodes, stars)
 
     def _remove_companions(self, placed_star):
         """Takes the companions back out: the system is `placed_star` alone again."""
@@ -1244,7 +1277,7 @@ class StarSystem:
                 # normal random/forced generation logic below.
                 if slot_spec is not None:
                     obj = self.generate_slot_object(star, slot_spec, estimated_distance, planets=planets)
-                    if getattr(obj, 'planet_class', None) in tuning.HABITABLE_PLANET_CLASSES:
+                    if getattr(obj, 'body_type', None) != 'a' and habitable_request.meets_with_moons(obj):
                         found_hab = True
                     if getattr(obj, 'body_type', None) == 'a':
                         found_belt = True
@@ -1330,7 +1363,7 @@ class StarSystem:
                 else:
                     planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
                                     planned_objects=system_objects)
-                    if planet.planet_class in tuning.HABITABLE_PLANET_CLASSES:
+                    if habitable_request.meets_with_moons(planet):
                         found_hab = True
                     planets.append(planet)
 
@@ -1830,9 +1863,11 @@ class StarSystem:
     def build_planet(self, star, habitable_zone, distance, planet_class=None, life=False, moon_count=None, planned_objects=None):
         """
         A planet at `distance`, drawn again until it is the one a request names (GEN.688): its derived class is `planet_class`, or,
-        for `life`, a class that can carry life (`HABITABLE_PLANET_CLASSES`). Each draw is a whole planet (a new mass, make and
-        air from the stream). With no request this is one `Planet`. The last draw is kept when `REQUEST_MAX_PLANET_ATTEMPTS`
-        draws miss, and the system's own retry (`MAX_SYSTEM_GENERATION_ATTEMPTS`) then judges the request.
+        for `life`, its solved conditions are the ones a habitable request asks for (GEN.916, `habitable_request.meets`: temperate,
+        at least 10 kPa of air, a surface ocean), never a class letter. After `HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS` misses each next
+        draw is aimed by the temperature the last one solved, inside the zone (GEN.911, `habitable_request.aimed_distance`). Each draw is a
+        whole planet (a new mass, make and air from the stream). With no request this is one `Planet`. The last draw is kept when
+        `REQUEST_MAX_PLANET_ATTEMPTS` draws miss, and the system's own retry (`MAX_SYSTEM_GENERATION_ATTEMPTS`) then judges the request.
 
         Args:
             star (Star): The star the planet orbits.
@@ -1851,6 +1886,10 @@ class StarSystem:
             raise ValueError(f"A slot asks for a class {planet_class} planet, which can carry life, but HABITABLE_WORLD is False.")
         if planet_class is None and not life:
             return Planet(self.system_config, star, habitable_zone, distance, moon_count=moon_count, planned_objects=planned_objects)
+        inner, outer = habitable_zone
+        floor_au = self._orbit_floor_au(star)
+        if floor_au < outer:
+            inner = max(inner, floor_au)
         for attempt in range(tuning.REQUEST_MAX_PLANET_ATTEMPTS):
             # A request for a habitable world is first left to chance; where chance does not give one (a dim star's ecosphere, a heavy
             # one's) the draws that follow are of an Earth-sized planet, the mass at which a world holds its air and its water.
@@ -1858,8 +1897,11 @@ class StarSystem:
             if life and attempt >= tuning.HABITABLE_REQUEST_FREE_ATTEMPTS:
                 given["mass"] = math.exp(draw.uniform(*(math.log(m) for m in tuning.HABITABLE_REQUEST_MASS_EARTH))) * constants.EARTH_MASS_TO_KG
             planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects, **given)
-            if planet.planet_class == planet_class or (life and planet.planet_class in tuning.HABITABLE_PLANET_CLASSES):
+            if (planet_class is not None and planet.planet_class == planet_class) or (life and habitable_request.meets_with_moons(planet)):
                 break
+            if life and attempt + 1 >= tuning.HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS:
+                # GEN.911: the next draw goes where the light would give the temperature this one solved the target
+                distance = habitable_request.aimed_distance(distance, getattr(planet, "surface_temperature", None), inner, outer)
         else:
             # No draw at this place made what was asked (a white dwarf's ecosphere holds no air): drawing the whole system again
             # at the same star would miss the same way, so the request is left unmet.
@@ -2083,9 +2125,8 @@ class StarSystem:
 
     def count_habitable_class_worlds(self, planets=None):
         """
-        Counts the planets and moons whose class can carry life (`tuning.HABITABLE_PLANET_CLASSES`). This is what a request
-        for a habitable world steers by while the class is drawn before the score is known: the planet is placed by its
-        class, and `count_habitable` says how it scored.
+        Counts the planets and moons whose class can carry life (`tuning.HABITABLE_PLANET_CLASSES`). A report column only: a request
+        for a habitable world steers by conditions (GEN.916, `habitable_request.count`), and `count_habitable` says how a body scored.
 
         Args:
             planets (list, optional): See `count_objects`'s identical parameter.

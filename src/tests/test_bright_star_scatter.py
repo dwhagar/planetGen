@@ -424,9 +424,10 @@ def test_a_single_sector_run_leaves_the_backfill_to_the_end_of_the_run(mysql_con
     _seed_galaxy(mysql_config)
     calls = []
     monkeypatch.setattr(run_galaxy, "backfill_bright_stars", lambda *args, **kwargs: calls.append(args))
-    assert make_sector(4, 0, 5, config=mysql_config, backfill=False)["created"]
+    # shell 30, not the dense shell 4: the same two calls take two minutes there and fifteen near the centre (TEST.417)
+    assert make_sector(30, 0, 5, config=mysql_config, backfill=False)["created"]
     assert calls == []
-    assert make_sector(4, 0, 6, config=mysql_config)["created"]
+    assert make_sector(30, 0, 6, config=mysql_config)["created"]
     assert len(calls) == 1
 
 
@@ -1010,4 +1011,7 @@ def test_a_galaxy_run_scatters_the_stars_then_the_phenomena(mysql_config, monkey
         "start", "neighborhood", "link", "mass", "luminosity", "phenomena", "phenomena-index", "nebula-draw",
         "block-lights", "backfill", "population", "territories", "settle", "run-blocks"]
     by_key = {follower.key: follower for follower in followers}
-    assert by_key["mass"].params()["mass_limit_sol"] == 8.0 and by_key["phenomena"].params()["min_mass_solar"] == 8.0
+    # The limit is read when the stage opens (PERF.212): the followers carry what to read it from, which gives the limit it was given.
+    mass, phenomena = by_key["mass"].params()["settings"], by_key["phenomena"].params()["settings"]
+    assert run_plan._bright_star_settings(mass)["mass"]["mass_limit_sol"] == 8.0
+    assert run_plan._phenomena_settings(phenomena)["phenomena"]["min_mass_solar"] == 8.0

@@ -46,7 +46,7 @@ import os
 from collections.abc import Mapping
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, elements, habitability, habitability_world, life_supply
+from planetgen.physics import acid_medium, atmosphere, constants, elements, habitability, habitability_world, life_supply, strange_solvents
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_classes.json")
 
@@ -67,8 +67,8 @@ CO2_TRIPLE_K, CO2_TRIPLE_PA = 216.59, 518500.0
 CO2_CRITICAL_K, CO2_CRITICAL_PA = 304.13, 7377300.0
 """float: The triple and critical points of carbon dioxide (read, NIST)."""
 OPTIONAL_QUANTITIES = ("acid_medium", "ammonia_water_mass_fraction", "silicon_rich_crust")
-"""tuple: Quantities the generator does not model yet (GEN.888, GEN.894); a body that carries one in its values is scored on it, and a
-rule that reads one the body lacks fails and names it."""
+"""tuple: Quantities worked out from a body's values when it carries none (`derived_quantities`: GEN.888, GEN.894); a body that carries one in its
+values is scored on that, and a rule that reads one the body lacks fails and names it."""
 OXIDANTS = ("o2", "nitrate", "perchlorate", "sulfate", "co2", "acid", "none")
 """tuple: What a class breathes (`life.oxidant`); `"o2"` is the oxidant whose yield follows the air's oxygen."""
 METABOLISMS = ("oxygenic", "anoxygenic", "hydrogenotroph", "chemolithotroph", "hydrogenator", "acidophile")
@@ -494,6 +494,17 @@ def net_primary_production(row, found, world, values):
     return world.energy_flux_w_m2 / earth_light_w_m2() * min(ratio, tuning.LIFE_NPP["light_ratio_max"])
 
 
+def derived_quantities(values):
+    """`{name: value}` for each `OPTIONAL_QUANTITIES` that a body's `values` give no number of, worked out from its air and bulk composition
+    (`acid_medium.level`, `strange_solvents`); a quantity with nothing to work it out from (`None`) is left out."""
+    found = {
+        "acid_medium": acid_medium.level(values),
+        "ammonia_water_mass_fraction": strange_solvents.ammonia_water_mass_fraction(values),
+        "silicon_rich_crust": strange_solvents.silicon_rich_crust(values),
+    }
+    return {name: value for name, value in found.items() if value is not None and values.get(name) is None}
+
+
 def score_classes(body):
     """`{class id: ClassScore}` for a finished planet or moon (an object, or a column-named mapping of its values). A gas giant, or a
     body with no surface temperature, is scored nowhere: `{}`."""
@@ -502,6 +513,7 @@ def score_classes(body):
         return {}
     for quantity, supplied in life_supply.supplies(values).items():
         values.setdefault(quantity, supplied)
+    values.update(derived_quantities(values))
     found = quantities(values)
     world = habitability_world.world_from(values)
     return {row.id: score_class(row, found, world, values) for row in CLASSES}
@@ -545,3 +557,9 @@ def class_id(number, variant=None):
     if number is None:
         return None
     return f"{int(number)}{variant or ''}"
+
+
+def living_class_id(number, variant, stage):
+    """The id of the class that lives on a body, from its stored class number, variant letter and life stage: `None` for no class and for a class
+    with no stage (GEN.1001: a world whose star is younger than the first step of its schedule suits a class but has no life yet)."""
+    return None if stage is None else class_id(number, variant)

@@ -48,9 +48,9 @@ def _archive_view(archive):
     labels = _labels()
     return {
         "name": archive.name, "taken_at": archive.taken_at, "taken_by": archive.taken_by, "reason": archive.reason,
-        "version": archive.version, "size": archive.size, "complete": archive.complete,
+        "version": archive.version, "size_bytes": archive.size, "complete": archive.complete,
         "readable": archive.readable,
-        "parts": [{"name": p.name, "label": labels.get(p.name, p.name), "size": p.size, "files": len(p.files),
+        "parts": [{"name": p.name, "label": labels.get(p.name, p.name), "size_bytes": p.size, "files": len(p.files),
                    "known": p.known} for p in archive.parts],
     }
 

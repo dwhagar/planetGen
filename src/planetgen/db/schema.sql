@@ -1486,6 +1486,7 @@
 --   its partial pressure in Pa); the ten `p_<gas>_kpa` columns are gone. A class's balance gas (helium, sodium, ammonia) is a row like the others, so the pressure is the sum of the rows. The migration
 --   copies each row's ten partial pressures (kPa times 1000) into the child tables.
 -- v159 (GEN.441): `planets` and `moons` gain the surface composition: `ground_type` and `ground_grain` and the areal share of each ground type (`ground_ocean_fraction`, `ground_ice_fraction`, `ground_ultramafic_fraction`, ..., twelve shares that add up to 1), NULL for a giant and for a row saved before v152. The minerals, ices and ocean the shares stand for are rows of the materials table (`physics/surface_composition.py`).
+-- v180 (DB.70): `planets` and `moons` gain `moon_origin` (how a moon came to orbit its parent: `disk`, `impact`, `captured`, `ring` or `binary`; NULL for a planet and for a moon saved before) and a giant's circumplanetary disk (`moon_disk_lifetime_myr`, `moon_disk_alpha_over_f`, `moon_disk_f_inf`, `moon_disk_ice_line_km`; NULL for a body with no disk). Nothing is backfilled.
 -- v164 (GEN.764): `scatter_epochs` holds one row per kind of scatter drawn (`mass`, `luminosity`, `band`, `phenomena`, `nebula-field`), the generator epoch and the run that drew it, and the row goes when the
 --   scatter is cleared; `species` gains `generator_epoch`, the epoch the population pass made it under. A sector has its own epoch (v121) and the plan its own (v131), so every stage's results say what made them.
 -- v165 (MAP.305, MAP.303): `system_interests` replaces `habitable_systems`: one row for each reason a star system is worth a mark on the Galaxy Map (a planet or moon rated
@@ -1505,6 +1506,17 @@
 --   complexity index of the class, `physics/life_complexity.py`); the classes a body supports are the child tables `planet_life_class_scores` and `moon_life_class_scores` (one row for each class
 --   with a score of 1 or more); `species.life_chemical` becomes `species.life_class` (the id). A row made before v175 keeps the class its chemistry stood for and nothing else
 --   (see `migrations/versions/0175_life_classes.py`); the rest comes when the galaxy is regenerated.
+-- v176 (MAP.351): `system_interests` also takes the reasons `lifeclass-1a` to `lifeclass-9`, one for each life class that lives on a planet or moon of the system (`life_class` and
+--   `life_class_variant`), no score kept; no column changes, the migration fills them from the planets and moons already stored.
+-- v182 (GEN.848): `planets` and `moons` keep a day and night swing for every place that has a temperature: `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k` and
+--   `temp_mean_swing_k` for a world that turns on its own (the equator's is `temp_swing_k`), `temp_day_side_swing_k`, `temp_terminator_swing_k` and `temp_night_side_swing_k` (0, a locked
+--   world has no day) for a tidally locked one; kelvin of difference, peak to peak. NULL for a body with no regional temperatures and a row made before v182, which gets them when the galaxy
+--   is regenerated.
+-- v183 (GEN.834): `planets` and `moons` split `ice_mass_fraction` (every ice but water) by species: `ice_co2_mass_fraction`, `ice_ch4_mass_fraction`, `ice_nh3_mass_fraction`, `ice_n2_mass_fraction`,
+--   `ice_so2_mass_fraction`, `ice_co_mass_fraction`, `ice_hcn_mass_fraction` and `ice_other_mass_fraction` (ethane, methanol, formaldehyde, hydrogen sulfide), shares of the whole body's mass that add up to
+--   `ice_mass_fraction`. NULL for a row made before v183 and for a body with no composition; 0 for a body with no ice. Nothing is backfilled.
+-- v184 (GEN.952): `scatter_members.radius_au` (DOUBLE, NULL), a member's extent in AU, so a page can work out the X-ray luminosity of an accreting pair; NULL on a row made before v184, nothing is backfilled.
+-- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2314,7 +2326,7 @@ CREATE TABLE IF NOT EXISTS planets (
     flare_irradiation_index     DOUBLE,
     -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
     water_mass_fraction         DOUBLE,
-    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'hycean')),
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
     ocean_depth_km              DOUBLE,
@@ -2378,6 +2390,13 @@ CREATE TABLE IF NOT EXISTS planets (
     temp_day_side_k             DOUBLE,
     temp_terminator_k           DOUBLE,
     temp_night_side_k           DOUBLE,
+    temp_polar_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_north_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_south_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_day_side_swing_k       DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_terminator_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2409,6 +2428,14 @@ CREATE TABLE IF NOT EXISTS planets (
     metal_mass_fraction         DOUBLE,  -- v144 (DB.69, GEN.428): the iron-rich core's share of the whole body's mass, light elements included
     rock_mass_fraction          DOUBLE,  -- v144: the silicate (or silicon carbide and graphite) share
     ice_mass_fraction           DOUBLE,  -- v144: every ice other than water, as one share
+    ice_co2_mass_fraction       DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is carbon dioxide ice
+    ice_ch4_mass_fraction       DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is methane ice
+    ice_nh3_mass_fraction       DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is ammonia ice
+    ice_n2_mass_fraction        DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is nitrogen ice
+    ice_so2_mass_fraction       DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is sulfur dioxide ice
+    ice_co_mass_fraction        DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is carbon monoxide ice
+    ice_hcn_mass_fraction       DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is hydrogen cyanide ice
+    ice_other_mass_fraction     DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is every other ice (ethane, methanol, formaldehyde, hydrogen sulfide) ice
     envelope_mass_fraction      DOUBLE,  -- v144: the hydrogen and helium share
     rock_feo_fraction           DOUBLE,  -- v144: FeO, a mass fraction of the rock
     rock_al2o3_fraction         DOUBLE,  -- v144: Al2O3, a mass fraction of the rock
@@ -2432,6 +2459,11 @@ CREATE TABLE IF NOT EXISTS planets (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
+    moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
+    moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
+    moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
+    moon_disk_f_inf               DOUBLE,  -- v180: the asymptotic ice fraction of the disk's ramp
+    moon_disk_ice_line_km         DOUBLE,  -- v180: the distance of the disk's ice line from the giant, km
     water_base_pressure_pa      DOUBLE NULL,  -- v151 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2 (NULL for a planet)
     aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
@@ -2647,7 +2679,7 @@ CREATE TABLE IF NOT EXISTS moons (
     flare_irradiation_index     DOUBLE,
     -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
     water_mass_fraction         DOUBLE,
-    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'hycean')),
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
     ocean_depth_km              DOUBLE,
@@ -2711,6 +2743,13 @@ CREATE TABLE IF NOT EXISTS moons (
     temp_day_side_k             DOUBLE,
     temp_terminator_k           DOUBLE,
     temp_night_side_k           DOUBLE,
+    temp_polar_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_north_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_south_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_day_side_swing_k       DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_terminator_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -2737,6 +2776,14 @@ CREATE TABLE IF NOT EXISTS moons (
     metal_mass_fraction         DOUBLE,  -- v144 (DB.69, GEN.428): the iron-rich core's share of the whole body's mass, light elements included
     rock_mass_fraction          DOUBLE,  -- v144: the silicate (or silicon carbide and graphite) share
     ice_mass_fraction           DOUBLE,  -- v144: every ice other than water, as one share
+    ice_co2_mass_fraction       DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is carbon dioxide ice
+    ice_ch4_mass_fraction       DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is methane ice
+    ice_nh3_mass_fraction       DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is ammonia ice
+    ice_n2_mass_fraction        DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is nitrogen ice
+    ice_so2_mass_fraction       DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is sulfur dioxide ice
+    ice_co_mass_fraction        DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is carbon monoxide ice
+    ice_hcn_mass_fraction       DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is hydrogen cyanide ice
+    ice_other_mass_fraction     DOUBLE,  -- v183 (GEN.834): the share of the whole body's mass that is every other ice (ethane, methanol, formaldehyde, hydrogen sulfide) ice
     envelope_mass_fraction      DOUBLE,  -- v144: the hydrogen and helium share
     rock_feo_fraction           DOUBLE,  -- v144: FeO, a mass fraction of the rock
     rock_al2o3_fraction         DOUBLE,  -- v144: Al2O3, a mass fraction of the rock
@@ -2760,6 +2807,11 @@ CREATE TABLE IF NOT EXISTS moons (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
+    moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
+    moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
+    moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
+    moon_disk_f_inf               DOUBLE,  -- v180: the asymptotic ice fraction of the disk's ramp
+    moon_disk_ice_line_km         DOUBLE,  -- v180: the distance of the disk's ice line from the giant, km
     water_base_pressure_pa      DOUBLE NULL,  -- v147 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2
     aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
@@ -3135,6 +3187,8 @@ CREATE TABLE IF NOT EXISTS black_holes (
     KEY idx_black_holes_parent (parent_type, parent_id),
     CONSTRAINT chk_black_holes_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_black_holes_name (name),  -- v40: name uniqueness lookups
+    KEY idx_black_holes_placed_name (star_id, ((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_black_holes_descriptor_name (star_id, ((CASE WHEN has_accretion_disk THEN 'accreting' ELSE 'quiescent' END) COLLATE utf8mb4_unicode_ci), name),
     KEY idx_black_holes_next_update_due (next_update_due),
     CONSTRAINT chk_black_holes_mass_class CHECK (mass_class IN ('stellar', 'intermediate', 'supermassive')),
     CONSTRAINT chk_black_holes_placement CHECK (
@@ -3223,6 +3277,8 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     KEY idx_neutron_stars_parent (parent_type, parent_id),
     CONSTRAINT chk_neutron_stars_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_neutron_stars_name (name),  -- v40: name uniqueness lookups
+    KEY idx_neutron_stars_placed_name (star_id, ((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_neutron_stars_descriptor_name (star_id, pulsar_type, name),
     KEY idx_neutron_stars_next_update_due (next_update_due),
     CONSTRAINT chk_neutron_stars_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
@@ -3332,6 +3388,9 @@ CREATE TABLE IF NOT EXISTS nebulae (
 
     UNIQUE KEY uq_nebulae_uid (uid),
     KEY idx_nebulae_name (name),  -- v40: name uniqueness lookups
+    KEY idx_nebulae_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_nebulae_descriptor_name (nebula_type, name),
+    KEY idx_nebulae_radius_name (radius_ly, name),
     KEY idx_nebulae_next_update_due (next_update_due),
 
     -- Named explicitly (unlike sectors' own identical v4 CHECK above) so
@@ -3437,6 +3496,9 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
 
     UNIQUE KEY uq_supernova_remnants_uid (uid),
     KEY idx_supernova_remnants_name (name),  -- v40: name uniqueness lookups
+    KEY idx_supernova_remnants_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_supernova_remnants_descriptor_name (morphology, name),
+    KEY idx_supernova_remnants_radius_name (radius_ly, name),
     KEY idx_supernova_remnants_next_update_due (next_update_due),
 
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
@@ -3504,6 +3566,8 @@ CREATE TABLE IF NOT EXISTS quasars (
 
     UNIQUE KEY uq_quasars_uid (uid),
     KEY idx_quasars_name (name),  -- v40: name uniqueness lookups
+    KEY idx_quasars_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_quasars_descriptor_name (((CASE WHEN is_radio_loud THEN 'radio-loud' ELSE 'radio-quiet' END) COLLATE utf8mb4_unicode_ci), name),
     CONSTRAINT chk_quasars_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -3640,6 +3704,8 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     KEY idx_rogue_planets_parent (parent_type, parent_id),
     CONSTRAINT chk_rogue_planets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_rogue_planets_name (name),  -- v40: name uniqueness lookups
+    KEY idx_rogue_planets_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_rogue_planets_descriptor_name (((CASE WHEN mass_bin = 'brown-dwarf' THEN 'brown dwarf' WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END) COLLATE utf8mb4_unicode_ci), name),
     KEY idx_rogue_planets_next_update_due (next_update_due),
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     CONSTRAINT chk_rogue_planets_placement CHECK (
@@ -3726,6 +3792,9 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
 
     UNIQUE KEY uq_interstellar_comets_uid (uid),
+    KEY idx_interstellar_comets_name (name),  -- v178 (PERF.205): the Phenomena table pages by name in index order
+    KEY idx_interstellar_comets_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_interstellar_comets_descriptor_name (((CASE WHEN is_active THEN 'active' ELSE 'dormant' END) COLLATE utf8mb4_unicode_ci), name),
     KEY idx_interstellar_comets_parent (parent_type, parent_id),
     CONSTRAINT chk_interstellar_comets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     CONSTRAINT chk_interstellar_comets_placement CHECK (
@@ -3825,6 +3894,10 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
 
     -- Named explicitly -- see `nebulae`'s identical "v18" CHECK comment above.
     UNIQUE KEY uq_asteroid_fields_uid (uid),
+    KEY idx_asteroid_fields_name (name),  -- v178 (PERF.205)
+    KEY idx_asteroid_fields_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
+    KEY idx_asteroid_fields_descriptor_name (density, name),
+    KEY idx_asteroid_fields_radius_name (radius_ly, name),
     CONSTRAINT chk_asteroid_fields_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -3992,6 +4065,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     system_mass_solar    DOUBLE,
     metallicity_fe_h     DOUBLE,  -- v95 (GEN.158): [Fe/H] in dex, NULL for a cluster star until GEN.159 and for older rows
     cluster_id           BIGINT UNSIGNED,  -- v127 (DB.61): the cluster this star belongs to, NULL for a field star
+    rotation_period_hours DOUBLE,  -- v185 (GEN.846): the spin period in hours, NULL on a row made before v185
 
     KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),
@@ -4222,6 +4296,7 @@ CREATE TABLE IF NOT EXISTS scatter_members (
     initial_mass_solar   DOUBLE NOT NULL,
     seed                 BIGINT UNSIGNED NOT NULL,
     epoch_unix                  DOUBLE NULL,  -- v102 (DB.55): when the position and velocity hold
+    radius_au                   DOUBLE NULL,  -- v184 (GEN.952): the extent of the member in AU, NULL on a row made before v184
     PRIMARY KEY (source, source_id, member_no),
     CONSTRAINT chk_scatter_members_source CHECK (source IN (1, 2)),
     CONSTRAINT chk_scatter_members_kind CHECK (kind IN (
@@ -4294,15 +4369,19 @@ CREATE TABLE IF NOT EXISTS orbit_nodes (
 
 
 -- ---------------------------------------------------------------------
--- sector_system_counts (v82, PERF.74): how many systems each sector holds, as of
--- the last refresh (`query.refresh_sector_system_counts`), so the Sectors list and
--- its sorts by systems and density read this table instead of counting every
--- system per request. A sector with no systems has no row.
+-- sector_system_counts (v82, PERF.74; v181, PERF.208): each sector's system count, system density and Quadrant as of
+-- the last refresh (`query.refresh_sector_system_counts`), one row for each sector (a sector made since has none yet),
+-- so the Sectors list reads these instead of counting every system per request and its sorts by systems, density and
+-- position page by key on the three indexes.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sector_system_counts (
-    sector_id     BIGINT UNSIGNED NOT NULL PRIMARY KEY,
-    system_count  INT UNSIGNED NOT NULL,
-    KEY idx_sector_system_counts_count (system_count, sector_id)
+    sector_id      BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    system_count   INT UNSIGNED NOT NULL,
+    system_density DOUBLE NULL,         -- v181: systems per cubic milliparsec of the sector, NULL for a sector with no galaxy position
+    quadrant       VARCHAR(8) NULL,     -- v181: 'I' to 'IV' as `spherical.sector_quadrant` says, NULL for a sector with no galaxy position
+    KEY idx_sector_system_counts_count (system_count, sector_id),
+    KEY idx_sector_system_counts_density (system_density, sector_id),
+    KEY idx_sector_system_counts_quadrant (quadrant, sector_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -4651,8 +4730,9 @@ CREATE TABLE IF NOT EXISTS species (
     UNIQUE KEY uq_species_name (name),
     UNIQUE KEY uq_species_homeworld (homeworld_planet_id),
     KEY idx_species_system (star_system_id),
-    KEY idx_species_spacefaring (spacefaring),
-    KEY idx_species_tech_level (tech_level),
+    KEY idx_species_spacefaring_name (spacefaring, name),     -- v177 (PERF.205): the Species table's sorts read in index order
+    KEY idx_species_tech_level_name (tech_level, name),       -- (the tech level search by range uses the leading column)
+    KEY idx_species_era_name (era, name),
     CONSTRAINT chk_species_life_stage CHECK (life_stage IN ('multicellularity', 'technological_civilization')),
     CONSTRAINT fk_species_planet
         FOREIGN KEY (homeworld_planet_id) REFERENCES planets(id) ON DELETE CASCADE,

@@ -20,7 +20,7 @@ from planetgen.generation.system import StarSystem
 from planetgen import describe
 from planetgen.db import render
 from planetgen.db.render import render_star_system
-from planetgen.generation import run_common
+from planetgen.generation import followed, run_common
 from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
 from planetgen.util import draw
 
@@ -128,14 +128,14 @@ def build_system_config(args):
     (intelligent life implies a habitable world; a habitable world plus
     an asteroid belt implies a large star) are applied last.
 
-    Shared by the `system` and `sector` subcommands (`build_sector_configs`
+    Shared by the `system` and `sector` subcommands (`iter_sector_configs`
     calls this once per system in the sector), so the two can never
     silently drift apart on what a given set of options actually means.
 
     Args:
         args (argparse.Namespace): Parsed arguments (from the `system`
             subcommand, or a namespace shaped the same way, as
-            `build_sector_configs` builds for each system in a sector).
+            `iter_sector_configs` builds for each system in a sector).
 
     Returns:
         SystemConfig: The resolved configuration.
@@ -284,6 +284,26 @@ def single_system_conflict(system_config):
     return f"-planets cannot be combined with {', '.join(forced)}."
 
 
+class SystemFollower(followed.Follower):
+    """
+    The one system of a `system` run as its one stage (PERF.119, PERF.202): the `generate-system` command's one unit
+    generates it, and this side keeps what the unit says (`result`) for the caller to log or write.
+    """
+
+    key = "system"
+    label = "Generate a system"
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.result = None
+
+    def params(self):
+        return commands.build_steps("system", self.args)[0].params
+
+    def on_result(self, unit, result):
+        self.result = result
+
+
 def run_system(args):
     """
     Generates one star system and saves it to the database, or, with
@@ -317,17 +337,14 @@ def run_system(args):
     mysql_config = store.mysql_config_from_args(args)
     args.database = wrapper.database_args(mysql_config)
     args.run_seed = draw.getrandbits(128)
-    steps = wrapper.steps_for("system", args)
-    made = []
+    follower = SystemFollower(args)
     try:
-        wrapper.run(steps[0].label, steps, lambda _index, plan: None, lambda _index, _unit, result: made.append(result),
-                    workers_count=1, who=getattr(args, "who", None), database=mysql_config.database,
-                    argv=getattr(args, "argv", None),
-                    kind=runrecord.MAINTENANCE if args.output else runrecord.GENERATION)
+        followed.run_followed(args, [follower], follower.label, workers=1, galaxy=False,
+                              kind=runrecord.MAINTENANCE if args.output else runrecord.GENERATION)
     except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
         log.error(f"error: the system could not be generated: {exc}")
         raise SystemExit(1)
-    result = made[0]
+    result = follower.result
     if result["warning"]:
         run_common._refuse_or_warn(args, result["warning"])
     if args.output:

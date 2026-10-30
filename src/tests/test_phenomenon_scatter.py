@@ -9,6 +9,7 @@ and rolls none of those kinds itself, and what was placed stays put.
 
 import argparse
 import math
+from statistics import NormalDist
 
 import pytest
 
@@ -84,12 +85,14 @@ def test_skipped_addresses_get_nothing():
 
 
 def test_each_kind_follows_its_rate_per_star():
-    # Neutron stars are a few times as common as black holes (tuning's 5.6e-4 per pc^3 against the 6e-3 of massive stars
-    # that fail and the metallicity's 0.1 to 0.2 of them, GEN.563); a Poisson count sits well inside 5 sigma of its mean
-    # over a scatter this size.
+    # Neutron stars outnumber black holes. The bound neutron stars are fixed by the census (0.004 per star), so the share of
+    # the massive stars that fail is what is left of them: half the cap of `black_hole_formation.share_cap` for the
+    # middle draw, 17.5% of the 0.71% of stars that are massive (the Chabrier function's), and the metallicity of the shell
+    # then scales it. That gives about 1.6 neutron stars to a black hole in this scatter; a Poisson count sits well inside
+    # 5 sigma of its mean over a scatter this size.
     rows = [row for shell_index, _high in EXTENTS for row in _shell(shell_index, seed=3)]
     counts = {kind: sum(1 for row in rows if row[3] == kind) for kind in scatter.SCATTERED_KINDS}
-    assert counts["neutron-star"] > 2 * counts["black-hole"] > 0
+    assert counts["neutron-star"] > 1.5 * counts["black-hole"] > 0
     expected = sum(scatter.shell_expected(SHAPE, shell_index, high, EDGE_PC, E_VALUE, 1.0)
                    for shell_index, high in EXTENTS)
     assert sum(counts.values()) == pytest.approx(expected, rel=0.15)
@@ -456,7 +459,10 @@ def test_the_nucleus_row_builds_the_nucleus_and_the_fill_rolls_none(mysql_config
 # --- The mass cut (GEN.166 to GEN.168) ---
 
 def test_the_share_above_the_cut_follows_each_mass_law():
-    assert scatter.share_above("neutron-star", None, 2.0) == pytest.approx(0.2 / 1.1)
+    # The neutron stars follow the slow pulsars' Gaussian (1.49 +- 0.19) held to 1.1 to 2.2.
+    normal = NormalDist(1.49, 0.19)
+    assert scatter.share_above("neutron-star", None, 2.0) == pytest.approx(
+        (normal.cdf(2.2) - normal.cdf(2.0)) / (normal.cdf(2.2) - normal.cdf(1.1)))
     assert scatter.share_above("neutron-star", None, 20.0) == 0.0
     assert scatter.share_above("black-hole", "stellar", 10.0) == pytest.approx(10.0 / 15.0)
     assert scatter.share_above("black-hole", "stellar", 20.0) == 0.0
@@ -525,8 +531,9 @@ def test_gen677_with_every_mass_scattered_both_remnant_classes_follow_their_mode
     _rows, counts, expected = _class_counts_and_expectations(1.0)
     for key in (("black-hole", "stellar"), ("neutron-star", None)):
         assert counts[key] == pytest.approx(expected[key], rel=0.05), key
-    # Neutron stars are what the black holes leave (GEN.554): per star the model has them in the ratio of the leavings
-    assert counts[("neutron-star", None)] > 2 * counts[("black-hole", "stellar")]
+    # Neutron stars are what the black holes leave (GEN.554): per star the model has them in the ratio of the leavings, the
+    # bound neutron stars fixed by the census and the failed share the rest of the massive stars (about 1.6 to 1 here)
+    assert counts[("neutron-star", None)] > 1.5 * counts[("black-hole", "stellar")]
 
 
 def test_gen677_the_stage_line_says_what_the_cut_leaves_to_the_sectors():

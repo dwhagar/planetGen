@@ -26,7 +26,7 @@ import math
 
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import activity, bulk_structure, climate_draws, constants, giant_draw, giant_interior, mixture_draw, orbits
+from planetgen.physics import activity, bulk_structure, climate_draws, constants, giant_draw, giant_interior, mixture_draw, orbit_elements, orbits
 from planetgen.physics.mixture_base import MixtureError
 
 PHOTOSPHERE_BAR = 0.1
@@ -89,8 +89,9 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         ocean_present (bool): True when an ocean can condense (`surface_pressure.can_weather` of the climate loop).
         long_lived_geology (bool): True for a tectonic or long-lived body.
         water_lost (bool): True when the water was lost.
-        star_distance_au (float or None): The distance of the body (a moon: of its parent) from the star; the body's own `distance` when
-            it is a planet.
+        star_distance_au (float or None): The distance of the body (a moon: of its parent) from the star, as the circle that gives the same
+            mean light as its orbit (`orbit_elements.flux_distance_au`, GEN.727); for a planet the same circle for its own `distance` and
+            `eccentricity` when not given (GEN.842).
     """
     star = getattr(body, "star", None)
     mass_earth = body.mass / constants.EARTH_MASS_TO_KG
@@ -116,7 +117,8 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     quantities["host_type"] = host_type_of(star)
     quantities["host_mass_solar"] = star.mass / constants.SOLAR_MASS_TO_KG
     quantities["luminosity_solar"] = star.luminosity / constants.SOLAR_LUMINOSITY
-    distance_au = star_distance_au if star_distance_au is not None else (None if quantities["is_moon"] else body.distance)
+    distance_au = star_distance_au if star_distance_au is not None else (
+        None if quantities["is_moon"] else orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", None)))
     if not distance_au:
         return quantities
     insolation = quantities["luminosity_solar"] / distance_au ** 2
@@ -139,7 +141,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["teq_k"] = teq
         quantities["tday_k"] = teq * DAYSIDE_OVER_EQUILIBRIUM
         quantities["tp_k"] = teq * DAYSIDE_OVER_EQUILIBRIUM
-    effective = giant_draw.effective_temperature_k(flux, mass_earth)
+    effective = giant_draw.effective_temperature_k(flux, giant_draw.own_flux_w_m2(body))
     quantities["teff_k"] = effective
     quantities["t_layer_k"] = giant_draw.ONE_BAR_OVER_EFFECTIVE * effective
     return quantities

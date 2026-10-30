@@ -10,8 +10,9 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
 
 1. **Cosmic rays (`dose_gcr_msv_yr`, GEN.453).** `D = D0(X) f_B(M, X) f_sol` under a column of air `X = P0 / g`
    (g/cm2). `D0` is the no-field curve: the proton-primary air showers of Atri et al. 2013 (553, 263, 17.2, 3.02 and 0.65
-   mSv/yr at X of 100, 200, 500, 700 and 1036), log-log between them; below 100 g/cm2 a stand-in through the Moon (X 0, 500
-   mSv/yr, Chang'E-4) and Mars (X 21, 232 mSv/yr, Hassler 2014) until a shower run replaces it; above 1036 the larger of the
+   mSv/yr at X of 100, 200, 500, 700 and 1036), log-log between them; below 100 g/cm2 the primaries thinned by collisions plus
+   the shower building up behind them (`thin_air_dose_msv_yr`, GEN.746): the Moon at X 0 (500 mSv/yr, Chang'E-4), Mars at X 22.6 (232
+   mSv/yr and its measured fall with depth, Hassler 2014 and Guo 2018) and the shower's peak at the first run, 553 at 100; above 1036 the larger of the
    table's last slope and the muon tail (Crouch). `f_B` is the dipole's cut of that dose, the ratio of Atri's and Griessmeier's
    runs to the no-field run (it depends on the column), looked up at the field's equivalent moment `M = Rc0 / 14.34 GV`
    (a body of another radius has the cutoff of an Earth-sized body of that moment); `f_sol` is the solar-modulation
@@ -22,11 +23,10 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    presses the star's heliosphere to 1 AU or less (`heliosphere_compression`).
    Open space at generation; `store.refresh_containment` updates it when
    the system is found inside a nebula or remnant.
-3. **Stellar particles (`dose_sep_msv_yr`).** A free-space `20 mSv/yr
-   sqrt(N33 / N33_sun) / d_AU^2`, times `exp(-p_cut(X) / 0.2 GV)` (the
-   rigidity of the proton whose range is X, from NIST PSTAR, `proton_range`) and the
-   polar-cap share `1 - sqrt(1 - sqrt(R_eff / Rc0))` with `R_eff = max(0.5
-   p_cut, 0.2 GV)` (1 without a field).
+3. **Stellar particles (`dose_sep_msv_yr`, GEN.747).** A free-space `FREE_MSV_YR sqrt(N33 / N33_sun) / d_AU^2`, `FREE_MSV_YR` (about 265 mSv/yr) the
+   dose to the organs of the protons of the 47 measured solar events of 1997 to 2015 summed over their 18 years (`solar_particles`), times
+   the share of that dose that gets past the column's proton cutoff (`proton_range`: NIST PSTAR) and the dipole's `Rc0 cos^4(latitude)`, averaged
+   over the latitudes (`solar_particles.dose_share`; 1 without air or field).
 4. **Ground (`dose_ground_msv_yr`).** The gamma dose in air at 1 m over the surface rock and the radon of its uranium, from the
    body's own stored potassium, thorium and uranium (`radiogenic`, GEN.459), at its star's age: the same concentrations its interior
    heat reads, so there is no independent dose draw (`a_rad` is gone). The surface rock is the area-weighted rock of the body's stored
@@ -56,7 +56,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_colour, body_radiation, constants, magnetism, mixture, ozone, proton_range, radiogenic, surface_composition
+from planetgen.physics import body_colour, body_radiation, constants, magnetism, mixture, ozone, proton_range, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -67,11 +67,19 @@ BODY_FIELDS = (
 """tuple: What `generate_dose` sets on a planet or moon, as stored in
 `planets` and `moons`."""
 
-GCR_ANCHORS = ((0.0, 500.0), (21.0, 232.0))
-"""tuple: `(X g/cm2, mSv/yr)`, the no-field dose below 100 g/cm2, a stand-in until a shower run (AD5) replaces it: the Moon
-(Chang'E-4 LND, 1369 uSv/day, a solar-minimum bound; Zhang 2020) and Mars at Gale (MSL RAD, 0.64 mSv/day, GCR only, column
-about 21 g/cm2; Hassler 2014, Table 3). The shape between them and from Mars to 100 g/cm2 is unknown (the Pfotzer
-maximum is near 100 to 120 g/cm2); Guo 2015 gives 255 mSv/yr at Mars with a range of 128 to 420."""
+GCR_MOON_MSV_YR = 500.0
+"""float: The no-field dose with no air, mSv/yr (Chang'E-4 LND, 1369 uSv/day, a solar-minimum bound; Zhang 2020). Source tier T1."""
+GCR_MARS_G_CM2 = 22.6
+GCR_MARS_MSV_YR = 232.0
+"""float: Mars at Gale (MSL RAD, 0.64 mSv/day, GCR only; Hassler 2014, Table 3; Guo 2015 gives 255 mSv/yr with a range of 128 to 420) under the
+column of its mean pressure, 840 Pa over 3.71 m/s2 = 22.6 g/cm2 (Guo 2018; the 21 of the earlier stand-in was recalled). Source tier T1."""
+GCR_MARS_LOG_SLOPE_PER_G_CM2 = -0.19 / (25.7 - 18.9)
+"""float: d ln D / dX at Mars: the modelled dose equivalent falls by 126 uSv/day, 19 percent of its mean, between the column of 700 Pa (18.9 g/cm2)
+and of 950 Pa (25.7 g/cm2) and "declines continuously and nonlinearly" with depth (Guo et al. 2018, arXiv:1712.06987, read for GEN.746; the paper's
+dose-against-depth figures are not tabulated). Source tier T2."""
+GCR_PEAK_G_CM2 = 100.0
+"""float: Where the shower dose peaks, g/cm2: "about 100" (Guo 2018) and 122.7 +- 6.3 (the Pfotzer maximum, Sarkar 2017). The curve below the runs has
+its peak at the first run of Atri 2013 (`GCR_SHOWER_POINTS`), so it joins them at its highest point. Source tier T2."""
 GCR_SHOWER_POINTS = ((100.0, 553.0), (200.0, 263.0), (500.0, 17.2), (700.0, 3.02), (1036.0, 0.65))
 """tuple: `(X g/cm2, mSv/yr)`: total biological dose from muons, electrons, photons and neutrons in proton-primary CORSIKA
 air showers with no magnetic field (Atri, Hariharan, Fryer et al. 2013, Table XV, via Griessmeier et al. 2016, Table 2).
@@ -111,10 +119,9 @@ EARTH_DIPOLE_A_M2 = 7.768e22
 HELIO_MAX_EXTRA = 1.5
 HELIO_FADE_G_CM2 = 100.0
 
-SEP_FREE_MSV_YR = 20.0
-SEP_R0_GV = 0.2
-SEP_MIN_RIGIDITY_GV = 0.2
 N33_SUN_PER_YR = 10 ** -2.5
+"""float: The Sun's rate of 1e33 erg flares (one in 316 years), the unit of a star's `flare_n33_per_yr`: the dose of another star's particles
+scales with the square root of its rate over this (`free_sep_msv_yr`, a design default pending GEN.493)."""
 
 EARTH_AGE_GY = 4.5
 """float: The age a star without one is given (the Sun's, rounded)."""
@@ -170,14 +177,71 @@ def _muon_dose_msv_yr(column_g_cm2):
     return math.pi * intensity * MUON_MEV_PER_G * MUON_J_PER_MEV / 1e-3 * SECONDS_PER_YEAR * 1e3
 
 
+def _fit_thin_air_curve():
+    """
+    The three numbers of the thin-air dose curve, `(primary_length, build_up_exponent, build_up_length)` (rule 1): the dose below the first
+    shower run is the primaries thinned by nuclear collisions plus the shower that builds up behind them,
+
+        D(X) = D_moon exp(-X / L_p) + K (X / X_1)^a exp(-(X - X_1) / L_s),       K = D_1 - D_moon exp(-X_1 / L_p),
+
+    and the three numbers are the ones that make it pass through Mars (value `GCR_MARS_MSV_YR` and log slope
+    `GCR_MARS_LOG_SLOPE_PER_G_CM2`, at `GCR_MARS_G_CM2`) and peak at the first run `(X_1, D_1)` of Atri 2013. The Moon is the value at X = 0
+    (the shower is nil there). For a trial `L_p` the shower's `a` and `1 / L_s` follow from the Mars value and the peak by two linear
+    equations, and the Mars slope is then a function of `L_p` alone, found by bisection.
+    """
+    x1, d1 = GCR_PEAK_G_CM2, GCR_SHOWER_POINTS[0][1]
+    xm, dm, slope_m = GCR_MARS_G_CM2, GCR_MARS_MSV_YR, GCR_MARS_LOG_SLOPE_PER_G_CM2 * GCR_MARS_MSV_YR
+
+    def solve(length):
+        primary = lambda x: GCR_MOON_MSV_YR * math.exp(-x / length)
+        k = d1 - primary(x1)
+        # peak: a / x1 - 1 / ls = primary(x1) / (length k);  Mars value: a ln(xm / x1) - (xm - x1) / ls = ln((dm - primary(xm)) / k)
+        a11, a12, b1 = 1.0 / x1, -1.0, primary(x1) / (length * k)
+        a21, a22, b2 = math.log(xm / x1), -(xm - x1), math.log((dm - primary(xm)) / k)
+        det = a11 * a22 - a12 * a21
+        exponent = (b1 * a22 - a12 * b2) / det
+        inverse_length = (a11 * b2 - a21 * b1) / det
+        shower = (dm - primary(xm))
+        residual = -primary(xm) / length + shower * (exponent / xm - inverse_length) - slope_m
+        return exponent, 1.0 / inverse_length, residual
+
+    low, high = 10.0, 0.999 * xm / math.log(GCR_MOON_MSV_YR / dm)  # above this the primaries alone are more than Mars's dose
+    for _ in range(80):
+        middle = 0.5 * (low + high)
+        if (solve(low)[2] > 0) == (solve(middle)[2] > 0):
+            low = middle
+        else:
+            high = middle
+    exponent, shower_length, _ = solve(0.5 * (low + high))
+    return 0.5 * (low + high), exponent, shower_length
+
+
+assert GCR_SHOWER_POINTS[0][0] == GCR_PEAK_G_CM2, "the thin-air curve joins the first shower run at the peak"
+GCR_PRIMARY_LENGTH_G_CM2, GCR_BUILD_UP_EXPONENT, GCR_SHOWER_LENGTH_G_CM2 = _fit_thin_air_curve()
+"""float: The thin-air curve's fitted numbers (28.3 g/cm2, 5.94 and 17.1 g/cm2). The primaries' length of 28 g/cm2 is not a free number: it
+falls out of the Mars value and slope, and is the size of the nuclear collision length of the carbon-to-oxygen nuclei that carry most of the
+dose equivalent (about 25 g/cm2 in air; the protons' is 90). Source tier T5, tweak level L0 for the length, T6 and L2 for the shape of the
+build-up (the form is the Gaisser-Hillas shape of a shower, fitted by its three conditions)."""
+
+
+def thin_air_dose_msv_yr(column_g_cm2):
+    """Rule 1's `D0` below the first shower run (`_fit_thin_air_curve`): 500 mSv/yr (the Moon) at no air, down through Mars's 232 at 21 g/cm2
+    to a minimum near 35 g/cm2 and up to the runs' 553 at 100."""
+    x1, d1 = GCR_PEAK_G_CM2, GCR_SHOWER_POINTS[0][1]
+    x = min(max(column_g_cm2, 0.0), x1)
+    primary = GCR_MOON_MSV_YR * math.exp(-x / GCR_PRIMARY_LENGTH_G_CM2)
+    if x <= 0.0:
+        return primary
+    k = d1 - GCR_MOON_MSV_YR * math.exp(-x1 / GCR_PRIMARY_LENGTH_G_CM2)
+    return primary + k * (x / x1) ** GCR_BUILD_UP_EXPONENT * math.exp(-(x - x1) / GCR_SHOWER_LENGTH_G_CM2)
+
+
 def no_field_dose_msv_yr(column_g_cm2):
     """Rule 1's `D0`: the dose, mSv/yr, under `column_g_cm2` with no magnetic field and the mean solar modulation."""
     x = max(column_g_cm2, 0.0)
     points = GCR_SHOWER_POINTS
     if x < points[0][0]:
-        nodes = GCR_ANCHORS + points[:1]
-        columns = [math.log1p(column) for column, _ in nodes]
-        return _log_linear(math.log1p(x), columns, [dose for _, dose in nodes])
+        return thin_air_dose_msv_yr(x)
     columns = [math.log(column) for column, _ in points]
     doses = [dose for _, dose in points]
     if x <= points[-1][0]:
@@ -259,19 +323,17 @@ def proton_cutoff_gv(column_g_cm2, material="air"):
 
 
 def sep_dose_msv_yr(free_msv_yr, column_g_cm2, cutoff_gv):
-    """Rule 3's stellar-particle dose under `column_g_cm2` for a free-space
-    dose and a dipole's `cutoff_gv`."""
-    p_cut = proton_cutoff_gv(column_g_cm2)
-    r_eff = max(0.5 * p_cut, SEP_MIN_RIGIDITY_GV)
-    polar = 1.0 if cutoff_gv <= r_eff else 1.0 - math.sqrt(1.0 - math.sqrt(r_eff / cutoff_gv))
-    return free_msv_yr * math.exp(-p_cut / SEP_R0_GV) * polar
+    """Rule 3's stellar-particle dose under `column_g_cm2` for a free-space dose and a dipole's equatorial `cutoff_gv`: the share of the protons
+    of the measured events (`solar_particles.dose_share`) that gets past the column's proton cutoff and the field's, latitude-averaged."""
+    return free_msv_yr * solar_particles.dose_share(proton_cutoff_gv(column_g_cm2), cutoff_gv)
 
 
 def free_sep_msv_yr(flare_n33_per_yr, distance_au):
-    """Rule 3's free-space dose at `distance_au`."""
+    """Rule 3's free-space dose at `distance_au`: the Sun's mean yearly dose at 1 AU from its measured events (`solar_particles.FREE_MSV_YR`)
+    scaled by the square root of the star's rate of 1e33 erg flares over the Sun's and the inverse square of the distance."""
     if not flare_n33_per_yr or not distance_au:
         return 0.0
-    return SEP_FREE_MSV_YR * math.sqrt(flare_n33_per_yr / N33_SUN_PER_YR) / distance_au ** 2
+    return solar_particles.FREE_MSV_YR * math.sqrt(flare_n33_per_yr / N33_SUN_PER_YR) / distance_au ** 2
 
 
 def gas_density_g_cm3(pressure_pa, molar_mass_kg_mol, temperature_k):

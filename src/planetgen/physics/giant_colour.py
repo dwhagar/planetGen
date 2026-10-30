@@ -27,7 +27,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import air_column, atmosphere_colour as colour_model, constants, two_stream
+from planetgen.physics import air_column, atmosphere_colour as colour_model, constants, photometry, two_stream
 
 REFERENCE_BAR_PA = 1.0e5
 """float: The radius level of a giant (decision 9), Pa; the reference level is never deeper."""
@@ -143,7 +143,7 @@ def body_giant_colour(body):
     """
     temperature = getattr(getattr(body, "star", None), "temperature", None)
     gravity = (getattr(body, "gravity", None) or 0.0) * constants.EARTH_GRAVITY
-    if not temperature or temperature <= 0.0 or gravity <= 0.0:
+    if not temperature or not photometry.gives_visible_light(temperature) or gravity <= 0.0:
         return None
     mixture = air_column.partials_pa(body)
     if sum(mixture.values()) <= 0.0:

@@ -8,8 +8,8 @@ section 5. Both star-system bodies (`generate_hydrosphere`) and rogue
 planets (`physics.rogue_surface`) use the functions here.
 
 1. **Inventory.** A rocky body's water mass fraction is drawn with its bulk
-   composition (`bulk_draw`, GEN.428) log-uniformly from the range of its origin
-   (`tuning.DRY_WATER_MASS_FRACTION` and the others beside it; Earth's oceans are 2.34e-4). The mantle holds part of it: the surface
+   composition (`bulk_draw`, GEN.428) from the delivery law of its mass and where it formed
+   (`delivered_water`, GEN.849; Earth's oceans are 2.34e-4). The mantle holds part of it: the surface
    keeps `w / b`, `b` log-uniform 1 to 8, but the mantle never holds more
    than ten Earth oceans (`MANTLE_MAX_WATER_FRACTION`). Gas giants have no
    hydrosphere (every field `None`).
@@ -28,7 +28,9 @@ planets (`physics.rogue_surface`) use the functions here.
    surface water is under `BRINE_MAX_WATER_FRACTION` has its salts
    concentrated: the base melts at the drawn eutectic of a perchlorate brine
    (`clathrate_brine.draw_brine`, 198 to 236 K, GEN.762) and the brine ocean
-   keeps that salt's water activity.
+   keeps that salt's water activity. A liquid surface whose ocean class is the
+   chloride brine is a `brine seep`, not a `surface ocean` (GEN.908): so little
+   water that its salts fix its chemistry, often under no air at all.
 4. **The compressed column and high-pressure ice (GEN.461).** The water over
    the covered area is integrated from the surface down with its density
    rising with the pressure (`water_layer.column`: 746 km deep at 11 GPa for
@@ -66,10 +68,16 @@ HYDROSPHERE_FIELDS = (
 """tuple: What `generate_hydrosphere` sets on a planet or moon, as stored in
 `planets` and `moons` (the aquifer layer on a world with no liquid at its surface)."""
 
-HYDROSPHERE_STATES = ("dry", "vapour", "ice", "ice-covered ocean", "surface ocean", "hycean")
+BRINE_SEEP = "brine seep"
+"""str: The state of a liquid surface whose ocean is a chloride brine (GEN.908): a puddle of concentrated salt water that melts below
+273 K under thin or no air, not a sea. It is a liquid surface (the ocean columns apply, and it holds water for a base), but the checks
+that ask for a `surface ocean` (a sunlit sea for life, the plate tectonics of a wet world, an induction ocean) do not take it."""
+HYDROSPHERE_STATES = ("dry", "vapour", "ice", "ice-covered ocean", "surface ocean", BRINE_SEEP, "hycean")
 OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutral")
 
 WATER_MELTING_K = 273.15
+FROZEN_COVER_STATES = ("ice", "ice-covered ocean")
+"""tuple: The hydrosphere states whose surface is ice (GEN.833: their cover is the water layer the body holds, `frozen_cover`)."""
 LIQUID_WATER_DENSITY_KG_M3 = 1000.0
 ICE_DENSITY_KG_M3 = water_layer.ICE_LID_DENSITY_KG_M3
 ICE_CONDUCTIVITY_A_W_M = 567.0
@@ -155,12 +163,30 @@ def water_layer_depth_km(mass_kg, radius_km, water_mass_fraction):
     return water_mass_fraction * mass_kg / (LIQUID_WATER_DENSITY_KG_M3 * area_m2) / 1000.0
 
 
-def ocean_fraction(layer_km, gravity_m_s2):
-    """Section 5.1's `f_ocean = min(1, sqrt(2 D / L))`."""
+def ocean_fraction(layer_km, gravity_m_s2, icy=False):
+    """
+    Section 5.1's `f_ocean = min(1, sqrt(2 D / L))`, with the relief `L` of a rock basin, `EARTH_RELIEF_KM` scaled as 1 / g. For
+    `icy` (GEN.833) `L` is `EARTH_RELIEF_KM` at most: observed icy relief is a few to 20 km on bodies of any gravity (Enceladus,
+    Callisto, Iapetus), ice being strength-limited, so it does not grow as 1 / g below Earth's.
+    """
     if layer_km <= 0 or gravity_m_s2 <= 0:
         return 0.0
     relief_km = EARTH_RELIEF_KM * constants.EARTH_GRAVITY / gravity_m_s2
+    if icy:
+        relief_km = min(relief_km, EARTH_RELIEF_KM)
     return min(1.0, math.sqrt(2 * layer_km / relief_km))
+
+
+def frozen_cover(body, gravity_m_s2):
+    """
+    The share of its surface the water of a frozen body covers as ice (GEN.833): the cover (`ocean_fraction`'s law) of the layer all of the body's
+    water makes at ice's density. The surface water (`draw_surface_water`, what the mantle leaves) is the reservoir of a liquid ocean;
+    a frozen body holds its water as ice through its outer layers, so the ice that covers it is the water it holds, not the part
+    a liquid ocean would have had. A small moon with a thick ice shell is covered (`ocean_fraction`'s `icy` relief).
+    """
+    area_m2 = 4 * math.pi * (body.radius * 1000.0) ** 2
+    layer_km = (body.water_mass_fraction or 0.0) * body.mass / (ICE_DENSITY_KG_M3 * area_m2) / 1000.0
+    return ocean_fraction(layer_km, gravity_m_s2, icy=True)
 
 
 def surface_water_fraction(water_mass_fraction, rng=draw):
@@ -282,6 +308,9 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
             state = "ice-covered ocean" if column.ice_shell_km else "surface ocean"
     shell_km, liquid_km, hp_km = column.ice_shell_km, column.liquid_km or None, column.hp_ice_km
     body.hydrosphere = state
+    if state in FROZEN_COVER_STATES:    # GEN.833: the ice covers what the water the body holds makes, not the toy ocean cover
+        body.ocean_fraction = max(covered, frozen_cover(body, gravity))
+        body.land_fraction = 1.0 - body.ocean_fraction
     body.ice_shell_km = shell_km or None
     body.hp_ice_km = hp_km or None
     body.ocean_depth_km = liquid_km
@@ -289,6 +318,8 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
     if not liquid_km:
         return surface_w
     kind = ocean_class(body, hp_km, surface_w, covered)
+    if kind == "chloride brine" and state == "surface ocean":
+        body.hydrosphere = BRINE_SEEP
     (ph_lo, ph_hi), (aw_lo, aw_hi) = OCEAN_CHEMISTRY[kind]
     body.ocean_class = kind
     body.ocean_ph = draw.uniform(ph_lo, ph_hi)

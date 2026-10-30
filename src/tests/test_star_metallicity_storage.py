@@ -44,9 +44,11 @@ def test_halo_stars_are_far_poorer_in_metals_than_disc_stars():
     assert statistics.mean(disc) - statistics.mean(halo) > 1.5
 
 
-def test_a_cluster_star_has_no_value_until_its_cluster_gives_one():
-    assert brightStars.star_fe_h("cluster", {"metallicity_fe_h": -0.4}) is None
-    assert brightStars.spot_fe_h("cluster", [((1000, 0, 0),)], draw.Stream("t")) is None
+def test_a_cluster_star_stores_the_value_its_cluster_gave_it():
+    """GEN.662: a cluster star's row holds the [Fe/H] it was drawn at, from its cluster's own distribution."""
+    assert brightStars.star_fe_h({"metallicity_fe_h": -0.4}) == -0.4
+    source = brightStars.spot_fe_h("cluster", [((1000, 0, 0),)], draw.Stream("t"), ((1.0, -1.6, 0.15),))
+    assert -2.2 < source(0) < -1.0
 
 
 def test_the_stored_value_comes_back_in_the_stars_params():

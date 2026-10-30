@@ -1,42 +1,42 @@
 # planetgen/describe/sheet_sources.py
 
 """
-The one-line source of a physics row of the property sheet (UX.187): how the value was worked out and the item that did it,
+The one-line source of a physics row of the property sheet (UX.187): how the value was worked out,
 so a reader of a page or of `GET /api/objects/<ref>/sheet` sees where a number comes from beside the number. Every line is
 one sentence, written from the docstring of the module that makes the value, and a row with no line here has none: nothing
 is invented for a column whose rule is not written down. `tests/test_sheet_sources.py` holds the table to the sheet's rows.
 """
 
 _LID = ("a stagnant lid (one rigid plate) or a mobile one (plate tectonics, which needs a liquid surface ocean), drawn once with "
-        "the interior (GEN.721)")
+        "the interior")
 
 _STEPS = ("Five hard steps, each an exponential waiting time that starts when the one before is done, faster on a warm world "
           "(Carter 1983; Watson 2008)")
-_AGES = _STEPS + " (GEN.750)."
+_AGES = _STEPS + "."
 
 _BODY = {
     "eccentricity": "A planet draws from the Kepler multi-planet law (Van Eylen et al. 2019) and is circularised by its tide; a regular "
-                    "moon keeps a small forced value, a captured moon a thermal one (GEN.727).",
-    "flux_variation": "The swing of the starlight between periapsis and apoapsis, peak to peak over the mean, from the eccentricity (GEN.727).",
-    "tidal_flux_w_m2": "Peale, Cassen and Reynolds 1979 tidal power from the stored eccentricity and the body's rheology (GEN.737).",
+                    "moon keeps a small forced value, a captured moon a thermal one.",
+    "flux_variation": "The swing of the starlight between periapsis and apoapsis, peak to peak over the mean, from the eccentricity.",
+    "tidal_flux_w_m2": "Peale, Cassen and Reynolds 1979 tidal power from the stored eccentricity and the body's rheology.",
     "internal_heat_flux_w_m2": "Radiogenic plus primordial heat in one-box parameterised mantle convection (Thiriet et al. 2019; "
-                               "Guimond, Rudge and Shorttle 2022) (GEN.699).",
-    "urey_ratio": "The radiogenic share of the interior heat, an output of the mantle model and not a draw (GEN.699).",
+                               "Guimond, Rudge and Shorttle 2022).",
+    "urey_ratio": "The radiogenic share of the interior heat, an output of the mantle model and not a draw.",
     "lid_regime": "One of " + _LID + ".",
-    "c_th0_ppm": "Follows the host star's thorium (its Eu relation, truncated at plus or minus 0.5 dex), not a draw of its own (GEN.459).",
-    "c_u0_ppm": "Worked out from the thorium by the r-process production ratio and the decay of the galaxy's earlier ejecta (GEN.759).",
+    "c_th0_ppm": "Follows the host star's thorium (its Eu relation, truncated at plus or minus 0.5 dex), not a draw of its own.",
+    "c_u0_ppm": "Worked out from the thorium by the r-process production ratio and the decay of the galaxy's earlier ejecta.",
     "rotation_period_hours": "Birth spin worn down by the tide of what the body orbits, to a free, locked or resonant state "
-                             "(Gladman et al. 1996) (GEN.731).",
+                             "(Gladman et al. 1996).",
     "axial_tilt_deg": "Isotropic for a rocky planet, Rayleigh about 15 degrees for a gas giant or an untidied moon, and on the orbit "
-                      "normal for a locked body (GEN.104).",
+                      "normal for a locked body.",
     "magnetic_moment_a_m2": "A dynamo needs at least 0.05 Earth masses and a core share of 0.15; the moment scales with mass and core "
-                            "share and fades with age (GEN.86).",
-    "ring_outer_km": "Ends at the Roche limit, 2.456 R (planet density over particle density)^(1/3), and inside the innermost large moon (GEN.732).",
-    "ring_optical_depth": "An output of the drawn mass, the extent and the particle size, 3 M / (4 density r area) (GEN.732).",
-    "life_stage": "The latest stage whose age is not past the age of the star (GEN.750).",
+                            "share and fades with age.",
+    "ring_outer_km": "Ends at the Roche limit, 2.456 R (planet density over particle density)^(1/3), and inside the innermost large moon.",
+    "ring_optical_depth": "An output of the drawn mass, the extent and the particle size, 3 M / (4 density r area).",
+    "life_stage": "The latest stage whose age is not past the age of the star.",
     "life_age_abiogenesis_gyr": _AGES,
     "life_age_photosynthesis_gyr": _AGES,
-    "life_age_complex_cells_gyr": _STEPS + "; the wait for complex cells starts only when the air holds free oxygen (GEN.750).",
+    "life_age_complex_cells_gyr": _STEPS + "; the wait for complex cells starts only when the air holds free oxygen.",
     "life_age_multicellularity_gyr": _AGES,
     "life_age_technological_civilization_gyr": _AGES,
 }
@@ -44,14 +44,20 @@ _BODY = {
 
 _PLANET = {
     **_BODY,
-    "orbital_inclination_deg": "A Rayleigh law about the star's equator, its dispersion from the Kepler multiples (Fabrycky et al. 2014) (GEN.727).",
+    "orbital_inclination_deg": "A Rayleigh law about the star's equator, its dispersion from the Kepler multiples (Fabrycky et al. 2014).",
 }
 """dict: A planet's column key -> its source line (a moon's inclination has no line written)."""
 
 _STAR = {
-    "rotation_period_hours": "A cool main-sequence star from gyrochronology (Barnes 2007) with 10 percent scatter; a hot star from a drawn "
-                             "equatorial speed (GEN.104).",
-    "axial_tilt_deg": "Rayleigh about 15 degrees from the star's reference normal (GEN.104).",
+    "rotation_period_hours": "A white dwarf log-normal about a day, a giant a slow 1 to 10 km/s, a cool dwarf from "
+                             "gyrochronology (Barnes 2007), a hot star from a drawn speed; a scattered star keeps its own draw.",
+    "axial_tilt_deg": "Rayleigh about 15 degrees from the star's reference normal.",
+    "disk_kind": "A young star holds a class 0, I or II disk by its age; a main-sequence star has a cold debris belt at the share "
+                 "the DEBRIS survey found for its kind, 2 to 24 percent (Sibthorpe et al. 2018).",
+    "disk_inner_au": "A young star's disk starts at the dust sublimation radius; a debris belt starts at 0.7 of its radius, the "
+                     "blackbody radius of its drawn dust temperature times 1.74 (Sibthorpe et al. 2018).",
+    "disk_outer_au": "A young star's disk ends log-uniform between 10 and 300 AU; a debris belt ends at 1.5 of its radius, the "
+                     "blackbody radius of its drawn dust temperature times 1.74 (Sibthorpe et al. 2018).",
 }
 """dict: A star's column key -> its source line."""
 

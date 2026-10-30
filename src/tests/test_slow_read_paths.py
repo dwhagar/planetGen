@@ -83,7 +83,7 @@ def test_the_sectors_list_gives_each_sectors_system_count(galaxy):
     assert by_systems == sorted(by_systems, reverse=True)
     stored = {row["sector_id"]: row["system_count"] for row in galaxy.execute(
         "SELECT sector_id, system_count FROM sector_system_counts").fetchall()}
-    assert sum(stored.values()) == 13 and len(stored) == 3
+    assert sum(stored.values()) == 13 and len(stored) == 4       # every sector has a row (PERF.208), the empty one too
 
 
 def test_the_scattered_point_query_has_an_index_of_its_own(galaxy):
@@ -163,8 +163,27 @@ def test_a_keyset_page_is_the_page_offset_paging_gives(galaxy, descending):
     # A system that is gone, or another sort, falls back to the offset.
     assert _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="name", after=10 ** 9)) == \
         _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="name"))
-    assert _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant", after=everything[0]["id"])) == \
+    assert _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant", after=10 ** 9)) == \
         _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant"))
+    # a list filtered by star type reads by offset in every sort (it is not a group walk)
+    assert _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant", star_type_prefix="K",
+                                     after=everything[0]["id"])) == \
+        _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant", star_type_prefix="K"))
+
+
+@pytest.mark.parametrize("sort", ["sector", "octant", "binary"])
+@pytest.mark.parametrize("descending", [False, True])
+@pytest.mark.parametrize("filters", [{}, {"binary": True}, {"octants": ("I", "V")}])
+def test_a_page_sorted_by_group_after_a_system_is_the_page_the_full_sort_gives(galaxy, sort, descending, filters):
+    """PERF.206: the group walks (sector, octant, binary) start after the system the previous page ended on, in any group
+    and in the systems with no sector or octant at the end, and give the pages of one long read; `offset` is ignored."""
+    everything = _ids(queryDb.list_systems(galaxy, sort=sort, descending=descending, **filters))
+    assert len(everything) > 4
+    size = 3
+    for index in range(0, len(everything), size):
+        page = _ids(queryDb.list_systems(galaxy, limit=size, offset=999 if index else 0, sort=sort,
+                                         descending=descending, after=everything[index - 1] if index else None, **filters))
+        assert page == everything[index:index + size], (sort, descending, filters, index)
 
 
 def test_the_systems_route_pages_by_key(client, galaxy):

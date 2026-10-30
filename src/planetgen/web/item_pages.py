@@ -25,7 +25,7 @@ from planetgen.describe.html import blocks_html, inline_html
 from planetgen.describe.model import sections
 from planetgen.galaxy import objectref
 from planetgen.web.lib import apiclient
-from planetgen.web.lib import bodyview, facility_display, planet_layout, planet_summary
+from planetgen.web.lib import bodyview, facility_display, life_air_chart, planet_layout, planet_summary
 from planetgen.web.lib.habitability_chips import chips_html
 from planetgen.web.lib.fmt import esc
 from planetgen.web.lib.systempage import facilities_by_host, facilities_html
@@ -253,6 +253,21 @@ def glance_view(sheet):
             for key in sheet_registry.GLANCE.get(sheet["kind"], ()) if key in rows and _listed(rows[key])]
 
 
+def life_air_view(db, kind, printed_id, row):
+    """The Life and air chart of a planet's or moon's page (UX.237): `web.lib.life_air_chart.chart` of the body's air history, or `None` for a
+    body with no living class or whose air the life did not change, or when the API cannot say."""
+    if kind not in ("planet", "moon") or not row or not row.get("life_class_id"):
+        return None
+    try:
+        answer = apiclient.get_life_air(db, kind, printed_id)
+    except (apiclient.NotFoundError, apiclient.ApiError):
+        return None
+    grade = int(row.get("life_animal_grade") or 0)
+    view = life_air_chart.chart(answer.get("life_air"), row["life_class_id"], grade)
+    return None if view is None else {**view, "svg": trusted_html(view["svg"]), "legend": trusted_html(view["legend"]),
+                                      "note": trusted_html(view["note"])}
+
+
 def planet_sections(name, row, sheet, species, piece):
     """
     The sections of a planet's or moon's page in the order Boss set (UX.215 to UX.222), as template variables in
@@ -276,6 +291,7 @@ def planet_sections(name, row, sheet, species, piece):
     return {
         "summary": [trusted_html(sentence) for sentence in planet_summary.summary_sentences(name, row or {}, values, raw)],
         "life": trusted_html(blocks_html(parts["life"], _ref_link)),
+        "life_class": planet_layout.life_class_view(row),
         "civilization": [trusted_html(sentence) for sentence in planet_layout.civilization_sentences(row, species)],
         "notes": trusted_html(blocks_html(parts["rest"], _ref_link)),
         "phi6_blocks": trusted_html(blocks_html(parts["phi6"], _ref_link)),
@@ -395,7 +411,7 @@ def hosted_facilities(db, system_id, kind, row):
 
 def dominant_species(db, kind, row):
     """`{"name", "url"}` of a life world's dominant species, or `None` (also before population has made any)."""
-    if kind != "planet" or not row.get("life_class") or not population_status()["species"]:
+    if kind != "planet" or not row.get("life_class_id") or not population_status()["species"]:
         return None
     try:
         species = apiclient.get_planet_species(db, row["id"])
@@ -626,13 +642,14 @@ def render_item(kind, printed_id):
         description=f"The {label.lower()} {name}: where it is, what it is like and everything stored about it.",
         kind=kind,
         kind_label=label,
-        habitability=found if kind in ("planet", "moon") else None,
+        habitability={**found, "life_class_id": (row or {}).get("life_class_id")} if kind in ("planet", "moon") else None,
         chips=trusted_html(chips_html(row, page_url("habitability_levels"))) if kind in ("planet", "moon") and row else "",
         facilities=hosted_facilities(db, system_id, kind, row) if row is not None else "",
         species=species,
         object_id=printed_id,
         facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
         example=bodyview.view(kind, row, detail["stars"]) if row is not None else None,
+        life_air=life_air_view(db, kind, printed_id, row),
         **with_region(sheet_context(sheet), found),
         **({"planet": planet_sections(name, row, sheet, species, piece)} if kind in ("planet", "moon") else {}),
         tree=tree,

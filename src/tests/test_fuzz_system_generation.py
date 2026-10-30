@@ -54,7 +54,7 @@ from planetgen.physics import formation
 from planetgen.physics import orbits
 from planetgen.util import format as formatting
 from planetgen.util import random as sampling
-from planetgen.generation import comet as cometData, star as starData
+from planetgen.generation import comet as cometData
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
@@ -721,7 +721,6 @@ HELPERS = {
     "true_anomaly_and_distance_parabolic": (km.true_anomaly_and_distance_parabolic, (1.0, 1.0)),
     "vis_viva_speed_kms": (km.vis_viva_speed_kms, (1.0, 1.0, 1.0)),
     "_activity_chance": (cometData._activity_chance, (1.0,)),
-    "_sample_evolved_star_mass_sol": (starData._sample_evolved_star_mass_sol, (1.0, 5.0)),
     "_calculate_heliosphere_radius_static": (
         Star._calculate_heliosphere_radius_static, (M_SUN, L_SUN, 696000.0, "G2V", "V")),
     "_calculate_system_perimeter_static": (BinaryStarProxy._calculate_system_perimeter_static, (M_SUN, 26000.0)),

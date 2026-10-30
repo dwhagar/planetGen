@@ -16,7 +16,7 @@ from planetgen.db import nodes
 from planetgen.galaxy import spherical
 from planetgen.galaxy.drill import drill_chain_of, format_drill_key
 from planetgen.physics.units import ly_to_pc
-from planetgen.physics import habitability
+from planetgen.physics import habitability, life_classes
 from planetgen.db import block_stats
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -289,7 +289,7 @@ def test_a_v164_galaxy_gets_its_rows_from_the_planets_moons_and_belts_it_holds(m
     try:
         sector_id, _expected = _fill_one_sector(conn)
         system_id = _place(conn, sector_id)
-        want = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        want = _kept(conn, system_id)
     finally:
         conn.close()
     # make it a v164 galaxy again: the table gone, the old one back, the rows kept
@@ -297,7 +297,7 @@ def test_a_v164_galaxy_gets_its_rows_from_the_planets_moons_and_belts_it_holds(m
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        got = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        got = _kept(conn, system_id)
         assert got == want
         assert conn.execute("SHOW TABLES LIKE 'habitable_systems'").fetchone() is None
     finally:
@@ -314,7 +314,7 @@ def test_a_v165_galaxy_gets_the_two_new_reasons_from_what_it_holds(mysql_config)
                      " composition_summary) VALUES (?, 3, 4.0e8, 3.0e8, 5.0e8, 'typical', 'iron')", (system_id,))
         store.recount_habitable_worlds(conn, [system_id])
         conn.commit()
-        want = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        want = _kept(conn, system_id)
         assert interests.UNINHABITABLE in want and interests.ASTEROID_FIELD in want
     finally:
         conn.close()
@@ -328,7 +328,7 @@ def test_a_v165_galaxy_gets_the_two_new_reasons_from_what_it_holds(mysql_config)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        got = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        got = _kept(conn, system_id)
         assert got == want
     finally:
         conn.close()
@@ -344,7 +344,7 @@ def test_a_v166_galaxy_gets_the_inhabited_reason_from_what_it_holds(mysql_config
                      (first,))
         store.recount_habitable_worlds(conn, [system_id])
         conn.commit()
-        want = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        want = _kept(conn, system_id)
         assert interests.INHABITED in want
     finally:
         conn.close()
@@ -358,10 +358,17 @@ def test_a_v166_galaxy_gets_the_inhabited_reason_from_what_it_holds(mysql_config
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        got = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        got = _kept(conn, system_id)
         assert got == want
     finally:
         conn.close()
+
+
+def _kept(conn, system_id):
+    """`{reason: (n, best_score)}` of the system's rows without the life class ones: a test that goes back below v175 loses the life class of every
+    body (`migrations/versions/0175_life_classes.py` cannot keep it), so those rows are not what it restores (MAP.351 has its own test)."""
+    return {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()
+            if not reason.startswith(interests.LIFE_CLASS_PREFIX)}
 
 
 def _class_counts(conn, system_id):
@@ -409,12 +416,17 @@ def _second_system(conn, sector_id, letter):
 
 def test_every_planet_class_is_a_reason_after_the_others_and_the_map_lists_the_same_letters():
     assert interests.CLASS_REASONS == tuple(interests.class_reason(letter) for letter in sorted(tuning.PLANET_CLASSES))
-    assert tuple(interests.REASONS)[-len(interests.CLASS_REASONS):] == interests.CLASS_REASONS
+    assert tuple(interests.REASONS)[-len(interests.CLASS_REASONS) - len(interests.LIFE_CLASS_REASONS):-len(interests.LIFE_CLASS_REASONS)] \
+        == interests.CLASS_REASONS
+    assert tuple(interests.REASONS)[-len(interests.LIFE_CLASS_REASONS):] == interests.LIFE_CLASS_REASONS
     assert interests.BASE_REASONS == (interests.INHABITED, interests.CIVILIZATION, interests.SENTIENT, interests.LIFE, interests.HABITABLE,
                                       interests.UNINHABITABLE, interests.GAS_GIANT, interests.ASTEROID_FIELD)
     script = (pathlib.Path(__file__).resolve().parents[1] / "html" / "static" / "galaxymarkers.js").read_text(encoding="utf-8")
     assert f'PLANET_CLASS_LETTERS = "{"".join(sorted(tuning.PLANET_CLASSES))}".split("")' in script
     assert f"CLASS_MAX_BLOCK = {nodes.CLASS_ABOVE};" in script, "the map and the nodes agree on the biggest block that lists the classes"
+    assert interests.LIFE_CLASS_REASONS == tuple(interests.life_class_reason(definition.id) for definition in life_classes.CLASSES)
+    ids = ", ".join(f'"{definition.id}"' for definition in life_classes.CLASSES)
+    assert f"LIFE_CLASS_IDS = [{ids}];" in script, "the map lists the life classes of physics/life_classes.py (MAP.351)"
     assert all(len(reason) <= 24 for reason in interests.REASONS), "a reason fits the reason column"
     names = ", ".join(f'"{name}"' for _start, name in tuning.TECH_BANDS)
     assert f"TECH_BAND_NAMES = [{names}];" in script, "the map's technology bands are the species' bands (MAP.344)"
@@ -491,9 +503,10 @@ def test_a_small_node_lists_the_classes_with_the_worlds_and_a_big_node_does_not(
         assert [s["id"] for s in listed] == [system_id]
         assert {interests.HABITABLE, "class-K", "class-O"} <= set(listed[0]["reasons"]), "one entry with the world reasons and the classes"
         assert not any(reason.startswith(interests.CLASS_PREFIX) for system in found[wide_key]["interests"] for reason in system["reasons"])
-        conn.execute("DELETE FROM system_interests WHERE star_system_id = ? AND reason NOT LIKE ?", (system_id, interests.CLASS_PREFIX + "%"))
+        conn.execute("DELETE FROM system_interests WHERE star_system_id = ? AND reason NOT LIKE ? AND reason NOT LIKE ?",
+                     (system_id, *(prefix + "%" for prefix in interests.PER_CLASS_PREFIXES)))
         alone = nodes.galaxy_nodes(conn, [sector_key])["nodes"][sector_key]["interests"]
-        assert [s["id"] for s in alone] == [system_id] and all(r.startswith("class-") for r in alone[0]["reasons"]), \
+        assert [s["id"] for s in alone] == [system_id] and all(r.startswith(interests.PER_CLASS_PREFIXES) for r in alone[0]["reasons"]), \
             "a system only a class lists is still on the node"
     finally:
         conn.rollback()
@@ -507,7 +520,7 @@ def test_a_v171_galaxy_gets_the_class_reasons_from_what_it_holds(mysql_config):
         system_id = _place(conn, sector_id)
         _set_classes(conn, system_id, ["K", "K", "O"])
         conn.commit()
-        want = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        want = _kept(conn, system_id)
         assert "class-K" in want and "class-O" in want
     finally:
         conn.close()
@@ -521,7 +534,7 @@ def test_a_v171_galaxy_gets_the_class_reasons_from_what_it_holds(mysql_config):
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        got = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        got = _kept(conn, system_id)
         assert got == want
     finally:
         conn.close()
@@ -584,7 +597,7 @@ def test_a_v172_galaxy_gets_the_life_reasons_from_what_it_holds(mysql_config):
         conn.execute("UPDATE planets SET life_sentient = 1, life_stage = 'technological_civilization', planet_class = 'M' WHERE id = ?", (second,))
         store.recount_habitable_worlds(conn, [system_id])
         conn.commit()
-        want = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        want = _kept(conn, system_id)
         assert {interests.LIFE, interests.SENTIENT, interests.CIVILIZATION} <= set(want)
     finally:
         conn.close()
@@ -598,7 +611,7 @@ def test_a_v172_galaxy_gets_the_life_reasons_from_what_it_holds(mysql_config):
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        got = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        got = _kept(conn, system_id)
         assert got == want
     finally:
         conn.close()
@@ -676,5 +689,134 @@ def test_a_v173_galaxy_gets_the_technology_level_from_the_species_it_holds(mysql
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert _rows(conn, system_id)[interests.CIVILIZATION]["best_score"] == pytest.approx(want)
+    finally:
+        conn.close()
+
+
+def _set_life_classes(conn, system_id, classes):
+    """Puts life classes on the system's planets in order (`(number, variant)` or None for none); the planets after them, and all the moons, get none."""
+    ids = [row["id"] for row in conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
+    for index, planet_id in enumerate(ids):
+        number, variant = classes[index] if index < len(classes) and classes[index] else (None, None)
+        conn.execute("UPDATE planets SET life_class = ?, life_class_variant = ?, life_stage = ? WHERE id = ?",
+                     (number, variant, "abiogenesis" if number is not None else None, planet_id))
+    conn.execute("UPDATE moons SET life_class = NULL, life_class_variant = NULL WHERE star_system_id = ?", (system_id,))
+    store.recount_habitable_worlds(conn, [system_id])
+
+
+def _life_class_rows(conn, system_id):
+    return {reason: row["n"] for reason, row in _rows(conn, system_id).items() if reason.startswith(interests.LIFE_CLASS_PREFIX)}
+
+
+def test_a_system_has_a_row_for_each_life_class_that_lives_on_one_of_its_worlds(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _set_life_classes(conn, system_id, [(1, "a"), (1, "a"), (2, None), (6, "")])
+        held = conn.execute("SELECT life_class AS c, COALESCE(life_class_variant, '') AS v, COUNT(*) AS n FROM planets"
+                            " WHERE star_system_id = ? AND life_class IS NOT NULL GROUP BY c, v", (system_id,)).fetchall()
+        want = {f"{interests.LIFE_CLASS_PREFIX}{row['c']}{row['v']}": row["n"] for row in held}
+        assert want and _life_class_rows(conn, system_id) == want
+        rows = _rows(conn, system_id)
+        assert all(rows[reason]["best_score"] is None for reason in _life_class_rows(conn, system_id))
+        _set_life_classes(conn, system_id, [])
+        assert _life_class_rows(conn, system_id) == {}, "a world with no life class gives none"
+        _set_life_classes(conn, system_id, [(1, "b")])
+        assert _life_class_rows(conn, system_id) == {"lifeclass-1b": 1}
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_a_class_a_world_suits_but_has_no_life_stage_for_yet_is_no_row(mysql_config):
+    """GEN.1001: the class is stored for a world whose star is younger than the first step of its schedule, but no life lives there yet."""
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _set_life_classes(conn, system_id, [(1, "a"), (4, "c")])
+        assert _life_class_rows(conn, system_id) == {"lifeclass-1a": 1, "lifeclass-4c": 1}
+        first = conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND life_class = 4 LIMIT 1", (system_id,)).fetchone()["id"]
+        conn.execute("UPDATE planets SET life_stage = NULL WHERE id = ?", (first,))
+        store.recount_habitable_worlds(conn, [system_id])
+        assert _life_class_rows(conn, system_id) == {"lifeclass-1a": 1}
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_the_life_filter_and_its_column_leave_out_a_class_with_no_life_stage_yet(mysql_config):
+    """GEN.1001: the `life` facet counts, filters and names the class only of a world whose life has started."""
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _set_life_classes(conn, system_id, [(1, "a"), (1, "a")])
+        ids = [row["id"] for row in conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND life_class = 1 ORDER BY id", (system_id,)).fetchall()]
+        assert len(ids) == 2
+        tags = {name: set() for name in query.SEARCH_TAG_FACETS}
+        tags["life"] = {"1a"}
+
+        def seen():
+            counted = {option["value"]: option["count"] for option in query._life_class_facet(conn, "planets")}
+            rows = query.search(conn, {}, tags, limit=300)["results"]["planets"]["rows"]
+            return counted.get("1a", 0), {row["id"] for row in rows if row["star_system_id"] == system_id}, rows
+
+        counted, found, _rows_ = seen()
+        assert len(found) == 2
+        conn.execute("UPDATE planets SET life_stage = NULL WHERE id = ?", (ids[0],))
+        after, found, rows = seen()
+        assert after == counted - 1 and len(found) == 1 and ids[0] not in found
+        # the row of the world itself names no class either, whichever filter found it
+        tags["life"] = set()
+        tags["class"] = set()
+        everything = query.search(conn, {}, {**tags, "living": {"alive", "lifeless"}}, limit=300)["results"]["planets"]
+        bare = [row for row in (everything["rows"] if everything else []) if row["id"] == ids[0]]
+        assert all(row["life_class_id"] is None for row in bare)
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_the_world_query_leaves_the_life_classes_out_and_the_class_query_lists_them(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _set_life_classes(conn, system_id, [(3, "a")])
+        lo, hi = _box(POSITION_PC)
+        found = query.galaxy_system_interests_in_box(conn, lo, hi)
+        assert found and not any(reason.startswith(interests.PER_CLASS_PREFIXES) for system in found for reason in system["reasons"])
+        by_class = query.galaxy_class_interests_in_box(conn, lo, hi, 5)
+        assert [s["id"] for s in by_class] == [system_id]
+        assert "lifeclass-3a" in by_class[0]["reasons"] and by_class[0]["reasons"]["lifeclass-3a"] == {"n": 1}
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_a_v175_galaxy_gets_the_life_class_reasons_from_what_it_holds(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        _set_life_classes(conn, system_id, [(1, "a"), (4, "c")])
+        conn.commit()
+        want = _life_class_rows(conn, system_id)
+        assert want
+    finally:
+        conn.close()
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        conn.execute("DELETE FROM system_interests WHERE reason LIKE ?", (interests.LIFE_CLASS_PREFIX + "%",))
+        conn.commit()
+    finally:
+        conn.close()
+    db_schema_support.downgrade_to(mysql_config, 175)
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        assert _life_class_rows(conn, system_id) == want
     finally:
         conn.close()

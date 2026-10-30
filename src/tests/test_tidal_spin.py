@@ -48,7 +48,8 @@ def _hours(rate):
 
 
 def test_the_accretion_spin_follows_the_published_law():
-    """Kokubo and Genda 2010: Gaussian components of 1.3 rad/h at 3000 kg/m3 (rms 2.35 rad/h, 0.71 of the breakup rate), an isotropic axis."""
+    """Kokubo and Genda 2010: Gaussian components of 1.3 rad/h at 3000 kg/m3 (rms 2.35 rad/h, 0.71 of the breakup rate), an isotropic axis; the
+    interim GEN.953 scales the width by `spin.ACCRETION_SPIN_SCALE` (0.4) for a planet above `spin.SMALL_PLANET_MASS_EARTH`."""
     draw.set_run_seed(731)
     mass = 1.0e25
     radius_km = (3.0 * mass / (4.0 * math.pi * 3000.0)) ** (1.0 / 3.0) / 1000.0  # the paper's 3000 kg/m3
@@ -56,20 +57,41 @@ def test_the_accretion_spin_follows_the_published_law():
     critical = spin.critical_spin_rad_s(mass, radius_km)
     rates = [rate / critical for rate, _ in samples]
     assert all(rate <= spin.BREAKUP_FRACTION + 1e-12 for rate in rates)
-    # the uncut rms is 0.41 sqrt(3) = 0.71 of breakup; the cut at 0.85 trims it a little
-    assert statistics.fmean(rate ** 2 for rate in rates) ** 0.5 == pytest.approx(0.69, abs=0.05)
+    # the uncut rms is 0.41 sqrt(3) = 0.71 of breakup times the interim scale; the cut at 0.85 trims nothing at that width
+    assert statistics.fmean(rate ** 2 for rate in rates) ** 0.5 == pytest.approx(0.71 * spin.ACCRETION_SPIN_SCALE, abs=0.03)
     # isotropic: cos(tilt) is uniform in -1..1
     cosines = [math.cos(math.radians(tilt)) for _, tilt in samples]
     assert statistics.fmean(cosines) == pytest.approx(0.0, abs=0.03)
     assert statistics.pstdev(cosines) == pytest.approx(1.0 / math.sqrt(3.0), abs=0.03)
 
 
-def test_the_paper_planet_turns_in_about_three_hours():
+def test_the_planet_of_the_paper_turns_in_about_seven_hours_with_the_interim_scale():
+    """GEN.953: the paper's planet turned in 2.7 hours; Vesta (5.3 h), Ceres (9.1 h) and the Earth after the Moon-forming impact (about 5 h) say slower:
+    the median free day is 5 to 10 hours."""
     draw.set_run_seed(5)
     mass = 5.0e24
     radius_km = (3.0 * mass / (4.0 * math.pi * 3000.0)) ** (1.0 / 3.0) / 1000.0
     hours = [_hours(spin.accretion_spin(mass, radius_km)[0]) for _ in range(4000)]
-    assert 2.0 < statistics.median(hours) < 4.0
+    assert 5.0 < statistics.median(hours) < 10.0
+
+
+def test_a_planet_the_size_of_mars_can_turn_as_slowly_as_mars_does():
+    """GEN.953: Mars (0.107 Earth masses, a day of 24.6 hours, 0.07 of breakup) is drawn about a third of the time; a planet of three Earths is not."""
+    draw.set_run_seed(9)
+    mars_mass, mars_radius_km = 0.107 * 5.972e24, 3389.5
+    earth3_mass, earth3_radius_km = 3.0 * 5.972e24, 9400.0
+    mars = [_hours(spin.accretion_spin(mars_mass, mars_radius_km)[0]) for _ in range(3000)]
+    big = [_hours(spin.accretion_spin(earth3_mass, earth3_radius_km)[0]) for _ in range(3000)]
+    assert 0.2 < sum(h >= 24.0 for h in mars) / len(mars) < 0.8
+    assert sum(h >= 24.0 for h in big) / len(big) < 0.05
+
+
+def test_the_small_planet_factor_is_one_above_its_mass_and_falls_in_proportion_below():
+    earth = 5.972e24
+    assert spin.small_planet_factor(earth) == 1.0
+    assert spin.small_planet_factor(spin.SMALL_PLANET_MASS_EARTH * pc.EARTH_MASS_TO_KG) == pytest.approx(1.0)
+    assert spin.small_planet_factor(0.15 * pc.EARTH_MASS_TO_KG) == pytest.approx(0.5)
+    assert spin.small_planet_factor(1.0e-4 * earth) == spin.SMALL_PLANET_FACTOR_FLOOR
 
 
 def test_the_rheology_is_each_bodys_own():

@@ -711,21 +711,134 @@ def _species_where(spacefaring=None, eras=(), tech_ranges=None):
     return ("WHERE " + " AND ".join(clauses) + " ") if clauses else "", params
 
 
+def _and(where, *clauses):
+    """`where` (empty or `WHERE ... ` with its trailing space) with more conditions ANDed on."""
+    clauses = [clause for clause in clauses if clause]
+    if not clauses:
+        return where
+    return (where + "AND " if where else "WHERE ") + " AND ".join(clauses) + " "
+
+
+SPECIES_WALK_MIN_ROWS = 50_000
+"""int: Under this many species (the highest id) the `homeworld` and `system` sorts sort what they match, which costs next to nothing; from it up
+they walk the planets or the systems by name (`_species_walk`, PERF.211)."""
+
+SPECIES_CHUNK_MIN = 200
+SPECIES_CHUNK_MAX = 20_000
+
+_SPECIES_WALKS = {"homeworld": ("planets", "p", "s.homeworld_planet_id"), "system": ("star_systems", "ss", "s.star_system_id")}
+"""dict: The sorts that order by a name in another table -> the table walked by name, its alias in `_SPECIES_FROM`, and the species column that
+names a row of it."""
+
+
+def _species_walk(conn, limit, sort, descending, where, params, after):
+    """
+    The rows of a page of species sorted by the name of its homeworld or its system, read in index order (PERF.211): the planets or
+    systems are read by name a chunk at a time, only the species of those are sorted (a planet has one species at most), and the chunk
+    doubles while the page is not full, so a page costs about what it returns whatever its depth. Ties go by the id of the planet or
+    system, then the species' name and id, all in the direction of the sort. `None` when `after` is no species (the caller starts at
+    the top the slow way).
+    """
+    from planetgen.db import query      # not at the top: the query module reads this package's other modules
+    table, alias, link = _SPECIES_WALKS[sort]
+    direction = "DESC" if descending else "ASC"
+    start = None
+    if after is not None:
+        start = conn.execute(f"SELECT {alias}.name AS owner_name, {alias}.id AS owner_id, s.name AS name {_SPECIES_FROM} WHERE s.id = ?",
+                             (after,)).fetchone()
+        if start is None:
+            return None
+    rows, beyond, chunk = [], None, min(max(limit * 2, SPECIES_CHUNK_MIN), SPECIES_CHUNK_MAX)
+    while len(rows) < limit:
+        if beyond is not None:
+            condition, owners_params = query._lexicographic(["name", "id"], list(beyond), descending)
+            owners_where = f"WHERE {condition} "
+        elif start is not None:
+            condition, owners_params = query._lexicographic(["name", "id"], [start["owner_name"], start["owner_id"]], descending,
+                                                            inclusive=True)
+            owners_where = f"WHERE {condition} "
+        else:
+            owners_where, owners_params = "", []
+        owners = conn.execute(f"SELECT id, name FROM {table} {owners_where}ORDER BY name {direction}, id {direction} LIMIT ?",
+                              owners_params + [chunk]).fetchall()
+        if not owners:
+            break
+        marks = ", ".join("?" for _ in owners)
+        page_where = _and(where, f"{link} IN ({marks})")
+        page_params = list(params) + [owner["id"] for owner in owners]
+        if start is not None and beyond is None:
+            condition, found = query._lexicographic([f"{alias}.name", f"{alias}.id", "s.name", "s.id"],
+                                                    [start["owner_name"], start["owner_id"], start["name"], after], descending)
+            page_where = _and(page_where, condition)
+            page_params += found
+        order = ", ".join(f"{key} {direction}" for key in (f"{alias}.name", f"{alias}.id", "s.name", "s.id"))
+        rows += conn.execute(f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} {page_where}ORDER BY {order} LIMIT ?",
+                             page_params + [limit - len(rows)]).fetchall()
+        if len(owners) < chunk:
+            break
+        beyond = (owners[-1]["name"], owners[-1]["id"])
+        chunk = min(chunk * 2, SPECIES_CHUNK_MAX)
+    return rows
+
+
 def list_species(conn, spacefaring=None, limit=50, offset=0, sort="name", descending=False, eras=(),
-                 tech_ranges=None):
-    """A page of species, by `sort` (a key of `SPECIES_SORTS`; ties fall back
-    to name, then id), optionally only (non-)spacefaring ones or those in
-    one of the `eras`. A species with no polity sorts last by `"polity"`."""
+                 tech_ranges=None, after=None):
+    """A page of species, by `sort` (a key of `SPECIES_SORTS`; ties fall back to name, in the same direction), optionally
+    only (non-)spacefaring ones or those in one of the `eras`. A species with no polity, era or tech level sorts last by
+    that sort.
+
+    `after` is the id of the species the previous page ended on: the page starts after it in the same order and `offset`
+    is not used, so a deep page costs what the first does (PERF.205). The `name`, `era`, `tech` and `spacefaring` sorts
+    are read in index order (`idx_species_*_name`), the species with a value and then the ones with none, as two walks;
+    the `polity` sort walks the few species that have a polity, and the `homeworld` and `system` sorts (a name in another table) walk the planets or
+    the systems by name and sort the species of a few at a time (PERF.211; a page by `offset` past the first, or with fewer than
+    `SPECIES_WALK_MIN_ROWS` species, sorts what it matches). An id that is not a species starts at the top.
+    """
     if sort not in SPECIES_SORTS:
         raise ValueError(f"unknown species sort {sort!r}")
+    from planetgen.db import query     # not at the top: the query module reads this package's other modules
     where, params = _species_where(spacefaring, eras, tech_ranges)
     column = SPECIES_SORTS[sort]
-    nulls_last = f"{column} IS NULL, " if sort in ("polity", "era", "tech") else ""
-    rows = conn.execute(
-        f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} {where}"
-        f"ORDER BY {nulls_last}{column} {'DESC' if descending else 'ASC'}, s.name, s.id LIMIT ? OFFSET ?",
-        params + [limit, offset],
-    ).fetchall()
+    if sort in _SPECIES_WALKS and (after is not None or not offset) and \
+            conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM species").fetchone()["n"] >= SPECIES_WALK_MIN_ROWS:
+        walked = _species_walk(conn, limit, sort, descending, where, params, after)
+        if walked is not None:
+            return [_species_dict(row) for row in walked]
+    nullable = sort in ("polity", "era", "tech")
+    keys = ["s.name"] if sort == "name" else [column, "s.name"]
+    walks = [(f"{column} IS NOT NULL", keys), (f"{column} IS NULL", ["s.name"])] if nullable else [("", keys)]
+    direction = "DESC" if descending else "ASC"
+    first_walk, start = 0, None
+    if after is not None:
+        found = conn.execute(f"SELECT {column} AS value, s.name AS name {_SPECIES_FROM} WHERE s.id = ?", (after,)).fetchone()
+        if found is not None:
+            first_walk = 1 if nullable and found["value"] is None else 0
+            start = found
+            offset = 0
+    rows = []
+    for number, (clause, walk_keys) in enumerate(walks):
+        if number < first_walk:
+            continue
+        walk_where = _and(where, clause)
+        walk_params = list(params)
+        if start is not None and number == first_walk:
+            values = [start["name"]] if len(walk_keys) == 1 else [start["value"], start["name"]]
+            condition, found_params = query._keyset_condition(walk_keys, values, descending, "s.id", after)
+            walk_where = _and(walk_where, condition)
+            walk_params += found_params
+        if offset and number < len(walks) - 1:
+            size = conn.execute(f"SELECT COUNT(*) AS n {_SPECIES_FROM} {walk_where}", walk_params).fetchone()["n"]
+            if offset >= size:
+                offset -= size
+                continue
+        order = ", ".join(f"{key} {direction}" for key in walk_keys) + f", s.id {direction}"
+        room = limit - len(rows)
+        rows += conn.execute(
+            f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} {walk_where}ORDER BY {order} LIMIT ? OFFSET ?",
+            walk_params + [room, offset]).fetchall()
+        offset = 0
+        if len(rows) >= limit:
+            break
     return [_species_dict(row) for row in rows]
 
 

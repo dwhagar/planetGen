@@ -1,6 +1,7 @@
 {
  "anomalies": {
-  "GEN.728": "stars with a Kepler-like planet are 60 to 70 percent against 30 observed (the count is a uniform integer, not an occurrence law); the number of Kepler-like planets of a host is not drawn from a multiplicity law; planets of 1 to 20 Earth radii per star are not the observed number; planets of 1 to 4 Earth radii per M dwarf are not the observed number"
+  "GEN.646": "the class cut-over (GEN.646) builds giants less often at 2 to 8 AU than the California Legacy Survey finds (0.05 of K stars against 0.056 to 0.228); Core 4's combined giants change (GEN.733, GEN.964, GEN.965) is the fix",
+  "GEN.728": "The giant-planet rate at 2 to 8 AU of G stars is 0.03 against the California Legacy Survey's 0.056 to 0.228 after train 3 (epoch 125); the planet architecture wiring of GEN.728 (Planets 1) is the item that sets the giant rate, so it carries the gap."
  },
  "errors": {
   "anomaly": ""
@@ -31,6 +32,7 @@
   "F": {
    "measures": {
     "inner_fraction": {
+     "anomaly": "GEN.728",
      "kind": "observed",
      "max": 0.5668,
      "min": 0.1332,
@@ -53,6 +55,7 @@
      "source": "planets of 0.5 to 1.5 Earth radii in the conservative habitable zone of stars of 4800 to 6300 K (the two extremes of the extrapolation, 0.37 and 0.60, are the band's ends) (Bryson et al. 2021, arXiv:2010.14812; READ, T1)"
     },
     "giants_2_8_au": {
+     "anomaly": "GEN.728",
      "kind": "observed",
      "max": 0.2283,
      "min": 0.0556,
@@ -95,6 +98,7 @@
   "K": {
    "measures": {
     "giants_2_8_au": {
+     "anomaly": "GEN.646",
      "kind": "observed",
      "max": 0.2283,
      "min": 0.0556,

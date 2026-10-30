@@ -119,21 +119,6 @@ def map_luminosity(mass_solar):
     return None if mass_solar is None else stellarEvolution.map_luminosity_sol(mass_solar)
 
 
-def draw_mass(kind, subtype, min_mass_solar, rng):
-    """The solar mass (MAP.165) a scattered black hole or neutron star is
-    drawn with, from `rng`, at or above the scatter's cut; `None` for a
-    kind not drawn by mass. The sector build gives the object this mass, so
-    the map and the sector page agree."""
-    bounds = mass_range(kind, subtype, min_mass_solar, True)
-    if bounds is None:
-        return None
-    low, high = bounds
-    if low >= high:
-        return low
-    law = mass_law(kind, subtype)
-    return log_uniform(low, high, rng=rng) if law[1] else rng.uniform(low, high)
-
-
 def class_label(kind, subtype):
     """What a log line calls a class: a black hole's mass class in front ("stellar black-hole"), else its kind."""
     return f"{subtype} {kind}" if subtype else kind
@@ -182,8 +167,8 @@ def class_rate_per_star(kind, subtype):
 
 def share_above(kind, subtype, min_mass_solar):
     """S_k(c): the share of a class's mass law at or above `min_mass_solar`
-    (1 for a kind not drawn by mass). Neutron stars `(2.2 - c) / 1.1`,
-    stellar-mass black holes `(20 - c) / 15`, intermediate-mass
+    (1 for a kind not drawn by mass). Neutron stars the Gaussian's
+    (`remnant_mass.share_above`), stellar-mass black holes `(20 - c) / 15`, intermediate-mass
     `ln(1e5 / c) / ln(1e3)`, clamped to 0 to 1. The magnetars are all
     scattered whatever the cut (1): the fill never draws one (GEN.278)."""
     law = mass_law(kind, subtype)
@@ -196,7 +181,7 @@ def share_above(kind, subtype, min_mass_solar):
         return 0.0
     if logarithmic:
         return math.log(high / min_mass_solar) / math.log(high / low)
-    return (high - min_mass_solar) / (high - low)
+    return remnant_mass.share_above(kind, min_mass_solar)
 
 
 def mass_range(kind, subtype, min_mass_solar, above):
@@ -411,8 +396,8 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
 
 
 def _masses(kind, subtype, min_mass_solar, uniform):
-    """The solar masses `draw_mass` gives from the uniform draws `uniform` (one per object); `None` for a
-    kind not drawn by mass."""
+    """The solar masses the uniform draws `uniform` (one per object) give, log-uniform or uniform by the class's `mass_law`
+    between the scatter's cut and the class's top; `None` for a kind not drawn by mass."""
     bounds = mass_range(kind, subtype, min_mass_solar, True)
     if bounds is None:
         return None

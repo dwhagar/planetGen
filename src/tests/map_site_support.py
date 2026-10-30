@@ -72,6 +72,9 @@ SYSTEMS = [
     (704, "Blue Beacon", -300.0, -900.0, 700.0, [_star("B1Ib", 21000.0, 25.0, 1000.0)]),
     (705, "Twin Lamps", 100.0, 1100.0, 100.0,
      [_star("F5V", 6500.0, 1.4, 3.0), _star("M2V", 3500.0, 0.4, 0.03)]),
+    # MAP.302: the substellar end of the stars (a brown dwarf is drawn as a star), a little brighter than the dimmest dwarf so that one stays
+    # the dimmest.
+    (706, "Cold Ember", -700.0, 600.0, 900.0, [_star("L1V", 2200.0, 0.1, 0.00035)]),
 ]
 
 BESIDE_SYSTEMS = [
@@ -95,6 +98,17 @@ PHENOMENA = [
      "distance_ly": 1.5, "offset_x_ly": 1.5, "offset_y_ly": 2.5, "offset_z_ly": -1.5, "class": "T"},
     {"id": 52, "type": "rogue_planet", "name": "Fixture Drifter", "descriptor": "frozen", "radius_ly": 0.0,
      "distance_ly": 2.5, "offset_x_ly": -1.0, "offset_y_ly": 3.0, "offset_z_ly": 2.0, "class": "T"},
+    # MAP.302: the rest of the kinds a sector holds, so a test finds one of each.
+    {"id": 61, "type": "black_hole", "name": "Fixture Abyss", "descriptor": "quiescent", "radius_ly": 0.0,
+     "distance_ly": 3.5, "offset_x_ly": 3.0, "offset_y_ly": 1.0, "offset_z_ly": -2.0, "mass_solar": 9.0},
+    {"id": 71, "type": "asteroid_field", "name": "Fixture Scatter", "descriptor": "rocky", "radius_ly": 0.6,
+     "distance_ly": 2.8, "offset_x_ly": -3.0, "offset_y_ly": 0.5, "offset_z_ly": 2.5},
+    {"id": 81, "type": "supernova_remnant", "name": "Fixture Ember Shell", "descriptor": "shell", "radius_ly": 1.0,
+     "distance_ly": 3.2, "offset_x_ly": 0.5, "offset_y_ly": -3.0, "offset_z_ly": -2.5},
+    {"id": 91, "type": "interstellar_comet", "name": "Fixture Visitor", "descriptor": "icy", "radius_ly": 0.0,
+     "distance_ly": 1.8, "offset_x_ly": 2.0, "offset_y_ly": 0.0, "offset_z_ly": 3.0},
+    {"id": 101, "type": "quasar", "name": "Fixture Beacon", "descriptor": "radio-loud", "radius_ly": 0.0,
+     "distance_ly": 3.8, "offset_x_ly": -2.0, "offset_y_ly": 3.0, "offset_z_ly": -2.5},
 ]
 
 
@@ -313,10 +327,13 @@ CLASS_FIELD = [
     {"id": 9002, "name": "Fixture Rest", "letter": "K", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
     {"id": 9004, "name": "Fixture Rock", "letter": "G", "n": 2, "x": STAR_FIELD_CENTER_PC[0] - 2.0, "y": 5.0, "z": -1.0},
     {"id": 9003, "name": "Fixture Jove", "letter": "J", "n": 3, "x": STAR_FIELD_CENTER_PC[0] + 1.0, "y": 8.0, "z": 1.0},
+    {"id": 9007, "name": "Fixture Dawn", "reason": "lifeclass-2", "n": 2, "x": STAR_FIELD_CENTER_PC[0] + 8.0, "y": 3.0, "z": -2.0},
+    {"id": 9008, "name": "Fixture Ember", "reason": "lifeclass-6", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 8.0, "y": 2.0, "z": 3.0},
 ]
 """The fixture systems with a planet or moon of a class (the `class-` reasons, MAP.220), listed only by the nodes of 3 shells or fewer as the
 server does: Fixture Eden holds two class K worlds and a class O one, Fixture Rest a class K one, Fixture Rock two class G, Fixture Jove
-three class J (gas giants)."""
+three class J (gas giants). An entry with a `reason` and no `letter` is a life class one (`lifeclass-`, MAP.351): two worlds with class 2
+life in Fixture Dawn, one with class 6 life in Fixture Ember."""
 
 
 LIFE_FIELD = [
@@ -363,7 +380,7 @@ def interests_of(worlds, giants, barren=(), classes=(), life=()):
     for world in classes:
         entry = systems.setdefault(world["id"], {"id": world["id"], "name": world["name"], "x": world["x"], "y": world["y"],
                                                  "z": world["z"], "reasons": {}})
-        entry["reasons"]["class-" + world["letter"]] = {"n": world["n"]}
+        entry["reasons"][world.get("reason") or "class-" + world["letter"]] = {"n": world["n"]}
     for other in life:
         entry = systems.setdefault(other["id"], {"id": other["id"], "name": other["name"], "x": other["x"], "y": other["y"],
                                                  "z": other["z"], "reasons": {}})

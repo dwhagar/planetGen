@@ -123,12 +123,20 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # columns rebuild on load. A star's name is serialized through its `name`
 # property, which draws it on first read from `_name_seed` (PERF.43). A planet's `phi_bio` and `phi_cpx` are the
 # likelihoods its life draw and life scores are made from; the stored life scores say what they gave (GEN.649). A moon's
-# `moon_origin` is how it came to orbit its parent, drawn when its orbit is (GEN.714); its columns are DB.70.
+# `moon_disk_system` is the giant's disk while its moons are drawn; the giant keeps the disk's numbers in columns (DB.70), as a moon does its
+# `moon_origin`. A planet's `formation_distance_au` is where it formed, which for all but a pulsar's disc planet is the orbit distance it is
+# stored with; what the draws read it for is kept as `born_beyond_snow_line` (TEST.427). A planet's `_orbit_birth` is the eccentricity
+# and tidal state it was drawn with, which `settle_orbit` takes again once the star's age is final (GEN.985); it is not stored. A giant's `_giant_draw` is the heavy-element draws that
+# `giant_draw.settle` keeps (GEN.961), also runtime state.
+# A star's `initial_mass_sol`, `phase_end_age_gy`, `_model_age_lifespan` and `_model_fe_h` are the population model's
+# own state, which a forced type shares (GEN.941); they are runtime state that the stored columns rebuild. `_model_rotation_hours` is the
+# spin period a scattered star was placed with (GEN.846), which the built star takes from the `bright_stars` row it was built from.
 _RUNTIME_ONLY = {
-    Star: {"system_config", "galactic_center_dist_ly", "spatial", "_name", "_name_seed"},
+    Star: {"system_config", "galactic_center_dist_ly", "spatial", "_name", "_name_seed", "initial_mass_sol",
+           "phase_end_age_gy", "_model_age_lifespan", "_model_fe_h", "_model_rotation_hours"},
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
-             "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx", "moon_origin",
-             "moon_disk_system"},
+             "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx",
+             "moon_disk_system", "formation_distance_au", "_orbit_birth", "_giant_draw"},
     AsteroidBelt: {"system_config", "composition", "makeup"},
 }
 

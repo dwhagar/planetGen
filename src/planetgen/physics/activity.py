@@ -305,7 +305,7 @@ def generate_activity(star):
     star.flare_alpha = draw.uniform(*FLARE_ALPHA_RANGE)
     if yerkes in ("IV", "V", "VI", "PMS", "protostar"):  # a young star is saturated (GEN.242)
         ratio = lx_lbol_at(age, saturated_lx_lbol(mass_sol), t_sat, decay, offset)
-        star.xuv_saturated = age <= t_sat
+        star.xuv_saturated = bool(age <= t_sat)
         star.flare_n33_per_yr = 10 ** log_n33
         star.xuv_fluence_j = _fluence_j(luminosity, star.temperature, mass_sol, age, t_sat, decay, offset)
     else:

@@ -1,6 +1,6 @@
 # Neutron star structure: a TOV integration over the 21 equation-of-state tables (GEN.968)
 
-Status: lock-free step built (GEN.968, parent GEN.743). Nothing in generation calls it yet; the wiring is GEN.969 and rides the star-epoch merge train. Code: `physics/neutron_star_structure.py`, `scripts/build_neutron_star_table.py`. Data: `datasets/neutron_star_matter.py` (Malik, Pais and Providencia 2024, 21 unified equations of state, GEN.548) and the reduced `physics/data/neutron_star_curves.json`. Tests: `tests/test_neutron_star_structure.py` (synthetic polytropes and the committed table against NICER and the pulsar masses; no download) and `tests/test_neutron_star_structure_real.py` (the table against a fresh integration of the real tables).
+Status: built (GEN.968, parent GEN.743) and wired for the radius (GEN.969, rides the star-epoch merge train 3). The crust thickness has no consumer yet. Code: `physics/neutron_star_structure.py`, `scripts/build_neutron_star_table.py`. Data: `datasets/neutron_star_matter.py` (Malik, Pais and Providencia 2024, 21 unified equations of state, GEN.548) and the reduced `physics/data/neutron_star_curves.json`. Tests: `tests/test_neutron_star_structure.py` (synthetic polytropes and the committed table against NICER and the pulsar masses; no download) and `tests/test_neutron_star_structure_real.py` (the table against a fresh integration of the real tables).
 
 ## What it does
 
@@ -34,11 +34,13 @@ The stiffest tables (EOS 1 to 5) put R(1.4) above the Miller band by up to two o
 
 The crust-core density 0.08 fm^-3 and the neutron-drip density 2.6e-4 fm^-3 mark the layers; the tables do not. NS1 to NS3.
 
-## Open for GEN.969 (the wiring)
+## Wired (GEN.969, `physics/neutron_star.py`)
 
-- `physics.neutron_star.radius_km(mass, deviation)` keeps its signature: the standard-normal `deviation` the caller draws (one `draw.gauss()` per star, `generation/phenomena/compact_remnant.py`) becomes a quantile that picks the equation of state, so no draw is added or removed. The 21 are weighted by how well each fits NICER (a normal weight on R(1.4) about 12.45 +- 0.65 km, Miller et al. 2021, and the 2.08 solar mass floor of J0740) and by whether it supports the star's mass (`supporting`). That is a stand-in to register (tier T2, tweak L1) when it is wired.
-- A star's radius comes from `radius_km(eos, mass)`; its crust (for the surface and the thermal model) from `crust_thickness_km`. `tuning.NEUTRON_STAR_RADIUS_ANCHORS` and `NEUTRON_STAR_RADIUS_CLIP_SIGMA` go (no backward-compatibility shim).
-- The mass range of a neutron star (`tuning.NEUTRON_STAR_MASS_RANGE_SOLAR`, 1.1 to 2.2) stays; the heaviest equations of state allow up to 2.75.
+- `neutron_star.radius_km(mass, deviation)` keeps its signature: the standard-normal `deviation` the caller draws (one `draw.gauss()` per star, `generation/phenomena/compact_remnant.py`) becomes a probability that picks a radius from the weighted radii of the equations of state that hold the star's mass (`supporting`), interpolated between neighbours. 0 gives the weighted median; the draw count is unchanged. `radius_limits_km` is the lowest and highest of those radii (the plausibility check reads it).
+- The weights (stand-in NS4, tier T2, tweak L1): a normal weight on each table's R(1.4) about 12.45 +- 0.65 km and R(2.08) about 12.35 +- 0.75 km (Miller et al. 2021), and for a table whose heaviest star is under 2.08 solar masses a normal weight on the shortfall in units of 0.07 (PSR J0740+6620). Result at 1.4 solar masses: weighted median 12.8 km, 68% of draws within 12.7 to 13.0 km, limits 11.8 to 13.8 km. The 21 tables are stiffer than the Miller interval's centre (their unweighted median is 12.9 km), so the weighting narrows the draw rather than centring it on 12.45; a star's radius is no longer drawn from a normal band, and its spread is smaller than the old 0.65 km.
+- `tuning.NEUTRON_STAR_RADIUS_ANCHORS` and `NEUTRON_STAR_RADIUS_CLIP_SIGMA` are gone (no backward-compatibility shim).
+- The mass range of a neutron star (`tuning.NEUTRON_STAR_MASS_RANGE_SOLAR`, 1.1 to 2.2) stays; 15 of the 21 tables hold 2.2 solar masses. A mass no table holds raises.
 - This moves every neutron star's radius, so it is `--affects fill` and rides train 3.
+- Open: `crust_thickness_km` (the surface and the thermal model) has no consumer; no body stores a crust yet.
 
 The helium-core and oxygen-neon white dwarf layers (the other half of GEN.743) are not in this step; they need a white dwarf structure source the Bedard et al. sequences do not hold.

@@ -351,18 +351,15 @@ def generate_block(block_key, config, disregard_missing_data=False):
     return run_galaxy.generate_block(block_key, config=config)
 
 
-def regenerate_sector(sector_id, config):
-    """The queued body of `POST /api/sectors/<id>/regenerate`: deletes the
-    galaxy-placed sector with everything in it, then generates its cell
-    again, as runs through the wrapper (PERF.119: the sector and its backfill, then the settle of
-    the new sector and the old neighbours), the job waiting in line for the machine (PERF.153).
+def empty_sector(sector_id, config):
+    """The first half of `regenerate_sector` (GEN.845): deletes the galaxy-placed sector with everything in it and says what
+    to make again.
 
     Returns:
-        dict: `deleted` (the row counts), `sector_id` and `sector_name` of
-            the new sector (`None` only when the cell is beyond the grid's reach).
+        dict: `address` of its cell, `around` (the ids of the sectors whose paths it touched, not itself) and `deleted`
+            (the row counts).
     """
     from planetgen.db import edits as editStore, sector_paths, store
-    from planetgen.generation import run_galaxy
     conn = store.get_connection(config or store.DEFAULT_MYSQL_CONFIG)
     try:
         with conn:
@@ -371,13 +368,48 @@ def regenerate_sector(sector_id, config):
             counts = editStore.delete_sector_with_contents(conn, sector_id)
     finally:
         conn.close()
-    result = run_galaxy.regenerate_sector_cell(address, config)
+    return {"address": address, "around": around, "deleted": counts}
+
+
+def fill_emptied_sector(emptied, config):
+    """The second half of `regenerate_sector` (GEN.845): generates the cell `empty_sector` emptied again, as runs through the
+    wrapper (PERF.119: the sector and its backfill, then the settle of the new sector and the old neighbours that still
+    exist).
+
+    Returns:
+        dict: `sector_id` and `sector_name` of the new sector (`None` only when the cell is beyond the grid's reach).
+    """
+    from planetgen.db import store
+    from planetgen.generation import run_galaxy
+    config = config or store.DEFAULT_MYSQL_CONFIG
+    result = run_galaxy.regenerate_sector_cell(emptied["address"], config)
     # GEN.126: the new sector's masses and the old neighbours' paths, now the neighbour set is final.
-    wanted = set(around)
+    wanted = set(emptied["around"])
     if result["sector_id"] is not None:
         wanted.add(result["sector_id"])
-    run_galaxy.settle_named_sectors(wanted, config or store.DEFAULT_MYSQL_CONFIG, expand=False)
-    return {"deleted": counts, "sector_id": result["sector_id"], "sector_name": result["sector_name"]}
+    conn = store.get_connection(config)
+    try:
+        if wanted:
+            marks = ", ".join("?" for _ in wanted)
+            wanted = {row["id"] for row in conn.execute(f"SELECT id FROM sectors WHERE id IN ({marks})", sorted(wanted)).fetchall()}
+    finally:
+        conn.close()
+    run_galaxy.settle_named_sectors(wanted, config, expand=False)
+    return result
+
+
+def regenerate_sector(sector_id, config):
+    """The queued body of `POST /api/sectors/<id>/regenerate`: deletes the
+    galaxy-placed sector with everything in it (`empty_sector`), then generates its cell
+    again (`fill_emptied_sector`), the job waiting in line for the machine (PERF.153).
+
+    Returns:
+        dict: `deleted` (the row counts), `sector_id` and `sector_name` of
+            the new sector (`None` only when the cell is beyond the grid's reach).
+    """
+    emptied = empty_sector(sector_id, config)
+    result = fill_emptied_sector(emptied, config)
+    return {"deleted": emptied["deleted"], "sector_id": result["sector_id"], "sector_name": result["sector_name"]}
 
 
 def run_command(argv, env, cwd, timeout, merge_stderr=False):

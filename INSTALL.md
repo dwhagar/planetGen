@@ -80,6 +80,13 @@ On a 16 GB host that also generates, `innodb_buffer_pool_size = 4G` in `/etc/mys
 MySQL near 5 GB at most and leaves the rest to the workers (about 250 MB each, up to the worker count on the
 Generate page) and the web app.
 
+On a machine that runs the whole test gate (`scripts/test.py full`, many tests writing in parallel), raise
+`innodb_redo_log_capacity` from its 100 MB default to 2 GB in the same file (`innodb_redo_log_capacity = 2G`, or at
+run time `SET GLOBAL innodb_redo_log_capacity = 2147483648;`, which MySQL 8.0.30 and later accept without a restart).
+At the default the log checkpointer falls behind under that load (`log_checkpointer lagging` in the MySQL error log,
+84 warnings in one gate), the gate slows, and tests can lose their connection. A server that only runs the site and
+generation does not need it.
+
 ### Ubuntu 24.04 and 26.04 LTS
 
 Both releases are supported, with Ubuntu's own packages. One line installs
@@ -411,4 +418,6 @@ python3 src/html/wsgi.py      # the site at http://127.0.0.1:5000/
 
 Set `admin_cookie_insecure` in `config.json` to log in over plain HTTP
 locally. Database tests need a MySQL server, and the work-queue tests need Redis
-(`PLANETGEN_TEST_REDIS_URL`); both skip without one. See [`docs/reference/testing.md`](docs/reference/testing.md).
+(`PLANETGEN_TEST_REDIS_URL`); both skip without one. A machine that runs `scripts/test.py full`
+needs `innodb_redo_log_capacity = 2G` in MySQL (see [Requirements](#requirements)), or the checkpointer lags and tests lose
+their connection. See [`docs/reference/testing.md`](docs/reference/testing.md).

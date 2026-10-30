@@ -96,8 +96,10 @@ def test_research_rates_per_star():
     assert _rate("rogue-planet") == pytest.approx(5.8)
     assert _rate("brown-dwarf") == pytest.approx(0.03 / 0.14)
     # Derived from the massive stars the black holes leave and the natal kick's ejected share (GEN.554); Boss's 4.0e-3 is the
-    # target, 16% over at the middle draw since the kick ejects 16% of the neutron stars, not the 30% the old range centred on.
-    assert _rate("neutron-star") == pytest.approx(0.004, rel=0.2)
+    # target, reached when the failed share is at its cap. The middle draw is half the cap, so the neutron stars are over it by
+    # the half of the cap they keep: 25% over with the Chabrier function's 0.71% massive stars (16% over on the Kroupa function's
+    # 0.64%, GEN.927), the kick ejecting 16% of them.
+    assert _rate("neutron-star") == pytest.approx(0.004, rel=0.3)
     assert 0.0002 < _rate("black-hole") < 0.0012          # the old 5e-4 sits inside the new range
     assert _rate("comet") == pytest.approx(0.05)
     assert _rate("asteroid-field") == 0.0
@@ -288,7 +290,7 @@ def test_flag_fast_stars(monkeypatch):
 def _real_sector_args(num_systems, name, planets=None):
     """A real `sector` subcommand namespace, built via planetgen's own
     parser/validators -- generate_sector reads far more of `args` (via
-    build_sector_configs/build_system_config) than a hand-built
+    iter_sector_configs/build_system_config) than a hand-built
     SimpleNamespace could safely stand in for. `planets=False` makes every
     system planet-less (cheap); `sector` takes no `-planets` option any
     more (GEN.51), so it is set on the namespace build_system_config reads."""

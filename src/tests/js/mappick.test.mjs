@@ -209,7 +209,7 @@ test("the View button is the first action of the panel", () => {
   assert.equal(links[0].getAttribute("href"), "/object/planet:1");
 });
 
-test("the panel is a popup in the map's window: the whole selection with a Close, and no second copy (MAP.288)", () => {
+test("the panel is a popup in the map's window: the selection with a Close, and no second copy (MAP.288)", () => {
   installDom("http://localhost/");
   const viewport = h("div", {});
   const panelEl = h("aside", { "data-overlay": "" });
@@ -226,15 +226,50 @@ test("the panel is a popup in the map's window: the whole selection with a Close
   assert.equal(panelEl.dataset.state, "selected");
   assert.equal(panelEl.dataset.corner, "top-right", "the upper right until the pointer has been used");
   assert.equal(panelEl.querySelector("h3").textContent, "Sol");
-  assert.equal(panelEl.querySelectorAll("dt").length, 5, "every row, not the first few");
+  assert.equal(panelEl.querySelectorAll("dt").length, 5, "every row, three of them up front and the rest behind Expand");
   assert.deepEqual(panelEl.querySelectorAll("a").map((a) => a.textContent), ["View system →"]);
-  assert.deepEqual(panelEl.querySelectorAll("button").map((b) => b.textContent), ["Close"]);
+  assert.deepEqual(panelEl.querySelectorAll("button").map((b) => b.textContent), ["Close", "Expand"]);
   panelEl.querySelector(".map-info-close").click();
   assert.equal(panelEl.dataset.state, "closed");
   panel.show({ title: "Alpha" });
   assert.equal(panelEl.dataset.state, "selected", "a new selection opens it again");
   panel.hint("Click a star.");
   assert.equal(panelEl.dataset.state, "rest", "nothing selected: not drawn");
+});
+
+test("the popup's first view is the name, the kind, three rows and the buttons; the rest is behind Expand (MAP.347)", () => {
+  installDom("http://localhost/");
+  const viewport = h("div", {});
+  const panelEl = h("aside", { "data-overlay": "" });
+  panelEl.dataset = { overlay: "" };
+  viewport.append(panelEl);
+  document.body.append(viewport);
+  const panel = MP.infoPanelOf(panelEl);
+  panel.show({
+    title: "Maw",
+    fields: [["Type", "Black hole"], ["Mass", "4 Msun"], ["Spin", "0.3"], ["Distance", "9 pc"], ["Age", "2 Gyr"]],
+    more: [["Position", "1, 2, 3"]],
+    buttons: [{ label: "Go to", onClick: () => {} }],
+  });
+  assert.equal(panelEl.querySelector(".map-info-kind").textContent, "Black hole", "the Type row names the kind and is not repeated");
+  const first = panelEl.children.filter((node) => node.tagName === "DL");
+  assert.deepEqual(first[0].querySelectorAll("dt").map((dt) => dt.textContent), ["Mass", "Spin", "Distance"]);
+  const rest = panelEl.querySelector(".map-info-rest");
+  assert.equal(rest.hidden, true, "collapsed to start");
+  assert.deepEqual(rest.querySelectorAll("dt").map((dt) => dt.textContent), ["Age", "Position"]);
+  const expand = panelEl.querySelector(".map-info-expand");
+  assert.equal(expand.hidden, false);
+  assert.equal(expand.textContent, "Expand");
+  expand.click();
+  assert.equal(rest.hidden, false);
+  assert.equal(expand.textContent, "Collapse");
+  assert.equal(expand.getAttribute("aria-expanded"), "true");
+  assert.equal("expanded" in panelEl.dataset, true);
+  expand.click();
+  assert.equal(rest.hidden, true);
+  panel.show({ title: "Plain", kind: "Star", fields: [["Class", "G2V"]] });
+  assert.equal(panelEl.querySelector(".map-info-kind").textContent, "Star");
+  assert.equal(panelEl.querySelector(".map-info-expand").hidden, true, "nothing behind it: no Expand");
 });
 
 test("a popup that serves two viewports moves into the one that is showing", () => {
