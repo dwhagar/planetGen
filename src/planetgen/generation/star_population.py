@@ -91,16 +91,6 @@ def _law(population, age_laws):
     return found if found is not None else AgeLaw.uniform(population_age_range_gy(population))
 
 
-def _wolf_rayet_bright_chance(min_luminosity_sol):
-    """The chance a Wolf-Rayet star's log-uniform luminosity is >= the threshold (GEN.243)."""
-    low, high = tuning.WR_LUMINOSITY_RANGE_SOL
-    if min_luminosity_sol <= low:
-        return 1.0
-    if min_luminosity_sol >= high:
-        return 0.0
-    return math.log(high / min_luminosity_sol) / math.log(high / low)
-
-
 @functools.lru_cache(maxsize=1 << 19)
 def _evolved_bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
     """
@@ -119,8 +109,11 @@ def _evolved_bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
     branch = line.window(post_main_sequence.HORIZONTAL_BRANCH)
     if branch is not None and horizontal_branch_bright_chance(min_luminosity_sol) > 0:
         windows.append((branch.start_gy, branch.end_gy, horizontal_branch_bright_chance(min_luminosity_sol)))
-    if wr_start is not None and _wolf_rayet_bright_chance(min_luminosity_sol) > 0:
-        windows.append((wr_start, line.end_gy, _wolf_rayet_bright_chance(min_luminosity_sol)))
+    if wr_start is not None:
+        # GEN.939: the chance its luminosity, which follows its present mass there, clears the threshold.
+        chance = wolf_rayet.bright_chance(line.state((wr_start + line.end_gy) / 2.0).mass_sol, min_luminosity_sol)
+        if chance > 0:
+            windows.append((wr_start, line.end_gy, chance))
     return tuple(windows)
 
 

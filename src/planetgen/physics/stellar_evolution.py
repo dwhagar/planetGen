@@ -462,7 +462,8 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
                      temperature_k=on_sequence.temperature_k, phase_end_gy=t_ms)
     elif wr_start is not None and wr_start <= age_gy < t_end:
         # GEN.243: the last stretch of a very massive star's life, in place of the end of its supergiant window.
-        state.update(wolf_rayet.state(mass_sol, age_gy, wr_start, t_end, rng, min_luminosity_sol))
+        present = line.state(age_gy).mass_sol
+        state.update(wolf_rayet.state(mass_sol, present, age_gy, wr_start, t_end, rng, min_luminosity_sol))
     elif age_gy < t_end:
         state.update(_evolved_state(line, age_gy, mass_sol, fe_h, rng))
         state["phase_end_gy"] = line.window_at(age_gy).end_gy

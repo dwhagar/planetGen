@@ -17,6 +17,7 @@ from planetgen.generation import star_population
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
+from planetgen.datasets import isochrones
 from planetgen.physics import imf, post_main_sequence
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import wolf_rayet
@@ -77,8 +78,10 @@ def test_the_state_follows_the_ranges_of_the_note():
         low_k = min(r[0] for r in tuning.WR_TEMPERATURE_RANGE_K.values())
         high_k = max(r[1] for r in tuning.WR_TEMPERATURE_RANGE_K.values())
         assert low_k <= state["temperature_k"] <= high_k
-        low_f, high_f = tuning.WR_PRESENT_MASS_FRACTION_RANGE
-        assert low_f * 60.0 <= state["mass_sol"] <= high_f * 60.0
+        # GEN.939/940: the present mass is the track's, and the luminosity follows it by the helium-star relation.
+        assert state["mass_sol"] == pytest.approx(post_main_sequence.timeline(60.0, 0.0).state(age).mass_sol)
+        intercept, slope, sigma = isochrones.helium_star_relation()
+        assert abs(math.log10(state["luminosity_sol"]) - (intercept + slope * math.log10(state["mass_sol"]))) <= 6 * sigma
         assert state["phase_end_gy"] == t_end
 
 
@@ -252,6 +255,33 @@ def test_the_class_tables_hold_the_wolf_rayet_class():
     from planetgen.physics import constants
     assert constants.YERKES_LUMINOSITY_RANGES["W"] == tuple(int(v) for v in tuning.WR_LUMINOSITY_RANGE_SOL)
     low, high = constants.YERKES_MASS_CONSTRAINTS["W"]
-    assert low <= tuning.WR_MIN_INITIAL_MASS_SOL * tuning.WR_PRESENT_MASS_FRACTION_RANGE[0]
-    assert high >= tuning.IMF_BREAKS_SOL[-1] * tuning.WR_PRESENT_MASS_FRACTION_RANGE[1]
+    for initial in (tuning.WR_MIN_INITIAL_MASS_SOL, 40.0, 60.0, 100.0, tuning.IMF_BREAKS_SOL[-1]):
+        line = post_main_sequence.timeline(initial, 0.0)
+        assert low <= line.state(line.end_gy - 1.0e-9).mass_sol <= high, initial
     assert star_labels.star_label("WN6", "W") == ("Wolf-Rayet star", "Wolf-Rayet stars")
+
+
+@pytest.mark.parametrize("fe_h, initial", [(0.0, 30.0), (0.0, 60.0), (0.0, 150.0), (-0.7, 60.0), (-0.7, 150.0), (0.3, 40.0)])
+def test_the_luminosity_of_a_wolf_rayet_star_follows_its_present_mass_by_the_mist_helium_star_relation(fe_h, initial):
+    """GEN.939: a stripped star's light is set by its mass (the relation of MIST's own Wolf-Rayet rows), not drawn over the class's
+    range whatever star it came from; the present mass is the track's (GEN.940)."""
+    rng = random.Random(7)
+    line = post_main_sequence.timeline(initial, fe_h)
+    start = wolf_rayet.start_gy(initial, line.main_sequence_gy, line.end_gy, fe_h)
+    intercept, slope, sigma = isochrones.helium_star_relation()
+    assert slope > 0.5 and 0.0 < sigma < 0.3
+    for age in [start + (line.end_gy - start) * share for share in (0.0, 0.3, 0.7, 0.99)]:
+        state = evolution.evolve_star(initial, age, rng, fe_h=fe_h)
+        assert state["yerkes_class"] == "W"
+        assert state["mass_sol"] == pytest.approx(line.state(age).mass_sol)
+        assert abs(math.log10(state["luminosity_sol"]) - (intercept + slope * math.log10(state["mass_sol"]))) <= 6 * sigma
+
+
+def test_a_heavier_wolf_rayet_star_is_brighter_and_the_chance_to_clear_a_floor_follows_it():
+    assert wolf_rayet.bright_chance(30.0, 1.0e5) == pytest.approx(1.0)
+    assert wolf_rayet.bright_chance(10.0, 1.0e6) < wolf_rayet.bright_chance(20.0, 1.0e6) < wolf_rayet.bright_chance(40.0, 1.0e6)
+    assert wolf_rayet.bright_chance(40.0, tuning.WR_LUMINOSITY_RANGE_SOL[1] * 1.01) == 0.0
+    rng = random.Random(1)
+    light = [wolf_rayet.state(60.0, 12.0, 0.5, 0.0, 1.0, rng)["luminosity_sol"] for _ in range(200)]
+    heavy = [wolf_rayet.state(60.0, 35.0, 0.5, 0.0, 1.0, rng)["luminosity_sol"] for _ in range(200)]
+    assert min(heavy) > max(light) * 0.8 and sum(heavy) > 2.0 * sum(light)

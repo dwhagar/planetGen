@@ -224,6 +224,7 @@ class Grid:
             self._lightest.append(int(reaching[0]) if len(reaching) else None)
         # The share of the main-sequence lifetime at the landmarks of every node (held to the node's last sample), which
         # is all a window needs.
+        self._helium = False
         self._landmarks = []
         for found, counts in zip(tracks, self._counts):
             table = np.full((found.shape[0], len(LANDMARK_EEPS)), np.nan)
@@ -235,6 +236,28 @@ class Grid:
 
     def has_tracks(self):
         return any(index is not None for index in self._lightest)
+
+    def helium_star_relation(self):
+        """
+        `(intercept, slope, sigma)` of `log10 L/Lsun = intercept + slope log10 (M/Msun)` for the stars MIST calls Wolf-Rayet
+        (phase 9: hydrogen all but gone from the surface), fitted over every sample of every track of the grid, with the
+        standard deviation of the residual (dex); None when no track has one. The luminosity of a stripped helium star follows
+        its mass, whatever the star it came from (GEN.939).
+        """
+        if self._helium is False:
+            masses, log_ls = [], []
+            for tracks in self.tracks:
+                stripped = (tracks[:, :, _PHASE] == 9.0) & np.isfinite(tracks[:, :, _MASS]) & (tracks[:, :, _MASS] > 0.0)
+                masses.append(tracks[:, :, _MASS][stripped].astype(float))
+                log_ls.append(tracks[:, :, _LOG_L][stripped].astype(float))
+            mass, log_l = np.concatenate(masses), np.concatenate(log_ls)
+            if len(mass) < 10:
+                self._helium = None
+            else:
+                slope, intercept = np.polyfit(np.log10(mass), log_l, 1)
+                sigma = float(np.std(log_l - (intercept + slope * np.log10(mass))))
+                self._helium = (float(intercept), float(slope), sigma)
+        return self._helium
 
     def _bracket(self, fe_h):
         values = self.fe_h

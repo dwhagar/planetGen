@@ -351,7 +351,7 @@ YERKES_LUMINOSITY_RANGES = {
     "VI": (0.00001, 0.1),        # Subdwarfs (dimmer than main sequence)
     "VII": (0.0001, 0.1),        # White Dwarfs (standard)
     "D": (0.0001, 0.1),          # Alias for White Dwarfs
-    "W": (100000, 1000000),      # Wolf-Rayet stars (tuning.WR_LUMINOSITY_RANGE_SOL, GEN.243)
+    "W": (100000, 3000000),      # Wolf-Rayet stars (tuning.WR_LUMINOSITY_RANGE_SOL, GEN.243, GEN.939)
 }
 
 # Physically allowed mass ranges for each Yerkes luminosity class, in solar masses.
@@ -365,7 +365,7 @@ YERKES_MASS_CONSTRAINTS = {
     "VI": (0.1, 0.8),
     "VII": (0.5, CHANDRASEKHAR_LIMIT_SOL),
     "D": (0.5, CHANDRASEKHAR_LIMIT_SOL),
-    "W": (10, 90),    # Wolf-Rayet: 0.4 to 0.6 of an initial 25 to 150 solar masses (GEN.243)
+    "W": (10, 90),    # Wolf-Rayet: the present mass of an initial 25 to 300 solar masses (GEN.243, GEN.939)
 }
 
 # --- Orbital motion (physics.planets.generate_orbital_motion_properties) ---

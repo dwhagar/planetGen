@@ -9,12 +9,19 @@ core with a dense wind, for `tuning.WR_PHASE_MYR` before it collapses. The state
 window of `stellar_evolution.evolve_star`, so the bright and mass passes that place the massive stars draw Wolf-Rayet
 stars with no rate of their own.
 
+A Wolf-Rayet star's present mass is the one its track has lost by then (`post_main_sequence`, GEN.940) and its
+luminosity follows that mass by the relation of MIST's own Wolf-Rayet rows (`isochrones.helium_star_relation`, GEN.939): a
+stripped helium star's light is set by its mass, whatever star it came from.
+
 Inputs that are inferred, not sourced, are flagged [I] in `tuning`: the oxygen-rich threshold, the temperature split
 by subtype, and the exponent of the metallicity dependence, which is set so the thresholds at half and a fifth of the
 Sun's metallicity come out at 35 and 56 solar masses.
 """
 
+import math
+
 from planetgen import tuning
+from planetgen.datasets import isochrones
 
 CLASS = "W"
 """str: The `yerkes_class` of a Wolf-Rayet star."""
@@ -81,22 +88,48 @@ def drawn_type(rng=None):
     return f"{name}{rng.randint(low, high)}"
 
 
-def state(mass_sol, age_gy, start, end, rng, min_luminosity_sol=None):
+def _luminosity_law(present_mass_sol):
+    """`(mean, sigma)` of log10 L/Lsun of a Wolf-Rayet star of this present mass, held to the class's luminosity range."""
+    intercept, slope, sigma = isochrones.helium_star_relation()
+    return intercept + slope * math.log10(present_mass_sol), sigma
+
+
+def bright_chance(present_mass_sol, min_luminosity_sol):
+    """The chance a Wolf-Rayet star of this present mass is at least `min_luminosity_sol` bright (the share of its normal law in
+    log luminosity above it, the class's range cutting the law at both ends)."""
+    mean, sigma = _luminosity_law(present_mass_sol)
+    low, high = (math.log10(v) for v in tuning.WR_LUMINOSITY_RANGE_SOL)
+    floor = math.log10(min_luminosity_sol)
+    if floor >= high:
+        return 0.0
+    cdf = lambda x: 0.5 * (1.0 + math.erf((x - mean) / (sigma * math.sqrt(2.0))))
+    total = cdf(high) - cdf(low)
+    return 0.0 if total <= 0.0 else (cdf(high) - cdf(max(floor, low))) / total
+
+
+def state(mass_sol, present_mass_sol, age_gy, start, end, rng, min_luminosity_sol=None):
     """
-    The state of a Wolf-Rayet star of initial mass `mass_sol` at `age_gy`, between `start` and `end` (Gy).
+    The state of a Wolf-Rayet star of initial mass `mass_sol`, whose track has it at `present_mass_sol` now, at `age_gy`,
+    between `start` and `end` (Gy).
 
     Returns:
         dict: `yerkes_class` (`CLASS`), `mass_sol` (the present mass), `luminosity_sol`, `temperature_k`,
-            `wr_subtype` (`"WN"`, `"WC"` or `"WO"`) and `phase_end_gy`; a luminosity floor `min_luminosity_sol`
-            (the bright pass's) draws from the part of the range at or above it.
+            `wr_subtype` (`"WN"`, `"WC"` or `"WO"`) and `phase_end_gy`. The luminosity is drawn from the normal law in log
+            luminosity about the helium-star relation of the present mass, cut at the class's range; a luminosity floor
+            `min_luminosity_sol` (the bright pass's) draws from the part of it at or above it.
     """
     progress = (age_gy - start) / (end - start)
     name = subtype(mass_sol, progress)
-    low, high = tuning.WR_LUMINOSITY_RANGE_SOL
+    mean, sigma = _luminosity_law(present_mass_sol)
+    low, high = (math.log10(v) for v in tuning.WR_LUMINOSITY_RANGE_SOL)
     if min_luminosity_sol is not None:
-        low = min(max(low, min_luminosity_sol), high)
-    luminosity = low * (high / low) ** rng.random()
-    return {"yerkes_class": CLASS, "wr_subtype": name,
-            "mass_sol": mass_sol * rng.uniform(*tuning.WR_PRESENT_MASS_FRACTION_RANGE),
-            "luminosity_sol": luminosity, "temperature_k": rng.uniform(*tuning.WR_TEMPERATURE_RANGE_K[name]),
+        low = min(max(low, math.log10(min_luminosity_sol)), high)
+    for _ in range(1000):
+        log_l = rng.gauss(mean, sigma)
+        if low <= log_l <= high:
+            break
+    else:
+        log_l = min(max(mean, low), high)
+    return {"yerkes_class": CLASS, "wr_subtype": name, "mass_sol": present_mass_sol,
+            "luminosity_sol": 10.0 ** log_l, "temperature_k": rng.uniform(*tuning.WR_TEMPERATURE_RANGE_K[name]),
             "phase_end_gy": end}

@@ -50,9 +50,13 @@ A star's mass is no longer its birth mass. `Timeline.present_mass` and `main_seq
 
 The star's record carries it as `mass_kg`, so the surface gravity, the orbital periods and the habitable-zone and Hill-sphere sizes of its planets follow. The hot-subdwarf mass of the audit's L8 (0.47 solar masses) and the Wolf-Rayet mass (GEN.939) are not in it.
 
+## Wolf-Rayet stars (GEN.939)
+
+In the Wolf-Rayet window a star's present mass is the track's (GEN.940, 13 to 25 solar masses at the Sun's metallicity for initial masses of 30 to 150) and its luminosity follows that mass by the helium-star relation of MIST's own Wolf-Rayet rows (phase 9, 24,610 samples over every [Fe/H]): log L/Lsun = 4.31 + 1.16 log M/Msun, 0.064 dex scatter, fitted when the tracks are read (`isochrones.helium_star_relation`). The luminosity is drawn from that normal law in log luminosity and cut at `WR_LUMINOSITY_RANGE_SOL` (1e5 to 3e6; it was 1e5 to 1e6 log-uniform for every star), and the chance a star clears a bright-star floor follows its mass (`wolf_rayet.bright_chance`). The temperature and subtype are as before. The audit's finding that the code was too low above 60 solar masses does not show in MIST's tracks: their Wolf-Rayet stars of 60 to 150 solar masses end at 4e5 to 9e5 Lsun because the winds have taken them down to 13 to 23 solar masses.
+
 ## Known limits
 
 - The tracks of 30 to 45 solar masses spend about half their post-main-sequence life as yellow hypergiants (5,000 to 9,000 K, 0.3 to 1 million Lsun). MIST has no eruptive mass loss, so these stars do not become luminous blue variables or Wolf-Rayet stars as the real ones do. They are rare in the sky (the mass range is a few percent of the supergiants) and the rows are tier T1 data used as the table gives them.
-- The Wolf-Rayet window is still the old one (GEN.939 changes it).
+- The Wolf-Rayet window is still the last 0.3 Myr of the supergiant window (GEN.243) and the threshold mass the old one; MIST's own Wolf-Rayet stars of 100 solar masses and more are Wolf-Rayet from the main sequence (WNh), which the generator does not model.
 - At the 2.2 solar mass boundary the horizontal branch of the lighter star (a fixed 100 Myr) and the core helium burning of the heavier (MIST, about 17 percent of the main-sequence life, 130 Myr at 2.2) differ, so the end of the last giant phase steps by 10 percent of the main-sequence life there.
 - A mass below the lightest track of the grid that reaches the thermal pulses (0.85 to 1.0 solar masses, by metallicity) takes that track.

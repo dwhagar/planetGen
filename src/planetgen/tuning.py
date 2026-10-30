@@ -862,8 +862,6 @@ WR_PHASE_MYR = 0.3
 WR_MAX_SUPERGIANT_SHARE = 0.5
 """float: The phase never takes more than this share of the supergiant window it replaces, so the heaviest stars,
 whose whole post-main-sequence life is short, still pass through a supergiant phase first."""
-WR_PRESENT_MASS_FRACTION_RANGE = (0.4, 0.6)
-"""tuple: The present mass of a Wolf-Rayet star over its initial mass, drawn uniformly [R]."""
 WR_SUBTYPE_PHASE_SHARES = (("WN", 0.6), ("WC", 0.3), ("WO", 0.1))
 """tuple: The subtype by the share of the phase gone: nitrogen-rich first, then carbon-rich, then the oxygen-rich last
 tenth (only for stars of `WO_MIN_INITIAL_MASS_SOL` or more; lighter ones stay WC to the end)."""
@@ -874,8 +872,10 @@ WR_TEMPERATURE_RANGE_K = {"WN": (30000.0, 100000.0), "WC": (40000.0, 120000.0), 
 note, split by subtype [R, I]."""
 WR_SUBCLASS_RANGE = {"WN": (2, 9), "WC": (4, 9), "WO": (1, 4)}
 """dict: The subclass numbers of each subtype, hottest first (WN2 to WN9, WC4 to WC9, WO1 to WO4)."""
-WR_LUMINOSITY_RANGE_SOL = (1.0e5, 1.0e6)
-"""tuple: The luminosity of a Wolf-Rayet star, solar luminosities, log-uniform [R]."""
+WR_LUMINOSITY_RANGE_SOL = (1.0e5, 3.0e6)
+"""tuple: The range of the luminosity of a Wolf-Rayet star, solar luminosities: the helium-star relation of its present mass
+(`wolf_rayet.state`, GEN.939) cut at both ends. It was 1e5 to 1e6 for a star of any mass; a present mass of 40 gives
+2e6 [R]."""
 WR_COMPANION_CHANCE = {"WN": 0.52, "WC": 0.90, "WO": 0.90}
 """dict: The share of Wolf-Rayet stars with a companion, by subtype (Dsilva et al., a spectroscopic multiplicity survey of
 Galactic Wolf-Rayet stars: 52% of WN, 96% of WC, capped at 0.9 as in the phenomena catalogue; WO takes WC's)."""

@@ -19,7 +19,8 @@ MODULES = {"tuning": tuning, "evolved_tracks": evolved_tracks}
 CHOSEN = {"tuning.HELIUM_FLASH_MASS_SOL", "tuning.HORIZONTAL_BRANCH_DURATION_GY", "tuning.AGB_MS_FRACTION",
           "tuning.SUPERGIANT_MIN_MASS_SOL", "tuning.BRIGHT_GIANT_MIN_MASS_SOL", "tuning.SUPERGIANT_YERKES_THRESHOLDS_SOL",
           "tuning.CEPHEID_TEMPERATURE_RANGE_K", "tuning.CEPHEID_MIN_LUMINOSITY_SOL", "tuning.CEPHEID_MAX_INITIAL_MASS_SOL",
-          "evolved_tracks.MASS_NODES_SOL", "tuning.RED_GIANT_BRANCH_REIMERS_ETA", "tuning.MIST_REIMERS_ETA"}
+          "evolved_tracks.MASS_NODES_SOL", "tuning.RED_GIANT_BRANCH_REIMERS_ETA", "tuning.MIST_REIMERS_ETA",
+          "tuning.WR_LUMINOSITY_RANGE_SOL"}
 """set: The constants of the post-main-sequence code that are choices, not data or structure."""
 
 

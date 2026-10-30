@@ -421,3 +421,10 @@ def post_main_sequence_track(mass_sol, fe_h):
 def post_main_sequence_light(mass_sol, fe_h):
     """`(frac, log_l)` of the track of `post_main_sequence_track`, for the readers that need only those two columns."""
     return post_main_sequence_grid().light(mass_sol, fe_h)
+
+
+def helium_star_relation():
+    """`(intercept, slope, sigma)` of the luminosity of a Wolf-Rayet star against its present mass in MIST
+    (`evolved_tracks.Grid.helium_star_relation`, GEN.939); None when the tracks hold none. Raises `fetch.DataMissing` when the
+    isochrones were not downloaded."""
+    return post_main_sequence_grid().helium_star_relation()

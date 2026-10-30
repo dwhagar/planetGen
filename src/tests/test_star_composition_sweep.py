@@ -140,7 +140,7 @@ def ladder_stars():
                               state["mass_sol"], key, teff_k=state["temperature_k"]))
     for index in range(60):
         age = 0.003 + 0.001 * stream.random()
-        state = wolf_rayet.state(40.0 + 40.0 * stream.random(), age, 0.003, 0.004, stream)
+        state = wolf_rayet.state(40.0 + 40.0 * stream.random(), 15.0 + 20.0 * stream.random(), age, 0.003, 0.004, stream)
         found.append(Star("ladder", sc.WOLF_RAYET, -2.0 + 2.4 * stream.random(), age, state["mass_sol"],
                           sc.abundance_key(mass=state["mass_sol"], age_gy=age, distance_ly=SOLAR_DISTANCE_LY + index),
                           subtype=state["wr_subtype"], teff_k=state["temperature_k"]))
