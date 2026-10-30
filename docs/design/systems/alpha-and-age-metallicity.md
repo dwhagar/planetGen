@@ -1,6 +1,6 @@
 # Alpha-enhanced stars and the age-metallicity relation (GEN.744, lock-free step)
 
-Status: modules built, nothing in generation calls them (wiring is GEN.744's second step and rides train 3 with the star epoch). Code: `physics/alpha_tracks.py`, `physics/age_metallicity.py`. Tests: `tests/test_alpha_and_age_metallicity.py`. Registry 6.34 (AL1, AR1 to AR3).
+Status: the age-metallicity relation is wired (age follows the star's [Fe/H] inside the disc's populations); the alpha-enhanced track shift is built and not yet read by any track lookup. Code: `physics/alpha_tracks.py`, `physics/age_metallicity.py`. Tests: `tests/test_alpha_and_age_metallicity.py`. Registry 6.34 (AL1, AR1 to AR4).
 
 ## Alpha-enhanced tracks
 
@@ -14,9 +14,14 @@ Haywood et al. 2013 (Section 3.3, Fig. 9): the thick disc has a tight relation r
 
 It agrees with today's populations (young and intermediate disc 0, old disc -0.2) and Bensby et al. 2014's thin-disc floor near -0.7 sits at the thin disc's 3 sigma.
 
-Wiring: the age is drawn first and [Fe/H] follows from it and the branch (it reverses the order of GEN.553 for the disc, and the thick disc's window moves from the 3 to 10 Gyr "old" population to 8 to 13 Gyr: GEN.944 part 1, the "10 to 13 Gyr thick-disk window"). It changes every disc star, so `--affects population` or `fill` and a census re-baseline.
+Wiring (as built): the order of the draws is kept, [Fe/H] first and the age after it. The scatter's tables, the places' own [Fe/H] distributions and the bins of GEN.651 all stand on [Fe/H] being drawn from the place before the star is, so reversing the order would rebuild them. Instead the age is chosen to suit the [Fe/H]: `age_metallicity.tilted_age` draws eight ages the way the caller draws one (the population's window and age law, or the track's bright window) and keeps one in proportion to the density of the relation at the star's [Fe/H] (`log_density`: the thin disc's normal, with the thick disc's beside it past 8 Gyr, `thick_share` = AR4). The callers are `sample_living_star` (both of its age draws), `star_population`'s bright-star and mass-band draws and the pinned-mass path of `Star`. A metal-poor star of the old disc comes out older than a metal-rich one (a test fixes the sign and size); the population's [Fe/H] and its age window are unchanged. The young population's window is 0.1 Gyr wide, so the relation is flat across it and nothing moves. Halo, bulge, cluster and satellite stars have histories of their own and are not tilted; nor is a star of no population (the whole disc, 0 to 13 Gyr, drawn with the intermediate disc's [Fe/H]), whose metals are not the relation's mix over those ages and which a tilt would crowd toward the young. Over each of the three disc populations the tilt moves the mean age by less than 0.05 Gyr (a test fixes it).
+
+It changes the age of every disc star, so it needs `--affects population` and `fill` and a census re-baseline (ages shift inside each window, the counts by mass do not).
+
+Not done here, and why: the 10 to 13 Gyr thick-disc window (GEN.944 part 1). The old population is 3 to 10 Gyr in the galaxy's density, scale-height and age-law tables (`galaxy.density.population_densities`, `disk_history`), so moving its end is a galaxy-model change that belongs with GEN.405.
 
 ## Not here
 
 - Variable-star flags (Cepheids, Mira, carbon and S stars) of GEN.944: they need Star 1's post-main-sequence phases (GEN.935).
+- The alpha shift in the tracks: `evolve_star` and the scatter's tables (`star_population._bright_windows` and its bounds) mirror one another, and the branch is decided by a star's age, so the tables need the shift in their age windows before `evolve_star` may use it. A separate piece of work.
 - Alpha-enhanced tracks themselves (Dartmouth, BaSTI-alpha) as a download: the Salaris shift is the accepted secondary-source stand-in until the equivalence is shown to fail.
