@@ -117,7 +117,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 | g1 | Young hot, late-M-like | BD; Teff 2200 to 2800 K | Phi-window (s 100 K) | cap 2800 K = repo ROGUE_MAX_EFFECTIVE_TEMPERATURE_K; lower edge DESIGN | DESIGN R15 | |
 | g2 | L dwarf: H2O, CO (5e-4 m), Na, K, FeH, CrH; Fe and silicate clouds | BD; 1300 to 2200 K | Phi-window | part 05 s7.4 (COMPUTED); Burrows and Sharp 1999 (READ) | DERIVED | |
 | g3 | T dwarf: CH4, H2O, NH3, Na, K; sulfide and salt clouds | BD; 700 to 1300 K | Phi-window | same | DERIVED | |
-| g4 | T/Y transition (500 to 700 K): NH3-rich, water cloud near 350 K deeper | BD; 500 to 700 K | Phi-window | gap in part 05 s7.4 (T and Y rows leave 500 to 700 K uncovered); Burrows and Sharp 1999 (READ) | DESIGN R15 | |
+| g4 | Late T, NH3-rich (T8 to Y0 at 460 to 686 K), water cloud near 350 K deeper | BD; 460 to 686 K | Phi-window | the edges are the type-temperature map itself: T8 686 K and Y0 460 K, scatter 79 K (Kirkpatrick et al. 2021 Table 13, 525 dwarfs within 20 pc; READ); 500 to 700 K is T8 to T9, not a type of its own (GEN.494) | DERIVED R15 | |
 | g5 | Y dwarf: CH4, water cloud | BD; Teff<500 K | Phi-window | part 05 s7.4 | DERIVED | |
 | g6 | Carbon carrier CH4 vs CO | BD | CH4: Phi((1100-Teff)/100) | Zahnle and Marley 2014 1100+-100 K (READ) | DERIVED | |
 
@@ -180,7 +180,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 |---|---|---|---|---|---|---|
 | l1 | Rocky body with silicate-vapour exosphere (Na, SiO, Mg, Fe) | host WD or PSR; rocky | Phi((log10 P_eq(Ts) + 6)/0.5), P_eq from i6 formula | Kite 2016 (READ); threshold 1e-6 bar and width DESIGN | DESIGN R10 | composition via a4 |
 | l2 | Airless | same | 1 - w[l1] | complement of l1 | DESIGN R10 | fallback row |
-| l3 | Surviving H/He giant | host WD, GIANT | c[0,0.1] | fate of planets: Veras 2016 NOT REACHED | DESIGN R10 | composition via tables f and g |
+| l3 | Surviving H/He giant | host WD, GIANT | c[0,0.1] | no more than 1 percent of white dwarfs should host close-in giants (Mustill, Veras and Villaver 2014, three giants, read in the abstract and discussion, and as Veras 2016 quotes it; READ); the bracket 0 to 0.1 holds the wider orbits that survive | DESIGN R10 | composition via tables f and g |
 
 **Example l (COMPUTED).** WD host, Ts=1800 K: P_eq = 2.39e-05 bar; w[l1] = 0.997. No sourced composition exists for pulsar-planet atmospheres.
 
@@ -227,7 +227,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 | o3 | K/U (mass) | ROCKY | LU[8.9e3, 1.4e4] | crust 8900 to 11800, BSE 1.4e4 (McDonough 2020, Wipperfurth 2020, READ); volatile-depleted bodies lower, NOT REACHED | DESIGN R13 | |
 | o4 | Th/U | ROCKY | U[3.8, 4.5] | BSE 3.77, crust 4.0 to 4.5 (READ); stellar Th/U vs cosmic age NOT REACHED | DESIGN R13 | |
 | o5 | Heating vs age | ROCKY | h(t)/h(4.5 Gyr) = sum s_i exp(lam_i (4.5 - t)), shares U238 .384, U235 .016, Th .402, K40 .193 | McDonough 2020 shares and half-lives (READ); COMPUTED | DERIVED | Al-26 adds 4.2e-7 W/kg for the first 20 Myr (RECALLED Al) |
-| o6 | Al-26 early heating present | planetesimals formed within a few Myr | c[0.1,1] | 26Al/27Al 5.25e-5 (McDonough 2020 READ); presence in a given system unsourced | DESIGN R13 | |
+| o6 | Al-26 early heating present | planetesimals formed within a few Myr | c[0.1,1] | 26Al/27Al 5.25e-5 (McDonough 2020 READ); presence in a given system unsourced; `birth_radioisotopes.py` (GEN.476) gives the share of stars born above the melting ratio: 12 percent (6 to 20) | DESIGN R13 | |
 
 **Example o (COMPUTED).** Thin-disc Sun-like host. Bins f<0.7, 0.7 to 1.4, >1.4: 0.0000, 0.8729, 0.1271. Heating at age 3 Gyr relative to 4.5 Gyr: 1.432 (part 07 table: 1.43); at 8 Gyr 0.589. Heat per kg of rock = 98.29 U + 26.18 Th + 3.387e-3 K (uW/kg per kg/kg, McDonough 2020).
 
@@ -240,7 +240,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 | p3 | M, post-saturation: FUV and Ly-alpha dominated | host M; age>tau_sat | 1 | M1.5 1.2e-2, M2.5 1.6e-2, M4 2.7e-2 to 3.6e-2, TRAPPIST-1 (M8) 0.60 (same); O3 lifetime 0.8 to 2 h vs 124 s for the Sun | DERIVED | long CH4, N2O, CH3Cl lifetimes (Segura 2005 READ) |
 | p4 | M, saturated and flaring (L_X/L_bol 10^-3.14 for early M) | host M; age<tau_sat; tau_sat = LU[0.162, 2] Gyr | 1 | tau_sat 162 Myr early M (Jackson 2012 Table 2, READ) vs 2 Gyr project stand-in | DERIVED | proton ozone loss only if no magnetosphere (Segura 2010 READ) |
 | p5 | Young star (any type), age<0.1 Gyr | age<0.1 Gyr | 1 | 1-1180 A flux 110x the 4.57 Gyr value at 0.1 Gyr (Ribas 2005, READ) | DERIVED | |
-| p6 | Rotation track (L2 on p4, p5, solar mass): slow / median / fast | any | 0.25 / 0.5 / 0.25 | Tu 2015 percentile tracks 10th, 50th, 90th, t_sat 5.7, 23, 226 Myr (READ); weights DESIGN | DESIGN R14 | L_X at 100 Myr differs 200x |
+| p6 | Rotation track (L2 on p4, p5, solar mass): slow / median / fast | any | percentile of the initial rotation distribution uniform 0.02 to 0.98 | an observed distribution has uniform percentiles by construction, so the draw carries no weights of its own; the saturation time follows the percentile and the mass: Johnstone et al. 2021 Fig. 10 read at the 5th, 50th and 95th percentiles for 0.1 to 1.2 solar masses (`saturation_time.py`; matches Tu 2015 at one solar mass, 5.2, 22.8 and 297 Myr against 5.7, 23 and 226) (READ) (GEN.493) | DERIVED R14 | L_X at 100 Myr differs 200x |
 
 **Example p (COMPUTED).** M1.5 host, planet age 1 Gyr. Jackson 2012: L_X/L_bol = 10^-3.14 (t/tau_sat)^-1.18 with tau_sat = 0.162 Gyr gives 8.47e-05 (the paper's table value is 8.5e-5). With tau_sat ~ LU[0.162, 2] Gyr, the chance that age 1 Gyr is still saturated is ln(2/1)/ln(2/0.162) = 0.276: p4 0.276, p3 0.724.
 
