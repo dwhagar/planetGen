@@ -13516,7 +13516,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   recalled, not opened, so below Verified). Done: the overlap redraw
   count is zero and every remaining redraw kind has a registered
   ceiling. Owner: Star 2 or the first free lane.
-  Prerequisites: TEST.476, TEST.477, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016.
+  Revised design (relayed 11:14 AM EDT as the lane reported) (2026-10-30
+  11:15 AM EDT): Revised design:
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md.
+  New: P0 GEN.1017 (pass the primary's [Fe/H] into the tree, cuts
+  first-draw redraws about 60 to 70 percent, first output-changing
+  part); research part GEN.1018 (3+1 quadruple criterion, source
+  verification); Holman and Wiegert coefficients in the repo verified
+  against the paper (fit range mu 0.1 to 0.9, e to 0.8); the moon code
+  lacks the Domingos eccentricity terms and the retrograde limit
+  (carried in GEN.1014); the repo white-dwarf engulfment constants sit
+  below Mustill and Villaver 2012 (GEN.725 row in GEN.1012). GEN.1007
+  and GEN.1008 stay dropped, P0 replaces the first.
+  Prerequisites: TEST.476, TEST.477, GEN.1017, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016.
 
 - [ ] **GEN.1009 Overlap-free stars P3: evolve each star once into a frozen MemberRecord that the tree, the build and the planets all read (replaces GEN.1007 and GEN.1008)**
   Add `MemberRecord` and `Star.from_record`; the tree and the build read
@@ -13571,6 +13583,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   below Verified until a lane checks them). Changes generated output:
   --affects star and planet suites, epoch, golden and census re-tag on a
   merge train. No shim.
+  Revised design (11:14 AM EDT) (2026-10-30 11:15 AM EDT): The repo
+  white-dwarf engulfment constants sit below Mustill and Villaver 2012;
+  register the corrected values as a GEN.725 row with tier and tweak
+  level.
   Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
 
 - [ ] **GEN.1013 Overlap-free stars P7: keep compact members and brown dwarfs in the tree for the orbit draw**
@@ -13599,6 +13615,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merge train. No shim.
   Prerequisites: GEN.1009, GEN.1011. Related: GEN.1006, GEN.1004,
   TEST.476.
+  Revised design (11:14 AM EDT) (2026-10-30 11:15 AM EDT): The moon code
+  lacks the Domingos et al. 2006 eccentricity terms and the retrograde
+  stability limit; the ledger part adds them (stand-in tier until the
+  paper is read by the research part).
 
 - [ ] **GEN.1015 Overlap-free stars P9: delete the GEN.1004 quick fix (built_tree_clears, the clearance branch of _companions_fit, _built_stars_clear), no shim**
   Remove the quick fix once the construction guarantees clearance; set
@@ -13626,6 +13646,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merge train. No shim.
   Prerequisites: TEST.477, GEN.1011. Related: GEN.1006, GEN.1004,
   TEST.476.
+
+- [ ] **GEN.1017 Overlap-free stars P0: give the star tree the primary's [Fe/H] (and the build's age and mass) so the tree and the build evolve each companion the same way (replaces the dropped GEN.1007)**
+  Root cause found by running it (GEN.1006 revised design,
+  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  section 10 P0): StarSystem._drawn_plan does not pass the primary's
+  [Fe/H] to multistar.Placed, so the tree evolves companions at [Fe/H] 0
+  while the build uses the primary's. Passing fe_h cuts first-draw
+  redraws by about 60 to 70 percent. Do: pass fe_h, and the same age and
+  mass the build uses; remove or record the lighten and draw_age_yr
+  differences. Done: tree and build classes agree over the TEST.476
+  sample. Changes generated output: --affects fill, epoch, golden and
+  census re-tag on a merge train. First output-changing part of
+  GEN.1006; it can go before P3. Owner: Bug 1 (star lane) after GEN.951.
+  Prerequisites: none. Related: GEN.1006, GEN.1004, GEN.1009, TEST.476.
+
+- [ ] **GEN.1018 Overlap-free stars research part: port a 3+1 quadruple stability criterion and verify the sources from the papers (GEN.1006)**
+  Free research part of GEN.1006
+  (/mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
+  sections 7, 12 and 13). The nested-triple stability test over-predicts
+  stable 3+1 quadruples (Vynatheya, Mardling and Hamers 2023, read):
+  read the 2023 quadruple models and decide how to port a 3+1 criterion
+  without a machine-learning dependency. Verify from the papers (a lane
+  with access, second-hand rule otherwise): Domingos 2006 (moon Hill
+  fractions, eccentricity terms, retrograde limit), Eggleton 1983,
+  Mardling and Aarseth 2001, Eggleton and Kiseleva 1995 and Chambers
+  1996. Done: a report with the criterion, the checked constants and
+  their GEN.725 tier and tweak rows (the engulfment constants that sit
+  below Mustill and Villaver 2012, the 3+1 margin), and the sources
+  marked Verified or kept below it. No generator change. Owner: Sources
+  1 or Sources 2 (data lanes) or the first free lane.
+  Prerequisites: none. Related: GEN.1006, GEN.725, GEN.1012, GEN.1014.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18463,6 +18514,11 @@ clears each one.
   interval over a seeded sample that includes forced triples and
   quadruples. It goes first, before any output change, on today's code,
   for the baseline the Done clause of GEN.1006 is measured against.
+  Revised design (11:14 AM EDT) (2026-10-30 11:15 AM EDT): Baseline
+  first-draw failures with the quick fix, per 2,500 forced systems: 3
+  stars 24, 4 stars 17, 5 stars 50, 6 stars 95 (research thread
+  measurement); the test reproduces these numbers as its baseline and
+  then pins ceilings.
   Prerequisites: none. Related: GEN.1004, TEST.430, TEST.162.
 
 - [ ] **TEST.477 The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2)**
