@@ -14549,6 +14549,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT): Unchanged by the
   region study; its kick answer is the origin planet's actual motion
   plus the scattering kick.
+  Owner (5:56 PM EDT) (2026-10-30 5:56 PM EDT): Moved to Aux 7 (built
+  rogue_kick.py; row RK1 names this item), separate branch, together
+  with GEN.1117.
   Prerequisites: none. Related: GEN.1111, GEN.1109.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
@@ -14563,6 +14566,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: registry rows and burn-down lines merged. Lock-free (docs).
   Where we think it belongs (best guess, can move): Whoever builds D1
   and D2, in the same PRs.
+  Owner (5:56 PM EDT) (2026-10-30 5:56 PM EDT): Moved to Aux 7, in the
+  same PRs as GEN.1113.
   Prerequisites: none. Related: GEN.1111, GEN.1109.
   Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
 
@@ -14688,25 +14693,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   we think it belongs (best guess, can move): Core 5 (sectors and fill),
   now, separate branch.
   Prerequisites: none. Related: GEN.1118.
-
-- [ ] **GEN.1124 Resident-mass subtraction: a pure function giving a sector's remaining mass budget after what it already holds (arrived rogues, pre-placed bright stars, scattered phenomena, extended objects whose centre lies there)**
-  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
-  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
-  #4130). Defaults taken until Boss changes them: whole sectors are the
-  unit of randomness and a region is rounded up to whole sectors (no
-  partial sectors); work units are the galaxy's own (shell, band) arcs;
-  a moved rogue keeps the ID of its birth position, with history; the
-  top-up fills the shortfall only up to the Rogues level. Stage 0 of the
-  generation order (study section 8.5): what a sector already holds when
-  it is generated comes off the sector's calculated mass (sector_stats
-  expected_systems, bright_mass_sol, total_mass_kg, max_mass_kg) before
-  anything is drawn, in every phase (mass-backfill rings, system draw,
-  phenomena, remnants, belts). The residents are never moved or changed.
-  Do: the pure function and tests (budget never negative, residents
-  untouched, empty sector unchanged). Wiring into each phase rides
-  GEN.1120. Lock-free. Where we think it belongs (best guess, can move):
-  Core 5 (sectors and fill), separate branch.
-  Prerequisites: none. Related: GEN.1118, GEN.1120.
 
 - [ ] **GEN.1126 Top-up asteroid field kind: lighter interstellar asteroid fields made when the Rogues cap leaves sector mass unmatched, smaller bodies, lower density, a larger volume, no full body history, origin a registered stand-in "unbound remnant"**
   Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study

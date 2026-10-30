@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 778 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 789 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 123 | 7 | 6 | 1 | 0 | 137 |
-| T2 | 104 | 20 | 0 | 1 | 0 | 125 |
-| T3 | 77 | 29 | 5 | 9 | 0 | 120 |
+| T1 | 125 | 7 | 6 | 1 | 0 | 139 |
+| T2 | 105 | 21 | 0 | 1 | 0 | 127 |
+| T3 | 77 | 31 | 5 | 9 | 0 | 122 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 41 | 13 | 0 | 0 | 0 | 54 |
-| T6 | 65 | 44 | 12 | 34 | 0 | 155 |
+| T6 | 67 | 46 | 12 | 35 | 0 | 160 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 6 | 2 | 10 |
 | T9 | 7 | 3 | 4 | 34 | 19 | 67 |
-| All | 479 | 128 | 36 | 108 | 27 | 778 |
+| All | 484 | 133 | 36 | 109 | 27 | 789 |
 
 ## How the labels were given
 
@@ -1210,6 +1210,37 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CM19 | B | T3 | L0 | pull-down capture (the planet's Hill sphere grows while a body is temporarily bound): needs a sudden planet mass increase of at least 10 percent (Vieira Neto and others 2004, retrograde) or more than 40 percent over a few thousand years (Pollack and others 1976); works for prograde bodies too (Vieira Neto and others 2006: a body near 0.85 Hill radii is pulled inside the 0.45 stability line); only gas giants have the runaway; a body in the 1:1 resonance near the planet's Lagrange points with low relative speed | mass jump 10 to 40 percent | gas giants in runaway gas accretion | a captured irregular family at an ice giant needing pull-down | the accretion history of the generated giant | Jewitt and Haghighipour 2007 section 6.1; Sheppard 2006 section 3.2 (READ, second-hand; the thresholds disagree 10 against 40 percent so the range is the widest) | - | - |
 | CM20 | D | T3 | L0 | quasi-satellite route (flag only): 5 to 20 percent of planetesimals scattered by a planet become quasi-satellites in the 1:1 resonance and a significant share pass through the planet's Hill sphere | 5 to 20 percent | scattered planetesimals of any giant | a direct simulation of captures from quasi-satellites | n/a (a flag with no mass) | Kortenkamp 2005 as quoted in Jewitt and Haghighipour 2007 section 6.3 (READ second-hand; paper not reached) | - | - |
 | CM17 | P | T1 | L1 | moon_composition.CAPTURED_SIZE_INDEX 1.0 and CAPTURED_FULL_WEIGHT_MASS_KG 1e16: the weight of the `captured` origin of a moon of mass M is (M / 1e16 kg)^(-1/3) from the survivors' cumulative size law N(>R) ~ R^-1, 1 at or under the floor; 0.046 at 1e20 kg, 0.0078 at Triton's mass | index 0.9 to 1.8 (differential 1.9 +/- 0.3 at Jupiter and Saturn, CM5; 1.8 of the source disc below 70 km, CM3); floor 3e15 to 3e16 kg (CM15) | the moon draw of a giant, a terrestrial planet or a dwarf planet, once GEN.1083 wires it | a giant whose moons above 1e20 kg are captured in more than 1 draw in 10, or one that never draws a captured moon of 1e17 kg | the irregular population of GEN.1077 (the captured share of the mass drawn, not of an index) | CM5, CM15 and the design section 3 (N(>100 km) is 0.1 to 0.5 per giant, not one in three) | - | - |
+
+## 6.110 Stand-ins of the masses of ejected bodies
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RM1 | P | T1 | L0 | rogue_mass_function.SUPPLY_DIFFERENTIAL_INDEX 3.5, the differential size index q of the supply, dN/dD ~ D^-q, so dN/dlogM ~ M^-0.83 | 3.5 to 4 | bodies of one density in a steady-state collisional cascade; the supply of a real disc is bimodal (embryos and planetesimals) | ejection records (GEN.1119) whose mass spectrum, 0.33 to 30 Earth masses, has a slope outside Sumi's 0.69 to 1.43 | the supply spectrum read from the architecture's own oligarch chain and sub-minimum bodies | Dohnanyi 1969 (n(m) ~ m^-11/6, quoted in Belyaev and Rafikov 2011 arXiv:1012.3220 eq. 1; q = 3.5 in the abstract of Pan and Schlichting 2012 arXiv:1111.0667, up to 4 with velocity evolution); Sumi et al. 2023 arXiv:2303.08280 alpha = 0.96 +0.47 -0.27 read | GEN.1111 | - |
+| RM2 | P | T6 | L0 | rogue_mass_function.MAX_EJECTED_OVER_SCATTERER 1.0, the heaviest body a scatterer ejects as a multiple of its own mass | 0.3 to 1 | scatterers that eject (Safronov number over 1) | an N-body run in which a scatterer ejects a body heavier than itself, or lets a body under a tenth of its mass stay | the ejection records (GEN.1119), which give every ejected body's mass beside its scatterer's | the lighter of a pair is the one ejected (the architecture's `_scatter_crowded_giants` already does it); Barclay et al. 2017 arXiv:1704.08749 eject embryos of at most one Earth mass beside Jupiter and Saturn analogues, read | GEN.1111 | - |
+
+## 6.111 Stand-ins of the air and water of ejected planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| EV1 | P | T6 | L0 | rogue_volatiles.HELD_AIR_VERDICTS dense, moderate, tenuous: the shoreline verdicts that count as the body having held an air of its own before it left | trace counted as held, or tenuous not | rocky bodies of 0.01 to 10 Earth masses at the orbit they left | a rogue of Mars's size whose surface shows no frost where the model gives one, or the reverse | the outgassing and impact-loss inventory of the body (the volatile budget of GEN.849) | the verdict names are those of `atmosphere_retention.verdict_of` (Zahnle and Catling 2017 shoreline), and where the cut falls is ours | GEN.1111 | - |
+| EV2 | B | T1 | L0 | rogue_volatiles.ENVELOPE_LAW_MASS_RANGE_EARTH 1 to 30: the planet masses the radius law of Lopez and Fortney 2014 was fitted to, a mass outside held at the nearest edge | 1 to 20 for the strict fit | the gas-giant test of a rogue (`is_gas_giant`) | a planet under 1 Earth mass whose envelope the law cannot size, called a giant by the clamp | a radius law for envelopes on cores under 1 Earth mass | the range `envelope_escape` already uses for the same law; Lopez and Fortney 2014 Eqs. 1 and 3 (`bulk_structure.envelope_radius_earth`) | GEN.1111 | - |
+
+## 6.112 Stand-ins of the moons carried out with ejected planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MO1 | P | T2 | L1 | rogue_moons.SURVIVAL_AT_0P01_HILL 0.82 and SURVIVAL_AT_0P1_HILL 0.48: the shares of ejections whose closest approach stayed beyond 0.01 and 0.1 mutual Hill radii | 0.7 to 0.9 and 0.4 to 0.55 | a planet of 10 Jupiter masses ejecting one of 1 (m1 / M about 0.01, m1 / m2 = 10) round a solar-mass star; fewer survive for a lighter scatterer and a smaller mass ratio (their section 4.2.1 to 4.2.4) | the CCDF of a run with another mass ratio or inclination (their Figures 2 to 5 read for other values) | the ejection record's own closest approach (GEN.1119) | Huang and Lai 2026 arXiv:2508.18239 conclusions, read; the median 0.089 mutual Hill radii agrees with the two points | GEN.1111 | - |
+| MO2 | P | T6 | L3 | rogue_moons.closest_approach_survival: the two points joined on a logarithmic axis and held to 0 to 1, so the survival is 1 under 0.003 and 0 over 1.9 mutual Hill radii | the slope of 0.34 per decade, the end points | between and just outside the two printed points | the CCDF of the paper's own simulations at 0.001 and 1 mutual Hill radius | the closest approach of the ejection record (GEN.1119), which needs no curve | the line through the two points; the ends are our extension | - | replace (GEN.1119) |
+| MO3 | P | T3 | L1 | rogue_moons.EJECTED_MOON_ECCENTRICITY 0.13: the eccentricity of a moon carried out with its planet | 0.05 to 0.3 | a lunar-mass moon at 30 Earth radii, a Jupiter as scatterer | a different moon mass or orbit whose ejected eccentricity is far from 0.13 in N-body runs | the moon's eccentricity from the ejection record (GEN.1119) | Debes and Sigurdsson 2007 arXiv:0709.0945, median of the 123 bound ejections, read (one setup, 2,700 runs) | GEN.1111 | - |
+| MO4 | P | T6 | L1 | rogue_moons.circularisation_flux_w_m2: the eccentricity tide is held constant over the age, and the larger early term of the planet's spin being braked by the moon (their eq. 2) is not in it | e from 0.05 to 0.3 | the first hundreds of Myr after the ejection | a rogue younger than 300 Myr whose measured heat flux is far above the constant term | the spin-braking term from the spin-down work (GEN.842) | Debes and Sigurdsson 2007 eqs. 1 and 2: the spin term is 100 times the Earth's radiogenic heat for the best case and falls to it in 144 Myr (rocky) or 246 Myr (icy); the constant term is `tidal_heating`'s habit | - | - |
+
+## 6.113 Stand-ins of the planets a birth cluster strips
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CU1 | B | T3 | L1 | cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to every orbit | a factor of a few either way for hard planets | planets soft against the cluster (circular speed under V, `soft`); a harder orbit is overestimated by a factor the paper does not give | an N-body unbinding rate for a planet at 5 to 30 AU in a cluster of 1 km/s that is far below the formula | the cross sections of the N-body encounters for hard orbits (Fregeau et al. 2006, not read) | Spurzem, Giersz, Heggie and Lin 2009 arXiv:astro-ph/0612757 eqs. 36 and 37, read | - | - |
+| CU2 | B | T2 | L0 | cluster_unbinding.relative_speed_km_s: sqrt(6) times the one-axis dispersion, the rms relative speed of two stars from a Maxwellian | none | a cluster in virial equilibrium with isotropic motions | a cluster with a measured relative speed far from sqrt(6) sigma | the speed of encounters from the cluster's velocity distribution | the sum of two independent Maxwellians (our derivation) | - | - |
+| CU3 | P | T6 | L1 | cluster_unbinding.half_mass_density: the density the planet sees is the half-mass density 3 M / (8 pi r_h^3) for the whole life of the cluster | the density at 0.5 to 2 r_h | the encounters of planets in the half-mass region; the core is denser | a cluster where the unbound fraction of planets measured by radius shows no gradient | the density at the planet's own position from the cluster's profile (`king`) | the half-mass density is the usual single number for a cluster; the weighting is ours | - | - |
 
 ## 6.94 Stand-ins of the irregular zone
 

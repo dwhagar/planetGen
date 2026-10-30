@@ -2,6 +2,49 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2798] - 2026-10-30
+
+**Headline:** The generator can now say what a system throws out and what a thrown-out planet takes with it, from physics instead of rates: masses, air, water, moons, and the planets a birth cluster strips.
+
+### Added
+- **`physics/rogue_mass_function.py` (GEN.1112, RP2).** The masses of the bodies a system ejects follow the supply of a collisional cascade (Dohnanyi's 0.83 per decade of mass, up to 1.0), cut at the mass of the planet that throws them out. Its slope sits inside the microlensing measurement of free-floating planets (0.96, range 0.69 to 1.43) without being fitted to it.
+- **`physics/rogue_volatiles.py` (GEN.1112, RP3).** The hydrogen a thrown-out planet keeps (the star's XUV over the time it spent lit), the pressure at the bottom of that envelope, whether it is a gas giant (the generator's own giant radius), the water from where it formed against the snow line, and whether it once held an air.
+- **`physics/rogue_moons.py` (GEN.1112, RP4).** Whether a moon leaves with its planet (the moon's orbital time against the closest encounter, with the survival shares of Huang and Lai 2026) and the heat it raises there on an eccentric orbit (Debes and Sigurdsson 2007).
+- **`physics/cluster_unbinding.py` (GEN.1112, RP7).** The share of planets of a given orbit a birth cluster has stripped from their stars, from the cluster's density and speed history (Spurzem et al. 2009).
+- **Stand-in rows RM1 to RM2, EV1 to EV2, MO1 to MO4 and CU1 to CU3** in the gap-filling plan (sections 6.110 to 6.113), the stand-in list, the burn-down register (MO2) and the wiring register. Nothing reads the modules yet; the rogue rows (GEN.1111) wire them and remove the tuning defaults they replace.
+
+### Changed
+- The comments on the rogue planet mass bins in `tuning.py` now state the rates the bins actually give (5.8 per star in all, not 6.5).
+
+generation-output: unchanged
+
+## [8.0.2797] - 2026-10-30
+
+**Headline:** The mass a sector still has to draw once it has counted what it already holds now exists as a tested calculation; no world uses it yet.
+
+### Added
+- **Resident-mass subtraction (GEN.1124).** A new module (`galaxy/resident_mass`) takes the mass a sector is calculated to hold and the things it already holds (arrived rogues, pre-placed bright stars, scattered phenomena, belt parents, and extended objects whose centre lies in it) and gives the budget that is left for the phases of the sector build to draw: never negative, an empty sector unchanged, the residents untouched, and an object that only reaches in from a neighbour not counted. It also gives the stage 3 shortfall (the budget less everything the build drew) that the rogue top-up makes up. Nothing reads it yet: the generation phases wire it (GEN.1120).
+
+generation-output: unchanged
+
+## [8.0.2796] - 2026-10-30
+
+**Headline:** How often an interstellar asteroid field is born now exists as a tested calculation from the physical sources only (a belt unbound by a supernova, a young cluster stripping belts, a collision of two rogues); no field is drawn at a made-up rate and no world uses it yet.
+
+### Added
+- **Field rates (GEN.1101).** A new module (`physics/field_rates`) gives the physical birth rates of fields: belts a supernova frees (about 200 standing in the whole Galaxy, from 2 core-collapse supernovae per century, the share of the progenitors with a belt by age and the half-mass rule), the rule by which a young supernova remnant hosts such a belt and loses it past one light year, the belts a young cluster strips by flybys with the life of the swarm, and the rarity of a collision field in a sector. There is no game rate and no floor dial (Boss, 4:54 PM EDT 2026-10-30). Four stand-in rows (IF19 to IF22) are registered. Nothing reads it yet: the supernova host rule and the field columns (GEN.1103, GEN.1104) wire it on a later generation train.
+
+generation-output: unchanged
+
+## [8.0.2795] - 2026-10-30
+
+**Headline:** The plan for topping a sector up with rogue planets now exists as a tested calculation: how many to add, their masses, places, speeds and an "apparent" origin; no world uses it yet.
+
+### Added
+- **Rogue top-up planner (GEN.1125).** A new module (`physics/rogue_topup`) takes a sector's mass shortfall, the Rogues level (None, Few, Normal or Many, with ceilings of 0, 2.5, 4.3 and 10 per star, kept in `tuning.py`) and the rogues already there, and says how many rogue planets to add (never past the ceiling), their masses by the existing bins (about 96 percent terrestrial, 4 percent gas giant), a uniform place inside the sector, a velocity through the Galaxy and an origin marked "apparent" that never links to a real system. The placed mass plus the mass left over equals the shortfall exactly, and the leftover is returned for the light asteroid fields (GEN.1126). Five stand-in rows (TU1 to TU5) are registered. Nothing reads it yet: the region run wires it (GEN.1120).
+
+generation-output: unchanged
+
 ## [8.0.2794] - 2026-10-30
 
 **Headline:** How an interstellar asteroid field spreads and ends now exists as a tested calculation: its radius from its age, the age at which it is retired past one light year, and where its bodies are; no world uses it yet.
