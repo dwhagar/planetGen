@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2823] - 2026-10-30
+
+**Headline:** The data behind an asteroid belt information page now exists: the belt's individually tracked bodies by designation, what the rest of its mass is made of by size, and how thick the belt is in objects per square astronomical unit.
+
+### Added
+- **`physics/belt_page.py` (UX.240).** One plain structure with three blocks over a belt's ledger: the stored bodies (designation, mass, diameter, distance, taxon and composition, density, status word and Soter's mu), the rest of the belt mass as diameter bins (count, mass and share, whether drawn on demand or a total only, typical composition and density) that add up with the listed bodies to the belt's mass, and the density factor (objects per square AU above 1, 10 and 100 km, and kilograms per square AU). Every number carries its unit. Nothing serves it yet; the page route and the API field are UX.241.
+- **`belt_member.typical_density_kg_m3`**: the bulk density of a typical body of a taxon at a mass, for the size table.
+- **Stand-in rows BP1 to BP4** in the gap-filling plan (section 6.120), the stand-in list and the wiring register.
+
+generation-output: unchanged
+
 ## [8.0.2822] - 2026-10-30
 
 **Headline:** update.sh no longer leaves a migrated site closed because its /api/health probe got no good answer, and says why a probe got no HTTP answer.
