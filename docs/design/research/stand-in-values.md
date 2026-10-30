@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 689 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 713 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 103 | 3 | 6 | 1 | 0 | 113 |
-| T2 | 100 | 16 | 0 | 1 | 0 | 117 |
+| T1 | 104 | 3 | 6 | 1 | 0 | 114 |
+| T2 | 100 | 17 | 0 | 1 | 0 | 118 |
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
-| T4 | 32 | 2 | 0 | 15 | 6 | 55 |
-| T5 | 38 | 12 | 0 | 0 | 0 | 50 |
-| T6 | 53 | 30 | 12 | 34 | 0 | 129 |
+| T4 | 36 | 2 | 0 | 15 | 6 | 59 |
+| T5 | 39 | 12 | 0 | 0 | 0 | 51 |
+| T6 | 62 | 33 | 12 | 34 | 0 | 141 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
-| T9 | 4 | 1 | 3 | 30 | 19 | 57 |
-| All | 430 | 99 | 34 | 99 | 27 | 689 |
+| T9 | 5 | 1 | 4 | 33 | 19 | 62 |
+| All | 446 | 103 | 35 | 102 | 27 | 713 |
 
 ## How the labels were given
 
@@ -1043,6 +1043,27 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RC3 | P | T4 | L0 | resonant_chains.WIDTH_EXPONENT 2/3, the detuning is held at `mu ** (2/3)` or more | 0.5 to 0.8 | first-order resonances of planets | an N-body run in resonance whose eccentricity exceeds the capped value by more than a factor of two | the libration width of the resonance computed from the pendulum model | Lithwick, Xie and Wu 2012: the near-resonance formula holds for `Delta` above `mu^(2/3)`, recalled | GEN.1049 | - |
 | RC4 | P | T6 | L1 | resonant_chains.CROSSING_SHARE 0.5, the share of the orbit-crossing limit the forced eccentricity is held to | 0.3 to 0.9 | chains of heavy planets | a stable chain with forced eccentricities over half the crossing limit | a stability integration of the chain (the overlap-free systems chain) | the necessary condition for non-crossing orbits; the share is ours | GEN.1049 | - |
 
+## 6.98 Stand-ins of the band winds
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BW1 | P | T9 | L2 | band_winds.PRESSURE_FADE_PA 1000 Pa, where the surface wind is half what the air aloft allows | 300 to 3000 | air under a few kilopascals | a measured surface wind on a thin-air world (Mars, Pluto, Triton) that the fade misses by more than a factor of three | a drag law from the air's density and the surface roughness | Boss's "about 1 kPa" in the item (GEN.1110) | GEN.1110 | - |
+| BW2 | P | T9 | L3 | band_winds.PRESSURE_FADE_EXPONENT 2, how sharply the fade falls below its pressure | 1 to 4 | the same | Mars (600 Pa) and Pluto (1 Pa) winds both measured | the same drag law | chosen so Mars keeps a quarter of the wind aloft and Pluto nothing | GEN.1110 | no data |
+| BW3 | P | T6 | L1 | band_winds.THERMAL_WIND_LOG_PRESSURE 1.6, `ln(P_s / P_top)` of the thermal wind | 1.0 to 2.3 | worlds with a tropopause | a world whose tropopause is far from a fifth of the surface pressure (Venus, Titan) | the tropopause pressure of the radiative-convective solve | the Earth's tropopause is 0.2 of the surface pressure, recalled | GEN.1110 | - |
+| BW4 | P | T9 | L3 | band_winds.SURFACE_COUPLING 0.3, the share of the wind aloft that reaches the surface by day | 0.15 to 0.5 | rocky worlds with air | surface winds off the Earth's 5 to 8 m/s in the mid-latitudes | a boundary-layer drag law on the surface roughness | tuned to the Earth's mid-latitude surface wind | GEN.1110 | no data |
+| BW5 | P | T9 | L3 | band_winds.NIGHT_COUPLING 0.5, the share of the day's coupling left at night | 0.3 to 0.8 | worlds with a stable night layer | a measured night to day wind ratio far from a half | a boundary-layer stability model | the Earth's night winds are about half the day's, recalled | GEN.1110 | no data |
+| BW6 | P | T6 | L0 | band_winds.TROPICS_LIMIT_DEG 60, the latitude where westerlies give way to polar winds | 50 to 70 | worlds with a Hadley cell | a general-circulation run with the Ferrel cell ending far from 60 degrees | the Ferrel cell's edge from the same scaling | the Earth's polar front is near 60 degrees, recalled | GEN.1110 | - |
+
+## 6.99 Stand-ins of the belt density factor
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BD1 | P | T6 | L0 | belt_density.MAIN_BELT cumulative exponents 1.3 (0.4 to 5 km) and 3.0 (5 km up) | 2.3 and 4.0 (the cumulative reading) to 1.3 and 3.0 | main belts | section 6 of Ivezic et al. 2001 defining the index for the cumulative distribution, or counts above 40 km that the law misses by more than a factor of three | the exponents read verbatim from section 6, and a law fitted to the debiased counts (Bottke et al. 2005) | the abstract states D^-2.3 and D^-4 and the 530,000 above 1 km; a summary of the PDF says section 6 defines the differential index; the cumulative reading leaves 3 asteroids above 40 km | UX.240 | - |
+| BD2 | P | T6 | L0 | belt_density.KUIPER_HOT breaks 1, 121 and 2500 km, exponents 1.0 and 4.35 | faint exponent 0.75 to 1.0 | hot Kuiper belt objects | a debiased count of hot KBOs above 100 km off by more than a factor of three | the DEEP tapered fit parameters (arXiv:2309.09478) | Fraser et al. 2014, alpha 0.87 bright, H_B 7.7 at albedo 0.10; faint side about 1.0 | UX.240 | - |
+| BD3 | P | T6 | L0 | belt_density.KUIPER_COLD breaks 1, 175 and 1500 km, exponents 1.0 and 7.5 | bright exponent 6 to 8 | cold classical belts | the same for the cold population | the DEEP tapered fit parameters | Fraser et al. 2014, alpha 1.5, H_B 6.9 at albedo 0.10 | UX.240 | - |
+| BD4 | P | T9 | L0 | belt_density.DEFAULT_DIAMETERS_KM 1, 10, 100 | any set | the information page | Boss asks for another set | the page's own choice | Boss, 4:37 PM EDT 2026-10-30 | UX.240 | - |
+| BD5 | P | T6 | L1 | belt_density.BULK_DENSITY_KG_M3 2500 | 1000 (ice) to 3500 | the diameter of a mass, where no density is given | a belt whose bodies have a measured mean density far from this | the density of the belt's own composition (the compaction taper) | belt-evolution.md section 11.1 | UX.240 | - |
+
 ## 6.76 Stand-ins of the super-puff radius
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -1096,7 +1117,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SX4 | P | T9 | L3 | scatter.HOT_SHARE 0.4: the share of the unswept cold disc that is excited after a full instability | 0.1 to 0.7 | systems with an instability | an observed hot-to-cold ratio from a survey | OSSOS (arXiv:2107.06120) hot and cold populations | educated guess from physics | GEN.1092 | no data |
 | SX5 | P | T9 | L3 | scatter.SWEPT_SPLIT (scattered 0.62, centaurs 0.25, detached 0.10, trojans 0.002, implanted 0.02, moons 0.008): how the swept mass that stays bound is shared | each within a factor of 3 | the swept mass | a population synthesis | Levison et al. 2008 | educated guess from needed output | GEN.1092 | no data |
 
-## 6.97 Stand-ins of the captured asteroid moons
+## 6.100 Stand-ins of the captured asteroid moons
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1152,7 +1173,25 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| IO1 | P | T9 | L2 | irregular_orbits.MEDIAN_BEFORE_SURVIVAL, the median a / r_H before the stable limits cut, by planet distance: 1.1, 0.33, 0.17, 0.19 at 5.2, 9.5, 19.2, 30.1 AU | each value within 30 percent | the four giants | a capture simulation whose pre-survival a / r_H differs from the table | a capture-simulation distribution by planet mass, distance and mechanism (Nesvorny, Vokrouhlicky and Deienno 2014) | fitted so the survivors have the observed medians of 0.44, 0.29, 0.17 and 0.19 of the Hill radius (Jewitt and Haghighipour 2007) | GEN.1078 | - |
-| IO2 | P | T9 | L3 | irregular_orbits.SIGMA_LN 0.44, the natural-log width of the a / r_H draw | 0.3 to 0.6 | the four giants | a survivor spread of a / r_H that differs from the observed one at three giants | the width of a capture simulation | fitted with the Jupiter row to the retrograde to prograde split of 4.5 | GEN.1078 | no data |
-| IO3 | P | T2 | L1 | irregular_orbits.ECCENTRICITY_MAX 0.7, the upper end of the uniform eccentricity draw | 0.6 to 0.8 | the four giants | a survivor with an eccentricity well over 0.7 | the eccentricity distribution of a capture simulation | the known irregulars run from 0.1 to 0.7 (Jewitt and Haghighipour 2007) | GEN.1078 | - |
-| IO4 | P | T4 | L3 | irregular_orbits.FAMILY_SPEED_M_S (20, 300), the log-uniform ejection speed of a family's fragments | tens to a few hundred | the families of Jupiter and Saturn | a family whose spread needs speeds outside the range | the velocity fields of the Himalia, Gallic and Inuit families (Nesvorny et al. 2003) | Nesvorny et al. 2003, recalled: tens to hundreds of m/s | GEN.1078 | no data |
+| IO1 | P | T9 | L2 | irregular_orbits.MEDIAN_BEFORE_SURVIVAL, the median a / r_H before the stable limits cut, by planet distance: 1.1, 0.33, 0.17, 0.19 at 5.2, 9.5, 19.2, 30.1 AU | each value within 30 percent | the four giants | a capture simulation whose pre-survival a / r_H differs from the table | a capture-simulation distribution by planet mass, distance and mechanism (Nesvorny, Vokrouhlicky and Deienno 2014) | fitted so the survivors have the observed medians of 0.44, 0.29, 0.17 and 0.19 of the Hill radius (Jewitt and Haghighipour 2007) | GEN.1083 | - |
+| IO2 | P | T9 | L3 | irregular_orbits.SIGMA_LN 0.44, the natural-log width of the a / r_H draw | 0.3 to 0.6 | the four giants | a survivor spread of a / r_H that differs from the observed one at three giants | the width of a capture simulation | fitted with the Jupiter row to the retrograde to prograde split of 4.5 | GEN.1083 | no data |
+| IO3 | P | T2 | L1 | irregular_orbits.ECCENTRICITY_MAX 0.7, the upper end of the uniform eccentricity draw | 0.6 to 0.8 | the four giants | a survivor with an eccentricity well over 0.7 | the eccentricity distribution of a capture simulation | the known irregulars run from 0.1 to 0.7 (Jewitt and Haghighipour 2007) | GEN.1083 | - |
+| IO4 | P | T4 | L3 | irregular_orbits.FAMILY_SPEED_M_S (20, 300), the log-uniform ejection speed of a family's fragments | tens to a few hundred | the families of Jupiter and Saturn | a family whose spread needs speeds outside the range | the velocity fields of the Himalia, Gallic and Inuit families (Nesvorny et al. 2003) | Nesvorny et al. 2003, recalled: tens to hundreds of m/s | GEN.1083 | no data |
+
+## 6.97 Stand-ins of the belt origins
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BG1 | P | T6 | L0 | belt_origin.GAP_SPACING_K 40, the spacing in mutual Hill radii beyond which the chain has a gap | 25 to 60 | chains the architecture has thinned | a chain with a planet-free stretch of 40 Hill radii or more that the architecture's own spacing law says is normal | the spacing distribution of the architecture census (a gap is a spacing above its 95th percentile) | the thinned chains cluster at 12 to 20 mutual Hill radii (Pu and Wu 2015, as read in the `planet_architecture` text); 40 is twice the top of that | GEN.1092 | - |
+| BG2 | P | T6 | L0 | belt_origin.MIN_BELT_RATIO 1.1, the least outer over inner distance of a belt | 1.05 to 1.3 | every belt | a belt of the ledger narrower than 10 percent in distance | the ledger's own minimum belt width | the ledger keeps `MIN_ASTEROID_BELT_SEPARATION` of 0.05 AU between a belt and a planet; 10 percent is the width at which one stretch is still a ring | GEN.1092 | - |
+| BG3 | P | T6 | L0 | belt_origin.MIN_BELT_MASS_EARTH 1e-6, the least primordial mass of a belt (about 6e18 kg) | 1e-7 to 1e-5 | every belt | a belt of the census with fewer than one body above the individual-tier cut | the cut of row BR17 (1e19 kg) | one body of the individual tier of the ledger (belt-evolution section 3) | GEN.1092 | - |
+| BG4 | P | T4 | L0 | belt_origin.SNOW_BUMP_WIDTH 0.15, the half-width of the snow-line pile-up as a share of the snow line | 0.05 to 0.4 | discs with a quiet snow line | a survey of belt radii against the snow line that finds them outside 15 percent | a disc model with the pebble flux and the viscosity | Ida and Guillot 2016 (row BR16, READ) say a pressure bump forms at the snow line but give no width | GEN.1092 | - |
+| BG5 | P | T1 | L0 | belt_origin.CHAOTIC_ZONE_COEFFICIENT 1.3, the chaotic zone round a giant reaches 1.3 mu^(2/7) times its distance each side | 1.3 to 1.95 | low eccentricity particles | a numerical zone differing from it by more than 20 percent | the eccentricity-dependent width (row BR2) | Wisdom 1980, read in Morrison and Malhotra 2015 (arXiv:1411.1378): half-width c mu^(2/7) a with c = 1.3, and full clearing out to 1.5 to 1.95 (row BR2, Mustill and Wyatt 2012, READ) | GEN.1092 | - |
+| BG6 | D | T5 | L0 | belt_origin.RESONANCES 4:1, 3:1, 5:2, 7:3 and 2:1, the gaps a giant cuts in a belt inside its orbit, at `a_g (q/p)^(2/3)` | none | belts inside a giant | a giant whose belt is cleared at another ratio | a resonance map from an N-body run of the system's giants | Kepler's third law gives 2.06, 2.50, 2.82, 2.96 and 3.28 AU for a giant at 5.2 AU, the Kirkwood gaps | - | - |
+| BG7 | P | T6 | L1 | belt_origin.RESONANCE_HALF_WIDTH 0.015, the half-width of a resonance gap as a share of its distance for a giant of 9.5e-4 of its star, scaling as the square root of the giant's mass ratio | 0.005 to 0.04 | giants of 0.1 to 10 Jupiter masses | a belt whose gaps are more than twice as wide or narrow at the same giant | the resonance width from the pendulum model with the belt's eccentricity | the Kirkwood gaps are about 1 to 3 percent of their distance; the square root is the width of a first-order resonance in the pendulum model | GEN.1092 | - |
+| BG8 | P | T6 | L0 | belt_origin.STIR_ZONE_WIDTHS 3.0, a belt within 3 chaotic half-widths of a giant is stirred by it | 2 to 5 | belts near giants | a belt 3 half-widths out with a flat, cold size distribution | the stirring of the belt's eccentricity from the secular model | Morrison and Malhotra 2015 (read) follow the clearing out to 3.0 mu^(2/7) a | GEN.1092 | - |
+| BG9 | P | T2 | L1 | belt_origin.INSTABILITY_SURVIVAL_RANGE 0.002 to 0.01, the share of the swept stretch a giant that migrated through it leaves, log-uniform | one decade each way | belts of systems whose giants migrated through them | a system with a migration history whose belt is outside the range | N-body migration runs of the system's own giants | row BR4: Walsh et al. 2011 (READ) and Morbidelli et al. 2015 (READ); a Nice type instability alone leaves 0.1 to 0.5 (row BR5), not used until the architecture records instabilities (GEN.1082) | GEN.1092 | - |
+| BG10 | P | T4 | L0 | belt_origin.DESTROYED_RETAINED_SHARE 0.5, the share of a destroyed planet's mass that stays in orbit as a belt | 0.1 to 0.9 | planets destroyed by collision or tide | a collision run of a planet that leaves under 10 percent in orbit | the retained share of `collision_outcome` for the event | no source; the rest is ejected or falls onto the star | GEN.1092 | - |
+| BG11 | P | T6 | L0 | belt_origin.DEBRIS_MIN_WIDTH 0.05, the least half-width of a belt of debris as a share of its distance | 0.02 to 0.2 | belts of debris | a debris belt that stays narrower than 5 percent for a Gyr | the spread from the energy of the event | the relative speed of the pieces is of the order of the escape speed, a few percent of the orbital speed | GEN.1092 | - |
+| BG12 | P | T4 | L0 | belt_origin.COLLISIONAL_DEBRIS_PER_GYR 0.003, the chance per Gyr that a system has a standing belt of rubble from a collision of large bodies (1.3 percent over 4.5 Gyr) | 0.001 to 0.01 | systems of any age | a census of hot or warm dust that needs more than three times the rate | the occurrence of transient dust of the debris-disc surveys | no source; hot dust under 4 AU is thought to come from transient events (Sibthorpe 2018, row BR15) | GEN.1092 | - |
+| BG13 | P | T4 | L0 | belt_origin.COLLISIONAL_DEBRIS_MASS_EARTH 1e-4, the mass of a belt of collision rubble (6e20 kg) | 1e-5 to 1e-2 | collisions of large bodies | a rubble belt of the census well outside the range | the mass of the colliding pair | no source; the size of the family of a Ceres-class parent | GEN.1092 | - |

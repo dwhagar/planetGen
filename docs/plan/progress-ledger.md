@@ -2014,3 +2014,11 @@ Baseline: PR #1817.
 | TEST.494 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.1037 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.1040 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.913 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1065 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.495 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.497 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| GEN.1078 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.210 | 8.1 | The headline closes |
+| GEN.1093 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1088 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

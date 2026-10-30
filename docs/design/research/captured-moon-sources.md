@@ -1,6 +1,6 @@
 # Captured asteroid moons: what the papers and the satellite tables say (GEN.1075)
 
-Sources 1 lane, 10-30. This is the read list of [captured-asteroid-moons.md](../systems/captured-asteroid-moons.md) section 7 item 1: the papers opened, the head counts per giant read from the satellite tables, and what each changes in the design. The rows for GEN.725 are plan section 6.97 (CM1 to CM16). Docs only; no module reads these numbers yet.
+Sources 1 lane, 10-30. This is the read list of [captured-asteroid-moons.md](../systems/captured-asteroid-moons.md) section 7 item 1: the papers opened, the head counts per giant read from the satellite tables, and what each changes in the design. The rows for GEN.725 are plan section 6.100 (CM1 to CM16). Docs only; no module reads these numbers yet.
 
 ## Result in one paragraph
 

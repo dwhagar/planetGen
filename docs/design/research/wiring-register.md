@@ -194,6 +194,19 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.92:RC2 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | row | 6.92:RC3 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | row | 6.92:RC4 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
+| module | planetgen.physics.belt_density | UX.240 | the objects per square AU above a diameter, the mass per square AU and the size-table bins of a belt; the belt page data builder reads it |
+| row | 6.99:BD1 | UX.240 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD2 | UX.240 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD3 | UX.240 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD4 | UX.240 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD5 | UX.240 | a constant of the belt density module, read when its wiring step lands |
+| module | planetgen.physics.band_winds | GEN.1110 | the mean surface wind by day and by night in each latitude band; the seven-band climate (GEN.1108) will feed it band temperatures, and GEN.1110's storage step reads it |
+| row | 6.98:BW1 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
+| row | 6.98:BW2 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
+| row | 6.98:BW3 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
+| row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
+| row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
+| row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
@@ -224,14 +237,28 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.94:IZ1 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
 | row | 6.94:IZ2 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
 | row | 6.94:IZ3 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
-| module | planetgen.physics.irregular_orbits | GEN.1078 | the a / r_H, eccentricity, inclination and family draw of irregular moons; the captured-moon wiring will call it |
-| row | 6.96:IO1 | GEN.1078 | a constant of the irregular orbits module, read when its wiring step lands |
-| row | 6.96:IO2 | GEN.1078 | a constant of the irregular orbits module, read when its wiring step lands |
-| row | 6.96:IO3 | GEN.1078 | a constant of the irregular orbits module, read when its wiring step lands |
-| row | 6.96:IO4 | GEN.1078 | a constant of the irregular orbits module, read when its wiring step lands |
+| module | planetgen.physics.irregular_orbits | GEN.1083 | the a / r_H, eccentricity, inclination and family draw of irregular moons; the captured-moon wiring will call it |
+| row | 6.96:IO1 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
+| row | 6.96:IO2 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
+| row | 6.96:IO3 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
+| row | 6.96:IO4 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
 | module | planetgen.physics.scatter | GEN.1092 | the shares of an outer disc's mass in each scattered population, the rule of the scatter phase; the wiring step feeds it the architecture's giants |
 | row | 6.83:SX1 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
 | row | 6.83:SX2 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
 | row | 6.83:SX3 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
 | row | 6.83:SX4 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
 | row | 6.83:SX5 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
+| module | planetgen.physics.belt_origin | GEN.1092 | the cause of each belt (gap, tail, snow line, outer disc, destroyed planet, rubble), what the giants cleared and a moving giant swept, and the sentence for the belt page; GEN.1068 gives it the final chain and GEN.1092 stores its result |
+| data | belt_origins.json | GEN.1092 | the causes of a belt and the sentence each prints; read by physics/belt_origin.py, which nothing calls yet |
+| row | 6.97:BG1 | GEN.1092 | `belt_origin.GAP_SPACING_K`, read when the belt origin wiring lands |
+| row | 6.97:BG2 | GEN.1092 | `belt_origin.MIN_BELT_RATIO`, read when the belt origin wiring lands |
+| row | 6.97:BG3 | GEN.1092 | `belt_origin.MIN_BELT_MASS_EARTH`, read when the belt origin wiring lands |
+| row | 6.97:BG4 | GEN.1092 | `belt_origin.SNOW_BUMP_WIDTH`, read when the belt origin wiring lands |
+| row | 6.97:BG5 | GEN.1092 | `belt_origin.CHAOTIC_ZONE_COEFFICIENT`, read when the belt origin wiring lands |
+| row | 6.97:BG7 | GEN.1092 | `belt_origin.RESONANCE_HALF_WIDTH`, read when the belt origin wiring lands |
+| row | 6.97:BG8 | GEN.1092 | `belt_origin.STIR_ZONE_WIDTHS`, read when the belt origin wiring lands |
+| row | 6.97:BG9 | GEN.1092 | `belt_origin.INSTABILITY_SURVIVAL_RANGE`, read when the belt origin wiring lands |
+| row | 6.97:BG10 | GEN.1092 | `belt_origin.DESTROYED_RETAINED_SHARE`, read when the belt origin wiring lands |
+| row | 6.97:BG11 | GEN.1092 | `belt_origin.DEBRIS_MIN_WIDTH`, read when the belt origin wiring lands |
+| row | 6.97:BG12 | GEN.1092 | `belt_origin.COLLISIONAL_DEBRIS_PER_GYR`, read when the belt origin wiring lands |
+| row | 6.97:BG13 | GEN.1092 | `belt_origin.COLLISIONAL_DEBRIS_MASS_EARTH`, read when the belt origin wiring lands |
