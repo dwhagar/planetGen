@@ -208,6 +208,8 @@ _BODY_GROUPS = (
     *_rows("water", ("hydrosphere", "Hydrosphere", TEXT), ("water_mass_fraction", "Water share of the mass"),
            ("ocean_fraction", "Surface under ocean"), ("land_fraction", "Surface above sea level"),
            ("ocean_depth_km", "Ocean depth"), ("ice_shell_km", "Ice shell thickness"),
+           ("surface_liquid", "Surface liquid", TEXT), ("surface_liquid_fraction", "Surface under that liquid"),
+           ("surface_liquid_depth_km", "Depth of that liquid"),
            ("hp_ice_km", "High-pressure ice thickness"), ("ocean_class", "Ocean chemistry", TEXT),
            ("ocean_ph", "Ocean pH"), ("water_activity", "Water activity"),
            ("water_base_pressure_pa", "Pressure at the bottom of the water layer"),
@@ -725,7 +727,7 @@ _BANDS_AND_ZONES = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_sout
                     "temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
 _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
-    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km",
+    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2",
