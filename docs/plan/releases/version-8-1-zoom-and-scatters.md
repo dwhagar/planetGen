@@ -731,6 +731,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.949 | Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets |  |  |
 | GEN.950 | Water share of solids by distance from Lodders 2003 Table 11 and its condensation temperatures, replacing the fixed 170 K snow line (low priority) |  |  |
 | GEN.990 | Raise the C, O and Si abundance scatter, now about half the Brewer and Fischer 2016 scatter (bug) |  |  |
+| GEN.991 | Raise generated [O/Fe] by 0.03 to 0.09 dex to the Brewer and Fischer 2016 table in every [Fe/H] bin |  |  |
 | GEN.989 | Lower generated [Mg/Fe] by 0.05 to 0.07 dex for [Fe/H] above -0.2 to match Brewer and Fischer 2016 (bug) |  |  |
 | GEN.988 | Give Ca, S and Ar a star-to-star scatter like the other generated [X/Fe] abundances (bug) |  |  |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there |  | Under GEN.90. Same reconcile/zone code as phase 0's physics fixes. |
